@@ -1,5 +1,4 @@
-# DeAI
-Decentralized privacy-preserving ML software / infrastructure. 
+# DeAI - Decentralized privacy-preserving ML infrastructure. 
 
 We are currently building a decentralized ML training prototype on p2p networking stack, compatible with mobile devices and modern deep learning libraries.
 
