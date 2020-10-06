@@ -1,0 +1,69 @@
+<html>
+  <body>
+
+
+<div>
+<input type="text" placeholder="Username" id="username">
+<button onclick="register()">Register</button>
+</div>
+
+
+<div>
+<input type="text" placeholder="Receiver" id="receiver">
+</div>
+
+
+
+<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+<script>
+console.log('start')
+time = 0;
+peer = null;
+
+function register() {
+  const username = document.getElementById("username").value
+  //peer = new Peer(username, { host: 'localhost', port: 9000, path: '/myapp' })
+  peer = new Peer(username)
+
+  peer.on('connection', (conn) => {
+    conn.on('data', (data) => {
+      console.log("time=" + data["time"] + ": received " + data["param"].length + " parameter sets");
+    })
+  })
+}
+
+function send(data) {
+  const receiver = document.getElementById("receiver").value
+  const conn = peer.connect(receiver)
+
+  conn.on('open', () => {
+    conn.send(data)
+  })
+}
+
+function httpGetAsync(theUrl, callback) {
+    if (document.getElementById("receiver").value) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(JSON.parse(xmlHttp.responseText));
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
+  }
+}
+
+function checkResponse(json) {
+  if (json["time"] > time) {
+    time = json["time"];
+    send(json);
+  }
+}
+
+setInterval(() => { httpGetAsync("http://127.0.0.1:5001/", checkResponse) }, 5000)
+
+</script>
+  </body>
+</html>
+ 
+
