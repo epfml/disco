@@ -1,0 +1,57 @@
+<html>
+  <body>
+<div>
+<input type="text" placeholder="Username" id="username">
+<button onclick="register()">Register</button>
+</div>
+
+<div>
+<input type="text" placeholder="Receiver" id="receiver">
+<input type="text" placeholder="Message" id="message">
+<button onclick="send()">Send</button>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+<script>
+console.log('start')
+
+peer = null
+function register() {
+  const username = document.getElementById("username").value
+
+// Uncomment this to use the public peerjs server without turn server
+// peer = new Peer(username)
+
+// Remove config property to disable the use of a turn server
+peer = new Peer(username, 
+{
+host: '<aws-instance-public-ip>', port: 9000, path: '/myapp',
+config: {'iceServers': [
+    { url: 'stun:stun.l.google.com:19302' },
+    { url: 'turn:<aws-instance-public-ip>:3478', credential: 'deai', username: 'deai' }
+  ]} 
+}
+)
+
+peer.on('connection', (conn) => {
+  console.log('new connection')
+  conn.on('open',function(){
+  conn.on('data', (data) => {
+    console.log(data);
+  })})
+})
+}
+
+function send() {
+  const receiver = document.getElementById("receiver").value
+  const data = document.getElementById("message").value
+  const conn = peer.connect(receiver)
+
+  conn.on('open', () => {
+    conn.send(data)
+  })
+}
+
+</script>
+  </body>
+</html>
