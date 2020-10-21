@@ -18,13 +18,27 @@ console.log('start')
 peer = null
 function register() {
   const username = document.getElementById("username").value
-  //peer = new Peer(username, { host: 'localhost', port: 9000, path: '/myapp' })
-peer = new Peer(username)
+
+// Uncomment this to use the public peerjs server without turn server
+// peer = new Peer(username)
+
+// Remove config property to disable the use of a turn server
+peer = new Peer(username, 
+{
+host: '<aws-instance-public-ip>', port: 9000, path: '/myapp',
+config: {'iceServers': [
+    { url: 'stun:stun.l.google.com:19302' },
+    { url: 'turn:<aws-instance-public-ip>:3478', credential: 'deai', username: 'deai' }
+  ]} 
+}
+)
 
 peer.on('connection', (conn) => {
+  console.log('new connection')
+  conn.on('open',function(){
   conn.on('data', (data) => {
     console.log(data);
-  })
+  })})
 })
 }
 
@@ -41,5 +55,3 @@ function send() {
 </script>
   </body>
 </html>
- 
-
