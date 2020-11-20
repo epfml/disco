@@ -1,0 +1,107 @@
+<html>
+  <body>
+<div>
+<input type="text" placeholder="Username" id="username">
+<button onclick="register()">Register</button>
+</div>
+
+<div>
+<input type="text" placeholder="Receiver" id="receiver">
+<button onclick="send()">Send</button>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+<script src="https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js"></script>
+<script src="./modelbuilder.js"></script>
+<script src="./peer.js"></script>
+
+<script>
+console.log('start')
+
+async function serializeTensor(tensor) {
+    return {
+        "$tensor": {
+            "data": await tensor.data(), // doesn't copy (maybe depending on runtime)!
+            "shape": tensor.shape,
+            "dtype": tensor.dtype
+        }
+    }
+}
+function deserializeTensor(dict) {
+    const {data, shape, dtype} = dict["$tensor"];
+    return tf.tensor(data, shape, dtype); // doesn't copy (maybe depending on runtime)!
+}
+async function serializeVariable(variable) {
+    return {
+        "$variable": {
+            "name": variable.name,
+            "val": await serializeTensor(variable.val),
+        }
+    }
+}
+
+async function serializeModel(model) {
+    return await Promise.all(model.weights.map(serializeVariable));
+}
+
+function assignWeightsToModel(serializedWeights, model) {
+    // This assumes the weights are in the right order
+    model.weights.forEach((weight, idx) => {
+        const serializedWeight = serializedWeights[idx]["$variable"];
+        const tensor = deserializeTensor(serializedWeight.val);
+        weight.val.assign(tensor);
+        tensor.dispose();
+    });
+}
+
+var modelbuilder = new ModelBuilder({lib : "tf", func : "sequential", args: []})
+modelbuilder.compute_arg("layer1", ["tf", "layers", "dense"], {units: 32, inputShape: [50]})
+modelbuilder.compute_arg("layer2", ["tf", "layers", "dense"], {units: 4})
+modelbuilder.apply("add", "layer1");
+modelbuilder.apply("add", "layer2");
+
+const model_data = {
+    model_constructor   : modelbuilder.get_model_constructor(),
+    actions             : modelbuilder.get_actions(),
+    args                : modelbuilder.get_args()
+}
+
+const send_data = {
+    cmd_code    : CMD_CODES.MODEL_INFO,
+    payload     : model_data
+}
+
+const model = modelbuilder.get_model()
+peerjs = null
+
+function handle_data(data, model) {
+    switch(data.cmd_code) {
+        case CMD_CODES.MODEL_INFO:
+            mbuilder = new ModelBuilder(data.payload, mode="inject")
+            model = mbuilder.get_model()
+            break
+        case CMD_CODES.ASSIGN_WEIGHTS:
+            assignWeightsToModel(data.payload, model)
+            break
+    }
+}
+
+function register() {
+  const username = document.getElementById("username").value
+
+  peer = new Peer(username, {host: 'localhost', port: 9000, path: '/myapp'})
+  peerjs = new PeerJS(peer, handle_data, model)
+
+}
+
+async function send() {
+    const receiver = document.getElementById("receiver").value
+    console.log(send_data)
+    peerjs.send(receiver, send_data)
+
+}
+
+</script>
+  </body>
+</html>

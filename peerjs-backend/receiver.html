@@ -1,0 +1,81 @@
+<html>
+  <body>
+<div>
+<input type="text" placeholder="Username" id="username">
+<button onclick="register()">Register</button>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+<script src="https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js"></script>
+<script src="./modelbuilder.js"></script>
+<script src="./peer.js"></script>
+
+<script>
+console.log('start')
+
+async function serializeTensor(tensor) {
+    return {
+        "$tensor": {
+            "data": await tensor.data(), // doesn't copy (maybe depending on runtime)!
+            "shape": tensor.shape,
+            "dtype": tensor.dtype
+        }
+    }
+}
+function deserializeTensor(dict) {
+    const {data, shape, dtype} = dict["$tensor"];
+    return tf.tensor(data, shape, dtype); // doesn't copy (maybe depending on runtime)!
+}
+async function serializeVariable(variable) {
+    return {
+        "$variable": {
+            "name": variable.name,
+            "val": await serializeTensor(variable.val),
+        }
+    }
+}
+
+async function serializeModel(model) {
+    return await Promise.all(model.weights.map(serializeVariable));
+}
+
+function assignWeightsToModel(serializedWeights, model) {
+    // This assumes the weights are in the right order
+    model.weights.forEach((weight, idx) => {
+        const serializedWeight = serializedWeights[idx]["$variable"];
+        const tensor = deserializeTensor(serializedWeight.val);
+        weight.val.assign(tensor);
+        tensor.dispose();
+    });
+}
+
+peerjs = null
+model = null
+
+function handle_data(data, model) {
+    console.log("Received data!")
+    console.log(data)
+    switch(data.cmd_code) {
+        case CMD_CODES.MODEL_INFO:
+            mbuilder = new ModelBuilder(data.payload, mode="inject")
+            model = mbuilder.get_model()
+            console.log(model)
+            break
+        case CMD_CODES.ASSIGN_WEIGHTS:
+            assignWeightsToModel(data.payload, model)
+            break
+    }
+}
+
+function register() {
+  const username = document.getElementById("username").value
+
+  peer = new Peer(username, {host: 'localhost', port: 9000, path: '/myapp'})
+  peerjs = new PeerJS(peer, handle_data, model)
+
+}
+
+</script>
+  </body>
+</html>
