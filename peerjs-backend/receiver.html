@@ -50,16 +50,15 @@ function assignWeightsToModel(serializedWeights, model) {
     });
 }
 
-peerjs = null
-model = null
+var peerjs = null
+var model = null
 
-function handle_data(data, model) {
-    console.log("Received data!")
+async function handle_data(data, model) {
+    console.log("Received new data!")
     console.log(data)
     switch(data.cmd_code) {
         case CMD_CODES.MODEL_INFO:
-            mbuilder = new ModelBuilder(data.payload, mode="inject")
-            model = mbuilder.get_model()
+            model = await load_model(data.payload)
             console.log(model)
             break
         case CMD_CODES.ASSIGN_WEIGHTS:
