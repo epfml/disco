@@ -55,31 +55,16 @@ function assignWeightsToModel(serializedWeights, model) {
     });
 }
 
-var modelbuilder = new ModelBuilder({lib : "tf", func : "sequential", args: []})
-modelbuilder.compute_arg("layer1", ["tf", "layers", "dense"], {units: 32, inputShape: [50]})
-modelbuilder.compute_arg("layer2", ["tf", "layers", "dense"], {units: 4})
-modelbuilder.apply("add", "layer1");
-modelbuilder.apply("add", "layer2");
+const model = tf.sequential();
+model.add(tf.layers.dense({units: 32, inputShape: [50]}));
+model.add(tf.layers.dense({units: 4}));
 
-const model_data = {
-    model_constructor   : modelbuilder.get_model_constructor(),
-    actions             : modelbuilder.get_actions(),
-    args                : modelbuilder.get_args()
-}
+var peerjs = null
 
-const send_data = {
-    cmd_code    : CMD_CODES.MODEL_INFO,
-    payload     : model_data
-}
-
-const model = modelbuilder.get_model()
-peerjs = null
-
-function handle_data(data, model) {
+async function handle_data(data, model) {
     switch(data.cmd_code) {
         case CMD_CODES.MODEL_INFO:
-            mbuilder = new ModelBuilder(data.payload, mode="inject")
-            model = mbuilder.get_model()
+            model = await load_model(data.payload)
             break
         case CMD_CODES.ASSIGN_WEIGHTS:
             assignWeightsToModel(data.payload, model)
@@ -95,12 +80,24 @@ function register() {
 
 }
 
+// for random string
+function makeid(length) {
+   var result           = '';
+   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
+
+
 async function send() {
     const receiver = document.getElementById("receiver").value
-    console.log(send_data)
-    peerjs.send(receiver, send_data)
-
+    var name = makeid(10)
+    send_model(model, peerjs, receiver, name)
 }
+
 
 </script>
   </body>
