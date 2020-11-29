@@ -6,6 +6,8 @@ const CMD_CODES = {
     ASSIGN_WEIGHTS  : 0,
     TRAIN_INFO      : 1,
     MODEL_INFO      : 2,
+    COMPILE_MODEL   : 3,
+    AVG_WEIGHTS     : 4,
 }
 
 Object.freeze(CMD_CODES)
@@ -42,6 +44,7 @@ class PeerJS {
     }
 }
 
+// TODO: this doesn't need to be a class...
 class ModelStorage {
 
     static get BASEDIR() {
@@ -93,10 +96,22 @@ async function send_model(model, peerjs, receiver, name) {
         cmd_code    : CMD_CODES.MODEL_INFO,
         payload     : serialized
     }
+    console.log("Sending model data")
+    console.log(send_data)
+    peerjs.send(receiver, send_data)
+}
+
+function send_data(data, code, peerjs, receiver) {
+    const send_data = {
+        cmd_code    : code,
+        payload     : data
+    }
+
     console.log("Sending data")
     console.log(send_data)
     peerjs.send(receiver, send_data)
 }
+
 
 async function load_model(model_data) {
     var name = model_data.name
@@ -106,3 +121,24 @@ async function load_model(model_data) {
     return model
 }
 
+async function handle_data(data, buffer) {
+    console.log("Received new data!")
+    console.log(data)
+    switch(data.cmd_code) {
+        case CMD_CODES.MODEL_INFO:
+            buffer.model = data.payload
+            break
+        case CMD_CODES.ASSIGN_WEIGHTS:
+            buffer.assign_weights = data.payload
+            break
+        case CMD_CODES.COMPILE_MODEL:
+            buffer.compile_data = data.payload
+            break
+        case CMD_CODES.AVG_WEIGHTS:
+            buffer.avg_weights = data.payload
+            break
+        case CMD_CODES.TRAIN_INFO:
+            buffer.train_info = data.payload
+            break
+    }
+}
