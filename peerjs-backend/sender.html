@@ -10,7 +10,10 @@
 <button onclick="send()">Send</button>
 </div>
 
-
+<div>
+  <button onclick="train()">Train</button>
+</div>
+  
 
 <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
@@ -22,9 +25,12 @@
 console.log('start')
 
 
-const model = tf.sequential();
-model.add(tf.layers.dense({units: 32, inputShape: [50]}));
-model.add(tf.layers.dense({units: 4}));
+const model = tf.sequential({
+ layers: [
+   tf.layers.dense({inputShape: [784], units: 32, activation: 'relu'}),
+   tf.layers.dense({units: 10, activation: 'softmax'}),
+ ]
+});
 
 const model_compile_data = {
   optimizer   : 'sgd',
@@ -37,7 +43,28 @@ const model_train_data = {
 }
 
 var peerjs = null
-recv_buffer = {}
+var receiver = null
+var recv_buffer = {}
+var epoch = 0
+
+function onEpochBegin() {
+  console.log("EPOCH: ", epoch++)
+}
+
+async function onEpochEnd() {
+  console.log("Sending weights")
+  const serialized_weights = await serializeWeights(model)
+
+  await send_data(serialized_weights, CMD_CODES.AVG_WEIGHTS, peerjs, receiver)
+  await data_received(recv_buffer, "avg_weights")
+    .then(() => {
+      console.log("Averaging weights")
+      averageWeightsIntoModel(recv_buffer.avg_weights, model)
+      delete recv_buffer.avg_weights
+    })
+}
+
+
 
 function register() {
   const username = document.getElementById("username").value
@@ -48,11 +75,25 @@ function register() {
 }
 
 async function send() {
-    const receiver = document.getElementById("receiver").value
+    receiver = document.getElementById("receiver").value
     var name = makeid(10) // random string
     await send_model(model, peerjs, receiver, name)
     await send_data(model_compile_data, CMD_CODES.COMPILE_MODEL, peerjs, receiver)
     await send_data(model_train_data, CMD_CODES.TRAIN_INFO, peerjs, receiver)
+}
+
+const xs = tf.data.generator(dataGenerator);
+const ys = tf.data.generator(labelGenerator);
+
+const dataSet = tf.data.zip({xs, ys}).shuffle(100 /* bufferSize */).batch(32);
+
+async function train() {
+  model.compile(model_compile_data)
+  console.log("Training started")
+  model.fitDataset(dataSet, {
+    epochs : model_train_data.epochs,
+    callbacks : {onEpochBegin, onEpochEnd}
+  }).then(() => console.log("Training finished"))
 }
 
 
