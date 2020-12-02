@@ -1,0 +1,52 @@
+<html>
+  <body>
+<div>
+<input type="text" placeholder="Username" id="username">
+<button onclick="register()">Register</button>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+<script src="https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js"></script>
+<script src="./modelbuilder.js"></script>
+<script src="./peer.js"></script>
+<script src="./helpers.js"></script>
+<script>
+console.log('start')
+
+
+var peerjs = null
+var model = null
+var recv_buffer = {}
+
+async function register() {
+  const username = document.getElementById("username").value
+
+  peer = new Peer(username, {host: 'localhost', port: 9000, path: '/myapp'})
+  peerjs = new PeerJS(peer, handle_data, recv_buffer)
+  
+  data_received("model")
+    .then(() => data_received("compile_data"))
+    .then(() => data_received("train_info"))
+    .then(async () => {model = await load_model(recv_buffer.model)})
+    .then(() => {
+      model.compile(recv_buffer.compile_data)
+      console.log("Model: ", model)
+      console.log("Train info: ", recv_buffer.train_info)
+    });
+}
+
+function data_received(key) {
+  return new Promise( (resolve) => {
+    (function wait_data(){
+          if (recv_buffer[key]) {
+            return resolve();
+          }
+          setTimeout(wait_data, 100);
+      })();
+  });
+}
+
+</script>
+  </body>
+</html>
