@@ -9,6 +9,9 @@ async function serializeTensor(tensor) {
 }
 function deserializeTensor(dict) {
     const {data, shape, dtype} = dict["$tensor"];
+    console.log("data: ", data)
+    console.log("shape: ", shape)
+    console.log("dtype: ", dtype)
     return tf.tensor(data, shape, dtype); // doesn't copy (maybe depending on runtime)!
 }
 async function serializeVariable(variable) {
@@ -20,7 +23,7 @@ async function serializeVariable(variable) {
     }
 }
 
-async function serializeModel(model) {
+async function serializeWeights(model) {
     return await Promise.all(model.weights.map(serializeVariable));
 }
 
@@ -37,8 +40,9 @@ function assignWeightsToModel(serializedWeights, model) {
 function averageWeightsIntoModel(serializedWeights, model) {
     model.weights.forEach((weight, idx) => {
         const serializedWeight = serializedWeights[idx]["$variable"];
+        console.log(serializedWeight.val)
         const tensor = deserializeTensor(serializedWeight.val);
-        weight.val.assign(tensor.add(weight).div(2)); //average
+        weight.val.assign(tensor.add(weight.val).div(2)); //average
         tensor.dispose();
     });
 }
@@ -61,6 +65,16 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function data_received(recv_buffer, key) {
+    return new Promise( (resolve) => {
+      (function wait_data(){
+            if (recv_buffer[key]) {
+              return resolve();
+            }
+            setTimeout(wait_data, 100);
+        })();
+    });
+  }
 
 // for random string
 function makeid(length) {
