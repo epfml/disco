@@ -9,9 +9,6 @@ async function serializeTensor(tensor) {
 }
 function deserializeTensor(dict) {
     const {data, shape, dtype} = dict["$tensor"];
-    console.log("data: ", data)
-    console.log("shape: ", shape)
-    console.log("dtype: ", dtype)
     return tf.tensor(data, shape, dtype); // doesn't copy (maybe depending on runtime)!
 }
 async function serializeVariable(variable) {

@@ -35,6 +35,7 @@ async function register() {
   peer = new Peer(username, {host: 'localhost', port: 9000, path: '/myapp'})
   peerjs = new PeerJS(peer, handle_data, recv_buffer)
   
+  // wait to receive data
   data_received(recv_buffer, "model")
     .then(() => data_received(recv_buffer, "compile_data"))
     .then(() => data_received(recv_buffer, "train_info"))
