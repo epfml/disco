@@ -1,8 +1,21 @@
 # Basic syft.js Tutorial (summary)
 
+## **NOTE**
+The `PySyft` codebase underwent significant changes around 27/11/2020. This tutorial refers to `PySyft` version `0.2.x`, which is now obsolete.
+
+You can still use the old codebase with `PySyft 0.2.x`, which is found here: https://github.com/OpenMined/PySyft/tree/syft_0.2.x. To clone it locally:
+
+```bash
+git clone https://github.com/OpenMined/PySyft
+
+cd PySyft
+git checkout -b syft_0.2.x --track origin/syft_0.2.x
+```
+The old codebase will now be in your local branch `syft_0.2.x`.
+
 ## Prerequisites
 
-Grab the Git repositories:
+Grab the Git repositories (**see note above on `PySyft`!**).
 ```bash
 # syft.js
 git clone https://github.com/openmined/syft.js 
@@ -21,7 +34,9 @@ conda install jupyter notebook==5.7.8 tornado==4.5.3
 
 Install PySyft
 ```bash
-pip install 'syft[udacity]'
+# Don't forget the version number, which refers
+# to the old codebase
+pip install 'syft[udacity]==0.2.9'
 ```
 
 To test PyGrid locally on a dummy cluster, insert this in your `/etc/hosts` file
@@ -38,6 +53,7 @@ Finally, you need to install [npm](https://www.npmjs.com/get-npm) to test the `s
 
 ## Demo
 
+1. Start Docker
 1. Start PyGrid
 ```bash
 cd PyGrid
