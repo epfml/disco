@@ -6,7 +6,7 @@
 </div>
 
 <div>
-<input type="text" placeholder="Receiver" id="receiver">
+<input type="text" placeholder="Receivers" id="receivers">
 <button onclick="send()">Send</button>
 </div>
 
@@ -43,24 +43,39 @@ const model_train_data = {
 }
 
 var peerjs = null
-var receiver = null
+var receivers = []
 var recv_buffer = {}
 var epoch = 0
 
 function onEpochBegin() {
-  console.log("EPOCH: ", epoch++)
+  console.log("EPOCH: ", ++epoch)
 }
 
 async function onEpochEnd() {
-  console.log("Sending weights")
   const serialized_weights = await serializeWeights(model)
+  const epoch_weights = {epoch : epoch, weights : serialized_weights}
 
-  await send_data(serialized_weights, CMD_CODES.AVG_WEIGHTS, peerjs, receiver)
-  await data_received(recv_buffer, "avg_weights")
+  for (var i in receivers) {
+    console.log("Sending weights to: ", receivers[i])
+    await send_data(epoch_weights, CMD_CODES.AVG_WEIGHTS, peerjs, receivers[i])
+  }
+
+  if (recv_buffer.avg_weights === undefined) {
+    console.log("Waiting to receive weights...")
+    await data_received(recv_buffer, "avg_weights")
+  }
+  if (recv_buffer.avg_weights[epoch] === undefined) {
+    console.log("Waiting to receive weights for this epoch...")
+    await data_received(recv_buffer.avg_weights, epoch.toString())
+  }
+  console.log("Waiting to receive all weights for this epoch...")
+  await check_array_len(recv_buffer.avg_weights[epoch], receivers.length)
     .then(() => {
       console.log("Averaging weights")
-      averageWeightsIntoModel(recv_buffer.avg_weights, model)
-      delete recv_buffer.avg_weights
+      for(i in recv_buffer.avg_weights[epoch]) {
+        averageWeightsIntoModel(recv_buffer.avg_weights[epoch][i], model)
+      }
+      // delete recv_buffer.avg_weights
     })
 }
 
@@ -75,11 +90,13 @@ function register() {
 }
 
 async function send() {
-    receiver = document.getElementById("receiver").value
+    receivers = document.getElementById("receivers").value.split(',')
     var name = makeid(10) // random string
-    await send_model(model, peerjs, receiver, name)
-    await send_data(model_compile_data, CMD_CODES.COMPILE_MODEL, peerjs, receiver)
-    await send_data(model_train_data, CMD_CODES.TRAIN_INFO, peerjs, receiver)
+    for (i in receivers) {
+      await send_model(model, peerjs, receivers[i], name)
+      await send_data(model_compile_data, CMD_CODES.COMPILE_MODEL, peerjs, receivers[i])
+      await send_data(model_train_data, CMD_CODES.TRAIN_INFO, peerjs, receivers[i])  
+    }
 }
 
 const xs = tf.data.generator(dataGenerator);
