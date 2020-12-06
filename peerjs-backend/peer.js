@@ -27,7 +27,7 @@ class PeerJS {
 
         console.log("peer", local_peer)
         this.local_peer.on("connection", (conn) => {
-            console.log("new connection")
+            console.log("new connection from", conn.peer)
             conn.on("data", async (data) => {
                 this.data = data
                 this.new_data = true
@@ -91,7 +91,6 @@ class ModelStorage {
         serialized.name = name
         return serialized
     }
-
 }
 
 async function send_model(model, peerjs, receiver, name) {
@@ -142,7 +141,20 @@ async function handle_data(data, buffer) {
             buffer.compile_data = payload
             break
         case CMD_CODES.AVG_WEIGHTS:
-            buffer.avg_weights = payload
+
+            if (buffer.avg_weights === undefined) {
+                buffer.avg_weights = {}
+            }
+
+            const epoch = payload.epoch
+            const weights = payload.weights
+
+            if (buffer.avg_weights[epoch] === undefined) {
+                buffer.avg_weights[epoch] = [weights]
+            } else {
+                buffer.avg_weights[epoch].push(weights)
+            }
+            console.log("#Weights: ", buffer.avg_weights[epoch].length)
             break
         case CMD_CODES.TRAIN_INFO:
             buffer.train_info = payload

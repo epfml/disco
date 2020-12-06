@@ -64,14 +64,25 @@ function sleep(ms) {
 
 function data_received(recv_buffer, key) {
     return new Promise( (resolve) => {
-      (function wait_data(){
+        (function wait_data(){
             if (recv_buffer[key]) {
-              return resolve();
+                return resolve();
             }
             setTimeout(wait_data, 100);
         })();
     });
-  }
+}
+
+function check_array_len(arr, len) {
+    return new Promise( (resolve) => {
+        (function wait_data(){
+            if (arr.length === len) {
+                return resolve();
+            }
+            setTimeout(wait_data, 100);
+        })();
+    });
+}
 
 // for random string
 function makeid(length) {
