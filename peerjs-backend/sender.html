@@ -20,6 +20,7 @@
 <script src="https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js"></script>
 <script src="./peer.js"></script>
 <script src="./helpers.js"></script>
+<script src="./mnist_data.js"></script>
 
 <script>
 console.log('start')
@@ -75,7 +76,8 @@ async function onEpochEnd() {
       for(i in recv_buffer.avg_weights[epoch]) {
         averageWeightsIntoModel(recv_buffer.avg_weights[epoch][i], model)
       }
-      // delete recv_buffer.avg_weights
+      // might want to delete these after using them to avoiding hogging RAM
+      // delete recv_buffer.avg_weights[epoch]
     })
 }
 
@@ -99,18 +101,28 @@ async function send() {
     }
 }
 
-const xs = tf.data.generator(dataGenerator);
-const ys = tf.data.generator(labelGenerator);
-
-const dataSet = tf.data.zip({xs, ys}).shuffle(100 /* bufferSize */).batch(32);
 
 async function train() {
+  const mnist = new MnistData()
+  await mnist.load()
+  const [x_train_2d, y_train_2d] = mnist.getTrainData()
+  const x_train_1d_ord = tf.reshape(x_train_2d, [x_train_2d.shape[0], -1])
+  const y_train_1d_ord = tf.reshape(y_train_2d, [y_train_2d.shape[0], -1])
+
+  // shuffle
+  var indices = tf.linspace(0, x_train_1d_ord.shape[0]).cast('int32')
+  tf.util.shuffle(indices)
+  const x_train_1d = x_train_1d_ord.gather(indices)
+  const y_train_1d = y_train_1d_ord.gather(indices)
+
+
   model.compile(model_compile_data)
   console.log("Training started")
-  model.fitDataset(dataSet, {
+  await model.fit(x_train_1d, y_train_1d, {
     epochs : model_train_data.epochs,
+    batchSize: 50,
     callbacks : {onEpochBegin, onEpochEnd}
-  }).then(() => console.log("Training finished"))
+  }).then((info) => console.log("Training finished", info.history))
 }
 
 

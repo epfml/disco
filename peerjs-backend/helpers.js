@@ -37,7 +37,7 @@ function assignWeightsToModel(serializedWeights, model) {
 function averageWeightsIntoModel(serializedWeights, model) {
     model.weights.forEach((weight, idx) => {
         const serializedWeight = serializedWeights[idx]["$variable"];
-        console.log(serializedWeight.val)
+
         const tensor = deserializeTensor(serializedWeight.val);
         weight.val.assign(tensor.add(weight.val).div(2)); //average
         tensor.dispose();
