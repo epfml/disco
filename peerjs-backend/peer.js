@@ -12,6 +12,12 @@ const CMD_CODES = {
 
 Object.freeze(CMD_CODES)
 
+/**
+ * NOTE: peer.js seems to convert all array types to ArrayBuffer, making the original 
+ * type unrecoverable (Float32Array, Uint8Array, ...). The solution is to encode any payload
+ * with msgpack.encode, then decode at the destination.
+ */
+
 class PeerJS {
     constructor(local_peer, handle_data, ...handle_data_args) {
         this.local_peer = local_peer
@@ -31,7 +37,6 @@ class PeerJS {
     }
 
     async send(receiver, data) {
-        const msg = msgpack.encode(data);
         const conn = this.local_peer.connect(receiver)
         conn.on('open', () => {
             conn.send(data)
@@ -94,7 +99,7 @@ async function send_model(model, peerjs, receiver, name) {
     var serialized = ModelStorage.get_serialized_model(name)
     const send_data = {
         cmd_code    : CMD_CODES.MODEL_INFO,
-        payload     : serialized
+        payload     : msgpack.encode(serialized)
     }
     console.log("Sending model data")
     console.log(send_data)
@@ -104,7 +109,7 @@ async function send_model(model, peerjs, receiver, name) {
 function send_data(data, code, peerjs, receiver) {
     const send_data = {
         cmd_code    : code,
-        payload     : data
+        payload     : msgpack.encode(data)
     }
 
     console.log("Sending data")
@@ -122,23 +127,25 @@ async function load_model(model_data) {
 }
 
 async function handle_data(data, buffer) {
-    console.log("Received new data!")
-    console.log(data)
+    console.log("Received new data: ", data)
+
+    // convert the peerjs ArrayBuffer back into Uint8Array
+    payload = msgpack.decode(new Uint8Array(data.payload))
     switch(data.cmd_code) {
         case CMD_CODES.MODEL_INFO:
-            buffer.model = data.payload
+            buffer.model = payload
             break
         case CMD_CODES.ASSIGN_WEIGHTS:
-            buffer.assign_weights = data.payload
+            buffer.assign_weights = payload
             break
         case CMD_CODES.COMPILE_MODEL:
-            buffer.compile_data = data.payload
+            buffer.compile_data = payload
             break
         case CMD_CODES.AVG_WEIGHTS:
-            buffer.avg_weights = data.payload
+            buffer.avg_weights = payload
             break
         case CMD_CODES.TRAIN_INFO:
-            buffer.train_info = data.payload
+            buffer.train_info = payload
             break
     }
 }
