@@ -37,13 +37,14 @@ function assignWeightsToModel(serializedWeights, model) {
 function averageWeightsIntoModel(serializedWeights, model) {
     model.weights.forEach((weight, idx) => {
         const serializedWeight = serializedWeights[idx]["$variable"];
-        console.log(serializedWeight.val)
+
         const tensor = deserializeTensor(serializedWeight.val);
         weight.val.assign(tensor.add(weight.val).div(2)); //average
         tensor.dispose();
     });
 }
 
+//////////// TESTING functions - generate random data and labels
 function* dataGenerator() {
     for (let i = 0; i < 100; i++) {
         // Generate one sample at a time.
@@ -57,6 +58,7 @@ function* labelGenerator() {
         yield tf.randomUniform([10]);
     }
 }
+///////////////////////////////////////////////
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -64,16 +66,33 @@ function sleep(ms) {
 
 function data_received(recv_buffer, key) {
     return new Promise( (resolve) => {
-      (function wait_data(){
+        (function wait_data(){
             if (recv_buffer[key]) {
-              return resolve();
+                return resolve();
             }
             setTimeout(wait_data, 100);
         })();
     });
-  }
+}
 
-// for random string
+/**
+ * Waits until an array reaches a given length. Used to make 
+ * sure that all weights from peers are received.
+ * @param {Array} arr 
+ * @param {int} len 
+ */
+function check_array_len(arr, len) {
+    return new Promise( (resolve) => {
+        (function wait_data(){
+            if (arr.length === len) {
+                return resolve();
+            }
+            setTimeout(wait_data, 100);
+        })();
+    });
+}
+
+// generates a random string
 function makeid(length) {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
