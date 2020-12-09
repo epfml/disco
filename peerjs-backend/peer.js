@@ -100,9 +100,9 @@ class ModelStorage {
     }
 
     /**
-     * 
-     * @param {*} model_data 
-     * @param {*} name 
+     * Save serialized model to LocalStorage for future loading
+     * @param {object} model_data serialized model
+     * @param {String} name name, can be anything
      */
     static inject(model_data, name) {
         for(var i = 0; i < this.FILENAMES; i++) {
@@ -113,6 +113,10 @@ class ModelStorage {
         }
     }
 
+    /**
+     * Get serialized model from LocalStorage
+     * @param {String} name name used to save the model
+     */
     static get_serialized_model(name) {
         var serialized = {}
         for(var i = 0; i < this.FILENAMES.length; i++) {
@@ -127,6 +131,13 @@ class ModelStorage {
     }
 }
 
+/**
+ * Send a serialized TFJS model to a remote peer
+ * @param {TFJS model} model the model to send
+ * @param {PeerJS} peerjs instance of PeerJS object
+ * @param {String} receiver receiver name (must be registered in PeerJS server)
+ * @param {String} name name to save the model with, can be anything
+ */
 async function send_model(model, peerjs, receiver, name) {
     await ModelStorage.store(model, name)
     var serialized = ModelStorage.get_serialized_model(name)
@@ -139,6 +150,13 @@ async function send_model(model, peerjs, receiver, name) {
     peerjs.send(receiver, send_data)
 }
 
+/**
+ * Send data to a remote peer
+ * @param {object} data data to send
+ * @param {int} code code in CMD_CODES to identify what the data is for
+ * @param {PeerJS} peerjs PeerJS object
+ * @param {String} receiver name of receiver peer (must be registered in PeerJS server)
+ */
 function send_data(data, code, peerjs, receiver) {
     const send_data = {
         cmd_code    : code,
@@ -150,7 +168,10 @@ function send_data(data, code, peerjs, receiver) {
     peerjs.send(receiver, send_data)
 }
 
-
+/**
+ * Deserialize a received model 
+ * @param {object} model_data serialized model
+ */
 async function load_model(model_data) {
     var name = model_data.name
     ModelStorage.inject(model_data, name)
@@ -159,6 +180,11 @@ async function load_model(model_data) {
     return model
 }
 
+/**
+ * Function given to PeerJS instance to handle incoming data
+ * @param {object} data incoming data 
+ * @param {object} buffer buffer to store data
+ */
 async function handle_data(data, buffer) {
     console.log("Received new data: ", data)
 

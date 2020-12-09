@@ -29,6 +29,7 @@ var receivers = null
 var recv_buffer = {}
 var epoch = 0
 
+// register peer name on PeerJS server
 async function register() {
   const username = document.getElementById("username").value
   receivers = document.getElementById("receivers").value.split(',')
@@ -52,6 +53,10 @@ function onEpochBegin() {
   console.log("EPOCH: ", ++epoch)
 }
 
+/**
+ * Sends weights to all peers, waits to receive weights from all peers
+ * and then averages peers' weights into the model.
+*/
 async function onEpochEnd() {
   const serialized_weights = await serializeWeights(model)
   const epoch_weights = {epoch : epoch, weights : serialized_weights}
@@ -80,6 +85,7 @@ async function onEpochEnd() {
     })
 }
 
+// train model (might want to add shuffling here for the prototype)
 async function train() {
   const mnist = new MnistData()
   await mnist.load()
