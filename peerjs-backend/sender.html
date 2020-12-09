@@ -52,6 +52,10 @@ function onEpochBegin() {
   console.log("EPOCH: ", ++epoch)
 }
 
+/**
+ * Sends weights to all peers, waits to receive weights from all peers
+ * and then averages peers' weights into the model.
+*/
 async function onEpochEnd() {
   const serialized_weights = await serializeWeights(model)
   const epoch_weights = {epoch : epoch, weights : serialized_weights}
@@ -76,13 +80,13 @@ async function onEpochEnd() {
       for(i in recv_buffer.avg_weights[epoch]) {
         averageWeightsIntoModel(recv_buffer.avg_weights[epoch][i], model)
       }
-      // might want to delete these after using them to avoiding hogging RAM
+      // might want to delete weights after using them to avoiding hogging memory
       // delete recv_buffer.avg_weights[epoch]
     })
 }
 
 
-
+// register peer name on PeerJS server
 function register() {
   const username = document.getElementById("username").value
 
@@ -91,6 +95,7 @@ function register() {
 
 }
 
+// send model to comma-separated peers
 async function send() {
     receivers = document.getElementById("receivers").value.split(',')
     var name = makeid(10) // random string
@@ -101,7 +106,7 @@ async function send() {
     }
 }
 
-
+// train model
 async function train() {
   const mnist = new MnistData()
   await mnist.load()
@@ -109,7 +114,7 @@ async function train() {
   const x_train_1d_ord = tf.reshape(x_train_2d, [x_train_2d.shape[0], -1])
   const y_train_1d_ord = tf.reshape(y_train_2d, [y_train_2d.shape[0], -1])
 
-  // shuffle
+  // shuffle to avoid having the same thing on all peers
   var indices = tf.linspace(0, x_train_1d_ord.shape[0]).cast('int32')
   tf.util.shuffle(indices)
   const x_train_1d = x_train_1d_ord.gather(indices)

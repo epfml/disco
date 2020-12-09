@@ -44,6 +44,7 @@ function averageWeightsIntoModel(serializedWeights, model) {
     });
 }
 
+//////////// TESTING functions - generate random data and labels
 function* dataGenerator() {
     for (let i = 0; i < 100; i++) {
         // Generate one sample at a time.
@@ -57,6 +58,7 @@ function* labelGenerator() {
         yield tf.randomUniform([10]);
     }
 }
+///////////////////////////////////////////////
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -73,6 +75,12 @@ function data_received(recv_buffer, key) {
     });
 }
 
+/**
+ * Waits until an array reaches a given length. Used to make 
+ * sure that all weights from peers are received.
+ * @param {Array} arr 
+ * @param {int} len 
+ */
 function check_array_len(arr, len) {
     return new Promise( (resolve) => {
         (function wait_data(){
@@ -84,7 +92,7 @@ function check_array_len(arr, len) {
     });
 }
 
-// for random string
+// generates a random string
 function makeid(length) {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
