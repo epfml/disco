@@ -1,16 +1,16 @@
-//const msgpack = require("msgpack-lite");
-
-
+/**
+ * This object contains codes to identify what the incoming data 
+ * should be used for, e.g. to build the model, average the weights etc...
+ */
 // trying to reproduce an Enum
 const CMD_CODES = {
-    ASSIGN_WEIGHTS  : 0,
-    TRAIN_INFO      : 1,
-    MODEL_INFO      : 2,
-    COMPILE_MODEL   : 3,
-    AVG_WEIGHTS     : 4,
+    ASSIGN_WEIGHTS  : 0, // inject weights into model (unused)
+    TRAIN_INFO      : 1, // n. epochs, etc...
+    MODEL_INFO      : 2, // serialized model architecture
+    COMPILE_MODEL   : 3, // args to model.compile, e.g. optimizer, metrics 
+    AVG_WEIGHTS     : 4, // weights to average into model
 }
-
-Object.freeze(CMD_CODES)
+Object.freeze(CMD_CODES) // make object immutable
 
 /**
  * NOTE: peer.js seems to convert all array types to ArrayBuffer, making the original 
@@ -18,7 +18,18 @@ Object.freeze(CMD_CODES)
  * with msgpack.encode, then decode at the destination.
  */
 
+
+/**
+ * Wrapper class that deals with PeerJS communication.
+ */
 class PeerJS {
+    /**
+     * 
+     * @param {Peer} local_peer Peer object (from PeerJS) instantiated for local machine
+     * @param {function} handle_data function to be called on incoming data. It should take the 
+     * incoming data as first argument. 
+     * @param  {...any} handle_data_args args to handle_data
+     */
     constructor(local_peer, handle_data, ...handle_data_args) {
         this.local_peer = local_peer
         this.data = null
@@ -26,36 +37,49 @@ class PeerJS {
         this.handle_data_args = handle_data_args
 
         console.log("peer", local_peer)
+
+        // specify what to do on connection from another peer
         this.local_peer.on("connection", (conn) => {
             console.log("new connection from", conn.peer)
             conn.on("data", async (data) => {
                 this.data = data
-                this.new_data = true
                 await this.handle_data(data, ...this.handle_data_args)
             })
         })
     }
 
+    /**
+     * Send data to remote peer
+     * @param {Peer} receiver PeerJS remote peer (Peer object).
+     * @param {object} data object to send
+     */
     async send(receiver, data) {
         const conn = this.local_peer.connect(receiver)
         conn.on('open', () => {
             conn.send(data)
         })
     }
-
-    get_data() {
-        this.new_data = false
-        return this.data
-    }
 }
 
-// TODO: this doesn't need to be a class...
+/**
+ * This class deals with storing and retrieving the TFJS model 
+ * from the browser's LocalStorage. It doesn't really need to be a 
+ * class as everything is static... maybe it should just be a module
+ * with a collection of functions.
+ */
 class ModelStorage {
 
+    /**
+     * Base directory in LocalStorage where models are stored.
+     */
     static get BASEDIR() {
         return "tensorflowjs_models"
     }
 
+    /**
+     * TFJS models are stored across multiple files, this returns a list of 
+     * all of them.
+     */
     static get FILENAMES() {
         return [
             "info",
@@ -66,10 +90,20 @@ class ModelStorage {
         ]
     }
 
+    /**
+     * Store TFJS model in LocalStorage.
+     * @param {TFJS model} model 
+     * @param {String} name name of model to store (can be anything)
+     */
     static async store(model, name) {
         await model.save("localstorage://" + name)
     }
 
+    /**
+     * 
+     * @param {*} model_data 
+     * @param {*} name 
+     */
     static inject(model_data, name) {
         for(var i = 0; i < this.FILENAMES; i++) {
             var key = this.FILENAMES[i]
