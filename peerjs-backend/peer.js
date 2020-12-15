@@ -9,6 +9,7 @@ const CMD_CODES = {
     MODEL_INFO      : 2, // serialized model architecture
     COMPILE_MODEL   : 3, // args to model.compile, e.g. optimizer, metrics 
     AVG_WEIGHTS     : 4, // weights to average into model
+    WEIGHT_REQUEST  : 5, // ask for weights
 }
 Object.freeze(CMD_CODES) // make object immutable
 
@@ -218,6 +219,9 @@ async function handle_data(data, buffer) {
             break
         case CMD_CODES.TRAIN_INFO:
             buffer.train_info = payload
+            break
+        case CMD_CODES.WEIGHT_REQUEST:
+            buffer.weight_req_epoch = payload
             break
     }
 }
