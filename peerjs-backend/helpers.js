@@ -104,7 +104,7 @@ function makeid(length) {
  }
 
 // train on Mnist
- async function train(model_compile_data, model_train_data, onEpochBegin, onEpochEnd) {
+ async function train_common(model, model_compile_data, model_train_data, onEpochBegin, onEpochEnd) {
     const mnist = new MnistData()
     await mnist.load()
     const [x_train_2d, y_train_2d] = mnist.getTrainData()
@@ -127,12 +127,11 @@ function makeid(length) {
     }).then((info) => console.log("Training finished", info.history))
   }
 
-
 /**
  * Sends weights to all peers, waits to receive weights from all peers
  * and then averages peers' weights into the model.
 */
-async function onEpochEnd(model, epoch, receivers, recv_buffer) {
+async function onEpochEnd_Sync(model, epoch, receivers, recv_buffer) {
     const serialized_weights = await serializeWeights(model)
     const epoch_weights = {epoch : epoch, weights : serialized_weights}
   
@@ -158,5 +157,42 @@ async function onEpochEnd(model, epoch, receivers, recv_buffer) {
         }
         // might want to delete weights after using them to avoiding hogging memory
         // delete recv_buffer.avg_weights[epoch]
+      })
+  }
+
+/**
+ * Request weights from peers, carry on if the number of received weights is 
+ * greater than the provided threshold
+*/
+async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold) {
+    const serialized_weights = await serializeWeights(model)
+    const epoch_weights = {epoch : epoch, weights : serialized_weights}
+    
+    // request weights and send to all who requested
+    for (var i in receivers) {
+        await send_data({name : username}, CMD_CODES.WEIGHT_REQUEST, peerjs, receivers[i])
+
+        if (recv_buffer.weight_requests !== undefined && recv_buffer.weight_requests.has(receivers[i])) {
+            console.log("Sending weights to: ", receivers[i])
+            await send_data(epoch_weights, CMD_CODES.AVG_WEIGHTS, peerjs, receivers[i])
+        }
+    }
+    if (recv_buffer.weight_requests !== undefined) {
+        recv_buffer.weight_requests.clear()
+    }
+  
+    if (recv_buffer.avg_weights === undefined) {
+      console.log("Waiting to receive weights...")
+      await data_received(recv_buffer, "avg_weights")
+    }
+   
+    console.log("Waiting to receive enough weights...")
+    await check_array_len(Object.values(recv_buffer.avg_weights).flat(1), threshold)
+      .then(() => {
+        console.log("Averaging weights")
+        Object.values(recv_buffer.avg_weights).flat(1).forEach(
+            (w) => { averageWeightsIntoModel(w, model) }
+        )
+        delete recv_buffer.avg_weights // NOTE: this might delete useful weights...
       })
   }
