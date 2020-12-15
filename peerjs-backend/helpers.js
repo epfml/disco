@@ -102,3 +102,61 @@ function makeid(length) {
     }
     return result;
  }
+
+// train on Mnist
+ async function train(model_compile_data, model_train_data, onEpochBegin, onEpochEnd) {
+    const mnist = new MnistData()
+    await mnist.load()
+    const [x_train_2d, y_train_2d] = mnist.getTrainData()
+    const x_train_1d_ord = tf.reshape(x_train_2d, [x_train_2d.shape[0], -1])
+    const y_train_1d_ord = tf.reshape(y_train_2d, [y_train_2d.shape[0], -1])
+  
+    // shuffle to avoid having the same thing on all peers
+    var indices = tf.linspace(0, x_train_1d_ord.shape[0]).cast('int32')
+    tf.util.shuffle(indices)
+    const x_train_1d = x_train_1d_ord.gather(indices)
+    const y_train_1d = y_train_1d_ord.gather(indices)
+  
+  
+    model.compile(model_compile_data)
+    console.log("Training started")
+    await model.fit(x_train_1d, y_train_1d, {
+      epochs : model_train_data.epochs,
+      batchSize: 50,
+      callbacks : {onEpochBegin, onEpochEnd}
+    }).then((info) => console.log("Training finished", info.history))
+  }
+
+
+/**
+ * Sends weights to all peers, waits to receive weights from all peers
+ * and then averages peers' weights into the model.
+*/
+async function onEpochEnd(model, epoch, receivers, recv_buffer) {
+    const serialized_weights = await serializeWeights(model)
+    const epoch_weights = {epoch : epoch, weights : serialized_weights}
+  
+    for (var i in receivers) {
+      console.log("Sending weights to: ", receivers[i])
+      await send_data(epoch_weights, CMD_CODES.AVG_WEIGHTS, peerjs, receivers[i])
+    }
+  
+    if (recv_buffer.avg_weights === undefined) {
+      console.log("Waiting to receive weights...")
+      await data_received(recv_buffer, "avg_weights")
+    }
+    if (recv_buffer.avg_weights[epoch] === undefined) {
+      console.log("Waiting to receive weights for this epoch...")
+      await data_received(recv_buffer.avg_weights, epoch.toString())
+    }
+    console.log("Waiting to receive all weights for this epoch...")
+    await check_array_len(recv_buffer.avg_weights[epoch], receivers.length)
+      .then(() => {
+        console.log("Averaging weights")
+        for(i in recv_buffer.avg_weights[epoch]) {
+          averageWeightsIntoModel(recv_buffer.avg_weights[epoch][i], model)
+        }
+        // might want to delete weights after using them to avoiding hogging memory
+        // delete recv_buffer.avg_weights[epoch]
+      })
+  }
