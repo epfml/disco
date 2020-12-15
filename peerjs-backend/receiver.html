@@ -28,11 +28,17 @@ var model = null
 var receivers = []
 var recv_buffer = {}
 var epoch = 0
+username = null
+
+
+threshold = null // minimum number of received weights to continue training
 
 // register peer name on PeerJS server
 async function register() {
-  const username = document.getElementById("username").value
+  username = document.getElementById("username").value
   receivers = document.getElementById("receivers").value.split(',')
+  threshold = Math.min(Math.ceil(receivers.length / 2), 5)
+  console.log("Threshold: ", threshold)
 
   peer = new Peer(username, {host: 'localhost', port: 9000, path: '/myapp'})
   peerjs = new PeerJS(peer, handle_data, recv_buffer)
@@ -53,8 +59,14 @@ function onEpochBegin() {
   console.log("EPOCH: ", ++epoch)
 }
 
+async function onEpochEnd() {
+  await onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold)
+  // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer)
+}
 
-train(recv_buffer.compile_data, recv_buffer.train_info, onEpochBegin, onEpochEnd)
+async function train(){
+  train_common(model, recv_buffer.compile_data, recv_buffer.train_info, onEpochBegin, onEpochEnd)
+}
 
 
 </script>

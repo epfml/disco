@@ -164,7 +164,7 @@ function send_data(data, code, peerjs, receiver) {
         payload     : msgpack.encode(data)
     }
 
-    console.log("Sending data")
+    console.log("Sending data", data)
     console.log(send_data)
     peerjs.send(receiver, send_data)
 }
@@ -221,7 +221,12 @@ async function handle_data(data, buffer) {
             buffer.train_info = payload
             break
         case CMD_CODES.WEIGHT_REQUEST:
-            buffer.weight_req_epoch = payload
+            if (buffer.weight_requests === undefined) {
+                buffer.weight_requests = new Set([])
+            }           
+            buffer.weight_requests.add(payload.name) // peer name
+            console.log("Weight request from: ", payload.name)
+
             break
     }
 }
