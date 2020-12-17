@@ -9,6 +9,7 @@ const CMD_CODES = {
     MODEL_INFO      : 2, // serialized model architecture
     COMPILE_MODEL   : 3, // args to model.compile, e.g. optimizer, metrics 
     AVG_WEIGHTS     : 4, // weights to average into model
+    WEIGHT_REQUEST  : 5, // ask for weights
 }
 Object.freeze(CMD_CODES) // make object immutable
 
@@ -58,6 +59,14 @@ class PeerJS {
         conn.on('open', () => {
             conn.send(data)
         })
+    }
+
+    /**
+     * Change data handling function
+     */
+    set_data_handler(func, ...args) {
+        this.handle_data = func
+        this.handle_data_args = args
     }
 }
 
@@ -163,7 +172,7 @@ function send_data(data, code, peerjs, receiver) {
         payload     : msgpack.encode(data)
     }
 
-    console.log("Sending data")
+    console.log("Sending data", data)
     console.log(send_data)
     peerjs.send(receiver, send_data)
 }
@@ -218,6 +227,32 @@ async function handle_data(data, buffer) {
             break
         case CMD_CODES.TRAIN_INFO:
             buffer.train_info = payload
+            break
+        case CMD_CODES.WEIGHT_REQUEST:
+            if (buffer.weight_requests === undefined) {
+                buffer.weight_requests = new Set([])
+            }           
+            buffer.weight_requests.add(payload.name) // peer name
+            console.log("Weight request from: ", payload.name)
+
+            break
+    }
+}
+
+/**
+ * Handle data exchange after training is finished
+ */
+async function handle_data_end(data, buffer) {
+    console.log("Received new data: ", data)
+
+    // convert the peerjs ArrayBuffer back into Uint8Array
+    payload = msgpack.decode(new Uint8Array(data.payload))
+    switch(data.cmd_code) {
+        case CMD_CODES.WEIGHT_REQUEST:
+            const receiver = payload.name
+            const epoch_weights = {epoch : buffer.epoch, weights : buffer.weights}
+            console.log("Sending weights to: ", receiver)
+            await send_data(epoch_weights, CMD_CODES.AVG_WEIGHTS, buffer.peerjs, receiver)
             break
     }
 }
