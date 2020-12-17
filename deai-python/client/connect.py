@@ -10,9 +10,3 @@ import json
 import time
 import zmq
 
-def send_model_state(tcp_socket, model):
-    message = json.dumps(model.state_dict()).encode('utf-8')
-    tcp_socket.sendall(message)
-
-
-def receive_model_state(tcp_socket, model):

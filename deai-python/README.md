@@ -1,1 +1,3 @@
-This prototype in go-libp2p and PyTorch is under development.
+This is a decentralized learning prototype built in Python. 
+
+The project is under development, and more details about the usage will be added later.
