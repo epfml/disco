@@ -45,7 +45,7 @@ const model_train_data = {
 
 var peerjs = null
 var receivers = []
-var recv_buffer = {}
+var recv_buffer = { train_info : model_train_data } // to get number of epochs in onEpochEnd
 var epoch = 0
 username = null
 
