@@ -64,6 +64,12 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
+/**
+ * Wait to receive data by checking if recv_buffer.key is defined
+ * @param {Object} recv_buffer 
+ * @param {*} key 
+ */
 function data_received(recv_buffer, key) {
     return new Promise( (resolve) => {
         (function wait_data(){
@@ -76,6 +82,24 @@ function data_received(recv_buffer, key) {
 }
 
 /**
+ * Same as data_received, but break after max_tries
+ * @param {Object} recv_buffer 
+ * @param {*} key 
+ * @param {int} max_tries 
+ */
+function data_received_break(recv_buffer, key, max_tries) {
+    return new Promise( (resolve) => {
+        (function wait_data(n){
+            if (recv_buffer[key] || n >= max_tries - 1) {
+                return resolve();
+            }
+            setTimeout(() => wait_data(n+1), 100);
+        })(0);
+    });
+}
+
+
+/**
  * Waits until an array reaches a given length. Used to make 
  * sure that all weights from peers are received.
  * @param {Array} arr 
@@ -84,7 +108,7 @@ function data_received(recv_buffer, key) {
 function check_array_len(arr, len) {
     return new Promise( (resolve) => {
         (function wait_data(){
-            if (arr.length === len) {
+            if (arr.length >= len) {
                 return resolve();
             }
             setTimeout(wait_data, 100);
@@ -124,7 +148,7 @@ function makeid(length) {
       epochs : model_train_data.epochs,
       batchSize: 50,
       callbacks : {onEpochBegin, onEpochEnd}
-    }).then((info) => console.log("Training finished", info.history))
+    }).then( (info) => console.log("Training finished", info.history) )
   }
 
 /**
@@ -164,7 +188,8 @@ async function onEpochEnd_Sync(model, epoch, receivers, recv_buffer) {
  * Request weights from peers, carry on if the number of received weights is 
  * greater than the provided threshold
 */
-async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold) {
+async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold) {    
+    
     const serialized_weights = await serializeWeights(model)
     const epoch_weights = {epoch : epoch, weights : serialized_weights}
     
@@ -183,16 +208,26 @@ async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username,
   
     if (recv_buffer.avg_weights === undefined) {
       console.log("Waiting to receive weights...")
-      await data_received(recv_buffer, "avg_weights")
+      await data_received_break(recv_buffer, "avg_weights", 100) // timeout to avoid deadlock (10s)
     }
-   
-    console.log("Waiting to receive enough weights...")
-    await check_array_len(Object.values(recv_buffer.avg_weights).flat(1), threshold)
-      .then(() => {
-        console.log("Averaging weights")
-        Object.values(recv_buffer.avg_weights).flat(1).forEach(
-            (w) => { averageWeightsIntoModel(w, model) }
-        )
-        delete recv_buffer.avg_weights // NOTE: this might delete useful weights...
-      })
+    
+    if (recv_buffer.avg_weights !== undefined) { // check if any weights were received
+        console.log("Waiting to receive enough weights...")
+        await check_array_len(Object.values(recv_buffer.avg_weights).flat(1), threshold)
+        .then(() => {
+            console.log("Averaging weights")
+            Object.values(recv_buffer.avg_weights).flat(1).forEach(
+                (w) => { averageWeightsIntoModel(w, model) }
+            )
+            delete recv_buffer.avg_weights // NOTE: this might delete useful weights...
+        })
+    }
+
+    
+    // change data handler for future requests if this is the last epoch
+    if (epoch == recv_buffer.train_info.epochs) {
+        end_buffer = epoch_weights
+        end_buffer.peerjs = peerjs
+        peerjs.set_data_handler(handle_data_end, end_buffer)
+    }
   }

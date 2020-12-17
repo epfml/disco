@@ -60,6 +60,14 @@ class PeerJS {
             conn.send(data)
         })
     }
+
+    /**
+     * Change data handling function
+     */
+    set_data_handler(func, ...args) {
+        this.handle_data = func
+        this.handle_data_args = args
+    }
 }
 
 /**
@@ -227,6 +235,24 @@ async function handle_data(data, buffer) {
             buffer.weight_requests.add(payload.name) // peer name
             console.log("Weight request from: ", payload.name)
 
+            break
+    }
+}
+
+/**
+ * Handle data exchange after training is finished
+ */
+async function handle_data_end(data, buffer) {
+    console.log("Received new data: ", data)
+
+    // convert the peerjs ArrayBuffer back into Uint8Array
+    payload = msgpack.decode(new Uint8Array(data.payload))
+    switch(data.cmd_code) {
+        case CMD_CODES.WEIGHT_REQUEST:
+            const receiver = payload.name
+            const epoch_weights = {epoch : buffer.epoch, weights : buffer.weights}
+            console.log("Sending weights to: ", receiver)
+            await send_data(epoch_weights, CMD_CODES.AVG_WEIGHTS, buffer.peerjs, receiver)
             break
     }
 }
