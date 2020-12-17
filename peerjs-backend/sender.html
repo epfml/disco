@@ -57,7 +57,7 @@ function onEpochBegin() {
 
 async function onEpochEnd() {
   await onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold)
-  // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer)
+  // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
 }
 
 // register peer name on PeerJS server
