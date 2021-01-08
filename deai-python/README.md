@@ -38,15 +38,14 @@ python ./client/client.py --num 2 --total 3 --client 127.0.0.1:6002 --server 127
 
 Then the training and messaging should start. 
 
-Comment: If you want to train on a smaller dataset to test faster, you can set a higher total number, and you can start any number of peers less than total number, e.g.
+Comment: If you want to train on a smaller dataset to test faster, you can set a higher total number, and you can run any number of peers less than the defind total number, e.g.
 ```Bash
 python ./client/client.py --num 0 --total 20 --client 127.0.0.1:6000 --server 127.0.0.1:5555
 python ./client/client.py --num 1 --total 20 --client 127.0.0.1:6001 --server 127.0.0.1:5555
 python ./client/client.py --num 2 --total 20 --client 127.0.0.1:6002 --server 127.0.0.1:5555
 python ./client/client.py --num 3 --total 20 --client 127.0.0.1:6003 --server 127.0.0.1:5555
-...
 ```
-And you can start a new peer anytime you want.
+You can start a new peer anytime you want. If you stop a peer, other peers are not affected.
 
 ## Future steps
 - Need to do further testing to ensure the robustness and evaluate the performance.
