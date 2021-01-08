@@ -14,8 +14,7 @@ The MNIST dataset is used for training the CNN model, so you need to spcify the 
 
 Make sure that the required libraries are installed:
 ```Bash
-pip install torch torchvision
-pip install pyzmq
+pip install torch torchvision pyzmq
 ```
 
 ## Usage
