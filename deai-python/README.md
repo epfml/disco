@@ -6,8 +6,6 @@ The ML training part is implemented in PyTorch, and the messaging part is implem
 
 ## Current status
 
-**There is still some bug in the code and I'm trying to fix it...**
-
 The current code is designed for testing locally. If you want to communicate over the Internet, you need to have public IP addresses for every peer (NAT Traversal is not implemented yet), and specify the IP address in the client code.
 
 The MNIST dataset is used for training the CNN model, so you need to spcify the total number of peers when running the client code to split the dataset and get a fraction of data for training. In the future if you would like to use your own data, then the numbers are not needed.
@@ -38,7 +36,17 @@ python ./client/client.py --num 1 --total 3 --client 127.0.0.1:6001 --server 127
 python ./client/client.py --num 2 --total 3 --client 127.0.0.1:6002 --server 127.0.0.1:5555
 ```
 
-Then the training and messaging should start.
+Then the training and messaging should start. 
+
+Comment: If you want to train on smaller dataset size to test faster, you can set a higher total number, and you can start any number of peers less than total number, e.g.
+```Bash
+python ./client/client.py --num 0 --total 20 --client 127.0.0.1:6000 --server 127.0.0.1:5555
+python ./client/client.py --num 1 --total 20 --client 127.0.0.1:6001 --server 127.0.0.1:5555
+python ./client/client.py --num 2 --total 20 --client 127.0.0.1:6002 --server 127.0.0.1:5555
+python ./client/client.py --num 3 --total 20 --client 127.0.0.1:6003 --server 127.0.0.1:5555
+...
+```
+And you can start a new peer anytime you want.
 
 ## Future steps
 - Need to do further testing to ensure the robustness and evaluate the performance.
