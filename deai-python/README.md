@@ -6,9 +6,9 @@ The ML training part is implemented in PyTorch, and the messaging part is implem
 
 ## Current status
 
-The current code is designed for testing locally. If you want to communicate over the Internet, you need to have public IP addresses for every peer (NAT Traversal is not implemented yet), and specify the IP address in the client code.
+The current code is designed for testing locally. If you want to communicate over the Internet, you need to have public IP addresses for every peer (NAT Traversal is not implemented yet), and specify the IP address when running the client code.
 
-The MNIST dataset is used for training the CNN model, so you need to spcify the total number of peers when running the client code to split the dataset and get a fraction of data for training. In the future if you would like to use your own data, then the numbers are not needed.
+The MNIST dataset is used for training the CNN model, so you need to spcify the total number of peers when running the client code to split the dataset and get a fraction of data for training. If you would like to use your own data, you can change the `data.py` file, then the numbers and total number are not needed when running the clients. If you would like to change the deep learning model, you can change the `model.py` file.
 
 ## Requirements
 
