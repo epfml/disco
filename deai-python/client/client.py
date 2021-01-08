@@ -1,6 +1,5 @@
 import data
 import network_model
-import testing
 
 import argparse
 import torch
@@ -42,63 +41,94 @@ def average_with_models(model, received_states):
     model.load_state_dict(model_state)
 
 
-def send_model_messages(send_socket, model):
-    model_message = pickle.dumps(model.state_dict())
-    send_socket.send(model_message)
-    print("Sent a message")
-
-
-def print_async(print_queue):
-    while True:
-        print_msg = print_queue.get()
-        print(print_msg)
-
-
-def receive_model_messages(addr_message, model_queue, print_queue):
+def receive_model_messages(addr_message, model_queue):
     # Initialize the socket for receiving messages.
     context = zmq.Context()
-    recv_socket = context.socket(zmq.PULL)
+    recv_socket = context.socket(zmq.ROUTER)
     recv_socket.bind(addr_message)
-    print_queue.put("Binding on socket " + addr_message)
+    print("Binding on socket " + addr_message)
     while True:
         model_message = recv_socket.recv()
         received_state = pickle.loads(model_message)
         model_queue.put(received_state)
-        print_queue.put("Received a message")
+        print("Received a message")
 
 
-def train_and_send(args, model, device, train_loader, optimizer, model_queue, print_queue, peer_list):
+def test(model, device, test_loader):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            # sum up batch loss
+            test_loss += F.nll_loss(output, target, reduction='sum').item()
+            # get the index of the max log-probability
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_loss /= len(test_loader.dataset)
+
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
+
+
+def train_and_send(args, model, device, train_loader, test_loader, optimizer, model_queue, addr_message):
     # Initialize the socket for sending messages.
     context = zmq.Context()
-    send_socket = context.socket(zmq.PUSH)
-    for peer_addr in peer_list:
-        send_socket.connect(peer_addr)
-        print_queue.put("Connected to peer " + peer_addr)
+    send_socket = context.socket(zmq.DEALER)
+    server_socket = context.socket(zmq.REQ)
+    server_socket.connect('tcp://' + args.server)
 
     for epoch in range(1, args.epochs + 1):
+        print("----------- Epoch " + str(epoch) +
+              " starts ----------- ")
         train_epoch(args, model, device, train_loader, optimizer, epoch)
-        send_model_messages(send_socket, model)
+        test(model, device, test_loader)
+        print("----------- Epoch " + str(epoch) +
+              " finished ----------- ")
 
-        print_queue.put("----------- Epoch " + str(epoch) +
-                        " finished ----------- ")
+        # Start to send model, first get all existing peers
+        print("Connecting to server tcp://" + args.server)
+        server_socket.send(addr_message.encode('utf-8'))
+        peer_list_message = server_socket.recv().decode('utf-8')
+        print("Received server reply, existing peers:", peer_list_message)
+        peer_list = json.loads(peer_list_message)
 
+        for peer_addr in peer_list:
+            if peer_addr != addr_message:
+                send_socket.connect(peer_addr)
+        print("Connected to peers")
+
+        model_message = pickle.dumps(model.state_dict())
+        try:
+            send_socket.send(model_message, flags=zmq.NOBLOCK)
+            print("Sent a message to peers")
+        except:
+            print("No peer exists for sending messages")
+
+        # Check received states
         received_states = []
         if model_queue.empty():
-            print_queue.put('Received message queue is empty. ' +
-                            'If this is not the first epoch, you should receive messages when there are other peers running.')
+            print('Received message queue is empty. ' +
+                  'If this is not the first epoch, you should receive messages when there are other peers running.')
         else:
             try:
                 while True:
                     received_states.append(model_queue.get_nowait())
             except queue.Empty:
-                print_queue.put(
+                print(
                     "Averaging with " + str(len(received_states)) + " models received...")
 
         if received_states:
             average_with_models(model, received_states)
-            print_queue.put("Averaging models ended.")
+            print("Averaging models ended.")
+        else:
+            print("No averaging is needed.")
 
-        # testing.test(model, device, test_loader)
+        test(model, device, test_loader)
 
 
 def main():
@@ -156,43 +186,24 @@ def main():
     # Initialize the network model and dataset.
     print("Initializing the network model and dataset...")
     model = network_model.Net().to(device)
-    optimizer = optim.SGD(model.parameters(), lr=args.lr)
+    optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
     train_set, test_set = data.load_data(args.num, args.total)
     train_loader = torch.utils.data.DataLoader(train_set, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(test_set, **test_kwargs)
-
-    # Step 3:
-    # Connect to server and get all peers' information.
-    print("Connecting to server tcp://" + args.server)
-    context = zmq.Context()
-    socket = context.socket(zmq.REQ)
-    socket.connect('tcp://' + args.server)
-
-    socket.send(addr_message.encode('utf-8'))
-    peer_list_message = socket.recv().decode('utf-8')
-    print("Received reply, existing peers:", peer_list_message)
-    socket.close()
-
-    peer_list = json.loads(peer_list_message)
 
     # Step 4:
     # Run the training process and message-receiving process at the same time.
     # Use a queue to store received model messages.
     print("----------- Training and messaging started ----------- ")
     model_queue = Queue()
-    print_queue = Queue()
-    p1 = Process(target=train_and_send, args=(args, model, device, train_loader,
-                                              optimizer, model_queue, print_queue, peer_list))
-    p2 = Process(target=receive_model_messages, args=(
-        addr_message, model_queue, print_queue))
-    p3 = Process(target=print_async, args=(print_queue, ))
+    p1 = Process(target=train_and_send, args=(args, model, device, train_loader, test_loader,
+                                              optimizer, model_queue, addr_message))
+    p2 = Process(target=receive_model_messages,
+                 args=(addr_message, model_queue))
     p1.start()
-    p1.join()
     p2.start()
-    p2.join()
-    p3.start()
-    p3.join()
+    p1.join()
 
 
 if __name__ == '__main__':

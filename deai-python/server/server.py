@@ -23,9 +23,10 @@ while True:
         print("Wait for clients ...")
         addr_message = socket.recv().decode('utf-8')
         print("Received address message from client", addr_message)
+        if addr_message not in peer_list:
+            peer_list.append(addr_message)
         socket.send(json.dumps(peer_list).encode('utf-8'))
         print("Peer list sent to client", addr_message)
-        peer_list.append(addr_message)
     except Exception as e:
         print('Exception:', e)
         sys.exit()
