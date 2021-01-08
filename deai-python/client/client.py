@@ -13,6 +13,7 @@ import queue
 import json
 import pickle
 import zmq
+import time
 
 
 def train_epoch(args, model, device, train_loader, optimizer, epoch):
@@ -44,14 +45,16 @@ def average_with_models(model, received_states):
 def receive_model_messages(addr_message, model_queue):
     # Initialize the socket for receiving messages.
     context = zmq.Context()
-    recv_socket = context.socket(zmq.ROUTER)
+    count = 0
+    recv_socket = context.socket(zmq.DEALER)
     recv_socket.bind(addr_message)
     print("Binding on socket " + addr_message)
     while True:
-        model_message = recv_socket.recv()
-        received_state = pickle.loads(model_message)
-        model_queue.put(received_state)
-        print("Received a message")
+        model_message = recv_socket.recv_pyobj()
+        count += 1
+        print("Received a new model message! Have received",
+              count, "message(s) in total.")
+        model_queue.put(model_message)
 
 
 def test(model, device, test_loader):
@@ -81,46 +84,46 @@ def train_and_send(args, model, device, train_loader, test_loader, optimizer, mo
     send_socket = context.socket(zmq.DEALER)
     server_socket = context.socket(zmq.REQ)
     server_socket.connect('tcp://' + args.server)
+    print("Connecting to server tcp://" + args.server)
+    server_socket.send(addr_message.encode('utf-8'))
+    peer_list_message = server_socket.recv().decode('utf-8')
+    print("Received server reply, existing peers:", peer_list_message)
 
     for epoch in range(1, args.epochs + 1):
-        print("----------- Epoch " + str(epoch) +
-              " starts ----------- ")
+        print("----------- Epoch", epoch, "starts ----------- ")
         train_epoch(args, model, device, train_loader, optimizer, epoch)
         test(model, device, test_loader)
-        print("----------- Epoch " + str(epoch) +
-              " finished ----------- ")
+        print("----------- Epoch", epoch, "finished ----------- ")
 
-        # Start to send model, first get all existing peers
+        # Start to send model, every time we first get all existing peers' list
         print("Connecting to server tcp://" + args.server)
         server_socket.send(addr_message.encode('utf-8'))
         peer_list_message = server_socket.recv().decode('utf-8')
         print("Received server reply, existing peers:", peer_list_message)
         peer_list = json.loads(peer_list_message)
 
+        model_message = model.state_dict()
+
         for peer_addr in peer_list:
             if peer_addr != addr_message:
-                send_socket.connect(peer_addr)
-        print("Connected to peers")
-
-        model_message = pickle.dumps(model.state_dict())
-        try:
-            send_socket.send(model_message, flags=zmq.NOBLOCK)
-            print("Sent a message to peers")
-        except:
-            print("No peer exists for sending messages")
+                try:
+                    send_socket.connect(peer_addr)
+                    send_socket.send_pyobj(model_message, flags=zmq.NOBLOCK)
+                    print("Sent a message to a peer", peer_addr)
+                except:
+                    print("Sending a message failed")
 
         # Check received states
         received_states = []
         if model_queue.empty():
-            print('Received message queue is empty. ' +
-                  'If this is not the first epoch, you should receive messages when there are other peers running.')
+            print("You haven't received new message yet.")
         else:
             try:
                 while True:
                     received_states.append(model_queue.get_nowait())
             except queue.Empty:
                 print(
-                    "Averaging with " + str(len(received_states)) + " models received...")
+                    "Averaging with", len(received_states), "model(s) received...")
 
         if received_states:
             average_with_models(model, received_states)
@@ -192,7 +195,7 @@ def main():
     train_loader = torch.utils.data.DataLoader(train_set, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(test_set, **test_kwargs)
 
-    # Step 4:
+    # Step 3:
     # Run the training process and message-receiving process at the same time.
     # Use a queue to store received model messages.
     print("----------- Training and messaging started ----------- ")
