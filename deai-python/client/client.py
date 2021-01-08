@@ -52,8 +52,7 @@ def receive_model_messages(addr_message, model_queue):
     while True:
         model_message = recv_socket.recv_pyobj()
         count += 1
-        print("Received a new model message! Have received",
-              count, "message(s) in total.")
+        print("Received a new model message!")
         model_queue.put(model_message)
 
 
@@ -73,7 +72,7 @@ def test(model, device, test_loader):
 
     test_loss /= len(test_loader.dataset)
 
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
@@ -92,6 +91,7 @@ def train_and_send(args, model, device, train_loader, test_loader, optimizer, mo
     for epoch in range(1, args.epochs + 1):
         print("----------- Epoch", epoch, "starts ----------- ")
         train_epoch(args, model, device, train_loader, optimizer, epoch)
+        print("\nTest result before averaging:")
         test(model, device, test_loader)
         print("----------- Epoch", epoch, "finished ----------- ")
 
@@ -131,6 +131,7 @@ def train_and_send(args, model, device, train_loader, test_loader, optimizer, mo
         else:
             print("No averaging is needed.")
 
+        print("\nTest result after averaging:")
         test(model, device, test_loader)
 
 
