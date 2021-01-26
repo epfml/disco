@@ -1,7 +1,9 @@
+import sys
+sys.path.append('..') 
 from utils import *
 
-def run(train_loader, test_loader, comm_matrix, num_rounds, epochs, num_clients,
-        net='net', optimizer='sgd', lr=0.1):
+def run_A_NC(train_loader, test_loader, comm_matrix, num_rounds, epochs, num_clients,
+            net='net', optimizer='sgd', lr=0.1):
     """
     Runs a decentralized optimization algorithme for the given learning rate for
     a number of rounds, over some network. Outputs the accuracies and returns them.

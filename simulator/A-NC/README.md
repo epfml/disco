@@ -1,10 +1,12 @@
-# A-NC
+# Trying a different decentralized algorithm: A-NC, a consensus algorithm with repeated averaging
 
 ## Description
 
 This package allows you to try another decentralized algorithm, adapted from [A-NC](https://arxiv.org/pdf/0712.1609.pdf), which was defined for static consensus.
 The algorithm is based on repeated averaging. The idea is to run an optimization algorithm for *i* rounds.
-We then restart all over and run it again, and again for *p* runs. Finally, you compute the final consensus value averaging the final states of each run.
+We then restart all over and run it again, and again for *p* runs. Finally, you compute the final consensus value averaging the final states of each run. It assumes a static network, independent Gaussian noise and a fixed global link weight *β*, which the fraction of the weights sent to the neighbours.
+The convergence rate is fast thanks to the constant weights but bias-variance trade-off is present. With a constant number of iteration *ip*, decreasing *i* means lower variance and higher bias while increasing it means higher variance and lower bias.
+The increased number of runs also makes it longer to execute. Finally, this algorithm requires greater coordination between nodes since a heavier computation is necessary.
 
 ## Setup
 
@@ -23,7 +25,7 @@ First, you need to define your hyper-parameters:
   - the number of clients in the network
   - the number of rounds, i.e. the number of times the parameters are exchanged between neighbours
   - the number of runs, i.e. the number of times you restart your optimization algorithm
-  - the number of epochs, i.e. the number of optimization iterations per round
+  - the number of epochs, i.e. the number of steps taken by each client model between each parameter diffusion
   - the batch size, i.e. the number of samples taken by the optimization algorithm at a time
 
 ### Communication matrix

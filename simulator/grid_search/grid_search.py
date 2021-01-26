@@ -1,4 +1,6 @@
-from utils import *
+import sys
+sys.path.append('..')
+from utils import model_init, optimizer_init, client_update, diffuse_params, average_models, evaluate
 
 def grid_search(train_loader, test_loader, comm_matrix, num_rounds, epochs, num_clients,
                 net='net', optimizer='sgd', lrs=np.logspace(-12, -1, 13, base=2.0)):

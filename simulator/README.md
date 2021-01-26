@@ -22,9 +22,11 @@ The simulator comes in different flavors, each one represented by one of the pac
 ## Topologies
 
 We implemented four different network topologies:
-  - *centralized*: each client is connected to every other client
-  - *ring*: each client is connected to exactly two neighbours
-  - *grid*: each client is connected to exactly four neighbours
+  - *centralized*: each client is connected to every client
+  - *grid*: each client is connected to exactly five neighbours, itself included
+  - *ring*: each client is connected to exactly three neighbours, itself included
+  - *circular ladder*: each client is connected to exactly four neighbours, itself included
+  - *star*: each client is connected only to a central client
   - *disconnected*: this is an extreme case where there not a single link between any two clients. Thus nodes never communicate and need to converge by themselves
 The ring and grid topologies should be privileged since the number of links remains linear with the number of clients.
 To create a network of with `n_cores` clients interconnected according to a topology `topo`, you simply need to call `create_mixing_matrix(topology, n_cores)`. This function returns a weight matrix `W`, where W_{i, j} > 0 only if there is an edge between nodes i and j. In row i, all nonzero weights have the same value `β=1/d`, with d the degree of node i (i being a neighbour of itself). Indeed, we need rows to sum up to 1 to avoid making weights decay or grow exponentially with the communication.
@@ -98,6 +100,8 @@ Now that you have your clients, you may load the dataset and split it between th
 ```
 train_loader, test_loader = load_data(batch_size, num_clients, distribution='iid')
 ```
+
+IID data means the samples are split totally at random and each client should receive look-alike datasets in terms of class frequency. The non-IID case I briefly explored consists in feeding the clients only with data samples belonging to one pair of classes among {{0, 1}, {2, 3}, {4, 5}, {6, 7}, {8, 9}}.
 
 ## Instantiate models and optimizers
 

@@ -18,7 +18,7 @@ pip install networkx
 First, you need to define your hyper-parameters:
   - the number of clients in the network
   - the number of rounds, i.e. the number of times the parameters are exchanged between neighbours
-  - the number of epochs, i.e. the number of optimization iterations per round
+  - the number of epochs, i.e. the number of steps taken by each client model between each parameter diffusion
   - the batch size, i.e. the number of samples taken by the optimization algorithm at a time
   - the list of learning rates to try
 

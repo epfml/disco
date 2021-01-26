@@ -1,10 +1,5 @@
 import numpy as np
-import pickle
-import os
-import matplotlib.pyplot as plt
-import matplotlib
 import networkx as nx
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -113,7 +108,6 @@ def client_update(client_model, optimizer, train_loader, epoch=5):
             optimizer.step()
     return loss.item()
 
-
 def diffuse_params(client_models, communication_matrix):
     """
     Diffuses the client models to their neighbours.
@@ -136,33 +130,6 @@ def diffuse_params(client_models, communication_matrix):
                 for key in keys
             }
         )
-
-def diffuse_params_latency(client_models, communication_matrix, latency_nodes):
-    """
-    Diffuses the client models to their neighbours except if the node has latency.
-    Such a node doesn't diffuse its weights now.
-
-    Params:
-        client_models (array): the list of all the client neural networks
-        communication_matrix (numpy.array): the weighted matrix defining the links between clients
-        latency_nodes (array): the list of nodes with latency
-    """
-    if client_models:
-      client_state_dicts = [model.state_dict() for model in client_models]
-      keys = client_state_dicts[0].keys()
-    for model, weights in zip(client_models, communication_matrix):
-        neighbors = np.nonzero(weights)[0]
-        working_neigh = np.setdiff1d(neighbors, latency_nodes)
-        if len(working_neigh) != 0:
-          model.load_state_dict(
-              {
-                  key: torch.stack(
-                      [weights[j]*client_state_dicts[j][key] for j in working_neigh],
-                      dim=0,
-                  ).sum(0) / weights.sum()
-                  for key in keys
-              }
-          )
 
 def average_models(global_model, client_models):
     """
@@ -205,9 +172,19 @@ def evaluate(global_model, data_loader):
 
     return loss, acc
 
-
 def consensus(global_model, client_models):
-    cos = nn.CosineSimilarity(dim=0, eps=1e-6)
+    """
+    Computes the consensus value of each client model by comparing it to the global
+    one. We use Mean Square Error to measure the distance between two weight vectors
+    and average the consensus values of each parameter vector.
+
+    Params:
+        global_model (nn.Module): the global neural network averaging all the clients
+        client_models (array of Net): the list of all the client neural networks
+
+    Returns:
+        cons(array): the list of consensus values, one per client
+    """
     global_dict_values = list(global_model.state_dict().values())
     n = len(global_dict_values)
     cons = []
@@ -216,7 +193,7 @@ def consensus(global_model, client_models):
         client_dict_values = list(client.state_dict().values())
         dist = [torch.norm(client_dict_values[k] - global_dict_values[k]) ** 2 for k in range(n)]
         mean_dist = torch.mean(torch.Tensor(dist))
-        cons.append(mean_dist.item())
+        cons.append(round(mean_dist.item(), 6))
     return cons
 
 def load_data(batch_size, num_clients, distribution='iid'):
@@ -311,42 +288,6 @@ def optimizer_init(client_models, lr, optimizer='sgd'):
         opt = [optim.SGD(model.parameters(), lr=lr) for model in client_models]
     return opt
 
-def grid_search(train_loader, test_loader, comm_matrix, num_rounds, epochs, num_clients,
-                net='net', optimizer='sgd', lrs=np.logspace(-12, -1, 13, base=2.0)):
-    """
-    Runs Decentralized SGD for all the given learning rates, outputs the accuracies
-    and returns them.
-
-    Params:
-        train_loader (array): the list of all train datasets, one per client
-        test_loader (array): the list of test datasets, one per client
-        comm_matrix (numpy.array): the communication matric modeling the network
-        num_rounds (int): the number of data exchanges between nodes
-        epochs (int): the number of optimization steps between each communication (minimum 1)
-        num_clients (int): the number of clients in the network
-        lrs (array): the list of stepsizes to test
-
-    Returns:
-        accs (array): the corresponding accuracies, with the same shape as lrs
-    """
-    accs = []
-    for lr in lrs:
-        global_model, client_models = model_init(num_clients, net)
-        opt = optimizer_init(client_models, lr, optimizer)
-
-        loss, test_loss, acc = 0.0, 0.0, 0.0
-        for r in range(num_rounds):
-            loss = 0
-            for i in range(num_clients):
-                loss += client_update(client_models[i], opt[i], train_loader[i], epoch=epochs)
-            diffuse_params(client_models, comm_matrix)
-            average_models(global_model, client_models)
-            test_loss, acc = evaluate(global_model, test_loader)
-
-        print('lr %g | average train loss %0.3g | test loss %0.3g | test acc: %0.3f' % (lr, loss / num_clients, test_loss, acc))
-        accs.append(acc)
-    return accs
-
 def run(train_loader, test_loader, comm_matrix, num_rounds, epochs, num_clients,
         net='net', optimizer='sgd', lr=0.1):
     """
@@ -365,6 +306,8 @@ def run(train_loader, test_loader, comm_matrix, num_rounds, epochs, num_clients,
         lr (double): the learning rate for the optimizaion algorithm
 
     Returns:
+        global_model (nn.Module): the final global neural network averaging all the clients
+        client_models (array of Net): the list of all the final client neural networks
         accs (array): the corresponding accuracies, with the same shape as lrs
     """
     accs = []
@@ -438,124 +381,3 @@ def create_mixing_matrix(topology, n_cores):
         W = np.zeros(shape=(n_cores, n_cores))
         np.fill_diagonal(W, 1, wrap=False)
         return W
-
-def probabilistic_model(distribution, n_cores, param):
-    """
-    Simulates how long each node will last before being out-of-order. The estimation is
-    based on a given distribution.
-
-    Params:
-        distribution (string) : the probability model we use
-        n_cores (int): the number of values we need to compute (one per client)
-        param (double or array of double): the parameter(s) of the distribution
-
-    Returns:
-        X (numpy.array): array of length n_cores with the failing round of each client
-    """
-    assert distribution in ['exponential', 'normal', 'weibull']
-    if distribution == 'exponential':
-        X = np.random.exponential(param, n_cores).astype(int)
-        return X
-    elif distribution == 'weibull':
-        X = np.random.weibull(param[0], n_cores)
-        X = (param[1]*X).astype(int)
-        return
-    else: # distribution == 'normal'
-        X = np.random.normal(param[0], param[1], n_cores).astype(int)
-        return X
-
-def network_failures_global(W, num_failures):
-    """
-    Introduces failures in the network. To maintain the communication matrix,
-    upon a failure of edge {i, j} the rows i and j of W are globally re-weighted,
-    i.e. on each row each nonzero value stays the same.
-
-    Params:
-        W (numpy.array): the communication matrix
-        num_failures (int): the number of failures to be introduced on the network
-
-    Returns:
-        W (numpy.array): the updated communication matrix
-    """
-    num_nodes = W.shape[0]
-    for k in range(num_failures):
-        i, j = 0, 0
-        while(i == j):
-            i = np.random.choice(num_nodes)
-            j = np.random.choice(num_nodes, p=W[i])
-        W[i, j] = 0.
-        W[j, i] = 0.
-        m = np.nonzero(W[i])[0].shape[0]
-        W[i] = (m+1) * W[i] / m
-        n = np.nonzero(W[j])[0].shape[0]
-        W[j] = (n+1) * W[j] / n
-    return W
-
-def network_failures_local(W, num_failures):
-    """
-    Introduces failures in the network. To maintain the communication matrix,
-    upon a failure of edge {i, j} the rows i and j of W are locally re-weighted,
-    i.e. in row i W(i, i) becomes W(i, i) + W(i, j), W(i, j) is set to zero and
-    the other values are not modified.
-
-    Params:
-        W (numpy.array): the communication matrix
-        num_failures (int): the number of failures to be introduced on the network
-
-    Returns:
-        W (numpy.array): the updated communication matrix
-    """
-    num_nodes = W.shape[0]
-    for k in range(num_failures):
-        i, j = 0, 0
-        while(i == j):
-            i = np.random.choice(num_nodes)
-            j = np.random.choice(num_nodes, p=W[i])
-        W[i, i] += W[i, j]
-        W[j, j] += W[j, i]
-        W[i, j] = 0.
-        W[j, i] = 0.
-    return W
-
-def network_failures_no_correction(W, num_failures):
-    """
-    Introduces failures in the network. No maintenance of the matrix is performed.
-
-    Params:
-        W (numpy.array): the communication matrix
-        num_failures (int): the number of failures to be introduced on the network
-
-    Returns:
-        W (numpy.array): the updated communication matrix
-    """
-    num_nodes = W.shape[0]
-    for k in range(num_failures):
-        i, j = 0, 0
-        while(i == j):
-            i = np.random.choice(num_nodes)
-            j = np.random.choice(np.nonzero(W[i])[0])
-        W[i, j] = 0.
-        W[j, i] = 0.
-    return W
-
-
-def nodes_latency(num_nodes, num_delay):
-    """
-    Chooses a number of nodes among the set of clients. The chosen ones now
-    have latency, i.e. their weights are transmitted with some delay.
-
-    Params:
-        num_nodes (int): the number of clients
-        num_delay (int): the number of latency nodes to choose
-
-    Returns:
-        lat_nodes (array): the list of latency nodes
-    """
-    assert num_delay < num_nodes
-    lat_nodes = []
-    for i in range(num_delay):
-        k = np.random.choice(num_nodes)
-        while (k in lat_nodes):
-            k = np.random.choice(num_nodes)
-        lat_nodes.append(k)
-    return lat_nodes
