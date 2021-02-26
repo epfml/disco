@@ -45,13 +45,11 @@ def average_with_models(model, received_states):
 def receive_model_messages(addr_message, model_queue):
     # Initialize the socket for receiving messages.
     context = zmq.Context()
-    count = 0
     recv_socket = context.socket(zmq.DEALER)
     recv_socket.bind(addr_message)
     print("Binding on socket " + addr_message)
     while True:
         model_message = recv_socket.recv_pyobj()
-        count += 1
         print("Received a new model message!")
         model_queue.put(model_message)
 
