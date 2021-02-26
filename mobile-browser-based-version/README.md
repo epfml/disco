@@ -11,7 +11,15 @@ peer = new Peer(username)
 
 The best option is to host your own peerJS and TURN servers. 
 
-To host the peerJS server, you need to do the following steps:
+To install and host peerJS server locally, you can follow the official [instructions](https://github.com/peers/peerjs-server#run-server). In this case, you don't need a TURN server.
+
+To point peerJS to the local server, you can use the following line in the code:
+
+```
+peer = new Peer(username, {host: 'localhost', port: 9000, path: '/myapp'})
+```
+
+To host the peerJS server on the cloud, you need to do the following steps:
 
 1. Follow steps 1-4 in this [tutorial](https://ourcodeworld.com/articles/read/977/how-to-deploy-a-node-js-application-on-aws-ec2-server) 
 to create an EC2 instance and install Node.js on it. 
