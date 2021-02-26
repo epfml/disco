@@ -1,10 +1,10 @@
 ## Introduction
 
-This repository is a **decentralized machine learning** prototype built in Python. In short, the peers in a P2P network do ML training locally, communicate the trained model with other peers, and average the received models to the local model after each epoch. Besides, we use a simple server for signaling purposes. In this project, we focus on the practical aspects and try to build a prototype that works on the real network stack rather than a simulation. In this version, the ML training part is implemented in PyTorch, and the messaging part is implemented in ZeroMQ(PyZMQ).
+This repository is a **decentralized machine learning** prototype built in Python. In short, the peers in a P2P network do ML training locally, communicate the trained model with other peers, and average the received models to the local model after each epoch. Besides, we use a simple server for signaling purposes. In this project, we focus on the practical aspects and try to build a prototype that works on the real network stack rather than doing a simulation. In this version, the ML training part is implemented in PyTorch, and the messaging part is implemented in ZeroMQ(PyZMQ).
 
-Data privacy is crutial in machine learning. Decentralized machine learning is a new ML setting similar to federated learning, which uses local private data to do collaborative training on a public model. But in decentralized ML, we avoid using a central coordinator server for model updates. Model updates are shared among peers directly to achieve stronger privacy-preserving properties. Local training also avoids the need for large storage and high computing power on the server in the traditional ML setting.
+Data privacy is crucial in machine learning. Decentralized machine learning is a new ML setting similar to federated learning, which uses local private data to do collaborative training on a public model. But in decentralized ML, we avoid using a central coordinator server for model updates. Model updates are shared among peers directly to achieve stronger privacy-preserving properties. Local training also avoids the need for large storage and high computing power on the server in the traditional ML setting.
 
-Besides further data privacy, the network topology can be an arbitrary graph in decentralized ML, rather than the star graph as in federated learning. In this prototype design, the network topology is a complete graph, where all peers are pairwise connected and no peer has a centralized status. However, it also leads to a higher communication cost. And there is a need to deal with time-varying topology, because peers can join and leave at any time.
+Besides further data privacy, the communication network topology can be an arbitrary graph in decentralized ML, rather than the star graph as in federated learning. In this prototype design, the network topology is a complete graph, where all peers are pairwise connected and no peer has a centralized status. However, it also leads to a higher communication cost. And there is a need to deal with time-varying network topology because peers can join and leave at any time.
 
 ## Model and data
 
@@ -12,7 +12,7 @@ The handwritten digits dataset MNIST is used for training the CNN model, with 60
 
 We decided to split the dataset equally and assign a fraction of data to each of the peers for testing the prototype. Thus, you need to specify the total number of peers when running the client code to split the dataset and get a fraction of data for training. 
 
-In the reality, the data doesn't have to be i.i.d. like the one we use in testing, but it can be heterogeneous, and each peer would only use their local private data. If you would like to use your own data, you can change the `data.py` file, then the numbers of peers are not needed when running the clients. If you would like to change the ML model, you can change the `network_model.py` file.
+In the reality, the data doesn't have to be i.i.d. like the one we use in testing, but it can be heterogeneous, and each peer would only use their local private data. If you would like to use your own local private data, you can change the `data.py` file, then the numbers of peers are not needed when running the clients. If you would like to change the ML model, you can change the `network_model.py` file.
 
 There is no limitation for the PyTorch model we use. The model is not different from any other PyTorch programs for traditional ML. So in general we can train any PyTorch model on top of this implementation, with GPU access to accelerate the training process as in normal PyTorch programs. If the model parameters have a large size, then it would take a longer time for the model communication over the P2P network, but there is no limitation for the maximum size of models to be sent.
 
@@ -68,27 +68,27 @@ The current code is designed for testing locally or testing on clients with publ
 
 In PyTorch, `state_dict` is the dictionary we use to represent the current model parameters. Python's `pickle` utility is used for serializing the model to byte stream that could go through the network stack. (This is automatically implemented in PyZMQ's `send_pyobj` and `recv_pyobj`.)
 
-ZeroMQ has similar socket-based APIs to TCP but transfer discrete messages, with various socket types and various messaging patterns. More details in the [documentation](https://zguide.zeromq.org/) and [zguide](https://zguide.zeromq.org/). We used DEALER sockets for model communication.
+ZeroMQ has socket-based APIs similar to TCP but transfer discrete messages, with various socket types and various messaging patterns. More details are shown in the [documentation](https://zguide.zeromq.org/) and [zguide](https://zguide.zeromq.org/). We used DEALER sockets for model communication.
 
 We implement training and messaging in an asynchronous way: one process is `train_and_send` and the other process is `receive_model_messages`. We run the processes concurrently with `multiprocessing` and share the received models through a process-safe Queue. This is because if we use a synchronous setting, then after each epoch of training, we will wait for all the other peers’ messages, which is waste of time if a peer is slow at computing or has more data to train.
 
-We are trying to avoid a centralized server working as a coordinator, but We use a simple server for signaling purposes, like a BitTorrent tracker which assists in the communication between peers. When a new peer joins, the new peer sends a request to the server and the server will record the new peer. Any peer can query the server about the existing peers.
+We are trying to avoid a centralized server working as a coordinator, but we use a simple server for signaling purposes, like a BitTorrent tracker which assists in the communication between peers. When a new peer joins, the new peer sends a request to the server and the server will record the new peer. Any peer can query the server about the existing peers.
 
 NAT traversal is not yet implemented so peers behind NATs are hard to reach currently.
 
 ## Possible future work / new designs
-- Find a good way to test the prototype to ensure the robustness and evaluate the performance. (e.g. How to test with more peers, how to test on multiple public IPs, how to test on real local private dataset, etc.) Maybe docker can be used for the testing deployment.
-- Add NAT traversal functionality, possible solutions are STUN/TURN server or UPnP (not always working). Or evaluate how NAT traversal is done in other P2P network like BitTorrent. (Could we combine the NAT traversal with the current ZeroMQ messaging part, or do we need some other library?)
-- Find possible use cases for the project. (Currently it can potentially used for companies or hospitals which have public IPs.) Design frontend UI for the application.
-- Add more functionalities to the server side, for example, it can be a platform where you can see available jobs and download
+- Find a good way to test the prototype to ensure the robustness and evaluate the performance. (e.g. How to test with more peers, how to test on multiple public IPs, how to test on real local private datasets, etc.) Maybe docker can be used for the testing deployment.
+- Add NAT traversal functionality, possible solutions are STUN/TURN server or UPnP (not always working). Or evaluate how NAT traversal is done in other P2P networks like BitTorrent. (Could we combine the NAT traversal with the current ZeroMQ messaging part, or do we need some other library?)
+- Find possible use cases for the project. (Currently, it can potentially be used for companies or hospitals which have public IPs.) Design frontend UI for the application.
+- Add more functionalities to the server, for example, it can be a platform where you can see available jobs and download
 model architectures, or it can be a monitoring platform where peers can report their performance.
 - Mobile deployment could be hard. (Is it possible to deploy PyTorch and Python programs to mobile devices? Or combine PyTorch Mobile with other bindings of ZeroMQ?)
 - Add authentication for security, or add differential privacy for further data privacy.
 - Regarding the P2P network topology, what would be a better design compared to a fully-connected complete graph? How can we define the neighboring peers for a peer? And adding load balance is possible in the network.
 
 ## Current designs to be improved
-- Currently when a peer leaves, others are not affected by that. However, the server and the other peers will not be notified about this leaving. We could possibly add some code to deal with peers leaving. (How do we detect peers leaving?)
-- Currently when a peer wants to send model updates out, it will first query the server for the existing peers. We could possibly change this to be all peers receiving notification when a new peer joins (or leaves), so that we don't need to do queries and establish connections frequently.
-- Currently when a new peer joins, it starts with a plain model, so when it is averaged to other models, it would decrease the performance of others. We could possibly add some bootstraping code to initialize the new peer's model as the average of all the other trained models. It's also possible to design a weighted average and assign a weight to each model, so that well-trained models will have a higher weight in the averaging.
+- Currently, when a peer leaves, others are not affected by that. However, the server and the other peers will not be notified about this leaving. We could add some code to deal with peers leaving. (How do we detect peers leaving?)
+- Currently, when a peer wants to send model updates out, it will first query the server for the existing peers. We could change this to be all peers receiving notification when a new peer joins (or leaves), so that we don't need to do queries and establish new connections frequently.
+- Currently, when a new peer joins, it starts with a plain model, so when it is averaged to other models, it would decrease the performance of others. We could add some bootstrapping code to initialize the new peer's model as the average of all the other trained models. It's also possible to design a weighted average and assign a weight to each model, so that well-trained models will have a higher weight in the averaging.
 
 
