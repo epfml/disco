@@ -5,7 +5,7 @@
         Labels
     </h3>
     <form class="upload-images-form" onsubmit="return submitTrainingImages()">
-        <div v-for="label in task_labels" class="upload-labels" :key=label>
+        <div v-for="label in TaskStore.task_labels" class="upload-labels" :key=label>
             <h3>{{label}}</h3>
             <input type = "file">
         </div>
@@ -16,6 +16,7 @@
 
 <script>
 import Task from '../helpers/Task'
+import TaskStore from '../store/taskStore'
 
 export default {
   name: 'TrainingUploadImages',
@@ -23,8 +24,11 @@ export default {
     msg: String,
     task: Task
   },
-  task_labels: [0,1,2,3,4,5,6,7,8,9], 
-  task_name: "MNIST"
+  data() {
+    return {
+      TaskStore: TaskStore.data
+    }
+  }
 }
 
 
