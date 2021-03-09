@@ -1,19 +1,17 @@
 <template>
   <TrainingUploadImages msg="Welcome to Your Vue.js App" task_name="MNIST" :task_labels=[0,1,2,3,4,5,6,7,8,9] />
-  <UseImageModel task_name="MNIST"/>
 </template>
 
 <script>
 import TrainingUploadImages from './components/TrainingUploadImages.vue'
-import UseImageModel from './components/UseImageModel.vue'
 
 export default {
   name: 'App',
   components: {
-    TrainingUploadImages,
-    UseImageModel
+    TrainingUploadImages
   }
 }
+
 
 </script>
 
