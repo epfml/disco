@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <h1>Set up {{task_name}} data</h1>
+    <h1>Set up {{TaskStore.task_name}} data</h1>
     <h3>
         Labels
     </h3>
@@ -22,7 +22,6 @@ export default {
   name: 'TrainingUploadImages',
   props: {
     msg: String,
-    task: Task
   },
   data() {
     return {
