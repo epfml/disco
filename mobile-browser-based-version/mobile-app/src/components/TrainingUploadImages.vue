@@ -21,16 +21,21 @@ export default {
   name: 'TrainingUploadImages',
   props: {
     msg: String,
-    task_name: String,
-    task_labels: Array[String],
     task: Task
-  }
+  },
+  task_labels: [0,1,2,3,4,5,6,7,8,9], 
+  task_name: "MNIST"
 }
+
 
 function submitTrainingImages(){
     alert("Form submitted")
     console.log("form submitted")
     return true
+}
+
+function nextScreen(){
+
 }
 
 </script>
