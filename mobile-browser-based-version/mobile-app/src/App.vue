@@ -1,19 +1,10 @@
 <template>
-  <TrainingUploadImages msg="Welcome to Your Vue.js App" task_name="MNIST" :task_labels=[0,1,2,3,4,5,6,7,8,9] />
+  <div id="nav">
+    <router-link to="/">Home</router-link> |
+    <router-link to="/testImage">About</router-link>
+  </div>
+  <router-view/>
 </template>
-
-<script>
-import TrainingUploadImages from './components/TrainingUploadImages.vue'
-
-export default {
-  name: 'App',
-  components: {
-    TrainingUploadImages
-  }
-}
-
-
-</script>
 
 <style>
 #app {
@@ -22,6 +13,18 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+
+#nav {
+  padding: 30px;
+}
+
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+  color: #42b983;
 }
 </style>
