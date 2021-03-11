@@ -1,4 +1,7 @@
 <template>
+  <div class="bg-purple text-white sm:bg-green md:bg-blue md:text-yellow lg:bg-red xl:bg-orange ...">
+    Test
+  </div>
   <div class="hello">
     <h1>Set up {{TaskStore.task_name}} data</h1>
     <h3>
@@ -9,13 +12,12 @@
             <h3>{{label}}</h3>
             <input type = "file">
         </div>
-        <input type="submit" value="Join & Train" >
+        <input class= "btn bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" type="button" value="Join & Train" v-on:click="train" >
     </form>
   </div>
 </template>
 
 <script>
-import Task from '../helpers/Task'
 import TaskStore from '../store/taskStore'
 
 export default {
@@ -26,6 +28,11 @@ export default {
   data() {
     return {
       TaskStore: TaskStore.data
+    }
+  },
+  methods: {
+    train(){
+      console.log("Training")
     }
   }
 }
