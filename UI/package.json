@@ -11,6 +11,7 @@
     "deploy": "gh-pages -d public"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "^3.3.0",
     "gh-pages": "^3.1.0"
   },
   "devDependencies": {
