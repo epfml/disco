@@ -598,17 +598,19 @@
                     </div>
                   </div>
                 </div>
-                <div class="relative pb-4">
-                  <article aria-label="File Upload Modal"
+                <!-- Sample of upload model component to make it simpler to correct-->
+                <!--
+                <article aria-label="File Upload Modal"
                     class="relative h-full flex flex-col bg-white rounded-lg dark:bg-darker"
                     ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"
                     ondragleave="dragLeaveHandler(event);" ondragenter="dragEnterHandler(event);">
-                    <!-- scroll area -->
+                    
                     <section class="h-full overflow-auto p-8 w-full h-full flex flex-col">
+                      <header> {{label}} </header>
                       <header
                         class="border-dashed border-2 border-gray-500 dark:border-primary py-12 flex flex-col justify-center items-center">
                         <p class="mb-3 text-lg font-semibold dark:text-lightflex flex-wrap justify-center">
-                          <span>Drag and drop your</span>&nbsp;<span>files anywhere or</span>
+                          <span>Drag and drop your</span>&nbsp;<span>files anywhere or click to upload</span>
                         </p>
                         <input id="hidden-input" type="file" multiple class="hidden" />
                         <button id="button"
@@ -616,66 +618,14 @@
                           Upload files
                         </button>
                       </header>
-
-                      <h1 class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex">
-                        Files Selected
-                      </h1>
-
-                      <ul id="gallery" class="flex flex-1 flex-wrap -m-1">
-                        <li id="empty"
-                          class="h-full w-full text-center flex flex-col items-center justify-center items-center">
-                          <img class="mx-auto w-32"
-                            src="https://user-images.githubusercontent.com/507615/54591670-ac0a0180-4a65-11e9-846c-e55ffce0fe7b.png"
-                            alt="no data" />
-                          <span class="text-small text-gray-500 dark:text-lightflex">No files selected</span>
-                        </li>
-                      </ul>
                     </section>
                   </article>
+                -->
+              
+                <div class="relative pb-4" id="vapp">
+                  <image-upload-frame v-for="label in task_labels" :label="label"/>
                 </div>
 
-              </div>
-            </div>
-
-
-            <!-- Change Header Card -->
-            <div class="grid grid-cols-1 space-y-4 lg:gap-2">
-              <!-- Card header -->
-              <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
-                <div class="flex items-center justify-between p-4 border-b dark:border-primary">
-                  <h4 class="text-lg font-semibold text-gray-500 dark:text-light">Map My Data</h4>
-                  <div class="flex items-center">
-                    <span aria-hidden="true">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-bezier2 w-7 h-7"
-                        viewBox="0 0 16 16">
-                        <path fill-rule="evenodd"
-                          d="M1 2.5A1.5 1.5 0 0 1 2.5 1h1A1.5 1.5 0 0 1 5 2.5h4.134a1 1 0 1 1 0 1h-2.01c.18.18.34.381.484.605.638.992.892 2.354.892 3.895 0 1.993.257 3.092.713 3.7.356.476.895.721 1.787.784A1.5 1.5 0 0 1 12.5 11h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5H6.866a1 1 0 1 1 0-1h1.711a2.839 2.839 0 0 1-.165-.2C7.743 11.407 7.5 10.007 7.5 8c0-1.46-.246-2.597-.733-3.355-.39-.605-.952-1-1.767-1.112A1.5 1.5 0 0 1 3.5 5h-1A1.5 1.5 0 0 1 1 3.5v-1zM2.5 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm10 10a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1z" />
-                      </svg>
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Display all the possible headers -->
-                <div id="mapHeader">
-                  <ul class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-4">
-                    <li class="border-gray-400" v-for="header in headers">
-                      <div
-                        class="select-none p-2 transition duration-500 ease-in-out transform hover:-translate-y-2 rounded-2xl border-2 p-6 hover:shadow-2xl border-primary-dark">
-                        <div class="grid grid-cols-1 grid-rows-2 items-center">
-                          <div class="pl-1">
-                            <div class="font-medium">
-                              <div class="flex flex-row justify-start">{{header.id}} &rarr; {{header.userHeader}} </div>
-                            </div>
-                          </div>
-                          <div class="mb-3 pt-0">
-                            <input type="text" v-model="header.userHeader" placeholder="Enter your header"
-                              class="px-3 py-3 placeholder-gray-400 text-gray-700 relative bg-white bg-white rounded text-sm shadow outline-none focus:outline-none focus:shadow-outline w-full" />
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
               </div>
             </div>
 
@@ -950,6 +900,7 @@
         </div>
       </section>
     </div>
+    
   </div>
 
   <!-- Layout Script  -->
@@ -1171,10 +1122,67 @@
 
   </script>
 
-  <!-- Script to receive input (Vue)-->
+  <!-- Script to receive input (Vue) TODO: is this actually working?-->
   <script src="../build/js/input.js"></script>
 
+  <!-- Vue components-->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/vuex"></script>
 
+  <script>
+    Vue.component('ImageUploadFrame', 
+     {
+      props: ['label'],
+      template: "<article aria-label=\"File Upload Modal\"\
+                    class=\"relative h-full flex flex-col bg-white rounded-lg dark:bg-darker\"\
+                    ondrop=\"dropHandler(event);\" ondragover=\"dragOverHandler(event);\"\
+                    ondragleave=\"dragLeaveHandler(event);\" ondragenter=\"dragEnterHandler(event);\">\
+                    <!-- scroll area -->\
+                    <section class=\"h-full overflow-auto p-8 w-full h-full flex flex-col\">\
+                      <h1>{{label}}</h1>\
+                      <header\
+                        class=\"border-dashed border-2 border-gray-500 dark:border-primary py-12 flex flex-col justify-center items-center\">\
+                        <p class=\"mb-3 text-lg font-semibold dark:text-lightflex flex-wrap justify-center\">\
+                          <span>Drag and drop your</span>&nbsp;<span>files anywhere or click to upload</span>\
+                        </p>\
+                        <input type=\"file\" multiple />\
+                      </header>\
+                    </section>\
+                  </article>",
+    })
+
+    const vueApp = new Vue({
+                            el: '#vapp',
+                            data: { 
+                              task_labels: [0,1,2,3,4,5,6,7,8,9] 
+                            }
+                          })
+    
+    /*
+    "<article aria-label=\"File Upload Modal\"\
+                    class=\"relative h-full flex flex-col bg-white rounded-lg dark:bg-darker\"\
+                    ondrop=\"dropHandler(event);\" ondragover=\"dragOverHandler(event);\"\
+                    ondragleave=\"dragLeaveHandler(event);\" ondragenter=\"dragEnterHandler(event);\">\
+                    <!-- scroll area -->\
+                    <section class=\"h-full overflow-auto p-8 w-full h-full flex flex-col\">\
+                      <header> {{label}} </header>\
+                      <header\
+                        class=\"border-dashed border-2 border-gray-500 dark:border-primary py-12 flex flex-col justify-center items-center\">\
+                        <p class=\"mb-3 text-lg font-semibold dark:text-lightflex flex-wrap justify-center\">\
+                          <span>Drag and drop your</span>&nbsp;<span>files anywhere or click to upload</span>\
+                        </p>\
+                        <input id=\"hidden-input\" type=\"file\" multiple class=\"hidden\" />\
+                        <button id=\"button\"\
+                          class=\"mt-2 rounded-sm text-white px-3 py-1 transition-colors duration-200 bg-primary hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker\">\
+                          Upload files\
+                        </button>\
+                      </header>\
+\
+                    </section>\
+                  </article>"
+    */
+    
+  </script>
 
 
 

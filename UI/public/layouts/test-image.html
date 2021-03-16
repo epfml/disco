@@ -499,16 +499,15 @@
                   <article aria-label="File Upload Modal"
                     class="relative h-full flex flex-col bg-white rounded-lg dark:bg-darker"
                     ondrop="dropHandler(event);" ondragover="dragOverHandler(event);"
-                    ondragleave="dragLeaveHandler(event);" ondragenter="dragEnterHandler(event);"
-                    onclick="onClickHandler(event);">
+                    ondragleave="dragLeaveHandler(event);" ondragenter="dragEnterHandler(event);">
                     <!-- scroll area -->
-                    <section class="h-full overflow-auto p-8 w-full h-full flex flex-col">
-                      <header
+                    <section class="h-full overflow-auto p-8 w-full h-full flex flex-col" >
+                      <header onclick="onClickHandler(event);"
                         class="border-dashed border-2 border-gray-500 dark:border-primary py-12 flex flex-col justify-center items-center">
                         <p class="mb-3 text-lg font-semibold dark:text-lightflex flex-wrap justify-center">
                           <span>Drag and drop your</span>&nbsp;<span>file or click to upload</span>
                         </p>
-                        <input id="hidden-input" ref="file-input" type="file" multiple class="hidden" />
+                        <input id="hidden-input" ref="file-input" type="file" single class="hidden" />
                         <button id="button"
                           class="mt-2 rounded-sm text-white px-3 py-1 transition-colors duration-200 bg-primary hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker">
                           Upload files
