@@ -1,7 +1,7 @@
-import * as tf from '@tensorflow/tfjs';
+//import * as tf from '@tensorflow/tfjs';
 
 // Data is passed under the form of Dictionary[ImageURL: label]
-export function helperJoinTraining(training_data){
+function helperJoinTraining(training_data){
     console.log("In auxiliary method")
     console.log(training_data)
     labels = []
