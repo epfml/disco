@@ -8,10 +8,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;700;900&display=swap"
     rel="stylesheet" />
   <link href="https://unpkg.com/tailwindcss@2.0.2/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../build/css/tailwind.css" />
+  <link rel="stylesheet" href="../src/css/tailwind.css" />
   <script src="https://cdn.jsdelivr.net/gh/alpine-collective/alpine-magic-helpers@0.5.x/dist/component.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.7.3/dist/alpine.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/danfojs@0.2.4/lib/bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.3.0/dist/tf.min.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
 
   <!-- Alert Message Style-->
   <style>
@@ -244,7 +248,7 @@
                   d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </a>
-            <!-- Info link -->  
+            <!-- Info link -->
             <!-- Active classes "bg-primary text-white" -->
             <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
             <a href="#"
@@ -681,11 +685,54 @@
 
             <!-- Train Button -->
             <div class="flex items-center justify-center p-4">
-              <button @click="openAlert" type="button"
+              <button @click="launchTraining" type="button"
                 class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none">
                 Train
               </button>
             </div>
+
+
+            <!-- Training Board -->
+            <div x-transition:enter="transition duration-300 ease-in-out" x-transition:enter-start="opacity-0"
+              x-transition:enter-end="opacity-100" x-ref="trainingBoard" x-show="isTraining">
+              
+              <!-- Validation Accuracy users chart -->
+              <div class="grid grid-cols-2 space-x-4 lg:gap-2">
+                  <div class="col-span-1 bg-white rounded-md dark:bg-darker">
+                    <!-- Card header -->
+                    <div class="p-4 border-b dark:border-primary">
+                      <h4 class="text-lg font-semibold text-gray-500 dark:text-light">Validation Accuracy of the Model</h4>
+                    </div>
+                    <p class="p-4">
+                      <span class="text-2xl font-medium text-gray-500 dark:text-light" id="val_accuracy">0</span>
+                      <span class="text-sm font-medium text-gray-500 dark:text-primary">% of validation accuracy</span>
+                    </p>
+                    <!-- Chart -->
+                    <div class="relative p-4">
+                      <canvas id="valAccuracyChart"></canvas>
+                    </div>
+                  </div>
+
+                  <div class="col-span-1 bg-white rounded-md dark:bg-darker">
+                    <!-- Card header -->
+                    <div class="p-4 border-b dark:border-primary">
+                      <h4 class="text-lg font-semibold text-gray-500 dark:text-light">Training Accuracy of the Model</h4>
+                    </div>
+                    <p class="p-4">
+                      <span class="text-2xl font-medium text-gray-500 dark:text-light" id="accuracy">0</span>
+                      <span class="text-sm font-medium text-gray-500 dark:text-primary">% of training accuracy</span>
+                    </p>
+                    <!-- Chart -->
+                    <div class="relative p-4">
+                      <canvas id="accuracyChart"></canvas>
+                    </div>
+                  </div>
+              </div>
+            </div>
+
+
+
+
 
           </div>
 
@@ -943,6 +990,10 @@
     </div>
   </div>
 
+  <!-- Chart Script -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.bundle.min.js"></script>
+
+
   <!-- Layout Script  -->
   <script>
     const setup = () => {
@@ -976,6 +1027,8 @@
         this.selectedColor = color
         window.localStorage.setItem('color', color)
       }
+
+
 
       return {
         loading: true,
@@ -1027,6 +1080,15 @@
             this.$refs.searchInput.focus()
           })
         },
+        isTraining: false,
+        launchTraining() {
+          load_process_data()
+          this.isTraining = true
+          this.$nextTick(() => {
+            this.$refs.trainingBoard.focus()
+          })
+
+        },
         isAlertOpen: false,
         openAlert() {
           this.isAlertOpen = true
@@ -1034,6 +1096,7 @@
             this.$refs.alert.focus()
           })
         },
+
       }
     }
   </script>
@@ -1041,6 +1104,7 @@
   <!-- To do: needs to be connected to outer JS with Vue -->
   <!-- Script for Data Upload -->
   <script>
+
     const fileTempl = document.getElementById("file-template"),
       imageTempl = document.getElementById("image-template"),
       empty = document.getElementById("empty");
@@ -1160,8 +1224,11 @@
 
   </script>
 
-  <!-- Script to receive input (Vue)-->
-  <script src="../build/js/input.js"></script>
+ <script src="../src/js/TaskDescription.js"></script>
+
+  <!-- Script to receive input (Vue)-->Ò
+  <script src="../src/js/input.js"></script>
+
 
 
 
