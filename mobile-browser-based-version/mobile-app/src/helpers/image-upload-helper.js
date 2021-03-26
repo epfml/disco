@@ -228,6 +228,10 @@ async function train(model, image_uri, labels) {
               ` complete). To stop training, refresh or close page.`);
           ui.plotLoss(trainBatchCount, logs.loss, 'train');
           ui.plotAccuracy(trainBatchCount, logs.acc, 'train');*/
+          console.log(`Training... (` +
+          `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` +
+          ` complete). To stop training, refresh or close page.`)
+          document.getElementById("val_accuracy").textContent = logs.val_acc
           if (onIteration && batch % 10 === 0) {
             onIteration('onBatchEnd', batch, logs);
           }
@@ -235,6 +239,7 @@ async function train(model, image_uri, labels) {
         },
         onEpochEnd: async (epoch, logs) => {
           valAcc = logs.val_acc;
+          document.getElementById("val_accuracy").textContent = valAcc
           /*ui.plotLoss(trainBatchCount, logs.val_loss, 'validation');
           ui.plotAccuracy(trainBatchCount, logs.val_acc, 'validation');*/
           if (onIteration) {
