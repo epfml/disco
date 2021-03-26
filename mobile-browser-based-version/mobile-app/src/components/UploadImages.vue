@@ -296,6 +296,46 @@
                 </button>
               </a>
             </div>
+
+            <!-- Training Board -->
+             <div x-transition:enter="transition duration-300 ease-in-out" x-transition:enter-start="opacity-0"
+               x-transition:enter-end="opacity-100" x-ref="trainingBoard" v-if="isTraining">
+
+               <!-- Validation Accuracy users chart -->
+               <div class="grid grid-cols-2 space-x-4 lg:gap-2">
+                   <div class="col-span-1 bg-white rounded-md dark:bg-darker">
+                     <!-- Card header -->
+                     <div class="p-4 border-b dark:border-primary">
+                       <h4 class="text-lg font-semibold text-gray-500 dark:text-light">Validation Accuracy of the Model</h4>
+                     </div>
+                     <p class="p-4">
+                       <span class="text-2xl font-medium text-gray-500 dark:text-light" id="val_accuracy">0</span>
+                       <span class="text-sm font-medium text-gray-500 dark:text-primary">% of validation accuracy</span>
+                     </p>
+                     <!-- Chart -->
+                     <div class="relative p-4">
+                       <canvas id="valAccuracyChart"></canvas>
+                     </div>
+                   </div>
+
+                   <div class="col-span-1 bg-white rounded-md dark:bg-darker">
+                     <!-- Card header -->
+                     <div class="p-4 border-b dark:border-primary">
+                       <h4 class="text-lg font-semibold text-gray-500 dark:text-light">Training Accuracy of the Model</h4>
+                     </div>
+                     <p class="p-4">
+                       <span class="text-2xl font-medium text-gray-500 dark:text-light" id="accuracy">0</span>
+                       <span class="text-sm font-medium text-gray-500 dark:text-primary">% of training accuracy</span>
+                     </p>
+                     <!-- Chart -->
+                     <div class="relative p-4">
+                       <canvas id="accuracyChart"></canvas>
+                     </div>
+                   </div>
+               </div>
+             </div>
+
+
           </div>
 
           <!-- TO DO: wrong behavour, need to be able to appear again-->
@@ -867,6 +907,7 @@ export default {
       uploaded_file_info: null,
       FILES: {},
       task_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      isTraining: false
     };
   },
   mounted() {
@@ -888,6 +929,7 @@ export default {
     },
     joinTraining: function () {
       console.log("Join Training");
+      this.isTraining = true
       helperJoinTraining(this.FILES);
     },
   watchScreen: function() {
