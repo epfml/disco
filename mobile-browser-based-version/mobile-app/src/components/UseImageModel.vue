@@ -942,6 +942,9 @@ export default {
     myEventHandler(e) {
       this.StateStore.isSidebarOpen = window.innerWidth > 1024;
     },
+    onClickHandler(e){
+      document.getElementById("hidden-input").click()
+    }
   },
   created() {
     window.addEventListener("resize", this.myEventHandler);
