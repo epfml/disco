@@ -50,6 +50,14 @@ The application runs the following architecture:
  - **Task-related Components** are components used to display the interface associated with tasks. Because tasks can require many information pages such as task description, or task training information, a task UI requires many components. Again, these components come in a parent-child relation: one global component (called `[taskName]_model.vue`) is used to implement a sidebar that allows the user to navigate through the different components associated with a task. On the right side of this global component, the following components are used to create a task (and note that all of them need to be created for each task): 
     - **Description of the task** under the name `[taskName]_description.vue. It gives an overview of the task. 
     - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train the model. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When the user reaches for the first time the page, the component is created, and only then the NN model is created and stored in the browser's indexdb database. The training is done in a seperated script. To start training, the function named `join_training`is called. This function preprocess the data using the task specific data pre-processing function and then train the model using the shared `train`function. 
+
+### Training Loop
+A function called `training` is called by all components that are training a model. This function is located in the file ./helpers/training.js.   
+The idea is that the training part for all the tasks follows the same architecture, while the processing of the data is done locally (at the component level) by each task.   
+The training process works as follow:
+1. When a user has stated that he wishes to join the training of a task, a model is created (for now with a standards initialization) and stored into the browser's local storage. (call to `create_model`, a function embedded into the task's training component)
+2. Once the user uploads a dataset, a pre-processing function is called. The pre-processing function is specifically tailored for each task and so is embedded in the task's training component under the name `data_preprocessing`. 
+3. Once the data has been pre-processed, the `training` function is called. This function loads the model from the browser's local storage and updates the model by training it on the given dataset. As mentioned earlier, this function is shared by all training components.
    
 ### Routers
 Routers are used to navigate through the different components and are required to be configured each time a new task is added. 
