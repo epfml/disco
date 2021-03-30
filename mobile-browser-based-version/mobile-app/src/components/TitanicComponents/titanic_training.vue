@@ -304,7 +304,7 @@
     <!-- Train Button -->
     <div class="flex items-center justify-center p-4">
       <button
-        v-on:click="load_process_data()"
+        v-on:click="join_training()"
         type="button"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
       >
@@ -488,11 +488,12 @@
 import * as tf from "@tensorflow/tfjs";
 import * as Chart from "chart.js";
 import * as d3 from "d3";
+import training from "../../helpers/training-script"
 
 export default {
   data() {
     return {
-      title: "titanic-training",
+      model_name: "titanic-model",
       DataFormatInfoText: "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
       DataExampleText: "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
       
@@ -517,13 +518,17 @@ export default {
       accuracyChart: null,
       val_accuracy: null,
       accuracy: null,
+      
+      // Model storage
+      model: null,
     };
   },
   methods: {
+
     /**
-     * Function to call when user's want's to train the data
+     * Function that pre-processes the data uploaded by the user
      */
-    async load_process_data() {
+    async data_preprocessing() {
       const filesElement = document.getElementById("hidden-input");
 
       // Check that the user indeed gave a file 
@@ -536,7 +541,7 @@ export default {
         let file = filesElement.files[0];
 
         let reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           console.log("Start: Processing Uploaded File");
 
           // Check some basic prop. in the user's uploaded file
@@ -614,49 +619,23 @@ export default {
                 console.log(rows);
               }
             );
-            /*
-                return {
-                    // Map the user's data point to our format 
-                    // and convert what can be converted to int or string (with +) 
-                    PassengerId: +d[headerCopied[0]],
-                    Survived: +d[headerCopied[1]],
-                    Name: d[headerCopied[2]],
-                    Sex: d[headerCopied[3]],
-                    Age: +d[headerCopied[4]],
-                    SibSp: +d[headerCopied[5]],
-                    Parch: +d[headerCopied[6]],
-                    Ticket: d[headerCopied[7]],
-                    Fare: +d[headerCopied[8]],
-                    Cabin: d[headerCopied[9]],
-                    Embarked: d[headerCopied[10]],
-                    Pclass: +d[headerCopied[11]]
-                };*/
-
-            // console.log(tf.tensor2d(Xcsv));
-            // console.log(tf.tensor1d(ycsv));
-
+            
             let Xtrain = tf.tensor2d(Xcsv);
             let ytrain = tf.tensor1d(ycsv);
+            console.log(Xtrain.id)
 
-            //let df = new DataFrame(parsedCSV)
-            // console.log(df)
-            this.train(Xtrain, ytrain);
+            await training(this.model_name, Xtrain, ytrain, 32, 0.2, 30, this.updateUI)
           } else {
             console.log("Cannot Start training");
           }
         };
 
-        reader.readAsText(file);
+        await reader.readAsText(file);
       }
     },
 
-    /**
-     * Creates the tf.model
-     * TO DO: fetch model from local storage
-     * @returns Returns a tf.model for training
-     */
-    get_model() {
-      const model = tf.sequential();
+    create_model() {
+      let model = tf.sequential();
       model.add(
         tf.layers.dense({
           inputShape: [8],
@@ -672,47 +651,13 @@ export default {
       return model;
     },
 
-    /**
-     * Function called once data has been loaded and processed. Updates the model 
-     * stored in local memory
-     
-     * @returns Returns a tf.model for training
-     */
-    async train(Xtrain, ytrain) {
-      const model = this.get_model();
+    async join_training() {
+     await this.data_preprocessing(); 
+    },
 
-      model.compile({
-        optimizer: "rmsprop",
-        loss: "binaryCrossentropy",
-        metrics: ["accuracy"],
-      });
-
-      console.log("Training started....");
-      await model.fit(Xtrain, ytrain, {
-        batchSize: 32,
-        epochs: 30,
-        validationSplit: 0.2,
-        callbacks: {
-          onEpochEnd: async (epoch, logs) => {
-            await this.updateValidationAccuracy(
-              epoch + 1,
-              (logs.val_acc * 100).toFixed(2)
-            );
-            await this.updateAccuracy(epoch + 1, (logs.acc * 100).toFixed(2));
-            console.log(`EPOCH (${epoch + 1}): Train Accuracy: ${(
-              logs.acc * 100
-            ).toFixed(2)},
-                                                   Val Accuracy:  ${(
-                                                     logs.val_acc * 100
-                                                   ).toFixed(2)}\n`);
-          },
-        },
-      });
-
-      // Save model in browser's storage (indexeddb might not be big enough)
-      await model.save("indexeddb://my-model");
-
-      // await model.save('downloads://small-test');
+    updateUI(epoch, _accuracy, validationAccuracy) {
+      this.updateAccuracy(epoch, _accuracy)
+      this.updateValidationAccuracy(epoch, validationAccuracy)
     },
 
     /**
@@ -743,11 +688,21 @@ export default {
       this.val_accuracy.innerText = accuracy;
     },
   },
-  mounted() {
+  async mounted() {
     // This method is called when the component is created
-    this.$nextTick(function () {
+    this.$nextTick(async function () {
       // Code that will run only after the
       // entire view has been rendered
+
+      /**
+       * #######################################
+       * CODE TO HANDLE CREATION OF THE MODEL
+       * #######################################
+       */
+
+      let model = this.create_model();
+      const save_path = "localstorage://".concat(this.model_name);
+      const saveResults = await model.save(save_path);
 
       /**
        * #######################################
@@ -858,7 +813,7 @@ export default {
 
       /**
        * #######################################
-       * CODE TO HANDLE CREATION OF CHARTS FEEDBACKS
+       * CODE TO HANDLE CREATION OF CHARTS 
        * #######################################
        */
 
