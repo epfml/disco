@@ -625,12 +625,13 @@ export default {
             console.log(Xtrain.id)
 
             await training(this.model_name, Xtrain, ytrain, 32, 0.2, 30, this.updateUI)
+
           } else {
             console.log("Cannot Start training");
           }
         };
 
-        await reader.readAsText(file);
+        reader.readAsText(file);
       }
     },
 
@@ -813,7 +814,7 @@ export default {
 
       /**
        * #######################################
-       * CODE TO HANDLE CREATION OF CHARTS 
+       * CODE TO HANDLE CREATION OF CHARTS FEEDBACKS
        * #######################################
        */
 
