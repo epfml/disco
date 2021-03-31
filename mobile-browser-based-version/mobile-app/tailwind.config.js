@@ -1,7 +1,10 @@
 const colors = require('tailwindcss/colors')
 
 module.exports = {
-  purge: ['./public/**/*.html'],
+  purge: [
+  './public/**/*.html',
+  './src/**/*.vue',
+  ],
   darkMode: 'class', // or 'media' or false
   theme: {
     fontFamily: {
@@ -77,10 +80,7 @@ module.exports = {
   },
   variants: {
     extend: {
-      backgroundColor: ['checked', 'disabled'],
-      opacity: ['dark'],
-      overflow: ['hover'],
-      divideColor: ['group-hover'],
+     
     },
   },
   plugins: [],
