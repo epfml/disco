@@ -144,8 +144,8 @@
       </div>
     </a>
 
-    <!-- Upload File Card -->
-    <div class="p-4 grid grid-cols-1 space-y-2 lg:gap-2">
+    <!-- Upload File Card-->
+    <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
       <div class="container mx-width lg h-full">
         <!-- Card header -->
         <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
@@ -176,149 +176,81 @@
             </div>
           </div>
         </div>
-
-        <!-- Upload Images-->
         <div class="relative pb-4">
-          <ImageUploadFrame
-            v-for="label in task_labels"
-            v-bind:key="label"
-            :label="String(label)"
-            :inputchangefunc="inputChange"
-          />
+          <article
+            aria-label="File Upload Modal"
+            class="relative h-full flex flex-col p-4 bg-white rounded-lg dark:bg-darker"
+            ondrop="dropHandler(event);"
+            ondragover="dragOverHandler(event);"
+            ondragleave="dragLeaveHandler(event);"
+            ondragenter="dragEnterHandler(event);"
+          >
+            <!-- scroll area -->
+            <section
+              class="h-full overflow-auto p-8 w-full h-full flex flex-col"
+            >
+              <header
+                class="border-dashed border-2 border-gray-500 dark:border-primary flex flex-col justify-center items-center"
+              >
+                <p
+                  class="mb-3 p-4 text-lg font-semibold dark:text-lightflex flex-wrap justify-center"
+                >
+                  <span>Drag and drop your</span>&nbsp;<span
+                    >files anywhere or</span
+                  >
+                </p>
+                <input id="hidden-input" type="file" multiple class="hidden"/>
+                <div class="p-4">
+                  <button
+                    id="button"
+                    class="mt-2 p-2 rounded-sm text-white transition-colors duration-200 bg-primary hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+                  >
+                    Upload files
+                  </button>
+                </div>
+              </header>
+
+              <div class="pt-4">
+                <h1
+                  class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex"
+                >
+                  Files Selected
+                </h1>
+
+                <ul id="gallery" class="flex flex-1 flex-wrap -m-1">
+                  <li
+                    id="empty"
+                    class="h-full w-full text-center flex flex-col items-center justify-center items-center"
+                  >
+                    <img
+                      class="mx-auto w-32"
+                      src="https://user-images.githubusercontent.com/507615/54591670-ac0a0180-4a65-11e9-846c-e55ffce0fe7b.png"
+                      alt="no data"
+                    />
+                    <span class="text-small text-gray-500 dark:text-lightflex"
+                      >No files selected</span
+                    >
+                  </li>
+                </ul>
+              </div>
+            </section>
+          </article>
         </div>
       </div>
     </div>
 
-    <!-- Train Button -->
+    <!-- Test Button -->
     <div class="flex items-center justify-center p-4">
       <button
-        v-on:click="join_training()"
+        v-on:click="test_model()"
         type="button"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
       >
-        Train
+        Test
       </button>
     </div>
 
-    <!-- Training Board -->
-    <div
-      x-transition:enter="transition duration-300 ease-in-out"
-      x-transition:enter-start="opacity-0"
-      x-transition:enter-end="opacity-100"
-      x-ref="trainingBoard"
-      x-show="isTraining"
-    >
-      <!-- Validation Accuracy users chart -->
-      <div class="grid grid-cols-2 p-4 space-x-4 lg:gap-2">
-        <div class="col-span-1 bg-white rounded-md dark:bg-darker">
-          <!-- Card header -->
-          <div class="p-4 border-b dark:border-primary">
-            <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-              Validation Accuracy of the Model
-            </h4>
-          </div>
-          <p class="p-4">
-            <span
-              class="text-2xl font-medium text-gray-500 dark:text-light"
-              id="val_accuracy"
-              >0</span
-            >
-            <span class="text-sm font-medium text-gray-500 dark:text-primary"
-              >% of validation accuracy</span
-            >
-          </p>
-          <!-- Chart -->
-          <div class="relative p-4">
-            <canvas id="valAccuracyChart"></canvas>
-          </div>
-        </div>
-
-        <div class="col-span-1 bg-white rounded-md dark:bg-darker">
-          <!-- Card header -->
-          <div class="p-4 border-b dark:border-primary">
-            <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-              Training Accuracy of the Model
-            </h4>
-          </div>
-          <p class="p-4">
-            <span
-              class="text-2xl font-medium text-gray-500 dark:text-light"
-              id="accuracy"
-              >0</span
-            >
-            <span class="text-sm font-medium text-gray-500 dark:text-primary"
-              >% of training accuracy</span
-            >
-          </p>
-          <!-- Chart -->
-          <div class="relative p-4">
-            <canvas id="accuracyChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-    <button
-        id="test-model-button"
-        v-on:click="goToTesting()"
-        type="button"
-        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
-      >
-        Go Test
-    </button>
-    <!-- Upload File Data Template -->
-    <template id="file-template">
-      <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
-        <article
-          tabindex="0"
-          class="group w-full h-full rounded-md focus:outline-none focus:shadow-outline elative bg-gray-100 cursor-pointer relative shadow-sm"
-        >
-          <img
-            alt="upload preview"
-            class="img-preview hidden w-full h-full sticky object-cover rounded-md bg-fixed"
-          />
-
-          <section
-            class="py-2 px-3 flex flex-col rounded-md text-xs break-words w-full h-full z-20 absolute top-0"
-          >
-            <h1 class="flex-1 group-hover:text-blue-800"></h1>
-            <div class="flex">
-              <span class="p-1 text-blue-800">
-                <i>
-                  <svg
-                    class="fill-current w-4 h-4 ml-auto pt-1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M15 2v5h5v15h-16v-20h11zm1-2h-14v24h20v-18l-6-6z"
-                    />
-                  </svg>
-                </i>
-              </span>
-              <p class="p-1 size text-xs text-gray-700"></p>
-              <button
-                class="delete ml-auto focus:outline-none hover:bg-gray-300 p-1 rounded-md text-gray-800"
-              >
-                <svg
-                  class="pointer-events-none fill-current w-4 h-4 ml-auto"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    class="pointer-events-none"
-                    d="M3 6l3 18h12l3-18h-18zm19-4v2h-20v-2h5.711c.9 0 1.631-1.099 1.631-2h5.316c0 .901.73 2 1.631 2h5.711z"
-                  />
-                </svg>
-              </button>
-            </div>
-          </section>
-        </article>
-      </li>
-    </template>
+    <div id="predictions"></div>
 
     <!-- Upload Image Data Template-->
     <template id="image-template">
@@ -380,17 +312,12 @@
 
 
 <script>
-import ImageUploadFrame from "../ImageUploadFrame";
 import * as tf from "@tensorflow/tfjs";
-import * as Chart from "chart.js";
-import * as d3 from "d3";
-import training from "../../helpers/training-script.js"
-import data_preprocessing from "../../helpers/mnist-preprocessing-helper.js"
 
 export default {
   data() {
     return {
-      title: "mnist-training",
+      title: "mnist-testing",
       DataFormatInfoText:
         "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
       DataExampleText:
@@ -398,35 +325,15 @@ export default {
 
       // Different Task Labels
       task_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-
-      // Feed Back Training Components
-      valAccuracyChart: null,
-      accuracyChart: null,
-      val_accuracy: null,
-      accuracy: null,
+      IMAGE_HEIGHT: 224,
+      IMAGE_WIDTH: 224,
+  
+      model_name: "MOBILENET_model",
       model: null,
-      FILES: {},
-      model_name: "MNIST_model"
+      FILES: [],
     };
   },
   methods: {
-    addFile: function (file, label) {
-      const isImage = file.type.match("image.*"),
-        objectURL = URL.createObjectURL(file);
-      this.FILES[objectURL] = label;
-    },
-
-    inputChange: function (e, label) {
-      for (const file of e.target.files) {
-        console.log("Adding file");
-        this.addFile(file, label);
-        console.log("File Added");
-      }
-    },
-
-    goToTesting() {
-      this.$router.push({ path: "/MNIST-model/testing" });
-    },
 
     /**
      * Creates the tf.model
@@ -440,56 +347,130 @@ export default {
       return this.model
     },
 
-    create_model(){
-      return this.createConvModel()
+    async create_model(){
+        const MOBILENET_MODEL_PATH =
+        "https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json";
+        
+        const model = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
+
+        // Warmup the model. This isn't necessary, but makes the first prediction
+        // faster. Call `dispose` to release the WebGL memory allocated for the return
+        // value of `predict`.
+        model.predict(tf.zeros([1, this.IMAGE_HEIGHT, this.IMAGE_WIDTH, 3])).dispose();
+        return model
     },
 
-    join_training(){
-      const optimizer = 'rmsprop';
+    test_model(){
+      const filesElement = document.getElementById("hidden-input");
 
-      const preprocessed_data = data_preprocessing(this.FILES)
+      let file = filesElement.files[0];
 
-      const batchSize = 320;
+      // Only process image files (skip non image files)
+      if (file && file.type.match("image.*")) {
+        let reader = new FileReader();
+        reader.onload = (e) => {
+          // Fill the image & call predict.
+          let img = document.createElement("img");
+          img.src = e.target.result;
+          img.width = this.IMAGE_WIDTH;
+          img.height = this.IMAGE_HEIGHT;
+          img.onload = () => this.predict(img);
+        };
 
-      const validationSplit = 0.15;
-    
-      const trainEpochs = 10
-
-      training(this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
+        // Read in the image file as a data URL.
+        reader.readAsDataURL(file);
+      } 
     },
 
-    async updateUI(epoch, _accuracy, validation_accuracy){
-      this.updateAccuracy(epoch, _accuracy)
-      this.updateValidationAccuracy(epoch, validation_accuracy)
+    async predict(imgElement){
+        const model_path = "localstorage://".concat(this.model_name);
+        const loadedModel = await tf.loadLayersModel(model_path);
+
+        const logits = tf.tidy(() => {
+            // tf.browser.fromPixels() returns a Tensor from an image element.
+            const img = tf.browser.fromPixels(imgElement).toFloat();
+
+            const offset = tf.scalar(127.5);
+            // Normalize the image from [0, 255] to [-1, 1].
+            const normalized = img.sub(offset).div(offset);
+
+            // Reshape to a single-element batch so we can pass it to predict.
+            const batched = normalized.reshape([1, this.IMAGE_WIDTH, this.IMAGE_HEIGHT, 3]);
+
+            // Make a prediction through mobilenet.
+            return loadedModel.predict(batched);
+        })
+        // Convert logits to probabilities and class names.
+        // Convert logits to probabilities and class names.
+        const classes = await this.getTopKClasses(logits, 5);
+
+        console.log(classes);
+        // Show the classes in the DOM.
+        this.showResults(imgElement, classes);
     },
 
-    /**
-     * Method to update tha accuracy chart when training
-     * @param {Number} epoch The epoch number of the current training
-     * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
-     */
-    async updateAccuracy(epoch, _accuracy) {
-      this.accuracyChart.data.datasets[0].data.push(_accuracy);
-      this.accuracyChart.data.datasets[0].data.splice(0, 1);
-      this.accuracyChart.data.labels.push(epoch);
-      this.accuracyChart.data.labels.splice(0, 1);
-      await this.accuracyChart.update();
-      this.accuracy.innerText = _accuracy;
+    showResults(imgElement, classes) {
+        const predictionContainer = document.createElement("div");
+        predictionContainer.className = "pred-container";
+
+        const imgContainer = document.createElement("div");
+        imgContainer.appendChild(imgElement);
+        predictionContainer.appendChild(imgContainer);
+
+        const probsContainer = document.createElement("div");
+        for (let i = 0; i < classes.length; i++) {
+            const row = document.createElement("div");
+            row.className = "row";
+
+            const classElement = document.createElement("div");
+            classElement.className = "cell";
+            classElement.innerText = classes[i].className;
+            row.appendChild(classElement);
+
+            const probsElement = document.createElement("div");
+            probsElement.className = "cell";
+            probsElement.innerText = classes[i].probability.toFixed(3);
+            row.appendChild(probsElement);
+
+            probsContainer.appendChild(row);
+        }
+        predictionContainer.appendChild(probsContainer);
+
+        const predictionsElement = document.getElementById("predictions");
+        predictionsElement.insertBefore(
+            predictionContainer,
+            predictionsElement.firstChild
+        );
     },
 
-    /**
-     * Method to update tha validation accuracy chart when training
-     * @param {Number} epoch The epoch number of the current training
-     * @param {Number} _accuracy The validation accuracy achieved by the model in the given epoch
-     */
-    async updateValidationAccuracy(epoch, accuracy) {
-      this.valAccuracyChart.data.datasets[0].data.push(accuracy);
-      this.valAccuracyChart.data.datasets[0].data.splice(0, 1);
-      this.valAccuracyChart.data.labels.push(epoch);
-      this.valAccuracyChart.data.labels.splice(0, 1);
-      await this.valAccuracyChart.update();
-      this.val_accuracy.innerText = accuracy;
+    async getTopKClasses(logits, topK) {
+        const IMAGENET_CLASSES = {}
+        const values = await logits.data();
+
+        const valuesAndIndices = [];
+        for (let i = 0; i < values.length; i++) {
+            valuesAndIndices.push({ value: values[i], index: i });
+        }
+        valuesAndIndices.sort((a, b) => {
+            return b.value - a.value;
+        });
+        const topkValues = new Float32Array(topK);
+        const topkIndices = new Int32Array(topK);
+        for (let i = 0; i < topK; i++) {
+            topkValues[i] = valuesAndIndices[i].value;
+            topkIndices[i] = valuesAndIndices[i].index;
+        }
+
+        const topClassesAndProbs = [];
+        for (let i = 0; i < topkIndices.length; i++) {
+            topClassesAndProbs.push({
+            className: IMAGENET_CLASSES[topkIndices[i]],
+            probability: topkValues[i],
+            });
+        }
+        return topClassesAndProbs;
     },
+
     /**
      * Creates a convolutional neural network (Convnet) for the MNIST data.
      *
@@ -554,23 +535,46 @@ export default {
     this.$nextTick(async function () {
       // Code that will run only after the
       // entire view has been rendered
-      
-      /**
-        * #######################################
-        * CODE TO HANDLE CREATION OF THE MODEL
-        * #######################################
-        */
+      let model = await this.create_model()
+      this.model = model
+      const save_path = "localstorage://".concat(this.model_name)
+      const saveResults = await model.save(save_path)
 
-       let model = await this.create_model();
-       this.model = model
-       const save_path = "localstorage://".concat(this.model_name);
-       const saveResults = await model.save(save_path);
+      const imageTempl = document.getElementById("image-template"),
+        empty = document.getElementById("empty");
 
-      /**
-       * #######################################
-       * CODE TO HANDLE CREATION OF CHARTS FEEDBACKS
-       * #######################################
-       */
+      function addFile(target, file) {
+            const objectURL = URL.createObjectURL(file);
+
+            const clone = imageTempl.cloneNode(true)
+
+            clone.querySelector("h1").textContent = file.name;
+            clone.querySelector("li").id = objectURL;
+            clone.querySelector(".delete").dataset.target = objectURL;
+            clone.querySelector(".size").textContent =
+            file.size > 1024
+                ? file.size > 1048576
+                ? Math.round(file.size / 1048576) + "mb"
+                : Math.round(file.size / 1024) + "kb"
+                : file.size + "b";
+
+            Object.assign(clone.querySelector("img"), {
+                src: objectURL,
+                alt: file.name,
+            });
+
+            empty.classList.add("hidden");
+            target.prepend(clone.firstElementChild);
+      }
+
+      const gallery = document.getElementById("gallery")
+      const hidden = document.getElementById("hidden-input");
+      document.getElementById("button").onclick = () => hidden.click();
+      hidden.onchange = (e) => {
+        for (const file of e.target.files) {
+          addFile(gallery, file);
+        }
+      };
 
       /**
        * Returns the CSS colors graphs should be rendered in
@@ -597,135 +601,7 @@ export default {
         primaryDark: cssColors(`--color-${getColor()}-dark`),
         primaryDarker: cssColors(`--color-${getColor()}-darker`),
       };
-
-      // Initialization of validation accuracy constant
-      this.val_accuracy = document.getElementById("val_accuracy");
-
-      // Initialization of the validation accuracy chart
-      this.valAccuracyChart = new Chart(
-        document.getElementById("valAccuracyChart"),
-        {
-          type: "line",
-          data: {
-            labels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            datasets: [
-              {
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                backgroundColor: colors.primary,
-                borderWidth: 0,
-                categoryPercentage: 1,
-              },
-            ],
-          },
-          options: {
-            scales: {
-              yAxes: [
-                {
-                  display: false,
-                  gridLines: false,
-                  // uncomment to stop chart auto scale
-                  /*
-                    ticks: {
-                        min:0,
-                        max:100
-                    }*/
-                },
-              ],
-              xAxes: [
-                {
-                  display: false,
-                  gridLines: false,
-                },
-              ],
-              ticks: {
-                padding: 10,
-              },
-            },
-            cornerRadius: 2,
-            maintainAspectRatio: false,
-            legend: {
-              display: false,
-            },
-            tooltips: {
-              prefix: "Validation Accuracy",
-              bodySpacing: 4,
-              footerSpacing: 4,
-              hasIndicator: true,
-              mode: "index",
-              intersect: true,
-            },
-            hover: {
-              mode: "nearest",
-              intersect: true,
-            },
-          },
-        }
-      );
-
-      // Initialization of the training accuracy constant
-      this.accuracy = document.getElementById("accuracy");
-
-      // Initialization of the training accuracy chart
-      this.accuracyChart = new Chart(document.getElementById("accuracyChart"), {
-        type: "line",
-        data: {
-          labels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          datasets: [
-            {
-              data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-              backgroundColor: colors.primary,
-              borderWidth: 0,
-              categoryPercentage: 1,
-            },
-          ],
-        },
-        options: {
-          scales: {
-            yAxes: [
-              {
-                display: false,
-                gridLines: false,
-                // uncomment to stop chart auto scale
-                /*
-                    ticks: {
-                        min:0,
-                        max:100
-                    }*/
-              },
-            ],
-            xAxes: [
-              {
-                display: false,
-                gridLines: false,
-              },
-            ],
-            ticks: {
-              padding: 10,
-            },
-          },
-          cornerRadius: 2,
-          maintainAspectRatio: false,
-          legend: {
-            display: false,
-          },
-          tooltips: {
-            prefix: "Validation Accuracy",
-            bodySpacing: 4,
-            footerSpacing: 4,
-            hasIndicator: true,
-            mode: "index",
-            intersect: true,
-          },
-          hover: {
-            mode: "nearest",
-            intersect: true,
-          },
-        },
-      });
     });
-  },
-  components: {
-    ImageUploadFrame,
   },
 };
 </script>

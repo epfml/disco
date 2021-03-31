@@ -1,7 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import TrainingUploadImages from "../components/TrainingUploadImages"
-import UseImageModel from "../components/UseImageModel"
-import UploadImages from "../components/UploadImages"
 import details from "../components/details"
 import UploadDataLink from "../components/UploadDataLink"
 
@@ -17,6 +14,7 @@ import TitanicTraining from "../components/TitanicComponents/titanic_training"
 import MNISTGlobal from "../components/MNISTComponents/MNIST_global"
 import MNISTDesc from "../components/MNISTComponents/MNIST_desc"
 import MNISTTraining from "../components/MNISTComponents/MNIST_training"
+import MNISTTesting from "../components/MNISTComponents/MNIST_testing"
 
 
 const routes = [
@@ -24,16 +22,6 @@ const routes = [
     path: '/',
     name: 'home',
     component: TaskList
-  },
-  {
-    path: '/testImage',
-    name: 'UseImageModel',
-    component: UseImageModel
-  },
-  {
-    path: '/trainImage',
-    name: 'UploadImages',
-    component: UploadImages
   },
   {
     path: '/details',
@@ -69,6 +57,10 @@ const routes = [
       path: 'training',
       component: MNISTTraining
     },
+    {
+      path: 'testing',
+      component: MNISTTesting
+    }
     ]
   },
 
