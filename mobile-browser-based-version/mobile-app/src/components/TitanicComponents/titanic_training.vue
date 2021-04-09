@@ -547,8 +547,18 @@ export default {
           // Check some basic prop. in the user's uploaded file
           var content = e.target.result;
           var userHeader = content.split("\n").shift().split(","); // user's header array
-          var checkHeaderLength = userHeader.length == 12; // Check that the user's file has the right number of columns
-          if (!checkHeaderLength) {
+          
+          var length = userHeader.length;
+          if (length !=0) {
+            // Check last column element, if empty then accept
+            var last_element = JSON.stringify(userHeader[userHeader.length - 1])
+            if (last_element.replace("/\r?\n|\r/", "").replace(/\s/g, "") == "") {
+              length = length - 1;
+            }
+          }
+          var checkHeaderLength = length == 12; // Check that the user's file has the right number of columns
+         
+         if (!checkHeaderLength) {
             alert(
               "Training aborted. The uploaded file has the wrong number of columns."
             );
@@ -624,7 +634,12 @@ export default {
             let ytrain = tf.tensor1d(ycsv);
             console.log(Xtrain.id)
 
+            this.$toast.success(`Thank you for your contribution. Training has started`);
+            setTimeout(this.$toast.clear, 30000)
+
             await training(this.model_name, Xtrain, ytrain, 32, 0.2, 30, this.updateUI)
+            this.$toast.success(`Titanic model has finished training!`);
+            setTimeout(this.$toast.clear, 30000)
 
           } else {
             console.log("Cannot Start training");
