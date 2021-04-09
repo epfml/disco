@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@meforma/vue-toaster": "^1.2.2",
     "@tensorflow-models/mobilenet": "^2.1.0",
     "@tensorflow/tfjs": "^3.3.0",
     "aws-sdk": "^2.872.0",
@@ -19,6 +20,7 @@
     "vue": "^3.0.0",
     "vue-chartjs": "^3.5.1",
     "vue-loaders": "^4.1.4",
+    "vue-notification-renderless": "^0.7.3",
     "vue-router": "^4.0.0-0"
   },
   "devDependencies": {

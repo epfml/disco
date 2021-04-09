@@ -455,7 +455,15 @@ export default {
     
       const trainEpochs = 10
 
+      // Notification Start Training
+      this.$toast.success(`Thank you for your contribution. Training has started`);
+      setTimeout(this.$toast.clear, 30000)
+
       training(this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
+      // Notification End Training
+      this.$toast.success(`MNIST model has finished training!`);
+      setTimeout(this.$toast.clear, 30000)
+    
     },
 
     async updateUI(epoch, _accuracy, validation_accuracy){
