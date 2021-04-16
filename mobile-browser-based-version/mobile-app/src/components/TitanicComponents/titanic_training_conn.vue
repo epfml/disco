@@ -33,9 +33,9 @@
           </div>
           <!-- Descrition -->
           <div class="relative p-4 overflow-x-scroll">
-            <span class="text-sm text-gray-500 dark:text-light"
-              >{{DataFormatInfoText}}</span
-            >
+            <span class="text-sm text-gray-500 dark:text-light">{{
+              DataFormatInfoText
+            }}</span>
           </div>
         </div>
       </div>
@@ -69,9 +69,9 @@
           </div>
 
           <div class="relative p-4 overflow-x-scroll">
-            <span class="text-sm text-gray-500 dark:text-light"
-              >{{DataExampleText}}</span
-            >
+            <span class="text-sm text-gray-500 dark:text-light">{{
+              DataExampleText
+            }}</span>
           </div>
 
           <!-- Data Point Example -->
@@ -304,11 +304,18 @@
     <!-- Train Button -->
     <div class="flex items-center justify-center p-4">
       <button
-        v-on:click="join_training()"
+        v-on:click="join_training(false)"
         type="button"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
       >
         Train
+      </button>
+      <button
+        v-on:click="join_training(true)"
+        type="button"
+        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+      >
+        Train Distributed
       </button>
     </div>
 
@@ -487,18 +494,46 @@
 <script>
 import * as Chart from "chart.js";
 import * as d3 from "d3";
-import training from "../../helpers/training-script"
+import {training, training_distributed} from "../../helpers/training-script";
 import * as tf from "@tensorflow/tfjs";
 
+import Peer from "peerjs";
+import {
+  PeerJS,
+  send_model,
+  send_data,
+  handle_data,
+  CMD_CODES,
+} from "../../helpers/peer";
 
+import { onEpochEnd_common, train_common, makeid } from "../../helpers/helpers";
+
+// Variables used for training
 var model = null;
+var peerjs = null;
+var recv_buffer = {
+  train_info: {
+    epochs: 5,
+  },
+};
+var model_compile_data = {
+    optimizer: "rmsprop",
+    loss: "binaryCrossentropy",
+    metrics: ["accuracy"],
+  };
+var model_train_data = {
+  epochs: 5,
+};
+
 export default {
   data() {
     return {
       model_name: "titanic-model",
-      DataFormatInfoText: "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
-      DataExampleText: "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
-      
+      DataFormatInfoText:
+        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
+      DataExampleText:
+        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
+
       // Headers related to training task
       headers: [
         { id: "PassengerId", userHeader: "PassengerId" },
@@ -520,22 +555,38 @@ export default {
       accuracyChart: null,
       val_accuracy: null,
       accuracy: null,
-      
+
+      // For communication
+      receivers: [],
+      epoch: 0,
+      username: null,
+      threshold: null,
     };
   },
   methods: {
+    create_model() {
+      let new_model = tf.sequential();
+      new_model.add(
+        tf.layers.dense({
+          inputShape: [8],
+          units: 124,
+          activation: "relu",
+          kernelInitializer: "leCunNormal",
+        })
+      );
+      new_model.add(tf.layers.dense({ units: 64, activation: "relu" }));
+      new_model.add(tf.layers.dense({ units: 32, activation: "relu" }));
+      new_model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
+      new_model.summary();
+      return new_model;
+    },
 
-    /**
-     * Function that pre-processes the data uploaded by the user
-     */
-    async data_preprocessing() {
+    async join_training(distributed) {
       const filesElement = document.getElementById("hidden-input");
 
-      // Check that the user indeed gave a file 
+      // Check that the user indeed gave a file
       if (filesElement.files.length == 0) {
-        alert(
-              "Training aborted. No uploaded file given as input."
-            );
+        alert("Training aborted. No uploaded file given as input.");
       } else {
         // Assume we only read the first file
         let file = filesElement.files[0];
@@ -547,18 +598,22 @@ export default {
           // Check some basic prop. in the user's uploaded file
           var content = e.target.result;
           var userHeader = content.split("\n").shift().split(","); // user's header array
-          
+
           var length = userHeader.length;
-          if (length !=0) {
+          if (length != 0) {
             // Check last column element, if empty then accept
-            var last_element = JSON.stringify(userHeader[userHeader.length - 1])
-            if (last_element.replace("/\r?\n|\r/", "").replace(/\s/g, "") == "") {
+            var last_element = JSON.stringify(
+              userHeader[userHeader.length - 1]
+            );
+            if (
+              last_element.replace("/\r?\n|\r/", "").replace(/\s/g, "") == ""
+            ) {
               length = length - 1;
             }
           }
           var checkHeaderLength = length == 12; // Check that the user's file has the right number of columns
-         
-         if (!checkHeaderLength) {
+
+          if (!checkHeaderLength) {
             alert(
               "Training aborted. The uploaded file has the wrong number of columns."
             );
@@ -629,21 +684,46 @@ export default {
                 console.log(rows);
               }
             );
-            
+
             let Xtrain = tf.tensor2d(Xcsv);
             let ytrain = tf.tensor1d(ycsv);
-            console.log(Xtrain.id)
+            console.log(Xtrain.id);
 
             // Notification Start Training
-            this.$toast.success(`Thank you for your contribution. Training has started`);
-            setTimeout(this.$toast.clear, 30000)
+            this.$toast.success(
+              `Thank you for your contribution. Training has started`
+            );
+            setTimeout(this.$toast.clear, 30000);
 
-            await training(model, this.model_name, Xtrain, ytrain, 32, 0.2, 30, this.updateUI)
-            
+            if (!distributed) {
+                console.log("here")
+              await training(
+                model,
+                this.model_name,
+                Xtrain,
+                ytrain,
+                32,
+                0.2,
+                30,
+                this.updateUI
+              );
+            } else {
+                await training_distributed(
+                    model, 
+                    this.model_name, 
+                    Xtrain, 
+                    ytrain, 
+                    model_train_data, 
+                    32, 
+                    0.2, 
+                    model_compile_data, 
+                    this.onEpochBegin, 
+                    this.onEpochEnd
+                )
+            }
             // Notification End Training
             this.$toast.success(`Titanic model has finished training!`);
-            setTimeout(this.$toast.clear, 30000)
-
+            setTimeout(this.$toast.clear, 30000);
           } else {
             console.log("Cannot Start training");
           }
@@ -653,30 +733,16 @@ export default {
       }
     },
 
-    create_model() {
-      let new_model = tf.sequential();
-      new_model.add(
-        tf.layers.dense({
-          inputShape: [8],
-          units: 124,
-          activation: "relu",
-          kernelInitializer: "leCunNormal",
-        })
-      );
-      new_model.add(tf.layers.dense({ units: 64, activation: "relu" }));
-      new_model.add(tf.layers.dense({ units: 32, activation: "relu" }));
-      new_model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
-      new_model.summary();
-      return new_model;
-    },
 
-    async join_training() {
-     await this.data_preprocessing(); 
-    },
+    /**
+     * #######################################
+     * METHODS FOR UPDATING TRAINING UI
+     * #######################################
+     */
 
     updateUI(epoch, _accuracy, validationAccuracy) {
-      this.updateAccuracy(epoch, _accuracy)
-      this.updateValidationAccuracy(epoch, validationAccuracy)
+      this.updateAccuracy(epoch, _accuracy);
+      this.updateValidationAccuracy(epoch, validationAccuracy);
     },
 
     /**
@@ -705,6 +771,30 @@ export default {
       this.valAccuracyChart.data.labels.splice(0, 1);
       await this.valAccuracyChart.update();
       this.val_accuracy.innerText = accuracy;
+    },
+
+    /**
+     * #######################################
+     * METHODS FOR COMMUNICATION
+     * #######################################
+     */
+
+    onEpochBegin() {
+      console.log("EPOCH: ", ++this.epoch);
+    },
+
+    async onEpochEnd(epoch, _accuracy, validationAccuracy) {
+      this.updateUI(epoch, _accuracy, validationAccuracy);
+      await onEpochEnd_common(
+        model,
+        this.epoch,
+        this.receivers,
+        recv_buffer,
+        this.username,
+        this.threshold,
+        peerjs
+      );
+      // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
     },
   },
   async mounted() {
