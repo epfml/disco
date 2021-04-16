@@ -1,4 +1,6 @@
 # mobile-app
+## Install and host peerJS server locally
+To install and host peerJS server locally, you can follow the official [instructions](https://github.com/peers/peerjs-server#run-server). 
 
 ## Run the app
 All commands are ran from the mobile-app folder. 
