@@ -711,7 +711,7 @@ export default {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // Code that will run only after the
-      // entire view has been rendered
+      // entire component has been rendered
 
       /**
        * #######################################
