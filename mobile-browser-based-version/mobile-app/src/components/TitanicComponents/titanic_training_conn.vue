@@ -33,7 +33,7 @@
           </div>
           <!-- Descrition -->
           <div class="relative p-4 overflow-x-scroll">
-            <span class="text-sm text-gray-500 dark:text-light">{{
+            <span style="white-space: pre-line" class="text-sm text-gray-500 dark:text-light">{{
               DataFormatInfoText
             }}</span>
           </div>
@@ -69,7 +69,7 @@
           </div>
 
           <div class="relative p-4 overflow-x-scroll">
-            <span class="text-sm text-gray-500 dark:text-light">{{
+            <span style="white-space: pre-line" class="text-sm text-gray-500 dark:text-light">{{
               DataExampleText
             }}</span>
           </div>
@@ -79,62 +79,16 @@
             <table class="table-auto">
               <thead>
                 <tr>
-                  <th class="px-4 py-2 text-emerald-600">Title</th>
-                  <th class="px-4 py-2 text-emerald-600">Author</th>
-                  <th class="px-4 py-2 text-emerald-600">Views</th>
+                  <th v-for="example in DataExample" :key="example"
+                  class="px-4 py-2 text-emerald-600">{{example.column_name}}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td
+                  <td v-for="example in DataExample" :key="example"
                     class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
                   >
-                    Intro to CSS
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Adam
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    858
-                  </td>
-                </tr>
-                <tr class="bg-emerald-200">
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    A Long and Winding Tour of the History of UI Frameworks and
-                    Tools and the Impact on Design
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Adam
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    112
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Intro to JavaScript
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Chris
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    1,280
+                    {{example.column_data}}
                   </td>
                 </tr>
               </tbody>
@@ -308,7 +262,7 @@
         type="button"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
       >
-        Train
+        Train Alone
       </button>
       <button
         v-on:click="join_training(true)"
@@ -492,21 +446,18 @@
 
 
 <script>
+import {
+  display_informations,
+  training_information,
+  data_preprocessing,
+} from "./titanic_script"; // <-- Change import here 
+
 import * as Chart from "chart.js";
-import * as d3 from "d3";
-import {training, training_distributed} from "../../helpers/training-script";
+import { training, training_distributed } from "../../helpers/training-script";
 import * as tf from "@tensorflow/tfjs";
 
-import Peer from "peerjs";
-import {
-  PeerJS,
-  send_model,
-  send_data,
-  handle_data,
-  CMD_CODES,
-} from "../../helpers/peer";
 
-import { onEpochEnd_common, train_common, makeid } from "../../helpers/helpers";
+import { onEpochEnd_common } from "../../helpers/helpers";
 
 // Variables used for training
 var model = null;
@@ -517,10 +468,10 @@ var recv_buffer = {
   },
 };
 var model_compile_data = {
-    optimizer: "rmsprop",
-    loss: "binaryCrossentropy",
-    metrics: ["accuracy"],
-  };
+  optimizer: "rmsprop",
+  loss: "binaryCrossentropy",
+  metrics: ["accuracy"],
+};
 var model_train_data = {
   epochs: 5,
 };
@@ -528,39 +479,27 @@ var model_train_data = {
 export default {
   data() {
     return {
-      model_name: "titanic-model",
-      DataFormatInfoText:
-        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
-      DataExampleText:
-        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
 
-      // Headers related to training task
-      headers: [
-        { id: "PassengerId", userHeader: "PassengerId" },
-        { id: "Survived", userHeader: "Survived" },
-        { id: "Name", userHeader: "Name" },
-        { id: "Sex", userHeader: "Sex" },
-        { id: "Age", userHeader: "Age" },
-        { id: "SibSp", userHeader: "SibSp" },
-        { id: "Parch", userHeader: "Parch" },
-        { id: "Ticket", userHeader: "Ticket" },
-        { id: "Fare", userHeader: "Cabin" },
-        { id: "Cabin", userHeader: "Cabin" },
-        { id: "Embarked", userHeader: "Embarked" },
-        { id: "Pclass", userHeader: "Pclass" },
-      ],
+      // Variables for general informations
+      model_name: "",
+      DataFormatInfoText: "",
+      DataExampleText: "",
+      DataExample: null,
+      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
+      headers: [],
 
-      // Feed Back Training Components
+      // Variabldes for feed-backs when training
       valAccuracyChart: null,
       accuracyChart: null,
       val_accuracy: null,
       accuracy: null,
 
-      // For communication
+      // Variables for communications
       receivers: [],
       epoch: 0,
       username: null,
       threshold: null,
+
     };
   },
   methods: {
@@ -593,102 +532,12 @@ export default {
 
         let reader = new FileReader();
         reader.onload = async (e) => {
-          console.log("Start: Processing Uploaded File");
-
-          // Check some basic prop. in the user's uploaded file
-          var content = e.target.result;
-          var userHeader = content.split("\n").shift().split(","); // user's header array
-
-          var length = userHeader.length;
-          if (length != 0) {
-            // Check last column element, if empty then accept
-            var last_element = JSON.stringify(
-              userHeader[userHeader.length - 1]
-            );
-            if (
-              last_element.replace("/\r?\n|\r/", "").replace(/\s/g, "") == ""
-            ) {
-              length = length - 1;
-            }
-          }
-          var checkHeaderLength = length == 12; // Check that the user's file has the right number of columns
-
-          if (!checkHeaderLength) {
-            alert(
-              "Training aborted. The uploaded file has the wrong number of columns."
-            );
-          }
-
-          // Check that the user's file and what has been translated as content is correct
-          var checkHeaderContent = true;
-          var wrongRow = "";
-          var numberWrong = 0;
-          var headerCopied = [];
-          if (checkHeaderLength) {
-            this.headers.forEach((row) => {
-              checkHeaderContent =
-                checkHeaderContent && userHeader.includes(row.userHeader);
-              headerCopied.push(row.userHeader);
-              if (!userHeader.includes(row.userHeader)) {
-                wrongRow = wrongRow.concat("\n".concat(row.userHeader));
-                ++numberWrong;
-              }
-            });
-            if (!checkHeaderContent) {
-              if (numberWrong == 1) {
-                alert(
-                  "Training aborted. The following column name was not found in the uploaded file: ".concat(
-                    wrongRow
-                  )
-                );
-              } else {
-                alert(
-                  "Training aborted. The following columns name were not found in the uploaded file: ".concat(
-                    wrongRow
-                  )
-                );
-              }
-            }
-          }
-
-          var startTraining = checkHeaderLength && checkHeaderContent;
-          // If user's file respects our format, parse it and start training
-          if (startTraining) {
-            console.log("User File Validated. Start parsing.");
-            console.log(headerCopied);
-            let Xcsv = d3.csvParse(
-              e.target.result,
-              function (d) {
-                return [
-                  +d[headerCopied[0]], // PassengerId
-                  +d[headerCopied[1]], // Survived
-                  d[headerCopied[3]] == "male" ? 1 : 0, // Sex
-                  +d[headerCopied[4]], // Age
-                  +d[headerCopied[5]], // SibSp
-                  +d[headerCopied[6]], // Parch
-                  +d[headerCopied[8]], // Fare
-                  +d[headerCopied[11]], // Pclass
-                ];
-              },
-              function (error, rows) {
-                console.log(rows);
-              }
-            );
-
-            let ycsv = d3.csvParse(
-              e.target.result,
-              function (d) {
-                return +d[headerCopied[1]];
-              },
-              function (error, rows) {
-                console.log(rows);
-              }
-            );
-
-            let Xtrain = tf.tensor2d(Xcsv);
-            let ytrain = tf.tensor1d(ycsv);
-            console.log(Xtrain.id);
-
+          // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
+          var processed_data = await data_preprocessing(e, this.headers);
+          var accepted = processed_data.accepted;
+          var Xtrain = processed_data.Xtrain;
+          var ytrain = processed_data.ytrain;
+          if (accepted) {
             // Notification Start Training
             this.$toast.success(
               `Thank you for your contribution. Training has started`
@@ -696,7 +545,7 @@ export default {
             setTimeout(this.$toast.clear, 30000);
 
             if (!distributed) {
-                console.log("here")
+              console.log("here");
               await training(
                 model,
                 this.model_name,
@@ -708,38 +557,42 @@ export default {
                 this.updateUI
               );
             } else {
-                await training_distributed(
-                    model, 
-                    this.model_name, 
-                    Xtrain, 
-                    ytrain, 
-                    model_train_data, 
-                    32, 
-                    0.2, 
-                    model_compile_data, 
-                    this.onEpochBegin, 
-                    this.onEpochEnd
-                )
+              await training_distributed(
+                model,
+                this.model_name,
+                Xtrain,
+                ytrain,
+                model_train_data,
+                32,
+                0.2,
+                model_compile_data,
+                this.onEpochBegin,
+                this.onEpochEnd
+              );
             }
             // Notification End Training
-            this.$toast.success(`Titanic model has finished training!`);
+            this.$toast.success(
+              this.model_name.concat(` has finished training!`)
+            );
             setTimeout(this.$toast.clear, 30000);
-          } else {
-            console.log("Cannot Start training");
           }
         };
-
         reader.readAsText(file);
       }
     },
 
-
     /**
      * #######################################
-     * METHODS FOR UPDATING TRAINING UI
+     * METHODS FOR UPDATING GRAPHS ON THE UI
      * #######################################
      */
 
+     /**
+     * Method used to update the two graphs to give user informations about the training process
+     * @param {Number} epoch The epoch number of the current training
+     * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
+     * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
+     */
     updateUI(epoch, _accuracy, validationAccuracy) {
       this.updateAccuracy(epoch, _accuracy);
       this.updateValidationAccuracy(epoch, validationAccuracy);
@@ -779,10 +632,20 @@ export default {
      * #######################################
      */
 
+    /**
+     * Method called at the begining of each training epoch
+     */
     onEpochBegin() {
       console.log("EPOCH: ", ++this.epoch);
     },
 
+    /**
+     * Method called at the end of each epoch 
+     * Configured to handle communication with peers
+     * @param {Number} epoch The epoch number of the current training
+     * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
+     * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
+     */
     async onEpochEnd(epoch, _accuracy, validationAccuracy) {
       this.updateUI(epoch, _accuracy, validationAccuracy);
       await onEpochEnd_common(
@@ -805,17 +668,29 @@ export default {
 
       /**
        * #######################################
-       * CODE TO HANDLE CREATION OF THE MODEL
+       * LOAD INFORMATION ABOUT THE TASK
        * #######################################
        */
 
+      // Initialize variables used by the components 
+      this.model_name = training_information.model_id;
+      this.DataFormatInfoText = display_informations.dataFormatInformation;
+      this.DataExampleText = display_informations.dataExampleText;
+      display_informations.headers.forEach(item => {
+          this.headers.push({ id: item, userHeader: item})
+      })
+      this.DataExample = display_informations.dataExample
+
+      // Create the model 
       model = this.create_model();
       const save_path = "localstorage://".concat(this.model_name);
       const saveResults = await model.save(save_path);
 
+      // TO DO: connect peerJS server
+
       /**
        * #######################################
-       * CODE TO HANDLE DATA UPLOADING
+       * HANDLE DATA UPLOADING
        * #######################################
        */
       const fileTempl = document.getElementById("file-template"),
@@ -922,7 +797,7 @@ export default {
 
       /**
        * #######################################
-       * CODE TO HANDLE CREATION OF CHARTS FEEDBACKS
+       * HANDLE CREATION OF CHARTS FEEDBACKS
        * #######################################
        */
 

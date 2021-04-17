@@ -21,14 +21,11 @@ import {
   PeerJS,
   send_model,
   send_data,
-  load_model,
   handle_data,
   CMD_CODES,
-  handle_data_end,
 } from "../helpers/peer";
 
 import {
-  data_received,
   onEpochEnd_common,
   train_common,
   makeid,

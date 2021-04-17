@@ -23,16 +23,7 @@ export const CMD_CODES = {
 }
 Object.freeze(CMD_CODES) // make object immutable*/
 
-/*export function CMD_CODES() {
-    return {
-        ASSIGN_WEIGHTS  : 0, // inject weights into model (unused)
-        TRAIN_INFO      : 1, // n. epochs, etc...
-        MODEL_INFO      : 2, // serialized model architecture
-        COMPILE_MODEL   : 3, // args to model.compile, e.g. optimizer, metrics 
-        AVG_WEIGHTS     : 4, // weights to average into model
-        WEIGHT_REQUEST  : 5, // ask for weights
-    }
-}*/
+
 
 /**
  * NOTE: peer.js seems to convert all array types to ArrayBuffer, making the original 
