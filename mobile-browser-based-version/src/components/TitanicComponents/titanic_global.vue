@@ -336,12 +336,16 @@
 </template>
 
 <script>
+
+import {
+  training_information,
+} from "./titanic_script"; // <-- Change import here 
+
 export default {
   name: "desc-csv",
   data() {
     return {
       TaskTitle: "Titanic",
-      taskSelected: "",
       isActive_ModelDesc: false,
       open_ModelDesc: false,
       isActive_UploadData: false,
@@ -357,10 +361,12 @@ export default {
   },
   methods: {
     goToTraining() {
-      this.$router.push({ path: "/titanic-model/training" });
+      var path ="/".concat(training_information.model_id).concat("/").concat("training")
+      this.$router.push({ path: path });
     },
     goToModelDescription() {
-      this.$router.push({ path: "/titanic-model/description" });
+      var path ="/".concat(training_information.model_id).concat("/").concat("description")
+      this.$router.push({ path: path });
     },
     handleResize() {
       this.window.width = window.innerWidth;
@@ -373,15 +379,12 @@ export default {
     },
   },
   mounted() {
-  
     window.addEventListener("resize", this.handleResize);
     this.handleResize();
 
     this.isSidebarOpen = window.width <= 1024 ? false : true;
   },
-  components: {
-    //description: Description,
-  },
+ 
   unmounted() {
     window.removeEventListener("resize", this.handleResize);
   },
