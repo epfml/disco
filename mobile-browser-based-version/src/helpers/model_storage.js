@@ -1,103 +1,22 @@
-/**
- * This object contains codes to identify what the incoming data 
- * should be used for, e.g. to build the model, average the weights etc...
- */
-// trying to reproduce an Enum
-const CMD_CODES = {
-    ASSIGN_WEIGHTS  : 0, // inject weights into model (unused)
-    TRAIN_INFO      : 1, // n. epochs, etc...
-    MODEL_INFO      : 2, // serialized model architecture
-    COMPILE_MODEL   : 3, // args to model.compile, e.g. optimizer, metrics 
-    AVG_WEIGHTS     : 4, // weights to average into model
-    WEIGHT_REQUEST  : 5, // ask for weights
-}
-Object.freeze(CMD_CODES) // make object immutable
 
-/**
- * NOTE: peer.js seems to convert all array types to ArrayBuffer, making the original 
- * type unrecoverable (Float32Array, Uint8Array, ...). The solution is to encode any payload
- * with msgpack.encode, then decode at the destination.
- */
-
-
-/**
- * Wrapper class that deals with PeerJS communication.
- */
-class PeerJS {
-    /**
-     * 
-     * @param {Peer} local_peer Peer object (from PeerJS) instantiated for local machine
-     * @param {function} handle_data function to be called on incoming data. It should take the 
-     * incoming data as first argument. 
-     * @param  {...any} handle_data_args args to handle_data
-     */
-    constructor(local_peer, handle_data, ...handle_data_args) {
-        this.local_peer = local_peer
-        this.data = null
-        this.handle_data = handle_data
-        this.handle_data_args = handle_data_args
-
-        console.log("peer", local_peer)
-
-        // specify what to do on connection from another peer
-        this.local_peer.on("connection", (conn) => {
-            console.log("new connection from", conn.peer)
-            conn.on("data", async (data) => {
-                this.data = data
-                await this.handle_data(data, ...this.handle_data_args)
-            })
-        })
-    }
-
-    /**
-     * Send data to remote peer
-     * @param {Peer} receiver PeerJS remote peer (Peer object).
-     * @param {object} data object to send
-     */
-    async send(receiver, data) {
-        const conn = this.local_peer.connect(receiver)
-        conn.on('open', () => {
-            conn.send(data)
-        })
-    }
-
-    /**
-     * Change data handling function
-     */
-    set_data_handler(func, ...args) {
-        this.handle_data = func
-        this.handle_data_args = args
-    }
-}
-
-/**
- * This class deals with storing and retrieving the TFJS model 
- * from the browser's LocalStorage. It doesn't really need to be a 
- * class as everything is static... maybe it should just be a module
- * with a collection of functions.
- */
-class ModelStorage {
 
     /**
      * Base directory in LocalStorage where models are stored.
      */
-    static get BASEDIR() {
-        return "tensorflowjs_models"
-    }
+    const BASEDIR =  "tensorflowjs_models"
 
     /**
      * TFJS models are stored across multiple files, this returns a list of 
      * all of them.
      */
-    static get FILENAMES() {
-        return [
+    const FILENAMES = [
             "info",
             "model_metadata",
             "model_topology",
             "weight_data",
             "weight_specs"
         ]
-    }
+    
 
     /**
      * Store TFJS model in LocalStorage.
@@ -138,7 +57,7 @@ class ModelStorage {
         serialized.name = name
         return serialized
     }
-}
+
 
 /**
  * Send a serialized TFJS model to a remote peer
@@ -198,7 +117,7 @@ async function handle_data(data, buffer) {
     console.log("Received new data: ", data)
 
     // convert the peerjs ArrayBuffer back into Uint8Array
-    payload = msgpack.decode(new Uint8Array(data.payload))
+    var payload = msgpack.decode(new Uint8Array(data.payload))
     switch(data.cmd_code) {
         case CMD_CODES.MODEL_INFO:
             buffer.model = payload
@@ -246,9 +165,10 @@ async function handle_data_end(data, buffer) {
     console.log("Received new data: ", data)
 
     // convert the peerjs ArrayBuffer back into Uint8Array
-    payload = msgpack.decode(new Uint8Array(data.payload))
+    var payload = msgpack.decode(new Uint8Array(data.payload))
     switch(data.cmd_code) {
         case CMD_CODES.WEIGHT_REQUEST:
+            // eslint-disable-next-line no-case-declarations
             const receiver = payload.name
             const epoch_weights = {epoch : buffer.epoch, weights : buffer.weights}
             console.log("Sending weights to: ", receiver)

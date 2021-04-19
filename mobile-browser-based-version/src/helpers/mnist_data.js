@@ -17,6 +17,9 @@
  
 // require('babel-polyfill')
 
+import * as tf from '@tensorflow/tfjs';
+
+
 const IMAGE_H = 28
 const IMAGE_W = 28
 const IMAGE_SIZE = IMAGE_H * IMAGE_W
@@ -29,7 +32,7 @@ const MNIST_LABELS_PATH =
     'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8'
     
 
-class MnistData {
+export class MnistData {
     constructor() {
         this.isDownloaded = false
     }

@@ -1,3 +1,13 @@
+import * as tf from '@tensorflow/tfjs';
+import {MnistData} from "./mnist_data"
+
+import {
+    send_data, 
+    handle_data_end,
+    CMD_CODES,
+
+} from './peer'
+
 async function serializeTensor(tensor) {
     return {
         "$tensor": {
@@ -7,11 +17,11 @@ async function serializeTensor(tensor) {
         }
     }
 }
-function deserializeTensor(dict) {
+export function deserializeTensor(dict) {
     const {data, shape, dtype} = dict["$tensor"];
     return tf.tensor(data, shape, dtype); // doesn't copy (maybe depending on runtime)!
 }
-async function serializeVariable(variable) {
+export async function serializeVariable(variable) {
     return {
         "$variable": {
             "name": variable.name,
@@ -20,11 +30,11 @@ async function serializeVariable(variable) {
     }
 }
 
-async function serializeWeights(model) {
+export async function serializeWeights(model) {
     return await Promise.all(model.weights.map(serializeVariable));
 }
 
-function assignWeightsToModel(serializedWeights, model) {
+export function assignWeightsToModel(serializedWeights, model) {
     // This assumes the weights are in the right order
     model.weights.forEach((weight, idx) => {
         const serializedWeight = serializedWeights[idx]["$variable"];
@@ -34,7 +44,7 @@ function assignWeightsToModel(serializedWeights, model) {
     });
 }
 
-function averageWeightsIntoModel(serializedWeights, model) {
+export function averageWeightsIntoModel(serializedWeights, model) {
     model.weights.forEach((weight, idx) => {
         const serializedWeight = serializedWeights[idx]["$variable"];
 
@@ -45,14 +55,14 @@ function averageWeightsIntoModel(serializedWeights, model) {
 }
 
 //////////// TESTING functions - generate random data and labels
-function* dataGenerator() {
+export function* dataGenerator() {
     for (let i = 0; i < 100; i++) {
         // Generate one sample at a time.
         yield tf.randomNormal([784]);
     }
 }
    
-function* labelGenerator() {
+export function* labelGenerator() {
     for (let i = 0; i < 100; i++) {
         // Generate one sample at a time.
         yield tf.randomUniform([10]);
@@ -70,7 +80,7 @@ function sleep(ms) {
  * @param {Object} recv_buffer 
  * @param {*} key 
  */
-function data_received(recv_buffer, key) {
+export function data_received(recv_buffer, key) {
     return new Promise( (resolve) => {
         (function wait_data(){
             if (recv_buffer[key]) {
@@ -87,7 +97,7 @@ function data_received(recv_buffer, key) {
  * @param {*} key 
  * @param {int} max_tries 
  */
-function data_received_break(recv_buffer, key, max_tries) {
+export function data_received_break(recv_buffer, key, max_tries) {
     return new Promise( (resolve) => {
         (function wait_data(n){
             if (recv_buffer[key] || n >= max_tries - 1) {
@@ -105,9 +115,10 @@ function data_received_break(recv_buffer, key, max_tries) {
  * @param {Array} arr 
  * @param {int} len 
  */
-function check_array_len(arr, len) {
+export function check_array_len(arr, len) {
     return new Promise( (resolve) => {
         (function wait_data(){
+            console.log(arr.length)
             if (arr.length >= len) {
                 return resolve();
             }
@@ -117,7 +128,7 @@ function check_array_len(arr, len) {
 }
 
 // generates a random string
-function makeid(length) {
+export function makeid(length) {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
@@ -127,8 +138,10 @@ function makeid(length) {
     return result;
  }
 
+
+
 // train on Mnist
- async function train_common(model, model_compile_data, model_train_data, onEpochBegin, onEpochEnd) {
+export async function train_common(model, model_compile_data, model_train_data, onEpochBegin, onEpochEnd) {
     const mnist = new MnistData()
     await mnist.load()
     const [x_train_2d, y_train_2d] = mnist.getTrainData()
@@ -155,7 +168,8 @@ function makeid(length) {
  * Sends weights to all peers, waits to receive weights from all peers
  * and then averages peers' weights into the model.
 */
-async function onEpochEnd_Sync(model, epoch, receivers, recv_buffer) {
+// Added peerjs in argument 
+export async function onEpochEnd_Sync(model, epoch, receivers, recv_buffer, peerjs) {
     const serialized_weights = await serializeWeights(model)
     const epoch_weights = {epoch : epoch, weights : serialized_weights}
   
@@ -188,10 +202,11 @@ async function onEpochEnd_Sync(model, epoch, receivers, recv_buffer) {
  * Request weights from peers, carry on if the number of received weights is 
  * greater than the provided threshold
 */
-async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold) {    
+// added peerjs in argument 
+export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold, peerjs) {    
     
     const serialized_weights = await serializeWeights(model)
-    const epoch_weights = {epoch : epoch, weights : serialized_weights}
+    var epoch_weights = {epoch : epoch, weights : serialized_weights}
     
     // request weights and send to all who requested
     for (var i in receivers) {
@@ -226,7 +241,7 @@ async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username,
     
     // change data handler for future requests if this is the last epoch
     if (epoch == recv_buffer.train_info.epochs) {
-        end_buffer = epoch_weights
+        var end_buffer = epoch_weights
         end_buffer.peerjs = peerjs
         peerjs.set_data_handler(handle_data_end, end_buffer)
     }

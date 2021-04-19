@@ -485,11 +485,13 @@
 
 
 <script>
-import * as tf from "@tensorflow/tfjs";
 import * as Chart from "chart.js";
 import * as d3 from "d3";
 import training from "../../helpers/training-script"
+import * as tf from "@tensorflow/tfjs";
 
+
+var model = null;
 export default {
   data() {
     return {
@@ -519,8 +521,6 @@ export default {
       val_accuracy: null,
       accuracy: null,
       
-      // Model storage
-      model: null,
     };
   },
   methods: {
@@ -634,10 +634,13 @@ export default {
             let ytrain = tf.tensor1d(ycsv);
             console.log(Xtrain.id)
 
+            // Notification Start Training
             this.$toast.success(`Thank you for your contribution. Training has started`);
             setTimeout(this.$toast.clear, 30000)
 
-            await training(this.model_name, Xtrain, ytrain, 32, 0.2, 30, this.updateUI)
+            await training(model, this.model_name, Xtrain, ytrain, 32, 0.2, 30, this.updateUI)
+            
+            // Notification End Training
             this.$toast.success(`Titanic model has finished training!`);
             setTimeout(this.$toast.clear, 30000)
 
@@ -651,8 +654,8 @@ export default {
     },
 
     create_model() {
-      let model = tf.sequential();
-      model.add(
+      let new_model = tf.sequential();
+      new_model.add(
         tf.layers.dense({
           inputShape: [8],
           units: 124,
@@ -660,11 +663,11 @@ export default {
           kernelInitializer: "leCunNormal",
         })
       );
-      model.add(tf.layers.dense({ units: 64, activation: "relu" }));
-      model.add(tf.layers.dense({ units: 32, activation: "relu" }));
-      model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
-      model.summary();
-      return model;
+      new_model.add(tf.layers.dense({ units: 64, activation: "relu" }));
+      new_model.add(tf.layers.dense({ units: 32, activation: "relu" }));
+      new_model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
+      new_model.summary();
+      return new_model;
     },
 
     async join_training() {
@@ -708,7 +711,7 @@ export default {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // Code that will run only after the
-      // entire view has been rendered
+      // entire component has been rendered
 
       /**
        * #######################################
@@ -716,7 +719,7 @@ export default {
        * #######################################
        */
 
-      let model = this.create_model();
+      model = this.create_model();
       const save_path = "localstorage://".concat(this.model_name);
       const saveResults = await model.save(save_path);
 
