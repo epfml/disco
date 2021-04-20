@@ -385,7 +385,7 @@ import * as tf from "@tensorflow/tfjs";
 import * as Chart from "chart.js";
 import * as d3 from "d3";
 import training from "../../helpers/training-script.js"
-import data_preprocessing from "../../helpers/mnist-preprocessing-helper.js"
+import data_preprocessing from "../../helpers/lus-covid-preprocessing-helper.js"
 
 export default {
   data() {
@@ -397,7 +397,7 @@ export default {
         "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
 
       // Different Task Labels
-      task_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      task_labels: ["COVID-Positive", "COVID-Negative"],
 
       // Feed Back Training Components
       valAccuracyChart: null,
@@ -406,22 +406,24 @@ export default {
       accuracy: null,
       model: null,
       FILES: {},
-      model_name: "MNIST_model"
+      model_name: "LUS-COVID_model"
     };
   },
   methods: {
     addFile: function (file, label) {
       const isImage = file.type.match("image.*"),
         objectURL = URL.createObjectURL(file);
-      this.FILES[objectURL] = label;
+      this.FILES[objectURL] = {label:label, name: file.name};
     },
 
     inputChange: function (e, label) {
+      console.log("Adding file");
+      let count = 0
       for (const file of e.target.files) {
-        console.log("Adding file");
         this.addFile(file, label);
-        console.log("File Added");
+        count++
       }
+      console.log( count, "Files Added");
     },
 
     goToTesting() {
@@ -447,11 +449,11 @@ export default {
     async join_training(){
       const optimizer = 'rmsprop';
 
-      const preprocessed_data = await data_preprocessing(this.FILES)
+      const preprocessed_data = data_preprocessing(this.FILES)
 
-      const batchSize = 320;
+      const batchSize = 32;
 
-      const validationSplit = 0.15;
+      const validationSplit = 0.2;
     
       const trainEpochs = 10
 
@@ -462,9 +464,8 @@ export default {
       await training(this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
       
       // Notification End Training
-      this.$toast.success(`MNIST model has finished training!`);
+      this.$toast.success(`LUS-COVID model has finished training!`);
       setTimeout(this.$toast.clear, 30000)
-    
     },
 
     async updateUI(epoch, _accuracy, validation_accuracy){
@@ -519,7 +520,7 @@ export default {
       // of 5 pixels each. It uses a simple RELU activation function which pretty
       // much just looks like this: __/
       model.add(tf.layers.conv2d({
-        inputShape: [IMAGE_H, IMAGE_W, 3],
+        inputShape: [IMAGE_H*11, IMAGE_W, 3], //todo: CHANGE TO 11
         kernelSize: 3,
         filters: 16,
         activation: 'relu'
@@ -553,7 +554,7 @@ export default {
       // We use the softmax function as the activation for the output layer as it
       // creates a probability distribution over our 10 classes so their output
       // values sum to 1.
-      model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
+      model.add(tf.layers.dense({units: 2, activation: 'softmax'}));
     
       return model;
   },
