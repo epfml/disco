@@ -81,6 +81,33 @@
                     </span>
                   </div>
                 </div>
+
+                <!-- LUSCOVID card-->
+                <div
+                  class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark"
+                >
+                  <div>
+                    <h6
+                      class="text-xl font-medium leading-none tracking-wider uppercase dark:group-hover:text-darker"
+                    >
+                      LUS-COVID
+                    </h6>
+                  </div>
+                  <div class="ml-10">
+                    <ul
+                      class="text-lg ont-semibold text-gray-500 dark:text-light"
+                    >
+                      This model plans to predict whether the patient is covid positive or negative from lung ultrasound images.
+                    </ul>
+                  </div>
+                  <div>
+                    <span>
+                      <a v-on:click="this.$router.push({ path: luscovid })" class="no-underline font-medium"
+                        >Click here to participate</a
+                      >
+                    </span>
+                  </div>
+                </div>
               </div>
             </section>
           </div>
@@ -110,7 +137,8 @@
   data(){
    return{
     taskSelected: "",
-    mnist: "/mnist-model/description"
+    mnist: "/mnist-model/description",
+    luscovid:"/lus-covid-model/description"
    }
   }, 
   methods: {

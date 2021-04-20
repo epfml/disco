@@ -16,6 +16,12 @@ import MNISTDesc from "../components/MNISTComponents/MNIST_desc"
 import MNISTTraining from "../components/MNISTComponents/MNIST_training"
 import MNISTTesting from "../components/MNISTComponents/MNIST_testing"
 
+// LUS-COVID import
+import LUSCOVIDGlobal from "../components/LUSCOVIDComponents/LUSCOVID_global"
+import LUSCOVIDDesc from "../components/LUSCOVIDComponents/LUSCOVID_desc"
+import LUSCOVIDTraining from "../components/LUSCOVIDComponents/LUSCOVID_training"
+
+
 
 const routes = [
   {
@@ -61,6 +67,22 @@ const routes = [
       path: 'testing',
       component: MNISTTesting
     }
+    ]
+  },
+
+  // LUS-COVID Routing
+  {
+    path: '/lus-covid-model',
+    name: 'lus-covid-model',
+    component: LUSCOVIDGlobal,
+    children: [{
+      path: 'description',
+      component: LUSCOVIDDesc
+    },
+    {
+      path: 'training',
+      component: LUSCOVIDTraining
+    },
     ]
   },
 
