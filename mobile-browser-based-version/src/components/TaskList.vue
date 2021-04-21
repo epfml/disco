@@ -100,6 +100,8 @@
 </template>
 
 <script>
+import {initialize_indexedDB} from "../helpers/indexedDB_script"
+
 export default {
   name: "taskList",
   data() {
@@ -113,5 +115,8 @@ export default {
       this.$router.push({ path: "/titanic-model/description" });
     },
   },
+  mounted() {
+    initialize_indexedDB()
+  }
 };
 </script>

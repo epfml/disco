@@ -87,6 +87,7 @@ export default {
         await send_model(model, this.peerjs, this.receivers[i], name);
         console.log("Model Sent")
 
+        
         await send_data(
           this.model_compile_data,
           CMD_CODES.COMPILE_MODEL,
