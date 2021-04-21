@@ -32,7 +32,7 @@
           <!-- Descrition -->
           <div class="relative p-4">
             <span class="text-sm text-gray-500 dark:text-light"
-              >{{TaskDescriptionText}}</span
+              >{{OverviewText}}</span
             >
           </div>
         </div>
@@ -128,12 +128,18 @@
   </div>
 </template>
 <script>
+
+
+import {
+  display_informations,
+} from "./titanic_script"; // <-- Change import here 
+
 export default {
   data() {
     return {
-      TaskDescriptionText: "Verum ad istam omnem orationem brevis est defensio. Nam quoadaetas M. Caeli dare potuit isti suspicioni locum, fuit primumipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco deme; tantum sit, quantum vos existimatis; hoc dicam, hunc a patrecontinuo ad me esse deductum; nemo hunc M. Caelium in illo aetatisflore vidit nisi aut cum patre aut mecum aut in M. Crassicastissima domo, cum artibus honestissimis erudiretur.",
-      LimitationsText: "Hae duae provinciae bello quondam piratico catervis mixtae praedonum a Servilio pro consule missae sub iugum factae sunt vectigales. et hae quidem regiones velut in prominenti terrarum lingua positae ob orbe eoo monte Amano disparantur.",
-      TradeOffsText: "Per hoc minui studium suum existimans Paulus, ut erat in conplicandis negotiis artifex dirus, unde ei Catenae inditum est cognomentum, vicarium ipsum eos quibus praeerat adhuc defensantem ad sortem periculorum communium traxit. et instabat ut eum quoque cum tribunis et aliis pluribus ad comitatum imperatoris vinctum perduceret: quo percitus ille exitio urgente abrupto ferro eundem adoritur Paulum. et quia languente dextera, letaliter ferire non potuit, iam districtum mucronem in proprium latus inpegit. hocque deformi genere mortis excessit e vita iustissimus rector ausus miserabiles casus levare multorum.",
+      OverviewText: "",
+      LimitationsText: "",
+      TradeOffsText: "",
     };
   },
   methods: {
@@ -141,5 +147,10 @@ export default {
           this.$router.push({ path: "/titanic-model/training" });
       }
   },
+  mounted() {
+    this.OverviewText = display_informations.overview
+    this.LimitationsText = display_informations.limitations
+    this.TradeOffsText = display_informations.tradeoffs
+  }
 };
 </script>

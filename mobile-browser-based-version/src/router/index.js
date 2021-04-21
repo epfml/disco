@@ -1,6 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import details from "../components/details"
-import UploadDataLink from "../components/UploadDataLink"
 
 // To be renamed task list 
 import TaskList from "../components/TaskList"
@@ -9,6 +7,8 @@ import TaskList from "../components/TaskList"
 import TitanicGlobal from "../components/TitanicComponents/titanic_global"
 import TitanicDesc from "../components/TitanicComponents/titanic_desc"
 import TitanicTraining from "../components/TitanicComponents/titanic_training"
+import TitanicTrainingConn from "../components/TitanicComponents/titanic_training_conn"
+
 
 // MNIST import
 import MNISTGlobal from "../components/MNISTComponents/MNIST_global"
@@ -21,6 +21,10 @@ import LUSCOVIDGlobal from "../components/LUSCOVIDComponents/LUSCOVID_global"
 import LUSCOVIDDesc from "../components/LUSCOVIDComponents/LUSCOVID_desc"
 import LUSCOVIDTraining from "../components/LUSCOVIDComponents/LUSCOVID_training"
 
+// Testing import 
+import receiver from "../components/receiver"
+import sender from "../components/sender"
+
 
 
 const routes = [
@@ -28,11 +32,6 @@ const routes = [
     path: '/',
     name: 'home',
     component: TaskList
-  },
-  {
-    path: '/details',
-    name: 'details',
-    component: details
   },
   // Titanic Routing
   {
@@ -45,7 +44,7 @@ const routes = [
     },
     {
       path: 'training',
-      component: TitanicTraining
+      component: TitanicTrainingConn
     },
     ]
   },
@@ -86,11 +85,19 @@ const routes = [
     ]
   },
 
+  // Testing peer.js
   {
-    path: '/uploadDataLinks',
-    name: 'upload-data-link',
-    component: UploadDataLink
+    path: '/receiver',
+    name: 'receiver',
+    component: receiver
   },
+  {
+    path: '/sender',
+    name: 'sender',
+    component: sender
+  },
+
+
 ]
 
 const router = createRouter({
