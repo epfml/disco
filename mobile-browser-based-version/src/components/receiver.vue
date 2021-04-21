@@ -34,13 +34,13 @@ import {
 
 
 var model = null;
+var recv_buffer = {};
 
 export default {
   data() {
     return {
       peerjs: null,
       receivers: [],
-      recv_buffer: {},
       epoch: 0,
       username: null,
       threshold: null,
@@ -51,27 +51,27 @@ export default {
       this.username = document.getElementById("username").value;
       this.receivers = document.getElementById("receivers").value.split(",");
       this.threshold = Math.min(Math.ceil(this.receivers.length / 2), 5);
-      console.log("Threshold: ", this.threshold);
 
       var peer = new Peer(this.username, {
         host: "localhost",
         port: 9000,
         path: "/myapp",
       });
-    this.peerjs = new PeerJS(peer, handle_data, this.recv_buffer);
+    this.peerjs = new PeerJS(peer, handle_data, recv_buffer);
 
       // wait to receive data
 
-      data_received(this.recv_buffer, "model")
-        .then(() => data_received(this.recv_buffer, "compile_data"))
-        .then(() => data_received(this.recv_buffer, "train_info"))
+      data_received(recv_buffer, "model")
+        .then(() => data_received(recv_buffer, "compile_data"))
+        .then(() => data_received(recv_buffer, "train_info"))
         .then(async () => {
-          model = await load_model(this.recv_buffer.model);
+          console.log(recv_buffer.model)
+          model = await load_model(recv_buffer.model);
         })
         .then(() => {
-          model.compile(this.recv_buffer.compile_data);
+          model.compile(recv_buffer.compile_data);
           console.log("Model: ", model);
-          console.log("Train info: ", this.recv_buffer.train_info);
+          console.log("Train info: ", recv_buffer.train_info);
         });
     },
     onEpochBegin() {
@@ -82,7 +82,7 @@ export default {
         model,
         this.epoch,
         this.receivers,
-        this.recv_buffer,
+        recv_buffer,
         this.username,
         this.threshold, 
         this.peerjs,
@@ -93,8 +93,8 @@ export default {
     async train() {
       train_common(
         model,
-        this.recv_buffer.compile_data,
-        this.recv_buffer.train_info,
+        recv_buffer.compile_data,
+        recv_buffer.train_info,
         this.onEpochBegin,
         this.onEpochEnd
       );

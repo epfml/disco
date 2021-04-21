@@ -4,6 +4,7 @@ import * as msgpack from 'msgpack-lite'
 //import * as Peer from 'peerjs'
 var Peer = require("peerjs")
 import * as tf from "@tensorflow/tfjs";
+import {store_model, get_serialized_model, store_serialized_model} from "./indexedDB_script"
 
 
 
@@ -16,7 +17,7 @@ import * as tf from "@tensorflow/tfjs";
 export const CMD_CODES = {
     ASSIGN_WEIGHTS  : 0, // inject weights into model (unused)
     TRAIN_INFO      : 1, // n. epochs, etc...
-    MODEL_INFO      : 2, // serialized model architecture
+    MODEL_INFO      : 2, // serialized model architecture + initial weights
     COMPILE_MODEL   : 3, // args to model.compile, e.g. optimizer, metrics 
     AVG_WEIGHTS     : 4, // weights to average into model
     WEIGHT_REQUEST  : 5, // ask for weights
@@ -67,7 +68,7 @@ export class PeerJS {
      * @param {object} data object to send
      */
     async send(receiver, data) {
-        const conn = this.local_peer.connect(receiver)
+        const conn = this.local_peer.connect(receiver);
         conn.on('open', () => {
             conn.send(data)
         })
@@ -84,76 +85,6 @@ export class PeerJS {
 }
 
 /**
- * This class deals with storing and retrieving the TFJS model 
- * from the browser's LocalStorage. It doesn't really need to be a 
- * class as everything is static... maybe it should just be a module
- * with a collection of functions.
- */
-export class ModelStorage {
-
-    /**
-     * Base directory in LocalStorage where models are stored.
-     */
-    static get BASEDIR() {
-        return "tensorflowjs_models"
-    }
-
-    /**
-     * TFJS models are stored across multiple files, this returns a list of 
-     * all of them.
-     */
-    static get FILENAMES() {
-        return [
-            "info",
-            "model_metadata",
-            "model_topology",
-            "weight_data",
-            "weight_specs"
-        ]
-    }
-
-    /**
-     * Store TFJS model in LocalStorage.
-     * @param {TFJS model} model 
-     * @param {String} name name of model to store (can be anything)
-     */
-    static async store(model, name) {
-        await model.save("localstorage://" + name)
-    }
-
-    /**
-     * Save serialized model to LocalStorage for future loading
-     * @param {object} model_data serialized model
-     * @param {String} name name, can be anything
-     */
-    static inject(model_data, name) {
-        for(var i = 0; i < this.FILENAMES; i++) {
-            var key = this.FILENAMES[i]
-            var fpath = this.BASEDIR + '/' + name + '/' + key
-            var content = model_data[key]
-            localStorage.setItem(fpath, content)
-        }
-    }
-
-    /**
-     * Get serialized model from LocalStorage
-     * @param {String} name name used to save the model
-     */
-    static get_serialized_model(name) {
-        var serialized = {}
-        for(var i = 0; i < this.FILENAMES.length; i++) {
-            var key = this.FILENAMES[i]
-            var fpath = this.BASEDIR + '/' + name + '/' + key
-
-            var model_data = localStorage.getItem(fpath) // this is a JSON string
-            serialized[key] = model_data
-        }
-        serialized.name = name
-        return serialized
-    }
-}
-
-/**
  * Send a serialized TFJS model to a remote peer
  * @param {TFJS model} model the model to send
  * @param {PeerJS} peerjs instance of PeerJS object
@@ -161,14 +92,13 @@ export class ModelStorage {
  * @param {String} name name to save the model with, can be anything
  */
 export async function send_model(model, peerjs, receiver, name) {
-    await ModelStorage.store(model, name)
-    var serialized = ModelStorage.get_serialized_model(name)
+    await store_model(model, name)
+    var serialized = await get_serialized_model(name)
+    console.log(serialized)
     const send_data = {
         cmd_code    : CMD_CODES.MODEL_INFO,
         payload     : msgpack.encode(serialized)
     }
-    console.log("Sending model data")
-    console.log(send_data)
     peerjs.send(receiver, send_data)
 }
 
@@ -185,9 +115,6 @@ export async function send_data(data, code, peerjs, receiver) {
         payload     : msgpack.encode(data)
     }
 
-    console.log("Sending data", data)
-    console.log(send_data)
-
     peerjs.send(receiver, send_data)
 }
 
@@ -196,10 +123,11 @@ export async function send_data(data, code, peerjs, receiver) {
  * @param {object} model_data serialized model
  */
 export async function load_model(model_data) {
-    var name = model_data.name
-    ModelStorage.inject(model_data, name)
-    const model = await tf.loadLayersModel("localstorage://" + name)
-    
+    var name = model_data.model_info.modelPath
+    console.log(model_data)
+    await store_serialized_model(model_data.model_info, model_data.model_data)
+    const model = await tf.loadLayersModel('indexeddb://'.concat(name))
+
     return model
 }
 
