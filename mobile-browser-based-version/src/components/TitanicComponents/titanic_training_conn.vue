@@ -458,6 +458,7 @@ import * as tf from "@tensorflow/tfjs";
 
 
 import { onEpochEnd_common } from "../../helpers/helpers";
+import {getModel, setModel} from "../../helpers/indexedDB_script"
 
 // Variables used for training
 var model = null;
@@ -685,6 +686,26 @@ export default {
       model = this.create_model();
       const save_path = "localstorage://".concat(this.model_name);
       const saveResults = await model.save(save_path);
+      const save_path_db = "indexeddb://".concat(this.model_name);
+      await model.save(save_path_db);
+
+      
+      getModel("titanic-model").then((value) => {
+        console.log(value)
+        let model_info = value.model_info
+        let model_data = value.model_data
+        let toyName = "testModel"
+        model_data.modelPath = toyName
+        model_info.modelPath = toyName
+        setModel(toyName, model_info, model_data).then(async () => {
+          model = await tf.loadLayersModel('indexeddb://'.concat(toyName))
+        })
+      })
+      
+
+
+
+      
 
       // TO DO: connect peerJS server
 
