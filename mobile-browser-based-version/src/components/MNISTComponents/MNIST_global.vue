@@ -336,6 +336,10 @@
 </template>
 
 <script>
+import {
+  training_information,
+} from "./MNIST_script"; // <-- Change import here 
+
 export default {
   data() {
     return {
@@ -356,10 +360,12 @@ export default {
   },
   methods: {
     goToTraining() {
-      this.$router.push({ path: "/MNIST-model/training" });
+      var path ="/".concat(training_information.model_id).concat("/").concat("training")
+      this.$router.push({ path: path });
     },
     goToModelDescription() {
-      this.$router.push({ path: "/MNIST-model/description" });
+      var path ="/".concat(training_information.model_id).concat("/").concat("description")
+      this.$router.push({ path: path });
     },
     handleResize() {
       this.window.width = window.innerWidth;
@@ -377,9 +383,6 @@ export default {
     this.handleResize();
 
     this.isSidebarOpen = window.width <= 1024 ? false : true;
-  },
-  components: {
-    //description: Description,
   },
   unmounted() {
     window.removeEventListener("resize", this.handleResize);
