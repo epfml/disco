@@ -74,7 +74,7 @@
             }}</span>
           </div>
 
-          <img src="../../assets/9-mnist-example.png" alt="">
+          <img src="../../../example_training_data/9-mnist-example.png" alt="">
         </div>
       </div>
     </a>
