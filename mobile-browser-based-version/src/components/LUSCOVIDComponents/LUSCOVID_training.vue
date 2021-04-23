@@ -386,9 +386,13 @@ import * as mobilenet from "@tensorflow-models/mobilenet"
 import {categoricalCrossentropy} from '@tensorflow/tfjs-layers/dist/exports_metrics';
 import * as Chart from "chart.js";
 import * as d3 from "d3";
-import training from "../../helpers/training-script.js"
+import {training, training_distributed} from "../../helpers/training-script.js"
 import data_preprocessing from "../../helpers/lus-covid-deepchest-helper.js"
+import createResnetModel from "../../helpers/lus-covid-resnet-helper"
+import data_preprocessing_resnet from "../../helpers/lus-covid-preprocessing-resnet-helper"
 
+
+var model = null;
 export default {
   data() {
     return {
@@ -446,7 +450,8 @@ export default {
 
     create_model(){
       //return this.createConvModel()
-      return this.createDeepChestModel()
+      //return this.createDeepChestModel()
+      return createResnetModel()
     },
     async loadMobilenet(){
       console.log("loading mobilenet")
@@ -456,19 +461,20 @@ export default {
     async join_training(){
       const optimizer = 'rmsprop';
 
-      const preprocessed_data = await data_preprocessing(this.FILES)
-
-      const batchSize = 32;
-
-      const validationSplit = 0.2;
-    
-      const trainEpochs = 550
-
       // Notification Start Training
       this.$toast.success(`Thank you for your contribution. Training has started`);
       setTimeout(this.$toast.clear, 30000)
 
-      await training(this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
+      const preprocessed_data = await data_preprocessing_resnet(this.FILES)
+
+      const batchSize = 2;
+
+      const validationSplit = 0.2;
+    
+      const trainEpochs = 100
+
+
+      await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
       
       // Notification End Training
       this.$toast.success(`LUS-COVID model has finished training!`);
@@ -509,14 +515,16 @@ export default {
     },
 
     async createDeepChestModel(){
-      const model = tf.sequential();
+      let new_model = tf.sequential();
     
-      model.add(tf.layers.dense({inputShape: [1024], units: 64, activation: 'relu'}));
+      new_model.add(tf.layers.dense({inputShape: [1024], units: 64, activation: 'tanh'}));
     
+      new_model.add(tf.layers.dense({units: 32, activation: 'relu'}))
 
-      model.add(tf.layers.dense({units: 2, activation: 'softmax'}));
+      new_model.add(tf.layers.dense({units: 2, activation: 'tanh'}));
 
-      return model
+      new_model.summary()
+      return new_model
       /*
       console.log("loading mobilenet model")
       let net = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
@@ -670,7 +678,7 @@ export default {
         * #######################################
         */
 
-       let model = await this.create_model();
+       model = await this.create_model();
        this.model = model
        const save_path = "localstorage://".concat(this.model_name);
        const saveResults = await model.save(save_path);
