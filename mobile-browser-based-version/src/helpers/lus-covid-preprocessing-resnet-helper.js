@@ -2,13 +2,18 @@ import * as tf from '@tensorflow/tfjs';
 
 const IMAGE_H = 256;
 const IMAGE_W = 256;
-const IMAGE_SIZE = IMAGE_H * IMAGE_W;
 const NUM_CLASSES = 2;
+const FEATURES = 1024
 const LABEL_LIST = ["COVID-Positive","COVID-Negative"]
 //const SITE_POSITIONS = ["QAID", "QAIG", "QASD", "QASG", "QLD", "QLG", "QPID", "QPIG", "QPSD"]
 const SITE_POSITIONS = ["QAID", "QAIG", "QASD", "QASG", "QLD", "QLG", "QPID", "QPIG", "QPSD", "QPSG", "QPG"]
 // Data is passed under the form of Dictionary{ImageURL: label}
-export default function data_preprocessing(training_data){
+let net = null
+let MAX_PICTURES_IN_PATIENT = 19 //TODO: this could cause problems and should be the same as for the model
+
+//TODO: improve by averaging from the same site and then average all together??
+
+export default async function data_preprocessing(training_data){
     const labels = []
     const image_uri = []
     const image_names = []
@@ -23,6 +28,7 @@ export default function data_preprocessing(training_data){
     
     return preprocessed_data
 }
+
 function image_preprocessing(src){
 
     // Fill the image & call predict.
@@ -44,6 +50,7 @@ function image_preprocessing(src){
     return batched
 }
 
+
 function labels_preprocessing(labels){
     const nb_labels = labels.length
     const labels_one_hot_encoded = []
@@ -53,6 +60,10 @@ function labels_preprocessing(labels){
     
     console.log(labels_one_hot_encoded)
     return tf.tensor2d(labels_one_hot_encoded, [nb_labels, NUM_CLASSES])
+}
+
+function concat_tensors(tensors){
+    return tf.concat(tensors, 1)
 }
 
 function one_hot_encode(label){
@@ -82,25 +93,27 @@ function one_hot_encode(label){
     for(let i = 0; i<image_names.length; ++i){
         const id = image_names[i].split("_")[0]
         if(!(id in dict_images)){
-            dict_images[id] = {}
+            dict_images[id] = []
             dict_labels[id] = labels_preprocessed[i]
         }
         const site = image_names[i].split("_")[1]
-        dict_images[id][site]=image_uri[i]
+        dict_images[id].push(image_uri[i])
     }
+    /*for(let id in dict_images){
+       MAX_PICTURES_IN_PATIENT = Math.max(MAX_PICTURES_IN_PATIENT, dict_images[id].length)
+    }*/
+    console.log("Max num of pictures in a patient is "+ MAX_PICTURES_IN_PATIENT)
 
     const image_tensors1 = []
     for(let id in dict_images){
         const image_tensors2 = []
-        for(let site in SITE_POSITIONS){
-            if(site in dict_images[id]){
-                const image_uri = dict_images[id][site]
-                image_tensors2.push(image_preprocessing(image_uri))
-            }else{
-                image_tensors2.push(tf.zeros([1, IMAGE_H, IMAGE_W, 3]))
-            }
+        for(let image_uri in dict_images[id]){
+            image_tensors2.push(image_preprocessing(image_uri))
         }
-        image_tensors1.push(tf.concat(image_tensors2, 1))
+        while(image_tensors2.length < MAX_PICTURES_IN_PATIENT){
+            image_tensors2.push(tf.zeros([1, IMAGE_H, IMAGE_W, 3]))
+        }
+        image_tensors1.push(concat_tensors(image_tensors2))
     }
     
     // Do feature preprocessing
@@ -108,6 +121,7 @@ function one_hot_encode(label){
     for(let id in dict_labels){
         labels_to_process.push(dict_labels[id])
     }
+
     console.log(labels_to_process)
     const labels = labels_preprocessing(labels_to_process)
     const image_tensors = []

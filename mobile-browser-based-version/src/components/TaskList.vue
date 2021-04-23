@@ -76,6 +76,33 @@
                 </span>
               </div>
             </div>
+
+             <!-- LUS-Covid card-->
+            <div
+              class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark"
+            >
+              <div>
+                <h6
+                  class="text-xl font-medium leading-none tracking-wider uppercase dark:group-hover:text-darker"
+                >
+                  LUS-COVID
+                </h6>
+              </div>
+              <div class="ml-10">
+                <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
+                  COVID-19 is the biggest problem of the first of the 21st century, using LUS-COVID model we are detecting COVID from lung ultrasound images.
+                </ul>
+              </div>
+              <div>
+                <span>
+                  <a
+                    v-on:click="this.$router.push({ path: lus_covid })"
+                    class="no-underline font-medium"
+                    >Click here to participate</a
+                  >
+                </span>
+              </div>
+            </div>
           </div>
         </section>
       </div>
@@ -106,6 +133,7 @@ export default {
     return {
       taskSelected: "",
       mnist: "/mnist-model/description",
+      lus_covid: "/lus-covid-model/description"
     };
   },
   methods: {

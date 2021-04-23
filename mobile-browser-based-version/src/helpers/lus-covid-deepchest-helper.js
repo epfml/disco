@@ -1,8 +1,8 @@
 import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet'
 
-const IMAGE_H = 28;
-const IMAGE_W = 28;
+const IMAGE_H = 256;
+const IMAGE_W = 256;
 const IMAGE_SIZE = IMAGE_H * IMAGE_W;
 const NUM_CLASSES = 2;
 const FEATURES = 1024
@@ -12,6 +12,8 @@ const SITE_POSITIONS = ["QAID", "QAIG", "QASD", "QASG", "QLD", "QLG", "QPID", "Q
 // Data is passed under the form of Dictionary{ImageURL: label}
 let net = null
 let MAX_PICTURES_IN_PATIENT = 0
+
+//TODO: improve by averaging from the same site and then average all together??
 
 export default async function data_preprocessing(training_data){
     if (net == null){
