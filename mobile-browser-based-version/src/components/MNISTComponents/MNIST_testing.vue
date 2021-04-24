@@ -75,71 +75,7 @@
           </div>
 
           <!-- Data Point Example -->
-          <div class="relative p-4 overflow-x-scroll">
-            <table class="table-auto">
-              <thead>
-                <tr>
-                  <th class="px-4 py-2 text-emerald-600">Title</th>
-                  <th class="px-4 py-2 text-emerald-600">Author</th>
-                  <th class="px-4 py-2 text-emerald-600">Views</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Intro to CSS
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Adam
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    858
-                  </td>
-                </tr>
-                <tr class="bg-emerald-200">
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    A Long and Winding Tour of the History of UI Frameworks and
-                    Tools and the Impact on Design
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Adam
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    112
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Intro to JavaScript
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Chris
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    1,280
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <img src="../../../example_training_data/9-mnist-example.png" alt="">
         </div>
       </div>
     </a>
@@ -250,6 +186,8 @@
       </button>
     </div>
 
+    <ImagePredictionResults v-if="gotResults" :classes="classes" :imageElement="imgTested"/>
+
     <div id="predictions"></div>
 
     <!-- Upload Image Data Template-->
@@ -312,53 +250,36 @@
 
 
 <script>
+var model = null
+//TODO: add image example
 import * as tf from "@tensorflow/tfjs";
+import { get_model_from_storage, display_informations, training_information } from './MNIST_script';
+import ImagePredictionResults from '../Image_prediction_results'
 
 export default {
+  components: {
+    ImagePredictionResults
+  },
   data() {
     return {
       title: "mnist-testing",
-      DataFormatInfoText:
-        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
-      DataExampleText:
-        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
+      DataFormatInfoText:"",
+      DataExampleText: "",
 
       // Different Task Labels
       task_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-      IMAGE_HEIGHT: 224,
-      IMAGE_WIDTH: 224,
+      IMAGE_HEIGHT: 28,
+      IMAGE_WIDTH: 28,
   
-      model_name: "MOBILENET_model",
-      model: null,
+      model_name: "",
       FILES: [],
+
+      gotResults: false,
+      classes: null,
+      imgTested: null,
     };
   },
   methods: {
-
-    /**
-     * Creates the tf.model
-     * TO DO: fetch model from local storage
-     * @returns Returns a tf.model for training
-     */
-    get_model() {
-      if(!this.model){
-        this.model = this.create_model()
-      }
-      return this.model
-    },
-
-    async create_model(){
-        const MOBILENET_MODEL_PATH =
-        "https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json";
-        
-        const model = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
-
-        // Warmup the model. This isn't necessary, but makes the first prediction
-        // faster. Call `dispose` to release the WebGL memory allocated for the return
-        // value of `predict`.
-        model.predict(tf.zeros([1, this.IMAGE_HEIGHT, this.IMAGE_WIDTH, 3])).dispose();
-        return model
-    },
 
     test_model(){
       const filesElement = document.getElementById("hidden-input");
@@ -383,10 +304,9 @@ export default {
     },
 
     async predict(imgElement){
-        const model_path = "localstorage://".concat(this.model_name);
-        const loadedModel = await tf.loadLayersModel(model_path);
-
-        const logits = tf.tidy(() => {
+        const loadedModel = await get_model_from_storage()
+        if (loadedModel != null){
+          const logits = tf.tidy(() => {
             // tf.browser.fromPixels() returns a Tensor from an image element.
             const img = tf.browser.fromPixels(imgElement).toFloat();
 
@@ -399,52 +319,30 @@ export default {
 
             // Make a prediction through mobilenet.
             return loadedModel.predict(batched);
-        })
-        // Convert logits to probabilities and class names.
-        // Convert logits to probabilities and class names.
-        const classes = await this.getTopKClasses(logits, 5);
+          })
+          // Convert logits to probabilities and class names.
+          // Convert logits to probabilities and class names.
+          const classes = await this.getTopKClasses(logits, 5);
 
-        console.log(classes);
-        // Show the classes in the DOM.
-        this.showResults(imgElement, classes);
+          console.log(classes);
+          // Show the classes in the DOM.
+          this.showResults(imgElement, classes);
+        }else{
+          this.$toast.failure(
+            `No model has been trained. Please do so before testing.`
+          );
+          setTimeout(this.$toast.clear, 30000);
+        }
+        
     },
 
     showResults(imgElement, classes) {
-        const predictionContainer = document.createElement("div");
-        predictionContainer.className = "pred-container";
-
-        const imgContainer = document.createElement("div");
-        imgContainer.appendChild(imgElement);
-        predictionContainer.appendChild(imgContainer);
-
-        const probsContainer = document.createElement("div");
-        for (let i = 0; i < classes.length; i++) {
-            const row = document.createElement("div");
-            row.className = "row";
-
-            const classElement = document.createElement("div");
-            classElement.className = "cell";
-            classElement.innerText = classes[i].className;
-            row.appendChild(classElement);
-
-            const probsElement = document.createElement("div");
-            probsElement.className = "cell";
-            probsElement.innerText = classes[i].probability.toFixed(3);
-            row.appendChild(probsElement);
-
-            probsContainer.appendChild(row);
-        }
-        predictionContainer.appendChild(probsContainer);
-
-        const predictionsElement = document.getElementById("predictions");
-        predictionsElement.insertBefore(
-            predictionContainer,
-            predictionsElement.firstChild
-        );
+      this.classes = classes
+      this.imgTested = imgElement
+      this.gotResults = true
     },
 
     async getTopKClasses(logits, topK) {
-        const IMAGENET_CLASSES = {}
         const values = await logits.data();
 
         const valuesAndIndices = [];
@@ -464,81 +362,29 @@ export default {
         const topClassesAndProbs = [];
         for (let i = 0; i < topkIndices.length; i++) {
             topClassesAndProbs.push({
-            className: IMAGENET_CLASSES[topkIndices[i]],
+            className: this.task_labels[topkIndices[i]],
             probability: topkValues[i],
             });
         }
         return topClassesAndProbs;
     },
-
-    /**
-     * Creates a convolutional neural network (Convnet) for the MNIST data.
-     *
-     * @returns {tf.Model} An instance of tf.Model.
-     */
-    createConvModel(){
-      const IMAGE_H = 28;
-      const IMAGE_W = 28;
-      // Create a sequential neural network model. tf.sequential provides an API
-      // for creating "stacked" models where the output from one layer is used as
-      // the input to the next layer.
-      const model = tf.sequential();
-    
-      // The first layer of the convolutional neural network plays a dual role:
-      // it is both the input layer of the neural network and a layer that performs
-      // the first convolution operation on the input. It receives the 28x28 pixels
-      // black and white images. This input layer uses 16 filters with a kernel size
-      // of 5 pixels each. It uses a simple RELU activation function which pretty
-      // much just looks like this: __/
-      model.add(tf.layers.conv2d({
-        inputShape: [IMAGE_H, IMAGE_W, 3],
-        kernelSize: 3,
-        filters: 16,
-        activation: 'relu'
-      }));
-    
-      // After the first layer we include a MaxPooling layer. This acts as a sort of
-      // downsampling using max values in a region instead of averaging.
-      // https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
-      model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
-    
-      // Our third layer is another convolution, this time with 32 filters.
-      model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
-    
-      // Max pooling again.
-      model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
-    
-      // Add another conv2d layer.
-      model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
-    
-      // Now we flatten the output from the 2D filters into a 1D vector to prepare
-      // it for input into our last layer. This is common practice when feeding
-      // higher dimensional data to a final classification output layer.
-      model.add(tf.layers.flatten({}));
-    
-      model.add(tf.layers.dense({units: 64, activation: 'relu'}));
-    
-      // Our last layer is a dense layer which has 10 output units, one for each
-      // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
-      // represent numbers, but it's the same idea if you had classes that
-      // represented other entities like dogs and cats (two output classes: 0, 1).
-      // We use the softmax function as the activation for the output layer as it
-      // creates a probability distribution over our 10 classes so their output
-      // values sum to 1.
-      model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
-    
-      return model;
-  },
   },
   async mounted() {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // Code that will run only after the
       // entire view has been rendered
-      let model = await this.create_model()
-      this.model = model
-      const save_path = "localstorage://".concat(this.model_name)
-      const saveResults = await model.save(save_path)
+
+      /**
+       * #######################################
+       * LOAD INFORMATION ABOUT THE TASK
+       * #######################################
+       */
+
+      // Initialize variables used by the components 
+      this.model_name = training_information.model_id;
+      this.DataFormatInfoText = display_informations.dataFormatInformation;
+      this.DataExampleText = display_informations.dataExampleText;
 
       const imageTempl = document.getElementById("image-template"),
         empty = document.getElementById("empty");
