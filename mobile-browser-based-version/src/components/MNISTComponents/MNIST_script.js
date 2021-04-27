@@ -1,4 +1,5 @@
 import * as tf from "@tensorflow/tfjs";
+import {check_data} from "../../helpers/helpers-image-tasks"
 
 
 /**
@@ -45,6 +46,10 @@ export const training_information = {
     model_train_data: {
         epochs: 10,
     },
+
+    IMAGE_H : 28,
+    IMAGE_W : 28,
+    LABEL_LIST : ["0","1","2","3","4","5","6","7","8","9"]
 }
 
  /**
@@ -88,7 +93,7 @@ function createConvModel(){
     // of 5 pixels each. It uses a simple RELU activation function which pretty
     // much just looks like this: __/
     model.add(tf.layers.conv2d({
-      inputShape: [IMAGE_H, IMAGE_W, 3],
+      inputShape: [training_information.IMAGE_H, training_information.IMAGE_W, 3],
       kernelSize: 3,
       filters: 16,
       activation: 'relu'
@@ -172,21 +177,14 @@ export async function data_preprocessing(training_data) {
     return {accepted: startTraining, Xtrain: Xtrain, ytrain: ytrain}
 }
 
-async function check_data(training_data){
-    return {accepted: Object.keys(training_data).length>1}
-}
 
-const IMAGE_H = 28;
-const IMAGE_W = 28;
-const NUM_CLASSES = 10;
-const LABEL_LIST = ["0","1","2","3","4","5","6","7","8","9"]
 
 function image_preprocessing(src){
     // Fill the image & call predict.
     let imgElement = document.createElement('img');
     imgElement.src = src;
-    imgElement.width = IMAGE_W;
-    imgElement.height = IMAGE_H;
+    imgElement.width = training_information.IMAGE_W;
+    imgElement.height = training_information.IMAGE_H;
 
     // tf.browser.fromPixels() returns a Tensor from an image element.
     const img = tf.browser.fromPixels(imgElement).toFloat();
@@ -196,7 +194,7 @@ function image_preprocessing(src){
     const normalized = img.sub(offset).div(offset);
 
     // Reshape to a single-element batch so we can pass it to predict.
-    const batched = normalized.reshape([1, IMAGE_H, IMAGE_W, 3]);
+    const batched = normalized.reshape([1, training_information.IMAGE_H, training_information.IMAGE_W, 3]);
 
     return batched
 }
@@ -209,13 +207,13 @@ function labels_preprocessing(labels){
     )
     
     console.log(labels_one_hot_encoded)
-    return tf.tensor2d(labels_one_hot_encoded, [nb_labels, NUM_CLASSES])
+    return tf.tensor2d(labels_one_hot_encoded, [nb_labels, training_information.NUM_CLASSES])
 }
 
 function one_hot_encode(label){
     const result = []
-    for (let i = 0; i < LABEL_LIST.length; i++){
-        if(LABEL_LIST[i]==label){
+    for (let i = 0; i < training_information.LABEL_LIST.length; i++){
+        if(training_information.LABEL_LIST[i]==label){
             result.push(1)
         }else{
             result.push(0)

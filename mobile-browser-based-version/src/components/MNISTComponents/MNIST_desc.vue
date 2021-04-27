@@ -128,7 +128,7 @@
   </div>
 </template>
 <script>
-import { display_informations } from './MNIST_script';
+import { display_informations, training_information } from './MNIST_script';
 export default {
   data() {
     return {
@@ -139,7 +139,7 @@ export default {
   },
   methods: {
       goToTraining() {
-          this.$router.push({ path: "/MNIST-model/training" });
+          this.$router.push({ path: "/" + training_information.model_id + "/training" });
       }
   },
   mounted() {
