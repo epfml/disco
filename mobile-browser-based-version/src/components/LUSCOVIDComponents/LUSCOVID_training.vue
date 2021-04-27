@@ -383,13 +383,13 @@
 import ImageUploadFrame from "../ImageUploadFrame";
 import * as tf from "@tensorflow/tfjs";
 import * as mobilenet from "@tensorflow-models/mobilenet"
-import {categoricalCrossentropy} from '@tensorflow/tfjs-layers/dist/exports_metrics';
 import * as Chart from "chart.js";
 import * as d3 from "d3";
 import {training, training_distributed} from "../../helpers/training-script.js"
 import data_preprocessing from "../../helpers/lus-covid-deepchest-helper.js"
 import createResnetModel from "../../helpers/lus-covid-resnet-helper"
 import data_preprocessing_resnet from "../../helpers/lus-covid-preprocessing-resnet-helper"
+import {get_model, data_preprocessing_mobilenet} from "../../helpers/lus-covid-mobilenet-helper"
 
 
 var model = null;
@@ -451,7 +451,8 @@ export default {
     create_model(){
       //return this.createConvModel()
       //return this.createDeepChestModel()
-      return createResnetModel()
+      //return createResnetModel()
+      return get_model()
     },
     async loadMobilenet(){
       console.log("loading mobilenet")
@@ -465,14 +466,18 @@ export default {
       this.$toast.success(`Thank you for your contribution. Training has started`);
       setTimeout(this.$toast.clear, 30000)
 
-      const preprocessed_data = await data_preprocessing_resnet(this.FILES)
+      //const preprocessed_data = await data_preprocessing_resnet(this.FILES)
+      const preprocessed_data = data_preprocessing_mobilenet(this.FILES)
 
-      const batchSize = 2;
+      /*const batchSize = 2;
 
       const validationSplit = 0.2;
     
       const trainEpochs = 100
-
+      */
+     const batchSize = 12
+     const trainEpochs = 25
+     const validationSplit = 0.2
 
       await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
       
@@ -680,7 +685,7 @@ export default {
 
        model = await this.create_model();
        this.model = model
-       const save_path = "localstorage://".concat(this.model_name);
+       const save_path = "indexeddb://".concat(this.model_name);
        const saveResults = await model.save(save_path);
 
       /**
