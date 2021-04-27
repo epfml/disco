@@ -154,7 +154,6 @@ export async function data_preprocessing(training_data) {
         const image_uri = []
 
         Object.keys(training_data).forEach(key => {
-            console.log(key, training_data[key])
             labels.push(training_data[key])
             image_uri.push(key)
         });
@@ -206,8 +205,7 @@ function labels_preprocessing(labels){
         labels_one_hot_encoded.push(one_hot_encode(label))
     )
     
-    console.log(labels_one_hot_encoded)
-    return tf.tensor2d(labels_one_hot_encoded, [nb_labels, training_information.NUM_CLASSES])
+    return tf.tensor2d(labels_one_hot_encoded, [nb_labels, training_information.LABEL_LIST.length])
 }
 
 function one_hot_encode(label){

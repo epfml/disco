@@ -301,6 +301,7 @@ export default {
         // Read in the image file as a data URL.
         reader.readAsDataURL(file);
       } 
+      filesElement.files = []
     },
 
     async predict(imgElement){

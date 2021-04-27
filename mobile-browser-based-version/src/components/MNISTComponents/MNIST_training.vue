@@ -383,9 +383,7 @@ export default {
       title: "mnist-training",
      
       // Different Task Labels
-      task_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-
-      // Feed Back Training Components
+      task_labels: [],
       
       model: null,
       FILES: {},
@@ -448,6 +446,7 @@ export default {
           setTimeout(this.$toast.clear, 30000);
         }
       }
+      this.FILES = {}
     },
 
     /**
@@ -529,8 +528,6 @@ export default {
       // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
     },
 
-
-    //TODO
     addFile: function (file, label) {
       const isImage = file.type.match("image.*"),
         objectURL = URL.createObjectURL(file);
@@ -538,15 +535,16 @@ export default {
     },
 
     inputChange: function (e, label) {
+      let counter = 0
       for (const file of e.target.files) {
-        console.log("Adding file");
         this.addFile(file, label);
-        console.log("File Added");
+        counter+=1
       }
+      console.log(counter + " Files Added")
     },
 
     goToTesting() {
-      this.$router.push({ path: "/MNIST-model/testing" });
+      this.$router.push({ path: "/"+training_information.model_id+"/testing" });
     },
   },
   async mounted() {
@@ -566,6 +564,7 @@ export default {
       this.DataFormatInfoText = display_informations.dataFormatInformation;
       this.DataExampleText = display_informations.dataExampleText;
       this.DataExample = display_informations.dataExample
+      this.task_labels = training_information.LABEL_LIST
 
       // Create the model 
       model = create_model();
