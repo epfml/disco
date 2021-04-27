@@ -15,11 +15,11 @@ export async function training(model, model_name, trainData, labels, _batchSize,
   console.log('Start Training')
   console.log(labels)
 
-  const model_path = "localstorage://".concat(model_name);
+  const model_path = "indexeddb://".concat(model_name);
 
   // TO DO: access these parameters as training argument
   model.compile({
-    optimizer: "rmsprop",
+    optimizer: "adam",
     loss: "binaryCrossentropy",
     metrics: ["accuracy"],
   });
@@ -92,7 +92,7 @@ export async function training_distributed(model, model_name, trainData, labels,
   }).then( (info) => console.log("Training finished", info.history) )
 
   // save the resulting model in the local storage
-  const model_path = "localstorage://".concat(model_name);
+  const model_path = "indexeddb://".concat(model_name);
   const saveResults = await model.save(model_path);
 
 }
