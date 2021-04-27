@@ -368,8 +368,6 @@ export default {
       DataFormatInfoText: "",
       DataExampleText: "",
       DataExample: null,
-      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      headers: [],
 
       // Variabldes for feed-backs when training
       valAccuracyChart: null,
