@@ -382,9 +382,14 @@
 <script>
 import ImageUploadFrame from "../ImageUploadFrame";
 import * as tf from "@tensorflow/tfjs";
+import * as mobilenet from "@tensorflow-models/mobilenet"
 import * as Chart from "chart.js";
+import * as d3 from "d3";
 import {training, training_distributed} from "../../helpers/training-script.js"
 import data_preprocessing from "../../helpers/lus-covid-deepchest-helper.js"
+import createResnetModel from "../../helpers/lus-covid-resnet-helper"
+import data_preprocessing_resnet from "../../helpers/lus-covid-preprocessing-resnet-helper"
+import {get_model, data_preprocessing_mobilenet} from "../../helpers/lus-covid-mobilenet-helper"
 
 
 var model = null;
@@ -444,8 +449,16 @@ export default {
     },
 
     create_model(){
+      //return this.createConvModel()
       return this.createDeepChestModel()
+      //return createResnetModel()
+      //return get_model()
     },
+    /*async loadMobilenet(){
+      console.log("loading mobilenet")
+      const net = await mobilenet.load()
+      console.log("mobilenet loaded")
+    },*/
     async join_training(){
       const optimizer = 'rmsprop';
 
@@ -453,6 +466,8 @@ export default {
       this.$toast.success(`Thank you for your contribution. Training has started`);
       setTimeout(this.$toast.clear, 30000)
 
+      //const preprocessed_data = await data_preprocessing_resnet(this.FILES)
+      // const preprocessed_data = data_preprocessing_mobilenet(this.FILES)
       const preprocessed_data = await data_preprocessing(this.FILES)
 
       const batchSize = 2;
@@ -516,7 +531,146 @@ export default {
 
       new_model.summary()
       return new_model
+      /*
+      console.log("loading mobilenet model")
+      let net = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
+      console.log("model loaded successfully")
+
+      const trainableLayers=['denseModified','conv_pw_13_bn','conv_pw_13','conv_dw_13_bn','conv _dw_13'];
+
+      const x=net.getLayer('global_average_pooling2d_1');
+      const predictions= tf.layers.dense({units: 2,  activation: 'softmax',name: 'denseModified'}).apply(x.output); 
+      let mobilenetModified = tf.model({inputs: net.input, outputs:  predictions, name: 'modelModified' });
+      console.log('Mobilenet model is modified')
+      mobilenetModified =
+      this.freezeModelLayers(trainableLayers,mobilenetModified)
+      console.log('ModifiedMobilenet model layers are freezed')
+      mobilenetModified.compile({loss: categoricalCrossentropy,  optimizer: tf.train.adam(1e-3), metrics:   ['accuracy','crossentropy']});
+      //net.dispose();
+      //x.dispose();
+      return mobilenetModified*/
+
     },
+    //-------------------------------------------------------------
+    // freezes mobilenet layers to make them untrainable
+    // just keeps final layers trainable with argument trainableLayers
+    //-------------------------------------------------------------
+    freezeModelLayers(trainableLayers,mobilenetModified)
+    {
+    for (const layer of mobilenetModified.layers)
+    {
+      layer.trainable = false;
+      for (const tobeTrained of trainableLayers)
+      {
+        if (layer.name.indexOf(tobeTrained) === 0)
+        {
+          layer.trainable = true;
+          break;
+        }
+      }
+      }
+    return mobilenetModified;
+    },
+    /*
+      // ATTENTION: it is not possible yet to use Resnet in the browser, I will be using mobilenet
+      //tf.keras.applications.ResNet50(true,'imagenet',512)
+      const IMAGE_H = 28;
+      const IMAGE_W = 28;
+      // Create a sequential neural network model. tf.sequential provides an API
+      // for creating "stacked" models where the output from one layer is used as
+      // the input to the next layer.
+      const model = tf.sequential();
+    
+      // The first layer of the convolutional neural network plays a dual role:
+      // it is both the input layer of the neural network and a layer that performs
+      // the first convolution operation on the input. It receives the 28x28 pixels
+      // black and white images. This input layer uses 16 filters with a kernel size
+      // of 5 pixels each. It uses a simple RELU activation function which pretty
+      // much just looks like this: __/
+      model.add(tf.layers.conv2d({
+        inputShape: [IMAGE_H*11, IMAGE_W, 3],
+        kernelSize: 3,
+        filters: 16,
+        activation: 'relu'
+      }));
+    
+      // After the first layer we include a MaxPooling layer. This acts as a sort of
+      // downsampling using max values in a region instead of averaging.
+      // https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
+      model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
+    
+      // Now we flatten the output from the 2D filters into a 1D vector to prepare
+      // it for input into our last layer. This is common practice when feeding
+      // higher dimensional data to a final classification output layer.
+      model.add(tf.layers.flatten({}));
+    
+      model.add(tf.layers.dense({units: 512, activation: 'relu'}));
+
+      model.add(tf.layers.dense({units: 2*512, activation: 'relu'}));
+    
+      model.add(tf.layers.dense({units: 2, activation: 'tanh'}));
+    
+      return model;
+    
+    },*/
+    /**
+     * Creates a convolutional neural network (Convnet) for the MNIST data.
+     *
+     * @returns {tf.Model} An instance of tf.Model.
+     */
+    createConvModel(){
+      const IMAGE_H = 28;
+      const IMAGE_W = 28;
+      // Create a sequential neural network model. tf.sequential provides an API
+      // for creating "stacked" models where the output from one layer is used as
+      // the input to the next layer.
+      const model = tf.sequential();
+    
+      // The first layer of the convolutional neural network plays a dual role:
+      // it is both the input layer of the neural network and a layer that performs
+      // the first convolution operation on the input. It receives the 28x28 pixels
+      // black and white images. This input layer uses 16 filters with a kernel size
+      // of 5 pixels each. It uses a simple RELU activation function which pretty
+      // much just looks like this: __/
+      model.add(tf.layers.conv2d({
+        inputShape: [IMAGE_H*11, IMAGE_W, 3], //todo: CHANGE TO 11
+        kernelSize: 3,
+        filters: 16,
+        activation: 'relu'
+      }));
+    
+      // After the first layer we include a MaxPooling layer. This acts as a sort of
+      // downsampling using max values in a region instead of averaging.
+      // https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
+      model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
+    
+      // Our third layer is another convolution, this time with 32 filters.
+      model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
+    
+      // Max pooling again.
+      model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
+    
+      // Add another conv2d layer.
+      model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
+    
+      // Now we flatten the output from the 2D filters into a 1D vector to prepare
+      // it for input into our last layer. This is common practice when feeding
+      // higher dimensional data to a final classification output layer.
+      model.add(tf.layers.flatten({}));
+    
+      model.add(tf.layers.dense({units: 64, activation: 'relu'}));
+    
+      // Our last layer is a dense layer which has 10 output units, one for each
+      // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
+      // represent numbers, but it's the same idea if you had classes that
+      // represented other entities like dogs and cats (two output classes: 0, 1).
+      // We use the softmax function as the activation for the output layer as it
+      // creates a probability distribution over our 10 classes so their output
+      // values sum to 1.
+      model.add(tf.layers.dense({units: 2, activation: 'softmax'}));
+    
+      return model;
+  },
   },
   async mounted() {
     // This method is called when the component is created

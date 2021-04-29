@@ -11,7 +11,8 @@ const LABEL_LIST = ["COVID-Positive","COVID-Negative"]
 const SITE_POSITIONS = ["QAID", "QAIG", "QASD", "QASG", "QLD", "QLG", "QPID", "QPIG", "QPSD", "QPSG", "QPG"]
 // Data is passed under the form of Dictionary{ImageURL: label}
 let net = null
-let MAX_PICTURES_IN_PATIENT = 0
+let aggregation = null
+let MAX_PICTURES_IN_PATIENT = 19
 
 //TODO: improve by averaging from the same site and then average all together??
 
@@ -19,6 +20,10 @@ export default async function data_preprocessing(training_data){
     if (net == null){
         console.log("loading mobilenet...")
         net = await mobilenet.load()
+        //net =  await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
+        //net = net.layers[net.layers.length-1].output
+        //console.log(net)
+        //net.summary()
         console.log("Successfully loaded model")
     }
     const labels = []
@@ -42,8 +47,20 @@ function image_preprocessing(src){
     imgElement.src = src;
     imgElement.width = IMAGE_W;
     imgElement.height = IMAGE_H;
-    let values = Array.from(net.infer(imgElement, true).dataSync())
-    let new_values = []
+
+    // tf.browser.fromPixels() returns a Tensor from an image element.
+    const img = tf.browser.fromPixels(imgElement).toFloat();
+
+    const offset = tf.scalar(127.5);
+    // Normalize the image from [0, 255] to [-1, 1].
+    const normalized = img.div(offset).sub(tf.scalar(1));
+
+    // Reshape to a single-element batch so we can pass it to predict.
+    const batched = normalized.reshape([1, IMAGE_H, IMAGE_W, 3]);
+
+    ///let values = Array.from(net.infer(imgElement, true).dataSync())
+    
+    /*let new_values = []
     for(let value in values){
         new_values.push(tf.scalar(value, 'float32'))
     }
@@ -51,8 +68,10 @@ function image_preprocessing(src){
     //console.log(values)
     let activation = tf.tensor2d(values , [1, FEATURES]) 
     //console.log("activation: "+activation)
+    */
 
-    return activation
+    let representation = net.infer(batched, true) // Get embeddings for transfer learning
+    return representation
 }
 
 function labels_preprocessing(labels){
@@ -71,9 +90,6 @@ function mean_tensor(tensors){
     let result = tf.zeros([1, FEATURES])
     for(let i = 0; i< tensors.length; ++i){
         const tensor = tensors[i]
-        //console.log("tensor compare")
-        //console.log(tensor)
-        //console.log(tf.zeros([1, FEATURES]))
         result = result.add(tensor)
     }
     result = result.div(tf.scalar(tensors.length))
@@ -122,29 +138,26 @@ function one_hot_encode(label){
     for(let id in dict_images){
         const image_tensors2 = []
         for(let image_uri in dict_images[id]){
+            // Get representation from Mobilenet for each image
             image_tensors2.push(image_preprocessing(image_uri))
         }
-        //image_tensors1.push(tf.concat(image_tensors2, 1))
+        // Do mean pooling over same patient representations
         image_tensors1.push(mean_tensor(image_tensors2))
     }
     
-    // Do feature preprocessing
+    const xs = tf.concat(image_tensors1, 0)
+    
+    // Do label preprocessing
     const labels_to_process = []
     for(let id in dict_labels){
         labels_to_process.push(dict_labels[id])
     }
     console.log(labels_to_process)
     const labels = labels_preprocessing(labels_to_process)
-    const image_tensors = []
-    
-    image_uri.forEach( image => 
-      image_tensors.push(image_preprocessing(image))
-    )
 
     console.log("end")
     console.log(image_tensors1)
     console.log(labels)
-    const xs = tf.concat(image_tensors1, 0)
-    
+   
     return {xs, labels};
   }
