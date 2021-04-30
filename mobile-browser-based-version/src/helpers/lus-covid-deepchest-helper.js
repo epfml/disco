@@ -16,7 +16,7 @@ let MAX_PICTURES_IN_PATIENT = 19
 
 //TODO: improve by averaging from the same site and then average all together??
 
-export default async function data_preprocessing(training_data){
+export default async function data_preprocessing(training_data, batchSize){
     if (net == null){
         console.log("loading mobilenet...")
         net = await mobilenet.load()
@@ -36,7 +36,7 @@ export default async function data_preprocessing(training_data){
         image_uri.push(key)
     });
 
-    const preprocessed_data = getTrainData(image_uri, labels, image_names);    
+    const preprocessed_data = getTrainData(image_uri, labels, image_names, batchSize);    
     
     return preprocessed_data
 }
@@ -116,7 +116,7 @@ function one_hot_encode(label){
    *   labels: The one-hot encoded labels tensor, of shape
    *     `[numTrainExamples, 2]`.
    */
-   function getTrainData(image_uri, labels_preprocessed, image_names) {
+   function getTrainData(image_uri, labels_preprocessed, image_names, batchSize) {
     const dict_images = {}
     const dict_labels = {}
 
@@ -133,8 +133,8 @@ function one_hot_encode(label){
        MAX_PICTURES_IN_PATIENT = Math.max(MAX_PICTURES_IN_PATIENT, dict_images[id].length)
     }
     console.log("Max num of pictures in a patient is "+ MAX_PICTURES_IN_PATIENT)
-
-    const image_tensors1 = []
+    console.log("Number of patients found was of "+Object.keys(dict_images).length)
+    let image_tensors1 = []
     for(let id in dict_images){
         const image_tensors2 = []
         for(let image_uri in dict_images[id]){
@@ -145,7 +145,8 @@ function one_hot_encode(label){
         image_tensors1.push(mean_tensor(image_tensors2))
     }
     
-    const xs = tf.concat(image_tensors1, 0)
+    image_tensors1 = image_tensors1.sort(()=>Math.random()-0.5)  // shuffle patients tensors
+    const xs = tf.concat(image_tensors1, 0) //.batch(batchSize)
     
     // Do label preprocessing
     const labels_to_process = []

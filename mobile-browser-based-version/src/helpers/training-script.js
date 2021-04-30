@@ -37,6 +37,7 @@ export async function training(model, model_name, trainData, labels, _batchSize,
              Val Accuracy:  ${(
             logs.val_acc * 100
           ).toFixed(2)}\n`);
+          console.log(`loss ${logs.loss.toFixed(4)}`)
         //await tf.nextFrame();
       }
     }
