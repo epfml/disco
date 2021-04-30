@@ -33,7 +33,7 @@
           <!-- Brand -->
           <div class="flex-shrink-0">
             <a
-              href="task-list.html"
+              v-on:click="goToHome()"
               class="p-1 inline-block text-xl font-bold tracking-wider uppercase text-primary-dark dark:text-light"
             >
               De-AI

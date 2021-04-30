@@ -75,71 +75,7 @@
           </div>
 
           <!-- Data Point Example -->
-          <div class="relative p-4 overflow-x-scroll">
-            <table class="table-auto">
-              <thead>
-                <tr>
-                  <th class="px-4 py-2 text-emerald-600">Title</th>
-                  <th class="px-4 py-2 text-emerald-600">Author</th>
-                  <th class="px-4 py-2 text-emerald-600">Views</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Intro to CSS
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Adam
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    858
-                  </td>
-                </tr>
-                <tr class="bg-emerald-200">
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    A Long and Winding Tour of the History of UI Frameworks and
-                    Tools and the Impact on Design
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Adam
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    112
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Intro to JavaScript
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Chris
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    1,280
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <img src="../../../example_training_data/9-mnist-example.png" alt="">
         </div>
       </div>
     </a>
@@ -192,11 +128,18 @@
     <!-- Train Button -->
     <div class="flex items-center justify-center p-4">
       <button
-        v-on:click="join_training()"
+        v-on:click="join_training(false)"
         type="button"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
       >
-        Train
+        Train Alone
+      </button>
+      <button
+        v-on:click="join_training(true)"
+        type="button"
+        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+      >
+        Train Distributed
       </button>
     </div>
 
@@ -380,95 +323,147 @@
 
 
 <script>
-import ImageUploadFrame from "../ImageUploadFrame";
-import * as tf from "@tensorflow/tfjs";
-import * as Chart from "chart.js";
-import * as d3 from "d3";
-import training from "../../helpers/training-script.js"
-import data_preprocessing from "../../helpers/mnist-preprocessing-helper.js"
+import {
+  display_informations, 
+  training_information, 
+  data_preprocessing
+} from "./MNIST_script"
 
+import * as tf from "@tensorflow/tfjs";
+
+import * as Chart from "chart.js";
+import {training, training_distributed} from "../../helpers/training-script.js"
+import {onEpochEnd_common } from "../../helpers/helpers";
+import {create_model} from "./MNIST_script"
+
+import ImageUploadFrame from '../ImageUploadFrame'
+
+// Variables used for training
+var model = null
+var peerjs = null
+var recv_buffer = {
+  train_info: {
+    epochs: 5,
+  },
+};
+var model_compile_data = {
+  optimizer: "rmsprop",
+  loss: "binaryCrossentropy",
+  metrics: ["accuracy"],
+};
+var model_train_data = {
+  epochs: 5,
+};
+//TODO
+const batchSize = 320;
+
+const validationSplit = 0.15;
+    
+const trainEpochs = 10
 export default {
   data() {
     return {
-      title: "mnist-training",
-      DataFormatInfoText:
-        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
-      DataExampleText:
-        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
+      // Variables for general informations
+      model_name: "",
+      DataFormatInfoText: "",
+      DataExampleText: "",
+      DataExample: null,
 
-      // Different Task Labels
-      task_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-
-      // Feed Back Training Components
+      // Variabldes for feed-backs when training
       valAccuracyChart: null,
       accuracyChart: null,
       val_accuracy: null,
       accuracy: null,
+
+      // Variables for communications
+      receivers: [],
+      epoch: 0,
+      username: null,
+      threshold: null,
+      title: "mnist-training",
+     
+      // Different Task Labels
+      task_labels: [],
+      
       model: null,
       FILES: {},
-      model_name: "MNIST_model"
     };
   },
+  components:{
+    ImageUploadFrame
+  },
   methods: {
-    addFile: function (file, label) {
-      const isImage = file.type.match("image.*"),
-        objectURL = URL.createObjectURL(file);
-      this.FILES[objectURL] = label;
-    },
+    async join_training(distributed) {
+      const filesElement = this.FILES;
 
-    inputChange: function (e, label) {
-      for (const file of e.target.files) {
-        console.log("Adding file");
-        this.addFile(file, label);
-        console.log("File Added");
+      // Check that the user indeed gave a file
+      if (this.FILES.length == 0) {
+        alert("Training aborted. No uploaded file given as input.");
+      } else {
+
+        // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
+        var processed_data = await data_preprocessing(this.FILES);
+        var accepted = processed_data.accepted;
+        var Xtrain = processed_data.Xtrain;
+        var ytrain = processed_data.ytrain;
+        if (accepted) {
+          // Notification Start Training
+          this.$toast.success(
+            `Thank you for your contribution. Training has started`
+          );
+          setTimeout(this.$toast.clear, 30000);
+
+          if (!distributed) {
+            console.log("here");
+            await training(
+              model,
+              this.model_name,
+              Xtrain,
+              ytrain,
+              32,
+              0.2,
+              30,
+              this.updateUI
+            );
+          } else {
+            await training_distributed(
+              model,
+              this.model_name,
+              Xtrain,
+              ytrain,
+              model_train_data,
+              32,
+              0.2,
+              model_compile_data,
+              this.onEpochBegin,
+              this.onEpochEnd
+            );
+          }
+          // Notification End Training
+          this.$toast.success(
+            this.model_name.concat(` has finished training!`)
+          );
+          setTimeout(this.$toast.clear, 30000);
+        }
       }
-    },
-
-    goToTesting() {
-      this.$router.push({ path: "/MNIST-model/testing" });
+      this.FILES = {}
     },
 
     /**
-     * Creates the tf.model
-     * TO DO: fetch model from local storage
-     * @returns Returns a tf.model for training
+     * #######################################
+     * METHODS FOR UPDATING GRAPHS ON THE UI
+     * #######################################
      */
-    get_model() {
-      if(!this.model){
-        this.model = this.create_model()
-      }
-      return this.model
-    },
 
-    create_model(){
-      return this.createConvModel()
-    },
-
-    join_training(){
-      const optimizer = 'rmsprop';
-
-      const preprocessed_data = data_preprocessing(this.FILES)
-
-      const batchSize = 320;
-
-      const validationSplit = 0.15;
-    
-      const trainEpochs = 10
-
-      // Notification Start Training
-      this.$toast.success(`Thank you for your contribution. Training has started`);
-      setTimeout(this.$toast.clear, 30000)
-
-      training(this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
-      // Notification End Training
-      this.$toast.success(`MNIST model has finished training!`);
-      setTimeout(this.$toast.clear, 30000)
-    
-    },
-
-    async updateUI(epoch, _accuracy, validation_accuracy){
-      this.updateAccuracy(epoch, _accuracy)
-      this.updateValidationAccuracy(epoch, validation_accuracy)
+     /**
+     * Method used to update the two graphs to give user informations about the training process
+     * @param {Number} epoch The epoch number of the current training
+     * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
+     * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
+     */
+    updateUI(epoch, _accuracy, validationAccuracy) {
+      this.updateAccuracy(epoch, _accuracy);
+      this.updateValidationAccuracy(epoch, validationAccuracy);
     },
 
     /**
@@ -498,85 +493,89 @@ export default {
       await this.valAccuracyChart.update();
       this.val_accuracy.innerText = accuracy;
     },
+
     /**
-     * Creates a convolutional neural network (Convnet) for the MNIST data.
-     *
-     * @returns {tf.Model} An instance of tf.Model.
+     * #######################################
+     * METHODS FOR COMMUNICATION
+     * #######################################
      */
-    createConvModel(){
-      const IMAGE_H = 28;
-      const IMAGE_W = 28;
-      // Create a sequential neural network model. tf.sequential provides an API
-      // for creating "stacked" models where the output from one layer is used as
-      // the input to the next layer.
-      const model = tf.sequential();
-    
-      // The first layer of the convolutional neural network plays a dual role:
-      // it is both the input layer of the neural network and a layer that performs
-      // the first convolution operation on the input. It receives the 28x28 pixels
-      // black and white images. This input layer uses 16 filters with a kernel size
-      // of 5 pixels each. It uses a simple RELU activation function which pretty
-      // much just looks like this: __/
-      model.add(tf.layers.conv2d({
-        inputShape: [IMAGE_H, IMAGE_W, 3],
-        kernelSize: 3,
-        filters: 16,
-        activation: 'relu'
-      }));
-    
-      // After the first layer we include a MaxPooling layer. This acts as a sort of
-      // downsampling using max values in a region instead of averaging.
-      // https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
-      model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
-    
-      // Our third layer is another convolution, this time with 32 filters.
-      model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
-    
-      // Max pooling again.
-      model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
-    
-      // Add another conv2d layer.
-      model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
-    
-      // Now we flatten the output from the 2D filters into a 1D vector to prepare
-      // it for input into our last layer. This is common practice when feeding
-      // higher dimensional data to a final classification output layer.
-      model.add(tf.layers.flatten({}));
-    
-      model.add(tf.layers.dense({units: 64, activation: 'relu'}));
-    
-      // Our last layer is a dense layer which has 10 output units, one for each
-      // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
-      // represent numbers, but it's the same idea if you had classes that
-      // represented other entities like dogs and cats (two output classes: 0, 1).
-      // We use the softmax function as the activation for the output layer as it
-      // creates a probability distribution over our 10 classes so their output
-      // values sum to 1.
-      model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
-    
-      return model;
-  },
+
+    /**
+     * Method called at the begining of each training epoch
+     */
+    onEpochBegin() {
+      console.log("EPOCH: ", ++this.epoch);
+    },
+
+    /**
+     * Method called at the end of each epoch 
+     * Configured to handle communication with peers
+     * @param {Number} epoch The epoch number of the current training
+     * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
+     * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
+     */
+    async onEpochEnd(epoch, _accuracy, validationAccuracy) {
+      this.updateUI(epoch, _accuracy, validationAccuracy);
+      await onEpochEnd_common(
+        model,
+        this.epoch,
+        this.receivers,
+        recv_buffer,
+        this.username,
+        this.threshold,
+        peerjs
+      );
+      // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
+    },
+
+    addFile: function (file, label) {
+      const isImage = file.type.match("image.*"),
+        objectURL = URL.createObjectURL(file);
+      this.FILES[objectURL] = label;
+    },
+
+    inputChange: function (e, label) {
+      let counter = 0
+      for (const file of e.target.files) {
+        this.addFile(file, label);
+        counter+=1
+      }
+      console.log(counter + " Files Added")
+    },
+
+    goToTesting() {
+      this.$router.push({ path: "/"+training_information.model_id+"/testing" });
+    },
   },
   async mounted() {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // Code that will run only after the
       // entire view has been rendered
-      
-      /**
-        * #######################################
-        * CODE TO HANDLE CREATION OF THE MODEL
-        * #######################################
-        */
-
-       let model = await this.create_model();
-       this.model = model
-       const save_path = "localstorage://".concat(this.model_name);
-       const saveResults = await model.save(save_path);
 
       /**
        * #######################################
-       * CODE TO HANDLE CREATION OF CHARTS FEEDBACKS
+       * LOAD INFORMATION ABOUT THE TASK
+       * #######################################
+       */
+
+      // Initialize variables used by the components 
+      this.model_name = training_information.model_id;
+      this.DataFormatInfoText = display_informations.dataFormatInformation;
+      this.DataExampleText = display_informations.dataExampleText;
+      this.DataExample = display_informations.dataExample
+      this.task_labels = training_information.LABEL_LIST
+
+      // Create the model 
+      model = create_model();
+      const save_path = "localstorage://".concat(this.model_name);
+      const saveResults = await model.save(save_path);
+
+      // TO DO: connect peerJS server
+
+      /**
+       * #######################################
+       * HANDLE CREATION OF CHARTS FEEDBACKS
        * #######################################
        */
 
@@ -731,9 +730,6 @@ export default {
         },
       });
     });
-  },
-  components: {
-    ImageUploadFrame,
   },
 };
 </script>
