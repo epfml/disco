@@ -58,6 +58,8 @@ function image_preprocessing(src){
     // Reshape to a single-element batch so we can pass it to predict.
     const batched = normalized.reshape([1, IMAGE_H, IMAGE_W, 3]);
 
+    // TODO: test without normalizing
+    
     ///let values = Array.from(net.infer(imgElement, true).dataSync())
     
     /*let new_values = []
