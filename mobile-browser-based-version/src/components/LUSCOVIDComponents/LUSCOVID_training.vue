@@ -453,7 +453,7 @@ export default {
       this.$toast.success(`Thank you for your contribution. Training has started`);
       setTimeout(this.$toast.clear, 30000)
 
-      const batchSize = 12;
+      const batchSize = 2;
 
       const preprocessed_data = await data_preprocessing(this.FILES, batchSize)
 
@@ -509,11 +509,11 @@ export default {
       let new_model = tf.sequential();
 
       //new_model.add(tf.layers.dense({inputShape:[1024], units: 2048, activation: 'relu'}));
-      new_model.add(tf.layers.dense({inputShape:[1024], units:2048, activation:'relu'}))
+      new_model.add(tf.layers.dense({inputShape:[1024], units:512, activation:'relu'}))
       //new_model.add(tf.layers.dense({units: 512, activation:'relu'}))
-      new_model.add(tf.layers.dense({units: 512, activation: 'relu'}))
+      new_model.add(tf.layers.dense({units: 64, activation: 'relu'}))
 
-      new_model.add(tf.layers.dense({units: 2, activation:'softmax'}));
+      new_model.add(tf.layers.dense({units: 2}));
 
       new_model.summary()
       return new_model
