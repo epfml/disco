@@ -84,6 +84,7 @@ export function data_received(recv_buffer, key) {
     return new Promise( (resolve) => {
         (function wait_data(){
             if (recv_buffer[key]) {
+                console.log(recv_buffer)
                 return resolve();
             }
             setTimeout(wait_data, 100);
