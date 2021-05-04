@@ -1,6 +1,10 @@
 # Mobile Browser-Based Version
 ## Install and host peerJS server locally
-To install and host a peerJS helper server locally, you can follow the official [instructions](https://github.com/peers/peerjs-server#run-server). 
+To install and host a peerJS helper server locally, you can follow the official [instructions](https://github.com/peers/peerjs-server#run-server).    
+To run the server, you can use the following command (from the present folder): 
+```
+peerjs --port 9000 --key peerjs --path /deai --allow_discovery
+```
 
 ## How to run the app
 All commands are ran from the present folder here. 
