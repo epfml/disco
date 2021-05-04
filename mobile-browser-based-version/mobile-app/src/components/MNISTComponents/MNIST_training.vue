@@ -33,7 +33,7 @@
           </div>
           <!-- Descrition -->
           <div class="relative p-4 overflow-x-scroll">
-            <span style="white-space: pre-line" class="text-sm text-gray-500 dark:text-light">{{
+            <span class="text-sm text-gray-500 dark:text-light">{{
               DataFormatInfoText
             }}</span>
           </div>
@@ -69,37 +69,24 @@
           </div>
 
           <div class="relative p-4 overflow-x-scroll">
-            <span style="white-space: pre-line" class="text-sm text-gray-500 dark:text-light">{{
+            <span class="text-sm text-gray-500 dark:text-light">{{
               DataExampleText
             }}</span>
           </div>
 
           <!-- Data Point Example -->
-          <div class="relative p-4 overflow-x-scroll">
-            <table class="table-auto">
-              <thead>
-                <tr>
-                  <th v-for="example in DataExample" :key="example"
-                  class="px-4 py-2 text-emerald-600">{{example.column_name}}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td v-for="example in DataExample" :key="example"
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    {{example.column_data}}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="flex object-center">
+          <img class="object-center"
+            src="../../../example_training_data/9-mnist-example.png"
+            alt=""
+          ><img>
           </div>
         </div>
       </div>
     </a>
 
-    <!-- Upload File Card-->
-    <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
+    <!-- Upload File Card -->
+    <div class="p-4 grid grid-cols-1 space-y-2 lg:gap-2">
       <div class="container mx-width lg h-full">
         <!-- Card header -->
         <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
@@ -130,127 +117,15 @@
             </div>
           </div>
         </div>
+
+        <!-- Upload Images-->
         <div class="relative pb-4">
-          <article
-            aria-label="File Upload Modal"
-            class="relative h-full flex flex-col p-4 bg-white rounded-lg dark:bg-darker"
-            ondrop="dropHandler(event);"
-            ondragover="dragOverHandler(event);"
-            ondragleave="dragLeaveHandler(event);"
-            ondragenter="dragEnterHandler(event);"
-          >
-            <!-- scroll area -->
-            <section
-              class="h-full overflow-auto p-8 w-full h-full flex flex-col"
-            >
-              <header
-                class="border-dashed border-2 border-gray-500 dark:border-primary flex flex-col justify-center items-center"
-              >
-                <p
-                  class="mb-3 p-4 text-lg font-semibold dark:text-lightflex flex-wrap justify-center"
-                >
-                  <span>Drag and drop your</span>&nbsp;<span
-                    >files anywhere or</span
-                  >
-                </p>
-                <input id="hidden-input" type="file" multiple class="hidden" />
-                <div class="p-4">
-                  <button
-                    id="button"
-                    class="mt-2 p-2 rounded-sm text-white transition-colors duration-200 bg-primary hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
-                  >
-                    Upload files
-                  </button>
-                </div>
-              </header>
-
-              <div class="pt-4">
-                <h1
-                  class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex"
-                >
-                  Files Selected
-                </h1>
-
-                <ul id="gallery" class="flex flex-1 flex-wrap -m-1">
-                  <li
-                    id="empty"
-                    class="h-full w-full text-center flex flex-col items-center justify-center items-center"
-                  >
-                    <img
-                      class="mx-auto w-32"
-                      src="https://user-images.githubusercontent.com/507615/54591670-ac0a0180-4a65-11e9-846c-e55ffce0fe7b.png"
-                      alt="no data"
-                    />
-                    <span class="text-small text-gray-500 dark:text-lightflex"
-                      >No files selected</span
-                    >
-                  </li>
-                </ul>
-              </div>
-            </section>
-          </article>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modification of Header Card -->
-    <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
-      <!-- Card header -->
-      <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
-        <div
-          class="flex items-center justify-between p-4 border-b dark:border-primary"
-        >
-          <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-            Map My Data
-          </h4>
-          <div class="flex items-center">
-            <span aria-hidden="true">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                class="bi bi-bezier2 w-7 h-7"
-                viewBox="0 0 16 16"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M1 2.5A1.5 1.5 0 0 1 2.5 1h1A1.5 1.5 0 0 1 5 2.5h4.134a1 1 0 1 1 0 1h-2.01c.18.18.34.381.484.605.638.992.892 2.354.892 3.895 0 1.993.257 3.092.713 3.7.356.476.895.721 1.787.784A1.5 1.5 0 0 1 12.5 11h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5H6.866a1 1 0 1 1 0-1h1.711a2.839 2.839 0 0 1-.165-.2C7.743 11.407 7.5 10.007 7.5 8c0-1.46-.246-2.597-.733-3.355-.39-.605-.952-1-1.767-1.112A1.5 1.5 0 0 1 3.5 5h-1A1.5 1.5 0 0 1 1 3.5v-1zM2.5 2a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm10 10a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1z"
-                />
-              </svg>
-            </span>
-          </div>
-        </div>
-
-        <!-- Display all the possible headers -->
-        <div id="mapHeader">
-          <ul class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-4">
-            <li
-              class="border-gray-400"
-              v-for="header in headers"
-              :key="header.id"
-            >
-              <div
-                class="select-none p-2 transition duration-500 ease-in-out transform hover:-translate-y-2 rounded-2xl border-2 p-6 hover:shadow-2xl border-primary-dark"
-              >
-                <div class="grid grid-cols-1 grid-rows-2 items-center">
-                  <div class="pl-1">
-                    <div class="font-medium">
-                      <div class="flex flex-row justify-start">
-                        {{ header.id }} &rarr; {{ header.userHeader }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="mb-3 pt-0">
-                    <input
-                      type="text"
-                      v-model="header.userHeader"
-                      placeholder="Enter your header"
-                      class="px-3 py-3 placeholder-gray-400 text-gray-700 relative bg-white bg-white rounded text-sm shadow outline-none focus:outline-none focus:shadow-outline w-full"
-                    />
-                  </div>
-                </div>
-              </div>
-            </li>
-          </ul>
+          <ImageUploadFrame
+            v-for="label in task_labels"
+            v-bind:key="label"
+            :label="String(label)"
+            :inputchangefunc="inputChange"
+          />
         </div>
       </div>
     </div>
@@ -330,6 +205,68 @@
         </div>
       </div>
     </div>
+
+    <!-- Save the model button -->
+    <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
+      <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
+        <div
+          class="flex items-center justify-between p-4 border-b dark:border-primary"
+        >
+          <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
+            Save the model
+          </h4>
+          <div class="flex items-center">
+            <span aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="bi bi-card-checklist w-7 h-7"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1h-2z"
+                />
+                <path
+                  fill-rule="evenodd"
+                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"
+                />
+              </svg>
+            </span>
+          </div>
+        </div>
+        <!-- Descrition -->
+        <div class="relative p-4 overflow-x-scroll">
+          <span
+            style="white-space: pre-line"
+            class="text-sm text-gray-500 dark:text-light"
+            >If you are satisifed with the performance of the model, don't
+            forget to save the model by clicking on the button below. The next
+            time you will load the application, you will be able to use your
+            saved model.
+          </span>
+        </div>
+        <div class="flex items-center justify-center p-4">
+          <button
+            id="train-model-button"
+            v-on:click="save_model()"
+            class="text-lg border-2 border-transparent bg-primary ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+          >
+            Save My model
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Testing button -->
+    <button
+      id="test-model-button"
+      v-on:click="goToTesting()"
+      type="button"
+      class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+    >
+      Go Test
+    </button>
 
     <!-- Upload File Data Template -->
     <template id="file-template">
@@ -450,15 +387,20 @@ import {
   display_informations,
   training_information,
   data_preprocessing,
-} from "./titanic_script"; // <-- Change import here 
+} from "./MNIST_script";
 
-import * as Chart from "chart.js";
-import { training, training_distributed } from "../../helpers/training-script";
 import * as tf from "@tensorflow/tfjs";
 
-
+import * as Chart from "chart.js";
+import {
+  training,
+  training_distributed,
+} from "../../helpers/training-script.js";
 import { onEpochEnd_common } from "../../helpers/helpers";
-import {getModel, setModel} from "../../helpers/indexedDB_script"
+import { create_model } from "./MNIST_script";
+import { store_model } from "../../helpers/indexedDB_script";
+
+import ImageUploadFrame from "../ImageUploadFrame";
 
 // Variables used for training
 var model = null;
@@ -476,18 +418,20 @@ var model_compile_data = {
 var model_train_data = {
   epochs: 5,
 };
+//TODO
+const batchSize = 320;
 
+const validationSplit = 0.15;
+
+const trainEpochs = 10;
 export default {
   data() {
     return {
-
       // Variables for general informations
       model_name: "",
       DataFormatInfoText: "",
       DataExampleText: "",
       DataExample: null,
-      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      headers: [],
 
       // Variabldes for feed-backs when training
       valAccuracyChart: null,
@@ -500,86 +444,79 @@ export default {
       epoch: 0,
       username: null,
       threshold: null,
+      title: "mnist-training",
 
+      // Different Task Labels
+      task_labels: [],
+
+      model: null,
+      FILES: {},
     };
   },
+  components: {
+    ImageUploadFrame,
+  },
   methods: {
-    create_model() {
-      let new_model = tf.sequential();
-      new_model.add(
-        tf.layers.dense({
-          inputShape: [8],
-          units: 124,
-          activation: "relu",
-          kernelInitializer: "leCunNormal",
-        })
+    save_model() {
+      store_model(model, "saved_".concat(training_information.model_id));
+      this.$toast.success(
+        "The ".concat(training_information.model_id).concat(` has been saved.`)
       );
-      new_model.add(tf.layers.dense({ units: 64, activation: "relu" }));
-      new_model.add(tf.layers.dense({ units: 32, activation: "relu" }));
-      new_model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
-      new_model.summary();
-      return new_model;
+      setTimeout(this.$toast.clear, 30000);
     },
-
     async join_training(distributed) {
-      const filesElement = document.getElementById("hidden-input");
+      const filesElement = this.FILES;
 
       // Check that the user indeed gave a file
-      if (filesElement.files.length == 0) {
+      if (this.FILES.length == 0) {
         alert("Training aborted. No uploaded file given as input.");
       } else {
-        // Assume we only read the first file
-        let file = filesElement.files[0];
+        // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
+        var processed_data = await data_preprocessing(this.FILES);
+        var accepted = processed_data.accepted;
+        var Xtrain = processed_data.Xtrain;
+        var ytrain = processed_data.ytrain;
+        if (accepted) {
+          // Notification Start Training
+          this.$toast.success(
+            `Thank you for your contribution. Training has started`
+          );
+          setTimeout(this.$toast.clear, 30000);
 
-        let reader = new FileReader();
-        reader.onload = async (e) => {
-          // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-          var processed_data = await data_preprocessing(e, this.headers);
-          var accepted = processed_data.accepted;
-          var Xtrain = processed_data.Xtrain;
-          var ytrain = processed_data.ytrain;
-          if (accepted) {
-            // Notification Start Training
-            this.$toast.success(
-              `Thank you for your contribution. Training has started`
+          if (!distributed) {
+            console.log("here");
+            await training(
+              model,
+              this.model_name,
+              Xtrain,
+              ytrain,
+              32,
+              0.2,
+              30,
+              this.updateUI
             );
-            setTimeout(this.$toast.clear, 30000);
-
-            if (!distributed) {
-              console.log("here");
-              await training(
-                model,
-                this.model_name,
-                Xtrain,
-                ytrain,
-                32,
-                0.2,
-                30,
-                this.updateUI
-              );
-            } else {
-              await training_distributed(
-                model,
-                this.model_name,
-                Xtrain,
-                ytrain,
-                model_train_data,
-                32,
-                0.2,
-                model_compile_data,
-                this.onEpochBegin,
-                this.onEpochEnd
-              );
-            }
-            // Notification End Training
-            this.$toast.success(
-              this.model_name.concat(` has finished training!`)
+          } else {
+            await training_distributed(
+              model,
+              this.model_name,
+              Xtrain,
+              ytrain,
+              model_train_data,
+              32,
+              0.2,
+              model_compile_data,
+              this.onEpochBegin,
+              this.onEpochEnd
             );
-            setTimeout(this.$toast.clear, 30000);
           }
-        };
-        reader.readAsText(file);
+          // Notification End Training
+          this.$toast.success(
+            this.model_name.concat(` has finished training!`)
+          );
+          setTimeout(this.$toast.clear, 30000);
+        }
       }
+      this.FILES = {};
     },
 
     /**
@@ -588,7 +525,7 @@ export default {
      * #######################################
      */
 
-     /**
+    /**
      * Method used to update the two graphs to give user informations about the training process
      * @param {Number} epoch The epoch number of the current training
      * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
@@ -641,7 +578,7 @@ export default {
     },
 
     /**
-     * Method called at the end of each epoch 
+     * Method called at the end of each epoch
      * Configured to handle communication with peers
      * @param {Number} epoch The epoch number of the current training
      * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
@@ -660,6 +597,27 @@ export default {
       );
       // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
     },
+
+    addFile: function (file, label) {
+      const isImage = file.type.match("image.*"),
+        objectURL = URL.createObjectURL(file);
+      this.FILES[objectURL] = label;
+    },
+
+    inputChange: function (e, label) {
+      let counter = 0;
+      for (const file of e.target.files) {
+        this.addFile(file, label);
+        counter += 1;
+      }
+      console.log(counter + " Files Added");
+    },
+
+    goToTesting() {
+      this.$router.push({
+        path: "/" + training_information.model_id + "/testing",
+      });
+    },
   },
   async mounted() {
     // This method is called when the component is created
@@ -673,148 +631,24 @@ export default {
        * #######################################
        */
 
-      // Initialize variables used by the components 
+      // Initialize variables used by the components
       this.model_name = training_information.model_id;
       this.DataFormatInfoText = display_informations.dataFormatInformation;
       this.DataExampleText = display_informations.dataExampleText;
-      display_informations.headers.forEach(item => {
-          this.headers.push({ id: item, userHeader: item})
-      })
-      this.DataExample = display_informations.dataExample
+      this.DataExample = display_informations.dataExample;
+      this.task_labels = training_information.LABEL_LIST;
 
-      // Create the model 
-      model = this.create_model();
-      const save_path = "localstorage://".concat(this.model_name);
-      const saveResults = await model.save(save_path);
-      const save_path_db = "indexeddb://".concat(this.model_name);
-      await model.save(save_path_db);
+      // Load the working model
+      const saved_model_path = "indexeddb://working_".concat(
+        training_information.model_id
+      );
+      model = await tf.loadLayersModel(saved_model_path);
+      model.summary();
 
-      
-      getModel("titanic-model").then((value) => {
-        console.log(value)
-        let model_info = value.model_info
-        let model_data = value.model_data
-        let toyName = "testModel"
-        model_data.modelPath = toyName
-        model_info.modelPath = toyName
-        setModel(toyName, model_info, model_data).then(async () => {
-          model = await tf.loadLayersModel('indexeddb://'.concat(toyName))
-        })
-      })
-      
-
-
-
-      
+      //const save_path = "localstorage://".concat(this.model_name); // TBD
+      //const saveResults = await model.save(save_path); // TBD
 
       // TO DO: connect peerJS server
-
-      /**
-       * #######################################
-       * HANDLE DATA UPLOADING
-       * #######################################
-       */
-      const fileTempl = document.getElementById("file-template"),
-        imageTempl = document.getElementById("image-template"),
-        empty = document.getElementById("empty");
-
-      // use to store pre selected files
-      let FILES = {};
-
-      // check if file is of type image and prepend the initialied
-      // template to the target element
-      function addFile(target, file) {
-        const isImage = file.type.match("image.*"),
-          objectURL = URL.createObjectURL(file);
-
-        const clone = isImage
-          ? imageTempl.cloneNode(true)
-          : fileTempl.cloneNode(true);
-
-        clone.querySelector("h1").textContent = file.name;
-        clone.querySelector("li").id = objectURL;
-        clone.querySelector(".delete").dataset.target = objectURL;
-        clone.querySelector(".size").textContent =
-          file.size > 1024
-            ? file.size > 1048576
-              ? Math.round(file.size / 1048576) + "mb"
-              : Math.round(file.size / 1024) + "kb"
-            : file.size + "b";
-
-        isImage &&
-          Object.assign(clone.querySelector("img"), {
-            src: objectURL,
-            alt: file.name,
-          });
-
-        empty.classList.add("hidden");
-        target.prepend(clone.firstElementChild);
-
-        FILES[objectURL] = file;
-      }
-
-      const gallery = document.getElementById("gallery"),
-        overlay = document.getElementById("overlay");
-
-      // click the hidden input of type file if the visible button is clicked
-      // and capture the selected files
-
-      const hidden = document.getElementById("hidden-input");
-      document.getElementById("button").onclick = () => hidden.click();
-      hidden.onchange = (e) => {
-        for (const file of e.target.files) {
-          addFile(gallery, file);
-        }
-      };
-
-      // use to check if a file is being dragged
-      const hasFiles = ({ dataTransfer: { types = [] } }) =>
-        types.indexOf("Files") > -1;
-
-      // use to drag dragenter and dragleave events.
-      // this is to know if the outermost parent is dragged over
-      // without issues due to drag events on its children
-      let counter = 0;
-
-      // reset counter and append file to gallery when file is dropped
-      function dropHandler(ev) {
-        ev.preventDefault();
-        for (const file of ev.dataTransfer.files) {
-          addFile(gallery, file);
-          overlay.classList.remove("draggedover");
-          counter = 0;
-        }
-      }
-
-      // only react to actual files being dragged
-      function dragEnterHandler(e) {
-        e.preventDefault();
-        if (!hasFiles(e)) {
-          return;
-        }
-        ++counter && overlay.classList.add("draggedover");
-      }
-
-      function dragLeaveHandler(e) {
-        1 > --counter && overlay.classList.remove("draggedover");
-      }
-
-      function dragOverHandler(e) {
-        if (hasFiles(e)) {
-          e.preventDefault();
-        }
-      }
-
-      // event delegation to caputre delete events
-      // fron the waste buckets in the file preview cards
-      gallery.onclick = ({ target }) => {
-        if (target.classList.contains("delete")) {
-          const ou = target.dataset.target;
-          document.getElementById(ou).remove(ou);
-          gallery.children.length === 1 && empty.classList.remove("hidden");
-          delete FILES[ou];
-        }
-      };
 
       /**
        * #######################################

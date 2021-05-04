@@ -33,9 +33,9 @@
           </div>
           <!-- Descrition -->
           <div class="relative p-4 overflow-x-scroll">
-            <span style="white-space: pre-line" class="text-sm text-gray-500 dark:text-light">{{
-              DataFormatInfoText
-            }}</span>
+            <span class="text-sm text-gray-500 dark:text-light"
+              >{{DataFormatInfoText}}</span
+            >
           </div>
         </div>
       </div>
@@ -69,9 +69,9 @@
           </div>
 
           <div class="relative p-4 overflow-x-scroll">
-            <span style="white-space: pre-line" class="text-sm text-gray-500 dark:text-light">{{
-              DataExampleText
-            }}</span>
+            <span class="text-sm text-gray-500 dark:text-light"
+              >{{DataExampleText}}</span
+            >
           </div>
 
           <!-- Data Point Example -->
@@ -79,16 +79,62 @@
             <table class="table-auto">
               <thead>
                 <tr>
-                  <th v-for="example in DataExample" :key="example"
-                  class="px-4 py-2 text-emerald-600">{{example.column_name}}</th>
+                  <th class="px-4 py-2 text-emerald-600">Title</th>
+                  <th class="px-4 py-2 text-emerald-600">Author</th>
+                  <th class="px-4 py-2 text-emerald-600">Views</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td v-for="example in DataExample" :key="example"
+                  <td
                     class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
                   >
-                    {{example.column_data}}
+                    Intro to CSS
+                  </td>
+                  <td
+                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
+                  >
+                    Adam
+                  </td>
+                  <td
+                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
+                  >
+                    858
+                  </td>
+                </tr>
+                <tr class="bg-emerald-200">
+                  <td
+                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
+                  >
+                    A Long and Winding Tour of the History of UI Frameworks and
+                    Tools and the Impact on Design
+                  </td>
+                  <td
+                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
+                  >
+                    Adam
+                  </td>
+                  <td
+                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
+                  >
+                    112
+                  </td>
+                </tr>
+                <tr>
+                  <td
+                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
+                  >
+                    Intro to JavaScript
+                  </td>
+                  <td
+                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
+                  >
+                    Chris
+                  </td>
+                  <td
+                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
+                  >
+                    1,280
                   </td>
                 </tr>
               </tbody>
@@ -258,18 +304,11 @@
     <!-- Train Button -->
     <div class="flex items-center justify-center p-4">
       <button
-        v-on:click="join_training(false)"
+        v-on:click="join_training()"
         type="button"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
       >
-        Train Alone
-      </button>
-      <button
-        v-on:click="join_training(true)"
-        type="button"
-        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
-      >
-        Train Distributed
+        Train
       </button>
     </div>
 
@@ -446,64 +485,174 @@
 
 
 <script>
-import {
-  display_informations,
-  training_information,
-  data_preprocessing,
-} from "./titanic_script"; // <-- Change import here 
-
 import * as Chart from "chart.js";
-import { training, training_distributed } from "../../helpers/training-script";
+import * as d3 from "d3";
+import training from "../../helpers/training-script"
 import * as tf from "@tensorflow/tfjs";
 
 
-import { onEpochEnd_common } from "../../helpers/helpers";
-import {getModel, setModel} from "../../helpers/indexedDB_script"
-
-// Variables used for training
 var model = null;
-var peerjs = null;
-var recv_buffer = {
-  train_info: {
-    epochs: 5,
-  },
-};
-var model_compile_data = {
-  optimizer: "rmsprop",
-  loss: "binaryCrossentropy",
-  metrics: ["accuracy"],
-};
-var model_train_data = {
-  epochs: 5,
-};
-
 export default {
   data() {
     return {
+      model_name: "titanic-model",
+      DataFormatInfoText: "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
+      DataExampleText: "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
+      
+      // Headers related to training task
+      headers: [
+        { id: "PassengerId", userHeader: "PassengerId" },
+        { id: "Survived", userHeader: "Survived" },
+        { id: "Name", userHeader: "Name" },
+        { id: "Sex", userHeader: "Sex" },
+        { id: "Age", userHeader: "Age" },
+        { id: "SibSp", userHeader: "SibSp" },
+        { id: "Parch", userHeader: "Parch" },
+        { id: "Ticket", userHeader: "Ticket" },
+        { id: "Fare", userHeader: "Cabin" },
+        { id: "Cabin", userHeader: "Cabin" },
+        { id: "Embarked", userHeader: "Embarked" },
+        { id: "Pclass", userHeader: "Pclass" },
+      ],
 
-      // Variables for general informations
-      model_name: "",
-      DataFormatInfoText: "",
-      DataExampleText: "",
-      DataExample: null,
-      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      headers: [],
-
-      // Variabldes for feed-backs when training
+      // Feed Back Training Components
       valAccuracyChart: null,
       accuracyChart: null,
       val_accuracy: null,
       accuracy: null,
-
-      // Variables for communications
-      receivers: [],
-      epoch: 0,
-      username: null,
-      threshold: null,
-
+      
     };
   },
   methods: {
+
+    /**
+     * Function that pre-processes the data uploaded by the user
+     */
+    async data_preprocessing() {
+      const filesElement = document.getElementById("hidden-input");
+
+      // Check that the user indeed gave a file 
+      if (filesElement.files.length == 0) {
+        alert(
+              "Training aborted. No uploaded file given as input."
+            );
+      } else {
+        // Assume we only read the first file
+        let file = filesElement.files[0];
+
+        let reader = new FileReader();
+        reader.onload = async (e) => {
+          console.log("Start: Processing Uploaded File");
+
+          // Check some basic prop. in the user's uploaded file
+          var content = e.target.result;
+          var userHeader = content.split("\n").shift().split(","); // user's header array
+          
+          var length = userHeader.length;
+          if (length !=0) {
+            // Check last column element, if empty then accept
+            var last_element = JSON.stringify(userHeader[userHeader.length - 1])
+            if (last_element.replace("/\r?\n|\r/", "").replace(/\s/g, "") == "") {
+              length = length - 1;
+            }
+          }
+          var checkHeaderLength = length == 12; // Check that the user's file has the right number of columns
+         
+         if (!checkHeaderLength) {
+            alert(
+              "Training aborted. The uploaded file has the wrong number of columns."
+            );
+          }
+
+          // Check that the user's file and what has been translated as content is correct
+          var checkHeaderContent = true;
+          var wrongRow = "";
+          var numberWrong = 0;
+          var headerCopied = [];
+          if (checkHeaderLength) {
+            this.headers.forEach((row) => {
+              checkHeaderContent =
+                checkHeaderContent && userHeader.includes(row.userHeader);
+              headerCopied.push(row.userHeader);
+              if (!userHeader.includes(row.userHeader)) {
+                wrongRow = wrongRow.concat("\n".concat(row.userHeader));
+                ++numberWrong;
+              }
+            });
+            if (!checkHeaderContent) {
+              if (numberWrong == 1) {
+                alert(
+                  "Training aborted. The following column name was not found in the uploaded file: ".concat(
+                    wrongRow
+                  )
+                );
+              } else {
+                alert(
+                  "Training aborted. The following columns name were not found in the uploaded file: ".concat(
+                    wrongRow
+                  )
+                );
+              }
+            }
+          }
+
+          var startTraining = checkHeaderLength && checkHeaderContent;
+          // If user's file respects our format, parse it and start training
+          if (startTraining) {
+            console.log("User File Validated. Start parsing.");
+            console.log(headerCopied);
+            let Xcsv = d3.csvParse(
+              e.target.result,
+              function (d) {
+                return [
+                  +d[headerCopied[0]], // PassengerId
+                  +d[headerCopied[1]], // Survived
+                  d[headerCopied[3]] == "male" ? 1 : 0, // Sex
+                  +d[headerCopied[4]], // Age
+                  +d[headerCopied[5]], // SibSp
+                  +d[headerCopied[6]], // Parch
+                  +d[headerCopied[8]], // Fare
+                  +d[headerCopied[11]], // Pclass
+                ];
+              },
+              function (error, rows) {
+                console.log(rows);
+              }
+            );
+
+            let ycsv = d3.csvParse(
+              e.target.result,
+              function (d) {
+                return +d[headerCopied[1]];
+              },
+              function (error, rows) {
+                console.log(rows);
+              }
+            );
+            
+            let Xtrain = tf.tensor2d(Xcsv);
+            let ytrain = tf.tensor1d(ycsv);
+            console.log(Xtrain.id)
+
+            // Notification Start Training
+            this.$toast.success(`Thank you for your contribution. Training has started`);
+            setTimeout(this.$toast.clear, 30000)
+
+            await training(model, this.model_name, Xtrain, ytrain, 32, 0.2, 30, this.updateUI)
+            
+            // Notification End Training
+            this.$toast.success(`Titanic model has finished training!`);
+            setTimeout(this.$toast.clear, 30000)
+
+          } else {
+            console.log("Cannot Start training");
+          }
+        };
+
+        reader.readAsText(file);
+      }
+    },
+
     create_model() {
       let new_model = tf.sequential();
       new_model.add(
@@ -521,82 +670,13 @@ export default {
       return new_model;
     },
 
-    async join_training(distributed) {
-      const filesElement = document.getElementById("hidden-input");
-
-      // Check that the user indeed gave a file
-      if (filesElement.files.length == 0) {
-        alert("Training aborted. No uploaded file given as input.");
-      } else {
-        // Assume we only read the first file
-        let file = filesElement.files[0];
-
-        let reader = new FileReader();
-        reader.onload = async (e) => {
-          // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-          var processed_data = await data_preprocessing(e, this.headers);
-          var accepted = processed_data.accepted;
-          var Xtrain = processed_data.Xtrain;
-          var ytrain = processed_data.ytrain;
-          if (accepted) {
-            // Notification Start Training
-            this.$toast.success(
-              `Thank you for your contribution. Training has started`
-            );
-            setTimeout(this.$toast.clear, 30000);
-
-            if (!distributed) {
-              console.log("here");
-              await training(
-                model,
-                this.model_name,
-                Xtrain,
-                ytrain,
-                32,
-                0.2,
-                30,
-                this.updateUI
-              );
-            } else {
-              await training_distributed(
-                model,
-                this.model_name,
-                Xtrain,
-                ytrain,
-                model_train_data,
-                32,
-                0.2,
-                model_compile_data,
-                this.onEpochBegin,
-                this.onEpochEnd
-              );
-            }
-            // Notification End Training
-            this.$toast.success(
-              this.model_name.concat(` has finished training!`)
-            );
-            setTimeout(this.$toast.clear, 30000);
-          }
-        };
-        reader.readAsText(file);
-      }
+    async join_training() {
+     await this.data_preprocessing(); 
     },
 
-    /**
-     * #######################################
-     * METHODS FOR UPDATING GRAPHS ON THE UI
-     * #######################################
-     */
-
-     /**
-     * Method used to update the two graphs to give user informations about the training process
-     * @param {Number} epoch The epoch number of the current training
-     * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
-     * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
-     */
     updateUI(epoch, _accuracy, validationAccuracy) {
-      this.updateAccuracy(epoch, _accuracy);
-      this.updateValidationAccuracy(epoch, validationAccuracy);
+      this.updateAccuracy(epoch, _accuracy)
+      this.updateValidationAccuracy(epoch, validationAccuracy)
     },
 
     /**
@@ -626,92 +706,26 @@ export default {
       await this.valAccuracyChart.update();
       this.val_accuracy.innerText = accuracy;
     },
-
-    /**
-     * #######################################
-     * METHODS FOR COMMUNICATION
-     * #######################################
-     */
-
-    /**
-     * Method called at the begining of each training epoch
-     */
-    onEpochBegin() {
-      console.log("EPOCH: ", ++this.epoch);
-    },
-
-    /**
-     * Method called at the end of each epoch 
-     * Configured to handle communication with peers
-     * @param {Number} epoch The epoch number of the current training
-     * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
-     * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
-     */
-    async onEpochEnd(epoch, _accuracy, validationAccuracy) {
-      this.updateUI(epoch, _accuracy, validationAccuracy);
-      await onEpochEnd_common(
-        model,
-        this.epoch,
-        this.receivers,
-        recv_buffer,
-        this.username,
-        this.threshold,
-        peerjs
-      );
-      // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
-    },
   },
   async mounted() {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // Code that will run only after the
-      // entire view has been rendered
+      // entire component has been rendered
 
       /**
        * #######################################
-       * LOAD INFORMATION ABOUT THE TASK
+       * CODE TO HANDLE CREATION OF THE MODEL
        * #######################################
        */
 
-      // Initialize variables used by the components 
-      this.model_name = training_information.model_id;
-      this.DataFormatInfoText = display_informations.dataFormatInformation;
-      this.DataExampleText = display_informations.dataExampleText;
-      display_informations.headers.forEach(item => {
-          this.headers.push({ id: item, userHeader: item})
-      })
-      this.DataExample = display_informations.dataExample
-
-      // Create the model 
       model = this.create_model();
       const save_path = "localstorage://".concat(this.model_name);
       const saveResults = await model.save(save_path);
-      const save_path_db = "indexeddb://".concat(this.model_name);
-      await model.save(save_path_db);
-
-      
-      getModel("titanic-model").then((value) => {
-        console.log(value)
-        let model_info = value.model_info
-        let model_data = value.model_data
-        let toyName = "testModel"
-        model_data.modelPath = toyName
-        model_info.modelPath = toyName
-        setModel(toyName, model_info, model_data).then(async () => {
-          model = await tf.loadLayersModel('indexeddb://'.concat(toyName))
-        })
-      })
-      
-
-
-
-      
-
-      // TO DO: connect peerJS server
 
       /**
        * #######################################
-       * HANDLE DATA UPLOADING
+       * CODE TO HANDLE DATA UPLOADING
        * #######################################
        */
       const fileTempl = document.getElementById("file-template"),
@@ -818,7 +832,7 @@ export default {
 
       /**
        * #######################################
-       * HANDLE CREATION OF CHARTS FEEDBACKS
+       * CODE TO HANDLE CREATION OF CHARTS FEEDBACKS
        * #######################################
        */
 
