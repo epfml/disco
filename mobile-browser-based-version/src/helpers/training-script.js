@@ -79,7 +79,7 @@ export async function training_distributed(model, model_name, trainData, labels,
     callbacks: 
     {_onEpochBegin, 
       onEpochEnd: async (epoch, logs) => {
-        _onEpochEnd(epoch + 1, (logs.acc * 100).toFixed(2), (logs.val_acc * 100).toFixed(2))
+        await _onEpochEnd(epoch + 1, (logs.acc * 100).toFixed(2), (logs.val_acc * 100).toFixed(2))
         console.log(`EPOCH (${epoch + 1}): Train Accuracy: ${(
           logs.acc * 100
         ).toFixed(2)},

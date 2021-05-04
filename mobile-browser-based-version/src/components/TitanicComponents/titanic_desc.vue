@@ -132,6 +132,7 @@
 
 import {
   display_informations,
+  training_information,
 } from "./titanic_script"; // <-- Change import here 
 
 export default {
@@ -144,7 +145,8 @@ export default {
   },
   methods: {
       goToTraining() {
-          this.$router.push({ path: "/titanic-model/training" });
+        let path = "/".concat(training_information.model_id).concat('/model-manager')
+        this.$router.push({ path: path });
       }
   },
   mounted() {
