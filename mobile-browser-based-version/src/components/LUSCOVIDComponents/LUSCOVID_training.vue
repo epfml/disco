@@ -436,15 +436,18 @@ export default {
      * TO DO: fetch model from local storage
      * @returns Returns a tf.model for training
      */
-    get_model() {
+    async get_model() {
       if(!this.model){
-        this.model = this.create_model()
+        this.model = await this.create_model()
       }
       return this.model
     },
 
-    create_model(){
-      return this.createDeepChestModel()
+    async create_model(){
+      const model1 = await tf.loadLayersModel('./src/components/LUSCOVIDComponents/my_model_tfjs/model.json')
+      const model = await tf.loadLayersModel('file://my_model_tfjs/model.json')
+      return model
+      // return this.createDeepChestModel()
     },
     async join_training(){
       const optimizer = 'rmsprop';
@@ -460,11 +463,7 @@ export default {
       const validationSplit = 0.2;
     
       const trainEpochs = 100
-      /*
-     const batchSize = 12
-     const trainEpochs = 25
-     const validationSplit = 0.2
-*/
+
       await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
       
       // Notification End Training
