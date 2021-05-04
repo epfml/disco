@@ -342,6 +342,59 @@
       </div>
     </div>
 
+    <!-- exchange_messages -->
+    <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
+      <!-- Card header -->
+      <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
+        <div
+          class="flex items-center justify-between p-4 border-b dark:border-primary"
+        >
+          <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
+            Peer Training Console
+          </h4>
+          <div class="flex items-center">
+            <span aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="bi bi-bezier2 w-7 h-7"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M8.646 5.646a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L10.293 8 8.646 6.354a.5.5 0 0 1 0-.708zm-1.292 0a.5.5 0 0 0-.708 0l-2 2a.5.5 0 0 0 0 .708l2 2a.5.5 0 0 0 .708-.708L5.707 8l1.647-1.646a.5.5 0 0 0 0-.708z"
+                />
+                <path
+                  d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"
+                />
+                <path
+                  d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"
+                />
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <div id="mapHeader">
+          <ul class="grid grid-cols-1 p-4">
+            <li
+              class="border-gray-400"
+              v-for="(message,index) in exchange_messages.messages"
+              :key="index"
+            >
+              <div class="relative overflow-x-scroll">
+                <span
+                  style="white-space: pre-line"
+                  class="text-sm text-gray-500 dark:text-light"
+                  >{{ message }}</span
+                >
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
     <!-- Save the model button -->
     <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
       <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
@@ -533,33 +586,28 @@ import {
   load_model,
   handle_data,
   handle_data_end,
-} from "../../helpers/peer"
+} from "../../helpers/peer";
 
- 
+import {MessageConsole} from "../../helpers/message_console"
 
 import Peer from "peerjs";
 // var Peer = require("peerjs")
-
 
 // Variables used for training
 var model = null;
 var peerjs = null;
 var peer = null;
+var model_train_data = {
+  epochs: training_information.epoch,
+};
 var recv_buffer = {
   train_info: {
-    epochs: 5,
+    epochs: training_information.epoch,
   },
 };
-var model_compile_data = {
-  optimizer: "rmsprop",
-  loss: "binaryCrossentropy",
-  metrics: ["accuracy"],
-};
-var model_train_data = {
-  epochs: 15,
-};
+var model_compile_data = training_information.model_compile_data;
 
-var receivers = []
+var receivers = [];
 
 export default {
   data() {
@@ -577,6 +625,7 @@ export default {
       accuracyChart: null,
       val_accuracy: null,
       accuracy: null,
+      exchange_messages: new MessageConsole(10),
 
       // Variables for communications
       epoch: 0,
@@ -630,7 +679,7 @@ export default {
                 this.updateUI
               );
             } else {
-              await this.updateReceivers()
+              await this.updateReceivers();
               await training_distributed(
                 model,
                 this.model_name,
@@ -641,7 +690,9 @@ export default {
                 0.2,
                 model_compile_data,
                 this.onEpochBegin,
-                this.onEpochEnd
+                this.onEpochEnd,
+                peerjs,
+                recv_buffer
               );
             }
             // Notification End Training
@@ -724,12 +775,13 @@ export default {
       this.updateUI(epoch, _accuracy, validationAccuracy);
       await onEpochEnd_common(
         model,
-        this.epoch,
+        epoch,
         receivers,
         recv_buffer,
         this.peerjs_id,
         this.threshold,
         peerjs, 
+        this.exchange_messages,
       );
       // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
     },
@@ -737,10 +789,16 @@ export default {
     /**
      * Updates the list of receivers currently connected to the server
      */
-    async updateReceivers () {
-      let query_ids = await fetch('http://localhost:9000/deai/peerjs/peers')
-        .then((response) => response.text());
-      receivers = JSON.parse(query_ids);
+    async updateReceivers() {
+      let query_ids = await fetch(
+        "http://localhost:9000/deai/peerjs/peers"
+      ).then((response) => response.text());
+
+      let all_ids = JSON.parse(query_ids);
+      let id = this.peerjs_id;
+      receivers = all_ids.filter(function (value, index, arr) {
+        return value != id;
+      });
     },
   },
   async mounted() {
@@ -763,6 +821,8 @@ export default {
         this.headers.push({ id: item, userHeader: item });
       });
       this.DataExample = display_informations.dataExample;
+      
+      
 
       // Create the model
       const saved_model_path = "indexeddb://working_".concat(
@@ -770,17 +830,17 @@ export default {
       );
       model = await tf.loadLayersModel(saved_model_path);
       model.summary();
-      
-      console.log("Connecting to PeerServer")
-      this.peerjs_id = await makeid(10)
+
+      console.log("Connecting to PeerServer");
+      this.peerjs_id = await makeid(10);
       peer = new Peer(this.peerjs_id, {
-        host: 'localhost',
+        host: "localhost",
         port: 9000,
-        path: '/deai'
+        path: "/deai",
       });
       peerjs = await new PeerJS(peer, handle_data, recv_buffer);
-      await this.updateReceivers()
-      console.log("Peers connected: " + receivers)
+      await this.updateReceivers();
+      console.log("Peers connected: " + receivers);
 
       /**
        * #######################################

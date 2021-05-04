@@ -189,11 +189,12 @@ export async function handle_data_end(data, buffer) {
 
     // convert the peerjs ArrayBuffer back into Uint8Array
     var payload = msgpack.decode(new Uint8Array(data.payload))
+    console.log(payload)
     switch(data.cmd_code) {
         case CMD_CODES.WEIGHT_REQUEST:
             // eslint-disable-next-line no-case-declarations
             const receiver = payload.name
-            const epoch_weights = {epoch : buffer.epoch, weights : buffer.weights}
+            const epoch_weights = {epoch : buffer.last_update.epoch, weights : buffer.last_update.weights}
             console.log("Sending weights to: ", receiver)
             await send_data(epoch_weights, CMD_CODES.AVG_WEIGHTS, buffer.peerjs, receiver)
             break

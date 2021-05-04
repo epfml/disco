@@ -4,6 +4,7 @@ import {MnistData} from "./mnist_data"
 import {
     send_data, 
     handle_data_end,
+    handle_data,
     CMD_CODES,
 
 } from './peer'
@@ -204,16 +205,18 @@ export async function onEpochEnd_Sync(model, epoch, receivers, recv_buffer, peer
  * greater than the provided threshold
 */
 // added peerjs in argument 
-export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold, peerjs) {    
+export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold, peerjs, exchange_messages) {    
     const serialized_weights = await serializeWeights(model)
     var epoch_weights = {epoch : epoch, weights : serialized_weights}
     // request weights and send to all who requested
     for (var i in receivers) {
         // Sending  weight request
         await send_data({name : username}, CMD_CODES.WEIGHT_REQUEST, peerjs, receivers[i])
+        exchange_messages.addMessage("Sending weight request to: " + receivers[i])
 
         if (recv_buffer.weight_requests !== undefined && recv_buffer.weight_requests.has(receivers[i])) {
             console.log("Sending weights to: ", receivers[i])
+            exchange_messages.addMessage("Sending weights to: " + receivers[i])
             await send_data(epoch_weights, CMD_CODES.AVG_WEIGHTS, peerjs, receivers[i])
         }
     }
@@ -224,6 +227,7 @@ export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, us
     // wait to receive weights
     if (recv_buffer.avg_weights === undefined) {
       console.log("Waiting to receive weights...")
+      exchange_messages.addMessage("Waiting to receive weights...")
       await data_received_break(recv_buffer, "avg_weights", 100) // timeout to avoid deadlock (10s)
     }
     
@@ -232,6 +236,7 @@ export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, us
         await check_array_len(Object.values(recv_buffer.avg_weights).flat(1), threshold)
         .then(() => {
             console.log("Averaging weights")
+            exchange_messages.addMessage("Averaging weights")
             Object.values(recv_buffer.avg_weights).flat(1).forEach(
                 (w) => { averageWeightsIntoModel(w, model) }
             )
@@ -240,9 +245,17 @@ export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, us
     }
 
     // change data handler for future requests if this is the last epoch
-    if (epoch == recv_buffer.train_info.epochs) {
+
+    if (epoch == recv_buffer.train_info.epochs) { // Modify the end buffer (same buffer, but with one additional components: last_weights)
+        recv_buffer.peerjs = peerjs
+        recv_buffer.last_update = epoch_weights
+        peerjs.set_data_handler(handle_data_end, recv_buffer)
+    }
+    /*
+    if (epoch == recv_buffer.train_info.epochs) { // Modify the end buffer (same buffer, but with one additional components: last_weights)
         var end_buffer = epoch_weights
         end_buffer.peerjs = peerjs
         peerjs.set_data_handler(handle_data_end, end_buffer)
-    }
+    }*/
   }
+
