@@ -129,7 +129,7 @@ export function check_array_len(arr, len) {
 }
 
 // generates a random string
-export function makeid(length) {
+export async function makeid(length) {
     var result           = '';
     var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
@@ -205,12 +205,11 @@ export async function onEpochEnd_Sync(model, epoch, receivers, recv_buffer, peer
 */
 // added peerjs in argument 
 export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold, peerjs) {    
-    
     const serialized_weights = await serializeWeights(model)
     var epoch_weights = {epoch : epoch, weights : serialized_weights}
-    
     // request weights and send to all who requested
     for (var i in receivers) {
+        // Sending  weight request
         await send_data({name : username}, CMD_CODES.WEIGHT_REQUEST, peerjs, receivers[i])
 
         if (recv_buffer.weight_requests !== undefined && recv_buffer.weight_requests.has(receivers[i])) {
@@ -222,6 +221,7 @@ export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, us
         recv_buffer.weight_requests.clear()
     }
   
+    // wait to receive weights
     if (recv_buffer.avg_weights === undefined) {
       console.log("Waiting to receive weights...")
       await data_received_break(recv_buffer, "avg_weights", 100) // timeout to avoid deadlock (10s)
@@ -239,7 +239,6 @@ export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, us
         })
     }
 
-    
     // change data handler for future requests if this is the last epoch
     if (epoch == recv_buffer.train_info.epochs) {
         var end_buffer = epoch_weights

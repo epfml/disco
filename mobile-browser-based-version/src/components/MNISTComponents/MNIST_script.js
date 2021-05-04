@@ -58,11 +58,7 @@ export const training_information = {
   * @returns Returns a tf.model or null if there is no model
   */
 export async function get_model_from_storage(){
-    let model = await tf.loadLayersModel('localstorage://'.concat(training_information.model_id));
-    if(model == null){
-        model = await tf.loadLayersModel('indexeddb:://'.concat(training_information.model_id))
-    }
-
+    let model = await tf.loadLayersModel('indexeddb:://working_'.concat(training_information.model_id))
     return model
 }
 

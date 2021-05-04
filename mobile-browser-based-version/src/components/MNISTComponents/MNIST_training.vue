@@ -75,7 +75,12 @@
           </div>
 
           <!-- Data Point Example -->
-          <img src="../../../example_training_data/9-mnist-example.png" alt="">
+          <div class="flex object-center">
+          <img class="object-center"
+            src="../../../example_training_data/9-mnist-example.png"
+            alt=""
+          ><img>
+          </div>
         </div>
       </div>
     </a>
@@ -200,14 +205,69 @@
         </div>
       </div>
     </div>
+
+    <!-- Save the model button -->
+    <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
+      <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
+        <div
+          class="flex items-center justify-between p-4 border-b dark:border-primary"
+        >
+          <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
+            Save the model
+          </h4>
+          <div class="flex items-center">
+            <span aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="bi bi-card-checklist w-7 h-7"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1h-2z"
+                />
+                <path
+                  fill-rule="evenodd"
+                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"
+                />
+              </svg>
+            </span>
+          </div>
+        </div>
+        <!-- Descrition -->
+        <div class="relative p-4 overflow-x-scroll">
+          <span
+            style="white-space: pre-line"
+            class="text-sm text-gray-500 dark:text-light"
+            >If you are satisifed with the performance of the model, don't
+            forget to save the model by clicking on the button below. The next
+            time you will load the application, you will be able to use your
+            saved model.
+          </span>
+        </div>
+        <div class="flex items-center justify-center p-4">
+          <button
+            id="train-model-button"
+            v-on:click="save_model()"
+            class="text-lg border-2 border-transparent bg-primary ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+          >
+            Save My model
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Testing button -->
     <button
-        id="test-model-button"
-        v-on:click="goToTesting()"
-        type="button"
-        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
-      >
-        Go Test
+      id="test-model-button"
+      v-on:click="goToTesting()"
+      type="button"
+      class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+    >
+      Go Test
     </button>
+
     <!-- Upload File Data Template -->
     <template id="file-template">
       <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
@@ -324,23 +384,27 @@
 
 <script>
 import {
-  display_informations, 
-  training_information, 
-  data_preprocessing
-} from "./MNIST_script"
+  display_informations,
+  training_information,
+  data_preprocessing,
+} from "./MNIST_script";
 
 import * as tf from "@tensorflow/tfjs";
 
 import * as Chart from "chart.js";
-import {training, training_distributed} from "../../helpers/training-script.js"
-import {onEpochEnd_common } from "../../helpers/helpers";
-import {create_model} from "./MNIST_script"
+import {
+  training,
+  training_distributed,
+} from "../../helpers/training-script.js";
+import { onEpochEnd_common } from "../../helpers/helpers";
+import { create_model } from "./MNIST_script";
+import { store_model } from "../../helpers/indexedDB_script";
 
-import ImageUploadFrame from '../ImageUploadFrame'
+import ImageUploadFrame from "../ImageUploadFrame";
 
 // Variables used for training
-var model = null
-var peerjs = null
+var model = null;
+var peerjs = null;
 var recv_buffer = {
   train_info: {
     epochs: 5,
@@ -358,8 +422,8 @@ var model_train_data = {
 const batchSize = 320;
 
 const validationSplit = 0.15;
-    
-const trainEpochs = 10
+
+const trainEpochs = 10;
 export default {
   data() {
     return {
@@ -381,18 +445,25 @@ export default {
       username: null,
       threshold: null,
       title: "mnist-training",
-     
+
       // Different Task Labels
       task_labels: [],
-      
+
       model: null,
       FILES: {},
     };
   },
-  components:{
-    ImageUploadFrame
+  components: {
+    ImageUploadFrame,
   },
   methods: {
+    save_model() {
+      store_model(model, "saved_".concat(training_information.model_id));
+      this.$toast.success(
+        "The ".concat(training_information.model_id).concat(` has been saved.`)
+      );
+      setTimeout(this.$toast.clear, 30000);
+    },
     async join_training(distributed) {
       const filesElement = this.FILES;
 
@@ -400,7 +471,6 @@ export default {
       if (this.FILES.length == 0) {
         alert("Training aborted. No uploaded file given as input.");
       } else {
-
         // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
         var processed_data = await data_preprocessing(this.FILES);
         var accepted = processed_data.accepted;
@@ -446,7 +516,7 @@ export default {
           setTimeout(this.$toast.clear, 30000);
         }
       }
-      this.FILES = {}
+      this.FILES = {};
     },
 
     /**
@@ -455,7 +525,7 @@ export default {
      * #######################################
      */
 
-     /**
+    /**
      * Method used to update the two graphs to give user informations about the training process
      * @param {Number} epoch The epoch number of the current training
      * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
@@ -508,7 +578,7 @@ export default {
     },
 
     /**
-     * Method called at the end of each epoch 
+     * Method called at the end of each epoch
      * Configured to handle communication with peers
      * @param {Number} epoch The epoch number of the current training
      * @param {Number} _accuracy The accuracy achieved by the model in the given epoch
@@ -535,16 +605,18 @@ export default {
     },
 
     inputChange: function (e, label) {
-      let counter = 0
+      let counter = 0;
       for (const file of e.target.files) {
         this.addFile(file, label);
-        counter+=1
+        counter += 1;
       }
-      console.log(counter + " Files Added")
+      console.log(counter + " Files Added");
     },
 
     goToTesting() {
-      this.$router.push({ path: "/"+training_information.model_id+"/testing" });
+      this.$router.push({
+        path: "/" + training_information.model_id + "/testing",
+      });
     },
   },
   async mounted() {
@@ -559,17 +631,22 @@ export default {
        * #######################################
        */
 
-      // Initialize variables used by the components 
+      // Initialize variables used by the components
       this.model_name = training_information.model_id;
       this.DataFormatInfoText = display_informations.dataFormatInformation;
       this.DataExampleText = display_informations.dataExampleText;
-      this.DataExample = display_informations.dataExample
-      this.task_labels = training_information.LABEL_LIST
+      this.DataExample = display_informations.dataExample;
+      this.task_labels = training_information.LABEL_LIST;
 
-      // Create the model 
-      model = create_model();
-      const save_path = "localstorage://".concat(this.model_name);
-      const saveResults = await model.save(save_path);
+      // Load the working model
+      const saved_model_path = "indexeddb://working_".concat(
+        training_information.model_id
+      );
+      model = await tf.loadLayersModel(saved_model_path);
+      model.summary();
+
+      //const save_path = "localstorage://".concat(this.model_name); // TBD
+      //const saveResults = await model.save(save_path); // TBD
 
       // TO DO: connect peerJS server
 

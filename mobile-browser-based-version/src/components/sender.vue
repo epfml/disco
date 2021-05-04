@@ -81,6 +81,7 @@ export default {
       
       //await model.save("localstorage://" + name)
       //console.log("model saved")
+      console.log(this.receivers)
       for (var i in this.receivers) {
         
         console.log("Start Sending Model")
