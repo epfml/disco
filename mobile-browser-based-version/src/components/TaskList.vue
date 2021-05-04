@@ -140,7 +140,7 @@ export default {
   },
   methods: {
     goToSelection(task_name) {
-      this.$router.push({ path: "/"+task_name+"/description" });
+      this.$router.push({ path: "/titanic-model/description" });
     },
   },
   mounted() {
