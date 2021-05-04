@@ -1,4 +1,7 @@
 import * as tf from '@tensorflow/tfjs';
+import {
+  handle_data,
+} from './peer'
 
 /**
  * Trains the model given as argument
@@ -58,13 +61,17 @@ export async function training(model, model_name, trainData, labels, _batchSize,
  * @param {Object} model_train_data compiling data (containing number of epoch)
  * @param {*} _onEpochBegin function called at the start of each epoch
  * @param {*} _onEpochEnd function called at the end of each epoch
+ * @param {PeerJS} peerjs peerJS object
+
  */
-export async function training_distributed(model, model_name, trainData, labels, model_train_data, _batchSize, _validationSplit, model_compile_data, _onEpochBegin, _onEpochEnd) {
+export async function training_distributed(model, model_name, trainData, labels, model_train_data, _batchSize, _validationSplit, model_compile_data, _onEpochBegin, _onEpochEnd, peerjs, recv_buffer) {
   // shuffle to avoid having the same thing on all peers
   //var indices = tf.linspace(0, trainData.shape[0]).cast('int32')
   //tf.util.shuffle(indices)
   //const x_train_1d = trainData.gather(indices)
   //const y_train_1d = labels.gather(indices)
+
+  peerjs.set_data_handler(handle_data, recv_buffer)
 
   // compile the model
   model.compile(model_compile_data)

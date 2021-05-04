@@ -8,6 +8,9 @@
     var content = file.target.result;
     var userHeader = content.split("\n").shift().split(","); // user's header array
 
+    // Replace potential special characters added by user's OS system
+    userHeader = userHeader.map(element => {return element.replace("/\r?\n|\r/", "").replace(/\s/g, "")})
+    
     var length = userHeader.length;
     if (length != 0) {
         // Check last column element, if empty then accept
