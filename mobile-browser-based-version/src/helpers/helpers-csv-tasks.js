@@ -7,6 +7,7 @@
  export async function check_data(file, headers) {
     var content = file.target.result;
     var userHeader = content.split("\n").shift().split(","); // user's header array
+    userHeader = userHeader.map(element => {return element.replace("/\r?\n|\r/", "").replace(/\s/g, "")})
 
     var length = userHeader.length;
     if (length != 0) {
