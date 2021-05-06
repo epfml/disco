@@ -617,6 +617,7 @@ export default {
       DataFormatInfoText: "",
       DataExampleText: "",
       DataExample: null,
+      fallback: false ,
       // Headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
 
@@ -679,7 +680,7 @@ export default {
                 this.updateUI
               );
             } else {
-              await this.updateReceivers();
+              await this.initReceivers();
               await training_distributed(
                 model,
                 this.model_name,
@@ -773,21 +774,49 @@ export default {
      */
     async onEpochEnd(epoch, _accuracy, validationAccuracy) {
       this.updateUI(epoch, _accuracy, validationAccuracy);
-      await onEpochEnd_common(
-        model,
-        epoch,
-        receivers,
-        recv_buffer,
-        this.peerjs_id,
-        this.threshold,
-        peerjs, 
-        this.exchange_messages,
-      );
-      // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
+      // At the moment, don't allow for new participants to come in.
+      // Wait for a synchronization scheme (on epoch number).
+      await this.updateReceivers();
+      if (this.receivers.length > 0) {
+          /*if (this.fallback) {
+              this.fallback = false;
+              this.exchange_messages.addMessage("New peer(s) found, training is distributed again.");
+          }*/
+          await onEpochEnd_common(
+            model,
+            epoch,
+            receivers,
+            recv_buffer,
+            this.peerjs_id,
+            this.threshold,
+            peerjs,
+            this.exchange_messages,
+          );
+          // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
+      } else {
+          if (!this.fallback) {
+              this.fallback = true;
+              this.exchange_messages.addMessage("Training fell back to local mode.");
+          }
+      }
     },
 
     /**
-     * Updates the list of receivers currently connected to the server
+     * Updates the list of receivers currently connected to the server.
+     */
+    async initReceivers() {
+      let query_ids = await fetch(
+        "http://localhost:9000/deai/peerjs/peers"
+      ).then((response) => response.text());
+
+      let all_ids = JSON.parse(query_ids);
+      this.receivers = all_ids.filter((id) => id != this.peerjs_id);
+    },
+
+    /**
+     * Updates the list of receivers currently connected to the server.
+     * Only allow for disconnecting nodes. Newcomers need a synchronization
+     * scheme before joining training (TO DO)
      */
     async updateReceivers() {
       let query_ids = await fetch(
@@ -795,11 +824,10 @@ export default {
       ).then((response) => response.text());
 
       let all_ids = JSON.parse(query_ids);
-      let id = this.peerjs_id;
-      receivers = all_ids.filter(function (value, index, arr) {
-        return value != id;
+      this.receivers = all_ids.filter((id) => {
+        id != this.peerjs_id && this.receivers.includes(id)
       });
-    },
+    }
   },
   async mounted() {
     // This method is called when the component is created
@@ -821,8 +849,8 @@ export default {
         this.headers.push({ id: item, userHeader: item });
       });
       this.DataExample = display_informations.dataExample;
-      
-      
+
+
 
       // Create the model
       const saved_model_path = "indexeddb://working_".concat(
@@ -839,8 +867,8 @@ export default {
         path: "/deai",
       });
       peerjs = await new PeerJS(peer, handle_data, recv_buffer);
-      await this.updateReceivers();
-      console.log("Peers connected: " + receivers);
+      await this.initReceivers();
+      console.log("Peers connected: " + this.receivers);
 
       /**
        * #######################################
