@@ -276,6 +276,7 @@
         Train Alone
       </button>
       <button
+        v-if="!fallback"
         v-on:click="join_training(true)"
         type="button"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
@@ -379,7 +380,7 @@
           <ul class="grid grid-cols-1 p-4">
             <li
               class="border-gray-400"
-              v-for="(message,index) in exchange_messages.messages"
+              v-for="(message, index) in exchange_messages.messages"
               :key="index"
             >
               <div class="relative overflow-x-scroll">
@@ -588,7 +589,7 @@ import {
   handle_data_end,
 } from "../../helpers/peer";
 
-import {MessageConsole} from "../../helpers/message_console"
+import { MessageConsole } from "../../helpers/message_console";
 
 import Peer from "peerjs";
 // var Peer = require("peerjs")
@@ -617,7 +618,7 @@ export default {
       DataFormatInfoText: "",
       DataExampleText: "",
       DataExample: null,
-      fallback: false ,
+      fallback: false,
       // Headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
 
@@ -778,26 +779,27 @@ export default {
       // Wait for a synchronization scheme (on epoch number).
       await this.updateReceivers();
       if (this.receivers.length > 0) {
-          /*if (this.fallback) {
+        /*if (this.fallback) {
               this.fallback = false;
               this.exchange_messages.addMessage("New peer(s) found, training is distributed again.");
           }*/
-          await onEpochEnd_common(
-            model,
-            epoch,
-            receivers,
-            recv_buffer,
-            this.peerjs_id,
-            this.threshold,
-            peerjs,
-            this.exchange_messages,
-          );
-          // await onEpochEnd_Sync(model, epoch, receivers, recv_buffer) // synchronized communication scheme
+        await onEpochEnd_common(
+          model,
+          epoch,
+          receivers,
+          recv_buffer,
+          this.peerjs_id,
+          this.threshold,
+          peerjs,
+          this.exchange_messages
+        );
       } else {
-          if (!this.fallback) {
-              this.fallback = true;
-              this.exchange_messages.addMessage("Training fell back to local mode.");
-          }
+        if (!this.fallback) {
+          this.fallback = true;
+          this.exchange_messages.addMessage(
+            "Training fell back to local mode."
+          );
+        }
       }
     },
 
@@ -825,9 +827,13 @@ export default {
 
       let all_ids = JSON.parse(query_ids);
       this.receivers = all_ids.filter((id) => {
-        id != this.peerjs_id && this.receivers.includes(id)
+        id != this.peerjs_id;
       });
-    }
+      /*
+      this.receivers = all_ids.filter((id) => {
+        id != this.peerjs_id && this.receivers.includes(id)
+      });*/
+    },
   },
   async mounted() {
     // This method is called when the component is created
@@ -850,8 +856,6 @@ export default {
       });
       this.DataExample = display_informations.dataExample;
 
-
-
       // Create the model
       const saved_model_path = "indexeddb://working_".concat(
         training_information.model_id
@@ -866,9 +870,26 @@ export default {
         port: 9000,
         path: "/deai",
       });
-      peerjs = await new PeerJS(peer, handle_data, recv_buffer);
-      await this.initReceivers();
-      console.log("Peers connected: " + this.receivers);
+      peer.on("error", (err) => {
+        console.log("Error in connecting");
+        this.fallback = true;
+        this.$toast.error(
+          "Failed to connect to server. Fallback to training alone."
+        );
+        setTimeout(this.$toast.clear, 30000);
+      });
+      peer.on('open', async (id) => {
+        this.fallback = false;
+        peerjs = await new PeerJS(peer, handle_data, recv_buffer);
+        await this.initReceivers();
+        console.log("Peers connected: " + this.receivers);
+        this.$toast.success(
+          "Succesfully connected to server. Distributed training available."
+        );
+        setTimeout(this.$toast.clear, 30000);
+      })
+
+      
 
       /**
        * #######################################
@@ -1136,8 +1157,10 @@ export default {
     });
   },
   async unmounted() {
-    peer.disconnect();
-    peer.destroy();
+    if(peer != null) {
+      peer.disconnect();
+      peer.destroy();
+    }  
   },
 };
 </script>
