@@ -5,13 +5,11 @@ const IMAGE_H = 224;
 const IMAGE_W = 224;
 const LABEL_LIST = ["COVID-Positive","COVID-Negative"]
 const NUM_CLASSES = LABEL_LIST.length;
-const FEATURES = 1000
+const FEATURES = 1024 //TODO: in python I get 1000 as features
 //const SITE_POSITIONS = ["QAID", "QAIG", "QASD", "QASG", "QLD", "QLG", "QPID", "QPIG", "QPSD"]
 const SITE_POSITIONS = ["QAID", "QAIG", "QASD", "QASG", "QLD", "QLG", "QPID", "QPIG", "QPSD", "QPSG", "QPG"]
 // Data is passed under the form of Dictionary{ImageURL: label}
 let net = null
-let aggregation = null
-let MAX_PICTURES_IN_PATIENT = 19
 
 //TODO: improve by averaging from the same site and then average all together??
 
@@ -36,7 +34,7 @@ export default async function data_preprocessing(training_data, batchSize){
         image_uri.push(key)
     });
 
-    const preprocessed_data = getTrainData(image_uri, labels, image_names, batchSize);    
+    const preprocessed_data = getTrainData(image_uri, labels, image_names);    
     
     return preprocessed_data
 }
@@ -50,27 +48,8 @@ function image_preprocessing(src){
 
     // tf.browser.fromPixels() returns a Tensor from an image element.
     const img = tf.browser.fromPixels(imgElement).toFloat();
-
-    const offset = tf.scalar(127.5);
-    // Normalize the image from [0, 255] to [-1, 1].
-    const normalized = img.div(offset).sub(tf.scalar(1));
-
-    // Reshape to a single-element batch so we can pass it to predict.
-    const batched = normalized.reshape([1, IMAGE_H, IMAGE_W, 3]);
-
-    // TODO: test without normalizing
-    
-    ///let values = Array.from(net.infer(imgElement, true).dataSync())
-    
-    /*let new_values = []
-    for(let value in values){
-        new_values.push(tf.scalar(value, 'float32'))
-    }
-
-    //console.log(values)
-    let activation = tf.tensor2d(values , [1, FEATURES]) 
-    //console.log("activation: "+activation)
-    */
+    // ATTENTION: not normalizing
+    const batched = img.reshape([1,IMAGE_H, IMAGE_W, 3])
 
     let representation = net.infer(batched, true) // Get embeddings for transfer learning
     return representation
@@ -88,7 +67,6 @@ function labels_preprocessing(labels){
 }
 
 function mean_tensor(tensors){
-    //console.log("tensors "+ tensors)
     let result = tf.zeros([1, FEATURES])
     for(let i = 0; i< tensors.length; ++i){
         const tensor = tensors[i]
@@ -118,49 +96,55 @@ function one_hot_encode(label){
    *   labels: The one-hot encoded labels tensor, of shape
    *     `[numTrainExamples, 2]`.
    */
-   function getTrainData(image_uri, labels_preprocessed, image_names, batchSize) {
+   function getTrainData(image_uri, labels_preprocessed, image_names) {
     const dict_images = {}
     const dict_labels = {}
+    const patients = new Set()
 
     for(let i = 0; i<image_names.length; ++i){
-        const id = image_names[i].split("_")[0]
+        const id = parseInt(image_names[i].split("_")[0])
+        patients.add(id)
+
         if(!(id in dict_images)){
             dict_images[id] = []
             dict_labels[id] = labels_preprocessed[i]
         }
+
         const site = image_names[i].split("_")[1]
         dict_images[id].push(image_uri[i])
     }
-    for(let id in dict_images){
-       MAX_PICTURES_IN_PATIENT = Math.max(MAX_PICTURES_IN_PATIENT, dict_images[id].length)
-    }
-    console.log("Max num of pictures in a patient is "+ MAX_PICTURES_IN_PATIENT)
+
     console.log("Number of patients found was of "+Object.keys(dict_images).length)
-    let image_tensors1 = []
-    for(let id in dict_images){
+
+    let image_tensors1 = {}
+    for(let id in Object.keys(dict_images)){
         const image_tensors2 = []
         for(let image_uri in dict_images[id]){
             // Get representation from Mobilenet for each image
             image_tensors2.push(image_preprocessing(image_uri))
         }
         // Do mean pooling over same patient representations
-        image_tensors1.push(mean_tensor(image_tensors2))
+        image_tensors1[id] = mean_tensor(image_tensors2)
     }
     
-    image_tensors1 = image_tensors1.sort(()=>Math.random()-0.5)  // shuffle patients tensors
-    const xs = tf.concat(image_tensors1, 0) //.batch(batchSize)
-    
-    // Do label preprocessing
+    const xs_array = []
     const labels_to_process = []
-    for(let id in dict_labels){
+
+    // shuffle patients
+    let patients_list = Array.from(patients)
+    patients_list = patients_list.sort(() => Math.random() - 0.5)
+    for (let id in patients_list){
+        xs_array.push(image_tensors1[id])
         labels_to_process.push(dict_labels[id])
     }
-    console.log(labels_to_process)
-    const labels = labels_preprocessing(labels_to_process)
 
-    console.log("end")
-    console.log(image_tensors1)
-    console.log(labels)
+    
+
+    console.log(xs_array)
+    const xs = tf.concat(xs_array, 0)
+    const labels = labels_preprocessing(labels_to_process)
    
+    console.log(xs)
+    console.log(labels)
     return {xs, labels};
   }

@@ -384,7 +384,7 @@ import ImageUploadFrame from "../ImageUploadFrame";
 import * as tf from "@tensorflow/tfjs";
 import * as Chart from "chart.js";
 import {training, training_distributed} from "../../helpers/training-script.js"
-import data_preprocessing from "../../helpers/lus-covid-deepchest-helper.js"
+import data_preprocessing from "../../helpers/helpers-covid-deepchest-new.js"
 
 
 var model = null;
@@ -444,10 +444,10 @@ export default {
     },
 
     async create_model(){
-      const model1 = await tf.loadLayersModel('./src/components/LUSCOVIDComponents/my_model_tfjs/model.json')
+      /*const model1 = await tf.loadLayersModel('./src/components/LUSCOVIDComponents/my_model_tfjs/model.json')
       const model = await tf.loadLayersModel('file://my_model_tfjs/model.json')
-      return model
-      // return this.createDeepChestModel()
+      return model*/
+      return this.createDeepChestModel()
     },
     async join_training(){
       const optimizer = 'rmsprop';
@@ -462,7 +462,7 @@ export default {
 
       const validationSplit = 0.2;
     
-      const trainEpochs = 100
+      const trainEpochs = 13
 
       await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
       
