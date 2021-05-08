@@ -5,7 +5,7 @@ const IMAGE_H = 224;
 const IMAGE_W = 224;
 const LABEL_LIST = ["COVID-Positive","COVID-Negative"]
 const NUM_CLASSES = LABEL_LIST.length;
-const FEATURES = 1024 //TODO: in python I get 1000 as features
+const FEATURES = 1000 //TODO: in python I get 1000 as features
 //const SITE_POSITIONS = ["QAID", "QAIG", "QASD", "QASG", "QLD", "QLG", "QPID", "QPIG", "QPSD"]
 const SITE_POSITIONS = ["QAID", "QAIG", "QASD", "QASG", "QLD", "QLG", "QPID", "QPIG", "QPSD", "QPSG", "QPG"]
 // Data is passed under the form of Dictionary{ImageURL: label}
@@ -16,12 +16,12 @@ let net = null
 export default async function data_preprocessing(training_data, batchSize){
     if (net == null){
         console.log("loading mobilenet...")
-        net = await mobilenet.load()
-        print(net.layers)
-        //net =  await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
-        //net = net.layers[net.layers.length-1].output
-        //console.log(net)
-        //net.summary()
+        //net = await mobilenet.load()
+        net = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
+        net.summary()
+        //console.log(net.layers[net.layers.length-2])
+        //net = tf.model({inputs:net.input, outputs:net.layers[net.layers.length-2].output})
+
         console.log("Successfully loaded model")
     }
     const labels = []
@@ -51,7 +51,7 @@ function image_preprocessing(src){
     // ATTENTION: not normalizing
     const batched = img.reshape([1,IMAGE_H, IMAGE_W, 3])
 
-    let representation = net.infer(batched, true) // Get embeddings for transfer learning
+    let representation = net.predict(batched) // Get embeddings for transfer learning
     return representation
 }
 

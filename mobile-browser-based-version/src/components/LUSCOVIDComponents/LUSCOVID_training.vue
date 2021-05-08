@@ -507,12 +507,11 @@ export default {
     createDeepChestModel(){
       let new_model = tf.sequential();
 
-      //new_model.add(tf.layers.dense({inputShape:[1024], units: 2048, activation: 'relu'}));
-      new_model.add(tf.layers.dense({inputShape:[1024], units:512, activation:'relu'}))
-      //new_model.add(tf.layers.dense({units: 512, activation:'relu'}))
+      new_model.add(tf.layers.dense({inputShape:[1000], units:512, activation:'relu'}))
+
       new_model.add(tf.layers.dense({units: 64, activation: 'relu'}))
 
-      new_model.add(tf.layers.dense({units: 2}));
+      new_model.add(tf.layers.dense({units: 2, activation:"softmax"}));
 
       new_model.summary()
       return new_model
