@@ -152,7 +152,7 @@ export async function handle_data(data, buffer) {
             buffer.compile_data = payload
             break
         case CMD_CODES.AVG_WEIGHTS:
-
+            console.log(payload)
             if (buffer.avg_weights === undefined) {
                 buffer.avg_weights = {}
             }
