@@ -18,8 +18,10 @@ export async function training(model, model_name, trainData, labels, _batchSize,
   const model_path = "indexeddb://".concat(model_name);
 
   // TO DO: access these parameters as training argument
+  const optimizer = tf.train.adam();
+  optimizer.learningRate = 0.05;
   model.compile({
-    optimizer: "adam",
+    optimizer: optimizer,
     loss: "binaryCrossentropy",
     metrics: ["accuracy"],
   });
