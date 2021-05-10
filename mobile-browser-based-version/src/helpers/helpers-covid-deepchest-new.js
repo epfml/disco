@@ -117,9 +117,9 @@ function one_hot_encode(label){
     console.log("Number of patients found was of "+Object.keys(dict_images).length)
 
     let image_tensors1 = {}
-    for(let id in Object.keys(dict_images)){
+    for(let id of Object.keys(dict_images)){
         const image_tensors2 = []
-        for(let image_uri in dict_images[id]){
+        for(let image_uri of dict_images[id]){ //TODO: this one should be of too??
             // Get representation from Mobilenet for each image
             image_tensors2.push(image_preprocessing(image_uri))
         }
@@ -133,7 +133,7 @@ function one_hot_encode(label){
     // shuffle patients
     let patients_list = Array.from(patients)
     patients_list = patients_list.sort(() => Math.random() - 0.5)
-    for (let id in patients_list){
+    for (let id of patients_list){
         xs_array.push(image_tensors1[id])
         labels_to_process.push(dict_labels[id])
     }
