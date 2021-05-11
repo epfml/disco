@@ -18,7 +18,7 @@ export default async function data_preprocessing(training_data, batchSize){
         console.log("loading mobilenet...")
         //net = await mobilenet.load()
         net = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
-        net.summary()
+        //net.summary()
         //console.log(net.layers[net.layers.length-2])
         //net = tf.model({inputs:net.input, outputs:net.layers[net.layers.length-2].output})
 
@@ -39,7 +39,6 @@ export default async function data_preprocessing(training_data, batchSize){
     return preprocessed_data
 }
 function image_preprocessing(src){
-
     // Fill the image & call predict.
     let imgElement = document.createElement('img');
     imgElement.src = src;
@@ -51,7 +50,8 @@ function image_preprocessing(src){
     // ATTENTION: not normalizing
     const batched = img.reshape([1,IMAGE_H, IMAGE_W, 3])
 
-    let representation = net.predict(batched) // Get embeddings for transfer learning
+    //let representation = net.infer(imgElement,true) // Get embeddings for transfer learning
+    let representation = net.predict(batched)
     return representation
 }
 
@@ -67,6 +67,9 @@ function labels_preprocessing(labels){
 }
 
 function mean_tensor(tensors){
+    console.log("tensors:")
+    console.log(tensors)
+    console.log(tensors.length)
     let result = tf.zeros([1, FEATURES])
     for(let i = 0; i< tensors.length; ++i){
         const tensor = tensors[i]
@@ -99,46 +102,53 @@ function one_hot_encode(label){
    function getTrainData(image_uri, labels_preprocessed, image_names) {
     const dict_images = {}
     const dict_labels = {}
-    const patients = new Set()
+    let patients = new Set()
 
     for(let i = 0; i<image_names.length; ++i){
         const id = parseInt(image_names[i].split("_")[0])
         patients.add(id)
 
-        if(!(id in dict_images)){
-            dict_images[id] = []
+        let res = []
+        if(id in dict_images){ 
+            res = dict_images[id]
+        }else{
             dict_labels[id] = labels_preprocessed[i]
         }
 
-        const site = image_names[i].split("_")[1]
-        dict_images[id].push(image_uri[i])
+        //console.log("image uri")
+        //console.log(image_uri[i])
+        res.push(image_preprocessing(image_uri[i]))
+
+        dict_images[id] = res
     }
+
 
     console.log("Number of patients found was of "+Object.keys(dict_images).length)
 
     let image_tensors1 = {}
-    for(let id of Object.keys(dict_images)){
-        const image_tensors2 = []
-        for(let image_uri of dict_images[id]){ //TODO: this one should be of too??
-            // Get representation from Mobilenet for each image
-            image_tensors2.push(image_preprocessing(image_uri))
-        }
+    patients = Array.from(patients)
+    for(let i = 0; i < patients.length; ++i){
+        const id = patients[i]
+        //console.log("patient id "+id)
         // Do mean pooling over same patient representations
-        image_tensors1[id] = mean_tensor(image_tensors2)
+        image_tensors1[id] = mean_tensor(dict_images[id])
     }
     
     const xs_array = []
     const labels_to_process = []
 
     // shuffle patients
-    let patients_list = Array.from(patients)
-    patients_list = patients_list.sort(() => Math.random() - 0.5)
-    for (let id of patients_list){
+    
+    patients = patients.sort(() => Math.random() - 0.5)
+    for (let i = 0; i< patients.length; ++i ){
+        const id = patients[i]
+        /*console.log("patient id"+id)
+        console.log(image_tensors1[id])
+        console.log(dict_labels[id])*/
         xs_array.push(image_tensors1[id])
         labels_to_process.push(dict_labels[id])
     }
 
-    
 
     console.log(xs_array)
     const xs = tf.concat(xs_array, 0)
