@@ -437,9 +437,6 @@ export default {
      * @returns Returns a tf.model for training
      */
     async get_model() {
-      if(!this.model){
-        this.model = await this.create_model()
-      }
       return this.model
     },
 
@@ -458,13 +455,13 @@ export default {
 
       const batchSize = 2;
 
-      const preprocessed_data = await data_preprocessing(this.FILES, batchSize)
+      const preprocessed_data = await data_preprocessing(this.FILES)
 
       const validationSplit = 0.2;
     
-      const trainEpochs = 100
+      const trainEpochs = 10
 
-      await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
+      //await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
       
       // Notification End Training
       this.$toast.success(`LUS-COVID model has finished training!`);
