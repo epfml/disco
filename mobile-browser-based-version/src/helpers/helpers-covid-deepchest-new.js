@@ -12,12 +12,12 @@ let net = null
 
 //TODO: improve by averaging from the same site and then average all together??
 
-export default async function data_preprocessing(training_data){
+export async function data_preprocessing(training_data){
     if (net == null){
         console.log("loading mobilenet...")
         //net = await mobilenet.load()
         net = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
-        //net.summary()
+        net.summary()
         //console.log(net.layers[net.layers.length-2])
         //const layer = net.getLayer('conv_pw_13_relu')
         //net = tf.model({inputs:net.input, outputs:layer.output})
@@ -49,10 +49,9 @@ function image_preprocessing(src){
     // tf.browser.fromPixels() returns a Tensor from an image element.
     const img = tf.browser.fromPixels(imgElement).toFloat();
     // ATTENTION: not normalizing
-    const batched = img.reshape([1,IMAGE_H, IMAGE_W, 3])
+    const batched = img.reshape([IMAGE_H, IMAGE_W, 3])
 
-    const processedImg =
-      tf.tidy(() => batched.toFloat().div(127).sub(1));
+    const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
 
     //let representation = net.infer(imgElement,true) // Get embeddings for transfer learning
     let representation = net.predict(processedImg)
@@ -65,6 +64,7 @@ function labels_preprocessing(labels){
     for(let i = 0; i< labels.length; ++i){
         labels_one_hot_encoded.push(one_hot_encode(labels[i]))
     }
+    
     
     console.log(labels_one_hot_encoded)
     return tf.tensor2d(labels_one_hot_encoded, [nb_labels, NUM_CLASSES])
@@ -140,6 +140,8 @@ function one_hot_encode(label){
         // Do mean pooling over same patient representations
         image_tensors1[id] = mean_tensor(dict_images[id])
     }
+
+    //console.log("patient 2 " +image_tensors1[2].dataSync())
     
     const xs_array = []
     const labels_to_process = []
@@ -156,6 +158,7 @@ function one_hot_encode(label){
     }
 
 
+
     console.log(xs_array)
     const xs = tf.concat(xs_array, 0)
     const labels = labels_preprocessing(labels_to_process)
@@ -163,7 +166,8 @@ function one_hot_encode(label){
     console.log(xs)
     console.log(labels)
 
-    fit(xs, labels)
+    //fit(xs, labels)
+    return {xs: xs, labels: labels}
   }
 
   function fit(xs, labels){
@@ -198,7 +202,7 @@ function one_hot_encode(label){
     });
   }
 
-  function createDeepChestModel(){
+  export function createDeepChestModel(){
     let new_model = tf.sequential();
 
     /*new_model.add(tf.layers.flatten(
@@ -215,3 +219,4 @@ function one_hot_encode(label){
     new_model.summary()
     return new_model
   }
+  

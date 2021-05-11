@@ -384,7 +384,7 @@ import ImageUploadFrame from "../ImageUploadFrame";
 import * as tf from "@tensorflow/tfjs";
 import * as Chart from "chart.js";
 import {training, training_distributed} from "../../helpers/training-script.js"
-import data_preprocessing from "../../helpers/helpers-covid-deepchest-new.js"
+import {data_preprocessing, createDeepChestModel} from "../../helpers/helpers-covid-deepchest-new.js"
 
 
 var model = null;
@@ -441,10 +441,7 @@ export default {
     },
 
     async create_model(){
-      /*const model1 = await tf.loadLayersModel('./src/components/LUSCOVIDComponents/my_model_tfjs/model.json')
-      const model = await tf.loadLayersModel('file://my_model_tfjs/model.json')
-      return model*/
-      return this.createDeepChestModel()
+      return createDeepChestModel()
     },
     async join_training(){
       const optimizer = 'rmsprop';
@@ -461,7 +458,7 @@ export default {
     
       const trainEpochs = 10
 
-      //await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
+      await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
       
       // Notification End Training
       this.$toast.success(`LUS-COVID model has finished training!`);
@@ -499,19 +496,6 @@ export default {
       this.valAccuracyChart.data.labels.splice(0, 1);
       await this.valAccuracyChart.update();
       this.val_accuracy.innerText = accuracy;
-    },
-
-    createDeepChestModel(){
-      let new_model = tf.sequential();
-
-      new_model.add(tf.layers.dense({inputShape:[1000], units:512, activation:'relu'}))
-
-      new_model.add(tf.layers.dense({units: 64, activation: 'relu'}))
-
-      new_model.add(tf.layers.dense({units: 2, activation:"softmax"}));
-
-      new_model.summary()
-      return new_model
     },
   },
   async mounted() {
