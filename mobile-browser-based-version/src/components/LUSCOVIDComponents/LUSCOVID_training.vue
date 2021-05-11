@@ -462,7 +462,7 @@ export default {
 
       const validationSplit = 0.2;
     
-      const trainEpochs = 30
+      const trainEpochs = 100
 
       await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
       
