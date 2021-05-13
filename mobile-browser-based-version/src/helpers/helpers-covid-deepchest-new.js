@@ -15,8 +15,12 @@ let net = null
 export async function data_preprocessing(training_data){
     if (net == null){
         console.log("loading mobilenet...")
-        //net = await mobilenet.load()
-        net = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
+        /*net = await mobilenet.load({
+            version: 1,
+            alpha: 1.0,
+          })*/
+        net = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json');
+        //net =  await tf.loadLayersModel('https://storage.googleapis.com/mobilenet_v2/checkpoints/mobilenet_v2_1.4_224/model.json')
         net.summary()
         //console.log(net.layers[net.layers.length-2])
         //const layer = net.getLayer('conv_pw_13_relu')
@@ -35,12 +39,28 @@ export async function data_preprocessing(training_data){
         image_uri.push(key)
     });
 
-    const preprocessed_data = getTrainData(image_uri, labels, image_names);    
+    const preprocessed_data = await getTrainData(image_uri, labels, image_names);    
     
     return preprocessed_data
 }
-function image_preprocessing(src){
-    // Fill the image & call predict.
+
+
+async function loadLocalImage(filename) {
+    return new Promise((res, rej) => {
+        var img = new Image();
+        img.src = filename
+        img.width = IMAGE_W
+        img.height = IMAGE_H
+        img.onload = () =>{
+            var output = tf.browser.fromPixels(img)
+            res(output)
+        }
+    });
+}
+
+
+async function image_preprocessing(src){
+    /*// Fill the image & call predict.
     let imgElement = document.createElement('img');
     imgElement.src = src;
     imgElement.width = IMAGE_W;
@@ -48,13 +68,19 @@ function image_preprocessing(src){
 
     // tf.browser.fromPixels() returns a Tensor from an image element.
     const img = tf.browser.fromPixels(imgElement).toFloat();
-    // ATTENTION: not normalizing
-    const batched = img.reshape([IMAGE_H, IMAGE_W, 3])
+    // ATTENTION: not normalizing*/
+
+    const tensor = await loadLocalImage(src)
+    //console.log(tensor.dataSync())
+    
+    const batched = tensor.reshape([IMAGE_H, IMAGE_W, 3])
 
     const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
 
-    //let representation = net.infer(imgElement,true) // Get embeddings for transfer learning
+    //console.log("image "+processedImg.dataSync())
+    //let representation = net.infer(processedImg) // , true for Get embeddings for transfer learning
     let representation = net.predict(processedImg)
+    //console.log(representation.dataSync())
     return representation
 }
 
@@ -71,9 +97,9 @@ function labels_preprocessing(labels){
 }
 
 function mean_tensor(tensors){
-    console.log("tensors:")
+    /*console.log("tensors:")
     console.log(tensors)
-    console.log(tensors.length)
+    console.log(tensors.length)*/
 
     let result = tensors[0]
 
@@ -82,6 +108,7 @@ function mean_tensor(tensors){
         result = result.add(tensor)
     }
     result = result.div(tf.scalar(tensors.length))
+    //console.log("mean"+(representation1==result))
     return result
 }
 
@@ -105,7 +132,7 @@ function one_hot_encode(label){
    *   labels: The one-hot encoded labels tensor, of shape
    *     `[numTrainExamples, 2]`.
    */
-   function getTrainData(image_uri, labels_preprocessed, image_names) {
+   async function getTrainData(image_uri, labels_preprocessed, image_names) {
     const dict_images = {}
     const dict_labels = {}
     let patients = new Set()
@@ -124,7 +151,7 @@ function one_hot_encode(label){
 
         //console.log("image uri")
         //console.log(image_uri[i])
-        res.push(image_preprocessing(image_uri[i]))
+        res.push(await image_preprocessing(image_uri[i]))
 
         dict_images[id] = res
     }
@@ -141,7 +168,7 @@ function one_hot_encode(label){
         image_tensors1[id] = mean_tensor(dict_images[id])
     }
 
-    //console.log("patient 2 " +image_tensors1[2].dataSync())
+    console.log("patient 2 " +image_tensors1[2].dataSync())
     
     const xs_array = []
     const labels_to_process = []

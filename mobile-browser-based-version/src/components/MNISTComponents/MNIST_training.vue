@@ -200,14 +200,13 @@
         </div>
       </div>
     </div>
-    <button
-        id="test-model-button"
-        v-on:click="goToTesting()"
-        type="button"
-        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
-      >
-        Go Test
-    </button>
+
+    <form id="myForm">
+    <input type="file" id="csvFile" accept=".csv" />
+    <br />
+    <input type="submit" value="Submit" />
+    </form>
+
     <!-- Upload File Data Template -->
     <template id="file-template">
       <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
