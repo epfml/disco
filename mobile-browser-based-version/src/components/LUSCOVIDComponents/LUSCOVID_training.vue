@@ -198,6 +198,12 @@
       >
         Train
       </button>
+
+        <form id="myForm">
+        <input type="file" id="csvFile" accept=".csv" multiple />
+        <br />
+        <input type="submit" value="Submit" />
+      </form>
     </div>
 
     <!-- Training Board -->
@@ -385,9 +391,12 @@ import * as tf from "@tensorflow/tfjs";
 import * as Chart from "chart.js";
 import {training, training_distributed} from "../../helpers/training-script.js"
 import {data_preprocessing, createDeepChestModel} from "../../helpers/helpers-covid-deepchest-new.js"
-
+import * as mobilenet from '@tensorflow-models/mobilenet'
 
 var model = null;
+var xTrain = null
+var yTrain = null 
+
 export default {
   data() {
     return {
@@ -430,6 +439,46 @@ export default {
     goToTesting() {
       this.$router.push({ path: "/MNIST-model/testing" });
     },
+    csvToArray(str, delimiter = ",") {
+
+      // slice from \n index + 1 to the end of the text
+      // use split to create an array of each csv value row
+      const rows = str.slice(0).split("\n");
+
+      const arr = rows.map(function (row) {
+          return row.split(delimiter).map(value => parseFloat(value));
+        })
+      return arr
+    },
+
+    async test(){
+      this.$toast.success(`Thank you for your contribution. Training has started`);
+      setTimeout(this.$toast.clear, 30000)
+
+      const batchSize = 2;
+
+      const validationSplit = 0.2;
+    
+      const trainEpochs = 10
+
+      const x1 = this.csvToArray(xTrain)
+      console.log(x1)
+
+      //const net = await mobilenet.load({version: 1,alpha: 1.0,})
+      const net = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json');
+
+      x1.splice(150528)
+      let xTrain_tensor = tf.tensor2d(x1).toFloat().reshape([1,224,224,3])
+      //const prediction  = net.infer(xTrain_tensor)
+      const prediction = net.predict(xTrain_tensor)
+      console.log("image from csv"+prediction.dataSync())
+      
+      // await training(model, this.model_name, xTrain_tensor, yTrain_tensor, batchSize, validationSplit, trainEpochs, this.updateUI)
+      
+      // Notification End Training
+      this.$toast.success(`LUS-COVID model has finished training!`);
+      setTimeout(this.$toast.clear, 30000)
+    },
 
     /**
      * Creates the tf.model
@@ -444,6 +493,10 @@ export default {
       return createDeepChestModel()
     },
     async join_training(){
+      //this.test()
+       
+      
+      
       const optimizer = 'rmsprop';
 
       // Notification Start Training
@@ -503,6 +556,26 @@ export default {
     this.$nextTick(async function () {
       // Code that will run only after the
       // entire view has been rendered
+
+const myForm = document.getElementById("myForm");
+    const csvFile = document.getElementById("csvFile");
+
+    myForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const xs = csvFile.files[0];
+      const reader = new FileReader();
+
+      reader. g = function (e) {
+        const text = e.target.result;
+        xTrain = text
+  
+      };
+
+      reader.readAsText(xs);
+
+      
+    });
+    
       
       /**
         * #######################################
