@@ -50,6 +50,30 @@ export async function store_model(model, name) {
     //await model.save("localstorage://" + name)
 }
 
+export async function get_model_info(model_name) {
+    return new Promise((resolve, reject) => {
+        let openRequest = indexedDB.open(database_name)
+        openRequest.onsuccess = function () {
+            let db = openRequest.result
+
+            // get the store object to access the database
+            let txModelInfoStore = db.transaction('model_info_store')
+            let stModelInfoStore = txModelInfoStore.objectStore('model_info_store')
+
+            let getModelInfoRequest = stModelInfoStore.get(model_name)
+            getModelInfoRequest.onsuccess = function () {
+                resolve(getModelInfoRequest.result)
+            }
+            getModelInfoRequest.onerror = function () {
+                reject(getModelInfoRequest.error)
+            }
+        }
+        openRequest.onerror = function () {
+            reject(openRequest.error)
+        }
+    })
+}
+
 /**
  * Get seralized data from tensorflow's IndexedDB database 
  * @param {String} model_name the model name 

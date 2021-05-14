@@ -75,71 +75,7 @@
           </div>
 
           <!-- Data Point Example -->
-          <div class="relative p-4 overflow-x-scroll">
-            <table class="table-auto">
-              <thead>
-                <tr>
-                  <th class="px-4 py-2 text-emerald-600">Title</th>
-                  <th class="px-4 py-2 text-emerald-600">Author</th>
-                  <th class="px-4 py-2 text-emerald-600">Views</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Intro to CSS
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Adam
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    858
-                  </td>
-                </tr>
-                <tr class="bg-emerald-200">
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    A Long and Winding Tour of the History of UI Frameworks and
-                    Tools and the Impact on Design
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Adam
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    112
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Intro to JavaScript
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    Chris
-                  </td>
-                  <td
-                    class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
-                  >
-                    1,280
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <img src="../../../example_training_data/2_QAID_1.masked.reshaped.squared.224.png" alt="">
         </div>
       </div>
     </a>
@@ -192,11 +128,18 @@
     <!-- Train Button -->
     <div class="flex items-center justify-center p-4">
       <button
-        v-on:click="join_training()"
+        v-on:click="join_training(false)"
         type="button"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
       >
-        Train
+        Train Alone
+      </button>
+      <button
+        v-on:click="join_training(true)"
+        type="button"
+        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+      >
+        Train Distributed
       </button>
     </div>
 
@@ -265,151 +208,59 @@
       >
         Go Test
     </button>
-    <!-- Upload File Data Template -->
-    <template id="file-template">
-      <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
-        <article
-          tabindex="0"
-          class="group w-full h-full rounded-md focus:outline-none focus:shadow-outline elative bg-gray-100 cursor-pointer relative shadow-sm"
-        >
-          <img
-            alt="upload preview"
-            class="img-preview hidden w-full h-full sticky object-cover rounded-md bg-fixed"
-          />
-
-          <section
-            class="py-2 px-3 flex flex-col rounded-md text-xs break-words w-full h-full z-20 absolute top-0"
-          >
-            <h1 class="flex-1 group-hover:text-blue-800"></h1>
-            <div class="flex">
-              <span class="p-1 text-blue-800">
-                <i>
-                  <svg
-                    class="fill-current w-4 h-4 ml-auto pt-1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M15 2v5h5v15h-16v-20h11zm1-2h-14v24h20v-18l-6-6z"
-                    />
-                  </svg>
-                </i>
-              </span>
-              <p class="p-1 size text-xs text-gray-700"></p>
-              <button
-                class="delete ml-auto focus:outline-none hover:bg-gray-300 p-1 rounded-md text-gray-800"
-              >
-                <svg
-                  class="pointer-events-none fill-current w-4 h-4 ml-auto"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    class="pointer-events-none"
-                    d="M3 6l3 18h12l3-18h-18zm19-4v2h-20v-2h5.711c.9 0 1.631-1.099 1.631-2h5.316c0 .901.73 2 1.631 2h5.711z"
-                  />
-                </svg>
-              </button>
-            </div>
-          </section>
-        </article>
-      </li>
-    </template>
-
-    <!-- Upload Image Data Template-->
-    <template id="image-template">
-      <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
-        <article
-          tabindex="0"
-          class="group hasImage w-full h-full rounded-md focus:outline-none focus:shadow-outline bg-gray-100 cursor-pointer relative text-transparent hover:text-white shadow-sm"
-        >
-          <img
-            alt="upload preview"
-            class="img-preview w-full h-full sticky object-cover rounded-md bg-fixed"
-          />
-
-          <section
-            class="flex flex-col rounded-md text-xs break-words w-full h-full z-20 absolute top-0 py-2 px-3"
-          >
-            <h1 class="flex-1"></h1>
-            <div class="flex">
-              <span class="p-1">
-                <i>
-                  <svg
-                    class="fill-current w-4 h-4 ml-auto pt-"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M5 8.5c0-.828.672-1.5 1.5-1.5s1.5.672 1.5 1.5c0 .829-.672 1.5-1.5 1.5s-1.5-.671-1.5-1.5zm9 .5l-2.519 4-2.481-1.96-4 5.96h14l-5-8zm8-4v14h-20v-14h20zm2-2h-24v18h24v-18z"
-                    />
-                  </svg>
-                </i>
-              </span>
-
-              <p class="p-1 size text-xs"></p>
-              <button
-                class="delete ml-auto focus:outline-none hover:bg-gray-300 p-1 rounded-md"
-              >
-                <svg
-                  class="pointer-events-none fill-current w-4 h-4 ml-auto"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    class="pointer-events-none"
-                    d="M3 6l3 18h12l3-18h-18zm19-4v2h-20v-2h5.711c.9 0 1.631-1.099 1.631-2h5.316c0 .901.73 2 1.631 2h5.711z"
-                  />
-                </svg>
-              </button>
-            </div>
-          </section>
-        </article>
-      </li>
-    </template>
   </div>
 </template>
-
 
 <script>
 import ImageUploadFrame from "../ImageUploadFrame";
 import * as tf from "@tensorflow/tfjs";
 import * as Chart from "chart.js";
 import {training, training_distributed} from "../../helpers/training-script.js"
-import {data_preprocessing, createDeepChestModel} from "../../helpers/lus-covid-preprocessing-helper.js"
+import {
+  display_informations,
+  training_information,
+  data_preprocessing,
+  create_model
+} from "./lus-covid-script.js"; // <-- Change import here 
+
+import {get_serialized_model, store_serialized_model} from "../../helpers/indexedDB_script" //todo check this
 
 var model = null;
-var xTrain = null
-var yTrain = null 
+
+var model_compile_data = {
+  optimizer: "rmsprop",
+  loss: "binaryCrossentropy",
+  metrics: ["accuracy"],
+};
+var model_train_data = {
+  epochs: 5,
+};
 
 export default {
   data() {
     return {
-      title: "mnist-training",
-      DataFormatInfoText:
-        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
-      DataExampleText:
-        "Verum ad istam omnem orationem brevis est defensio. Nam quoad aetas M. Caeli dare potuit isti suspicioni locum, fuit primum ipsius pudore, deinde etiam patris diligentia disciplinaque munita. Qui ut huic virilem togam deditšnihil dicam hoc loco de me; tantum sit, quantum vos existimatis; hoc dicam, hunc a patre continuo ad me esse deductum; nemo hunc M. Caelium in illo aetatis flore vidit nisi aut cum patre aut mecum aut in M. Crassi castissima domo, cum artibus honestissimis erudiretur.",
+      // Variables for general informations
+      model_name: "",
+      DataFormatInfoText: "",
+      DataExampleText: "",
+
+      // Variabldes for feed-backs when training
+      valAccuracyChart: null,
+      accuracyChart: null,
+      val_accuracy: null,
+      accuracy: null,
+
+      // Variables for communications
+      receivers: [],
+      epoch: 0,
+      username: null,
+      threshold: null,
 
       // Different Task Labels
       task_labels: ["COVID-Positive", "COVID-Negative"],
 
       // Feed Back Training Components
-      valAccuracyChart: null,
-      accuracyChart: null,
-      val_accuracy: null,
-      accuracy: null,
-      model: null,
       FILES: {},
-      model_name: "LUS-COVID_model"
     };
   },
   methods: {
@@ -454,10 +305,10 @@ export default {
     },
 
     async create_model(){
-      return createDeepChestModel()
+      return create_model()
     },
-    async join_training(){
-      const optimizer = 'rmsprop';
+
+    async join_training(distributed){
 
       // Notification Start Training
       this.$toast.success(`Thank you for your contribution. Image preprocessing has started`);
@@ -467,6 +318,9 @@ export default {
 
       const preprocessed_data = await data_preprocessing(this.FILES)
 
+      const Xtrain = preprocessed_data.xs
+      const ytrain = preprocessed_data.labels
+
       this.$toast.success(`Image preprocessing has finished and training has started`);
       setTimeout(this.$toast.clear, 30000)
 
@@ -474,8 +328,32 @@ export default {
     
       const trainEpochs = 10
 
-      await training(model, this.model_name, preprocessed_data.xs, preprocessed_data.labels, batchSize, validationSplit, trainEpochs, this.updateUI)
-      
+      if (!distributed) {
+        await training(
+          model,
+          this.model_name,
+          Xtrain,
+          ytrain,
+          batchSize,
+          validationSplit,
+          trainEpochs,
+          this.updateUI
+        );
+      } else {
+        await training_distributed(
+          model,
+          this.model_name,
+          Xtrain,
+          ytrain,
+          model_train_data,
+          batchSize,
+          validationSplit,
+          model_compile_data,
+          this.onEpochBegin,
+          this.onEpochEnd
+        );
+      }
+
       // Notification End Training
       this.$toast.success(`LUS-COVID model has finished training!`);
       setTimeout(this.$toast.clear, 30000)
@@ -520,16 +398,31 @@ export default {
       // Code that will run only after the
       // entire view has been rendered
       
-      /**
-        * #######################################
-        * CODE TO HANDLE CREATION OF THE MODEL
-        * #######################################
-        */
+      this.model_name = training_information.model_id;
+      this.DataFormatInfoText = display_informations.dataFormatInformation;
+      this.DataExampleText = display_informations.dataExampleText;
+      this.DataExample = display_informations.dataExample
 
-       model = await this.create_model();
-       this.model = model
-       const save_path = "indexeddb://".concat(this.model_name);
-       const saveResults = await model.save(save_path);
+      // Create the model 
+      model = create_model();
+      const save_path = "localstorage://".concat(this.model_name);
+      const saveResults = await model.save(save_path);
+      const save_path_db = "indexeddb://".concat(this.model_name);
+      await model.save(save_path_db);
+
+      
+      getModel(this.model_name).then((value) => {
+        console.log(value)
+        let model_info = value.model_info
+        let model_data = value.model_data
+        let toyName = "testModel"
+        model_data.modelPath = toyName
+        model_info.modelPath = toyName
+        setModel(toyName, model_info, model_data).then(async () => {
+          model = await tf.loadLayersModel('indexeddb://'.concat(toyName))
+        })
+      })
+      
 
       /**
        * #######################################
