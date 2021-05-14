@@ -410,8 +410,8 @@ export default {
       const save_path_db = "indexeddb://".concat(this.model_name);
       await model.save(save_path_db);
 
-      
-      getModel(this.model_name).then((value) => {
+      //todo:   finish this
+      /*getModel(this.model_name).then((value) => {
         console.log(value)
         let model_info = value.model_info
         let model_data = value.model_data
@@ -421,7 +421,7 @@ export default {
         setModel(toyName, model_info, model_data).then(async () => {
           model = await tf.loadLayersModel('indexeddb://'.concat(toyName))
         })
-      })
+      })*/
       
 
       /**
