@@ -22,9 +22,8 @@
         aria-hidden="true"
       ></div>
       <aside
-       
         class="fixed inset-y-0 z-10 flex flex-shrink-0 bg-white border-r md:static dark:border-primary-darker dark:bg-darker focus:outline-none"
-        style="position: sticky;"
+        style="position: sticky"
       >
         <!-- Mini Sidebar -->
         <nav
@@ -33,7 +32,7 @@
           <!-- Brand -->
           <div class="flex-shrink-0">
             <a
-              v-on:click="goToHome()"
+              href="task-list.html"
               class="p-1 inline-block text-xl font-bold tracking-wider uppercase text-primary-dark dark:text-light"
             >
               De-AI
@@ -110,7 +109,27 @@
               </svg>
             </a>
 
-            <!-- Get Settings-->
+            <!-- Get Memory Pannel-->
+            <button
+              v-on:click="openMemoryPannel"
+              class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+            >
+              <span class="sr-only">Open memory panel</span>
+              <svg
+                class="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 16 16"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"
+                />
+              </svg>
+            </button>
+
+            <!-- Get Setting Pannel-->
             <button
               v-on:click="openSettingsPanel"
               class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
@@ -194,74 +213,51 @@
 
       <!-- Panels -->
 
-      <div style="position: absolute; z-index: 100;">
-      <!-- Settings Panel -->
-      <!-- Backdrop -->
-      <transition
-        enter-class="transition duration-300 ease-in-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-class="transition duration-300 ease-in-out"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-      >
-        <div
-          v-show="isSettingsPanelOpen"
-          v-on:click="isSettingsPanelOpen = false"
-          class="transform fixed inset-0 z-10 bg-primary-darker"
-          style="opacity: 0.5"
-          aria-hidden="true"
-        ></div>
-      </transition>
-
-      <!-- Setting Panel Content -->
-      <transition
-        enter-active-class="transition duration-300 ease-in-out sm:duration-500"
-        enter-from-class="translate-x-full"
-        enter-class="translate-x-0"
-        leave-active-class="transition duration-300 ease-in-out sm:duration-500"
-        leave-class="translate-x-0"
-        leave-to-class="translate-x-full"
-      >
-        <!-- @keydown.escape="isSettingsPanelOpen = false" -->
-        <section
-          x-ref="settingsPanel"
-          tabindex="-1"
-          v-show="isSettingsPanelOpen"
-          class="transform fixed inset-y-0 right-0 z-20 w-full max-w-xs bg-white shadow-xl dark:bg-darker dark:text-light sm:max-w-md focus:outline-none"
-          aria-labelledby="settinsPanelLabel"
+      <div style="position: absolute; z-index: 100">
+        <!-- Settings Panel -->
+        <!-- Backdrop -->
+        <transition
+          enter-class="transition duration-300 ease-in-out"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-class="transition duration-300 ease-in-out"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
         >
-          <div class="absolute left-0 p-2 transform -translate-x-full">
-            <!-- Close button -->
-            <button
-              v-on:click="isSettingsPanelOpen = false"
-              class="p-2 text-white rounded-md focus:outline-none focus:ring"
-            >
-              <svg
-                class="w-5 h-5"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          <div
+            v-show="isSettingsPanelOpen"
+            v-on:click="isSettingsPanelOpen = false"
+            class="transform fixed inset-0 z-10 bg-primary-darker"
+            style="opacity: 0.5"
+            aria-hidden="true"
+          ></div>
+        </transition>
+
+        <!-- Setting Panel Content -->
+        <transition
+          enter-active-class="transition duration-300 ease-in-out sm:duration-500"
+          enter-from-class="translate-x-full"
+          enter-class="translate-x-0"
+          leave-active-class="transition duration-300 ease-in-out sm:duration-500"
+          leave-class="translate-x-0"
+          leave-to-class="translate-x-full"
+        >
+          <!-- @keydown.escape="isSettingsPanelOpen = false" -->
+          <section
+            x-ref="settingsPanel"
+            tabindex="-1"
+            v-show="isSettingsPanelOpen"
+            class="transform fixed inset-y-0 right-0 z-20 w-full max-w-xs bg-white shadow-xl dark:bg-darker dark:text-light sm:max-w-md focus:outline-none"
+            aria-labelledby="settinsPanelLabel"
+          >
+            <div class="absolute left-0 p-2 transform -translate-x-full">
+              <!-- Close button -->
+              <button
+                v-on:click="isSettingsPanelOpen = false"
+                class="p-2 text-white rounded-md focus:outline-none focus:ring"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-          <!-- Panel content -->
-          <div class="flex flex-col h-screen">
-            <!-- Panel header -->
-            <div
-              class="flex flex-col items-center justify-center flex-shrink-0 px-4 py-8 space-y-4 border-b dark:border-primary-dark"
-            >
-              <span class="text-gray-500 dark:text-primary">
                 <svg
-                  class="w-8 h-8"
+                  class="w-5 h-5"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -271,141 +267,313 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                    d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
-              </span>
-              <h2
-                id="settinsPanelLabel"
-                class="text-xl font-medium text-gray-500 dark:text-light"
+              </button>
+            </div>
+            <!-- Panel content -->
+            <div class="flex flex-col h-screen">
+              <!-- Panel header -->
+              <div
+                class="flex flex-col items-center justify-center flex-shrink-0 px-4 py-8 space-y-4 border-b dark:border-primary-dark"
               >
-                Settings
-              </h2>
-            </div>
-            <!-- Content -->
-            <div class="flex-1 overflow-hidden hover:overflow-y-auto">
-              <!-- Theme -->
-              <div class="p-4 space-y-4 md:p-8">
-                <h6 class="text-lg font-medium text-gray-400 dark:text-light">
-                  Mode
-                </h6>
-                <div class="flex items-center space-x-8">
-                  <!-- Light button -->
-                  <button
-                    v-on:click="setLightTheme"
-                    class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
-                    :class="{
-                      'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100': !isDark,
-                      'text-gray-500 dark:text-primary-light': isDark,
-                    }"
+                <span class="text-gray-500 dark:text-primary">
+                  <svg
+                    class="w-8 h-8"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <span>
-                      <svg
-                        class="w-6 h-6"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                        />
-                      </svg>
-                    </span>
-                    <span>Light</span>
-                  </button>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                    />
+                  </svg>
+                </span>
+                <h2
+                  id="settinsPanelLabel"
+                  class="text-xl font-medium text-gray-500 dark:text-light"
+                >
+                  Settings
+                </h2>
+              </div>
+              <!-- Content -->
+              <div class="flex-1 overflow-hidden hover:overflow-y-auto">
+                <!-- Theme -->
+                <div class="p-4 space-y-4 md:p-8">
+                  <h6 class="text-lg font-medium text-gray-400 dark:text-light">
+                    Mode
+                  </h6>
+                  <div class="flex items-center space-x-8">
+                    <!-- Light button -->
+                    <button
+                      v-on:click="setLightTheme"
+                      class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
+                      :class="{
+                        'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100': !isDark,
+                        'text-gray-500 dark:text-primary-light': isDark,
+                      }"
+                    >
+                      <span>
+                        <svg
+                          class="w-6 h-6"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                          />
+                        </svg>
+                      </span>
+                      <span>Light</span>
+                    </button>
 
-                  <!-- Dark button -->
-                  <button
-                    v-on:click="setDarkTheme"
-                    class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
-                    :class="{
-                      'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100': isDark,
-                      'text-gray-500 dark:text-primary-light': !isDark,
-                    }"
-                  >
-                    <span>
-                      <svg
-                        class="w-6 h-6"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                        />
-                      </svg>
-                    </span>
-                    <span>Dark</span>
-                  </button>
+                    <!-- Dark button -->
+                    <button
+                      v-on:click="setDarkTheme"
+                      class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
+                      :class="{
+                        'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100': isDark,
+                        'text-gray-500 dark:text-primary-light': !isDark,
+                      }"
+                    >
+                      <span>
+                        <svg
+                          class="w-6 h-6"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                          />
+                        </svg>
+                      </span>
+                      <span>Dark</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Colors -->
+                <div class="p-4 space-y-4 md:p-8">
+                  <h6 class="text-lg font-medium text-gray-400 dark:text-light">
+                    Colors
+                  </h6>
+                  <div>
+                    <button
+                      v-on:click="setColors('cyan')"
+                      class="w-10 h-10 rounded-full"
+                      style="background-color: var(--color-cyan)"
+                    ></button>
+                    <button
+                      v-on:click="setColors('teal')"
+                      class="w-10 h-10 rounded-full"
+                      style="background-color: var(--color-teal)"
+                    ></button>
+                    <button
+                      v-on:click="setColors('green')"
+                      class="w-10 h-10 rounded-full"
+                      style="background-color: var(--color-green)"
+                    ></button>
+                    <button
+                      v-on:click="setColors('fuchsia')"
+                      class="w-10 h-10 rounded-full"
+                      style="background-color: var(--color-fuchsia)"
+                    ></button>
+                    <button
+                      v-on:click="setColors('blue')"
+                      class="w-10 h-10 rounded-full"
+                      style="background-color: var(--color-blue)"
+                    ></button>
+                    <button
+                      v-on:click="setColors('violet')"
+                      class="w-10 h-10 rounded-full"
+                      style="background-color: var(--color-violet)"
+                    ></button>
+                  </div>
                 </div>
               </div>
+            </div>
+          </section>
+        </transition>
+      </div>
 
-              <!-- Colors -->
-              <div class="p-4 space-y-4 md:p-8">
-                <h6 class="text-lg font-medium text-gray-400 dark:text-light">
-                  Colors
-                </h6>
-                <div>
-                  <button
-                    v-on:click="setColors('cyan')"
-                    class="w-10 h-10 rounded-full"
-                    style="background-color: var(--color-cyan)"
-                  ></button>
-                  <button
-                    v-on:click="setColors('teal')"
-                    class="w-10 h-10 rounded-full"
-                    style="background-color: var(--color-teal)"
-                  ></button>
-                  <button
-                    v-on:click="setColors('green')"
-                    class="w-10 h-10 rounded-full"
-                    style="background-color: var(--color-green)"
-                  ></button>
-                  <button
-                    v-on:click="setColors('fuchsia')"
-                    class="w-10 h-10 rounded-full"
-                    style="background-color: var(--color-fuchsia)"
-                  ></button>
-                  <button
-                    v-on:click="setColors('blue')"
-                    class="w-10 h-10 rounded-full"
-                    style="background-color: var(--color-blue)"
-                  ></button>
-                  <button
-                    v-on:click="setColors('violet')"
-                    class="w-10 h-10 rounded-full"
-                    style="background-color: var(--color-violet)"
-                  ></button>
+      <div style="position: absolute; z-index: 100">
+        <!-- Memory Panel -->
+        <!-- Backdrop -->
+        <transition
+          enter-class="transition duration-300 ease-in-out"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-class="transition duration-300 ease-in-out"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <div
+            v-show="isMemoryPannelOpen"
+            v-on:click="isMemoryPannelOpen = false"
+            class="transform fixed inset-0 z-10 bg-primary-darker"
+            style="opacity: 0.5"
+            aria-hidden="true"
+          ></div>
+        </transition>
+
+        <!-- Memory Panel Content -->
+        <transition
+          enter-active-class="transition duration-300 ease-in-out sm:duration-500"
+          enter-from-class="translate-x-full"
+          enter-class="translate-x-0"
+          leave-active-class="transition duration-300 ease-in-out sm:duration-500"
+          leave-class="translate-x-0"
+          leave-to-class="translate-x-full"
+        >
+          <!-- @keydown.escape="isSettingsPanelOpen = false" -->
+          <section
+            x-ref="settingsPanel"
+            tabindex="-1"
+            v-show="isMemoryPannelOpen"
+            class="transform fixed inset-y-0 right-0 z-20 w-full max-w-xs bg-white shadow-xl dark:bg-darker dark:text-light sm:max-w-md focus:outline-none"
+            aria-labelledby="settinsPanelLabel"
+          >
+            <div class="absolute left-0 p-2 transform -translate-x-full">
+              <!-- Close button -->
+              <button
+                v-on:click="isMemoryPannelOpen = false"
+                class="p-2 text-white rounded-md focus:outline-none focus:ring"
+              >
+                <svg
+                  class="w-5 h-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <!-- Panel content -->
+            <div class="flex flex-col h-screen">
+              <!-- Panel header -->
+              <div
+                class="flex flex-col items-center justify-center flex-shrink-0 px-4 py-8 space-y-4 border-b dark:border-primary-dark"
+              >
+                <span class="text-gray-500 dark:text-primary">
+                  <svg
+                    class="w-10 h-10"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 18 15"
+                    stroke="currentColor"
+                  >
+                    <path
+                      d="m14.12 10.163 1.715.858c.22.11.22.424 0 .534L8.267 15.34a.598.598 0 0 1-.534 0L.165 11.555a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.66zM7.733.063a.598.598 0 0 1 .534 0l7.568 3.784a.3.3 0 0 1 0 .535L8.267 8.165a.598.598 0 0 1-.534 0L.165 4.382a.299.299 0 0 1 0-.535L7.733.063z"
+                    />
+                    <path
+                      d="m14.12 6.576 1.715.858c.22.11.22.424 0 .534l-7.568 3.784a.598.598 0 0 1-.534 0L.165 7.968a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.659z"
+                    />
+                  </svg>
+                </span>
+                <h2
+                  id="settinsPanelLabel"
+                  class="text-xl font-medium text-gray-500 dark:text-light"
+                >
+                  Memory
+                </h2>
+              </div>
+              <!-- Content -->
+              <div class="flex-1 overflow-hidden hover:overflow-y-auto">
+                <!-- Theme -->
+                <div class="p-4 space-y-4 md:p-8">
+                  <h6 class="text-lg font-medium text-gray-400 dark:text-light">
+                    Warning
+                  </h6>
+                  <span class="text-s">
+                    When a model has been deleted, the application might need to
+                    be re-launched.
+                  </span>
+              
+                </div>
+
+                <!-- Model list -->
+                <div class="p-4 space-y-4 md:p-8">
+                  <h6 class="text-lg font-medium text-gray-400 dark:text-light">
+                    Models in memory
+                  </h6>
+                  <div v-for="(item, idx) in modelMap" :key="idx">
+                    <div
+                      class="flex items-center justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
+                    >
+                      <span> {{ item[1].name.substr(12) }} <br> <span class="text-xs">
+                        {{item[1].date}} at {{item[1].hours}} <br> {{item[1].size}} KB
+                        </span>
+                        </span>
+                      <button
+                        v-on:click="deleteModel(item[1].name)"
+                        class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
+                        :class="{
+                          'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100': isDark,
+                          'text-gray-500 dark:text-primary-light': !isDark,
+                        }"
+                      >
+                        <span>
+                          <svg
+                            class="w-7 h-7"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 17 17"
+                            stroke="currentColor"
+                          >
+                            <path
+                              d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                            />
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-      </transition>
+          </section>
+        </transition>
       </div>
 
       <!-- Main Page -->
       <div class="overflow-x-scroll">
-      <router-view v-slot="{ Component }">
-        <keep-alive>
-          <component :is="Component" />
-        </keep-alive>
-      </router-view>
+        <router-view v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
       </div>
-
     </div>
   </div>
 </template>
 
 <script>
+import * as tf from "@tensorflow/tfjs";
+import { getKernel } from "@tensorflow/tfjs";
+
 export default {
   data: function () {
     return {
@@ -415,6 +583,8 @@ export default {
       selectedColor: this.getColor(),
       isSidebarOpen: window.innerWidth >= 1024 ? true : false,
       isSettingsPanelOpen: false,
+      modelMap: new Map(),
+      isMemoryPannelOpen: false,
     };
   },
   methods: {
@@ -487,22 +657,67 @@ export default {
       this.isSidebarOpen = !this.isSidebarOpen;
     },
     openSettingsPanel() {
+      this.refreshModel()
       this.isSettingsPanelOpen = true;
-      
+    },
+    async openMemoryPannel() {
+      this.isMemoryPannelOpen = true;
+      await this.refreshModel();
     },
     goToHome() {
       this.$router.push({ name: "home" });
     },
+    async refreshModel() {
+      var new_model_map = new Map();
+      tf.io.listModels().then((models) => {
+        for (var key in models) {
+          var model_info = models[key];
+          let date = new Date(model_info.dateSaved);
+          let date_saved =
+            date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
+          let hour_saved = date.getHours() + "h" + date.getMinutes();
+          let size = model_info.modelTopologyBytes + model_info.weightSpecsBytes + model_info.weightDataBytes
+
+          new_model_map.set(key, {
+            name: key,
+            date: date_saved,
+            hours: hour_saved,
+            size: size/1000,
+          });
+        }
+
+        this.modelMap = new_model_map;
+      });
+    },
+
+    async deleteModel(model_name) {
+      console.log(model_name);
+      this.modelMap.delete(model_name)
+      await tf.io.removeModel(model_name)
+    },
+
   },
-  mounted() {
-    let recaptchaScript = document.createElement("script");
-    recaptchaScript.setAttribute(
-      "src",
-      "https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.7.3/dist/alpine.min.js"
-    );
-    document.head.appendChild(recaptchaScript);
+  async mounted() {
+    tf.io.listModels().then((models) => {
+      for (var key in models) {
+        var model_info = models[key];
+        let date = new Date(model_info.dateSaved);
+        let date_saved =
+          date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
+        let hour_saved = date.getHours() + "h" + date.getMinutes();
+        let size = model_info.modelTopologyBytes + model_info.weightSpecsBytes + model_info.weightDataBytes
+        
+        this.modelMap.set(key, {
+          name: key,
+          date: date_saved,
+          hours: hour_saved,
+          size: size/1000,
+        });
+      }
+    });
   },
 };
+
 </script>
 
 

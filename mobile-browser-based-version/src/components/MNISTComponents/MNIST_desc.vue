@@ -139,7 +139,7 @@ export default {
   },
   methods: {
       goToTraining() {
-          this.$router.push({ path: "/" + training_information.model_id + "/training" });
+          this.$router.push({ path: "/" + training_information.model_id + "/model-manager" });
       }
   },
   mounted() {

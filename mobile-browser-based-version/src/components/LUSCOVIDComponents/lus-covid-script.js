@@ -1,11 +1,68 @@
 import * as tf from '@tensorflow/tfjs';
 
-const IMAGE_H = 224;
-const IMAGE_W = 224;
-const LABEL_LIST = ["COVID-Positive","COVID-Negative"]
-const NUM_CLASSES = LABEL_LIST.length;
 const FEATURES = 1000
 let net = null
+
+export const display_informations = {
+    // {String} title of the task (keep it short ex: Titanic)
+    taskTitle: "LUS-COVID",
+    // {String} simple overview of the task (i.e what is the goal of the model? Why its usefull ...)
+    overview: "The LUS-COVID dataset is a dataset by iGH at EPFL and consists on a set of lung ultrasound images for a group of patients and the labels corresponding to wether they were diagnosed as COVID-positive or COVID-negative.",
+    // {String} potential limitations of the model 
+    limitations: "The current model is a simpler version of the DeepChest model developped by the iGH team. We are not doing position embedding and instead of that we are doing mean pooling over the feature vector of the images for each patient. Moreover, since it is a browser application we cannot use the ResNet18 because of its size and hence we are using a simpler feature extractor, Mobilenet.",
+    // {String} trade-offs of the model 
+    tradeoffs: "We are using a simpler version of DeepChest in order to be able to run it on the browser.",
+    // {String} information about expected data 
+    dataFormatInformation: 
+    "This model takes as input an image dataset. It consists on a set of lung ultrasound images per patient with its corresponding label of covid positive or negative. Moreover, to identify the images per patient you have to follow the follwing naming pattern: \"patientId_*.png\"",
+    // {String} description of the datapoint given as example
+    dataExampleText: "Below you can find an example of an expected lung image for patient 2 named: 2_QAID_1.masked.reshaped.squared.224.png",
+};
+
+/**
+ * Object used to contain the model's training specifications
+ */
+export const training_information = {
+    // {String} model's identification name
+    model_id: "lus-covid-model",
+    // {Number} port of the peerjs server
+    port: 3,
+    // {Number} number of epoch used for training
+    epoch: 15,
+    // {Number} validation split
+    validation_split: 0.2,
+    // {Number} batchsize
+    batch_size: 2,
+    // {Object} Compiling information 
+    model_compile_data: {
+        optimizer: "rmsprop",
+        loss: "binaryCrossentropy",
+        metrics: ["accuracy"],
+    },
+    // {Object} Training information 
+    model_train_data: {
+        epochs: 10,
+    },
+
+    IMAGE_H : 224,
+    IMAGE_W : 224,
+    LABEL_LIST : ["COVID-Positive", "COVID-Negative"],
+    NUM_CLASSES : 2
+}
+
+export function create_model(){
+    let new_model = tf.sequential();
+
+    new_model.add(tf.layers.dense({inputShape:[FEATURES], units:512, activation:'relu'}))
+
+    new_model.add(tf.layers.dense({units: 64, activation: 'relu'}))
+
+    new_model.add(tf.layers.dense({units: 2, activation:"softmax"}));
+
+    new_model.summary()
+    
+    return new_model
+}
 
 // Data is passed under the form of Dictionary{ImageURL: label}
 export async function data_preprocessing(training_data){
@@ -39,8 +96,8 @@ async function loadLocalImage(filename) {
     return new Promise((res, rej) => {
         var img = new Image();
         img.src = filename
-        img.width = IMAGE_W
-        img.height = IMAGE_H
+        img.width = training_information.IMAGE_W
+        img.height = training_information.IMAGE_H
         img.onload = () =>{
             var output = tf.browser.fromPixels(img)
             res(output)
@@ -52,7 +109,7 @@ async function loadLocalImage(filename) {
 async function image_preprocessing(src){
     const tensor = await loadLocalImage(src)
     
-    const batched = tensor.reshape([IMAGE_H, IMAGE_W, 3])
+    const batched = tensor.reshape([training_information.IMAGE_H, training_information.IMAGE_W, 3])
 
     const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
 
@@ -69,7 +126,7 @@ function labels_preprocessing(labels){
     }
     
     console.log(labels_one_hot_encoded)
-    return tf.tensor2d(labels_one_hot_encoded, [nb_labels, NUM_CLASSES])
+    return tf.tensor2d(labels_one_hot_encoded, [nb_labels, training_information.NUM_CLASSES])
 }
 
 function mean_tensor(tensors){
@@ -86,8 +143,8 @@ function mean_tensor(tensors){
 
 function one_hot_encode(label){
     const result = []
-    for (let i = 0; i < LABEL_LIST.length; i++){
-        if(LABEL_LIST[i]==label){
+    for (let i = 0; i < training_information.NUM_CLASSES; i++){
+        if(training_information.LABEL_LIST[i]==label){
             result.push(1)
         }else{
             result.push(0)
@@ -160,17 +217,4 @@ function one_hot_encode(label){
     return {xs: xs, labels: labels}
   }
   
-
-  export function createDeepChestModel(){
-    let new_model = tf.sequential();
-
-    new_model.add(tf.layers.dense({inputShape:[FEATURES], units:512, activation:'relu'}))
-
-    new_model.add(tf.layers.dense({units: 64, activation: 'relu'}))
-
-    new_model.add(tf.layers.dense({units: 2, activation:"softmax"}));
-
-    new_model.summary()
-    return new_model
-  }
   
