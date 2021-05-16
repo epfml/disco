@@ -16,66 +16,39 @@
           </h1>
         </div>
 
-        <!-- Titanic's card-->
         <section class="flex-col items-center justify-center p-4 space-y-4">
-          <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1">
+          <div
+            v-for="task in ALL_TASKS"
+            :key="task.training_information.model_id"
+            class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
+          >
+            <!-- Titanic's card-->
             <div
               class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark"
+              v-on:click="goToSelection(task.training_information.model_id)"
             >
               <div>
                 <h6
                   class="text-xl font-medium leading-none tracking-wider uppercase dark:group-hover:text-darker"
                 >
-                  Titanic
+                  {{task.display_information.taskTitle}}
                 </h6>
               </div>
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  In this challenge, we ask you to build a predictive model that
-                  answers the question: “what sorts of people were more likely
-                  to survive?” using passenger data (ie name, age, gender,
-                  socio-economic class, etc)..
+                  {{task.display_information.summary}}
                 </ul>
               </div>
               <div>
                 <span>
-                  <a
-                    v-on:click="goToSelection()"
-                    class="no-underline font-medium"
+                  <a class="no-underline font-medium"
                     >Click here to participate</a
                   >
                 </span>
               </div>
             </div>
 
-            <!-- MNIST card-->
-            <div
-              class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark"
-            >
-              <div>
-                <h6
-                  class="text-xl font-medium leading-none tracking-wider uppercase dark:group-hover:text-darker"
-                >
-                  MNIST
-                </h6>
-              </div>
-              <div class="ml-10">
-                <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  Life started by learning numbers, well you've come a full
-                  circle! let's get back to it ! From the MNIST dataset of
-                  handwritten digits, can you identify them?
-                </ul>
-              </div>
-              <div>
-                <span>
-                  <a
-                    v-on:click="this.$router.push({ path: mnist })"
-                    class="no-underline font-medium"
-                    >Click here to participate</a
-                  >
-                </span>
-              </div>
-            </div>
+            
           </div>
         </section>
       </div>
@@ -100,7 +73,8 @@
 </template>
 
 <script>
-import {initialize_indexedDB} from "../helpers/indexedDB_script"
+import { initialize_indexedDB } from "../helpers/Memory Script/indexedDB_script";
+import { ALL_TASKS } from "../router/index";
 
 export default {
   name: "taskList",
@@ -108,15 +82,19 @@ export default {
     return {
       taskSelected: "",
       mnist: "/mnist-model/description",
+      ALL_TASKS: ALL_TASKS,
     };
   },
   methods: {
-    goToSelection(task_name) {
-      this.$router.push({ path: "/titanic-model/description" });
+    goToSelection(id) {
+      this.$router.push({
+        name: "description",
+        params: { Id: id },
+      });
     },
   },
   mounted() {
-    initialize_indexedDB()
-  }
+    initialize_indexedDB();
+  },
 };
 </script>
