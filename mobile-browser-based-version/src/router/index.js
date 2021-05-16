@@ -1,28 +1,39 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// To be renamed task list 
+// Some page components 
 import TaskList from "../components/TaskList"
+import Information from "../components/Information"
+import Trophee from "../components/Trophee"
 
-// Titanic import 
-import TitanicGlobal from "../components/TitanicComponents/titanic_global"
-import TitanicDesc from "../components/TitanicComponents/titanic_desc"
-import TitanicTraining from "../components/TitanicComponents/titanic_training"
-import TitanicTrainingConn from "../components/TitanicComponents/titanic_training_conn"
-import TitanicModelManager from "../components/TitanicComponents/titanic_modelManager"
+// Task's main frames
+import MainTaskFrame from "../components/Main Frames/MainTaskFrame"
+import MainDescriptionFrame from "../components/Main Frames/MainDescriptionFrame"
+import MainTrainingFrame from "../components/Main Frames/MainTrainingFrame"
+import MainModelManagerFrame from "../components/Main Frames/MainModelManagerFrame"
 
+// Import the tasks objects Here
+import {TitanicTask} from "../Task Definition/titanic"
+import {MnistTask} from "../Task Definition/mnist"
 
-// MNIST import
-import MNISTGlobal from "../components/MNISTComponents/MNIST_global"
-import MNISTDesc from "../components/MNISTComponents/MNIST_desc"
-import MNISTTraining from "../components/MNISTComponents/MNIST_training"
-import MNISTTesting from "../components/MNISTComponents/MNIST_testing"
-import MNISTModelManager from "../components/MNISTComponents/MNIST_modelManager"
+// WARNING: temporay code until serialization of Task object 
 
-// Testing import 
-import receiver from "../components/receiver"
-import sender from "../components/sender"
+// define task here 
+var titanic_task = new TitanicTask()
+var mnist_task = new MnistTask()
 
+// notify new task if availabe by adding it to the list of tasks available 
+export const ALL_TASKS = [titanic_task, mnist_task]
 
+// allocate each task depending of creation 
+function dynamicTaskAllocationFn (routes){
+  switch(routes.params.Id) {
+    case titanic_task.training_information.model_id:
+      return {Id: routes.params.Id, Task: titanic_task}
+    case mnist_task.training_information.model_id: 
+      return {Id: routes.params.Id, Task: mnist_task}
+    
+  }
+}
 
 const routes = [
   {
@@ -30,63 +41,42 @@ const routes = [
     name: 'home',
     component: TaskList
   },
-  // Titanic Routing
   {
-    path: '/titanic-model',
-    name: 'titanic-model',
-    component: TitanicGlobal,
-    children: [{
-      path: 'description',
-      component: TitanicDesc
-    },
-    {
-      path: 'training',
-      component: TitanicTrainingConn
-    },
-    {
-      path: 'model-manager',
-      component: TitanicModelManager
-    },
+    path:"/information",
+    name: 'information',
+    component: Information
+  },
+  {
+    path:"/trophee",
+    name: 'trophee',
+    component: Trophee
+  },
+  {
+    path: '/:Id',
+    name: 'mainTaskFrame',
+    component: MainTaskFrame,
+    props: dynamicTaskAllocationFn, 
+    children: [
+      {
+        path: 'description', 
+        name: 'description',
+        component: MainDescriptionFrame,
+        props: dynamicTaskAllocationFn,
+      },
+      {
+        path: 'training',
+        name: 'training',
+        component: MainTrainingFrame, 
+        props: dynamicTaskAllocationFn,
+      },
+      {
+        path: 'model-manager', 
+        name: 'model-manager', 
+        component: MainModelManagerFrame, 
+        props: dynamicTaskAllocationFn,
+      }
     ]
   },
-
-  // MNIST Routing
-  {
-    path: '/mnist-model',
-    name: 'mnist-model',
-    component: MNISTGlobal,
-    children: [{
-      path: 'description',
-      component: MNISTDesc
-    },
-    {
-      path: 'training',
-      component: MNISTTraining
-    },
-    {
-      path: 'testing',
-      component: MNISTTesting
-    },
-    {
-      path: 'model-manager',
-      component: MNISTModelManager
-    }, 
-    ]
-  },
-
-  // Testing peer.js
-  {
-    path: '/receiver',
-    name: 'receiver',
-    component: receiver
-  },
-  {
-    path: '/sender',
-    name: 'sender',
-    component: sender
-  },
-
-
 ]
 
 const router = createRouter({

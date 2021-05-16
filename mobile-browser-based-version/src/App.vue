@@ -32,7 +32,7 @@
           <!-- Brand -->
           <div class="flex-shrink-0">
             <a
-              href="task-list.html"
+              v-on:click="goToHome()"
               class="p-1 inline-block text-xl font-bold tracking-wider uppercase text-primary-dark dark:text-light"
             >
               De-AI
@@ -70,7 +70,7 @@
             <!-- Active classes "bg-primary text-white" -->
             <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
             <a
-              href="#"
+              v-on:click="goToInformation()"
               class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
             >
               <span class="sr-only">Messages</span>
@@ -93,7 +93,7 @@
             <!-- Active classes "bg-primary text-white" -->
             <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
             <a
-              href="#"
+              v-on:click="goToTrophee()"
               class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
             >
               <span class="sr-only">Trophee Link</span>
@@ -242,7 +242,6 @@
           leave-class="translate-x-0"
           leave-to-class="translate-x-full"
         >
-          <!-- @keydown.escape="isSettingsPanelOpen = false" -->
           <section
             x-ref="settingsPanel"
             tabindex="-1"
@@ -254,7 +253,7 @@
               <!-- Close button -->
               <button
                 v-on:click="isSettingsPanelOpen = false"
-                class="p-2 text-white rounded-md focus:outline-none focus:ring"
+                class="p-2 text-white rounded-md focus:outline-none focus:border-transparent border-transparent"
               >
                 <svg
                   class="w-5 h-5"
@@ -510,7 +509,6 @@
                     When a model has been deleted, the application might need to
                     be re-launched.
                   </span>
-              
                 </div>
 
                 <!-- Model list -->
@@ -522,10 +520,13 @@
                     <div
                       class="flex items-center justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
                     >
-                      <span> {{ item[1].name.substr(12) }} <br> <span class="text-xs">
-                        {{item[1].date}} at {{item[1].hours}} <br> {{item[1].size}} KB
+                      <span>
+                        {{ item[1].name.substr(12) }} <br />
+                        <span class="text-xs">
+                          {{ item[1].date }} at {{ item[1].hours }} <br />
+                          {{ item[1].size }} KB
                         </span>
-                        </span>
+                      </span>
                       <button
                         v-on:click="deleteModel(item[1].name)"
                         class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
@@ -550,7 +551,6 @@
                       </button>
                     </div>
                   </div>
-                
                 </div>
               </div>
             </div>
@@ -562,7 +562,7 @@
       <div class="overflow-x-scroll">
         <router-view v-slot="{ Component }">
           <keep-alive>
-            <component :is="Component" />
+            <component :is="Component" :key="$route.params.Id"/>
           </keep-alive>
         </router-view>
       </div>
@@ -572,7 +572,6 @@
 
 <script>
 import * as tf from "@tensorflow/tfjs";
-import { getKernel } from "@tensorflow/tfjs";
 
 export default {
   data: function () {
@@ -653,11 +652,8 @@ export default {
         this.isSidebarOpen = true;
       }
     },
-    toggleSidbarMenu() {
-      this.isSidebarOpen = !this.isSidebarOpen;
-    },
     openSettingsPanel() {
-      this.refreshModel()
+      this.refreshModel();
       this.isSettingsPanelOpen = true;
     },
     async openMemoryPannel() {
@@ -667,6 +663,13 @@ export default {
     goToHome() {
       this.$router.push({ name: "home" });
     },
+    goToInformation() {
+      this.$router.push({ name: "information" });
+    },
+    goToTrophee() {
+      this.$router.push({ name: "trophee" });
+    }
+    ,
     async refreshModel() {
       var new_model_map = new Map();
       tf.io.listModels().then((models) => {
@@ -676,13 +679,16 @@ export default {
           let date_saved =
             date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
           let hour_saved = date.getHours() + "h" + date.getMinutes();
-          let size = model_info.modelTopologyBytes + model_info.weightSpecsBytes + model_info.weightDataBytes
+          let size =
+            model_info.modelTopologyBytes +
+            model_info.weightSpecsBytes +
+            model_info.weightDataBytes;
 
           new_model_map.set(key, {
             name: key,
             date: date_saved,
             hours: hour_saved,
-            size: size/1000,
+            size: size / 1000,
           });
         }
 
@@ -692,10 +698,9 @@ export default {
 
     async deleteModel(model_name) {
       console.log(model_name);
-      this.modelMap.delete(model_name)
-      await tf.io.removeModel(model_name)
-    },
-
+      this.modelMap.delete(model_name);
+      await tf.io.removeModel(model_name);
+    },  
   },
   async mounted() {
     tf.io.listModels().then((models) => {
@@ -705,19 +710,21 @@ export default {
         let date_saved =
           date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
         let hour_saved = date.getHours() + "h" + date.getMinutes();
-        let size = model_info.modelTopologyBytes + model_info.weightSpecsBytes + model_info.weightDataBytes
-        
+        let size =
+          model_info.modelTopologyBytes +
+          model_info.weightSpecsBytes +
+          model_info.weightDataBytes;
+
         this.modelMap.set(key, {
           name: key,
           date: date_saved,
           hours: hour_saved,
-          size: size/1000,
+          size: size / 1000,
         });
       }
     });
   },
 };
-
 </script>
 
 
