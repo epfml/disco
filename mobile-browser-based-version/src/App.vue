@@ -66,6 +66,48 @@
                 />
               </svg>
             </a>
+
+            <!-- Trophee Class -->
+            <!-- Active classes "bg-primary text-white" -->
+            <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
+            <!-- <a
+              v-on:click="goToTrophee()"
+              class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+            >
+              <span class="sr-only">Trophee Link</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="bi bi-trophy w-7 h-7"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33.076 33.076 0 0 1 2.5.5zm.099 2.54a2 2 0 0 0 .72 3.935c-.333-1.05-.588-2.346-.72-3.935zm10.083 3.935a2 2 0 0 0 .72-3.935c-.133 1.59-.388 2.885-.72 3.935zM3.504 1c.007.517.026 1.006.056 1.469.13 2.028.457 3.546.87 4.667C5.294 9.48 6.484 10 7 10a.5.5 0 0 1 .5.5v2.61a1 1 0 0 1-.757.97l-1.426.356a.5.5 0 0 0-.179.085L4.5 15h7l-.638-.479a.501.501 0 0 0-.18-.085l-1.425-.356a1 1 0 0 1-.757-.97V10.5A.5.5 0 0 1 9 10c.516 0 1.706-.52 2.57-2.864.413-1.12.74-2.64.87-4.667.03-.463.049-.952.056-1.469H3.504z"
+                />
+              </svg>
+            </a>
+            -->
+
+            <!-- Get Memory Pannel-->
+            <button
+              v-on:click="openMemoryPannel"
+              class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+            >
+              <span class="sr-only">Open memory panel</span>
+              <svg
+                class="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 16 16"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"
+                />
+              </svg>
+            </button>
+            
             <!-- Info link -->
             <!-- Active classes "bg-primary text-white" -->
             <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
@@ -88,46 +130,6 @@
                 />
               </svg>
             </a>
-
-            <!-- Trophee Class -->
-            <!-- Active classes "bg-primary text-white" -->
-            <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
-            <a
-              v-on:click="goToTrophee()"
-              class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
-            >
-              <span class="sr-only">Trophee Link</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                class="bi bi-trophy w-7 h-7"
-                viewBox="0 0 16 16"
-              >
-                <path
-                  d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33.076 33.076 0 0 1 2.5.5zm.099 2.54a2 2 0 0 0 .72 3.935c-.333-1.05-.588-2.346-.72-3.935zm10.083 3.935a2 2 0 0 0 .72-3.935c-.133 1.59-.388 2.885-.72 3.935zM3.504 1c.007.517.026 1.006.056 1.469.13 2.028.457 3.546.87 4.667C5.294 9.48 6.484 10 7 10a.5.5 0 0 1 .5.5v2.61a1 1 0 0 1-.757.97l-1.426.356a.5.5 0 0 0-.179.085L4.5 15h7l-.638-.479a.501.501 0 0 0-.18-.085l-1.425-.356a1 1 0 0 1-.757-.97V10.5A.5.5 0 0 1 9 10c.516 0 1.706-.52 2.57-2.864.413-1.12.74-2.64.87-4.667.03-.463.049-.952.056-1.469H3.504z"
-                />
-              </svg>
-            </a>
-
-            <!-- Get Memory Pannel-->
-            <button
-              v-on:click="openMemoryPannel"
-              class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
-            >
-              <span class="sr-only">Open memory panel</span>
-              <svg
-                class="w-6 h-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 16 16"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"
-                />
-              </svg>
-            </button>
 
             <!-- Get Setting Pannel-->
             <button
@@ -430,7 +432,7 @@
           ></div>
         </transition>
 
-        <!-- Memory Panel Content -->
+        <!-- Memory Panel Content : TODO: rename to 'Model library' -->
         <transition
           enter-active-class="transition duration-300 ease-in-out sm:duration-500"
           enter-from-class="translate-x-full"
@@ -514,7 +516,7 @@
                 <!-- Model list -->
                 <div class="p-4 space-y-4 md:p-8">
                   <h6 class="text-lg font-medium text-gray-400 dark:text-light">
-                    Models in memory
+                    My model library
                   </h6>
                   <div v-for="(item, idx) in modelMap" :key="idx">
                     <div
@@ -708,7 +710,7 @@ export default {
         var model_info = models[key];
         let date = new Date(model_info.dateSaved);
         let date_saved =
-          date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
+          date.getDate() + "/" + (date.getMonth() +1) + "/" + date.getFullYear();
         let hour_saved = date.getHours() + "h" + date.getMinutes();
         let size =
           model_info.modelTopologyBytes +

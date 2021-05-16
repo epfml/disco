@@ -8,8 +8,8 @@
           <span class="text-primary-dark dark:text-primary-light"
             >One last step.</span
           >
-          Before training, please from the options bellow, choose a model you
-          would like to use. If its you first time using the application, please
+          Before training, please from the options below, choose a model you
+          would like to use. If it is your first time using the application, please
           create new model.
         </h1>
       </div>
@@ -217,7 +217,7 @@ export default {
         this.$toast.success(
           "A new "
             .concat(this.Task.training_information.model_id)
-            .concat(` has been createded. You can start training!`)
+            .concat(` has been created. You can start training!`)
         );
         setTimeout(this.$toast.clear, 30000);
       }
@@ -270,7 +270,7 @@ export default {
         if (saved_model != null) {
           let date = model_info.modelArtifactsInfo.dateSaved;
           this.date_saved =
-            date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
+            date.getDate() + "/" + (date.getMonth()+1) + "/" + date.getFullYear();
           this.hour_saved = date.getHours() + "h" + date.getMinutes();
           this.saved_model_exists = true;
         }
