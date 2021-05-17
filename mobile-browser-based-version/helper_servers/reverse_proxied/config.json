@@ -1,0 +1,15 @@
+{
+  "proxy_server": {
+    "port": 3000
+  },
+  "peer_server": {
+    "port": 3001,
+    "path": "/peers",
+    "key": "api",
+    "allow_discovery": true,
+    "proxied": true
+  },
+  "task_server": {
+    "port": 3002
+  }
+}
