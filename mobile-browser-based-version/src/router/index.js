@@ -9,6 +9,7 @@ import Trophee from "../components/Trophee"
 import MainTaskFrame from "../components/Main Frames/MainTaskFrame"
 import MainDescriptionFrame from "../components/Main Frames/MainDescriptionFrame"
 import MainTrainingFrame from "../components/Main Frames/MainTrainingFrame"
+import MainTestingFrame from "../components/Main Frames/MainTestingFrame"
 import MainModelManagerFrame from "../components/Main Frames/MainModelManagerFrame"
 
 // Import the tasks objects Here
@@ -67,6 +68,12 @@ const routes = [
         path: 'training',
         name: 'training',
         component: MainTrainingFrame, 
+        props: dynamicTaskAllocationFn,
+      },
+      {
+        path: 'testing',
+        name: 'testing',
+        component: MainTestingFrame, 
         props: dynamicTaskAllocationFn,
       },
       {

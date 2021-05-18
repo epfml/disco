@@ -208,6 +208,56 @@
         </div>
       </div>
     </div>
+
+    <!-- Save the model button -->
+    <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
+      <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
+        <div
+          class="flex items-center justify-between p-4 border-b dark:border-primary"
+        >
+          <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
+            Test the model
+          </h4>
+          <div class="flex items-center">
+            <span aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="bi bi-card-checklist w-7 h-7"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1h-2z"
+                />
+                <path
+                  fill-rule="evenodd"
+                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"
+                />
+              </svg>
+            </span>
+          </div>
+        </div>
+        <!-- Descrition -->
+        <div class="relative p-4 overflow-x-scroll">
+          <span
+            style="white-space: pre-line"
+            class="text-sm text-gray-500 dark:text-light"
+            >Once you have finished training your model it might be
+            a great idea to go test it.
+          </span>
+        </div>
+        <div class="flex items-center justify-center p-4">
+          <button
+            id="train-model-button"
+            v-on:click="goToTesting()"
+            class="text-lg border-2 border-transparent bg-primary ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+          >
+            Test My model
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -280,12 +330,10 @@ export default {
     },
 
     goToTesting() {
-        //Nothing for now
-    /*
-      this.$router.push({
-        path: "/" + training_information.model_id + "/testing",
-      });
-      */
+      this.$router.push({ 
+          name: 'testing',
+          params: {Id: this.Id} 
+       });
     },
   },
   components: {

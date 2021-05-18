@@ -41,7 +41,7 @@
 
 <script>
 export default {
-    name: "ImagePredictionResults",
+    name: "ImagePredictionsResultFrame",
     props: {
         classes: Array,
         imageElement: HTMLImageElement,
