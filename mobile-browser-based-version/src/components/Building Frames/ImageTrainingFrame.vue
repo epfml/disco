@@ -78,8 +78,8 @@
           <div class="flex object-center">
             <img
               class="object-center"
-              src="../../../example_training_data/9-mnist-example.png"
-              alt=""
+              :src="getImage(DataExampleImage)"
+              v-bind:alt="DataExampleImage"
             /><img />
           </div>
         </div>
@@ -218,11 +218,12 @@ import { CommunicationManager } from "../../helpers/Communication Script/communi
 import { TrainingManager } from "../../helpers/Training Script/training_manager";
 import TrainingInformationFrame from "./TrainingInformationFrame";
 import ImageUploadFrame from "../Building Frames/ImageUploadFrame";
+import { check_data } from '../../helpers/Data Validation Script/helpers-image-tasks';
 // takes care of communication
 var training_manager = null;
 
 export default {
-  name: "CsvTrainingFrame",
+  name: "ImageTrainingFrame",
   props: {
     Id: String,
     Task: Object,
@@ -234,6 +235,7 @@ export default {
       DataFormatInfoText: "",
       DataExampleText: "",
       DataExample: null,
+      DataExampleImage:"",
       // different task labels 
       task_labels: [],
 
@@ -245,6 +247,9 @@ export default {
 
       // take care of communication processes
       communication_manager: new CommunicationManager(9000), // TO DO: to modularize
+
+      // Uploaded Files
+      FILES: {},
     };
   },
   methods: {
@@ -256,10 +261,19 @@ export default {
       const filesElement = this.FILES;
 
       // Check that the user indeed gave a file
-      if (filesElement.files.length == 0) {
+      if (filesElement.length == 0) {
         alert("Training aborted. No uploaded file given as input.");
       } else {
+        this.$toast.success(`Thank you for your contribution. Image preprocessing has started`);
+        setTimeout(this.$toast.clear, 30000)
+  
         var processed_data = await this.Task.data_preprocessing(this.FILES);
+        
+        processed_data.accepted = (await check_data(this.FILES)).accepted
+
+        this.$toast.success(`Image preprocessing has finished and training has started`);
+        setTimeout(this.$toast.clear, 30000)
+        
         await training_manager.train_model(distributed, processed_data);
       }
     },
@@ -267,7 +281,7 @@ export default {
     addFile: function (file, label) {
       const isImage = file.type.match("image.*"),
         objectURL = URL.createObjectURL(file);
-      this.FILES[objectURL] = label;
+      this.FILES[objectURL] = {label:label, name: file.name};
     },
 
     inputChange: function (e, label) {
@@ -277,6 +291,16 @@ export default {
         counter += 1;
       }
       console.log(counter + " Files Added");
+    },
+
+    getImage(url) {
+      if (url == ""){
+        return null
+      }
+
+      var images = require.context('../../../example_training_data/', false)
+      console.log(url)
+      return images(url)
     },
 
     goToTesting() {
@@ -301,7 +325,8 @@ export default {
       this.DataExampleText = this.Task.display_information.dataExampleText;
       this.DataExample = this.Task.display_information.dataExample;
       this.task_labels = this.Task.training_information.LABEL_LIST;
-
+      this.DataExampleImage = this.Task.display_information.dataExampleImage
+      
       // initialize the training manager
       training_manager = new TrainingManager(this.Task.training_information);
 
