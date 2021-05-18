@@ -16,7 +16,7 @@ export class LusCovidTask {
      * @returns Returns a tf.model or null if there is no model
      */
      async get_model_from_storage() {
-        let model = await tf.loadLayersModel('indexeddb:://working_'.concat(training_information.model_id))
+        let model = await tf.loadLayersModel(training_information.save_path_db)
         return model
     }
 
@@ -24,11 +24,19 @@ export class LusCovidTask {
      * @returns new instance of TensorflowJS model
      */
     create_model() {
-        const save_path_db = "indexeddb://working_".concat(
-            training_information.model_id
-        );
-        // only keep this here
-        this.create_deep_learning_model().save(save_path_db);
+        let new_model = tf.sequential();
+
+        new_model.add(tf.layers.dense({inputShape:[FEATURES], units:512, activation:'relu'}))
+
+        new_model.add(tf.layers.dense({units: 64, activation: 'relu'}))
+
+        new_model.add(tf.layers.dense({units: 2, activation:"softmax"}));
+
+        new_model.summary()
+
+        new_model.save(training_information.save_path_db);
+
+        return new_model
     }
 
     create_deep_learning_model(){
@@ -54,7 +62,7 @@ export class LusCovidTask {
 
             net.summary()
 
-            console.log("Successfully loaded model")
+            console.log("Successfully loaded mobilenet model")
         }
 
         const labels = []
@@ -110,18 +118,6 @@ export class LusCovidTask {
         return tf.tensor2d(labels_one_hot_encoded, [nb_labels, this.training_information.NUM_CLASSES])
     }
 
-    mean_tensor(tensors){
-        let result = tensors[0]
-
-        for(let i = 1; i< tensors.length; ++i){
-            const tensor = tensors[i]
-            result = result.add(tensor)
-        }
-        result = result.div(tf.scalar(tensors.length))
-
-        return result
-    }
-
     one_hot_encode(label){
         const result = []
         for (let i = 0; i < this.training_information.NUM_CLASSES; i++){
@@ -136,13 +132,17 @@ export class LusCovidTask {
 
     /**
      * Get all training data as a data tensor and a labels tensor.
+     * 
+     * @param image_uri Array of image uris
+     * @param labels_per_image Array of label per each image
+     * @param image_names Array of names of images
      *
      * @returns
      *   xs: The data tensor, of shape `[numTrainExamples, 28, 28, 1]`.
      *   labels: The one-hot encoded labels tensor, of shape
      *     `[numTrainExamples, 2]`.
      */
-    async getTrainData(image_uri, labels_preprocessed, image_names) {
+    async getTrainData(image_uri, labels_per_image, image_names) {
         const dict_images = {}
         const dict_labels = {}
         let patients = new Set()
@@ -156,7 +156,7 @@ export class LusCovidTask {
             if(id in dict_images){ 
                 res = dict_images[id]
             }else{
-                dict_labels[id] = labels_preprocessed[i]
+                dict_labels[id] = labels_per_image[i]
             }
 
             res.push(await this.image_preprocessing(image_uri[i]))
@@ -165,14 +165,14 @@ export class LusCovidTask {
         }
 
 
-        console.log("Number of patients found was of "+Object.keys(dict_images).length)
+        console.log("Number of patients found was "+Object.keys(dict_images).length)
 
-        let image_tensors1 = {}
+        let image_tensors_per_patient = {}
         patients = Array.from(patients)
         for(let i = 0; i < patients.length; ++i){
             const id = patients[i]
             // Do mean pooling over same patient representations
-            image_tensors1[id] = this.mean_tensor(dict_images[id])
+            image_tensors_per_patient[id] = tf.mean(tf.concat(dict_images[id], 0),0).expandDims(0)
         }
         
         const xs_array = []
@@ -182,7 +182,7 @@ export class LusCovidTask {
         patients.sort( () => .5 - Math.random() );
         for (let i = 0; i< patients.length; ++i ){
             const id = patients[i]
-            xs_array.push(image_tensors1[id])
+            xs_array.push(image_tensors_per_patient[id])
             labels_to_process.push(dict_labels[id])
         }
 
@@ -223,6 +223,8 @@ export const display_information = {
 export const training_information = {
     // {String} model's identification name
     model_id: "lus-covid-model",
+    // {String} indexedDB path where the model is stored
+    save_path_db: "indexeddb://working_lus_covid_model",
     // {Number} port of the peerjs server
     port: 3,
     // {Number} number of epoch used for training
