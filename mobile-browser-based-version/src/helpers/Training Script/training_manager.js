@@ -69,6 +69,11 @@ export class TrainingManager {
                 this.training_information.model_id.concat(` has finished training!`)
             );
             setTimeout(this.environment.$toast.clear, 30000);
+        }else{
+            this.environment.$toast.error(
+                `Your data has not been accepted please try to fix the data before uploading again.`
+            );
+            setTimeout(this.environment.$toast.clear, 30000);
         }
     }
 

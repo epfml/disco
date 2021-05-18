@@ -194,6 +194,8 @@ export const display_information = {
         "This model takes as input an image dataset. You can upload each digit image of your dataset in the box corresponding to its label. The size of the image will be reduced to 28x28. Finally, the image should be in grey scale.",
     // {String} description of the datapoint given as example
     dataExampleText: "Below you can find an example of an expected image representing the digit 9.",
+    // {String} local url to an image data example
+    dataExampleImage: "./9-mnist-example.png",
 };
 
 /**
