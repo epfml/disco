@@ -1,20 +1,21 @@
 # Mobile Browser-Based Version
 ## Install and host peerJS server locally
-To install and host a peerJS helper server locally, you can follow the official [instructions](https://github.com/peers/peerjs-server#run-server).    
-To run the server, you can use the following command (from the present folder): 
+To install and host a peerJS helper server locally type the following command (from the root folder of the mobile-browser-based-version): 
 ```
 peerjs --port 9000 --key peerjs --path /deai --allow_discovery
 ```
+(Official [instructions](https://github.com/peers/peerjs-server#run-server)).
 
 ## How to run the app
-All commands are ran from the present folder here. 
+All commands are ran from the folder ./mobile-browser-based-version.  
 ### NPM installation
 NPM is a package manager for the JavaScript runtime environment Node.js.  
-To start the application (running locally) run the following command. 
+To start the application (running locally) run the following command.    
+Note: the application is currently developed using [NPM 7.6.3](https://www.npmjs.com/package/npm/v/7.6.3).
 ```
 npm install
 ```
-This command will install the necessary libraries required to run the application (defined in the `package.json`). The latter command is only required when one is using the app for the first time. 
+This command will install the necessary libraries required to run the application (defined in the `package.json` and `package-lock.json`). The latter command is only required when one is using the app for the first time. 
 
 ### Compiles and hot-reloads for development
 To launch the application run the following command: 
@@ -24,6 +25,9 @@ npm run serve
 This will start the application locally with two visualization options: 
 1. One can access the running app locally, with a ` localhost link` 
 2. One can access the running app on any device that has access to the network of his machine. To do so, use the `network link`. 
+
+To **test decentralized learning** between two peers, run the aformentioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.    
+Please note that currently, only the titanic task has been configured to have a decentralized training loop. 
 
 ### Compiles and minifies for production
 ```
