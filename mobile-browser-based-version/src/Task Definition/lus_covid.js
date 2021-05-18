@@ -39,20 +39,6 @@ export class LusCovidTask {
         return new_model
     }
 
-    create_deep_learning_model(){
-        let new_model = tf.sequential();
-
-        new_model.add(tf.layers.dense({inputShape:[FEATURES], units:512, activation:'relu'}))
-
-        new_model.add(tf.layers.dense({units: 64, activation: 'relu'}))
-
-        new_model.add(tf.layers.dense({units: 2, activation:"softmax"}));
-
-        new_model.summary()
-        
-        return new_model
-    }
-
     // Data is passed under the form of Dictionary{ImageURL: label}
     async data_preprocessing(training_data){
         if (net == null){
