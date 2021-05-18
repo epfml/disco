@@ -13,7 +13,7 @@ export class MnistTask {
      * @returns Returns a tf.model or null if there is no model
      */
     async get_model_from_storage() {
-        let model = await tf.loadLayersModel('indexeddb:://working_'.concat(training_information.model_id))
+        let model = await tf.loadLayersModel('indexeddb:://working_'.concat(this.training_information.model_id))
         return model
     }
 
@@ -22,7 +22,7 @@ export class MnistTask {
      */
     create_model() {
         const save_path_db = "indexeddb://working_".concat(
-            training_information.model_id
+            this.training_information.model_id
         );
         // only keep this here
         this.createConvModel().save(save_path_db);
@@ -48,7 +48,7 @@ export class MnistTask {
         // of 5 pixels each. It uses a simple RELU activation function which pretty
         // much just looks like this: __/
         model.add(tf.layers.conv2d({
-            inputShape: [training_information.IMAGE_H, training_information.IMAGE_W, 3],
+            inputShape: [this.training_information.IMAGE_H, this.training_information.IMAGE_W, 3],
             kernelSize: 3,
             filters: 16,
             activation: 'relu'
@@ -135,8 +135,8 @@ export class MnistTask {
         // Fill the image & call predict.
         let imgElement = document.createElement('img');
         imgElement.src = src;
-        imgElement.width = training_information.IMAGE_W;
-        imgElement.height = training_information.IMAGE_H;
+        imgElement.width = this.training_information.IMAGE_W;
+        imgElement.height = this.training_information.IMAGE_H;
 
         // tf.browser.fromPixels() returns a Tensor from an image element.
         const img = tf.browser.fromPixels(imgElement).toFloat();
@@ -146,7 +146,7 @@ export class MnistTask {
         const normalized = img.sub(offset).div(offset);
 
         // Reshape to a single-element batch so we can pass it to predict.
-        const batched = normalized.reshape([1, training_information.IMAGE_H, training_information.IMAGE_W, 3]);
+        const batched = normalized.reshape([1, this.training_information.IMAGE_H, this.training_information.IMAGE_W, 3]);
 
         return batched
     }
@@ -158,19 +158,72 @@ export class MnistTask {
             labels_one_hot_encoded.push(this.one_hot_encode(label))
         )
 
-        return tf.tensor2d(labels_one_hot_encoded, [nb_labels, training_information.LABEL_LIST.length])
+        return tf.tensor2d(labels_one_hot_encoded, [nb_labels, this.training_information.LABEL_LIST.length])
     }
 
     one_hot_encode(label) {
         const result = []
-        for (let i = 0; i < training_information.LABEL_LIST.length; i++) {
-            if (training_information.LABEL_LIST[i] == label) {
+        for (let i = 0; i < this.training_information.LABEL_LIST.length; i++) {
+            if (this.training_information.LABEL_LIST[i] == label) {
                 result.push(1)
             } else {
                 result.push(0)
             }
         }
         return result
+    }
+
+    async predict(imgElement){
+        const loadedModel = await this.get_model_from_storage() //TODO use the correct things
+        if (loadedModel != null){
+          const logits = tf.tidy(() => {
+            // tf.browser.fromPixels() returns a Tensor from an image element.
+            const img = tf.browser.fromPixels(imgElement).toFloat(); //TODO: load properly the image using functions in this class
+            const offset = tf.scalar(127.5);
+            // Normalize the image from [0, 255] to [-1, 1].
+            const normalized = img.sub(offset).div(offset);
+            // Reshape to a single-element batch so we can pass it to predict.
+            const batched = normalized.reshape([1, this.IMAGE_WIDTH, this.IMAGE_HEIGHT, 3]);
+            // Make a prediction through mobilenet.
+            return loadedModel.predict(batched);
+          })
+          // Convert logits to probabilities and class names.
+          // Convert logits to probabilities and class names.
+          const classes = await this.getTopKClasses(logits, 5);
+          console.log(classes);
+          // Show the classes in the DOM.
+          return classes;
+        }else{
+          this.$toast.failure(
+            `No model has been trained. Please do so before testing.`
+          );
+          setTimeout(this.$toast.clear, 30000);
+        }
+    }
+
+    async getTopKClasses(logits, topK) {
+        const values = await logits.data();
+        const valuesAndIndices = [];
+        for (let i = 0; i < values.length; i++) {
+            valuesAndIndices.push({ value: values[i], index: i });
+        }
+        valuesAndIndices.sort((a, b) => {
+            return b.value - a.value;
+        });
+        const topkValues = new Float32Array(topK);
+        const topkIndices = new Int32Array(topK);
+        for (let i = 0; i < topK; i++) {
+            topkValues[i] = valuesAndIndices[i].value;
+            topkIndices[i] = valuesAndIndices[i].index;
+        }
+        const topClassesAndProbs = [];
+        for (let i = 0; i < topkIndices.length; i++) {
+            topClassesAndProbs.push({
+            className: this.task_labels[topkIndices[i]],
+            probability: topkValues[i],
+            });
+        }
+        return topClassesAndProbs;
     }
 }
 
