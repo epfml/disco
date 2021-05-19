@@ -34,8 +34,6 @@ export class MnistTask {
      * @returns {tf.Model} An instance of tf.Model.
      */
     createConvModel() {
-        const IMAGE_H = 28;
-        const IMAGE_W = 28;
         // Create a sequential neural network model. tf.sequential provides an API
         // for creating "stacked" models where the output from one layer is used as
         // the input to the next layer.
@@ -131,19 +129,26 @@ export class MnistTask {
         return { accepted: startTraining, Xtrain: Xtrain, ytrain: ytrain }
     }
 
-    image_preprocessing(src) {
-        // Fill the image & call predict.
-        let imgElement = document.createElement('img');
-        imgElement.src = src;
-        imgElement.width = this.training_information.IMAGE_W;
-        imgElement.height = this.training_information.IMAGE_H;
+    async loadLocalImage(filename) {
+        return new Promise((res, rej) => {
+            var img = new Image();
+            img.src = filename
+            img.width = this.training_information.IMAGE_W
+            img.height = this.training_information.IMAGE_H
+            img.onload = () =>{
+                var output = tf.browser.fromPixels(img)
+                res(output)
+            }
+        });
+    }
 
-        // tf.browser.fromPixels() returns a Tensor from an image element.
-        const img = tf.browser.fromPixels(imgElement).toFloat();
+    async image_preprocessing(src) {
+        // load image from local 
+        const img_tensor = await this.loadLocalImage(src);
 
         const offset = tf.scalar(127.5);
         // Normalize the image from [0, 255] to [-1, 1].
-        const normalized = img.sub(offset).div(offset);
+        const normalized = img_tensor.sub(offset).div(offset);
 
         // Reshape to a single-element batch so we can pass it to predict.
         const batched = normalized.reshape([1, this.training_information.IMAGE_H, this.training_information.IMAGE_W, 3]);
@@ -158,13 +163,13 @@ export class MnistTask {
             labels_one_hot_encoded.push(this.one_hot_encode(label))
         )
 
-        return tf.tensor2d(labels_one_hot_encoded, [nb_labels, this.training_information.LABEL_LIST.length])
+        return tf.tensor2d(labels_one_hot_encoded, [nb_labels, this.training_information.task_labels.length])
     }
 
     one_hot_encode(label) {
         const result = []
-        for (let i = 0; i < this.training_information.LABEL_LIST.length; i++) {
-            if (this.training_information.LABEL_LIST[i] == label) {
+        for (let i = 0; i < this.training_information.task_labels.length; i++) {
+            if (this.training_information.task_labels[i] == label) {
                 result.push(1)
             } else {
                 result.push(0)
@@ -174,30 +179,31 @@ export class MnistTask {
     }
 
     async predict(imgElement){
-        const loadedModel = await this.get_model_from_storage() //TODO use the correct things
+        console.log("Loading model...")
+        var loadedModel = null
+        try{
+            loadedModel = await this.get_model_from_storage()
+        }catch {
+            console.log("No model found.")
+            return null
+        }
+
         if (loadedModel != null){
-          const logits = tf.tidy(() => {
-            // tf.browser.fromPixels() returns a Tensor from an image element.
-            const img = tf.browser.fromPixels(imgElement).toFloat(); //TODO: load properly the image using functions in this class
-            const offset = tf.scalar(127.5);
-            // Normalize the image from [0, 255] to [-1, 1].
-            const normalized = img.sub(offset).div(offset);
-            // Reshape to a single-element batch so we can pass it to predict.
-            const batched = normalized.reshape([1, this.IMAGE_WIDTH, this.IMAGE_HEIGHT, 3]);
-            // Make a prediction through mobilenet.
-            return loadedModel.predict(batched);
+            console.log("Model loaded.")
+          const logits = tf.tidy(async() => {
+            const img_tensor = await this.image_preprocessing(imgElement.src)
+            // Make a prediction through model.
+            return loadedModel.predict(img_tensor);
           })
-          // Convert logits to probabilities and class names.
           // Convert logits to probabilities and class names.
           const classes = await this.getTopKClasses(logits, 5);
           console.log(classes);
-          // Show the classes in the DOM.
+
+          console.log("Prediction Sucessful!")
+
           return classes;
         }else{
-          this.$toast.failure(
-            `No model has been trained. Please do so before testing.`
-          );
-          setTimeout(this.$toast.clear, 30000);
+          console.log("No model has been trained or found!")
         }
     }
 
@@ -219,7 +225,7 @@ export class MnistTask {
         const topClassesAndProbs = [];
         for (let i = 0; i < topkIndices.length; i++) {
             topClassesAndProbs.push({
-            className: this.task_labels[topkIndices[i]],
+            className: this.training_information.task_labels[topkIndices[i]],
             probability: topkValues[i],
             });
         }
@@ -247,6 +253,8 @@ export const display_information = {
         "This model takes as input an image dataset. You can upload each digit image of your dataset in the box corresponding to its label. The size of the image will be reduced to 28x28. Finally, the image should be in grey scale.",
     // {String} description of the datapoint given as example
     dataExampleText: "Below you can find an example of an expected image representing the digit 9.",
+    // {String} url of data example 
+    dataExampleImage: "./9-mnist-example.png"
 };
 
 /**
@@ -277,6 +285,5 @@ export const training_information = {
     data_type: 'image',
     IMAGE_H: 28,
     IMAGE_W: 28,
-    LABEL_LIST: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-
+    task_labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
 }
