@@ -12,28 +12,16 @@ export class MnistTask {
      * 
      * @returns Returns a tf.model or null if there is no model
      */
-    async get_model_from_storage() {
-        let model = await tf.loadLayersModel('indexeddb:://working_'.concat(this.training_information.model_id))
+     async get_model_from_storage() {
+        let model = await tf.loadLayersModel(training_information.save_path_db)
         return model
     }
 
     /**
-     * @returns new instance of TensorflowJS model
+     * @returns {tf.Model} new instance of TensorflowJS model
      */
     create_model() {
-        const save_path_db = "indexeddb://working_".concat(
-            this.training_information.model_id
-        );
         // only keep this here
-        this.createConvModel().save(save_path_db);
-    }
-
-    /**
-     * Creates a convolutional neural network (Convnet) for the MNIST data.
-     *
-     * @returns {tf.Model} An instance of tf.Model.
-     */
-    createConvModel() {
         // Create a sequential neural network model. tf.sequential provides an API
         // for creating "stacked" models where the output from one layer is used as
         // the input to the next layer.
@@ -82,6 +70,8 @@ export class MnistTask {
         // values sum to 1.
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
 
+        model.save(training_information.save_path_db);
+
         return model;
     }
 
@@ -117,10 +107,13 @@ export class MnistTask {
             ytrain = this.labels_preprocessing(labels)
             const image_tensors = []
 
-            image_uri.forEach(image =>
-                image_tensors.push(this.image_preprocessing(image))
-            )
+            for (let i = 0; i<image_uri.length; ++i){
+                const tensor = await this.image_preprocessing(image_uri[i])
+                image_tensors.push(tensor)
+            }
 
+            console.log(image_tensors)
+            
             Xtrain = tf.concat(image_tensors, 0)
             // object to return 
         } else {
@@ -163,13 +156,13 @@ export class MnistTask {
             labels_one_hot_encoded.push(this.one_hot_encode(label))
         )
 
-        return tf.tensor2d(labels_one_hot_encoded, [nb_labels, this.training_information.task_labels.length])
+        return tf.tensor2d(labels_one_hot_encoded, [nb_labels, this.training_information.LABEL_LIST.length])
     }
 
     one_hot_encode(label) {
         const result = []
-        for (let i = 0; i < this.training_information.task_labels.length; i++) {
-            if (this.training_information.task_labels[i] == label) {
+        for (let i = 0; i < this.training_information.LABEL_LIST.length; i++) {
+            if (this.training_information.LABEL_LIST[i] == label) {
                 result.push(1)
             } else {
                 result.push(0)
@@ -181,6 +174,7 @@ export class MnistTask {
     async predict(imgElement){
         console.log("Loading model...")
         var loadedModel = null
+        
         try{
             loadedModel = await this.get_model_from_storage()
         }catch {
@@ -190,20 +184,20 @@ export class MnistTask {
 
         if (loadedModel != null){
             console.log("Model loaded.")
-          const logits = tf.tidy(async() => {
+            
             const img_tensor = await this.image_preprocessing(imgElement.src)
-            // Make a prediction through model.
-            return loadedModel.predict(img_tensor);
-          })
-          // Convert logits to probabilities and class names.
-          const classes = await this.getTopKClasses(logits, 5);
-          console.log(classes);
 
-          console.log("Prediction Sucessful!")
+            const logits = loadedModel.predict(img_tensor)
 
-          return classes;
+            // Convert logits to probabilities and class names.
+            const classes = await this.getTopKClasses(logits, 5);
+            console.log(classes);
+
+            console.log("Prediction Sucessful!")
+
+            return classes;
         }else{
-          console.log("No model has been trained or found!")
+            console.log("No model has been trained or found!")
         }
     }
 
@@ -225,7 +219,7 @@ export class MnistTask {
         const topClassesAndProbs = [];
         for (let i = 0; i < topkIndices.length; i++) {
             topClassesAndProbs.push({
-            className: this.training_information.task_labels[topkIndices[i]],
+            className: this.training_information.LABEL_LIST[topkIndices[i]],
             probability: topkValues[i],
             });
         }
@@ -263,6 +257,8 @@ export const display_information = {
 export const training_information = {
     // {String} model's identification name
     model_id: "mnist-model",
+    // {String} indexedDB path where the model is stored
+    save_path_db: "indexeddb://working_lus_covid_model",
     // {Number} port of the peerjs server
     port: 1,
     // {Number} number of epoch used for training
@@ -285,5 +281,5 @@ export const training_information = {
     data_type: 'image',
     IMAGE_H: 28,
     IMAGE_W: 28,
-    task_labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    LABEL_LIST: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
 }
