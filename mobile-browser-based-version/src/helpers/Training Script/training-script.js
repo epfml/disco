@@ -20,10 +20,11 @@ export async function training(model, trainData, labels, _batchSize, _validation
   model.summary()
 
 
-
   // TO DO: access these parameters as training argument
+  const optimizer = tf.train.adam();
+  optimizer.learningRate = 0.05;
   model.compile({
-    optimizer: "rmsprop",
+    optimizer: optimizer,
     loss: "binaryCrossentropy",
     metrics: ["accuracy"],
   });
@@ -41,6 +42,7 @@ export async function training(model, trainData, labels, _batchSize, _validation
              Val Accuracy:  ${(
             logs.val_acc * 100
           ).toFixed(2)}\n`);
+          console.log(`loss ${logs.loss.toFixed(4)}`)
         //await tf.nextFrame();
       }
     }
@@ -96,7 +98,4 @@ export async function training_distributed(model, trainData, labels, _epochs, _b
       }
     }
   }).then( (info) => console.log("Training finished", info.history) )
-
-
-
 }

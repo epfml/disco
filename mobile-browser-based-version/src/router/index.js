@@ -15,15 +15,17 @@ import MainModelManagerFrame from "../components/Main Frames/MainModelManagerFra
 // Import the tasks objects Here
 import {TitanicTask} from "../Task Definition/titanic"
 import {MnistTask} from "../Task Definition/mnist"
+import {LusCovidTask} from "../Task Definition/lus_covid"
 
 // WARNING: temporay code until serialization of Task object 
 
 // define task here 
 var titanic_task = new TitanicTask()
 var mnist_task = new MnistTask()
+var lus_covid_task = new LusCovidTask()
 
 // notify new task if availabe by adding it to the list of tasks available 
-export const ALL_TASKS = [titanic_task, mnist_task]
+export const ALL_TASKS = [titanic_task, mnist_task, lus_covid_task]
 
 // allocate each task depending of creation 
 function dynamicTaskAllocationFn (routes){
@@ -32,6 +34,8 @@ function dynamicTaskAllocationFn (routes){
       return {Id: routes.params.Id, Task: titanic_task}
     case mnist_task.training_information.model_id: 
       return {Id: routes.params.Id, Task: mnist_task}
+    case lus_covid_task.training_information.model_id: 
+      return {Id: routes.params.Id, Task: lus_covid_task}
     
   }
 }
