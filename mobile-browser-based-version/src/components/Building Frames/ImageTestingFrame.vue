@@ -75,7 +75,9 @@
           </div>
 
           <!-- Data Point Example -->
-          <img src="../../../example_training_data/9-mnist-example.png" alt=""> <!-- TODO fix this--> 
+          <img 
+          :src="getImage(DataExampleImage)" 
+          v-bind:alt="DataExampleImage">
         </div>
       </div>
     </a>
@@ -250,7 +252,6 @@
 
 
 <script>
-//TODO: add image example
 import ImagePredictionResultFrame from '../Building Frames/ImagePredictionsResultFrame'
 export default {
   components: {
@@ -265,10 +266,12 @@ export default {
       title: "mnist-testing",
       DataFormatInfoText:"",
       DataExampleText: "",
+      DataExampleImage: "",
+
       // Different Task Labels
-      task_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-      IMAGE_HEIGHT: 28,
-      IMAGE_WIDTH: 28,
+      task_labels: [],
+      IMAGE_HEIGHT: null,
+      IMAGE_WIDTH: null,
   
       model_name: "",
       FILES: [],
@@ -280,7 +283,9 @@ export default {
   methods: {
     test_model(){
       const filesElement = document.getElementById("hidden-input");
+      console.log(filesElement)
       let file = filesElement.files[0];
+      console.log(file)
       // Only process image files (skip non image files)
       if (file && file.type.match("image.*")) {
         let reader = new FileReader();
@@ -295,9 +300,10 @@ export default {
         // Read in the image file as a data URL.
         reader.readAsDataURL(file);
       } 
-      filesElement.files = []
+      filesElement.value = ''
     },
     async predict(imgElement){
+      console.log(imgElement)
         const classes = await this.Task.predict(imgElement)
         this.showResults(imgElement, classes)
     },
@@ -307,6 +313,16 @@ export default {
       this.imgTested = imgElement
       this.gotResults = true
     },
+
+    getImage(url) {
+       if (url==""){
+         return null
+       }
+
+       console.log(url)
+       var images = require.context('../../../example_training_data/', false)
+       return images(url)
+     },
   },
   async mounted() { //TODO check this + simplify template part with just necessary stuff
     // This method is called when the component is created
@@ -322,6 +338,11 @@ export default {
       this.model_name = this.Task.training_information.model_id;
       this.DataFormatInfoText = this.Task.display_information.dataFormatInformation;
       this.DataExampleText = this.Task.display_information.dataExampleText;
+      this.DataExampleImage = this.Task.display_information.dataExampleImage;
+      this.IMAGE_HEIGHT = this.Task.training_information.IMAGE_HEIGHT;
+      this.IMAGE_WIDTH = this.Task.training_information.IMAGE_WIDTH;
+      this.task_labels = this.Task.training_information.task_labels;
+
       const imageTempl = document.getElementById("image-template"),
         empty = document.getElementById("empty");
       function addFile(target, file) {
