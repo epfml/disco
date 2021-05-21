@@ -1,14 +1,9 @@
 # Mobile Browser-Based Version
-## Install and host peerJS server locally
-To install and host a peerJS helper server locally type the following command (from the root folder of the mobile-browser-based-version): 
-```
-peerjs --port 9000 --key peerjs --path /deai --allow_discovery
-```
-(Official [instructions](https://github.com/peers/peerjs-server#run-server)).
-
 ## How to run the app
 All commands are ran from the folder ./mobile-browser-based-version.  
-### NPM installation
+### Node Installation and NPM installation
+The app is running under Node 15.12.0. It can be downloaded from [here](https://nodejs.org/en/download/releases/).
+
 NPM is a package manager for the JavaScript runtime environment Node.js.  
 To start the application (running locally) run the following command.    
 Note: the application is currently developed using [NPM 7.6.3](https://www.npmjs.com/package/npm/v/7.6.3).
