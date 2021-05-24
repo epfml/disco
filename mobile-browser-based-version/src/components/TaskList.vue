@@ -19,24 +19,24 @@
         <section class="flex-col items-center justify-center p-4 space-y-4">
           <div
             v-for="task in ALL_TASKS"
-            :key="task.training_information.model_id"
+            :key="task.trainingInformation.modelId"
             class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
           >
             <!-- Titanic's card-->
             <div
               class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark"
-              v-on:click="goToSelection(task.training_information.model_id)"
+              v-on:click="goToSelection(task.trainingInformation.modelId)"
             >
               <div>
                 <h6
                   class="text-xl font-medium leading-none tracking-wider uppercase dark:group-hover:text-darker"
                 >
-                  {{task.display_information.taskTitle}}
+                  {{task.displayInformation.taskTitle}}
                 </h6>
               </div>
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  {{task.display_information.summary}}
+                  {{task.displayInformation.summary}}
                 </ul>
               </div>
               <div>
@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import { initialize_indexedDB } from "../helpers/Memory Script/indexedDB_script";
+import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_script";
 import { ALL_TASKS } from "../router/index";
 
 export default {
@@ -92,7 +92,7 @@ export default {
     },
   },
   mounted() {
-    initialize_indexedDB();
+    initializeIndexedDB();
   },
 };
 </script>
