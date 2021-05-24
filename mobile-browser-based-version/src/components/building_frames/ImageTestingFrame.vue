@@ -306,6 +306,8 @@ export default {
       console.log(imgElement)
         const classes = await this.Task.predict(imgElement)
         this.showResults(imgElement, classes)
+        this.$toast.success(`Predictions are available below.`);
+        setTimeout(this.$toast.clear, 30000)
     },
 
     showResults(imgElement, classes) {
