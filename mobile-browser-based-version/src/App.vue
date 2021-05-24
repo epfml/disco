@@ -673,54 +673,54 @@ export default {
     }
     ,
     async refreshModel() {
-      var new_model_map = new Map();
+      var newModelMap = new Map();
       tf.io.listModels().then((models) => {
         for (var key in models) {
-          var model_info = models[key];
-          let date = new Date(model_info.dateSaved);
-          let date_saved =
+          var modelInfo = models[key];
+          let date = new Date(modelInfo.dateSaved);
+          let dateSaved =
             date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
-          let hour_saved = date.getHours() + "h" + date.getMinutes();
+          let hourSaved = date.getHours() + "h" + date.getMinutes();
           let size =
-            model_info.modelTopologyBytes +
-            model_info.weightSpecsBytes +
-            model_info.weightDataBytes;
+            modelInfo.modelTopologyBytes +
+            modelInfo.weightSpecsBytes +
+            modelInfo.weightDataBytes;
 
-          new_model_map.set(key, {
+          newModelMap.set(key, {
             name: key,
-            date: date_saved,
-            hours: hour_saved,
+            date: dateSaved,
+            hours: hourSaved,
             size: size / 1000,
           });
         }
 
-        this.modelMap = new_model_map;
+        this.modelMap = newModelMap;
       });
     },
 
-    async deleteModel(model_name) {
-      console.log(model_name);
-      this.modelMap.delete(model_name);
-      await tf.io.removeModel(model_name);
+    async deleteModel(modelName) {
+      console.log(modelName);
+      this.modelMap.delete(modelName);
+      await tf.io.removeModel(modelName);
     },  
   },
   async mounted() {
     tf.io.listModels().then((models) => {
       for (var key in models) {
-        var model_info = models[key];
-        let date = new Date(model_info.dateSaved);
-        let date_saved =
+        var modelInfo = models[key];
+        let date = new Date(modelInfo.dateSaved);
+        let dateSaved =
           date.getDate() + "/" + (date.getMonth() +1) + "/" + date.getFullYear();
-        let hour_saved = date.getHours() + "h" + date.getMinutes();
+        let hourSaved = date.getHours() + "h" + date.getMinutes();
         let size =
-          model_info.modelTopologyBytes +
-          model_info.weightSpecsBytes +
-          model_info.weightDataBytes;
+          modelInfo.modelTopologyBytes +
+          modelInfo.weightSpecsBytes +
+          modelInfo.weightDataBytes;
 
         this.modelMap.set(key, {
           name: key,
-          date: date_saved,
-          hours: hour_saved,
+          date: dateSaved,
+          hours: hourSaved,
           size: size / 1000,
         });
       }
