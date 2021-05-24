@@ -324,7 +324,7 @@ export default {
        return images(url)
      },
   },
-  async mounted() { //TODO check this + simplify template part with just necessary stuff
+  async mounted() {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // Code that will run only after the
