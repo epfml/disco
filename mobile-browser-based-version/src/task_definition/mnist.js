@@ -12,15 +12,15 @@ export class MnistTask {
      * 
      * @returns Returns a tf.model or null if there is no model
      */
-     async get_model_from_storage() {
-        let model = await tf.loadLayersModel(trainingInformation.save_path_db)
+     async getModelFromStorage() {
+        let model = await tf.loadLayersModel(trainingInformation.savePathDb)
         return model
     }
 
     /**
      * @returns {tf.Model} new instance of TensorflowJS model
      */
-    create_model() {
+    createModel() {
         // only keep this here
         // Create a sequential neural network model. tf.sequential provides an API
         // for creating "stacked" models where the output from one layer is used as
@@ -70,7 +70,7 @@ export class MnistTask {
         // values sum to 1.
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
 
-        model.save(trainingInformation.save_path_db);
+        model.save(trainingInformation.savePathDb);
 
         return model;
     }
@@ -108,7 +108,7 @@ export class MnistTask {
             const imageTensors = []
 
             for (let i = 0; i<imageUri.length; ++i){
-                const tensor = await this.image_preprocessing(imageUri[i])
+                const tensor = await this.imagePreprocessing(imageUri[i])
                 imageTensors.push(tensor)
             }
             
@@ -133,7 +133,7 @@ export class MnistTask {
         });
     }
 
-    async image_preprocessing(src) {
+    async imagePreprocessing(src) {
         // load image from local 
         const img_tensor = await this.loadLocalImage(src);
 
@@ -174,7 +174,7 @@ export class MnistTask {
         var loadedModel = null
         
         try{
-            loadedModel = await this.get_model_from_storage()
+            loadedModel = await this.getModelFromStorage()
         }catch {
             console.log("No model found.")
             return null
@@ -183,7 +183,7 @@ export class MnistTask {
         if (loadedModel != null){
             console.log("Model loaded.")
             
-            const img_tensor = await this.image_preprocessing(imgElement.src)
+            const img_tensor = await this.imagePreprocessing(imgElement.src)
 
             const logits = loadedModel.predict(img_tensor)
 
@@ -226,7 +226,7 @@ export class MnistTask {
 }
 
 /**
- * Object used to contain information about the task in general, the model's limitations
+ * Object used to contain information abfout the task in general, the model's limitations
  * and the data accepted by the model 
  */
 export const displayInformation = {
@@ -254,9 +254,9 @@ export const displayInformation = {
  */
 export const trainingInformation = {
     // {String} model's identification name
-    model_id: "mnist-model",
+    modelId: "mnist-model",
     // {String} indexedDB path where the model is stored
-    save_path_db: "indexeddb://working_lus_covid_model",
+    savePathDb: "indexeddb://working_lus_covid_model",
     // {Number} port of the peerjs server
     port: 1,
     // {Number} number of epoch used for training
