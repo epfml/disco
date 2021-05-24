@@ -1,6 +1,4 @@
-import { load } from '@tensorflow-models/mobilenet';
 import * as tf from '@tensorflow/tfjs';
-import { train } from '@tensorflow/tfjs';
 import {getTopKClasses} from '../helpers/testing_script/testing_script'
 
 const FEATURES = 1000
