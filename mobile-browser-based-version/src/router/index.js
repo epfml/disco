@@ -6,36 +6,36 @@ import Information from "../components/Information"
 import Trophee from "../components/Trophee"
 
 // Task's main frames
-import MainTaskFrame from "../components/Main Frames/MainTaskFrame"
-import MainDescriptionFrame from "../components/Main Frames/MainDescriptionFrame"
-import MainTrainingFrame from "../components/Main Frames/MainTrainingFrame"
-import MainTestingFrame from "../components/Main Frames/MainTestingFrame"
-import MainModelManagerFrame from "../components/Main Frames/MainModelManagerFrame"
+import MainTaskFrame from "../components/main_frames/MainTaskFrame"
+import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame"
+import MainTrainingFrame from "../components/main_frames/MainTrainingFrame"
+import MainModelManagerFrame from "../components/main_frames/MainMyModelManagerFrame"
+import MainTestingFrame from "../components/main_frames/MainTestingFrame"
 
 // Import the tasks objects Here
-import {TitanicTask} from "../Task Definition/titanic"
-import {MnistTask} from "../Task Definition/mnist"
-import {LusCovidTask} from "../Task Definition/lus_covid"
+import {TitanicTask} from "../task_definition/titanic"
+import {MnistTask} from "../task_definition/mnist"
+import {LusCovidTask} from "../task_definition/lus_covid"
 
 // WARNING: temporay code until serialization of Task object 
 
 // define task here 
-var titanic_task = new TitanicTask()
-var mnist_task = new MnistTask()
-var lus_covid_task = new LusCovidTask()
+var titanicTask = new TitanicTask()
+var mnistTask = new MnistTask()
+var lusCovidTask = new LusCovidTask()
 
 // notify new task if availabe by adding it to the list of tasks available 
-export const ALL_TASKS = [titanic_task, mnist_task, lus_covid_task]
+export const ALL_TASKS = [titanicTask, mnistTask, lusCovidTask]
 
 // allocate each task depending of creation 
 function dynamicTaskAllocationFn (routes){
   switch(routes.params.Id) {
-    case titanic_task.training_information.model_id:
-      return {Id: routes.params.Id, Task: titanic_task}
-    case mnist_task.training_information.model_id: 
-      return {Id: routes.params.Id, Task: mnist_task}
-    case lus_covid_task.training_information.model_id: 
-      return {Id: routes.params.Id, Task: lus_covid_task}
+    case titanicTask.trainingInformation.modelId:
+      return {Id: routes.params.Id, Task: titanicTask}
+    case mnistTask.trainingInformation.modelId: 
+      return {Id: routes.params.Id, Task: mnistTask}
+    case lusCovidTask.trainingInformation.modelId: 
+      return {Id: routes.params.Id, Task: lusCovidTask}
     
   }
 }
