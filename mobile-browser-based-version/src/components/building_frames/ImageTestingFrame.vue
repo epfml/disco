@@ -278,7 +278,8 @@ export default {
       gotResults: false,
       classes: null,
       imgTested: null,
-      expectedFiles: 0
+      expectedFiles: 0,
+      loadedImages: [],
     };
   },
   methods: {
@@ -288,6 +289,7 @@ export default {
       let files = filesElement.files;
       this.expectedFiles = files.length
       this.predictions = []
+      this.loadedImages = []
       // Only process image files (skip non image files)
       for (let i = 0; i < files.length; ++i){
         const file = files[i]
@@ -299,8 +301,7 @@ export default {
             img.src = e.target.result;
             img.width = this.IMAGE_WIDTH;
             img.height = this.IMAGE_HEIGHT;
-            const prediction = await this.predict(img)
-            this.onPredictionReceived(prediction)
+            this.onImageLoaded(img)
           }
           // Read in the image file as a data URL.
           reader.readAsDataURL(file);
@@ -310,19 +311,33 @@ export default {
       // Empty input
       filesElement.value = ''
     },
+    onImageLoaded(img){
+      this.loadedImages.push(img)
+
+      if(this.expectedFiles == this.loadedImages.length){
+        this.predict()
+      }
+    },
+  
     onPredictionReceived(prediction){
       this.predictions.push(prediction)
-      if(this.expectedFiles > 0 && this.expectedFiles == this.predictions.length){
+      if(this.expectedFiles > 1 && this.expectedFiles == this.predictions.length){
         this.downloadPredictionsCsv()
       }
     },
-    async predict(imgElement){
-      console.log(imgElement)
-        const classes = await this.Task.predict(imgElement)
-        this.showResults(imgElement, classes)
+    async predict(){
+      const classes = await this.Task.predict(this.loadedImages)
+
+      if(this.loadedImages.length == 1){
+        this.showResults(this.loadedImages[0], classes[0])
         this.$toast.success(`Predictions are available below.`);
-        setTimeout(this.$toast.clear, 30000)
-        return classes
+      }else{
+        this.predictions = classes
+        this.downloadPredictionsCsv()
+        this.$toast.success(`Predictions have been downloaded.`);
+      }
+      
+      setTimeout(this.$toast.clear, 30000)
     },
 
     showResults(imgElement, classes) {

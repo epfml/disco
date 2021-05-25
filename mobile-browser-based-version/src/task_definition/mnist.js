@@ -169,7 +169,7 @@ export class MnistTask {
         return result
     }
 
-    async predict(imgElement){
+    async predict(imgElementArray){
         console.log("Loading model...")
         var loadedModel = null
         
@@ -182,18 +182,21 @@ export class MnistTask {
 
         if (loadedModel != null){
             console.log("Model loaded.")
-            
-            const img_tensor = await this.imagePreprocessing(imgElement.src)
+            const classes_array = []
+            for (let i = 0; i < imgElementArray.length; ++i){
+                const img_tensor = await this.imagePreprocessing(imgElementArray[i].src)
 
-            const logits = loadedModel.predict(img_tensor)
-
-            // Convert logits to probabilities and class names.
-            const classes = await this.getTopKClasses(logits, 5);
-            console.log(classes);
+                const logits = loadedModel.predict(img_tensor)
+    
+                // Convert logits to probabilities and class names.
+                const classes = await this.getTopKClasses(logits, 5);
+                
+                classes_array.push(classes)
+            }
 
             console.log("Prediction Sucessful!")
 
-            return classes;
+            return classes_array;
         }else{
             console.log("No model has been trained or found!")
         }
