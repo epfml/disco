@@ -1,5 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 import { checkData } from "../helpers/data_validation_script/helpers-image-tasks"
+import { getTopKClasses } from "../helpers/testing_script/testing_script"
 
 export class MnistTask {
     constructor() {
@@ -169,6 +170,11 @@ export class MnistTask {
         return result
     }
 
+    /**
+     * 
+     * @param {Array[ImgElement]} imgElementArray array of all images to be predicted
+     * @returns Array with predictions by the model of all of the images passed as parameters
+     */
     async predict(imgElementArray){
         console.log("Loading model...")
         var loadedModel = null
@@ -189,7 +195,7 @@ export class MnistTask {
                 const logits = loadedModel.predict(img_tensor)
     
                 // Convert logits to probabilities and class names.
-                const classes = await this.getTopKClasses(logits, 5);
+                const classes = await getTopKClasses(logits, 5, this.trainingInformation.LABEL_LIST);
                 
                 classes_array.push(classes)
             }
@@ -200,31 +206,6 @@ export class MnistTask {
         }else{
             console.log("No model has been trained or found!")
         }
-    }
-
-    async getTopKClasses(logits, topK) {
-        const values = await logits.data();
-        const valuesAndIndices = [];
-        for (let i = 0; i < values.length; i++) {
-            valuesAndIndices.push({ value: values[i], index: i });
-        }
-        valuesAndIndices.sort((a, b) => {
-            return b.value - a.value;
-        });
-        const topkValues = new Float32Array(topK);
-        const topkIndices = new Int32Array(topK);
-        for (let i = 0; i < topK; i++) {
-            topkValues[i] = valuesAndIndices[i].value;
-            topkIndices[i] = valuesAndIndices[i].index;
-        }
-        const topClassesAndProbs = [];
-        for (let i = 0; i < topkIndices.length; i++) {
-            topClassesAndProbs.push({
-            className: this.trainingInformation.LABEL_LIST[topkIndices[i]],
-            probability: topkValues[i],
-            });
-        }
-        return topClassesAndProbs;
     }
 }
 
