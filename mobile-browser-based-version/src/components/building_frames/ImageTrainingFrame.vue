@@ -177,12 +177,11 @@ import { TrainingInformant } from "../../helpers/training_script/training_inform
 import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
 import { TrainingManager } from "../../helpers/training_script/training_manager";
 import TrainingInformationFrame from "./TrainingInformationFrame";
-import ImageUploadFrame from "../building_frames/ImageUploadFrame";
 import { checkData } from "../../helpers/data_validation_script/helpers-image-tasks";
 import { FileUploadManager } from "../../helpers/data_validation_script/file_upload_manager";
 import UploadingFrame from "./UploadingFrame";
 
-// takes care of communication
+// manager for the training loop
 var trainingManager = null;
 
 export default {
@@ -202,23 +201,21 @@ export default {
       // different task labels
       taskLabels: [],
 
-      // give feedbacks when training
+      // manager that returns feedbacks when training
       trainingInformant: new TrainingInformant(
         10,
         this.Task.trainingInformation.modelId
       ),
 
+      // manager for the file uploading process
       fileUploadManager: new FileUploadManager(
         this.Task.trainingInformation.LABEL_LIST.length,
         this,
-        true
       ), 
 
       // take care of communication processes
       communicationManager: new CommunicationManager(9000), // TO DO: to modularize
 
-      // Uploaded Files
-      FILES: {},
     };
   },
   methods: {
@@ -249,21 +246,6 @@ export default {
 
         await trainingManager.trainModel(distributed, processedData);
       }
-    },
-
-    addFile: function (file, label) {
-      const isImage = file.type.match("image.*"),
-        objectURL = URL.createObjectURL(file);
-      this.FILES[objectURL] = { label: label, name: file.name };
-    },
-
-    inputChange: function (e, label) {
-      let counter = 0;
-      for (const file of e.target.files) {
-        this.addFile(file, label);
-        counter += 1;
-      }
-      console.log(counter + " Files Added");
     },
 
     getImage(url) {

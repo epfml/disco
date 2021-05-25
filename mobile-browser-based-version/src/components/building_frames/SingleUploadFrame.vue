@@ -1,7 +1,6 @@
 <template>
   <!-- Upload File Card-->
   <div class="relative">
-
     <article
       aria-label="File Upload Modal"
       class="relative h-full flex flex-col p-4 bg-white rounded-lg dark:bg-darker"
@@ -10,9 +9,9 @@
       v-on:dragleave="dragLeaveHandler"
       v-on:dragenter="dragEnterHandler"
     >
-    <span v-if="nbrClasses > 1" class="text-xl font-semibold">
-      Label {{ label }}:
-    </span>
+      <span v-if="nbrClasses > 1" class="text-xl font-semibold">
+        Label {{ label }}:
+      </span>
       <!-- scroll area -->
       <section class="h-full overflow-auto p-8 w-full h-full flex flex-col">
         <header
@@ -68,7 +67,7 @@
         <div v-if="!preview">
           <div class="pt-4">
             <h1 class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex">
-              Number of selected files: {{String(nbrUploadedFiles)}}
+              Number of selected files: {{ String(nbrUploadedFiles) }}
             </h1>
           </div>
         </div>
@@ -188,14 +187,6 @@
 </template>
 
 <script>
-/*
-let fileTempl = null;
-let imageTempl = null;
-let empty = null;
-let gallery = null;
-let hidden = null;
-let counter = 0;*/
-
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
   types.indexOf("Files") > -1;
 
@@ -204,8 +195,14 @@ export default {
   props: {
     Id: String,
     Task: Object,
+
+    // the file upload manager associated to the task
     fileUploadManager: Object,
+
+    // preview is used to know if we have to show a snippet of the uploaded files or not
     preview: Boolean,
+
+    // the label associated to the task
     label: String,
   },
   data() {
