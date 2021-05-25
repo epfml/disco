@@ -278,29 +278,43 @@ export default {
       gotResults: false,
       classes: null,
       imgTested: null,
+      expectedFiles: 0
     };
   },
   methods: {
-    test_model(){
+    async test_model(){
       const filesElement = document.getElementById("hidden-input");
       console.log(filesElement)
-      let file = filesElement.files[0];
-      console.log(file)
+      let files = filesElement.files;
+      this.expectedFiles = files.length
+      this.predictions = []
       // Only process image files (skip non image files)
-      if (file && file.type.match("image.*")) {
-        let reader = new FileReader();
-        reader.onload = (e) => {
-          // Fill the image & call predict.
-          let img = document.createElement("img");
-          img.src = e.target.result;
-          img.width = this.IMAGE_WIDTH;
-          img.height = this.IMAGE_HEIGHT;
-          img.onload = () => this.predict(img);
-        };
-        // Read in the image file as a data URL.
-        reader.readAsDataURL(file);
-      } 
+      for (let i = 0; i < files.length; ++i){
+        const file = files[i]
+        if (file && file.type.match("image.*")) {
+          let reader = new FileReader();
+          reader.onload = async (e) => {
+            // Fill the image & call predict.
+            let img = document.createElement("img");
+            img.src = e.target.result;
+            img.width = this.IMAGE_WIDTH;
+            img.height = this.IMAGE_HEIGHT;
+            const prediction = await this.predict(img)
+            this.onPredictionReceived(prediction)
+          }
+          // Read in the image file as a data URL.
+          reader.readAsDataURL(file);
+        } 
+      }
+
+      // Empty input
       filesElement.value = ''
+    },
+    onPredictionReceived(prediction){
+      this.predictions.push(prediction)
+      if(this.expectedFiles > 0 && this.expectedFiles == this.predictions.length){
+        this.downloadPredictionsCsv()
+      }
     },
     async predict(imgElement){
       console.log(imgElement)
@@ -308,6 +322,7 @@ export default {
         this.showResults(imgElement, classes)
         this.$toast.success(`Predictions are available below.`);
         setTimeout(this.$toast.clear, 30000)
+        return classes
     },
 
     showResults(imgElement, classes) {
@@ -315,7 +330,23 @@ export default {
       this.imgTested = imgElement
       this.gotResults = true
     },
+    downloadPredictionsCsv(){
+      console.log(this.predictions)
+      const pred = this.predictions.map((value, index, array) => value.map(dict => dict["className"]+","+dict["probability"]).join(',')).join("\n")
 
+      let header=""
+      for (let i = 1; i <= this.predictions[0].length;++i){
+        header += "top"+i+",probability"
+        if(i!=this.predictions[0].length){
+          header+=","
+        }else{
+          header+="\n"
+        }
+      }
+      const csvContent = "data:text/csv;charset=utf-8,"+ header +pred
+      var encodedUri = encodeURI(csvContent);
+      window.open(encodedUri);
+    },
     getImage(url) {
        if (url==""){
          return null
