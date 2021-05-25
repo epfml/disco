@@ -175,7 +175,7 @@ export class MnistTask {
      * @param {Array[ImgElement]} imgElementArray array of all images to be predicted
      * @returns Array with predictions by the model of all of the images passed as parameters
      */
-    async predict(imgElementArray){
+    async predict(testingData){
         console.log("Loading model...")
         var loadedModel = null
         
@@ -189,8 +189,8 @@ export class MnistTask {
         if (loadedModel != null){
             console.log("Model loaded.")
             const classes_array = []
-            for (let i = 0; i < imgElementArray.length; ++i){
-                const img_tensor = await this.imagePreprocessing(imgElementArray[i].src)
+            for (let url of Object.keys(testingData)){
+                const img_tensor = await this.imagePreprocessing(url)
 
                 const logits = loadedModel.predict(img_tensor)
     

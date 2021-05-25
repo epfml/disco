@@ -69,14 +69,8 @@ export class LusCovidTask {
             imageUri.push(key)
         });
 
-        console.log("just before getting train data")
-
-        console.log(labels)
-        console.log(imageUri)
-        console.log(imageNames)
         const preprocessedData = await this.getTrainData(imageUri, labels, imageNames, shuffle);    
         
-        console.log("just after train data")
         return preprocessedData
     }
 
