@@ -1,4 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
+import { lab } from 'd3-color';
+import { precisionRound } from 'd3-format';
 import {getTopKClasses} from '../helpers/testing_script/testing_script'
 
 const FEATURES = 1000
@@ -51,8 +53,8 @@ export class LusCovidTask {
         console.log("Successfully loaded mobilenet model")
     }
 
-    // Data is passed under the form of Dictionary{ImageURL: label}
-    async dataPreprocessing(trainingData){
+    // Data is passed under the form of Dictionary{ImageURL: {label, name}}
+    async dataPreprocessing(trainingData, shuffle=true){
         if (net == null){
            await this.loadMobilenet()
         }
@@ -67,8 +69,14 @@ export class LusCovidTask {
             imageUri.push(key)
         });
 
-        const preprocessedData = await this.getTrainData(imageUri, labels, imageNames);    
+        console.log("just before getting train data")
+
+        console.log(labels)
+        console.log(imageUri)
+        console.log(imageNames)
+        const preprocessedData = await this.getTrainData(imageUri, labels, imageNames, shuffle);    
         
+        console.log("just after train data")
         return preprocessedData
     }
 
@@ -133,7 +141,7 @@ export class LusCovidTask {
      *   labels: The one-hot encoded labels tensor, of shape
      *     `[numTrainExamples, 2]`.
      */
-    async getTrainData(imageUri, labelsPerImage, imageNames) {
+    async getTrainData(imageUri, labelsPerImage, imageNames, shuffle=true) {
         const dictImages = {}
         const dictLabels = {}
         let patients = new Set()
@@ -170,7 +178,9 @@ export class LusCovidTask {
         const labelsToProcess = []
 
         // shuffle patients
-        patients.sort( () => .5 - Math.random() );
+        if(shuffle){
+            patients.sort( () => .5 - Math.random() );
+        }
         for (let i = 0; i< patients.length; ++i ){
             const id = patients[i]
             xsArray.push(imageTensorsPerPatient[id])
@@ -186,14 +196,10 @@ export class LusCovidTask {
         return {Xtrain: xs, ytrain: labels}
     }
 
-    async predict(imgElement){
+    async predict(testingData){
         console.log("Loading model...")
         loadedModel = null
         
-        if(net == null){
-            this.loadMobilenet()
-        }
-
         try{
             loadedModel = await this.getModelFromStorage()
         }catch {
@@ -203,25 +209,30 @@ export class LusCovidTask {
 
         if (loadedModel){
             console.log("Model loaded.")
-            
-            const img_tensor = await this.imagePreprocessing(imgElement.src)
+
+            let preprocessed_data = await (await this.dataPreprocessing(testingData, false)).Xtrain
 
             loadedModel.summary()
-            const logits = loadedModel.predict(img_tensor)
+            const classes_array = []
 
-            // Convert logits to probabilities and class names.
-            const classes = await getTopKClasses(logits, 2, trainingInformation.LABEL_LIST);
-            console.log(classes);
+            preprocessed_data = preprocessed_data.split(preprocessed_data.shape[0])
+            for(let i = 0; i < preprocessed_data.length; ++i){
+                const logits = loadedModel.predict(preprocessed_data[i])
+
+                // Convert logits to probabilities and class names.
+                const classes = await getTopKClasses(logits, 2, trainingInformation.LABEL_LIST);
+
+                classes_array.push(classes)
+            }
+            
 
             console.log("Prediction Sucessful!")
 
-            return classes
+            return classes_array
         }else{
             console.log("No model has been trained or found!")
         }
     }
-    
-    
 }
 
 export const displayInformation = {

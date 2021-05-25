@@ -274,12 +274,11 @@ export default {
       IMAGE_WIDTH: null,
   
       model_name: "",
-      FILES: [],
+      FILES: {},
       gotResults: false,
       classes: null,
       imgTested: null,
       expectedFiles: 0,
-      loadedImages: [],
     };
   },
   methods: {
@@ -288,48 +287,27 @@ export default {
       console.log(filesElement)
       let files = filesElement.files;
       this.expectedFiles = files.length
-      this.predictions = []
-      this.loadedImages = []
+
       // Only process image files (skip non image files)
       for (let i = 0; i < files.length; ++i){
         const file = files[i]
         if (file && file.type.match("image.*")) {
-          let reader = new FileReader();
-          reader.onload = async (e) => {
-            // Fill the image & call predict.
-            let img = document.createElement("img");
-            img.src = e.target.result;
-            img.width = this.IMAGE_WIDTH;
-            img.height = this.IMAGE_HEIGHT;
-            this.onImageLoaded(img)
-          }
-          // Read in the image file as a data URL.
-          reader.readAsDataURL(file);
+          const objectURL = URL.createObjectURL(file);
+          this.FILES[objectURL] = {name: file.name};
         } 
       }
+
+      this.predict()
 
       // Empty input
       filesElement.value = ''
     },
-    onImageLoaded(img){
-      this.loadedImages.push(img)
-
-      if(this.expectedFiles == this.loadedImages.length){
-        this.predict()
-      }
-    },
   
-    onPredictionReceived(prediction){
-      this.predictions.push(prediction)
-      if(this.expectedFiles > 1 && this.expectedFiles == this.predictions.length){
-        this.downloadPredictionsCsv()
-      }
-    },
     async predict(){
-      const classes = await this.Task.predict(this.loadedImages)
+      const classes = await this.Task.predict(this.FILES)
 
-      if(this.loadedImages.length == 1){
-        this.showResults(this.loadedImages[0], classes[0])
+      if(classes.length == 1){
+        this.showResults(classes[0])
         this.$toast.success(`Predictions are available below.`);
       }else{
         this.predictions = classes
@@ -340,9 +318,8 @@ export default {
       setTimeout(this.$toast.clear, 30000)
     },
 
-    showResults(imgElement, classes) {
+    showResults(classes) {
       this.classes = classes
-      this.imgTested = imgElement
       this.gotResults = true
     },
     downloadPredictionsCsv(){
