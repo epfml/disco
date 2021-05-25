@@ -287,7 +287,7 @@ export default {
   },
   data() {
     return {
-      // Variables for general informations
+      // variables for general informations
       modelName: null,
       dataFormatInfoText: "",
       dataExampleText: "",
@@ -295,16 +295,16 @@ export default {
       // headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
 
-      // give feedbacks when training
+      // returns feedbacks when training
       trainingInformant: new TrainingInformant(
         10,
         this.Task.trainingInformation.modelId
       ),
 
-      // file upload manager 
-      fileUploadManager: new FileUploadManager(1, this, false),
+      // takes care of uploading file process 
+      fileUploadManager: new FileUploadManager(1, this),
 
-      // take care of communication processes
+      // takes care of communication processes
       communicationManager: new CommunicationManager(9000), // TO DO: to modularize
     };
   },
