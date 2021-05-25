@@ -1,6 +1,4 @@
 import * as tf from '@tensorflow/tfjs';
-import { lab } from 'd3-color';
-import { precisionRound } from 'd3-format';
 import {getTopKClasses} from '../helpers/testing_script/testing_script'
 
 const FEATURES = 1000
