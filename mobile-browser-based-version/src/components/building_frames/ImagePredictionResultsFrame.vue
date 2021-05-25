@@ -49,7 +49,7 @@ export default {
     },
     data() {
       return {
-        imageId = "image_".concat(this.Id)
+        imageId: "image_".concat(this.Id),
       }
     },
     mounted(){
