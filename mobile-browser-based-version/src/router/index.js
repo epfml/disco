@@ -10,6 +10,7 @@ import MainTaskFrame from "../components/main_frames/MainTaskFrame"
 import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame"
 import MainTrainingFrame from "../components/main_frames/MainTrainingFrame"
 import MainModelManagerFrame from "../components/main_frames/MainMyModelManagerFrame"
+import MainTestingFrame from "../components/main_frames/MainTestingFrame"
 
 // Import the tasks objects Here
 import {TitanicTask} from "../task_definition/titanic"
@@ -71,6 +72,12 @@ const routes = [
         path: 'training',
         name: 'training',
         component: MainTrainingFrame, 
+        props: dynamicTaskAllocationFn,
+      },
+      {
+        path: 'testing',
+        name: 'testing',
+        component: MainTestingFrame, 
         props: dynamicTaskAllocationFn,
       },
       {

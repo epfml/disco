@@ -75,7 +75,9 @@
           </div>
 
           <!-- Data Point Example -->
-          <img src="../../../example_training_data/9-mnist-example.png" alt="">
+          <img 
+          :src="getImage(DataExampleImage)" 
+          v-bind:alt="DataExampleImage">
         </div>
       </div>
     </a>
@@ -155,7 +157,7 @@
 
                 <ul id="gallery" class="flex flex-1 flex-wrap -m-1">
                   <li
-                    v-bind:id="emptyId"
+                    id="empty"
                     class="h-full w-full text-center flex flex-col items-center justify-center items-center"
                   >
                     <img
@@ -186,12 +188,12 @@
       </button>
     </div>
 
-    <ImagePredictionResultsFrame v-if="gotResults" v-bind:Id="Id" :classes="classes" :imageElement="imgTested"/>
+    <ImagePredictionResultsFrame v-if="gotResults" :classes="classes" :imageElement="imgTested"/>
 
     <div id="predictions"></div>
 
     <!-- Upload Image Data Template-->
-    <template v-bind:id="imageTemplateId">
+    <template id="image-template">
       <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
         <article
           tabindex="0"
@@ -250,33 +252,28 @@
 
 
 <script>
-var model = null
-//TODO: add image example
-import * as tf from "@tensorflow/tfjs";
-import ImagePredictionResultsFrame from './ImagePredictionResultsFrame'
-
-/// Under construction !
-
+import ImagePredictionResultsFrame from '../building_frames/ImagePredictionResultsFrame'
 export default {
-  props: {
-    Id: String, 
-    Task: Object,
-  },
   components: {
     ImagePredictionResultsFrame
   },
+  props: {
+    Id: String,
+    Task: Object
+  }, 
   data() {
     return {
+      title: "mnist-testing",
       DataFormatInfoText:"",
       DataExampleText: "",
+      DataExampleImage: "",
+
       // Different Task Labels
-      task_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-      IMAGE_HEIGHT: 28,
-      IMAGE_WIDTH: 28,
+      taskLabels: [],
+      IMAGE_HEIGHT: null,
+      IMAGE_WIDTH: null,
   
-      modelName: "",
-      imageTemplateId: "",
-      emptyId: "",
+      model_name: "",
       FILES: [],
       gotResults: false,
       classes: null,
@@ -286,7 +283,9 @@ export default {
   methods: {
     test_model(){
       const filesElement = document.getElementById("hidden-input");
+      console.log(filesElement)
       let file = filesElement.files[0];
+      console.log(file)
       // Only process image files (skip non image files)
       if (file && file.type.match("image.*")) {
         let reader = new FileReader();
@@ -301,65 +300,31 @@ export default {
         // Read in the image file as a data URL.
         reader.readAsDataURL(file);
       } 
-      filesElement.files = []
+      filesElement.value = ''
     },
     async predict(imgElement){
-        const loadedModel = await get_model_from_storage()
-        if (loadedModel != null){
-          const logits = tf.tidy(() => {
-            // tf.browser.fromPixels() returns a Tensor from an image element.
-            const img = tf.browser.fromPixels(imgElement).toFloat();
-            const offset = tf.scalar(127.5);
-            // Normalize the image from [0, 255] to [-1, 1].
-            const normalized = img.sub(offset).div(offset);
-            // Reshape to a single-element batch so we can pass it to predict.
-            const batched = normalized.reshape([1, this.IMAGE_WIDTH, this.IMAGE_HEIGHT, 3]);
-            // Make a prediction through mobilenet.
-            return loadedModel.predict(batched);
-          })
-          // Convert logits to probabilities and class names.
-          // Convert logits to probabilities and class names.
-          const classes = await this.getTopKClasses(logits, 5);
-          console.log(classes);
-          // Show the classes in the DOM.
-          this.showResults(imgElement, classes);
-        }else{
-          this.$toast.failure(
-            `No model has been trained. Please do so before testing.`
-          );
-          setTimeout(this.$toast.clear, 30000);
-        }
-        
+      console.log(imgElement)
+        const classes = await this.Task.predict(imgElement)
+        this.showResults(imgElement, classes)
+        this.$toast.success(`Predictions are available below.`);
+        setTimeout(this.$toast.clear, 30000)
     },
+
     showResults(imgElement, classes) {
       this.classes = classes
       this.imgTested = imgElement
       this.gotResults = true
     },
-    async getTopKClasses(logits, topK) {
-        const values = await logits.data();
-        const valuesAndIndices = [];
-        for (let i = 0; i < values.length; i++) {
-            valuesAndIndices.push({ value: values[i], index: i });
-        }
-        valuesAndIndices.sort((a, b) => {
-            return b.value - a.value;
-        });
-        const topkValues = new Float32Array(topK);
-        const topkIndices = new Int32Array(topK);
-        for (let i = 0; i < topK; i++) {
-            topkValues[i] = valuesAndIndices[i].value;
-            topkIndices[i] = valuesAndIndices[i].index;
-        }
-        const topClassesAndProbs = [];
-        for (let i = 0; i < topkIndices.length; i++) {
-            topClassesAndProbs.push({
-            className: this.task_labels[topkIndices[i]],
-            probability: topkValues[i],
-            });
-        }
-        return topClassesAndProbs;
-    },
+
+    getImage(url) {
+       if (url==""){
+         return null
+       }
+
+       console.log(url)
+       var images = require.context('../../../example_training_data/', false)
+       return images(url)
+     },
   },
   async mounted() {
     // This method is called when the component is created
@@ -372,13 +337,16 @@ export default {
        * #######################################
        */
       // Initialize variables used by the components 
-      this.modelName = this.Task.trainingInformation.modelId;
+      this.model_name = this.Task.trainingInformation.modelId;
       this.DataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
       this.DataExampleText = this.Task.displayInformation.dataExampleText;
-      this.imageTemplateId = "image-template_".concat(this.modelName)
-      this.emptyId = "empty_".concat(this.modelName)
-      const imageTempl = document.getElementById(imageTemplateId),
-        empty = document.getElementById(imageTemplateId);
+      this.DataExampleImage = this.Task.displayInformation.dataExampleImage;
+      this.IMAGE_HEIGHT = this.Task.trainingInformation.IMAGE_HEIGHT;
+      this.IMAGE_WIDTH = this.Task.trainingInformation.IMAGE_WIDTH;
+      this.taskLabels = this.Task.trainingInformation.taskLabels;
+
+      const imageTempl = document.getElementById("image-template"),
+        empty = document.getElementById("empty");
       function addFile(target, file) {
             const objectURL = URL.createObjectURL(file);
             const clone = imageTempl.cloneNode(true)

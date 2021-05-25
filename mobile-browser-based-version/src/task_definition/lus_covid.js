@@ -1,8 +1,10 @@
 import * as tf from '@tensorflow/tfjs';
+import {getTopKClasses} from '../helpers/testing_script/testing_script'
 
 const FEATURES = 1000
 const MOBILENET_V1_1_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json'
 let net = null
+let loadedModel = null
 
 export class LusCovidTask {
     constructor() {
@@ -16,7 +18,7 @@ export class LusCovidTask {
      * @returns Returns a tf.model or null if there is no model
      */
      async getModelFromStorage() {
-        let model = await tf.loadLayersModel(trainingInformation.savePathDb)
+        let model = await tf.loadLayersModel(this.trainingInformation.savePathDb)
         return model
     }
 
@@ -34,21 +36,25 @@ export class LusCovidTask {
 
         newModel.summary()
 
-        newModel.save(trainingInformation.savePathDb);
+        newModel.save(this.trainingInformation.savePathDb);
 
         return newModel
+    }
+
+    async loadMobilenet(){
+        console.log("loading mobilenet...")
+
+        net = await tf.loadLayersModel(MOBILENET_V1_1_PATH);
+
+        net.summary()
+
+        console.log("Successfully loaded mobilenet model")
     }
 
     // Data is passed under the form of Dictionary{ImageURL: label}
     async dataPreprocessing(trainingData){
         if (net == null){
-            console.log("loading mobilenet...")
-
-            net = await tf.loadLayersModel(MOBILENET_V1_1_PATH);
-
-            net.summary()
-
-            console.log("Successfully loaded mobilenet model")
+           await this.loadMobilenet()
         }
 
         const labels = []
@@ -79,7 +85,6 @@ export class LusCovidTask {
             }
         });
     }
-
 
     async imagePreprocessing(src){
         const tensor = await this.loadLocalImage(src)
@@ -180,6 +185,43 @@ export class LusCovidTask {
 
         return {Xtrain: xs, ytrain: labels}
     }
+
+    async predict(imgElement){
+        console.log("Loading model...")
+        loadedModel = null
+        
+        if(net == null){
+            this.loadMobilenet()
+        }
+
+        try{
+            loadedModel = await this.getModelFromStorage()
+        }catch {
+            console.log("No model found.")
+            return null
+        }
+
+        if (loadedModel){
+            console.log("Model loaded.")
+            
+            const img_tensor = await this.imagePreprocessing(imgElement.src)
+
+            loadedModel.summary()
+            const logits = loadedModel.predict(img_tensor)
+
+            // Convert logits to probabilities and class names.
+            const classes = await getTopKClasses(logits, 2, this.trainingInformation.LABEL_LIST);
+            console.log(classes);
+
+            console.log("Prediction Sucessful!")
+
+            return classes
+        }else{
+            console.log("No model has been trained or found!")
+        }
+    }
+    
+    
 }
 
 export const displayInformation = {
