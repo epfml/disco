@@ -1,6 +1,7 @@
 <template>
   <!-- Upload File Card-->
-  <div class="relative pb-4">
+  <div class="relative">
+
     <article
       aria-label="File Upload Modal"
       class="relative h-full flex flex-col p-4 bg-white rounded-lg dark:bg-darker"
@@ -9,6 +10,9 @@
       v-on:dragleave="dragLeaveHandler"
       v-on:dragenter="dragEnterHandler"
     >
+    <span v-if="nbrClasses > 1" class="text-xl font-semibold">
+      Label {{ label }}:
+    </span>
       <!-- scroll area -->
       <section class="h-full overflow-auto p-8 w-full h-full flex flex-col">
         <header
@@ -64,7 +68,7 @@
         <div v-if="!preview">
           <div class="pt-4">
             <h1 class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex">
-              Number of selected files: {{ nbrUploadedFiles }}
+              Number of selected files: {{String(nbrUploadedFiles)}}
             </h1>
           </div>
         </div>
@@ -184,13 +188,13 @@
 </template>
 
 <script>
+/*
 let fileTempl = null;
 let imageTempl = null;
 let empty = null;
 let gallery = null;
 let hidden = null;
-let counter = 0;
-
+let counter = 0;*/
 
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
   types.indexOf("Files") > -1;
@@ -231,16 +235,23 @@ export default {
         .concat("_")
         .concat(String(this.label)),
       nbrUploadedFiles: 0,
+      fileTempl: null,
+      imageTempl: null,
+      empty: null,
+      gallery: null,
+      hidden: null,
+      counter: 0,
+      nbrClasses: 1,
     };
   },
   methods: {
     addFile(target, file) {
-        const isImage = file.type.match("image.*"),
-          objectURL = URL.createObjectURL(file);
+      const isImage = file.type.match("image.*"),
+        objectURL = URL.createObjectURL(file);
       if (this.preview) {
         const clone = isImage
-          ? imageTempl.cloneNode(true)
-          : fileTempl.cloneNode(true);
+          ? this.imageTempl.cloneNode(true)
+          : this.fileTempl.cloneNode(true);
 
         clone.querySelector("h1").textContent = file.name;
         clone.querySelector("li").id = objectURL;
@@ -258,12 +269,13 @@ export default {
             alt: file.name,
           });
 
-        empty.classList.add("hidden");
+        this.empty.classList.add("hidden");
         target.prepend(clone.firstElementChild);
       }
 
       this.fileUploadManager.addFile(objectURL, file, this.label);
       this.nbrUploadedFiles += 1;
+      console.log(this.label);
     },
 
     // use to drag dragenter and dragleave events.
@@ -274,8 +286,8 @@ export default {
     dropHandler(ev) {
       ev.preventDefault();
       for (const file of ev.dataTransfer.files) {
-        this.addFile(gallery, file);
-        counter = 0;
+        this.addFile(this.gallery, file);
+        this.counter = 0;
       }
     },
 
@@ -285,11 +297,11 @@ export default {
       if (!hasFiles(e)) {
         return;
       }
-      ++counter;
+      ++this.counter;
     },
 
     dragLeaveHandler(e) {
-      1 > --counter;
+      1 > --this.counter;
     },
 
     dragOverHandler(e) {
@@ -300,34 +312,40 @@ export default {
   },
   mounted() {
     if (this.preview) {
-      gallery = document.getElementById(this.galleryName);
-      fileTempl = document.getElementById(this.fileTemplName);
-      imageTempl = document.getElementById(this.imageTemplName);
-      empty = document.getElementById(this.emptyName);
-    } 
+      this.gallery = document.getElementById(this.galleryName);
+      this.fileTempl = document.getElementById(this.fileTemplName);
+      this.imageTempl = document.getElementById(this.imageTemplName);
+      this.empty = document.getElementById(this.emptyName);
+    }
 
     // click the hidden input of type file if the visible button is clicked
     // and capture the selected files
-    hidden = document.getElementById(this.hiddenInputName);
+    this.hidden = document.getElementById(this.hiddenInputName);
     document.getElementById(this.uploadButtonName).onclick = () =>
-      hidden.click();
-    hidden.onchange = (e) => {
+      this.hidden.click();
+    this.hidden.onchange = (e) => {
       for (const file of e.target.files) {
-        this.addFile(gallery, file);
+        this.addFile(this.gallery, file);
       }
     };
 
     if (this.preview) {
       // event delegation to caputre delete events
       // fron the waste buckets in the file preview cards
-      gallery.onclick = ({ target }) => {
+      this.gallery.onclick = ({ target }) => {
         if (target.classList.contains("delete")) {
           const ou = target.dataset.target;
           document.getElementById(ou).remove(ou);
-          gallery.children.length === 1 && empty.classList.remove("hidden");
+          this.gallery.children.length === 1 &&
+            this.empty.classList.remove("hidden");
           this.fileUploadManager.deleteFile(ou);
+          this.nbrUploadedFiles -= 1;
         }
       };
+    }
+
+    if (this.Task.trainingInformation.LABEL_LIST) {
+      this.nbrClasses = this.Task.trainingInformation.LABEL_LIST.length;
     }
   },
 };

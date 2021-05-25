@@ -77,13 +77,13 @@
             </div>
           </div>
         </div>
-        <div v-for="label in labels" :key="label">
+        <div v-for="item in labels" :key="item">
           <SingleUploadFrame
             v-bind:Id="Id"
             v-bind:Task="Task"
             v-bind:fileUploadManager="fileUploadManager"
             v-bind:preview="false"
-            v-bind:label="label"
+            v-bind:label="String(item)"
           />
         </div>
       </div>
@@ -117,6 +117,7 @@ export default {
     } else {
       this.nbrLabels = 1;
     }
+    console.log(this.labels)
   },
 };
 </script>
