@@ -14,7 +14,7 @@ export class MnistTask {
      * @returns Returns a tf.model or null if there is no model
      */
      async getModelFromStorage() {
-        let model = await tf.loadLayersModel(trainingInformation.savePathDb)
+        let model = await tf.loadLayersModel(this.trainingInformation.savePathDb)
         return model
     }
 
@@ -71,7 +71,7 @@ export class MnistTask {
         // values sum to 1.
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
 
-        model.save(trainingInformation.savePathDb);
+        model.save(this.trainingInformation.savePathDb);
 
         return model;
     }
