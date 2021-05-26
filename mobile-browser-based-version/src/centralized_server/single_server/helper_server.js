@@ -1,27 +1,41 @@
-const express = require('express');
-const { ExpressPeerServer } = require('peer');
+const fs = require('fs')
+const express = require('express')
+const { ExpressPeerServer } = require('peer')
 
 function makeid() {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for (var i = 0; i < 12; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    let result = ''
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let charactersLength = characters.length
+    for (let i = 0; i < 12; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength))
     }
-    return result;
+    return result
 }
 
-function()
+// TODO
+const models = new Map([
+  ['titanic', 'some_complex_value0'], ['mnist', 'some_complex_value1']
+])
 
-const app = express();
-const server = app.listen(3000);
-const peerServer = ExpressPeerServer(server, {
-  path: '/peers',
-  key: 'api',
-  allow_discovery: true,
-  generateClientId: makeid
+
+const app = express()
+const server = app.listen(3000)
+
+const tasks_router = express.Router()
+const peer_server = ExpressPeerServer(server, {
+    path: '/peers',
+    key: 'api',
+    allow_discovery: true,
+    generateClientId: makeid
 });
 
-app.use('/', peerServer);
-// TODO: send json responses containing tasks information
-app.get('/tasks', (req, res) => res.send('Hello world! from TASK SERVER.'))
+const TASKS_PATH = 'src/centralized_server/single_server/tasks.json'
+const tasks = JSON.parse(fs.readFileSync(TASKS_PATH))
+
+tasks_router.get('/', (req, res) => res.send(tasks))
+tasks.forEach(task => {
+    tasks_router.get('/' + task.task_id, (req, res) => res.send(models.get(task.task_id)))
+})
+
+app.use('/', peer_server)
+app.use('/tasks', tasks_router)
