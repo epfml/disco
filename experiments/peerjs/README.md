@@ -35,6 +35,12 @@ $ sudo apt-get update
 $ sudo apt-get install coturn
 ```
 
+Then, you need to stop coturn because it will be automatically started:
+
+```
+$ sudo systemctl stop coturn
+```
+
 Then, you need to open the following ports on the AWS instance:
 
 ```
