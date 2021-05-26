@@ -1,7 +1,7 @@
 const tf = require('@tensorflow/tfjs')
 
 
-function create_titanic_model() {
+function createTitanicModel() {
     let model = tf.sequential()
     model.add(
         tf.layers.dense({
@@ -23,16 +23,16 @@ function create_titanic_model() {
     await model.save(save_path_db);*/
 }
 
-function create_mnist_model() {
+function createMnistModel() {
     return null
 }
 
-const titanic_model = create_titanic_model()
-const mnist_model = create_mnist_model()
+const titanicModel = createTitanicModel()
+const mnistModel = createMnistModel()
 
 module.exports = {
     models: new Map([
-        ['titanic', titanic_model],
-        ['mnist', mnist_model],
+        ['titanic', titanicModel],
+        ['mnist', mnistModel],
     ])
 }
