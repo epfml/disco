@@ -6,10 +6,10 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "proxy": "node src/centralized_server/reverse_proxied/proxy_server.js",
-    "peer": "node src/centralized_server/reverse_proxied/peer_server.js",
-    "task": "node src/centralized_server/reverse_proxied/task_server.js",
-    "helper": "node src/centralized_server/single_server/helper_server.js"
+    "proxy": "node src/server/reverse_proxied/proxy_server.js",
+    "peer": "node src/server/reverse_proxied/peer_server.js",
+    "task": "node src/server/reverse_proxied/task_server.js",
+    "helper": "node src/server/server.js"
   },
   "dependencies": {
     "@meforma/vue-toaster": "^1.2.2",
