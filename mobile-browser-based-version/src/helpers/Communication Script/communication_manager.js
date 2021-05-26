@@ -1,4 +1,3 @@
-import { makeid } from "./helpers"
 import Peer from "peerjs";
 import {
     PeerJS,
@@ -16,7 +15,6 @@ export class CommunicationManager {
      */
     constructor(port_nbr) {
         this.port_nbr = port_nbr;
-        this.peerjs_id = null;
         this.peer = null;
         this.peerjs = null;
         this.receivers = [];
@@ -46,21 +44,19 @@ export class CommunicationManager {
             },
         };
 
-        // create an ID used to connect to the server
-        this.peerjs_id = await makeid(10)
-
         // connect to the PeerJS server
-        this.peer = new Peer(this.peerjs_id, {
+        this.peer = new Peer(undefined, {
             host: "localhost",
             port: 3000,
             path: "/peers",
+            key: 'api'
           });
 
         this.peer.on("error", (err) => {
             console.log("Error in connecting");
             this.isConnected = false;
             environment.$toast.error(
-                "Failed to connect to server. Fallback to training alone."
+                "{" + err + "}" + "Failed to connect to server. Fallback to training alone."
             );
             setTimeout(environment.$toast.clear, 30000);
         });
@@ -84,7 +80,7 @@ export class CommunicationManager {
         ).then((response) => response.text());
         let all_ids = JSON.parse(query_ids);
 
-        let id = this.peerjs_id;
+        let id = this.peer.id;
         this.receivers = all_ids.filter((value) => {
             return value != id;
         });

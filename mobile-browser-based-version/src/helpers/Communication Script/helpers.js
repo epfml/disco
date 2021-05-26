@@ -77,8 +77,8 @@ function sleep(ms) {
 
 /**
  * Wait to receive data by checking if recv_buffer.key is defined
- * @param {Object} recv_buffer 
- * @param {*} key 
+ * @param {Object} recv_buffer
+ * @param {*} key
  */
 export function data_received(recv_buffer, key) {
     return new Promise((resolve) => {
@@ -94,9 +94,9 @@ export function data_received(recv_buffer, key) {
 
 /**
  * Same as data_received, but break after max_tries
- * @param {Object} recv_buffer 
- * @param {*} key 
- * @param {int} max_tries 
+ * @param {Object} recv_buffer
+ * @param {*} key
+ * @param {int} max_tries
  */
 export function data_received_break(recv_buffer, key, max_tries) {
     return new Promise((resolve) => {
@@ -111,10 +111,10 @@ export function data_received_break(recv_buffer, key, max_tries) {
 
 
 /**
- * Waits until an array reaches a given length. Used to make 
+ * Waits until an array reaches a given length. Used to make
  * sure that all weights from peers are received.
- * @param {Array} arr 
- * @param {int} len 
+ * @param {Array} arr
+ * @param {int} len
  */
 export function check_array_len(arr, len) {
     return new Promise((resolve) => {
@@ -128,24 +128,12 @@ export function check_array_len(arr, len) {
     });
 }
 
-// generates a random string
-export async function makeid(length) {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for (var i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
-
-
 
 /**
  * Sends weights to all peers, waits to receive weights from all peers
  * and then averages peers' weights into the model.
 */
-// Added peerjs in argument 
+// Added peerjs in argument
 export async function onEpochEnd_Sync(model, epoch, receivers, recv_buffer, peerjs) {
     const serialized_weights = await serializeWeights(model)
     const epoch_weights = { epoch: epoch, weights: serialized_weights }
@@ -176,10 +164,10 @@ export async function onEpochEnd_Sync(model, epoch, receivers, recv_buffer, peer
 }
 
 /**
- * Request weights from peers, carry on if the number of received weights is 
+ * Request weights from peers, carry on if the number of received weights is
  * greater than the provided threshold
 */
-// added peerjs in argument 
+// added peerjs in argument
 export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, username, threshold, peerjs, training_informant) {
     const serialized_weights = await serializeWeights(model)
     var epoch_weights = { epoch: epoch, weights: serialized_weights }
@@ -220,7 +208,7 @@ export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, us
             }) // timeout to avoid deadlock (10s)
 
             // update the waiting time
-            
+
         }
 
         if (recv_buffer.avg_weights !== undefined) { // check if any weights were received
@@ -254,4 +242,3 @@ export async function onEpochEnd_common(model, epoch, receivers, recv_buffer, us
         peerjs.set_data_handler(handle_data_end, end_buffer)
     }*/
 }
-
