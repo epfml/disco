@@ -255,7 +255,7 @@
           </button>
         </div>
       </div>
-    </div> 
+    </div>
   </div>
 </template>
 
@@ -267,14 +267,14 @@ import { TrainingManager } from "../../helpers/training_script/training_manager"
 import CsvUploadFrame from "./CsvUploadFrame";
 import TrainingInformationFrame from "./TrainingInformationFrame";
 
-// takes care of communication 
+// takes care of communication
 var trainingManager = null;
 
 export default {
   name:'CsvTrainingFrame',
   props: {
       Id: String,
-      Task: Object, 
+      Task: Object,
   },
   data() {
     return {
@@ -292,8 +292,8 @@ export default {
         this.Task.trainingInformation.modelId
       ),
 
-      // take care of communication processes 
-      communicationManager: new CommunicationManager(9000), // TO DO: to modularize
+      // take care of communication processes
+      communicationManager: new CommunicationManager('localhost', 3000, 'peers', 'api'), // TO DO: to modularize
     };
   },
   methods: {
@@ -329,7 +329,7 @@ export default {
   async mounted() {
     // This method is called when the component is created
     this.$nextTick(async function () {
-      // initialize information variables 
+      // initialize information variables
       this.modelName = this.Task.trainingInformation.modelId;
       this.dataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
       this.dataExampleText = this.Task.displayInformation.dataExampleText;
@@ -340,17 +340,17 @@ export default {
 
       // initialize the training manager
       trainingManager = new TrainingManager(this.Task.trainingInformation);
-      
-      // initialize training informant 
+
+      // initialize training informant
       this.trainingInformant.initializeCharts();
 
-      // initialize communication manager 
+      // initialize communication manager
       this.communicationManager.initializeConnection(
         this.Task.trainingInformation.epoch,
         this
       );
 
-      // initialize training manager 
+      // initialize training manager
       trainingManager.initialization(this.communicationManager, this.trainingInformant, this);
     });
   },

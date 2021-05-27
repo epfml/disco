@@ -13,8 +13,11 @@ export class CommunicationManager {
      * Prepares connection to a PeerJS server.
      * @param {Number} portNbr the port number to connect.
      */
-    constructor(portNbr) {
+    constructor(ip, portNbr, path, apiKey) {
         this.portNbr = portNbr;
+        this.ip = ip;
+        this.path = path;
+        this.apiKey = apiKey;
         this.peer = null;
         this.peerjs = null;
         this.receivers = [];
@@ -46,10 +49,10 @@ export class CommunicationManager {
 
         // connect to the PeerJS server
         this.peer = new Peer({
-            host: "localhost",
-            port: 3000,
-            path: "/peers",
-            key: 'api'
+            host: this.serverIp,
+            port: this.serverPortNbr,
+            path: this.serverPath,
+            key: this.serverApiKey
         });
 
         /*this.peer = new Peer({
@@ -97,7 +100,7 @@ export class CommunicationManager {
         */
 
         let queryIds = await fetch(
-            "http://35.242.193.186:".concat(String(this.portNbr)).concat("/deai/peerjs/peers"
+            `https://${this.ip}:${String(this.portNbr)}/${this.path}/${this.apiKey}/peers`
             )).then((response) => response.text());
 
         console.log(queryIds)
