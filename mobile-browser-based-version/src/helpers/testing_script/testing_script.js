@@ -1,3 +1,9 @@
+/**
+ * 
+ * @param logits result from calling model.predict
+ * @param {Integer} topK
+ * @returns topK classes with highest probability from logits
+ */
 export async function getTopKClasses(logits, topK, labelList) {
     const values = await logits.data();
     const valuesAndIndices = [];

@@ -330,7 +330,7 @@ export default {
     
     addFile: function (file, label) {
       const isImage = file.type.match("image.*"),
-        objectURL = URL.createObjectURL(file);
+      objectURL = URL.createObjectURL(file);
       this.FILES[objectURL] = {label:label, name: file.name};
     },
 
