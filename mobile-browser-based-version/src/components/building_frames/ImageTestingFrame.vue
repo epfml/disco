@@ -335,9 +335,16 @@ export default {
           header+="\n"
         }
       }
-      const csvContent = "data:text/csv;charset=utf-8,"+ header +pred
-      var encodedUri = encodeURI(csvContent);
-      window.open(encodedUri);
+      const csvContent = header +pred
+      var downloadLink = document.createElement("a");
+      var blob = new Blob(["\ufeff", csvContent]);
+      var url = URL.createObjectURL(blob);
+      downloadLink.href = url;
+      downloadLink.download = "predictions.csv";
+
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
     },
     getImage(url) {
        if (url==""){
