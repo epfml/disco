@@ -47,7 +47,8 @@ export class TrainingManager {
                     this.trainingInformation.batchSize,
                     this.trainingInformation.validationSplit,
                     this.trainingInformation.epoch,
-                    this.trainingInformant
+                    this.trainingInformant, 
+                    this.trainingInformation.modelCompileData,
                 );
             } else {
                 await this.communicationManager.updateReceivers();

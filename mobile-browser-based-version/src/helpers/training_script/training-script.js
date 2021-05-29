@@ -13,21 +13,22 @@ import {
  * @param {Number} epochs the number of epochs used for training
  * @param {function} updateUI a function called to update the UI to give feedbacks on the training
  */
-export async function training(model, trainData, labels, batchSize, validationSplit, epochs, trainingInformant) {
+export async function training(model, trainData, labels, batchSize, validationSplit, epochs, trainingInformant, modelCompileData) {
   console.log('Start Training')
-  console.log(labels)
   
   model.summary()
+  model.compile(modelCompileData)
 
 
   // TO DO: access these parameters as training argument
+  /*
   const optimizer = tf.train.adam();
   optimizer.learningRate = 0.05;
   model.compile({
     optimizer: optimizer,
     loss: "binaryCrossentropy",
     metrics: ["accuracy"],
-  });
+  });*/
 
   await model.fit(trainData, labels, {
     batchSize: batchSize,

@@ -71,7 +71,7 @@ export class MnistTask {
         // values sum to 1.
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
 
-        model.save(this.trainingInformation.savePathDb);
+        await model.save(this.trainingInformation.savePathDb);
 
         return model;
     }
@@ -240,7 +240,7 @@ export const trainingInformation = {
     // {String} model's identification name
     modelId: "mnist-model",
     // {String} indexedDB path where the model is stored
-    savePathDb: "indexeddb://working_lus_covid_model",
+    savePathDb: "indexeddb://working_mnist-model",
     // {Number} port of the peerjs server
     port: 1,
     // {Number} number of epoch used for training
