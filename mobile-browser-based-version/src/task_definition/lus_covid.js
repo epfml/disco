@@ -25,7 +25,7 @@ export class LusCovidTask {
     /**
      * @returns new instance of TensorflowJS model
      */
-    createModel() {
+    async createModel() {
         let newModel = tf.sequential();
 
         newModel.add(tf.layers.dense({inputShape:[FEATURES], units:512, activation:'relu'}))

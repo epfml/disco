@@ -21,7 +21,7 @@ export class MnistTask {
     /**
      * @returns {tf.Model} new instance of TensorflowJS model
      */
-    createModel() {
+    async createModel() {
         // only keep this here
         // Create a sequential neural network model. tf.sequential provides an API
         // for creating "stacked" models where the output from one layer is used as
