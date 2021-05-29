@@ -250,7 +250,7 @@ export const trainingInformation = {
     // {String} model's identification name
     modelId: "lus-covid-model",
     // {String} indexedDB path where the model is stored
-    savePathDb: "indexeddb://working_lus_covid_model",
+    savePathDb: "indexeddb://working_lus-covid-model",
     // {Number} port of the peerjs server
     port: 3,
     // {Number} number of epoch used for training

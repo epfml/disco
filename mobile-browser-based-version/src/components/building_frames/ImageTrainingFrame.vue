@@ -233,7 +233,6 @@ import UploadingFrame from "./UploadingFrame";
 
 // manager for the training loop
 var trainingManager = null;
-
 export default {
   name: "ImageTrainingFrame",
   props: {
@@ -270,6 +269,7 @@ export default {
   },
   methods: {
     saveModel() {
+      console.log(trainingManager.trainingInformation.modelId)
       trainingManager.saveModel();
     },
 
@@ -321,6 +321,7 @@ export default {
     TrainingInformationFrame,
   },
   async mounted() {
+
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
@@ -330,6 +331,7 @@ export default {
       this.DataExample = this.Task.displayInformation.dataExample;
       this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
       this.DataExampleImage = this.Task.displayInformation.dataExampleImage;
+      console.log("Mounting" + this.modelName)
 
       // initialize the training manager
       trainingManager = new TrainingManager(this.Task.trainingInformation);
@@ -350,6 +352,14 @@ export default {
         this
       );
     });
+  },
+  async activated() {
+    console.log("Activated")
+    trainingManager = new TrainingManager(this.Task.trainingInformation);
+    await trainingManager.reloadState(this.communicationManager, this.trainingInformant, this)
+  },
+  deactivated() {
+    console.log("Deactivated")
   },
   async unmounted() {
     // close the connection with the server
