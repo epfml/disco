@@ -282,7 +282,7 @@ export default {
     },
 
     async createNewModel() {
-      this.Task.createModel();
+      await this.Task.createModel();
     },
     getTheme: function () {
       if (window.localStorage.getItem("dark")) {
