@@ -289,6 +289,7 @@ export default {
 
         processedData.accepted = (await checkData(filesElement)).accepted;
 
+
         this.$toast.success(
           `Image preprocessing has finished and training has started`
         );
