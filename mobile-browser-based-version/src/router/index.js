@@ -29,6 +29,7 @@ export const ALL_TASKS = [titanicTask, mnistTask, lusCovidTask]
 
 // allocate each task depending of creation 
 function dynamicTaskAllocationFn (routes){
+  console.log(routes.params.Id)
   switch(routes.params.Id) {
     case titanicTask.trainingInformation.modelId:
       return {Id: routes.params.Id, Task: titanicTask}

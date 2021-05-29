@@ -42,6 +42,7 @@ export class FileUploadManager {
      * @returns the first file in the file's list 
      */
     getFirstFile() {
+        console.log(this.filesList)
         return this.filesList[Object.keys(this.filesList)[0]]
     }
 

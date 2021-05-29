@@ -276,8 +276,6 @@ import TrainingInformationFrame from "./TrainingInformationFrame";
 // takes care of communication
 var trainingManager = null;
 
-// takes care of file uploading
-var fileUploadManager = null;
 
 export default {
   name: "CsvTrainingFrame",
@@ -304,6 +302,8 @@ export default {
       // takes care of uploading file process 
       fileUploadManager: new FileUploadManager(1, this),
 
+      
+
       // takes care of communication processes
       communicationManager: new CommunicationManager(9000), // TO DO: to modularize
     };
@@ -311,6 +311,7 @@ export default {
   methods: {
     saveModel() {
       trainingManager.saveModel();
+      console.log(trainingManager.trainingInformation.modelId)
     },
 
     async joinTraining(distributed) {
@@ -322,6 +323,7 @@ export default {
       } else {
         // Assume we only read the first file
         let file = this.fileUploadManager.getFirstFile();
+        console.log(this.fileUploadManager)
 
         let reader = new FileReader();
         reader.onload = async (e) => {
@@ -345,6 +347,9 @@ export default {
     this.$nextTick(async function () {
       // initialize information variables
       this.modelName = this.Task.trainingInformation.modelId;
+
+      console.log("Mounting" + this.modelName)
+
       this.dataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
       this.dataExampleText = this.Task.displayInformation.dataExampleText;
       this.Task.displayInformation.headers.forEach((item) => {
@@ -376,5 +381,13 @@ export default {
     // close the connection with the server
     this.communicationManager.disconect();
   },
+  async activated() {
+    console.log("Activated")
+    trainingManager = new TrainingManager(this.Task.trainingInformation);
+    await trainingManager.reloadState(this.communicationManager, this.trainingInformant, this)
+  },
+  deactivated() {
+    console.log("Deactivated")
+  }
 };
 </script>
