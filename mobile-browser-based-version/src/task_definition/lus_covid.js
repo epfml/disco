@@ -18,7 +18,8 @@ export class LusCovidTask {
      * @returns Returns a tf.model or null if there is no model
      */
      async getModelFromStorage() {
-        let model = await tf.loadLayersModel(this.trainingInformation.savePathDb)
+        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
+        let model = await tf.loadLayersModel(savePath)
         return model
     }
 
@@ -36,7 +37,9 @@ export class LusCovidTask {
 
         newModel.summary()
 
-        newModel.save(this.trainingInformation.savePathDb);
+        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
+
+        await newModel.save(savePath);
 
         return newModel
     }
@@ -252,8 +255,6 @@ export const displayInformation = {
 export const trainingInformation = {
     // {String} model's identification name
     modelId: "lus-covid-model",
-    // {String} indexedDB path where the model is stored
-    savePathDb: "indexeddb://working_lus_covid_model",
     // {Number} port of the peerjs server
     port: 3,
     // {Number} number of epoch used for training
@@ -268,6 +269,7 @@ export const trainingInformation = {
         loss: "binaryCrossentropy",
         metrics: ["accuracy"],
     },
+    learningRate: 0.05,
     // {Object} Training information 
     modelTrainData: {
         epochs: 10,

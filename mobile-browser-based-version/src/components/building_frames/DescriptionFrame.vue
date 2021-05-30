@@ -246,8 +246,7 @@ export default {
         setTimeout(this.$toast.clear, 30000);
       }
       this.$router.push({
-        name: 'training', 
-        params: {Id: this.Id, Task: this.Task}
+        path: 'training', 
       });
       
     },

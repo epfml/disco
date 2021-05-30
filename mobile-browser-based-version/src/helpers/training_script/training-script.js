@@ -13,21 +13,25 @@ import {
  * @param {Number} epochs the number of epochs used for training
  * @param {function} updateUI a function called to update the UI to give feedbacks on the training
  */
-export async function training(model, trainData, labels, batchSize, validationSplit, epochs, trainingInformant) {
+export async function training(model, trainData, labels, batchSize, validationSplit, epochs, trainingInformant, modelCompileData, learningRate = null) {
   console.log('Start Training')
-  console.log(labels)
   
   model.summary()
+  model.compile(modelCompileData)
 
 
+  if (learningRate != null){
+    model.optimizer.learningRate = learningRate
+  }
   // TO DO: access these parameters as training argument
+  /*
   const optimizer = tf.train.adam();
   optimizer.learningRate = 0.05;
   model.compile({
     optimizer: optimizer,
     loss: "binaryCrossentropy",
     metrics: ["accuracy"],
-  });
+  });*/
 
   await model.fit(trainData, labels, {
     batchSize: batchSize,
@@ -65,7 +69,7 @@ export async function training(model, trainData, labels, batchSize, validationSp
  * @param {PeerJS} peerjs peerJS object
 
  */
-export async function trainingDistributed(model, trainData, labels, epochs, batchSize, validationSplit, modelCompileData, trainingManager, peerjs, recvBuffer) {
+export async function trainingDistributed(model, trainData, labels, epochs, batchSize, validationSplit, modelCompileData, trainingManager, peerjs, recvBuffer, learningRate = null,) {
   // shuffle to avoid having the same thing on all peers
   //var indices = tf.linspace(0, trainData.shape[0]).cast('int32')
   //tf.util.shuffle(indices)
@@ -76,7 +80,10 @@ export async function trainingDistributed(model, trainData, labels, epochs, batc
 
   // compile the model
   model.compile(modelCompileData)
-  
+
+  if (learningRate != null){
+    model.optimizer.learningRate = learningRate
+  }
 
   // start training
   console.log("Training started")
