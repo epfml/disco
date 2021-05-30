@@ -300,7 +300,6 @@ export default {
     saveModel() {
       trainingManager.saveModel()
     },
-
     async joinTraining(distributed) {
       const filesElement = document.getElementById(
         "hidden-input_".concat(this.modelName)
@@ -327,6 +326,8 @@ export default {
     TrainingInformationFrame,
   },
   async mounted() {
+    console.log("Mounted" + this.Task.trainingInformation.modelId)
+    console.log(trainingManager)
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables 
@@ -352,6 +353,8 @@ export default {
 
       // initialize training manager 
       trainingManager.initialization(this.communicationManager, this.trainingInformant, this);
+      console.log(trainingManager)
+
     });
   },
   async unmounted() {

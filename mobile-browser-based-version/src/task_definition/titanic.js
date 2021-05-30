@@ -60,6 +60,7 @@ export class TitanicTask {
                     console.log(rows);
                 }
             );
+            
 
             Xtrain = tf.tensor2d(Xcsv);
             ytrain = tf.tensor1d(ycsv);
