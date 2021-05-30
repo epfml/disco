@@ -355,8 +355,7 @@ export default {
 
     goToTesting() {
       this.$router.push({ 
-          name: 'testing',
-          params: {Id: this.Id} 
+          path: 'testing',
        });
     },
   },
@@ -365,6 +364,9 @@ export default {
     TrainingInformationFrame,
   },
   async mounted() {
+    console.log("Mounted" + this.Task.trainingInformation.modelId)
+    console.log(trainingManager)
+
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
@@ -393,6 +395,8 @@ export default {
         this.trainingInformant,
         this
       );
+    console.log(trainingManager)
+
     });
   },
   async unmounted() {
