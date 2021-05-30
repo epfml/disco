@@ -268,6 +268,7 @@ export const trainingInformation = {
         loss: "binaryCrossentropy",
         metrics: ["accuracy"],
     },
+    learningRate: 0.05,
     // {Object} Training information 
     modelTrainData: {
         epochs: 10,

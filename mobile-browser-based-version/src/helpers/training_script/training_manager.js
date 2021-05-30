@@ -49,6 +49,7 @@ export class TrainingManager {
                     this.trainingInformation.epoch,
                     this.trainingInformant, 
                     this.trainingInformation.modelCompileData,
+                    this.trainingInformation.learningRate
                 );
             } else {
                 await this.communicationManager.updateReceivers();
@@ -62,7 +63,8 @@ export class TrainingManager {
                     this.trainingInformation.modelCompileData,
                     this,
                     this.communicationManager.peerjs,
-                    this.communicationManager.recvBuffer
+                    this.communicationManager.recvBuffer,
+                    this.trainingInformation.learningRate
                 );
             }
             // notify the user that training has ended 
