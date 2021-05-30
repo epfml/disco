@@ -23,7 +23,8 @@
     "vue-chartjs": "^3.5.1",
     "vue-loaders": "^4.1.4",
     "vue-notification-renderless": "^0.7.3",
-    "vue-router": "^4.0.0-0"
+    "vue-router": "^4.0.0-0",
+    "vuex": "^4.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss7-compat": "^2.0.4",
@@ -37,7 +38,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^7.0.0-0",
-    "postcss": "^8.2.10",
+    "postcss": "^7.0.35",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.4",
     "vue-loader-v16": "npm:vue-loader@^16.1.2"
   },
