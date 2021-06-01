@@ -324,12 +324,17 @@ export default {
     },
     downloadPredictionsCsv(){
       console.log(this.predictions)
-      const pred = this.predictions.map((value, index, array) => value.map(dict => dict["className"]+","+dict["probability"]).join(',')).join("\n")
+      let pred = ""
+      let header_length = 0
+      for (const [id, prediction] of Object.entries(this.predictions)){
+        header_length = prediction.length
+        pred += id + ","+ prediction.map(dict => dict["className"]+","+dict["probability"]).join(',')+"\n"
+      }
 
-      let header=""
-      for (let i = 1; i <= this.predictions[0].length;++i){
+      let header="id,"
+      for (let i = 1; i <= header_length;++i){
         header += "top"+i+",probability"
-        if(i!=this.predictions[0].length){
+        if(i!=header_length){
           header+=","
         }else{
           header+="\n"
