@@ -67,6 +67,7 @@ export class TrainingManager {
                     this.trainingInformation.learningRate
                 );
             }
+            this.saveWorkingModel()
             // notify the user that training has ended 
             this.environment.$toast.success(
                 this.trainingInformation.modelId.concat(` has finished training!`)
@@ -117,6 +118,13 @@ export class TrainingManager {
         );
     }
 
+    saveWorkingModel(){
+        storeModel(this.model, "working_".concat(this.trainingInformation.modelId));
+        this.environment.$toast.success(
+            "The ".concat(this.trainingInformation.modelId).concat(" has been saved.")
+        );
+        setTimeout(this.environment.$toast.clear, 30000);
+    }
     /**
      * Save the working model for later use. 
      */
