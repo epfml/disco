@@ -335,7 +335,7 @@ export const trainingInformation = {
     batchSize: 2,
     // {Object} Compiling information 
     modelCompileData: {
-        optimizer: "rmsprop",
+        optimizer: "adam",
         loss: "binaryCrossentropy",
         metrics: ["accuracy"],
     },
@@ -344,6 +344,7 @@ export const trainingInformation = {
     modelTrainData: {
         epochs: 10,
     },
+    threshold: 1,
 
     IMAGE_H : 224,
     IMAGE_W : 224,
