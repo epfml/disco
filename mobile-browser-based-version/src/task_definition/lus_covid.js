@@ -97,7 +97,9 @@ export class LusCovidTask {
 
             const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
 
-            return net.predict(processedImg)
+            const prediction = net.predict(processedImg)
+
+            return prediction
           });
 
         tf.dispose(tensor)
