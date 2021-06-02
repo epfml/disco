@@ -91,13 +91,19 @@ export class LusCovidTask {
 
     async imagePreprocessing(src){
         const tensor = await this.loadLocalImage(src)
+
+        const representation = tf.tidy(() => {
+            const batched = tensor.reshape([this.trainingInformation.IMAGE_H, this.trainingInformation.IMAGE_W, 3])
+
+            const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
+
+            const prediction = net.predict(processedImg)
+
+            return prediction
+          });
+
+        tf.dispose(tensor)
         
-        const batched = tensor.reshape([this.trainingInformation.IMAGE_H, this.trainingInformation.IMAGE_W, 3])
-
-        const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
-
-        let representation = net.predict(processedImg)
-
         return representation
     }
 
@@ -152,8 +158,8 @@ export class LusCovidTask {
             }else{
                 dictLabels[id] = labelsPerImage[i]
             }
-
-            res.push(await this.imagePreprocessing(imageUri[i]))
+            let result = await this.imagePreprocessing(imageUri[i])
+            res.push(result)
 
             dictImages[id] = res
         }
