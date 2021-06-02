@@ -184,7 +184,7 @@ export async function onEpochEndCommon(model, epoch, receivers, recvBuffer, user
     const serializedWeights = await serializeWeights(model)
     var epochWeights = { epoch: epoch, weights: serializedWeights }
 
-    if(threshold !== undefined){
+    if(threshold == undefined){
         threshold = 1
     }
 
