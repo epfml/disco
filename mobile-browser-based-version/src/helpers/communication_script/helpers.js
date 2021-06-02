@@ -104,6 +104,7 @@ export function dataReceivedBreak(recvBuffer, key, maxTries) {
             if (recvBuffer[key] || n >= maxTries - 1) {
                 return resolve();
             }
+            console.log(n)
             setTimeout(() => waitData(n + 1), 100);
         })(0);
     });
@@ -117,14 +118,16 @@ export function dataReceivedBreak(recvBuffer, key, maxTries) {
  * @param {int} len 
  */
 export function checkArrayLen(arr, len) {
+    let maxTries = 100
     return new Promise((resolve) => {
-        (function waitData() {
+        (function waitData(n) {
             console.log(arr.length)
-            if (arr.length >= len) {
+            console.log(n)
+            if (arr.length >= len || maxTries <= n) {
                 return resolve();
             }
-            setTimeout(waitData, 100);
-        })();
+            setTimeout(() => waitData(n+1), 100);
+        })(0);
     });
 }
 
@@ -184,7 +187,7 @@ export async function onEpochEndCommon(model, epoch, receivers, recvBuffer, user
     const serializedWeights = await serializeWeights(model)
     var epochWeights = { epoch: epoch, weights: serializedWeights }
 
-    if(threshold !== undefined){
+    if(threshold == undefined){
         threshold = 1
     }
 
