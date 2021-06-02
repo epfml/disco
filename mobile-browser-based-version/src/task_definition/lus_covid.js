@@ -281,6 +281,7 @@ export const trainingInformation = {
         epochs: 10,
     },
     threshold: 1,
+
     IMAGE_H : 224,
     IMAGE_W : 224,
     LABEL_LIST : ["COVID-Positive", "COVID-Negative"],

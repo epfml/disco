@@ -51,8 +51,6 @@ export async function training(model, trainData, labels, batchSize, validationSp
       }
     }
   });
-
-
 }
 
 /**
