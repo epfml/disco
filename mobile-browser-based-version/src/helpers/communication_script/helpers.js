@@ -55,7 +55,7 @@ export function averageWeightsIntoModel(peersSerializedWeights, model) {
                 tensor.dispose()
             }
         )
-        weight.val.assign(tensorSum.div(peersSerializedWeights.length)); //average
+        weight.val.assign(tensorSum.div(peersSerializedWeights.length + 1)); //average
         tensorSum.dispose();
     });
 }
