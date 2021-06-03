@@ -8,6 +8,9 @@ import {
 
 } from './peer'
 
+const TIME_PER_TRIES = 100 // in miliseconds
+const MAX_TRIES = 100 // corresponds to waiting 10 seconds (since each try is performed every 100ms)
+
 async function serializeTensor(tensor) {
     return {
         "$tensor": {
@@ -87,7 +90,7 @@ export function dataReceived(recvBuffer, key) {
                 console.log(recvBuffer)
                 return resolve();
             }
-            setTimeout(waitData, 100);
+            setTimeout(waitData, TIME_PER_TRIES);
         })();
     });
 }
@@ -96,16 +99,15 @@ export function dataReceived(recvBuffer, key) {
  * Same as dataReceived, but break after maxTries
  * @param {Object} recvBuffer 
  * @param {*} key 
- * @param {int} maxTries 
  */
-export function dataReceivedBreak(recvBuffer, key, maxTries) {
+export function dataReceivedBreak(recvBuffer, key) {
     return new Promise((resolve) => {
         (function waitData(n) {
-            if (recvBuffer[key] || n >= maxTries - 1) {
+            if (recvBuffer[key] || n >= MAX_TRIES - 1) {
                 return resolve();
             }
             console.log(n)
-            setTimeout(() => waitData(n + 1), 100);
+            setTimeout(() => waitData(n + 1), TIME_PER_TRIES);
         })(0);
     });
 }
@@ -118,13 +120,12 @@ export function dataReceivedBreak(recvBuffer, key, maxTries) {
  * @param {int} len 
  */
 export function checkArrayLenSync(arr, len) {
-    let maxTries = 100
     return new Promise((resolve) => {
         (function waitData(n) {
-            if (arr.length >= len || maxTries <= n) {
+            if (arr.length >= len || MAX_TRIES <= n) {
                 return resolve();
             }
-            setTimeout(() => waitData(n+1), 100);
+            setTimeout(() => waitData(n+1), TIME_PER_TRIES);
         })(0);
     });
 }
@@ -136,14 +137,13 @@ export function checkArrayLenSync(arr, len) {
  * @param {int} len 
  */
  export function checkArrayLenCommon(recvBuffer, len) {
-    let maxTries = 100
     return new Promise((resolve) => {
         (function waitData(n) {
             const arr = Object.values(recvBuffer.avgWeights).flat(1)
-            if (arr.length >= len || maxTries <= n) {
+            if (arr.length >= len || MAX_TRIES <= n) {
                 return resolve();
             }
-            setTimeout(() => waitData(n+1), 100);
+            setTimeout(() => waitData(n+1), TIME_PER_TRIES);
         })(0);
     });
 }
