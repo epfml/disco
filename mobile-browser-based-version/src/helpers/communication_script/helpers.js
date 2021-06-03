@@ -44,13 +44,19 @@ export function assignWeightsToModel(serializedWeights, model) {
     });
 }
 
-export function averageWeightsIntoModel(serializedWeights, model) {
+export function averageWeightsIntoModel(peersSerializedWeights, model) {
     model.weights.forEach((weight, idx) => {
-        const serializedWeight = serializedWeights[idx]["$variable"];
-
-        const tensor = deserializeTensor(serializedWeight.val);
-        weight.val.assign(tensor.add(weight.val).div(2)); //average
-        tensor.dispose();
+        let tensorSum = weight.val
+        peersSerializedWeights.forEach(
+            (serializedWeights, peer) =>{
+                const serializedWeight = serializedWeights[idx]["$variable"];
+                const tensor = deserializeTensor(serializedWeight.val);
+                tensorSum = tensor.add(tensorSum)
+                tensor.dispose()
+            }
+        )
+        weight.val.assign(tensorSum.div(peersSerializedWeights.length + 1)); //average
+        tensorSum.dispose();
     });
 }
 
@@ -104,6 +110,7 @@ export function dataReceivedBreak(recvBuffer, key, maxTries) {
             if (recvBuffer[key] || n >= maxTries - 1) {
                 return resolve();
             }
+            console.log(n)
             setTimeout(() => waitData(n + 1), 100);
         })(0);
     });
@@ -116,17 +123,37 @@ export function dataReceivedBreak(recvBuffer, key, maxTries) {
  * @param {Array} arr 
  * @param {int} len 
  */
-export function checkArrayLen(arr, len) {
+export function checkArrayLenSync(arr, len) {
+    let maxTries = 100
     return new Promise((resolve) => {
-        (function waitData() {
-            console.log(arr.length)
-            if (arr.length >= len) {
+        (function waitData(n) {
+            if (arr.length >= len || maxTries <= n) {
                 return resolve();
             }
-            setTimeout(waitData, 100);
-        })();
+            setTimeout(() => waitData(n+1), 100);
+        })(0);
     });
 }
+
+/**
+ * Waits until an array reaches a given length. Used to make 
+ * sure that all weights from peers are received.
+ * @param {Array} arr 
+ * @param {int} len 
+ */
+ export function checkArrayLenCommon(recvBuffer, len) {
+    let maxTries = 100
+    return new Promise((resolve) => {
+        (function waitData(n) {
+            const arr = Object.values(recvBuffer.avgWeights).flat(1)
+            if (arr.length >= len || maxTries <= n) {
+                return resolve();
+            }
+            setTimeout(() => waitData(n+1), 100);
+        })(0);
+    });
+}
+
 
 // generates a random string
 export async function makeid(length) {
@@ -164,12 +191,12 @@ export async function onEpochEndSync(model, epoch, receivers, recvBuffer, peerjs
         await dataReceived(recvBuffer.avgWeights, epoch.toString())
     }
     console.log("Waiting to receive all weights for this epoch...")
-    await checkArrayLen(recvBuffer.avgWeights[epoch], receivers.length)
+    await checkArrayLenSync(recvBuffer.avgWeights[epoch], receivers.length)
         .then(() => {
             console.log("Averaging weights")
-            for (i in recvBuffer.avgWeights[epoch]) {
-                averageWeightsIntoModel(recvBuffer.avgWeights[epoch][i], model)
-            }
+        
+            averageWeightsIntoModel(recvBuffer.avgWeights[epoch], model)
+        
             // might want to delete weights after using them to avoiding hogging memory
             // delete recvBuffer.avgWeights[epoch]
         })
@@ -229,14 +256,14 @@ export async function onEpochEndCommon(model, epoch, receivers, recvBuffer, user
 
         if (recvBuffer.avgWeights !== undefined) { // check if any weights were received
             console.log("Waiting to receive enough weights...")
-            await checkArrayLen(Object.values(recvBuffer.avgWeights).flat(1), threshold)
+            await checkArrayLenCommon(recvBuffer, threshold)
                 .then(() => {
                     console.log("Averaging weights")
                     trainingInformant.updateNbrUpdatesWithOthers(1)
                     trainingInformant.addMessage("Averaging weights")
-                    Object.values(recvBuffer.avgWeights).flat(1).forEach(
-                        (w) => { averageWeightsIntoModel(w, model) }
-                    )
+                    
+                    averageWeightsIntoModel(Object.values(recvBuffer.avgWeights).flat(1), model) 
+                    
                     delete recvBuffer.avgWeights // NOTE: this might delete useful weights...
                 })
         }
