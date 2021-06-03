@@ -280,7 +280,7 @@ export const trainingInformation = {
     modelTrainData: {
         epochs: 10,
     },
-    threshold: 1,
+    threshold: 2,
 
     IMAGE_H : 224,
     IMAGE_W : 224,
