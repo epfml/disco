@@ -117,12 +117,10 @@ export function dataReceivedBreak(recvBuffer, key, maxTries) {
  * @param {Array} arr 
  * @param {int} len 
  */
-export function checkArrayLen(arr, len) {
+export function checkArrayLenSync(arr, len) {
     let maxTries = 100
     return new Promise((resolve) => {
         (function waitData(n) {
-            console.log(arr.length)
-            console.log(n)
             if (arr.length >= len || maxTries <= n) {
                 return resolve();
             }
@@ -130,6 +128,26 @@ export function checkArrayLen(arr, len) {
         })(0);
     });
 }
+
+/**
+ * Waits until an array reaches a given length. Used to make 
+ * sure that all weights from peers are received.
+ * @param {Array} arr 
+ * @param {int} len 
+ */
+ export function checkArrayLenCommon(recvBuffer, len) {
+    let maxTries = 100
+    return new Promise((resolve) => {
+        (function waitData(n) {
+            const arr = Object.values(recvBuffer.avgWeights).flat(1)
+            if (arr.length >= len || maxTries <= n) {
+                return resolve();
+            }
+            setTimeout(() => waitData(n+1), 100);
+        })(0);
+    });
+}
+
 
 // generates a random string
 export async function makeid(length) {
@@ -167,7 +185,7 @@ export async function onEpochEndSync(model, epoch, receivers, recvBuffer, peerjs
         await dataReceived(recvBuffer.avgWeights, epoch.toString())
     }
     console.log("Waiting to receive all weights for this epoch...")
-    await checkArrayLen(recvBuffer.avgWeights[epoch], receivers.length)
+    await checkArrayLenSync(recvBuffer.avgWeights[epoch], receivers.length)
         .then(() => {
             console.log("Averaging weights")
             for (i in recvBuffer.avgWeights[epoch]) {
@@ -232,7 +250,7 @@ export async function onEpochEndCommon(model, epoch, receivers, recvBuffer, user
 
         if (recvBuffer.avgWeights !== undefined) { // check if any weights were received
             console.log("Waiting to receive enough weights...")
-            await checkArrayLen(Object.values(recvBuffer.avgWeights).flat(1), threshold)
+            await checkArrayLenCommon(recvBuffer, threshold)
                 .then(() => {
                     console.log("Averaging weights")
                     trainingInformant.updateNbrUpdatesWithOthers(1)
