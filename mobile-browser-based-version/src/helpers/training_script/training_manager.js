@@ -14,7 +14,6 @@ export class TrainingManager {
      */
     constructor(trainingInformation) {
         this.trainingInformation = trainingInformation;
-        this.model = null;
         this.modelCompileData = trainingInformation.modelCompileData;
         this.communicationManager = null;
         this.trainingInformant = null;
@@ -41,7 +40,7 @@ export class TrainingManager {
             setTimeout(this.environment.$toast.clear, 30000);
             if (!distributed) {
                 await training(
-                    this.model,
+                    this.trainingInformation.modelId,
                     Xtrain,
                     ytrain,
                     this.trainingInformation.batchSize,
@@ -54,7 +53,7 @@ export class TrainingManager {
             } else {
                 await this.communicationManager.updateReceivers();
                 await trainingDistributed(
-                    this.model,
+                    this.trainingInformation.modelId,
                     Xtrain,
                     ytrain,
                     this.trainingInformation.epoch,
@@ -67,7 +66,6 @@ export class TrainingManager {
                     this.trainingInformation.learningRate
                 );
             }
-            this.saveWorkingModel()
             // notify the user that training has ended 
             this.environment.$toast.success(
                 this.trainingInformation.modelId.concat(` has finished training!`)
@@ -97,7 +95,7 @@ export class TrainingManager {
      * @param {Number} accuracy The accuracy achieved by the model in the given epoch
      * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
      */
-    async onEpochEnd(epoch, accuracy, validationAccuracy) {
+    async onEpochEnd(model, epoch, accuracy, validationAccuracy) {
         this.trainingInformant.updateCharts(
             epoch,
             validationAccuracy,
@@ -107,7 +105,7 @@ export class TrainingManager {
         // Wait for a synchronization scheme (on epoch number).
         await this.communicationManager.updateReceivers();
         await onEpochEndCommon(
-            this.model,
+            model,
             epoch,
             this.communicationManager.receivers,
             this.communicationManager.recvBuffer,
@@ -118,18 +116,16 @@ export class TrainingManager {
         );
     }
 
-    saveWorkingModel(){
-        storeModel(this.model, "working_".concat(this.trainingInformation.modelId));
-        this.environment.$toast.success(
-            "The ".concat(this.trainingInformation.modelId).concat(" has been saved.")
-        );
-        setTimeout(this.environment.$toast.clear, 30000);
-    }
     /**
      * Save the working model for later use. 
      */
-    saveModel() {
-        storeModel(this.model, "saved_".concat(this.trainingInformation.modelId));
+    async saveModel() {
+        const savedModelPath = "indexeddb://working_".concat(
+            this.trainingInformation.modelId
+        );
+        let model = await tf.loadLayersModel(savedModelPath);
+
+        storeModel(model, "saved_".concat(this.trainingInformation.modelId));
         this.environment.$toast.success(
             "The ".concat(this.trainingInformation.modelId).concat(" has been saved.")
         );
@@ -152,15 +148,6 @@ export class TrainingManager {
         this.trainingInformant = trainingInformant
     }
 
-    /**
-     * Load the working model into the variable model. 
-     */
-    async initializeModel() {
-        const savedModelPath = "indexeddb://working_".concat(
-            this.trainingInformation.modelId
-        );
-        this.model = await tf.loadLayersModel(savedModelPath);
-    }
 
     /**
      * Initialize the component's environment (used to be able to send toast notifcation to user).
@@ -177,7 +164,6 @@ export class TrainingManager {
      * @param {*} environment the environment of the component to which the training manager is associated.
      */
     async initialization(communicationManager, trainingInformant, environment) {
-        await this.initializeModel();
         this.initializeCommunicationManager(communicationManager);
         this.initializeTrainingInformant(trainingInformant);
         this.initializeEnvironment(environment);

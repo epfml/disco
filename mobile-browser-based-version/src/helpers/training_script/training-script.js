@@ -1,7 +1,10 @@
 import * as tf from '@tensorflow/tfjs';
+import { model } from '@tensorflow/tfjs';
 import {
   handleData,
 } from '../communication_script/peer'
+import { storeModel } from "../my_memory_script/indexedDB_script";
+
 
 /**
  * Trains the model given as argument
@@ -13,9 +16,14 @@ import {
  * @param {Number} epochs the number of epochs used for training
  * @param {function} updateUI a function called to update the UI to give feedbacks on the training
  */
-export async function training(model, trainData, labels, batchSize, validationSplit, epochs, trainingInformant, modelCompileData, learningRate = null) {
+export async function training(modelId, trainData, labels, batchSize, validationSplit, epochs, trainingInformant, modelCompileData, learningRate = null) {
   console.log('Start Training')
   
+  const savedModelPath = "indexeddb://working_".concat(
+            modelId
+        );
+  var model = await tf.loadLayersModel(savedModelPath);
+
   model.summary()
   model.compile(modelCompileData)
 
@@ -23,15 +31,6 @@ export async function training(model, trainData, labels, batchSize, validationSp
   if (learningRate != null){
     model.optimizer.learningRate = learningRate
   }
-  // TO DO: access these parameters as training argument
-  /*
-  const optimizer = tf.train.adam();
-  optimizer.learningRate = 0.05;
-  model.compile({
-    optimizer: optimizer,
-    loss: "binaryCrossentropy",
-    metrics: ["accuracy"],
-  });*/
 
   await model.fit(trainData, labels, {
     batchSize: batchSize,
@@ -50,6 +49,9 @@ export async function training(model, trainData, labels, batchSize, validationSp
         //await tf.nextFrame();
       }
     }
+  }).then( (info) => {
+    storeModel(model, savedModelPath)
+    console.log("Training finished", info.history) 
   });
 }
 
@@ -67,12 +69,17 @@ export async function training(model, trainData, labels, batchSize, validationSp
  * @param {PeerJS} peerjs peerJS object
 
  */
-export async function trainingDistributed(model, trainData, labels, epochs, batchSize, validationSplit, modelCompileData, trainingManager, peerjs, recvBuffer, learningRate = null,) {
+export async function trainingDistributed(modelId, trainData, labels, epochs, batchSize, validationSplit, modelCompileData, trainingManager, peerjs, recvBuffer, learningRate = null,) {
   // shuffle to avoid having the same thing on all peers
   //var indices = tf.linspace(0, trainData.shape[0]).cast('int32')
   //tf.util.shuffle(indices)
   //const xTrain1d = trainData.gather(indices)
   //const yTrain1d = labels.gather(indices)
+
+  const savedModelPath = "indexeddb://working_".concat(
+            modelId
+        );
+  var model = await tf.loadLayersModel(savedModelPath);
 
   peerjs.setDataHandler(handleData, recvBuffer)
 
@@ -92,7 +99,7 @@ export async function trainingDistributed(model, trainData, labels, epochs, batc
     callbacks: 
     {onEpochBegin: trainingManager.onEpochBegin(), 
       onEpochEnd: async (epoch, logs) => {
-        await trainingManager.onEpochEnd(epoch + 1, (logs.acc * 100).toFixed(2), (logs.val_acc * 100).toFixed(2))
+        await trainingManager.onEpochEnd(model, epoch + 1, (logs.acc * 100).toFixed(2), (logs.val_acc * 100).toFixed(2))
         console.log(`EPOCH (${epoch + 1}): Train Accuracy: ${(
           logs.acc * 100
         ).toFixed(2)},
@@ -102,5 +109,8 @@ export async function trainingDistributed(model, trainData, labels, epochs, batc
         //await tf.nextFrame();
       }
     }
-  }).then( (info) => console.log("Training finished", info.history) )
+  }).then( (info) => {
+    storeModel(model, savedModelPath)
+    console.log("Training finished", info.history) 
+  })
 }
