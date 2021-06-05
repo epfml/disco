@@ -86,8 +86,7 @@ export default {
   methods: {
     goToSelection(id) {
       this.$router.push({
-        name: "description",
-        params: { Id: id },
+        path: "/".concat(id).concat("/description"),
       });
     },
   },

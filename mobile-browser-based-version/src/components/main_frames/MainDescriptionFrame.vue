@@ -9,6 +9,7 @@
         v-bind:LimitationsText="LimitationsText"
         v-bind:TradeOffsText="TradeOffsText"
         v-bind:Id="ModelId"
+        v-bind:Task="Task"
       />
       </keep-alive>
     </div>
@@ -32,7 +33,7 @@ export default {
     };
   },
   components: {
-    DescriptionFrame,
+    DescriptionFrame
   },
   mounted() {
     this.OverviewText = this.Task.displayInformation.overview;

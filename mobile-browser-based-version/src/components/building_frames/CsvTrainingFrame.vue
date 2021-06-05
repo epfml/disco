@@ -313,7 +313,6 @@ export default {
       trainingManager.saveModel();
       console.log(trainingManager.trainingInformation.modelId)
     },
-
     async joinTraining(distributed) {
       const nbrFiles = this.fileUploadManager.numberOfFiles();
       
@@ -343,6 +342,8 @@ export default {
     TrainingInformationFrame,
   },
   async mounted() {
+    console.log("Mounted" + this.Task.trainingInformation.modelId)
+    console.log(trainingManager)
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
@@ -375,6 +376,7 @@ export default {
         this.trainingInformant,
         this
       );
+
     });
   },
   async unmounted() {
