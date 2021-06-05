@@ -191,7 +191,8 @@ export class MnistTask {
 
         if (loadedModel != null) {
             console.log("Model loaded.")
-            const classes_array = []
+            const classes_dict = {}
+            let i = 0
             for (let url of Object.keys(testingData)) {
                 const img_tensor = await this.imagePreprocessing(url)
 
@@ -200,12 +201,14 @@ export class MnistTask {
                 // Convert logits to probabilities and class names.
                 const classes = await getTopKClasses(logits, 5, this.trainingInformation.LABEL_LIST);
 
-                classes_array.push(classes)
+                classes_dict[i] = classes
+                
+                i++
             }
 
             console.log("Prediction Sucessful!")
 
-            return classes_array;
+            return classes_dict;
         } else {
             console.log("No model has been trained or found!")
         }
