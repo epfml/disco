@@ -306,8 +306,10 @@ export default {
     async predict(){
       const classes = await this.Task.predict(this.FILES)
 
-      if(classes.length == 1){
-        this.showResults(classes[0])
+      console.log(classes.length)
+      const ids = Object.keys(classes)
+      if(ids.length == 1){
+        this.showResults(classes[ids[0]])
         this.$toast.success(`Predictions are available below.`);
       }else{
         this.predictions = classes
@@ -324,12 +326,17 @@ export default {
     },
     downloadPredictionsCsv(){
       console.log(this.predictions)
-      const pred = this.predictions.map((value, index, array) => value.map(dict => dict["className"]+","+dict["probability"]).join(',')).join("\n")
+      let pred = ""
+      let header_length = 0
+      for (const [id, prediction] of Object.entries(this.predictions)){
+        header_length = prediction.length
+        pred += id + ","+ prediction.map(dict => dict["className"]+","+dict["probability"]).join(',')+"\n"
+      }
 
-      let header=""
-      for (let i = 1; i <= this.predictions[0].length;++i){
+      let header="id,"
+      for (let i = 1; i <= header_length;++i){
         header += "top"+i+",probability"
-        if(i!=this.predictions[0].length){
+        if(i!=header_length){
           header+=","
         }else{
           header+="\n"
