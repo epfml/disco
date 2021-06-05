@@ -191,8 +191,7 @@ export class MnistTask {
 
         if (loadedModel != null) {
             console.log("Model loaded.")
-            const classes_dict = {}
-            let i = 0
+            const classes_array = []
             for (let url of Object.keys(testingData)) {
                 const img_tensor = await this.imagePreprocessing(url)
 
@@ -201,14 +200,12 @@ export class MnistTask {
                 // Convert logits to probabilities and class names.
                 const classes = await getTopKClasses(logits, 5, this.trainingInformation.LABEL_LIST);
 
-                classes_dict[i] = classes
-                
-                i++
+                classes_array.push(classes)
             }
 
             console.log("Prediction Sucessful!")
 
-            return classes_dict;
+            return classes_array;
         } else {
             console.log("No model has been trained or found!")
         }
@@ -246,7 +243,7 @@ export const trainingInformation = {
     // {String} model's identification name
     modelId: "mnist-model",
     // {Number} port of the peerjs server
-    port: 1,
+    port: 9001,
     // {Number} number of epoch used for training
     epoch: 10,
     // {Number} validation split

@@ -261,14 +261,15 @@
 
 
 <script>
+import { mapState } from 'vuex'
 import { TrainingInformant } from "../../helpers/training_script/training_informant";
 import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
 import { TrainingManager } from "../../helpers/training_script/training_manager";
 import CsvUploadFrame from "./CsvUploadFrame";
 import TrainingInformationFrame from "./TrainingInformationFrame";
+import * as tf from "@tensorflow/tfjs";
 
 // takes care of communication 
-var trainingManager = null;
 
 export default {
   name:'CsvTrainingFrame',
@@ -292,13 +293,17 @@ export default {
         this.Task.trainingInformation.modelId
       ),
 
+      // assist with the training loop 
+      trainingManager: null,
+    
       // take care of communication processes 
-      communicationManager: new CommunicationManager(9000), // TO DO: to modularize
+      communicationManager: new CommunicationManager(this.Task.trainingInformation.port), // TO DO: to modularize
     };
   },
+  
   methods: {
     saveModel() {
-      trainingManager.saveModel()
+      this.trainingManager.saveModel()
     },
     async joinTraining(distributed) {
       const filesElement = document.getElementById(
@@ -315,7 +320,7 @@ export default {
         reader.onload = async (e) => {
           // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
           var processedData = await this.Task.dataPreprocessing(e, this.headers);
-          await trainingManager.trainModel(distributed, processedData);
+          await this.trainingManager.trainModel(distributed, processedData);
         };
         reader.readAsText(file);
       }
@@ -325,9 +330,8 @@ export default {
     CsvUploadFrame,
     TrainingInformationFrame,
   },
+
   async mounted() {
-    console.log("Mounted" + this.Task.trainingInformation.modelId)
-    console.log(trainingManager)
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables 
@@ -340,8 +344,11 @@ export default {
       this.dataExample = this.Task.displayInformation.dataExample;
 
       // initialize the training manager
-      trainingManager = new TrainingManager(this.Task.trainingInformation);
-      
+      this.trainingManager = new TrainingManager(this.Task.trainingInformation);
+
+      //await this.$store.commit('addManager', this.Task.trainingInformation)
+
+
       // initialize training informant 
       this.trainingInformant.initializeCharts();
 
@@ -352,8 +359,8 @@ export default {
       );
 
       // initialize training manager 
-      trainingManager.initialization(this.communicationManager, this.trainingInformant, this);
-      console.log(trainingManager)
+      await this.trainingManager.initialization(this.communicationManager, this.trainingInformant, this);
+
 
     });
   },

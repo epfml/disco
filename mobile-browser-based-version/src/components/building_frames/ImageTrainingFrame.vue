@@ -269,8 +269,7 @@ import { TrainingManager } from "../../helpers/training_script/training_manager"
 import TrainingInformationFrame from "./TrainingInformationFrame";
 import ImageUploadFrame from "../building_frames/ImageUploadFrame";
 import { checkData } from '../../helpers/data_validation_script/helpers-image-tasks';
-// takes care of communication
-var trainingManager = null;
+
 
 export default {
   name: "ImageTrainingFrame",
@@ -288,6 +287,7 @@ export default {
       DataExampleImage:"",
       // different task labels 
       taskLabels: [],
+      trainingManager: null,
 
       // give feedbacks when training
       trainingInformant: new TrainingInformant(
@@ -296,7 +296,7 @@ export default {
       ),
 
       // take care of communication processes
-      communicationManager: new CommunicationManager(9000), // TO DO: to modularize
+      communicationManager: new CommunicationManager(this.Task.trainingInformation.port), // TO DO: to modularize
 
       // Uploaded Files
       FILES: {},
@@ -304,7 +304,7 @@ export default {
   },
   methods: {
     saveModel() {
-      trainingManager.saveModel();
+      this.trainingManager.saveModel();
     },
 
     async joinTraining(distributed) {
@@ -324,7 +324,7 @@ export default {
         this.$toast.success(`Image preprocessing has finished and training has started`);
         setTimeout(this.$toast.clear, 30000)
         
-        await trainingManager.trainModel(distributed, processedData);
+        await this.trainingManager.trainModel(distributed, processedData);
       }
     },
     
@@ -349,7 +349,6 @@ export default {
       }
 
       var images = require.context('../../../example_training_data/', false)
-      console.log(url)
       return images(url)
     },
 
@@ -364,9 +363,6 @@ export default {
     TrainingInformationFrame,
   },
   async mounted() {
-    console.log("Mounted" + this.Task.trainingInformation.modelId)
-    console.log(trainingManager)
-
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
@@ -378,7 +374,7 @@ export default {
       this.DataExampleImage = this.Task.displayInformation.dataExampleImage
       
       // initialize the training manager
-      trainingManager = new TrainingManager(this.Task.trainingInformation);
+      this.trainingManager = new TrainingManager(this.Task.trainingInformation);
 
       // initialize training informant
       this.trainingInformant.initializeCharts();
@@ -390,12 +386,11 @@ export default {
       );
 
       // initialize training manager
-      trainingManager.initialization(
+      this.trainingManager.initialization(
         this.communicationManager,
         this.trainingInformant,
         this
       );
-    console.log(trainingManager)
 
     });
   },

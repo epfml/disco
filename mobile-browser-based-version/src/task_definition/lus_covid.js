@@ -91,19 +91,13 @@ export class LusCovidTask {
 
     async imagePreprocessing(src){
         const tensor = await this.loadLocalImage(src)
-
-        const representation = tf.tidy(() => {
-            const batched = tensor.reshape([this.trainingInformation.IMAGE_H, this.trainingInformation.IMAGE_W, 3])
-
-            const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
-
-            const prediction = net.predict(processedImg)
-
-            return prediction
-          });
-
-        tf.dispose(tensor)
         
+        const batched = tensor.reshape([this.trainingInformation.IMAGE_H, this.trainingInformation.IMAGE_W, 3])
+
+        const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
+
+        let representation = net.predict(processedImg)
+
         return representation
     }
 
@@ -158,8 +152,8 @@ export class LusCovidTask {
             }else{
                 dictLabels[id] = labelsPerImage[i]
             }
-            let result = await this.imagePreprocessing(imageUri[i])
-            res.push(result)
+
+            res.push(await this.imagePreprocessing(imageUri[i]))
 
             dictImages[id] = res
         }
@@ -197,72 +191,6 @@ export class LusCovidTask {
         return {Xtrain: xs, ytrain: labels}
     }
 
-    async testing_preprocessing(testingData){
-        if (net == null){
-            await this.loadMobilenet()
-         }
- 
-         const imageUri = []
-         const imageNames = []
- 
-         Object.keys(testingData).forEach(key => {
-             imageNames.push(testingData[key].name)
-             imageUri.push(key)
-         });
- 
-         const preprocessedData = await this.getTestData(imageUri, imageNames);    
-         
-         return preprocessedData
-    }
-
-    async getTestData(imageUri, imageNames){
-        const dictImages = {}
-        const dictLabels = {}
-        let patients = new Set()
-
-        for(let i = 0; i<imageNames.length; ++i){
-            const id = parseInt(imageNames[i].split("_")[0])
-            patients.add(id)
-
-            let res = []
-
-            if(id in dictImages){ 
-                res = dictImages[id]
-            }
-
-            res.push(await this.imagePreprocessing(imageUri[i]))
-
-            dictImages[id] = res
-        }
-
-
-        console.log("Number of patients found was "+Object.keys(dictImages).length)
-
-        let imageTensorsPerPatient = {}
-        patients = Array.from(patients)
-        for(let i = 0; i < patients.length; ++i){
-            const id = patients[i]
-            // Do mean pooling over same patient representations
-            imageTensorsPerPatient[id] = tf.mean(tf.concat(dictImages[id], 0),0).expandDims(0)
-        }
-        
-        const xsArray = []
-        const labelsToProcess = []
-
-        for (let i = 0; i< patients.length; ++i ){
-            const id = patients[i]
-            xsArray.push(imageTensorsPerPatient[id])
-            labelsToProcess.push(dictLabels[id])
-        }
-
-        const xs = tf.concat(xsArray, 0)
-    
-        console.log(xs)
-        console.log(patients)
-
-        return {xTest: xs, ids: patients}
-    }
-
     async predict(testingData){
         console.log("Loading model...")
         loadedModel = null
@@ -277,29 +205,25 @@ export class LusCovidTask {
         if (loadedModel){
             console.log("Model loaded.")
 
-            let preprocessed_data =  await this.testing_preprocessing(testingData, false)
-            let xTest = await preprocessed_data.xTest
-            let ids = await preprocessed_data.ids
-
+            let preprocessed_data = await (await this.dataPreprocessing(testingData, false)).Xtrain
 
             loadedModel.summary()
-            const classes_dict = {}
+            const classes_array = []
 
-            xTest = xTest.split(xTest.shape[0])
-            for(let i = 0; i < xTest.length; ++i){
-                const logits = loadedModel.predict(xTest[i])
+            preprocessed_data = preprocessed_data.split(preprocessed_data.shape[0])
+            for(let i = 0; i < preprocessed_data.length; ++i){
+                const logits = loadedModel.predict(preprocessed_data[i])
 
                 // Convert logits to probabilities and class names.
                 const classes = await getTopKClasses(logits, 2, this.trainingInformation.LABEL_LIST);
 
-                classes_dict[ids[i]] = classes
-
-                console.log(classes)
+                classes_array.push(classes)
             }
             
+
             console.log("Prediction Sucessful!")
 
-            return classes_dict
+            return classes_array
         }else{
             console.log("No model has been trained or found!")
         }
@@ -332,7 +256,7 @@ export const trainingInformation = {
     // {String} model's identification name
     modelId: "lus-covid-model",
     // {Number} port of the peerjs server
-    port: 3,
+    port: 9001,
     // {Number} number of epoch used for training
     epoch: 15,
     // {Number} validation split
@@ -341,7 +265,7 @@ export const trainingInformation = {
     batchSize: 2,
     // {Object} Compiling information 
     modelCompileData: {
-        optimizer: "adam",
+        optimizer: "rmsprop",
         loss: "binaryCrossentropy",
         metrics: ["accuracy"],
     },
@@ -350,7 +274,6 @@ export const trainingInformation = {
     modelTrainData: {
         epochs: 10,
     },
-    threshold: 1,
 
     IMAGE_H : 224,
     IMAGE_W : 224,

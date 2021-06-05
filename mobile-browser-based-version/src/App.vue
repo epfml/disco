@@ -562,9 +562,9 @@
 
       <!-- Main Page -->
       <div class="overflow-x-scroll">
-        <router-view v-slot="{ Component }">
-          <keep-alive>
-            <component :is="Component"/>
+        <router-view v-slot="{ Component}">
+          <keep-alive >
+            <component :is="Component" />
           </keep-alive>
         </router-view>
       </div>
