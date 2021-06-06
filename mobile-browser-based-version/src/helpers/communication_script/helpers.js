@@ -8,6 +8,9 @@ import {
 
 } from './peer'
 
+const TIME_PER_TRIES = 100 // in miliseconds
+const MAX_TRIES = 100 // corresponds to waiting 10 seconds (since each try is performed every 100ms)
+
 async function serializeTensor(tensor) {
     return {
         "$tensor": {
@@ -93,7 +96,7 @@ export function dataReceived(recvBuffer, key) {
                 console.log(recvBuffer)
                 return resolve();
             }
-            setTimeout(waitData, 100);
+            setTimeout(waitData, TIME_PER_TRIES);
         })();
     });
 }
@@ -102,35 +105,14 @@ export function dataReceived(recvBuffer, key) {
  * Same as dataReceived, but break after maxTries
  * @param {Object} recvBuffer 
  * @param {*} key 
- * @param {int} maxTries 
  */
-export function dataReceivedBreak(recvBuffer, key, maxTries) {
+export function dataReceivedBreak(recvBuffer, key) {
     return new Promise((resolve) => {
         (function waitData(n) {
-            if (recvBuffer[key] || n >= maxTries - 1) {
+            if (recvBuffer[key] || n >= MAX_TRIES - 1) {
                 return resolve();
             }
-            console.log(n)
-            setTimeout(() => waitData(n + 1), 100);
-        })(0);
-    });
-}
-
-
-/**
- * Waits until an array reaches a given length. Used to make 
- * sure that all weights from peers are received.
- * @param {Array} arr 
- * @param {int} len 
- */
-export function checkArrayLenSync(arr, len) {
-    let maxTries = 100
-    return new Promise((resolve) => {
-        (function waitData(n) {
-            if (arr.length >= len || maxTries <= n) {
-                return resolve();
-            }
-            setTimeout(() => waitData(n+1), 100);
+            setTimeout(() => waitData(n + 1), TIME_PER_TRIES);
         })(0);
     });
 }
@@ -138,18 +120,25 @@ export function checkArrayLenSync(arr, len) {
 /**
  * Waits until an array reaches a given length. Used to make 
  * sure that all weights from peers are received.
- * @param {Array} arr 
+ * @param {Array} recvBuffer where you will get the avgWeights from 
  * @param {int} len 
+ * @param {Boolean} isCommon true if this function is called on epoch common
+ * @param {int} epoch epoch when this function is called
  */
- export function checkArrayLenCommon(recvBuffer, len) {
-    let maxTries = 100
+ export function checkArrayLen(recvBuffer, len, isCommon, epoch) {
     return new Promise((resolve) => {
         (function waitData(n) {
-            const arr = Object.values(recvBuffer.avgWeights).flat(1)
-            if (arr.length >= len || maxTries <= n) {
+            let arr = []
+            if (isCommon){
+                arr = Object.values(recvBuffer.avgWeights).flat(1)
+            }else{
+                arr = recvBuffer.avgWeights[epoch]
+            }
+             
+            if (arr.length >= len || MAX_TRIES <= n) {
                 return resolve();
             }
-            setTimeout(() => waitData(n+1), 100);
+            setTimeout(() => waitData(n+1), TIME_PER_TRIES);
         })(0);
     });
 }
@@ -191,7 +180,7 @@ export async function onEpochEndSync(model, epoch, receivers, recvBuffer, peerjs
         await dataReceived(recvBuffer.avgWeights, epoch.toString())
     }
     console.log("Waiting to receive all weights for this epoch...")
-    await checkArrayLenSync(recvBuffer.avgWeights[epoch], receivers.length)
+    await checkArrayLen(recvBuffer, receivers.length, false, epoch)
         .then(() => {
             console.log("Averaging weights")
         
@@ -256,7 +245,7 @@ export async function onEpochEndCommon(model, epoch, receivers, recvBuffer, user
 
         if (recvBuffer.avgWeights !== undefined) { // check if any weights were received
             console.log("Waiting to receive enough weights...")
-            await checkArrayLenCommon(recvBuffer, threshold)
+            await checkArrayLen(recvBuffer, threshold, true, epoch)
                 .then(() => {
                     console.log("Averaging weights")
                     trainingInformant.updateNbrUpdatesWithOthers(1)
