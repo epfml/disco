@@ -26,6 +26,7 @@ var lusCovidTask = new LusCovidTask()
 // notify new task if availabe by adding it to the list of tasks available 
 export const ALL_TASKS = [titanicTask, mnistTask, lusCovidTask]
 
+
 var routes = [
   {
     path: '/',

@@ -3,6 +3,7 @@
     class="flex flex-col pt-4 items-right justify-start flex-1 h-full min-h-screen p-4 overflow-x-hidden overflow-y-auto"
   >
     <div>
+      <keep-alive>
       <DescriptionFrame
         v-bind:OverviewText="OverviewText"
         v-bind:LimitationsText="LimitationsText"
@@ -11,6 +12,7 @@
         v-bind:Task="Task"
         v-if="TradeOffsText"
       />
+      </keep-alive>
     </div>
   </div>
 </template>

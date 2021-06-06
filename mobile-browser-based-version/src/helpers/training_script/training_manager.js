@@ -168,4 +168,12 @@ export class TrainingManager {
         this.initializeTrainingInformant(trainingInformant);
         this.initializeEnvironment(environment);
     }
+
+    async reloadState(communicationManager, trainingInformant, environment) {
+        await this.initializeModel();
+        this.initializeCommunicationManager(communicationManager);
+        this.initializeTrainingInformant(trainingInformant);
+        this.initializeEnvironment(environment);
+
+    }
 }
