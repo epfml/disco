@@ -111,7 +111,7 @@
 
     <!-- Upload CSV-->
     <div class="relative">
-      <CsvUploadFrame v-bind:codeName="modelName" v-if="modelName" />
+      <UploadingFrame v-bind:Id="Id"  v-bind:Task="Task" v-bind:fileUploadManager="fileUploadManager" v-if="fileUploadManager" />
     </div>
 
     <!-- Modification of Header Card -->
@@ -141,12 +141,14 @@
           </div>
         </div>
         <div class="relative p-4 overflow-x-scroll">
-            <span
-              style="white-space: pre-line"
-              class="text-sm text-gray-500 dark:text-light"
-              >If the header of the file that you've uploaded differs from the one shown in example, you can map the expected header to your header format bellow.</span
-            >
-          </div>
+          <span
+            style="white-space: pre-line"
+            class="text-sm text-gray-500 dark:text-light"
+            >If the header of the file that you've uploaded differs from the one
+            shown in example, you can map the expected header to your header
+            format bellow.</span
+          >
+        </div>
 
         <!-- Display all the possible headers -->
         <div id="mapHeader">
@@ -183,7 +185,7 @@
       </div>
     </div>
 
-     <!-- Train Button -->
+    <!-- Train Button -->
     <div class="flex items-center justify-center p-4">
       <button
         v-on:click="joinTraining(false)"
@@ -201,9 +203,12 @@
       </button>
     </div>
 
-   <div>
-     <TrainingInformationFrame v-bind:trainingInformant="trainingInformant" v-if="trainingInformant"/>
-   </div>
+    <div>
+      <TrainingInformationFrame
+        v-bind:trainingInformant="trainingInformant"
+        v-if="trainingInformant"
+      />
+    </div>
 
     <!-- Save the model button -->
     <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
@@ -255,7 +260,7 @@
           </button>
         </div>
       </div>
-    </div> 
+    </div>
   </div>
 </template>
 
@@ -264,21 +269,23 @@
 import { TrainingInformant } from "../../helpers/training_script/training_informant";
 import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
 import { TrainingManager } from "../../helpers/training_script/training_manager";
-import CsvUploadFrame from "./CsvUploadFrame";
+import { FileUploadManager } from "../../helpers/data_validation_script/file_upload_manager";
+import UploadingFrame from "./UploadingFrame"
 import TrainingInformationFrame from "./TrainingInformationFrame";
 
-// takes care of communication 
+// takes care of communication
 var trainingManager = null;
 
+
 export default {
-  name:'CsvTrainingFrame',
+  name: "CsvTrainingFrame",
   props: {
-      Id: String,
-      Task: Object, 
+    Id: String,
+    Task: Object,
   },
   data() {
     return {
-      // Variables for general informations
+      // variables for general informations
       modelName: null,
       dataFormatInfoText: "",
       dataExampleText: "",
@@ -286,35 +293,44 @@ export default {
       // headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
 
-      // give feedbacks when training
+      // returns feedbacks when training
       trainingInformant: new TrainingInformant(
         10,
         this.Task.trainingInformation.modelId
       ),
 
-      // take care of communication processes 
+      // takes care of uploading file process 
+      fileUploadManager: new FileUploadManager(1, this),
+
+      
+
+      // takes care of communication processes
       communicationManager: new CommunicationManager(9000), // TO DO: to modularize
     };
   },
   methods: {
     saveModel() {
-      trainingManager.saveModel()
+      trainingManager.saveModel();
+      console.log(trainingManager.trainingInformation.modelId)
     },
     async joinTraining(distributed) {
-      const filesElement = document.getElementById(
-        "hidden-input_".concat(this.modelName)
-      );
+      const nbrFiles = this.fileUploadManager.numberOfFiles();
+      
       // Check that the user indeed gave a file
-      if (filesElement.files.length == 0) {
+      if (nbrFiles == 0) {
         alert("Training aborted. No uploaded file given as input.");
       } else {
         // Assume we only read the first file
-        let file = filesElement.files[0];
+        let file = this.fileUploadManager.getFirstFile();
+        console.log(this.fileUploadManager)
 
         let reader = new FileReader();
         reader.onload = async (e) => {
           // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-          var processedData = await this.Task.dataPreprocessing(e, this.headers);
+          var processedData = await this.Task.dataPreprocessing(
+            e,
+            this.headers
+          );
           await trainingManager.trainModel(distributed, processedData);
         };
         reader.readAsText(file);
@@ -322,7 +338,7 @@ export default {
     },
   },
   components: {
-    CsvUploadFrame,
+    UploadingFrame,
     TrainingInformationFrame,
   },
   async mounted() {
@@ -330,8 +346,11 @@ export default {
     console.log(trainingManager)
     // This method is called when the component is created
     this.$nextTick(async function () {
-      // initialize information variables 
+      // initialize information variables
       this.modelName = this.Task.trainingInformation.modelId;
+
+      console.log("Mounting" + this.modelName)
+
       this.dataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
       this.dataExampleText = this.Task.displayInformation.dataExampleText;
       this.Task.displayInformation.headers.forEach((item) => {
@@ -341,19 +360,22 @@ export default {
 
       // initialize the training manager
       trainingManager = new TrainingManager(this.Task.trainingInformation);
-      
-      // initialize training informant 
+
+      // initialize training informant
       this.trainingInformant.initializeCharts();
 
-      // initialize communication manager 
+      // initialize communication manager
       this.communicationManager.initializeConnection(
         this.Task.trainingInformation.epoch,
         this
       );
 
-      // initialize training manager 
-      trainingManager.initialization(this.communicationManager, this.trainingInformant, this);
-      console.log(trainingManager)
+      // initialize training manager
+      trainingManager.initialization(
+        this.communicationManager,
+        this.trainingInformant,
+        this
+      );
 
     });
   },
@@ -361,5 +383,13 @@ export default {
     // close the connection with the server
     this.communicationManager.disconect();
   },
+  async activated() {
+    console.log("Activated")
+    trainingManager = new TrainingManager(this.Task.trainingInformation);
+    await trainingManager.reloadState(this.communicationManager, this.trainingInformant, this)
+  },
+  deactivated() {
+    console.log("Deactivated")
+  }
 };
 </script>
