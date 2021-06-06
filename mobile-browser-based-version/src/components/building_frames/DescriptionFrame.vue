@@ -224,6 +224,7 @@ export default {
   },
   data() {
     return {
+      isModelCreated: false,
       savedModelExists: false,
       readyToTrain: false,
       choicePreModel: false,
@@ -235,15 +236,19 @@ export default {
   methods: {
     async goToTraining() {
       if (!this.choicePreModel) {
-        await this.createNewModel();
-        this.readyToTrain = true;
+        if (!this.isModelCreated) {
+          await this.createNewModel();
+          this.isModelCreated = true;
 
-        this.$toast.success(
-          "A new "
-            .concat(this.Task.trainingInformation.modelId)
-            .concat(` has been created. You can start training!`)
-        );
-        setTimeout(this.$toast.clear, 30000);
+          this.readyToTrain = true;
+
+          this.$toast.success(
+            "A new "
+              .concat(this.Task.trainingInformation.modelId)
+              .concat(` has been created. You can start training!`)
+          );
+          setTimeout(this.$toast.clear, 30000);
+        }
       }
       this.$router.push({
         path: 'training', 
