@@ -47,13 +47,19 @@ export function assignWeightsToModel(serializedWeights, model) {
     });
 }
 
-export function averageWeightsIntoModel(serializedWeights, model) {
+export function averageWeightsIntoModel(peersSerializedWeights, model) {
     model.weights.forEach((weight, idx) => {
-        const serializedWeight = serializedWeights[idx]["$variable"];
-
-        const tensor = deserializeTensor(serializedWeight.val);
-        weight.val.assign(tensor.add(weight.val).div(2)); //average
-        tensor.dispose();
+        let tensorSum = weight.val
+        peersSerializedWeights.forEach(
+            (serializedWeights, peer) =>{
+                const serializedWeight = serializedWeights[idx]["$variable"];
+                const tensor = deserializeTensor(serializedWeight.val);
+                tensorSum = tensor.add(tensorSum)
+                tensor.dispose()
+            }
+        )
+        weight.val.assign(tensorSum.div(peersSerializedWeights.length + 1)); //average
+        tensorSum.dispose();
     });
 }
 
@@ -177,9 +183,9 @@ export async function onEpochEndSync(model, epoch, receivers, recvBuffer, peerjs
     await checkArrayLen(recvBuffer, receivers.length, false, epoch)
         .then(() => {
             console.log("Averaging weights")
-            for (i in recvBuffer.avgWeights[epoch]) {
-                averageWeightsIntoModel(recvBuffer.avgWeights[epoch][i], model)
-            }
+        
+            averageWeightsIntoModel(recvBuffer.avgWeights[epoch], model)
+        
             // might want to delete weights after using them to avoiding hogging memory
             // delete recvBuffer.avgWeights[epoch]
         })
@@ -244,9 +250,9 @@ export async function onEpochEndCommon(model, epoch, receivers, recvBuffer, user
                     console.log("Averaging weights")
                     trainingInformant.updateNbrUpdatesWithOthers(1)
                     trainingInformant.addMessage("Averaging weights")
-                    Object.values(recvBuffer.avgWeights).flat(1).forEach(
-                        (w) => { averageWeightsIntoModel(w, model) }
-                    )
+                    
+                    averageWeightsIntoModel(Object.values(recvBuffer.avgWeights).flat(1), model) 
+                    
                     delete recvBuffer.avgWeights // NOTE: this might delete useful weights...
                 })
         }
