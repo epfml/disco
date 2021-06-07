@@ -3,7 +3,7 @@
 DeAI enables collaborative and privacy-preserving training of machine learning models.
 DeAI is an easy-to-use mobile app & web software, [running directly in your browser](https://epfml.github.io/DeAI/).
 
-**Key Question:** Can we keep control over your own data, while still benefitting from joint collaborative training with other participants? - or - Can we train an ML model which is equally good as if all data were in one place, but respect privacy?
+**Key Question:** Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? - or - Can we train an ML model which is equally good as if all data were in one place, but respect privacy?
 
 **Decentralized learning:** makes this possible, following the same principles as in federated learning, but going one step further by removing any central coordinator. DeAI only uses [peer2peer](https://peerjs.com/) communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure. We support all modern deep learning architectures running on device (currently via [TF.js](https://www.tensorflow.org/js)).
 
