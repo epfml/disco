@@ -1,3 +1,4 @@
+import { makeid } from "./helpers"
 import Peer from "peerjs";
 import {
     PeerJS,
@@ -13,11 +14,9 @@ export class CommunicationManager {
      * Prepares connection to a PeerJS server.
      * @param {Number} portNbr the port number to connect.
      */
-    constructor(ip, portNbr, path, apiKey) {
+    constructor(portNbr) {
         this.portNbr = portNbr;
-        this.ip = ip;
-        this.path = path;
-        this.apiKey = apiKey;
+        this.peerjsId = null;
         this.peer = null;
         this.peerjs = null;
         this.receivers = [];
@@ -28,7 +27,7 @@ export class CommunicationManager {
     /**
      * Disconnection process when user quits the task.
      */
-    disconnect() {
+    disconect() {
         if (this.peer != null) {
             this.peer.disconnect();
             this.peer.destroy();
@@ -47,23 +46,28 @@ export class CommunicationManager {
             },
         };
 
-        // connect to the PeerJS server
-        this.peer = new Peer({
-            host: this.serverIp,
-            port: this.serverPortNbr,
-            path: this.serverPath,
-            key: this.serverApiKey
-        });
+        // create an ID used to connect to the server
+        this.peerjsId = await makeid(10)
 
-        /*this.peer = new Peer({
-            host: '35.242.193.186', port: 9000, path: '/deai',
-            config: {
-                'iceServers': [
-                    { url: 'stun:stun.l.google.com:19302' },
-                    { url: 'turn:35.242.193.186:3478', credential: 'deai', username: 'deai' }
-                ]
+        // connect to the PeerJS server
+        /*
+        this.peer = new Peer(this.peerjsId, {
+            host: "localhost",
+            port: 9000,
+            path: "/deai",
+        });*/
+
+        this.peer = new Peer(this.peerjsId,
+            {
+                host: '35.242.193.186', port: 9000, path: '/deai',
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'turn:35.242.193.186:3478', credential: 'deai', username: 'deai' }
+                    ]
+                }
             }
-        })*/
+        )
 
         this.peer.on("error", (err) => {
             console.log("Error in connecting");
@@ -71,7 +75,7 @@ export class CommunicationManager {
 
 
             environment.$toast.error(
-                "{" + err + "}" + "Failed to connect to server. Fallback to training alone."
+                "Failed to connect to server. Fallback to training alone."
             );
             setTimeout(environment.$toast.clear, 30000);
         });
@@ -100,12 +104,14 @@ export class CommunicationManager {
         */
 
         let queryIds = await fetch(
-            `https://${this.ip}:${String(this.portNbr)}/${this.path}/${this.apiKey}/peers`
+            "http://35.242.193.186:".concat(String(this.portNbr)).concat("/deai/peerjs/peers"
             )).then((response) => response.text());
 
         console.log(queryIds)
         let allIds = JSON.parse(queryIds);
-        let id = this.peer.id;
-        this.receivers = allIds.filter((value) => { return value != id; });
+        let id = this.peerjsId;
+        this.receivers = allIds.filter(function (value) {
+            return value != id;
+        });
     }
 }
