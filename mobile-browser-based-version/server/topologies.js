@@ -1,17 +1,17 @@
 class TreeNode {
     constructor(id){
         this.id = id
-        this.left_child = null
-        this.right_child = null
+        this.leftChild = null
+        this.rightChild = null
         this.parent = null
     }
 
     addChild(child, left){
         if (left) {
-            this.left_child = child
+            this.leftChild = child
         }
         else {
-            this.right_child = child
+            this.rightChild = child
         }
     }
 }
@@ -23,21 +23,21 @@ class BinaryTree {
     }
     
     addPeer(id) {
-        let new_node = new TreeNode(id)
+        let newNode = new TreeNode(id)
         if (this.root == null) {
-            this.root = new_node
+            this.root = newNode
         }
         else {
             let parent = this.findParent()
-            if (parent.left_child == null) {
-                parent.left_child = new_node
+            if (parent.leftChild == null) {
+                parent.leftChild = newNode
             }
             else {
-                parent.right_child = new_node
+                parent.rightChild = newNode
             }
-            new_node.parent = parent
+            newNode.parent = parent
         }
-        this.index[id] = new_node
+        this.index[id] = newNode
     }
 
     findParent() {
@@ -47,78 +47,78 @@ class BinaryTree {
     
         while(queue.length > 0){
             let node = queue[0]
-            if (node.left_child == null || node.right_child == null) {
+            if (node.leftChild == null || node.rightChild == null) {
                 return node
             }
             queue.shift()
-            if (node.left_child != null) {
-                queue.push(node.left_child)
+            if (node.leftChild != null) {
+                queue.push(node.leftChild)
             }
-            if (node.right_child != null) {
-                queue.push(node.right_child)
+            if (node.rightChild != null) {
+                queue.push(node.rightChild)
             }
         }
     }
 
-    removePeer(node_id) {
-        let node = this.index[node_id]
+    removePeer(nodeId) {
+        let node = this.index[nodeId]
 
         let deepestNodeResult = {'node': null, 'max_level': -1}
         this.findDeepestNode(node, 0, deepestNodeResult)
 
-        let deepest_node = deepestNodeResult['node']
-        if (deepest_node.parent == null) {
+        let deepestNode = deepestNodeResult['node']
+        if (deepestNode.parent == null) {
             this.root = null
             return
         }
-        let remove_left = deepest_node.parent.left_child == deepest_node ? true : false
+        let removeLeft = deepestNode.parent.leftChild == deepestNode ? true : false
 
-        let child_id = deepest_node.id
-        let deepest_parent = deepest_node.parent
+        let childId = deepestNode.id
+        let deepestParent = deepestNode.parent
 
-        let current = deepest_parent
+        let current = deepestParent
         while (current != node.parent) {
             let tmp = current.id
-            current.id = child_id
+            current.id = childId
             this.index[current.id] = current
-            child_id = tmp
+            childId = tmp
             current = current.parent
         }
         
-        if (remove_left) {
-            deepest_parent.left_child = null
+        if (removeLeft) {
+            deepestParent.leftChild = null
         }
         else {
-            deepest_parent.right_child = null
+            deepestParent.rightChild = null
         }
-        delete this.index[node_id]
+        delete this.index[nodeId]
     }
 
     findDeepestNode(root, level, result) {
         if (root != null) {
             level = level + 1
-            this.findDeepestNode(root.left_child, level, result)
+            this.findDeepestNode(root.leftChild, level, result)
 
             if (level > result['max_level']) {
                 result['max_level'] = level
                 result['node'] = root
             }
 
-            this.findDeepestNode(root.right_child, level, result)
+            this.findDeepestNode(root.rightChild, level, result)
         }
     }
 
-    getNeighbours(node_id) {
-        let node = this.index[node_id]
+    getNeighbours(nodeId) {
+        let node = this.index[nodeId]
         let neighbours = []
         if (node.parent != null) {
             neighbours.push(node.parent.id)
         }
-        if (node.left_child != null) {
-            neighbours.push(node.left_child.id)
+        if (node.leftChild != null) {
+            neighbours.push(node.leftChild.id)
         }
-        if (node.right_child != null) {
-            neighbours.push(node.right_child.id)
+        if (node.rightChild != null) {
+            neighbours.push(node.rightChild.id)
         }
         return neighbours
     }
@@ -130,8 +130,8 @@ class BinaryTree {
     printNode(node, indent){
         if (node != null){
             console.log("--".repeat(indent), node.id)
-            this.printNode(node.left_child, indent+1)
-            this.printNode(node.right_child, indent+1)
+            this.printNode(node.leftChild, indent+1)
+            this.printNode(node.rightChild, indent+1)
         }
     }
   }
