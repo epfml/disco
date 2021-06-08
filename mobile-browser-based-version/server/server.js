@@ -13,7 +13,7 @@ const peerServer = ExpressPeerServer(server, {
     path: '/peers',
     key: 'api',
     allow_discovery: true,
-    generateClientId: makeId
+    generateClientId: makeId(12)
 })
 
 // Load task descriptions
