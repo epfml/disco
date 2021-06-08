@@ -109,16 +109,16 @@ class BinaryTree {
     }
 
     getNeighbours(node_id) {
-        node = this.index[node_id]
-        neighbours = []
+        let node = this.index[node_id]
+        let neighbours = []
         if (node.parent != null) {
-            neighbours.push[node.parent]
+            neighbours.push(node.parent.id)
         }
         if (node.left_child != null) {
-            neighbours.push[node.left_child]
+            neighbours.push(node.left_child.id)
         }
         if (node.right_child != null) {
-            neighbours.push[node.right_child]
+            neighbours.push(node.right_child.id)
         }
         return neighbours
     }
