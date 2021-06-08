@@ -51,10 +51,6 @@ export default {
       return {
         imageId: "image_".concat(this.Id),
       }
-    },
-    mounted(){
-        const imgContainer = document.getElementById(this.imageId)
-        imgContainer.appendChild(this.imageElement)
     }
 };
 </script>

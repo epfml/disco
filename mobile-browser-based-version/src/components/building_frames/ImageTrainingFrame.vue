@@ -87,48 +87,8 @@
     </a>
 
     <!-- Upload Image Card -->
-    <div class="p-4 grid grid-cols-1 space-y-2 lg:gap-2">
-      <div class="container mx-width lg h-full">
-        <!-- Card header -->
-        <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
-          <div
-            class="flex items-center justify-between p-4 border-b dark:border-primary"
-          >
-            <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-              Upload My Data
-            </h4>
-            <div class="flex items-center">
-              <span aria-hidden="true">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="currentColor"
-                  class="bi bi-cloud-upload w-7 h-7"
-                  viewBox="0 0 16 16"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M4.406 1.342A5.53 5.53 0 0 1 8 0c2.69 0 4.923 2 5.166 4.579C14.758 4.804 16 6.137 16 7.773 16 9.569 14.502 11 12.687 11H10a.5.5 0 0 1 0-1h2.688C13.979 10 15 8.988 15 7.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 2.825 10.328 1 8 1a4.53 4.53 0 0 0-2.941 1.1c-.757.652-1.153 1.438-1.153 2.055v.448l-.445.049C2.064 4.805 1 5.952 1 7.318 1 8.785 2.23 10 3.781 10H6a.5.5 0 0 1 0 1H3.781C1.708 11 0 9.366 0 7.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383z"
-                  />
-                  <path
-                    fill-rule="evenodd"
-                    d="M7.646 4.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V14.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3z"
-                  />
-                </svg>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Upload Images-->
-        <div class="relative pb-4">
-          <ImageUploadFrame
-            v-for="label in taskLabels"
-            v-bind:key="label"
-            :label="String(label)"
-            :inputchangefunc="inputChange"
-          />
-        </div>
-      </div>
+    <div class="relative">
+      <UploadingFrame v-bind:Id="Id"  v-bind:Task="Task" v-bind:fileUploadManager="fileUploadManager" v-if="fileUploadManager" />
     </div>
 
     <!-- Train Button -->
@@ -267,11 +227,12 @@ import { TrainingInformant } from "../../helpers/training_script/training_inform
 import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
 import { TrainingManager } from "../../helpers/training_script/training_manager";
 import TrainingInformationFrame from "./TrainingInformationFrame";
-import ImageUploadFrame from "../building_frames/ImageUploadFrame";
-import { checkData } from '../../helpers/data_validation_script/helpers-image-tasks';
-// takes care of communication
-var trainingManager = null;
+import { checkData } from "../../helpers/data_validation_script/helpers-image-tasks";
+import { FileUploadManager } from "../../helpers/data_validation_script/file_upload_manager";
+import UploadingFrame from "./UploadingFrame";
 
+// manager for the training loop
+var trainingManager = null;
 export default {
   name: "ImageTrainingFrame",
   props: {
@@ -285,83 +246,78 @@ export default {
       DataFormatInfoText: "",
       DataExampleText: "",
       DataExample: null,
-      DataExampleImage:"",
-      // different task labels 
+      DataExampleImage: "",
+      // different task labels
       taskLabels: [],
 
-      // give feedbacks when training
+      // manager that returns feedbacks when training
       trainingInformant: new TrainingInformant(
         10,
         this.Task.trainingInformation.modelId
       ),
 
+      // manager for the file uploading process
+      fileUploadManager: new FileUploadManager(
+        this.Task.trainingInformation.LABEL_LIST.length,
+        this,
+      ), 
+
       // take care of communication processes
       communicationManager: new CommunicationManager(9000), // TO DO: to modularize
 
-      // Uploaded Files
-      FILES: {},
     };
   },
   methods: {
     saveModel() {
+      console.log(trainingManager.trainingInformation.modelId)
       trainingManager.saveModel();
     },
 
     async joinTraining(distributed) {
-      const filesElement = this.FILES;
+      const filesElement = this.fileUploadManager.getFilesList();
 
       // Check that the user indeed gave a file
       if (filesElement.length == 0) {
         alert("Training aborted. No uploaded file given as input.");
       } else {
-        this.$toast.success(`Thank you for your contribution. Image preprocessing has started`);
-        setTimeout(this.$toast.clear, 30000)
-  
-        var processedData = await this.Task.dataPreprocessing(this.FILES);
-        
-        processedData.accepted = (await checkData(this.FILES)).accepted
+        this.$toast.success(
+          `Thank you for your contribution. Image preprocessing has started`
+        );
+        setTimeout(this.$toast.clear, 30000);
 
-        this.$toast.success(`Image preprocessing has finished and training has started`);
-        setTimeout(this.$toast.clear, 30000)
-        
+        var processedData = await this.Task.dataPreprocessing(filesElement);
+
+        processedData.accepted = (await checkData(filesElement)).accepted;
+
+
+        this.$toast.success(
+          `Image preprocessing has finished and training has started`
+        );
+        setTimeout(this.$toast.clear, 30000);
+
         await trainingManager.trainModel(distributed, processedData);
       }
     },
-    
-    addFile: function (file, label) {
-      const isImage = file.type.match("image.*"),
-        objectURL = URL.createObjectURL(file);
-      this.FILES[objectURL] = {label:label, name: file.name};
-    },
-
-    inputChange: function (e, label) {
-      let counter = 0;
-      for (const file of e.target.files) {
-        this.addFile(file, label);
-        counter += 1;
-      }
-      console.log(counter + " Files Added");
-    },
 
     getImage(url) {
-      if (url == ""){
-        return null
+      if (url == "") {
+        return null;
       }
 
-      var images = require.context('../../../example_training_data/', false)
-      console.log(url)
-      return images(url)
+      var images = require.context("../../../example_training_data/", false);
+      console.log(url);
+      return images(url);
     },
 
     goToTesting() {
+
       this.$router.push({ 
-          name: 'testing',
-          params: {Id: this.Id} 
+          path: 'testing',
        });
     },
   },
   components: {
-    ImageUploadFrame,
+    UploadingFrame,
     TrainingInformationFrame,
   },
   async mounted() {
@@ -373,8 +329,9 @@ export default {
       this.DataExampleText = this.Task.displayInformation.dataExampleText;
       this.DataExample = this.Task.displayInformation.dataExample;
       this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
-      this.DataExampleImage = this.Task.displayInformation.dataExampleImage
-      
+      this.DataExampleImage = this.Task.displayInformation.dataExampleImage;
+      console.log("Mounting" + this.modelName)
+
       // initialize the training manager
       trainingManager = new TrainingManager(this.Task.trainingInformation);
 
@@ -393,7 +350,17 @@ export default {
         this.trainingInformant,
         this
       );
+    console.log(trainingManager)
+
     });
+  },
+  async activated() {
+    console.log("Activated")
+    trainingManager = new TrainingManager(this.Task.trainingInformation);
+    await trainingManager.reloadState(this.communicationManager, this.trainingInformant, this)
+  },
+  deactivated() {
+    console.log("Deactivated")
   },
   async unmounted() {
     // close the connection with the server

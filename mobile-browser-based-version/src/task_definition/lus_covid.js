@@ -18,14 +18,15 @@ export class LusCovidTask {
      * @returns Returns a tf.model or null if there is no model
      */
      async getModelFromStorage() {
-        let model = await tf.loadLayersModel(this.trainingInformation.savePathDb)
+        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
+        let model = await tf.loadLayersModel(savePath)
         return model
     }
 
     /**
      * @returns new instance of TensorflowJS model
      */
-    createModel() {
+    async createModel() {
         let newModel = tf.sequential();
 
         newModel.add(tf.layers.dense({inputShape:[FEATURES], units:512, activation:'relu'}))
@@ -36,7 +37,9 @@ export class LusCovidTask {
 
         newModel.summary()
 
-        newModel.save(this.trainingInformation.savePathDb);
+        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
+
+        await newModel.save(savePath);
 
         return newModel
     }
@@ -51,8 +54,8 @@ export class LusCovidTask {
         console.log("Successfully loaded mobilenet model")
     }
 
-    // Data is passed under the form of Dictionary{ImageURL: label}
-    async dataPreprocessing(trainingData){
+    // Data is passed under the form of Dictionary{ImageURL: {label, name}}
+    async dataPreprocessing(trainingData, shuffle=true){
         if (net == null){
            await this.loadMobilenet()
         }
@@ -67,7 +70,7 @@ export class LusCovidTask {
             imageUri.push(key)
         });
 
-        const preprocessedData = await this.getTrainData(imageUri, labels, imageNames);    
+        const preprocessedData = await this.getTrainData(imageUri, labels, imageNames, shuffle);    
         
         return preprocessedData
     }
@@ -88,13 +91,19 @@ export class LusCovidTask {
 
     async imagePreprocessing(src){
         const tensor = await this.loadLocalImage(src)
+
+        const representation = tf.tidy(() => {
+            const batched = tensor.reshape([this.trainingInformation.IMAGE_H, this.trainingInformation.IMAGE_W, 3])
+
+            const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
+
+            const prediction = net.predict(processedImg)
+
+            return prediction
+          });
+
+        tf.dispose(tensor)
         
-        const batched = tensor.reshape([this.trainingInformation.IMAGE_H, this.trainingInformation.IMAGE_W, 3])
-
-        const processedImg = batched.toFloat().div(127).sub(1).expandDims(0);
-
-        let representation = net.predict(processedImg)
-
         return representation
     }
 
@@ -133,7 +142,7 @@ export class LusCovidTask {
      *   labels: The one-hot encoded labels tensor, of shape
      *     `[numTrainExamples, 2]`.
      */
-    async getTrainData(imageUri, labelsPerImage, imageNames) {
+    async getTrainData(imageUri, labelsPerImage, imageNames, shuffle=true) {
         const dictImages = {}
         const dictLabels = {}
         let patients = new Set()
@@ -148,6 +157,77 @@ export class LusCovidTask {
                 res = dictImages[id]
             }else{
                 dictLabels[id] = labelsPerImage[i]
+            }
+            let result = await this.imagePreprocessing(imageUri[i])
+            res.push(result)
+
+            dictImages[id] = res
+        }
+
+
+        console.log("Number of patients found was "+Object.keys(dictImages).length)
+
+        let imageTensorsPerPatient = {}
+        patients = Array.from(patients)
+        for(let i = 0; i < patients.length; ++i){
+            const id = patients[i]
+            // Do mean pooling over same patient representations
+            imageTensorsPerPatient[id] = tf.mean(tf.concat(dictImages[id], 0),0).expandDims(0)
+        }
+        
+        const xsArray = []
+        const labelsToProcess = []
+
+        // shuffle patients
+        if(shuffle){
+            patients.sort( () => .5 - Math.random() );
+        }
+        for (let i = 0; i< patients.length; ++i ){
+            const id = patients[i]
+            xsArray.push(imageTensorsPerPatient[id])
+            labelsToProcess.push(dictLabels[id])
+        }
+
+        const xs = tf.concat(xsArray, 0)
+        const labels = this.labelsPreprocessing(labelsToProcess)
+    
+        console.log(xs)
+        console.log(labels)
+
+        return {Xtrain: xs, ytrain: labels}
+    }
+
+    async testing_preprocessing(testingData){
+        if (net == null){
+            await this.loadMobilenet()
+         }
+ 
+         const imageUri = []
+         const imageNames = []
+ 
+         Object.keys(testingData).forEach(key => {
+             imageNames.push(testingData[key].name)
+             imageUri.push(key)
+         });
+ 
+         const preprocessedData = await this.getTestData(imageUri, imageNames);    
+         
+         return preprocessedData
+    }
+
+    async getTestData(imageUri, imageNames){
+        const dictImages = {}
+        const dictLabels = {}
+        let patients = new Set()
+
+        for(let i = 0; i<imageNames.length; ++i){
+            const id = parseInt(imageNames[i].split("_")[0])
+            patients.add(id)
+
+            let res = []
+
+            if(id in dictImages){ 
+                res = dictImages[id]
             }
 
             res.push(await this.imagePreprocessing(imageUri[i]))
@@ -169,8 +249,6 @@ export class LusCovidTask {
         const xsArray = []
         const labelsToProcess = []
 
-        // shuffle patients
-        patients.sort( () => .5 - Math.random() );
         for (let i = 0; i< patients.length; ++i ){
             const id = patients[i]
             xsArray.push(imageTensorsPerPatient[id])
@@ -178,22 +256,17 @@ export class LusCovidTask {
         }
 
         const xs = tf.concat(xsArray, 0)
-        const labels = this.labelsPreprocessing(labelsToProcess)
     
         console.log(xs)
-        console.log(labels)
+        console.log(patients)
 
-        return {Xtrain: xs, ytrain: labels}
+        return {xTest: xs, ids: patients}
     }
 
-    async predict(imgElement){
+    async predict(testingData){
         console.log("Loading model...")
         loadedModel = null
         
-        if(net == null){
-            this.loadMobilenet()
-        }
-
         try{
             loadedModel = await this.getModelFromStorage()
         }catch {
@@ -203,25 +276,34 @@ export class LusCovidTask {
 
         if (loadedModel){
             console.log("Model loaded.")
-            
-            const img_tensor = await this.imagePreprocessing(imgElement.src)
+
+            let preprocessed_data =  await this.testing_preprocessing(testingData, false)
+            let xTest = await preprocessed_data.xTest
+            let ids = await preprocessed_data.ids
+
 
             loadedModel.summary()
-            const logits = loadedModel.predict(img_tensor)
+            const classes_dict = {}
 
-            // Convert logits to probabilities and class names.
-            const classes = await getTopKClasses(logits, 2, this.trainingInformation.LABEL_LIST);
-            console.log(classes);
+            xTest = xTest.split(xTest.shape[0])
+            for(let i = 0; i < xTest.length; ++i){
+                const logits = loadedModel.predict(xTest[i])
 
+                // Convert logits to probabilities and class names.
+                const classes = await getTopKClasses(logits, 2, this.trainingInformation.LABEL_LIST);
+
+                classes_dict[ids[i]] = classes
+
+                console.log(classes)
+            }
+            
             console.log("Prediction Sucessful!")
 
-            return classes
+            return classes_dict
         }else{
             console.log("No model has been trained or found!")
         }
     }
-    
-    
 }
 
 export const displayInformation = {
@@ -249,8 +331,6 @@ export const displayInformation = {
 export const trainingInformation = {
     // {String} model's identification name
     modelId: "lus-covid-model",
-    // {String} indexedDB path where the model is stored
-    savePathDb: "indexeddb://working_lus_covid_model",
     // {Number} port of the peerjs server
     port: 3,
     // {Number} number of epoch used for training
@@ -261,14 +341,16 @@ export const trainingInformation = {
     batchSize: 2,
     // {Object} Compiling information 
     modelCompileData: {
-        optimizer: "rmsprop",
+        optimizer: "adam",
         loss: "binaryCrossentropy",
         metrics: ["accuracy"],
     },
+    learningRate: 0.05,
     // {Object} Training information 
     modelTrainData: {
         epochs: 10,
     },
+    threshold: 2,
 
     IMAGE_H : 224,
     IMAGE_W : 224,

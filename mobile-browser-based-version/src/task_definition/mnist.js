@@ -1,5 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 import { checkData } from "../helpers/data_validation_script/helpers-image-tasks"
+import { getTopKClasses } from "../helpers/testing_script/testing_script"
 
 export class MnistTask {
     constructor() {
@@ -8,19 +9,9 @@ export class MnistTask {
     }
 
     /**
-     * fetch model from local storage or indexdb
-     * 
-     * @returns Returns a tf.model or null if there is no model
-     */
-     async getModelFromStorage() {
-        let model = await tf.loadLayersModel(this.trainingInformation.savePathDb)
-        return model
-    }
-
-    /**
      * @returns {tf.Model} new instance of TensorflowJS model
      */
-    createModel() {
+    async createModel() {
         // only keep this here
         // Create a sequential neural network model. tf.sequential provides an API
         // for creating "stacked" models where the output from one layer is used as
@@ -70,7 +61,8 @@ export class MnistTask {
         // values sum to 1.
         model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
 
-        model.save(this.trainingInformation.savePathDb);
+        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
+        await model.save(savePath);
 
         return model;
     }
@@ -107,11 +99,11 @@ export class MnistTask {
             ytrain = this.labelsPreprocessing(labels)
             const imageTensors = []
 
-            for (let i = 0; i<imageUri.length; ++i){
+            for (let i = 0; i < imageUri.length; ++i) {
                 const tensor = await this.imagePreprocessing(imageUri[i])
                 imageTensors.push(tensor)
             }
-            
+
             Xtrain = tf.concat(imageTensors, 0)
             // object to return 
         } else {
@@ -126,7 +118,7 @@ export class MnistTask {
             img.src = filename
             img.width = this.trainingInformation.IMAGE_W
             img.height = this.trainingInformation.IMAGE_H
-            img.onload = () =>{
+            img.onload = () => {
                 var output = tf.browser.fromPixels(img)
                 res(output)
             }
@@ -169,59 +161,57 @@ export class MnistTask {
         return result
     }
 
-    async predict(imgElement){
+    /**
+     * fetch model from local storage or indexdb
+     * This function sould be moved as it is not task specific 
+     * 
+     * @returns Returns a tf.model or null if there is no model
+    */
+    async getModelFromStorage() {
+        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
+        let model = await tf.loadLayersModel(savePath)
+        return model
+    }
+
+    /**
+     * 
+     * @param {Array[ImgElement]} imgElementArray array of all images to be predicted
+     * @returns Array with predictions by the model of all of the images passed as parameters
+     */
+    async predict(testingData) {
         console.log("Loading model...")
         var loadedModel = null
-        
-        try{
+
+        try {
             loadedModel = await this.getModelFromStorage()
-        }catch {
+        } catch {
             console.log("No model found.")
             return null
         }
 
-        if (loadedModel != null){
+        if (loadedModel != null) {
             console.log("Model loaded.")
-            
-            const img_tensor = await this.imagePreprocessing(imgElement.src)
+            const classes_dict = {}
+            let i = 0
+            for (let url of Object.keys(testingData)) {
+                const img_tensor = await this.imagePreprocessing(url)
 
-            const logits = loadedModel.predict(img_tensor)
+                const logits = loadedModel.predict(img_tensor)
 
-            // Convert logits to probabilities and class names.
-            const classes = await this.getTopKClasses(logits, 5);
-            console.log(classes);
+                // Convert logits to probabilities and class names.
+                const classes = await getTopKClasses(logits, 5, this.trainingInformation.LABEL_LIST);
+
+                classes_dict[i] = classes
+                
+                i++
+            }
 
             console.log("Prediction Sucessful!")
 
-            return classes;
-        }else{
+            return classes_dict;
+        } else {
             console.log("No model has been trained or found!")
         }
-    }
-
-    async getTopKClasses(logits, topK) {
-        const values = await logits.data();
-        const valuesAndIndices = [];
-        for (let i = 0; i < values.length; i++) {
-            valuesAndIndices.push({ value: values[i], index: i });
-        }
-        valuesAndIndices.sort((a, b) => {
-            return b.value - a.value;
-        });
-        const topkValues = new Float32Array(topK);
-        const topkIndices = new Int32Array(topK);
-        for (let i = 0; i < topK; i++) {
-            topkValues[i] = valuesAndIndices[i].value;
-            topkIndices[i] = valuesAndIndices[i].index;
-        }
-        const topClassesAndProbs = [];
-        for (let i = 0; i < topkIndices.length; i++) {
-            topClassesAndProbs.push({
-            className: this.trainingInformation.LABEL_LIST[topkIndices[i]],
-            probability: topkValues[i],
-            });
-        }
-        return topClassesAndProbs;
     }
 }
 
@@ -255,8 +245,6 @@ export const displayInformation = {
 export const trainingInformation = {
     // {String} model's identification name
     modelId: "mnist-model",
-    // {String} indexedDB path where the model is stored
-    savePathDb: "indexeddb://working_lus_covid_model",
     // {Number} port of the peerjs server
     port: 1,
     // {Number} number of epoch used for training

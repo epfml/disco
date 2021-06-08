@@ -313,7 +313,7 @@
         <main class="flex-1 overflow-y-scroll">
           <router-view v-slot="{ Component }">
             <keep-alive>
-              <component :is="Component"/>
+              <component :is="Component" />
             </keep-alive>
           </router-view>
         </main>
@@ -362,14 +362,12 @@ export default {
   methods: {
     goToTraining() {
       this.$router.push({ 
-          name: 'training',
-          params: {Id: this.Id} 
+          path: 'training',
        });
     },
     goToModelDescription() {
       this.$router.push({ 
-          name: 'description',
-          params: {Id: this.Id} 
+          path: 'description',
        });
     },
     async handleResize() {

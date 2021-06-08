@@ -8,6 +8,9 @@ import {
 
 } from './peer'
 
+const TIME_PER_TRIES = 100 // in miliseconds
+const MAX_TRIES = 100 // corresponds to waiting 10 seconds (since each try is performed every 100ms)
+
 async function serializeTensor(tensor) {
     return {
         "$tensor": {
@@ -44,13 +47,19 @@ export function assignWeightsToModel(serializedWeights, model) {
     });
 }
 
-export function averageWeightsIntoModel(serializedWeights, model) {
+export function averageWeightsIntoModel(peersSerializedWeights, model) {
     model.weights.forEach((weight, idx) => {
-        const serializedWeight = serializedWeights[idx]["$variable"];
-
-        const tensor = deserializeTensor(serializedWeight.val);
-        weight.val.assign(tensor.add(weight.val).div(2)); //average
-        tensor.dispose();
+        let tensorSum = weight.val
+        peersSerializedWeights.forEach(
+            (serializedWeights, peer) =>{
+                const serializedWeight = serializedWeights[idx]["$variable"];
+                const tensor = deserializeTensor(serializedWeight.val);
+                tensorSum = tensor.add(tensorSum)
+                tensor.dispose()
+            }
+        )
+        weight.val.assign(tensorSum.div(peersSerializedWeights.length + 1)); //average
+        tensorSum.dispose();
     });
 }
 
@@ -87,7 +96,7 @@ export function dataReceived(recvBuffer, key) {
                 console.log(recvBuffer)
                 return resolve();
             }
-            setTimeout(waitData, 100);
+            setTimeout(waitData, TIME_PER_TRIES);
         })();
     });
 }
@@ -96,37 +105,56 @@ export function dataReceived(recvBuffer, key) {
  * Same as dataReceived, but break after maxTries
  * @param {Object} recvBuffer
  * @param {*} key
- * @param {int} maxTries
  */
-export function dataReceivedBreak(recvBuffer, key, maxTries) {
+export function dataReceivedBreak(recvBuffer, key) {
     return new Promise((resolve) => {
         (function waitData(n) {
-            if (recvBuffer[key] || n >= maxTries - 1) {
+            if (recvBuffer[key] || n >= MAX_TRIES - 1) {
                 return resolve();
             }
-            setTimeout(() => waitData(n + 1), 100);
+            setTimeout(() => waitData(n + 1), TIME_PER_TRIES);
+        })(0);
+    });
+}
+
+/**
+ * Waits until an array reaches a given length. Used to make
+ * sure that all weights from peers are received.
+ * @param {Array} recvBuffer where you will get the avgWeights from
+ * @param {int} len
+ * @param {Boolean} isCommon true if this function is called on epoch common
+ * @param {int} epoch epoch when this function is called
+ */
+ export function checkArrayLen(recvBuffer, len, isCommon, epoch) {
+    return new Promise((resolve) => {
+        (function waitData(n) {
+            let arr = []
+            if (isCommon){
+                arr = Object.values(recvBuffer.avgWeights).flat(1)
+            }else{
+                arr = recvBuffer.avgWeights[epoch]
+            }
+
+            if (arr.length >= len || MAX_TRIES <= n) {
+                return resolve();
+            }
+            setTimeout(() => waitData(n+1), TIME_PER_TRIES);
         })(0);
     });
 }
 
 
-/**
- * Waits until an array reaches a given length. Used to make
- * sure that all weights from peers are received.
- * @param {Array} arr
- * @param {int} len
- */
-export function checkArrayLen(arr, len) {
-    return new Promise((resolve) => {
-        (function waitData() {
-            console.log(arr.length)
-            if (arr.length >= len) {
-                return resolve();
-            }
-            setTimeout(waitData, 100);
-        })();
-    });
+// generates a random string
+export async function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }
+
 
 
 /**
@@ -152,12 +180,12 @@ export async function onEpochEndSync(model, epoch, receivers, recvBuffer, peerjs
         await dataReceived(recvBuffer.avgWeights, epoch.toString())
     }
     console.log("Waiting to receive all weights for this epoch...")
-    await checkArrayLen(recvBuffer.avgWeights[epoch], receivers.length)
+    await checkArrayLen(recvBuffer, receivers.length, false, epoch)
         .then(() => {
             console.log("Averaging weights")
-            for (i in recvBuffer.avgWeights[epoch]) {
-                averageWeightsIntoModel(recvBuffer.avgWeights[epoch][i], model)
-            }
+
+            averageWeightsIntoModel(recvBuffer.avgWeights[epoch], model)
+
             // might want to delete weights after using them to avoiding hogging memory
             // delete recvBuffer.avgWeights[epoch]
         })
@@ -171,6 +199,10 @@ export async function onEpochEndSync(model, epoch, receivers, recvBuffer, peerjs
 export async function onEpochEndCommon(model, epoch, receivers, recvBuffer, username, threshold, peerjs, trainingInformant) {
     const serializedWeights = await serializeWeights(model)
     var epochWeights = { epoch: epoch, weights: serializedWeights }
+
+    if(threshold == undefined){
+        threshold = 1
+    }
 
     console.log("Receivers are: " + receivers)
     // request weights and send to all who requested
@@ -213,14 +245,14 @@ export async function onEpochEndCommon(model, epoch, receivers, recvBuffer, user
 
         if (recvBuffer.avgWeights !== undefined) { // check if any weights were received
             console.log("Waiting to receive enough weights...")
-            await checkArrayLen(Object.values(recvBuffer.avgWeights).flat(1), threshold)
+            await checkArrayLen(recvBuffer, threshold, true, epoch)
                 .then(() => {
                     console.log("Averaging weights")
                     trainingInformant.updateNbrUpdatesWithOthers(1)
                     trainingInformant.addMessage("Averaging weights")
-                    Object.values(recvBuffer.avgWeights).flat(1).forEach(
-                        (w) => { averageWeightsIntoModel(w, model) }
-                    )
+
+                    averageWeightsIntoModel(Object.values(recvBuffer.avgWeights).flat(1), model)
+
                     delete recvBuffer.avgWeights // NOTE: this might delete useful weights...
                 })
         }
