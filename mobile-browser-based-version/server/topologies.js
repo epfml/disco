@@ -77,13 +77,17 @@ class BinaryTree {
         let deepestParent = deepestNode.parent
 
         let current = deepestParent
+        let affectedPeers = new Set()
         while (current != node.parent) {
+            let currentNeighbours = this.getNeighbours(current.id)
+            currentNeighbours.forEach(neighbour => affectedPeers.add(neighbour))
             let tmp = current.id
             current.id = childId
             this.index[current.id] = current
             childId = tmp
             current = current.parent
         }
+        affectedPeers.delete(nodeId)
         
         if (removeLeft) {
             deepestParent.leftChild = null
@@ -92,6 +96,8 @@ class BinaryTree {
             deepestParent.rightChild = null
         }
         delete this.index[nodeId]
+
+        return affectedPeers
     }
 
     findDeepestNode(root, level, result) {
