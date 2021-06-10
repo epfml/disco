@@ -1,5 +1,5 @@
 module.exports = {
-    make_id: function(idLength) {
+    makeId: function(idLength) {
         let result = ''
         let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
         let charactersLength = characters.length
