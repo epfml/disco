@@ -12,7 +12,7 @@ const app = express();
 
 const server = app.listen(myArgs[0]);
 const peerServer = ExpressPeerServer(server, {
-    path: '/peers',
+    path: '/peerjs',
     key: 'api',
     allow_discovery: true,
     generateClientId: makeId(12)
@@ -37,6 +37,6 @@ tasks.forEach(task => {
 });
 
 app.get('/', (req, res) => res.send('DeAI Server'));
-app.use('/peerjs', peerServer);
+app.use('/', peerServer);
 app.get('/neighbours/:id', (req, res) => res.send(topology.getNeighbours(req.params['id'])));
 app.use('/tasks', tasksRouter);
