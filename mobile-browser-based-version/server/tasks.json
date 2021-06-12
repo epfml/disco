@@ -25,7 +25,7 @@
         ],
         "headers": ["PassengerId", "Survived", "Name", "Sex", "Age", "SibSp", "Parch", "Ticket", "Fare", "Cabin", "Embarked", "Pclass"],
         "trainingInformation": {
-            "model_id": "titanic-model",
+            "modelId": "titanic-model",
             "port": 0,
             "epoch": 10,
             "validationSplit": 0.2,
