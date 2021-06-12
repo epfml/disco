@@ -31,7 +31,10 @@ peerServer.on('disconnect', (client) => {
 const tasks = JSON.parse(fs.readFileSync(myArgs[1]));
 
 const tasksRouter = express.Router();
-tasksRouter.get('/', (req, res) => res.send(tasks));
+tasksRouter.get('/', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.send(tasks);
+});
 tasks.forEach(task => {
     tasksRouter.get('/' + task.taskId, (req, res) => res.send(models.get(task.taskId)))
 });
