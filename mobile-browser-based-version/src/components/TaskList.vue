@@ -18,14 +18,14 @@
 
         <section class="flex-col items-center justify-center p-4 space-y-4">
           <div
-            v-for="task in ALL_TASKS"
-            :key="task.trainingInformation.modelId"
+            v-for="task in tasks"
+            :key="task.taskId"
             class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
           >
             <!-- Titanic's card-->
             <div
               class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark"
-              v-on:click="goToSelection(task.trainingInformation.modelId)"
+              v-on:click="goToSelection(task.taskId)"
             >
               <div>
                 <h6
@@ -71,8 +71,15 @@
 </template>
 
 <script>
-import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_script";
-import { ALL_TASKS } from "../router/index";
+import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_script"
+import { TitanicTask } from "../task_definition/titanic"
+import { mnistTask } from "../task_definition/mnist"
+import { LusCovidTask } from "../task_definition/lus_covid"
+
+import MainTaskFrame from "../components/main_frames/MainTaskFrame"
+import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame"
+import MainTrainingFrame from "../components/main_frames/MainTrainingFrame"
+import MainTestingFrame from "../components/main_frames/MainTestingFrame"
 
 export default {
   name: "taskList",
@@ -80,18 +87,71 @@ export default {
     return {
       taskSelected: "",
       mnist: "/mnist-model/description",
-      ALL_TASKS: ALL_TASKS,
+      tasks: []
     };
   },
   methods: {
     goToSelection(id) {
       this.$router.push({
         path: "/".concat(id).concat("/description"),
-      });
+      })
     },
   },
-  mounted() {
-    initializeIndexedDB();
-  },
-};
+  async mounted() {
+    initializeIndexedDB()
+
+    let tasksJson = await fetch('http://localhost:3000/tasks').then((response) => response.text())
+    let tasks = JSON.parse(tasksJson)
+    console.log(tasks)
+
+    for (let task of tasks) {
+        console.log(`Processing ${task.taskId}`)
+        let newTask
+        // Boilerplate switch for wrapping tasks, as they still require hardcoded local functions
+        switch (task.taskId) {
+          case 'titanic':
+            newTask = new TitanicTask(task.taskId, task.displayInformation, task.trainingInfomration)
+            break
+          default:
+            console.log('No task wrapper object available')
+            break
+        }
+        this.tasks.push(newTask)
+
+        // Definition of an extension of the task-related component
+        var MainTaskFrameSp = { extends: MainTaskFrame }
+        var MainDescriptionFrameSp = { extends: MainDescriptionFrame }
+        var MainTrainingFrameSp = { extends: MainTrainingFrame }
+        var MainTestingFrameSp = { extends: MainTestingFrame }
+
+        // Add task subroutes on the go
+        let newTaskRoute = {
+          path: '/'.concat(newTask.taskId),
+          name: newTask.taskId,
+          component: MainTaskFrameSp,
+          props: { Id: newTask.taskId, Task: task },
+          children: [
+            {
+              path: 'description',
+              component: MainDescriptionFrameSp,
+              props: { Id: newTask.taskId, Task: newTask },
+            },
+            {
+              path: 'training',
+              component: MainTrainingFrameSp,
+              props: { Id: newTask.taskId, Task: newTask },
+            },
+            {
+              path: 'testing',
+              component: MainTestingFrameSp,
+              props: { Id: newTask.taskId, Task: newTask },
+            }
+          ]
+        }
+        this.$router.addRoute(newTaskRoute)
+
+        newTask.trainingInformation
+    }
+  }
+}
 </script>
