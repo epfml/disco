@@ -104,8 +104,6 @@ export default {
 
       for (let task of tasks) {
           console.log(`Processing ${task.taskId}`)
-          console.log(task.displayInformation)
-          console.log(task.trainingInformation)
           let newTask
           // Boilerplate switch for wrapping tasks, as they still require hardcoded local functions
           switch (task.taskId) {
@@ -129,7 +127,7 @@ export default {
             path: '/'.concat(newTask.taskId),
             name: newTask.taskId,
             component: MainTaskFrameSp,
-            props: { Id: newTask.taskId, Task: task },
+            props: { Id: newTask.taskId, Task: newTask },
             children: [
               {
                 path: 'description',
@@ -149,6 +147,7 @@ export default {
             ]
           }
           this.$router.addRoute(newTaskRoute)
+          console.log(this.$router.getRoutes())
       }
     })
   }
