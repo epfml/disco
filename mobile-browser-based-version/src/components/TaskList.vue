@@ -97,61 +97,60 @@ export default {
       })
     },
   },
-  async mounted() {
+  mounted() {
     initializeIndexedDB()
+    fetch('http://localhost:3000/tasks').then((response) => response.json()).then(tasks => {
+      console.log(tasks)
 
-    let tasksJson = await fetch('http://localhost:3000/tasks').then((response) => response.text())
-    let tasks = JSON.parse(tasksJson)
-    console.log(tasks)
+      for (let task of tasks) {
+          console.log(`Processing ${task.taskId}`)
+          console.log(task.displayInformation)
+          console.log(task.trainingInformation)
+          let newTask
+          // Boilerplate switch for wrapping tasks, as they still require hardcoded local functions
+          switch (task.taskId) {
+            case 'titanic':
+              newTask = new TitanicTask(task.taskId, task.displayInformation, task.trainingInformation)
+              break
+            default:
+              console.log('No task wrapper object available')
+              break
+          }
+          this.tasks.push(newTask)
 
-    for (let task of tasks) {
-        console.log(`Processing ${task.taskId}`)
-        let newTask
-        // Boilerplate switch for wrapping tasks, as they still require hardcoded local functions
-        switch (task.taskId) {
-          case 'titanic':
-            newTask = new TitanicTask(task.taskId, task.displayInformation, task.trainingInfomration)
-            break
-          default:
-            console.log('No task wrapper object available')
-            break
-        }
-        this.tasks.push(newTask)
+          // Definition of an extension of the task-related component
+          var MainTaskFrameSp = { extends: MainTaskFrame }
+          var MainDescriptionFrameSp = { extends: MainDescriptionFrame }
+          var MainTrainingFrameSp = { extends: MainTrainingFrame }
+          var MainTestingFrameSp = { extends: MainTestingFrame }
 
-        // Definition of an extension of the task-related component
-        var MainTaskFrameSp = { extends: MainTaskFrame }
-        var MainDescriptionFrameSp = { extends: MainDescriptionFrame }
-        var MainTrainingFrameSp = { extends: MainTrainingFrame }
-        var MainTestingFrameSp = { extends: MainTestingFrame }
-
-        // Add task subroutes on the go
-        let newTaskRoute = {
-          path: '/'.concat(newTask.taskId),
-          name: newTask.taskId,
-          component: MainTaskFrameSp,
-          props: { Id: newTask.taskId, Task: task },
-          children: [
-            {
-              path: 'description',
-              component: MainDescriptionFrameSp,
-              props: { Id: newTask.taskId, Task: newTask },
-            },
-            {
-              path: 'training',
-              component: MainTrainingFrameSp,
-              props: { Id: newTask.taskId, Task: newTask },
-            },
-            {
-              path: 'testing',
-              component: MainTestingFrameSp,
-              props: { Id: newTask.taskId, Task: newTask },
-            }
-          ]
-        }
-        this.$router.addRoute(newTaskRoute)
-
-        newTask.trainingInformation
-    }
+          // Add task subroutes on the go
+          let newTaskRoute = {
+            path: '/'.concat(newTask.taskId),
+            name: newTask.taskId,
+            component: MainTaskFrameSp,
+            props: { Id: newTask.taskId, Task: task },
+            children: [
+              {
+                path: 'description',
+                component: MainDescriptionFrameSp,
+                props: { Id: newTask.taskId, Task: newTask },
+              },
+              {
+                path: 'training',
+                component: MainTrainingFrameSp,
+                props: { Id: newTask.taskId, Task: newTask },
+              },
+              {
+                path: 'testing',
+                component: MainTestingFrameSp,
+                props: { Id: newTask.taskId, Task: newTask },
+              }
+            ]
+          }
+          this.$router.addRoute(newTaskRoute)
+      }
+    })
   }
 }
 </script>
