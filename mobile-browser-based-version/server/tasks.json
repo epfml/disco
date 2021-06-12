@@ -43,8 +43,5 @@
             "threshold": 1,
             "dataType": "csv"
         }
-    },
-    {
-        "taskId": "mnist"
     }
 ]
