@@ -2,6 +2,7 @@
 import * as d3 from "d3";
 import * as tf from "@tensorflow/tfjs";
 import { checkData } from "../helpers/data_validation_script/helpers-csv-tasks"
+import { storeModel } from "../helpers/my_memory_script/indexedDB_script"
 
 /**
  * Dummy class to hold the Titanic Task information
@@ -77,18 +78,8 @@ export class TitanicTask {
      */
     async createModel() {
         // To be put in a titanic task specific model
-        let newModel = tf.sequential();
-        newModel.add(
-            tf.layers.dense({
-                inputShape: [8],
-                units: 124,
-                activation: "relu",
-                kernelInitializer: "leCunNormal",
-            })
-        );
-        newModel.add(tf.layers.dense({ units: 64, activation: "relu" }));
-        newModel.add(tf.layers.dense({ units: 32, activation: "relu" }));
-        newModel.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
+        console.log((await fetch('http://localhost:3000/tasks/titanic').then(reponse => reponse.json())))
+        let newModel = await tf.loadLayersModel(`http://localhost:3000/tasks/${this.taskId}`);
         newModel.summary();
         const savePathDb = `indexeddb://working_${this.trainingInformation.modelId}`;
 

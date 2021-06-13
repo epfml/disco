@@ -14,11 +14,6 @@ function createTitanicModel() {
     model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }))
     model.summary()
     return model
-    // Do we want to save models on disk? Currently sits in RAM.
-    /*const save_path_db = "indexeddb://working_".concat(
-        training_information.model_id
-    );
-    await model.save(save_path_db);*/
 }
 
 function createMnistModel() {

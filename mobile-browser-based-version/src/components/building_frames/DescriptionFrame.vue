@@ -246,9 +246,9 @@ export default {
         setTimeout(this.$toast.clear, 30000);
       }
       this.$router.push({
-        path: 'training', 
+        path: 'training',
       });
-      
+
     },
     async deleteModel() {
       console.log("Delete Model");

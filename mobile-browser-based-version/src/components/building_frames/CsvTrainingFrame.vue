@@ -266,6 +266,7 @@
 
 
 <script>
+import { ServerManager } from "../../helpers/communication_script/server_manager";
 import { TrainingInformant } from "../../helpers/training_script/training_informant";
 import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
 import { TrainingManager } from "../../helpers/training_script/training_manager";
@@ -302,10 +303,10 @@ export default {
       // takes care of uploading file process
       fileUploadManager: new FileUploadManager(1, this),
 
-
+      serverManager: new ServerManager('localhost', 3000),
 
       // takes care of communication processes
-      communicationManager: new CommunicationManager(9000), // TO DO: to modularize
+      communicationManager: new CommunicationManager(this.serverManager), // TO DO: to modularize
     };
   },
   methods: {
@@ -342,14 +343,14 @@ export default {
     TrainingInformationFrame,
   },
   async mounted() {
-    console.log("Mounted" + this.Task.trainingInformation.modelId)
+    console.log("Mounted " + this.Task.taskId)
     console.log(trainingManager)
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
       this.modelName = this.Task.trainingInformation.modelId;
 
-      console.log("Mounting" + this.modelName)
+      console.log("Mounting " + this.modelName)
 
       this.dataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
       this.dataExampleText = this.Task.displayInformation.dataExampleText;

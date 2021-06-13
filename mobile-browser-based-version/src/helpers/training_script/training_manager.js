@@ -5,11 +5,11 @@ import { onEpochEndCommon } from "../communication_script/helpers";
 
 /**
  * Class that deals with the model of a task.
- * Takes care of memory management of the model and the training of the model. 
+ * Takes care of memory management of the model and the training of the model.
  */
 export class TrainingManager {
     /**
-     * 
+     *
      * @param {Object} trainingInformation the training information that can be found in script of the task.
      */
     constructor(trainingInformation) {
@@ -25,7 +25,7 @@ export class TrainingManager {
     }
 
     /**
-     * Train the task's model either alone or in a distributed fashion depending on the user's choice. 
+     * Train the task's model either alone or in a distributed fashion depending on the user's choice.
      * @param {Boolean} distributed     boolean to states if training alone or training in a distributed fashion.
      * @param {Object} processedData   data that has been processed by the custom function define in the script of the task. Has the form {accepted: _, Xtrain: _, yTrain:_}.
      */
@@ -47,7 +47,7 @@ export class TrainingManager {
                     this.trainingInformation.batchSize,
                     this.trainingInformation.validationSplit,
                     this.trainingInformation.epoch,
-                    this.trainingInformant, 
+                    this.trainingInformant,
                     this.trainingInformation.modelCompileData,
                     this.trainingInformation.learningRate
                 );
@@ -68,7 +68,7 @@ export class TrainingManager {
                 );
             }
             this.saveWorkingModel()
-            // notify the user that training has ended 
+            // notify the user that training has ended
             this.environment.$toast.success(
                 this.trainingInformation.modelId.concat(` has finished training!`)
             );
@@ -86,7 +86,7 @@ export class TrainingManager {
      */
     onEpochBegin() {
         // To be modified in future ...
-        // myEpoch will be removed 
+        // myEpoch will be removed
         console.log("EPOCH: ", ++this.myEpoch);
     }
 
@@ -111,7 +111,7 @@ export class TrainingManager {
             epoch,
             this.communicationManager.receivers,
             this.communicationManager.recvBuffer,
-            this.communicationManager.peerjsId,
+            this.communicationManager.peer.id,
             this.trainingInformation.threshold,
             this.communicationManager.peerjs,
             this.trainingInformant
@@ -126,7 +126,7 @@ export class TrainingManager {
         setTimeout(this.environment.$toast.clear, 30000);
     }
     /**
-     * Save the working model for later use. 
+     * Save the working model for later use.
      */
     saveModel() {
         storeModel(this.model, "saved_".concat(this.trainingInformation.modelId));
@@ -146,14 +146,14 @@ export class TrainingManager {
 
     /**
      * Initialize the training informant (used to collect feed-backs from the training loop).
-     * @param {TrainingInformant} trainingInformant the training informant of the task. 
+     * @param {TrainingInformant} trainingInformant the training informant of the task.
      */
     initializeTrainingInformant(trainingInformant) {
         this.trainingInformant = trainingInformant
     }
 
     /**
-     * Load the working model into the variable model. 
+     * Load the working model into the variable model.
      */
     async initializeModel() {
         const savedModelPath = "indexeddb://working_".concat(
@@ -173,7 +173,7 @@ export class TrainingManager {
     /**
      * Global initialization process of the training manger.
      * @param {*} communicationManager the communication manager of the task.
-     * @param {*} trainingInformant the training informant of the task. 
+     * @param {*} trainingInformant the training informant of the task.
      * @param {*} environment the environment of the component to which the training manager is associated.
      */
     async initialization(communicationManager, trainingInformant, environment) {

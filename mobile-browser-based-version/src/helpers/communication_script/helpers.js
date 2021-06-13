@@ -144,18 +144,6 @@ export function dataReceivedBreak(recvBuffer, key) {
 }
 
 
-// generates a random string
-export async function makeid(length) {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for (var i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
-
-
 
 /**
  * Sends weights to all peers, waits to receive weights from all peers
