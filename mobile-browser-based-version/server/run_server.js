@@ -10,7 +10,7 @@ const { models }            = require('./models.js');
 const myArgs = process.argv.slice(2);
 
 const app = express();
-app.use(cors())
+app.use(cors());
 
 const server = app.listen(myArgs[0]);
 const peerServer = ExpressPeerServer(server, {

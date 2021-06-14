@@ -13,7 +13,8 @@ function createTitanicModel() {
     model.add(tf.layers.dense({ units: 32, activation: "relu" }))
     model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }))
     model.summary()
-    return model
+    model.save('file://.')
+
 }
 
 function createMnistModel() {
