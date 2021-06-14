@@ -1,6 +1,13 @@
 const tf = require('@tensorflow/tfjs')
 
 
+class Dummy {
+  constructor() {
+    this.a = 'a'
+    this.b = 'b'
+  }
+}
+
 function createTitanicModel() {
     let model = tf.sequential()
     model.add(tf.layers.dense({
@@ -12,9 +19,7 @@ function createTitanicModel() {
     model.add(tf.layers.dense({ units: 64, activation: "relu" }))
     model.add(tf.layers.dense({ units: 32, activation: "relu" }))
     model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }))
-    model.summary()
-    model.save('file://.')
-
+    return model
 }
 
 function createMnistModel() {

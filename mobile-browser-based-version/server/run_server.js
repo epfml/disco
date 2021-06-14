@@ -44,5 +44,3 @@ app.get('/', (req, res) => res.send('DeAI Server'));
 app.use('/', peerServer);
 app.get('/neighbours/:id', (req, res) => res.send(topology.getNeighbours(req.params['id'])));
 app.use('/tasks', tasksRouter);
-
-console.log(models.get('titanic'))

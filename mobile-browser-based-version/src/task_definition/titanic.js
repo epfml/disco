@@ -78,7 +78,8 @@ export class TitanicTask {
      */
     async createModel() {
         // To be put in a titanic task specific model
-        let newModel = await tf.loadLayersModel(`http://localhost:3000/tasks/${this.taskId}`);
+        let newModel = fetch(`http://localhost:3000/tasks/${this.taskId}`).then((response) => response.json());
+        console.log(newModel)
         newModel.summary();
         const savePathDb = `indexeddb://working_${this.trainingInformation.modelId}`;
 
