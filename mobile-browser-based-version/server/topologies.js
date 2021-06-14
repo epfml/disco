@@ -23,12 +23,14 @@ class BinaryTree {
     }
     
     addPeer(id) {
+        let affectedPeers = new Set()
         let newNode = new TreeNode(id)
         if (this.root == null) {
             this.root = newNode
         }
         else {
             let parent = this.findParent()
+            affectedPeers.add(parent)
             if (parent.leftChild == null) {
                 parent.leftChild = newNode
             }
@@ -38,6 +40,7 @@ class BinaryTree {
             newNode.parent = parent
         }
         this.index[id] = newNode
+        return affectedPeers
     }
 
     findParent() {
