@@ -274,4 +274,3 @@ export async function onEpochEndCommon(model, epoch, receivers, recvBuffer, user
         peerjs.setDataHandler(handleDataEnd, endBuffer)
     }*/
 }
-
