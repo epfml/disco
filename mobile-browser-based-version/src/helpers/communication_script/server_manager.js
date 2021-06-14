@@ -7,6 +7,7 @@ export const SERVER_API = {
     TASKS: 'tasks/',
     TOPOLOGY: 'topology/'
 }
+Object.freeze(SERVER_API)
 
 
 export class ServerManager {
@@ -20,8 +21,8 @@ export class ServerManager {
 
     constructUrl() {
       return this.protocol + '://' +
-             this.serverConfig.host + '/' +
-             String(this.serverConfig.port) + '/'
+             this.host + ':' +
+             String(this.port) + '/'
     }
 
     async getPeersList() {

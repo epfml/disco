@@ -75,6 +75,7 @@ import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_scrip
 import { TitanicTask } from "../task_definition/titanic"
 import { mnistTask } from "../task_definition/mnist"
 import { LusCovidTask } from "../task_definition/lus_covid"
+import { ServerManager } from "../helpers/communication_script/server_manager"
 
 import MainTaskFrame from "../components/main_frames/MainTaskFrame"
 import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame"
@@ -87,7 +88,9 @@ export default {
     return {
       taskSelected: "",
       mnist: "/mnist-model/description",
-      tasks: []
+      tasks: [],
+      // Could be manually modified by the user in the UI
+      serverManager: new ServerManager('localhost', 3000)
     };
   },
   methods: {
@@ -99,7 +102,7 @@ export default {
   },
   mounted() {
     initializeIndexedDB()
-    fetch('http://localhost:3000/tasks').then((response) => response.json()).then(tasks => {
+    this.serverManager.getTasks().then((response) => response.json()).then(tasks => {
       console.log(tasks)
 
       for (let task of tasks) {
@@ -111,7 +114,7 @@ export default {
               newTask = new TitanicTask(task.taskId, task.displayInformation, task.trainingInformation)
               break
             default:
-              console.log('No task wrapper object available')
+              console.log('No task object available')
               break
           }
           this.tasks.push(newTask)
