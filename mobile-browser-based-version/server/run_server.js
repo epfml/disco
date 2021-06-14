@@ -58,7 +58,8 @@ function eventsHandler(request, response, next) {
   }
 
 peerServer.on('connection', (client) => { 
-    topology.addPeer(client.getId())
+    let affectedPeers = topology.addPeer(client.getId())
+    sendNewNeighbours(affectedPeers)
 });
 
 peerServer.on('disconnect', (client) => { 
