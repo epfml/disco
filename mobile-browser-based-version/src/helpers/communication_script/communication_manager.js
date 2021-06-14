@@ -6,8 +6,8 @@ import {
 } from "./peer";
 
 /**
- * Class that deals with communication with the PeerJS server.
- * Collects the list of receivers currently connected to the PeerJS server.
+ * Class that deals with communication with the PeerJS server. 
+ * Collects the list of receivers currently connected to the PeerJS server. 
  */
 export class CommunicationManager {
     /**
@@ -35,11 +35,11 @@ export class CommunicationManager {
     }
 
     /**
-     * Initialize the connection to the server.
-     * @param {Number} epochs the number of epochs (required to initialize the communication buffer).
+     * Initialize the connection to the server. 
+     * @param {Number} epochs the number of epochs (required to initialize the communication buffer). 
      */
     async initializeConnection(epochs, environment) {
-        // initialize the buffer
+        // initialize the buffer 
         this.recvBuffer = {
             trainInfo: {
                 epochs: epochs,
