@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 // Some page components 
 import TaskList from "../components/TaskList"
@@ -87,7 +87,7 @@ for (let index = 0; index < ALL_TASKS.length; index++) {
 console.log(routes)
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createWebHashHistory(process.env.BASE_URL),
   routes
 })
 console.log(router.getRoutes())
