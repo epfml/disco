@@ -88,7 +88,32 @@
             </a>
             -->
 
-            <!-- Get Memory Pannel-->
+            <!-- Go To Task List-->
+            <a
+              v-on:click="goToTaskList()"
+              class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+            >
+              <span class="sr-only">Task List</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6"
+                fill="currentColor"
+                viewBox="0 0 16 16"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-width="1"
+                  d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"
+                />
+                <path
+                  stroke-width="0.5"
+                  d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zM4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"
+                />
+              </svg>
+            </a>
+
+            <!-- Get Memory Panel-->
             <button
               v-on:click="openMemoryPannel"
               class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
@@ -107,7 +132,7 @@
                 />
               </svg>
             </button>
-            
+
             <!-- Info link -->
             <!-- Active classes "bg-primary text-white" -->
             <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
@@ -561,10 +586,10 @@
       </div>
 
       <!-- Main Page -->
-      <div class="overflow-x-scroll">
-        <router-view v-slot="{ Component }" >
+      <div class="overflow-x-scroll flex-grow">
+        <router-view v-slot="{ Component }">
           <keep-alive>
-            <component :is="Component"/>
+            <component :is="Component" />
           </keep-alive>
         </router-view>
       </div>
@@ -576,7 +601,7 @@
 import * as tf from "@tensorflow/tfjs";
 
 export default {
-  data: function () {
+  data: function() {
     return {
       loading: false,
       isDark: this.getTheme(), // TO BE MODIFIED
@@ -589,7 +614,7 @@ export default {
     };
   },
   methods: {
-    getTheme: function () {
+    getTheme: function() {
       if (window.localStorage.getItem("dark")) {
         return JSON.parse(window.localStorage.getItem("dark"));
       }
@@ -605,7 +630,7 @@ export default {
         return "cyan";
       }
     },
-    setTheme: function (value) {
+    setTheme: function(value) {
       window.localStorage.setItem("dark", value);
     },
     setColors(color) {
@@ -635,11 +660,11 @@ export default {
       this.selectedColor = color;
       window.localStorage.setItem("color", color);
     },
-    toggleTheme: function () {
+    toggleTheme: function() {
       this.isDark = !this.isDark;
       this.setTheme(this.isDark);
     },
-    setLightTheme: function () {
+    setLightTheme: function() {
       this.isDark = false;
       this.setTheme(this.isDark);
     },
@@ -665,13 +690,15 @@ export default {
     goToHome() {
       this.$router.push({ name: "home" });
     },
+    goToTaskList() {
+      this.$router.push({ name: "tasks" });
+    },
     goToInformation() {
       this.$router.push({ name: "information" });
     },
     goToTrophee() {
       this.$router.push({ name: "trophee" });
-    }
-    ,
+    },
     async refreshModel() {
       var newModelMap = new Map();
       tf.io.listModels().then((models) => {
@@ -702,7 +729,7 @@ export default {
       console.log(modelName);
       this.modelMap.delete(modelName);
       await tf.io.removeModel(modelName);
-    },  
+    },
   },
   async mounted() {
     tf.io.listModels().then((models) => {
@@ -710,7 +737,11 @@ export default {
         var modelInfo = models[key];
         let date = new Date(modelInfo.dateSaved);
         let dateSaved =
-          date.getDate() + "/" + (date.getMonth() +1) + "/" + date.getFullYear();
+          date.getDate() +
+          "/" +
+          (date.getMonth() + 1) +
+          "/" +
+          date.getFullYear();
         let hourSaved = date.getHours() + "h" + date.getMinutes();
         let size =
           modelInfo.modelTopologyBytes +
@@ -728,6 +759,3 @@ export default {
   },
 };
 </script>
-
-
-
