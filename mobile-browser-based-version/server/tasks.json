@@ -40,7 +40,7 @@
             "modelTrainData": {
                 "epochs": 10
             },
-            "threshold": 1,
+            "receivedMessagesThreshold": 1,
             "dataType": "csv"
         }
     }

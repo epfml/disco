@@ -31,12 +31,14 @@
                 <h6
                   class="text-xl font-medium leading-none tracking-wider uppercase dark:group-hover:text-darker"
                 >
-                  {{task.displayInformation.taskTitle}}
+                  {{ task.displayInformation.taskTitle }}
                 </h6>
               </div>
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  {{task.displayInformation.summary}}
+                  {{
+                    task.displayInformation.summary
+                  }}
                 </ul>
               </div>
               <div>
@@ -71,10 +73,6 @@
 </template>
 
 <script>
-import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_script"
-import { TitanicTask } from "../task_definition/titanic"
-import { mnistTask } from "../task_definition/mnist"
-import { LusCovidTask } from "../task_definition/lus_covid"
 import { serverManager } from "../helpers/communication_script/server_manager"
 
 import MainTaskFrame from "../components/main_frames/MainTaskFrame"
