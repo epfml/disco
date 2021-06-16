@@ -37,7 +37,10 @@ tasksRouter.get('/', (req, res) => {
   res.send(tasks);
 });
 tasks.forEach(task => {
-    tasksRouter.get('/' + task.taskId, (req, res) => res.send(models.get(task.taskId)))
+    tasksRouter.get('/' + task.taskId, async (req, res) => {
+        await
+        res.sendFile(task.taskId)
+    }
 });
 
 app.get('/', (req, res) => res.send('DeAI Server'));

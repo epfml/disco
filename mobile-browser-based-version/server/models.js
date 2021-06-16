@@ -1,14 +1,9 @@
-const tf = require('@tensorflow/tfjs')
+const fs     = require('fs');
+const tf     = require('@tensorflow/tfjs')
+const tfNode = require('@tensorflow/tfjs-node')
 
 
-class Dummy {
-  constructor() {
-    this.a = 'a'
-    this.b = 'b'
-  }
-}
-
-function createTitanicModel() {
+async function createTitanicModel() {
     let model = tf.sequential()
     model.add(tf.layers.dense({
         inputShape: [8],
@@ -19,12 +14,13 @@ function createTitanicModel() {
     model.add(tf.layers.dense({ units: 64, activation: "relu" }))
     model.add(tf.layers.dense({ units: 32, activation: "relu" }))
     model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }))
-    return model
+    model.save('file://./titanic/')
 }
 
 function createMnistModel() {
     return null
 }
+
 
 const titanicModel = createTitanicModel()
 const mnistModel = createMnistModel()
