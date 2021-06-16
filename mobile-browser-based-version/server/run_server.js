@@ -1,11 +1,11 @@
 const express               = require('express');
 const fs                    = require('fs');
 const cors                  = require('cors');
+const path                  = require('path');
 const { ExpressPeerServer } = require('peer');
 const topologies            = require('./topologies.js');
 const { makeId }            = require('./helpers.js');
 const { models }            = require('./models.js');
-
 
 const myArgs = process.argv.slice(2);
 
@@ -20,7 +20,7 @@ const peerServer = ExpressPeerServer(server, {
     generateClientId: makeId(12)
 });
 
-var topology = new topologies.BinaryTree();
+var topology = new topologies.BinaryTree()
 
 peerServer.on('connection', (client) => {
     topology.addPeer(client.getId())
@@ -30,17 +30,14 @@ peerServer.on('disconnect', (client) => {
     topology.removePeer(client.getId())
 });
 
-const tasks = JSON.parse(fs.readFileSync(myArgs[1]));
+Promise.all(models.map((createModel) => createModel()))
 
 const tasksRouter = express.Router();
 tasksRouter.get('/', (req, res) => {
-  res.send(tasks);
+    res.sendFile(path.join(__dirname, myArgs[1]));
 });
-tasks.forEach(task => {
-    tasksRouter.get('/' + task.taskId, async (req, res) => {
-        await
-        res.sendFile(task.taskId)
-    }
+tasksRouter.get('/:id/:file', (req, res) => {
+    res.sendFile(path.join(__dirname, req.params['id'], req.params['file']))
 });
 
 app.get('/', (req, res) => res.send('DeAI Server'));

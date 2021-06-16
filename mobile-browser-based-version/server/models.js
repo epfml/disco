@@ -22,12 +22,6 @@ function createMnistModel() {
 }
 
 
-const titanicModel = createTitanicModel()
-const mnistModel = createMnistModel()
-
 module.exports = {
-    models: new Map([
-        ['titanic', titanicModel],
-        ['mnist', mnistModel],
-    ])
+    models: [createTitanicModel, createMnistModel]
 }

@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import * as tf from "@tensorflow/tfjs";
 import { checkData } from "../helpers/data_validation_script/helpers-csv-tasks"
 import { storeModel } from "../helpers/my_memory_script/indexedDB_script"
+import { serverManager } from "../helpers/communication_script/server_manager"
 
 /**
  * Dummy class to hold the Titanic Task information
@@ -78,10 +79,9 @@ export class TitanicTask {
      */
     async createModel() {
         // To be put in a titanic task specific model
-        let newModel = await tf.loadLayersModel(`http://localhost:3000/tasks/${this.taskId}`)
-        console.log(newModel)
+        let newModel = await serverManager.getTaskModel(this.taskId)
         newModel.summary();
-        const savePathDb = `indexeddb://working_${this.trainingInformation.modelId}`;
+        const savePathDb = 'indexeddb://working_' + this.trainingInformation.modelId;
 
         // only keep this here
         await newModel.save(savePathDb);
