@@ -73,83 +73,87 @@
 </template>
 
 <script>
-import { serverManager } from "../helpers/communication_script/server_manager"
+import { serverManager } from '../helpers/communication_script/server_manager'
+import { TitanicTask } from '../task_definition/titanic'
+import { MnistTask } from '../task_definition/titanic'
+import { LusCovidTask } from '../task_definition/titanic'
 
-import MainTaskFrame from "../components/main_frames/MainTaskFrame"
-import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame"
-import MainTrainingFrame from "../components/main_frames/MainTrainingFrame"
-import MainTestingFrame from "../components/main_frames/MainTestingFrame"
+import MainTaskFrame from '../components/main_frames/MainTaskFrame'
+import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame'
+import MainTrainingFrame from '../components/main_frames/MainTrainingFrame'
+import MainTestingFrame from '../components/main_frames/MainTestingFrame'
 
 export default {
-  name: "taskList",
+  name: 'taskList',
   data() {
     return {
-      taskSelected: "",
-      mnist: "/mnist-model/description",
-      tasks: []
+      taskSelected: '',
+      mnist: '/mnist-model/description',
+      tasks: [],
     };
   },
   methods: {
     goToSelection(id) {
       this.$router.push({
-        path: "/".concat(id).concat("/description"),
-      })
+        path: '/' + id + '/description',
+      });
     },
   },
   async mounted() {
-      // Could be manually modified by the user in the UI
-      serverManager.setParams('localhost', 3000)
-      let tasks = await serverManager.getTasks().then((response) => response.json()).then(tasks => {
-      console.log(tasks)
+      serverManager.setParams('localhost', 3000); // Could be manually modified by the user in the UI
+      let tasks = await serverManager.getTasks()
+          .then((response) => response.json())
+          .then(tasks => {
+              console.log(tasks)
 
-      for (let task of tasks) {
-          console.log(`Processing ${task.taskId}`)
-          let newTask
-          // Boilerplate switch for wrapping tasks, as they still require hardcoded local functions
-          switch (task.taskId) {
-            case 'titanic':
-              newTask = new TitanicTask(task.taskId, task.displayInformation, task.trainingInformation)
-              break
-            default:
-              console.log('No task object available')
-              break
-          }
-          this.tasks.push(newTask)
+              for (let task of tasks) {
+                  console.log(`Processing ${task.taskId}`)
+                  let newTask
+                  // Boilerplate switch for wrapping tasks, as they still require hardcoded local functions
+                  switch (task.taskId) {
+                    case 'titanic':
+                      newTask = new TitanicTask(task.taskId, task.displayInformation, task.trainingInformation)
+                      break
+                    default:
+                      console.log('No task object available')
+                      break
+                  }
+                  this.tasks.push(newTask)
 
-          // Definition of an extension of the task-related component
-          var MainTaskFrameSp = { extends: MainTaskFrame }
-          var MainDescriptionFrameSp = { extends: MainDescriptionFrame }
-          var MainTrainingFrameSp = { extends: MainTrainingFrame }
-          var MainTestingFrameSp = { extends: MainTestingFrame }
+                  // Definition of an extension of the task-related component
+                  var MainTaskFrameSp = { extends: MainTaskFrame }
+                  var MainDescriptionFrameSp = { extends: MainDescriptionFrame }
+                  var MainTrainingFrameSp = { extends: MainTrainingFrame }
+                  var MainTestingFrameSp = { extends: MainTestingFrame }
 
-          // Add task subroutes on the go
-          let newTaskRoute = {
-            path: '/'.concat(newTask.taskId),
-            name: newTask.taskId,
-            component: MainTaskFrameSp,
-            props: { Id: newTask.taskId, Task: newTask },
-            children: [
-              {
-                path: 'description',
-                component: MainDescriptionFrameSp,
-                props: { Id: newTask.taskId, Task: newTask },
-              },
-              {
-                path: 'training',
-                component: MainTrainingFrameSp,
-                props: { Id: newTask.taskId, Task: newTask },
-              },
-              {
-                path: 'testing',
-                component: MainTestingFrameSp,
-                props: { Id: newTask.taskId, Task: newTask },
+                  // Add task subroutes on the go
+                  let newTaskRoute = {
+                    path: '/' + newTask.taskId,
+                    name: newTask.taskId,
+                    component: MainTaskFrameSp,
+                    props: { Id: newTask.taskId, Task: newTask },
+                    children: [
+                      {
+                        path: 'description',
+                        component: MainDescriptionFrameSp,
+                        props: { Id: newTask.taskId, Task: newTask },
+                      },
+                      {
+                        path: 'training',
+                        component: MainTrainingFrameSp,
+                        props: { Id: newTask.taskId, Task: newTask },
+                      },
+                      {
+                        path: 'testing',
+                        component: MainTestingFrameSp,
+                        props: { Id: newTask.taskId, Task: newTask },
+                      }
+                    ]
+                  }
+                  this.$router.addRoute(newTaskRoute)
+                  console.log(this.$router.getRoutes())
               }
-            ]
-          }
-          this.$router.addRoute(newTaskRoute)
-          console.log(this.$router.getRoutes())
-      }
-    })
+          })
   }
 }
 </script>
