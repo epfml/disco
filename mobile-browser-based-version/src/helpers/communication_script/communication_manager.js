@@ -94,7 +94,7 @@ export class CommunicationManager {
     async updateReceivers() {
         let ids = await serverManager.getPeersList().then((response) => response.json());
         console.log(ids)
-        let id = this.peerjs.id;
+        let id = this.peer.id;
         this.receivers = ids.filter((value) => value != id);
     }
 }
