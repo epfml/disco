@@ -23,12 +23,14 @@ class BinaryTree {
     }
     
     addPeer(id) {
+        let affectedPeers = new Set()
         let newNode = new TreeNode(id)
         if (this.root == null) {
             this.root = newNode
         }
         else {
             let parent = this.findParent()
+            affectedPeers.add(parent)
             if (parent.leftChild == null) {
                 parent.leftChild = newNode
             }
@@ -38,6 +40,7 @@ class BinaryTree {
             newNode.parent = parent
         }
         this.index[id] = newNode
+        return affectedPeers
     }
 
     findParent() {
@@ -77,13 +80,17 @@ class BinaryTree {
         let deepestParent = deepestNode.parent
 
         let current = deepestParent
+        let affectedPeers = new Set()
         while (current != node.parent) {
+            let currentNeighbours = this.getNeighbours(current.id)
+            currentNeighbours.forEach(neighbour => affectedPeers.add(neighbour))
             let tmp = current.id
             current.id = childId
             this.index[current.id] = current
             childId = tmp
             current = current.parent
         }
+        affectedPeers.delete(nodeId)
         
         if (removeLeft) {
             deepestParent.leftChild = null
@@ -92,6 +99,8 @@ class BinaryTree {
             deepestParent.rightChild = null
         }
         delete this.index[nodeId]
+
+        return affectedPeers
     }
 
     findDeepestNode(root, level, result) {
