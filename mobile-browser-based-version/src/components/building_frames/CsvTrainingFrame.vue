@@ -275,8 +275,6 @@ import UploadingFrame from "./UploadingFrame"
 import TrainingInformationFrame from "./TrainingInformationFrame";
 import * as tf from "@tensorflow/tfjs";
 
-// takes care of communication 
-
 
 export default {
   name: "CsvTrainingFrame",
