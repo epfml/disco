@@ -1,9 +1,9 @@
-const express = require('express');
+const express               = require('express');
+const fs                    = require('fs');
 const { ExpressPeerServer } = require('peer');
-const cors = require('cors');
-var topologies = require('./topologies.js')
-
-var myArgs = process.argv.slice(2);
+const topologies            = require('./topologies.js');
+const { makeId }            = require('./helpers.js');
+const { models }            = require('./models.js');
 
 const app = express();
 app.use(cors());
@@ -11,16 +11,16 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 const topology = new topologies.BinaryTree()
-app.get('/', (req, res, next) => res.send('DeAI Server'));
+
+const myArgs = process.argv.slice(2);
 
 const server = app.listen(myArgs[0]);
-
 const peerServer = ExpressPeerServer(server, {
-    path: '/',
+    path: '/peerjs',
+    key: 'api',
     allow_discovery: true,
-  });
-app.use('/deai', peerServer);
-
+    generateClientId: makeId(12)
+});
 
 let peers = [];
 function eventsHandler(request, response, next) {
@@ -66,3 +66,16 @@ peerServer.on('disconnect', (client) => {
     let affectedPeers = topology.removePeer(client.getId())
     sendNewNeighbours(affectedPeers)
 });
+
+const tasks = JSON.parse(fs.readFileSync(myArgs[1]));
+
+const tasksRouter = express.Router();
+tasksRouter.get('/', (req, res) => res.send(tasks));
+tasks.forEach(task => {
+    tasksRouter.get('/' + task.taskId, (req, res) => res.send(models.get(task.taskId)))
+});
+
+app.get('/', (req, res) => res.send('DeAI Server'));
+app.use('/', peerServer);
+app.get('/neighbours/:id', eventsHandler);
+app.use('/tasks', tasksRouter);
