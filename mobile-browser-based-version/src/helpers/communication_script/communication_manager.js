@@ -1,7 +1,7 @@
 import Peer from "peerjs";
 import {
     SERVER_API,
-    ServerManager
+    serverManager
 } from './server_manager';
 import {
     PeerJS,
@@ -17,8 +17,7 @@ export class CommunicationManager {
      * Prepares connection to a PeerJS server.
      * @param {Number} serverManager object containing server hosting infos.
      */
-    constructor(serverManager) {
-        this.serverManager = serverManager;
+    constructor() {
         this.peer = null;
         this.peerjs = null;
         this.receivers = [];
@@ -49,9 +48,9 @@ export class CommunicationManager {
         };
 
         // Connect to the PeerServer
-        this.peer = new Peer(undefined, {
-            host: this.serverManager.host,
-            port: this.serverManager.port,
+        this.peer = new Peer({
+            host: serverManager.host,
+            port: serverManager.port,
             path: SERVER_API.PEER_SERVER.PATH,
             key: SERVER_API.PEER_SERVER.KEY
         });
@@ -94,7 +93,7 @@ export class CommunicationManager {
      * Updates the receivers' list.
      */
     async updateReceivers() {
-        let ids = await this.serverManager.getPeersList().then((response) => response.json());
+        let ids = await serverManager.getPeersList().then((response) => response.json());
         console.log(ids)
         let id = this.peerjs.id;
         this.receivers = ids.filter((value) => value != id);
