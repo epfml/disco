@@ -15,7 +15,6 @@ import {
 export class CommunicationManager {
     /**
      * Prepares connection to a PeerJS server.
-     * @param {Number} serverManager object containing server hosting infos.
      */
     constructor() {
         this.peer = null;
