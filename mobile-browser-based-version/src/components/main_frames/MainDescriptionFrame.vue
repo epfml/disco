@@ -44,8 +44,5 @@ export default {
     this.ModelId = this.Task.trainingInformation.modelId;
     
   },
-  unmounted() {
-    console.log("Help i'm being destroyed")
-  }
 };
 </script>
