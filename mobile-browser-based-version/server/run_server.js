@@ -4,6 +4,7 @@ const { ExpressPeerServer } = require('peer');
 const topologies            = require('./topologies.js');
 const { makeId }            = require('./helpers.js');
 const { models }            = require('./models.js');
+const cors                  = require('cors');
 
 const app = express();
 app.use(cors());
@@ -16,8 +17,7 @@ const myArgs = process.argv.slice(2);
 
 const server = app.listen(myArgs[0]);
 const peerServer = ExpressPeerServer(server, {
-    path: '/peerjs',
-    key: 'api',
+    path: '/',
     allow_discovery: true,
     generateClientId: makeId(12)
 });
@@ -49,8 +49,6 @@ function eventsHandler(request, response, next) {
       peers = peers.filter(peer => peer.id !== peerId);
     });
   }
-  
-  app.get('/neighbours/:id', eventsHandler);
 
   function sendNewNeighbours(affectedPeers) {
     let peersToNotify = peers.filter(peer => affectedPeers.has(peer.id) )
@@ -76,6 +74,6 @@ tasks.forEach(task => {
 });
 
 app.get('/', (req, res) => res.send('DeAI Server'));
-app.use('/', peerServer);
+app.use('/deai', peerServer);
 app.get('/neighbours/:id', eventsHandler);
 app.use('/tasks', tasksRouter);
