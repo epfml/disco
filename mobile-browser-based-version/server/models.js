@@ -16,7 +16,7 @@ async function createTitanicModel() {
     model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
     model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
     model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
-    model.save('file://' + path.join(__dirname + 'titanic'));
+    model.save(SCHEME + path.join(__dirname + 'titanic'));
 }
 
 function createMnistModel() {
