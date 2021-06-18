@@ -6,7 +6,7 @@ const { ExpressPeerServer } = require('peer');
 const topologies            = require('./topologies.js');
 const { makeId }            = require('./helpers.js');
 const { models }            = require('./models.js');
-const cors                  = require('cors');
+
 
 const app = express();
 app.use(cors());
