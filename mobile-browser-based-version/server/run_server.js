@@ -7,15 +7,15 @@ const { models }            = require('./models.js');
 const cors                  = require('cors');
 
 const app = express();
+app.enable('trust proxy');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 const topology = new topologies.BinaryTree()
 
-const myArgs = process.argv.slice(2);
-
-const server = app.listen(myArgs[0]);
+// GAE requires the app to listen to 8080
+const server = app.listen(8080);
 const peerServer = ExpressPeerServer(server, {
     path: '/',
     allow_discovery: true,
@@ -65,7 +65,7 @@ peerServer.on('disconnect', (client) => {
     sendNewNeighbours(affectedPeers)
 });
 
-const tasks = JSON.parse(fs.readFileSync(myArgs[1]));
+const tasks = JSON.parse(fs.readFileSync('tasks.json'));
 
 const tasksRouter = express.Router();
 tasksRouter.get('/', (req, res) => res.send(tasks));
@@ -77,3 +77,4 @@ app.get('/', (req, res) => res.send('DeAI Server'));
 app.use('/deai', peerServer);
 app.get('/neighbours/:id', eventsHandler);
 app.use('/tasks', tasksRouter);
+module.exports = app;
