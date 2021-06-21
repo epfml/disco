@@ -1,4 +1,4 @@
-## DeAI Server
+## DeAI Helper Server
 Centralized helper server for DeAI clients, running as an ExpressJS app. The server requires [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [PeerServer](https://github.com/peers/peerjs-server) and [Tensorflow](https://www.tensorflow.org/js). All library requirements are included in the ```package.json``` file.
 ### Components
 #### PeerJS server
@@ -16,7 +16,7 @@ The training tasks given to DeAI clients are centralized on this server. Their d
 
 Tasks are stored in ```tasks.json```. The models are declared in ```models.js```.
 
-### Running the server
+### Running the helper server
 
 From this folder, you can run the server on localhost:8080 with the following command:
 ```
@@ -25,7 +25,7 @@ npm start
 
 ### Running in Google App Engine
 
-Google App Engine (GAE) creates an HTTPS certificate automatically, making this the easiest way to deploy the server in the Google Cloud Platform.
+Google App Engine (GAE) creates an HTTPS certificate automatically, making this the easiest way to deploy the helper server in the Google Cloud Platform.
 
 To change the GAE app configuration, you can modify the file `app.yaml`. Do not modify the flex enviroment because it is required for WebSocket support, which is required for PeerJS. 
 
