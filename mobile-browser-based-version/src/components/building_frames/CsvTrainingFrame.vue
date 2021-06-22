@@ -192,7 +192,7 @@
         type="button"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
       >
-        Train Offline
+        Train Alone
       </button>
       <button
         v-on:click="joinTraining(true)"
