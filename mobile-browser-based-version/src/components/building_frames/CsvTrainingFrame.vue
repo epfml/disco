@@ -170,7 +170,7 @@
                     </div>
                   </div>
                   <div>
-                      &rarr;
+                      &larr;
                   </div>
                   <div class="mb-3 pt-0">
                     <input
