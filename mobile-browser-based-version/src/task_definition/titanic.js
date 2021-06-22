@@ -88,7 +88,6 @@ export class TitanicTask {
         newModel.add(tf.layers.dense({ units: 64, activation: "relu" }));
         newModel.add(tf.layers.dense({ units: 32, activation: "relu" }));
         newModel.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
-        newModel.summary();
         const savePathDb = "indexeddb://working_".concat(
             trainingInformation.modelId
         );
@@ -144,7 +143,7 @@ export const trainingInformation = {
     // {String} model's identification name
     modelId: "titanic-model",
     // {Number} port of the peerjs server
-    port: 0,
+    port: 9000,
     // {Number} number of epoch used for training
     epoch: 10,
     // {Number} validation split

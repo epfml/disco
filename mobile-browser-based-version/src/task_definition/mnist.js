@@ -246,7 +246,7 @@ export const trainingInformation = {
     // {String} model's identification name
     modelId: "mnist-model",
     // {Number} port of the peerjs server
-    port: 1,
+    port: 9001,
     // {Number} number of epoch used for training
     epoch: 10,
     // {Number} validation split

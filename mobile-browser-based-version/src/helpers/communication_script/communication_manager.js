@@ -107,11 +107,13 @@ export class CommunicationManager {
             "http://35.242.193.186:".concat(String(this.portNbr)).concat("/deai/peerjs/peers"
             )).then((response) => response.text());
 
+
         console.log(queryIds)
         let allIds = JSON.parse(queryIds);
         let id = this.peerjsId;
         this.receivers = allIds.filter(function (value) {
             return value != id;
         });
+
     }
 }
