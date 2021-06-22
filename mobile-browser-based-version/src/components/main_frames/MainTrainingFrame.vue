@@ -1,15 +1,13 @@
 <template>
-  <!-- CSV tasks -->
-  <keep-alive>
-    <div v-if="Task.trainingInformation.dataType == 'csv'">
-      <CsvTrainingFrame v-bind:Id="Id" v-bind:Task="Task" />
+    <!-- CSV tasks -->
+    <div v-if='Task.trainingInformation.dataType == "csv"'>
+        <CsvTrainingFrame v-bind:Id="Id" v-bind:Task="Task"/>
     </div>
   </keep-alive>
 
-  <!-- image tasks -->
-  <keep-alive>
-    <div v-if="Task.trainingInformation.dataType == 'image'">
-      <ImageTrainingFrame v-bind:Id="Id" v-bind:Task="Task" />
+    <!-- image tasks -->
+    <div v-if='Task.trainingInformation.dataType == "image"'>
+        <ImageTrainingFrame v-bind:Id="Id" v-bind:Task="Task"/>
     </div>
   </keep-alive>
 </template>
