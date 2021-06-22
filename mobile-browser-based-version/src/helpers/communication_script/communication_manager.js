@@ -59,7 +59,7 @@ export class CommunicationManager {
 
         this.peer = new Peer(this.peerjsId,
             {
-                host: '35.242.193.186', port: this.portNbr, path: '/deai',
+                host: 'deai-313515.ew.r.appspot.com', path: '/deai', secure: true,
                 config: {
                     'iceServers': [
                         { url: 'stun:stun.l.google.com:19302' },
