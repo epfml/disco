@@ -161,13 +161,16 @@
               <div
                 class="select-none p-2 transition duration-500 ease-in-out transform hover:-translate-y-2 rounded-2xl border-2 p-6 hover:shadow-2xl border-primary-dark"
               >
-                <div class="grid grid-cols-1 grid-rows-2 items-center">
+                <div class="grid grid-cols-3 items-center p-2">
                   <div class="pl-1">
                     <div class="font-medium">
                       <div class="flex flex-row justify-start">
-                        {{ header.id }} &rarr; {{ header.userHeader }}
+                        {{ header.id }} 
                       </div>
                     </div>
+                  </div>
+                  <div>
+                      &rarr;
                   </div>
                   <div class="mb-3 pt-0">
                     <input
