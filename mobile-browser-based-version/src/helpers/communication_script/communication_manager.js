@@ -104,7 +104,7 @@ export class CommunicationManager {
         */
 
         let queryIds = await fetch(
-            "http://35.242.193.186:".concat(String(this.portNbr)).concat("/deai/peerjs/peers"
+            "https://deai-313515.ew.r.appspot.com".concat("/deai/peerjs/peers"
             )).then((response) => response.text());
 
 
