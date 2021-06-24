@@ -27,7 +27,7 @@
     "vuex": "^4.0.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss7-compat": "^2.0.4",
+    "@tailwindcss/postcss7-compat": "^2.2.4",
     "@types/d3": "^6.3.0",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
@@ -40,8 +40,8 @@
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-vue": "^7.0.0-0",
-    "postcss": "^8.2.10",
-    "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.4",
+    "postcss": "^7.0.36",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.4",
     "vue-loader-v16": "npm:vue-loader@^16.1.2"
   },
   "eslintConfig": {
