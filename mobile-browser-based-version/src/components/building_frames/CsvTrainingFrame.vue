@@ -381,13 +381,5 @@ export default {
     // close the connection with the server
     this.communicationManager.disconect();
   },
-  async activated() {
-    console.log("Activated")
-    trainingManager = new TrainingManager(this.Task.trainingInformation);
-    await trainingManager.reloadState(this.communicationManager, this.trainingInformant, this)
-  },
-  deactivated() {
-    console.log("Deactivated")
-  }
 };
 </script>
