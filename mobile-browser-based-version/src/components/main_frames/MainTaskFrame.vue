@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      v-if="'password' in this.Task.displayInformation && !authenticated"
+      v-if="'password_hash' in this.Task.displayInformation && !authenticated"
       class="flex h-screen"
     >
       <div class="m-auto">
@@ -366,6 +366,7 @@
 </template>
 
 <script>
+var Hashes = require('jshashes')
 export default {
   name: "MainTaskFrame",
   props: {
@@ -413,9 +414,10 @@ export default {
       }
     },
     login() {
-      // TODO: handle authentication by a request to the server when server API available
-      if (this.inputPassword === this.Task.displayInformation.password) {
+      var SHA256 =  new Hashes.SHA256()
+      if (SHA256.hex(this.inputPassword) === this.Task.displayInformation.password_hash) {
         this.authenticated = true
+        this.$store.commit('addPassword', {'id': this.Id, 'password': this.inputPassword}) 
       }
       else {
         this.incorrectLogin = true
