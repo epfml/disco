@@ -36,21 +36,22 @@ export async function training(modelId, trainData, labels, batchSize, validation
     batchSize: batchSize,
     epochs: epochs,
     validationSplit: validationSplit,
+    shuffle: true,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
-        trainingInformant.updateCharts(epoch + 1, (logs.val_acc * 100).toFixed(2), (logs.acc * 100).toFixed(2))
+        trainingInformant.updateCharts(epoch + 1, (logs['val_acc'] * 100).toFixed(2), (logs['acc'] * 100).toFixed(2))
         console.log(`EPOCH (${epoch + 1}): Train Accuracy: ${(
-          logs.acc * 100
+          logs['acc'] * 100
         ).toFixed(2)},
              Val Accuracy:  ${(
-            logs.val_acc * 100
+              logs['val_acc'] * 100
           ).toFixed(2)}\n`);
           console.log(`loss ${logs.loss.toFixed(4)}`)
         //await tf.nextFrame();
       }
     }
-  }).then( (info) => {
-    storeModel(model, savedModelPath)
+  }).then( async (info) => {
+    await model.save(savedModelPath)
     console.log("Training finished", info.history) 
   });
 }
@@ -89,13 +90,13 @@ export async function trainingDistributed(modelId, trainData, labels, epochs, ba
   if (learningRate != null){
     model.optimizer.learningRate = learningRate
   }
-
   // start training
   console.log("Training started")
   await model.fit(trainData, labels, {
     epochs : epochs,
     batchSize: batchSize,
     validationSplit: validationSplit,
+    shuffle: true,
     callbacks: 
     {onEpochBegin: trainingManager.onEpochBegin(), 
       onEpochEnd: async (epoch, logs) => {
@@ -109,8 +110,8 @@ export async function trainingDistributed(modelId, trainData, labels, epochs, ba
         //await tf.nextFrame();
       }
     }
-  }).then( (info) => {
-    storeModel(model, savedModelPath)
+  }).then( async (info) => {
+    await model.save(savedModelPath)
     console.log("Training finished", info.history) 
   })
 }
