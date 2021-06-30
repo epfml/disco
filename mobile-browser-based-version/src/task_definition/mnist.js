@@ -237,7 +237,6 @@ export const displayInformation = {
     dataExampleText: "Below you can find an example of an expected image representing the digit 9.",
     // {String} local url to an image data example
     dataExampleImage: "./9-mnist-example.png",
-    password: "deai_mnist",
 };
 
 /**

@@ -264,7 +264,7 @@ export default {
       ), 
 
       // take care of communication processes
-      communicationManager: new CommunicationManager(this.Task.trainingInformation.port), // TO DO: to modularize
+      communicationManager: new CommunicationManager(this.Task.trainingInformation.port, this.$store.getters.password(this.Id)), // TO DO: to modularize
 
     };
   },
@@ -351,14 +351,6 @@ export default {
       );
 
     });
-  },
-  async activated() {
-    console.log("Activated")
-    trainingManager = new TrainingManager(this.Task.trainingInformation);
-    await trainingManager.reloadState(this.communicationManager, this.trainingInformant, this)
-  },
-  deactivated() {
-    console.log("Deactivated")
   },
   async unmounted() {
     // close the connection with the server

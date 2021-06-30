@@ -308,7 +308,7 @@ export default {
       trainingManager: null,
     
       // take care of communication processes 
-      communicationManager: new CommunicationManager(this.Task.trainingInformation.port), // TO DO: to modularize
+      communicationManager: new CommunicationManager(this.Task.trainingInformation.port, this.$store.getters.password(this.Id)), // TO DO: to modularize
     };
   },
   

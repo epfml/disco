@@ -134,6 +134,7 @@ export const displayInformation = {
     ],
     // {Array} javascript array of the names of the columns given as input 
     headers: ["PassengerId", "Survived", "Name", "Sex", "Age", "SibSp", "Parch", "Ticket", "Fare", "Cabin", "Embarked", "Pclass"],
+    password_hash: "834056adb644e68d2306e219a9ef95d56aecb62264a5dbfa2a5f3f772f15274a"
 };
 
 /**
