@@ -89,7 +89,7 @@ export class MnistTask {
             const imageUri = []
 
             Object.keys(trainingData).forEach(key => {
-                labels.push(trainingData[key])
+                labels.push(trainingData[key]['label'])
                 imageUri.push(key)
             });
 
@@ -128,15 +128,18 @@ export class MnistTask {
     async imagePreprocessing(src) {
         // load image from local 
         const img_tensor = await this.loadLocalImage(src);
+        const representation = tf.tidy(() => {
+            const offset = tf.scalar(127.5);
+            // Normalize the image from [0, 255] to [-1, 1].
+            const normalized = img_tensor.sub(offset).div(offset);
 
-        const offset = tf.scalar(127.5);
-        // Normalize the image from [0, 255] to [-1, 1].
-        const normalized = img_tensor.sub(offset).div(offset);
+            // Reshape to a single-element batch so we can pass it to predict.
+            const batched = normalized.reshape([1, this.trainingInformation.IMAGE_H, this.trainingInformation.IMAGE_W, 3]);
+            return batched
+        })
+        tf.dispose(img_tensor)
 
-        // Reshape to a single-element batch so we can pass it to predict.
-        const batched = normalized.reshape([1, this.trainingInformation.IMAGE_H, this.trainingInformation.IMAGE_W, 3]);
-
-        return batched
+        return representation
     }
 
     labelsPreprocessing(labels) {
@@ -145,7 +148,6 @@ export class MnistTask {
         labels.forEach(label =>
             labelsOneHotEncoded.push(this.oneHotEncode(label))
         )
-
         return tf.tensor2d(labelsOneHotEncoded, [nbLabels, this.trainingInformation.LABEL_LIST.length])
     }
 
@@ -168,7 +170,7 @@ export class MnistTask {
      * @returns Returns a tf.model or null if there is no model
     */
     async getModelFromStorage() {
-        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
+        let savePath = "indexeddb://saved_".concat(trainingInformation.modelId)
         let model = await tf.loadLayersModel(savePath)
         return model
     }
@@ -256,7 +258,7 @@ export const trainingInformation = {
     // {Object} Compiling information 
     modelCompileData: {
         optimizer: "rmsprop",
-        loss: "binaryCrossentropy",
+        loss: "categoricalCrossentropy",
         metrics: ["accuracy"],
     },
     // {Object} Training information 
