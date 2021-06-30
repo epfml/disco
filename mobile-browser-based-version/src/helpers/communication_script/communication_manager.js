@@ -63,7 +63,7 @@ export class CommunicationManager {
                 config: {
                     'iceServers': [
                         { url: 'stun:stun.l.google.com:19302' },
-                        { url: 'turn:35.242.193.186:3478', credential: 'deai', username: 'deai' }
+                        { url: 'turn:34.77.172.69:3478', credential: 'deai', username: 'deai' }
                     ]
                 }
             }
