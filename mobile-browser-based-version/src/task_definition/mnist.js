@@ -78,38 +78,28 @@ export class MnistTask {
         var Xtrain = null;
         var ytrain = null;
 
-        // Check some basic prop. in the user's uploaded file
+        const labels = []
+        const imageUri = []
 
-        var checkResult = await checkData(trainingData)
-        var startTraining = checkResult.accepted
+        Object.keys(trainingData).forEach(key => {
+            labels.push(trainingData[key])
+            imageUri.push(key)
+        });
 
-        // If user's file respects our format, parse it and start training
-        if (startTraining) {
-            const labels = []
-            const imageUri = []
+        console.log("User File Validated. Start parsing.");
 
-            Object.keys(trainingData).forEach(key => {
-                labels.push(trainingData[key])
-                imageUri.push(key)
-            });
+        // Do feature preprocessing
+        ytrain = this.labelsPreprocessing(labels)
+        const imageTensors = []
 
-            console.log("User File Validated. Start parsing.");
-
-            // Do feature preprocessing
-            ytrain = this.labelsPreprocessing(labels)
-            const imageTensors = []
-
-            for (let i = 0; i < imageUri.length; ++i) {
-                const tensor = await this.imagePreprocessing(imageUri[i])
-                imageTensors.push(tensor)
-            }
-
-            Xtrain = tf.concat(imageTensors, 0)
-            // object to return 
-        } else {
-            console.log("Cannot start training.")
+        for (let i = 0; i < imageUri.length; ++i) {
+            const tensor = await this.imagePreprocessing(imageUri[i])
+            imageTensors.push(tensor)
         }
-        return { accepted: startTraining, Xtrain: Xtrain, ytrain: ytrain }
+
+        Xtrain = tf.concat(imageTensors, 0)
+
+        return { Xtrain: Xtrain, ytrain: ytrain }
     }
 
     async loadLocalImage(filename) {
