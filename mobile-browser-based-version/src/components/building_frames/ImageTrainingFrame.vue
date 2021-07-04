@@ -227,7 +227,7 @@ import { TrainingInformant } from "../../helpers/training_script/training_inform
 import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
 import { TrainingManager } from "../../helpers/training_script/training_manager";
 import TrainingInformationFrame from "./TrainingInformationFrame";
-import { checkData } from "../../helpers/data_validation_script/helpers-image-tasks";
+import { checkData, validateData, testData } from "../../helpers/data_validation_script/helpers-image-tasks";
 import { FileUploadManager } from "../../helpers/data_validation_script/file_upload_manager";
 import UploadingFrame from "./UploadingFrame";
 
@@ -284,18 +284,22 @@ export default {
           `Thank you for your contribution. Image preprocessing has started`
         );
         setTimeout(this.$toast.clear, 30000);
+        
+        let status_validation = await checkData(filesElement,this.Task.trainingInformation);
+          
+        if (status_validation.accepted) {
+            let processedData = await this.Task.dataPreprocessing(filesElement);       
 
-        var processedData = await this.Task.dataPreprocessing(filesElement);
+            this.$toast.success(
+              `Image preprocessing has finished and training has started`
+            );
+            setTimeout(this.$toast.clear, 30000);
 
-        processedData.accepted = (await checkData(filesElement)).accepted;
-
-
-        this.$toast.success(
-          `Image preprocessing has finished and training has started`
-        );
-        setTimeout(this.$toast.clear, 30000);
-
-        await trainingManager.trainModel(distributed, processedData);
+            await trainingManager.trainModel(distributed, processedData);
+        } else {
+            console.log("Invalid image input.")
+            console.log("Number of images with valid format: "+ status_validation.nr_accepted + " out of " + filesElement.length)
+        }
       }
     },
 
