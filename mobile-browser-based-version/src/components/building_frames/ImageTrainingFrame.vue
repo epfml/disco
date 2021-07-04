@@ -227,7 +227,7 @@ import { TrainingInformant } from "../../helpers/training_script/training_inform
 import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
 import { TrainingManager } from "../../helpers/training_script/training_manager";
 import TrainingInformationFrame from "./TrainingInformationFrame";
-import { checkData, validateData, testData } from "../../helpers/data_validation_script/helpers-image-tasks";
+import { checkData } from "../../helpers/data_validation_script/helpers-image-tasks";
 import { FileUploadManager } from "../../helpers/data_validation_script/file_upload_manager";
 import UploadingFrame from "./UploadingFrame";
 
