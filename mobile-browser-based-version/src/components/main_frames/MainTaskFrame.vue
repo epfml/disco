@@ -1,5 +1,33 @@
 <template>
   <div>
+    <div
+      v-if="'password_hash' in this.Task.displayInformation && !authenticated"
+      class="flex h-screen"
+    >
+      <div class="m-auto">
+        <div class="mb-6 space-y-4">
+          <label class="flex justify-center" for="password">
+            Joining this task is password restricted
+          </label>
+          <input
+              type="password"
+              v-model="inputPassword"
+              placeholder="Enter password"
+              class="border text-lg ml-3 py-2 px-4 placeholder-gray-400 text-gray-700 dark:text-white relative bg-white dark:bg-dark rounded text-sm shadow outline-none focus:outline-none focus:shadow-outline"
+              v-bind:class="{ 'border-red-500': incorrectLogin }"
+            />
+            <button
+              v-on:click="login()"
+              type="button"
+              class="text-lg border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+            >
+              Login
+            </button>
+            <p :style="{visibility: incorrectLogin ? 'visible' : 'hidden'}" class="text-red-500 text-xs flex justify-center">Incorrect password.</p>
+        </div>
+      </div>
+    </div>
+    <div v-else>
     <header
       class="p-1 flex items-center justify-between p-2 bg-white border-b dark:bg-darker dark:border-primary-darker"
     >
@@ -333,10 +361,12 @@
         >
       </div>
     </footer>
+    </div>
   </div>
 </template>
 
 <script>
+var Hashes = require('jshashes')
 export default {
   name: "MainTaskFrame",
   props: {
@@ -357,7 +387,9 @@ export default {
         width: window.innerWidth,
         height: window.innerHeight,
       },
-
+      authenticated: false,
+      inputPassword: '',
+      incorrectLogin: false,
     };
   },
   methods: {
@@ -381,6 +413,16 @@ export default {
         this.isSidebarOpen = true;
       }
     },
+    login() {
+      var SHA256 =  new Hashes.SHA256()
+      if (SHA256.hex(this.inputPassword) === this.Task.displayInformation.password_hash) {
+        this.authenticated = true
+        this.$store.commit('addPassword', {'id': this.Id, 'password': this.inputPassword}) 
+      }
+      else {
+        this.incorrectLogin = true
+      }
+    }
   },
   async mounted() {
     this.TaskTitle = this.Task.displayInformation.taskTitle
