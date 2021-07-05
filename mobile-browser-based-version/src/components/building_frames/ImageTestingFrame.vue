@@ -306,7 +306,6 @@ export default {
     async predict(){
       const classes = await this.Task.predict(this.FILES)
 
-      console.log(classes.length)
       const ids = Object.keys(classes)
       if(ids.length == 1){
         this.showResults(classes[ids[0]])

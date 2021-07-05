@@ -1,28 +1,80 @@
-const express = require('express');
+const express               = require('express');
+const fs                    = require('fs');
 const { ExpressPeerServer } = require('peer');
-var topologies = require('./topologies.js')
-
-var myArgs = process.argv.slice(2);
+const topologies            = require('./topologies.js');
+const { makeId }            = require('./helpers.js');
+const { models }            = require('./models.js');
+const cors                  = require('cors');
 
 const app = express();
+app.enable('trust proxy');
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
 
 const topology = new topologies.BinaryTree()
-app.get('/', (req, res, next) => res.send('DeAI Server'));
-app.get('/neighbours/:id', (req, res, next) => res.send(topology.getNeighbours(req.params['id'])));
 
-const server = app.listen(myArgs[0]);
-
+// GAE requires the app to listen to 8080
+const server = app.listen(8080);
 const peerServer = ExpressPeerServer(server, {
     path: '/',
     allow_discovery: true,
-  });
-app.use('/deai', peerServer);
+    generateClientId: makeId(12)
+});
 
+let peers = [];
+function eventsHandler(request, response, next) {
+    const headers = {
+      'Content-Type': 'text/event-stream',
+      'Connection': 'keep-alive',
+      'Cache-Control': 'no-cache'
+    };
+    response.writeHead(200, headers);
+
+    let peerId = request.params['id']
+    console.log(peerId)
+    const data = `data: ${JSON.stringify(topology.getNeighbours(peerId))}\n\n`;
+
+    response.write(data);
+  
+    const newPeer = {
+      id: peerId,
+      response
+    };
+  
+    peers.push(newPeer);
+  
+    request.on('close', () => {
+      console.log(`${peerId} Connection closed`);
+      peers = peers.filter(peer => peer.id !== peerId);
+    });
+  }
+
+  function sendNewNeighbours(affectedPeers) {
+    let peersToNotify = peers.filter(peer => affectedPeers.has(peer.id) )
+    peersToNotify.forEach(peer => peer.response.write(`data: ${JSON.stringify(topology.getNeighbours(peer.id))}\n\n`))
+  }
 
 peerServer.on('connection', (client) => { 
-    topology.addPeer(client.getId())
+    let affectedPeers = topology.addPeer(client.getId())
+    sendNewNeighbours(affectedPeers)
 });
 
 peerServer.on('disconnect', (client) => { 
-    topology.removePeer(client.getId())
+    let affectedPeers = topology.removePeer(client.getId())
+    sendNewNeighbours(affectedPeers)
 });
+
+const tasks = JSON.parse(fs.readFileSync('tasks.json'));
+
+const tasksRouter = express.Router();
+tasksRouter.get('/', (req, res) => res.send(tasks));
+tasks.forEach(task => {
+    tasksRouter.get('/' + task.taskId, (req, res) => res.send(models.get(task.taskId)))
+});
+
+app.get('/', (req, res) => res.send('DeAI Server'));
+app.use('/deai', peerServer);
+app.get('/neighbours/:id', eventsHandler);
+app.use('/tasks', tasksRouter);
+module.exports = app;

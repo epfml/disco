@@ -161,13 +161,16 @@
               <div
                 class="select-none p-2 transition duration-500 ease-in-out transform hover:-translate-y-2 rounded-2xl border-2 p-6 hover:shadow-2xl border-primary-dark"
               >
-                <div class="grid grid-cols-1 grid-rows-2 items-center">
+                <div class="grid grid-cols-3 items-center p-2">
                   <div class="pl-1">
                     <div class="font-medium">
                       <div class="flex flex-row justify-start">
-                        {{ header.id }} &rarr; {{ header.userHeader }}
+                        {{ header.id }} 
                       </div>
                     </div>
+                  </div>
+                  <div>
+                      &larr;
                   </div>
                   <div class="mb-3 pt-0">
                     <input
@@ -266,15 +269,14 @@
 
 
 <script>
+import { mapState } from 'vuex'
 import { TrainingInformant } from "../../helpers/training_script/training_informant";
 import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
 import { TrainingManager } from "../../helpers/training_script/training_manager";
 import { FileUploadManager } from "../../helpers/data_validation_script/file_upload_manager";
 import UploadingFrame from "./UploadingFrame"
 import TrainingInformationFrame from "./TrainingInformationFrame";
-
-// takes care of communication
-var trainingManager = null;
+import * as tf from "@tensorflow/tfjs";
 
 
 export default {
@@ -298,20 +300,21 @@ export default {
         10,
         this.Task.trainingInformation.modelId
       ),
-
+      
       // takes care of uploading file process 
       fileUploadManager: new FileUploadManager(1, this),
 
-      
-
-      // takes care of communication processes
-      communicationManager: new CommunicationManager(9000), // TO DO: to modularize
+      // assist with the training loop 
+      trainingManager: null,
+    
+      // take care of communication processes 
+      communicationManager: new CommunicationManager(this.Task.trainingInformation.port, this.$store.getters.password(this.Id)), // TO DO: to modularize
     };
   },
+  
   methods: {
     saveModel() {
-      trainingManager.saveModel();
-      console.log(trainingManager.trainingInformation.modelId)
+      this.trainingManager.saveModel()
     },
     async joinTraining(distributed) {
       const nbrFiles = this.fileUploadManager.numberOfFiles();
@@ -327,11 +330,8 @@ export default {
         let reader = new FileReader();
         reader.onload = async (e) => {
           // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-          var processedData = await this.Task.dataPreprocessing(
-            e,
-            this.headers
-          );
-          await trainingManager.trainModel(distributed, processedData);
+          var processedData = await this.Task.dataPreprocessing(e, this.headers);
+          await this.trainingManager.trainModel(distributed, processedData);
         };
         reader.readAsText(file);
       }
@@ -341,9 +341,8 @@ export default {
     UploadingFrame,
     TrainingInformationFrame,
   },
+
   async mounted() {
-    console.log("Mounted" + this.Task.trainingInformation.modelId)
-    console.log(trainingManager)
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
@@ -359,9 +358,11 @@ export default {
       this.dataExample = this.Task.displayInformation.dataExample;
 
       // initialize the training manager
-      trainingManager = new TrainingManager(this.Task.trainingInformation);
+      this.trainingManager = new TrainingManager(this.Task.trainingInformation);
 
-      // initialize training informant
+
+
+      // initialize training informant 
       this.trainingInformant.initializeCharts();
 
       // initialize communication manager
@@ -370,12 +371,9 @@ export default {
         this
       );
 
-      // initialize training manager
-      trainingManager.initialization(
-        this.communicationManager,
-        this.trainingInformant,
-        this
-      );
+      // initialize training manager 
+      await this.trainingManager.initialization(this.communicationManager, this.trainingInformant, this);
+
 
     });
   },
@@ -383,13 +381,5 @@ export default {
     // close the connection with the server
     this.communicationManager.disconect();
   },
-  async activated() {
-    console.log("Activated")
-    trainingManager = new TrainingManager(this.Task.trainingInformation);
-    await trainingManager.reloadState(this.communicationManager, this.trainingInformant, this)
-  },
-  deactivated() {
-    console.log("Deactivated")
-  }
 };
 </script>

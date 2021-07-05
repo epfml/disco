@@ -14,7 +14,7 @@ export class CommunicationManager {
      * Prepares connection to a PeerJS server.
      * @param {Number} portNbr the port number to connect.
      */
-    constructor(portNbr) {
+    constructor(portNbr, password=null) {
         this.portNbr = portNbr;
         this.peerjsId = null;
         this.peer = null;
@@ -22,6 +22,7 @@ export class CommunicationManager {
         this.receivers = [];
         this.isConnected = null;
         this.recvBuffer = null;
+        this.password = password;
     }
 
     /**
@@ -59,11 +60,11 @@ export class CommunicationManager {
 
         this.peer = new Peer(this.peerjsId,
             {
-                host: '35.242.193.186', port: 9000, path: '/deai',
+                host: 'deai-313515.ew.r.appspot.com', path: '/deai', secure: true,
                 config: {
                     'iceServers': [
                         { url: 'stun:stun.l.google.com:19302' },
-                        { url: 'turn:35.242.193.186:3478', credential: 'deai', username: 'deai' }
+                        { url: 'turn:34.77.172.69:3478', credential: 'deai', username: 'deai' }
                     ]
                 }
             }
@@ -84,7 +85,7 @@ export class CommunicationManager {
 
             this.isConnected = true;
 
-            this.peerjs = await new PeerJS(this.peer, handleData, this.recvBuffer);
+            this.peerjs = await new PeerJS(this.peer, this.password, handleData, this.recvBuffer);
 
             environment.$toast.success(
                 "Succesfully connected to server. Distributed training available."
@@ -104,8 +105,9 @@ export class CommunicationManager {
         */
 
         let queryIds = await fetch(
-            "http://35.242.193.186:".concat(String(this.portNbr)).concat("/deai/peerjs/peers"
+            "https://deai-313515.ew.r.appspot.com".concat("/deai/peerjs/peers"
             )).then((response) => response.text());
+
 
         console.log(queryIds)
         let allIds = JSON.parse(queryIds);
@@ -113,5 +115,6 @@ export class CommunicationManager {
         this.receivers = allIds.filter(function (value) {
             return value != id;
         });
+
     }
 }
