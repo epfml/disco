@@ -3,6 +3,7 @@
 import * as msgpack from 'msgpack-lite'
 //import * as Peer from 'peerjs'
 var Peer = require("peerjs")
+var Hashes = require('jshashes')
 import * as tf from "@tensorflow/tfjs";
 import {storeModel, getSerializedModel, storeSerializedModel} from "../my_memory_script/indexedDB_script"
 
@@ -44,11 +45,12 @@ export class PeerJS {
      * incoming data as first argument. 
      * @param  {...any} handleDataArgs args to handleData
      */
-    constructor(localPeer, handleData, ...handleDataArgs) {
+    constructor(localPeer, password, handleData, ...handleDataArgs) {
         this.localPeer = localPeer
         this.data = null
         this.handleData = handleData
         this.handleDataArgs = handleDataArgs
+        this.password = password
 
         console.log("peer", localPeer)
 
@@ -57,7 +59,7 @@ export class PeerJS {
             console.log("new connection from", conn.peer)
             conn.on("data", async (data) => {
                 this.data = data
-                await this.handleData(data, ...this.handleDataArgs)
+                await this.handleData(data, conn.peer, password, ...this.handleDataArgs)
             })
         })
     }
@@ -114,6 +116,11 @@ export async function sendData(data, code, peerjs, receiver) {
         cmdCode    : code,
         payload     : msgpack.encode(data)
     }
+    if (peerjs.password) {
+        var SHA256 =  new Hashes.SHA256()
+        console.log('Current peer: ' + peerjs.localPeer.id)
+        sendData.password_hash = SHA256.hex(peerjs.localPeer.id + ' ' + peerjs.password)
+    }
 
     peerjs.send(receiver, sendData)
 }
@@ -131,13 +138,32 @@ export async function loadModel(modelData) {
     return model
 }
 
+function authenticate(data, senderId, password){
+    if (password) {
+        if (!('password_hash' in data)) {
+            console.log('Rejected message due to missing password hash')
+            return false
+        }
+        var SHA256 =  new Hashes.SHA256()
+        if (SHA256.hex(senderId + ' ' + password) !== data.password_hash) {
+            console.log('Rejected message due to incorrect password hash')
+            return false
+        }
+    }
+    return true
+}
+
 /**
  * Function given to PeerJS instance to handle incoming data
  * @param {object} data incoming data 
  * @param {object} buffer buffer to store data
  */
-export async function handleData(data, buffer) {
+export async function handleData(data, senderId, password, buffer) {
     console.log("Received new data: ", data)
+
+    if (!authenticate(data, senderId, password)){
+        return;
+    }
 
     // convert the peerjs ArrayBuffer back into Uint8Array
     var payload = msgpack.decode(new Uint8Array(data.payload))
@@ -184,8 +210,13 @@ export async function handleData(data, buffer) {
 /**
  * Handle data exchange after training is finished
  */
-export async function handleDataEnd(data, buffer) {
+export async function handleDataEnd(data, senderId, password, buffer) {
     console.log("Received new data: ", data)
+    console.log('handleDataEnd')
+
+    if (!authenticate(data, senderId, password)){
+        return;
+    }
 
     // convert the peerjs ArrayBuffer back into Uint8Array
     var payload = msgpack.decode(new Uint8Array(data.payload))

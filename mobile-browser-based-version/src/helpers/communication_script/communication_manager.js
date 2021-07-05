@@ -14,7 +14,7 @@ export class CommunicationManager {
      * Prepares connection to a PeerJS server.
      * @param {Number} portNbr the port number to connect.
      */
-    constructor(portNbr) {
+    constructor(portNbr, password=null) {
         this.portNbr = portNbr;
         this.peerjsId = null;
         this.peer = null;
@@ -22,6 +22,7 @@ export class CommunicationManager {
         this.receivers = [];
         this.isConnected = null;
         this.recvBuffer = null;
+        this.password = password;
     }
 
     /**
@@ -84,7 +85,7 @@ export class CommunicationManager {
 
             this.isConnected = true;
 
-            this.peerjs = await new PeerJS(this.peer, handleData, this.recvBuffer);
+            this.peerjs = await new PeerJS(this.peer, this.password, handleData, this.recvBuffer);
 
             environment.$toast.success(
                 "Succesfully connected to server. Distributed training available."
