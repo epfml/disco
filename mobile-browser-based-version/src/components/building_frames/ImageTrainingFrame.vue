@@ -249,6 +249,7 @@ export default {
       DataExampleImage: "",
       // different task labels
       taskLabels: [],
+      trainingManager: null,
 
       // manager that returns feedbacks when training
       trainingInformant: new TrainingInformant(
@@ -263,14 +264,13 @@ export default {
       ), 
 
       // take care of communication processes
-      communicationManager: new CommunicationManager(9000), // TO DO: to modularize
+      communicationManager: new CommunicationManager(this.Task.trainingInformation.port, this.$store.getters.password(this.Id)), // TO DO: to modularize
 
     };
   },
   methods: {
     saveModel() {
-      console.log(trainingManager.trainingInformation.modelId)
-      trainingManager.saveModel();
+      this.trainingManager.saveModel();
     },
 
     async joinTraining(distributed) {
@@ -295,7 +295,7 @@ export default {
             );
             setTimeout(this.$toast.clear, 30000);
 
-            await trainingManager.trainModel(distributed, processedData);
+            await this.trainingManager.trainModel(distributed, processedData);
         } else {
             console.log("Invalid image input.")
             console.log("Number of images with valid format: "+ status_validation.nr_accepted + " out of " + filesElement.length)
@@ -308,9 +308,8 @@ export default {
         return null;
       }
 
-      var images = require.context("../../../example_training_data/", false);
-      console.log(url);
-      return images(url);
+      var images = require.context('../../../example_training_data/', false)
+      return images(url)
     },
 
     goToTesting() {
@@ -337,7 +336,7 @@ export default {
       console.log("Mounting" + this.modelName)
 
       // initialize the training manager
-      trainingManager = new TrainingManager(this.Task.trainingInformation);
+      this.trainingManager = new TrainingManager(this.Task.trainingInformation);
 
       // initialize training informant
       this.trainingInformant.initializeCharts();
@@ -349,22 +348,13 @@ export default {
       );
 
       // initialize training manager
-      trainingManager.initialization(
+      this.trainingManager.initialization(
         this.communicationManager,
         this.trainingInformant,
         this
       );
-    console.log(trainingManager)
 
     });
-  },
-  async activated() {
-    console.log("Activated")
-    trainingManager = new TrainingManager(this.Task.trainingInformation);
-    await trainingManager.reloadState(this.communicationManager, this.trainingInformant, this)
-  },
-  deactivated() {
-    console.log("Deactivated")
   },
   async unmounted() {
     // close the connection with the server

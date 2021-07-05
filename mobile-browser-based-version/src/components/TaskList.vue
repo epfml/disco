@@ -31,12 +31,14 @@
                 <h6
                   class="text-xl font-medium leading-none tracking-wider uppercase dark:group-hover:text-darker"
                 >
-                  {{task.displayInformation.taskTitle}}
+                  {{ task.displayInformation.taskTitle }}
                 </h6>
               </div>
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  {{task.displayInformation.summary}}
+                  {{
+                    task.displayInformation.summary
+                  }}
                 </ul>
               </div>
               <div>
@@ -71,7 +73,6 @@
 </template>
 
 <script>
-import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_script";
 import { ALL_TASKS } from "../router/index";
 
 export default {
@@ -86,12 +87,15 @@ export default {
   methods: {
     goToSelection(id) {
       this.$router.push({
+        name: id.concat(".description"),
+        params: {Id: id}
+      })
+      /*
+      this.$router.push({
         path: "/".concat(id).concat("/description"),
-      });
+        query: {Id:id}
+      });*/
     },
-  },
-  mounted() {
-    initializeIndexedDB();
   },
 };
 </script>

@@ -332,7 +332,7 @@ export const trainingInformation = {
     // {String} model's identification name
     modelId: "lus-covid-model",
     // {Number} port of the peerjs server
-    port: 3,
+    port: 9001,
     // {Number} number of epoch used for training
     epoch: 15,
     // {Number} validation split
