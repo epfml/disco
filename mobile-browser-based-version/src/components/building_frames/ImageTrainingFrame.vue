@@ -284,18 +284,22 @@ export default {
           `Thank you for your contribution. Image preprocessing has started`
         );
         setTimeout(this.$toast.clear, 30000);
+        
+        let status_validation = await checkData(filesElement,this.Task.trainingInformation);
+          
+        if (status_validation.accepted) {
+            let processedData = await this.Task.dataPreprocessing(filesElement);       
 
-        var processedData = await this.Task.dataPreprocessing(filesElement);
+            this.$toast.success(
+              `Image preprocessing has finished and training has started`
+            );
+            setTimeout(this.$toast.clear, 30000);
 
-        processedData.accepted = (await checkData(filesElement)).accepted;
-
-
-        this.$toast.success(
-          `Image preprocessing has finished and training has started`
-        );
-        setTimeout(this.$toast.clear, 30000);
-
-        await this.trainingManager.trainModel(distributed, processedData);
+            await this.trainingManager.trainModel(distributed, processedData);
+        } else {
+            console.log("Invalid image input.")
+            console.log("Number of images with valid format: "+ status_validation.nr_accepted + " out of " + filesElement.length)
+        }
       }
     },
 
