@@ -18,14 +18,16 @@ import MainTestingFrame from "../components/main_frames/MainTestingFrame"
 import { TitanicTask } from "../task_definition/titanic"
 import { MnistTask } from "../task_definition/mnist"
 import { LusCovidTask } from "../task_definition/lus_covid"
+import { CIFAR10Task } from '../task_definition/cifar10';
 
 // define task here 
 var titanicTask = new TitanicTask()
 var mnistTask = new MnistTask()
 var lusCovidTask = new LusCovidTask()
+var cifar10Task = new CIFAR10Task();
 
 // notify new task if availabe by adding it to the list of tasks available 
-export const ALL_TASKS = [titanicTask, mnistTask, lusCovidTask]
+export const ALL_TASKS = [titanicTask, mnistTask, lusCovidTask, cifar10Task]
 
 
 var routes = [

@@ -267,6 +267,7 @@ export const trainingInformation = {
     },
     threshold: 1,
     dataType: 'image',
+    csvLabels: false, 
     IMAGE_H: 28,
     IMAGE_W: 28,
     LABEL_LIST: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],

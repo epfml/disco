@@ -356,5 +356,6 @@ export const trainingInformation = {
     IMAGE_W : 224,
     LABEL_LIST : ["COVID-Positive", "COVID-Negative"],
     NUM_CLASSES : 2,
-    dataType:"image"
+    dataType:"image",
+    csvLabels: false, 
 }

@@ -80,6 +80,7 @@
               class="object-center"
               :src="getImage(DataExampleImage)"
               v-bind:alt="DataExampleImage"
+              style="height:auto;width:40%"
             /><img />
           </div>
         </div>

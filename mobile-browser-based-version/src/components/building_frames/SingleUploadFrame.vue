@@ -10,7 +10,7 @@
       v-on:dragenter="dragEnterHandler"
     >
       <span v-if="nbrClasses > 1" class="text-xl font-semibold">
-        Label {{ label }}:
+        {{ label }}:
       </span>
       <!-- scroll area -->
       <section class="h-full overflow-auto p-8 w-full h-full flex flex-col">
