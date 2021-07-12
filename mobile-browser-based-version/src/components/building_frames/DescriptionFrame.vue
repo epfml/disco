@@ -235,8 +235,7 @@ export default {
   },
   methods: {
     async goToTraining() {
-      if (!this.choicePreModel) {
-        if (!this.isModelCreated) {
+      if (!this.choicePreModel && !this.isModelCreated) {
           await this.createNewModel();
           this.isModelCreated = true;
 
@@ -248,7 +247,6 @@ export default {
               .concat(` has been created. You can start training!`)
           );
           setTimeout(this.$toast.clear, 30000);
-        }
       }
       this.$router.push({
         path: 'training', 
