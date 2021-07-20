@@ -71,6 +71,7 @@ export default {
   name: 'taskList',
   methods: {
     goToTaskList() {
+      this.$emit('gototasks')
       this.$router.push({
         path: '/tasks',
       });

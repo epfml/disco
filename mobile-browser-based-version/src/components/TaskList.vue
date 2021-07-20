@@ -1,21 +1,11 @@
 <template>
   <div class="flex flex-1 h-screen overflow-y-scroll">
     <!-- Main Page Header -->
-    <main class="flex-1 pt-4">
+    <main class="flex-1">
       <!-- Main Page Content -->
       <div
-        class="flex flex-col pt-4 items-right justify-start flex-1 h-full min-h-screen overflow-y-auto"
+        class="flex flex-col items-right justify-start flex-1 h-full min-h-screen overflow-y-auto"
       >
-        <!-- Welcoming words -->
-        <div>
-          <h1 class="text-xl pl-10 font-medium leading-none">
-            <span class="text-primary-dark dark:text-primary-light"
-              >Welcome.</span
-            >
-            To start training, pick a task in the list bellow. Have fun!
-          </h1>
-        </div>
-
         <section class="flex-col items-center justify-center p-4 space-y-4">
           <div
             v-for="task in ALL_TASKS"
