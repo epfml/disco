@@ -363,5 +363,12 @@ export default {
   unmounted() {
     window.removeEventListener('resize', this.handleResize);
   },
+  beforeRouteUpdate(to, from, next) {
+    if (to.name.includes('training')) {
+      this.openSidebarMenu('upload_data')
+    }
+    next()
+  },
+
 };
 </script>
