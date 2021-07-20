@@ -571,7 +571,7 @@
       <div class="overflow-x-scroll flex-grow">
         <router-view v-slot="{ Component }">
           <keep-alive>
-            <component :is="Component" />
+            <component @gototasks="this.activePage = 'tasks'" :is="Component" />
           </keep-alive>
         </router-view>
       </div>
