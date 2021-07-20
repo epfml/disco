@@ -8,7 +8,7 @@
           class="flex items-center justify-between p-4 border-b dark:border-primary"
         >
           <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-            Overview
+            The task
           </h4>
           <div class="flex items-center">
             <span aria-hidden="true">
@@ -27,9 +27,7 @@
         </div>
         <!-- Descrition -->
         <div class="relative p-4">
-          <span class="text-sm text-gray-500 dark:text-light">{{
-            OverviewText
-          }}</span>
+          <span class="text-sm text-gray-500 dark:text-light"><span v-html="OverviewText"></span></span>
         </div>
       </div>
     </div>
@@ -44,58 +42,23 @@
           class="flex items-center justify-between p-4 border-b dark:border-primary"
         >
           <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-            Limitations
+            The model
           </h4>
           <div class="flex items-center">
             <span aria-hidden="true">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                class="bi bi-exclamation-square w-7 h-7"
-                viewBox="0 0 16 16"
-              >
-                <path
-                  d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"
-                />
-                <path
-                  d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"
-                />
-              </svg>
-            </span>
-          </div>
-        </div>
-        <!-- Descrition -->
-        <div class="relative p-4">
-          <span class="text-sm text-gray-500 dark:text-light">{{
-            LimitationsText
-          }}</span>
-        </div>
-      </div>
-    </div>
-  </a>
 
-  <a id="tradeoffs-target">
-    <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
-      <!-- Trade-offs card -->
-      <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
-        <!-- Card header -->
-        <div
-          class="flex items-center justify-between p-4 border-b dark:border-primary"
-        >
-          <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-            Trade-offs
-          </h4>
-          <div class="flex items-center">
-            <span aria-hidden="true">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                class="bi bi-arrow-left-right w-7 h-7"
-                viewBox="0 0 16 16"
+                class="bi h-7 w-7"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
                 <path
-                  fill-rule="evenodd"
-                  d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
                 />
               </svg>
             </span>
@@ -103,9 +66,9 @@
         </div>
         <!-- Descrition -->
         <div class="relative p-4">
-          <span class="text-sm text-gray-500 dark:text-light">{{
-            TradeOffsText
-          }}</span>
+          <span class="text-sm text-gray-500 dark:text-light"
+            ><span v-html="ModelText"></span
+          ></span>
         </div>
       </div>
     </div>
@@ -208,15 +171,15 @@
 </template>
 
 <script>
-import * as tf from "@tensorflow/tfjs";
-import { getModelInfo } from "../../helpers/my_memory_script/indexedDB_script";
+import * as tf from '@tensorflow/tfjs';
+import { getModelInfo } from '../../helpers/my_memory_script/indexedDB_script';
 
 // Variables used in the script
 export default {
-  name: "DescriptionFrame",
+  name: 'DescriptionFrame',
   props: {
     OverviewText: String,
-    LimitationsText: String,
+    ModelText: String,
     TradeOffsText: String,
     Id: String,
     Task: Object,
@@ -227,36 +190,36 @@ export default {
       savedModelExists: false,
       readyToTrain: false,
       choicePreModel: false,
-      dateSaved: "",
-      hourSaved: "",
+      dateSaved: '',
+      hourSaved: '',
       isDark: this.getTheme(),
     };
   },
   methods: {
     async goToTraining() {
       if (!this.choicePreModel && !this.isModelCreated) {
-          await this.createNewModel();
-          this.isModelCreated = true;
+        await this.createNewModel();
+        this.isModelCreated = true;
 
-          this.readyToTrain = true;
+        this.readyToTrain = true;
 
-          this.$toast.success(
-            "A new "
-              .concat(this.Task.trainingInformation.modelId)
-              .concat(` has been created. You can start training!`)
-          );
-          setTimeout(this.$toast.clear, 30000);
+        this.$toast.success(
+          'A new '
+            .concat(this.Task.trainingInformation.modelId)
+            .concat(` has been created. You can start training!`)
+        );
+        setTimeout(this.$toast.clear, 30000);
       }
       this.$router.push({
-        name: this.Id+ ".training",
-        params: {Id: this.Id}
+        name: this.Id + '.training',
+        params: { Id: this.Id },
       });
     },
     async deleteModel() {
-      console.log("Delete Model");
+      console.log('Delete Model');
       this.savedModelExists = false;
       await tf.io.removeModel(
-        "indexeddb://saved_".concat(this.Task.trainingInformation.modelId)
+        'indexeddb://saved_'.concat(this.Task.trainingInformation.modelId)
       );
     },
 
@@ -267,7 +230,7 @@ export default {
         this.readyToTrain = true;
 
         this.$toast.success(
-          "The "
+          'The '
             .concat(this.Task.trainingInformation.modelId)
             .concat(` has been loaded. You can start training!`)
         );
@@ -276,10 +239,12 @@ export default {
     },
 
     async loadSavedModel() {
-      const savedModelPath = "indexeddb://".concat("saved_".concat(this.Task.trainingInformation.modelId));
+      const savedModelPath = 'indexeddb://'.concat(
+        'saved_'.concat(this.Task.trainingInformation.modelId)
+      );
       var savedModel = await tf.loadLayersModel(savedModelPath);
 
-      const savePathDb = "indexeddb://working_".concat(
+      const savePathDb = 'indexeddb://working_'.concat(
         this.Task.trainingInformation.modelId
       );
       await savedModel.save(savePathDb);
@@ -288,31 +253,31 @@ export default {
     async createNewModel() {
       await this.Task.createModel();
     },
-    getTheme: function () {
-      if (window.localStorage.getItem("dark")) {
-        return JSON.parse(window.localStorage.getItem("dark"));
+    getTheme: function() {
+      if (window.localStorage.getItem('dark')) {
+        return JSON.parse(window.localStorage.getItem('dark'));
       }
       return (
         !!window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
+        window.matchMedia('(prefers-color-scheme: dark)').matches
       );
     },
   },
   async mounted() {
     // This method is called when the component is created
-    this.$nextTick(async function () {
-      let saveName = "saved_".concat(this.Task.trainingInformation.modelId);
+    this.$nextTick(async function() {
+      let saveName = 'saved_'.concat(this.Task.trainingInformation.modelId);
       let modelInfo = await getModelInfo(saveName);
 
       if (modelInfo != undefined) {
         let date = modelInfo.modelArtifactsInfo.dateSaved;
         this.dateSaved =
           date.getDate() +
-          "/" +
+          '/' +
           (date.getMonth() + 1) +
-          "/" +
+          '/' +
           date.getFullYear();
-        this.hourSaved = date.getHours() + "h" + date.getMinutes();
+        this.hourSaved = date.getHours() + 'h' + date.getMinutes();
         this.savedModelExists = true;
       }
     });

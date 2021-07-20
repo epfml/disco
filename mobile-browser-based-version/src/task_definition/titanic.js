@@ -105,11 +105,11 @@ export const displayInformation = {
     // {String} title of the task (keep it short ex: Titanic)
     taskTitle: "Titanic",
     // {String} informal summary of the task (used by tasks' list)
-    summary: "In this challenge, we ask you to build a predictive model that answers the question: “what sorts of people were more likely to survive?” using passenger data (ie name, age, gender, socio-economic class, etc...).",
+    summary: "Test our platform by using a publicly available <b>tabular</b> dataset. <br><br> Download the passenger list from Titanic shipwreck <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/c/titanic'>here</a>. <br> This model predicts the type of person most likely to survive/die base on their characteristics (sex, age, class etc.).",
     // {String} simple overview of the task (i.e what is the goal of the model? Why its usefull ...)
     overview: "We all know the unfortunate story of the Titanic: this flamboyant new transatlantic boat that sunk in 1912 in the North Atlantic Ocean. Today, we revist this tragedy by trying to predict the survival odds of the passenger given some basic features.",
     // {String} potential limitations of the model 
-    limitations: "The current form of the model does not normalize the given data and applies a very simple pre-processing of the data.",
+    model: "The current form of the model does not normalize the given data and applies a very simple pre-processing of the data.",
     // {String} trade-offs of the model 
     tradeoffs: "We are using a small model for this task: 2 connected layers with few nodes and we are using no optimization techniques implemented. This allows fast training but can yield to poor performance.",
     // {String} information about expected data 

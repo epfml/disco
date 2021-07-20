@@ -33,9 +33,9 @@
           <div class="flex-shrink-0">
             <a
               v-on:click="goToHome()"
-              class="p-1 inline-block text-xl font-bold tracking-wider uppercase text-primary-dark dark:text-light"
+              class="p-1 inline-block text-xl font-bold tracking-wider text-primary-dark dark:text-light"
             >
-              De-AI
+              DeAI
             </a>
           </div>
 
@@ -48,7 +48,11 @@
             <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
             <a
               v-on:click="goToHome()"
-              class="p-2 text-white transition-colors duration-200 rounded-full bg-primary hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+              type="a"
+              data-title="Home"
+              data-placement="right"
+              class="p-2 transition-colors duration-200 rounded-full hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+              v-bind:class="[this.activePage === 'home' ? 'bg-primary' : 'bg-primary-50', this.activePage === 'home' ? 'text-white' : 'text-primary-lighter']"
             >
               <span class="sr-only">Home</span>
               <svg
@@ -90,17 +94,20 @@
 
             <!-- Go To Task List-->
             <a
+              type="a"
+              data-title="Tasks"
+              data-placement="right"
               v-on:click="goToTaskList()"
-              class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+              class="p-2 transition-colors duration-200 rounded-full hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+              v-bind:class="[this.activePage === 'tasks' ? 'bg-primary' : 'bg-primary-50', this.activePage === 'tasks' ? 'text-white' : 'text-primary-lighter']"
             >
               <span class="sr-only">Task List</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="w-6 h-6"
-                fill="currentColor"
+                fill="none"
                 viewBox="0 0 16 16"
                 stroke="currentColor"
-                aria-hidden="true"
               >
                 <path
                   stroke-width="1"
@@ -114,9 +121,12 @@
             </a>
 
             <!-- Get Memory Panel-->
-            <button
+            <a
+              type="a"
+              data-title="Memory"
+              data-placement="right"
               v-on:click="openMemoryPannel"
-              class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+              class="p-2 text-primary-lighter transition-colors duration-200 rounded-full bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
             >
               <span class="sr-only">Open memory panel</span>
               <svg
@@ -131,14 +141,18 @@
                   d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"
                 />
               </svg>
-            </button>
+            </a>
 
             <!-- Info link -->
             <!-- Active classes "bg-primary text-white" -->
             <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
             <a
+              type="a"
+              data-title="Information"
+              data-placement="right"
               v-on:click="goToInformation()"
-              class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+              class="p-2 transition-colors duration-200 rounded-full hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+              v-bind:class="[this.activePage === 'info' ? 'bg-primary' : 'bg-primary-50', this.activePage === 'info' ? 'text-white' : 'text-primary-lighter']"
             >
               <span class="sr-only">Messages</span>
               <svg
@@ -157,7 +171,10 @@
             </a>
 
             <!-- Get Setting Pannel-->
-            <button
+            <a
+              type="a"
+              data-title="Settings"
+              data-placement="right"
               v-on:click="openSettingsPanel"
               class="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
             >
@@ -183,57 +200,8 @@
                   d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
-            </button>
+            </a>
 
-            <!-- Get the dark mode -->
-            <button
-              aria-hidden="true"
-              class="relative focus:outline-none"
-              x-cloak
-              v-on:click="toggleTheme"
-            >
-              <div
-                class="w-12 h-6 transition rounded-full outline-none bg-primary-100 dark:bg-primary-lighter"
-              ></div>
-              <div
-                class="absolute top-0 left-0 inline-flex items-center justify-center w-6 h-6 transition-all duration-150 transform scale-110 rounded-full shadow-sm"
-                :class="{
-                  'translate-x-0 -translate-y-px  bg-white text-primary-dark': !isDark,
-                  'translate-x-6 text-primary-100 bg-primary-darker': isDark,
-                }"
-              >
-                <svg
-                  v-show="!isDark"
-                  class="w-4 h-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                  />
-                </svg>
-                <svg
-                  v-show="isDark"
-                  class="w-4 h-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                  />
-                </svg>
-              </div>
-            </button>
           </div>
         </nav>
       </aside>
@@ -283,17 +251,24 @@
                 class="p-2 text-white rounded-md focus:outline-none focus:border-transparent border-transparent"
               >
                 <svg
-                  class="w-5 h-5"
+                  class="w-7 h-7"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  aria-hidden="true"
                 >
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
               </button>
@@ -306,17 +281,24 @@
               >
                 <span class="text-gray-500 dark:text-primary">
                   <svg
-                    class="w-8 h-8"
+                    class="w-7 h-7"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
                 </span>
@@ -598,7 +580,8 @@
 </template>
 
 <script>
-import * as tf from "@tensorflow/tfjs";
+import * as tf from '@tensorflow/tfjs';
+import tippy from 'tippy.js';
 
 export default {
   data: function() {
@@ -611,54 +594,55 @@ export default {
       isSettingsPanelOpen: false,
       modelMap: new Map(),
       isMemoryPannelOpen: false,
+      activePage: 'home',
     };
   },
   methods: {
     getTheme: function() {
-      if (window.localStorage.getItem("dark")) {
-        return JSON.parse(window.localStorage.getItem("dark"));
+      if (window.localStorage.getItem('dark')) {
+        return JSON.parse(window.localStorage.getItem('dark'));
       }
       return (
         !!window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
+        window.matchMedia('(prefers-color-scheme: dark)').matches
       );
     },
     getColor: () => {
-      if (window.localStorage.getItem("color")) {
-        return window.localStorage.getItem("color");
+      if (window.localStorage.getItem('color')) {
+        return window.localStorage.getItem('color');
       } else {
-        return "cyan";
+        return 'cyan';
       }
     },
     setTheme: function(value) {
-      window.localStorage.setItem("dark", value);
+      window.localStorage.setItem('dark', value);
     },
     setColors(color) {
       const root = document.documentElement;
-      root.style.setProperty("--color-primary", `var(--color-${color})`);
-      root.style.setProperty("--color-primary-50", `var(--color-${color}-50)`);
+      root.style.setProperty('--color-primary', `var(--color-${color})`);
+      root.style.setProperty('--color-primary-50', `var(--color-${color}-50)`);
       root.style.setProperty(
-        "--color-primary-100",
+        '--color-primary-100',
         `var(--color-${color}-100)`
       );
       root.style.setProperty(
-        "--color-primary-light",
+        '--color-primary-light',
         `var(--color-${color}-light)`
       );
       root.style.setProperty(
-        "--color-primary-lighter",
+        '--color-primary-lighter',
         `var(--color-${color}-lighter)`
       );
       root.style.setProperty(
-        "--color-primary-dark",
+        '--color-primary-dark',
         `var(--color-${color}-dark)`
       );
       root.style.setProperty(
-        "--color-primary-darker",
+        '--color-primary-darker',
         `var(--color-${color}-darker)`
       );
       this.selectedColor = color;
-      window.localStorage.setItem("color", color);
+      window.localStorage.setItem('color', color);
     },
     toggleTheme: function() {
       this.isDark = !this.isDark;
@@ -688,16 +672,19 @@ export default {
       await this.refreshModel();
     },
     goToHome() {
-      this.$router.push({ name: "home" });
+      this.activePage = 'home';
+      this.$router.push({ name: 'home' });
     },
     goToTaskList() {
-      this.$router.push({ name: "tasks" });
+      this.activePage = 'tasks';
+      this.$router.push({ name: 'tasks' });
     },
     goToInformation() {
-      this.$router.push({ name: "information" });
+      this.activePage = 'info';
+      this.$router.push({ name: 'information' });
     },
     goToTrophee() {
-      this.$router.push({ name: "trophee" });
+      this.$router.push({ name: 'trophee' });
     },
     async refreshModel() {
       var newModelMap = new Map();
@@ -706,8 +693,8 @@ export default {
           var modelInfo = models[key];
           let date = new Date(modelInfo.dateSaved);
           let dateSaved =
-            date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
-          let hourSaved = date.getHours() + "h" + date.getMinutes();
+            date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear();
+          let hourSaved = date.getHours() + 'h' + date.getMinutes();
           let size =
             modelInfo.modelTopologyBytes +
             modelInfo.weightSpecsBytes +
@@ -732,17 +719,28 @@ export default {
     },
   },
   async mounted() {
+    tippy('a', {
+      theme: 'custom-dark',
+      delay: 0,
+      duration: 0,
+      content: (reference) => reference.getAttribute('data-title'),
+      onMount(instance) {
+        instance.popperInstance.setOptions({
+          placement: instance.reference.getAttribute('data-placement'),
+        });
+      },
+    });
     tf.io.listModels().then((models) => {
       for (var key in models) {
         var modelInfo = models[key];
         let date = new Date(modelInfo.dateSaved);
         let dateSaved =
           date.getDate() +
-          "/" +
+          '/' +
           (date.getMonth() + 1) +
-          "/" +
+          '/' +
           date.getFullYear();
-        let hourSaved = date.getHours() + "h" + date.getMinutes();
+        let hourSaved = date.getHours() + 'h' + date.getMinutes();
         let size =
           modelInfo.modelTopologyBytes +
           modelInfo.weightSpecsBytes +
