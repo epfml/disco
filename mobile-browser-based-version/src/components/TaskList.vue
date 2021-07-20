@@ -24,28 +24,31 @@
           >
             <!-- Titanic's card-->
             <div
-              class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark"
-              v-on:click="goToSelection(task.trainingInformation.modelId)"
+              class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker dark:bg-dark"
             >
               <div>
                 <h6
-                  class="text-xl font-medium leading-none tracking-wider uppercase dark:group-hover:text-darker"
+                  class="text-xl font-medium leading-none tracking-wider dark:group-hover:text-darker"
                 >
                   {{ task.displayInformation.taskTitle }}
                 </h6>
               </div>
               <div class="ml-10">
-                <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  {{
-                    task.displayInformation.summary
-                  }}
+                <ul
+                  class="text-base ont-semibold text-gray-500 dark:text-light"
+                >
+                  <span v-html="task.displayInformation.summary"></span>
                 </ul>
               </div>
-              <div>
+              <div class="py-2">
                 <span>
-                  <a class="no-underline font-medium"
-                    >Click here to participate</a
+                  <button
+                    v-on:click="goToSelection(task.trainingInformation.modelId)"
+                    type="button"
+                    class="w-1/6 text-lg border-2 border-transparent bg-green-500 my-2 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
                   >
+                    Join
+                  </button>
                 </span>
               </div>
             </div>
@@ -73,23 +76,23 @@
 </template>
 
 <script>
-import { ALL_TASKS } from "../router/index";
+import { ALL_TASKS } from '../router/index';
 
 export default {
-  name: "taskList",
+  name: 'taskList',
   data() {
     return {
-      taskSelected: "",
-      mnist: "/mnist-model/description",
+      taskSelected: '',
+      mnist: '/mnist-model/description',
       ALL_TASKS: ALL_TASKS,
     };
   },
   methods: {
     goToSelection(id) {
       this.$router.push({
-        name: id.concat(".description"),
-        params: {Id: id}
-      })
+        name: id.concat('.description'),
+        params: { Id: id },
+      });
       /*
       this.$router.push({
         path: "/".concat(id).concat("/description"),
