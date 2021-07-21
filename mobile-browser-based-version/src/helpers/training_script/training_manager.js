@@ -29,54 +29,46 @@ export class TrainingManager {
      * @param {Object} processedData   data that has been processed by the custom function define in the script of the task. Has the form {accepted: _, Xtrain: _, yTrain:_}.
      */
     async trainModel(distributed, processedData) {
-        var accepted = processedData.accepted;
         var Xtrain = processedData.Xtrain;
         var ytrain = processedData.ytrain;
-        if (accepted) {
-            // notify the user that training has started
-            this.environment.$toast.success(
-                `Thank you for your contribution. Training has started`
+        // notify the user that training has started
+        this.environment.$toast.success(
+            `Thank you for your contribution. Training has started`
+        );
+        setTimeout(this.environment.$toast.clear, 30000);
+        if (!distributed) {
+            await training(
+                this.trainingInformation.modelId,
+                Xtrain,
+                ytrain,
+                this.trainingInformation.batchSize,
+                this.trainingInformation.validationSplit,
+                this.trainingInformation.epoch,
+                this.trainingInformant, 
+                this.trainingInformation.modelCompileData,
+                this.trainingInformation.learningRate
             );
-            setTimeout(this.environment.$toast.clear, 30000);
-            if (!distributed) {
-                await training(
-                    this.trainingInformation.modelId,
-                    Xtrain,
-                    ytrain,
-                    this.trainingInformation.batchSize,
-                    this.trainingInformation.validationSplit,
-                    this.trainingInformation.epoch,
-                    this.trainingInformant, 
-                    this.trainingInformation.modelCompileData,
-                    this.trainingInformation.learningRate
-                );
-            } else {
-                await this.communicationManager.updateReceivers();
-                await trainingDistributed(
-                    this.trainingInformation.modelId,
-                    Xtrain,
-                    ytrain,
-                    this.trainingInformation.epoch,
-                    this.trainingInformation.batchSize,
-                    this.trainingInformation.validationSplit,
-                    this.trainingInformation.modelCompileData,
-                    this,
-                    this.communicationManager.peerjs,
-                    this.communicationManager.recvBuffer,
-                    this.trainingInformation.learningRate
-                );
-            }
-            // notify the user that training has ended 
-            this.environment.$toast.success(
-                this.trainingInformation.modelId.concat(` has finished training!`)
+        } else {
+            await this.communicationManager.updateReceivers();
+            await trainingDistributed(
+                this.trainingInformation.modelId,
+                Xtrain,
+                ytrain,
+                this.trainingInformation.epoch,
+                this.trainingInformation.batchSize,
+                this.trainingInformation.validationSplit,
+                this.trainingInformation.modelCompileData,
+                this,
+                this.communicationManager.peerjs,
+                this.communicationManager.recvBuffer,
+                this.trainingInformation.learningRate
             );
-            setTimeout(this.environment.$toast.clear, 30000);
-        }else{
-            this.environment.$toast.error(
-                `Your data has not been accepted please try to fix the data before uploading again.`
-            );
-            setTimeout(this.environment.$toast.clear, 30000);
         }
+        // notify the user that training has ended 
+        this.environment.$toast.success(
+            this.trainingInformation.modelId.concat(` has finished training!`)
+        );
+        setTimeout(this.environment.$toast.clear, 30000);
     }
 
     /**
