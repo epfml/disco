@@ -105,7 +105,7 @@ export const displayInformation = {
     // {String} title of the task (keep it short ex: Titanic)
     taskTitle: "Titanic",
     // {String} informal summary of the task (used by tasks' list)
-    summary: "Test our platform by using a publicly available <b>tabular</b> dataset. <br><br> Download the passenger list from Titanic shipwreck <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/c/titanic'>here</a>. <br> This model predicts the type of person most likely to survive/die base on their characteristics (sex, age, class etc.).",
+    summary: "Test our platform by using a publicly available <b>tabular</b> dataset. <br><br> Download the passenger list from the Titanic shipwreck <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/c/titanic'>here</a>. <br> This model predicts the type of person most likely to survive/die based on their characteristics (sex, age, class etc.).",
     // {String} simple overview of the task (i.e what is the goal of the model? Why its usefull ...)
     overview: "We all know the unfortunate story of the Titanic: this flamboyant new transatlantic boat that sunk in 1912 in the North Atlantic Ocean. Today, we revist this tragedy by trying to predict the survival odds of the passenger given some basic features.",
     // {String} potential limitations of the model 
