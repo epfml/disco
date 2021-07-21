@@ -6,7 +6,7 @@
       <keep-alive>
       <DescriptionFrame
         v-bind:OverviewText="OverviewText"
-        v-bind:LimitationsText="LimitationsText"
+        v-bind:ModelText="ModelText"
         v-bind:TradeOffsText="TradeOffsText"
         v-bind:Id="ModelId"
         v-bind:Task="Task"
@@ -29,7 +29,7 @@ export default {
   data() {
     return {
       OverviewText: "",
-      LimitationsText: "",
+      ModelText: "",
       TradeOffsText: "",
       ModelId: "",
     };
@@ -39,7 +39,7 @@ export default {
   },
   mounted() {
     this.OverviewText = this.Task.displayInformation.overview;
-    this.LimitationsText = this.Task.displayInformation.limitations;
+    this.ModelText = this.Task.displayInformation.model;
     this.TradeOffsText = this.Task.displayInformation.tradeoffs;
     this.ModelId = this.Task.trainingInformation.modelId;
     

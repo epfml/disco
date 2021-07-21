@@ -308,13 +308,15 @@ export class LusCovidTask {
 
 export const displayInformation = {
     // {String} title of the task (keep it short ex: Titanic)
-    taskTitle: "LUS-COVID",
+    taskTitle: "COVID Lung Ultrasound",
     // {String} informal summary of the task (used by tasks' list)
-    summary: "The COVID-19 pandemic has been harmfull to millions of people, collaborate to train a model that will detect the COVID-19 virus from lung ultrasound images.",
+    summary: "Do you have a dataset of lung ultrasound images on patients <b>suspected of Lower Respiratory Tract infection (LRTI) during the COVID pandemic</b>? <br> Learn how to discriminate between COVID positive and negative patients by joining this task. <br><br> Don’t have a dataset of your own? Download a sample of a few cases <a class='underline text-primary-dark dark:text-primary-light' href='https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly'>here</a>.",
     // {String} simple overview of the task (i.e what is the goal of the model? Why its usefull ...)
-    overview: "The LUS-COVID dataset is a dataset by iGH at EPFL and consists on a set of lung ultrasound images for a group of patients and the labels corresponding to wether they were diagnosed as COVID-positive or COVID-negative.",
+    overview: "Do you have a dataset of lung ultrasound images on patients <b>suspected of Lower Respiratory Tract infection (LRTI) during the COVID pandemic</b>? <br> Learn how to discriminate between COVID positive and negative patients by joining this task. <br><br> Don’t have a dataset of your own? Download a sample of a few cases <a class='underline text-primary-dark dark:text-primary-light' href='https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly'>here</a>.",
     // {String} potential limitations of the model 
-    limitations: "The current model is a simpler version of the DeepChest model developped by the iGH team. We are not doing position embedding and instead of that we are doing mean pooling over the feature vector of the images for each patient. Moreover, since it is a browser application we cannot use the ResNet18 because of its size and hence we are using a simpler feature extractor, Mobilenet.",
+    model: `We use a simplified* version of the <b>DeepChest model</b>: A deep learning model developed in our lab (intelligent Global Health). On a cohort of 400 Swiss patients suspected of LRTI, the model obtained over 90% area under the ROC curve for this task. <br><br>*Simplified to ensure smooth running on your browser, the performance is minimally affected. Details of the adaptations are below <br>
+    - <b>Removed</b>: positional embedding (i.e. we don’t take the anatomic position into consideration). Rather, the model now does mean pooling over the feature vector of the images for each patient <br>
+    - <b>Replaced</b>: ResNet18 by Mobilenet`,
     // {String} trade-offs of the model 
     tradeoffs: "We are using a simpler version of DeepChest in order to be able to run it on the browser.",
     // {String} information about expected data 
