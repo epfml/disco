@@ -1,0 +1,20 @@
+.tippy-box[data-theme~='custom-dark'] {
+    background-color: #6f7174;
+    color: white;
+    border-radius: 4px;
+    padding: 6px;
+    font-size:small;
+}
+
+.tippy-box[data-theme~='custom-dark'][data-placement^='top'] > .tippy-arrow::before {
+    border-top-color: #26323d;
+  }
+  .tippy-box[data-theme~='custom-dark'][data-placement^='bottom'] > .tippy-arrow::before {
+    border-bottom-color: #26323d;
+  }
+  .tippy-box[data-theme~='custom-dark'][data-placement^='left'] > .tippy-arrow::before {
+    border-left-color: #26323d;
+  }
+  .tippy-box[data-theme~='custom-dark'][data-placement^='right'] > .tippy-arrow::before {
+    border-right-color: #26323d;
+  }

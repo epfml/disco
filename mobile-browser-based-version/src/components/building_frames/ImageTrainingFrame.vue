@@ -88,7 +88,12 @@
 
     <!-- Upload Image Card -->
     <div class="relative">
-      <UploadingFrame v-bind:Id="Id"  v-bind:Task="Task" v-bind:fileUploadManager="fileUploadManager" v-if="fileUploadManager" />
+      <UploadingFrame
+        v-bind:Id="Id"
+        v-bind:Task="Task"
+        v-bind:fileUploadManager="fileUploadManager"
+        v-if="fileUploadManager"
+      />
     </div>
 
     <!-- Train Button -->
@@ -96,17 +101,25 @@
       <button
         v-on:click="joinTraining(false)"
         type="button"
-        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+        data-title="Using only your data"
+        data-placement="top"
+        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
       >
         Train Alone
       </button>
       <button
         v-on:click="joinTraining(true)"
         type="button"
-        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+        data-title="Using data from all participants"
+        data-placement="top"
+        class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
       >
         Train Distributed
       </button>
+    </div>
+
+    <div class="flex items-center justify-center p-4">
+      Currently {{ num_peers }} peers in the network
     </div>
 
     <!-- Training Board -->
@@ -203,8 +216,8 @@
           <span
             style="white-space: pre-line"
             class="text-sm text-gray-500 dark:text-light"
-            >Once you have finished training your model it might be
-            a great idea to go test it.
+            >Once you have finished training your model it might be a great idea
+            to go test it.
           </span>
         </div>
         <div class="flex items-center justify-center p-4">
@@ -221,20 +234,21 @@
   </div>
 </template>
 
-
 <script>
-import { TrainingInformant } from "../../helpers/training_script/training_informant";
-import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
-import { TrainingManager } from "../../helpers/training_script/training_manager";
-import TrainingInformationFrame from "./TrainingInformationFrame";
-import { checkData } from "../../helpers/data_validation_script/helpers-image-tasks";
-import { FileUploadManager } from "../../helpers/data_validation_script/file_upload_manager";
-import UploadingFrame from "./UploadingFrame";
+import tippy from 'tippy.js';
+import { TrainingInformant } from '../../helpers/training_script/training_informant';
+import { CommunicationManager } from '../../helpers/communication_script/communication_manager';
+import { TrainingManager } from '../../helpers/training_script/training_manager';
+import TrainingInformationFrame from './TrainingInformationFrame';
+import { checkData } from '../../helpers/data_validation_script/helpers-image-tasks';
+import { FileUploadManager } from '../../helpers/data_validation_script/file_upload_manager';
+import UploadingFrame from './UploadingFrame';
+import 'tippy.js/themes/light.css';
 
 // manager for the training loop
 var trainingManager = null;
 export default {
-  name: "ImageTrainingFrame",
+  name: 'ImageTrainingFrame',
   props: {
     Id: String,
     Task: Object,
@@ -243,13 +257,14 @@ export default {
     return {
       // variables for general informations
       modelName: null,
-      DataFormatInfoText: "",
-      DataExampleText: "",
+      DataFormatInfoText: '',
+      DataExampleText: '',
       DataExample: null,
-      DataExampleImage: "",
+      DataExampleImage: '',
       // different task labels
       taskLabels: [],
       trainingManager: null,
+      num_peers: 0,
 
       // manager that returns feedbacks when training
       trainingInformant: new TrainingInformant(
@@ -260,12 +275,14 @@ export default {
       // manager for the file uploading process
       fileUploadManager: new FileUploadManager(
         this.Task.trainingInformation.LABEL_LIST.length,
-        this,
-      ), 
+        this
+      ),
 
       // take care of communication processes
-      communicationManager: new CommunicationManager(this.Task.trainingInformation.port, this.$store.getters.password(this.Id)), // TO DO: to modularize
-
+      communicationManager: new CommunicationManager(
+        this.Task.trainingInformation.port,
+        this.$store.getters.password(this.Id)
+      ), // TO DO: to modularize
     };
   },
   methods: {
@@ -278,45 +295,52 @@ export default {
 
       // Check that the user indeed gave a file
       if (filesElement.length == 0) {
-        alert("Training aborted. No uploaded file given as input.");
+        alert('Training aborted. No uploaded file given as input.');
       } else {
         this.$toast.success(
           `Thank you for your contribution. Image preprocessing has started`
         );
         setTimeout(this.$toast.clear, 30000);
-        
-        let status_validation = await checkData(filesElement,this.Task.trainingInformation);
-          
+
+        let status_validation = await checkData(
+          filesElement,
+          this.Task.trainingInformation
+        );
+
         if (status_validation.accepted) {
-            let processedData = await this.Task.dataPreprocessing(filesElement);       
+          let processedData = await this.Task.dataPreprocessing(filesElement);
 
-            this.$toast.success(
-              `Image preprocessing has finished and training has started`
-            );
-            setTimeout(this.$toast.clear, 30000);
+          this.$toast.success(
+            `Image preprocessing has finished and training has started`
+          );
+          setTimeout(this.$toast.clear, 30000);
 
-            await this.trainingManager.trainModel(distributed, processedData);
+          await this.trainingManager.trainModel(distributed, processedData);
         } else {
-            console.log("Invalid image input.")
-            console.log("Number of images with valid format: "+ status_validation.nr_accepted + " out of " + filesElement.length)
+          console.log('Invalid image input.');
+          console.log(
+            'Number of images with valid format: ' +
+              status_validation.nr_accepted +
+              ' out of ' +
+              filesElement.length
+          );
         }
       }
     },
 
     getImage(url) {
-      if (url == "") {
+      if (url == '') {
         return null;
       }
 
-      var images = require.context('../../../example_training_data/', false)
-      return images(url)
+      var images = require.context('../../../example_training_data/', false);
+      return images(url);
     },
 
     goToTesting() {
-
-      this.$router.push({ 
-          path: 'testing',
-       });
+      this.$router.push({
+        path: 'testing',
+      });
     },
   },
   components: {
@@ -324,8 +348,22 @@ export default {
     TrainingInformationFrame,
   },
   async mounted() {
+    tippy('button', {
+      theme: 'custom-dark',
+      content: (reference) => reference.getAttribute('data-title'),
+      onMount(instance) {
+        instance.popperInstance.setOptions({
+          placement: instance.reference.getAttribute('data-placement'),
+        });
+      },
+    });
+
+    window.setInterval(async () => {
+      await this.communicationManager.updateReceivers();
+      this.num_peers = this.communicationManager.receivers.length
+    }, 2000)
     // This method is called when the component is created
-    this.$nextTick(async function () {
+    this.$nextTick(async function() {
       // initialize information variables
       this.modelName = this.Task.trainingInformation.modelId;
       this.DataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
@@ -333,7 +371,7 @@ export default {
       this.DataExample = this.Task.displayInformation.dataExample;
       this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
       this.DataExampleImage = this.Task.displayInformation.dataExampleImage;
-      console.log("Mounting" + this.modelName)
+      console.log('Mounting' + this.modelName);
 
       // initialize the training manager
       this.trainingManager = new TrainingManager(this.Task.trainingInformation);
@@ -353,7 +391,6 @@ export default {
         this.trainingInformant,
         this
       );
-
     });
   },
   async unmounted() {

@@ -215,11 +215,11 @@ export const displayInformation = {
     // {String} title of the task (keep it short ex: Titanic)
     taskTitle: "MNIST",
     // {String} informal summary of the task (used by tasks' list)
-    summary: "Life started by learning numbers, well you've come a full circle! let's get back to it ! From the MNIST dataset of handwritten digits, can you identify them?",
+    summary: "Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers.",
     // {String} simple overview of the task (i.e what is the goal of the model? Why its usefull ...)
     overview: "The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform.",
     // {String} potential limitations of the model 
-    limitations: "The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.",
+    model: "The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.",
     // {String} trade-offs of the model 
     tradeoffs: "We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.",
     // {String} information about expected data 
