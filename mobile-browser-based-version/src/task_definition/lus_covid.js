@@ -320,7 +320,7 @@ export const displayInformation = {
     // {String} trade-offs of the model 
     tradeoffs: "We are using a simpler version of DeepChest in order to be able to run it on the browser.",
     // {String} information about expected data 
-    dataFormatInformation: "This model takes as input an image dataset. It consists on a set of lung ultrasound images per patient with its corresponding label of covid positive or negative. Moreover, to identify the images per patient you have to follow the follwing naming pattern: \"patientId_*.png\"",
+    dataFormatInformation: "This model uses lung ultrasound images with its corresponding label of covid positive or negative. Moreover, to identify the images per patient you have to follow the following naming pattern: \"patientId_*\"",
     // {String} description of the datapoint given as example
     dataExampleText: "Below you can find an example of an expected lung image for patient 2 named: 2_QAID_1.masked.reshaped.squared.224.png",
     // {String} local url to an image data example
@@ -353,7 +353,6 @@ export const trainingInformation = {
         epochs: 10,
     },
     threshold: 2,
-
     IMAGE_H : 224,
     IMAGE_W : 224,
     LABEL_LIST : ["COVID-Positive", "COVID-Negative"],
