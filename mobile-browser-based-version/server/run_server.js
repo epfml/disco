@@ -5,6 +5,7 @@ const topologies            = require('./topologies.js');
 const { makeId }            = require('./helpers.js');
 const { models }            = require('./models.js');
 const cors                  = require('cors');
+const path = require('path');
 
 const app = express();
 app.enable('trust proxy');
@@ -65,12 +66,14 @@ peerServer.on('disconnect', (client) => {
     sendNewNeighbours(affectedPeers)
 });
 
-const tasks = JSON.parse(fs.readFileSync('tasks.json'));
+Promise.all(models.map((createModel) => createModel()))
 
 const tasksRouter = express.Router();
-tasksRouter.get('/', (req, res) => res.send(tasks));
-tasks.forEach(task => {
-    tasksRouter.get('/' + task.taskId, (req, res) => res.send(models.get(task.taskId)))
+tasksRouter.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'tasks.json'));
+});
+tasksRouter.get('/:id/:file', (req, res) => {
+  res.sendFile(path.join(__dirname, req.params['id'], req.params['file']))
 });
 
 app.get('/', (req, res) => res.send('DeAI Server'));

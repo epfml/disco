@@ -135,3 +135,7 @@ UI/.DS_Store
 *.DS_Store
 
 node_modules/
+
+# model files on server
+weights.bin
+model.json
