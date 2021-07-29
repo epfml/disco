@@ -224,7 +224,7 @@ export const displayInformation = {
     tradeoffs: "We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.",
     // {String} information about expected data 
     dataFormatInformation:
-        "This model takes as input an image dataset. You can upload each digit image of your dataset in the box corresponding to its label. The size of the image will be reduced to 28x28. Finally, the image should be in grey scale.",
+        "This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.",
     // {String} description of the datapoint given as example
     dataExampleText: "Below you can find an example of an expected image representing the digit 9.",
     // {String} local url to an image data example
