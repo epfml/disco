@@ -10,7 +10,7 @@
             class="flex items-center justify-between p-4 border-b dark:border-primary"
           >
             <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-              Upload My Data
+               Connect Data
             </h4>
             <div class="flex items-center">
               <span aria-hidden="true">
@@ -54,7 +54,7 @@
             class="flex items-center justify-between p-4 border-b dark:border-primary"
           >
             <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-              Upload My Data
+              Connect Data
             </h4>
             <div class="flex items-center">
               <span aria-hidden="true">

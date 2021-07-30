@@ -101,7 +101,7 @@
       <button
         v-on:click="joinTraining(false)"
         type="button"
-        data-title="Using only your data"
+        data-title="Using only your data and training locally"
         data-placement="top"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
       >
@@ -110,7 +110,7 @@
       <button
         v-on:click="joinTraining(true)"
         type="button"
-        data-title="Using data from all participants"
+        data-title="Exchanging model weights with all participants"
         data-placement="top"
         class="text-lg border-2 border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
       >
