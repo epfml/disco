@@ -33,7 +33,7 @@
               v-bind:id="uploadButtonName"
               class="mt-2 p-2 rounded-sm text-white transition-colors duration-200 bg-primary hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
             >
-              Upload files
+              Select files
             </button>
           </div>
         </header>
