@@ -7,7 +7,8 @@ let net = null
 let loadedModel = null
 
 export class LusCovidTask {
-    constructor() {
+    constructor(taskId, displayInformation, trainingInformation) {
+        this.taskId = taskId
         this.displayInformation = displayInformation
         this.trainingInformation = trainingInformation
     }
@@ -18,7 +19,7 @@ export class LusCovidTask {
      * @returns Returns a tf.model or null if there is no model
      */
      async getModelFromStorage() {
-        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
+        let savePath = "indexeddb://working_".concat(this.trainingInformation.modelId)
         let model = await tf.loadLayersModel(savePath)
         return model
     }
@@ -27,21 +28,13 @@ export class LusCovidTask {
      * @returns new instance of TensorflowJS model
      */
     async createModel() {
-        let newModel = tf.sequential();
+        let newModel = await tf.loadLayersModel('https://deai-313515.ew.r.appspot.com/tasks/' + this.taskId + '/model.json')
+        const savePathDb = "indexeddb://working_".concat(
+            this.trainingInformation.modelId
+        );
 
-        newModel.add(tf.layers.dense({inputShape:[FEATURES], units:512, activation:'relu'}))
-
-        newModel.add(tf.layers.dense({units: 64, activation: 'relu'}))
-
-        newModel.add(tf.layers.dense({units: 2, activation:"softmax"}));
-
-        newModel.summary()
-
-        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
-
-        await newModel.save(savePath);
-
-        return newModel
+        // only keep this here
+        await newModel.save(savePathDb);
     }
 
     async loadMobilenet(){
@@ -304,58 +297,4 @@ export class LusCovidTask {
             console.log("No model has been trained or found!")
         }
     }
-}
-
-export const displayInformation = {
-    // {String} title of the task (keep it short ex: Titanic)
-    taskTitle: "COVID Lung Ultrasound",
-    // {String} informal summary of the task (used by tasks' list)
-    summary: "Do you have a dataset of lung ultrasound images on patients <b>suspected of Lower Respiratory Tract infection (LRTI) during the COVID pandemic</b>? <br> Learn how to discriminate between COVID positive and negative patients by joining this task. <br><br> Don’t have a dataset of your own? Download a sample of a few cases <a class='underline text-primary-dark dark:text-primary-light' href='https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly'>here</a>.",
-    // {String} simple overview of the task (i.e what is the goal of the model? Why its usefull ...)
-    overview: "Do you have a dataset of lung ultrasound images on patients <b>suspected of Lower Respiratory Tract infection (LRTI) during the COVID pandemic</b>? <br> Learn how to discriminate between COVID positive and negative patients by joining this task. <br><br> Don’t have a dataset of your own? Download a sample of a few cases <a class='underline text-primary-dark dark:text-primary-light' href='https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly'>here</a>.",
-    // {String} potential limitations of the model 
-    model: `We use a simplified* version of the <b>DeepChest model</b>: A deep learning model developed in our lab (intelligent Global Health). On a cohort of 400 Swiss patients suspected of LRTI, the model obtained over 90% area under the ROC curve for this task. <br><br>*Simplified to ensure smooth running on your browser, the performance is minimally affected. Details of the adaptations are below <br>
-    - <b>Removed</b>: positional embedding (i.e. we don’t take the anatomic position into consideration). Rather, the model now does mean pooling over the feature vector of the images for each patient <br>
-    - <b>Replaced</b>: ResNet18 by Mobilenet`,
-    // {String} trade-offs of the model 
-    tradeoffs: "We are using a simpler version of DeepChest in order to be able to run it on the browser.",
-    // {String} information about expected data 
-    dataFormatInformation: "This model uses lung ultrasound images with its corresponding label of covid positive or negative. Moreover, to identify the images per patient you have to follow the following naming pattern: \"patientId_*\"",
-    // {String} description of the datapoint given as example
-    dataExampleText: "Below you can find an example of an expected lung image for patient 2 named: 2_QAID_1.masked.reshaped.squared.224.png",
-    // {String} local url to an image data example
-    dataExampleImage: "./2_QAID_1.masked.reshaped.squared.224.png",
-};
-
-/**
- * Object used to contain the model's training specifications
- */
-export const trainingInformation = {
-    // {String} model's identification name
-    modelId: "lus-covid-model",
-    // {Number} port of the peerjs server
-    port: 9001,
-    // {Number} number of epoch used for training
-    epoch: 15,
-    // {Number} validation split
-    validationSplit: 0.2,
-    // {Number} batchsize
-    batchSize: 2,
-    // {Object} Compiling information 
-    modelCompileData: {
-        optimizer: "adam",
-        loss: "binaryCrossentropy",
-        metrics: ["accuracy"],
-    },
-    learningRate: 0.05,
-    // {Object} Training information 
-    modelTrainData: {
-        epochs: 10,
-    },
-    threshold: 2,
-    IMAGE_H : 224,
-    IMAGE_W : 224,
-    LABEL_LIST : ["COVID-Positive", "COVID-Negative"],
-    NUM_CLASSES : 2,
-    dataType:"image"
 }
