@@ -102,7 +102,7 @@ export class TrainingManager {
             this.communicationManager.receivers,
             this.communicationManager.recvBuffer,
             this.communicationManager.peerjsId,
-            this.trainingInformation.threshold,
+            this.trainingInformation.receivedMessagesThreshold,
             this.communicationManager.peerjs,
             this.trainingInformant
         );

@@ -8,7 +8,7 @@
       >
         <section class="flex-col items-center justify-center p-4 space-y-4">
           <div
-            v-for="task in ALL_TASKS"
+            v-for="task in tasks"
             :key="task.trainingInformation.modelId"
             class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
           >
@@ -66,7 +66,20 @@
 </template>
 
 <script>
-import { ALL_TASKS } from '../router/index';
+// Task's main frames
+import MainTaskFrame from "../components/main_frames/MainTaskFrame"
+import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame"
+import MainTrainingFrame from "../components/main_frames/MainTrainingFrame"
+import MainTestingFrame from "../components/main_frames/MainTestingFrame"
+
+// WARNING: temporay code until serialization of Task object 
+// Import the tasks objects Here
+import { TitanicTask } from "../task_definition/titanic"
+import { MnistTask } from "../task_definition/mnist"
+import { LusCovidTask } from "../task_definition/lus_covid"
+
+import {defineComponent} from 'vue'
+
 
 export default {
   name: 'taskList',
@@ -74,7 +87,8 @@ export default {
     return {
       taskSelected: '',
       mnist: '/mnist-model/description',
-      ALL_TASKS: ALL_TASKS,
+      tasks: [],
+      tasksUrl: 'https://deai-313515.ew.r.appspot.com/tasks'
     };
   },
   methods: {
@@ -89,6 +103,76 @@ export default {
         query: {Id:id}
       });*/
     },
+  },
+  async mounted() {
+    let tasks = await fetch(this.tasksUrl)
+      .then((response) => response.json())
+      .then((tasks) => {
+        for (let task of tasks) {
+          console.log(`Processing ${task.taskId}`);
+          let newTask;
+          // TODO: avoid this switch by having one Task class completely determined by a json config
+          switch (task.taskId) {
+            case 'titanic':
+              newTask = new TitanicTask(
+                task.taskId,
+                task.displayInformation,
+                task.trainingInformation
+              );
+              break;
+            case 'mnist':
+              newTask = new MnistTask(
+                task.taskId,
+                task.displayInformation,
+                task.trainingInformation
+              );
+              break;
+            case 'lus_covid':
+              newTask = new LusCovidTask(
+                task.taskId,
+                task.displayInformation,
+                task.trainingInformation
+              );
+              break;
+            default:
+              console.log('No task object available');
+              break;
+          }
+          this.tasks.push(newTask);
+          // Definition of an extension of the task-related component
+          var MainDescriptionFrameSp = defineComponent({ extends: MainDescriptionFrame, name: newTask.trainingInformation.modelId.concat(".description"), key: newTask.trainingInformation.modelId.concat(".description")})
+          var MainTrainingFrameSp = defineComponent({ extends: MainTrainingFrame, name: newTask.trainingInformation.modelId.concat(".training"), key: newTask.trainingInformation.modelId.concat(".training")})
+          var MainTestingFrameSp = defineComponent({ extends: MainTestingFrame, name: newTask.trainingInformation.modelId.concat(".testing"), key: newTask.trainingInformation.modelId.concat(".testing")})
+          // Add task subroutes on the go
+          let newTaskRoute = {
+            path: '/'.concat(newTask.trainingInformation.modelId),
+            name: newTask.trainingInformation.modelId,
+            component: MainTaskFrame,
+            props: { Id: newTask.trainingInformation.modelId, Task: newTask },
+            children: [
+              {
+                path: 'description',
+                name: newTask.trainingInformation.modelId.concat('.description'),
+                component: MainDescriptionFrameSp,
+                props: { Id: newTask.trainingInformation.modelId, Task: newTask },
+              },
+              {
+                path: 'training',
+                name: newTask.trainingInformation.modelId.concat('.training'),
+                component: MainTrainingFrameSp,
+                props: { Id: newTask.trainingInformation.modelId, Task: newTask },
+              },
+              {
+                path: 'testing',
+                name: newTask.trainingInformation.modelId.concat('.testing'),
+                component: MainTestingFrameSp,
+                props: { Id: newTask.trainingInformation.modelId, Task: newTask },
+              }
+            ]
+          }
+          this.$router.addRoute(newTaskRoute);
+        }
+      });
   },
 };
 </script>

@@ -3,7 +3,8 @@ import { checkData } from "../helpers/data_validation_script/helpers-image-tasks
 import { getTopKClasses } from "../helpers/testing_script/testing_script"
 
 export class MnistTask {
-    constructor() {
+    constructor(taskId, displayInformation, trainingInformation) {
+        this.taskId = taskId
         this.displayInformation = displayInformation
         this.trainingInformation = trainingInformation
     }
@@ -12,59 +13,13 @@ export class MnistTask {
      * @returns {tf.Model} new instance of TensorflowJS model
      */
     async createModel() {
+        let newModel = await tf.loadLayersModel('https://deai-313515.ew.r.appspot.com/tasks/' + this.taskId + '/model.json')
+        const savePathDb = "indexeddb://working_".concat(
+            this.trainingInformation.modelId
+        );
+
         // only keep this here
-        // Create a sequential neural network model. tf.sequential provides an API
-        // for creating "stacked" models where the output from one layer is used as
-        // the input to the next layer.
-        const model = tf.sequential();
-
-        // The first layer of the convolutional neural network plays a dual role:
-        // it is both the input layer of the neural network and a layer that performs
-        // the first convolution operation on the input. It receives the 28x28 pixels
-        // black and white images. This input layer uses 16 filters with a kernel size
-        // of 5 pixels each. It uses a simple RELU activation function which pretty
-        // much just looks like this: /
-        model.add(tf.layers.conv2d({
-            inputShape: [this.trainingInformation.IMAGE_H, this.trainingInformation.IMAGE_W, 3],
-            kernelSize: 3,
-            filters: 16,
-            activation: 'relu'
-        }));
-
-        // After the first layer we include a MaxPooling layer. This acts as a sort of
-        // downsampling using max values in a region instead of averaging.
-        // https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
-        model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
-
-        // Our third layer is another convolution, this time with 32 filters.
-        model.add(tf.layers.conv2d({ kernelSize: 3, filters: 32, activation: 'relu' }));
-
-        // Max pooling again.
-        model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
-
-        // Add another conv2d layer.
-        model.add(tf.layers.conv2d({ kernelSize: 3, filters: 32, activation: 'relu' }));
-
-        // Now we flatten the output from the 2D filters into a 1D vector to prepare
-        // it for input into our last layer. This is common practice when feeding
-        // higher dimensional data to a final classification output layer.
-        model.add(tf.layers.flatten({}));
-
-        model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
-
-        // Our last layer is a dense layer which has 10 output units, one for each
-        // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
-        // represent numbers, but it's the same idea if you had classes that
-        // represented other entities like dogs and cats (two output classes: 0, 1).
-        // We use the softmax function as the activation for the output layer as it
-        // creates a probability distribution over our 10 classes so their output
-        // values sum to 1.
-        model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-
-        let savePath = "indexeddb://working_".concat(trainingInformation.modelId)
-        await model.save(savePath);
-
-        return model;
+        await newModel.save(savePathDb);
     }
 
     /**
@@ -160,7 +115,7 @@ export class MnistTask {
      * @returns Returns a tf.model or null if there is no model
     */
     async getModelFromStorage() {
-        let savePath = "indexeddb://saved_".concat(trainingInformation.modelId)
+        let savePath = "indexeddb://saved_".concat(this.trainingInformation.modelId)
         let model = await tf.loadLayersModel(savePath)
         return model
     }
@@ -205,59 +160,4 @@ export class MnistTask {
             console.log("No model has been trained or found!")
         }
     }
-}
-
-/**
- * Object used to contain information abfout the task in general, the model's limitations
- * and the data accepted by the model 
- */
-export const displayInformation = {
-    // {String} title of the task (keep it short ex: Titanic)
-    taskTitle: "MNIST",
-    // {String} informal summary of the task (used by tasks' list)
-    summary: "Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers.",
-    // {String} simple overview of the task (i.e what is the goal of the model? Why its usefull ...)
-    overview: "The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform.",
-    // {String} potential limitations of the model 
-    model: "The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.",
-    // {String} trade-offs of the model 
-    tradeoffs: "We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.",
-    // {String} information about expected data 
-    dataFormatInformation:
-        "This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.",
-    // {String} description of the datapoint given as example
-    dataExampleText: "Below you can find an example of an expected image representing the digit 9.",
-    // {String} local url to an image data example
-    dataExampleImage: "./9-mnist-example.png",
-};
-
-/**
- * Object used to contain the model's training specifications
- */
-export const trainingInformation = {
-    // {String} model's identification name
-    modelId: "mnist-model",
-    // {Number} port of the peerjs server
-    port: 9001,
-    // {Number} number of epoch used for training
-    epoch: 10,
-    // {Number} validation split
-    validationSplit: 0.2,
-    // {Number} batchsize
-    batchSize: 30,
-    // {Object} Compiling information 
-    modelCompileData: {
-        optimizer: "rmsprop",
-        loss: "categoricalCrossentropy",
-        metrics: ["accuracy"],
-    },
-    // {Object} Training information 
-    modelTrainData: {
-        epochs: 10,
-    },
-    threshold: 1,
-    dataType: 'image',
-    IMAGE_H: 28,
-    IMAGE_W: 28,
-    LABEL_LIST: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
 }
