@@ -541,37 +541,68 @@
                   </h6>
                   <div v-for="(item, idx) in modelMap" :key="idx">
                     <div
-                      class="flex items-center justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
+                      class="flex items-center grid-cols-3 justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
                     >
-                      <span>
-                        {{ item[1].name.substr(12) }} <br />
-                        <span class="text-xs">
-                          {{ item[1].date }} at {{ item[1].hours }} <br />
-                          {{ item[1].size }} KB
-                        </span>
-                      </span>
-                      <button
-                        v-on:click="deleteModel(item[1].name)"
-                        class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
-                        :class="{
-                          'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100': isDark,
-                          'text-gray-500 dark:text-primary-light': !isDark,
-                        }"
-                      >
+                      <div class='w-2/3'>
                         <span>
-                          <svg
-                            class="w-7 h-7"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 17 17"
-                            stroke="currentColor"
-                          >
-                            <path
-                              d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
-                            />
-                          </svg>
+                          {{ item[1].name.substr(12) }} <br />
+                          <span class="text-xs">
+                            {{ item[1].date }} at {{ item[1].hours }} <br />
+                            {{ item[1].size }} KB
+                          </span>
                         </span>
-                      </button>
+                      </div>
+                      <div class='w-1/6'>
+                        <button
+                          v-on:click="deleteModel(item[1].name)"
+                          class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
+                          :class="{
+                            'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100': isDark,
+                            'text-gray-500 dark:text-primary-light': !isDark,
+                          }"
+                        >
+                          <span>
+                            <svg
+                              class="w-7 h-7"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 17 17"
+                              stroke="currentColor"
+                            >
+                              <path
+                                d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                      <div class='w-1/6'>
+                        <button
+                          v-on:click="downloadModel(item[1].name)"
+                          class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
+                          :class="{
+                            'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100': isDark,
+                            'text-gray-500 dark:text-primary-light': !isDark,
+                          }"
+                        >
+                          <span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-7 w-7"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -730,6 +761,12 @@ export default {
       console.log(modelName);
       this.modelMap.delete(modelName);
       await tf.io.removeModel(modelName);
+    },
+
+    async downloadModel(modelName) {
+      const model = await tf.loadLayersModel(modelName);
+      const suffixName = modelName.split('://')[1];
+      await model.save('downloads://' + suffixName);
     },
   },
   async mounted() {
