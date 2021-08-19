@@ -1,3 +1,4 @@
+
 <template>
   <!-- Upload File Card-->
   <div class="relative">
@@ -10,7 +11,7 @@
       v-on:dragenter="dragEnterHandler"
     >
       <span v-if="nbrClasses > 1" class="text-xl font-semibold">
-        {{ label }}:
+        Label {{ label }}:
       </span>
       <!-- scroll area -->
       <section class="h-full overflow-auto p-8 w-full h-full flex flex-col">
@@ -33,7 +34,7 @@
               v-bind:id="uploadButtonName"
               class="mt-2 p-2 rounded-sm text-white transition-colors duration-200 bg-primary hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
             >
-              Upload files
+              Select files
             </button>
           </div>
         </header>
@@ -188,48 +189,44 @@
 
 <script>
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
-  types.indexOf("Files") > -1;
-
+  types.indexOf('Files') > -1;
 export default {
-  name: "SingleUploadFrame",
+  name: 'SingleUploadFrame',
   props: {
     Id: String,
     Task: Object,
-
     // the file upload manager associated to the task
     fileUploadManager: Object,
-
     // preview is used to know if we have to show a snippet of the uploaded files or not
     preview: Boolean,
-
     // the label associated to the task
     label: String,
   },
   data() {
     return {
-      galleryName: "gallery_"
+      galleryName: 'gallery_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      fileTemplName: "file-template_"
+      fileTemplName: 'file-template_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      imageTemplName: "image-template_"
+      imageTemplName: 'image-template_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      emptyName: "empty_"
+      emptyName: 'empty_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      hiddenInputName: "hidden-input_"
+      hiddenInputName: 'hidden-input_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      uploadButtonName: "uploadButton_"
+      uploadButtonName: 'uploadButton_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
       nbrUploadedFiles: 0,
       fileTempl: null,
@@ -243,42 +240,41 @@ export default {
   },
   methods: {
     addFile(target, file) {
-      const isImage = file.type.match("image.*"),
+      const isImage = file.type.match('image.*'),
         objectURL = URL.createObjectURL(file);
       if (this.preview) {
         const clone = isImage
           ? this.imageTempl.cloneNode(true)
           : this.fileTempl.cloneNode(true);
-
-        clone.querySelector("h1").textContent = file.name;
-        clone.querySelector("li").id = objectURL;
-        clone.querySelector(".delete").dataset.target = objectURL;
-        clone.querySelector(".size").textContent =
+        clone.querySelector('h1').textContent = file.name;
+        clone.querySelector('li').id = objectURL;
+        clone.querySelector('.delete').dataset.target = objectURL;
+        clone.querySelector('.size').textContent =
           file.size > 1024
             ? file.size > 1048576
-              ? Math.round(file.size / 1048576) + "mb"
-              : Math.round(file.size / 1024) + "kb"
-            : file.size + "b";
-
+              ? Math.round(file.size / 1048576) + 'mb'
+              : Math.round(file.size / 1024) + 'kb'
+            : file.size + 'b';
         isImage &&
-          Object.assign(clone.querySelector("img"), {
+          Object.assign(clone.querySelector('img'), {
             src: objectURL,
             alt: file.name,
           });
-
-        this.empty.classList.add("hidden");
+        this.empty.classList.add('hidden');
         target.prepend(clone.firstElementChild);
       }
 
-      this.fileUploadManager.addFile(objectURL, file, this.label);
-      this.nbrUploadedFiles += 1;
-      console.log(this.label);
-    },
+      let label_name = this.label
+      if (this.label == "Images"){
+        label_name = file.name.replace(/\.[^/.]+$/, "")
+      }
 
+      this.fileUploadManager.addFile(objectURL, file, label_name);
+      this.nbrUploadedFiles += 1;
+    },
     // use to drag dragenter and dragleave events.
     // this is to know if the outermost parent is dragged over
     // without issues due to drag events on its children
-
     // reset counter and append file to gallery when file is dropped
     dropHandler(ev) {
       ev.preventDefault();
@@ -287,7 +283,6 @@ export default {
         this.counter = 0;
       }
     },
-
     // only react to actual files being dragged
     dragEnterHandler(e) {
       e.preventDefault();
@@ -296,11 +291,9 @@ export default {
       }
       ++this.counter;
     },
-
     dragLeaveHandler(e) {
       1 > --this.counter;
     },
-
     dragOverHandler(e) {
       if (hasFiles(e)) {
         e.preventDefault();
@@ -314,33 +307,30 @@ export default {
       this.imageTempl = document.getElementById(this.imageTemplName);
       this.empty = document.getElementById(this.emptyName);
     }
-
     // click the hidden input of type file if the visible button is clicked
     // and capture the selected files
     this.hidden = document.getElementById(this.hiddenInputName);
     document.getElementById(this.uploadButtonName).onclick = () =>
       this.hidden.click();
-    this.hidden.onchange = (e) => {
+    this.hidden.onchange = e => {
       for (const file of e.target.files) {
         this.addFile(this.gallery, file);
       }
     };
-
     if (this.preview) {
       // event delegation to caputre delete events
       // fron the waste buckets in the file preview cards
       this.gallery.onclick = ({ target }) => {
-        if (target.classList.contains("delete")) {
+        if (target.classList.contains('delete')) {
           const ou = target.dataset.target;
           document.getElementById(ou).remove(ou);
           this.gallery.children.length === 1 &&
-            this.empty.classList.remove("hidden");
+            this.empty.classList.remove('hidden');
           this.fileUploadManager.deleteFile(ou);
           this.nbrUploadedFiles -= 1;
         }
       };
     }
-
     if (this.Task.trainingInformation.LABEL_LIST) {
       this.nbrClasses = this.Task.trainingInformation.LABEL_LIST.length;
     }
