@@ -111,7 +111,12 @@
 
     <!-- Upload CSV-->
     <div class="relative">
-      <UploadingFrame v-bind:Id="Id"  v-bind:Task="Task" v-bind:fileUploadManager="fileUploadManager" v-if="fileUploadManager" />
+      <UploadingFrame
+        v-bind:Id="Id"
+        v-bind:Task="Task"
+        v-bind:fileUploadManager="fileUploadManager"
+        v-if="fileUploadManager"
+      />
     </div>
 
     <!-- Modification of Header Card -->
@@ -165,12 +170,12 @@
                   <div class="pl-1">
                     <div class="font-medium">
                       <div class="flex flex-row justify-start">
-                        {{ header.id }} 
+                        {{ header.id }}
                       </div>
                     </div>
                   </div>
                   <div>
-                      &larr;
+                    &larr;
                   </div>
                   <div class="mb-3 pt-0">
                     <input
@@ -267,20 +272,18 @@
   </div>
 </template>
 
-
 <script>
-import { mapState } from 'vuex'
-import { TrainingInformant } from "../../helpers/training_script/training_informant";
-import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
-import { TrainingManager } from "../../helpers/training_script/training_manager";
-import { FileUploadManager } from "../../helpers/data_validation_script/file_upload_manager";
-import UploadingFrame from "./UploadingFrame"
-import TrainingInformationFrame from "./TrainingInformationFrame";
-import * as tf from "@tensorflow/tfjs";
-
+import { mapState } from 'vuex';
+import { TrainingInformant } from '../../helpers/training_script/training_informant';
+import { CommunicationManager } from '../../helpers/communication_script/communication_manager';
+import { TrainingManager } from '../../helpers/training_script/training_manager';
+import { FileUploadManager } from '../../helpers/data_validation_script/file_upload_manager';
+import UploadingFrame from './UploadingFrame';
+import TrainingInformationFrame from './TrainingInformationFrame';
+import * as tf from '@tensorflow/tfjs';
 
 export default {
-  name: "CsvTrainingFrame",
+  name: 'CsvTrainingFrame',
   props: {
     Id: String,
     Task: Object,
@@ -289,8 +292,8 @@ export default {
     return {
       // variables for general informations
       modelName: null,
-      dataFormatInfoText: "",
-      dataExampleText: "",
+      dataFormatInfoText: '',
+      dataExampleText: '',
       dataExample: null,
       // headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
@@ -300,37 +303,42 @@ export default {
         10,
         this.Task.trainingInformation.modelId
       ),
-      
-      // takes care of uploading file process 
+
+      // takes care of uploading file process
       fileUploadManager: new FileUploadManager(1, this),
 
-      // assist with the training loop 
+      // assist with the training loop
       trainingManager: null,
-    
-      // take care of communication processes 
-      communicationManager: new CommunicationManager(this.Task.trainingInformation.port), // TO DO: to modularize
+
+      // take care of communication processes
+      communicationManager: new CommunicationManager(
+        this.Task.trainingInformation.port
+      ), // TO DO: to modularize
     };
   },
-  
+
   methods: {
     saveModel() {
-      this.trainingManager.saveModel()
+      this.trainingManager.saveModel();
     },
     async joinTraining(distributed) {
       const nbrFiles = this.fileUploadManager.numberOfFiles();
-      
+
       // Check that the user indeed gave a file
       if (nbrFiles == 0) {
-        alert("Training aborted. No uploaded file given as input.");
+        alert('Training aborted. No uploaded file given as input.');
       } else {
         // Assume we only read the first file
         let file = this.fileUploadManager.getFirstFile();
-        console.log(this.fileUploadManager)
+        console.log(this.fileUploadManager);
 
         let reader = new FileReader();
-        reader.onload = async (e) => {
+        reader.onload = async e => {
           // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-          var processedData = await this.Task.dataPreprocessing(e, this.headers);
+          var processedData = await this.Task.dataPreprocessing(
+            e,
+            this.headers
+          );
           await this.trainingManager.trainModel(distributed, processedData);
         };
         reader.readAsText(file);
@@ -344,15 +352,15 @@ export default {
 
   async mounted() {
     // This method is called when the component is created
-    this.$nextTick(async function () {
+    this.$nextTick(async function() {
       // initialize information variables
       this.modelName = this.Task.trainingInformation.modelId;
 
-      console.log("Mounting" + this.modelName)
+      console.log('Mounting' + this.modelName);
 
       this.dataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
       this.dataExampleText = this.Task.displayInformation.dataExampleText;
-      this.Task.displayInformation.headers.forEach((item) => {
+      this.Task.displayInformation.headers.forEach(item => {
         this.headers.push({ id: item, userHeader: item });
       });
       this.dataExample = this.Task.displayInformation.dataExample;
@@ -360,9 +368,7 @@ export default {
       // initialize the training manager
       this.trainingManager = new TrainingManager(this.Task.trainingInformation);
 
-
-
-      // initialize training informant 
+      // initialize training informant
       this.trainingInformant.initializeCharts();
 
       // initialize communication manager
@@ -371,10 +377,12 @@ export default {
         this
       );
 
-      // initialize training manager 
-      await this.trainingManager.initialization(this.communicationManager, this.trainingInformant, this);
-
-
+      // initialize training manager
+      await this.trainingManager.initialization(
+        this.communicationManager,
+        this.trainingInformant,
+        this
+      );
     });
   },
   async unmounted() {

@@ -208,12 +208,12 @@
 </template>
 
 <script>
-import * as tf from "@tensorflow/tfjs";
-import { getModelInfo } from "../../helpers/my_memory_script/indexedDB_script";
+import * as tf from '@tensorflow/tfjs';
+import { getModelInfo } from '../../helpers/my_memory_script/indexedDB_script';
 
 // Variables used in the script
 export default {
-  name: "DescriptionFrame",
+  name: 'DescriptionFrame',
   props: {
     OverviewText: String,
     LimitationsText: String,
@@ -226,8 +226,8 @@ export default {
       savedModelExists: false,
       readyToTrain: false,
       choicePreModel: false,
-      dateSaved: "",
-      hourSaved: "",
+      dateSaved: '',
+      hourSaved: '',
       isDark: this.getTheme(),
     };
   },
@@ -238,22 +238,22 @@ export default {
         this.readyToTrain = true;
 
         this.$toast.success(
-          "A new "
+          'A new '
             .concat(this.Task.trainingInformation.modelId)
             .concat(` has been created. You can start training!`)
         );
         setTimeout(this.$toast.clear, 30000);
       }
       this.$router.push({
-        name: this.Id+ ".training",
-        params: {Id: this.Id}
+        name: this.Id + '.training',
+        params: { Id: this.Id },
       });
     },
     async deleteModel() {
-      console.log("Delete Model");
+      console.log('Delete Model');
       this.savedModelExists = false;
       await tf.io.removeModel(
-        "indexeddb://saved_".concat(this.Task.trainingInformation.modelId)
+        'indexeddb://saved_'.concat(this.Task.trainingInformation.modelId)
       );
     },
 
@@ -264,7 +264,7 @@ export default {
         this.readyToTrain = true;
 
         this.$toast.success(
-          "The "
+          'The '
             .concat(this.Task.trainingInformation.modelId)
             .concat(` has been loaded. You can start training!`)
         );
@@ -273,10 +273,12 @@ export default {
     },
 
     async loadSavedModel() {
-      const savedModelPath = "indexeddb://".concat("saved_".concat(this.Task.trainingInformation.modelId));
+      const savedModelPath = 'indexeddb://'.concat(
+        'saved_'.concat(this.Task.trainingInformation.modelId)
+      );
       var savedModel = await tf.loadLayersModel(savedModelPath);
 
-      const savePathDb = "indexeddb://working_".concat(
+      const savePathDb = 'indexeddb://working_'.concat(
         this.Task.trainingInformation.modelId
       );
       await savedModel.save(savePathDb);
@@ -285,31 +287,31 @@ export default {
     async createNewModel() {
       await this.Task.createModel();
     },
-    getTheme: function () {
-      if (window.localStorage.getItem("dark")) {
-        return JSON.parse(window.localStorage.getItem("dark"));
+    getTheme: function() {
+      if (window.localStorage.getItem('dark')) {
+        return JSON.parse(window.localStorage.getItem('dark'));
       }
       return (
         !!window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
+        window.matchMedia('(prefers-color-scheme: dark)').matches
       );
     },
   },
   async mounted() {
     // This method is called when the component is created
-    this.$nextTick(async function () {
-      let saveName = "saved_".concat(this.Task.trainingInformation.modelId);
+    this.$nextTick(async function() {
+      let saveName = 'saved_'.concat(this.Task.trainingInformation.modelId);
       let modelInfo = await getModelInfo(saveName);
 
       if (modelInfo != undefined) {
         let date = modelInfo.modelArtifactsInfo.dateSaved;
         this.dateSaved =
           date.getDate() +
-          "/" +
+          '/' +
           (date.getMonth() + 1) +
-          "/" +
+          '/' +
           date.getFullYear();
-        this.hourSaved = date.getHours() + "h" + date.getMinutes();
+        this.hourSaved = date.getHours() + 'h' + date.getMinutes();
         this.savedModelExists = true;
       }
     });

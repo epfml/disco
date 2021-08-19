@@ -1,71 +1,81 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import {defineComponent} from 'vue'
+import { createRouter, createWebHashHistory } from 'vue-router';
+import { defineComponent } from 'vue';
 
-// Some page components 
-import Home from "../components/Home"
-import TaskList from "../components/TaskList"
-import Information from "../components/Information"
-import Trophee from "../components/Trophee"
+// Some page components
+import Home from '../components/Home';
+import TaskList from '../components/TaskList';
+import Information from '../components/Information';
+import Trophee from '../components/Trophee';
 
 // Task's main frames
-import MainTaskFrame from "../components/main_frames/MainTaskFrame"
-import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame"
-import MainTrainingFrame from "../components/main_frames/MainTrainingFrame"
-import MainTestingFrame from "../components/main_frames/MainTestingFrame"
+import MainTaskFrame from '../components/main_frames/MainTaskFrame';
+import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame';
+import MainTrainingFrame from '../components/main_frames/MainTrainingFrame';
+import MainTestingFrame from '../components/main_frames/MainTestingFrame';
 
-// WARNING: temporay code until serialization of Task object 
+// WARNING: temporay code until serialization of Task object
 // Import the tasks objects Here
-import { TitanicTask } from "../task_definition/titanic"
-import { MnistTask } from "../task_definition/mnist"
-import { LusCovidTask } from "../task_definition/lus_covid"
+import { TitanicTask } from '../task_definition/titanic';
+import { MnistTask } from '../task_definition/mnist';
+import { LusCovidTask } from '../task_definition/lus_covid';
 import { CIFAR10Task } from '../task_definition/cifar10';
 
-// define task here 
-var titanicTask = new TitanicTask()
-var mnistTask = new MnistTask()
-var lusCovidTask = new LusCovidTask()
+// define task here
+var titanicTask = new TitanicTask();
+var mnistTask = new MnistTask();
+var lusCovidTask = new LusCovidTask();
 var cifar10Task = new CIFAR10Task();
 
-// notify new task if availabe by adding it to the list of tasks available 
-export const ALL_TASKS = [titanicTask, mnistTask, lusCovidTask, cifar10Task]
-
+// notify new task if availabe by adding it to the list of tasks available
+export const ALL_TASKS = [titanicTask, mnistTask, lusCovidTask, cifar10Task];
 
 var routes = [
   {
     path: '/',
     name: 'home',
-    component: Home
+    component: Home,
   },
   {
     path: '/tasks',
     name: 'tasks',
-    component: TaskList
+    component: TaskList,
   },
   {
-    path: "/information",
+    path: '/information',
     name: 'information',
-    component: Information
+    component: Information,
   },
   {
-    path: "/trophee",
+    path: '/trophee',
     name: 'trophee',
-    component: Trophee
+    component: Trophee,
   },
-]
-
+];
 
 const router = createRouter({
   history: createWebHashHistory(process.env.BASE_URL),
-  routes: routes
-})
+  routes: routes,
+});
 
 for (let index = 0; index < ALL_TASKS.length; index++) {
   const task = ALL_TASKS[index];
 
-  // definition of an extension of the Task related component 
-  var MainDescriptionFrameSp = defineComponent({ extends: MainDescriptionFrame, name: task.trainingInformation.modelId.concat(".description"), key: task.trainingInformation.modelId.concat(".description")})
-  var MainTrainingFrameSp = defineComponent({ extends: MainTrainingFrame, name: task.trainingInformation.modelId.concat(".training"), key: task.trainingInformation.modelId.concat(".training")})
-  var MainTestingFrameSp = defineComponent({ extends: MainTestingFrame, name: task.trainingInformation.modelId.concat(".testing"), key: task.trainingInformation.modelId.concat(".testing")})
+  // definition of an extension of the Task related component
+  var MainDescriptionFrameSp = defineComponent({
+    extends: MainDescriptionFrame,
+    name: task.trainingInformation.modelId.concat('.description'),
+    key: task.trainingInformation.modelId.concat('.description'),
+  });
+  var MainTrainingFrameSp = defineComponent({
+    extends: MainTrainingFrame,
+    name: task.trainingInformation.modelId.concat('.training'),
+    key: task.trainingInformation.modelId.concat('.training'),
+  });
+  var MainTestingFrameSp = defineComponent({
+    extends: MainTestingFrame,
+    name: task.trainingInformation.modelId.concat('.testing'),
+    key: task.trainingInformation.modelId.concat('.testing'),
+  });
 
   // define the task specific route (note: modelId is the route identifier)
   let newTaskRoute = {
@@ -91,13 +101,12 @@ for (let index = 0; index < ALL_TASKS.length; index++) {
         name: task.trainingInformation.modelId.concat('.testing'),
         component: MainTestingFrameSp,
         props: { Id: task.trainingInformation.modelId, Task: task },
-      }
-    ]
-  }
+      },
+    ],
+  };
 
-  // add the Task's route to the component 
-  router.addRoute(newTaskRoute)
+  // add the Task's route to the component
+  router.addRoute(newTaskRoute);
 }
 
-
-export default router
+export default router;

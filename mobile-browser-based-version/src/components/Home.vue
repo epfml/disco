@@ -139,14 +139,14 @@
 </template>
 
 <script>
-import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_script";
+import { initializeIndexedDB } from '../helpers/my_memory_script/indexedDB_script';
 
 export default {
-  name: "taskList",
+  name: 'taskList',
   methods: {
     goToTaskList() {
       this.$router.push({
-        path: "/tasks",
+        path: '/tasks',
       });
     },
   },

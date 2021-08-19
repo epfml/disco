@@ -4,7 +4,6 @@ import { checkData } from '../helpers/data_validation_script/helpers-image-tasks
 import { getTopKClasses } from '../helpers/testing_script/testing_script';
 import Papa from 'papaparse';
 
-
 export class CIFAR10Task {
   constructor() {
     this.displayInformation = displayInformation;
@@ -122,40 +121,38 @@ export class CIFAR10Task {
     );
   }
 
-  async createLabels(filenames,label_file){
+  async createLabels(filenames, label_file) {
     const label_assignment = {
-      "airplane": 0,
-      "automobile": 1,
-      "bird":2,
-      "cat":3,
-      "deer":4,
-      "dog":5,
-      "frog":6,
-      "horse":7,
-      "ship":8,
-      "truck":9,
-    }
-    let labels = new Array(filenames.length)
-    console.log('Reading csv file', label_file)
+      airplane: 0,
+      automobile: 1,
+      bird: 2,
+      cat: 3,
+      deer: 4,
+      dog: 5,
+      frog: 6,
+      horse: 7,
+      ship: 8,
+      truck: 9,
+    };
+    let labels = new Array(filenames.length);
+    console.log('Reading csv file', label_file);
 
-    return new Promise((resolve,reject) => {
-      Papa.parse(label_file,{
-        download: true,	
+    return new Promise((resolve, reject) => {
+      Papa.parse(label_file, {
+        download: true,
         step: function(row) {
           let idx = filenames.indexOf(row.data[0]);
-          if (idx>=0)
-            labels[idx] = label_assignment[row.data[1]]
+          if (idx >= 0) labels[idx] = label_assignment[row.data[1]];
         },
         complete: function() {
-            console.log("Read labels:", labels);
-            resolve(labels)
+          console.log('Read labels:', labels);
+          resolve(labels);
         },
         error(err, file) {
-          reject(err)
-        }
+          reject(err);
+        },
       });
-    })
-
+    });
   }
 
   /**
@@ -169,41 +166,41 @@ export class CIFAR10Task {
     var Xtrain = null;
     var ytrain = null;
 
-    const filenames = []
+    const filenames = [];
     const imageUri = [];
 
-    Object.keys(trainingData).forEach((key) => {
+    Object.keys(trainingData).forEach(key => {
       imageUri.push(key);
       filenames.push(trainingData[key]['label']);
     });
 
     //last file sent over is the csv file, remove from normal training data
     var label_file = imageUri.pop();
-    filenames.pop()
+    filenames.pop();
 
-    let labels_sorted = await this.createLabels(filenames,label_file);
+    let labels_sorted = await this.createLabels(filenames, label_file);
 
     // Do feature preprocessing
     ytrain = this.labelsPreprocessing(labels_sorted);
     const imageTensors = [];
-    console.log('Done preprocessing labels')
-    console.log('Loading images to tensors : ', imageUri.length)
-    console.log('Last image ', imageUri[imageUri.length-1])
+    console.log('Done preprocessing labels');
+    console.log('Loading images to tensors : ', imageUri.length);
+    console.log('Last image ', imageUri[imageUri.length - 1]);
 
     for (let i = 0; i < imageUri.length; ++i) {
-      try{ 
+      try {
         const tensor = await this.imagePreprocessing(imageUri[i]);
-        imageTensors.push(tensor);}
-        catch(err){
-          console.log('Error during tensor loading ', err)
-        }
-      console.log('Image to tensor nr: ', i)
+        imageTensors.push(tensor);
+      } catch (err) {
+        console.log('Error during tensor loading ', err);
+      }
+      console.log('Image to tensor nr: ', i);
     }
-    console.log('Done pushing image to tensor')
+    console.log('Done pushing image to tensor');
 
     Xtrain = tf.concat(imageTensors, 0);
-    console.log('Done converting to tensor')
-      // object to return
+    console.log('Done converting to tensor');
+    // object to return
     return { accepted: true, Xtrain: Xtrain, ytrain: ytrain };
   }
 
@@ -245,9 +242,7 @@ export class CIFAR10Task {
   labelsPreprocessing(labels) {
     const nbLabels = labels.length;
     const labelsOneHotEncoded = [];
-    labels.forEach((label) =>
-      labelsOneHotEncoded.push(this.oneHotEncode(label))
-    );
+    labels.forEach(label => labelsOneHotEncoded.push(this.oneHotEncode(label)));
     return tf.tensor2d(labelsOneHotEncoded, [
       nbLabels,
       this.trainingInformation.LABEL_LIST.length,
@@ -333,19 +328,16 @@ export const displayInformation = {
   taskTitle: 'CIFAR10',
   // {String} informal summary of the task (used by tasks' list)
   summary:
-    "In this challenge, we ask you to classify images into categories based on the objects shown on the image.",
+    'In this challenge, we ask you to classify images into categories based on the objects shown on the image.',
   // {String} simple overview of the task (i.e what is the goal of the model? Why its usefull ...)
   overview:
     'The CIFAR-10 dataset is a collection of images that are commonly used to train machine learning and computer vision algorithms. It is one of the most widely used datasets for machine learning research.',
   // {String} potential limitations of the model
-  limitations:
-    'The training data is limited to small images of size 32x32.',
+  limitations: 'The training data is limited to small images of size 32x32.',
   // {String} trade-offs of the model
-  tradeoffs:
-    'Training success strongly depends on label distribution',
+  tradeoffs: 'Training success strongly depends on label distribution',
   // {String} information about expected data
-  dataFormatInformation:
-    'colorful PNG images of size 32x32',
+  dataFormatInformation: 'colorful PNG images of size 32x32',
   // {String} description of the datapoint given as example
   dataExampleText:
     'Below you can find 10 random examples from each of the 10 classes in the dataset.',
@@ -379,7 +371,7 @@ export const trainingInformation = {
   },
   threshold: 1,
   dataType: 'image',
-  csvLabels: true, 
+  csvLabels: true,
   IMAGE_H: 32,
   IMAGE_W: 32,
   LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],

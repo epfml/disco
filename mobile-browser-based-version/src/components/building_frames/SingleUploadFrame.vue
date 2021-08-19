@@ -1,4 +1,3 @@
-
 <template>
   <!-- Upload File Card-->
   <div class="relative">
@@ -264,9 +263,9 @@ export default {
         target.prepend(clone.firstElementChild);
       }
 
-      let label_name = this.label
-      if (this.label == "Images"){
-        label_name = file.name.replace(/\.[^/.]+$/, "")
+      let label_name = this.label;
+      if (this.label == 'Images') {
+        label_name = file.name.replace(/\.[^/.]+$/, '');
       }
 
       this.fileUploadManager.addFile(objectURL, file, label_name);

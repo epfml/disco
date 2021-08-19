@@ -73,23 +73,23 @@
 </template>
 
 <script>
-import { ALL_TASKS } from "../router/index";
+import { ALL_TASKS } from '../router/index';
 
 export default {
-  name: "taskList",
+  name: 'taskList',
   data() {
     return {
-      taskSelected: "",
-      mnist: "/mnist-model/description",
+      taskSelected: '',
+      mnist: '/mnist-model/description',
       ALL_TASKS: ALL_TASKS,
     };
   },
   methods: {
     goToSelection(id) {
       this.$router.push({
-        name: id.concat(".description"),
-        params: {Id: id}
-      })
+        name: id.concat('.description'),
+        params: { Id: id },
+      });
       /*
       this.$router.push({
         path: "/".concat(id).concat("/description"),

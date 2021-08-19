@@ -598,7 +598,7 @@
 </template>
 
 <script>
-import * as tf from "@tensorflow/tfjs";
+import * as tf from '@tensorflow/tfjs';
 
 export default {
   data: function() {
@@ -615,50 +615,50 @@ export default {
   },
   methods: {
     getTheme: function() {
-      if (window.localStorage.getItem("dark")) {
-        return JSON.parse(window.localStorage.getItem("dark"));
+      if (window.localStorage.getItem('dark')) {
+        return JSON.parse(window.localStorage.getItem('dark'));
       }
       return (
         !!window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
+        window.matchMedia('(prefers-color-scheme: dark)').matches
       );
     },
     getColor: () => {
-      if (window.localStorage.getItem("color")) {
-        return window.localStorage.getItem("color");
+      if (window.localStorage.getItem('color')) {
+        return window.localStorage.getItem('color');
       } else {
-        return "cyan";
+        return 'cyan';
       }
     },
     setTheme: function(value) {
-      window.localStorage.setItem("dark", value);
+      window.localStorage.setItem('dark', value);
     },
     setColors(color) {
       const root = document.documentElement;
-      root.style.setProperty("--color-primary", `var(--color-${color})`);
-      root.style.setProperty("--color-primary-50", `var(--color-${color}-50)`);
+      root.style.setProperty('--color-primary', `var(--color-${color})`);
+      root.style.setProperty('--color-primary-50', `var(--color-${color}-50)`);
       root.style.setProperty(
-        "--color-primary-100",
+        '--color-primary-100',
         `var(--color-${color}-100)`
       );
       root.style.setProperty(
-        "--color-primary-light",
+        '--color-primary-light',
         `var(--color-${color}-light)`
       );
       root.style.setProperty(
-        "--color-primary-lighter",
+        '--color-primary-lighter',
         `var(--color-${color}-lighter)`
       );
       root.style.setProperty(
-        "--color-primary-dark",
+        '--color-primary-dark',
         `var(--color-${color}-dark)`
       );
       root.style.setProperty(
-        "--color-primary-darker",
+        '--color-primary-darker',
         `var(--color-${color}-darker)`
       );
       this.selectedColor = color;
-      window.localStorage.setItem("color", color);
+      window.localStorage.setItem('color', color);
     },
     toggleTheme: function() {
       this.isDark = !this.isDark;
@@ -688,26 +688,26 @@ export default {
       await this.refreshModel();
     },
     goToHome() {
-      this.$router.push({ name: "home" });
+      this.$router.push({ name: 'home' });
     },
     goToTaskList() {
-      this.$router.push({ name: "tasks" });
+      this.$router.push({ name: 'tasks' });
     },
     goToInformation() {
-      this.$router.push({ name: "information" });
+      this.$router.push({ name: 'information' });
     },
     goToTrophee() {
-      this.$router.push({ name: "trophee" });
+      this.$router.push({ name: 'trophee' });
     },
     async refreshModel() {
       var newModelMap = new Map();
-      tf.io.listModels().then((models) => {
+      tf.io.listModels().then(models => {
         for (var key in models) {
           var modelInfo = models[key];
           let date = new Date(modelInfo.dateSaved);
           let dateSaved =
-            date.getDate() + "/" + date.getMonth() + "/" + date.getFullYear();
-          let hourSaved = date.getHours() + "h" + date.getMinutes();
+            date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear();
+          let hourSaved = date.getHours() + 'h' + date.getMinutes();
           let size =
             modelInfo.modelTopologyBytes +
             modelInfo.weightSpecsBytes +
@@ -732,17 +732,17 @@ export default {
     },
   },
   async mounted() {
-    tf.io.listModels().then((models) => {
+    tf.io.listModels().then(models => {
       for (var key in models) {
         var modelInfo = models[key];
         let date = new Date(modelInfo.dateSaved);
         let dateSaved =
           date.getDate() +
-          "/" +
+          '/' +
           (date.getMonth() + 1) +
-          "/" +
+          '/' +
           date.getFullYear();
-        let hourSaved = date.getHours() + "h" + date.getMinutes();
+        let hourSaved = date.getHours() + 'h' + date.getMinutes();
         let size =
           modelInfo.modelTopologyBytes +
           modelInfo.weightSpecsBytes +

@@ -89,7 +89,12 @@
 
     <!-- Upload Image Card -->
     <div class="relative">
-      <UploadingFrame v-bind:Id="Id"  v-bind:Task="Task" v-bind:fileUploadManager="fileUploadManager" v-if="fileUploadManager" />
+      <UploadingFrame
+        v-bind:Id="Id"
+        v-bind:Task="Task"
+        v-bind:fileUploadManager="fileUploadManager"
+        v-if="fileUploadManager"
+      />
     </div>
 
     <!-- Train Button -->
@@ -204,8 +209,8 @@
           <span
             style="white-space: pre-line"
             class="text-sm text-gray-500 dark:text-light"
-            >Once you have finished training your model it might be
-            a great idea to go test it.
+            >Once you have finished training your model it might be a great idea
+            to go test it.
           </span>
         </div>
         <div class="flex items-center justify-center p-4">
@@ -222,20 +227,19 @@
   </div>
 </template>
 
-
 <script>
-import { TrainingInformant } from "../../helpers/training_script/training_informant";
-import { CommunicationManager } from "../../helpers/communication_script/communication_manager";
-import { TrainingManager } from "../../helpers/training_script/training_manager";
-import TrainingInformationFrame from "./TrainingInformationFrame";
-import { checkData } from "../../helpers/data_validation_script/helpers-image-tasks";
-import { FileUploadManager } from "../../helpers/data_validation_script/file_upload_manager";
-import UploadingFrame from "./UploadingFrame";
+import { TrainingInformant } from '../../helpers/training_script/training_informant';
+import { CommunicationManager } from '../../helpers/communication_script/communication_manager';
+import { TrainingManager } from '../../helpers/training_script/training_manager';
+import TrainingInformationFrame from './TrainingInformationFrame';
+import { checkData } from '../../helpers/data_validation_script/helpers-image-tasks';
+import { FileUploadManager } from '../../helpers/data_validation_script/file_upload_manager';
+import UploadingFrame from './UploadingFrame';
 
 // manager for the training loop
 var trainingManager = null;
 export default {
-  name: "ImageTrainingFrame",
+  name: 'ImageTrainingFrame',
   props: {
     Id: String,
     Task: Object,
@@ -244,10 +248,10 @@ export default {
     return {
       // variables for general informations
       modelName: null,
-      DataFormatInfoText: "",
-      DataExampleText: "",
+      DataFormatInfoText: '',
+      DataExampleText: '',
       DataExample: null,
-      DataExampleImage: "",
+      DataExampleImage: '',
       // different task labels
       taskLabels: [],
       trainingManager: null,
@@ -261,12 +265,13 @@ export default {
       // manager for the file uploading process
       fileUploadManager: new FileUploadManager(
         this.Task.trainingInformation.LABEL_LIST.length,
-        this,
-      ), 
+        this
+      ),
 
       // take care of communication processes
-      communicationManager: new CommunicationManager(this.Task.trainingInformation.port), // TO DO: to modularize
-
+      communicationManager: new CommunicationManager(
+        this.Task.trainingInformation.port
+      ), // TO DO: to modularize
     };
   },
   methods: {
@@ -279,7 +284,7 @@ export default {
 
       // Check that the user indeed gave a file
       if (filesElement.length == 0) {
-        alert("Training aborted. No uploaded file given as input.");
+        alert('Training aborted. No uploaded file given as input.');
       } else {
         this.$toast.success(
           `Thank you for your contribution. Image preprocessing has started`
@@ -289,7 +294,6 @@ export default {
         var processedData = await this.Task.dataPreprocessing(filesElement);
 
         processedData.accepted = (await checkData(filesElement)).accepted;
-
 
         this.$toast.success(
           `Image preprocessing has finished and training has started`
@@ -301,19 +305,18 @@ export default {
     },
 
     getImage(url) {
-      if (url == "") {
+      if (url == '') {
         return null;
       }
 
-      var images = require.context('../../../example_training_data/', false)
-      return images(url)
+      var images = require.context('../../../example_training_data/', false);
+      return images(url);
     },
 
     goToTesting() {
-
-      this.$router.push({ 
-          path: 'testing',
-       });
+      this.$router.push({
+        path: 'testing',
+      });
     },
   },
   components: {
@@ -322,7 +325,7 @@ export default {
   },
   async mounted() {
     // This method is called when the component is created
-    this.$nextTick(async function () {
+    this.$nextTick(async function() {
       // initialize information variables
       this.modelName = this.Task.trainingInformation.modelId;
       this.DataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
@@ -330,7 +333,7 @@ export default {
       this.DataExample = this.Task.displayInformation.dataExample;
       this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
       this.DataExampleImage = this.Task.displayInformation.dataExampleImage;
-      console.log("Mounting" + this.modelName)
+      console.log('Mounting' + this.modelName);
 
       // initialize the training manager
       this.trainingManager = new TrainingManager(this.Task.trainingInformation);
@@ -350,16 +353,19 @@ export default {
         this.trainingInformant,
         this
       );
-
     });
   },
   async activated() {
-    console.log("Activated")
+    console.log('Activated');
     trainingManager = new TrainingManager(this.Task.trainingInformation);
-    await trainingManager.reloadState(this.communicationManager, this.trainingInformant, this)
+    await trainingManager.reloadState(
+      this.communicationManager,
+      this.trainingInformant,
+      this
+    );
   },
   deactivated() {
-    console.log("Deactivated")
+    console.log('Deactivated');
   },
   async unmounted() {
     // close the connection with the server

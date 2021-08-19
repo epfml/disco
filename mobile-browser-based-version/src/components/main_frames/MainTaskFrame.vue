@@ -309,9 +309,12 @@
         </div>
       </aside>
 
-      <div class="flex flex-1 h-screen overflow-y-scroll overflow-x-scroll" v-if="TaskTitle" >
-        <main class="flex-1 overflow-y-scroll" >
-          <router-view v-slot="{ Component }" >
+      <div
+        class="flex flex-1 h-screen overflow-y-scroll overflow-x-scroll"
+        v-if="TaskTitle"
+      >
+        <main class="flex-1 overflow-y-scroll">
+          <router-view v-slot="{ Component }">
             <keep-alive>
               <component :is="Component" />
             </keep-alive>
@@ -338,10 +341,10 @@
 
 <script>
 export default {
-  name: "MainTaskFrame",
+  name: 'MainTaskFrame',
   props: {
-      Id: String,
-      Task: Object,
+    Id: String,
+    Task: Object,
   },
   data() {
     return {
@@ -357,20 +360,19 @@ export default {
         width: window.innerWidth,
         height: window.innerHeight,
       },
-
     };
   },
   methods: {
     goToTraining() {
-      this.$router.push({ 
-          name: this.Task.trainingInformation.modelId + '.training',
-          params: {Id: this.Task.trainingInformation.modelId }
-       });
+      this.$router.push({
+        name: this.Task.trainingInformation.modelId + '.training',
+        params: { Id: this.Task.trainingInformation.modelId },
+      });
     },
     goToModelDescription() {
-      this.$router.push({ 
-          path: 'description',
-       });
+      this.$router.push({
+        path: 'description',
+      });
     },
     async handleResize() {
       this.window.width = window.innerWidth;
@@ -383,49 +385,51 @@ export default {
     },
   },
   async mounted() {
-    this.TaskTitle = this.Task.displayInformation.taskTitle
-    window.addEventListener("resize", this.handleResize);
+    this.TaskTitle = this.Task.displayInformation.taskTitle;
+    window.addEventListener('resize', this.handleResize);
   },
 
   activated() {
-    this.TaskTitle = this.Task.displayInformation.taskTitle
-    let prevState = this.$store.getters.globalTaskFrameState(this.Task.trainingInformation.modelId)
-    
+    this.TaskTitle = this.Task.displayInformation.taskTitle;
+    let prevState = this.$store.getters.globalTaskFrameState(
+      this.Task.trainingInformation.modelId
+    );
+
     if (prevState) {
-      // if previous state exist, load it 
-      this.isActiveModelDesc = prevState.isActiveModelDesc
-      this.openModelDesc = prevState.openModelDesc
-      this.isActiveUploadData = prevState.isActiveUploadData
-      this.openUploadData = prevState.openUploadData
-      this.isActiveModelStatistic = prevState.isActiveModelStatistic
-      this.openModelStatistic = prevState.openModelStatistic
-      this.isSidebarOpen = prevState.isSidebarOpen
+      // if previous state exist, load it
+      this.isActiveModelDesc = prevState.isActiveModelDesc;
+      this.openModelDesc = prevState.openModelDesc;
+      this.isActiveUploadData = prevState.isActiveUploadData;
+      this.openUploadData = prevState.openUploadData;
+      this.isActiveModelStatistic = prevState.isActiveModelStatistic;
+      this.openModelStatistic = prevState.openModelStatistic;
+      this.isSidebarOpen = prevState.isSidebarOpen;
     } else {
       // if previous state does not exist, initilize variable to initial values
-      this.isActiveModelDesc =  false
-      this.openModelDesc = false
-      this.isActiveUploadData =  false
-      this.openUploadData =  false
-      this.isActiveModelStatistic = false
-      this.openModelStatistic = false
-      this.isSidebarOpen =  window.innerWidth <= 1024 ? false : true
+      this.isActiveModelDesc = false;
+      this.openModelDesc = false;
+      this.isActiveUploadData = false;
+      this.openUploadData = false;
+      this.isActiveModelStatistic = false;
+      this.openModelStatistic = false;
+      this.isSidebarOpen = window.innerWidth <= 1024 ? false : true;
     }
   },
   async deactivated() {
     let currentState = {
-        modelId: this.Task.trainingInformation.modelId,
-        isActiveModelDesc: this.isActiveModelDesc,
-        openModelDesc: this.openModelDesc,
-        isActiveUploadData: this.isActiveUploadData,
-        openUploadData: this.openUploadData,
-        isActiveModelStatistic: this.isActiveModelStatistic,
-        openModelStatistic: this.openModelStatistic,
-        isSidebarOpen: this.isSidebarOpen
-    }
-    await this.$store.commit('addGlobalTaskFrameState', currentState)
+      modelId: this.Task.trainingInformation.modelId,
+      isActiveModelDesc: this.isActiveModelDesc,
+      openModelDesc: this.openModelDesc,
+      isActiveUploadData: this.isActiveUploadData,
+      openUploadData: this.openUploadData,
+      isActiveModelStatistic: this.isActiveModelStatistic,
+      openModelStatistic: this.openModelStatistic,
+      isSidebarOpen: this.isSidebarOpen,
+    };
+    await this.$store.commit('addGlobalTaskFrameState', currentState);
   },
   unmounted() {
-    window.removeEventListener("resize", this.handleResize);
+    window.removeEventListener('resize', this.handleResize);
   },
 };
 </script>

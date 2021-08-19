@@ -75,9 +75,10 @@
           </div>
 
           <!-- Data Point Example -->
-          <img 
-          :src="getImage(DataExampleImage)" 
-          v-bind:alt="DataExampleImage">
+          <img
+            :src="getImage(DataExampleImage)"
+            v-bind:alt="DataExampleImage"
+          />
         </div>
       </div>
     </a>
@@ -137,7 +138,7 @@
                     >files anywhere or</span
                   >
                 </p>
-                <input id="hidden-input" type="file" multiple class="hidden"/>
+                <input id="hidden-input" type="file" multiple class="hidden" />
                 <div class="p-4">
                   <button
                     id="button"
@@ -188,7 +189,11 @@
       </button>
     </div>
 
-    <ImagePredictionResultsFrame v-if="gotResults" :classes="classes" :imageElement="imgTested"/>
+    <ImagePredictionResultsFrame
+      v-if="gotResults"
+      :classes="classes"
+      :imageElement="imgTested"
+    />
 
     <div id="predictions"></div>
 
@@ -250,30 +255,29 @@
   </div>
 </template>
 
-
 <script>
-import ImagePredictionResultsFrame from '../building_frames/ImagePredictionResultsFrame'
+import ImagePredictionResultsFrame from '../building_frames/ImagePredictionResultsFrame';
 export default {
   components: {
-    ImagePredictionResultsFrame
+    ImagePredictionResultsFrame,
   },
   props: {
     Id: String,
-    Task: Object
-  }, 
+    Task: Object,
+  },
   data() {
     return {
-      title: "mnist-testing",
-      DataFormatInfoText:"",
-      DataExampleText: "",
-      DataExampleImage: "",
+      title: 'mnist-testing',
+      DataFormatInfoText: '',
+      DataExampleText: '',
+      DataExampleImage: '',
 
       // Different Task Labels
       taskLabels: [],
       IMAGE_HEIGHT: null,
       IMAGE_WIDTH: null,
-  
-      model_name: "",
+
+      model_name: '',
       FILES: {},
       gotResults: false,
       classes: null,
@@ -282,89 +286,95 @@ export default {
     };
   },
   methods: {
-    async test_model(){
-      const filesElement = document.getElementById("hidden-input");
-      console.log(filesElement)
+    async test_model() {
+      const filesElement = document.getElementById('hidden-input');
+      console.log(filesElement);
       let files = filesElement.files;
-      this.expectedFiles = files.length
+      this.expectedFiles = files.length;
 
       // Only process image files (skip non image files)
-      for (let i = 0; i < files.length; ++i){
-        const file = files[i]
-        if (file && file.type.match("image.*")) {
+      for (let i = 0; i < files.length; ++i) {
+        const file = files[i];
+        if (file && file.type.match('image.*')) {
           const objectURL = URL.createObjectURL(file);
-          this.FILES[objectURL] = {name: file.name};
-        } 
+          this.FILES[objectURL] = { name: file.name };
+        }
       }
 
-      this.predict()
+      this.predict();
 
       // Empty input
-      filesElement.value = ''
+      filesElement.value = '';
     },
-  
-    async predict(){
-      const classes = await this.Task.predict(this.FILES)
 
-      const ids = Object.keys(classes)
-      if(ids.length == 1){
-        this.showResults(classes[ids[0]])
+    async predict() {
+      const classes = await this.Task.predict(this.FILES);
+
+      const ids = Object.keys(classes);
+      if (ids.length == 1) {
+        this.showResults(classes[ids[0]]);
         this.$toast.success(`Predictions are available below.`);
-      }else{
-        this.predictions = classes
-        this.downloadPredictionsCsv()
+      } else {
+        this.predictions = classes;
+        this.downloadPredictionsCsv();
         this.$toast.success(`Predictions have been downloaded.`);
       }
-      
-      setTimeout(this.$toast.clear, 30000)
+
+      setTimeout(this.$toast.clear, 30000);
     },
 
     showResults(classes) {
-      this.classes = classes
-      this.gotResults = true
+      this.classes = classes;
+      this.gotResults = true;
     },
-    downloadPredictionsCsv(){
-      console.log(this.predictions)
-      let pred = ""
-      let header_length = 0
-      for (const [id, prediction] of Object.entries(this.predictions)){
-        header_length = prediction.length
-        pred += id + ","+ prediction.map(dict => dict["className"]+","+dict["probability"]).join(',')+"\n"
+    downloadPredictionsCsv() {
+      console.log(this.predictions);
+      let pred = '';
+      let header_length = 0;
+      for (const [id, prediction] of Object.entries(this.predictions)) {
+        header_length = prediction.length;
+        pred +=
+          id +
+          ',' +
+          prediction
+            .map(dict => dict['className'] + ',' + dict['probability'])
+            .join(',') +
+          '\n';
       }
 
-      let header="id,"
-      for (let i = 1; i <= header_length;++i){
-        header += "top"+i+",probability"
-        if(i!=header_length){
-          header+=","
-        }else{
-          header+="\n"
+      let header = 'id,';
+      for (let i = 1; i <= header_length; ++i) {
+        header += 'top' + i + ',probability';
+        if (i != header_length) {
+          header += ',';
+        } else {
+          header += '\n';
         }
       }
-      const csvContent = header +pred
-      var downloadLink = document.createElement("a");
-      var blob = new Blob(["\ufeff", csvContent]);
+      const csvContent = header + pred;
+      var downloadLink = document.createElement('a');
+      var blob = new Blob(['\ufeff', csvContent]);
       var url = URL.createObjectURL(blob);
       downloadLink.href = url;
-      downloadLink.download = "predictions.csv";
+      downloadLink.download = 'predictions.csv';
 
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
     },
     getImage(url) {
-       if (url==""){
-         return null
-       }
+      if (url == '') {
+        return null;
+      }
 
-       console.log(url)
-       var images = require.context('../../../example_training_data/', false)
-       return images(url)
-     },
+      console.log(url);
+      var images = require.context('../../../example_training_data/', false);
+      return images(url);
+    },
   },
   async mounted() {
     // This method is called when the component is created
-    this.$nextTick(async function () {
+    this.$nextTick(async function() {
       // Code that will run only after the
       // entire view has been rendered
       /**
@@ -372,7 +382,7 @@ export default {
        * LOAD INFORMATION ABOUT THE TASK
        * #######################################
        */
-      // Initialize variables used by the components 
+      // Initialize variables used by the components
       this.model_name = this.Task.trainingInformation.modelId;
       this.DataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
       this.DataExampleText = this.Task.displayInformation.dataExampleText;
@@ -381,31 +391,31 @@ export default {
       this.IMAGE_WIDTH = this.Task.trainingInformation.IMAGE_WIDTH;
       this.taskLabels = this.Task.trainingInformation.taskLabels;
 
-      const imageTempl = document.getElementById("image-template"),
-        empty = document.getElementById("empty");
+      const imageTempl = document.getElementById('image-template'),
+        empty = document.getElementById('empty');
       function addFile(target, file) {
-            const objectURL = URL.createObjectURL(file);
-            const clone = imageTempl.cloneNode(true)
-            clone.querySelector("h1").textContent = file.name;
-            clone.querySelector("li").id = objectURL;
-            clone.querySelector(".delete").dataset.target = objectURL;
-            clone.querySelector(".size").textContent =
-            file.size > 1024
-                ? file.size > 1048576
-                ? Math.round(file.size / 1048576) + "mb"
-                : Math.round(file.size / 1024) + "kb"
-                : file.size + "b";
-            Object.assign(clone.querySelector("img"), {
-                src: objectURL,
-                alt: file.name,
-            });
-            empty.classList.add("hidden");
-            target.prepend(clone.firstElementChild);
+        const objectURL = URL.createObjectURL(file);
+        const clone = imageTempl.cloneNode(true);
+        clone.querySelector('h1').textContent = file.name;
+        clone.querySelector('li').id = objectURL;
+        clone.querySelector('.delete').dataset.target = objectURL;
+        clone.querySelector('.size').textContent =
+          file.size > 1024
+            ? file.size > 1048576
+              ? Math.round(file.size / 1048576) + 'mb'
+              : Math.round(file.size / 1024) + 'kb'
+            : file.size + 'b';
+        Object.assign(clone.querySelector('img'), {
+          src: objectURL,
+          alt: file.name,
+        });
+        empty.classList.add('hidden');
+        target.prepend(clone.firstElementChild);
       }
-      const gallery = document.getElementById("gallery")
-      const hidden = document.getElementById("hidden-input");
-      document.getElementById("button").onclick = () => hidden.click();
-      hidden.onchange = (e) => {
+      const gallery = document.getElementById('gallery');
+      const hidden = document.getElementById('hidden-input');
+      document.getElementById('button').onclick = () => hidden.click();
+      hidden.onchange = e => {
         for (const file of e.target.files) {
           addFile(gallery, file);
         }
@@ -413,7 +423,7 @@ export default {
       /**
        * Returns the CSS colors graphs should be rendered in
        */
-      const cssColors = (color) => {
+      const cssColors = color => {
         return getComputedStyle(document.documentElement).getPropertyValue(
           color
         );
@@ -422,7 +432,7 @@ export default {
        * Returns the colors depending on user's choice graphs should be rendered in
        */
       const getColor = () => {
-        return window.localStorage.getItem("color") ?? "cyan";
+        return window.localStorage.getItem('color') ?? 'cyan';
       };
       // Initilization of the color's constant
       // TO DO: add listeners to modify color when changement added
