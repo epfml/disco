@@ -27,7 +27,9 @@
         </div>
         <!-- Descrition -->
         <div class="relative p-4">
-          <span class="text-sm text-gray-500 dark:text-light"><span v-html="OverviewText"></span></span>
+          <span class="text-sm text-gray-500 dark:text-light"
+            ><span v-html="OverviewText"></span
+          ></span>
         </div>
       </div>
     </div>
@@ -46,7 +48,6 @@
           </h4>
           <div class="flex items-center">
             <span aria-hidden="true">
-
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="bi h-7 w-7"

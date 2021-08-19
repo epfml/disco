@@ -350,7 +350,7 @@ export default {
   async mounted() {
     tippy('button', {
       theme: 'custom-dark',
-      content: (reference) => reference.getAttribute('data-title'),
+      content: reference => reference.getAttribute('data-title'),
       onMount(instance) {
         instance.popperInstance.setOptions({
           placement: instance.reference.getAttribute('data-placement'),
@@ -360,8 +360,8 @@ export default {
 
     window.setInterval(async () => {
       await this.communicationManager.updateReceivers();
-      this.num_peers = this.communicationManager.receivers.length
-    }, 2000)
+      this.num_peers = this.communicationManager.receivers.length;
+    }, 2000);
     // This method is called when the component is created
     this.$nextTick(async function() {
       // initialize information variables

@@ -30,7 +30,9 @@
                   Build AI with collaborators but
                   <span class="underline">without sharing any data</span>
                 </span>
-                <p class="text-base">- Exchange <span class="italic">models</span> not data</p>
+                <p class="text-base">
+                  - Exchange <span class="italic">models</span> not data
+                </p>
                 <p class="text-base">- Keep data at its source</p>
               </div>
             </div>
@@ -71,7 +73,7 @@ export default {
   name: 'taskList',
   methods: {
     goToTaskList() {
-      this.$emit('gototasks')
+      this.$emit('gototasks');
       this.$router.push({
         path: '/tasks',
       });

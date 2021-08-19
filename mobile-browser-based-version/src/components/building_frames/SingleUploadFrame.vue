@@ -188,10 +188,10 @@
 
 <script>
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
-  types.indexOf("Files") > -1;
+  types.indexOf('Files') > -1;
 
 export default {
-  name: "SingleUploadFrame",
+  name: 'SingleUploadFrame',
   props: {
     Id: String,
     Task: Object,
@@ -207,29 +207,29 @@ export default {
   },
   data() {
     return {
-      galleryName: "gallery_"
+      galleryName: 'gallery_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      fileTemplName: "file-template_"
+      fileTemplName: 'file-template_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      imageTemplName: "image-template_"
+      imageTemplName: 'image-template_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      emptyName: "empty_"
+      emptyName: 'empty_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      hiddenInputName: "hidden-input_"
+      hiddenInputName: 'hidden-input_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
-      uploadButtonName: "uploadButton_"
+      uploadButtonName: 'uploadButton_'
         .concat(String(this.Id))
-        .concat("_")
+        .concat('_')
         .concat(String(this.label)),
       nbrUploadedFiles: 0,
       fileTempl: null,
@@ -243,30 +243,30 @@ export default {
   },
   methods: {
     addFile(target, file) {
-      const isImage = file.type.match("image.*"),
+      const isImage = file.type.match('image.*'),
         objectURL = URL.createObjectURL(file);
       if (this.preview) {
         const clone = isImage
           ? this.imageTempl.cloneNode(true)
           : this.fileTempl.cloneNode(true);
 
-        clone.querySelector("h1").textContent = file.name;
-        clone.querySelector("li").id = objectURL;
-        clone.querySelector(".delete").dataset.target = objectURL;
-        clone.querySelector(".size").textContent =
+        clone.querySelector('h1').textContent = file.name;
+        clone.querySelector('li').id = objectURL;
+        clone.querySelector('.delete').dataset.target = objectURL;
+        clone.querySelector('.size').textContent =
           file.size > 1024
             ? file.size > 1048576
-              ? Math.round(file.size / 1048576) + "mb"
-              : Math.round(file.size / 1024) + "kb"
-            : file.size + "b";
+              ? Math.round(file.size / 1048576) + 'mb'
+              : Math.round(file.size / 1024) + 'kb'
+            : file.size + 'b';
 
         isImage &&
-          Object.assign(clone.querySelector("img"), {
+          Object.assign(clone.querySelector('img'), {
             src: objectURL,
             alt: file.name,
           });
 
-        this.empty.classList.add("hidden");
+        this.empty.classList.add('hidden');
         target.prepend(clone.firstElementChild);
       }
 
@@ -320,7 +320,7 @@ export default {
     this.hidden = document.getElementById(this.hiddenInputName);
     document.getElementById(this.uploadButtonName).onclick = () =>
       this.hidden.click();
-    this.hidden.onchange = (e) => {
+    this.hidden.onchange = e => {
       for (const file of e.target.files) {
         this.addFile(this.gallery, file);
       }
@@ -330,11 +330,11 @@ export default {
       // event delegation to caputre delete events
       // fron the waste buckets in the file preview cards
       this.gallery.onclick = ({ target }) => {
-        if (target.classList.contains("delete")) {
+        if (target.classList.contains('delete')) {
           const ou = target.dataset.target;
           document.getElementById(ou).remove(ou);
           this.gallery.children.length === 1 &&
-            this.empty.classList.remove("hidden");
+            this.empty.classList.remove('hidden');
           this.fileUploadManager.deleteFile(ou);
           this.nbrUploadedFiles -= 1;
         }
