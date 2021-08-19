@@ -518,7 +518,7 @@
                   id="settinsPanelLabel"
                   class="text-xl font-medium text-gray-500 dark:text-light"
                 >
-                  Memory
+                  Library
                 </h2>
               </div>
               <!-- Content -->
