@@ -10,7 +10,7 @@
             class="flex items-center justify-between p-4 border-b dark:border-primary"
           >
             <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-               Connect Data
+              Connect Data
             </h4>
             <div class="flex items-center">
               <span aria-hidden="true">
@@ -92,10 +92,10 @@
 </template>
 
 <script>
-import SingleUploadFrame from "./SingleUploadFrame";
+import SingleUploadFrame from './SingleUploadFrame';
 
 export default {
-  name: "UploadingFrame",
+  name: 'UploadingFrame',
   props: {
     Id: String,
     Task: Object,
@@ -117,7 +117,7 @@ export default {
     } else {
       this.nbrLabels = 1;
     }
-    console.log(this.labels)
+    console.log(this.labels);
   },
 };
 </script>

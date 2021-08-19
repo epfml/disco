@@ -1,9 +1,9 @@
 <template>
-    Under construction ...
+  Under construction ...
 </template>
 
 <script>
 export default {
-    name: "trophee"
-}
+  name: 'trophee',
+};
 </script>

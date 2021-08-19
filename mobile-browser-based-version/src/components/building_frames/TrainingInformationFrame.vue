@@ -248,12 +248,11 @@
       </div>
     </div>
   </div>
-
 </template>
 
 <script>
 export default {
-  name: "TrainingInformationFrame",
+  name: 'TrainingInformationFrame',
   props: {
     trainingInformant: Object,
   },
