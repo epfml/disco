@@ -12,12 +12,12 @@
             <span class="text-primary-dark dark:text-primary-light"
               >Information.</span
             >
-            <br>
-            <br>
+            <br />
+            <br />
             This app was developped in the Machine Learning and Optimization
             Laboratory at EPFL.
-            <br>
-            <br>
+            <br />
+            <br />
             More information about decentralized learning
             <a
               href="https://www.epfl.ch/labs/mlo/"
@@ -25,8 +25,8 @@
               class="text-blue-500 hover:underline"
               >here</a
             >.
-            <br>
-            <br>
+            <br />
+            <br />
             The source code of the app can be found on
             <a
               href="https://github.com/epfml/DeAI"
@@ -34,14 +34,16 @@
               class="text-blue-500 hover:underline"
               >Github</a
             >.
-            <br>
-            <br>
-            Finally, you can join our <a
+            <br />
+            <br />
+            Finally, you can join our
+            <a
               href="https://deai.slack.com/"
               target="_blank"
               class="text-blue-500 hover:underline"
               >Slack</a
-            > page to discuss the app. 
+            >
+            page to discuss the app.
           </h1>
         </div>
       </div>
@@ -67,7 +69,7 @@
 
 <script>
 export default {
-  name: "Information",
+  name: 'Information',
   methods: {
     goToLabPage() {},
   },

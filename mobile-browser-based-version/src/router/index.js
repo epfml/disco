@@ -1,41 +1,38 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import {defineComponent} from 'vue'
+import { createRouter, createWebHashHistory } from 'vue-router';
+import { defineComponent } from 'vue';
 
-// Some page components 
-import Home from "../components/Home"
-import TaskList from "../components/TaskList"
-import Information from "../components/Information"
-import Trophee from "../components/Trophee"
-
+// Some page components
+import Home from '../components/Home';
+import TaskList from '../components/TaskList';
+import Information from '../components/Information';
+import Trophee from '../components/Trophee';
 
 var routes = [
   {
     path: '/',
     name: 'home',
-    component: Home
+    component: Home,
   },
   {
     path: '/tasks',
     name: 'tasks',
-    component: TaskList
+    component: TaskList,
   },
   {
-    path: "/information",
+    path: '/information',
     name: 'information',
-    component: Information
+    component: Information,
   },
   {
-    path: "/trophee",
+    path: '/trophee',
     name: 'trophee',
-    component: Trophee
+    component: Trophee,
   },
-]
-
+];
 
 const router = createRouter({
   history: createWebHashHistory(process.env.BASE_URL),
-  routes: routes
-})
+  routes: routes,
+});
 
-
-export default router
+export default router;

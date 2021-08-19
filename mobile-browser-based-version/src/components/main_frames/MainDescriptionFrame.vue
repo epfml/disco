@@ -4,34 +4,34 @@
   >
     <div>
       <keep-alive>
-      <DescriptionFrame
-        v-bind:OverviewText="OverviewText"
-        v-bind:ModelText="ModelText"
-        v-bind:TradeOffsText="TradeOffsText"
-        v-bind:Id="ModelId"
-        v-bind:Task="Task"
-        v-if="TradeOffsText"
-      />
+        <DescriptionFrame
+          v-bind:OverviewText="OverviewText"
+          v-bind:ModelText="ModelText"
+          v-bind:TradeOffsText="TradeOffsText"
+          v-bind:Id="ModelId"
+          v-bind:Task="Task"
+          v-if="TradeOffsText"
+        />
       </keep-alive>
     </div>
   </div>
 </template>
 <script>
-import DescriptionFrame from "../building_frames/DescriptionFrame";
-import {defineComponent} from 'vue'
+import DescriptionFrame from '../building_frames/DescriptionFrame';
+import { defineComponent } from 'vue';
 
 export default {
-  name: 'MainDescriptionFrame', 
+  name: 'MainDescriptionFrame',
   props: {
     Id: String,
     Task: Object,
   },
   data() {
     return {
-      OverviewText: "",
-      ModelText: "",
-      TradeOffsText: "",
-      ModelId: "",
+      OverviewText: '',
+      ModelText: '',
+      TradeOffsText: '',
+      ModelId: '',
     };
   },
   components: {
@@ -42,7 +42,6 @@ export default {
     this.ModelText = this.Task.displayInformation.model;
     this.TradeOffsText = this.Task.displayInformation.tradeoffs;
     this.ModelId = this.Task.trainingInformation.modelId;
-    
   },
 };
 </script>

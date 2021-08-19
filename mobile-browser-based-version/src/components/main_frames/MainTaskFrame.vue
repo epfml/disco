@@ -365,10 +365,9 @@ export default {
   },
   beforeRouteUpdate(to, from, next) {
     if (to.name.includes('training')) {
-      this.openSidebarMenu('upload_data')
+      this.openSidebarMenu('upload_data');
     }
-    next()
+    next();
   },
-
 };
 </script>

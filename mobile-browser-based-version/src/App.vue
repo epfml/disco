@@ -52,7 +52,12 @@
               data-title="Home"
               data-placement="right"
               class="p-2 transition-colors duration-200 rounded-full hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
-              v-bind:class="[this.activePage === 'home' ? 'bg-primary' : 'bg-primary-50', this.activePage === 'home' ? 'text-white' : 'text-primary-lighter']"
+              v-bind:class="[
+                this.activePage === 'home' ? 'bg-primary' : 'bg-primary-50',
+                this.activePage === 'home'
+                  ? 'text-white'
+                  : 'text-primary-lighter',
+              ]"
             >
               <span class="sr-only">Home</span>
               <svg
@@ -99,7 +104,12 @@
               data-placement="right"
               v-on:click="goToTaskList()"
               class="p-2 transition-colors duration-200 rounded-full hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
-              v-bind:class="[this.activePage === 'tasks' ? 'bg-primary' : 'bg-primary-50', this.activePage === 'tasks' ? 'text-white' : 'text-primary-lighter']"
+              v-bind:class="[
+                this.activePage === 'tasks' ? 'bg-primary' : 'bg-primary-50',
+                this.activePage === 'tasks'
+                  ? 'text-white'
+                  : 'text-primary-lighter',
+              ]"
             >
               <span class="sr-only">Task List</span>
               <svg
@@ -152,7 +162,12 @@
               data-placement="right"
               v-on:click="goToInformation()"
               class="p-2 transition-colors duration-200 rounded-full hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
-              v-bind:class="[this.activePage === 'info' ? 'bg-primary' : 'bg-primary-50', this.activePage === 'info' ? 'text-white' : 'text-primary-lighter']"
+              v-bind:class="[
+                this.activePage === 'info' ? 'bg-primary' : 'bg-primary-50',
+                this.activePage === 'info'
+                  ? 'text-white'
+                  : 'text-primary-lighter',
+              ]"
             >
               <span class="sr-only">Messages</span>
               <svg
@@ -201,7 +216,6 @@
                 />
               </svg>
             </a>
-
           </div>
         </nav>
       </aside>
@@ -688,7 +702,7 @@ export default {
     },
     async refreshModel() {
       var newModelMap = new Map();
-      tf.io.listModels().then((models) => {
+      tf.io.listModels().then(models => {
         for (var key in models) {
           var modelInfo = models[key];
           let date = new Date(modelInfo.dateSaved);
@@ -723,14 +737,14 @@ export default {
       theme: 'custom-dark',
       delay: 0,
       duration: 0,
-      content: (reference) => reference.getAttribute('data-title'),
+      content: reference => reference.getAttribute('data-title'),
       onMount(instance) {
         instance.popperInstance.setOptions({
           placement: instance.reference.getAttribute('data-placement'),
         });
       },
     });
-    tf.io.listModels().then((models) => {
+    tf.io.listModels().then(models => {
       for (var key in models) {
         var modelInfo = models[key];
         let date = new Date(modelInfo.dateSaved);

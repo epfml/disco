@@ -1,10 +1,7 @@
-const colors = require('tailwindcss/colors')
+const colors = require('tailwindcss/colors');
 
 module.exports = {
-  purge: [
-  './public/**/*.html',
-  './src/**/*.vue',
-  ],
+  purge: ['./public/**/*.html', './src/**/*.vue'],
   darkMode: 'class', // or 'media' or false
   theme: {
     fontFamily: {
@@ -15,7 +12,7 @@ module.exports = {
       md: '16px',
       lg: '24px',
       xl: '48px',
-     },
+    },
     extend: {
       colors: {
         light: 'var(--light)',
@@ -79,9 +76,7 @@ module.exports = {
     },
   },
   variants: {
-    extend: {
-     
-    },
+    extend: {},
   },
   plugins: [],
-}
+};
