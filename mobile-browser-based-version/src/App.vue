@@ -765,7 +765,7 @@ export default {
 
     async downloadModel(modelName) {
       const model = await tf.loadLayersModel(modelName);
-      const suffixName = modelName.split('://')[1];
+      const suffixName = modelName.split('://').pop();
       await model.save('downloads://' + suffixName);
     },
   },
