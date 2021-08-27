@@ -77,6 +77,7 @@ import MainTestingFrame from '../components/main_frames/MainTestingFrame';
 import { TitanicTask } from '../task_definition/titanic';
 import { MnistTask } from '../task_definition/mnist';
 import { LusCovidTask } from '../task_definition/lus_covid';
+import { Cifar10Task } from '../task_definition/cifar10';
 
 import { defineComponent } from 'vue';
 
@@ -128,6 +129,13 @@ export default {
               break;
             case 'lus_covid':
               newTask = new LusCovidTask(
+                task.taskId,
+                task.displayInformation,
+                task.trainingInformation
+              );
+              break;
+            case 'cifar10':
+              newTask = new Cifar10Task(
                 task.taskId,
                 task.displayInformation,
                 task.trainingInformation

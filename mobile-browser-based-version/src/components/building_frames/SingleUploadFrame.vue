@@ -270,9 +270,13 @@ export default {
         target.prepend(clone.firstElementChild);
       }
 
-      this.fileUploadManager.addFile(objectURL, file, this.label);
+      let label_name = this.label;
+      if (this.label == 'Images') {
+        label_name = file.name.replace(/\.[^/.]+$/, '');
+      }
+
+      this.fileUploadManager.addFile(objectURL, file, label_name);
       this.nbrUploadedFiles += 1;
-      console.log(this.label);
     },
 
     // use to drag dragenter and dragleave events.
