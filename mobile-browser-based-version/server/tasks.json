@@ -56,7 +56,7 @@
       "dataType": "csv"
     }
   },
-  {
+   {
     "taskId": "mnist",
     "displayInformation": {
       "taskTitle": "MNIST",
@@ -88,8 +88,8 @@
       "IMAGE_W": 28,
       "LABEL_LIST": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     }
-  },
-  {
+  }, 
+   {
     "taskId": "lus_covid",
     "displayInformation": {
       "taskTitle": "COVID Lung Ultrasound",
@@ -124,5 +124,51 @@
       "NUM_CLASSES": 2,
       "dataType": "image"
     }
-  }
+  }, 
+   {
+    "taskId":"cifar10",
+    "displayInformation":  {
+      "taskTitle": "CIFAR10",
+      "summary": "In this challenge, we ask you to classify images into categories based on the objects shown on the image.",
+      "overview": "The CIFAR-10 dataset is a collection of images that are commonly used to train machine learning and computer vision algorithms. It is one of the most widely used datasets for machine learning research.",
+      "limitations": "The training data is limited to small images of size 32x32.",
+      "tradeoffs": "Training success strongly depends on label distribution",
+      "dataFormatInformation": "colorful PNG images of size 32x32",
+      "dataExampleText": "Below you can find 10 random examples from each of the 10 classes in the dataset.",
+      "dataExampleImage": "./cifar10-example.png"
+    },
+    "trainingInformation": {
+      "modelId": "cifar10-model",
+      "port": 9001,
+      "epoch": 10,
+      "validationSplit": 0.2,
+      "batchSize": 30,
+      "modelCompileData": {
+        "optimizer": "rmsprop",
+        "loss": "categoricalCrossentropy",
+        "metrics": ["accuracy"]
+      },
+      "modelTrainData": {
+        "epochs": 10
+      },
+      "threshold": 1,
+      "dataType": "image",
+      "csvLabels": true,
+      "IMAGE_H": 32,
+      "IMAGE_W": 32,
+      "LABEL_LIST": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+      "LABEL_ASSIGNMENT": {
+        "airplane": 0,
+        "automobile": 1,
+        "bird": 2,
+        "cat": 3,
+        "deer": 4,
+        "dog": 5,
+        "frog": 6,
+        "horse": 7,
+        "ship": 8,
+        "truck": 9
+      }
+    }
+  } 
 ]
