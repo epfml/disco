@@ -74,10 +74,8 @@ import MainTestingFrame from '../components/main_frames/MainTestingFrame';
 
 // WARNING: temporay code until serialization of Task object
 // Import the tasks objects Here
-import { TitanicTask } from '../task_definition/titanic';
-import { MnistTask } from '../task_definition/mnist';
-import { LusCovidTask } from '../task_definition/lus_covid';
-
+import { CsvTask } from '../task_definition/csv_task';
+import { ImageTask } from '../task_definition/image_task'
 import { defineComponent } from 'vue';
 
 export default {
@@ -111,23 +109,16 @@ export default {
           console.log(`Processing ${task.taskId}`);
           let newTask;
           // TODO: avoid this switch by having one Task class completely determined by a json config
-          switch (task.taskId) {
-            case 'titanic':
-              newTask = new TitanicTask(
+          switch (task.trainingInformation.dataType) {
+            case 'csv':
+              newTask = new CsvTask(
                 task.taskId,
                 task.displayInformation,
                 task.trainingInformation
               );
               break;
-            case 'mnist':
-              newTask = new MnistTask(
-                task.taskId,
-                task.displayInformation,
-                task.trainingInformation
-              );
-              break;
-            case 'lus_covid':
-              newTask = new LusCovidTask(
+            case 'image':
+              newTask = new ImageTask(
                 task.taskId,
                 task.displayInformation,
                 task.trainingInformation

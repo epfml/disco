@@ -8,7 +8,7 @@ const SCHEME = 'file://';
 async function createTitanicModel() {
     let model = tf.sequential();
     model.add(tf.layers.dense({
-        inputShape: [8],
+        inputShape: [6],
         units: 124,
         activation: 'relu',
         kernelInitializer: 'leCunNormal',
