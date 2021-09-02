@@ -1,6 +1,7 @@
 import * as tf from '@tensorflow/tfjs';
 import { Task } from './task.js';
 import { getTopKClasses } from '../helpers/testing_script/testing_script';
+import Papa from 'papaparse';
 
 export class ImageTask extends Task {
   async loadPretrainedNet() {
@@ -75,7 +76,11 @@ export class ImageTask extends Task {
     });
 
     console.log('User Files Validated. Start parsing.');
-
+    if ('LABEL_ASSIGNMENT' in this.trainingInformation){
+      var label_file = imageUri.pop();
+      labels.pop();
+      labels = await this.createLabels(labels, label_file);
+    }
     const dictImages = {};
     const dictLabels = {};
     let ids = new Set();
@@ -118,7 +123,7 @@ export class ImageTask extends Task {
     ytrain = this.labelsPreprocessing(labels);
     Xtrain = tf.concat(imageTensors, 0);
 
-    return { Xtrain: Xtrain, ytrain: ytrain };
+    return { accepted: true, Xtrain: Xtrain, ytrain: ytrain };
   }
 
   labelsPreprocessing(labels) {
@@ -261,5 +266,33 @@ export class ImageTask extends Task {
     } else {
       console.log('No model has been trained or found!');
     }
+  }
+
+  async createLabels(filenames, label_file) {
+    let labels = new Array(filenames.length);
+    let lnames = this.trainingInformation.LABEL_ASSIGNMENT;
+    console.log('Reading csv file', label_file);
+    console.log(
+      'Using label assignment ',
+      this.trainingInformation.LABEL_ASSIGNMENT
+    );
+    console.log('Filenames', filenames);
+
+    return new Promise((resolve, reject) => {
+      Papa.parse(label_file, {
+        download: true,
+        step: function(row) {
+          let idx = filenames.indexOf(row.data[0]);
+          if (idx >= 0) labels[idx] = lnames[row.data[1]];
+        },
+        complete: function() {
+          console.log('Read labels:', labels);
+          resolve(labels);
+        },
+        error(err, file) {
+          reject(err);
+        },
+      });
+    });
   }
 }
