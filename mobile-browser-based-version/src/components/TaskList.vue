@@ -76,6 +76,7 @@ import MainTestingFrame from '../components/main_frames/MainTestingFrame';
 // Import the tasks objects Here
 import { CsvTask } from '../task_definition/csv_task';
 import { ImageTask } from '../task_definition/image_task'
+
 import { defineComponent } from 'vue';
 
 export default {

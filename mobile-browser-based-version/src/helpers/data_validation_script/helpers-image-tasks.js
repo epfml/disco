@@ -23,7 +23,9 @@ export async function checkData(trainingData, trainingInfo) {
   let nr_imgs = 0;
 
   let files = Object.keys(trainingData);
-
+  if (trainingInfo.LABEL_ASSIGNMENT) {
+    files.pop()
+  }
   for (let index = 0; index < files.length; index++) {
     try {
       var data = await getImage(files[index]);
@@ -36,6 +38,7 @@ export async function checkData(trainingData, trainingInfo) {
     }
   }
 
+  console.log('found imgs and files: ', nr_imgs, files.length)
   if (nr_imgs <= 1 || nr_imgs < files.length) {
     status = false;
   }
