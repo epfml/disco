@@ -765,8 +765,12 @@ export default {
 
     async openTesting(modelName) {
       if (modelName.includes('_')) {
-        const task = modelName.split('_').pop();
-        this.$router.push({name: task.concat('.testing')})
+        const splits = modelName.split('_')
+        const modelId = splits.pop();
+        const task = this.$store.getters.tasks(modelId)
+        const prefix = splits.pop().split('://').pop()
+        task.setModelPrefix(prefix)
+        this.$router.push({name: modelId.concat('.testing')})
       }
     },
 

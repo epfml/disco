@@ -5,6 +5,7 @@ export class Task {
     this.taskId = taskId;
     this.displayInformation = displayInformation;
     this.trainingInformation = trainingInformation;
+    this.modelPrefix = 'working';
   }
 
   async createModel() {
@@ -22,10 +23,15 @@ export class Task {
   }
 
   async getModelFromStorage() {
-    let savePath = 'indexeddb://saved_'.concat(
-      this.trainingInformation.modelId
-    );
+    let savePath = 'indexeddb://'
+      .concat(this.modelPrefix)
+      .concat('_')
+      .concat(this.trainingInformation.modelId);
     let model = await tf.loadLayersModel(savePath);
     return model;
+  }
+
+  setModelPrefix(prefix) {
+    this.modelPrefix = prefix
   }
 }
