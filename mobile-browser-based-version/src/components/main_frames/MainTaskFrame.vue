@@ -212,6 +212,47 @@
                   <span class="ml-2 text-sm"> Model Statistics </span>
                 </a>
               </div>
+
+              <!-- Test Model -->
+              <div>
+                <!-- active classes 'bg-primary-100 dark:bg-primary' -->
+                <a
+                  href="#"
+                  v-on:click="
+                    $event.preventDefault();
+                    openSidebarMenu('test_model');
+                    goToTesting();
+                  "
+                  class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                  :class="{
+                    'bg-primary-100 dark:bg-primary':
+                      isActiveTestModel || openTestModel,
+                  }"
+                  role="button"
+                  aria-haspopup="true"
+                  :aria-expanded="
+                    isActiveTestModel || openTestModel ? 'true' : 'false'
+                  "
+                >
+                  <span aria-hidden="true">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
+                      />
+                    </svg>
+                  </span>
+                  <span class="ml-2 text-sm"> Test your model </span>
+                </a>
+              </div>
             </nav>
           </div>
         </aside>
@@ -221,7 +262,13 @@
           v-if="TaskTitle"
         >
           <main class="flex-1 overflow-y-scroll">
-            <router-view v-slot="{ Component }">
+            <router-view
+              v-on:opened-testing="
+                this.TaskTitle = this.Task.displayInformation.taskTitle;
+                openSidebarMenu('test_model');
+              "
+              v-slot="{ Component }"
+            >
               <keep-alive>
                 <component :is="Component" />
               </keep-alive>
@@ -261,7 +308,9 @@ export default {
       isActiveModelDesc: false,
       openModelDesc: true,
       isActiveUploadData: false,
+      isActiveTestModel: false,
       openUploadData: false,
+      openTestModel: false,
       isActiveModelStatistic: false,
       openModelStatistic: false,
       isSidebarOpen: window.innerWidth <= 1024 ? false : true,
@@ -278,6 +327,12 @@ export default {
     goToTraining() {
       this.$router.push({
         name: this.Task.trainingInformation.modelId + '.training',
+        params: { Id: this.Task.trainingInformation.modelId },
+      });
+    },
+    goToTesting() {
+      this.$router.push({
+        name: this.Task.trainingInformation.modelId + '.testing',
         params: { Id: this.Task.trainingInformation.modelId },
       });
     },
@@ -314,6 +369,7 @@ export default {
       this.openModelDesc = menu === 'model_desc' ? true : false;
       this.openUploadData = menu === 'upload_data' ? true : false;
       this.openModelStatistic = menu === 'model_statistic' ? true : false;
+      this.openTestModel = menu === 'test_model' ? true : false;
     },
   },
   async mounted() {
@@ -332,7 +388,9 @@ export default {
       this.isActiveModelDesc = prevState.isActiveModelDesc;
       this.openModelDesc = prevState.openModelDesc;
       this.isActiveUploadData = prevState.isActiveUploadData;
+      this.isActiveTestModel = prevState.isActiveTestModel;
       this.openUploadData = prevState.openUploadData;
+      this.openTestModel = prevState.openTestModel;
       this.isActiveModelStatistic = prevState.isActiveModelStatistic;
       this.openModelStatistic = prevState.openModelStatistic;
       this.isSidebarOpen = prevState.isSidebarOpen;
@@ -341,7 +399,9 @@ export default {
       this.isActiveModelDesc = false;
       this.openModelDesc = true;
       this.isActiveUploadData = false;
+      this.isActiveTestModel = false;
       this.openUploadData = false;
+      this.openTestModel = false;
       this.isActiveModelStatistic = false;
       this.openModelStatistic = false;
       this.isSidebarOpen = window.innerWidth <= 1024 ? false : true;
@@ -353,7 +413,9 @@ export default {
       isActiveModelDesc: this.isActiveModelDesc,
       openModelDesc: this.openModelDesc,
       isActiveUploadData: this.isActiveUploadData,
+      isActiveTestModel: this.isActiveTestModel,
       openUploadData: this.openUploadData,
+      openTestModel: this.openTestModel,
       isActiveModelStatistic: this.isActiveModelStatistic,
       openModelStatistic: this.openModelStatistic,
       isSidebarOpen: this.isSidebarOpen,
