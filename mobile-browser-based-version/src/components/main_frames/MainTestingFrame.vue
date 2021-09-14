@@ -20,5 +20,8 @@ export default {
   components: {
     ImageTestingFrame,
   },
+  async activated() {
+    this.$emit("opened-testing");
+  },
 };
 </script>
