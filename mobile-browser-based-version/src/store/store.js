@@ -6,6 +6,7 @@ export const store = createStore({
     count: 0,
     globalTaskFrameState: new Array(),
     passwords: new Array(),
+    tasks: new Array(),
   },
   mutations: {
     increment(state) {
@@ -20,6 +21,10 @@ export const store = createStore({
     async addPassword(state, payload) {
       state.passwords[payload.id] = payload.password;
     },
+
+    async addTask(state, payload) {
+      state.tasks[payload.task.trainingInformation.modelId] = payload.task;
+    },
   },
 
   getters: {
@@ -31,6 +36,9 @@ export const store = createStore({
     },
     password: state => taskId => {
       return taskId in state.passwords ? state.passwords[taskId] : null;
+    },
+    tasks: state => modelId => {
+      return state.tasks[modelId];
     },
   },
 });

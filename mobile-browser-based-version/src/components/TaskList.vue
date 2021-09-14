@@ -187,6 +187,9 @@ export default {
           this.$router.addRoute(newTaskRoute);
         }
       });
+      for (let task of this.tasks) {
+        await this.$store.commit('addTask', {task: task});
+      }
   },
 };
 </script>
