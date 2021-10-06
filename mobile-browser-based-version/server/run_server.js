@@ -49,6 +49,8 @@ function eventsHandler(request, response, next) {
       console.log(`${peerId} Connection closed`);
       peers = peers.filter(peer => peer.id !== peerId);
     });
+    // call next middleware
+    next()
   }
 
   function sendNewNeighbours(affectedPeers) {
