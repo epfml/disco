@@ -20,33 +20,29 @@ from selenium.webdriver.common.keys import Keys
 import time
 from selenium.webdriver.common.action_chains import ActionChains
 import os
+import platform
+from webdriver_manager.chrome import ChromeDriverManager
 
+#Platform
+PLATFORM = 'https://epfml.github.io/FeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS  = 3
+NUM_PEERS  = 1
 # Should match the name of the task in the task list and is case sensitive
-TASK_NAME = 'COVID Lung Ultrasound'
+TASK_NAME = 'Titanic'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
 TRAINING_TYPE = 'Train Distributed' 
-# Currently we take the first `NUM_IMAGES` in the folder for each peer. We should make a more complex distribution.
-NUM_IMAGES = 100
-# paths to folders containing covid positive and coivd negative patients
-POSITIVE_CLASS_PATH = r'preprocessed_images\covid-positive'
-NEGATIVE_CLASS_PATH = r'preprocessed_images\covid-negative'
-
-def get_files(directory, num_images):
-    files = []
-    for dirpath,_,filenames in os.walk(directory):
-        for f in filenames:
-            if '.png' in f:
-                files.append(os.path.abspath(os.path.join(dirpath, f)))
-    return ' \n '.join(files[:num_images])
+# paths to the file containing the CSV file of Titanic passengers with 12 columns
+CSV_FILE_PATH = 'train.csv'
 
 # Download and extract chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads
-drivers = [webdriver.Chrome(executable_path=r"chromedriver.exe") for i in range(NUM_PEERS)]
+# Not neccesary after ChromeDriverManager
+op = webdriver.ChromeOptions()
+op.add_argument('headless') 
+drivers = [webdriver.Chrome(ChromeDriverManager().install()) for i in range(NUM_PEERS)]
 
 for driver in drivers:
     # Click 'Start Building' on home page
-    driver.get("https://epfml.github.io/DeAI/#/")
+    driver.get(PLATFORM)
     elements = driver.find_elements_by_tag_name('button')
     for elem in elements:
         if 'Start building' in elem.get_attribute('innerHTML'):
@@ -67,9 +63,8 @@ for driver in drivers:
             elem.click()
 
     # Upload files on Task Training
-    time.sleep(0.5)
-    driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Positive').send_keys(get_files(POSITIVE_CLASS_PATH, NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(get_files(NEGATIVE_CLASS_PATH, NUM_IMAGES))
+    time.sleep(4)
+    driver.find_element_by_id('hidden-input_titanic-model_1').send_keys(os.path.abspath(CSV_FILE_PATH))
 
 # Start training on each driver
 for driver in drivers:
@@ -79,3 +74,17 @@ for driver in drivers:
             driver.execute_script("arguments[0].scrollIntoView();", elem)
             elem.click()
             break
+
+time.sleep(15)
+
+print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_titanic-model').text}")
+print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_titanic-model').text}")
+
+for driver in drivers:
+    driver.quit()
+
+# TODO:
+#    +1. MacOS and linux directory check
+#    +2. Check wheter it's possible to not open UI, DO
+#     3. Graphs
+#     4. More customisation
