@@ -1,12 +1,15 @@
-""" Runs the Titanic task on DeAI or FeAI.
+""" Runs the CIFAR10 task on DeAI or FeAI.
 
 Constants: 
-Use CSV_FILE_PATH to point to the csv data file. 
+Use 'PLATFORM' to choose the platform (FeAI or DeAI)
+Use `IMAGE_FILE_PATH` to point to the data folder. 
+Use `LABEL_FILE_PATH` to point to the csv file. 
+Use `NUM_IMAGES` to limit the number of images per peer to test faster.
 Use `NUM_PEERS` to define the number of peers to run.
 Use `TRAINING_TYPE` to choose between training alone or distributed.
 
 How to run:
-python selenium_script_Titanic.py
+python selenium_script_CIFAR10.py  .py
 """
 
 from selenium import webdriver
@@ -18,21 +21,30 @@ import platform
 from webdriver_manager.chrome import ChromeDriverManager
 
 #Platform
-PLATFORM = 'https://epfml.github.io/FeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
+PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
 NUM_PEERS  = 1
 # Should match the name of the task in the task list and is case sensitive
-TASK_NAME = 'Titanic'
+TASK_NAME = 'CIFAR10'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
 TRAINING_TYPE = 'Train Distributed' 
 # paths to the file containing the CSV file of Titanic passengers with 12 columns
-CSV_FILE_PATH = 'train.csv'
+IMAGE_FILE_PATH = r'preprocessed_images/CIFAR10'
+LABEL_FILE_PATH = 'labels.csv'
 
 # Download and extract chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads
-# Not neccesary after ChromeDriverManager
+# Not neccesary after ChromeDriverManager was imported
 op = webdriver.ChromeOptions()
 op.add_argument('headless') 
 drivers = [webdriver.Chrome(ChromeDriverManager().install(), options=op) for i in range(NUM_PEERS)]
+
+def get_files(directory, num_images):
+    files = []
+    for dirpath,_,filenames in os.walk(directory):
+        for f in filenames:
+            if '.png' in f:
+                files.append(os.path.abspath(os.path.join(dirpath, f)))
+    return ' \n '.join(files[:num_images])
 
 for driver in drivers:
     # Click 'Start Building' on home page
@@ -42,7 +54,7 @@ for driver in drivers:
         if 'Start building' in elem.get_attribute('innerHTML'):
             elem.click()
 
-    # Find Titanic task and click 'Join' on task list page
+    # Find CIFAR10 task and click 'Join' on task list page
     time.sleep(0.5)
     elements = driver.find_elements_by_css_selector('div.group')
     for element in elements:
@@ -58,7 +70,9 @@ for driver in drivers:
 
     # Upload files on Task Training
     time.sleep(4)
-    driver.find_element_by_id('hidden-input_titanic-model_1').send_keys(os.path.abspath(CSV_FILE_PATH))
+    print("Hello \n")
+    driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(get_files(IMAGE_FILE_PATH, 4))
+    driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
 
 # Start training on each driver
 for driver in drivers:
@@ -72,14 +86,8 @@ for driver in drivers:
 time.sleep(15)
 
 #Print out the Accuracy after training
-print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_titanic-model').text}")
-print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_titanic-model').text}")
+print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_cifar10-model').text}")
+print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_cifar10-model').text}")
 
 for driver in drivers:
     driver.quit()
-
-# TODO:
-#    +1. MacOS and linux directory check
-#    +2. Check wheter it's possible to not open UI, DO
-#     3. Graphs
-#     4. More customisation

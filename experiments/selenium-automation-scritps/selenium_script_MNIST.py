@@ -1,18 +1,13 @@
-""" Runs the COVID Lung Ultrasound task on DeAI.
-
-Prerequisites:
-Download a chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads.
-Extract the chromedriver in the current folder.
-Prepare the covid positive and covid negative images in separate folders. 
+""" Runs the MNIST task on DeAI or FeAI.
 
 Constants: 
-Use `POSITIVE_CLASS_PATH` and `NEGATIVE_CLASS_PATH` to point to the two data folders. 
+Use 'DIGIT_CLASS_PATHS' to point to the 9 data folders for each digit. 
 Use `NUM_IMAGES` to limit the number of images per peer to test faster.
 Use `NUM_PEERS` to define the number of peers to run.
 Use `TRAINING_TYPE` to choose between training alone or distributed.
 
 How to run:
-python run_lus_covid.py
+python selenium_script_MNIST.py
 """
 
 from selenium import webdriver
@@ -26,7 +21,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 #Platform
 PLATFORM = 'https://epfml.github.io/FeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS = 2
+NUM_PEERS = 1
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'MNIST'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
@@ -69,7 +64,7 @@ for driver in drivers:
         if 'Start building' in elem.get_attribute('innerHTML'):
             elem.click()
 
-    # Find LUS-Covid task and click 'Join' on task list page
+    # Find MNIST task and click 'Join' on task list page
     time.sleep(0.5)
     elements = driver.find_elements_by_css_selector('div.group')
     for element in elements:
@@ -107,6 +102,7 @@ for driver in drivers:
 
 time.sleep(15)
 
+#Print out the Accuracy after training
 print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_mnist-model').text}")
 print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_mnist-model').text}")
 
