@@ -19,7 +19,7 @@ import platform
 from webdriver_manager.chrome import ChromeDriverManager
 
 #Platform
-PLATFORM = 'https://epfml.github.io/FeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
+PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
 NUM_PEERS = 1
 # Should match the name of the task in the task list and is case sensitive
@@ -79,7 +79,7 @@ for driver in drivers:
             elem.click()
 
     # Upload files on Task Training
-    time.sleep(4)
+    time.sleep(6)
     driver.find_element_by_id('hidden-input_mnist-model_0').send_keys(get_files(DIGIT_CLASS_PATHS[0], NUM_IMAGES))
     driver.find_element_by_id('hidden-input_mnist-model_1').send_keys(get_files(DIGIT_CLASS_PATHS[1], NUM_IMAGES))
     driver.find_element_by_id('hidden-input_mnist-model_2').send_keys(get_files(DIGIT_CLASS_PATHS[2], NUM_IMAGES))
@@ -87,9 +87,9 @@ for driver in drivers:
     driver.find_element_by_id('hidden-input_mnist-model_4').send_keys(get_files(DIGIT_CLASS_PATHS[4], NUM_IMAGES))
     driver.find_element_by_id('hidden-input_mnist-model_5').send_keys(get_files(DIGIT_CLASS_PATHS[5], NUM_IMAGES))
     driver.find_element_by_id('hidden-input_mnist-model_6').send_keys(get_files(DIGIT_CLASS_PATHS[6], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_4').send_keys(get_files(DIGIT_CLASS_PATHS[7], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_5').send_keys(get_files(DIGIT_CLASS_PATHS[8], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_6').send_keys(get_files(DIGIT_CLASS_PATHS[9], NUM_IMAGES))
+    driver.find_element_by_id('hidden-input_mnist-model_7').send_keys(get_files(DIGIT_CLASS_PATHS[7], NUM_IMAGES))
+    driver.find_element_by_id('hidden-input_mnist-model_8').send_keys(get_files(DIGIT_CLASS_PATHS[8], NUM_IMAGES))
+    driver.find_element_by_id('hidden-input_mnist-model_9').send_keys(get_files(DIGIT_CLASS_PATHS[9], NUM_IMAGES))
 
 # Start training on each driver
 for driver in drivers:
@@ -100,17 +100,18 @@ for driver in drivers:
             elem.click()
             break
 
-time.sleep(15)
-
 #Print out the Accuracy after training
-print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_mnist-model').text}")
-print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_mnist-model').text}")
+continue_searcing = True
+
+while continue_searcing:
+    if len(drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']")) > 0:
+        for f in drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']"):
+            # print("Im here")
+            if 'has finished training' in f.text:
+                print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_mnist-model').text}")
+                print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_mnist-model').text}")
+                continue_searcing = False
+                break
 
 for driver in drivers:
     driver.quit()
-
-# TODO:
-#    +1. MacOS and linux directory check
-#    +2. Check wheter it's possible to not open UI, DO
-#     3. Graphs
-#     4. More customisation

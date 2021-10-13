@@ -22,17 +22,18 @@ from selenium.webdriver.common.action_chains import ActionChains
 import os
 import platform
 from webdriver_manager.chrome import ChromeDriverManager
+# from selenium.webdriver.common.by import By
 
 #Platform
-PLATFORM = 'https://epfml.github.io/FeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
+PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS  = 2
+NUM_PEERS  = 1
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'COVID Lung Ultrasound'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
 TRAINING_TYPE = 'Train Distributed' 
 # Currently we take the first `NUM_IMAGES` in the folder for each peer. We should make a more complex distribution.
-NUM_IMAGES = 10
+NUM_IMAGES = 3
 # paths to folders containing covid positive and coivd negative patients
 POSITIVE_CLASS_PATH = ''
 NEGATIVE_CLASS_PATH = ''
@@ -59,6 +60,7 @@ print(platform.system())
 op = webdriver.ChromeOptions()
 op.add_argument('headless') 
 drivers = [webdriver.Chrome(ChromeDriverManager().install(), options=op) for i in range(NUM_PEERS)]
+# drivers = [webdriver.Chrome(ChromeDriverManager().install(), opt) for i in range(NUM_PEERS)]
 
 for driver in drivers:
     # Click 'Start Building' on home page
@@ -68,7 +70,7 @@ for driver in drivers:
         if 'Start building' in elem.get_attribute('innerHTML'):
             elem.click()
 
-    # Find LUS-Covid task and click 'Join' on task list page
+     # Find LUS-Covid task and click 'Join' on task list page
     time.sleep(0.5)
     elements = driver.find_elements_by_css_selector('div.group')
     for element in elements:
@@ -77,13 +79,14 @@ for driver in drivers:
     button.click()
 
     # Click 'Join Training' on Task Description page
+    time.sleep(2)
     elements = driver.find_elements_by_tag_name('button')
     for elem in elements:
         if 'Join Training' in elem.get_attribute('innerHTML'):
             elem.click()
 
     # Upload files on Task Training
-    time.sleep(4)
+    time.sleep(6)
     driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Positive').send_keys(get_files(POSITIVE_CLASS_PATH, NUM_IMAGES))
     driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(get_files(NEGATIVE_CLASS_PATH, NUM_IMAGES))
 
@@ -96,16 +99,17 @@ for driver in drivers:
             elem.click()
             break
 
-time.sleep(15)
+continue_searcing = True
 
-print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_lus-covid-model').text}")
-print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_lus-covid-model').text}")
+while continue_searcing:
+    if len(drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']")) > 0:
+        for f in drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']"):
+            # print("Im here")
+            if 'has finished training' in f.text:
+                print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_lus-covid-model').text}")
+                print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_lus-covid-model').text}")
+                continue_searcing = False
+                break
 
 for driver in drivers:
     driver.quit()
-
-# TODO:
-#    +1. MacOS and linux directory check
-#    +2. Check wheter it's possible to not open UI, DO
-#     3. Graphs
-#     4. More customisation

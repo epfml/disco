@@ -70,7 +70,6 @@ for driver in drivers:
 
     # Upload files on Task Training
     time.sleep(4)
-    print("Hello \n")
     driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(get_files(IMAGE_FILE_PATH, 4))
     driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
 
@@ -83,11 +82,19 @@ for driver in drivers:
             elem.click()
             break
 
-time.sleep(15)
 
 #Print out the Accuracy after training
-print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_cifar10-model').text}")
-print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_cifar10-model').text}")
+continue_searcing = True
+
+while continue_searcing:
+    if len(drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']")) > 0:
+        for f in drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']"):
+            # print("Im here")
+            if 'has finished training' in f.text:
+                print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_cifar10-model').text}")
+                print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_cifar10-model').text}")
+                continue_searcing = False
+                break
 
 for driver in drivers:
     driver.quit()
