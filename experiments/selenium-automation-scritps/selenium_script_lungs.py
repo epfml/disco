@@ -10,6 +10,7 @@ Use `POSITIVE_CLASS_PATH` and `NEGATIVE_CLASS_PATH` to point to the two data fol
 Use `NUM_IMAGES` to limit the number of images per peer to test faster.
 Use `NUM_PEERS` to define the number of peers to run.
 Use `TRAINING_TYPE` to choose between training alone or distributed.
+Use 'DATA_SPLIT' to choose between iid data, randomly partitioned data wiht even size partitions, randomly partitioned data with random size partition
 
 How to run:
 python run_lus_covid.py
@@ -18,22 +19,24 @@ python run_lus_covid.py
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
+import random 
 from selenium.webdriver.common.action_chains import ActionChains
 import os
 import platform
 from webdriver_manager.chrome import ChromeDriverManager
-# from selenium.webdriver.common.by import By
 
-#Platform
+# Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS  = 1
+NUM_PEERS  = 2
+# Defines the way to split the data, could be 'iid', 'parition' for even size partitions, 'rparition' for random size partitions
+DATA_SPLIT = 'rpartition'
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'COVID Lung Ultrasound'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
 TRAINING_TYPE = 'Train Distributed' 
 # Currently we take the first `NUM_IMAGES` in the folder for each peer. We should make a more complex distribution.
-NUM_IMAGES = 3
+NUM_IMAGES = 15
 # paths to folders containing covid positive and coivd negative patients
 POSITIVE_CLASS_PATH = ''
 NEGATIVE_CLASS_PATH = ''
@@ -43,13 +46,37 @@ if platform.system() == 'Linux':
 else:
     POSITIVE_CLASS_PATH = r'preprocessed_images\covid-positive'
     NEGATIVE_CLASS_PATH = r'preprocessed_images\covid-negative'
+
 def get_files(directory, num_images):
     files = []
     for dirpath,_,filenames in os.walk(directory):
         for f in filenames:
             if '.png' in f:
                 files.append(os.path.abspath(os.path.join(dirpath, f)))
-    return ' \n '.join(files[:num_images])
+    return files[:num_images]
+
+def partition(list_in, n):
+    random.shuffle(list_in)
+    return [list_in[i::n] for i in range(n)]
+
+def r_partition(list_in, n):
+    random.shuffle(list_in)
+    partition_indices = []
+    list_out = []
+    for _ in range(n - 1):
+        rand_index = random.randint(1, len(list_in) - 1)
+        while rand_index in partition_indices:
+            rand_index = random.randint(1, len(list_in) - 1)
+        partition_indices.append(rand_index)
+    partition_indices = sorted(partition_indices)
+
+    for i in range(len(partition_indices)):
+        if i == 0:
+            list_out.append(list_in[0:partition_indices[i]])
+        else:
+            list_out.append(list_in[partition_indices[i - 1]:partition_indices[i]])
+    list_out.append(list_in[partition_indices[len(partition_indices) - 1]:])
+    return list_out
 
 print(platform.system())
 
@@ -59,10 +86,20 @@ print(platform.system())
 # drivers = [webdriver.Chrome(executable_path=r"chromedriver.exe") for i in range(NUM_PEERS)]
 op = webdriver.ChromeOptions()
 op.add_argument('headless') 
-drivers = [webdriver.Chrome(ChromeDriverManager().install(), options=op) for i in range(NUM_PEERS)]
+drivers = [webdriver.Chrome(ChromeDriverManager().install()) for i in range(NUM_PEERS)]
 # drivers = [webdriver.Chrome(ChromeDriverManager().install(), opt) for i in range(NUM_PEERS)]
 
-for driver in drivers:
+positive_files = get_files(POSITIVE_CLASS_PATH, NUM_IMAGES)
+negative_files = get_files(NEGATIVE_CLASS_PATH, NUM_IMAGES)
+
+if DATA_SPLIT == 'partition':
+    positive_partitions = partition(positive_files, NUM_PEERS)
+    negative_partitions = partition(negative_files, NUM_PEERS)
+elif DATA_SPLIT == 'rpartition':
+    r_positive_partitions = r_partition(positive_files, NUM_PEERS)
+    r_negative_partitions = r_partition(negative_files, NUM_PEERS)
+
+for index, driver in enumerate(drivers):
     # Click 'Start Building' on home page
     driver.get(PLATFORM)
     elements = driver.find_elements_by_tag_name('button')
@@ -86,9 +123,17 @@ for driver in drivers:
             elem.click()
 
     # Upload files on Task Training
-    time.sleep(6)
-    driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Positive').send_keys(get_files(POSITIVE_CLASS_PATH, NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(get_files(NEGATIVE_CLASS_PATH, NUM_IMAGES))
+    time.sleep(4)
+    if DATA_SPLIT == 'iid':
+        driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Positive').send_keys(' \n '.join(positive_files))
+        driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(' \n '.join(negative_files))
+    elif DATA_SPLIT == 'partition':
+        driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Positive').send_keys(' \n '.join(positive_partitions[index]))
+        driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(' \n '.join(negative_partitions[index]))
+    elif DATA_SPLIT == 'rpartition':
+        driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Positive').send_keys(' \n '.join(r_positive_partitions[index]))
+        driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(' \n '.join(r_negative_partitions[index]))
+
 
 # Start training on each driver
 for driver in drivers:
@@ -113,3 +158,4 @@ while continue_searcing:
 
 for driver in drivers:
     driver.quit()
+
