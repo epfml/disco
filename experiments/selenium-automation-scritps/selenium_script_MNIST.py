@@ -13,6 +13,7 @@ python selenium_script_MNIST.py
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
+import random
 from selenium.webdriver.common.action_chains import ActionChains
 import os
 import platform
@@ -21,14 +22,16 @@ from webdriver_manager.chrome import ChromeDriverManager
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS = 1
+NUM_PEERS = 3
+# Defines the way to split the data, could be 'iid', 'partition' for even size partitions, 'rparition' for random size partitions
+DATA_SPLIT = 'rpartition'
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'MNIST'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
 TRAINING_TYPE = 'Train Distributed' 
 #Number of images to train with
-NUM_IMAGES = 10
-# paths to the file containing the CSV file of Titanic passengers with 12 columns
+NUM_IMAGES = 15
+# Digit folder paths, change to \ for macOS
 DIGIT_CLASS_PATHS = [
     r'preprocessed_images/0',
     r'preprocessed_images/1',
@@ -42,21 +45,52 @@ DIGIT_CLASS_PATHS = [
     r'preprocessed_images/9'
 ]
 
+start_time = time.time()
+
 def get_files(directory, num_images):
     files = []
     for dirpath,_,filenames in os.walk(directory):
         for f in filenames:
             if '.jpg' in f:
                 files.append(os.path.abspath(os.path.join(dirpath, f)))
-    return ' \n '.join(files[:num_images])
+    return files[:num_images]
+
+def partition(list_in, n):
+    random.shuffle(list_in)
+    return [list_in[i::n] for i in range(n)]
+
+def r_partition(list_in, n):
+    random.shuffle(list_in)
+    partition_indices = []
+    list_out = []
+    for _ in range(n - 1):
+        rand_index = random.randint(1, len(list_in) - 1)
+        while rand_index in partition_indices:
+            rand_index = random.randint(1, len(list_in) - 1)
+        partition_indices.append(rand_index)
+    partition_indices = sorted(partition_indices)
+    for i in range(len(partition_indices)):
+        if i == 0:
+            list_out.append(list_in[0:partition_indices[i]])
+        else:
+            list_out.append(list_in[partition_indices[i - 1]:partition_indices[i]])
+    list_out.append(list_in[partition_indices[len(partition_indices) - 1]:])
+    return list_out
 
 # Download and extract chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads
 # Not neccesary after ChromeDriverManager
 op = webdriver.ChromeOptions()
 op.add_argument('headless') 
-drivers = [webdriver.Chrome(ChromeDriverManager().install(), options=op) for i in range(NUM_PEERS)]
+drivers = [webdriver.Chrome(ChromeDriverManager().install()) for i in range(NUM_PEERS)]
 
-for driver in drivers:
+digit_files = [get_files(DIGIT_CLASS_PATHS[i], NUM_IMAGES) for i in range(len(DIGIT_CLASS_PATHS))]
+
+if DATA_SPLIT == 'partition':
+    digit_partitions = [partition(digit_files[i], NUM_PEERS) for i in range(len(digit_files))]
+elif DATA_SPLIT == 'rpartition':
+    digit_r_partitions = [r_partition(digit_files[i], NUM_PEERS) for i in range(len(digit_files))]
+
+for index, driver in enumerate(drivers):
     # Click 'Start Building' on home page
     driver.get(PLATFORM)
     elements = driver.find_elements_by_tag_name('button')
@@ -79,17 +113,16 @@ for driver in drivers:
             elem.click()
 
     # Upload files on Task Training
-    time.sleep(6)
-    driver.find_element_by_id('hidden-input_mnist-model_0').send_keys(get_files(DIGIT_CLASS_PATHS[0], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_1').send_keys(get_files(DIGIT_CLASS_PATHS[1], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_2').send_keys(get_files(DIGIT_CLASS_PATHS[2], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_3').send_keys(get_files(DIGIT_CLASS_PATHS[3], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_4').send_keys(get_files(DIGIT_CLASS_PATHS[4], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_5').send_keys(get_files(DIGIT_CLASS_PATHS[5], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_6').send_keys(get_files(DIGIT_CLASS_PATHS[6], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_7').send_keys(get_files(DIGIT_CLASS_PATHS[7], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_8').send_keys(get_files(DIGIT_CLASS_PATHS[8], NUM_IMAGES))
-    driver.find_element_by_id('hidden-input_mnist-model_9').send_keys(get_files(DIGIT_CLASS_PATHS[9], NUM_IMAGES))
+    time.sleep(8)
+    if DATA_SPLIT == 'iid':
+        for i in range(len(DIGIT_CLASS_PATHS)):
+            driver.find_element_by_id('hidden-input_mnist-model_' + str(i)).send_keys(' \n '.join(get_files(DIGIT_CLASS_PATHS[i], NUM_IMAGES)))
+    elif DATA_SPLIT == 'partition':
+         for i in range(len(DIGIT_CLASS_PATHS)):
+            driver.find_element_by_id('hidden-input_mnist-model_' + str(i)).send_keys(' \n '.join(digit_partitions[i][index]))
+    elif DATA_SPLIT == 'rpartition':
+         for i in range(len(DIGIT_CLASS_PATHS)):
+            driver.find_element_by_id('hidden-input_mnist-model_' + str(i)).send_keys(' \n '.join(digit_r_partitions[i][index]))
 
 # Start training on each driver
 for driver in drivers:
@@ -106,12 +139,13 @@ continue_searcing = True
 while continue_searcing:
     if len(drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']")) > 0:
         for f in drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']"):
-            # print("Im here")
             if 'has finished training' in f.text:
                 print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_mnist-model').text}")
                 print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_mnist-model').text}")
+                print("Training took: %s seconds" % (time.time() - start_time))
                 continue_searcing = False
                 break
 
 for driver in drivers:
     driver.quit()
+

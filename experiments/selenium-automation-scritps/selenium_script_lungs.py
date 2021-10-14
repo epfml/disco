@@ -29,7 +29,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
 NUM_PEERS  = 2
-# Defines the way to split the data, could be 'iid', 'parition' for even size partitions, 'rparition' for random size partitions
+# Defines the way to split the data, could be 'iid', 'partition' for even size partitions, 'rparition' for random size partitions
 DATA_SPLIT = 'rpartition'
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'COVID Lung Ultrasound'
@@ -38,14 +38,15 @@ TRAINING_TYPE = 'Train Distributed'
 # Currently we take the first `NUM_IMAGES` in the folder for each peer. We should make a more complex distribution.
 NUM_IMAGES = 15
 # paths to folders containing covid positive and coivd negative patients
-POSITIVE_CLASS_PATH = ''
-NEGATIVE_CLASS_PATH = ''
+
 if platform.system() == 'Linux':
     POSITIVE_CLASS_PATH = r'preprocessed_images/covid-positive'
     NEGATIVE_CLASS_PATH = r'preprocessed_images/covid-negative'
 else:
     POSITIVE_CLASS_PATH = r'preprocessed_images\covid-positive'
     NEGATIVE_CLASS_PATH = r'preprocessed_images\covid-negative'
+
+start_time = time.time()
 
 def get_files(directory, num_images):
     files = []
@@ -153,9 +154,13 @@ while continue_searcing:
             if 'has finished training' in f.text:
                 print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_lus-covid-model').text}")
                 print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_lus-covid-model').text}")
+                print("Training took: %s seconds" % (time.time() - start_time))
                 continue_searcing = False
                 break
 
 for driver in drivers:
     driver.quit()
 
+
+#TODO:
+#Skewed partitioning
