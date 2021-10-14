@@ -20,6 +20,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 import random 
+import math
 from selenium.webdriver.common.action_chains import ActionChains
 import os
 import platform
@@ -29,8 +30,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
 NUM_PEERS  = 2
-# Defines the way to split the data, could be 'iid', 'partition' for even size partitions, 'rparition' for random size partitions
-DATA_SPLIT = 'rpartition'
+# Defines the way to split the data, could be 'iid', 'partition' for even size partitions, 'rparition' for random size partitions, s_partition for specific size partitions
+DATA_SPLIT = 'spartition'
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'COVID Lung Ultrasound'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
@@ -79,6 +80,24 @@ def r_partition(list_in, n):
     list_out.append(list_in[partition_indices[len(partition_indices) - 1]:])
     return list_out
 
+def s_partition(list_in, ratios):
+    random.shuffle(list_in)
+    list_in = sorted(list_in)
+    partition_indices = []
+    list_out = []
+    for i in range(len(ratios)):
+        curr_slice_index = math.ceil(ratios[i] * len(list_in))
+        if i == 0:
+            partition_indices.append(int(curr_slice_index))
+        else:
+            partition_indices.append(int(partition_indices[i - 1] + curr_slice_index))
+    for i in range(len(partition_indices)):
+        if i == 0:
+            list_out.append(list_in[0:partition_indices[i]])
+        else:
+            list_out.append(list_in[partition_indices[i - 1]:partition_indices[i]])
+    return list_out
+    
 print(platform.system())
 
 # Download and extract chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads
@@ -99,6 +118,10 @@ if DATA_SPLIT == 'partition':
 elif DATA_SPLIT == 'rpartition':
     r_positive_partitions = r_partition(positive_files, NUM_PEERS)
     r_negative_partitions = r_partition(negative_files, NUM_PEERS)
+elif DATA_SPLIT == 'spartition':
+    s_positive_partitions = s_partition(positive_files, [0.5, 0.5])
+    s_negative_partitions = s_partition(negative_files, [0.5, 0.5])
+
 
 for index, driver in enumerate(drivers):
     # Click 'Start Building' on home page
@@ -134,6 +157,10 @@ for index, driver in enumerate(drivers):
     elif DATA_SPLIT == 'rpartition':
         driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Positive').send_keys(' \n '.join(r_positive_partitions[index]))
         driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(' \n '.join(r_negative_partitions[index]))
+    elif DATA_SPLIT == 'spartition':
+        driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Positive').send_keys(' \n '.join(s_positive_partitions[index]))
+        driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(' \n '.join(s_negative_partitions[index]))
+
 
 
 # Start training on each driver
@@ -150,7 +177,6 @@ continue_searcing = True
 while continue_searcing:
     if len(drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']")) > 0:
         for f in drivers[0].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']"):
-            # print("Im here")
             if 'has finished training' in f.text:
                 print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_lus-covid-model').text}")
                 print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_lus-covid-model').text}")
@@ -161,6 +187,3 @@ while continue_searcing:
 for driver in drivers:
     driver.quit()
 
-
-#TODO:
-#Skewed partitioning
