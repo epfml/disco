@@ -7,6 +7,43 @@
         class="flex flex-col items-right justify-start flex-1 h-full min-h-screen overflow-y-auto"
       >
         <section class="flex-col items-center justify-center p-4 space-y-4">
+          <!-- Task Creation -->
+
+          <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1">
+            <!-- Titanic's card-->
+            <div
+              class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker dark:bg-dark"
+            >
+              <div>
+                <h6
+                  class="text-xl font-medium leading-none tracking-wider dark:group-hover:text-darker"
+                >
+                  Create your own task
+                </h6>
+              </div>
+              <div class="ml-10">
+                <ul
+                  class="text-base ont-semibold text-gray-500 dark:text-light"
+                >
+                  <span> My task creation  </span>
+                </ul>
+              </div>
+              <div class="py-2">
+                <span>
+                  <button
+                    v-on:click="goToTaskForm"
+                    type="button"
+                    class="w-1/6 text-lg border-2 border-transparent bg-blue-500 my-2 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
+                  >
+                    Create
+                  </button>
+                </span>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Task List -->
           <div
             v-for="task in tasks"
             :key="task.trainingInformation.modelId"
@@ -101,7 +138,15 @@ export default {
         query: {Id:id}
       });*/
     },
-  },
+    goToTaskForm() {
+      this.$router.push('task-form');
+      /*
+      this.$router.push({
+        path: "/".concat(id).concat("/description"),
+        query: {Id:id}
+      });*/
+    },
+  }, 
   async mounted() {
     let tasks = await fetch(this.tasksUrl)
       .then(response => response.json())
