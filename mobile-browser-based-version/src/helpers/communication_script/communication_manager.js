@@ -46,28 +46,16 @@ export class CommunicationManager {
 
     // create an ID used to connect to the server
     this.peerjsId = await makeid(10);
-    console.log(this.peerjsId);
     // connect to the PeerJS server
-    this.peer = new Peer(this.peerjsId, {
+    /*this.peer = new Peer(this.peerjsId, {
       host: 'localhost',
       port: 8080,
       path: `/deai/${this.taskId}`,
-    });
-  /*  const HOST_CONFIG = IS_LOCAL
-  ? {
-      // default config of peerjs-sever
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-      sdpSemantics: 'unified-plan',
-    }
-  : {
-      iceServers: [
-        { url: 'stun:stun.l.google.com:19302' },
-        { url: 'turn:34.77.172.69:3478', credential: 'deai', username: 'deai' },
-      ],
-    };*/
-    /*this.peer = new Peer(this.peerjsId, {
+    });*/
+ 
+    this.peer = new Peer(this.peerjsId, {
       host: 'deai-313515.ew.r.appspot.com',
-      path: this.path,
+      path: `/deai/${this.taskId}`,
       secure: true,
       config: {
         iceServers: [
@@ -79,7 +67,7 @@ export class CommunicationManager {
           },
         ],
       },
-    });*/
+    });
 
     this.peer.on('error', err => {
       console.log('Error in connecting');
@@ -112,13 +100,13 @@ export class CommunicationManager {
    * Updates the receivers' list.
    */
   async updateReceivers() {
-    let queryIds = await fetch(
-      "http://localhost:".concat(String(8080)).concat(`/deai/${this.taskId}/peerjs/peers`
-    )).then(response => response.text());
-
     /*let queryIds = await fetch(
-    'https://deai-313515.ew.r.appspot.com'.concat('/deai/peerjs/peers')
-    ).then(response => response.text());*/
+      "http://localhost:".concat(String(8080)).concat(`/deai/${this.taskId}/peerjs/peers`
+    )).then(response => response.text());*/
+
+    let queryIds = await fetch(
+    'https://deai-313515.ew.r.appspot.com'.concat(`/deai/${this.taskId}/peerjs/peers`)
+    ).then(response => response.text());
 
     let allIds = JSON.parse(queryIds);
     let id = this.peerjsId;
