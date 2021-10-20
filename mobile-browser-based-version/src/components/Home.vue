@@ -43,6 +43,28 @@
             >
               Start building
             </button>
+
+            <!-- Task Form card-->
+            <div
+              class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker dark:bg-dark"
+            >
+              <div
+                class="ml-10  text-xl text-gray-500 dark:text-light ont-semibold"
+              >
+                <span class="text-primary-dark dark:text-primary-light">
+                  Create you own task
+                </span>
+                <p class="text-base">XXXXXXXXXXX</p>
+                <p class="text-base">XXXXXXXXXXX</p>
+              </div>
+            </div>
+            <button
+              v-on:click="goToTaskForm()"
+              type="button"
+              class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
+            >
+              Create Task
+            </button>
           </div>
         </section>
       </div>
@@ -76,6 +98,12 @@ export default {
       this.$emit('gototasks');
       this.$router.push({
         path: '/tasks',
+      });
+    },
+    goToTaskForm() {
+      this.$emit('gototaskform');
+      this.$router.push({
+        path: '/tasks/form',
       });
     },
   },

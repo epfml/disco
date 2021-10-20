@@ -4,6 +4,7 @@ import { defineComponent } from 'vue';
 // Some page components
 import Home from '../components/Home';
 import TaskList from '../components/TaskList';
+import TaskForm from '../components/TaskForm';
 import Information from '../components/Information';
 import Trophee from '../components/Trophee';
 
@@ -17,6 +18,11 @@ var routes = [
     path: '/tasks',
     name: 'tasks',
     component: TaskList,
+  },
+  { 
+    path: '/tasks/form',
+    name: 'tasks-form',
+    component: TaskForm,
   },
   {
     path: '/information',

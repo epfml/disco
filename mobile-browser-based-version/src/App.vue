@@ -724,6 +724,10 @@ export default {
       this.activePage = 'tasks';
       this.$router.push({ name: 'tasks' });
     },
+    goToTaskForm() {
+      this.activePage = 'task-form';
+      this.$router.push({ name: 'tasks/form' });
+    },
     goToInformation() {
       this.activePage = 'info';
       this.$router.push({ name: 'information' });
