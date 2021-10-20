@@ -12,9 +12,8 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const SERVER_PORT = 8080;
 const START_TASK_PORT = 9000;
 const TASK_PATH = taskId => `/deai/${taskId}`;
-const IS_LOCAL = true;
-const HOST = IS_LOCAL ? `localhost` : 'deai-313515.ew.r.appspot.com';
-const HOST_FULL = port => `http${IS_LOCAL ? '' : 's'}://${HOST}:${String(port)}`;
+const HOST = `localhost` 
+const HOST_FULL = port => `http://${HOST}:${String(port)}`;
 // run models creation
 Promise.all(models.map(createModel => createModel()));
 /**
@@ -52,7 +51,6 @@ _.forEach(
     app.use(
       createProxyMiddleware(TASK_PATH(taskId), {
         target: HOST_FULL(port),
-        //`${HOST_FULL(port)}${TASK_PATH(taskId)}`,
         changeOrigin: true, // needed for virtual hosted sites
         ws: true, // proxy websockets
       })
