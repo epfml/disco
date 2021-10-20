@@ -47,12 +47,12 @@ export class CommunicationManager {
     // create an ID used to connect to the server
     this.peerjsId = await makeid(10);
     // connect to the PeerJS server
-    /*this.peer = new Peer(this.peerjsId, {
-      host: 'localhost',
-      port: 8080,
-      path: `/deai/${this.taskId}`,
-    });*/
- 
+    // this.peer = new Peer(this.peerjsId, {
+    //   host: 'localhost',
+    //   port: 8080,
+    //   path: `/deai/${this.taskId}`,
+    // });
+
     this.peer = new Peer(this.peerjsId, {
       host: 'deai-313515.ew.r.appspot.com',
       path: `/deai/${this.taskId}`,
@@ -100,9 +100,9 @@ export class CommunicationManager {
    * Updates the receivers' list.
    */
   async updateReceivers() {
-    /*let queryIds = await fetch(
-      "http://localhost:".concat(String(8080)).concat(`/deai/${this.taskId}/peerjs/peers`
-    )).then(response => response.text());*/
+    // let queryIds = await fetch(
+    //   "http://localhost:".concat(String(8080)).concat(`/deai/${this.taskId}/peerjs/peers`
+    // )).then(response => response.text());
 
     let queryIds = await fetch(
     'https://deai-313515.ew.r.appspot.com'.concat(`/deai/${this.taskId}/peerjs/peers`)
