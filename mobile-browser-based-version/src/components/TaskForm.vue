@@ -48,6 +48,29 @@
                     v-bind:placeholder="field.default"
                   />
                   </div>
+
+                  <vee-field 
+                    v-else-if="field.type == 'select'" 
+                    as="select"
+                    v-bind:name="field.name"
+                    v-bind:id="field.id"
+                    class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
+                    v-slot="{ value }"
+                    >
+                    <option v-for="option in field.options" :key="option" :value="option" :selected="value && value.includes(option)">{{ option }}</option>
+                  </vee-field>
+
+                  <vee-field 
+                    v-else-if="field.type == 'select-multiple'" 
+                    as="select"
+                    v-bind:name="field.name"
+                    v-bind:id="field.id"
+                    class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
+                    v-slot="{ value }"
+                    multiple
+                    >
+                    <option v-for="option in field.options" :key="option" :value="option" :selected="value && value.includes(option)">{{ option }}</option>
+                  </vee-field>
                   
                   <div v-else>
                   <vee-field 
@@ -122,27 +145,49 @@ export default {
   },
   data() {
     const formSections = [
-      {title:'Display Information', 
-       fields: [
-        {id:'taskId'   ,name:'Task Identifier', yup: yup.string().required(), type: 'text', default: 'minst'},
-        {id:'taskTitle',name:'Title'          , yup: yup.string().required(), type: 'text', default: 'MNIST'},
-        {id:'summary'  ,name:'Summary'        , yup: yup.string().required(), type: 'textarea', default: "Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers."},
-        {id:'overview' ,name:'Overview'       , yup: yup.string().required(), type: 'textarea', default: "The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform."},
-        {id:'model'    ,name:'Model'          , yup: yup.string().required(), type: 'textarea', default: "The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality."},
-        {id:'tradeoffs',name:'Tradeoffs'      , yup: yup.string().required(), type: 'textarea', default: "We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers."},
-        {id:'dataFormatInformation',name: 'Data Format Information' ,yup: yup.string().required(), type: 'textarea', default: "This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input."},
-        {id:'dataExampleText'      ,name: 'Data Example Text'       ,yup: yup.string().required(), type: 'text', default: "Below you can find an example of an expected image representing the digit 9."},
-        {id:'dataExampleImage'     ,name: 'Data Example Image'      ,yup: yup.string().required(), type: 'text', default: "./9-mnist-example.png"},
-       ]  
+      {
+        title:'Display Information', 
+        fields: [
+          {id:'taskId'   ,name:'Task Identifier', yup: yup.string().required(), type: 'text', default: 'minst'},
+          {id:'taskTitle',name:'Title'          , yup: yup.string().required(), type: 'text', default: 'MNIST'},
+          {id:'summary'  ,name:'Summary'        , yup: yup.string().required(), type: 'textarea', default: "Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers."},
+          {id:'overview' ,name:'Overview'       , yup: yup.string().required(), type: 'textarea', default: "The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform."},
+          {id:'model'    ,name:'Model'          , yup: yup.string().required(), type: 'textarea', default: "The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality."},
+          {id:'tradeoffs',name:'Tradeoffs'      , yup: yup.string().required(), type: 'textarea', default: "We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers."},
+          {id:'dataFormatInformation',name: 'Data Format Information' ,yup: yup.string().required(), type: 'textarea', default: "This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input."},
+          {id:'dataExampleText'      ,name: 'Data Example Text'       ,yup: yup.string().required(), type: 'text', default: "Below you can find an example of an expected image representing the digit 9."},
+          {id:'dataExampleImage'     ,name: 'Data Example Image'      ,yup: yup.string().required(), type: 'text', default: "./9-mnist-example.png"},
+        ]  
       },
-      {title:'Training Information',
-      fields:[
-        {id:'modelId', name : 'Model Identifier',yup:yup.string().required(),  type: 'text', default: "mnist-model"}, 
-        {id:'port'   , name : 'Port', yup:yup.number().integer().positive().required(), type: 'number', default:9001},
-        {id:'epoch'  , name : 'Epoch', yup:yup.number().integer().positive().required(), type: 'number', default:10}, 
-        {id:'validationSplit', name:'Validation split', yup:yup.number().positive().lessThan(1).required(), type: 'number', default:0.2}, 
-        {id:'batchSize', name:'Batch size', yup:yup.number().integer().positive().required(), type: 'number', default:30}, 
+      {
+        title:'Training Information',
+        fields:[
+          {id:'modelId', name : 'Model Identifier',yup:yup.string().required(),  type: 'text', default: "mnist-model"}, 
+          {id:'port'   , name : 'Port', yup:yup.number().integer().positive().required(), type: 'number', default:9001},
+          {id:'epoch'  , name : 'Epoch', yup:yup.number().integer().positive().required(), type: 'number', default:10}, 
+          {id:'validationSplit', name:'Validation split', yup:yup.number().positive().lessThan(1).required(), type: 'number', default:0.2}, 
+          {id:'batchSize', name:'Batch size', yup:yup.number().integer().positive().required(), type: 'number', default:30}, 
        ]
+      },
+      { 
+        title:"Model Compile Data",
+        fields:[  
+          {id:'optimizer', name : 'Optimizer', yup: yup.string().required(), type:'select', options:['sgd','momentum','adagrad','adadelta','adam','adamax','rmsprop'],default:"rmsprop"},
+          {id:'loss',      name : 'Loss'     , yup: yup.string().required(), type:'select', options:['absoluteDifference','computeWeightedLoss','cosineDistance','hingeLoss','huberLoss','logLoss','meanSquaredError','sigmoidCrossEntropy','softmaxCrossEntropy'],default:"categoricalCrossentropy"},
+          {id:'metrics'  , name : 'Metrics (multiple can be selected)'  , yup: yup.array().of(yup.string()).min(1).required(), type:'select-multiple', options:['binaryAccuracy','binaryCrossentropy','categoricalAccuracy','categoricalCrossentropy','cosineProximity','meanAbsoluteError','meanAbsolutePercentageError','meanSquaredError','precision','recall','sparseCategoricalAccuracy'],default:["accuracy"]}
+        ]
+      },
+      {
+        title:"Model Train Data",
+        fields:[
+          {id:'epochs',  name:'Epochs',yup : yup.number().integer().positive().required(), type:'number',default:10},
+          {id:'threshold',  name:'Threshold',yup : yup.number().integer().positive().required(), type:'number',default:1},
+          {id:'dataType',  name:'Data Type',yup : yup.string().required(), type:'select', options:['image','csv','other'],default:"image"},
+          {id:'IMAGE_H',  name:'Hight of Image (pixels)',yup : yup.number().integer().positive().required(), type:'number',default:28},
+          {id:'IMAGE_W',  name:'Width of Image (pixels)',yup : yup.number().integer().positive().required(), type:'number',default:28},
+          {id:'LABEL_LIST',  name:'List of labels',yup : yup.array().of(yup.string()).min(1).required(), type:'text',default:["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]},
+          {id:'aggregateImagesById',  name:'Aggregate Images By Id',yup : yup.boolean(), type:'checkout',default:false},
+        ]
       },
     ]
     let schemaData = {};
@@ -191,7 +236,8 @@ export default {
     isRequired(value) {
       return value ? true : 'This field is required';
     },
-    nSubmit(values) {
+    onSubmit(values) {
+      console.log("*****************")
       console.log(JSON.stringify(values, null ,2));
     }
   },
