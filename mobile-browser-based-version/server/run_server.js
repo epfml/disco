@@ -5,6 +5,7 @@ const { makeId } = require('./helpers.js');
 const { models } = require('./models.js');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const tasks = require('./tasks.json');
 // reverse proxy
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -32,9 +33,7 @@ app.listen(SERVER_PORT);
  * Set up server for peerjs
  */
 const ports = _.range(START_TASK_PORT, START_TASK_PORT + tasks.length);
-_.forEach(
-  _.zip(tasks, ports),
-  _.spread((task, port) => {
+const createTaskServer = (task, port) => {
     const taskId = task['taskId'];
     const task_app = express();
     const server = task_app.listen(port);
@@ -46,8 +45,8 @@ _.forEach(
         port: port,
         generateClientId: makeId(12),
         proxied: true,
-      })
-    );
+      }
+      ));
     app.use(
       createProxyMiddleware(TASK_PATH(taskId), {
         target: HOST_FULL(port),
@@ -55,8 +54,12 @@ _.forEach(
         ws: true, // proxy websockets
       })
     );
-  })
-);
+}
+// create a server for each task  
+_.forEach(
+  _.zip(tasks, ports),
+  _.spread(createTaskServer)
+  );
 /**
  * Set up router for tasks
  */
@@ -67,6 +70,23 @@ tasksRouter.get('/', (req, res) => {
 tasksRouter.get('/:id/:file', (req, res) => {
   res.sendFile(path.join(__dirname, req.params['id'], req.params['file']));
 });
+// POST method route
+tasksRouter.post('/', function (req, res) {
+  const newTask = req.body, newPort = START_TASK_PORT + tasks.length;
+  if (newTask['taskId'] in tasks)
+    console.log("Cannot add new task (key is already defined in Tasks.json)");
+  else {
+    // create new task and server
+    ports.push(newPort);
+    tasks.push(newTask);
+    createTaskServer(newTask, newPort);
+    // store results in json file
+    fs.writeFile("./tasks.json", JSON.stringify(tasks),
+      err => {if (err) console.log("Error writing file:", err); });
+    // answer vue app
+    res.end(`Task ${newTask.taskId} successfully added to the platform`);
+  } 
+})
 /**
  * Setup routes in Express app for previously defined servers and routers
  */

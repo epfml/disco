@@ -7,8 +7,13 @@
         class="flex flex-col items-right justify-start flex-1 h-full min-h-screen overflow-y-auto"
       >
         <section class="flex-col items-center justify-center p-4 space-y-4">
-          
-          <vee-form v-slot="{ errors }" @sumbit="onSubmit" :validation-schema="schema">
+          <!-- https://deai-313515.ew.r.appspot.com/tasks/ -->
+          <vee-form 
+            action="http://localhost:8080/tasks/" method="post"
+            v-slot="{ errors }" 
+            @sumbit="submitForm" 
+            :validation-schema="schema"
+          >
           
           
           <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"> 
@@ -41,7 +46,7 @@
                    <vee-field 
                     as="textarea"
                     row=3
-                    v-bind:name="field.name"
+                    v-bind:name="field.id"
                     v-bind:id="field.id"
                     class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
                     v-bind:type="field.type"
@@ -52,7 +57,7 @@
                   <vee-field 
                     v-else-if="field.type == 'select'" 
                     as="select"
-                    v-bind:name="field.name"
+                    v-bind:name="field.id"
                     v-bind:id="field.id"
                     class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
                     v-slot="{ value }"
@@ -63,7 +68,7 @@
                   <vee-field 
                     v-else-if="field.type == 'select-multiple'" 
                     as="select"
-                    v-bind:name="field.name"
+                    v-bind:name="field.id"
                     v-bind:id="field.id"
                     class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
                     v-slot="{ value }"
@@ -74,14 +79,14 @@
                   
                   <div v-else>
                   <vee-field 
-                    v-bind:name="field.name"
+                    v-bind:name="field.id"
                     v-bind:id="field.id"
                     class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
                     v-bind:type="field.type"
                     v-bind:placeholder="field.default"
                   />
                   </div>
-                  <ErrorMessage class="text-red-600" v-bind:name="field.name" />  
+                  <ErrorMessage class="text-red-600" v-bind:name="field.id" />  
                   <span>{{ errors.field }}</span>
 
                 </div>
@@ -90,11 +95,10 @@
           </div>
           <!-- Submit button -->
             <button
-              type="button"
+              type="submit"
               class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
               >Submit</button>
           </div>
-              <pre>{{ values }}</pre>
           </vee-form>
         </section>
       </div>
@@ -132,6 +136,7 @@ import {
   Form as VeeForm, 
   ErrorMessage,
   defineRule, 
+  useForm,
   } from 'vee-validate';
 import * as yup from 'yup';
 
@@ -193,7 +198,8 @@ export default {
     let schemaData = {};
     _.forEach(formSections, 
       s => _.forEach(s.fields,
-        f => schemaData[f.name] = f.yup
+        // explicit yup schema
+        f => schemaData[f.id] = f.yup.label(f.name) //render name instead of id in error message
     ));
     const schema = yup.object(schemaData);
     /*const schema = yup.object({
@@ -231,15 +237,20 @@ export default {
       schema,
     };
   },
+  setup() {
+    const { submitForm } = function() {
+      console.log("******************");
+      useForm();
+      }
+    return {
+      submitForm,
+    };
+  },
   methods: {
     // Validator function
     isRequired(value) {
       return value ? true : 'This field is required';
     },
-    onSubmit(values) {
-      console.log("*****************")
-      console.log(JSON.stringify(values, null ,2));
-    }
   },
 };
 </script>
