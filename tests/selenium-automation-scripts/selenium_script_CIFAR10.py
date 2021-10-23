@@ -12,18 +12,20 @@ How to run:
 python selenium_script_CIFAR10.py  .py
 """
 
+import random
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 from selenium.webdriver.common.action_chains import ActionChains
 import os
 import platform
+import csv
 from webdriver_manager.chrome import ChromeDriverManager
 
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS  = 1
+NUM_PEERS  = 2
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
@@ -36,7 +38,9 @@ LABEL_FILE_PATH = 'labels.csv'
 # Not neccesary after ChromeDriverManager was imported
 op = webdriver.ChromeOptions()
 op.add_argument('headless') 
-drivers = [webdriver.Chrome(ChromeDriverManager().install(), options=op) for i in range(NUM_PEERS)]
+# You can add options=op for chrome headless mode
+# drivers = [webdriver.Chrome(ChromeDriverManager().install(), options=op) for i in range(NUM_PEERS)]
+drivers = [webdriver.Chrome(ChromeDriverManager().install()) for i in range(NUM_PEERS)]
 
 def get_files(directory, num_images):
     files = []
@@ -44,9 +48,34 @@ def get_files(directory, num_images):
         for f in filenames:
             if '.png' in f:
                 files.append(os.path.abspath(os.path.join(dirpath, f)))
-    return ' \n '.join(files[:num_images])
+    return files[:num_images]
 
-for driver in drivers:
+def read_csv(file_path):
+    with open(file_path, newline='') as f:
+        reader = csv.reader(f)
+        results = dict(reader) 
+    return results
+
+def create_csv(dic, name):
+    with open(name, 'w') as f:
+        for key in dic.keys():
+            f.write(f"{key},{dic[key]}\n")
+
+def file_partition(list_in, n):
+    x = list(enumerate(list_in))
+    random.shuffle(x)
+    indices, ls = zip(*x)
+    labels = read_csv(LABEL_FILE_PATH)
+
+    for i in range(n):
+        temp_dic = {str(k): labels[str(k)] for k in indices[i::n]}
+        print(f"tmp = {temp_dic}")
+        create_csv(temp_dic, str(i) + '_partition.csv')
+    return [(ls[i::n]) for i in range(n)]
+
+paritions = file_partition(get_files(IMAGE_FILE_PATH, 4), NUM_PEERS)
+
+for index, driver in enumerate(drivers):
     # Click 'Start Building' on home page
     driver.get(PLATFORM)
     elements = driver.find_elements_by_tag_name('button')
@@ -70,8 +99,8 @@ for driver in drivers:
 
     # Upload files on Task Training
     time.sleep(4)
-    driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(get_files(IMAGE_FILE_PATH, 4))
-    driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
+    driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(paritions[index]))
+    driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(str(index) + '_partition.csv'))
 
 # Start training on each driver
 for driver in drivers:
@@ -98,3 +127,4 @@ while continue_searcing:
 
 for driver in drivers:
     driver.quit()
+
