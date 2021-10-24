@@ -172,5 +172,57 @@
         "truck": 9
       }
     }
+  },
+ {
+    "taskId": "ee",
+    "taskTitle": "e",
+    "summary": "e.",
+    "overview": "ett",
+    "model": "eee",
+    "tradeoffs": "et",
+    "dataFormatInformation": "et",
+    "dataExampleText": "t",
+    "dataExampleImage": "e",
+    "modelId": "e",
+    "port": "6",
+    "epoch": "3",
+    "validationSplit": "0.1",
+    "batchSize": "30",
+    "optimizer": "momentum",
+    "loss": "computeWeightedLoss",
+    "metrics": "categoricalCrossentropy",
+    "epochs": "1",
+    "threshold": "1",
+    "dataType": "csv",
+    "IMAGE_H": "1",
+    "IMAGE_W": "1",
+    "LABEL_LIST": "[0]",
+    "aggregateImagesById": "false"
+  },
+  {
+    "taskId": "lllll",
+    "taskTitle": "dldld",
+    "summary": "l",
+    "overview": "l",
+    "model": "l",
+    "tradeoffs": "l",
+    "dataFormatInformation": "l",
+    "dataExampleText": "sss",
+    "dataExampleImage": "lll",
+    "modelId": "s",
+    "port": "86",
+    "epoch": "1",
+    "validationSplit": "0.1",
+    "batchSize": "111",
+    "optimizer": "momentum",
+    "loss": "computeWeightedLoss",
+    "metrics": "categoricalAccuracy",
+    "epochs": "10",
+    "threshold": "1",
+    "dataType": "csv",
+    "IMAGE_H": "1",
+    "IMAGE_W": "1",
+    "LABEL_LIST": "[0]",
+    "aggregateImagesById": "false"
   }
-]
+] 

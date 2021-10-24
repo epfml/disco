@@ -7,10 +7,9 @@
         class="flex flex-col items-right justify-start flex-1 h-full min-h-screen overflow-y-auto"
       >
         <section class="flex-col items-center justify-center p-4 space-y-4">
-          <!-- https://deai-313515.ew.r.appspot.com/tasks/ -->
           <vee-form 
+            v-slot="{errors }" 
             action="http://localhost:8080/tasks/" method="post"
-            v-slot="{ errors }" 
             @sumbit="submitForm" 
             :validation-schema="schema"
           >
@@ -239,8 +238,11 @@ export default {
   },
   setup() {
     const { submitForm } = function() {
-      console.log("******************");
       useForm();
+      this.$emit('gotohome');
+      this.$router.push({
+        path: '/',
+      });
       }
     return {
       submitForm,
@@ -250,7 +252,7 @@ export default {
     // Validator function
     isRequired(value) {
       return value ? true : 'This field is required';
-    },
+    }
   },
 };
 </script>
