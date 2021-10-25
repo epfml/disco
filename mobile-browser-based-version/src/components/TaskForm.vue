@@ -109,12 +109,21 @@
                   </div>
                 </div>
                 <!-- Submit button -->
-                <button
-                  type="submit"
-                  class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
-                >
-                  Submit
-                </button>
+                <div class="w-auto flex space-x-4">
+                  <button
+                    type="submit"
+                    class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 p font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
+                  >
+                    Submit
+                  </button>
+                  <button
+                    type="reset"
+                    ref="resetButton"
+                    class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
+                  >
+                    Reset
+                  </button>
+                </div>
               </div>
             </form>
           </vee-form>
@@ -286,18 +295,6 @@ export default {
       schema,
     };
   },
-  /*setup() {
-    const { submitForm } = function() {
-      useForm();
-      this.$emit('gotohome');
-      this.$router.push({
-        path: '/',
-      });
-      }
-    return {
-      submitForm,
-    };
-  },*/
   methods: {
     onSubmit(values) {
       // Submit values to API...
@@ -307,6 +304,7 @@ export default {
             this.$toast.success(
               `Task ${values.taskId} successfully uploaded on the platform`
             );
+            this.$refs.resetButton.click(); //manual reset of form
             this.goToHome();
           } else {
             this.$toast.error(
@@ -317,7 +315,7 @@ export default {
         },
         (error) => {
           this.$toast.error(
-              `Failed to upload Task ${values.taskId} on the platform`
+            `Failed to upload Task ${values.taskId} on the platform`
           );
           setTimeout(this.$toast.clear, 30000);
           console.log(error);
