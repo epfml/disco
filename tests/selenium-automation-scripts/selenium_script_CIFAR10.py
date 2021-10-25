@@ -18,14 +18,16 @@ from selenium.webdriver.common.keys import Keys
 import time
 from selenium.webdriver.common.action_chains import ActionChains
 import os
-import platform
+import math
 import csv
 from webdriver_manager.chrome import ChromeDriverManager
 
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS  = 2
+NUM_PEERS  = 3
+# Defines the way to split the data, could be 'iid', 'partition' for even size partitions, 'rparition' for random size partitions
+DATA_SPLIT = 'spartition'
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
@@ -103,9 +105,36 @@ def r_parirtion(list_in, n):
         create_csv(temp_dic, str(i) + '_partition.csv')
 
     return list_out
+
+def s_parirtion(list_in, ratios):
+    x = list(enumerate(list_in))
+    random.shuffle(x)
+    indices, ls = zip(*x)
+    labels = read_csv(LABEL_FILE_PATH)
+    partition_indices = []
+    indices_out = [] 
+    list_out = []
+    for i in range(len(ratios)):
+        curr_slice_index = math.ceil(ratios[i] * len(ls))
+        if i == 0:
+            partition_indices.append(int(curr_slice_index))
+        else:
+            partition_indices.append(int(partition_indices[i - 1] + curr_slice_index))
+    for i in range(len(partition_indices)):
+        if i == 0:
+            list_out.append(ls[0:partition_indices[i]])
+            indices_out.append(indices[0:partition_indices[i]])
+        else:
+            list_out.append(ls[partition_indices[i - 1]:partition_indices[i]])
+            indices_out.append(indices[partition_indices[i - 1]:partition_indices[i]])
+    for i in range(len(indices_out)):
+        temp_dic = {str(k): labels[str(k)] for k in indices_out[i]}
+        create_csv(temp_dic, str(i) + '_partition.csv')
+    return list_out
  
-partitions = r_parirtion(get_files(IMAGE_FILE_PATH, 7), NUM_PEERS)
-# paritions = partition(get_files(IMAGE_FILE_PATH, 4), NUM_PEERS)
+partitions = s_parirtion(get_files(IMAGE_FILE_PATH, 7), [4/7, 2/7, 1/7])
+#partitions = r_parirtion(get_files(IMAGE_FILE_PATH, 7), NUM_PEERS)
+#partitions = parirtion(get_files(IMAGE_FILE_PATH, 7), NUM_PEERS)
 
 for index, driver in enumerate(drivers):
     # Click 'Start Building' on home page
