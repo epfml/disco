@@ -61,7 +61,7 @@ def create_csv(dic, name):
         for key in dic.keys():
             f.write(f"{key},{dic[key]}\n")
 
-def file_partition(list_in, n):
+def partition(list_in, n):
     x = list(enumerate(list_in))
     random.shuffle(x)
     indices, ls = zip(*x)
@@ -69,11 +69,43 @@ def file_partition(list_in, n):
 
     for i in range(n):
         temp_dic = {str(k): labels[str(k)] for k in indices[i::n]}
-        print(f"tmp = {temp_dic}")
         create_csv(temp_dic, str(i) + '_partition.csv')
     return [(ls[i::n]) for i in range(n)]
 
-paritions = file_partition(get_files(IMAGE_FILE_PATH, 4), NUM_PEERS)
+def r_parirtion(list_in, n):
+    x = list(enumerate(list_in))
+    random.shuffle(x)
+    indices, ls = zip(*x)
+    labels = read_csv(LABEL_FILE_PATH)
+    partition_indices = []
+    indices_out = [] 
+    list_out = []
+    for _ in range(n - 1):
+        rand_index = random.randint(1, len(list_in) - 1)
+        while rand_index in partition_indices:
+            rand_index = random.randint(1, len(list_in) - 1)
+        partition_indices.append(rand_index)
+    partition_indices = sorted(partition_indices)
+
+    for i in range(len(partition_indices)):
+        if i == 0:
+            list_out.append(ls[0:partition_indices[i]])
+            indices_out.append(indices[0:partition_indices[i]])
+        else:
+            list_out.append(ls[partition_indices[i - 1]:partition_indices[i]])
+            indices_out.append(indices[partition_indices[i - 1]:partition_indices[i]])
+
+    list_out.append(ls[partition_indices[len(partition_indices) - 1]:])
+    indices_out.append(indices[partition_indices[len(partition_indices) - 1]:])
+
+    for i in range(n):
+        temp_dic = {str(k): labels[str(k)] for k in indices_out[i]}
+        create_csv(temp_dic, str(i) + '_partition.csv')
+
+    return list_out
+ 
+partitions = r_parirtion(get_files(IMAGE_FILE_PATH, 7), NUM_PEERS)
+# paritions = partition(get_files(IMAGE_FILE_PATH, 4), NUM_PEERS)
 
 for index, driver in enumerate(drivers):
     # Click 'Start Building' on home page
@@ -99,7 +131,7 @@ for index, driver in enumerate(drivers):
 
     # Upload files on Task Training
     time.sleep(4)
-    driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(paritions[index]))
+    driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(partitions[index]))
     driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(str(index) + '_partition.csv'))
 
 # Start training on each driver
