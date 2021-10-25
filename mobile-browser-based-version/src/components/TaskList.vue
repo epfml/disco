@@ -85,9 +85,14 @@ export default {
     return {
       taskSelected: '',
       mnist: '/mnist-model/description',
-      tasks: [],
+
       tasksUrl: 'https://deai-313515.ew.r.appspot.com/tasks',
     };
+  },
+  computed: {
+    tasks () {
+      return this.$store.getters.tasksList;
+    }
   },
   methods: {
     goToSelection(id) {
@@ -103,7 +108,8 @@ export default {
     },
   },
   async mounted() {
-    let tasks = await fetch(this.tasksUrl)
+    let tasksList = [];
+    await fetch(this.tasksUrl)
       .then(response => response.json())
       .then(tasks => {
         for (let task of tasks) {
@@ -129,7 +135,7 @@ export default {
               console.log('No task object available');
               break;
           }
-          this.tasks.push(newTask);
+          tasksList.push(newTask);
           // Definition of an extension of the task-related component
           var MainDescriptionFrameSp = defineComponent({
             extends: MainDescriptionFrame,
@@ -187,7 +193,7 @@ export default {
           this.$router.addRoute(newTaskRoute);
         }
       });
-      for (let task of this.tasks) {
+      for (let task of tasksList) {
         await this.$store.commit('addTask', {task: task});
       }
   },

@@ -134,7 +134,6 @@ import {
   Field as VeeField, 
   Form as VeeForm, 
   ErrorMessage,
-  defineRule, 
   useForm,
   } from 'vee-validate';
 import * as yup from 'yup';
@@ -201,36 +200,6 @@ export default {
         f => schemaData[f.id] = f.yup.label(f.name) //render name instead of id in error message
     ));
     const schema = yup.object(schemaData);
-    /*const schema = yup.object({
-      taskId: yup.string().required(),
-      //displayInformation 
-      taskTitle: yup.string().required(), 
-      summary:   yup.string().required(), 
-      overview:  yup.string().required(),
-      model:     yup.string().required(), 
-      tradeoffs: yup.string().required(), 
-      dataFormatInformation: yup.string().required(),
-      dataExampleText:  yup.string().required(), 
-      dataExampleImage: yup.string().required(),
-      //trainingInformation
-      modelId: yup.string().required(), //"mnist-model",
-      port:    yup.number().integer().positive().required(), //9001,
-      epoch:   yup.number().integer().positive().required(), //10,
-      validationSplit:  yup.number().positive().lessThan(1).required(), //0.2,
-      batchSize: yup.number().integer().positive().required(), //30,
-      //modelCompileData"
-        optimizer: yup.string().required(), //"rmsprop",
-        loss:      yup.string().required(), //"categoricalCrossentropy",
-        metrics:   yup.array().of(yup.string()).min(1).required(), //["accuracy"]
-      //modelTrainData"
-        epochs:    yup.number().integer().positive().required(), //10
-      threshold:   yup.number().integer().positive().required(), //1,
-      dataType:    yup.string().required(), //"image",
-      IMAGE_H:     yup.number().integer().positive().required(), //28,
-      IMAGE_W:     yup.number().integer().positive().required(), //28,
-      LABEL_LIST:  yup.array().of(yup.string()).min(1).required(),//["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-      aggregateImagesById: yup.boolean()//false
-    });*/
     return {
       formSections,
       schema,
@@ -238,7 +207,9 @@ export default {
   },
   setup() {
     const { submitForm } = function() {
+      console.log("*********************");
       useForm();
+      console.log("*********************");
       this.$emit('gotohome');
       this.$router.push({
         path: '/',
@@ -249,10 +220,6 @@ export default {
     };
   },
   methods: {
-    // Validator function
-    isRequired(value) {
-      return value ? true : 'This field is required';
-    }
   },
 };
 </script>

@@ -1,12 +1,12 @@
 import { createStore } from 'vuex';
 import { TrainingManager } from '../helpers/training_script/training_manager'; //"../../helpers/training_script/training_manager";
-
+import _ from 'lodash';
 export const store = createStore({
   state: {
     count: 0,
-    globalTaskFrameState: new Array(),
-    passwords: new Array(),
-    tasks: new Array(),
+    globalTaskFrameState: {},
+    passwords: {},
+    tasks: {},
   },
   mutations: {
     increment(state) {
@@ -24,6 +24,7 @@ export const store = createStore({
 
     async addTask(state, payload) {
       state.tasks[payload.task.trainingInformation.modelId] = payload.task;
+      console.log(state.tasks);
     },
   },
 
@@ -40,6 +41,9 @@ export const store = createStore({
     tasks: state => modelId => {
       return state.tasks[modelId];
     },
+    tasksList: state => {
+      return _.values(state.tasks);
+    }
   },
 });
 

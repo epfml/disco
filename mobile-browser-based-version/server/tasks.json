@@ -173,7 +173,7 @@
       }
     }
   },
- {
+  {
     "taskId": "ee",
     "taskTitle": "e",
     "summary": "e.",
@@ -224,5 +224,31 @@
     "IMAGE_W": "1",
     "LABEL_LIST": "[0]",
     "aggregateImagesById": "false"
+  },
+  {
+    "taskId": "poooooooo",
+    "taskTitle": "t",
+    "summary": "s",
+    "overview": "s",
+    "model": "s",
+    "tradeoffs": "s",
+    "dataFormatInformation": "s",
+    "dataExampleText": "s",
+    "dataExampleImage": "s",
+    "modelId": "s",
+    "port": "1",
+    "epoch": "1",
+    "validationSplit": "0.1",
+    "batchSize": "1",
+    "optimizer": "momentum",
+    "loss": "cosineDistance",
+    "metrics": "binaryCrossentropy",
+    "epochs": "1",
+    "threshold": "1",
+    "dataType": "image",
+    "IMAGE_H": "1",
+    "IMAGE_W": "1",
+    "LABEL_LIST": "[0]",
+    "aggregateImagesById": "false"
   }
-] 
+]

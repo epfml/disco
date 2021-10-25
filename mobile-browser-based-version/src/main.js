@@ -6,7 +6,6 @@ import '@/assets/css/styles.css';
 import Toaster from '@meforma/vue-toaster';
 import { store } from './store/store';
 
-//Vue.use(VueFormulate);
 const app = createApp(App);
 
 app.use(store);
