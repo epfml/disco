@@ -85,7 +85,7 @@ tasksRouter.post('/', function (req, res) {
       err => {if (err) console.log("Error writing file:", err); });
     // answer vue app
     //res.redirect('back');
-    res.end(`Task ${newTask.taskId} successfully added to the platform`);
+    res.end(`Sucessfull upload`);
   } 
 })
 /**

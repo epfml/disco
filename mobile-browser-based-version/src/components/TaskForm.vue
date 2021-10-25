@@ -304,11 +304,22 @@ export default {
       axios.post("http://localhost:8080/tasks/", values).then(
         (response) => {
           if (response.status === 200) {
+            this.$toast.success(
+              `Task ${values.taskId} successfully uploaded on the platform`
+            );
             this.goToHome();
+          } else {
+            this.$toast.error(
+              `Failed to upload Task ${values.taskId} on the platform`
+            );
           }
-          console.log(response);
+          setTimeout(this.$toast.clear, 30000);
         },
         (error) => {
+          this.$toast.error(
+              `Failed to upload Task ${values.taskId} on the platform`
+          );
+          setTimeout(this.$toast.clear, 30000);
           console.log(error);
         }
       );
