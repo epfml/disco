@@ -77,7 +77,6 @@ tasksRouter.post('/', function (req, res) {
     console.log("Cannot add new task (key is already defined in Tasks.json)");
   else {
     // create new task and server
-    console.log("tusiterau")
     ports.push(newPort);
     tasks.push(newTask);
     createTaskServer(newTask, newPort);
@@ -85,8 +84,8 @@ tasksRouter.post('/', function (req, res) {
     fs.writeFile("./tasks.json", JSON.stringify(tasks),
       err => {if (err) console.log("Error writing file:", err); });
     // answer vue app
-    res.redirect('back');
-    //res.end(`Task ${newTask.taskId} successfully added to the platform`);
+    //res.redirect('back');
+    res.end(`Task ${newTask.taskId} successfully added to the platform`);
   } 
 })
 /**
