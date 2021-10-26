@@ -7,7 +7,7 @@
         class="flex flex-col items-right justify-start flex-1 h-full min-h-screen overflow-y-auto"
       >
         <section class="flex-col items-center justify-center p-4 space-y-4">
-          <!--  action="http://localhost:8080/tasks/" method="post" @sumbit="submitForm" -->
+          <!-- Form definition -->
           <vee-form
             v-slot="{ errors, handleSubmit }"
             :validation-schema="schema"
@@ -32,7 +32,7 @@
                       </span>
 
                       <div
-                        v-for="field in formSection.fields"
+                        v-for="field in allFields(formSection)"
                         :key="field.id"
                         class="text-base"
                       >
@@ -55,8 +55,43 @@
                           />
                         </div>
 
+                        <div v-else-if="field.type == 'float'">
+                          <vee-field
+                            as="textarea"
+                            row="3"
+                            v-bind:name="field.id"
+                            v-bind:id="field.id"
+                            class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
+                            type="number"
+                            step="any"
+                            v-bind:placeholder="field.default"
+                          />
+                        </div>
+
                         <vee-field
-                          v-else-if="field.type == 'select'"
+                          v-else-if="
+                            field.type == 'select' && field.id == 'dataType'
+                          "
+                          as="select"
+                          v-model="dataType"
+                          v-bind:name="field.id"
+                          v-bind:id="field.id"
+                          class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
+                          v-slot="{ value }"
+                        >
+                          <option
+                            v-for="option in field.options"
+                            :key="option"
+                            :value="option"
+                            :selected="value && value.includes(option)"
+                            >{{ option }}</option
+                          >
+                        </vee-field>
+
+                        <vee-field
+                          v-else-if="
+                            field.type == 'select' && field.id != 'dataType'
+                          "
                           as="select"
                           v-bind:name="field.id"
                           v-bind:id="field.id"
@@ -123,6 +158,13 @@
                   >
                     Reset
                   </button>
+
+                  <button
+                    type="button"
+                    class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
+                  >
+                    Request Help
+                  </button>
                 </div>
               </div>
             </form>
@@ -162,7 +204,6 @@ import {
   Field as VeeField,
   Form as VeeForm,
   ErrorMessage,
-  useForm,
   handleSubmit,
 } from "vee-validate";
 import * as yup from "yup";
@@ -175,9 +216,36 @@ export default {
     ErrorMessage,
   },
   data() {
+    // data property defining which task-specific fields should be rendered
+    const dataType = "other";
+    /* form generator
+         each section should contain : 
+            - `fields` (general fields)
+            - `csv`    (fields only relevant for csv tasks)
+            - `image`  (fields only relevant for image tasks)
+            - `other`  (empty rendering which no data type has been chosens)
+    */
     const formSections = [
       {
+        title: "Data Type",
+        id: "dataType",
+        fields: [
+          {
+            id: "dataType",
+            name: "Data Type",
+            yup: yup.string().required(),
+            type: "select",
+            options: ["image", "csv", "other"],
+            default: "other",
+          },
+        ],
+        csv: [],
+        image: [],
+        other: [],
+      },
+      {
         title: "Display Information",
+        id: "displayInformation",
         fields: [
           {
             id: "taskId",
@@ -241,6 +309,29 @@ export default {
             default:
               "Below you can find an example of an expected image representing the digit 9.",
           },
+        ],
+        csv: [
+          {
+            id: "dataExample",
+            name: "Data Example",
+            yup: yup.string().required(), //to change
+            type: "text",
+            default: [
+              { columnName: "PassengerId", columnData: "1" },
+              { columnName: "Survived", columnData: "0" },
+              { columnName: "Name", columnData: "Braund, Mr. Owen Harris" },
+              { columnName: "Sex", columnData: "male" },
+            ],
+          },
+          {
+            id: "headers",
+            name: "Headers",
+            yup: yup.string().required(), //to change
+            type: "text",
+            default: ["PassengerId", "Survived", "Name", "Sex"],
+          },
+        ],
+        image: [
           {
             id: "dataExampleImage",
             name: "Data Example Image",
@@ -249,37 +340,217 @@ export default {
             default: "./9-mnist-example.png",
           },
         ],
-      } /*
-      {
-        title:'Training Information',
-        fields:[
-          {id:'modelId', name : 'Model Identifier',yup:yup.string().required(),  type: 'text', default: "mnist-model"}, 
-          {id:'port'   , name : 'Port', yup:yup.number().integer().positive().required(), type: 'number', default:9001},
-          {id:'epoch'  , name : 'Epoch', yup:yup.number().integer().positive().required(), type: 'number', default:10}, 
-          {id:'validationSplit', name:'Validation split', yup:yup.number().positive().lessThan(1).required(), type: 'number', default:0.2}, 
-          {id:'batchSize', name:'Batch size', yup:yup.number().integer().positive().required(), type: 'number', default:30}, 
-       ]
+        other: [],
       },
-      { 
+      {
+        title: "Training Information",
+        id: "trainingInformation",
+        fields: [
+          {
+            id: "modelId",
+            name: "Model Identifier",
+            yup: yup.string().required(),
+            type: "text",
+            default: "mnist-model",
+          },
+          {
+            id: "port",
+            name: "Port",
+            yup: yup
+              .number()
+              .integer()
+              .positive()
+              .required(),
+            type: "number",
+            default: 9001,
+          },
+          {
+            id: "epoch",
+            name: "Epoch",
+            yup: yup
+              .number()
+              .integer()
+              .positive()
+              .required(),
+            type: "number",
+            default: 10,
+          },
+          {
+            id: "validationSplit",
+            name: "Validation split",
+            yup: yup
+              .number()
+              .positive()
+              .lessThan(1)
+              .required(),
+            type: "float",
+            default: 0.2,
+          },
+          {
+            id: "batchSize",
+            name: "Batch size",
+            yup: yup
+              .number()
+              .integer()
+              .positive()
+              .required(),
+            type: "number",
+            default: 30,
+          },
+          {
+            id: "learningRate",
+            name: "Learning rate",
+            yup: yup
+              .number()
+              .positive()
+              .required(),
+            type: "float",
+            default: 0.05,
+          },
+          {
+            id: "modelTrainData",
+            name: "Model Train Data",
+            yup: yup.string().required(),
+            type: "text",
+            default: { epochs: 10 }, //{id:'epochs',  name:'Epochs',yup : yup.number().integer().positive().required(), type:'number',default:10},
+          },
+        ],
+        csv: [
+          {
+            id: "receivedMessagesThreshold",
+            name: "Received Messages Threshold",
+            yup: yup.number().required(),
+            type: "number",
+            default: 1,
+          },
+          {
+            id: "inputColumns",
+            name: "Received Messages Threshold",
+            yup: yup.string().required(),
+            type: "text",
+            default: "Survived",
+          },
+          {
+            id: "outputColumn",
+            name: "Output Column",
+            yup: yup.array().of(yup.string()).min(1).required(),
+            type: "text",
+            default: [
+            "PassengerId",
+            "Age",
+            "SibSp",
+            "Parch",
+            "Fare",
+            "Pclass"
+            ],
+          },
+        ],
+        image: [
+          {
+            id: "threshold",
+            name: "Threshold",
+            yup: yup
+              .number()
+              .integer()
+              .positive()
+              .required(),
+            type: "number",
+            default: 1,
+          },
+          {
+            id: "IMAGE_H",
+            name: "Hight of Image (pixels)",
+            yup: yup
+              .number()
+              .integer()
+              .positive()
+              .required(),
+            type: "number",
+            default: 28,
+          },
+          {
+            id: "IMAGE_W",
+            name: "Width of Image (pixels)",
+            yup: yup
+              .number()
+              .integer()
+              .positive()
+              .required(),
+            type: "number",
+            default: 28,
+          },
+          {
+            id: "LABEL_LIST",
+            name: "List of labels",
+            yup: yup
+              .array()
+              .of(yup.string())
+              .min(1)
+              .required(),
+            type: "text",
+            default: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+          },
+          {
+            id: "NUM_CLASSES",
+            name: "Number of classes",
+            yup: yup
+              .number()
+              .positive()
+              .required(),
+            type: "number",
+            default: 2,
+          },
+          {
+            id: "LABEL_ASSIGNMENT",
+            name: "List of labels",
+            yup: yup
+              .array()
+              .of(yup.object())
+              .min(1)
+              .required(),
+            type: "text",
+            default: {
+              airplane: 0,
+              automobile: 1,
+              bird: 2,
+              cat: 3,
+              deer: 4,
+              dog: 5,
+              frog: 6,
+              horse: 7,
+              ship: 8,
+              truck: 9,
+            },
+          },
+          {
+            id: "csvLabels",
+            name: "Are labels stored as CSV ?",
+            yup: yup.boolean().required(),
+            type: "checkout",
+            default: false,
+          },
+          {
+            id: "aggregateImagesById",
+            name: "Aggregate Images By Id",
+            yup: yup.boolean(),
+            type: "checkout",
+            default: false,
+          },
+        ],
+        other: [],
+      },
+      {
         title:"Model Compile Data",
-        fields:[  
+        id : "trainingInformation",
+        fields:[
           {id:'optimizer', name : 'Optimizer', yup: yup.string().required(), type:'select', options:['sgd','momentum','adagrad','adadelta','adam','adamax','rmsprop'],default:"rmsprop"},
           {id:'loss',      name : 'Loss'     , yup: yup.string().required(), type:'select', options:['absoluteDifference','computeWeightedLoss','cosineDistance','hingeLoss','huberLoss','logLoss','meanSquaredError','sigmoidCrossEntropy','softmaxCrossEntropy'],default:"categoricalCrossentropy"},
           {id:'metrics'  , name : 'Metrics (multiple can be selected)'  , yup: yup.array().of(yup.string()).min(1).required(), type:'select-multiple', options:['binaryAccuracy','binaryCrossentropy','categoricalAccuracy','categoricalCrossentropy','cosineProximity','meanAbsoluteError','meanAbsolutePercentageError','meanSquaredError','precision','recall','sparseCategoricalAccuracy'],default:["accuracy"]}
-        ]
+        ],
+        csv:[],
+        image:[],
+        other:[],
       },
-      {
-        title:"Model Train Data",
-        fields:[
-          {id:'epochs',  name:'Epochs',yup : yup.number().integer().positive().required(), type:'number',default:10},
-          {id:'threshold',  name:'Threshold',yup : yup.number().integer().positive().required(), type:'number',default:1},
-          {id:'dataType',  name:'Data Type',yup : yup.string().required(), type:'select', options:['image','csv','other'],default:"image"},
-          {id:'IMAGE_H',  name:'Hight of Image (pixels)',yup : yup.number().integer().positive().required(), type:'number',default:28},
-          {id:'IMAGE_W',  name:'Width of Image (pixels)',yup : yup.number().integer().positive().required(), type:'number',default:28},
-          {id:'LABEL_LIST',  name:'List of labels',yup : yup.array().of(yup.string()).min(1).required(), type:'text',default:["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]},
-          {id:'aggregateImagesById',  name:'Aggregate Images By Id',yup : yup.boolean(), type:'checkout',default:false},
-        ]
-      },*/,
     ];
     let schemaData = {};
     _.forEach(formSections, (s) =>
@@ -291,36 +562,38 @@ export default {
     );
     const schema = yup.object(schemaData);
     return {
+      dataType,
       formSections,
       schema,
     };
   },
   methods: {
-    onSubmit(values) {
-      // Submit values to API...
-      axios.post("http://localhost:8080/tasks/", values).then(
-        (response) => {
-          if (response.status === 200) {
-            this.$toast.success(
-              `Task ${values.taskId} successfully uploaded on the platform`
-            );
-            this.$refs.resetButton.click(); //manual reset of form
-            this.goToHome();
-          } else {
-            this.$toast.error(
-              `Failed to upload Task ${values.taskId} on the platform`
-            );
-          }
-          setTimeout(this.$toast.clear, 30000);
-        },
-        (error) => {
-          this.$toast.error(
-            `Failed to upload Task ${values.taskId} on the platform`
-          );
-          setTimeout(this.$toast.clear, 30000);
-          console.log(error);
-        }
-      );
+    allFields(formSection) {
+      return _.concat(formSection.fields, formSection[this.dataType]);
+    },
+    async onSubmit(task) {
+      // Submit values to Express server
+      const response = await axios.post("http://localhost:8080/tasks/", task);
+      if (response.status === 200) {
+        await this.onSubmissionSucess(task);
+        this.$toast.success(
+          `Task ${task.taskId} successfully uploaded on the platform`
+        );
+      } else {
+        this.$toast.error(
+          `Failed to upload Task ${task.taskId} on the platform`
+        );
+      }
+      setTimeout(this.$toast.clear, 30000);
+    },
+    async onSubmissionSucess(task) {
+      console.log(task);
+      // manual reset of form
+      this.$refs.resetButton.click();
+      // add task to store to rerender TaskList component
+      await this.$store.commit("addTask", { task: task });
+      // got to home component
+      this.goToHome();
     },
     goToHome() {
       this.$emit("gotohome");

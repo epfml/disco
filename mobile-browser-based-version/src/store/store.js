@@ -24,7 +24,6 @@ export const store = createStore({
 
     async addTask(state, payload) {
       state.tasks[payload.task.trainingInformation.modelId] = payload.task;
-      console.log(state.tasks);
     },
   },
 
