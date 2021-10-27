@@ -107,12 +107,26 @@
                             v-bind:as="field.as ? field.as : field.type"
                             v-bind:type="field.type"
                             v-bind:placeholder="field.default"
-                            v-bind:row="field.as === 'textarea' ? (field.type === 'number' ? 1 : 2) : undefined"
-                            v-bind:value="field.type === 'checkbox' ? field.default : undefined"
-                            v-bind:step="(field.type === 'number' && field.as === 'textarea') ? any : undefined"
+                            v-bind:row="
+                              field.as === 'textarea'
+                                ? field.type === 'number'
+                                  ? 1
+                                  : 2
+                                : undefined
+                            "
+                            v-bind:value="
+                              field.type === 'checkbox'
+                                ? field.default
+                                : undefined
+                            "
+                            v-bind:step="
+                              field.type === 'number' && field.as === 'textarea'
+                                ? any
+                                : undefined
+                            "
                           />
                         </div>
-                        
+
                         <ErrorMessage
                           class="text-red-600"
                           v-bind:name="field.id"
@@ -138,12 +152,12 @@
                     Reset
                   </button>
 
-                  <button
-                    type="button"
-                    class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
+                  <a
+                    href="https://join.slack.com/t/deai-workspace/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
+                    class="w-2/5 text-lg text-center border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
                   >
-                    Request Help
-                  </button>
+                    Request Help on Slack
+                  </a>
                 </div>
               </div>
             </form>
@@ -213,7 +227,7 @@ export default {
             id: "dataType",
             name: "Data Type",
             yup: yup.string().required(),
-            as  : "input",  
+            as: "input",
             type: "select",
             options: ["image", "csv", "other"],
             default: "other",
@@ -231,7 +245,7 @@ export default {
             id: "taskId",
             name: "Task Identifier",
             yup: yup.string().required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default: "minst",
           },
@@ -239,7 +253,7 @@ export default {
             id: "taskTitle",
             name: "Title",
             yup: yup.string().required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default: "MNIST",
           },
@@ -247,7 +261,7 @@ export default {
             id: "summary",
             name: "Summary",
             yup: yup.string().required(),
-            as  : "textarea",
+            as: "textarea",
             type: "textarea",
             default:
               "Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers.",
@@ -256,7 +270,7 @@ export default {
             id: "overview",
             name: "Overview",
             yup: yup.string().required(),
-            as  : "textarea",
+            as: "textarea",
             type: "textarea",
             default:
               "The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform.",
@@ -265,7 +279,7 @@ export default {
             id: "model",
             name: "Model",
             yup: yup.string().required(),
-            as  : "textarea",
+            as: "textarea",
             type: "textarea",
             default:
               "The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.",
@@ -274,7 +288,7 @@ export default {
             id: "tradeoffs",
             name: "Tradeoffs",
             yup: yup.string().required(),
-            as  : "textarea",
+            as: "textarea",
             type: "textarea",
             default:
               "We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.",
@@ -283,7 +297,7 @@ export default {
             id: "dataFormatInformation",
             name: "Data Format Information",
             yup: yup.string().required(),
-            as  : "textarea",
+            as: "textarea",
             type: "textarea",
             default:
               "This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.",
@@ -292,7 +306,7 @@ export default {
             id: "dataExampleText",
             name: "Data Example Text",
             yup: yup.string().required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default:
               "Below you can find an example of an expected image representing the digit 9.",
@@ -303,7 +317,7 @@ export default {
             id: "dataExample",
             name: "Data Example",
             yup: yup.string().required(), //to change
-            as  : "input", 
+            as: "input",
             type: "text",
             default: [
               { columnName: "PassengerId", columnData: "1" },
@@ -316,7 +330,7 @@ export default {
             id: "headers",
             name: "Headers",
             yup: yup.string().required(), //to change
-            as  : "input", 
+            as: "input",
             type: "text",
             default: ["PassengerId", "Survived", "Name", "Sex"],
           },
@@ -326,7 +340,7 @@ export default {
             id: "dataExampleImage",
             name: "Data Example Image",
             yup: yup.string().required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default: "./9-mnist-example.png",
           },
@@ -341,7 +355,7 @@ export default {
             id: "modelId",
             name: "Model Identifier",
             yup: yup.string().required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default: "mnist-model",
           },
@@ -353,7 +367,7 @@ export default {
               .integer()
               .positive()
               .required(),
-            as  : "input", 
+            as: "input",
             type: "number",
             default: 9001,
           },
@@ -365,7 +379,7 @@ export default {
               .integer()
               .positive()
               .required(),
-            as  : "input", 
+            as: "input",
             type: "number",
             default: 10,
           },
@@ -377,7 +391,7 @@ export default {
               .positive()
               .lessThan(1)
               .required(),
-            as  : "textarea",
+            as: "textarea",
             type: "number",
             default: 0.2,
           },
@@ -389,7 +403,7 @@ export default {
               .integer()
               .positive()
               .required(),
-            as  : "input", 
+            as: "input",
             type: "number",
             default: 30,
           },
@@ -400,7 +414,7 @@ export default {
               .number()
               .positive()
               .required(),
-            as  : "textarea",
+            as: "textarea",
             type: "number",
             default: 0.05,
           },
@@ -408,7 +422,7 @@ export default {
             id: "modelTrainData",
             name: "Model Train Data",
             yup: yup.string().required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default: { epochs: 10 }, //{id:'epochs',  name:'Epochs',yup : yup.number().integer().positive().required(), type:'number',default:10},
           },
@@ -418,7 +432,7 @@ export default {
             id: "receivedMessagesThreshold",
             name: "Received Messages Threshold",
             yup: yup.number().required(),
-            as  : "input", 
+            as: "input",
             type: "number",
             default: 1,
           },
@@ -426,7 +440,7 @@ export default {
             id: "inputColumns",
             name: "Received Messages Threshold",
             yup: yup.string().required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default: "Survived",
           },
@@ -438,7 +452,7 @@ export default {
               .of(yup.string())
               .min(1)
               .required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default: ["PassengerId", "Age", "SibSp", "Parch", "Fare", "Pclass"],
           },
@@ -452,7 +466,7 @@ export default {
               .integer()
               .positive()
               .required(),
-            as  : "input", 
+            as: "input",
             type: "number",
             default: 1,
           },
@@ -464,7 +478,7 @@ export default {
               .integer()
               .positive()
               .required(),
-            as  : "input", 
+            as: "input",
             type: "number",
             default: 28,
           },
@@ -476,7 +490,7 @@ export default {
               .integer()
               .positive()
               .required(),
-            as  : "input", 
+            as: "input",
             type: "number",
             default: 28,
           },
@@ -488,7 +502,7 @@ export default {
               .of(yup.string())
               .min(1)
               .required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
           },
@@ -499,7 +513,7 @@ export default {
               .number()
               .positive()
               .required(),
-            as  : "input", 
+            as: "input",
             type: "number",
             default: 2,
           },
@@ -511,7 +525,7 @@ export default {
               .of(yup.object())
               .min(1)
               .required(),
-            as  : "input", 
+            as: "input",
             type: "text",
             default: {
               airplane: 0,
