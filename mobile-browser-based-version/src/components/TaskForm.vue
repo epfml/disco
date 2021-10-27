@@ -38,41 +38,15 @@
                       >
                         <label
                           class="inline text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4"
-                          for="inline-full-name"
+                          v-bind:for="field.id"
                         >
                           {{ field.name }}
                         </label>
-
-                        <div v-if="field.type == 'textarea'">
-                          <vee-field
-                            as="textarea"
-                            row="3"
-                            v-bind:name="field.id"
-                            v-bind:id="field.id"
-                            class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
-                            v-bind:type="field.type"
-                            v-bind:placeholder="field.default"
-                          />
-                        </div>
-
-                        <div v-else-if="field.type == 'float'">
-                          <vee-field
-                            as="textarea"
-                            row="3"
-                            v-bind:name="field.id"
-                            v-bind:id="field.id"
-                            class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
-                            type="number"
-                            step="any"
-                            v-bind:placeholder="field.default"
-                          />
-                        </div>
-
                         <vee-field
-                          v-else-if="
+                          v-if="
                             field.type == 'select' && field.id == 'dataType'
                           "
-                          as="select"
+                          v-bind:as="field.type"
                           v-model="dataType"
                           v-bind:name="field.id"
                           v-bind:id="field.id"
@@ -92,7 +66,7 @@
                           v-else-if="
                             field.type == 'select' && field.id != 'dataType'
                           "
-                          as="select"
+                          v-bind:as="field.type"
                           v-bind:name="field.id"
                           v-bind:id="field.id"
                           class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
@@ -130,10 +104,15 @@
                             v-bind:name="field.id"
                             v-bind:id="field.id"
                             class="bg-transparent border-b m-auto block focus:outline-none focus:border-green-500 w-full mb-6text-gray-700 pb-1"
+                            v-bind:as="field.as ? field.as : field.type"
                             v-bind:type="field.type"
                             v-bind:placeholder="field.default"
+                            v-bind:row="field.as === 'textarea' ? (field.type === 'number' ? 1 : 2) : undefined"
+                            v-bind:value="field.type === 'checkbox' ? field.default : undefined"
+                            v-bind:step="(field.type === 'number' && field.as === 'textarea') ? any : undefined"
                           />
                         </div>
+                        
                         <ErrorMessage
                           class="text-red-600"
                           v-bind:name="field.id"
@@ -234,6 +213,7 @@ export default {
             id: "dataType",
             name: "Data Type",
             yup: yup.string().required(),
+            as  : "input",  
             type: "select",
             options: ["image", "csv", "other"],
             default: "other",
@@ -251,6 +231,7 @@ export default {
             id: "taskId",
             name: "Task Identifier",
             yup: yup.string().required(),
+            as  : "input", 
             type: "text",
             default: "minst",
           },
@@ -258,6 +239,7 @@ export default {
             id: "taskTitle",
             name: "Title",
             yup: yup.string().required(),
+            as  : "input", 
             type: "text",
             default: "MNIST",
           },
@@ -265,6 +247,7 @@ export default {
             id: "summary",
             name: "Summary",
             yup: yup.string().required(),
+            as  : "textarea",
             type: "textarea",
             default:
               "Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers.",
@@ -273,6 +256,7 @@ export default {
             id: "overview",
             name: "Overview",
             yup: yup.string().required(),
+            as  : "textarea",
             type: "textarea",
             default:
               "The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform.",
@@ -281,6 +265,7 @@ export default {
             id: "model",
             name: "Model",
             yup: yup.string().required(),
+            as  : "textarea",
             type: "textarea",
             default:
               "The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.",
@@ -289,6 +274,7 @@ export default {
             id: "tradeoffs",
             name: "Tradeoffs",
             yup: yup.string().required(),
+            as  : "textarea",
             type: "textarea",
             default:
               "We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.",
@@ -297,6 +283,7 @@ export default {
             id: "dataFormatInformation",
             name: "Data Format Information",
             yup: yup.string().required(),
+            as  : "textarea",
             type: "textarea",
             default:
               "This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.",
@@ -305,6 +292,7 @@ export default {
             id: "dataExampleText",
             name: "Data Example Text",
             yup: yup.string().required(),
+            as  : "input", 
             type: "text",
             default:
               "Below you can find an example of an expected image representing the digit 9.",
@@ -315,6 +303,7 @@ export default {
             id: "dataExample",
             name: "Data Example",
             yup: yup.string().required(), //to change
+            as  : "input", 
             type: "text",
             default: [
               { columnName: "PassengerId", columnData: "1" },
@@ -327,6 +316,7 @@ export default {
             id: "headers",
             name: "Headers",
             yup: yup.string().required(), //to change
+            as  : "input", 
             type: "text",
             default: ["PassengerId", "Survived", "Name", "Sex"],
           },
@@ -336,6 +326,7 @@ export default {
             id: "dataExampleImage",
             name: "Data Example Image",
             yup: yup.string().required(),
+            as  : "input", 
             type: "text",
             default: "./9-mnist-example.png",
           },
@@ -350,6 +341,7 @@ export default {
             id: "modelId",
             name: "Model Identifier",
             yup: yup.string().required(),
+            as  : "input", 
             type: "text",
             default: "mnist-model",
           },
@@ -361,6 +353,7 @@ export default {
               .integer()
               .positive()
               .required(),
+            as  : "input", 
             type: "number",
             default: 9001,
           },
@@ -372,6 +365,7 @@ export default {
               .integer()
               .positive()
               .required(),
+            as  : "input", 
             type: "number",
             default: 10,
           },
@@ -383,7 +377,8 @@ export default {
               .positive()
               .lessThan(1)
               .required(),
-            type: "float",
+            as  : "textarea",
+            type: "number",
             default: 0.2,
           },
           {
@@ -394,6 +389,7 @@ export default {
               .integer()
               .positive()
               .required(),
+            as  : "input", 
             type: "number",
             default: 30,
           },
@@ -404,13 +400,15 @@ export default {
               .number()
               .positive()
               .required(),
-            type: "float",
+            as  : "textarea",
+            type: "number",
             default: 0.05,
           },
           {
             id: "modelTrainData",
             name: "Model Train Data",
             yup: yup.string().required(),
+            as  : "input", 
             type: "text",
             default: { epochs: 10 }, //{id:'epochs',  name:'Epochs',yup : yup.number().integer().positive().required(), type:'number',default:10},
           },
@@ -420,6 +418,7 @@ export default {
             id: "receivedMessagesThreshold",
             name: "Received Messages Threshold",
             yup: yup.number().required(),
+            as  : "input", 
             type: "number",
             default: 1,
           },
@@ -427,22 +426,21 @@ export default {
             id: "inputColumns",
             name: "Received Messages Threshold",
             yup: yup.string().required(),
+            as  : "input", 
             type: "text",
             default: "Survived",
           },
           {
             id: "outputColumn",
             name: "Output Column",
-            yup: yup.array().of(yup.string()).min(1).required(),
+            yup: yup
+              .array()
+              .of(yup.string())
+              .min(1)
+              .required(),
+            as  : "input", 
             type: "text",
-            default: [
-            "PassengerId",
-            "Age",
-            "SibSp",
-            "Parch",
-            "Fare",
-            "Pclass"
-            ],
+            default: ["PassengerId", "Age", "SibSp", "Parch", "Fare", "Pclass"],
           },
         ],
         image: [
@@ -454,6 +452,7 @@ export default {
               .integer()
               .positive()
               .required(),
+            as  : "input", 
             type: "number",
             default: 1,
           },
@@ -465,6 +464,7 @@ export default {
               .integer()
               .positive()
               .required(),
+            as  : "input", 
             type: "number",
             default: 28,
           },
@@ -476,6 +476,7 @@ export default {
               .integer()
               .positive()
               .required(),
+            as  : "input", 
             type: "number",
             default: 28,
           },
@@ -487,6 +488,7 @@ export default {
               .of(yup.string())
               .min(1)
               .required(),
+            as  : "input", 
             type: "text",
             default: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
           },
@@ -497,6 +499,7 @@ export default {
               .number()
               .positive()
               .required(),
+            as  : "input", 
             type: "number",
             default: 2,
           },
@@ -508,6 +511,7 @@ export default {
               .of(yup.object())
               .min(1)
               .required(),
+            as  : "input", 
             type: "text",
             default: {
               airplane: 0,
@@ -526,30 +530,87 @@ export default {
             id: "csvLabels",
             name: "Are labels stored as CSV ?",
             yup: yup.boolean().required(),
-            type: "checkout",
+            as: "input",
+            type: "checkbox",
             default: false,
           },
           {
             id: "aggregateImagesById",
             name: "Aggregate Images By Id",
             yup: yup.boolean(),
-            type: "checkout",
+            as: "input",
+            type: "checkbox",
             default: false,
           },
         ],
         other: [],
       },
       {
-        title:"Model Compile Data",
-        id : "trainingInformation",
-        fields:[
-          {id:'optimizer', name : 'Optimizer', yup: yup.string().required(), type:'select', options:['sgd','momentum','adagrad','adadelta','adam','adamax','rmsprop'],default:"rmsprop"},
-          {id:'loss',      name : 'Loss'     , yup: yup.string().required(), type:'select', options:['absoluteDifference','computeWeightedLoss','cosineDistance','hingeLoss','huberLoss','logLoss','meanSquaredError','sigmoidCrossEntropy','softmaxCrossEntropy'],default:"categoricalCrossentropy"},
-          {id:'metrics'  , name : 'Metrics (multiple can be selected)'  , yup: yup.array().of(yup.string()).min(1).required(), type:'select-multiple', options:['binaryAccuracy','binaryCrossentropy','categoricalAccuracy','categoricalCrossentropy','cosineProximity','meanAbsoluteError','meanAbsolutePercentageError','meanSquaredError','precision','recall','sparseCategoricalAccuracy'],default:["accuracy"]}
+        title: "Model Compile Data",
+        id: "trainingInformation",
+        fields: [
+          {
+            id: "optimizer",
+            name: "Optimizer",
+            yup: yup.string().required(),
+            type: "select",
+            options: [
+              "sgd",
+              "momentum",
+              "adagrad",
+              "adadelta",
+              "adam",
+              "adamax",
+              "rmsprop",
+            ],
+            default: "rmsprop",
+          },
+          {
+            id: "loss",
+            name: "Loss",
+            yup: yup.string().required(),
+            type: "select",
+            options: [
+              "absoluteDifference",
+              "computeWeightedLoss",
+              "cosineDistance",
+              "hingeLoss",
+              "huberLoss",
+              "logLoss",
+              "meanSquaredError",
+              "sigmoidCrossEntropy",
+              "softmaxCrossEntropy",
+            ],
+            default: "categoricalCrossentropy",
+          },
+          {
+            id: "metrics",
+            name: "Metrics (multiple can be selected)",
+            yup: yup
+              .array()
+              .of(yup.string())
+              .min(1)
+              .required(),
+            type: "select-multiple",
+            options: [
+              "binaryAccuracy",
+              "binaryCrossentropy",
+              "categoricalAccuracy",
+              "categoricalCrossentropy",
+              "cosineProximity",
+              "meanAbsoluteError",
+              "meanAbsolutePercentageError",
+              "meanSquaredError",
+              "precision",
+              "recall",
+              "sparseCategoricalAccuracy",
+            ],
+            default: ["accuracy"],
+          },
         ],
-        csv:[],
-        image:[],
-        other:[],
+        csv: [],
+        image: [],
+        other: [],
       },
     ];
     let schemaData = {};
