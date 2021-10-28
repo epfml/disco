@@ -54,8 +54,10 @@
                 <span class="text-primary-dark dark:text-primary-light">
                   Create you own task
                 </span>
-                <p class="text-base">XXXXXXXXXXX</p>
-                <p class="text-base">XXXXXXXXXXX</p>
+                <p class="text-base">Describe the task</p>
+                <p class="text-base">
+                  Specify the desired training and evaluation parameters
+                </p>
               </div>
             </div>
             <button
@@ -89,21 +91,21 @@
 </template>
 
 <script>
-import { initializeIndexedDB } from '../helpers/my_memory_script/indexedDB_script';
+import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_script";
 
 export default {
-  name: 'taskList',
+  name: "taskList",
   methods: {
     goToTaskList() {
-      this.$emit('gototasks');
+      this.$emit("gototasks");
       this.$router.push({
-        path: '/tasks',
+        path: "/tasks",
       });
     },
     goToTaskForm() {
-      this.$emit('gototaskform');
+      this.$emit("gototaskform");
       this.$router.push({
-        path: '/tasks/form',
+        path: "/tasks/form",
       });
     },
   },
