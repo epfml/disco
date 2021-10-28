@@ -291,7 +291,7 @@
                             "
                             v-bind:step="
                               field.type === 'number' && field.as === 'textarea'
-                                ? any
+                                ? 'any'
                                 : undefined
                             "
                           />
@@ -856,7 +856,7 @@ export default {
     },
     formTaskForServer(task) {
       //task should have a json format structure as in `tasks.json` to be correctly uploaded on server
-      const formated = {taskId:task.taskId};
+      const formated = { taskId: task.taskId };
       _.forEach(this.formSections, (section) => {
         return (formated[section.id] = _.reduce(
           section.fields,
@@ -896,7 +896,7 @@ export default {
       // manual reset of form
       this.$refs.resetButton.click();
       // add task to store to rerender TaskList component
-      await this.$store.commit("addTask", { task: task });
+      await this.$store.commit("addJSONTask", { task: task });
       // got to home component
       this.goToHome();
     },

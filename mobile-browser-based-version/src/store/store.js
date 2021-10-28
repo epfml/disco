@@ -6,7 +6,9 @@ export const store = createStore({
     count: 0,
     globalTaskFrameState: {},
     passwords: {},
-    tasks: {},
+    tasks: {},     // Vue components
+    JSONTasks: [],  // Json object
+    lastJSONTaskAdded: {},
   },
   mutations: {
     increment(state) {
@@ -25,6 +27,11 @@ export const store = createStore({
     async addTask(state, payload) {
       state.tasks[payload.task.trainingInformation.modelId] = payload.task;
     },
+
+    async addJSONTask(state, payload) {
+      state.JSONTasks.push(payload.task);
+      state.lastJSONTaskAdded = payload.task;
+    },
   },
 
   getters: {
@@ -42,6 +49,9 @@ export const store = createStore({
     },
     tasksList: state => {
       return _.values(state.tasks);
+    },
+    lastJSONTaskAdded: state => {
+      return state.lastJSONTaskAdded;
     }
   },
 });
