@@ -120,7 +120,7 @@
                               <div class="w-1/5 md:w-full">
                                 <button
                                   type="button"
-                                  @click="remove(user)"
+                                  @click="remove(idx)"
                                   class="inline-flex transition-colors duration-150 bg-transparent rounded focus:shadow-outline hover:bg-red-100"
                                 >
                                   <svg
@@ -208,7 +208,7 @@
                               <div class="w-1/5 md:w-full">
                                 <button
                                   type="button"
-                                  @click="remove(user)"
+                                  @click="remove(idx)"
                                   class="inline-flex transition-colors duration-150 bg-transparent rounded focus:shadow-outline hover:bg-red-100"
                                 >
                                   <svg
