@@ -393,9 +393,17 @@ export default {
     const formSections = [
       // *** Section ***
       {
-        title: "Data Type",
-        id: "dataType",
+        title: "General Information",
+        id: "generalInformation",
         fields: [
+          {
+            id: "taskId",
+            name: "Task Identifier",
+            yup: yup.string().required(),
+            as: "input",
+            type: "text",
+            default: "minst",
+          },
           {
             id: "dataType",
             name: "Data Type",
@@ -415,14 +423,6 @@ export default {
         title: "Display Information",
         id: "displayInformation",
         fields: [
-          {
-            id: "taskId",
-            name: "Task Identifier",
-            yup: yup.string().required(),
-            as: "input",
-            type: "text",
-            default: "minst",
-          },
           {
             id: "taskTitle",
             name: "Title",
@@ -855,8 +855,8 @@ export default {
       return _.concat(formSection.fields, formSection[this.dataType]);
     },
     formTaskForServer(task) {
-      //task should have a json format structure as in `tasks.json` to be correctly uploaded on server 
-      const formated = {};
+      //task should have a json format structure as in `tasks.json` to be correctly uploaded on server
+      const formated = {taskId:task.taskId};
       _.forEach(this.formSections, (section) => {
         return (formated[section.id] = _.reduce(
           section.fields,
@@ -872,7 +872,7 @@ export default {
       );
       formated.trainingInformation["dataType"] = task.dataType;
       _.unset(formated, "modelCompileData");
-      _.unset(formated, "dataType");
+      _.unset(formated, "generalInformation");
       return formated;
     },
 
