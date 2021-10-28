@@ -172,5 +172,34 @@
         "truck": 9
       }
     }
+  },
+  {
+    "dataType": "csv",
+    "taskId": "nieauretss",
+    "taskTitle": "ts",
+    "summary": "ts",
+    "overview": "st",
+    "model": "sts",
+    "tradeoffs": "st",
+    "dataFormatInformation": "auie",
+    "dataExampleText": "sts",
+    "modelId": "aueuei",
+    "port": "9999",
+    "epoch": "1090",
+    "validationSplit": "0.2",
+    "batchSize": "39",
+    "learningRate": "9.9",
+    "modelTrainData": "iuae",
+    "optimizer": "sgd",
+    "loss": "meanSquaredError",
+    "metrics": ["binaryAccuracy", "categoricalAccuracy"],
+    "receivedMessagesThreshold": "1",
+    "outputColumn": "survicev",
+    "dataExample": [
+      { "columnName": "uiae", "columnData": "ee" },
+      { "columnName": "auiuaeu", "columnData": "auie" }
+    ],
+    "headers": ["PassengerIdauieaue", "Paaueauieaue"],
+    "inputColumn": ["PassengerId", "PassengerId2"]
   }
 ]

@@ -99,6 +99,176 @@
                           >
                         </vee-field>
 
+                        <FieldArray
+                          v-else-if="field.type == 'array'"
+                          v-bind:name="field.id"
+                          v-bind:id="field.id"
+                          v-slot="{ fields, push, remove }"
+                        >
+                          <br />
+                          <fieldset v-for="(f, idx) in fields" :key="f.key">
+                            <div class="flex space-x-2 md:space-x-8">
+                              <div class="w-4/5 md:w-full">
+                                <vee-field
+                                  :id="`${field.id}_${idx}`"
+                                  :name="`${field.id}[${idx}]`"
+                                  v-bind:placeholder="field.default"
+                                  class="inline bg-gray-100 appearance-none border-0 border-gray-200 rounded  py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+                                />
+                                <ErrorMessage :name="`${field.id}[${idx}]`" />
+                              </div>
+                              <div class="w-1/5 md:w-full">
+                                <button
+                                  type="button"
+                                  @click="remove(user)"
+                                  class="inline-flex transition-colors duration-150 bg-transparent rounded focus:shadow-outline hover:bg-red-100"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    x="0px"
+                                    y="0px"
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 48 48"
+                                    style=" fill:#000000;"
+                                  >
+                                    <path
+                                      fill="#F44336"
+                                      d="M21.5 4.5H26.501V43.5H21.5z"
+                                      transform="rotate(45.001 24 24)"
+                                    ></path>
+                                    <path
+                                      fill="#F44336"
+                                      d="M21.5 4.5H26.5V43.501H21.5z"
+                                      transform="rotate(135.008 24 24)"
+                                    ></path>
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </fieldset>
+
+                          <button
+                            type="button"
+                            @click="push('')"
+                            class="inline-flex items-center h-10 px-5 transition-colors duration-150 bg-transparent border-0 rounded focus:shadow-outline hover:bg-gray-100"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              x="0px"
+                              y="0px"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              style=" fill:#6B7280;"
+                              class="w-4 h-4 mr-3 fill-current "
+                            >
+                              <path
+                                fill-rule="evenodd"
+                                d="M 11 2 L 11 11 L 2 11 L 2 13 L 11 13 L 11 22 L 13 22 L 13 13 L 22 13 L 22 11 L 13 11 L 13 2 Z"
+                              ></path>
+                            </svg>
+                            <span class="md:text-right mb-1 md:mb-0 pr-4">
+                              Add Element</span
+                            >
+                          </button>
+                        </FieldArray>
+
+                        <FieldArray
+                          v-else-if="field.type == 'arrayObject'"
+                          v-bind:name="field.id"
+                          v-bind:id="field.id"
+                          v-slot="{ fields, push, remove }"
+                        >
+                          <br />
+                          <fieldset v-for="(f, idx) in fields" :key="f.key">
+                            <div class="flex space-x-2 md:space-x-8">
+                              <div
+                                v-for="e in field.elements"
+                                v-bind:key="e.key"
+                              >
+                                <div class="w-2/5 md:w-full">
+                                  <label
+                                    :for="`${e.key}_${idx}`"
+                                    class="inline  md:text-right mb-1 md:mb-0 pr-4 "
+                                    >{{ e.key }}</label
+                                  >
+                                  <vee-field
+                                    :id="`${e.key}_${idx}`"
+                                    :name="`${field.id}[${idx}].${e.key}`"
+                                    v-bind:placeholder="e.default"
+                                    class="inline bg-gray-100 appearance-none border-0 border-gray-200 rounded  py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+                                  />
+                                  <ErrorMessage
+                                    :name="`${field.id}[${idx}].${e.key}`"
+                                  />
+                                </div>
+                              </div>
+
+                              <div class="w-1/5 md:w-full">
+                                <button
+                                  type="button"
+                                  @click="remove(user)"
+                                  class="inline-flex transition-colors duration-150 bg-transparent rounded focus:shadow-outline hover:bg-red-100"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    x="0px"
+                                    y="0px"
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 48 48"
+                                    style=" fill:#000000;"
+                                  >
+                                    <path
+                                      fill="#F44336"
+                                      d="M21.5 4.5H26.501V43.5H21.5z"
+                                      transform="rotate(45.001 24 24)"
+                                    ></path>
+                                    <path
+                                      fill="#F44336"
+                                      d="M21.5 4.5H26.5V43.501H21.5z"
+                                      transform="rotate(135.008 24 24)"
+                                    ></path>
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </fieldset>
+
+                          <button
+                            type="button"
+                            @click="
+                              push(
+                                field.elements.reduce(
+                                  (acc, e) => ((acc[e.key] = ''), acc),
+                                  {}
+                                )
+                              )
+                            "
+                            class="inline-flex items-center h-10 px-5 transition-colors duration-150 bg-transparent border-0 rounded focus:shadow-outline hover:bg-gray-100"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              x="0px"
+                              y="0px"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              style=" fill:#6B7280;"
+                              class="w-4 h-4 mr-3 fill-current "
+                            >
+                              <path
+                                fill-rule="evenodd"
+                                d="M 11 2 L 11 11 L 2 11 L 2 13 L 11 13 L 11 22 L 13 22 L 13 13 L 22 13 L 22 11 L 13 11 L 13 2 Z"
+                              ></path>
+                            </svg>
+                            <span class="md:text-right mb-1 md:mb-0 pr-4">
+                              Add Element</span
+                            >
+                          </button>
+                        </FieldArray>
+
                         <div v-else>
                           <vee-field
                             v-bind:name="field.id"
@@ -151,7 +321,6 @@
                   >
                     Reset
                   </button>
-
                   <a
                     href="https://join.slack.com/t/deai-workspace/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
                     class="w-2/5 text-lg text-center border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
@@ -197,6 +366,7 @@ import {
   Field as VeeField,
   Form as VeeForm,
   ErrorMessage,
+  FieldArray,
   handleSubmit,
 } from "vee-validate";
 import * as yup from "yup";
@@ -207,8 +377,10 @@ export default {
     VeeField,
     VeeForm,
     ErrorMessage,
+    FieldArray,
   },
   data() {
+    const arrayFields = [{ columnName: "PassengerId", columnData: "1" }];
     // data property defining which task-specific fields should be rendered
     const dataType = "other";
     /* form generator
@@ -219,6 +391,7 @@ export default {
             - `other`  (empty rendering which no data type has been chosens)
     */
     const formSections = [
+      // *** Section ***
       {
         title: "Data Type",
         id: "dataType",
@@ -237,6 +410,7 @@ export default {
         image: [],
         other: [],
       },
+      // *** Section ***
       {
         title: "Display Information",
         id: "displayInformation",
@@ -316,23 +490,41 @@ export default {
           {
             id: "dataExample",
             name: "Data Example",
-            yup: yup.string().required(), //to change
+            yup: yup
+              .array()
+              .of(
+                yup.object().shape({
+                  columnName: yup
+                    .string()
+                    .required()
+                    .label("Column Name"),
+                  columnData: yup
+                    .string()
+                    .required()
+                    .label("Column Data"),
+                }).required()
+              )
+              .strict(),
             as: "input",
-            type: "text",
-            default: [
-              { columnName: "PassengerId", columnData: "1" },
-              { columnName: "Survived", columnData: "0" },
-              { columnName: "Name", columnData: "Braund, Mr. Owen Harris" },
-              { columnName: "Sex", columnData: "male" },
+            type: "arrayObject",
+            elements: [
+              {
+                key: "columnName",
+                default: "PassengerId",
+              },
+              {
+                key: "columnData",
+                default: "1",
+              },
             ],
           },
           {
             id: "headers",
             name: "Headers",
-            yup: yup.string().required(), //to change
+            yup: yup.array().of(yup.string().required()),
             as: "input",
-            type: "text",
-            default: ["PassengerId", "Survived", "Name", "Sex"],
+            type: "array",
+            default: "PassengerId",
           },
         ],
         image: [
@@ -347,6 +539,7 @@ export default {
         ],
         other: [],
       },
+      // *** Section ***
       {
         title: "Training Information",
         id: "trainingInformation",
@@ -437,25 +630,26 @@ export default {
             default: 1,
           },
           {
-            id: "inputColumns",
-            name: "Received Messages Threshold",
+            id: "outputColumn",
+            name: "Output Column",
             yup: yup.string().required(),
             as: "input",
             type: "text",
             default: "Survived",
           },
           {
-            id: "outputColumn",
-            name: "Output Column",
+            id: "inputColumn",
+            name: "Input Column",
             yup: yup
               .array()
               .of(yup.string())
               .min(1)
               .required(),
             as: "input",
-            type: "text",
-            default: ["PassengerId", "Age", "SibSp", "Parch", "Fare", "Pclass"],
+            type: "array",
+            default: "PassengerId",
           },
+      
         ],
         image: [
           {
@@ -503,8 +697,8 @@ export default {
               .min(1)
               .required(),
             as: "input",
-            type: "text",
-            default: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+            type: "array",
+            default: "0",
           },
           {
             id: "NUM_CLASSES",
@@ -522,23 +716,31 @@ export default {
             name: "List of labels",
             yup: yup
               .array()
-              .of(yup.object())
-              .min(1)
-              .required(),
+              .of(
+                yup.object().shape({
+                  stringLabel: yup
+                    .string()
+                    .required()
+                    .label("Label (string)"),
+                  intLabel: yup
+                    .string()
+                    .required()
+                    .label("Label (int)"),
+                }).required()
+              )
+              .strict(),
             as: "input",
-            type: "text",
-            default: {
-              airplane: 0,
-              automobile: 1,
-              bird: 2,
-              cat: 3,
-              deer: 4,
-              dog: 5,
-              frog: 6,
-              horse: 7,
-              ship: 8,
-              truck: 9,
-            },
+            type: "arrayObject",
+            elements: [
+              {
+                key: "stringLabel",
+                default: "airplane",
+              },
+              {
+                key: "intLabel",
+                default: "1",
+              },
+            ],
           },
           {
             id: "csvLabels",
@@ -559,6 +761,7 @@ export default {
         ],
         other: [],
       },
+      // *** Section ***
       {
         title: "Model Compile Data",
         id: "trainingInformation",
@@ -647,6 +850,7 @@ export default {
       return _.concat(formSection.fields, formSection[this.dataType]);
     },
     async onSubmit(task) {
+      console.log(task);
       // Submit values to Express server
       const response = await axios.post("http://localhost:8080/tasks/", task);
       if (response.status === 200) {
@@ -662,7 +866,6 @@ export default {
       setTimeout(this.$toast.clear, 30000);
     },
     async onSubmissionSucess(task) {
-      console.log(task);
       // manual reset of form
       this.$refs.resetButton.click();
       // add task to store to rerender TaskList component
