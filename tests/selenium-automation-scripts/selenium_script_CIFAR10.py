@@ -22,12 +22,15 @@ import math
 import csv
 from webdriver_manager.chrome import ChromeDriverManager
 
+
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS  = 3
-# Defines the way to split the data, could be 'iid', 'partition' for even size partitions, 'rparition' for random size partitions
-DATA_SPLIT = 'spartition'
+NUM_PEERS  = 2
+# Defines the way to split the data, could be 'partition' for even size partitions, 'rpartition' for random size partitions
+# spartition for parition of size passed as an argument RATIOS.
+DATA_SPLIT = 'rpartition'
+RATIOS = [5/7, 2/7]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
@@ -35,6 +38,8 @@ TRAINING_TYPE = 'Train Distributed'
 # paths to the file containing the CSV file of Titanic passengers with 12 columns
 IMAGE_FILE_PATH = r'preprocessed_images/CIFAR10'
 LABEL_FILE_PATH = 'labels.csv'
+NUM_IMAGES = 15
+
 
 # Download and extract chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads
 # Not neccesary after ChromeDriverManager was imported
@@ -132,9 +137,12 @@ def s_parirtion(list_in, ratios):
         create_csv(temp_dic, str(i) + '_partition.csv')
     return list_out
  
-partitions = s_parirtion(get_files(IMAGE_FILE_PATH, 7), [4/7, 2/7, 1/7])
-#partitions = r_parirtion(get_files(IMAGE_FILE_PATH, 7), NUM_PEERS)
-#partitions = parirtion(get_files(IMAGE_FILE_PATH, 7), NUM_PEERS)
+if DATA_SPLIT == 'partition':
+    partitions = partition(get_files(IMAGE_FILE_PATH, NUM_IMAGES), NUM_PEERS)
+elif DATA_SPLIT == 'spartition':
+    partitions = s_parirtion(get_files(IMAGE_FILE_PATH, NUM_IMAGES), RATIOS)  
+elif DATA_SPLIT == 'rpartition':
+    partitions = r_parirtion(get_files(IMAGE_FILE_PATH, NUM_IMAGES), NUM_PEERS)
 
 for index, driver in enumerate(drivers):
     # Click 'Start Building' on home page
@@ -145,7 +153,7 @@ for index, driver in enumerate(drivers):
             elem.click()
 
     # Find CIFAR10 task and click 'Join' on task list page
-    time.sleep(0.5)
+    time.sleep(2)
     elements = driver.find_elements_by_css_selector('div.group')
     for element in elements:
         if TASK_NAME in element.get_attribute('innerHTML'):
@@ -159,7 +167,7 @@ for index, driver in enumerate(drivers):
             elem.click()
 
     # Upload files on Task Training
-    time.sleep(4)
+    time.sleep(6)
     driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(partitions[index]))
     driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(str(index) + '_partition.csv'))
 

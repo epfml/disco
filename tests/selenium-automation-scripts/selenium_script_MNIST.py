@@ -23,8 +23,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
 NUM_PEERS = 2
-# Defines the way to split the data, could be 'iid', 'partition' for even size partitions, 'rparition' for random size partitions,  s_partition for specific size partitions
+# Defines the way to split the data, could be 'partition' for even size partitions, 'rparition' for random size partitions
+# 'spartition' for partition of sizes past as argument RATIOS
 DATA_SPLIT = 'spartition'
+RATIOS = [0.66, 0.33]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'MNIST'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
