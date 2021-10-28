@@ -317,6 +317,7 @@
                   <button
                     type="reset"
                     ref="resetButton"
+                    value="Reset"
                     class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
                   >
                     Reset
@@ -380,7 +381,6 @@ export default {
     FieldArray,
   },
   data() {
-    const arrayFields = [{ columnName: "PassengerId", columnData: "1" }];
     // data property defining which task-specific fields should be rendered
     const dataType = "other";
     /* form generator
@@ -876,8 +876,9 @@ export default {
       return formated;
     },
 
-    async onSubmit(rawTask) {
+    async onSubmit(rawTask, {resetForm}) {
       const task = this.formTaskForServer(rawTask);
+      resetForm();
       // Submit values to Express server
       const response = await axios.post("http://localhost:8080/tasks/", task);
       if (response.status === 200) {
