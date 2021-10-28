@@ -1,8 +1,7 @@
 import { makeid } from './helpers';
 import Peer from 'peerjs';
 import { PeerJS, handleData } from './peer';
-
-/**
+/** 
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
@@ -11,8 +10,9 @@ export class CommunicationManager {
    * Prepares connection to a PeerJS server.
    * @param {Number} portNbr the port number to connect.
    */
-  constructor(portNbr, password = null) {
+  constructor(portNbr, taskId, password = null) {
     this.portNbr = portNbr;
+    this.taskId = taskId;
     this.peerjsId = null;
     this.peer = null;
     this.peerjs = null;
@@ -46,18 +46,16 @@ export class CommunicationManager {
 
     // create an ID used to connect to the server
     this.peerjsId = await makeid(10);
-
     // connect to the PeerJS server
-    /*
-        this.peer = new Peer(this.peerjsId, {
-            host: "localhost",
-            port: 9000,
-            path: "/deai",
-        });*/
+    // this.peer = new Peer(this.peerjsId, {
+    //   host: 'localhost',
+    //   port: 8080,
+    //   path: `/deai/${this.taskId}`,
+    // });
 
     this.peer = new Peer(this.peerjsId, {
       host: 'deai-313515.ew.r.appspot.com',
-      path: '/deai',
+      path: `/deai/${this.taskId}`,
       secure: true,
       config: {
         iceServers: [
@@ -102,17 +100,14 @@ export class CommunicationManager {
    * Updates the receivers' list.
    */
   async updateReceivers() {
-    /*
-        let queryIds = await fetch(
-            "http://localhost:".concat(String(this.portNbr)).concat("/deai/peerjs/peers"
-            )).then((response) => response.text());
-        */
+    // let queryIds = await fetch(
+    //   "http://localhost:".concat(String(8080)).concat(`/deai/${this.taskId}/peerjs/peers`
+    // )).then(response => response.text());
 
     let queryIds = await fetch(
-      'https://deai-313515.ew.r.appspot.com'.concat('/deai/peerjs/peers')
+    'https://deai-313515.ew.r.appspot.com'.concat(`/deai/${this.taskId}/peerjs/peers`)
     ).then(response => response.text());
 
-    console.log(queryIds);
     let allIds = JSON.parse(queryIds);
     let id = this.peerjsId;
     this.receivers = allIds.filter(function(value) {
