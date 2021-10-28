@@ -384,7 +384,7 @@ export default {
     // data property defining which task-specific fields should be rendered
     const dataType = "other";
     /* form generator
-         each section should contain : 
+         each section should contain :
             - `fields` (general fields)
             - `csv`    (fields only relevant for csv tasks)
             - `image`  (fields only relevant for image tasks)
@@ -493,16 +493,19 @@ export default {
             yup: yup
               .array()
               .of(
-                yup.object().shape({
-                  columnName: yup
-                    .string()
-                    .required()
-                    .label("Column Name"),
-                  columnData: yup
-                    .string()
-                    .required()
-                    .label("Column Data"),
-                }).required()
+                yup
+                  .object()
+                  .shape({
+                    columnName: yup
+                      .string()
+                      .required()
+                      .label("Column Name"),
+                    columnData: yup
+                      .string()
+                      .required()
+                      .label("Column Data"),
+                  })
+                  .required()
               )
               .strict(),
             as: "input",
@@ -649,7 +652,6 @@ export default {
             type: "array",
             default: "PassengerId",
           },
-      
         ],
         image: [
           {
@@ -717,16 +719,19 @@ export default {
             yup: yup
               .array()
               .of(
-                yup.object().shape({
-                  stringLabel: yup
-                    .string()
-                    .required()
-                    .label("Label (string)"),
-                  intLabel: yup
-                    .string()
-                    .required()
-                    .label("Label (int)"),
-                }).required()
+                yup
+                  .object()
+                  .shape({
+                    stringLabel: yup
+                      .string()
+                      .required()
+                      .label("Label (string)"),
+                    intLabel: yup
+                      .string()
+                      .required()
+                      .label("Label (int)"),
+                  })
+                  .required()
               )
               .strict(),
             as: "input",
@@ -764,7 +769,7 @@ export default {
       // *** Section ***
       {
         title: "Model Compile Data",
-        id: "trainingInformation",
+        id: "modelCompileData",
         fields: [
           {
             id: "optimizer",
@@ -849,8 +854,30 @@ export default {
     allFields(formSection) {
       return _.concat(formSection.fields, formSection[this.dataType]);
     },
-    async onSubmit(task) {
-      console.log(task);
+    formTaskForServer(task) {
+      //task should have a json format structure as in `tasks.json` to be correctly uploaded on server 
+      const formated = {};
+      _.forEach(this.formSections, (section) => {
+        return (formated[section.id] = _.reduce(
+          section.fields,
+          (acc, field) => {
+            acc[field.id] = task[field.id];
+            return acc;
+          },
+          {}
+        ));
+      });
+      formated.trainingInformation["modelCompileData"] = _.cloneDeep(
+        formated.modelCompileData
+      );
+      formated.trainingInformation["dataType"] = task.dataType;
+      _.unset(formated, "modelCompileData");
+      _.unset(formated, "dataType");
+      return formated;
+    },
+
+    async onSubmit(rawTask) {
+      const task = this.formTaskForServer(rawTask);
       // Submit values to Express server
       const response = await axios.post("http://localhost:8080/tasks/", task);
       if (response.status === 200) {
