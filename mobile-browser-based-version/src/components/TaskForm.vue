@@ -402,7 +402,7 @@ export default {
             yup: yup.string().required(),
             as: "input",
             type: "text",
-            default: "minst",
+            default: "eg. : minst",
           },
           {
             id: "dataType",
@@ -411,7 +411,7 @@ export default {
             as: "input",
             type: "select",
             options: ["image", "csv", "other"],
-            default: "other",
+            default: "eg. : other",
           },
         ],
         csv: [],
@@ -429,7 +429,7 @@ export default {
             yup: yup.string().required(),
             as: "input",
             type: "text",
-            default: "MNIST",
+            default: "eg. : MNIST",
           },
           {
             id: "summary",
@@ -438,7 +438,7 @@ export default {
             as: "textarea",
             type: "textarea",
             default:
-              "Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers.",
+              "eg. : Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers.",
           },
           {
             id: "overview",
@@ -447,7 +447,7 @@ export default {
             as: "textarea",
             type: "textarea",
             default:
-              "The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform.",
+              "eg. : The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform.",
           },
           {
             id: "model",
@@ -456,7 +456,7 @@ export default {
             as: "textarea",
             type: "textarea",
             default:
-              "The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.",
+              "eg. : The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.",
           },
           {
             id: "tradeoffs",
@@ -465,7 +465,7 @@ export default {
             as: "textarea",
             type: "textarea",
             default:
-              "We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.",
+              "eg. : We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.",
           },
           {
             id: "dataFormatInformation",
@@ -474,7 +474,7 @@ export default {
             as: "textarea",
             type: "textarea",
             default:
-              "This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.",
+              "eg. : This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.",
           },
           {
             id: "dataExampleText",
@@ -483,7 +483,7 @@ export default {
             as: "input",
             type: "text",
             default:
-              "Below you can find an example of an expected image representing the digit 9.",
+              "eg. : Below you can find an example of an expected image representing the digit 9.",
           },
         ],
         csv: [
@@ -513,11 +513,11 @@ export default {
             elements: [
               {
                 key: "columnName",
-                default: "PassengerId",
+                default: "eg. : PassengerId",
               },
               {
                 key: "columnData",
-                default: "1",
+                default: "eg. : 1",
               },
             ],
           },
@@ -527,7 +527,7 @@ export default {
             yup: yup.array().of(yup.string().required()),
             as: "input",
             type: "array",
-            default: "PassengerId",
+            default: "eg. : PassengerId",
           },
         ],
         image: [
@@ -537,7 +537,7 @@ export default {
             yup: yup.string().required(),
             as: "input",
             type: "text",
-            default: "./9-mnist-example.png",
+            default: "eg. : ./9-mnist-example.png",
           },
         ],
         other: [],
@@ -553,7 +553,7 @@ export default {
             yup: yup.string().required(),
             as: "input",
             type: "text",
-            default: "mnist-model",
+            default: "eg. : mnist-model",
           },
           {
             id: "port",
@@ -565,7 +565,7 @@ export default {
               .required(),
             as: "input",
             type: "number",
-            default: 9001,
+            default: "eg. : 9001",
           },
           {
             id: "epoch",
@@ -577,7 +577,7 @@ export default {
               .required(),
             as: "input",
             type: "number",
-            default: 10,
+            default: "eg. : 10",
           },
           {
             id: "validationSplit",
@@ -589,7 +589,7 @@ export default {
               .required(),
             as: "textarea",
             type: "number",
-            default: 0.2,
+            default: "eg. : 0.2",
           },
           {
             id: "batchSize",
@@ -601,7 +601,7 @@ export default {
               .required(),
             as: "input",
             type: "number",
-            default: 30,
+            default: "eg. : 30",
           },
           {
             id: "learningRate",
@@ -612,15 +612,41 @@ export default {
               .required(),
             as: "textarea",
             type: "number",
-            default: 0.05,
+            default: "eg. : 0.05",
           },
           {
             id: "modelTrainData",
             name: "Model Train Data",
-            yup: yup.string().required(),
+            yup: yup
+              .array()
+              .of(
+                yup
+                  .object()
+                  .shape({
+                    trainingParameter: yup
+                      .string()
+                      .required()
+                      .label("Training Parameter"),
+                    value: yup
+                      .string()
+                      .required()
+                      .label("Value"),
+                  })
+                  .required()
+              )
+              .strict(),
             as: "input",
-            type: "text",
-            default: { epochs: 10 }, //{id:'epochs',  name:'Epochs',yup : yup.number().integer().positive().required(), type:'number',default:10},
+            type: "arrayObject",
+            elements: [
+              {
+                key: "trainingParameter",
+                default: "eg. : epochs",
+              },
+              {
+                key: "value",
+                default: "eg. : 10",
+              },
+            ],
           },
         ],
         csv: [
@@ -630,7 +656,7 @@ export default {
             yup: yup.number().required(),
             as: "input",
             type: "number",
-            default: 1,
+            default: "eg. : 1",
           },
           {
             id: "outputColumn",
@@ -638,7 +664,7 @@ export default {
             yup: yup.string().required(),
             as: "input",
             type: "text",
-            default: "Survived",
+            default: "eg. : Survived",
           },
           {
             id: "inputColumn",
@@ -650,7 +676,7 @@ export default {
               .required(),
             as: "input",
             type: "array",
-            default: "PassengerId",
+            default: "eg. : PassengerId",
           },
         ],
         image: [
@@ -664,7 +690,7 @@ export default {
               .required(),
             as: "input",
             type: "number",
-            default: 1,
+            default: "eg. : 1",
           },
           {
             id: "IMAGE_H",
@@ -676,7 +702,7 @@ export default {
               .required(),
             as: "input",
             type: "number",
-            default: 28,
+            default: "eg. : 28",
           },
           {
             id: "IMAGE_W",
@@ -688,7 +714,7 @@ export default {
               .required(),
             as: "input",
             type: "number",
-            default: 28,
+            default: "eg. : 28",
           },
           {
             id: "LABEL_LIST",
@@ -700,7 +726,7 @@ export default {
               .required(),
             as: "input",
             type: "array",
-            default: "0",
+            default: "eg. : 0",
           },
           {
             id: "NUM_CLASSES",
@@ -711,7 +737,7 @@ export default {
               .required(),
             as: "input",
             type: "number",
-            default: 2,
+            default: "eg. : 2",
           },
           {
             id: "LABEL_ASSIGNMENT",
@@ -739,11 +765,11 @@ export default {
             elements: [
               {
                 key: "stringLabel",
-                default: "airplane",
+                default: "eg. : airplane",
               },
               {
                 key: "intLabel",
-                default: "1",
+                default: "eg. : 1",
               },
             ],
           },
@@ -785,7 +811,7 @@ export default {
               "adamax",
               "rmsprop",
             ],
-            default: "rmsprop",
+            default: "eg. : rmsprop",
           },
           {
             id: "loss",
@@ -803,7 +829,7 @@ export default {
               "sigmoidCrossEntropy",
               "softmaxCrossEntropy",
             ],
-            default: "categoricalCrossentropy",
+            default: "eg. : categoricalCrossentropy",
           },
           {
             id: "metrics",
@@ -871,12 +897,16 @@ export default {
         formated.modelCompileData
       );
       formated.trainingInformation["dataType"] = task.dataType;
+      formated.trainingInformation.modelTrainData = _.reduce(task.modelTrainData, (acc,f) => {
+        acc[f.trainingParameter] = f.value;
+        return acc;
+      },{})
       _.unset(formated, "modelCompileData");
       _.unset(formated, "generalInformation");
       return formated;
     },
 
-    async onSubmit(rawTask, {resetForm}) {
+    async onSubmit(rawTask, { resetForm }) {
       const task = this.formTaskForServer(rawTask);
       resetForm();
       // Submit values to Express server
