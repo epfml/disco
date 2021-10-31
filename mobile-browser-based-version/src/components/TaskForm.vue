@@ -136,14 +136,17 @@
                                 v-bind:name="field.id"
                                 v-bind:id="field.id"
                                 class="h-full w-full opacity-0"
-                                accept=".json"
+                                v-bind:accept="field.extension"
                               />
                             </div>
                           </div>
                           <div
                             class="flex justify-between items-center text-gray-400"
                           >
-                            <span>Accepted file type: .json only</span>
+                            <span
+                              >Accepted file type:
+                              {{ field.extension }} only</span
+                            >
                             <span class="flex items-center "
                               ><i class="fa fa-lock mr-1"></i> secure</span
                             >
@@ -920,7 +923,16 @@ export default {
             name: "TensorFlow.js Model in JSON format",
             as: "input",
             type: "file",
+            extension: ".json",
             default: "eg. : model.json",
+          },
+          {
+            id: "weightsFile",
+            name: "TensorFlow.js Model Weights in .bin format",
+            as: "input",
+            type: "file",
+            extension: ".bin",
+            default: "eg. : weights.bin",
           },
         ],
         csv: [],
@@ -983,17 +995,23 @@ export default {
 
     async onSubmit(rawTask, { resetForm }) {
       // load model.json file provided by user
-      const filePromise = new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          const response = await axios.get(reader.result);
-          resolve(response.data);
-        };
-        reader.readAsDataURL(rawTask.modelFile[0]);
-      });
-      const modelFile = await filePromise;
+      function filePromise(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            const response = await axios.get(reader.result);
+            resolve(response.data);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+      const files = await Promise.all([
+        filePromise(rawTask.modelFile[0]),
+        filePromise(rawTask.weightsFile[0]),
+      ]);
       // replace content of the form by the modelFile loaded
-      rawTask.modelFile = modelFile;
+      rawTask.modelFile = files[0];
+      rawTask.weightsFile = files[1];
       const task = this.formatTaskForServer(rawTask);
       resetForm();
       // Submit values to Express server

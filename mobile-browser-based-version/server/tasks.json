@@ -176,13 +176,41 @@
   {
     "taskId": "myTitanic",
     "displayInformation": {
-      "taskTitle": "sruss",
+      "taskTitle": "my Titanic",
       "summary": "s",
       "overview": "s",
       "model": "s",
       "tradeoffs": "s",
       "dataFormatInformation": "s",
-      "dataExampleText": "s"
+      "dataExampleText": "s",
+      "dataExample": [
+        { "columnName": "PassengerId", "columnData": "1" },
+        { "columnName": "Survived", "columnData": "0" },
+        { "columnName": "Name", "columnData": "Braund, Mr. Owen Harris" },
+        { "columnName": "Sex", "columnData": "male" },
+        { "columnName": "Age", "columnData": "22" },
+        { "columnName": "SibSp", "columnData": "1" },
+        { "columnName": "Parch", "columnData": "0" },
+        { "columnName": "Ticket", "columnData": "1/5 21171" },
+        { "columnName": "Fare", "columnData": "7.25" },
+        { "columnName": "Cabin", "columnData": "E46" },
+        { "columnName": "Embarked", "columnData": "S" },
+        { "columnName": "Pclass", "columnData": "3" }
+      ],
+      "headers": [
+        "PassengerId",
+        "Survived",
+        "Name",
+        "Sex",
+        "Age",
+        "SibSp",
+        "Parch",
+        "Ticket",
+        "Fare",
+        "Cabin",
+        "Embarked",
+        "Pclass"
+      ]
     },
     "trainingInformation": {
       "modelId": "mytitanic-model",
@@ -197,7 +225,9 @@
         "loss": "softmaxCrossEntropy",
         "metrics": ["categoricalAccuracy"]
       },
-      "dataType": "csv"
+      "dataType": "csv",
+      "inputColumns": ["PassengerId", "Age"],
+      "outputColumn": "Survived"
     }
   }
 ]
