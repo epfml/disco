@@ -76,7 +76,9 @@ tasksRouter.post("/", function(req, res) {
   else {
     // extract model file from tasks
     const modelFile = _.cloneDeep(newTask.modelFiles.modelFile);
+    const weightsFile = _.cloneDeep(newTask.modelFiles.weightsFile);
     _.unset(newTask, "modelFiles");
+    _.unset(newTask, "weightsFiles");
     // create new task and server
     ports.push(newPort);
     tasks.push(newTask);
@@ -94,8 +96,10 @@ tasksRouter.post("/", function(req, res) {
         if (err) console.log("Error writing file:", err);
       }
     );
+    fs.writeFile(`./${newTask.taskId}/weights.bin`, weightsFile, (err) => {
+      if (err) console.log("Error writing file:", err);
+    });
     // answer vue app
-    //res.redirect('back');
     res.end(`Sucessfull upload`);
   }
 });

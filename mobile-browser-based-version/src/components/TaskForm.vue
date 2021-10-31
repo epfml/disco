@@ -992,7 +992,6 @@ export default {
         },
         {}
       );
-      console.log(formated.trainingInformation.batchSize === 30);
       _.unset(formated, "modelCompileData");
       _.unset(formated, "generalInformation");
       return formated;
