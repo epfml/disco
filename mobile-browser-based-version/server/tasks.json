@@ -214,20 +214,20 @@
     },
     "trainingInformation": {
       "modelId": "mytitanic-model",
-      "port": "1961",
-      "epoch": "10",
-      "validationSplit": "0.2",
-      "batchSize": "30",
-      "learningRate": "0.05",
-      "modelTrainData": { "epochs": "10" },
+      "port": 1961,
+      "epoch": 10,
+      "validationSplit": 0.2,
+      "batchSize": 30,
+      "learningRate": 0.05,
+      "modelTrainData": { "epochs": 10 },
       "modelCompileData": {
         "optimizer": "rmsprop",
-        "loss": "softmaxCrossEntropy",
-        "metrics": ["categoricalAccuracy"]
+        "loss": "categoricalCrossentropy",
+        "metrics": ["accuracy"]
       },
       "dataType": "csv",
       "inputColumns": ["PassengerId", "Age"],
       "outputColumn": "Survived"
     }
-  }
+  },
 ]

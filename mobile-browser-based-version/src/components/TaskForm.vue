@@ -873,6 +873,8 @@ export default {
             yup: yup.string().required(),
             type: "select",
             options: [
+              "binaryCrossentropy",
+              "categoricalCrossentropy",
               "absoluteDifference",
               "computeWeightedLoss",
               "cosineDistance",
@@ -895,6 +897,7 @@ export default {
               .required(),
             type: "select-multiple",
             options: [
+              "accuracy",
               "binaryAccuracy",
               "binaryCrossentropy",
               "categoricalAccuracy",
@@ -970,7 +973,8 @@ export default {
         return (formated[section.id] = _.reduce(
           section.fields,
           (acc, field) => {
-            acc[field.id] = task[field.id];
+            acc[field.id] =
+              field.type === "number" ?  Number(task[field.id]) : task[field.id] ;
             return acc;
           },
           {}
@@ -988,6 +992,7 @@ export default {
         },
         {}
       );
+      console.log(formated.trainingInformation.batchSize === 30);
       _.unset(formated, "modelCompileData");
       _.unset(formated, "generalInformation");
       return formated;
