@@ -1,20 +1,19 @@
-import * as tf from '@tensorflow/tfjs';
+import * as tf from "@tensorflow/tfjs";
 
 export class Task {
   constructor(taskId, displayInformation, trainingInformation) {
     this.taskId = taskId;
     this.displayInformation = displayInformation;
     this.trainingInformation = trainingInformation;
-    this.modelPrefix = 'working';
+    this.modelPrefix = "working";
   }
 
   async createModel() {
     let newModel = await tf.loadLayersModel(
-      'https://deai-313515.ew.r.appspot.com/tasks/' +
-        this.taskId +
-        '/model.json'
+      //'https://deai-313515.ew.r.appspot.com/tasks/'
+      "http://localhost:8080/tasks/" + this.taskId + "/model.json"
     );
-    const savePathDb = 'indexeddb://working_'.concat(
+    const savePathDb = "indexeddb://working_".concat(
       this.trainingInformation.modelId
     );
 
@@ -23,15 +22,15 @@ export class Task {
   }
 
   async getModelFromStorage() {
-    let savePath = 'indexeddb://'
+    let savePath = "indexeddb://"
       .concat(this.modelPrefix)
-      .concat('_')
+      .concat("_")
       .concat(this.trainingInformation.modelId);
     let model = await tf.loadLayersModel(savePath);
     return model;
   }
 
   setModelPrefix(prefix) {
-    this.modelPrefix = prefix
+    this.modelPrefix = prefix;
   }
 }

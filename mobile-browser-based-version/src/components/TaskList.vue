@@ -85,8 +85,8 @@ export default {
     return {
       taskSelected: "",
       mnist: "/mnist-model/description",
-
-      tasksUrl: "https://deai-313515.ew.r.appspot.com/tasks",
+      //tasksUrl: "https://deai-313515.ew.r.appspot.com/tasks",
+      tasksUrl: "http://localhost:8080/tasks",
     };
   },
   computed: {
@@ -198,6 +198,7 @@ export default {
       await this.$store.commit("addTask", { task: task });
     }
     this.unsubscribe = this.$store.subscribe((mutation, state) => {
+      console.log("subscribed");
       //listens to events addJSONTask of the store
       if (mutation.type === "addJSONTask") {
         console.log("New Task set-up");

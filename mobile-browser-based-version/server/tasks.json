@@ -172,5 +172,32 @@
         "truck": 9
       }
     }
+  },
+  {
+    "taskId": "myTitanic",
+    "displayInformation": {
+      "taskTitle": "sruss",
+      "summary": "s",
+      "overview": "s",
+      "model": "s",
+      "tradeoffs": "s",
+      "dataFormatInformation": "s",
+      "dataExampleText": "s"
+    },
+    "trainingInformation": {
+      "modelId": "mytitanic-model",
+      "port": "1961",
+      "epoch": "10",
+      "validationSplit": "0.2",
+      "batchSize": "30",
+      "learningRate": "0.05",
+      "modelTrainData": { "epochs": "10" },
+      "modelCompileData": {
+        "optimizer": "rmsprop",
+        "loss": "softmaxCrossEntropy",
+        "metrics": ["categoricalAccuracy"]
+      },
+      "dataType": "csv"
+    }
   }
 ]

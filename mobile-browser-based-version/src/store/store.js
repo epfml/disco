@@ -1,13 +1,13 @@
-import { createStore } from 'vuex';
-import { TrainingManager } from '../helpers/training_script/training_manager'; //"../../helpers/training_script/training_manager";
-import _ from 'lodash';
+import { createStore } from "vuex";
+import { TrainingManager } from "../helpers/training_script/training_manager"; //"../../helpers/training_script/training_manager";
+import _ from "lodash";
 export const store = createStore({
   state: {
     count: 0,
     globalTaskFrameState: {},
     passwords: {},
-    tasks: {},     // Vue components
-    JSONTasks: [],  // Json object
+    tasks: {}, // Vue components
+    JSONTasks: [], // Json object
     lastJSONTaskAdded: {},
   },
   mutations: {
@@ -35,24 +35,24 @@ export const store = createStore({
   },
 
   getters: {
-    trainingManagers: state => {
+    trainingManagers: (state) => {
       return state.trainingManagers;
     },
-    globalTaskFrameState: state => modelId => {
+    globalTaskFrameState: (state) => (modelId) => {
       return state.globalTaskFrameState[modelId];
     },
-    password: state => taskId => {
+    password: (state) => (taskId) => {
       return taskId in state.passwords ? state.passwords[taskId] : null;
     },
-    tasks: state => modelId => {
+    tasks: (state) => (modelId) => {
       return state.tasks[modelId];
     },
-    tasksList: state => {
+    tasksList: (state) => {
       return _.values(state.tasks);
     },
-    lastJSONTaskAdded: state => {
+    lastJSONTaskAdded: (state) => {
       return state.lastJSONTaskAdded;
-    }
+    },
   },
 });
 

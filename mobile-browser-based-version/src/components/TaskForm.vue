@@ -99,6 +99,57 @@
                           >
                         </vee-field>
 
+                        <!-- select file button -->
+                        <div v-else-if="field.type == 'file'">
+                          <div class="h-72">
+                            <div
+                              class="relative h-full hover:cursor-pointer
+                                      border-dashed border-2 border-gray-500 dark:border-primary flex flex-col justify-center items-center"
+                            >
+                              <div class="absolute">
+                                <div class="flex flex-col items-center ">
+                                  <svg
+                                    class="w-8 h-8"
+                                    fill="currentColor"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z"
+                                    /></svg
+                                  ><span class="block text-gray-400 font-normal"
+                                    >Drag and drop your file anywhere or</span
+                                  >
+                                  <span class="block text-gray-400 font-normal"
+                                    >or</span
+                                  >
+                                  <span
+                                    class="block font-normal mt-2 p-2 rounded-sm text-white transition-colors duration-200 bg-primary hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+                                    >select file</span
+                                  >
+                                </div>
+                              </div>
+
+                              <vee-field
+                                v-bind:as="field.as"
+                                v-bind:type="field.type"
+                                v-bind:name="field.id"
+                                v-bind:id="field.id"
+                                class="h-full w-full opacity-0"
+                                accept=".json"
+                              />
+                            </div>
+                          </div>
+                          <div
+                            class="flex justify-between items-center text-gray-400"
+                          >
+                            <span>Accepted file type: .json only</span>
+                            <span class="flex items-center "
+                              ><i class="fa fa-lock mr-1"></i> secure</span
+                            >
+                          </div>
+                        </div>
+
                         <FieldArray
                           v-else-if="field.type == 'array'"
                           v-bind:name="field.id"
@@ -451,7 +502,7 @@ export default {
           },
           {
             id: "model",
-            name: "Model",
+            name: "Model Description",
             yup: yup.string().required(),
             as: "textarea",
             type: "textarea",
@@ -860,13 +911,33 @@ export default {
         image: [],
         other: [],
       },
+      {
+        title: "Model Files",
+        id: "modelFiles",
+        fields: [
+          {
+            id: "modelFile",
+            name: "TensorFlow.js Model in JSON format",
+            as: "input",
+            type: "file",
+            default: "eg. : model.json",
+          },
+        ],
+        csv: [],
+        image: [],
+        other: [],
+      },
     ];
+    // validation schema used by the yup package
     let schemaData = {};
     _.forEach(formSections, (s) =>
       _.forEach(
         s.fields,
         // explicit yup schema
-        (f) => (schemaData[f.id] = f.yup.label(f.name)) //render name instead of id in error message
+        (f) => {
+          // only validate fields with a yup property (not valid for files)
+          if (f.yup) schemaData[f.id] = f.yup.label(f.name);
+        } //render name instead of id in error message
       )
     );
     const schema = yup.object(schemaData);
@@ -880,7 +951,7 @@ export default {
     allFields(formSection) {
       return _.concat(formSection.fields, formSection[this.dataType]);
     },
-    formTaskForServer(task) {
+    formatTaskForServer(task) {
       //task should have a json format structure as in `tasks.json` to be correctly uploaded on server
       const formated = { taskId: task.taskId };
       _.forEach(this.formSections, (section) => {
@@ -897,17 +968,33 @@ export default {
         formated.modelCompileData
       );
       formated.trainingInformation["dataType"] = task.dataType;
-      formated.trainingInformation.modelTrainData = _.reduce(task.modelTrainData, (acc,f) => {
-        acc[f.trainingParameter] = f.value;
-        return acc;
-      },{})
+      formated.trainingInformation.modelTrainData = _.reduce(
+        task.modelTrainData,
+        (acc, f) => {
+          acc[f.trainingParameter] = f.value;
+          return acc;
+        },
+        {}
+      );
       _.unset(formated, "modelCompileData");
       _.unset(formated, "generalInformation");
       return formated;
     },
 
     async onSubmit(rawTask, { resetForm }) {
-      const task = this.formTaskForServer(rawTask);
+      // load model.json file provided by user
+      const filePromise = new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const response = await axios.get(reader.result);
+          resolve(response.data);
+        };
+        reader.readAsDataURL(rawTask.modelFile[0]);
+      });
+      const modelFile = await filePromise;
+      // replace content of the form by the modelFile loaded
+      rawTask.modelFile = modelFile;
+      const task = this.formatTaskForServer(rawTask);
       resetForm();
       // Submit values to Express server
       const response = await axios.post("http://localhost:8080/tasks/", task);
