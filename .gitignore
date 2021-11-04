@@ -139,3 +139,7 @@ node_modules/
 # model files on server
 weights.bin
 model.json
+
+# IDE files
+.metals/
+.vscode/

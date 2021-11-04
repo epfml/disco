@@ -427,7 +427,7 @@ import {
 import * as yup from "yup";
 
 export default {
-  name: "taskForm",
+  name: "NewTaskCreationForm",
   components: {
     VeeField,
     VeeForm,

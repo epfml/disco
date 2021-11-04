@@ -4,34 +4,34 @@ import { defineComponent } from 'vue';
 // Some page components
 import Home from '../components/Home';
 import TaskList from '../components/TaskList';
-import TaskForm from '../components/TaskForm';
+import NewTaskCreationForm from "../components/NewTaskCreationForm";
 import Information from '../components/Information';
 import Trophee from '../components/Trophee';
 
 var routes = [
   {
-    path: '/',
-    name: 'home',
+    path: "/",
+    name: "home",
     component: Home,
   },
   {
-    path: '/tasks',
-    name: 'tasks',
+    path: "/tasks",
+    name: "tasks",
     component: TaskList,
   },
-  { 
-    path: '/tasks/form',
-    name: 'tasks-form',
-    component: TaskForm,
+  {
+    path: "/task-creation-form",
+    name: "tasks-form",
+    component: NewTaskCreationForm,
   },
   {
-    path: '/information',
-    name: 'information',
+    path: "/information",
+    name: "information",
     component: Information,
   },
   {
-    path: '/trophee',
-    name: 'trophee',
+    path: "/trophee",
+    name: "trophee",
     component: Trophee,
   },
 ];

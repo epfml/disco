@@ -61,7 +61,7 @@
               </div>
             </div>
             <button
-              v-on:click="goToTaskForm()"
+              v-on:click="goToNewTaskCreationForm()"
               type="button"
               class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
             >
@@ -102,10 +102,10 @@ export default {
         path: "/tasks",
       });
     },
-    goToTaskForm() {
-      this.$emit("gototaskform");
+    goToNewTaskCreationForm() {
+      this.$emit("gotoNewTaskCreationForm");
       this.$router.push({
-        path: "/tasks/form",
+        path: "/task-creation-form",
       });
     },
   },

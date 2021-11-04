@@ -106,7 +106,7 @@ export default {
         query: {Id:id}
       });*/
     },
-    setUpTask(task) {
+    newTaskCreation(task) {
       console.log(`Processing ${task.taskId}`);
       let newTask;
       // TODO: avoid this switch by having one Task class completely determined by a json config
@@ -191,7 +191,7 @@ export default {
       .then((response) => response.json())
       .then((tasks) => {
         for (let task of tasks) {
-          tasksList.push(this.setUpTask(task));
+          tasksList.push(this.newTaskCreation(task));
         }
       });
     for (let task of tasksList) {
@@ -203,7 +203,7 @@ export default {
       if (mutation.type === "addJSONTask") {
         console.log("New Task set-up");
         this.$store.commit("addTask", {
-          task: this.setUpTask(state.lastJSONTaskAdded),
+          task: this.newTaskCreation(state.lastJSONTaskAdded),
         });
       }
     });
