@@ -1,6 +1,5 @@
 <template>
-  <baseLayout customClass="pt-4">
-    <section class="flex-col items-center justify-center p-4 space-y-4">
+  <baseLayout v-bind:withSection='true' customClass="pt-4">
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
         <!-- Titanic's card-->
         <card customClass="hover:text-primary dark:hover:text-light">
@@ -289,7 +288,6 @@
           </div>
         </card>
       </div>
-    </section>
   </baseLayout>
 </template>
 

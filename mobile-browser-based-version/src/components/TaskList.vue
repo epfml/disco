@@ -1,7 +1,6 @@
 <template>
-  <baseLayout>
+  <baseLayout v-bind:withSection='true'>
     <!-- Main Page Content -->
-      <section class="flex-col items-center justify-center p-4 space-y-4">
         <div
           v-for="task in tasks"
           :key="task.trainingInformation.modelId"
@@ -31,7 +30,6 @@
             </div>
           </card>
         </div>
-      </section>
   </baseLayout>
 </template>
 
