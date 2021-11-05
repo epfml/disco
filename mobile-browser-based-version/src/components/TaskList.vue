@@ -1,9 +1,6 @@
 <template>
   <baseLayout>
     <!-- Main Page Content -->
-    <div
-      class="flex flex-col items-right justify-start flex-1 h-full min-h-screen overflow-y-auto"
-    >
       <section class="flex-col items-center justify-center p-4 space-y-4">
         <div
           v-for="task in tasks"
@@ -35,7 +32,6 @@
           </card>
         </div>
       </section>
-    </div>
   </baseLayout>
 </template>
 

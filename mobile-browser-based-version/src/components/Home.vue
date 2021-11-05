@@ -1,9 +1,5 @@
 <template>
   <baseLayout customClass="pt-4">
-    <!-- Main Page Content -->
-    <div
-      class="flex flex-col pt-4 items-right justify-start flex-1 h-full min-h-screen overflow-y-auto"
-    >
       <!-- Welcoming words -->
       <div>
         <h1 class="text-xl pl-10 font-medium leading-none">
@@ -41,7 +37,6 @@
           </customButton>
         </div>
       </section>
-    </div>
   </baseLayout>
 </template>
 
