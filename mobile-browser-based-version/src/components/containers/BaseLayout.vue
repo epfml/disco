@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import customFooter from "../Footer";
+import customFooter from "../simple/CustomFooter";
 export default {
   name: "baseLayout",
   components: {customFooter},

@@ -33,13 +33,12 @@
               <p class="text-base">- Keep data at its source</p>
             </div>
           </card>
-          <button
+
+          <customButton
             v-on:click="goToTaskList()"
-            type="button"
-            class="w-1/6 text-lg border-2 border-transparent bg-green-500 ml-9 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
           >
             Start building
-          </button>
+          </customButton>
         </div>
       </section>
     </div>
@@ -49,11 +48,12 @@
 <script>
 import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_script";
 import baseLayout from "./containers/BaseLayout";
+import customButton from "./simple/CustomButton";
 import card from "./containers/Card"
 
 export default {
   name: "taskList",
-  components: {baseLayout,card},
+  components: {baseLayout,card,customButton},
   methods: {
     goToTaskList() {
       this.$emit("gototasks");
