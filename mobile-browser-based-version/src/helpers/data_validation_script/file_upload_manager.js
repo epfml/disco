@@ -56,6 +56,7 @@ export class FileUploadManager {
   /**
    *
    * @returns the number of files in the file's list
+   * Test to see if u can modify the PR
    */
   numberOfFiles() {
     return Object.keys(this.filesList).length
