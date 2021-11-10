@@ -19,13 +19,15 @@ from selenium.webdriver.common.action_chains import ActionChains
 import os
 from webdriver_manager.chrome import ChromeDriverManager
 
+from util import calculate_epoch_per_second
+
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
 NUM_PEERS = 2
-# Defines the way to split the data, could be 'partition' for even size partitions, 'rparition' for random size partitions
+# Defines the way to split the data, could be 'iid' for iid data, 'partition' for even size partitions, 'rparition' for random size partitions
 # 'spartition' for partition of sizes past as argument RATIOS
-DATA_SPLIT = 'spartition'
+DATA_SPLIT = 'iid'
 RATIOS = [0.66, 0.33]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'MNIST'
@@ -171,6 +173,8 @@ while continue_searcing:
                 continue_searcing = False
                 break
 
+calculate_epoch_per_second(drivers, 11, 10)
+
 for driver in drivers:
-    driver.quit()
+	driver.quit()
 

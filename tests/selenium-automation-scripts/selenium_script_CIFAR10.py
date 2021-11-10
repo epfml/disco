@@ -21,6 +21,8 @@ import os
 import math
 import csv
 from webdriver_manager.chrome import ChromeDriverManager
+
+from util import calculate_epoch_per_second
 # from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
@@ -204,13 +206,7 @@ while continue_searcing:
                 continue_searcing = False
                 break
 
-total_averaging_count = 0
-total_wait_time = 0.0
-for driver in drivers:
-    elems = driver.find_elements_by_xpath("//*[@class='text-xl font-semibold']")
-    total_averaging_count += int(elems[2].text)
-    total_wait_time += float((elems[3].text)[:len(elems[3].text) - 4])
-print(f'Epochs/s was: {round(total_averaging_count / total_wait_time, 2)}')
+calculate_epoch_per_second(drivers, 4, 3)
 
 for driver in drivers:
     driver.quit()
