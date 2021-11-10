@@ -11,7 +11,7 @@
         </h4>
         <div class="flex items-center">
           <span aria-hidden="true">
-            <img :src="`../../assets/svg/${icon}.svg`" />
+              <slot name='icon'></slot>
           </span>
         </div>
       </div>
@@ -28,16 +28,13 @@
 </template>
 
 <script>
-import InlineSvg from "vue-inline-svg";
 export default {
   name: "icon-card",
   props: {
     header: { type: String },
     description: { type: String },
-    icon: { type: String },
     customClass: { default: "", type: String },
   },
-  component: { InlineSvg },
   computed: {
     hasExtraSlot() {
       return this.$slots.extra;
