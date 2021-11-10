@@ -21,6 +21,8 @@ import os
 import math
 import csv
 from webdriver_manager.chrome import ChromeDriverManager
+# from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
 
 
 #Platform
@@ -44,10 +46,13 @@ NUM_IMAGES = 15
 # Download and extract chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads
 # Not neccesary after ChromeDriverManager was imported
 op = webdriver.ChromeOptions()
-op.add_argument('headless') 
+# op.add_argument('headless') 
+# d = DesiredCapabilities.CHROME
+# d['loggingPrefs'] = { 'browser':'ALL' }
 # You can add options=op for chrome headless mode
 # drivers = [webdriver.Chrome(ChromeDriverManager().install(), options=op) for i in range(NUM_PEERS)]
 drivers = [webdriver.Chrome(ChromeDriverManager().install()) for i in range(NUM_PEERS)]
+start_time = time.time()
 
 def get_files(directory, num_images):
     files = []
@@ -195,8 +200,17 @@ while continue_searcing:
             if 'has finished training' in f.text:
                 print(f"Train accuracy = {drivers[0].find_element_by_id('val_trainingAccuracy_cifar10-model').text}")
                 print(f"Validation accuracy = {drivers[0].find_element_by_id('val_validationAccuracy_cifar10-model').text}")
+                print(f"Total Training time was: {round(time.time() - start_time, 2)} seconds")
                 continue_searcing = False
                 break
+
+total_averaging_count = 0
+total_wait_time = 0.0
+for driver in drivers:
+    elems = driver.find_elements_by_xpath("//*[@class='text-xl font-semibold']")
+    total_averaging_count += int(elems[2].text)
+    total_wait_time += float((elems[3].text)[:len(elems[3].text) - 4])
+print(f'Epochs/s was: {round(total_averaging_count / total_wait_time, 2)}')
 
 for driver in drivers:
     driver.quit()
