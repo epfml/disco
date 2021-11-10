@@ -29,7 +29,7 @@ PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" f
 NUM_PEERS  = 2
 # Defines the way to split the data, could be 'partition' for even size partitions, 'rpartition' for random size partitions
 # spartition for parition of size passed as an argument RATIOS.
-DATA_SPLIT = 'rpartition'
+DATA_SPLIT = 'iid'
 RATIOS = [5/7, 2/7]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
@@ -168,8 +168,12 @@ for index, driver in enumerate(drivers):
 
     # Upload files on Task Training
     time.sleep(6)
-    driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(partitions[index]))
-    driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(str(index) + '_partition.csv'))
+    if DATA_SPLIT != 'iid':
+        driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(partitions[index]))
+        driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(str(index) + '_partition.csv'))
+    else:
+        driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(get_files(IMAGE_FILE_PATH, NUM_IMAGES)))
+        driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
 
 # Start training on each driver
 for driver in drivers:
