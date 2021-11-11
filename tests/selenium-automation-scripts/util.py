@@ -11,6 +11,7 @@ def calculate_epoch_per_second(drivers, time_index, epoch_index):
     for driver in drivers:
         elems = driver.find_elements_by_xpath("//*[@class='text-xl font-semibold']")
         total_averaging_count += int(elems[epoch_index].text)
+        # print((elems[time_index].text)[:len(elems[time_index].text)])
         total_wait_time += float((elems[time_index].text)[:len(elems[time_index].text) - 4])
     print(f'Epochs/s was: {round(total_averaging_count / total_wait_time, 2)}')
 
@@ -106,17 +107,62 @@ def img_csv_s_parirtion(list_in, ratios, label_path):
         create_csv(temp_dic, str(i) + '_partition.csv')
     return list_out
 
+def img_r_partition(list_in, n):
+    random.shuffle(list_in)
+    partition_indices = []
+    list_out = []
+    for _ in range(n - 1):
+        rand_index = random.randint(1, len(list_in) - 1)
+        while rand_index in partition_indices:
+            rand_index = random.randint(1, len(list_in) - 1)
+        partition_indices.append(rand_index)
+    partition_indices = sorted(partition_indices)
+    
+    for i in range(len(partition_indices)):
+        if i == 0:
+            list_out.append(list_in[0:partition_indices[i]])
+        else:
+            list_out.append(list_in[partition_indices[i - 1]:partition_indices[i]])
+    list_out.append(list_in[partition_indices[len(partition_indices) - 1]:])
+    return list_out
+
+def img_s_partition(list_in, ratios):
+    random.shuffle(list_in)
+    list_in = sorted(list_in)
+    partition_indices = []
+    list_out = []
+    for i in range(len(ratios)):
+        curr_slice_index = math.ceil(ratios[i] * len(list_in))
+        if i == 0:
+            partition_indices.append(int(curr_slice_index))
+        else:
+            partition_indices.append(int(partition_indices[i - 1] + curr_slice_index))
+    for i in range(len(partition_indices)):
+        if i == 0:
+            list_out.append(list_in[0:partition_indices[i]])
+        else:
+            list_out.append(list_in[partition_indices[i - 1]:partition_indices[i]])
+    return list_out
+
+def calculate_average_acc(drivers, train_acc_element_id, val_acc_element_id):
+    total_train_acc = 0
+    total_val_acc = 0
+    for driver in drivers:
+        total_train_acc += float(driver.find_element_by_id(train_acc_element_id).text)
+        total_val_acc += float(driver.find_element_by_id(val_acc_element_id).text)
+    return total_train_acc / len(drivers), total_val_acc / len(drivers)
+
+
 def print_train_acc(drivers, start_time, train_acc_element_id, val_acc_element_id):
-
     continue_searcing = True
-
     while continue_searcing:
         if len(drivers[len(drivers) - 1].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']")) > 0:
             for f in drivers[len(drivers) - 1].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']"):
                 # print("Im here")
                 if 'has finished training' in f.text:
-                    print(f"Train accuracy = {drivers[len(drivers) - 1].find_element_by_id(train_acc_element_id).text}")
-                    print(f"Validation accuracy = {drivers[len(drivers) - 1].find_element_by_id(val_acc_element_id).text}")
+                    train_acc, val_acc = calculate_average_acc(drivers, train_acc_element_id, val_acc_element_id)
+                    print(f"Train accuracy = {round(train_acc, 2)}")
+                    print(f"Validation accuracy = {round(val_acc, 2)}")
                     print(f"Total Training time was: {round(time.time() - start_time, 2)} seconds")
                     continue_searcing = False
                     break
