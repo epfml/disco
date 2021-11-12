@@ -113,8 +113,8 @@ import UploadingFrame from "./UploadingFrame";
 import IconCard from "../containers/IconCard";
 import CheckList from "../../assets/svg/CheckList";
 import FileEarmarkRuled from "../../assets/svg/FileEarmarkRuled";
-import Bezier2 from "../../assets/svg/Bezier2.vue";
-import CustomButton from "../simple/CustomButton.vue";
+import Bezier2 from "../../assets/svg/Bezier2";
+import CustomButton from "../simple/CustomButton";
 
 export default {
   name: "CsvTestingFrame",
