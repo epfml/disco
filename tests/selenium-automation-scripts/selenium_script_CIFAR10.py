@@ -27,9 +27,9 @@ PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" f
 # Defines how many browser tabs to open
 NUM_PEERS  = 2
 # Defines the way to split the data, could be 'partition' for even size partitions, 'rpartition' for random size partitions
-# spartition for parition of size passed as an argument RATIOS.
+# 'spartition' for parition of size passed as an argument RATIOS.
 DATA_SPLIT = 'spartition'
-RATIOS = [5/7, 2/7]
+RATIOS = [0.5, 0.5]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
@@ -69,12 +69,12 @@ for index, driver in enumerate(drivers):
         driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
 
 # Start training on each driver
+train_start_time = time.time()
 start_training(drivers, TRAINING_TYPE)
 
 print_train_acc(drivers, start_time, 'val_trainingAccuracy_cifar10-model', 'val_validationAccuracy_cifar10-model')
 
-calculate_epoch_per_second(drivers, 3, 2)
+calculate_epoch_per_second(drivers, train_start_time, 2)
 
-for driver in drivers:
-    driver.quit()
-
+# for driver in drivers:
+#     driver.quit()

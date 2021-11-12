@@ -22,17 +22,17 @@ from util import calculate_epoch_per_second
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS = 2
+NUM_PEERS = 5
 # Defines the way to split the data, could be 'iid' for iid data, 'partition' for even size partitions, 'rpartition' for random size partitions
 # 'spartition' for partition of sizes past as argument RATIOS
-DATA_SPLIT = 'rpartition'
-RATIOS = [0.66, 0.33]
+DATA_SPLIT = 'spartition'
+RATIOS = [0.5, 0.1, 0.2, 0.1, 0.1]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'MNIST'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
 TRAINING_TYPE = 'Train Distributed' 
 #Number of images to train with
-NUM_IMAGES = 15
+NUM_IMAGES = 80
 # Digit folder paths, change to \ for macOS
 DIGIT_CLASS_PATHS = [
     r'preprocessed_images/0',
@@ -62,7 +62,7 @@ if DATA_SPLIT == 'partition':
 elif DATA_SPLIT == 'rpartition':
     digit_partitions = [img_r_partition(digit_files[i], NUM_PEERS) for i in range(len(digit_files))]
 elif DATA_SPLIT == 'spartition':
-    digit_partitions = [img_s_partition(digit_files[i], [0.66, 0.33]) for i in range(len(digit_files))]
+    digit_partitions = [img_s_partition(digit_files[i], RATIOS) for i in range(len(digit_files))]
 
 for index, driver in enumerate(drivers):
     find_task_page(driver, PLATFORM, TASK_NAME)
@@ -75,12 +75,12 @@ for index, driver in enumerate(drivers):
             driver.find_element_by_id('hidden-input_mnist-model_' + str(i)).send_keys(' \n '.join(digit_partitions[i][index]))
 
 # Start training on each driver
+train_start_time = time.time()
 start_training(drivers, TRAINING_TYPE)
 #Print out the Accuracy after training
 print_train_acc(drivers, start_time, 'val_trainingAccuracy_mnist-model', 'val_validationAccuracy_mnist-model')
 
-calculate_epoch_per_second(drivers, 11, 10)
+calculate_epoch_per_second(drivers, train_start_time, 10)
 
 for driver in drivers:
     driver.quit()
-

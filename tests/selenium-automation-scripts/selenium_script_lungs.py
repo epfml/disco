@@ -27,17 +27,17 @@ from util import calculate_epoch_per_second, find_task_page, get_files, img_part
 # Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS  = 3
+NUM_PEERS  = 5
 # Defines the way to split the data,could be 'iid' for iid data, 'partition' for even size partitions, 'rparition' for random size partitions
 # 'spartition' for partition of sizes past as argument RATIOS
 DATA_SPLIT = 'spartition'
-RATIOS = [0.25, 0.5, 0.25]
+RATIOS = [0.5, 0.1, 0.2, 0.1, 0.1]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'COVID Lung Ultrasound'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
 TRAINING_TYPE = 'Train Distributed' 
 # Currently we take the first `NUM_IMAGES` in the folder for each peer. We should make a more complex distribution.
-NUM_IMAGES = 15
+NUM_IMAGES = 100
 # paths to folders containing covid positive and coivd negative patients
 
 if platform.system() == 'Linux':
@@ -72,7 +72,7 @@ for index, driver in enumerate(drivers):
     find_task_page(driver, PLATFORM, TASK_NAME)
 
     # Upload files on Task Training
-    time.sleep(4)
+    time.sleep(6)
     if DATA_SPLIT == 'iid':
         driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Positive').send_keys(' \n '.join(positive_files))
         driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(' \n '.join(negative_files))
@@ -82,13 +82,13 @@ for index, driver in enumerate(drivers):
 
 # Start training on each driver
 start_training(drivers, TRAINING_TYPE)
+train_start_time = time.time()
 
 # Print accuracy after training
 print_train_acc(drivers, start_time, 'val_trainingAccuracy_lus-covid-model', 'val_validationAccuracy_lus-covid-model')
 
 # Print epochs/s metric
-calculate_epoch_per_second(drivers, 3, 2)
+calculate_epoch_per_second(drivers, train_start_time, 2)
 
 for driver in drivers:
     driver.quit()
-
