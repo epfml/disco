@@ -158,7 +158,7 @@ import CheckList from "../../assets/svg/CheckList";
 import FileEarmarkRuled from "../../assets/svg/FileEarmarkRuled";
 import Bezier2 from "../../assets/svg/Bezier2";
 import CustomButton from "../simple/CustomButton";
-import Download from '../../assets/svg/Download.vue';
+import Download from "../../assets/svg/Download.vue";
 
 export default {
   name: "CsvTrainingFrame",
@@ -232,8 +232,8 @@ export default {
     CheckList,
     FileEarmarkRuled,
     Bezier2,
-    CustomButto
-    Downloadn,
+    CustomButton,
+    Download,
   },
 
   async mounted() {

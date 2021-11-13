@@ -11,14 +11,14 @@
         </h4>
         <div class="flex items-center">
           <span aria-hidden="true">
-              <slot name='icon'></slot>
+            <slot name="icon"></slot>
           </span>
         </div>
       </div>
       <!-- Descrition -->
-      <div class="relative p-4 overflow-x-scroll">
+      <div v-if="description" class="relative p-4 overflow-x-scroll">
         <span class="text-sm text-gray-500 dark:text-light">
-          {{ description }}
+          <span v-html="description"></span>
         </span>
       </div>
       <!-- Extra -->
