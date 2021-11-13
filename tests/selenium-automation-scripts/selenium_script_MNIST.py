@@ -16,16 +16,15 @@ import time
 from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
 
-from util import find_task_page, get_files, img_partition, img_r_partition, img_s_partition, print_train_acc, start_training
-from util import calculate_epoch_per_second
+from util import find_task_page, generate_report, get_files, img_partition, img_r_partition, img_s_partition, start_training
 
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS = 5
+NUM_PEERS = 1
 # Defines the way to split the data, could be 'iid' for iid data, 'partition' for even size partitions, 'rpartition' for random size partitions
 # 'spartition' for partition of sizes past as argument RATIOS
-DATA_SPLIT = 'spartition'
+DATA_SPLIT = 'iid'
 RATIOS = [0.5, 0.1, 0.2, 0.1, 0.1]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'MNIST'
@@ -54,6 +53,7 @@ start_time = time.time()
 op = webdriver.ChromeOptions()
 op.add_argument('headless') 
 drivers = [webdriver.Chrome(ChromeDriverManager().install()) for i in range(NUM_PEERS)]
+print(drivers[0].service.process.pid) #getting a pid of the chrome driver
 
 digit_files = [get_files(DIGIT_CLASS_PATHS[i], NUM_IMAGES, '.jpg') for i in range(len(DIGIT_CLASS_PATHS))]
 
@@ -77,10 +77,15 @@ for index, driver in enumerate(drivers):
 # Start training on each driver
 train_start_time = time.time()
 start_training(drivers, TRAINING_TYPE)
-#Print out the Accuracy after training
-print_train_acc(drivers, start_time, 'val_trainingAccuracy_mnist-model', 'val_validationAccuracy_mnist-model')
 
-calculate_epoch_per_second(drivers, train_start_time, 10)
+generate_report('report.txt', \
+    drivers, \
+    start_time, \
+    train_start_time, \
+    'val_trainingAccuracy_mnist-model', \
+    'val_validationAccuracy_mnist-model', \
+    10)
+
 
 for driver in drivers:
     driver.quit()

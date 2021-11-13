@@ -17,17 +17,17 @@ import time
 import os
 from webdriver_manager.chrome import ChromeDriverManager
 
-from util import calculate_epoch_per_second, find_task_page, get_files, img_partition, img_r_partition, img_s_partition, print_train_acc, start_training
+from util import find_task_page, generate_report, get_files, img_partition, img_r_partition, img_s_partition, start_training
 
 
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS  = 2
+NUM_PEERS  = 3
 # Defines the way to split the data, could be 'partition' for even size partitions, 'rpartition' for random size partitions
 # 'spartition' for parition of size passed as an argument RATIOS.
-DATA_SPLIT = 'partition'
-RATIOS = [0.5, 0.5]
+DATA_SPLIT = 'spartition'
+RATIOS = [0.5, 0.3, 0.2]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
@@ -35,7 +35,7 @@ TRAINING_TYPE = 'Train Distributed'
 # paths to the file containing the CSV file of Titanic passengers with 12 columns
 IMAGE_FILE_PATH = r'preprocessed_images/CIFAR10'
 LABEL_FILE_PATH = 'labels.csv'
-NUM_IMAGES = 10
+NUM_IMAGES = 300
 
 
 # Download and extract chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads
@@ -70,10 +70,13 @@ for index, driver in enumerate(drivers):
 train_start_time = time.time()
 start_training(drivers, TRAINING_TYPE)
 
-print_train_acc(drivers, start_time, 'val_trainingAccuracy_cifar10-model', 'val_validationAccuracy_cifar10-model')
+generate_report('report.txt', \
+    drivers, \
+    start_time, \
+    train_start_time, \
+    'val_trainingAccuracy_cifar10-model', \
+    'val_validationAccuracy_cifar10-model', \
+    2)
 
-calculate_epoch_per_second(drivers, train_start_time, 2)
-
-# for driver in drivers:
-#     driver.quit()
-
+for driver in drivers:
+    driver.quit()

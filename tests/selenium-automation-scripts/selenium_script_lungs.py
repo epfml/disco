@@ -22,7 +22,7 @@ import time
 import platform
 from webdriver_manager.chrome import ChromeDriverManager
 
-from util import calculate_epoch_per_second, find_task_page, get_files, img_partition, img_r_partition, img_s_partition, print_train_acc, start_training
+from util import find_task_page, generate_report, get_files, img_partition, img_r_partition, img_s_partition, start_training
 
 # Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
@@ -84,11 +84,13 @@ for index, driver in enumerate(drivers):
 start_training(drivers, TRAINING_TYPE)
 train_start_time = time.time()
 
-# Print accuracy after training
-print_train_acc(drivers, start_time, 'val_trainingAccuracy_lus-covid-model', 'val_validationAccuracy_lus-covid-model')
-
-# Print epochs/s metric
-calculate_epoch_per_second(drivers, train_start_time, 2)
+generate_report('report.txt', \
+    drivers, \
+    start_time, \
+    train_start_time, \
+    'val_trainingAccuracy_lus-covid-model', \
+    'val_validationAccuracy_lus-covid-model', \
+    2)
 
 for driver in drivers:
     driver.quit()
