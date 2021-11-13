@@ -13,13 +13,11 @@ python selenium_script_CIFAR10.py  .py
 """
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import time
-from selenium.webdriver.common.action_chains import ActionChains
 import os
 from webdriver_manager.chrome import ChromeDriverManager
 
-from util import calculate_epoch_per_second, create_csv, find_task_page, get_files, img_csv_partition, img_csv_r_parirtion, img_csv_s_parirtion, print_train_acc, read_csv, start_training
+from util import calculate_epoch_per_second, find_task_page, get_files, img_partition, img_r_partition, img_s_partition, print_train_acc, start_training
 
 
 #Platform
@@ -28,7 +26,7 @@ PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" f
 NUM_PEERS  = 2
 # Defines the way to split the data, could be 'partition' for even size partitions, 'rpartition' for random size partitions
 # 'spartition' for parition of size passed as an argument RATIOS.
-DATA_SPLIT = 'spartition'
+DATA_SPLIT = 'partition'
 RATIOS = [0.5, 0.5]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
@@ -50,11 +48,11 @@ drivers = [webdriver.Chrome(ChromeDriverManager().install()) for i in range(NUM_
 start_time = time.time()
  
 if DATA_SPLIT == 'partition':
-    partitions = img_csv_partition(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png'), NUM_PEERS, LABEL_FILE_PATH)
+    partitions = img_partition(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png'), NUM_PEERS)
 elif DATA_SPLIT == 'spartition':
-    partitions = img_csv_s_parirtion(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png'), RATIOS, LABEL_FILE_PATH)  
+    partitions = img_s_partition(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png'), RATIOS)  
 elif DATA_SPLIT == 'rpartition':
-    partitions = img_csv_r_parirtion(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png'), NUM_PEERS, LABEL_FILE_PATH)
+    partitions = img_r_partition(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png'), NUM_PEERS)
 
 for index, driver in enumerate(drivers):
     find_task_page(driver, PLATFORM, TASK_NAME)
@@ -63,7 +61,7 @@ for index, driver in enumerate(drivers):
     time.sleep(6)
     if DATA_SPLIT != 'iid':
         driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(partitions[index]))
-        driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(str(index) + '_partition.csv'))
+        driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
     else:
         driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png')))
         driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
@@ -78,3 +76,4 @@ calculate_epoch_per_second(drivers, train_start_time, 2)
 
 # for driver in drivers:
 #     driver.quit()
+
