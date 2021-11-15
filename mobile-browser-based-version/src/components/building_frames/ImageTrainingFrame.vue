@@ -13,8 +13,8 @@
           <div class="flex object-center">
             <img
               class="object-center"
-              :src="getImage(DataExampleImage)"
-              v-bind:alt="DataExampleImage"
+              :src="getImage(dataExampleImage)"
+              v-bind:alt="dataExampleImage"
             /><img />
           </div>
       </template>
@@ -35,7 +35,8 @@ export default {
   data() {
     return {
       // variables for general informations
-      DataExampleImage: '',
+      dataExampleImage: '',
+      dataExample:null,
       // different task labels
       taskLabels: [],
     };
@@ -63,8 +64,9 @@ export default {
     // This method is called when the component is created
     this.$nextTick(async function() {
       // initialize information variables
+      this.dataExample = this.Task.displayInformation.dataExample;  
       this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
-      this.DataExampleImage = this.Task.displayInformation.dataExampleImage;    
+      this.dataExampleImage = this.Task.displayInformation.dataExampleImage;    
     });
   },
 };

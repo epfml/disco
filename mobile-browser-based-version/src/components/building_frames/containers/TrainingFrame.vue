@@ -6,7 +6,7 @@
     <a id="overview-target">
       <icon-card
         header="Data Format Information"
-        :description="this.dataFormatInfoText"
+        :description="this.Task.displayInformation.dataFormatInformation"
       >
         <template v-slot:icon><check-list /></template>
       </icon-card>
@@ -143,9 +143,8 @@ export default {
     return {
       // variables for general informations
       modelName: null,
-      DataFormatInfoText: "",
-      DataExampleText: "",
-      DataExample: null,
+      dataFormatInfoText: "",
+      dataExampleText: "",
       // assist with the training loop
       trainingManager: null,
       num_peers: 0,
@@ -229,13 +228,9 @@ export default {
     // This method is called when the component is created
     this.$nextTick(async function() {
       // initialize information variables
-      this.modelName = this.Task.trainingInformation.modelId;
-      this.DataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
-      this.DataExampleText = this.Task.displayInformation.dataExampleText;
-      this.DataExample = this.Task.displayInformation.dataExample;
-      //this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
-      //this.DataExampleImage = this.Task.displayInformation.dataExampleImage;
-      console.log(`Mounting ${this.modelName}`);
+      this.dataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
+      this.dataExampleText = this.Task.displayInformation.dataExampleText;
+      console.log(`Mounting ${this.Task.trainingInformation.modelId}`);
 
       // initialize the training manager
       this.trainingManager = new TrainingManager(this.Task.trainingInformation);

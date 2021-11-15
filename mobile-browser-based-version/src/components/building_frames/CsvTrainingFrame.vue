@@ -102,6 +102,7 @@ export default {
     return {
       // headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
+      dataExample : null,
     };
   },
 
@@ -125,6 +126,7 @@ export default {
   async mounted() {
     // This method is called when the component is created
     this.$nextTick(async function() {
+      this.dataExample = this.Task.displayInformation.dataExample;  
       this.Task.displayInformation.headers.forEach((item) => {
         this.headers.push({ id: item, userHeader: item });
       });
