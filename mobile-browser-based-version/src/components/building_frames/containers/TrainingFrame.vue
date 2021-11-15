@@ -6,7 +6,7 @@
     <a id="overview-target">
       <icon-card
         header="Data Format Information"
-        :description="dataFormatInfoText"
+        :description="this.dataFormatInfoText"
       >
         <template v-slot:icon><check-list /></template>
       </icon-card>
@@ -90,7 +90,7 @@
           <span
             style="white-space: pre-line"
             class="text-sm text-gray-500 dark:text-light"
-            >
+          >
           </span>
         </div>
         <div class="flex items-center justify-center p-4">
@@ -102,15 +102,12 @@
             Test the model
           </customButton>
         </div>
-        </template
-      >
-    </icon-card>      
-
+      </template>
+    </icon-card>
   </div>
 </template>
 
 <script>
-
 import UploadingFrame from "../UploadingFrame";
 import TrainingInformationFrame from "../TrainingInformationFrame";
 import IconCard from "../../containers/IconCard";
@@ -118,21 +115,19 @@ import CheckList from "../../../assets/svg/CheckList";
 import FileEarmarkRuled from "../../../assets/svg/FileEarmarkRuled";
 import CustomButton from "../../simple/CustomButton";
 import Download from "../../../assets/svg/Download.vue";
-
-import tippy from 'tippy.js';
-import { TrainingInformant } from '../../helpers/training_script/training_informant';
-import { CommunicationManager } from '../../helpers/communication_script/communication_manager';
-import { TrainingManager } from '../../helpers/training_script/training_manager';
-import { checkData } from '../../helpers/data_validation_script/helpers-image-tasks';
-import { FileUploadManager } from '../../helpers/data_validation_script/file_upload_manager';
-import 'tippy.js/themes/light.css';
+import { TrainingInformant } from "../../../helpers/training_script/training_informant";
+import { CommunicationManager } from "../../../helpers/communication_script/communication_manager";
+import { TrainingManager } from "../../../helpers/training_script/training_manager";
+import { FileUploadManager } from "../../../helpers/data_validation_script/file_upload_manager";
+import "tippy.js/themes/light.css";
 
 export default {
   name: "TrainingFrame",
   props: {
     Id: String,
     Task: Object,
-    joinTraining: Function,
+    dataPreprocessing: Function,
+    precheckData: Function,
     nbrClasses: Number,
   },
   components: {
@@ -146,10 +141,10 @@ export default {
   },
   data() {
     return {
-        // variables for general informations
+      // variables for general informations
       modelName: null,
-      DataFormatInfoText: '',
-      DataExampleText: '',
+      DataFormatInfoText: "",
+      DataExampleText: "",
       DataExample: null,
       // assist with the training loop
       trainingManager: null,
@@ -162,7 +157,7 @@ export default {
       ),
 
       // manager for the file uploading process
-      fileUploadManager: new FileUploadManager(nbrClasses,this),
+      fileUploadManager: new FileUploadManager(this.nbrClasses, this),
 
       // take care of communication processes
       communicationManager: new CommunicationManager(
@@ -173,14 +168,98 @@ export default {
     };
   },
   methods: {
-      goToTesting() {
+    goToTesting() {
       this.$router.push({
-        path: 'testing',
+        path: "testing",
       });
     },
-     saveModel() {
+    saveModel() {
       this.trainingManager.saveModel();
     },
+    async joinTraining(distributed) {
+      const nbrFiles = this.fileUploadManager.numberOfFiles();
+
+      // Check that the user indeed gave a file
+      if (nbrFiles == 0) {
+        this.$toast.error(`Training aborted. No uploaded file given as input.`);
+        setTimeout(this.$toast.clear, 30000);
+      } else {
+        // Assume we only read the first file
+        this.$toast.success(
+          `Thank you for your contribution. Data preprocessing has started`
+        );
+        setTimeout(this.$toast.clear, 30000);
+        console.log(this.fileUploadManager);
+        const filesElement =
+          nbrFiles > 1
+            ? this.fileUploadManager.getFilesList()
+            : this.fileUploadManager.getFirstFile();
+        var status_validation = { accepted: true };
+        if (this.precheckData) {
+          status_validation = await this.precheckData(
+            filesElement,
+            this.Task.trainingInformation
+          );
+        }
+        if (!status_validation.accepted) {
+          // print error message
+          console.log("Invalid input format.");
+          console.log(
+            `Number of data points with valid format: ${status_validation.nr_accepted} out of ${filesElement.length}`
+          );
+        } else {
+          // preprocess data
+          await this.dataPreprocessing(filesElement, (processedData) => {
+            this.$toast.success(
+              `Data preprocessing has finished and training has started`
+            );
+            setTimeout(this.$toast.clear, 30000);
+            this.trainingManager.trainModel(distributed, processedData);
+          });
+        }
+      }
+    },
+  },
+  async mounted() {
+    window.setInterval(async () => {
+      await this.communicationManager.updateReceivers();
+      this.num_peers = this.communicationManager.receivers.length;
+    }, 2000);
+
+    // This method is called when the component is created
+    this.$nextTick(async function() {
+      // initialize information variables
+      this.modelName = this.Task.trainingInformation.modelId;
+      this.DataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
+      this.DataExampleText = this.Task.displayInformation.dataExampleText;
+      this.DataExample = this.Task.displayInformation.dataExample;
+      //this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
+      //this.DataExampleImage = this.Task.displayInformation.dataExampleImage;
+      console.log(`Mounting ${this.modelName}`);
+
+      // initialize the training manager
+      this.trainingManager = new TrainingManager(this.Task.trainingInformation);
+
+      // initialize training informant
+      this.trainingInformant.initializeCharts();
+
+      // initialize communication manager
+      this.communicationManager.initializeConnection(
+        this.Task.trainingInformation.epoch,
+        this
+      );
+
+      // initialize training manager
+      this.trainingManager.initialization(
+        this.communicationManager,
+        this.trainingInformant,
+        this
+      );
+    });
+  },
+  async unmounted() {
+    // close the connection with the server
+    this.communicationManager.disconect();
   },
 };
 </script>

@@ -24,6 +24,7 @@
     "tippy.js": "^6.3.1",
     "vue": "^3.0.0",
     "vue-chartjs": "^3.5.1",
+    "vue-i18n": "^9.2.0-beta.17",
     "vue-inline-svg": "^3.1.0",
     "vue-loaders": "^4.1.4",
     "vue-notification-renderless": "^0.7.3",

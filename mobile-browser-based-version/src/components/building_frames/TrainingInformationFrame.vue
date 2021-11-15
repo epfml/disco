@@ -89,7 +89,7 @@
     <!-- Number of time model updated with someone else's model card -->
     <icon-card-small
       header="# of Averaging"
-      :description="trainingInformant.nbrUpdatesWithOthers"
+      :description="String(trainingInformant.nbrUpdatesWithOthers)"
     >
       <performances />
     </icon-card-small>
@@ -104,7 +104,7 @@
     <!-- Nbr. of Weight Requests -->
     <icon-card-small
       header="# Weight Requests"
-      :description="trainingInformant.nbrWeightRequests"
+      :description="String(trainingInformant.nbrWeightRequests)"
     >
       <forward />
     </icon-card-small>
@@ -112,7 +112,7 @@
     <!-- Nbr. of people helped -->
     <icon-card-small
       header="# of People Helped"
-      :description="trainingInformant.whoReceivedMyModel.size"
+      :description="String(trainingInformant.whoReceivedMyModel.size)"
     >
       <people />
     </icon-card-small>
