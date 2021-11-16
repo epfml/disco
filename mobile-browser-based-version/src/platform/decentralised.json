@@ -1,3 +1,8 @@
 {
-    "title": "DeAI"
+    "title": {
+        "name": "DeAI",
+        "start": "De",
+        "middle": "centralized",
+        "end": "AI"
+    }
 }
