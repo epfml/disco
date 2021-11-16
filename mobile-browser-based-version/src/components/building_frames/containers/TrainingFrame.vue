@@ -149,8 +149,13 @@ export default {
       this.trainingManager.saveModel();
     },
     async joinTraining(distributed) {
-      const nbrFiles = this.fileUploadManager.numberOfFiles();
 
+      const nbrFiles = this.fileUploadManager.numberOfFiles();
+      console.log("***********************");
+      console.log(nbrFiles);
+      console.log(this.nbrClasses);
+      console.log(this.fileUploadManager.getFilesList());
+      console.log("***********************");
       // Check that the user indeed gave a file
       if (nbrFiles == 0) {
         this.$toast.error(`Training aborted. No uploaded file given as input.`);
@@ -166,6 +171,8 @@ export default {
           nbrFiles > 1
             ? this.fileUploadManager.getFilesList()
             : this.fileUploadManager.getFirstFile();
+        console.log("***********************");
+        console.log(filesElement);
         var status_validation = { accepted: true };
         if (this.precheckData) {
           // data checking is optional
@@ -177,7 +184,7 @@ export default {
         if (!status_validation.accepted) {
           // print error message
           this.$toast.error(
-            `Invalid input format : Number of data points with valid format: ${status_validation.nr_accepted} out of ${filesElement.length}`
+            `Invalid input format : Number of data points with valid format: ${status_validation.nr_accepted} out of ${nbrFiles}`
           );
           setTimeout(this.$toast.clear, 30000);
         } else {

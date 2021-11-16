@@ -13,7 +13,7 @@
         Label {{ label }}:
       </span>
       <!-- scroll area -->
-      <section class="h-full overflow-auto p-8 w-full flex flex-col">
+      <section class="overflow-auto p-8 w-full h-full flex flex-col">
         <header
           class="border-dashed border-2 border-gray-500 dark:border-primary flex flex-col justify-center items-center"
         >
@@ -48,7 +48,7 @@
             <ul v-bind:id="galleryName" class="flex flex-1 flex-wrap -m-1">
               <li
                 v-bind:id="emptyName"
-                class="h-full w-full text-center flex flex-col items-center justify-center"
+                class="h-full w-full text-center flex flex-col justify-center items-center"
               >
                 <img
                   class="mx-auto w-32"
@@ -94,7 +94,9 @@
           ></h1>
           <div class="flex">
             <span class="p-1 text-gray-800 dark:text-gray-50">
-              <i><file /></i>
+              <i>
+                <file />
+              </i>
             </span>
             <p class="p-1 size text-xs text-gray-800 dark:text-gray-50"></p>
             <button
@@ -126,7 +128,7 @@
           <h1 class="flex-1"></h1>
           <div class="flex">
             <span class="p-1">
-              <i><file /></i>
+              <i> <file />> </i>
             </span>
 
             <p class="p-1 size text-xs"></p>
@@ -163,6 +165,9 @@ export default {
 
     // the label associated to the task
     label: String,
+
+    // if the label should be displayed or not
+    displayLabels: Boolean,
   },
   data() {
     return {
@@ -193,7 +198,6 @@ export default {
         const clone = isImage
           ? this.imageTempl.cloneNode(true)
           : this.fileTempl.cloneNode(true);
-
         clone.querySelector("h1").textContent = file.name;
         clone.querySelector("li").id = objectURL;
         clone.querySelector(".delete").dataset.target = objectURL;
@@ -203,30 +207,24 @@ export default {
               ? Math.round(file.size / 1048576) + "mb"
               : Math.round(file.size / 1024) + "kb"
             : file.size + "b";
-
         isImage &&
           Object.assign(clone.querySelector("img"), {
             src: objectURL,
             alt: file.name,
           });
-
         this.empty.classList.add("hidden");
         target.prepend(clone.firstElementChild);
       }
-
       let label_name = this.label;
       if (this.label == "Images") {
         label_name = file.name.replace(/\.[^/.]+$/, "");
       }
-
       this.fileUploadManager.addFile(objectURL, file, label_name);
       this.nbrUploadedFiles += 1;
     },
-
     // use to drag dragenter and dragleave events.
     // this is to know if the outermost parent is dragged over
     // without issues due to drag events on its children
-
     // reset counter and append file to gallery when file is dropped
     dropHandler(ev) {
       ev.preventDefault();
@@ -235,7 +233,6 @@ export default {
         this.counter = 0;
       }
     },
-
     // only react to actual files being dragged
     dragEnterHandler(e) {
       e.preventDefault();
@@ -244,11 +241,9 @@ export default {
       }
       ++this.counter;
     },
-
     dragLeaveHandler(e) {
       1 > --this.counter;
     },
-
     dragOverHandler(e) {
       if (hasFiles(e)) {
         e.preventDefault();
@@ -262,7 +257,6 @@ export default {
       this.imageTempl = document.getElementById(this.imageTemplName);
       this.empty = document.getElementById(this.emptyName);
     }
-
     // click the hidden input of type file if the visible button is clicked
     // and capture the selected files
     this.hidden = document.getElementById(this.hiddenInputName);
@@ -273,7 +267,6 @@ export default {
         this.addFile(this.gallery, file);
       }
     };
-
     if (this.preview) {
       // event delegation to caputre delete events
       // fron the waste buckets in the file preview cards
@@ -288,9 +281,11 @@ export default {
         }
       };
     }
-
     if (this.Task.trainingInformation.LABEL_LIST) {
       this.nbrClasses = this.Task.trainingInformation.LABEL_LIST.length;
+    }
+    if (!this.displayLabels) {
+      this.nbrClasses = 0;
     }
   },
 };

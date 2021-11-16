@@ -1,5 +1,12 @@
 <template>
-  <TestingFrame :Id="Id" :Task="Task" :nbrClasses="1">
+  <TestingFrame
+    :Id="Id"
+    :Task="Task"
+    :nbrClasses="Task.trainingInformation.LABEL_LIST.length"
+    :filterData="filterData"
+    :makePredictions="makePredictions"
+    :predictionsToCsv="predictionsToCsv"
+  >
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="flex object-center">
@@ -39,7 +46,7 @@
               <div class="flex">
                 <span class="p-1">
                   <i>
-                    <picture-background/>
+                    <picture-background />
                   </i>
                 </span>
 
@@ -76,7 +83,7 @@ export default {
   },
   data() {
     return {
-      DataExampleImage: "",
+      dataExampleImage: "",
       // Different Task Labels
       taskLabels: [],
       IMAGE_HEIGHT: null,
@@ -89,9 +96,7 @@ export default {
     };
   },
   methods: {
-    async test_model() {
-      const filesElement = document.getElementById("hidden-input");
-      console.log(filesElement);
+    async filterData(filesElement) {
       let files = filesElement.files;
       this.expectedFiles = files.length;
       // Only process image files (skip non image files)
@@ -102,53 +107,39 @@ export default {
           this.FILES[objectURL] = { name: file.name };
         }
       }
-      this.predict();
-      // Empty input
-      filesElement.value = "";
-    },
-    async predict() {
-      const classes = await this.Task.predict(this.FILES);
-      const ids = Object.keys(classes);
-      if (ids.length == 1) {
-        this.showResults(classes[ids[0]]);
-        this.$toast.success(`Predictions are available below.`);
-      } else {
-        this.predictions = classes;
-        this.downloadPredictionsCsv();
-        this.$toast.success(`Predictions have been downloaded.`);
-      }
-      setTimeout(this.$toast.clear, 30000);
+      return this.FILES;
     },
 
-    showResults(classes) {
-      this.classes = classes;
-      this.gotResults = true;
+    async makePredictions(filesElement) {
+      const classes = await this.Task.predict(filesElement);
+      const ids = Object.keys(classes);
+      var predictions;
+      if (ids.length == 1) {
+        // display results in the component
+        this.classes = classes[ids[0]];
+        this.gotResults = true;
+        this.$toast.success(`Predictions are available below.`);
+        setTimeout(this.$toast.clear, 30000);   
+      } else {
+        predictions = classes;     
+      }
+      return predictions;
     },
-    downloadPredictionsCsv() {
-      console.log(this.predictions);
+    async predictionsToCsv(predictions) {
       let pred = "";
       let header_length = 0;
-      for (const [id, prediction] of Object.entries(this.predictions)) {
+      for (const [id, prediction] of Object.entries(predictions)) {
         header_length = prediction.length;
         pred += `id,${prediction
           .map((dict) => dict["className"] + "," + dict["probability"])
           .join(",")} \n`;
       }
-
       let header = "id,";
       for (let i = 1; i <= header_length; ++i) {
         header += `top ${i},probability${i != header_length ? "," : "\n"}`;
       }
       const csvContent = header + pred;
-      var downloadLink = document.createElement("a");
-      var blob = new Blob(["\ufeff", csvContent]);
-      var url = URL.createObjectURL(blob);
-      downloadLink.href = url;
-      downloadLink.download = "predictions.csv";
-
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
+      return csvContent;
     },
     getImage(url) {
       if (url == "") {
@@ -170,7 +161,7 @@ export default {
        * #######################################
        */
       // Initialize variables used by the components
-      this.DataExampleImage = this.Task.displayInformation.dataExampleImage;
+      this.dataExampleImage = this.Task.displayInformation.dataExampleImage;
       this.IMAGE_HEIGHT = this.Task.trainingInformation.IMAGE_HEIGHT;
       this.IMAGE_WIDTH = this.Task.trainingInformation.IMAGE_WIDTH;
       this.taskLabels = this.Task.trainingInformation.taskLabels;

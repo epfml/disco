@@ -1,14 +1,15 @@
 <template>
-  <icon-card :header="csvLabels ? 'Link My Data' : 'Connect Data'">
+  <icon-card :header="header()">
     <template v-slot:icon><upload /></template>
     <template v-slot:extra>
       <div v-for="item in formatLabels()" :key="item">
         <SingleUploadFrame
-          v-bind:Id="Id"
-          v-bind:Task="Task"
-          v-bind:fileUploadManager="fileUploadManager"
-          v-bind:preview="preview()"
-          v-bind:label="String(item)"
+          :Id="Id"
+          :Task="Task"
+          :fileUploadManager="fileUploadManager"
+          :preview="preview()"
+          :label="String(item)"
+          :displayLabels="displayLabels"
         />
       </div>
     </template>
@@ -26,6 +27,8 @@ export default {
     Id: String,
     Task: Object,
     fileUploadManager: Object,
+    displayLabels : {default:true, type: Boolean},
+
   },
   data() {
     return {
@@ -38,8 +41,13 @@ export default {
     preview() {
       return this.csvLabels || this.nbrLabels == 1;
     },
+    header() {
+      return !this.displayLabels ? 'Upload My Data' : this.csvLabels ? 'Link My Data' : 'Connect Data'
+    },
     formatLabels() {
-      return this.csvLabels
+      return !this.displayLabels ?
+        ['']
+        : this.csvLabels 
         ? ["Images", "Labels"]
         : this.nbrLabels == 1
         ? [1]
@@ -58,11 +66,10 @@ export default {
     } else {
       this.nbrLabels = 1;
     }
-
+      
     if (this.Task.trainingInformation.LABEL_ASSIGNMENT) {
       this.csvLabels = true;
     }
-    console.log(this.labels);
   },
 };
 </script>
