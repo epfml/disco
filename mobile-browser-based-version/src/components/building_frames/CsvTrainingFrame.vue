@@ -107,15 +107,17 @@ export default {
   },
 
   methods: {
-    async dataPreprocessing(filesElement, callback) {
+    async dataPreprocessing(filesElement) {
+      return new Promise((resolve, reject) => {
       let reader = new FileReader();
       reader.onload = async (e) => {
         // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
         var processedData = await this.Task.dataPreprocessing(e, this.headers);
-        await callback(processedData);
+        resolve(processedData);
       };
       reader.readAsText(filesElement);
-    },
+    });
+    }
   },
   components: {
     TrainingFrame,

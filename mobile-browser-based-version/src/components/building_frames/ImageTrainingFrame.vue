@@ -1,33 +1,32 @@
 <template>
-   <TrainingFrame
+  <TrainingFrame
     :Id="Id"
     :Task="Task"
-   
     :dataPreprocessing="dataPreprocessing"
     :num_peers="num_peers"
     :nbrClasses="Task.trainingInformation.LABEL_LIST.length"
     :precheckData="precheckData"
-   >
-      <template v-slot:dataExample>
-          <!-- Data Point Example -->
-          <div class="flex object-center">
-            <img
-              class="object-center"
-              :src="getImage(dataExampleImage)"
-              v-bind:alt="dataExampleImage"
-            /><img />
-          </div>
-      </template>
-      <template v-slot:extra></template>
-   </TrainingFrame>
+  >
+    <template v-slot:dataExample>
+      <!-- Data Point Example -->
+      <div class="flex object-center">
+        <img
+          class="object-center"
+          :src="getImage(dataExampleImage)"
+          v-bind:alt="dataExampleImage"
+        /><img />
+      </div>
+    </template>
+    <template v-slot:extra></template>
+  </TrainingFrame>
 </template>
 
 <script>
-import { checkData } from '../../helpers/data_validation_script/helpers-image-tasks';
-import TrainingFrame from './containers/TrainingFrame'
+import { checkData } from "../../helpers/data_validation_script/helpers-image-tasks";
+import TrainingFrame from "./containers/TrainingFrame";
 
 export default {
-  name: 'ImageTrainingFrame',
+  name: "ImageTrainingFrame",
   props: {
     Id: String,
     Task: Object,
@@ -35,27 +34,29 @@ export default {
   data() {
     return {
       // variables for general informations
-      dataExampleImage: '',
-      dataExample:null,
+      dataExampleImage: "",
+      dataExample: null,
       // different task labels
       taskLabels: [],
     };
   },
   methods: {
     getImage(url) {
-      if (url == '') {
+      if (url == "") {
         return null;
       }
-      var images = require.context('../../../example_training_data/', false);
+      var images = require.context("../../../example_training_data/", false);
       return images(url);
     },
-    async dataPreprocessing(filesElement , callback){
-      let processedData = this.Task.dataPreprocessing(filesElement);
-      await callback(processedData)
+    async dataPreprocessing(filesElement) {
+      return new Promise((resolve, reject) => {
+        let processedData = this.Task.dataPreprocessing(filesElement);
+        resolve(processedData);
+      });
     },
-    precheckData(filesElement,info) {
-      return checkData(filesElement,info);
-    }
+    precheckData(filesElement, info) {
+      return checkData(filesElement, info);
+    },
   },
   components: {
     TrainingFrame,
@@ -64,9 +65,9 @@ export default {
     // This method is called when the component is created
     this.$nextTick(async function() {
       // initialize information variables
-      this.dataExample = this.Task.displayInformation.dataExample;  
+      this.dataExample = this.Task.displayInformation.dataExample;
       this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
-      this.dataExampleImage = this.Task.displayInformation.dataExampleImage;    
+      this.dataExampleImage = this.Task.displayInformation.dataExampleImage;
     });
   },
 };
