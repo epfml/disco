@@ -3,7 +3,7 @@
       <!-- Welcoming words -->
       <div>
         <h1 class="text-xl pl-10 font-medium leading-none">
-          <span class="text-primary-dark dark:text-primary-light">DeAI </span>
+          <span class="text-primary-dark dark:text-primary-light">{{$t('title')}} </span>
           -
           <span class="text-primary-dark dark:text-primary-light">De</span
           >centralized
@@ -45,9 +45,13 @@ import { initializeIndexedDB } from "../helpers/my_memory_script/indexedDB_scrip
 import baseLayout from "./containers/BaseLayout";
 import customButton from "./simple/CustomButton";
 import card from "./containers/Card"
-
+import { useI18n } from "vue-i18n";
 export default {
   name: "taskList",
+  setup() {
+    const {t, locale} = useI18n();
+    return  {t, locale};
+  },
   components: {baseLayout,card,customButton},
   methods: {
     goToTaskList() {
