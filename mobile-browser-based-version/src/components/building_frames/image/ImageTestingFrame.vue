@@ -66,10 +66,10 @@
 </template>
 
 <script>
-import TestingFrame from "./containers/TestingFrame";
-import ImagePredictionResultsFrame from "../building_frames/ImagePredictionResultsFrame";
-import PictureBackground from "../../assets/svg/PictureBackground";
-import Bin from "../../assets/svg/Bin.vue";
+import TestingFrame from "../containers/TestingFrame";
+import ImagePredictionResultsFrame from "./ImagePredictionResultsFrame";
+import PictureBackground from "../../../assets/svg/PictureBackground";
+import Bin from "../../../assets/svg/Bin.vue";
 export default {
   components: {
     TestingFrame,
@@ -146,7 +146,7 @@ export default {
         return null;
       }
       console.log(url);
-      var images = require.context("../../../example_training_data/", false);
+      var images = require.context("../../../../example_training_data/", false);
       return images(url);
     },
   },

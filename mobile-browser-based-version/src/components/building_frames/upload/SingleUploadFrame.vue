@@ -145,8 +145,8 @@
 </template>
 
 <script>
-import Bin from "../../assets/svg/Bin.vue";
-import File from "../../assets/svg/File.vue";
+import Bin from "../../../assets/svg/Bin.vue";
+import File from "../../../assets/svg/File.vue";
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
   types.indexOf("Files") > -1;
 

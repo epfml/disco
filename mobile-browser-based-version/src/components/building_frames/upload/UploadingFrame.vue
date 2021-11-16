@@ -17,8 +17,8 @@
 </template>
 
 <script>
-import Upload from "../../assets/svg/Upload.vue";
-import IconCard from "../containers/IconCard.vue";
+import Upload from "../../../assets/svg/Upload.vue";
+import IconCard from "../../containers/IconCard.vue";
 import SingleUploadFrame from "./SingleUploadFrame";
 
 export default {

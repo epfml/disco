@@ -27,7 +27,7 @@
 
 <script>
 import { FileUploadManager } from "../../../helpers/data_validation_script/file_upload_manager";
-import UploadingFrame from "../UploadingFrame";
+import UploadingFrame from "../upload/UploadingFrame";
 import CustomButton from "../../simple/CustomButton";
 import ActionFrame from "./ActionFrame";
 

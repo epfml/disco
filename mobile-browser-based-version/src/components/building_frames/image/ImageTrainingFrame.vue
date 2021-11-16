@@ -22,8 +22,8 @@
 </template>
 
 <script>
-import { checkData } from "../../helpers/data_validation_script/helpers-image-tasks";
-import TrainingFrame from "./containers/TrainingFrame";
+import { checkData } from "../../../helpers/data_validation_script/helpers-image-tasks";
+import TrainingFrame from "../containers/TrainingFrame";
 
 export default {
   name: "ImageTrainingFrame",
@@ -45,7 +45,7 @@ export default {
       if (url == "") {
         return null;
       }
-      var images = require.context("../../../example_training_data/", false);
+      var images = require.context("../../../../example_training_data/", false);
       return images(url);
     },
     async dataPreprocessing(filesElement) {

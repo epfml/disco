@@ -88,7 +88,7 @@
 </template>
 
 <script>
-import UploadingFrame from "../UploadingFrame";
+import UploadingFrame from "../upload/UploadingFrame";
 import TrainingInformationFrame from "../TrainingInformationFrame";
 import ActionFrame from "./ActionFrame";
 import IconCard from "../../containers/IconCard";

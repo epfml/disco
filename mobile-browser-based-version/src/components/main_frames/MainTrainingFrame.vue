@@ -11,8 +11,8 @@
 </template>
 
 <script>
-import CsvTrainingFrame from '../building_frames/CsvTrainingFrame';
-import ImageTrainingFrame from '../building_frames/ImageTrainingFrame';
+import CsvTrainingFrame from '../building_frames/csv/CsvTrainingFrame';
+import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame';
 
 export default {
   name: 'MainTrainingFrame',

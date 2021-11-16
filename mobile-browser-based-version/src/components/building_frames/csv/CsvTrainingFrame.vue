@@ -88,9 +88,9 @@
 </template>
 
 <script>
-import TrainingFrame from "./containers/TrainingFrame";
-import IconCard from "../containers/IconCard";
-import Bezier2 from "../../assets/svg/Bezier2";
+import TrainingFrame from "../containers/TrainingFrame";
+import IconCard from "../../containers/IconCard";
+import Bezier2 from "../../../assets/svg/Bezier2";
 
 export default {
   name: "CsvTrainingFrame",

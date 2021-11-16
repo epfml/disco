@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import FileEarmarkRuledVue from "../../assets/svg/FileEarmarkRuled.vue";
+import FileEarmarkRuledVue from "../../../assets/svg/FileEarmarkRuled.vue";
 export default {
   name: 'ImagePredictionResultsFrame',
   props: {

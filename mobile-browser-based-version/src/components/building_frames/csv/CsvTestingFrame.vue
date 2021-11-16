@@ -1,3 +1,4 @@
+
 <template>
   <TestingFrame
     :Id="Id"
@@ -85,9 +86,9 @@
 </template>
 
 <script>
-import TestingFrame from "./containers/TestingFrame";
-import IconCard from "../containers/IconCard";
-import Bezier2 from "../../assets/svg/Bezier2";
+import TestingFrame from "../containers/TestingFrame";
+import IconCard from "../../containers/IconCard";
+import Bezier2 from "../../../assets/svg/Bezier2";
 
 export default {
   name: "CsvTestingFrame",
