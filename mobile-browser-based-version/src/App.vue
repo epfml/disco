@@ -768,10 +768,10 @@ export default {
       this.setTheme(this.isDark);
     },
     setDecentralized: function() {
-      this.$i18n.locale = 'de';
+      this.$i18n.locale = 'deai';
     },
     setFederated() {
-      this.$i18n.locale = 'fe';
+      this.$i18n.locale = 'feai';
     },
     watchScreen() {
       if (window.innerWidth <= 1024) {
