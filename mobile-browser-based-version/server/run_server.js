@@ -6,15 +6,11 @@ const { models } = require("./models.js");
 const cors = require("cors");
 const path = require("path");
 const tasks = require("./tasks.json");
-const config = require("./content/platform.config.json");
+const { createProxyMiddleware } = require("http-proxy-middleware"); // reverse proxy
+const platformConfig = require("../src/platforms/platform.config.json");
+const serverConfig = require("./server.config.json");
 
-// reverse proxy
-const { createProxyMiddleware } = require("http-proxy-middleware");
-// server contants
-const TASK_START_PORT = 9000;
-const SERVER_PORT = 8080;
-const HOST = `localhost`;
-const HOST_FULL = (port) => `http://${HOST}:${String(port)}`;
+const hostFull = (port) => `http://${serverConfig.host}:${String(port)}`;
 // run models creation
 Promise.all(models.map((createModel) => createModel()));
 /**
@@ -27,11 +23,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // GAE requires the app to listen to 8080
-app.listen(SERVER_PORT);
+app.listen(serverConfig.serverPort);
 /**
  * Set up tasks servers for peerjs
  */
-var taskStartPort = TASK_START_PORT;
+var taskStartPort = serverConfig.taskStartPort;
 function createTaskServers(platform) {
   const taskPath = (taskId) => `/${platform}/${taskId}`;
   const ports = _.range(taskStartPort, taskStartPort + tasks.length);
@@ -42,7 +38,7 @@ function createTaskServers(platform) {
       const task_app = express();
       const server = task_app.listen(port);
       task_app.use(
-        TASK_PATH(taskId),
+        taskPath(taskId),
         ExpressPeerServer(server, {
           path: "/",
           allow_discovery: true,
@@ -53,7 +49,7 @@ function createTaskServers(platform) {
       );
       app.use(
         createProxyMiddleware(taskPath(taskId), {
-          target: HOST_FULL(port),
+          target: hostFull(port),
           changeOrigin: true, // needed for virtual hosted sites
           ws: true, // proxy websockets
         })
@@ -62,7 +58,7 @@ function createTaskServers(platform) {
   );
   taskStartPort += tasks.length;
 }
-_.foreach(config.platforms, createTaskServers(p.name));
+_.forEach(platformConfig.platforms, p => createTaskServers(p.name));
 /**
  * Set up router for tasks
  */

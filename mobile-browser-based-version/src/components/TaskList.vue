@@ -54,10 +54,7 @@ export default {
   components: { baseLayout, card, customButton },
   data() {
     return {
-      taskSelected: "",
-      mnist: "/mnist-model/description",
       tasks: [],
-      tasksUrl: "https://deai-313515.ew.r.appspot.com/tasks",
     };
   },
   methods: {
@@ -74,7 +71,7 @@ export default {
     },
   },
   async mounted() {
-    let tasks = await fetch(this.tasksUrl)
+    let tasks = await fetch(this.$t('server.tasksPath'))
       .then((response) => response.json())
       .then((tasks) => {
         for (let task of tasks) {

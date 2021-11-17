@@ -201,7 +201,7 @@ export default {
   },
   async mounted() {
     window.setInterval(async () => {
-      await this.communicationManager.updateReceivers();
+      await this.communicationManager.updateReceivers(this);
       this.num_peers = this.communicationManager.receivers.length;
     }, 2000);
 
