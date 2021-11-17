@@ -6,6 +6,8 @@ const { models } = require("./models.js");
 const cors = require("cors");
 const path = require("path");
 const tasks = require("./tasks.json");
+const config = require("./content/platform.config.json");
+
 // reverse proxy
 const { createProxyMiddleware } = require("http-proxy-middleware");
 // server contants
@@ -26,11 +28,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // GAE requires the app to listen to 8080
 app.listen(SERVER_PORT);
-
 /**
  * Set up tasks servers for peerjs
  */
-function createTaskServers(platform, taskStartPort) {
+var taskStartPort = TASK_START_PORT;
+function createTaskServers(platform) {
   const taskPath = (taskId) => `/${platform}/${taskId}`;
   const ports = _.range(taskStartPort, taskStartPort + tasks.length);
   _.forEach(
@@ -58,9 +60,9 @@ function createTaskServers(platform, taskStartPort) {
       );
     })
   );
+  taskStartPort += tasks.length;
 }
-createTaskServers('deai',TASK_START_PORT);
-createTaskServers('feai',TASK_START_PORT + tasks.length);
+_.foreach(config.platforms, createTaskServers(p.name));
 /**
  * Set up router for tasks
  */
@@ -74,7 +76,7 @@ tasksRouter.get("/:id/:file", (req, res) => {
 /**
  * Setup routes in Express app for previously defined servers and routers
  */
-app.get("/", (req, res) => res.send("DeAI Server"));
+app.get("/", (req, res) => res.send("DeAI & FeAI Servers"));
 app.use("/tasks", tasksRouter);
 module.exports = app;
 
