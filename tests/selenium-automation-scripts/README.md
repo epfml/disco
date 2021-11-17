@@ -28,14 +28,19 @@ This folder is dedicated to aritficial simulation of the distributed training pr
 
 # Results
 
+*Remark: CPU usage is calculated of a core, that means it can be >100% if the model would use multiple cores.*
+
 *MNIST*:
 
- - With 50 images, 'iid' data split running on 2 nodes achieved 96.25% training accuracy in 64 seconds with a epochs/seconds rate of 0.23
- -  With 60 images, *[0.5, 0.25, 0.25]* data split between 3 nodes achieved 71.39% training accuracy in 48.28 seconds with a epochs/seconds rate of 0.91
- -  With 60 images, *[0.5, 0.22, 0.1, 0.1, 0.1]* data split between 5 nodes achieved 40.13% training accuracy in 77.52 seconds with a epochs/seconds rate of 0.57
+ - With 50 images, 'iid' data split running on 2 nodes achieved 97.39% training accuracy in 112.67 seconds with a epochs/seconds rate of 0.1, average CPU usage was 52.82%, average RAM usage was 0.38% 
+ -  With 60 images, *[0.5, 0.25, 0.25]* data split between 3 nodes achieved 73.89% training accuracy in 52.21 seconds with a epochs/seconds rate of 0.79, average CPU usage was 41.77%, average RAM usage was 0.46% 
+ -  With 60 images, *[0.5, 0.2, 0.1, 0.1, 0.1]* data split between 5 nodes achieved 69.0% training accuracy in 131.22 seconds with a epochs/seconds rate of 0.14, average CPU usage was 53.99%, average RAM usage was 0.66% 
 
 *CIFAR10*:
 
- - With 1000 images, 'iid' data split running on 2 nodes achieved 37.37% training accuracy in 270 seconds with a epochs/seconds rate of 0.03
+ - With 1000 images, 'iid' data split running on 2 nodes achieved 37.37% training accuracy in 270 seconds with a epochs/seconds rate of 0.03, average CPU usage was 19.82% and Average RAM usage was 0.4%
+ - With 1000 images,  *[0.5, 0.25, 0.25]* data split between 3 nodes achieved 22.0% training accuracy in 154 seconds with a epochs/seconds rate of 0.06, average CPU usage was 36.3%, average RAM usage was 0.5% 
+ - With 1000 images,  *[0.5, 0.2, 0.1, 0.1, 0.1]* data split between 5 nodes achieved 17.25% training accuracy in 153.99 seconds with a epochs/seconds rate of 0.08, average CPU usage was 42.89%, average RAM usage was 0.66% 
+
 
 
