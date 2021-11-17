@@ -1,8 +1,23 @@
 {
+  "home": {
     "title": {
-        "name": "FeAI",
-        "start": "Fe",
-        "middle": "derated",
-        "end": "AI"
-    }
+      "name": "FeAI",
+      "start": "Fe",
+      "middle": "derated",
+      "end": "AI"
+    },
+    "cards": [
+      {
+        "header": {
+          "text": "Build AI with collaborators but",
+          "underlined": "without sharing any data"
+        },
+        "items": [
+          "Exchange <span class='italic'>models</span> not data",
+          "Keep data at its source"
+        ]
+      }
+    ],
+    "buttonText": "Start building"
+  }
 }

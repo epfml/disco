@@ -3,37 +3,37 @@
       <!-- Welcoming words -->
       <div>
         <h1 class="text-xl pl-10 font-medium leading-none">
-          <span class="text-primary-dark dark:text-primary-light">{{$t('title.name')}} </span>
+          <span class="text-primary-dark dark:text-primary-light">{{$t('home.title.name')}} </span>
           -
-          <span class="text-primary-dark dark:text-primary-light">{{$t('title.start')}}</span
-          >{{$t('title.middle')}}
-          <span class="text-primary-dark dark:text-primary-light">{{$t('title.end')}}</span>
+          <span class="text-primary-dark dark:text-primary-light">{{$t('home.title.start')}}</span
+          >{{$t('home.title.middle')}}
+          <span class="text-primary-dark dark:text-primary-light">{{$t('home.title.end')}}</span>
         </h1>
       </div>
 
       <section class="flex-col items-center justify-center p-4 space-y-4">
         <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
           <!-- Titanic's card-->
-        
+          <div v-for="card in $tm('home.cards')" :key="card.header.text">
           <card>
             <div
               class="ml-10  text-xl text-gray-500 dark:text-light ont-semibold"
             >
               <span class="text-primary-dark dark:text-primary-light">
-                Build AI with collaborators but
-                <span class="underline">without sharing any data</span>
+                {{card.header.text}}
+                <span class="underline">{{card.header.underlined}}</span>
               </span>
-              <p class="text-base">
-                - Exchange <span class="italic">models</span> not data
-              </p>
-              <p class="text-base">- Keep data at its source</p>
+              <div v-for="item in card.items" :key="item">
+              <p class="text-base" v-html="`- ${item}`"></p>
+              </div>
             </div>
           </card>
+          </div>
 
           <customButton
             v-on:click="goToTaskList()"
           >
-            Start building
+           {{$t('home.buttonText')}}
           </customButton>
         </div>
       </section>
