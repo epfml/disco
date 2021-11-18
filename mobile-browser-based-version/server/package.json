@@ -5,18 +5,21 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node run_server.js",
+    "start": "node src/run_server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tensorflow/tfjs": "^3.8.0",
-    "@tensorflow/tfjs-node": "^3.8.0",
+    "@tensorflow/tfjs-node": "^3.11.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-msgpack": "^2.1.0",
-    "msgpack-lite": "^0.1.26"
+    "msgpack-lite": "^0.1.26",
+    "http-proxy": "^1.18.1",
+    "http-proxy-middleware": "^2.0.1",
+    "peer": "^0.6.1",
+    "peerjs": "^1.3.2"
   }
 }

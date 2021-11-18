@@ -1,133 +1,231 @@
 import * as msgpack from 'msgpack-lite';
-import * as tf from '@tensorflow/tfjs';
-import { makeid, serializeWeights, assignWeightsToModel } from './helpers';
-import { store } from '../../store/store';
-
-// In milliseconds
-const TIME_PER_TRIES = 100;
-// Corresponds to waiting 10 seconds (since each try is performed every 100ms)
-const MAX_TRIES = 100;
+import { makeID, serializeWeights, assignWeightsToModel } from './helpers';
 
 /**
- * Class that deals with communication with the server when training a specific
- * task.
+ * The waiting time between performing requests to the centralized server.
+ * Expressed in milliseconds.
+ */
+const TIME_PER_TRIES = 1000;
+/**
+ * The maximum number of tries before stopping to perform requests.
+ */
+const MAX_TRIES = 10;
+/**
+ * Headers for POST requests made to the centralized server.
+ */
+const HEADERS = {
+  'Content-Type': 'application/json',
+};
+
+/**
+ * Class that deals with communication with the centralized server when training
+ * a specific task.
  */
 export class CommunicationManager {
   /**
    * Prepares connection to a centralized server for training a given task.
-   * @param {String} taskID the task ID
-   * @param {String} password the task's password
+   * @param {String} ID The ID of the task.
+   * @param {String} serverURL The URL of the centralized server.
+   * @param {String} taskPassword The password of the task.
    */
-  constructor(taskID, password = null) {
-    this.serverUrl = process.env.VUE_APP_SERVER_URI;
-    this.clientId = null;
+  constructor(serverURL, taskID, taskPassword = null) {
+    this.serverURL = serverURL;
     this.taskID = taskID;
-    this.password = password;
+    this.clientID = null;
+    this.taskPassword = taskPassword;
+  }
+
+  /**
+   * Initialize the connection to the server. TODO: In the case of FeAI,
+   * should return the current server-side round for the task.
+   */
+  async connect() {
+    /**
+     * Create an ID used to connect to the server.
+     * The client is now considered as connected and further
+     * API requests may be made.
+     */
+    this.clientID = await makeID(10);
+    const requestURL = this.serverURL.concat(
+      `connect/${this.taskID}/${this.clientID}`
+    );
+    const requestOptions = { method: 'GET' };
+    const response = await fetch(requestURL, requestOptions);
+    return response.ok;
   }
 
   /**
    * Disconnection process when user quits the task.
    */
-  disconnect() {
-    const disconnectUrl = this.serverUrl.concat(
-      `disconnect/${this.taskID}/${this.clientId}`
+  async disconnect() {
+    const requestURL = this.serverURL.concat(
+      `disconnect/${this.taskID}/${this.clientID}`
     );
-    fetch(disconnectUrl, {
+    const requestOptions = {
       method: 'GET',
       keepalive: true,
-    });
+    };
+    const response = await fetch(requestURL, requestOptions);
+    return response.ok;
+  }
+
+  async sendIndividualWeights(weights, epoch) {
+    const encodedWeights = msgpack.encode(
+      Array.from(serializeWeights(weights))
+    );
+    const requestURL = this.serverURL.concat(
+      `send_weights/${this.taskID}/${epoch}`
+    );
+    const requestOptions = {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({
+        id: this.clientID,
+        timestamp: new Date(),
+        weights: encodedWeights,
+      }),
+    };
+    const response = await fetch(requestURL, requestOptions);
+    return response.ok;
   }
 
   /**
-   * Initialize the connection to the server.
+   * Requests the aggregated weights from the centralized server,
+   * for the given epoch
+   * @param {Number} epoch The epoch.
+   * @returns The aggregated weights for the given epoch.
    */
-  async connect() {
-    // Create an ID used to connect to the server.
-    this.clientId = await makeid(10);
-    const connectUrl = this.serverUrl.concat(
-      `connect/${this.taskID}/${this.clientId}`
+  async receiveAggregatedWeights(epoch) {
+    const requestURL = this.serverURL.concat(
+      `receive_weights/${this.taskID}/${epoch}`
     );
-    const response = await fetch(connectUrl, { method: 'GET' });
-    return response.ok;
-  }
-
-  receiveWeightsBreak(epoch) {
-    if (this.clientId === null) {
-      return;
-    }
-    const that = this;
-    return new Promise((resolve) => {
-      (async function waitData(n) {
-        const receiveWeightsUrl = that.serverUrl.concat(
-          `receive_weights/${that.taskID}/${epoch}`
-        );
-        const response = await fetch(receiveWeightsUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            id: that.clientId,
-            timestamp: new Date(),
-          }),
-        });
-        if (response.ok) {
-          const body = await response.json();
-          console.log(body);
-          console.log(body.weights);
-          return resolve(msgpack.decode(Uint8Array.from(body.weights.data)));
-        }
-        if (n >= MAX_TRIES - 1) {
-          console.log(
-            'No weights received from server. Continuing with local weights.'
-          );
-          return resolve(Uint8Array.from([]));
-        }
-        setTimeout(() => waitData(n + 1), TIME_PER_TRIES);
-      })(0);
-    });
-  }
-
-  async sendWeights(weights, epoch) {
-    if (this.clientId === null) {
-      return;
-    }
-    const payload = msgpack.encode(Array.from(serializeWeights(weights)));
-    const sendWeightsUrl = this.serverUrl.concat(
-      `send_weights/${this.taskID}/${epoch}`
-    );
-    const response = await fetch(sendWeightsUrl, {
+    const requestOptions = {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: HEADERS,
       body: JSON.stringify({
-        id: this.clientId,
+        id: this.clientID,
         timestamp: new Date(),
-        weights: payload,
       }),
-    });
+    };
+    return await tryRequest(requestURL, requestOptions, MAX_TRIES).then(
+      (response) =>
+        response
+          .json()
+          .then((body) => msgpack.decode(Uint8Array.from(body.weights.data))),
+      (error) => {
+        console.log(error);
+        return Uint8Array.from([]);
+      }
+    );
+  }
+
+  async sendNbrDataSamples(nbrSamples, epoch) {
+    const requestURL = this.serverURL.concat(
+      `send_nbsamples/${this.taskID}/${epoch}`
+    );
+    const requestOptions = {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({
+        id: this.clientID,
+        timestamp: new Date(),
+        samples: nbrSamples,
+      }),
+    };
+    const response = await fetch(requestURL, requestOptions);
     return response.ok;
+  }
+
+  async receiveDataShares(epoch) {
+    const requestURL = this.serverURL.concat(
+      `receive_nbsamples/${this.taskID}/${epoch}`
+    );
+    const requestOptions = {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({
+        id: this.clientID,
+        timestamp: new Date(),
+      }),
+    };
+    const response = await fetch(requestURL, requestOptions);
+    if (response.ok) {
+      const body = await response.json();
+      return new Map(msgpack.decode(body.samples));
+    } else {
+      return new Map();
+    }
   }
 
   async onEpochEndCommunication(model, epoch, trainingInformant) {
-    // Send weights to server
+    /**
+     * Send the epoch's local weights to the server.
+     */
     trainingInformant.addMessage('Sending weights to server');
-    await this.sendWeights(model.weights, epoch);
-    // Receive averaged weights from server
-    trainingInformant.addMessage('Waiting to receive weights from server');
+    await this.sendIndividualWeights(model.weights, epoch);
+    /**
+     * Request the epoch's aggregated weights from the server.
+     * If successful, update the local weights with the aggregated
+     * weights.
+     */
+    trainingInformant.addMessage(
+      'Waiting to receive aggregated weights from server.'
+    );
     var startTime = new Date();
-    await this.receiveWeightsBreak(epoch).then((receivedWeights) => {
+    await this.receiveAggregatedWeights(epoch).then((receivedWeights) => {
       var endTime = new Date();
       var timeDiff = endTime - startTime; // in ms
       timeDiff /= 1000;
       trainingInformant.updateWaitingTime(Math.round(timeDiff));
       trainingInformant.updateNbrUpdatesWithOthers(1);
-      trainingInformant.addMessage('Updating local weights');
+      trainingInformant.addMessage(
+        'Received aggregated weights from server. Updating local weights.'
+      );
 
       if (receivedWeights.length > 0) {
         assignWeightsToModel(model, receivedWeights);
       }
     });
+    /**
+     * Request the epoch's data shares from the server.
+     */
+    trainingInformant.addMessage(
+      'Waiting to receive metadata & statistics from server.'
+    );
+    await this.receiveDataShares(epoch).then((dataShares) => {
+      if (dataShares.length > 0) {
+        trainingInformant.updateDataShares(dataShares);
+      }
+    });
   }
+}
+
+/**
+ * Tries to fetch the resource at the given URL until successful.
+ * Limited to a number of tries.
+ * @param {String} requestURL The request's URL.
+ * @param {Object} requestOptions The request's options.
+ * @param {Number} tries The number of tries.
+ * @returns The successful response.
+ * @throws An error if a successful response could not be obtained
+ * after the specified number of tries.
+ */
+function tryRequest(requestURL, requestOptions, tries) {
+  return new Promise((resolve, reject) => {
+    async function _tryRequest(triesLeft) {
+      console.log('tries left: ', triesLeft);
+      const response = await fetch(requestURL, requestOptions);
+      if (response.ok) {
+        return resolve(response);
+      }
+      if (triesLeft <= 0) {
+        return reject('Failed to get response from server.');
+      }
+      /**
+       * Wait before performing the request again.
+       */
+      setTimeout(() => _tryRequest(triesLeft - 1), TIME_PER_TRIES);
+    }
+    _tryRequest(tries);
+  });
 }

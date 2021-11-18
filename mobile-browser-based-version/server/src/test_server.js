@@ -2,7 +2,7 @@
  * Test the server functionalities locally, without the need to run any client.
  * Run with `node test.js`
  */
-import { serializeWeights } from './tfjs_helpers.js';
+import { serializeWeights } from './helpers/tfjs_helpers.js';
 import msgpack from 'msgpack-lite';
 import fetch from 'node-fetch';
 import * as tf from '@tensorflow/tfjs';

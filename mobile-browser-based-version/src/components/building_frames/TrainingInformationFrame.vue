@@ -86,36 +86,12 @@
 
   <!-- Distributed Training Information -->
   <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
-    <!-- Number of time model updated with someone else's model card -->
-    <icon-card-small
-      header="# of Averaging"
-      :description="String(trainingInformant.nbrUpdatesWithOthers)"
-    >
-      <performances />
-    </icon-card-small>
-
     <!-- How much time I've been waiting for weights to arrive -->
     <icon-card-small
       header="Waiting Time"
       :description="`${trainingInformant.waitingTime} sec`"
       ><timer
     /></icon-card-small>
-
-    <!-- Nbr. of Weight Requests -->
-    <icon-card-small
-      header="# Weight Requests"
-      :description="String(trainingInformant.nbrWeightRequests)"
-    >
-      <forward />
-    </icon-card-small>
-
-    <!-- Nbr. of people helped -->
-    <icon-card-small
-      header="# of People Helped"
-      :description="String(trainingInformant.whoReceivedMyModel.size)"
-    >
-      <people />
-    </icon-card-small>
   </div>
 </template>
 
@@ -123,18 +99,16 @@
 import IconCardSmall from '../containers/IconCardSmall.vue';
 import IconCard from '../containers/IconCard.vue';
 import Timer from '../../assets/svg/Timer.vue';
-import People from '../../assets/svg/People.vue';
-import Performances from '../../assets/svg/Performances.vue';
-import Forward from '../../assets/svg/Forward.vue';
+// TODO: Better stats for FeAI.
+//import People from '../../assets/svg/People.vue';
+//import Performances from '../../assets/svg/Performances.vue';
+//import Forward from '../../assets/svg/Forward.vue';
 import Contact from '../../assets/svg/Contact.vue';
 export default {
   components: {
     IconCardSmall,
     IconCard,
     Timer,
-    People,
-    Performances,
-    Forward,
     Contact,
   },
   name: 'training-information-frame',
