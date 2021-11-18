@@ -1,36 +1,27 @@
-import { models } from './models.js';
 import path from 'path';
-import { averageWeights } from './tfjs_helpers.js';
-import express from 'express';
 import fs from 'fs';
-import cors from 'cors';
 import msgpack from 'msgpack-lite';
+import * as config from '../../../config.js';
+import { averageWeights } from '../../helpers/tfjs_helpers.js';
 
-/*
- * Define a __dirname similar to CommonJS. We unpack the pathname
- * from the URL and use it in the path library. We do this instead
- * of directly working with URLs because the path library is just
- * easier to read, especially when functions don't support URL
- * objects.
+/**
+ * Fraction of client reponses required to complete communication round.
  */
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
-// JSON file containing all the tasks metadata
-const TASKS_FILE = 'tasks.json';
-// Fraction of client reponses required to complete communication round
 const CLIENTS_THRESHOLD = 0.8;
-// Save the averaged weights of each task to local storage every X rounds
+/**
+ * Save the averaged weights of each task to local storage every X rounds.
+ */
 const MODEL_SAVE_TIMESTEP = 5;
-// Common error messages
+/**
+ * Error message for requests not containing the required fields within its body.
+ */
 const INVALID_REQUEST_FORMAT_MESSAGE =
   'Please pecify a client ID, round number and task ID.';
+/**
+ * Error message for requests providing keys not contained within the server's
+ * datastructures.
+ */
 const INVALID_REQUEST_KEYS_MESSAGE = 'No entry matches the given keys.';
-
-const app = express();
-app.enable('trust proxy');
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: false }));
-app.listen(8081); // Different port from Vue client
 
 /**
  * Contains the model weights received from clients for a given task and round.
@@ -58,6 +49,18 @@ const logs = [];
  */
 const clients = new Map();
 
+// Initialize task-clients map
+if (fs.existsSync(config.TASKS_FILE)) {
+  const tasks = JSON.parse(fs.readFileSync(config.TASKS_FILE));
+  tasks.forEach((task) => {
+    clients.set(task.taskID, []);
+  });
+}
+
+if (!fs.existsSync(config.MILESTONES_DIR)) {
+  fs.mkdirSync(config.MILESTONES_DIR);
+}
+
 /**
  * Verifies that the given POST request is correctly formatted. Its body must
  * contain:
@@ -67,7 +70,7 @@ const clients = new Map();
  * subsequent POST requests related to training.
  * @param {Request} request received from client
  */
-function isValidRequest(request) {
+export function isValidRequest(request) {
   return (
     request !== undefined &&
     request.body !== undefined &&
@@ -85,7 +88,7 @@ function isValidRequest(request) {
  * @param {Request} request received from client
  * @param {String} type of the request (send/receive weights/metadata)
  */
-function logsAppend(request, type) {
+export function logsAppend(request, type) {
   const id = request.body.id;
   const timestamp = request.body.timestamp;
   const task = request.params.task;
@@ -108,7 +111,7 @@ function logsAppend(request, type) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-function queryLogs(request, response) {
+export function queryLogs(request, response) {
   const id = request.query.id;
   const task = request.query.task;
   const round = request.query.round;
@@ -119,7 +122,7 @@ function queryLogs(request, response) {
     .status(200)
     .send(
       logs.filter(
-        entry =>
+        (entry) =>
           (id ? entry.clientId === id : true) &&
           (task ? entry.taskID === task : true) &&
           (round ? entry.round === round : true)
@@ -134,7 +137,7 @@ function queryLogs(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-function connectToServer(request, response) {
+export function connectToServer(request, response) {
   const id = request.params.id;
   const task = request.params.task;
   if (!clients.has(task)) {
@@ -162,7 +165,7 @@ function connectToServer(request, response) {
  * with very poor and/or sparse contribution to training in terms of performance
  * and/or weights posting frequency.
  */
-function disconnectFromServer(request, response) {
+export function disconnectFromServer(request, response) {
   const id = request.params.id;
   const task = request.params.task;
   if (!(clients.has(task) && clients.get(task).includes(id))) {
@@ -172,7 +175,7 @@ function disconnectFromServer(request, response) {
 
   clients.set(
     task,
-    clients.get(task).filter(clientId => clientId != id)
+    clients.get(task).filter((clientId) => clientId != id)
   );
   console.log(`Client with ID ${id} disconnected from the server`);
   response.status(200).send('Successfully disconnected from the server.');
@@ -188,7 +191,7 @@ function disconnectFromServer(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-function sendIndividualWeights(request, response) {
+export function sendIndividualWeights(request, response) {
   const requestType = 'SEND_weights';
 
   if (!isValidRequest(request)) {
@@ -210,10 +213,7 @@ function sendIndividualWeights(request, response) {
   }
 
   const weights = msgpack.decode(Uint8Array.from(request.body.weights.data));
-  weightsMap
-    .get(task)
-    .get(round)
-    .set(id, weights);
+  weightsMap.get(task).get(round).set(id, weights);
   response.status(200).send('Weights successfully received.');
 
   logsAppend(request, requestType);
@@ -233,7 +233,7 @@ function sendIndividualWeights(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-async function receiveAveragedWeights(request, response) {
+export async function receiveAveragedWeights(request, response) {
   const requestType = 'RECEIVE_weights';
 
   if (!isValidRequest(request)) {
@@ -251,14 +251,12 @@ async function receiveAveragedWeights(request, response) {
     return;
   }
 
-  logsAppend(request, requestType);
-
   const receivedWeights = weightsMap.get(task).get(round);
   if (
     receivedWeights.size <
     Math.ceil(clients.get(task).length * CLIENTS_THRESHOLD)
   ) {
-    response.status(200).send({});
+    response.status(400).send({});
     return;
   }
 
@@ -269,23 +267,24 @@ async function receiveAveragedWeights(request, response) {
   const weightsJson = JSON.stringify(serializedWeights);
 
   if ((round - 1) % MODEL_SAVE_TIMESTEP == 0) {
-    const weightsPath = `${task}_${round}_weights.json`;
-    const milestonesPath = path.join(__dirname, 'milestones');
-    if (!fs.existsSync(milestonesPath)) {
-      fs.mkdirSync(milestonesPath);
+    const milestoneFile = `weights_round${round}.json`;
+    const milestoneDir = path.join(config.MILESTONES_DIR, task);
+    if (!fs.existsSync(milestoneDir)) {
+      fs.mkdirSync(milestoneDir);
     }
-    fs.writeFile(path.join(milestonesPath, weightsPath), weightsJson, err => {
+    fs.writeFile(path.join(milestoneDir, milestoneFile), weightsJson, (err) => {
       if (err) {
         console.log(err);
-        console.log(`Failed to save weights to ${weightsPath}`);
+        console.log(`Failed to save weights to ${milestoneFile}`);
       } else {
-        console.log(`Weights saved to ${weightsPath}`);
+        console.log(`Weights saved to ${milestoneFile}`);
       }
     });
   }
 
   let weights = msgpack.encode(Array.from(serializedWeights));
   response.status(200).send({ weights: weights });
+  logsAppend(request, requestType);
   return;
 }
 
@@ -300,7 +299,7 @@ async function receiveAveragedWeights(request, response) {
  * @param {Response} response sent to client
  *
  */
-function sendDataSamplesNumber(request, response) {
+export function sendDataSamplesNumber(request, response) {
   const requestType = 'SEND_nbsamples';
 
   if (!isValidRequest(request)) {
@@ -321,10 +320,7 @@ function sendDataSamplesNumber(request, response) {
     dataSamplesMap.get(task).set(round, new Map());
   }
 
-  dataSamplesMap
-    .get(task)
-    .get(round)
-    .set(id, samples);
+  dataSamplesMap.get(task).get(round).set(id, samples);
   response.status(200).send('Number of samples successfully received.');
 
   logsAppend(request, requestType);
@@ -341,7 +337,7 @@ function sendDataSamplesNumber(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-function receiveDataSamplesNumbersPerClient(request, response) {
+export function receiveDataSamplesNumbersPerClient(request, response) {
   const requestType = 'RECEIVE_nbsamples';
 
   if (!isValidRequest(request)) {
@@ -371,8 +367,8 @@ function receiveDataSamplesNumbersPerClient(request, response) {
     dataSamplesMap.get(task).get(latestRound)
   );
 
-  response.status(200).send(Array.from(latestDataSamplesMap));
-
+  const samples = msgpack.encode(Array.from(latestDataSamplesMap));
+  response.status(200).send({ samples: samples });
   logsAppend(request, requestType);
   return;
 }
@@ -385,11 +381,10 @@ function receiveDataSamplesNumbersPerClient(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-function getAllTasksData(request, response) {
-  const tasksFilePath = path.join(__dirname, TASKS_FILE);
-  if (fs.existsSync(tasksFilePath)) {
-    console.log(`Serving ${tasksFilePath}`);
-    response.status(200).sendFile(tasksFilePath);
+export function getAllTasksData(request, response) {
+  if (fs.existsSync(config.TASKS_FILE)) {
+    console.log(`Serving ${config.TASKS_FILE}`);
+    response.status(200).sendFile(config.TASKS_FILE);
   } else {
     response.status(400).send({});
   }
@@ -404,51 +399,16 @@ function getAllTasksData(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-function getInitialTaskModel(request, response) {
-  const id = request.params.id;
+export function getInitialTaskModel(request, response) {
+  const task = request.params.task;
   const file = request.params.file;
-  const modelFiles = ['model.json', 'weights.bin'];
-  const modelFilePath = path.join(__dirname, id, file);
-  console.log(`File path: ${modelFilePath}`);
-  if (modelFiles.includes(file) && fs.existsSync(modelFilePath)) {
-    console.log(`${file} download for task ${id} succeeded`);
-    response.status(200).sendFile(modelFilePath);
+  const validModelFiles = ['model.json', 'weights.bin'];
+  const modelFile = path.join(config.MODELS_DIR, task, file);
+  console.log(`File path: ${modelFile}`);
+  if (validModelFiles.includes(file) && fs.existsSync(modelFile)) {
+    console.log(`${file} download for task ${task} succeeded`);
+    response.status(200).sendFile(modelFile);
   } else {
     response.status(400).send({});
   }
 }
-
-// Asynchronously create and save Tensorflow models to local storage
-Promise.all(models.map(createModel => createModel()));
-
-// Initialize task-clients map
-const tasksFilePath = path.join(__dirname, TASKS_FILE);
-if (fs.existsSync(tasksFilePath)) {
-  const tasks = JSON.parse(fs.readFileSync(tasksFilePath));
-  tasks.forEach(task => {
-    clients.set(task.taskID, []);
-  });
-}
-
-// Configure server routing
-const tasksRouter = express.Router();
-
-tasksRouter.get('/', getAllTasksData);
-tasksRouter.get('/:id/:file', getInitialTaskModel);
-
-app.use('/tasks', tasksRouter);
-
-app.get('/connect/:task/:id', connectToServer);
-app.get('/disconnect/:task/:id', disconnectFromServer);
-
-app.post('/send_weights/:task/:round', sendIndividualWeights);
-app.post('/receive_weights/:task/:round', receiveAveragedWeights);
-
-app.post('/send_nbsamples/:task/:round', sendDataSamplesNumber);
-app.post('/receive_nbsamples/:task/:round', receiveDataSamplesNumbersPerClient);
-
-app.get('/logs', queryLogs);
-
-app.get('/', (req, res) => res.send('FeAI Server'));
-
-export default app;

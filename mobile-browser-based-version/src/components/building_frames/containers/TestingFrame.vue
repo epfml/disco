@@ -1,10 +1,10 @@
 <template>
-  <ActionFrame :Task="Task">
+  <action-frame :Task="Task">
     <template v-slot:dataExample><slot name="dataExample"></slot></template>
     <template v-slot:action>
       <!-- Upload File -->
       <div class="relative">
-        <UploadingFrame
+        <uploading-frame
           v-bind:Id="Id"
           v-bind:Task="Task"
           v-bind:fileUploadManager="fileUploadManager"
@@ -15,14 +15,14 @@
 
       <!-- Test Button -->
       <div class="flex items-center justify-center p-4">
-        <customButton v-on:click="testModel()" :center="true">
+        <custom-button v-on:click="testModel()" :center="true">
           Test
-        </customButton>
+        </custom-button>
       </div>
       <!-- Display predictions -->
       <slot name="predictionResults"></slot>
     </template>
-  </ActionFrame>
+  </action-frame>
 </template>
 
 <script>

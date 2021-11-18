@@ -62,7 +62,7 @@ function sleep(ms) {
 }
 
 // Generates a random string
-export async function makeid(length) {
+export async function makeID(length) {
   var result = '';
   var characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -73,6 +73,7 @@ export async function makeid(length) {
   return result;
 }
 
+// should be moved to the communication manager
 export function authenticate(data, senderId, password) {
   if (password) {
     if (!('password_hash' in data)) {

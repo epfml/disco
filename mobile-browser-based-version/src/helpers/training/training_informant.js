@@ -8,80 +8,88 @@ export class TrainingInformant {
    *
    * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
    * @param {String} taskName the task's name.
+   * @param {Boolean} verbose whether or not to print messages.
    */
-  constructor(length, taskName) {
+  constructor(length, taskName, verbose = false) {
     this.taskName = taskName;
-    // number of people with whom I've shared my model
-    this.whoReceivedMyModel = new Set();
 
-    // how many times the model has been averaged with someone's else model
-    this.nbrUpdatesWithOthers = 0;
-
-    // how much time I've been waiting for a model
+    /**
+     * How much time I've been waiting for a model.
+     */
     this.waitingTime = 0;
 
-    // number of weight requests I've responded to
-    this.nbrWeightRequests = 0;
+    /**
+     * How much data do I own compared to the whole network.
+     */
+    this.dataShares = new Map();
 
-    // message feedback from peer-to-peer training
+    /**
+     * Message feedback from training.
+     */
     this.nbrMessageToShow = length;
     this.messages = [];
+    this.verbose = verbose;
 
-    // validation accurarcy chart
-    this.validationAccuracyChart = null; //new TrainingChart("validationAccuracy_".concat(taskName), "Validation Accuracy")
+    /**
+     * Validation accuracy chart.
+     */
+    this.validationAccuracyChart = null;
     this.validationAccuracy = null;
 
-    // training accuracy chart
-    this.trainingAccuracyChart = null; // new TrainingChart("trainingAccuracy_".concat(taskName), "Training Accuracy")
+    /**
+     * Training accuracy chart.
+     */
+    this.trainingAccuracyChart = null;
     this.trainingAccuracy = null;
   }
 
   /**
-   * Updates the set of peers who received my model.
-   * @param {String} peerName the peer's name to whom I recently shared my model to.
-   */
-  updateWhoReceivedMyModel(peerName) {
-    this.whoReceivedMyModel.add(peerName);
-  }
-
-  /**
-   * Updates the number of updates I did with other peers.
-   * @param {Number} nbrUpdates the number of updates I did thanks to other peers contribution since the last update of the parameter.
+   * Updates the number of weights updates I did with the server.
+   * @param {Number} nbrUpdates The number of updates.
    */
   updateNbrUpdatesWithOthers(nbrUpdates) {
     this.nbrUpdatesWithOthers += nbrUpdates;
   }
 
   /**
-   * Updates the time I waited to receive weights.
-   * @param {Number} time
+   * Updates the time I waited to receive aggregated weights from server.
+   * @param {Number} time The time I waited for.
    */
   updateWaitingTime(time) {
     this.waitingTime += time;
   }
 
   /**
-   * Updates the number of weights request I received.
-   * @param {Number} nbrRequests the number of weight requests I received since the last update of the parameter.
+   * Updates the number of data samples held per client.
+   * @param {Map} newShares The number of data samples held per client.
    */
-  updateNbrWeightsRequests(nbrRequests) {
-    this.nbrWeightRequests += nbrRequests;
+  updateDataShares(newShares) {
+    this.dataShares = new Map(...this.dataShares, ...newShares);
   }
 
   /**
    * Add a new message to the message list.
-   * @param {String} msg a message.
+   * @param {String} msg A message.
    */
   addMessage(msg) {
+    const now = new Date();
+    const time = [now.getHours(), now.getMinutes(), now.getSeconds()];
+    const formattedTime = time
+      .map((number) => String(number).padStart(2, '0'))
+      .join(':');
     if (this.messages.length >= this.nbrMessageToShow) {
       this.messages.shift();
     }
-    this.messages.push(msg);
+    const message = `${formattedTime} ${msg}`;
+    this.messages.push(message);
+    if (this.verbose) {
+      console.log(message);
+    }
   }
 
   /**
    * Initialize the charts of the training information.
-   * Warning: can only be called once the component (to which the trianing informant is associated) has been rendered at least once.
+   * Warning: can only be called once the component (to which the training informant is associated) has been rendered at least once.
    */
   initializeCharts() {
     this.validationAccuracyChart = new TrainingChart(
