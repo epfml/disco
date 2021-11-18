@@ -49,7 +49,7 @@ export class TrainingManager {
         this.trainingInformation.learningRate
       );
     } else {
-      await this.communicationManager.updateReceivers();
+      await this.communicationManager.updateReceivers(this);
       await trainingDistributed(
         this.trainingInformation.modelId,
         Xtrain,
@@ -91,7 +91,7 @@ export class TrainingManager {
     this.trainingInformant.updateCharts(epoch, validationAccuracy, accuracy);
     // At the moment, don't allow for new participants to come in.
     // Wait for a synchronization scheme (on epoch number).
-    await this.communicationManager.updateReceivers();
+    await this.communicationManager.updateReceivers(this);
     await onEpochEndCommon(
       model,
       epoch,

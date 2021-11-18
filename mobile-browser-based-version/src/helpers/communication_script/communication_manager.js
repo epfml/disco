@@ -54,16 +54,16 @@ export class CommunicationManager {
     // });
 
     this.peer = new Peer(this.peerjsId, {
-      host: 'deai-313515.ew.r.appspot.com',
-      path: `/deai/${this.taskId}`,
+      host: environment.$t('server.host'),
+      path: environment.$t('server.taskPath', {taskId: this.taskId}),
       secure: true,
       config: {
         iceServers: [
           { url: 'stun:stun.l.google.com:19302' },
           {
             url: 'turn:34.77.172.69:3478',
-            credential: 'deai',
-            username: 'deai',
+            credential: environment.$t('name'),
+            username: environment.$t('name'),
           },
         ],
       },
@@ -99,13 +99,12 @@ export class CommunicationManager {
   /**
    * Updates the receivers' list.
    */
-  async updateReceivers() {
+  async updateReceivers(environment) {
     // let queryIds = await fetch(
     //   "http://localhost:".concat(String(8080)).concat(`/deai/${this.taskId}/peerjs/peers`
     // )).then(response => response.text());
-
-    let queryIds = await fetch(
-    'https://deai-313515.ew.r.appspot.com'.concat(`/deai/${this.taskId}/peerjs/peers`)
+    console.log(environment.$t('server.peerjsPath', {taskId : this.taskId}));
+    let queryIds = await fetch(environment.$t('server.peerjsPath', {taskId : this.taskId})
     ).then(response => response.text());
 
     let allIds = JSON.parse(queryIds);
