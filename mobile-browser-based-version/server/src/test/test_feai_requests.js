@@ -2,12 +2,12 @@
  * Test the server functionalities locally, without the need to run any client.
  * Run with `node test.js`
  */
-import { serializeWeights } from '../helpers/tfjs_helpers.js';
 import msgpack from 'msgpack-lite';
 import fetch from 'node-fetch';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-node';
-import * as config from '../../config.js';
+import { serializeWeights } from '../helpers/tfjs_helpers.js';
+import * as config from '../../server.config.js';
 
 /**
  * Naively tests all the API requests made available by the FeAI centralized

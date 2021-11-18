@@ -21,14 +21,17 @@
 </template>
 
 <script>
-import { checkData } from '../../../helpers/data_validation/helpers_image_tasks';
-import TrainingFrame from '../containers/TrainingFrame';
+import { checkData } from '../../../helpers/data_validation/helpers_image_tasks.js';
+import TrainingFrame from '../containers/TrainingFrame.vue';
 
 export default {
-  name: 'ImageTrainingFrame',
+  name: 'image-training-frame',
   props: {
     Id: String,
     Task: Object,
+  },
+  components: {
+    TrainingFrame,
   },
   data() {
     return {
@@ -56,9 +59,6 @@ export default {
     precheckData(filesElement, info) {
       return checkData(filesElement, info);
     },
-  },
-  components: {
-    TrainingFrame,
   },
   async mounted() {
     // This method is called when the component is created

@@ -1,5 +1,5 @@
 <template>
-  <baseLayout v-bind:withSection="true">
+  <base-layout v-bind:withSection="true">
     <!-- Main Page Content -->
     <div
       v-for="task in tasks"
@@ -27,14 +27,14 @@
         </div>
         <div class="py-2">
           <span>
-            <customButton v-on:click="goToSelection(task.taskID)">
+            <custom-button v-on:click="goToSelection(task.taskID)">
               Join
-            </customButton>
+            </custom-button>
           </span>
         </div>
       </card>
     </div>
-  </baseLayout>
+  </base-layout>
 </template>
 
 <script>
@@ -77,88 +77,87 @@ export default {
     },
   },
   async mounted() {
-    await fetch(this.tasksURL)
-      .then((response) => response.json())
-      .then((tasks) => {
-        for (let task of tasks) {
-          console.log(`Processing ${task.taskID}`);
-          let newTask;
-          // TODO: avoid this switch by having one Task class completely determined by a json config
-          switch (task.trainingInformation.dataType) {
-            case 'csv':
-              newTask = new CsvTask(
-                task.taskID,
-                task.displayInformation,
-                task.trainingInformation
-              );
-              break;
-            case 'image':
-              newTask = new ImageTask(
-                task.taskID,
-                task.displayInformation,
-                task.trainingInformation
-              );
-              break;
-            default:
-              console.log('No task object available');
-              break;
-          }
-          this.tasks.push(newTask);
-          // Definition of an extension of the task-related component
-          var MainDescriptionFrameSp = defineComponent({
-            extends: MainDescriptionFrame,
-            name: newTask.taskID.concat('.description'),
-            key: newTask.taskID.concat('.description'),
-          });
-          var MainTrainingFrameSp = defineComponent({
-            extends: MainTrainingFrame,
-            name: newTask.taskID.concat('.training'),
-            key: newTask.taskID.concat('.training'),
-          });
-          var MainTestingFrameSp = defineComponent({
-            extends: MainTestingFrame,
-            name: newTask.taskID.concat('.testing'),
-            key: newTask.taskID.concat('.testing'),
-          });
-          // Add task subroutes on the go
-          let newTaskRoute = {
-            path: '/'.concat(newTask.taskID),
-            name: newTask.taskID,
-            component: MainTaskFrame,
-            props: { Id: newTask.taskID, Task: newTask },
-            children: [
-              {
-                path: 'description',
-                name: newTask.taskID.concat('.description'),
-                component: MainDescriptionFrameSp,
-                props: {
-                  Id: newTask.taskID,
-                  Task: newTask,
-                },
-              },
-              {
-                path: 'training',
-                name: newTask.taskID.concat('.training'),
-                component: MainTrainingFrameSp,
-                props: {
-                  Id: newTask.taskID,
-                  Task: newTask,
-                },
-              },
-              {
-                path: 'testing',
-                name: newTask.taskID.concat('.testing'),
-                component: MainTestingFrameSp,
-                props: {
-                  Id: newTask.taskID,
-                  Task: newTask,
-                },
-              },
-            ],
-          };
-          this.$router.addRoute(newTaskRoute);
-        }
+    const rawTasks = await fetch(this.tasksURL).then((response) =>
+      response.json()
+    );
+    rawTasks.forEach((task) => {
+      console.log(`Processing ${task.taskID}`);
+      let newTask;
+      // TODO: avoid this switch by having one Task class completely determined by a json config
+      switch (task.trainingInformation.dataType) {
+        case 'csv':
+          newTask = new CsvTask(
+            task.taskID,
+            task.displayInformation,
+            task.trainingInformation
+          );
+          break;
+        case 'image':
+          newTask = new ImageTask(
+            task.taskID,
+            task.displayInformation,
+            task.trainingInformation
+          );
+          break;
+        default:
+          console.log('No task object available');
+          break;
+      }
+      this.tasks.push(newTask);
+      // Definition of an extension of the task-related component
+      var MainDescriptionFrameSp = defineComponent({
+        extends: MainDescriptionFrame,
+        name: newTask.taskID.concat('.description'),
+        key: newTask.taskID.concat('.description'),
       });
+      var MainTrainingFrameSp = defineComponent({
+        extends: MainTrainingFrame,
+        name: newTask.taskID.concat('.training'),
+        key: newTask.taskID.concat('.training'),
+      });
+      var MainTestingFrameSp = defineComponent({
+        extends: MainTestingFrame,
+        name: newTask.taskID.concat('.testing'),
+        key: newTask.taskID.concat('.testing'),
+      });
+      // Add task subroutes on the go
+      let newTaskRoute = {
+        path: '/'.concat(newTask.taskID),
+        name: newTask.taskID,
+        component: MainTaskFrame,
+        props: { Id: newTask.taskID, Task: newTask },
+        children: [
+          {
+            path: 'description',
+            name: newTask.taskID.concat('.description'),
+            component: MainDescriptionFrameSp,
+            props: {
+              Id: newTask.taskID,
+              Task: newTask,
+            },
+          },
+          {
+            path: 'training',
+            name: newTask.taskID.concat('.training'),
+            component: MainTrainingFrameSp,
+            props: {
+              Id: newTask.taskID,
+              Task: newTask,
+            },
+          },
+          {
+            path: 'testing',
+            name: newTask.taskID.concat('.testing'),
+            component: MainTestingFrameSp,
+            props: {
+              Id: newTask.taskID,
+              Task: newTask,
+            },
+          },
+        ],
+      };
+      this.$router.addRoute(newTaskRoute);
+    });
     this.tasks.forEach((task) => this.addTask({ task: task }));
   },
 };

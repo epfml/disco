@@ -242,7 +242,7 @@
   </div>
 </template>
 <script>
-import * as memory from '../../helpers/memory/helpers';
+import * as memory from '../../helpers/memory/helpers.js';
 import * as tf from '@tensorflow/tfjs';
 import { mapState } from 'vuex';
 

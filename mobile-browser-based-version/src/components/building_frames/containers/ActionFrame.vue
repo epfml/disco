@@ -37,9 +37,9 @@
 </template>
 
 <script>
-import IconCard from '../../containers/IconCard';
-import CheckList from '../../../assets/svg/CheckList';
-import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled';
+import IconCard from '../../containers/IconCard.vue';
+import CheckList from '../../../assets/svg/CheckList.vue';
+import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue';
 
 export default {
   name: 'action-frame',

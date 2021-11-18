@@ -3,7 +3,7 @@
     <template v-slot:icon><upload /></template>
     <template v-slot:extra>
       <div v-for="item in formatLabels()" :key="item">
-        <SingleUploadFrame
+        <single-upload-frame
           :Id="Id"
           :Task="Task"
           :fileUploadManager="fileUploadManager"
@@ -19,15 +19,20 @@
 <script>
 import Upload from '../../../assets/svg/Upload.vue';
 import IconCard from '../../containers/IconCard.vue';
-import SingleUploadFrame from './SingleUploadFrame';
+import SingleUploadFrame from './SingleUploadFrame.vue';
 
 export default {
-  name: 'UploadingFrame',
+  name: 'uploading-frame',
   props: {
     Id: String,
     Task: Object,
     fileUploadManager: Object,
     displayLabels: { default: true, type: Boolean },
+  },
+  components: {
+    SingleUploadFrame,
+    Upload,
+    IconCard,
   },
   data() {
     return {
@@ -57,11 +62,6 @@ export default {
         : this.labels;
     },
   },
-  components: {
-    SingleUploadFrame,
-    Upload,
-    IconCard,
-  },
   mounted() {
     if (this.Task.trainingInformation.LABEL_LIST) {
       this.labels = this.Task.trainingInformation.LABEL_LIST;
@@ -69,7 +69,6 @@ export default {
     } else {
       this.nbrLabels = 1;
     }
-
     if (this.Task.trainingInformation.LABEL_ASSIGNMENT) {
       this.csvLabels = true;
     }

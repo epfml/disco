@@ -2,7 +2,7 @@
   <!-- Predictions Results Example Card -->
   <a id="limitations-target">
     <icon-card header="Predictions Results" :description="dataExampleText">
-      <template v-slot:icon><file-earmark-ruled /></template>
+      <template v-slot:icon><file-earmark-ruled-vue /></template>
       <!-- Data Point Example -->
       <template v-slot:extra>
         <div v-bind:id="imageId"></div>
@@ -24,6 +24,7 @@
 
 <script>
 import FileEarmarkRuledVue from '../../../assets/svg/FileEarmarkRuled.vue';
+
 export default {
   name: 'image-prediction-results-frame',
   props: {
@@ -31,7 +32,7 @@ export default {
     classes: Array,
     imageElement: HTMLImageElement,
   },
-  component: {
+  components: {
     FileEarmarkRuledVue,
   },
   data() {

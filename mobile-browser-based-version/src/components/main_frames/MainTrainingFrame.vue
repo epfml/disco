@@ -14,8 +14,8 @@
 </template>
 
 <script>
-import CsvTrainingFrame from '../building_frames/csv/CsvTrainingFrame';
-import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame';
+import CsvTrainingFrame from '../building_frames/csv/CsvTrainingFrame.vue';
+import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame.vue';
 
 export default {
   name: 'main-training-frame',

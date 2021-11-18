@@ -85,16 +85,17 @@
 </template>
 
 <script>
-import UploadingFrame from '../upload/UploadingFrame';
-import TrainingInformationFrame from '../TrainingInformationFrame';
-import ActionFrame from './ActionFrame';
-import IconCard from '../../containers/IconCard';
-import CustomButton from '../../simple/CustomButton';
+import UploadingFrame from '../upload/UploadingFrame.vue';
+import TrainingInformationFrame from '../TrainingInformationFrame.vue';
+import ActionFrame from './ActionFrame.vue';
+import IconCard from '../../containers/IconCard.vue';
+import CustomButton from '../../simple/CustomButton.vue';
 import Download from '../../../assets/svg/Download.vue';
-import { TrainingInformant } from '../../../helpers/training/training_informant';
-import { CommunicationManager } from '../../../helpers/communication/communication_manager';
-import { TrainingManager } from '../../../helpers/training/training_manager';
-import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
+
+import { TrainingInformant } from '../../../helpers/training/training_informant.js';
+import { CommunicationManager } from '../../../helpers/communication/communication_manager.js';
+import { TrainingManager } from '../../../helpers/training/training_manager.js';
+import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager.js';
 import { saveWorkingModel } from '../../../helpers/memory/helpers.js';
 
 import { mapState } from 'vuex';
@@ -118,18 +119,15 @@ export default {
   },
   data() {
     return {
-      // assist with the training loop
+      // Assist with the training loop
       trainingManager: null,
-
-      // manager that returns feedbacks when training
+      // Manager that returns feedbacks when training
       trainingInformant: new TrainingInformant(10, this.Task.taskID),
-
-      // manager for the file uploading process
+      // Manager for the file uploading process
       fileUploadManager: new FileUploadManager(this.nbrClasses, this),
-
-      // take care of communication processes
+      // Take care of communication processes
       communicationManager: new CommunicationManager(
-        process.env.VUE_APP_SERVER_URI,
+        process.env.DEAI_SERVER_URI,
         this.Task.taskID,
         this.$store.getters.password(this.Id)
       ), // TO DO: to modularize

@@ -44,14 +44,6 @@ export class TrainingInformant {
   }
 
   /**
-   * Updates the number of weights updates I did with the server.
-   * @param {Number} nbrUpdates The number of updates.
-   */
-  updateNbrUpdatesWithOthers(nbrUpdates) {
-    this.nbrUpdatesWithOthers += nbrUpdates;
-  }
-
-  /**
    * Updates the time I waited to receive aggregated weights from server.
    * @param {Number} time The time I waited for.
    */

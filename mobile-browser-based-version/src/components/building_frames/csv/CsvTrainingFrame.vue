@@ -118,9 +118,9 @@
 </template>
 
 <script>
-import TrainingFrame from '../containers/TrainingFrame';
-import IconCard from '../../containers/IconCard';
-import Bezier2 from '../../../assets/svg/Bezier2';
+import TrainingFrame from '../containers/TrainingFrame.vue';
+import IconCard from '../../containers/IconCard.vue';
+import Bezier2 from '../../../assets/svg/Bezier2.vue';
 
 export default {
   name: 'csv-training-frame',
@@ -130,7 +130,7 @@ export default {
   },
   data() {
     return {
-      // headers related to training task of containing item of the form {id: "", userHeader: ""}
+      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
       dataExample: null,
     };

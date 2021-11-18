@@ -15,8 +15,8 @@
 </template>
 
 <script>
-import ImageTestingFrame from '../building_frames/image/ImageTestingFrame';
-import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame';
+import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue';
+import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame.vue';
 
 export default {
   name: 'main-testing-frame',

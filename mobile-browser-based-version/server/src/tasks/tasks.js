@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { TASKS_FILE } from '../../config.js';
+import { TASKS_FILE } from '../../server.config.js';
 
 if (fs.existsSync(TASKS_FILE)) {
   var tasks = JSON.parse(fs.readFileSync(TASKS_FILE));

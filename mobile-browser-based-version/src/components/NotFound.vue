@@ -120,7 +120,7 @@
           dark:bg-darker dark:border-primary-darker
         "
       >
-        <div>FeAI &copy; 2021</div>
+        <div>DeAI &copy; 2021</div>
         <div>
           Join us on
           <a

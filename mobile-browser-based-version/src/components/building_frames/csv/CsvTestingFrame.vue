@@ -116,9 +116,9 @@
 </template>
 
 <script>
-import TestingFrame from '../containers/TestingFrame';
-import IconCard from '../../containers/IconCard';
-import Bezier2 from '../../../assets/svg/Bezier2';
+import TestingFrame from '../containers/TestingFrame.vue';
+import IconCard from '../../containers/IconCard.vue';
+import Bezier2 from '../../../assets/svg/Bezier2.vue';
 
 export default {
   name: 'csv-testing-frame',
@@ -133,7 +133,7 @@ export default {
   },
   data() {
     return {
-      // headers related to training task of containing item of the form {id: "", userHeader: ""}
+      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
       predictions: null,
     };
