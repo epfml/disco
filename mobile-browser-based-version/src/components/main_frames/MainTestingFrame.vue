@@ -11,8 +11,8 @@
 </template>
 
 <script>
-import ImageTestingFrame from '../building_frames/ImageTestingFrame';
-import CsvTestingFrame from '../building_frames/CsvTestingFrame';
+import ImageTestingFrame from '../building_frames/image/ImageTestingFrame';
+import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame';
 
 export default {
   name: 'MainTestingFrame',

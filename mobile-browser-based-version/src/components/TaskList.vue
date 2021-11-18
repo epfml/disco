@@ -1,98 +1,66 @@
 <template>
-  <div class="flex flex-1 h-screen overflow-y-scroll">
-    <!-- Main Page Header -->
-    <main class="flex-1">
-      <!-- Main Page Content -->
-      <div
-        class="flex flex-col items-right justify-start flex-1 h-full min-h-screen overflow-y-auto"
-      >
-        <section class="flex-col items-center justify-center p-4 space-y-4">
-          <div
-            v-for="task in tasks"
-            :key="task.trainingInformation.modelId"
-            class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
-          >
-            <!-- Titanic's card-->
-            <div
-              class="group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-darker dark:bg-dark"
-            >
-              <div>
-                <h6
-                  class="text-xl font-medium leading-none tracking-wider dark:group-hover:text-darker"
-                >
-                  {{ task.displayInformation.taskTitle }}
-                </h6>
-              </div>
-              <div class="ml-10">
-                <ul
-                  class="text-base ont-semibold text-gray-500 dark:text-light"
-                >
-                  <span v-html="task.displayInformation.summary"></span>
-                </ul>
-              </div>
-              <div class="py-2">
-                <span>
-                  <button
-                    v-on:click="goToSelection(task.trainingInformation.modelId)"
-                    type="button"
-                    class="w-1/6 text-lg border-2 border-transparent bg-green-500 my-2 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 focus:outline-none"
-                  >
-                    Join
-                  </button>
-                </span>
-              </div>
+  <baseLayout v-bind:withSection='true'>
+    <!-- Main Page Content -->
+        <div
+          v-for="task in tasks"
+          :key="task.trainingInformation.modelId"
+          class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
+        >
+          <card>
+            <div>
+              <h6
+                class="text-xl font-medium leading-none tracking-wider dark:group-hover:text-darker"
+              >
+                {{ task.displayInformation.taskTitle }}
+              </h6>
             </div>
-          </div>
-        </section>
-      </div>
-
-      <!-- Main Page Footer-->
-      <footer
-        class="flex items-center justify-between p-4 bg-white border-t dark:bg-darker dark:border-primary-darker"
-      >
-        <div>De-AI &copy; 2021</div>
-        <div>
-          Join us on
-          <a
-            href="https://github.com/epfml/DeAI"
-            target="_blank"
-            class="text-blue-500 hover:underline"
-            >Github</a
-          >
+            <div class="ml-10">
+              <ul class="text-base ont-semibold text-gray-500 dark:text-light">
+                <span v-html="task.displayInformation.summary"></span>
+              </ul>
+            </div>
+            <div class="py-2">
+              <span>
+                <customButton
+                  v-on:click="goToSelection(task.trainingInformation.modelId)"
+                >
+                  Join
+                </customButton>
+              </span>
+            </div>
+          </card>
         </div>
-      </footer>
-    </main>
-  </div>
+  </baseLayout>
 </template>
 
 <script>
 // Task's main frames
-import MainTaskFrame from '../components/main_frames/MainTaskFrame';
-import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame';
-import MainTrainingFrame from '../components/main_frames/MainTrainingFrame';
-import MainTestingFrame from '../components/main_frames/MainTestingFrame';
+import MainTaskFrame from "../components/main_frames/MainTaskFrame";
+import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame";
+import MainTrainingFrame from "../components/main_frames/MainTrainingFrame";
+import MainTestingFrame from "../components/main_frames/MainTestingFrame";
 
 // WARNING: temporay code until serialization of Task object
 // Import the tasks objects Here
-import { CsvTask } from '../task_definition/csv_task';
-import { ImageTask } from '../task_definition/image_task'
-
-import { defineComponent } from 'vue';
+import { CsvTask } from "../task_definition/csv_task";
+import { ImageTask } from "../task_definition/image_task";
+import baseLayout from "./containers/BaseLayout";
+import card from "./containers/Card";
+import customButton from "./simple/CustomButton";
+import { defineComponent } from "vue";
 
 export default {
-  name: 'taskList',
+  name: "taskList",
+  components: { baseLayout, card, customButton },
   data() {
     return {
-      taskSelected: '',
-      mnist: '/mnist-model/description',
       tasks: [],
-      tasksUrl: 'https://deai-313515.ew.r.appspot.com/tasks',
     };
   },
   methods: {
     goToSelection(id) {
       this.$router.push({
-        name: id.concat('.description'),
+        name: id.concat(".description"),
         params: { Id: id },
       });
       /*
@@ -103,22 +71,22 @@ export default {
     },
   },
   async mounted() {
-    let tasks = await fetch(this.tasksUrl)
-      .then(response => response.json())
-      .then(tasks => {
+    let tasks = await fetch(this.$t('server.tasksPath'))
+      .then((response) => response.json())
+      .then((tasks) => {
         for (let task of tasks) {
           console.log(`Processing ${task.taskId}`);
           let newTask;
           // TODO: avoid this switch by having one Task class completely determined by a json config
           switch (task.trainingInformation.dataType) {
-            case 'csv':
+            case "csv":
               newTask = new CsvTask(
                 task.taskId,
                 task.displayInformation,
                 task.trainingInformation
               );
               break;
-            case 'image':
+            case "image":
               newTask = new ImageTask(
                 task.taskId,
                 task.displayInformation,
@@ -126,37 +94,37 @@ export default {
               );
               break;
             default:
-              console.log('No task object available');
+              console.log("No task object available");
               break;
           }
           this.tasks.push(newTask);
           // Definition of an extension of the task-related component
           var MainDescriptionFrameSp = defineComponent({
             extends: MainDescriptionFrame,
-            name: newTask.trainingInformation.modelId.concat('.description'),
-            key: newTask.trainingInformation.modelId.concat('.description'),
+            name: newTask.trainingInformation.modelId.concat(".description"),
+            key: newTask.trainingInformation.modelId.concat(".description"),
           });
           var MainTrainingFrameSp = defineComponent({
             extends: MainTrainingFrame,
-            name: newTask.trainingInformation.modelId.concat('.training'),
-            key: newTask.trainingInformation.modelId.concat('.training'),
+            name: newTask.trainingInformation.modelId.concat(".training"),
+            key: newTask.trainingInformation.modelId.concat(".training"),
           });
           var MainTestingFrameSp = defineComponent({
             extends: MainTestingFrame,
-            name: newTask.trainingInformation.modelId.concat('.testing'),
-            key: newTask.trainingInformation.modelId.concat('.testing'),
+            name: newTask.trainingInformation.modelId.concat(".testing"),
+            key: newTask.trainingInformation.modelId.concat(".testing"),
           });
           // Add task subroutes on the go
           let newTaskRoute = {
-            path: '/'.concat(newTask.trainingInformation.modelId),
+            path: "/".concat(newTask.trainingInformation.modelId),
             name: newTask.trainingInformation.modelId,
             component: MainTaskFrame,
             props: { Id: newTask.trainingInformation.modelId, Task: newTask },
             children: [
               {
-                path: 'description',
+                path: "description",
                 name: newTask.trainingInformation.modelId.concat(
-                  '.description'
+                  ".description"
                 ),
                 component: MainDescriptionFrameSp,
                 props: {
@@ -165,8 +133,8 @@ export default {
                 },
               },
               {
-                path: 'training',
-                name: newTask.trainingInformation.modelId.concat('.training'),
+                path: "training",
+                name: newTask.trainingInformation.modelId.concat(".training"),
                 component: MainTrainingFrameSp,
                 props: {
                   Id: newTask.trainingInformation.modelId,
@@ -174,8 +142,8 @@ export default {
                 },
               },
               {
-                path: 'testing',
-                name: newTask.trainingInformation.modelId.concat('.testing'),
+                path: "testing",
+                name: newTask.trainingInformation.modelId.concat(".testing"),
                 component: MainTestingFrameSp,
                 props: {
                   Id: newTask.trainingInformation.modelId,
@@ -187,9 +155,9 @@ export default {
           this.$router.addRoute(newTaskRoute);
         }
       });
-      for (let task of this.tasks) {
-        await this.$store.commit('addTask', {task: task});
-      }
+    for (let task of this.tasks) {
+      await this.$store.commit("addTask", { task: task });
+    }
   },
 };
 </script>
