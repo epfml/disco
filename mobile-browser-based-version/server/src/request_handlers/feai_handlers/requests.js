@@ -3,6 +3,7 @@ import fs from 'fs';
 import msgpack from 'msgpack-lite';
 import * as config from '../../../config.js';
 import { averageWeights } from '../../helpers/tfjs_helpers.js';
+import tasks from '../../tasks/tasks.js';
 
 /**
  * Fraction of client reponses required to complete communication round.
@@ -49,13 +50,9 @@ const logs = [];
  */
 const clients = new Map();
 
-// Initialize task-clients map
-if (fs.existsSync(config.TASKS_FILE)) {
-  const tasks = JSON.parse(fs.readFileSync(config.TASKS_FILE));
-  tasks.forEach((task) => {
-    clients.set(task.taskID, []);
-  });
-}
+tasks.forEach((task) => {
+  clients.set(task.taskID, []);
+});
 
 if (!fs.existsSync(config.MILESTONES_DIR)) {
   fs.mkdirSync(config.MILESTONES_DIR);
@@ -77,7 +74,7 @@ export function isValidRequest(request) {
     request.body.timestamp !== undefined &&
     typeof request.body.timestamp === 'string' &&
     request.params !== undefined &&
-    clients.has(request.params.task) &&
+    tasks.has(request.params.task) &&
     clients.get(request.params.task).includes(request.body.id) &&
     request.params.round >= 0
   );
