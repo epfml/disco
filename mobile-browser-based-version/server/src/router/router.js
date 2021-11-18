@@ -2,7 +2,7 @@ import express from 'express';
 import _ from 'lodash';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import * as requests from '../request_handlers/feai_handlers/requests.js';
-import * as config from '../../config.js';
+import * as config from '../../server.config.js';
 import tasks from '../tasks/tasks.js';
 import { makeID } from '../helpers/helpers.js';
 import { ExpressPeerServer } from 'peer';

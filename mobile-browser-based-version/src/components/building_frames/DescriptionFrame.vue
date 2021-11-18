@@ -1,3 +1,4 @@
+import { serializeWeights } from '../helpers/tfjs_helpers.js';
 <template>
   <a id="overview-target">
     <icon-card header="The task" :description="OverviewText">
@@ -149,7 +150,6 @@
       </template>
     </icon-card>
   </a>
-
   <div class="flex items-center justify-center p-4">
     <custom-button
       id="train-model-button"
@@ -163,7 +163,7 @@
 
 <script>
 import * as memory from '../../helpers/memory/helpers.js';
-import CustomButton from '../simple/CustomButton';
+import CustomButton from '../simple/CustomButton.vue';
 import Tasks from '../../assets/svg/Tasks.vue';
 import Model from '../../assets/svg/Model.vue';
 import Clock from '../../assets/svg/Clock.vue';

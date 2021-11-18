@@ -45,9 +45,10 @@
 </template>
 
 <script>
-import BaseLayout from './containers/BaseLayout';
-import CustomButton from './simple/CustomButton';
-import Card from './containers/Card';
+import BaseLayout from './containers/BaseLayout.vue';
+import CustomButton from './simple/CustomButton.vue';
+import Card from './containers/Card.vue';
+
 import { useI18n } from 'vue-i18n';
 import { mapMutations } from 'vuex';
 

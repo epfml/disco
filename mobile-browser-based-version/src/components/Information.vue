@@ -261,6 +261,40 @@
                 </div>
               </card>
             </div>
+            <h6
+              class="text-xl font-large leading-none tracking-wider dark:group-hover:text-darker p-2 py-6"
+            >
+              Further links
+            </h6>
+            <ul class="text-lg ont-semibold text-gray-500 dark:text-light p-4">
+              This app was developped in the Machine Learning and Optimization
+              Laboratory at EPFL.
+              <br />
+              More information about decentralized learning
+              <a
+                href="https://www.epfl.ch/labs/mlo/"
+                target="_blank"
+                class="text-blue-500 hover:underline"
+                >here</a
+              >.
+              <br />
+              The source code of the app can be found on
+              <a
+                href="https://github.com/epfml/DeAI"
+                target="_blank"
+                class="text-blue-500 hover:underline"
+                >Github</a
+              >.
+              <br />
+              Finally, you can join our
+              <a
+                href="https://deai.slack.com/"
+                target="_blank"
+                class="text-blue-500 hover:underline"
+                >Slack</a
+              >
+              page to discuss the app.
+            </ul>
           </div>
           <h6
             class="
@@ -311,11 +345,14 @@
 </template>
 
 <script>
-import baseLayout from './containers/BaseLayout';
-import card from './containers/Card';
+import baseLayout from './containers/BaseLayout.vue';
+import card from './containers/Card.vue';
 export default {
   name: 'information',
-  components: { baseLayout, card },
+  components: {
+    baseLayout,
+    card,
+  },
   methods: {
     goToLabPage() {},
   },

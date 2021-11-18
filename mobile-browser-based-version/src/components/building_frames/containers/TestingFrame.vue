@@ -26,10 +26,10 @@
 </template>
 
 <script>
-import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
-import UploadingFrame from '../upload/UploadingFrame';
-import CustomButton from '../../simple/CustomButton';
-import ActionFrame from './ActionFrame';
+import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager.js';
+import UploadingFrame from '../upload/UploadingFrame.vue';
+import CustomButton from '../../simple/CustomButton.vue';
+import ActionFrame from './ActionFrame.vue';
 
 export default {
   name: 'TestingFrame',

@@ -280,23 +280,22 @@ const hasFiles = ({ dataTransfer: { types = [] } }) =>
   types.indexOf('Files') > -1;
 
 export default {
-  components: { Bin, File },
   name: 'SingleUploadFrame',
   props: {
     Id: String,
     Task: Object,
-
-    // the file upload manager associated to the task
+    // The file upload manager associated to the task
     fileUploadManager: Object,
-
-    // preview is used to know if we have to show a snippet of the uploaded files or not
+    // Preview is used to know if we have to show a snippet of the uploaded files or not
     preview: Boolean,
-
-    // the label associated to the task
+    // The label associated to the task
     label: String,
-
-    // if the label should be displayed or not
+    // If the label should be displayed or not
     displayLabels: Boolean,
+  },
+  components: {
+    Bin,
+    File,
   },
   data() {
     return {

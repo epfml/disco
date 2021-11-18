@@ -30,10 +30,13 @@
 </template>
 
 <script>
-import CustomFooter from '../simple/CustomFooter';
+import CustomFooter from '../simple/CustomFooter.vue';
+
 export default {
   name: 'base-layout',
-  components: { CustomFooter },
+  components: {
+    CustomFooter,
+  },
   props: {
     customClass: { default: '', type: String },
     override: { default: false, type: Boolean },
