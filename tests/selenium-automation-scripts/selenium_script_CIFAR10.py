@@ -27,7 +27,7 @@ NUM_PEERS  = 3
 # Defines the way to split the data, could be 'partition' for even size partitions, 'rpartition' for random size partitions
 # 'spartition' for parition of size passed as an argument RATIOS.
 DATA_SPLIT = 'spartition'
-RATIOS = [0.5, 0.3, 0.2]
+RATIOS = [0.5, 0.25, 0.25]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
@@ -35,7 +35,7 @@ TRAINING_TYPE = 'Train Distributed'
 # paths to the file containing the CSV file of Titanic passengers with 12 columns
 IMAGE_FILE_PATH = r'preprocessed_images/CIFAR10'
 LABEL_FILE_PATH = 'labels.csv'
-NUM_IMAGES = 300
+NUM_IMAGES = 10000
 
 
 # Download and extract chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads
@@ -68,7 +68,9 @@ for index, driver in enumerate(drivers):
 
 # Start training on each driver
 train_start_time = time.time()
+time.sleep(8)
 start_training(drivers, TRAINING_TYPE)
+time.sleep(5)
 
 generate_report('report.txt', \
     drivers, \

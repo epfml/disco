@@ -14,7 +14,7 @@ def calculate_epoch_per_second(drivers, train_start_time, epoch_index, report_fi
         total_averaging_count += int(elems[epoch_index].text)
     epoch_count = total_averaging_count / len(drivers)
     training_time = time.time() - train_start_time
-    report_file.write(f'Epochs/s was: {round(epoch_count / training_time, 2)} \n')
+    report_file.write(f'Epochs/s was: {round(epoch_count / training_time, 5)} \n')
 
 def get_files(directory, num_images, file_type):
     files = []
@@ -89,6 +89,8 @@ def print_metrics(drivers, start_time, train_acc_element_id, val_acc_element_id,
     monitoring_count = 0
     total_ram = 0
     total_cpu = 0
+    max_cpu = 0
+    temp_cpu = 0
     pid = os.getpid()
     chrome_pids = [driver.service.process.pid for driver in drivers]
     chrome_processes = [psutil.Process(p) for p in chrome_pids]
@@ -100,11 +102,15 @@ def print_metrics(drivers, start_time, train_acc_element_id, val_acc_element_id,
             cpu_usage = python_process.cpu_percent()
             total_ram += memory_usage
             total_cpu += cpu_usage
+            temp_cpu += cpu_usage
             for cp in chrome_processes:
                 memory_usage = cp.memory_percent()
                 cpu_usage = cp.cpu_percent()
                 total_ram += memory_usage
                 total_cpu += cpu_usage
+                temp_cpu += cpu_usage
+            max_cpu = max(temp_cpu, max_cpu)
+            temp_cpu = 0
         if len(drivers[len(drivers) - 1].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']")) > 0:
             for f in drivers[len(drivers) - 1].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']"):
                 if 'has finished training' in f.text:
@@ -116,6 +122,8 @@ def print_metrics(drivers, start_time, train_acc_element_id, val_acc_element_id,
                     break
     report_file.write(f'Average CPU usage was: {round(total_cpu / monitoring_count, 2)}% \n')
     report_file.write(f'Average RAM usage was: {round(total_ram / monitoring_count, 2)}% \n')
+    report_file.write(f'Max CPU usage was: {round(max_cpu, 2)}% \n')
+
 
 def start_training(drivers, training_type):
     for driver in drivers:
@@ -152,4 +160,3 @@ def generate_report(report_file_name, drivers, start_time, train_start_time, tra
     f.write(f'Using {len(drivers)} to simulate distributed learning: \n')
     print_metrics(drivers, start_time, train_acc_element_id, val_acc_element_id, f)
     calculate_epoch_per_second(drivers, train_start_time, epoch_index, f)
-

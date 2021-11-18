@@ -21,17 +21,17 @@ from util import find_task_page, generate_report, get_files, img_partition, img_
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
 # Defines how many browser tabs to open
-NUM_PEERS = 1
+NUM_PEERS = 5
 # Defines the way to split the data, could be 'iid' for iid data, 'partition' for even size partitions, 'rpartition' for random size partitions
 # 'spartition' for partition of sizes past as argument RATIOS
-DATA_SPLIT = 'iid'
-RATIOS = [0.5, 0.1, 0.2, 0.1, 0.1]
+DATA_SPLIT = 'spartition'
+RATIOS = [0.5, 0.2, 0.1, 0.1, 0.1]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'MNIST'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
 TRAINING_TYPE = 'Train Distributed' 
 #Number of images to train with
-NUM_IMAGES = 80
+NUM_IMAGES = 1000
 # Digit folder paths, change to \ for macOS
 DIGIT_CLASS_PATHS = [
     r'preprocessed_images/0',
@@ -53,7 +53,6 @@ start_time = time.time()
 op = webdriver.ChromeOptions()
 op.add_argument('headless') 
 drivers = [webdriver.Chrome(ChromeDriverManager().install()) for i in range(NUM_PEERS)]
-print(drivers[0].service.process.pid) #getting a pid of the chrome driver
 
 digit_files = [get_files(DIGIT_CLASS_PATHS[i], NUM_IMAGES, '.jpg') for i in range(len(DIGIT_CLASS_PATHS))]
 
@@ -76,7 +75,9 @@ for index, driver in enumerate(drivers):
 
 # Start training on each driver
 train_start_time = time.time()
+time.sleep(8)
 start_training(drivers, TRAINING_TYPE)
+time.sleep(5)
 
 generate_report('report.txt', \
     drivers, \
