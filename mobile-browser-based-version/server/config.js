@@ -1,7 +1,8 @@
 import path from 'path';
 
 /**
- * File containing all server-wide constants, e.g. absolute paths to resources.
+ * File containing all server-wide constants, e.g. absolute paths
+ * to resources, or URIs.
  */
 
 /**
@@ -32,3 +33,13 @@ export const MODELS_DIR = path.join(ROOT_DIR, 'models');
  * Directory containing all the generated milestones files.
  */
 export const MILESTONES_DIR = path.join(ROOT_DIR, 'milestones');
+
+export const CONNECTION_PROTOCOL = 'http';
+
+export const HOST_NAME = 'localhost';
+
+export const SERVER_URI = `${CONNECTION_PROTOCOL}://${HOST_NAME}`;
+
+export const SERVER_PORT = 8080;
+
+export const START_TASK_PORT = 9000;

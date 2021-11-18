@@ -2,18 +2,19 @@
  * Test the server functionalities locally, without the need to run any client.
  * Run with `node test.js`
  */
-import { serializeWeights } from './helpers/tfjs_helpers.js';
+import { serializeWeights } from '../helpers/tfjs_helpers.js';
 import msgpack from 'msgpack-lite';
 import fetch from 'node-fetch';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-node';
+import * as config from '../../config.js';
 
 /**
  * Naively tests all the API requests made available by the FeAI centralized
  * server from a single client's point of view.
  */
 async function testServerRequests() {
-  let server = 'http://localhost:8081';
+  let server = `${config.SERVER_URI}:${config.SERVER_PORT}`;
   // Declare parameters for the requests below
   let id = '09az';
   let round = 1;
@@ -70,8 +71,8 @@ async function testServerRequests() {
       timestamp: new Date(),
     }),
   })
-    .then(response => response.json())
-    .then(body => msgpack.decode(Uint8Array.from(body.weights.data)));
+    .then((response) => response.json())
+    .then((body) => msgpack.decode(Uint8Array.from(body.weights.data)));
   console.log(response);
 
   /**
@@ -101,26 +102,26 @@ async function testServerRequests() {
       id: id,
       timestamp: new Date(),
     }),
-  }).then(response => response.json());
+  }).then((response) => response.json());
   console.log(response);
 
   /**
    * Get server logs for own activity. Expects the list of all previous POST
    * requests.
    */
-  response = await fetch(`${server}/logs?id=${id}`).then(response =>
+  response = await fetch(`${server}/logs?id=${id}`).then((response) =>
     response.json()
   );
   console.log(response);
 
-  response = await fetch(`${server}/logs?task=${task}`).then(response =>
+  response = await fetch(`${server}/logs?task=${task}`).then((response) =>
     response.json()
   );
   console.log(response);
 
   response = await fetch(
     `${server}/logs?id=${id}&task=${task}&round=${round}`
-  ).then(response => response.json());
+  ).then((response) => response.json());
   console.log(response);
 
   /**

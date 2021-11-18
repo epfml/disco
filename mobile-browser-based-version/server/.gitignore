@@ -1,5 +1,6 @@
 # Server-related files
-weights.bin
 model.json
+weights.bin
+weights_round*.json
 models/
 milestones/
