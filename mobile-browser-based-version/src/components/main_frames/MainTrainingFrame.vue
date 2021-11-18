@@ -1,21 +1,24 @@
 <template>
   <!-- CSV tasks -->
-  <div v-if="Task.trainingInformation.dataType == 'csv'">
-    <CsvTrainingFrame v-bind:Id="Id" v-bind:Task="Task" />
-  </div>
-
+  <csv-training-frame
+    v-if="Task.trainingInformation.dataType == 'csv'"
+    v-bind:Id="Id"
+    v-bind:Task="Task"
+  />
   <!-- image tasks -->
-  <div v-if="Task.trainingInformation.dataType == 'image'">
-    <ImageTrainingFrame v-bind:Id="Id" v-bind:Task="Task" />
-  </div>
+  <image-training-frame
+    v-else-if="Task.trainingInformation.dataType == 'image'"
+    v-bind:Id="Id"
+    v-bind:Task="Task"
+  />
 </template>
 
 <script>
-import CsvTrainingFrame from '../building_frames/CsvTrainingFrame';
-import ImageTrainingFrame from '../building_frames/ImageTrainingFrame';
+import CsvTrainingFrame from '../building_frames/csv/CsvTrainingFrame';
+import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame';
 
 export default {
-  name: 'MainTrainingFrame',
+  name: 'main-training-frame',
   props: {
     Id: String,
     Task: Object,

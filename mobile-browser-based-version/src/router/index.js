@@ -1,11 +1,10 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import { defineComponent } from 'vue';
 
 // Some page components
 import Home from '../components/Home';
 import TaskList from '../components/TaskList';
 import Information from '../components/Information';
-import Trophee from '../components/Trophee';
+import NotFound from '../components/NotFound';
 
 var routes = [
   {
@@ -24,9 +23,9 @@ var routes = [
     component: Information,
   },
   {
-    path: '/trophee',
-    name: 'trophee',
-    component: Trophee,
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: NotFound,
   },
 ];
 
