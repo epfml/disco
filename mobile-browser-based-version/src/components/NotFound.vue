@@ -18,10 +18,10 @@
         <!-- Welcoming words -->
         <div>
           <h1 class="text-xl pl-10 font-medium leading-none">
-            <span class="text-primary-dark dark:text-primary-light">FeAI </span>
+            <span class="text-primary-dark dark:text-primary-light">DeAI </span>
             -
-            <span class="text-primary-dark dark:text-primary-light">Fe</span
-            >derated
+            <span class="text-primary-dark dark:text-primary-light">De</span
+            >centralized
             <span class="text-primary-dark dark:text-primary-light">AI</span>
           </h1>
         </div>

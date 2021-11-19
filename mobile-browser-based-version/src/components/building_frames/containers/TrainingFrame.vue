@@ -92,8 +92,8 @@ import IconCard from '../../containers/IconCard.vue';
 import CustomButton from '../../simple/CustomButton.vue';
 import Download from '../../../assets/svg/Download.vue';
 
-import { TrainingInformant } from '../../../helpers/training/training_informant.js';
-import { CommunicationManager } from '../../../helpers/communication/communication_manager.js';
+import { TrainingInformant } from '../../../helpers/training/decentralised/training_informant.js';
+import { Client } from '../../../helpers/communication/client.js';
 import { TrainingManager } from '../../../helpers/training/training_manager.js';
 import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager.js';
 import { saveWorkingModel } from '../../../helpers/memory/helpers.js';
@@ -126,9 +126,9 @@ export default {
       // Manager for the file uploading process
       fileUploadManager: new FileUploadManager(this.nbrClasses, this),
       // Take care of communication processes
-      communicationManager: new CommunicationManager(
-        process.env.DEAI_SERVER_URI,
-        this.Task.taskID,
+      client: Client.getClient(
+        'decentralised',
+        this.Task,
         this.$store.getters.password(this.Id)
       ), // TO DO: to modularize
     };
@@ -219,7 +219,7 @@ export default {
       // Create the training manager
       this.trainingManager = new TrainingManager(
         this.Task,
-        this.communicationManager,
+        this.client,
         this.trainingInformant,
         this.useIndexedDB
       );
@@ -228,7 +228,7 @@ export default {
       this.trainingInformant.initializeCharts();
 
       // Connect to centralized server
-      if (await this.communicationManager.connect()) {
+      if (await this.client.connect()) {
         this.$toast.success(
           'Succesfully connected to server. Distributed training available.'
         );
@@ -242,7 +242,7 @@ export default {
     });
   },
   async unmounted() {
-    this.communicationManager.disconnect();
+    this.client.disconnect();
   },
 };
 </script>

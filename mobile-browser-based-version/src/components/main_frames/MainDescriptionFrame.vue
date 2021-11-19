@@ -27,7 +27,7 @@
   </div>
 </template>
 <script>
-import DescriptionFrame from '../building_frames/DescriptionFrame';
+import DescriptionFrame from '../building_frames/DescriptionFrame.vue';
 
 export default {
   name: 'main-description-frame',

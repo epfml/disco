@@ -127,6 +127,7 @@ import People from '../../assets/svg/People.vue';
 import Performances from '../../assets/svg/Performances.vue';
 import Forward from '../../assets/svg/Forward.vue';
 import Contact from '../../assets/svg/Contact.vue';
+
 export default {
   components: {
     IconCardSmall,

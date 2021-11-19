@@ -1,4 +1,8 @@
-import { updateWorkingModel } from '../memory/helpers.js';
+import {
+  getWorkingModel,
+  updateWorkingModel,
+  getWorkingModelMetadata,
+} from '../memory/helpers';
 
 /**
  * Class that deals with the model of a task.
@@ -8,13 +12,13 @@ export class TrainingManager {
   /**
    * Constructs the training manager.
    * @param {Object} task the trained task
-   * @param {Object} communicationManager the communication manager
+   * @param {Object} client the client
    * @param {Object} trainingInformant the training informant
    * @param {Boolean} useIndexedDB use IndexedDB (browser only)
    */
-  constructor(task, communicationManager, trainingInformant, useIndexedDB) {
+  constructor(task, client, trainingInformant, useIndexedDB) {
     this.task = task;
-    this.communicationManager = communicationManager;
+    this.client = client;
     this.trainingInformant = trainingInformant;
     this.useIndexedDB = useIndexedDB;
     // Current epoch of the model
@@ -27,89 +31,58 @@ export class TrainingManager {
    * @param {Boolean} payload whether or not to use IndexedDB
    */
   setIndexedDB(payload) {
-    // Ensure the attribute is always a boolean
+    // Ensure the payload is always a boolean
     this.useIndexedDB = payload ? true : false;
   }
 
   /**
    * Train the task's model either alone or in a distributed fashion depending on the user's choice.
-   * @param {Boolean} distributed     boolean to states if training alone or training in a distributed fashion.
-   * @param {Object} processedData   data that has been processed by the custom function define in the script of the task. Has the form {accepted: _, Xtrain: _, yTrain:_}.
+   * @param {Object} dataset the dataset to train on
+   * @param {Boolean} distributedTraining train in a distributed fashion
    */
-  async trainModel(distributed, processedData) {
-    var Xtrain = processedData.Xtrain;
-    var ytrain = processedData.ytrain;
-    // notify the user that training has started
-    this.environment.$toast.success(
-      `Thank you for your contribution. Training has started`
-    );
-    setTimeout(this.environment.$toast.clear, 30000);
-    if (!distributed) {
-      await this._training(
-        this.trainingInformation.modelId,
-        Xtrain,
-        ytrain,
-        this.trainingInformation.batchSize,
-        this.trainingInformation.validationSplit,
-        this.trainingInformation.epoch,
-        this.trainingInformant,
-        this.trainingInformation.modelCompileData,
-        this.trainingInformation.learningRate
-      );
+  async trainModel(dataset, distributedTraining) {
+    let data = dataset.Xtrain;
+    let labels = dataset.ytrain;
+    /**
+     * If IndexedDB is turned on and the working model exists, then load the
+     * existing model from IndexedDB. Otherwise, create a fresh new one.
+     */
+    let modelParams = [this.task.taskID, this.task.trainingInformation.modelID];
+    let model;
+    if (this.useIndexedDB && (await getWorkingModelMetadata(...modelParams))) {
+      model = await getWorkingModel(...modelParams);
     } else {
-      await this.communicationManager.updateReceivers(this);
-      await this._trainingDistributed(
-        this.trainingInformation.modelId,
-        Xtrain,
-        ytrain,
-        this.trainingInformation.epoch,
-        this.trainingInformation.batchSize,
-        this.trainingInformation.validationSplit,
-        this.trainingInformation.modelCompileData,
-        this,
-        this.communicationManager.peerjs,
-        this.communicationManager.recvBuffer,
-        this.trainingInformation.learningRate
-      );
+      model = await this.task.createModel();
     }
-    // notify the user that training has ended
-    this.environment.$toast.success(
-      this.trainingInformation.modelId.concat(` has finished training!`)
-    );
-    setTimeout(this.environment.$toast.clear, 30000);
+
+    let trainingParams = [model, data, labels];
+    if (distributedTraining) {
+      await this._trainingDistributed(...trainingParams);
+    } else {
+      await this._training(...trainingParams);
+    }
   }
 
   /**
-   * Method called at the begining of each training epoch.
+   * Method called at the begining of each epoch.
    */
-  _onEpochBegin() {
-    // To be modified in future ...
-    // myEpoch will be removed
+  _onEpochBegin(model, epoch) {
+    // To be modified in future ... myEpoch will be removed
     console.log('EPOCH: ', ++this.myEpoch);
+    this.client.onEpochBegin(model, epoch);
   }
 
   /**
-   * Method called at the end of each epoch.
-   * Configured to handle communication with peers.
-   * @param {Number} epoch The epoch number of the current training
-   * @param {Number} accuracy The accuracy achieved by the model in the given epoch
-   * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
+   * Method corresponding to the TFJS fit function's callback. Calls the subroutines
+   * for the training informant and client.
+   * @param {Object} model the model to train
+   * @param {Number} epoch the epoch number of the current training
+   * @param {Number} accuracy the accuracy achieved by the model in the given epoch
+   * @param {Number} validationAccuracy the validation accuracy achieved by the model in the given epoch
    */
   async _onEpochEnd(model, epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateCharts(epoch, validationAccuracy, accuracy);
-    // At the moment, don't allow for new participants to come in.
-    // Wait for a synchronization scheme (on epoch number).
-    await this.communicationManager.updateReceivers(this);
-    await this.communicationManager._onEpochEndCommunication(
-      model,
-      epoch,
-      this.communicationManager.receivers,
-      this.communicationManager.recvBuffer,
-      this.communicationManager.peerjsId,
-      this.trainingInformation.receivedMessagesThreshold,
-      this.communicationManager.peerjs,
-      this.trainingInformant
-    );
+    await this.client.onEpochEnd(model, epoch, this.trainingInformant);
   }
 
   async _training(model, data, labels) {
@@ -176,7 +149,9 @@ export class TrainingManager {
         validationSplit: trainingInformation.validationSplit,
         shuffle: true,
         callbacks: {
-          onEpochBegin: this._onEpochBegin(),
+          onEpochBegin: async (epoch, logs) => {
+            this._onEpochBegin(model, epoch);
+          },
           onEpochEnd: async (epoch, logs) => {
             await this._onEpochEnd(
               model,
