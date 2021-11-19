@@ -162,7 +162,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
 </template>
 
 <script>
-import * as memory from '../../helpers/memory/helpers.js';
+import * as memory from '../../helpers/memory/helpers';
 import CustomButton from '../simple/CustomButton.vue';
 import Tasks from '../../assets/svg/Tasks.vue';
 import Model from '../../assets/svg/Model.vue';

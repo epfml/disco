@@ -1,5 +1,6 @@
 import * as msgpack from 'msgpack-lite';
-import { makeID, serializeWeights, assignWeightsToModel } from './helpers.js';
+import { makeID, serializeWeights, assignWeightsToModel } from '../helpers';
+import Client from '../client';
 
 /**
  * The waiting time between performing requests to the centralized server.
@@ -21,18 +22,16 @@ const HEADERS = {
  * Class that deals with communication with the centralized server when training
  * a specific task.
  */
-export class CommunicationManager {
+export class FederatedClient extends Client {
   /**
    * Prepares connection to a centralized server for training a given task.
    * @param {String} ID The ID of the task.
    * @param {String} serverURL The URL of the centralized server.
    * @param {String} taskPassword The password of the task.
    */
-  constructor(serverURL, taskID, taskPassword = null) {
-    this.serverURL = serverURL;
-    this.taskID = taskID;
+  constructor(serverURL, task) {
+    super(serverURL, task);
     this.clientID = null;
-    this.taskPassword = taskPassword;
   }
 
   /**
@@ -47,7 +46,7 @@ export class CommunicationManager {
      */
     this.clientID = await makeID(10);
     const requestURL = this.serverURL.concat(
-      `connect/${this.taskID}/${this.clientID}`
+      `connect/${this.task.taskID}/${this.clientID}`
     );
     const requestOptions = { method: 'GET' };
     const response = await fetch(requestURL, requestOptions);
@@ -59,7 +58,7 @@ export class CommunicationManager {
    */
   async disconnect() {
     const requestURL = this.serverURL.concat(
-      `disconnect/${this.taskID}/${this.clientID}`
+      `disconnect/${this.task.taskID}/${this.clientID}`
     );
     const requestOptions = {
       method: 'GET',
@@ -74,7 +73,7 @@ export class CommunicationManager {
       Array.from(serializeWeights(weights))
     );
     const requestURL = this.serverURL.concat(
-      `send_weights/${this.taskID}/${epoch}`
+      `send_weights/${this.task.taskID}/${epoch}`
     );
     const requestOptions = {
       method: 'POST',
@@ -97,7 +96,7 @@ export class CommunicationManager {
    */
   async receiveAggregatedWeights(epoch) {
     const requestURL = this.serverURL.concat(
-      `receive_weights/${this.taskID}/${epoch}`
+      `receive_weights/${this.task.taskID}/${epoch}`
     );
     const requestOptions = {
       method: 'POST',
@@ -121,7 +120,7 @@ export class CommunicationManager {
 
   async sendNbrDataSamples(nbrSamples, epoch) {
     const requestURL = this.serverURL.concat(
-      `send_nbsamples/${this.taskID}/${epoch}`
+      `send_nbsamples/${this.task.taskID}/${epoch}`
     );
     const requestOptions = {
       method: 'POST',
@@ -138,7 +137,7 @@ export class CommunicationManager {
 
   async receiveDataShares(epoch) {
     const requestURL = this.serverURL.concat(
-      `receive_nbsamples/${this.taskID}/${epoch}`
+      `receive_nbsamples/${this.task.taskID}/${epoch}`
     );
     const requestOptions = {
       method: 'POST',

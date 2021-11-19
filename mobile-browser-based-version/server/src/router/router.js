@@ -1,7 +1,7 @@
 import express from 'express';
 import _ from 'lodash';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import * as requests from '../request_handlers/feai_handlers/requests.js';
+import * as requests from '../request_handlers/federated/requests.js';
 import * as config from '../../server.config.js';
 import tasks from '../tasks/tasks.js';
 import { makeID } from '../helpers/helpers.js';
@@ -13,31 +13,37 @@ const tasksRouter = express.Router();
 tasksRouter.get('/', requests.getAllTasksData);
 tasksRouter.get('/:task/:file', requests.getInitialTaskModel);
 
-// Declare FeAI routes
-const feaiRouter = express.Router();
-feaiRouter.get('/', (req, res) => res.send('FeAI server'));
+// Declare federated routes
+const federatedRouter = express.Router();
+federatedRouter.get('/', (req, res) => res.send('FeAI server'));
 
-feaiRouter.get('/connect/:task/:id', requests.connectToServer);
-feaiRouter.get('/disconnect/:task/:id', requests.disconnectFromServer);
+federatedRouter.get('/connect/:task/:id', requests.connectToServer);
+federatedRouter.get('/disconnect/:task/:id', requests.disconnectFromServer);
 
-feaiRouter.post('/send_weights/:task/:round', requests.sendIndividualWeights);
-feaiRouter.post(
+federatedRouter.post(
+  '/send_weights/:task/:round',
+  requests.sendIndividualWeights
+);
+federatedRouter.post(
   '/receive_weights/:task/:round',
   requests.receiveAveragedWeights
 );
 
-feaiRouter.post('/send_nbsamples/:task/:round', requests.sendDataSamplesNumber);
-feaiRouter.post(
+federatedRouter.post(
+  '/send_nbsamples/:task/:round',
+  requests.sendDataSamplesNumber
+);
+federatedRouter.post(
   '/receive_nbsamples/:task/:round',
   requests.receiveDataSamplesNumbersPerClient
 );
 
-feaiRouter.use('/tasks', tasksRouter);
+federatedRouter.use('/tasks', tasksRouter);
 
-feaiRouter.get('/logs', requests.queryLogs);
+federatedRouter.get('/logs', requests.queryLogs);
 
 // Declare DeAI routes
-const deaiRouter = express.Router();
+const decentralizedRouter = express.Router();
 
 const ports = _.range(
   config.START_TASK_PORT,
@@ -58,7 +64,7 @@ _.forEach(
         proxied: true,
       })
     );
-    deaiRouter.use(
+    decentralizedRouter.use(
       createProxyMiddleware(`/${task.taskID}`, {
         target: `${config.SERVER_URI}:${String(port)}`,
         changeOrigin: true, // needed for virtual hosted sites
@@ -68,9 +74,10 @@ _.forEach(
   })
 );
 
-deaiRouter.use('/tasks', tasksRouter);
+decentralizedRouter.use('/tasks', tasksRouter);
+decentralizedRouter.get('/', (req, res) => res.send('DeAI server'));
 
-export { feaiRouter, deaiRouter };
+export { federatedRouter, decentralizedRouter };
 
 // Custom topology code (currently unused)
 /*

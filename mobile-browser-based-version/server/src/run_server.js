@@ -1,7 +1,7 @@
 import models from './tasks/models.js';
 import express from 'express';
 import cors from 'cors';
-import { feaiRouter, deaiRouter } from './router/router.js';
+import { federatedRouter, decentralizedRouter } from './router/router.js';
 import * as config from '../server.config.js';
 
 const app = express();
@@ -16,7 +16,8 @@ app.listen(config.SERVER_PORT);
 Promise.all(models.map((createModel) => createModel()));
 
 // Configure server routing
-app.use('/FeAI', feaiRouter);
-app.use('/DeAI', deaiRouter);
+app.use('/FeAI', federatedRouter);
+app.use('/DeAI', decentralizedRouter);
+app.get('/', (req, res) => res.send('Server for DeAI & FeAI'));
 
 export default app;

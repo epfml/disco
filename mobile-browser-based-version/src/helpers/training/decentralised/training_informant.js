@@ -1,4 +1,4 @@
-import { TrainingChart } from './training_chart';
+import { TrainingChart } from '../training_chart';
 
 /**
  * Class that collects information about the status of the training-loop of the model.
@@ -7,10 +7,10 @@ export class TrainingInformant {
   /**
    *
    * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
-   * @param {String} taskName the task's name.
+   * @param {String} taskID the task's name.
    */
-  constructor(length, taskName) {
-    this.taskName = taskName;
+  constructor(length, taskID) {
+    this.taskID = taskID;
     // number of people with whom I've shared my model
     this.whoReceivedMyModel = new Set();
 
@@ -24,15 +24,15 @@ export class TrainingInformant {
     this.nbrWeightRequests = 0;
 
     // message feedback from peer-to-peer training
-    this.nbrMessageToShow = length;
+    this.nbrMessagesToShow = length;
     this.messages = [];
 
     // validation accurarcy chart
-    this.validationAccuracyChart = null; //new TrainingChart("validationAccuracy_".concat(taskName), "Validation Accuracy")
+    this.validationAccuracyChart = null; //new TrainingChart("validationAccuracy_".concat(taskID), "Validation Accuracy")
     this.validationAccuracy = null;
 
     // training accuracy chart
-    this.trainingAccuracyChart = null; // new TrainingChart("trainingAccuracy_".concat(taskName), "Training Accuracy")
+    this.trainingAccuracyChart = null; // new TrainingChart("trainingAccuracy_".concat(taskID), "Training Accuracy")
     this.trainingAccuracy = null;
   }
 
@@ -73,7 +73,7 @@ export class TrainingInformant {
    * @param {String} msg a message.
    */
   addMessage(msg) {
-    if (this.messages.length >= this.nbrMessageToShow) {
+    if (this.messages.length >= this.nbrMessagesToShow) {
       this.messages.shift();
     }
     this.messages.push(msg);
@@ -85,11 +85,11 @@ export class TrainingInformant {
    */
   initializeCharts() {
     this.validationAccuracyChart = new TrainingChart(
-      'validationAccuracy_'.concat(this.taskName),
+      'validationAccuracy_'.concat(this.taskID),
       'Validation Accuracy'
     );
     this.trainingAccuracyChart = new TrainingChart(
-      'trainingAccuracy_'.concat(this.taskName),
+      'trainingAccuracy_'.concat(this.taskID),
       'Training Accuracy'
     );
   }
@@ -110,27 +110,27 @@ export class TrainingInformant {
    * Returns the chart's training accuracy ID
    */
   getChartTrainingAccuracyID() {
-    return 'chart_trainingAccuracy_'.concat(this.taskName);
+    return 'chart_trainingAccuracy_'.concat(this.taskID);
   }
 
   /**
    * Returns the chart's training accuracy ID
    */
   getValTrainingAccuracyID() {
-    return 'val_trainingAccuracy_'.concat(this.taskName);
+    return 'val_trainingAccuracy_'.concat(this.taskID);
   }
 
   /**
    * Returns the chart's validation accuracy ID
    */
   getChartValidationAccuracyID() {
-    return 'chart_validationAccuracy_'.concat(this.taskName);
+    return 'chart_validationAccuracy_'.concat(this.taskID);
   }
 
   /**
    * Returns the chart's validation accuracy ID
    */
   getValValidationAccuracyID() {
-    return 'val_validationAccuracy_'.concat(this.taskName);
+    return 'val_validationAccuracy_'.concat(this.taskID);
   }
 }

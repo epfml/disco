@@ -38,19 +38,22 @@
 </template>
 
 <script>
-// Task's main frames
-import MainTaskFrame from '../components/main_frames/MainTaskFrame';
-import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame';
-import MainTrainingFrame from '../components/main_frames/MainTrainingFrame';
-import MainTestingFrame from '../components/main_frames/MainTestingFrame';
+import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue';
+import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue';
+import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue';
+import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue';
 
-// WARNING: temporay code until serialization of Task object
-// Import the tasks objects Here
+import BaseLayout from './containers/BaseLayout.vue';
+import Card from './containers/Card.vue';
+import CustomButton from './simple/CustomButton.vue';
+
+/**
+ * WARNING: Temporary code until complete modularization of task objects.
+ * In the meantine, import all custom task classes here.
+ */
 import { CsvTask } from '../task_definition/csv_task';
 import { ImageTask } from '../task_definition/image_task';
-import BaseLayout from './containers/BaseLayout';
-import Card from './containers/Card';
-import CustomButton from './simple/CustomButton';
+
 import { defineComponent } from 'vue';
 import { mapMutations } from 'vuex';
 
@@ -64,7 +67,6 @@ export default {
   data() {
     return {
       tasks: [],
-      tasksURL: process.env.VUE_APP_SERVER_URI.concat('tasks'),
     };
   },
   methods: {
@@ -77,9 +79,9 @@ export default {
     },
   },
   async mounted() {
-    const rawTasks = await fetch(this.tasksURL).then((response) =>
-      response.json()
-    );
+    // To modularize
+    let tasksURL = process.env.DEAI_SERVER_URI.concat('tasks');
+    let rawTasks = await fetch(tasksURL).then((response) => response.json());
     rawTasks.forEach((task) => {
       console.log(`Processing ${task.taskID}`);
       let newTask;

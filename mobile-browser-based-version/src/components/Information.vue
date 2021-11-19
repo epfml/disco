@@ -262,7 +262,15 @@
               </card>
             </div>
             <h6
-              class="text-xl font-large leading-none tracking-wider dark:group-hover:text-darker p-2 py-6"
+              class="
+                text-xl
+                font-large
+                leading-none
+                tracking-wider
+                dark:group-hover:text-darker
+                p-2
+                py-6
+              "
             >
               Further links
             </h6>
@@ -345,13 +353,14 @@
 </template>
 
 <script>
-import baseLayout from './containers/BaseLayout.vue';
-import card from './containers/Card.vue';
+import BaseLayout from './containers/BaseLayout.vue';
+import Card from './containers/Card.vue';
+
 export default {
   name: 'information',
   components: {
-    baseLayout,
-    card,
+    BaseLayout,
+    Card,
   },
   methods: {
     goToLabPage() {},
