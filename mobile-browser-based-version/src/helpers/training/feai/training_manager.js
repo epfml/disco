@@ -44,25 +44,23 @@ export class TrainingManager {
   async trainModel(dataset, distributedTraining) {
     const data = dataset.Xtrain;
     const labels = dataset.ytrain;
-
-    let model;
-    let modelParams = [this.task.taskID, this.task.trainingInformation.modelID];
     /**
      * If IndexedDB is turned on and the working model exists, then load the
      * existing model from IndexedDB. Otherwise, create a fresh new one.
      */
-    if (this.useIndexedDB) {
-      if (await getWorkingModelMetadata(...modelParams)) {
-        model = await getWorkingModel(...modelParams);
-      }
+    let modelParams = [this.task.taskID, this.task.trainingInformation.modelID];
+    let model;
+    if (await (this.useIndexedDB && getWorkingModelMetadata(...modelParams))) {
+      model = await getWorkingModel(...modelParams);
     } else {
       model = await this.task.createModel();
     }
 
-    if (!distributedTraining) {
-      await this._training(model, data, labels);
+    let trainingParams = [model, data, labels];
+    if (distributedTraining) {
+      await this._trainingDistributed(...trainingParams);
     } else {
-      await this._trainingDistributed(model, data, labels);
+      await this._training(...trainingParams);
     }
   }
 
