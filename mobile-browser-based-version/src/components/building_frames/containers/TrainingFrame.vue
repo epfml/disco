@@ -228,7 +228,7 @@ export default {
       this.trainingInformant.initializeCharts();
 
       // Connect to centralized server
-      if (this.communicationManager.connect()) {
+      if (await this.communicationManager.connect()) {
         this.$toast.success(
           'Succesfully connected to server. Distributed training available.'
         );

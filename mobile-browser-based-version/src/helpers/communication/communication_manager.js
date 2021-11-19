@@ -1,5 +1,6 @@
-import { makeid } from './helpers.js';
-import Peer from 'peerjs';
+import { makeID } from './helpers.js';
+// TODO: use import from syntax
+const Peer = require('peerjs');
 import { PeerJS, handleData } from './peer.js';
 /**
  * Class that deals with communication with the PeerJS server.
@@ -36,7 +37,7 @@ export class CommunicationManager {
    * Initialize the connection to the server.
    * @param {Number} epochs the number of epochs (required to initialize the communication buffer).
    */
-  async initializeConnection(epochs, environment) {
+  async connect(epochs, environment) {
     // initialize the buffer
     this.recvBuffer = {
       trainInfo: {
@@ -45,7 +46,7 @@ export class CommunicationManager {
     };
 
     // create an ID used to connect to the server
-    this.peerjsID = await makeid(10);
+    this.peerjsID = await makeID(10);
     // connect to the PeerJS server
     // this.peer = new Peer(this.peerjsId, {
     //   host: 'localhost',
@@ -54,8 +55,8 @@ export class CommunicationManager {
     // });
 
     this.peer = new Peer(this.peerjsID, {
-      host: environment.$t('server.host'),
-      path: environment.$t('server.taskPath', { taskID: this.taskID }),
+      host: this.serverURL,
+      path: `${this.serverURL}/${this.taskID}`,
       secure: true,
       config: {
         iceServers: [
@@ -68,50 +69,33 @@ export class CommunicationManager {
         ],
       },
     });
+    return new Promise((resolve, reject) => {
+      this.peer.on('error', (error) => {
+        this.isConnected = false;
+        reject(this.isConnected);
+      });
 
-    this.peer.on('error', (error) => {
-      console.log('Error in connecting');
-      this.isConnected = false;
-
-      environment.$toast.error(
-        'Failed to connect to server. Fallback to training alone.'
-      );
-      setTimeout(environment.$toast.clear, 30000);
-    });
-
-    this.peer.on('open', async (id) => {
-      this.isConnected = true;
-
-      this.peerjs = await new PeerJS(
-        this.peer,
-        this.password,
-        handleData,
-        this.recvBuffer
-      );
-
-      environment.$toast.success(
-        'Succesfully connected to server. Distributed training available.'
-      );
-      setTimeout(environment.$toast.clear, 30000);
+      this.peer.on('open', async (id) => {
+        this.isConnected = true;
+        this.peerjs = await new PeerJS(
+          this.peer,
+          this.password,
+          handleData,
+          this.recvBuffer
+        );
+        resolve(this.isConnected);
+      });
     });
   }
 
   /**
    * Updates the receivers' list.
    */
-  async updateReceivers(environment) {
-    // let queryIds = await fetch(
-    //   "http://localhost:".concat(String(8080)).concat(`/deai/${this.taskID}/peerjs/peers`
-    // )).then(response => response.text());
-    console.log(environment.$t('server.peerjsPath', { taskID: this.taskID }));
-    let queryIDs = await fetch(
-      environment.$t('server.peerjsPath', { taskID: this.taskID })
-    ).then((response) => response.text());
+  async updateReceivers() {
+    let peerIDs = await fetch(
+      `${this.serverURL}/${this.taskID}/peerjs/peers`
+    ).then((response) => response.json());
 
-    let allIDs = JSON.parse(queryIDs);
-    let id = this.peerjsID;
-    this.receivers = allIDs.filter(function (value) {
-      return value != id;
-    });
+    this.receivers = peerIDs.filter((value) => value != this.peerjsID);
   }
 }

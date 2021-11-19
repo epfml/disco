@@ -1,7 +1,4 @@
-import { training, trainingDistributed } from './training-script';
-import { storeModel } from '../my_memory_script/indexedDB_script';
-import * as tf from '@tensorflow/tfjs';
-import { onEpochEndCommon } from '../communication_script/helpers';
+import { updateWorkingModel } from '../memory/helpers.js';
 
 /**
  * Class that deals with the model of a task.
@@ -9,18 +6,29 @@ import { onEpochEndCommon } from '../communication_script/helpers';
  */
 export class TrainingManager {
   /**
-   *
-   * @param {Object} trainingInformation the training information that can be found in script of the task.
+   * Constructs the training manager.
+   * @param {Object} task the trained task
+   * @param {Object} communicationManager the communication manager
+   * @param {Object} trainingInformant the training informant
+   * @param {Boolean} useIndexedDB use IndexedDB (browser only)
    */
-  constructor(trainingInformation) {
-    this.trainingInformation = trainingInformation;
-    this.modelCompileData = trainingInformation.modelCompileData;
-    this.communicationManager = null;
-    this.trainingInformant = null;
-    this.environment = null;
-
-    // current epoch of the model
+  constructor(task, communicationManager, trainingInformant, useIndexedDB) {
+    this.task = task;
+    this.communicationManager = communicationManager;
+    this.trainingInformant = trainingInformant;
+    this.useIndexedDB = useIndexedDB;
+    // Current epoch of the model
     this.myEpoch = 0;
+  }
+
+  /**
+   * Setter called by the UI to update the IndexedDB status midway through
+   * training.
+   * @param {Boolean} payload whether or not to use IndexedDB
+   */
+  setIndexedDB(payload) {
+    // Ensure the attribute is always a boolean
+    this.useIndexedDB = payload ? true : false;
   }
 
   /**
@@ -37,7 +45,7 @@ export class TrainingManager {
     );
     setTimeout(this.environment.$toast.clear, 30000);
     if (!distributed) {
-      await training(
+      await this._training(
         this.trainingInformation.modelId,
         Xtrain,
         ytrain,
@@ -50,7 +58,7 @@ export class TrainingManager {
       );
     } else {
       await this.communicationManager.updateReceivers(this);
-      await trainingDistributed(
+      await this._trainingDistributed(
         this.trainingInformation.modelId,
         Xtrain,
         ytrain,
@@ -74,7 +82,7 @@ export class TrainingManager {
   /**
    * Method called at the begining of each training epoch.
    */
-  onEpochBegin() {
+  _onEpochBegin() {
     // To be modified in future ...
     // myEpoch will be removed
     console.log('EPOCH: ', ++this.myEpoch);
@@ -87,12 +95,12 @@ export class TrainingManager {
    * @param {Number} accuracy The accuracy achieved by the model in the given epoch
    * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
    */
-  async onEpochEnd(model, epoch, accuracy, validationAccuracy) {
+  async _onEpochEnd(model, epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateCharts(epoch, validationAccuracy, accuracy);
     // At the moment, don't allow for new participants to come in.
     // Wait for a synchronization scheme (on epoch number).
     await this.communicationManager.updateReceivers(this);
-    await onEpochEndCommon(
+    await this.communicationManager._onEpochEndCommunication(
       model,
       epoch,
       this.communicationManager.receivers,
@@ -104,62 +112,95 @@ export class TrainingManager {
     );
   }
 
-  /**
-   * Save the working model for later use.
-   */
-  async saveModel() {
-    const savedModelPath = 'indexeddb://working_'.concat(
-      this.trainingInformation.modelId
+  async _training(model, data, labels) {
+    let trainingInformation = this.task.trainingInformation;
+
+    model.compile(trainingInformation.modelCompileData);
+
+    if (trainingInformation.learningRate) {
+      model.optimizer.learningRate = trainingInformation.learningRate;
+    }
+
+    console.log('Training started');
+    await model
+      .fit(data, labels, {
+        batchSize: trainingInformation.batchSize,
+        epochs: trainingInformation.epoch,
+        validationSplit: trainingInformation.validationSplit,
+        shuffle: true,
+        callbacks: {
+          onEpochEnd: async (epoch, logs) => {
+            this.trainingInformant.updateCharts(
+              epoch + 1,
+              (logs['val_acc'] * 100).toFixed(2),
+              (logs['acc'] * 100).toFixed(2)
+            );
+            console.log(
+              `EPOCH (${epoch + 1}):
+            Train Accuracy: ${(logs['acc'] * 100).toFixed(2)},
+            Val Accuracy:  ${(logs['val_acc'] * 100).toFixed(2)}\n`
+            );
+            console.log(`loss ${logs.loss.toFixed(4)}`);
+            if (this.useIndexedDB) {
+              await updateWorkingModel(
+                this.task.taskID,
+                trainingInformation.modelID,
+                model
+              );
+            }
+          },
+        },
+      })
+      .then(async (info) => {
+        console.log('Training finished', info.history);
+      });
+  }
+
+  async _trainingDistributed(model, data, labels) {
+    let trainingInformation = this.task.trainingInformation;
+
+    model.compile(trainingInformation.modelCompileData);
+
+    if (trainingInformation.learningRate) {
+      model.optimizer.learningRate = trainingInformation.learningRate;
+    }
+
+    console.log(
+      `Training for ${this.task.displayInformation.taskTitle} task started. ` +
+        `Running for ${trainingInformation.epoch} epochs.`
     );
-    let model = await tf.loadLayersModel(savedModelPath);
-
-    storeModel(model, 'saved_'.concat(this.trainingInformation.modelId));
-    this.environment.$toast.success(
-      'The '.concat(this.trainingInformation.modelId).concat(' has been saved.')
-    );
-    setTimeout(this.environment.$toast.clear, 30000);
-  }
-
-  /**
-   * Initialize the communication manager (used when training with other peers)
-   * @param {CommunicationManager} communicationManager the communication manager of the task.
-   */
-  initializeCommunicationManager(communicationManager) {
-    this.communicationManager = communicationManager;
-  }
-
-  /**
-   * Initialize the training informant (used to collect feed-backs from the training loop).
-   * @param {TrainingInformant} trainingInformant the training informant of the task.
-   */
-  initializeTrainingInformant(trainingInformant) {
-    this.trainingInformant = trainingInformant;
-  }
-
-  /**
-   * Initialize the component's environment (used to be able to send toast notifcation to user).
-   * @param {*} environment the environment of the component to which the training manager is associated.
-   */
-  initializeEnvironment(environment) {
-    this.environment = environment;
-  }
-
-  /**
-   * Global initialization process of the training manger.
-   * @param {*} communicationManager the communication manager of the task.
-   * @param {*} trainingInformant the training informant of the task.
-   * @param {*} environment the environment of the component to which the training manager is associated.
-   */
-  async initialization(communicationManager, trainingInformant, environment) {
-    this.initializeCommunicationManager(communicationManager);
-    this.initializeTrainingInformant(trainingInformant);
-    this.initializeEnvironment(environment);
-  }
-
-  async reloadState(communicationManager, trainingInformant, environment) {
-    await this.initializeModel();
-    this.initializeCommunicationManager(communicationManager);
-    this.initializeTrainingInformant(trainingInformant);
-    this.initializeEnvironment(environment);
+    await model
+      .fit(data, labels, {
+        epochs: trainingInformation.epoch,
+        batchSize: trainingInformation.batchSize,
+        validationSplit: trainingInformation.validationSplit,
+        shuffle: true,
+        callbacks: {
+          onEpochBegin: this._onEpochBegin(),
+          onEpochEnd: async (epoch, logs) => {
+            await this._onEpochEnd(
+              model,
+              epoch + 1,
+              (logs.acc * 100).toFixed(2),
+              (logs.val_acc * 100).toFixed(2)
+            );
+            console.log(
+              `EPOCH (${epoch + 1}):
+            Train Accuracy: ${(logs.acc * 100).toFixed(2)},
+            Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
+            );
+            if (this.useIndexedDB) {
+              await updateWorkingModel(
+                this.task.taskID,
+                trainingInformation.modelID,
+                model
+              );
+            }
+          },
+        },
+      })
+      .then(async (info) => {
+        console.log('Training finished', info.history);
+      });
   }
 }

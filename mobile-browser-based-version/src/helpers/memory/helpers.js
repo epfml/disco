@@ -7,6 +7,7 @@
  * The working model is loaded from IndexedDB for training (model.fit) only.
  */
 import * as tf from '@tensorflow/tfjs';
+import path from 'path';
 
 const INDEXEDDB_SCHEME = 'indexeddb://';
 const DOWNLOADS_SCHEME = 'downloads://';
@@ -14,19 +15,19 @@ const WORKING_MODEL = 'working';
 const SAVED_MODEL = 'saved';
 
 async function _getModelMetadata(taskID, modelName, modelType) {
-  let key = INDEXEDDB_SCHEME.concat(`${modelType}/${taskID}/${modelName}`);
+  let key = INDEXEDDB_SCHEME.concat(path.join(modelType, taskID, modelName));
   return await tf.io.listModels().then((models) => models[key] ?? false);
 }
 
 async function _getModel(taskID, modelName, modelType) {
   return await tf.loadLayersModel(
-    INDEXEDDB_SCHEME.concat(`${modelType}/${taskID}/${modelName}`)
+    INDEXEDDB_SCHEME.concat(path.join(modelType, taskID, modelName))
   );
 }
 
 async function _deleteModel(taskID, modelName, modelType) {
   await tf.io.removeModel(
-    INDEXEDDB_SCHEME.concat(`${modelType}/${taskID}/${modelName}`)
+    INDEXEDDB_SCHEME.concat(path.join(modelType, taskID, modelName))
   );
 }
 
@@ -78,8 +79,8 @@ export async function getSavedModel(taskID, modelName) {
  */
 export async function loadSavedModel(taskID, modelName) {
   await tf.io.copyModel(
-    INDEXEDDB_SCHEME.concat(`${SAVED_MODEL}/${taskID}/${modelName}`),
-    INDEXEDDB_SCHEME.concat(`${WORKING_MODEL}/${taskID}/${modelName}`)
+    INDEXEDDB_SCHEME.concat(path.join(SAVED_MODEL, taskID, modelName)),
+    INDEXEDDB_SCHEME.concat(path.join(WORKING_MODEL, taskID, modelName))
   );
 }
 
@@ -91,7 +92,7 @@ export async function loadSavedModel(taskID, modelName) {
  */
 export async function updateWorkingModel(taskID, modelName, model) {
   await model.save(
-    INDEXEDDB_SCHEME.concat(`${WORKING_MODEL}/${taskID}/${modelName}`)
+    INDEXEDDB_SCHEME.concat(path.join(WORKING_MODEL, taskID, modelName))
   );
 }
 
@@ -103,8 +104,8 @@ export async function updateWorkingModel(taskID, modelName, model) {
  */
 export async function saveWorkingModel(taskID, modelName) {
   await tf.io.copyModel(
-    INDEXEDDB_SCHEME.concat(`${WORKING_MODEL}/${taskID}/${modelName}`),
-    INDEXEDDB_SCHEME.concat(`${SAVED_MODEL}/${taskID}/${modelName}`)
+    INDEXEDDB_SCHEME.concat(path.join(WORKING_MODEL, taskID, modelName)),
+    INDEXEDDB_SCHEME.concat(path.join(SAVED_MODEL, taskID, modelName))
   );
 }
 
@@ -133,7 +134,7 @@ export async function deleteSavedModel(taskID, modelName) {
  */
 export async function downloadSavedModel(taskID, modelName) {
   await tf.io.copyModel(
-    INDEXEDDB_SCHEME.concat(`${SAVED_MODEL}/${taskID}/${modelName}`),
+    INDEXEDDB_SCHEME.concat(path.join(SAVED_MODEL, taskID, modelName)),
     DOWNLOADS_SCHEME.concat(`${taskID}_${modelName}`)
   );
 }
