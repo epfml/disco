@@ -80,7 +80,7 @@ export default {
   },
   async mounted() {
     // To modularize
-    let tasksURL = process.env.DEAI_SERVER_URI.concat('tasks');
+    let tasksURL = process.env.VUE_APP_DEAI_SERVER.concat('tasks');
     let rawTasks = await fetch(tasksURL).then((response) => response.json());
     rawTasks.forEach((task) => {
       console.log(`Processing ${task.taskID}`);
@@ -105,6 +105,7 @@ export default {
           console.log('No task object available');
           break;
       }
+      console.log(newTask.displayInformation.taskTitle);
       this.tasks.push(newTask);
       // Definition of an extension of the task-related component
       var MainDescriptionFrameSp = defineComponent({

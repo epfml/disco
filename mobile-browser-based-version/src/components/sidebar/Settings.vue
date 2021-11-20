@@ -383,10 +383,10 @@ export default {
   computed: {
     ...mapState(['useIndexedDB', 'isDark']),
     isDecentralized() {
-      return this.$i18n.locale === 'de';
+      return this.$i18n.locale === 'deai';
     },
     isFederated() {
-      return this.$i18n.locale === 'fe';
+      return this.$i18n.locale === 'feai';
     },
   },
   methods: {
@@ -438,10 +438,10 @@ export default {
       this.setBrowserTheme(true);
     },
     setDecentralized() {
-      this.$i18n.locale = 'de';
+      this.$i18n.locale = 'deai';
     },
     setFederated() {
-      this.$i18n.locale = 'fe';
+      this.$i18n.locale = 'feai';
     },
   },
 };

@@ -69,7 +69,7 @@ export class TrainingManager {
   _onEpochBegin(model, epoch) {
     // To be modified in future ... myEpoch will be removed
     console.log('EPOCH: ', ++this.myEpoch);
-    this.client.onEpochBegin(model, epoch);
+    this.client.onEpochBeginCommunication(model, epoch);
   }
 
   /**
@@ -82,7 +82,11 @@ export class TrainingManager {
    */
   async _onEpochEnd(model, epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateCharts(epoch, validationAccuracy, accuracy);
-    await this.client.onEpochEnd(model, epoch, this.trainingInformant);
+    await this.client.onEpochEndCommunication(
+      model,
+      epoch,
+      this.trainingInformant
+    );
   }
 
   async _training(model, data, labels) {
