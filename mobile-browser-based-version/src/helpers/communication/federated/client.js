@@ -1,6 +1,6 @@
 import * as msgpack from 'msgpack-lite';
 import { makeID, serializeWeights, assignWeightsToModel } from '../helpers';
-import Client from '../client';
+import { Client } from '../client';
 
 /**
  * The waiting time between performing requests to the centralized server.
@@ -157,6 +157,7 @@ export class FederatedClient extends Client {
   }
 
   async onEpochEndCommunication(model, epoch, trainingInformant) {
+    super.onEpochEndCommunication(model, epoch, trainingInformant);
     /**
      * Send the epoch's local weights to the server.
      */

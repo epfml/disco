@@ -1,17 +1,13 @@
-import path from 'path';
 import msgpack from 'msgpack-lite';
 import Peer from 'peerjs';
 import Hashes from 'jshashes';
 import {
   makeID,
   serializeWeights,
-  dataReceivedBreak,
-  checkArrayLen,
-  handleDataEnd,
   averageWeightsIntoModel,
   authenticate,
 } from '../helpers';
-import Client from '../client';
+import { Client } from '../client';
 import CMD_CODES from './communication_codes';
 
 /**
@@ -33,18 +29,18 @@ const MAX_TRIES = 100;
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
-export class DecentralizedClient extends Client {
+export class DecentralisedClient extends Client {
   /**
    * Prepares connection to a PeerJS server.
    */
   constructor(
     serverURL,
-    taskID,
+    task,
     taskPassword = null,
     handleData,
     ...handleDataArgs
   ) {
-    super(serverURL, taskID);
+    super(serverURL, task);
     this.taskPassword = taskPassword;
     this.handleData = handleData;
     this.handleDataArgs = handleDataArgs;
@@ -52,16 +48,6 @@ export class DecentralizedClient extends Client {
     this.receivers = [];
     this.isConnected = false;
     this.recvBuffer = null;
-  }
-
-  /**
-   * Disconnection process when user quits the task.
-   */
-  disconnect() {
-    if (this.peer != null) {
-      this.peer.disconnect();
-      this.peer.destroy();
-    }
   }
 
   /**
@@ -77,7 +63,7 @@ export class DecentralizedClient extends Client {
 
     this.peer = new Peer(makeID(10), {
       host: this.serverURL,
-      path: this.serverURL.concat(this.taskID),
+      path: this.serverURL.concat(this.task.taskID),
       secure: true,
       config: {
         iceServers: [
@@ -105,7 +91,7 @@ export class DecentralizedClient extends Client {
             await this.handleData(
               data,
               conn.peer,
-              this.taskPassword,
+              this.password,
               ...this.handleDataArgs
             );
           });
@@ -116,34 +102,13 @@ export class DecentralizedClient extends Client {
   }
 
   /**
-   * Updates the receivers' list.
+   * Disconnection process when user quits the task.
    */
-  async updateReceivers() {
-    let peerIDs = await fetch(
-      this.serverURL.concat(path.join(this.taskID, 'peerjs', 'peer'))
-    ).then((response) => response.json());
-
-    this.receivers = peerIDs.filter((value) => value != this.peerjsID);
-  }
-
-  /**
-   * Send data to remote peer
-   * @param {Peer} receiver PeerJS remote peer (Peer object).
-   * @param {object} data object to send
-   */
-  async send(receiver, data) {
-    const conn = this.localPeer.connect(receiver);
-    conn.on('open', () => {
-      conn.send(data);
-    });
-  }
-
-  /**
-   * Change data handling function
-   */
-  setDataHandler(func, ...args) {
-    this.handleData = func;
-    this.handleDataArgs = args;
+  disconnect() {
+    if (this.peer != null) {
+      this.peer.disconnect();
+      this.peer.destroy();
+    }
   }
 
   /**
@@ -151,39 +116,32 @@ export class DecentralizedClient extends Client {
    * greater than the provided threshold
    */
   async onEpochEndCommunication(model, epoch, trainingInformant) {
+    super.onEpochEndCommunication(model, epoch, trainingInformant);
     this.updateReceivers();
-    const serializedWeights = await serializeWeights(model);
+    const serializedWeights = await serializeWeights(model.weights);
     var epochWeights = { epoch: epoch, weights: serializedWeights };
 
     let threshold = this.task.trainingInformation.threshold ?? 1;
 
     console.log('Receivers are: ' + this.receivers);
-    // request weights and send to all who requested
-    for (var i in this.receivers) {
+    // Request weights and send to all who requested
+    for (let receiver of this.receivers) {
       // Sending  weight request
       await this.sendData(
         { name: this.peer.id },
         CMD_CODES.WEIGHT_REQUEST,
-        this.receivers[i]
+        receiver
       );
-      trainingInformant.addMessage(
-        'Sending weight request to: ' + this.receivers[i]
-      );
+      trainingInformant.addMessage(`Sending weight request to: ${receiver}`);
 
       if (
         this.recvBuffer.weightRequests !== undefined &&
-        this.recvBuffer.weightRequests.has(this.receivers[i])
+        this.recvBuffer.weightRequests.has(receiver)
       ) {
-        console.log('Sending weights to: ', this.receivers[i]);
-        trainingInformant.addMessage(
-          'Sending weights to: ' + this.receivers[i]
-        );
-        trainingInformant.updateWhoReceivedMyModel(this.receivers[i]);
-        await this.sendData(
-          epochWeights,
-          CMD_CODES.AVG_WEIGHTS,
-          this.receivers[i]
-        );
+        console.log('Sending weights to: ', receiver);
+        trainingInformant.addMessage(`Sending weights to: ${receiver}`);
+        trainingInformant.updateWhoReceivedMyModel(receiver);
+        await this.sendData(epochWeights, CMD_CODES.AVG_WEIGHTS, receiver);
       }
     }
     if (this.recvBuffer.weightRequests !== undefined) {
@@ -202,7 +160,7 @@ export class DecentralizedClient extends Client {
 
         console.log('Waiting to receive weights...');
         trainingInformant.addMessage('Waiting to receive weights...');
-        await dataReceivedBreak(this.recvBuffer, 'avgWeights', 100).then(
+        await this.dataReceivedBreak(this.recvBuffer, 'avgWeights', 100).then(
           (value) => {
             var endTime = new Date();
             var timeDiff = endTime - startTime; //in ms
@@ -217,7 +175,7 @@ export class DecentralizedClient extends Client {
       if (this.recvBuffer.avgWeights !== undefined) {
         // check if any weights were received
         console.log('Waiting to receive enough weights...');
-        await checkArrayLen(this.recvBuffer, threshold, true, epoch).then(
+        await this.checkArrayLen(this.recvBuffer, threshold, true, epoch).then(
           () => {
             console.log('Averaging weights');
             trainingInformant.updateNbrUpdatesWithOthers(1);
@@ -243,7 +201,7 @@ export class DecentralizedClient extends Client {
       // Modify the end buffer (same buffer, but with one additional components: lastWeights)
       this.recvBuffer.peer = this;
       this.recvBuffer.lastUpdate = epochWeights;
-      this.setDataHandler(handleDataEnd, this.recvBuffer);
+      this.setDataHandler(this.handleDataEnd, this.recvBuffer);
     }
     /*
     if (epoch == recvBuffer.trainInfo.epochs) { // Modify the end buffer (same buffer, but with one additional components: lastWeights)
@@ -254,40 +212,44 @@ export class DecentralizedClient extends Client {
   }
 
   /**
-   * Send a serialized TFJS model to a remote peer
-   * @param {TFJS model} model the model to send
-   * @param {PeerJS} peerjs instance of PeerJS object
-   * @param {String} receiver receiver name (must be registered in PeerJS server)
-   * @param {String} name name to save the model with, can be anything
+   * Updates the receivers' list.
    */
-  async sendModel(model, receiver) {
-    var serialized = await serializeWeights(model);
-    let request = {
-      cmdCode: CMD_CODES.MODEL_INFO,
-      payload: msgpack.encode(serialized),
-    };
-    this.send(receiver, request);
+  async updateReceivers() {
+    let peerIDs = await fetch(
+      this.serverURL.concat(`${this.task.taskID}/peerjs/peers`)
+    ).then((response) => response.json());
+
+    this.receivers = peerIDs.filter((value) => value != this.peer.id);
   }
 
   /**
-   * Send data to a remote peer
-   * @param {object} data data to send
-   * @param {int} code code in CMD_CODES to identify what the data is for
-   * @param {PeerJS} peerjs PeerJS object
-   * @param {String} receiver name of receiver peer (must be registered in PeerJS server)
+   * Change data handling function
    */
-  async sendData(data, code, peerjs, receiver) {
+  setDataHandler(func, ...args) {
+    this.handleData = func;
+    this.handleDataArgs = args;
+  }
+
+  /**
+   * Send data to a remote peer registered on the PeerJS server
+   * @param {Object} data Data to send.
+   * @param {Number} code Communication code.
+   * @param {String} receiver Name of the receiver peer.
+   */
+  async sendData(data, code, receiver) {
     const message = {
       cmdCode: code,
       payload: msgpack.encode(data),
     };
-    if (peerjs.password) {
+    if (this.password) {
       var SHA256 = new Hashes.SHA256();
       console.log(`Current peer: ${this.peer.id}`);
       data.password_hash = SHA256.hex(this.peer.id + ' ' + this.password);
     }
-
-    this.send(receiver, message);
+    const conn = this.peer.connect(receiver);
+    conn.on('open', () => {
+      conn.send(message);
+    });
   }
 
   /**

@@ -1,5 +1,26 @@
 import * as tf from '@tensorflow/tfjs';
 import { Hashes } from 'jshashes';
+import { DecentralisedClient } from './decentralised/client';
+import { FederatedClient } from './federated/client';
+
+export function getClient(platform, task, ...args) {
+  switch (platform) {
+    case 'decentralised':
+      return new DecentralisedClient(
+        process.env.VUE_APP_DEAI_SERVER,
+        task,
+        ...args
+      );
+    case 'federated':
+      return new FederatedClient(
+        process.env.VUE_APP_FEAI_SERVER,
+        task,
+        ...args
+      );
+    default:
+      throw new Error('Platform does not exist');
+  }
+}
 
 async function serializeTensor(tensor) {
   return {
