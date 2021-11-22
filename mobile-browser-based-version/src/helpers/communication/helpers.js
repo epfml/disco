@@ -64,7 +64,7 @@ export function assignWeightsToModel(model, serializedWeights) {
   });
 }
 
-export async function makeID(length) {
+export function makeID(length) {
   var result = '';
   var characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
