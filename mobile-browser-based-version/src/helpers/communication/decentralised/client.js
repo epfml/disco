@@ -17,11 +17,12 @@ import CMD_CODES from './communication_codes';
  */
 
 /**
- * ...
+ * The waiting time between performing requests to the centralized server.
+ * Expressed in milliseconds.
  */
 const TIME_PER_TRIES = 100;
 /**
- * ...
+ * The maximum number of tries before stopping to perform requests.
  */
 const MAX_TRIES = 100;
 
@@ -31,39 +32,56 @@ const MAX_TRIES = 100;
  */
 export class DecentralisedClient extends Client {
   /**
-   * Prepares connection to a PeerJS server.
+   * Constructs the client for decentralised training.
+   * @param {String} serverURL
+   * @param {String} taskID
+   * @param {String} taskPassword
+   * @param {Function} dataHandlerFunction
+   * @param  {...any} dataHandlerArgs
    */
   constructor(
     serverURL,
     task,
-    taskPassword = null,
-    handleData,
-    ...handleDataArgs
+    password = null,
+    dataHandlerFunction,
+    ...dataHandlerArgs
   ) {
     super(serverURL, task);
-    this.taskPassword = taskPassword;
-    this.handleData = handleData;
-    this.handleDataArgs = handleDataArgs;
+    this.password = password;
+    this.handleData = dataHandlerFunction;
+    this.handleDataArgs = dataHandlerArgs;
 
     this.receivers = [];
     this.isConnected = false;
     this.recvBuffer = null;
+    this.peer = null;
   }
 
   /**
-   * Initialize the connection to the server.
-   * @param {Number} epochs the number of epochs (required to initialize the communication buffer).
+   * Initialize the connection to the PeerJS server.
+   * @param {Number} epochs the number of epochs.
    */
   async connect(epochs) {
+    console.log('Connecting...');
     this.recvBuffer = {
       trainInfo: {
         epochs: epochs,
       },
     };
 
+    /**
+     * Uncomment the code below to test the app with a local server.
+     */
+    this.peer = new Peer(makeID(10), {
+      host: 'localhost',
+      port: 8080,
+      path: `/deai/${this.task.taskID}`,
+    });
+
+    /*
     this.peer = new Peer(makeID(10), {
       host: this.serverURL,
-      path: this.serverURL.concat(this.task.taskID),
+      path: `/this.task.taskID`,
       secure: true,
       config: {
         iceServers: [
@@ -76,13 +94,18 @@ export class DecentralisedClient extends Client {
         ],
       },
     });
+    */
+
     return new Promise((resolve, reject) => {
       this.peer.on('error', (error) => {
         this.isConnected = false;
+        console.log('Failed to connect to the centralized server.');
+        console.log(error);
         reject(this.isConnected);
       });
 
       this.peer.on('open', async (id) => {
+        console.log('Connected');
         this.isConnected = true;
         this.peer.on('connection', (conn) => {
           console.log(`New connection from ${conn.peer}`);
@@ -119,14 +142,16 @@ export class DecentralisedClient extends Client {
     super.onEpochEndCommunication(model, epoch, trainingInformant);
     this.updateReceivers();
     const serializedWeights = await serializeWeights(model.weights);
-    var epochWeights = { epoch: epoch, weights: serializedWeights };
+    const epochWeights = { epoch: epoch, weights: serializedWeights };
 
-    let threshold = this.task.trainingInformation.threshold ?? 1;
+    const threshold = this.task.trainingInformation.threshold ?? 1;
 
     console.log('Receivers are: ' + this.receivers);
-    // Request weights and send to all who requested
-    for (let receiver of this.receivers) {
-      // Sending  weight request
+    /**
+     * Iterate over all other peers connected to the same task and send them a
+     * weights request.
+     */
+    for (const receiver of this.receivers) {
       await this.sendData(
         { name: this.peer.id },
         CMD_CODES.WEIGHT_REQUEST,
@@ -153,27 +178,21 @@ export class DecentralisedClient extends Client {
 
     // wait to receive weights only if other peers are connected (i.e I have receivers for now, might need to be updates)
     // For now, no distinction between receivers and being connected to the server
-    if (this.receivers.length !== 0) {
-      // wait to receive weights
+    if (this.receivers.length > 0) {
+      // Wait to receive weights
       if (this.recvBuffer.avgWeights === undefined) {
-        var startTime = new Date();
-
         console.log('Waiting to receive weights...');
         trainingInformant.addMessage('Waiting to receive weights...');
-        await this.dataReceivedBreak(this.recvBuffer, 'avgWeights', 100).then(
-          (value) => {
-            var endTime = new Date();
-            var timeDiff = endTime - startTime; //in ms
-            timeDiff /= 1000;
-            trainingInformant.updateWaitingTime(Math.round(timeDiff));
-          }
-        ); // timeout to avoid deadlock (10s)
-
-        // update the waiting time
+        const startTime = new Date();
+        await this.dataReceivedBreak(this.recvBuffer, 'avgWeights', 100);
+        const endTime = new Date();
+        const timeDiff = (endTime - startTime) / 1000;
+        trainingInformant.updateWaitingTime(Math.round(timeDiff));
+        // Timeout to avoid deadlock (10s) TODO: where is the timeout?
       }
 
       if (this.recvBuffer.avgWeights !== undefined) {
-        // check if any weights were received
+        // Check if any weights were received
         console.log('Waiting to receive enough weights...');
         await this.checkArrayLen(this.recvBuffer, threshold, true, epoch).then(
           () => {
@@ -196,7 +215,7 @@ export class DecentralisedClient extends Client {
       );
     }
 
-    // change data handler for future requests if this is the last epoch
+    // Change data handler for future requests if this is the last epoch
     if (epoch == this.recvBuffer.trainInfo.epochs) {
       // Modify the end buffer (same buffer, but with one additional components: lastWeights)
       this.recvBuffer.peer = this;
@@ -257,10 +276,10 @@ export class DecentralisedClient extends Client {
    * @param {object} data incoming data
    * @param {object} buffer buffer to store data
    */
-  async handleData(data, senderId, password, buffer) {
+  async handleData(data, senderID, password, buffer) {
     console.log(`Received new data: ${data}`);
 
-    if (!authenticate(data.password_hash, senderId, password)) {
+    if (!authenticate(data.password_hash, senderID, password)) {
       return;
     }
 
@@ -368,10 +387,10 @@ export class DecentralisedClient extends Client {
   /**
    * Handle data exchange after training is finished
    */
-  async handleDataEnd(data, senderId, password, buffer) {
+  async handleDataEnd(data, senderID, password, buffer) {
     console.log(`Received new data: ${data}`);
 
-    if (!authenticate(data.password_hash, senderId, password)) {
+    if (!authenticate(data.password_hash, senderID, password)) {
       return;
     }
 

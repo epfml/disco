@@ -54,6 +54,7 @@ _.forEach(
   _.spread((task, port) => {
     /**
      * Create a peer server for each task on its corresponding port.
+     * The path must match the reverse proxy entry point.
      */
     PeerServer({
       path: `/DeAI/${task.taskID}`,
