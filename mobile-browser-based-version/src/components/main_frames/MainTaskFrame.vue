@@ -145,7 +145,7 @@
           class="
             fixed
             inset-y-1
-            z-10
+            z-20
             flex flex-shrink-0
             h-full
             overflow-hidden
@@ -155,7 +155,7 @@
             dark:border-primary-darker dark:bg-darker
           "
         >
-          <div class="flex flex-col flex-shrink-0 h-full">
+          <div class="flex flex-col flex-shrink-0 h-full z-30">
             <nav
               aria-label="Main"
               class="
