@@ -1,10 +1,11 @@
 {
+  "platform":"decentralised",
   "name":"deai",
   "home": {
     "title": {
       "name": "DeAI",
       "start": "De",
-      "middle": "centralized",
+      "middle": "centralised",
       "end": "AI"
     }
   }

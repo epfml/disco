@@ -20,7 +20,7 @@
           Train Alone
         </custom-button>
         <custom-button v-on:click="joinTraining(true)" :center="true">
-          Train Distributed
+          Train {{this.$t('platform')}}
         </custom-button>
       </div>
       <!-- Training Board -->
@@ -127,7 +127,7 @@ export default {
       fileUploadManager: new FileUploadManager(this.nbrClasses, this),
       // Take care of communication processes
       client: getClient(
-        'decentralised',
+        this.$t('platform'),
         this.Task,
         this.$store.getters.password(this.Id)
       ), // TO DO: to modularize
