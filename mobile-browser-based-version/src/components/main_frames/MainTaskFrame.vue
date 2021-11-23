@@ -90,7 +90,7 @@
               dark:bg-primary-darker dark:text-white
             "
           >
-            <span class="sr-only">Open main manu</span>
+            <span class="sr-only">Open main menu</span>
             <span aria-hidden="true">
               <svg
                 v-show="!isSidebarOpen && window.width <= 1024"
