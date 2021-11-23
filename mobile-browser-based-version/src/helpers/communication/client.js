@@ -22,6 +22,15 @@ export class Client {
 
   /**
    * The training manager matches this function with the training loop's
+   * onTrainEnd callback when training a TFJS model object. See the
+   * training manager for more details.
+   */
+  async onTrainEndCommunication() {
+    return;
+  }
+
+  /**
+   * The training manager matches this function with the training loop's
    * onEpochBegin callback when training a TFJS model object. See the
    * training manager for more details.
    */
