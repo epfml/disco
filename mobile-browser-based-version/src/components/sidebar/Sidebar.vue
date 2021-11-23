@@ -24,7 +24,7 @@
           dark:text-light
         "
       >
-        FeAI
+        {{$t('home.title.name')}}
       </a>
     </div>
 
