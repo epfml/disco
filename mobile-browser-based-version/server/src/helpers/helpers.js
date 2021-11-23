@@ -3,7 +3,7 @@
  * @param {Number} IDLength
  * @returns
  */
-export async function makeID(IDLength) {
+export function makeID(IDLength) {
   return () => {
     let result = '';
     let characters =

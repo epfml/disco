@@ -415,7 +415,7 @@
 </template>
 
 <script>
-import Hashes from 'jshashes';
+var Hashes = require('jshashes');
 
 export default {
   name: 'main-task-frame',
