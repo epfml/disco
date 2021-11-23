@@ -158,7 +158,7 @@
             break-words
             w-full
             h-full
-            z-20
+            z-10
             absolute
             top-0
           "
@@ -169,6 +169,7 @@
               text-gray-800
               group-hover:text-primary
               dark:text-gray-50 dark:group-hover:text-primary
+              z-10
             "
           ></h1>
           <div class="flex">
@@ -240,7 +241,7 @@
             break-words
             w-full
             h-full
-            z-20
+            z-10
             absolute
             top-0
             py-2
