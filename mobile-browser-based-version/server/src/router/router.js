@@ -72,8 +72,7 @@ _.forEach(
      * on the DeAI server.
      */
     decentralisedRouter.use(
-      `/${task.taskID}`,
-      createProxyMiddleware({
+      createProxyMiddleware(`/deai/${task.taskID}`, {
         target: `${config.SERVER_URI}:${port}`,
         changeOrigin: true,
         ws: true,
@@ -83,6 +82,7 @@ _.forEach(
 );
 
 decentralisedRouter.use('/tasks', tasksRouter);
+decentralisedRouter.get('/', (req, res) => res.send('DeAI server'));
 
 export { federatedRouter, decentralisedRouter };
 

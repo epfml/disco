@@ -65,6 +65,7 @@ export class DecentralisedClient extends Client {
     /**
      * Uncomment the code below to test the app with a local server.
      */
+    console.log(this.task.taskID);
     this.peer = new Peer(makeID(10), {
       host: 'localhost',
       port: 8080,
@@ -74,7 +75,7 @@ export class DecentralisedClient extends Client {
     /*
     this.peer = new Peer(makeID(10), {
       host: this.serverURL,
-      path: `/this.task.taskID`,
+      path: `/${this.task.taskID}`,
       secure: true,
       config: {
         iceServers: [
@@ -133,8 +134,12 @@ export class DecentralisedClient extends Client {
     const threshold = this.task.trainingInformation.threshold ?? 1;
 
     console.log(`Receivers are: ${this.receivers}`);
-    console.log("Training RAM usage is  = ", tf.memory().numBytes * 0.000001, "MB")
-    console.log("Number of allocated tensors = ", tf.memory().numTensors)
+    console.log(
+      'Training RAM usage is  = ',
+      tf.memory().numBytes * 0.000001,
+      'MB'
+    );
+    console.log('Number of allocated tensors = ', tf.memory().numTensors);
     /**
      * Iterate over all other peers connected to the same task and send them a
      * weights request.
@@ -197,6 +202,7 @@ export class DecentralisedClient extends Client {
         trainingInformant.updateNbrUpdatesWithOthers(1);
         trainingInformant.addMessage('Averaging weights');
 
+        // TODO: check whether to use averageWeights or assignWeightsToModel
         assignWeightsToModel(
           Object.values(this.recvBuffer.avgWeights).flat(1),
           model
