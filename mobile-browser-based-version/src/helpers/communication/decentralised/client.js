@@ -1,5 +1,7 @@
 import msgpack from 'msgpack-lite';
 import Peer from 'peerjs';
+import * as tf from '@tensorflow/tfjs';
+
 import {
   makeID,
   serializeWeights,
@@ -131,6 +133,8 @@ export class DecentralisedClient extends Client {
     const threshold = this.task.trainingInformation.threshold ?? 1;
 
     console.log(`Receivers are: ${this.receivers}`);
+    console.log("Training RAM usage is  = ", tf.memory().numBytes * 0.000001, "MB")
+    console.log("Number of allocated tensors = ", tf.memory().numTensors)
     /**
      * Iterate over all other peers connected to the same task and send them a
      * weights request.
