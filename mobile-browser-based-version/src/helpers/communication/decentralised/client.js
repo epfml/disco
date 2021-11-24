@@ -1,14 +1,16 @@
 import msgpack from 'msgpack-lite';
 import Peer from 'peerjs';
-import Hashes from 'jshashes';
+
 import {
   makeID,
   serializeWeights,
-  averageWeightsIntoModel,
+  assignWeightsToModel,
   authenticate,
 } from '../helpers';
+import { checkBufferUntil, checkBufferWeightsUntil } from './helpers';
 import { Client } from '../client';
 import CMD_CODES from './communication_codes';
+var Hashes = require('jshashes');
 
 /**
  * NOTE: peer.js seems to convert all array types to ArrayBuffer, making the original
@@ -36,25 +38,15 @@ export class DecentralisedClient extends Client {
    * @param {String} serverURL
    * @param {String} taskID
    * @param {String} taskPassword
-   * @param {Function} dataHandlerFunction
-   * @param  {...any} dataHandlerArgs
    */
-  constructor(
-    serverURL,
-    task,
-    password = null,
-    dataHandlerFunction,
-    ...dataHandlerArgs
-  ) {
+  constructor(serverURL, task, password = null) {
     super(serverURL, task);
     this.password = password;
-    this.handleData = dataHandlerFunction;
-    this.handleDataArgs = dataHandlerArgs;
 
     this.receivers = [];
-    this.isConnected = false;
     this.recvBuffer = null;
     this.peer = null;
+    this.isIdle = false;
   }
 
   /**
@@ -72,6 +64,7 @@ export class DecentralisedClient extends Client {
     /**
      * Uncomment the code below to test the app with a local server.
      */
+    console.log(this.task.taskID);
     this.peer = new Peer(makeID(10), {
       host: 'localhost',
       port: 8080,
@@ -81,7 +74,7 @@ export class DecentralisedClient extends Client {
     /*
     this.peer = new Peer(makeID(10), {
       host: this.serverURL,
-      path: `/this.task.taskID`,
+      path: `/${this.task.taskID}`,
       secure: true,
       config: {
         iceServers: [
@@ -98,28 +91,21 @@ export class DecentralisedClient extends Client {
 
     return new Promise((resolve, reject) => {
       this.peer.on('error', (error) => {
-        this.isConnected = false;
-        console.log('Failed to connect to the centralized server.');
+        console.log('Failed to connect to the centralized server');
         console.log(error);
-        reject(this.isConnected);
+        resolve(false);
       });
 
       this.peer.on('open', async (id) => {
-        console.log('Connected');
-        this.isConnected = true;
+        console.log('Connected to the centralized server');
         this.peer.on('connection', (conn) => {
-          console.log(`New connection from ${conn.peer}`);
+          console.log(`New connection from peer with ID ${conn.peer}`);
           conn.on('data', async (data) => {
             this.data = data;
-            await this.handleData(
-              data,
-              conn.peer,
-              this.password,
-              ...this.handleDataArgs
-            );
+            await this._handleData(data, conn.peer);
           });
         });
-        resolve(this.isConnected);
+        resolve(true);
       });
     });
   }
@@ -139,20 +125,18 @@ export class DecentralisedClient extends Client {
    * greater than the provided threshold
    */
   async onEpochEndCommunication(model, epoch, trainingInformant) {
-    super.onEpochEndCommunication(model, epoch, trainingInformant);
+    super.onEpochEndCommunication();
     this.updateReceivers();
     const serializedWeights = await serializeWeights(model.weights);
     const epochWeights = { epoch: epoch, weights: serializedWeights };
 
     const threshold = this.task.trainingInformation.threshold ?? 1;
-
-    console.log('Receivers are: ' + this.receivers);
     /**
      * Iterate over all other peers connected to the same task and send them a
      * weights request.
      */
     for (const receiver of this.receivers) {
-      await this.sendData(
+      await this._sendData(
         { name: this.peer.id },
         CMD_CODES.WEIGHT_REQUEST,
         receiver
@@ -166,7 +150,7 @@ export class DecentralisedClient extends Client {
         console.log('Sending weights to: ', receiver);
         trainingInformant.addMessage(`Sending weights to: ${receiver}`);
         trainingInformant.updateWhoReceivedMyModel(receiver);
-        await this.sendData(epochWeights, CMD_CODES.AVG_WEIGHTS, receiver);
+        await this._sendData(epochWeights, CMD_CODES.AVG_WEIGHTS, receiver);
       }
     }
     if (this.recvBuffer.weightRequests !== undefined) {
@@ -184,7 +168,12 @@ export class DecentralisedClient extends Client {
         console.log('Waiting to receive weights...');
         trainingInformant.addMessage('Waiting to receive weights...');
         const startTime = new Date();
-        await this.dataReceivedBreak(this.recvBuffer, 'avgWeights', 100);
+        await checkBufferUntil(
+          this.recvBuffer,
+          'avgWeights',
+          MAX_TRIES,
+          TIME_PER_TRIES
+        );
         const endTime = new Date();
         const timeDiff = (endTime - startTime) / 1000;
         trainingInformant.updateWaitingTime(Math.round(timeDiff));
@@ -194,40 +183,47 @@ export class DecentralisedClient extends Client {
       if (this.recvBuffer.avgWeights !== undefined) {
         // Check if any weights were received
         console.log('Waiting to receive enough weights...');
-        await this.checkArrayLen(this.recvBuffer, threshold, true, epoch).then(
-          () => {
-            console.log('Averaging weights');
-            trainingInformant.updateNbrUpdatesWithOthers(1);
-            trainingInformant.addMessage('Averaging weights');
-
-            averageWeightsIntoModel(
-              Object.values(this.recvBuffer.avgWeights).flat(1),
-              model
-            );
-
-            delete this.recvBuffer.avgWeights; // NOTE: this might delete useful weights...
-          }
+        await checkBufferWeightsUntil(
+          this.recvBuffer,
+          threshold,
+          MAX_TRIES,
+          TIME_PER_TRIES
         );
+        console.log('Averaging weights');
+        trainingInformant.updateNbrUpdatesWithOthers(1);
+        trainingInformant.addMessage('Averaging weights');
+
+        // TODO: check whether to use averageWeights or assignWeightsToModel
+        assignWeightsToModel(
+          Object.values(this.recvBuffer.avgWeights).flat(1),
+          model
+        );
+
+        delete this.recvBuffer.avgWeights; // NOTE: this might delete useful weights...
       }
     } else {
       trainingInformant.addMessage(
         'No one is connected. Move to next epoch without waiting.'
       );
     }
+  }
 
-    // Change data handler for future requests if this is the last epoch
-    if (epoch == this.recvBuffer.trainInfo.epochs) {
-      // Modify the end buffer (same buffer, but with one additional components: lastWeights)
-      this.recvBuffer.peer = this;
-      this.recvBuffer.lastUpdate = epochWeights;
-      this.setDataHandler(this.handleDataEnd, this.recvBuffer);
-    }
-    /*
-    if (epoch == recvBuffer.trainInfo.epochs) { // Modify the end buffer (same buffer, but with one additional components: lastWeights)
-        var endBuffer = epochWeights
-        endBuffer.peerjs = peerjs
-        peerjs.setDataHandler(handleDataEnd, endBuffer)
-    }*/
+  async onTrainEndCommunication(model, trainingInformant) {
+    super.onTrainEndCommunication();
+    trainingInformant.addMessage(
+      'Entering idle state: seeding for online peers.'
+    );
+    this.recvBuffer.peer = this;
+    this.recvBuffer.lastUpdate = {
+      epoch: this.task.trainingInformation.epoch,
+      weights: await serializeWeights(model.weights),
+    };
+    /**
+     * Enter into idle state. Incoming weight requests will be processed.
+     * However, the peer will not emit any additional weight requests itself.
+     * Within a P2P network, this acts like a seeding state w.r.t. the weights.
+     */
+    this.isIdle = true;
   }
 
   /**
@@ -242,26 +238,18 @@ export class DecentralisedClient extends Client {
   }
 
   /**
-   * Change data handling function
-   */
-  setDataHandler(func, ...args) {
-    this.handleData = func;
-    this.handleDataArgs = args;
-  }
-
-  /**
    * Send data to a remote peer registered on the PeerJS server
    * @param {Object} data Data to send.
    * @param {Number} code Communication code.
    * @param {String} receiver Name of the receiver peer.
    */
-  async sendData(data, code, receiver) {
+  async _sendData(data, code, receiver) {
     const message = {
       cmdCode: code,
       payload: msgpack.encode(data),
     };
     if (this.password) {
-      var SHA256 = new Hashes.SHA256();
+      const SHA256 = new Hashes.SHA256();
       console.log(`Current peer: ${this.peer.id}`);
       data.password_hash = SHA256.hex(this.peer.id + ' ' + this.password);
     }
@@ -276,10 +264,15 @@ export class DecentralisedClient extends Client {
    * @param {object} data incoming data
    * @param {object} buffer buffer to store data
    */
-  async handleData(data, senderID, password, buffer) {
+  async _handleData(data, senderID) {
     console.log(`Received new data: ${data}`);
 
-    if (!authenticate(data.password_hash, senderID, password)) {
+    if (!authenticate(data.password_hash, senderID, this.password)) {
+      return;
+    }
+
+    if (this.isIdle) {
+      this._idleState(data);
       return;
     }
 
@@ -291,123 +284,55 @@ export class DecentralisedClient extends Client {
 
     switch (data.cmdCode) {
       case CMD_CODES.MODEL_INFO:
-        buffer.model = payload;
+        this.recvBuffer.model = payload;
         break;
       case CMD_CODES.ASSIGN_WEIGHTS:
-        buffer.assignWeights = payload;
+        this.recvBuffer.assignWeights = payload;
         break;
       case CMD_CODES.COMPILE_MODEL:
-        buffer.compileData = payload;
+        this.recvBuffer.compileData = payload;
         break;
       case CMD_CODES.AVG_WEIGHTS:
         console.log(payload);
-        if (buffer.avgWeights === undefined) {
-          buffer.avgWeights = {};
+        if (this.recvBuffer.avgWeights === undefined) {
+          this.recvBuffer.avgWeights = {};
         }
-        if (buffer.avgWeights[epoch] === undefined) {
-          buffer.avgWeights[epoch] = [weights];
+        if (this.recvBuffer.avgWeights[epoch] === undefined) {
+          this.recvBuffer.avgWeights[epoch] = [weights];
         } else {
-          buffer.avgWeights[epoch].push(weights);
+          this.recvBuffer.avgWeights[epoch].push(weights);
         }
-        console.log(`'#Weights: ${buffer.avgWeights[epoch].length}`);
+        console.log(`'#Weights: ${this.recvBuffer.avgWeights[epoch].length}`);
         break;
       case CMD_CODES.TRAIN_INFO:
-        buffer.trainInfo = payload;
+        this.recvBuffer.trainInfo = payload;
         break;
       case CMD_CODES.WEIGHT_REQUEST:
-        if (buffer.weightRequests === undefined) {
-          buffer.weightRequests = new Set([]);
+        if (this.recvBuffer.weightRequests === undefined) {
+          this.recvBuffer.weightRequests = new Set([]);
         }
-        buffer.weightRequests.add(receiver);
+        this.recvBuffer.weightRequests.add(receiver);
         console.log(`Weight request from: ${receiver}`);
 
         break;
     }
   }
 
-  /**
-   * Wait to receive data by checking if recvBuffer.key is defined
-   * @param {Object} recvBuffer
-   * @param {*} key
-   */
-  dataReceived(recvBuffer, key) {
-    return new Promise((resolve) => {
-      (function waitData() {
-        if (recvBuffer[key]) {
-          console.log(recvBuffer);
-          return resolve();
-        }
-        setTimeout(waitData, TIME_PER_TRIES);
-      })();
-    });
-  }
-
-  /**
-   * Same as dataReceived, but break after maxTries
-   * @param {Object} recvBuffer
-   * @param {*} key
-   */
-  dataReceivedBreak(recvBuffer, key) {
-    return new Promise((resolve) => {
-      (function waitData(n) {
-        if (recvBuffer[key] || n >= MAX_TRIES - 1) {
-          return resolve();
-        }
-        setTimeout(() => waitData(n + 1), TIME_PER_TRIES);
-      })(0);
-    });
-  }
-
-  /**
-   * Waits until an array reaches a given length. Used to make
-   * sure that all weights from peers are received.
-   * @param {Array} recvBuffer where you will get the avgWeights from
-   * @param {int} len
-   * @param {Boolean} isCommon true if this function is called on epoch common
-   * @param {int} epoch epoch when this function is called
-   */
-  checkArrayLen(recvBuffer, len, isCommon, epoch) {
-    return new Promise((resolve) => {
-      (function waitData(n) {
-        let arr = [];
-        if (isCommon) {
-          arr = Object.values(recvBuffer.avgWeights).flat(1);
-        } else {
-          arr = recvBuffer.avgWeights[epoch];
-        }
-
-        if (arr.length >= len || MAX_TRIES <= n) {
-          return resolve();
-        }
-        setTimeout(() => waitData(n + 1), TIME_PER_TRIES);
-      })(0);
-    });
-  }
-
-  /**
-   * Handle data exchange after training is finished
-   */
-  async handleDataEnd(data, senderID, password, buffer) {
-    console.log(`Received new data: ${data}`);
-
-    if (!authenticate(data.password_hash, senderID, password)) {
-      return;
-    }
-
+  async _idleState(data) {
     // convert the peerjs ArrayBuffer back into Uint8Array
     let payload = msgpack.decode(new Uint8Array(data.payload));
     let receiver = payload.name;
     let epochWeights = {
-      epoch: buffer.lastUpdate.epoch,
-      weights: buffer.lastUpdate.weights,
+      epoch: this.recvBuffer.lastUpdate.epoch,
+      weights: this.recvBuffer.lastUpdate.weights,
     };
     switch (data.cmdCode) {
       case CMD_CODES.WEIGHT_REQUEST:
         console.log(`Sending weights to: ${receiver}`);
-        await this.sendData(
+        await this._sendData(
           epochWeights,
           CMD_CODES.AVG_WEIGHTS,
-          buffer.peerjs,
+          this.recvBuffer.peer,
           receiver
         );
         break;

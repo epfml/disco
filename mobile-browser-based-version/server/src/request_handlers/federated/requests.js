@@ -74,7 +74,7 @@ export function isValidRequest(request) {
     request.body.timestamp !== undefined &&
     typeof request.body.timestamp === 'string' &&
     request.params !== undefined &&
-    tasks.has(request.params.task) &&
+    clients.has(request.params.task) &&
     clients.get(request.params.task).includes(request.body.id) &&
     request.params.round >= 0
   );

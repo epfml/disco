@@ -1,14 +1,13 @@
 import express from 'express';
 import _ from 'lodash';
-import { createProxyMiddleware } from 'http-proxy-middleware';
 import * as requests from '../request_handlers/federated/requests.js';
-import * as config from '../../server.config.js';
 import tasks from '../tasks/tasks.js';
+import { ExpressPeerServer } from 'peer';
 import { makeID } from '../helpers/helpers.js';
-import { PeerServer } from 'peer';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+import * as config from '../../server.config.js';
 
 // General tasks routes
-
 const tasksRouter = express.Router();
 tasksRouter.get('/', requests.getAllTasksData);
 tasksRouter.get('/:task/:file', requests.getInitialTaskModel);
@@ -42,7 +41,6 @@ federatedRouter.use('/tasks', tasksRouter);
 
 federatedRouter.get('/logs', requests.queryLogs);
 
-// Declare DeAI routes
 const decentralisedRouter = express.Router();
 
 const ports = _.range(
@@ -53,23 +51,28 @@ _.forEach(
   _.zip(tasks, ports),
   _.spread((task, port) => {
     /**
-     * Create a peer server for each task on its corresponding port.
+     * Create a PeerJS server for each task on its corresponding port.
      * The path must match the reverse proxy entry point.
      */
-    PeerServer({
-      path: `/DeAI/${task.taskID}`,
-      allow_discovery: true,
-      port: port,
-      generateClientId: makeID(10),
-      proxied: true,
-    });
+    const taskApp = express();
+    const server = taskApp.listen(port);
+    taskApp.use(
+      `/deai/${task.taskID}`,
+      ExpressPeerServer(server, {
+        path: '/',
+        allow_discovery: true,
+        port: port,
+        generateClientId: makeID(10),
+        proxied: true,
+      })
+    );
+
     /**
      * Make the peer server's port accessible from a regular URL
      * on the DeAI server.
      */
     decentralisedRouter.use(
-      `/${task.taskID}`,
-      createProxyMiddleware({
+      createProxyMiddleware(`/deai/${task.taskID}`, {
         target: `${config.SERVER_URI}:${port}`,
         changeOrigin: true,
         ws: true,
