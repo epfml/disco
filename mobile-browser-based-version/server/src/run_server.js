@@ -14,9 +14,8 @@ app.listen(config.SERVER_PORT);
 // Asynchronously create and save Tensorflow models to local storage
 Promise.all(models.map((createModel) => createModel()));
 
-// Configure server routing
-app.use('/FeAI', federatedRouter);
-app.use('/DeAI', decentralisedRouter);
+app.use('/deai', decentralisedRouter);
+app.use('/feai', federatedRouter);
 app.get('/', (req, res) => res.send('Server for DeAI & FeAI'));
 
 export default app;

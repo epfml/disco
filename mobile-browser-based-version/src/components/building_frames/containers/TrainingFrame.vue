@@ -119,6 +119,7 @@ export default {
   },
   data() {
     return {
+      isConnected: false,
       // Assist with the training loop
       trainingManager: null,
       // Manager that returns feedbacks when training
@@ -164,6 +165,10 @@ export default {
       setTimeout(this.$toast.clear, 30000);
     },
     async joinTraining(distributed) {
+      if (distributed && !this.isConnected) {
+        this.$toast.error('Distributed training is not available.');
+        return;
+      }
       const nbrFiles = this.fileUploadManager.numberOfFiles();
       console.log('***********************');
       console.log(nbrFiles);
@@ -228,7 +233,8 @@ export default {
       this.trainingInformant.initializeCharts();
 
       // Connect to centralized server
-      if (await this.client.connect()) {
+      this.isConnected = await this.client.connect();
+      if (this.isConnected) {
         this.$toast.success(
           'Succesfully connected to server. Distributed training available.'
         );

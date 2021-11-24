@@ -44,7 +44,7 @@ export class FederatedClient extends Client {
      * The client is now considered as connected and further
      * API requests may be made.
      */
-    this.clientID = await makeID(10);
+    this.clientID = makeID(10);
     const requestURL = this.serverURL.concat(
       `connect/${this.task.taskID}/${this.clientID}`
     );

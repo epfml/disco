@@ -64,7 +64,10 @@ export class TrainingManager {
   }
 
   /**
-   * Method called at the begining of each epoch.
+   * Method corresponding to the TFJS fit function's callback. Calls the client's
+   * subroutine.
+   * @param {Object} model The current model being trained.
+   * @param {Number} epoch The current training loop's epoch.
    */
   _onEpochBegin(model, epoch) {
     // To be modified in future ... myEpoch will be removed
@@ -75,10 +78,10 @@ export class TrainingManager {
   /**
    * Method corresponding to the TFJS fit function's callback. Calls the subroutines
    * for the training informant and client.
-   * @param {Object} model the model to train
-   * @param {Number} epoch the epoch number of the current training
-   * @param {Number} accuracy the accuracy achieved by the model in the given epoch
-   * @param {Number} validationAccuracy the validation accuracy achieved by the model in the given epoch
+   * @param {Object} model The current model being trained.
+   * @param {Number} epoch The current training loop's epoch.
+   * @param {Number} accuracy The accuracy achieved by the model in the given epoch
+   * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
    */
   async _onEpochEnd(model, epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateCharts(epoch, validationAccuracy, accuracy);
@@ -87,6 +90,15 @@ export class TrainingManager {
       epoch,
       this.trainingInformant
     );
+  }
+
+  /**
+   * Method corresponding to the TFJS fit function's callback. Calls the client's
+   * subroutine.
+   * @param {Object} model The current model being trained.
+   */
+  async _onTrainEnd(model) {
+    await this.client.onTrainEndCommunication(model, this.trainingInformant);
   }
 
   async _training(model, data, labels) {
@@ -153,6 +165,9 @@ export class TrainingManager {
         validationSplit: trainingInformation.validationSplit,
         shuffle: true,
         callbacks: {
+          onTrainEnd: async (logs) => {
+            this._onTrainEnd(model);
+          },
           onEpochBegin: async (epoch, logs) => {
             this._onEpochBegin(model, epoch);
           },
