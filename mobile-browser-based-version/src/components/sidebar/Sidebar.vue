@@ -13,7 +13,7 @@
     <!-- Brand -->
     <div class="flex-shrink-0">
       <a
-        v-on:click="goToHome()"
+        v-on:click="goToHome"
         class="
           p-1
           inline-block
@@ -24,7 +24,7 @@
           dark:text-light
         "
       >
-        {{$t('home.title.name')}}
+        {{ $t("home.title.name") }}
       </a>
     </div>
 
@@ -33,31 +33,9 @@
       <!-- Go to Home page -->
       <!-- Active classes "bg-primary text-white" -->
       <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
-      <a
-        type="a"
-        data-title="Home"
-        data-placement="right"
-        v-on:click="goToHome()"
-        class="
-          p-2
-          transition-colors
-          duration-200
-          rounded-full
-          hover:text-primary hover:bg-primary-100
-          dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark
-          focus:outline-none focus:bg-primary-100
-          dark:focus:bg-primary-dark
-          focus:ring-primary-darker
-        "
-        v-bind:class="[
-          this.activePage === 'home' ? 'bg-primary' : 'bg-primary-50',
-          this.activePage === 'home' ? 'text-white' : 'text-primary-lighter',
-        ]"
-      >
-        <span class="sr-only">Home</span>
-        <home-icon/>
-      </a>
-
+      <SidebarButton v-on:click="goToHome" hoverText="home" :activePage="activePage">
+        <home-icon />
+      </SidebarButton>
       <!-- Go to Task List page -->
       <a
         type="a"
@@ -81,7 +59,7 @@
         ]"
       >
         <span class="sr-only">Task List</span>
-        <list-icon/>
+        <list-icon />
       </a>
 
       <!-- Display Model Library panel -->
@@ -105,7 +83,7 @@
         "
       >
         <span class="sr-only">Open Model Library</span>
-        <file-icon/>
+        <file-icon />
       </a>
 
       <!-- Go to Information page -->
@@ -133,7 +111,7 @@
         ]"
       >
         <span class="sr-only">Messages</span>
-        <info-icon/>
+        <info-icon />
       </a>
 
       <!-- Display Settings panel-->
@@ -157,7 +135,7 @@
         "
       >
         <span class="sr-only">Open Settings Panel</span>
-        <settings-icon/>
+        <settings-icon />
       </a>
     </div>
   </nav>
@@ -244,18 +222,18 @@
   </div>
 </template>
 <script>
-import Settings from './Settings.vue';
-import ModelLibrary from './ModelLibrary.vue';
-import tippy from 'tippy.js';
-import { mapState, mapMutations } from 'vuex';
-import HomeIcon from '../../assets/svg/HomeIcon.vue';
-import ListIcon from '../../assets/svg/ListIcon.vue';
-import InfoIcon from '../../assets/svg/InfoIcon.vue';
-import FileIcon from '../../assets/svg/FileIcon.vue';
-import SettingsIcon from '../../assets/svg/SettingsIcon.vue';
-import SidebarButton from './containers/SidebarButton.vue';
+import Settings from "./Settings.vue";
+import ModelLibrary from "./ModelLibrary.vue";
+import tippy from "tippy.js";
+import { mapState, mapMutations } from "vuex";
+import HomeIcon from "../../assets/svg/HomeIcon.vue";
+import ListIcon from "../../assets/svg/ListIcon.vue";
+import InfoIcon from "../../assets/svg/InfoIcon.vue";
+import FileIcon from "../../assets/svg/FileIcon.vue";
+import SettingsIcon from "../../assets/svg/SettingsIcon.vue";
+import SidebarButton from "./containers/SidebarButton.vue";
 export default {
-  name: 'Sidebar',
+  name: "Sidebar",
   components: {
     Settings,
     ModelLibrary,
@@ -264,8 +242,8 @@ export default {
     InfoIcon,
     SettingsIcon,
     ListIcon,
-    SidebarButton
-},
+    SidebarButton,
+  },
   data() {
     return {
       loading: false,
@@ -275,10 +253,10 @@ export default {
     };
   },
   computed: {
-    ...mapState(['activePage']),
+    ...mapState(["activePage"]),
   },
   methods: {
-    ...mapMutations(['setActivePage']),
+    ...mapMutations(["setActivePage"]),
     switchFromModelLibraryToSettings() {
       this.isModeLibraryOpen = false;
       this.isSettingsPanelOpen = true;
@@ -297,27 +275,28 @@ export default {
       this.isModelLibraryOpen = false;
     },
     goToHome() {
-      this.setActivePage('home');
-      this.$router.push({ name: 'home' });
+      console.log("***********************");
+      this.setActivePage("home");
+      this.$router.push({ name: "home" });
     },
     goToTaskList() {
-      this.setActivePage('tasks');
-      this.$router.push({ name: 'tasks' });
+      this.setActivePage("tasks");
+      this.$router.push({ name: "tasks" });
     },
     goToInformation() {
-      this.setActivePage('info');
-      this.$router.push({ name: 'information' });
+      this.setActivePage("info");
+      this.$router.push({ name: "information" });
     },
   },
   async mounted() {
-    tippy('a', {
-      theme: 'custom-dark',
+    tippy("a", {
+      theme: "custom-dark",
       delay: 0,
       duration: 0,
-      content: (reference) => reference.getAttribute('data-title'),
+      content: (reference) => reference.getAttribute("data-title"),
       onMount(instance) {
         instance.popperInstance.setOptions({
-          placement: instance.reference.getAttribute('data-placement'),
+          placement: instance.reference.getAttribute("data-placement"),
         });
       },
     });
