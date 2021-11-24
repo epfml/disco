@@ -28,8 +28,8 @@ export class Client {
    * onTrainEnd callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  async onTrainEndCommunication() {
-    return;
+  async onTrainEndCommunication(model, trainingInformant) {
+    trainingInformant.addMessage('Training finished.');
   }
 
   /**
@@ -37,7 +37,7 @@ export class Client {
    * onEpochBegin callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  async onEpochBeginCommunication() {
+  async onEpochBeginCommunication(model, epoch, trainingInformant) {
     return;
   }
 
