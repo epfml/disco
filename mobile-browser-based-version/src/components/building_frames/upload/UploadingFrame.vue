@@ -43,6 +43,9 @@ export default {
   },
   methods: {
     preview() {
+      if(this.Id == "cifar10-model") {
+        return false
+      }
       return this.csvLabels || this.nbrLabels == 1;
     },
     header() {
