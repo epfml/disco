@@ -118,6 +118,13 @@ async function createCifar10Model() {
       activation: 'relu',
     })
   );
+  model.add(tf.layers.dropout({ rate: 0.5 }));
+  model.add(
+    tf.layers.dense({
+      units: 128,
+      activation: 'relu',
+    })
+  );
   model.add(
     tf.layers.dense({
       units: 10,
