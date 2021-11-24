@@ -14,7 +14,7 @@ import * as config from '../../server.config.js';
  * server from a single client's point of view.
  */
 async function testServerRequests() {
-  let server = `${config.SERVER_URI}:${config.SERVER_PORT}`;
+  let server = `${config.SERVER_URI}:${config.SERVER_PORT}/feai`;
   // Declare parameters for the requests below
   let id = '09az';
   let round = 1;
