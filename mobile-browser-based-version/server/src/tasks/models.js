@@ -94,6 +94,7 @@ async function createCifar10Model() {
       padding: 'same',
     })
   );
+  
   model.add(
     tf.layers.conv2d({
       kernelSize: 3,
