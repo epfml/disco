@@ -220,7 +220,7 @@ export class DecentralisedClient extends Client {
   async onTrainEndCommunication(model, trainingInformant) {
     super.onTrainEndCommunication();
     trainingInformant.addMessage(
-      'Entering idle state: seeding for online clients.'
+      'Entering idle state: seeding for online peers.'
     );
     this.recvBuffer.peer = this;
     this.recvBuffer.lastUpdate = {
