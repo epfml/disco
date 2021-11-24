@@ -1,3 +1,6 @@
+import * as tf from '@tensorflow/tfjs';
+
+
 export class Client {
   constructor(serverURL, task) {
     this.serverURL = serverURL;
@@ -43,7 +46,16 @@ export class Client {
    * onEpochEnd callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  async onEpochEndCommunication(model, epoch, trainingInformant) {
+  async onEpochEndCommunication() {
+    console.log(
+      'Training RAM usage is  = ',
+      tf.memory().numBytes * 0.000001,
+      'MB'
+    );
+    console.log(
+      'Number of allocated tensors  = ',
+      tf.memory().numTensors
+    );
     return;
   }
 }
