@@ -14,8 +14,8 @@
 export default {
   name: '"file-earmark-ruled"',
   props: {
-    customClass: { default: "bi bi-file-earmark-ruled w-7 h-7", type: String },
-    viewBox: { default: "0 0 16 16", type: String },
+    customClass: { default: 'bi bi-file-earmark-ruled w-7 h-7', type: String },
+    viewBox: { default: '0 0 16 16', type: String },
   },
 };
 </script>

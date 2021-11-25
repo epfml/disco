@@ -3,7 +3,15 @@
   <div class="relative">
     <article
       aria-label="File Upload Modal"
-      class="relative h-full flex flex-col p-4 bg-white rounded-lg dark:bg-darker"
+      class="
+        relative
+        h-full
+        flex flex-col
+        p-4
+        bg-white
+        rounded-lg
+        dark:bg-darker
+      "
       v-on:drop="dropHandler"
       v-on:dragover="dragOverHandler"
       v-on:dragleave="dragLeaveHandler"
@@ -15,10 +23,24 @@
       <!-- scroll area -->
       <section class="overflow-auto p-8 w-full h-full flex flex-col">
         <header
-          class="border-dashed border-2 border-gray-500 dark:border-primary flex flex-col justify-center items-center"
+          class="
+            border-dashed border-2 border-gray-500
+            dark:border-primary
+            flex flex-col
+            justify-center
+            items-center
+          "
         >
           <p
-            class="mb-3 p-4 text-lg font-semibold dark:text-lightflex flex-wrap justify-center"
+            class="
+              mb-3
+              p-4
+              text-lg
+              font-semibold
+              dark:text-lightflex
+              flex-wrap
+              justify-center
+            "
           >
             <span>Drag and drop your</span>&nbsp;<span>files anywhere or</span>
           </p>
@@ -31,7 +53,20 @@
           <div class="p-4">
             <button
               v-bind:id="uploadButtonName"
-              class="mt-2 p-2 rounded-sm text-white transition-colors duration-200 bg-primary hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+              class="
+                mt-2
+                p-2
+                rounded-sm
+                text-white
+                transition-colors
+                duration-200
+                bg-primary
+                hover:text-primary hover:bg-primary-100
+                dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark
+                focus:outline-none focus:bg-primary-100
+                dark:focus:bg-primary-dark
+                focus:ring-primary-darker
+              "
             >
               Select files
             </button>
@@ -48,7 +83,14 @@
             <ul v-bind:id="galleryName" class="flex flex-1 flex-wrap -m-1">
               <li
                 v-bind:id="emptyName"
-                class="h-full w-full text-center flex flex-col justify-center items-center"
+                class="
+                  h-full
+                  w-full
+                  text-center
+                  flex flex-col
+                  justify-center
+                  items-center
+                "
               >
                 <img
                   class="mx-auto w-32"
@@ -80,17 +122,55 @@
     <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
       <article
         tabindex="0"
-        class="group w-full h-full rounded-md focus:outline-none focus:shadow-outline elative bg-primary-100 dark:bg-dark focus-within:cursor-pointer relative shadow-sm"
+        class="
+          group
+          w-full
+          h-full
+          rounded-md
+          focus:outline-none focus:shadow-outline
+          elative
+          bg-primary-100
+          dark:bg-dark
+          focus-within:cursor-pointer
+          relative
+          shadow-sm
+        "
       >
         <img
           alt="upload preview"
-          class="img-preview hidden w-full h-full sticky object-cover rounded-md bg-fixed"
+          class="
+            img-preview
+            hidden
+            w-full
+            h-full
+            sticky
+            object-cover
+            rounded-md
+            bg-fixed
+          "
         />
         <section
-          class="p-2 flex flex-col rounded-md text-xs break-words w-full h-full z-20 absolute top-0"
+          class="
+            p-2
+            flex flex-col
+            rounded-md
+            text-xs
+            break-words
+            w-full
+            h-full
+            z-10
+            absolute
+            top-0
+          "
         >
           <h1
-            class="flex-1 text-gray-800 group-hover:text-primary dark:text-gray-50 dark:group-hover:text-primary"
+            class="
+              flex-1
+              text-gray-800
+              group-hover:text-primary
+              dark:text-gray-50 dark:group-hover:text-primary
+              z-10
+            "
           ></h1>
           <div class="flex">
             <span class="p-1 text-gray-800 dark:text-gray-50">
@@ -100,7 +180,17 @@
             </span>
             <p class="p-1 size text-xs text-gray-800 dark:text-gray-50"></p>
             <button
-              class="delete ml-auto focus:outline-none hover:bg-white dark:hover:bg-gray-500 p-1 rounded-md text-gray-800 dark:text-gray-50"
+              class="
+                delete
+                ml-auto
+                focus:outline-none
+                hover:bg-white
+                dark:hover:bg-gray-500
+                p-1
+                rounded-md
+                text-gray-800
+                dark:text-gray-50
+              "
             >
               <bin />
             </button>
@@ -115,15 +205,48 @@
     <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
       <article
         tabindex="0"
-        class="group hasImage w-full h-full rounded-md focus:outline-none focus:shadow-outline bg-gray-100 cursor-pointer relative text-transparent hover:text-white shadow-sm"
+        class="
+          group
+          hasImage
+          w-full
+          h-full
+          rounded-md
+          focus:outline-none focus:shadow-outline
+          bg-gray-100
+          cursor-pointer
+          relative
+          text-transparent
+          hover:text-white
+          shadow-sm
+        "
       >
         <img
           alt="upload preview"
-          class="img-preview w-full h-full sticky object-cover rounded-md bg-fixed"
+          class="
+            img-preview
+            w-full
+            h-full
+            sticky
+            object-cover
+            rounded-md
+            bg-fixed
+          "
         />
 
         <section
-          class="flex flex-col rounded-md text-xs break-words w-full h-full z-20 absolute top-0 py-2 px-3"
+          class="
+            flex flex-col
+            rounded-md
+            text-xs
+            break-words
+            w-full
+            h-full
+            z-10
+            absolute
+            top-0
+            py-2
+            px-3
+          "
         >
           <h1 class="flex-1"></h1>
           <div class="flex">
@@ -133,7 +256,14 @@
 
             <p class="p-1 size text-xs"></p>
             <button
-              class="delete ml-auto focus:outline-none hover:bg-gray-300 p-1 rounded-md"
+              class="
+                delete
+                ml-auto
+                focus:outline-none
+                hover:bg-gray-300
+                p-1
+                rounded-md
+              "
             >
               <bin />
             </button>
@@ -145,38 +275,37 @@
 </template>
 
 <script>
-import Bin from "../../../assets/svg/Bin.vue";
-import File from "../../../assets/svg/File.vue";
+import Bin from '../../../assets/svg/Bin.vue';
+import File from '../../../assets/svg/File.vue';
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
-  types.indexOf("Files") > -1;
+  types.indexOf('Files') > -1;
 
 export default {
-  components: { Bin, File },
-  name: "SingleUploadFrame",
+  name: 'SingleUploadFrame',
   props: {
     Id: String,
     Task: Object,
-
-    // the file upload manager associated to the task
+    // The file upload manager associated to the task
     fileUploadManager: Object,
-
-    // preview is used to know if we have to show a snippet of the uploaded files or not
+    // Preview is used to know if we have to show a snippet of the uploaded files or not
     preview: Boolean,
-
-    // the label associated to the task
+    // The label associated to the task
     label: String,
-
-    // if the label should be displayed or not
+    // If the label should be displayed or not
     displayLabels: Boolean,
+  },
+  components: {
+    Bin,
+    File,
   },
   data() {
     return {
-      galleryName: this.formatName("gallery"),
-      fileTemplName: this.formatName("file-template"),
-      imageTemplName: this.formatName("image-template"),
-      emptyName: this.formatName("empty"),
-      hiddenInputName: this.formatName("hidden-input"),
-      uploadButtonName: this.formatName("uploadButton"),
+      galleryName: this.formatName('gallery'),
+      fileTemplName: this.formatName('file-template'),
+      imageTemplName: this.formatName('image-template'),
+      emptyName: this.formatName('empty'),
+      hiddenInputName: this.formatName('hidden-input'),
+      uploadButtonName: this.formatName('uploadButton'),
       nbrUploadedFiles: 0,
       fileTempl: null,
       imageTempl: null,
@@ -192,32 +321,32 @@ export default {
       return `${prefix}_${this.Id}_${this.label}`;
     },
     addFile(target, file) {
-      const isImage = file.type.match("image.*"),
+      const isImage = file.type.match('image.*'),
         objectURL = URL.createObjectURL(file);
       if (this.preview) {
         const clone = isImage
           ? this.imageTempl.cloneNode(true)
           : this.fileTempl.cloneNode(true);
-        clone.querySelector("h1").textContent = file.name;
-        clone.querySelector("li").id = objectURL;
-        clone.querySelector(".delete").dataset.target = objectURL;
-        clone.querySelector(".size").textContent =
+        clone.querySelector('h1').textContent = file.name;
+        clone.querySelector('li').id = objectURL;
+        clone.querySelector('.delete').dataset.target = objectURL;
+        clone.querySelector('.size').textContent =
           file.size > 1024
             ? file.size > 1048576
-              ? Math.round(file.size / 1048576) + "mb"
-              : Math.round(file.size / 1024) + "kb"
-            : file.size + "b";
+              ? Math.round(file.size / 1048576) + 'mb'
+              : Math.round(file.size / 1024) + 'kb'
+            : file.size + 'b';
         isImage &&
-          Object.assign(clone.querySelector("img"), {
+          Object.assign(clone.querySelector('img'), {
             src: objectURL,
             alt: file.name,
           });
-        this.empty.classList.add("hidden");
+        this.empty.classList.add('hidden');
         target.prepend(clone.firstElementChild);
       }
       let label_name = this.label;
-      if (this.label == "Images") {
-        label_name = file.name.replace(/\.[^/.]+$/, "");
+      if (this.label == 'Images') {
+        label_name = file.name.replace(/\.[^/.]+$/, '');
       }
       this.fileUploadManager.addFile(objectURL, file, label_name);
       this.nbrUploadedFiles += 1;
@@ -271,11 +400,11 @@ export default {
       // event delegation to caputre delete events
       // fron the waste buckets in the file preview cards
       this.gallery.onclick = ({ target }) => {
-        if (target.classList.contains("delete")) {
+        if (target.classList.contains('delete')) {
           const ou = target.dataset.target;
           document.getElementById(ou).remove(ou);
           this.gallery.children.length === 1 &&
-            this.empty.classList.remove("hidden");
+            this.empty.classList.remove('hidden');
           this.fileUploadManager.deleteFile(ou);
           this.nbrUploadedFiles -= 1;
         }

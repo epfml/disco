@@ -1,10 +1,10 @@
 <template>
-  <ActionFrame :Task="Task">
+  <action-frame :Task="Task">
     <template v-slot:dataExample><slot name="dataExample"></slot></template>
     <template v-slot:action>
       <!-- Upload Training Data -->
       <div class="relative">
-        <UploadingFrame
+        <uploading-frame
           v-bind:Id="Id"
           v-bind:Task="Task"
           v-bind:fileUploadManager="fileUploadManager"
@@ -16,20 +16,16 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <customButton v-on:click="joinTraining(false)" :center="true">
+        <custom-button v-on:click="joinTraining(false)" :center="true">
           Train Alone
-        </customButton>
-        <customButton v-on:click="joinTraining(true)" :center="true">
-          Train Distributed
-        </customButton>
-      </div>
-
-      <div class="flex items-center justify-center p-4">
-        Currently {{ num_peers }} peers in the network
+        </custom-button>
+        <custom-button v-on:click="joinTraining(true)" :center="true">
+          Train {{this.$t('platform')}}
+        </custom-button>
       </div>
       <!-- Training Board -->
       <div>
-        <TrainingInformationFrame
+        <training-information-frame
           v-bind:trainingInformant="trainingInformant"
           v-if="trainingInformant"
         />
@@ -46,13 +42,14 @@
         <template v-slot:icon><download /></template>
         <template v-slot:extra
           ><div class="flex items-center justify-center p-4">
-            <customButton
+            <!-- make it gray & unclickable if indexeddb is turned off -->
+            <custom-button
               id="train-model-button"
-              v-on:click="saveModel()"
+              v-on:click="saveModelButton()"
               :center="true"
             >
               Save My model
-            </customButton>
+            </custom-button>
           </div></template
         >
       </icon-card>
@@ -73,34 +70,38 @@
             </span>
           </div>
           <div class="flex items-center justify-center p-4">
-            <customButton
+            <custom-button
               id="train-model-button"
               v-on:click="goToTesting()"
               :center="true"
             >
               Test the model
-            </customButton>
+            </custom-button>
           </div>
         </template>
       </icon-card>
     </template>
-  </ActionFrame>
+  </action-frame>
 </template>
 
 <script>
-import UploadingFrame from "../upload/UploadingFrame";
-import TrainingInformationFrame from "../TrainingInformationFrame";
-import ActionFrame from "./ActionFrame";
-import IconCard from "../../containers/IconCard";
-import CustomButton from "../../simple/CustomButton";
-import Download from "../../../assets/svg/Download.vue";
-import { TrainingInformant } from "../../../helpers/training_script/training_informant";
-import { CommunicationManager } from "../../../helpers/communication_script/communication_manager";
-import { TrainingManager } from "../../../helpers/training_script/training_manager";
-import { FileUploadManager } from "../../../helpers/data_validation_script/file_upload_manager";
+import UploadingFrame from '../upload/UploadingFrame.vue';
+import TrainingInformationFrame from '../TrainingInformationFrame.vue';
+import ActionFrame from './ActionFrame.vue';
+import IconCard from '../../containers/IconCard.vue';
+import CustomButton from '../../simple/CustomButton.vue';
+import Download from '../../../assets/svg/Download.vue';
+
+import { TrainingInformant } from '../../../helpers/training/decentralised/training_informant';
+import { getClient } from '../../../helpers/communication/helpers';
+import { TrainingManager } from '../../../helpers/training/training_manager';
+import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
+import { saveWorkingModel } from '../../../helpers/memory/helpers';
+
+import { mapState } from 'vuex';
 
 export default {
-  name: "TrainingFrame",
+  name: 'TrainingFrame',
   props: {
     Id: String,
     Task: Object,
@@ -118,44 +119,62 @@ export default {
   },
   data() {
     return {
-      // assist with the training loop
+      isConnected: false,
+      // Assist with the training loop
       trainingManager: null,
-      num_peers: 0,
-
-      // manager that returns feedbacks when training
-      trainingInformant: new TrainingInformant(
-        10,
-        this.Task.trainingInformation.modelId
-      ),
-
-      // manager for the file uploading process
+      // Manager that returns feedbacks when training
+      trainingInformant: new TrainingInformant(10, this.Task.taskID),
+      // Manager for the file uploading process
       fileUploadManager: new FileUploadManager(this.nbrClasses, this),
-
-      // take care of communication processes
-      communicationManager: new CommunicationManager(
-        this.Task.trainingInformation.port,
-        this.Task.taskId,
+      // Take care of communication processes
+      client: getClient(
+        this.$t('platform'),
+        this.Task,
         this.$store.getters.password(this.Id)
       ), // TO DO: to modularize
     };
   },
+  computed: {
+    ...mapState(['useIndexedDB']),
+  },
+  watch: {
+    useIndexedDB(newValue) {
+      this.trainingManager.setIndexedDB(newValue);
+    },
+  },
   methods: {
     goToTesting() {
       this.$router.push({
-        path: "testing",
+        path: 'testing',
       });
     },
-    saveModel() {
-      this.trainingManager.saveModel();
+    async saveModelButton() {
+      if (this.useIndexedDB) {
+        await saveWorkingModel(
+          this.Task.taskID,
+          this.Task.trainingInformation.modelID
+        );
+        this.$toast.success(
+          `The current ${this.Task.displayInformation.taskTitle} model has been saved.`
+        );
+      } else {
+        this.$toast.error(
+          'The model library is currently turned off. See settings for more information'
+        );
+      }
+      setTimeout(this.$toast.clear, 30000);
     },
     async joinTraining(distributed) {
-
+      if (distributed && !this.isConnected) {
+        this.$toast.error('Distributed training is not available.');
+        return;
+      }
       const nbrFiles = this.fileUploadManager.numberOfFiles();
-      console.log("***********************");
+      console.log('***********************');
       console.log(nbrFiles);
       console.log(this.nbrClasses);
       console.log(this.fileUploadManager.getFilesList());
-      console.log("***********************");
+      console.log('***********************');
       // Check that the user indeed gave a file
       if (nbrFiles == 0) {
         this.$toast.error(`Training aborted. No uploaded file given as input.`);
@@ -171,65 +190,65 @@ export default {
           nbrFiles > 1
             ? this.fileUploadManager.getFilesList()
             : this.fileUploadManager.getFirstFile();
-        console.log("***********************");
+        console.log('***********************');
         console.log(filesElement);
-        var status_validation = { accepted: true };
+        var statusValidation = { accepted: true };
         if (this.precheckData) {
           // data checking is optional
-          status_validation = await this.precheckData(
+          statusValidation = await this.precheckData(
             filesElement,
             this.Task.trainingInformation
           );
         }
-        if (!status_validation.accepted) {
+        if (!statusValidation.accepted) {
           // print error message
           this.$toast.error(
-            `Invalid input format : Number of data points with valid format: ${status_validation.nr_accepted} out of ${nbrFiles}`
+            `Invalid input format : Number of data points with valid format: ${statusValidation.nr_accepted} out of ${nbrFiles}`
           );
           setTimeout(this.$toast.clear, 30000);
         } else {
           // preprocess data
-          let processedData = await this.dataPreprocessing(filesElement);
+          let processedDataset = await this.dataPreprocessing(filesElement);
           this.$toast.success(
             `Data preprocessing has finished and training has started`
           );
           setTimeout(this.$toast.clear, 30000);
-          this.trainingManager.trainModel(distributed, processedData);
+          this.trainingManager.trainModel(processedDataset, distributed);
         }
       }
     },
   },
   async mounted() {
-    window.setInterval(async () => {
-      await this.communicationManager.updateReceivers(this);
-      this.num_peers = this.communicationManager.receivers.length;
-    }, 2000);
-
     // This method is called when the component is created
-    this.$nextTick(async function() {
-      // initialize the training manager
-      this.trainingManager = new TrainingManager(this.Task.trainingInformation);
+    this.$nextTick(async function () {
+      // Create the training manager
+      this.trainingManager = new TrainingManager(
+        this.Task,
+        this.client,
+        this.trainingInformant,
+        this.useIndexedDB
+      );
 
-      // initialize training informant
+      // Initialize the training informant's charts
       this.trainingInformant.initializeCharts();
 
-      // initialize communication manager
-      this.communicationManager.initializeConnection(
-        this.Task.trainingInformation.epoch,
-        this
-      );
-
-      // initialize training manager
-      this.trainingManager.initialization(
-        this.communicationManager,
-        this.trainingInformant,
-        this
-      );
+      // Connect to centralized server
+      this.isConnected = await this.client.connect();
+      if (this.isConnected) {
+        this.$toast.success(
+          'Succesfully connected to server. Distributed training available.'
+        );
+      } else {
+        console.log('Error in connecting');
+        this.$toast.error(
+          'Failed to connect to server. Fallback to training alone.'
+        );
+      }
+      setTimeout(this.$toast.clear, 30000);
     });
   },
   async unmounted() {
-    // close the connection with the server
-    this.communicationManager.disconect();
+    this.client.disconnect();
   },
 };
 </script>

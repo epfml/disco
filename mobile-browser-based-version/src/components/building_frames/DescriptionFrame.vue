@@ -1,3 +1,4 @@
+import { serializeWeights } from '../helpers/tfjs_helpers.js';
 <template>
   <a id="overview-target">
     <icon-card header="The task" :description="OverviewText">
@@ -12,30 +13,125 @@
   </a>
 
   <!-- Card to load a model-->
-  <a id="load-model" v-if="savedModelExists">
+  <a id="load-model" v-if="workingModelExistsOnMount">
     <icon-card header="Join training with a previous model">
       <template v-slot:icon><clock /></template>
       <template v-slot:extra>
-        <!-- Descrition -->
-        <div class="flex items-center justify-between p-4">
-          <div class>
-            <span class="text-sm text-gray-500 dark:text-light"
-              >Use a model you've already worked on. <br />
-              This model was saved the
-              <span class="text-primary-dark dark:text-primary-light">
-                {{ dateSaved }}
-              </span>
-              at
-              <span class="text-primary-dark dark:text-primary-light">
-                {{ hourSaved }}
-              </span>
-            </span>
-            <div class="pt-4">
+        <!-- Restore Model -->
+        <div class="p-4">
+          <div v-if="useIndexedDB && workingModelExists">
+            <div class="grid grid-cols-4 items-center justify-items-center">
+              <div class="col-span-3">
+                <div class="text-sm text-gray-500 dark:text-light">
+                  FeAI cached the last model you were working on for you. Select
+                  it to start training from it. Otherwise, it will be overridden
+                  the next time you train the
+                  {{ Task.displayInformation.taskTitle }} task. This model was
+                  last updated the
+                  <span class="text-primary-dark dark:text-primary-light">
+                    {{ dateSaved }}
+                  </span>
+                  at
+                  <span class="text-primary-dark dark:text-primary-light">
+                    {{ hourSaved }}
+                  </span>
+                </div>
+              </div>
+              <button
+                class="relative focus:outline-none"
+                v-on:click="toggleUseWorkingModel()"
+              >
+                <div
+                  class="
+                    w-12
+                    h-6
+                    transition
+                    rounded-full
+                    outline-none
+                    bg-primary-100
+                    dark:bg-primary-darker
+                  "
+                ></div>
+                <div
+                  class="
+                    absolute
+                    top-0
+                    left-0
+                    w-6
+                    h-6
+                    transition-all
+                    duration-200
+                    ease-in-out
+                    transform
+                    scale-110
+                    rounded-full
+                    shadow-sm
+                  "
+                  :class="{
+                    'translate-x-0 bg-white dark:bg-primary-100':
+                      !useWorkingModel,
+                    'translate-x-6 bg-primary-light dark:bg-primary':
+                      useWorkingModel,
+                  }"
+                ></div>
+              </button>
+            </div>
+            <div class="flex pt-4 space-x-4 justify-center">
+              <button
+                v-on:click="saveModel()"
+                class="
+                  flex
+                  items-center
+                  justify-center
+                  px-4
+                  py-2
+                  space-x-4
+                  transition-colors
+                  border
+                  rounded-md
+                  hover:text-gray-900 hover:border-gray-900
+                  dark:border-primary
+                  dark:hover:text-primary-100
+                  dark:hover:border-primary-light
+                  focus:outline-none
+                  focus:ring
+                  focus:ring-primary-lighter
+                  focus:ring-offset-2
+                  dark:focus:ring-offset-dark dark:focus:ring-primary-dark
+                "
+                :class="{
+                  'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
+                    !isDark,
+                  'text-gray-500 dark:text-primary-light': isDark,
+                }"
+              >
+                <span>Save Model</span>
+              </button>
               <button
                 v-on:click="deleteModel()"
-                class="flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
+                class="
+                  flex
+                  items-center
+                  justify-center
+                  px-4
+                  py-2
+                  space-x-4
+                  transition-colors
+                  border
+                  rounded-md
+                  hover:text-gray-900 hover:border-gray-900
+                  dark:border-primary
+                  dark:hover:text-primary-100
+                  dark:hover:border-primary-light
+                  focus:outline-none
+                  focus:ring
+                  focus:ring-primary-lighter
+                  focus:ring-offset-2
+                  dark:focus:ring-offset-dark dark:focus:ring-primary-dark
+                "
                 :class="{
-                  'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100': !isDark,
+                  'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
+                    !isDark,
                   'text-gray-500 dark:text-primary-light': isDark,
                 }"
               >
@@ -43,47 +139,39 @@
               </button>
             </div>
           </div>
-          <button
-            class="relative focus:outline-none"
-            v-on:click="optionPrevModel()"
-          >
-            <div
-              class="w-12 h-6 transition rounded-full outline-none bg-primary-100 dark:bg-primary-darker"
-            ></div>
-            <div
-              class="absolute top-0 left-0 inline-flex items-center justify-center w-6 h-6 transition-all duration-200 ease-in-out transform scale-110 rounded-full shadow-sm"
-              :class="{
-                'translate-x-0  bg-white dark:bg-primary-100': !choicePreModel,
-                'translate-x-6 bg-primary-light dark:bg-primary': choicePreModel,
-              }"
-            ></div>
-          </button>
+          <div v-else class="text-sm text-gray-500 dark:text-light">
+            <p v-if="!useIndexedDB && workingModelExists">
+              FeAI cached the last model you were working on for you. Turn on
+              the model library (see settings) to see additional options.
+            </p>
+            <p v-else>The previous working model has been deleted.</p>
+          </div>
         </div>
       </template>
     </icon-card>
   </a>
   <div class="flex items-center justify-center p-4">
-    <customButton
+    <custom-button
       id="train-model-button"
       v-on:click="goToTraining()"
       :center="true"
     >
       Join Training
-    </customButton>
+    </custom-button>
   </div>
 </template>
 
 <script>
-import * as tf from "@tensorflow/tfjs";
-import { getModelInfo } from "../../helpers/my_memory_script/indexedDB_script";
-import customButton from "../simple/CustomButton";
-import Tasks from "../../assets/svg/Tasks.vue";
-import Model from "../../assets/svg/Model.vue";
-import IconCard from "../containers/IconCard";
-import Clock from "../../assets/svg/Clock.vue";
-// Variables used in the script
+import * as memory from '../../helpers/memory/helpers';
+import CustomButton from '../simple/CustomButton.vue';
+import Tasks from '../../assets/svg/Tasks.vue';
+import Model from '../../assets/svg/Model.vue';
+import Clock from '../../assets/svg/Clock.vue';
+import IconCard from '../containers/IconCard.vue';
+import { mapState } from 'vuex';
+
 export default {
-  name: "DescriptionFrame",
+  name: 'description-frame',
   props: {
     OverviewText: String,
     ModelText: String,
@@ -92,7 +180,7 @@ export default {
     Task: Object,
   },
   components: {
-    customButton,
+    CustomButton,
     Tasks,
     Model,
     IconCard,
@@ -101,98 +189,121 @@ export default {
   data() {
     return {
       isModelCreated: false,
-      savedModelExists: false,
-      readyToTrain: false,
-      choicePreModel: false,
-      dateSaved: "",
-      hourSaved: "",
-      isDark: this.getTheme(),
+      workingModelExists: false,
+      workingModelExistsOnMount: false,
+      useWorkingModel: false,
+      dateSaved: '',
+      hourSaved: '',
     };
+  },
+  watch: {
+    useWorkingModel() {
+      let modelInUseMessage;
+      if (this.useWorkingModel) {
+        modelInUseMessage = `The previous ${this.Task.displayInformation.taskTitle} model has been selected. You can start training!`;
+      } else {
+        modelInUseMessage = `A new ${this.Task.displayInformation.taskTitle} model will be created. You can start training!`;
+      }
+      this.$toast.success(modelInUseMessage);
+      setTimeout(this.$toast.clear, 30000);
+    },
+  },
+  computed: {
+    ...mapState(['useIndexedDB', 'isDark']),
+    createFreshModel() {
+      return (
+        !this.isModelCreated &&
+        !(this.workingModelExists && this.useWorkingModel)
+      );
+    },
   },
   methods: {
     async goToTraining() {
-      if (!this.choicePreModel && !this.isModelCreated) {
-        await this.createNewModel();
+      if (this.useIndexedDB && this.createFreshModel) {
+        await this.loadFreshModel();
         this.isModelCreated = true;
-
-        this.readyToTrain = true;
-
         this.$toast.success(
-          "A new "
-            .concat(this.Task.trainingInformation.modelId)
-            .concat(` has been created. You can start training!`)
+          `A new ${this.Task.displayInformation.taskTitle} model has been created. You can start training!`
         );
         setTimeout(this.$toast.clear, 30000);
       }
       this.$router.push({
-        name: this.Id + ".training",
+        name: this.Id + '.training',
         params: { Id: this.Id },
       });
     },
     async deleteModel() {
-      console.log("Delete Model");
-      this.savedModelExists = false;
-      await tf.io.removeModel(
-        "indexeddb://saved_".concat(this.Task.trainingInformation.modelId)
+      this.workingModelExists = false;
+      await memory.deleteWorkingModel(
+        this.Task.taskID,
+        this.Task.trainingInformation.modelID
       );
+      this.$toast.success(
+        `Deleted the cached ${this.Task.displayInformation.taskTitle} model.`
+      );
+      setTimeout(this.$toast.clear, 30000);
     },
-
-    async optionPrevModel() {
-      this.choicePreModel = !this.choicePreModel;
-      if (this.choicePreModel) {
-        await this.loadSavedModel();
-        this.readyToTrain = true;
-
-        this.$toast.success(
-          "The "
-            .concat(this.Task.trainingInformation.modelId)
-            .concat(` has been loaded. You can start training!`)
+    async saveModel() {
+      await memory.saveWorkingModel(
+        this.Task.taskID,
+        this.Task.trainingInformation.modelID
+      );
+      this.$toast.success(
+        `Saved the cached ${this.Task.displayInformation.taskTitle} model to the model library`
+      );
+      setTimeout(this.$toast.clear, 30000);
+    },
+    async toggleUseWorkingModel() {
+      this.useWorkingModel = !this.useWorkingModel;
+    },
+    async loadFreshModel() {
+      await this.Task.createModel().then((freshModel) => {
+        memory.updateWorkingModel(
+          this.Task.taskID,
+          this.Task.trainingInformation.modelID,
+          freshModel
         );
-        setTimeout(this.$toast.clear, 30000);
-      }
+      });
     },
-
-    async loadSavedModel() {
-      const savedModelPath = "indexeddb://".concat(
-        "saved_".concat(this.Task.trainingInformation.modelId)
-      );
-      var savedModel = await tf.loadLayersModel(savedModelPath);
-
-      const savePathDb = "indexeddb://working_".concat(
-        this.Task.trainingInformation.modelId
-      );
-      await savedModel.save(savePathDb);
-    },
-
-    async createNewModel() {
-      await this.Task.createModel();
-    },
-    getTheme: function() {
-      if (window.localStorage.getItem("dark")) {
-        return JSON.parse(window.localStorage.getItem("dark"));
+    getTheme() {
+      if (window.localStorage.getItem('dark')) {
+        return JSON.parse(window.localStorage.getItem('dark'));
       }
       return (
         !!window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
+        window.matchMedia('(prefers-color-scheme: dark)').matches
       );
     },
   },
   async mounted() {
     // This method is called when the component is created
-    this.$nextTick(async function() {
-      let saveName = "saved_".concat(this.Task.trainingInformation.modelId);
-      let modelInfo = await getModelInfo(saveName);
-
-      if (modelInfo != undefined) {
-        let date = modelInfo.modelArtifactsInfo.dateSaved;
-        this.dateSaved =
-          date.getDate() +
-          "/" +
-          (date.getMonth() + 1) +
-          "/" +
-          date.getFullYear();
-        this.hourSaved = date.getHours() + "h" + date.getMinutes();
-        this.savedModelExists = true;
+    this.$nextTick(async function () {
+      /**
+       * If the IndexedDB is turned on and a working model exists in IndexedDB
+       * on loading the description frame, then display the model restoration
+       * feature.
+       */
+      if (this.useIndexedDB) {
+        let workingModelMetadata = await memory.getWorkingModelMetadata(
+          this.Task.taskID,
+          this.Task.trainingInformation.modelID
+        );
+        if (workingModelMetadata) {
+          this.workingModelExistsOnMount = true;
+          this.workingModelExists = true;
+          let date = workingModelMetadata.dateSaved;
+          let zeroPad = (number) => String(number).padStart(2, '0');
+          this.dateSaved = [
+            date.getDate(),
+            date.getMonth() + 1,
+            date.getFullYear(),
+          ]
+            .map(zeroPad)
+            .join('/');
+          this.hourSaved = [date.getHours(), date.getMinutes()]
+            .map(zeroPad)
+            .join('h');
+        }
       }
     });
   },
