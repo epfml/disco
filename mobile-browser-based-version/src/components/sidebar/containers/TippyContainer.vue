@@ -20,7 +20,7 @@
       </span>
       <h2 class="text-xl font-medium text-gray-500 dark:text-light"
       >
-        Model Library
+        {{this.title}}
       </h2>
     </div>
     <!-- Content -->
@@ -232,8 +232,11 @@ import * as tf from '@tensorflow/tfjs';
 import { mapState } from 'vuex';
 
 export default {
-  name: 'model-library',
+  name: 'tippy-container',
   emits: ['switch-panel'],
+  props: {
+      title: {default: '', type: String}
+  },
   data() {
     return {
       modelMap: new Map(),
