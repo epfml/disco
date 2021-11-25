@@ -55,31 +55,7 @@
         <!-- Decentralized button -->
         <button
           v-on:click="setDecentralized"
-          class="
-            flex
-            items-center
-            justify-center
-            px-4
-            py-2
-            space-x-4
-            transition-colors
-            border
-            rounded-md
-            hover:text-gray-900 hover:border-gray-900
-            dark:border-primary
-            dark:hover:text-primary-100
-            dark:hover:border-primary-light
-            focus:outline-none
-            focus:ring
-            focus:ring-primary-lighter
-            focus:ring-offset-2
-            dark:focus:ring-offset-dark dark:focus:ring-primary-dark
-          "
-          :class="{
-            'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-              isDecentralized,
-            'text-gray-500 dark:text-primary-light': !isDecentralized,
-          }"
+          :class="buttonClass(isDecentralized)"
         >
           <span>
             <svg
@@ -103,31 +79,7 @@
         <!-- Federated button -->
         <button
           v-on:click="setFederated"
-          class="
-            flex
-            items-center
-            justify-center
-            px-4
-            py-2
-            space-x-4
-            transition-colors
-            border
-            rounded-md
-            hover:text-gray-900 hover:border-gray-900
-            dark:border-primary
-            dark:hover:text-primary-100
-            dark:hover:border-primary-light
-            focus:outline-none
-            focus:ring
-            focus:ring-primary-lighter
-            focus:ring-offset-2
-            dark:focus:ring-offset-dark dark:focus:ring-primary-dark
-          "
-          :class="{
-            'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-              isFederated,
-            'text-gray-500 dark:text-primary-light': !isFederated,
-          }"
+          :class="buttonClass(isFederated)"
         >
           <span>
             <svg
@@ -151,11 +103,8 @@
     </div>
     <div class="overflow-hidden hover:overflow-y-auto">
       <!-- IndexedDB -->
-      <div class="p-4 space-y-4 md:p-8">
-        <h6 class="text-lg font-medium text-gray-400 dark:text-light">
-          Model library
-        </h6>
-        <span class="text-s">
+      <tippy-card v-slot="{ state: useIndexedDB }" title="Model library">
+          <span class="text-s">
           Turn on to get storage options for your trained models. This uses your
           browser's own database, namely
           <button class="text-blue-600">
@@ -167,6 +116,7 @@
             ></button
           >.<br />
         </span>
+
         <div class="flex items-center justify-center">
           <button
             class="
@@ -193,17 +143,8 @@
           >
             <span class="text-s"> Use model library </span>
             <div class="relative focus:outline-none">
-              <div
-                class="
-                  w-12
-                  h-6
-                  transition
-                  rounded-full
-                  outline-none
-                  bg-primary-100
-                  dark:bg-primary-darker
-                "
-              ></div>
+              <div class="w-12 h-6 transition rounded-full outline-none bg-primary-100 dark:bg-primary-darker">
+              </div>
               <div
                 class="
                   absolute
@@ -229,12 +170,10 @@
             </div>
           </button>
         </div>
-      </div>
+
+      </tippy-card>
       <!-- Theme -->
-      <div class="p-4 space-y-4 md:p-8">
-        <h6 class="text-lg font-medium text-gray-400 dark:text-light">
-          Theme mode
-        </h6>
+      <tippy-card v-slot="{ state: isDark }" title="Theme mode">
         <div class="flex items-center justify-center space-x-8">
           <!-- Light button -->
           <button
@@ -332,7 +271,9 @@
             <span>Dark</span>
           </button>
         </div>
-      </div>
+
+      </tippy-card>
+      
 
       <!-- Colors -->
       <div class="p-4 space-y-4 md:p-8">
@@ -377,20 +318,25 @@
 </template>
 <script>
 import { mapState, mapMutations } from 'vuex';
+import TippyCard from './containers/TippyCard.vue';
 
 export default {
   name: 'settings',
-  computed: {
-    ...mapState(['useIndexedDB', 'isDark']),
-    isDecentralized() {
-      return this.$i18n.locale === 'deai';
-    },
-    isFederated() {
-      return this.$i18n.locale === 'feai';
-    },
+  components: {
+    TippyCard,
+  },
+  compute: {
+    ...mapState(['useIndexedDB', 'isDark', 'isDecentralized'])
   },
   methods: {
-    ...mapMutations(['setIndexedDB', 'setAppTheme']),
+    buttonClass: function(state) {
+      return `flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark ${
+        state
+          ? "border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100"
+          : "text-gray-500 dark:text-primary-light"
+      }`;
+    },
+    ...mapMutations(['setIndexedDB', 'setAppTheme', 'setPlatform']),
     toggleIndexedDB() {
       this.setIndexedDB(!this.useIndexedDB && window.indexedDB);
     },
@@ -438,9 +384,11 @@ export default {
       this.setBrowserTheme(true);
     },
     setDecentralized() {
+      this.setPlatform(true);
       this.$i18n.locale = 'deai';
     },
     setFederated() {
+       this.setPlatform(false);
       this.$i18n.locale = 'feai';
     },
   },
