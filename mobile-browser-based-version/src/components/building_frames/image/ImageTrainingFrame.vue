@@ -1,9 +1,8 @@
 <template>
-  <TrainingFrame
+  <training-frame
     :Id="Id"
     :Task="Task"
     :dataPreprocessing="dataPreprocessing"
-    :num_peers="num_peers"
     :nbrClasses="Task.trainingInformation.LABEL_LIST.length"
     :precheckData="precheckData"
   >
@@ -18,23 +17,26 @@
       </div>
     </template>
     <template v-slot:extra></template>
-  </TrainingFrame>
+  </training-frame>
 </template>
 
 <script>
-import { checkData } from "../../../helpers/data_validation_script/helpers-image-tasks";
-import TrainingFrame from "../containers/TrainingFrame";
+import { checkData } from '../../../helpers/data_validation/helpers_image_tasks.js';
+import TrainingFrame from '../containers/TrainingFrame.vue';
 
 export default {
-  name: "ImageTrainingFrame",
+  name: 'image-training-frame',
   props: {
     Id: String,
     Task: Object,
   },
+  components: {
+    TrainingFrame,
+  },
   data() {
     return {
       // variables for general informations
-      dataExampleImage: "",
+      dataExampleImage: '',
       dataExample: null,
       // different task labels
       taskLabels: [],
@@ -42,10 +44,10 @@ export default {
   },
   methods: {
     getImage(url) {
-      if (url == "") {
+      if (url == '') {
         return null;
       }
-      var images = require.context("../../../../example_training_data/", false);
+      var images = require.context('../../../../example_training_data/', false);
       return images(url);
     },
     async dataPreprocessing(filesElement) {
@@ -58,12 +60,9 @@ export default {
       return checkData(filesElement, info);
     },
   },
-  components: {
-    TrainingFrame,
-  },
   async mounted() {
     // This method is called when the component is created
-    this.$nextTick(async function() {
+    this.$nextTick(async function () {
       // initialize information variables
       this.dataExample = this.Task.displayInformation.dataExample;
       this.taskLabels = this.Task.trainingInformation.LABEL_LIST;

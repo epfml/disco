@@ -3,7 +3,7 @@
     <template v-slot:icon><upload /></template>
     <template v-slot:extra>
       <div v-for="item in formatLabels()" :key="item">
-        <SingleUploadFrame
+        <single-upload-frame
           :Id="Id"
           :Task="Task"
           :fileUploadManager="fileUploadManager"
@@ -17,18 +17,22 @@
 </template>
 
 <script>
-import Upload from "../../../assets/svg/Upload.vue";
-import IconCard from "../../containers/IconCard.vue";
-import SingleUploadFrame from "./SingleUploadFrame";
+import Upload from '../../../assets/svg/Upload.vue';
+import IconCard from '../../containers/IconCard.vue';
+import SingleUploadFrame from './SingleUploadFrame.vue';
 
 export default {
-  name: "UploadingFrame",
+  name: 'uploading-frame',
   props: {
     Id: String,
     Task: Object,
     fileUploadManager: Object,
-    displayLabels : {default:true, type: Boolean},
-
+    displayLabels: { default: true, type: Boolean },
+  },
+  components: {
+    SingleUploadFrame,
+    Upload,
+    IconCard,
   },
   data() {
     return {
@@ -39,25 +43,27 @@ export default {
   },
   methods: {
     preview() {
+      if(this.Id == "cifar10-model") {
+        return false
+      }
       return this.csvLabels || this.nbrLabels == 1;
     },
     header() {
-      return !this.displayLabels ? 'Upload My Data' : this.csvLabels ? 'Link My Data' : 'Connect Data'
+      return !this.displayLabels
+        ? 'Upload My Data'
+        : this.csvLabels
+        ? 'Link My Data'
+        : 'Connect Data';
     },
     formatLabels() {
-      return !this.displayLabels ?
-        ['']
-        : this.csvLabels 
-        ? ["Images", "Labels"]
+      return !this.displayLabels
+        ? ['']
+        : this.csvLabels
+        ? ['Images', 'Labels']
         : this.nbrLabels == 1
         ? [1]
         : this.labels;
     },
-  },
-  components: {
-    SingleUploadFrame,
-    Upload,
-    IconCard,
   },
   mounted() {
     if (this.Task.trainingInformation.LABEL_LIST) {
@@ -66,7 +72,6 @@ export default {
     } else {
       this.nbrLabels = 1;
     }
-      
     if (this.Task.trainingInformation.LABEL_ASSIGNMENT) {
       this.csvLabels = true;
     }

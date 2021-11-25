@@ -16,10 +16,10 @@
 </template>
 <script>
 export default {
-  name: "clock",
+  name: 'clock',
   props: {
-    customClass: { default: "bi bi-ui-checks w-7 h-7", type: String },
-    viewBox: { default: "0 0 16 16", type: String },
+    customClass: { default: 'bi bi-ui-checks w-7 h-7', type: String },
+    viewBox: { default: '0 0 16 16', type: String },
   },
 };
 </script>

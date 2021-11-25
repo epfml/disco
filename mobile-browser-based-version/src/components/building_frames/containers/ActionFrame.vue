@@ -1,6 +1,16 @@
 <template>
   <div
-    class="flex flex-col pt-4 items-right justify-start flex-1 h-full min-h-screen p-4 overflow-x-hidden overflow-y-auto"
+    class="
+      flex flex-col
+      pt-4
+      items-right
+      justify-start
+      flex-1
+      h-full
+      min-h-screen
+      p-4
+      overflow-x-hidden overflow-y-auto
+    "
   >
     <!-- Data Format Card -->
     <a id="overview-target">
@@ -22,18 +32,17 @@
         </template>
       </icon-card>
     </a>
-    <slot name=action></slot>
-
+    <slot name="action"></slot>
   </div>
 </template>
 
 <script>
-import IconCard from "../../containers/IconCard";
-import CheckList from "../../../assets/svg/CheckList";
-import FileEarmarkRuled from "../../../assets/svg/FileEarmarkRuled";
+import IconCard from '../../containers/IconCard.vue';
+import CheckList from '../../../assets/svg/CheckList.vue';
+import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue';
 
 export default {
-  name: "ActionFrame",
+  name: 'action-frame',
   props: {
     Task: Object,
   },
@@ -45,18 +54,18 @@ export default {
   data() {
     return {
       // variables for general informations
-      dataFormatInfoText: "",
-      dataExampleText: "",
+      dataFormatInfoText: '',
+      dataExampleText: '',
     };
   },
   async mounted() {
     // This method is called when the component is created
-    this.$nextTick(async function() {
+    this.$nextTick(async function () {
       // initialize information variables
-      this.dataFormatInfoText = this.Task.displayInformation.dataFormatInformation;
+      this.dataFormatInfoText =
+        this.Task.displayInformation.dataFormatInformation;
       this.dataExampleText = this.Task.displayInformation.dataExampleText;
-      console.log(`Mounting ${this.Task.trainingInformation.modelId}`);
-
+      console.log(`Mounting ${this.Task.trainingInformation.modelID}`);
     });
   },
 };

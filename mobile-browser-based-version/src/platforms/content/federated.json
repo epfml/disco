@@ -1,12 +1,6 @@
 {
+  "platform":"federated",
   "name":"feai",
-  "server" : {
-    "host": "deai-313515.ew.r.appspot.com",
-    "fullHost" : "https://@:server.host",
-    "tasksPath": "@:{'server.fullHost'}/tasks",
-    "taskPath" : "/@:{'name'}/{taskId}",
-    "peerjsPath": "@:{'server.fullHost'}@:{'server.taskPath'}/peerjs/peers"
-  },
   "home": {
     "title": {
       "name": "FeAI",

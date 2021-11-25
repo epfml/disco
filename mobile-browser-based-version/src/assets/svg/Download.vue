@@ -17,10 +17,10 @@
 </template>
 <script>
 export default {
-  name: "download",
+  name: 'download',
   props: {
-    customClass: { default: "bi bi-card-checklist w-7 h-7", type: String },
-    viewBox: { default: "0 0 16 16", type: String },
+    customClass: { default: 'bi bi-card-checklist w-7 h-7', type: String },
+    viewBox: { default: '0 0 16 16', type: String },
   },
 };
 </script>

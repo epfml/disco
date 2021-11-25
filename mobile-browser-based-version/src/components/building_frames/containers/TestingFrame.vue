@@ -1,10 +1,10 @@
 <template>
-  <ActionFrame :Task="Task">
+  <action-frame :Task="Task">
     <template v-slot:dataExample><slot name="dataExample"></slot></template>
     <template v-slot:action>
       <!-- Upload File -->
       <div class="relative">
-        <UploadingFrame
+        <uploading-frame
           v-bind:Id="Id"
           v-bind:Task="Task"
           v-bind:fileUploadManager="fileUploadManager"
@@ -15,24 +15,24 @@
 
       <!-- Test Button -->
       <div class="flex items-center justify-center p-4">
-        <customButton v-on:click="testModel()" :center="true">
+        <custom-button v-on:click="testModel()" :center="true">
           Test
-        </customButton>
+        </custom-button>
       </div>
       <!-- Display predictions -->
       <slot name="predictionResults"></slot>
     </template>
-  </ActionFrame>
+  </action-frame>
 </template>
 
 <script>
-import { FileUploadManager } from "../../../helpers/data_validation_script/file_upload_manager";
-import UploadingFrame from "../upload/UploadingFrame";
-import CustomButton from "../../simple/CustomButton";
-import ActionFrame from "./ActionFrame";
+import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
+import UploadingFrame from '../upload/UploadingFrame.vue';
+import CustomButton from '../../simple/CustomButton.vue';
+import ActionFrame from './ActionFrame.vue';
 
 export default {
-  name: "TestingFrame",
+  name: 'TestingFrame',
   props: {
     Id: String,
     Task: Object,
@@ -54,10 +54,10 @@ export default {
   },
 
   methods: {
-    async downloadPredictions(csvContent, fileName = "predictions.csv") {
+    async downloadPredictions(csvContent, fileName = 'predictions.csv') {
       // artificially creates a <a> tag to simulate click event and triger download
-      var downloadLink = document.createElement("a");
-      var blob = new Blob(["\ufeff", csvContent]);
+      var downloadLink = document.createElement('a');
+      var blob = new Blob(['\ufeff', csvContent]);
       var url = URL.createObjectURL(blob);
       downloadLink.href = url;
       downloadLink.download = fileName;
@@ -94,7 +94,7 @@ export default {
         }
         // prediction
         this.predictions = await this.makePredictions(filesElement);
-        // reset fileloader 
+        // reset fileloader
         this.fileUploadManager.clear();
         if (this.predictions) {
           let csvContent = await this.predictionsToCsv(this.predictions);

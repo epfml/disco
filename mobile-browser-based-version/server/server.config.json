@@ -1,6 +1,0 @@
-{
-  "serverPort": 8080,
-  "taskStartPort": 9000,
-  "host": "localhost",
-  "baseURL": "http://localhost:8080/"
-}

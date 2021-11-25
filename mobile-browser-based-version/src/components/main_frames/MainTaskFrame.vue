@@ -13,13 +13,47 @@
             type="password"
             v-model="inputPassword"
             placeholder="Enter password"
-            class="border text-lg ml-3 py-2 px-4 placeholder-gray-400 text-gray-700 dark:text-white relative bg-white dark:bg-dark rounded text-sm shadow outline-none focus:outline-none focus:shadow-outline"
+            class="
+              border
+              text-lg
+              ml-3
+              py-2
+              px-4
+              placeholder-gray-400
+              text-gray-700
+              dark:text-white
+              relative
+              bg-white
+              dark:bg-dark
+              rounded
+              text-sm
+              shadow
+              outline-none
+              focus:outline-none focus:shadow-outline
+            "
             v-bind:class="{ 'border-red-500': incorrectLogin }"
           />
           <button
             v-on:click="login()"
             type="button"
-            class="text-lg border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+            class="
+              text-lg
+              border-transparent
+              bg-green-500
+              ml-3
+              py-2
+              px-4
+              font-bold
+              uppercase
+              text-white
+              rounded
+              transform
+              transition
+              motion-reduce:transform-none
+              hover:scale-110
+              duration-500
+              focus:outline-none
+            "
           >
             Login
           </button>
@@ -34,15 +68,29 @@
     </div>
     <div v-else>
       <header
-        class="p-1 flex items-center justify-between p-2 bg-white border-b dark:bg-darker dark:border-primary-darker"
+        class="
+          p-1
+          flex
+          items-center
+          justify-between
+          p-2
+          bg-white
+          border-b
+          dark:bg-darker dark:border-primary-darker
+        "
       >
         <div class="flex items-center md:space-x-0">
           <!-- Sidebar button (for small screens) -->
           <button
             v-on:click="isSidebarOpen = !isSidebarOpen"
-            class="rounded-md text-primary-lighter bg-primary-50 dark:bg-primary-darker dark:text-white"
+            class="
+              rounded-md
+              text-primary-lighter
+              bg-primary-50
+              dark:bg-primary-darker dark:text-white
+            "
           >
-            <span class="sr-only">Open main manu</span>
+            <span class="sr-only">Open main menu</span>
             <span aria-hidden="true">
               <svg
                 v-show="!isSidebarOpen && window.width <= 1024"
@@ -81,18 +129,44 @@
         </div>
       </header>
       <div
-        class="flex h-screen antialiased text-gray-900 bg-gray-100 dark:bg-dark dark:text-light"
+        class="
+          flex
+          h-screen
+          antialiased
+          text-gray-900
+          bg-gray-100
+          dark:bg-dark dark:text-light
+        "
       >
         <!-- Sidebar content -->
         <aside
           v-show="isSidebarOpen"
           tabindex="-1"
-          class="fixed inset-y-1 z-10 flex flex-shrink-0 h-full overflow-hidden bg-white border-r lg:static dark:border-primary-darker dark:bg-darker"
+          class="
+            fixed
+            inset-y-1
+            z-20
+            flex flex-shrink-0
+            h-full
+            overflow-hidden
+            bg-white
+            border-r
+            lg:static
+            dark:border-primary-darker dark:bg-darker
+          "
         >
-          <div class="flex flex-col flex-shrink-0 h-full">
+          <div class="flex flex-col flex-shrink-0 h-full z-30">
             <nav
               aria-label="Main"
-              class="flex-1 w-64 px-2 py-4 space-y-2 overflow-y-hidden hover:overflow-y-auto"
+              class="
+                flex-1
+                w-64
+                px-2
+                py-4
+                space-y-2
+                overflow-y-hidden
+                hover:overflow-y-auto
+              "
             >
               <!-- Model Description links -->
               <div>
@@ -103,7 +177,17 @@
                     openSidebarMenu('model_desc');
                     goToModelDescription();
                   "
-                  class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                  class="
+                    flex
+                    items-center
+                    p-2
+                    text-gray-500
+                    transition-colors
+                    rounded-md
+                    dark:text-light
+                    hover:bg-primary-100
+                    dark:hover:bg-primary
+                  "
                   :class="{
                     'bg-primary-100 dark:bg-primary':
                       isActiveModelDesc || openModelDesc,
@@ -127,9 +211,7 @@
                       d="M3 8.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5zm0-5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-1z"
                     />
                   </svg>
-                  <span class="ml-2 text-sm">
-                    Overview
-                  </span>
+                  <span class="ml-2 text-sm"> Overview </span>
                 </a>
               </div>
 
@@ -143,7 +225,17 @@
                     openSidebarMenu('upload_data');
                     goToTraining();
                   "
-                  class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                  class="
+                    flex
+                    items-center
+                    p-2
+                    text-gray-500
+                    transition-colors
+                    rounded-md
+                    dark:text-light
+                    hover:bg-primary-100
+                    dark:hover:bg-primary
+                  "
                   :class="{
                     'bg-primary-100 dark:bg-primary':
                       isActiveUploadData || openUploadData,
@@ -183,7 +275,17 @@
                     $event.preventDefault();
                     openSidebarMenu('model_statistic');
                   "
-                  class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                  class="
+                    flex
+                    items-center
+                    p-2
+                    text-gray-500
+                    transition-colors
+                    rounded-md
+                    dark:text-light
+                    hover:bg-primary-100
+                    dark:hover:bg-primary
+                  "
                   :class="{
                     'bg-primary-100 dark:bg-primary':
                       isActiveModelStatistic || openModelStatistic,
@@ -223,7 +325,17 @@
                     openSidebarMenu('test_model');
                     goToTesting();
                   "
-                  class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                  class="
+                    flex
+                    items-center
+                    p-2
+                    text-gray-500
+                    transition-colors
+                    rounded-md
+                    dark:text-light
+                    hover:bg-primary-100
+                    dark:hover:bg-primary
+                  "
                   :class="{
                     'bg-primary-100 dark:bg-primary':
                       isActiveTestModel || openTestModel,
@@ -277,7 +389,15 @@
         </div>
       </div>
       <footer
-        class="flex items-center justify-between p-4 bg-white border-t dark:bg-darker dark:border-primary-darker"
+        class="
+          flex
+          items-center
+          justify-between
+          p-4
+          bg-white
+          border-t
+          dark:bg-darker dark:border-primary-darker
+        "
       >
         <div>De-AI &copy; 2021</div>
         <div>
@@ -296,8 +416,9 @@
 
 <script>
 var Hashes = require('jshashes');
+
 export default {
-  name: 'MainTaskFrame',
+  name: 'main-task-frame',
   props: {
     Id: String,
     Task: Object,
@@ -313,7 +434,7 @@ export default {
       openTestModel: false,
       isActiveModelStatistic: false,
       openModelStatistic: false,
-      isSidebarOpen: window.innerWidth <= 1024 ? false : true,
+      isSidebarOpen: window.innerWidth > 1024,
       window: {
         width: window.innerWidth,
         height: window.innerHeight,
@@ -326,14 +447,14 @@ export default {
   methods: {
     goToTraining() {
       this.$router.push({
-        name: this.Task.trainingInformation.modelId + '.training',
-        params: { Id: this.Task.trainingInformation.modelId },
+        name: this.Task.taskID + '.training',
+        params: { Id: this.Task.taskID },
       });
     },
     goToTesting() {
       this.$router.push({
-        name: this.Task.trainingInformation.modelId + '.testing',
-        params: { Id: this.Task.trainingInformation.modelId },
+        name: this.Task.taskID + '.testing',
+        params: { Id: this.Task.taskID },
       });
     },
     goToModelDescription() {
@@ -344,11 +465,7 @@ export default {
     async handleResize() {
       this.window.width = window.innerWidth;
       this.window.height = window.innerHeight;
-      if (this.window.width <= 1024) {
-        this.isSidebarOpen = false;
-      } else {
-        this.isSidebarOpen = true;
-      }
+      this.isSidebarOpen = this.window.width > 1024;
     },
     login() {
       var SHA256 = new Hashes.SHA256();
@@ -366,10 +483,10 @@ export default {
       }
     },
     openSidebarMenu(menu) {
-      this.openModelDesc = menu === 'model_desc' ? true : false;
-      this.openUploadData = menu === 'upload_data' ? true : false;
-      this.openModelStatistic = menu === 'model_statistic' ? true : false;
-      this.openTestModel = menu === 'test_model' ? true : false;
+      this.openModelDesc = menu === 'model_desc';
+      this.openUploadData = menu === 'upload_data';
+      this.openModelStatistic = menu === 'model_statistic';
+      this.openTestModel = menu === 'test_model';
     },
   },
   async mounted() {
@@ -380,7 +497,7 @@ export default {
   activated() {
     this.TaskTitle = this.Task.displayInformation.taskTitle;
     let prevState = this.$store.getters.globalTaskFrameState(
-      this.Task.trainingInformation.modelId
+      this.Task.trainingInformation.modelID
     );
 
     if (prevState) {
@@ -404,12 +521,12 @@ export default {
       this.openTestModel = false;
       this.isActiveModelStatistic = false;
       this.openModelStatistic = false;
-      this.isSidebarOpen = window.innerWidth <= 1024 ? false : true;
+      this.isSidebarOpen = window.innerWidth > 1024;
     }
   },
   async deactivated() {
     let currentState = {
-      modelId: this.Task.trainingInformation.modelId,
+      modelID: this.Task.trainingInformation.modelID,
       isActiveModelDesc: this.isActiveModelDesc,
       openModelDesc: this.openModelDesc,
       isActiveUploadData: this.isActiveUploadData,

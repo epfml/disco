@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
 import { Task } from './task.js';
-import { getTopKClasses } from '../helpers/testing_script/testing_script';
+import { getTopKClasses } from '../helpers/testing/testing_script';
 import Papa from 'papaparse';
 
 export class ImageTask extends Task {
@@ -38,11 +38,7 @@ export class ImageTask extends Task {
         3,
       ]);
 
-      const processedImg = batched
-        .toFloat()
-        .div(127.5)
-        .sub(1)
-        .expandDims(0);
+      const processedImg = batched.toFloat().div(127.5).sub(1).expandDims(0);
 
       let result = null;
       console.log(this.trainingInformation.aggregateImagesById);
@@ -76,7 +72,7 @@ export class ImageTask extends Task {
     });
 
     console.log('User Files Validated. Start parsing.');
-    if ('LABEL_ASSIGNMENT' in this.trainingInformation){
+    if ('LABEL_ASSIGNMENT' in this.trainingInformation) {
       var label_file = imageUri.pop();
       labels.pop();
       labels = await this.createLabels(labels, label_file);
@@ -192,8 +188,8 @@ export class ImageTask extends Task {
     }
 
     // const xs = tf.concat(xsArray, 0);
-    console.log('IDS')
-    console.log(ids)
+    console.log('IDS');
+    console.log(ids);
 
     return { xTest: xsArray, ids: ids };
   }
@@ -281,11 +277,11 @@ export class ImageTask extends Task {
     return new Promise((resolve, reject) => {
       Papa.parse(label_file, {
         download: true,
-        step: function(row) {
+        step: function (row) {
           let idx = filenames.indexOf(row.data[0]);
           if (idx >= 0) labels[idx] = lnames[row.data[1]];
         },
-        complete: function() {
+        complete: function () {
           console.log('Read labels:', labels);
           resolve(labels);
         },

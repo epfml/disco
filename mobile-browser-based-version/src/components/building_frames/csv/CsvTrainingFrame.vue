@@ -1,9 +1,8 @@
 <template>
-  <TrainingFrame
+  <training-frame
     :Id="Id"
     :Task="Task"
     :dataPreprocessing="dataPreprocessing"
-    :num_peers="num_peers"
     :nbrClasses="1"
     :precheckData="precheckData"
   >
@@ -27,7 +26,13 @@
               <td
                 v-for="example in dataExample"
                 :key="example"
-                class="border border-emerald-500 px-4 py-2 text-emerald-600 font-medium"
+                class="
+                  border border-emerald-500
+                  px-4
+                  py-2
+                  text-emerald-600
+                  font-medium
+                "
               >
                 {{ example.columnData }}
               </td>
@@ -55,7 +60,20 @@
                 :key="header.id"
               >
                 <div
-                  class="select-none p-2 transition duration-500 ease-in-out transform hover:-translate-y-2 rounded-2xl border-2 p-6 hover:shadow-2xl border-primary-dark"
+                  class="
+                    select-none
+                    p-2
+                    transition
+                    duration-500
+                    ease-in-out
+                    transform
+                    hover:-translate-y-2
+                    rounded-2xl
+                    border-2
+                    p-6
+                    hover:shadow-2xl
+                    border-primary-dark
+                  "
                 >
                   <div class="grid grid-cols-3 items-center p-2">
                     <div class="pl-1">
@@ -65,15 +83,27 @@
                         </div>
                       </div>
                     </div>
-                    <div>
-                      &larr;
-                    </div>
+                    <div>&larr;</div>
                     <div class="mb-3 pt-0">
                       <input
                         type="text"
                         v-model="header.userHeader"
                         placeholder="Enter your header"
-                        class="p-1 placeholder-gray-400 text-gray-700 dark:text-white relative bg-white dark:bg-dark rounded text-sm shadow outline-none focus:outline-none focus:shadow-outline w-full"
+                        class="
+                          p-1
+                          placeholder-gray-400
+                          text-gray-700
+                          dark:text-white
+                          relative
+                          bg-white
+                          dark:bg-dark
+                          rounded
+                          text-sm
+                          shadow
+                          outline-none
+                          focus:outline-none focus:shadow-outline
+                          w-full
+                        "
                       />
                     </div>
                   </div>
@@ -84,40 +114,43 @@
         </template>
       </icon-card>
     </template>
-  </TrainingFrame>
+  </training-frame>
 </template>
 
 <script>
-import TrainingFrame from "../containers/TrainingFrame";
-import IconCard from "../../containers/IconCard";
-import Bezier2 from "../../../assets/svg/Bezier2";
+import TrainingFrame from '../containers/TrainingFrame.vue';
+import IconCard from '../../containers/IconCard.vue';
+import Bezier2 from '../../../assets/svg/Bezier2.vue';
 
 export default {
-  name: "CsvTrainingFrame",
+  name: 'csv-training-frame',
   props: {
     Id: String,
     Task: Object,
   },
   data() {
     return {
-      // headers related to training task of containing item of the form {id: "", userHeader: ""}
+      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
-      dataExample : null,
+      dataExample: null,
     };
   },
 
   methods: {
     async dataPreprocessing(filesElement) {
       return new Promise((resolve, reject) => {
-      let reader = new FileReader();
-      reader.onload = async (e) => {
-        // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-        var processedData = await this.Task.dataPreprocessing(e, this.headers);
-        resolve(processedData);
-      };
-      reader.readAsText(filesElement);
-    });
-    }
+        let reader = new FileReader();
+        reader.onload = async (e) => {
+          // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
+          var processedData = await this.Task.dataPreprocessing(
+            e,
+            this.headers
+          );
+          resolve(processedData);
+        };
+        reader.readAsText(filesElement);
+      });
+    },
   },
   components: {
     TrainingFrame,
@@ -127,8 +160,8 @@ export default {
 
   async mounted() {
     // This method is called when the component is created
-    this.$nextTick(async function() {
-      this.dataExample = this.Task.displayInformation.dataExample;  
+    this.$nextTick(async function () {
+      this.dataExample = this.Task.displayInformation.dataExample;
       this.Task.displayInformation.headers.forEach((item) => {
         this.headers.push({ id: item, userHeader: item });
       });

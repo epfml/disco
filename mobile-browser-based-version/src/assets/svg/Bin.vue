@@ -15,15 +15,15 @@
 </template>
 <script>
 export default {
-  name: "bin",
+  name: 'bin',
   props: {
     customClass: {
-      default: "pointer-events-none fill-current w-4 h-4 ml-auto",
+      default: 'pointer-events-none fill-current w-4 h-4 ml-auto',
       type: String,
     },
-    viewBox: { default: "0 0 24 24", type: String },
-    width: {default:"24", type:String},
-    height: {default:"24",type:String},
+    viewBox: { default: '0 0 24 24', type: String },
+    width: { default: '24', type: String },
+    height: { default: '24', type: String },
   },
 };
 </script>

@@ -14,10 +14,10 @@
 </template>
 <script>
 export default {
-  name: "picture-background",
+  name: 'picture-background',
   props: {
-    customClass: { default: "fill-current w-4 h-4 ml-auto pt-", type: String },
-    viewBox: { default: "0 0 24 24", type: String },
+    customClass: { default: 'fill-current w-4 h-4 ml-auto pt-', type: String },
+    viewBox: { default: '0 0 24 24', type: String },
     width: { default: 24, type: Number },
     height: { default: 24, type: Number },
   },
