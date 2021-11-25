@@ -58,27 +58,7 @@
         <div v-if="useIndexedDB">
           <div v-for="(item, idx) in modelMap" :key="idx">
             <div
-              class="
-                flex
-                items-center
-                grid-cols-3
-                justify-between
-                px-4
-                py-2
-                space-x-4
-                transition-colors
-                border
-                rounded-md
-                hover:text-gray-900 hover:border-gray-900
-                dark:border-primary
-                dark:hover:text-primary-100
-                dark:hover:border-primary-light
-                focus:outline-none
-                focus:ring
-                focus:ring-primary-lighter
-                focus:ring-offset-2
-                dark:focus:ring-offset-dark dark:focus:ring-primary-dark
-              "
+              class="flex items-center grid-cols-3 justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
             >
               <div
                 class="cursor-pointer w-2/3"
@@ -95,143 +75,25 @@
               <div class="w-1/9">
                 <button
                   v-on:click="deleteModel(item[0])"
-                  class="
-                    flex
-                    items-center
-                    justify-center
-                    px-4
-                    py-2
-                    space-x-4
-                    transition-colors
-                    border
-                    rounded-md
-                    hover:text-gray-900 hover:border-gray-900
-                    dark:border-primary
-                    dark:hover:text-primary-100
-                    dark:hover:border-primary-light
-                    focus:outline-none
-                    focus:ring
-                    focus:ring-primary-lighter
-                    focus:ring-offset-2
-                    dark:focus:ring-offset-dark dark:focus:ring-primary-dark
-                  "
-                  :class="{
-                    'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-                      isDark,
-                    'text-gray-500 dark:text-primary-light': !isDark,
-                  }"
+                  :class="buttonClass(isDark)"
                 >
-                  <span>
-                    <svg
-                      class="h-9 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 17 17"
-                      stroke="currentColor"
-                    >
-                      <path
-                        d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
-                      />
-                    </svg>
-                  </span>
+                  <span><bin2-icon /></span>
                 </button>
               </div>
               <div class="w-1/9">
                 <button
                   v-on:click="downloadModel(item[1])"
-                  class="
-                    flex
-                    items-center
-                    justify-center
-                    px-4
-                    py-2
-                    space-x-4
-                    transition-colors
-                    border
-                    rounded-md
-                    hover:text-gray-900 hover:border-gray-900
-                    dark:border-primary
-                    dark:hover:text-primary-100
-                    dark:hover:border-primary-light
-                    focus:outline-none
-                    focus:ring
-                    focus:ring-primary-lighter
-                    focus:ring-offset-2
-                    dark:focus:ring-offset-dark dark:focus:ring-primary-dark
-                  "
-                  :class="{
-                    'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-                      isDark,
-                    'text-gray-500 dark:text-primary-light': !isDark,
-                  }"
+                  :class="buttonClass(isDark)"
                 >
-                  <span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-9 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                  </span>
+                  <span><download-2-icon /></span>
                 </button>
               </div>
               <div class="w-1/9">
                 <button
                   v-on:click="loadModel(item[1])"
-                  class="
-                    flex
-                    items-center
-                    justify-center
-                    px-4
-                    py-2
-                    space-x-4
-                    transition-colors
-                    border
-                    rounded-md
-                    hover:text-gray-900 hover:border-gray-900
-                    dark:border-primary
-                    dark:hover:text-primary-100
-                    dark:hover:border-primary-light
-                    focus:outline-none
-                    focus:ring
-                    focus:ring-primary-lighter
-                    focus:ring-offset-2
-                    dark:focus:ring-offset-dark dark:focus:ring-primary-dark
-                  "
-                  :class="{
-                    'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-                      isDark,
-                    'text-gray-500 dark:text-primary-light': !isDark,
-                  }"
+                  :class="buttonClass(isDark)"
                 >
-                  <span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-9 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M12 14l9-5-9-5-9 5 9 5z" />
-                      <path
-                        d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
-                      />
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"
-                      />
-                    </svg>
-                  </span>
+                  <span><load-icon /></span>
                 </button>
               </div>
             </div>
@@ -242,48 +104,63 @@
   </div>
 </template>
 <script>
-import * as memory from '../../helpers/memory/helpers';
-import * as tf from '@tensorflow/tfjs';
-import { mapState } from 'vuex';
+import * as memory from "../../helpers/memory/helpers";
+import * as tf from "@tensorflow/tfjs";
+import { mapState } from "vuex";
+import Bin2Icon from "../../assets/svg/Bin2Icon.vue";
+import Download2Icon from "../../assets/svg/Download2Icon.vue";
+import LoadIcon from "../../assets/svg/LoadIcon.vue";
 
 export default {
-  name: 'model-library',
-  emits: ['switch-panel'],
+  name: "model-library",
+  emits: ["switch-panel"],
+  components: {
+    Bin2Icon,
+    Download2Icon,
+    LoadIcon,
+  },
   data() {
     return {
       modelMap: new Map(),
     };
   },
   computed: {
-    ...mapState(['useIndexedDB']),
+    ...mapState(["useIndexedDB"]),
   },
   methods: {
+    buttonClass: function(state) {
+      return `flex items-center grid-cols-3 justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark ${
+        state
+          ? "border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100"
+          : "text-gray-500 dark:text-primary-light"
+      }`;
+    },
     switchToSettings() {
-      this.$emit('switch-panel');
+      this.$emit("switch-panel");
     },
     async refreshModelLibrary() {
-      console.log('Refreshing the model library.');
+      console.log("Refreshing the model library.");
       this.modelMap.clear();
       await tf.io.listModels().then((models) => {
         for (let savePath in models) {
-          let [location, _, directory, task, name] = savePath.split('/');
-          if (!(location === 'indexeddb:' && directory === 'saved')) {
+          let [location, _, directory, task, name] = savePath.split("/");
+          if (!(location === "indexeddb:" && directory === "saved")) {
             continue;
           }
 
           let modelMetadata = models[savePath];
           let date = new Date(modelMetadata.dateSaved);
-          let zeroPad = (number) => String(number).padStart(2, '0');
+          let zeroPad = (number) => String(number).padStart(2, "0");
           let dateSaved = [
             date.getDate(),
             date.getMonth() + 1,
             date.getFullYear(),
           ]
             .map(zeroPad)
-            .join('/');
+            .join("/");
           let hourSaved = [date.getHours(), date.getMinutes()]
             .map(zeroPad)
-            .join('h');
+            .join("h");
           let size =
             modelMetadata.modelTopologyBytes +
             modelMetadata.weightSpecsBytes +
@@ -308,7 +185,7 @@ export default {
     },
 
     openTesting(modelMetadata) {
-      this.$router.push({ name: modelMetadata.taskID.concat('.testing') });
+      this.$router.push({ name: modelMetadata.taskID.concat(".testing") });
     },
 
     downloadModel(modelMetadata) {
