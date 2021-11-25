@@ -37,106 +37,21 @@
         <home-icon />
       </SidebarButton>
       <!-- Go to Task List page -->
-      <a
-        type="a"
-        data-title="Tasks"
-        data-placement="right"
-        v-on:click="goToTaskList()"
-        class="
-          p-2
-          transition-colors
-          duration-200
-          rounded-full
-          hover:text-primary hover:bg-primary-100
-          dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark
-          focus:outline-none focus:bg-primary-100
-          dark:focus:bg-primary-dark
-          focus:ring-primary-darker
-        "
-        v-bind:class="[
-          this.activePage === 'tasks' ? 'bg-primary' : 'bg-primary-50',
-          this.activePage === 'tasks' ? 'text-white' : 'text-primary-lighter',
-        ]"
-      >
-        <span class="sr-only">Task List</span>
+      <SidebarButton v-on:click="goToTaskList" hoverText="tasks" :activePage="activePage">
         <list-icon />
-      </a>
-
+      </SidebarButton>
       <!-- Display Model Library panel -->
-      <a
-        type="a"
-        data-title="Models"
-        data-placement="right"
-        v-on:click="openModelLibrary()"
-        class="
-          p-2
-          text-primary-lighter
-          transition-colors
-          duration-200
-          rounded-full
-          bg-primary-50
-          hover:text-primary hover:bg-primary-100
-          dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark
-          focus:outline-none focus:bg-primary-100
-          dark:focus:bg-primary-dark
-          focus:ring-primary-darker
-        "
-      >
-        <span class="sr-only">Open Model Library</span>
+      <SidebarButton v-on:click="openModelLibrary" hoverText="models" :activePage="activePage">
         <file-icon />
-      </a>
-
+      </SidebarButton>
       <!-- Go to Information page -->
-      <!-- Active classes "bg-primary text-white" -->
-      <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
-      <a
-        type="a"
-        data-title="Information"
-        data-placement="right"
-        v-on:click="goToInformation()"
-        class="
-          p-2
-          transition-colors
-          duration-200
-          rounded-full
-          hover:text-primary hover:bg-primary-100
-          dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark
-          focus:outline-none focus:bg-primary-100
-          dark:focus:bg-primary-dark
-          focus:ring-primary-darker
-        "
-        v-bind:class="[
-          this.activePage === 'info' ? 'bg-primary' : 'bg-primary-50',
-          this.activePage === 'info' ? 'text-white' : 'text-primary-lighter',
-        ]"
-      >
-        <span class="sr-only">Messages</span>
+      <SidebarButton v-on:click="goToInformation" hoverText="information" :activePage="activePage">
         <info-icon />
-      </a>
-
+      </SidebarButton>
       <!-- Display Settings panel-->
-      <a
-        type="a"
-        data-title="Settings"
-        data-placement="right"
-        v-on:click="openSettingsPanel()"
-        class="
-          p-2
-          transition-colors
-          duration-200
-          rounded-full
-          text-primary-lighter
-          bg-primary-50
-          hover:text-primary hover:bg-primary-100
-          dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark
-          focus:outline-none focus:bg-primary-100
-          dark:focus:bg-primary-dark
-          focus:ring-primary-darker
-        "
-      >
-        <span class="sr-only">Open Settings Panel</span>
+      <SidebarButton v-on:click="openSettingsPanel" hoverText="settings" :activePage="activePage">
         <settings-icon />
-      </a>
+      </SidebarButton>
     </div>
   </nav>
 
@@ -195,20 +110,7 @@
             v-on:click="closeMenu()"
             class="p-2 text-white rounded-md focus:outline-none focus:ring"
           >
-            <svg
-              class="w-5 h-5"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <cross-icon/>
           </button>
         </div>
         <!-- Panel content -->
@@ -231,6 +133,7 @@ import ListIcon from "../../assets/svg/ListIcon.vue";
 import InfoIcon from "../../assets/svg/InfoIcon.vue";
 import FileIcon from "../../assets/svg/FileIcon.vue";
 import SettingsIcon from "../../assets/svg/SettingsIcon.vue";
+import CrossIcon from "../../assets/svg/CrossIcon.vue";
 import SidebarButton from "./containers/SidebarButton.vue";
 export default {
   name: "Sidebar",
@@ -242,6 +145,7 @@ export default {
     InfoIcon,
     SettingsIcon,
     ListIcon,
+    CrossIcon,
     SidebarButton,
   },
   data() {
