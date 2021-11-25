@@ -144,16 +144,16 @@
     "trainingInformation": {
       "modelID": "cifar10-model",
       "port": 9001,
-      "epoch": 10,
+      "epoch": 25,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
-        "optimizer": "rmsprop",
+        "optimizer": "adam",
         "loss": "categoricalCrossentropy",
         "metrics": ["accuracy"]
       },
       "modelTrainData": {
-        "epochs": 10
+        "epochs": 20
       },
       "threshold": 1,
       "dataType": "image",
