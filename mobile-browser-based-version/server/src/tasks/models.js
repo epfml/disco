@@ -94,6 +94,7 @@ async function createCifar10Model() {
       padding: 'same',
     })
   );
+  
   model.add(
     tf.layers.conv2d({
       kernelSize: 3,
@@ -112,6 +113,19 @@ async function createCifar10Model() {
     })
   );
   model.add(tf.layers.dropout({ rate: 0.5 }));
+  model.add(
+    tf.layers.dense({
+      units: 256,
+      activation: 'relu',
+    })
+  );
+  model.add(tf.layers.dropout({ rate: 0.5 }));
+  model.add(
+    tf.layers.dense({
+      units: 128,
+      activation: 'relu',
+    })
+  );
   model.add(
     tf.layers.dense({
       units: 10,
