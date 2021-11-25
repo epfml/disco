@@ -17,7 +17,7 @@ export class ImageTask extends Task {
       img.width = this.trainingInformation.IMAGE_W;
       img.height = this.trainingInformation.IMAGE_H;
       img.onload = () => {
-        var output = tf.browser.fromPixels(img);
+        var output = tf.image.resizeBilinear(tf.browser.fromPixels(img), [this.trainingInformation.RESIZED_IMAGE_H, this.trainingInformation.RESIZED_IMAGE_W]);
         res(output);
       };
     });
@@ -31,10 +31,12 @@ export class ImageTask extends Task {
     }
     const tensor = await this.loadLocalImage(src);
 
+    console.log(this.trainingInformation.RESIZED_IMAGE_H, this.trainingInformation.RESIZED_IMAGE_H)
+
     const representation = tf.tidy(() => {
       const batched = tensor.reshape([
-        this.trainingInformation.IMAGE_H,
-        this.trainingInformation.IMAGE_W,
+        this.trainingInformation.RESIZED_IMAGE_H,
+        this.trainingInformation.RESIZED_IMAGE_W,
         3,
       ]);
 
