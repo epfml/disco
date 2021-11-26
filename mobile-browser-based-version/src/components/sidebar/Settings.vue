@@ -1,164 +1,125 @@
 <template>
-  <!-- Panel content -->
-  <div class="flex flex-col h-screen">
-    <!-- Panel header -->
-    <div
-      class="
-        flex flex-col
-        items-center
-        justify-center
-        flex-shrink-0
-        px-4
-        py-8
-        space-y-4
-        border-b
-        dark:border-primary-dark
-      "
-    >
-      <span class="text-gray-500 dark:text-primary">
-        <svg
-          class="w-7 h-7"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-          />
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
-      </span>
-      <h2
-        id="settinsPanelLabel"
-        class="text-xl font-medium text-gray-500 dark:text-light"
-      >
-        Settings
-      </h2>
-    </div>
-    <!-- Content -->
-    <!-- Platform -->
-    <tippy-card title="Platform">
-      <div class="flex items-center space-x-8">
-        <!-- Decentralized button -->
-        <button
-          v-on:click="setDecentralized"
-          :class="buttonClass(this.$store.state.isDecentralized)"
-        >
-          <span><decentralised-icon/></span>
-          <span>Decentralized</span>
-        </button>
+  <tippy-container title="Settings">
+    <template v-slot:icon> <settings-icon /></template>
+    <template v-slot:content>
+      <!-- Platform -->
+      <tippy-card title="Platform">
+        <div class="flex items-center space-x-8">
+          <!-- Decentralized button -->
+          <button
+            v-on:click="setDecentralized"
+            :class="buttonClass(this.$store.state.isDecentralized)"
+          >
+            <span><decentralised-icon /></span>
+            <span>Decentralized</span>
+          </button>
 
-        <!-- Federated button -->
-        <button
-          v-on:click="setFederated"
-          :class="buttonClass(!this.$store.state.isDecentralized)"
-        >
-          <span><federated-icon/></span>
-          <span>Federated</span>
-        </button>
-      </div>
-    </tippy-card>
-    <div class="overflow-hidden hover:overflow-y-auto">
-      <!-- IndexedDB -->
-      <tippy-card title="Model library">
-        <span class="text-s">
-          Turn on to get storage options for your trained models. This uses your
-          browser's own database, namely
-          <button class="text-blue-600">
-            <a
-              href="https://en.wikipedia.org/wiki/Indexed_Database_API"
-              target="_blank"
-            >
-              IndexedDB</a
-            ></button
-          >.<br />
-        </span>
-
-        <div class="flex items-center justify-center">
-          <button :class="buttonClass()" v-on:click="toggleIndexedDB()">
-            <span class="text-s"> Use model library </span>
-            <div class="relative focus:outline-none">
-              <div
-                class="w-12 h-6 transition rounded-full outline-none bg-primary-100 dark:bg-primary-darker"
-              ></div>
-              <div
-                class="absolute top-0 left-0 inline-flex w-6 h-6 transition-all duration-200 ease-in-out transform scale-110 rounded-full shadow-sm"
-                :class="{
-                  'translate-x-0 bg-white dark:bg-primary-100': !this.$store
-                    .state.useIndexedDB,
-                  'translate-x-6 bg-primary-light dark:bg-primary': this.$store
-                    .state.useIndexedDB,
-                }"
-              ></div>
-            </div>
+          <!-- Federated button -->
+          <button
+            v-on:click="setFederated"
+            :class="buttonClass(!this.$store.state.isDecentralized)"
+          >
+            <span><federated-icon /></span>
+            <span>Federated</span>
           </button>
         </div>
       </tippy-card>
-      <!-- Theme -->
-      <tippy-card title="Theme mode">
-        <div class="flex items-center justify-center space-x-8">
-          <!-- Light button -->
-          <button
-            v-on:click="setLightTheme"
-            :class="buttonClass(!this.$store.state.isDark)"
-          >
-            <span><star-icon /></span>
-            <span>Light</span>
-          </button>
+      <div class="overflow-hidden hover:overflow-y-auto">
+        <!-- IndexedDB -->
+        <tippy-card title="Model library">
+          <span class="text-s">
+            Turn on to get storage options for your trained models. This uses
+            your browser's own database, namely
+            <button class="text-blue-600">
+              <a
+                href="https://en.wikipedia.org/wiki/Indexed_Database_API"
+                target="_blank"
+              >
+                IndexedDB</a
+              ></button
+            >.<br />
+          </span>
 
-          <!-- Dark button -->
-          <button
-            v-on:click="setDarkTheme"
-            :class="buttonClass(this.$store.state.isDark)"
-          >
-            <span><moon-icon /></span>
-            <span>Dark</span>
-          </button>
-        </div>
-      </tippy-card>
-
-      <!-- Colors -->
-      <tippy-card title="Secondary colors">
-        <div class="flex justify-center">
-          <div v-for="color in colors" :key="color">
-            <button
-              v-on:click="setColors(color)"
-              class="w-10 h-10 rounded-full"
-              :style="`background-color: var(--color-${color})`"
-            />
+          <div class="flex items-center justify-center">
+            <button :class="buttonClass()" v-on:click="toggleIndexedDB()">
+              <span class="text-s"> Use model library </span>
+              <div class="relative focus:outline-none">
+                <div
+                  class="w-12 h-6 transition rounded-full outline-none bg-primary-100 dark:bg-primary-darker"
+                ></div>
+                <div
+                  class="absolute top-0 left-0 inline-flex w-6 h-6 transition-all duration-200 ease-in-out transform scale-110 rounded-full shadow-sm"
+                  :class="{
+                    'translate-x-0 bg-white dark:bg-primary-100': !this.$store
+                      .state.useIndexedDB,
+                    'translate-x-6 bg-primary-light dark:bg-primary': this
+                      .$store.state.useIndexedDB,
+                  }"
+                ></div>
+              </div>
+            </button>
           </div>
-        </div>
-      </tippy-card>
-    </div>
-  </div>
+        </tippy-card>
+        <!-- Theme -->
+        <tippy-card title="Theme mode">
+          <div class="flex items-center justify-center space-x-8">
+            <!-- Light button -->
+            <button
+              v-on:click="setLightTheme"
+              :class="buttonClass(!this.$store.state.isDark)"
+            >
+              <span><star-icon /></span>
+              <span>Light</span>
+            </button>
+
+            <!-- Dark button -->
+            <button
+              v-on:click="setDarkTheme"
+              :class="buttonClass(this.$store.state.isDark)"
+            >
+              <span><moon-icon /></span>
+              <span>Dark</span>
+            </button>
+          </div>
+        </tippy-card>
+
+        <!-- Colors -->
+        <tippy-card title="Secondary colors">
+          <div class="flex justify-center">
+            <div v-for="color in colors" :key="color">
+              <button
+                v-on:click="setColors(color)"
+                class="w-10 h-10 rounded-full"
+                :style="`background-color: var(--color-${color})`"
+              />
+            </div>
+          </div>
+        </tippy-card>
+      </div>
+    </template>
+  </tippy-container>
 </template>
 <script>
 import { mapMutations } from "vuex";
 import TippyCard from "./containers/TippyCard.vue";
+import TippyContainer from "./containers/TippyContainer.vue";
 import MoonIcon from "../../assets/svg/MoonIcon.vue";
 import StarIcon from "../../assets/svg/StarIcon.vue";
-import DecentralisedIcon from '../../assets/svg/DecentralisedIcon.vue';
+import DecentralisedIcon from "../../assets/svg/DecentralisedIcon.vue";
 import FederatedIcon from "../../assets/svg/FederatedIcon.vue";
+import SettingsIcon from "../../assets/svg/SettingsIcon.vue";
 
 export default {
   name: "settings",
   components: {
     TippyCard,
+    TippyContainer,
     MoonIcon,
     StarIcon,
     DecentralisedIcon,
-    FederatedIcon
-},
+    FederatedIcon,
+    SettingsIcon,
+  },
   data: function() {
     return {
       colors: ["cyan", "teal", "green", "fuchsia", "blue", "violet"],
@@ -169,11 +130,14 @@ export default {
       state,
       defaultClass = "flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
     ) {
-      return defaultClass + (state === undefined
-        ? " "
-        : state
-        ? " border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100"
-        : " text-gray-500 dark:text-primary-light");
+      return (
+        defaultClass +
+        (state === undefined
+          ? " "
+          : state
+          ? " border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100"
+          : " text-gray-500 dark:text-primary-light")
+      );
     },
     ...mapMutations(["setIndexedDB", "setAppTheme", "setPlatform"]),
     toggleIndexedDB() {
