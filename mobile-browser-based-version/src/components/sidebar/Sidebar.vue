@@ -1,33 +1,17 @@
 <template>
   <!-- Mini Sidebar (LHS) -->
   <nav
-    class="
-      flex flex-col flex-shrink-0
-      h-full
-      px-2
-      py-4
-      border-r
-      dark:border-primary-darker
-    "
+    class="flex flex-col flex-shrink-0 h-full px-2 py-4 border-r dark:border-primary-darker"
   >
     <!-- Brand -->
     <div class="flex-shrink-0">
       <a
         v-on:click="goToHome"
-        class="
-          p-1
-          inline-block
-          text-xl
-          font-bold
-          tracking-wider
-          text-primary-dark
-          dark:text-light
-        "
+        class="p-1 inline-block text-xl font-bold tracking-wider text-primary-dark dark:text-light"
       >
         {{ $t("home.title.name") }}
       </a>
     </div>
-
     <!-- Mini Sidebar content-->
     <div class="flex flex-col items-center justify-center flex-1 space-y-4">
       <!-- Go to Home page -->
@@ -179,7 +163,6 @@ export default {
       this.isModelLibraryOpen = false;
     },
     goToHome() {
-      console.log("***********************");
       this.setActivePage("home");
       this.$router.push({ name: "home" });
     },
