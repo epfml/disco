@@ -1,35 +1,9 @@
 <template>
-  <!-- Panel content -->
-  <div class="flex flex-col h-screen">
-    <!-- Panel header -->
-    <div
-      class="
-        flex flex-col
-        items-center
-        justify-center
-        flex-shrink-0
-        px-4
-        py-8
-        space-y-4
-        border-b
-        dark:border-primary-dark
-      "
-    >
-      <span class="text-gray-500 dark:text-primary"><stack-icon/></span>
-      <h2
-        id="settinsPanelLabel"
-        class="text-xl font-medium text-gray-500 dark:text-light"
-      >
-        Model Library
-      </h2>
-    </div>
-    <!-- Content -->
-    <div class="flex-1 overflow-hidden hover:overflow-y-auto">
+  <tippy-container title="Model Library">
+    <template v-slot:icon> <stack-icon /></template>
+    <template v-slot:content>
       <!-- Model list -->
-      <div class="p-4 space-y-4 md:p-8">
-        <h6 class="text-lg font-medium text-gray-400 dark:text-light">
-          My model library
-        </h6>
+      <tippy-card title="My model library">
         <span class="text-s">
           <p v-if="useIndexedDB">List of trained models that were saved.</p>
           <p v-else>
@@ -84,9 +58,9 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </tippy-card>
+    </template>
+  </tippy-container>
 </template>
 <script>
 import * as memory from "../../helpers/memory/helpers";
@@ -95,7 +69,9 @@ import { mapState } from "vuex";
 import Bin2Icon from "../../assets/svg/Bin2Icon.vue";
 import Download2Icon from "../../assets/svg/Download2Icon.vue";
 import LoadIcon from "../../assets/svg/LoadIcon.vue";
-import StackIcon from '../../assets/svg/StackIcon.vue';
+import StackIcon from "../../assets/svg/StackIcon.vue";
+import TippyCard from "./containers/TippyCard.vue";
+import TippyContainer from "./containers/TippyContainer.vue";
 
 export default {
   name: "model-library",
@@ -105,6 +81,8 @@ export default {
     Download2Icon,
     LoadIcon,
     StackIcon,
+    TippyCard,
+    TippyContainer,
   },
   data() {
     return {
