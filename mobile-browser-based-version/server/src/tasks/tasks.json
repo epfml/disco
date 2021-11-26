@@ -150,7 +150,7 @@
       "port": 9001,
       "epoch": 25,
       "validationSplit": 0.2,
-      "batchSize": 30,
+      "batchSize": 10,
       "modelCompileData": {
         "optimizer": "adam",
         "loss": "categoricalCrossentropy",
