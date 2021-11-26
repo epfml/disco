@@ -31,8 +31,6 @@ export class ImageTask extends Task {
     }
     const tensor = await this.loadLocalImage(src);
 
-    console.log(this.trainingInformation.RESIZED_IMAGE_H, this.trainingInformation.RESIZED_IMAGE_H)
-
     const representation = tf.tidy(() => {
       const batched = tensor.reshape([
         this.trainingInformation.RESIZED_IMAGE_H,
