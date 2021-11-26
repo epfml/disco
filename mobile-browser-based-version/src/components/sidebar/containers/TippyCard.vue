@@ -3,7 +3,7 @@
       <h6 class="text-lg font-medium text-gray-400 dark:text-light">
         {{this.title}}
       </h6>
-       <slot :state="state"></slot>
+       <slot></slot>
     </div>
 </template>
 <script>
