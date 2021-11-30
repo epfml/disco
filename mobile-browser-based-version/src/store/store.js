@@ -8,6 +8,7 @@ export const store = createStore({
     tasks: new Array(),
     useIndexedDB: true,
     isDark: false,
+    isDecentralized: true,
     activePage: 'home',
   },
   mutations: {
@@ -37,6 +38,10 @@ export const store = createStore({
       state.isDark = payload ? true : false;
     },
 
+    setPlatform(state, payload) {
+      state.isDecentralized = payload ? true : false;
+    },
+
     setActivePage(state, payload) {
       state.activePage = payload;
     },
@@ -51,6 +56,9 @@ export const store = createStore({
     },
     tasks: (state) => (modelID) => {
       return state.tasks[modelID];
+    },
+    platform: (state) => ()=> {
+      return state.isDecentralized ? 'deai' : 'feai';
     },
   },
 });
