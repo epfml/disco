@@ -1,6 +1,6 @@
 import express from 'express';
 import _ from 'lodash';
-import * as requests from '../request_handlers/federated/requests.js';
+import * as requests from '../logic/federated/requests.js';
 import tasks from '../tasks/tasks.js';
 import { ExpressPeerServer } from 'peer';
 import { makeID } from '../helpers/helpers.js';
