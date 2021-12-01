@@ -8,9 +8,21 @@ import tasks from '../../tasks/tasks.js';
 /**
  * Fraction of client reponses required to complete communication round.
  */
-const CLIENTS_THRESHOLD = 0.8;
+const POOLING_THRESHOLD = 0.8;
+/**
+ * The number of rounds of local training before pooling the weights from
+ * selected clients.
+ */
+const POOLING_TIMESTEP = 10;
+/**
+ * Number of selected clients required before starting federated training.
+ */
+const TRAINING_THRESHOLD = 2;
+
+const TRAINING_COUNTDOWN = 1000 * 60;
 /**
  * Save the averaged weights of each task to local storage every X rounds.
+ * TODO: save automatically on pooling step (remove periodicity).
  */
 const MODEL_SAVE_TIMESTEP = 5;
 /**
@@ -43,15 +55,16 @@ const dataSamplesMap = new Map();
  * - the request type (sending/receiving weights/metadata)
  */
 const logs = [];
-/**
- * Clients (client IDs) currently connected to the the server. Stored per task.
- * This is used to ensure requests are made for existing tasks and connected
- * client IDs only.
- */
+
 const clients = new Map();
 
+const selectedClients = new Map();
+
+const lockedTasks = new Map();
+
 tasks.forEach((task) => {
-  clients.set(task.taskID, []);
+  clients.set(task.taskID, new Set());
+  lockedTasks.set(task.taskID, false);
 });
 
 if (!fs.existsSync(config.MILESTONES_DIR)) {
@@ -74,8 +87,8 @@ export function isValidRequest(request) {
     request.body.timestamp !== undefined &&
     typeof request.body.timestamp === 'string' &&
     request.params !== undefined &&
-    clients.has(request.params.task) &&
-    clients.get(request.params.task).includes(request.body.id) &&
+    selectedClients.has(request.params.task) &&
+    selectedClients.get(request.params.task).includes(request.body.id) &&
     request.params.round >= 0
   );
 }
@@ -127,6 +140,28 @@ export function queryLogs(request, response) {
     );
 }
 
+export function receiveSelectionStatus(request, response) {
+  const id = request.params.id;
+  const task = request.params.task;
+  if (!clients.has(task)) {
+    response.status(404).send(INVALID_REQUEST_KEYS_MESSAGE);
+  }
+  response.status(200);
+  if (!lockedTasks.get(task)) {
+    selectedClients.get(task).add(id);
+    if (selectedClients.get(task).size >= TRAINING_THRESHOLD) {
+      setTimeout(() => {
+        if (selectedClients.get(task).size >= TRAINING_THRESHOLD) {
+          lockedTasks.set(task, true);
+        }
+      }, TRAINING_COUNTDOWN);
+    }
+    response.send({ selected: true });
+  } else {
+    response.send({ selected: false });
+  }
+}
+
 /**
  * Entry point to the server's API. Any client must go through this connection
  * process before making any subsequent POST requests to the server related to
@@ -138,18 +173,18 @@ export function connectToServer(request, response) {
   const id = request.params.id;
   const task = request.params.task;
   if (!clients.has(task)) {
-    response.status(400).send(INVALID_REQUEST_KEYS_MESSAGE);
+    response.status(404).send(INVALID_REQUEST_KEYS_MESSAGE);
     return;
   }
-  if (clients.get(task).includes(id)) {
+  if (clients.get(task).has(id)) {
     response
-      .status(400)
+      .status(404)
       .send('Already connected to the server or ID already in use.');
     return;
   }
-  clients.get(task).push(id);
+  clients.get(task).add(id);
   console.log(`Client with ID ${id} connected to the server`);
-  response.status(200).send('Successfully connected to the server.');
+  response.status(200).send({});
 }
 
 /**
@@ -165,17 +200,16 @@ export function connectToServer(request, response) {
 export function disconnectFromServer(request, response) {
   const id = request.params.id;
   const task = request.params.task;
-  if (!(clients.has(task) && clients.get(task).includes(id))) {
-    response.status(400).send(INVALID_REQUEST_KEYS_MESSAGE);
+  if (!(clients.has(task) && clients.get(task).has(id))) {
+    response.status(404).send(INVALID_REQUEST_KEYS_MESSAGE);
     return;
   }
 
-  clients.set(
-    task,
-    clients.get(task).filter((clientId) => clientId != id)
-  );
+  clients.get(task).delete(id);
+  selectedClients.get(task).delete(id);
+
   console.log(`Client with ID ${id} disconnected from the server`);
-  response.status(200).send('Successfully disconnected from the server.');
+  response.status(200).send({});
 }
 
 /**
@@ -211,7 +245,7 @@ export function sendIndividualWeights(request, response) {
 
   const weights = msgpack.decode(Uint8Array.from(request.body.weights.data));
   weightsMap.get(task).get(round).set(id, weights);
-  response.status(200).send('Weights successfully received.');
+  response.status(200).send({});
 
   logsAppend(request, requestType);
   return;
@@ -251,9 +285,9 @@ export async function receiveAveragedWeights(request, response) {
   const receivedWeights = weightsMap.get(task).get(round);
   if (
     receivedWeights.size <
-    Math.ceil(clients.get(task).length * CLIENTS_THRESHOLD)
+    Math.ceil(clients.get(task).length * POOLING_THRESHOLD)
   ) {
-    response.status(400).send({});
+    response.status(200).send({ threshold: false, weights: null });
     return;
   }
 
@@ -280,7 +314,7 @@ export async function receiveAveragedWeights(request, response) {
   }
 
   let weights = msgpack.encode(Array.from(serializedWeights));
-  response.status(200).send({ weights: weights });
+  response.status(200).send({ threshold: true, weights: weights });
   logsAppend(request, requestType);
   return;
 }
@@ -318,7 +352,7 @@ export function sendDataSamplesNumber(request, response) {
   }
 
   dataSamplesMap.get(task).get(round).set(id, samples);
-  response.status(200).send('Number of samples successfully received.');
+  response.status(200).send({});
 
   logsAppend(request, requestType);
   return;
