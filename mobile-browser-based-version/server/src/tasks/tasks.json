@@ -148,7 +148,7 @@
     "trainingInformation": {
       "modelID": "cifar10-model",
       "port": 9001,
-      "epoch": 25,
+      "epoch": 10,
       "validationSplit": 0.2,
       "batchSize": 10,
       "modelCompileData": {
@@ -156,6 +156,7 @@
         "loss": "categoricalCrossentropy",
         "metrics": ["accuracy"]
       },
+      "learningRate": 0.00166,
       "modelTrainData": {
         "epochs": 20
       },

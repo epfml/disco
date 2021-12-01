@@ -6,7 +6,7 @@ import Papa from 'papaparse';
 export class ImageTask extends Task {
   async loadPretrainedNet() {
     this.net = await tf.loadLayersModel(
-      'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json'
+      'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v2_1.0_224/model.json'
     );
   }
 
