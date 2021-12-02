@@ -204,6 +204,7 @@
                           grid grid-flow-col
                           auto-cols-max
                           md:auto-cols-min
+                          space-x-2
                         "
                       >
                         <div class="w-4/5 md:w-full">
@@ -313,7 +314,14 @@
                     <br />
                     <div class="space-y-2">
                       <fieldset v-for="(f, idx) in fields" :key="f.key">
-                        <div class="flex space-x-2 space-y-2 items-end">
+                        <div
+                          class="
+                            grid grid-flow-col
+                            auto-cols-max
+                            md:auto-cols-min
+                            space-x-2
+                          "
+                        >
                           <div v-for="e in field.elements" v-bind:key="e.key">
                             <div class="w-2/5 md:w-full">
                               <label
@@ -346,7 +354,19 @@
                             </div>
                           </div>
 
-                          <div class="w-1/5 md:w-full items-end">
+                          <div class="w-1/5 md:w-full">
+                            <label
+                              class="
+                                inline
+                                md:text-right
+                                mb-1
+                                md:mb-0
+                                pr-4
+                                text-white
+                                dark:text-dark
+                              "
+                              >.</label
+                            >
                             <button
                               type="button"
                               @click="remove(idx)"
@@ -560,6 +580,7 @@
 <script>
 // WARNING: temporay code until serialization of Task object
 // Import the tasks objects Here
+import { mapState, mapMutations } from "vuex";
 import BaseLayout from "./containers/BaseLayout.vue";
 import _ from "lodash";
 import sections from "../task_definition/form.config.js";
@@ -586,7 +607,7 @@ export default {
     FieldArray,
   },
   computed: {
-      ...mapState(["platform"]),
+    ...mapState(["platform"]),
   },
   data() {
     // data property defining which task-specific fields should be rendered
@@ -612,7 +633,7 @@ export default {
     };
   },
   methods: {
-    ...mapMutations(['newTask', 'setActivePage']),
+    ...mapMutations(["newTask", "setActivePage"]),
     allFields(formSection) {
       return _.concat(formSection.fields, formSection[this.dataType]);
     },
@@ -669,7 +690,10 @@ export default {
       const task = this.formatTaskForServer(rawTask);
       resetForm();
       // Submit values to Express server
-      const response = await axios.post(`http://localhost:8080/${this.platform}/tasks/`, task);
+      const response = await axios.post(
+        `http://localhost:8080/${this.platform}/tasks/`,
+        task
+      );
       if (response.status === 200) {
         await this.onSubmissionSucess(task);
         this.$toast.success(
@@ -691,7 +715,7 @@ export default {
       this.goToHome();
     },
     goToHome() {
-      this.setActivePage('home');
+      this.setActivePage("home");
       this.$router.push({
         path: "/",
       });

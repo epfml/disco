@@ -14,7 +14,7 @@ const sections = [
     fields: [
       {
         id: "taskID",
-        name: "Task Identifier",
+        name: "Task IDentifier",
         yup: yup.string().required(),
         as: "input",
         type: "text",
@@ -35,7 +35,7 @@ const sections = [
     other: [],
   },
   // *** Section ***
-  /*{
+  {
     title: "Display Information",
     id: "displayInformation",
     fields: [
@@ -129,7 +129,7 @@ const sections = [
         elements: [
           {
             key: "columnName",
-            default: "eg. : PassengerId",
+            default: "eg. : PassengerID",
           },
           {
             key: "columnData",
@@ -143,7 +143,7 @@ const sections = [
         yup: yup.array().of(yup.string().required()),
         as: "input",
         type: "array",
-        default: "eg. : PassengerId",
+        default: "eg. : PassengerID",
       },
     ],
     image: [
@@ -157,15 +157,15 @@ const sections = [
       },
     ],
     other: [],
-  },*/
+  },
   // *** Section ***
-  /*{
+  {
     title: "Training Information",
     id: "trainingInformation",
     fields: [
       {
-        id: "modelId",
-        name: "Model Identifier",
+        id: "modelID",
+        name: "Model IDentifier",
         yup: yup.string().required(),
         as: "input",
         type: "text",
@@ -292,7 +292,7 @@ const sections = [
           .required(),
         as: "input",
         type: "array",
-        default: "eg. : PassengerId",
+        default: "eg. : PassengerID",
       },
     ],
     image: [
@@ -310,7 +310,7 @@ const sections = [
       },
       {
         id: "IMAGE_H",
-        name: "Hight of Image (pixels)",
+        name: "Height of Image (pixels)",
         yup: yup
           .number()
           .integer()
@@ -398,8 +398,8 @@ const sections = [
         default: false,
       },
       {
-        id: "aggregateImagesById",
-        name: "Aggregate Images By Id",
+        id: "aggregateImagesByID",
+        name: "Aggregate Images By ID",
         yup: yup.boolean(),
         as: "input",
         type: "checkbox",
@@ -478,7 +478,7 @@ const sections = [
     csv: [],
     image: [],
     other: [],
-  },*/
+  },
   {
     title: "Model Files",
     id: "modelFiles",
