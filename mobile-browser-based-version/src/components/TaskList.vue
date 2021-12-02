@@ -51,11 +51,10 @@ import CustomButton from "./simple/CustomButton.vue";
  * WARNING: Temporary code until complete modularization of task objects.
  * In the meantine, import all custom task classes here.
  */
-import { CsvTask } from "../task_definition/csv_task";
-import { ImageTask } from "../task_definition/image_task";
 import _ from "lodash";
 import { defineComponent } from "vue";
-import { mapMutations } from "vuex";
+import { mapMutations,mapGetters } from "vuex";
+import { getTaskClass } from '../task_definition/converter.js'
 
 export default {
   name: "task-list",
