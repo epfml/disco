@@ -125,6 +125,14 @@ def print_metrics(drivers, start_time, train_acc_element_id, val_acc_element_id,
     report_file.write(f'Max CPU usage was: {round(max_cpu, 2)}% \n')
 
 
+def pick_training_mode(driver, training_mode='Federated'):
+    settings = driver.find_element_by_xpath("//a[@data-title='Settings']")
+    settings.click()
+    time.sleep(2)
+    if training_mode != "Decentralized":
+        driver.find_element_by_xpath("//*[@id='app']/div/div/aside/div/section/div[2]/div[2]/div/button[2]").click()
+    driver.find_element_by_xpath("//*[@id='app']/div/div/aside/div/section/div[1]/button").click()
+
 def start_training(drivers, training_type):
     for driver in drivers:
         elements = driver.find_elements_by_tag_name('button')
@@ -134,8 +142,11 @@ def start_training(drivers, training_type):
                 elem.click()
                 break
 
-def find_task_page(driver, platform, task_name):
+def find_task_page(driver, platform, task_name, training_mode):
     driver.get(platform)
+    time.sleep(2)
+    pick_training_mode(driver, training_mode)
+    time.sleep(2)
     elements = driver.find_elements_by_tag_name('button')
     for elem in elements:
         if 'Start building' in elem.get_attribute('innerHTML'):
@@ -160,3 +171,4 @@ def generate_report(report_file_name, drivers, start_time, train_start_time, tra
     f.write(f'Using {len(drivers)} to simulate distributed learning: \n')
     print_metrics(drivers, start_time, train_acc_element_id, val_acc_element_id, f)
     calculate_epoch_per_second(drivers, train_start_time, epoch_index, f)
+

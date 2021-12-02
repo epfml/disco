@@ -19,19 +19,20 @@ from webdriver_manager.chrome import ChromeDriverManager
 from util import find_task_page, generate_report, get_files, img_partition, img_r_partition, img_s_partition, start_training
 
 #Platform
-PLATFORM = 'https://epfml.github.io/DeAI/#' #"https://epfml.github.io/DeAI/#/" for Decentralized learning
+PLATFORM = 'https://epfml.github.io/FeAI/#/'
+TRAINING_MODE = 'Federated'
 # Defines how many browser tabs to open
-NUM_PEERS = 5
+NUM_PEERS = 2
 # Defines the way to split the data, could be 'iid' for iid data, 'partition' for even size partitions, 'rpartition' for random size partitions
 # 'spartition' for partition of sizes past as argument RATIOS
-DATA_SPLIT = 'spartition'
+DATA_SPLIT = 'iid'
 RATIOS = [0.5, 0.2, 0.1, 0.1, 0.1]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'MNIST'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
 TRAINING_TYPE = 'Train Distributed' 
 #Number of images to train with
-NUM_IMAGES = 1000
+NUM_IMAGES = 20
 # Digit folder paths, change to \ for macOS
 DIGIT_CLASS_PATHS = [
     r'preprocessed_images/0',
@@ -64,7 +65,7 @@ elif DATA_SPLIT == 'spartition':
     digit_partitions = [img_s_partition(digit_files[i], RATIOS) for i in range(len(digit_files))]
 
 for index, driver in enumerate(drivers):
-    find_task_page(driver, PLATFORM, TASK_NAME)
+    find_task_page(driver, PLATFORM, TASK_NAME, TRAINING_MODE)
     time.sleep(8)
     if DATA_SPLIT == 'iid':
         for i in range(len(DIGIT_CLASS_PATHS)):
@@ -90,3 +91,4 @@ generate_report('report.txt', \
 
 for driver in drivers:
     driver.quit()
+
