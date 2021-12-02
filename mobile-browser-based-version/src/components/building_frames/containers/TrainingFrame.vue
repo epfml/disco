@@ -128,14 +128,15 @@ export default {
       fileUploadManager: new FileUploadManager(this.nbrClasses, this),
       // Take care of communication processes
       client: getClient(
-        this.$t('platform'),
+        this.platform,
         this.Task,
         this.$store.getters.password(this.Id)
-      ), // TO DO: to modularize
+      ), 
     };
   },
   computed: {
     ...mapState(['useIndexedDB']),
+    ...mapGetters(['platform']),
   },
   watch: {
     useIndexedDB(newValue) {
