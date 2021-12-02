@@ -4,6 +4,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '../components/Home';
 import TaskList from '../components/TaskList';
 import Information from '../components/Information';
+import NewTaskCreationForm from '../components/NewTaskCreationForm.vue';
 import NotFound from '../components/NotFound';
 
 var routes = [
