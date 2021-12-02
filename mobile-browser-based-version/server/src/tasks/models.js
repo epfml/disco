@@ -1,5 +1,6 @@
 import path from 'path';
 import * as tf from '@tensorflow/tfjs';
+import mobilenet from '@tensorflow-models/mobilenet'
 import '@tensorflow/tfjs-node';
 import * as config from '../../server.config.js';
 import fs from 'fs';
@@ -66,72 +67,12 @@ async function createLUSCovidModel() {
 }
 
 async function createCifar10Model() {
-  const model = tf.sequential();
-  model.add(
-    tf.layers.conv2d({
-      kernelSize: 3,
-      filters: 32,
-      activation: 'relu',
-      padding: 'same',
-      inputShape: [32, 32, 3],
-    })
-  );
-  model.add(
-    tf.layers.conv2d({
-      kernelSize: 3,
-      filters: 32,
-      activation: 'relu',
-    })
-  );
-  model.add(tf.layers.maxPooling2d({ poolSize: [2, 2] }));
-  model.add(tf.layers.dropout({ rate: 0.25 }));
+  const mobilenet =  await
+  tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
+  const x=mobilenet.getLayer('global_average_pooling2d_1');
+  const predictions= tf.layers.dense({units: 10,  activation: 'softmax', name: 'denseModified'}).apply(x.output); 
+  const model = tf.model({inputs: mobilenet.input, outputs:  predictions, name: 'modelModified' });
 
-  model.add(
-    tf.layers.conv2d({
-      kernelSize: 3,
-      filters: 64,
-      activation: 'relu',
-      padding: 'same',
-    })
-  );
-  
-  model.add(
-    tf.layers.conv2d({
-      kernelSize: 3,
-      filters: 64,
-      activation: 'relu',
-    })
-  );
-  model.add(tf.layers.maxPooling2d({ poolSize: [2, 2] }));
-  model.add(tf.layers.dropout({ rate: 0.25 }));
-
-  model.add(tf.layers.flatten());
-  model.add(
-    tf.layers.dense({
-      units: 512,
-      activation: 'relu',
-    })
-  );
-  model.add(tf.layers.dropout({ rate: 0.5 }));
-  model.add(
-    tf.layers.dense({
-      units: 256,
-      activation: 'relu',
-    })
-  );
-  model.add(tf.layers.dropout({ rate: 0.5 }));
-  model.add(
-    tf.layers.dense({
-      units: 128,
-      activation: 'relu',
-    })
-  );
-  model.add(
-    tf.layers.dense({
-      units: 10,
-      activation: 'softmax',
-    })
-  );
   const savePath = path.join(config.MODELS_DIR, 'cifar10');
   await model.save(config.SAVING_SCHEME.concat(savePath));
 }
