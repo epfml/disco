@@ -67,7 +67,6 @@ async function createLUSCovidModel() {
 }
 
 async function createCifar10Model() {
-
   const mobilenet =  await
   tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
   const x=mobilenet.getLayer('global_average_pooling2d_1');
