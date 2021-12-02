@@ -18,6 +18,11 @@ var routes = [
     component: TaskList,
   },
   {
+    path: '/task-creation-form',
+    name: 'tasks-form',
+    component: NewTaskCreationForm,
+  },
+  {
     path: '/information',
     name: 'information',
     component: Information,
