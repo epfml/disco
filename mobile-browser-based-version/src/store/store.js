@@ -32,7 +32,7 @@ export const store = createStore({
 
     newTask(state, payload) {
       //need to update the reference o.w. it doesn't work
-      state.newTasksBuf = _.concat(state.newTasksBuf,payload.task);
+      state.newTasksBuf = _.concat(state.newTasksBuf,payload);
     },
 
     clearNewTasks(state) {
