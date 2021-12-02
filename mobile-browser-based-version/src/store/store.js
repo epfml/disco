@@ -1,11 +1,12 @@
 import { createStore } from 'vuex';
-
+import _ from "lodash";
 export const store = createStore({
   state: {
     count: 0,
-    globalTaskFrameState: new Array(),
-    passwords: new Array(),
-    tasks: new Array(),
+    globalTaskFrameState: {},
+    passwords: {},
+    tasksFrames: {}, // vue components
+    newTasksBuf: [], // buffer containing
     useIndexedDB: true,
     isDark: false,
     isDecentralized: true,
@@ -25,8 +26,18 @@ export const store = createStore({
       state.passwords[payload.id] = payload.password;
     },
 
-    addTask(state, payload) {
+    addTaskFrame(state, payload) {
       state.tasks[payload.task.trainingInformation.modelID] = payload.task;
+    },
+
+    newTask(state, payload) {
+      //need to update the reference o.w. it doesn't work
+      state.newTasksBuf = _.concat(state.newTasksBuf,payload.task);
+    },
+
+    clearNewTasks(state) {
+      // limit the number of update events generated if no new tasks have been added
+      state.newTasksBuf.length > 0 ? state.newTasksBuf = []: undefined;
     },
 
     setIndexedDB(state, payload) {
@@ -48,18 +59,14 @@ export const store = createStore({
   },
 
   getters: {
-    globalTaskFrameState: (state) => (modelID) => {
-      return state.globalTaskFrameState[modelID];
-    },
-    password: (state) => (taskID) => {
-      return taskID in state.passwords ? state.passwords[taskID] : null;
-    },
-    tasks: (state) => (modelID) => {
-      return state.tasks[modelID];
-    },
-    platform: (state) => ()=> {
-      return state.isDecentralized ? 'deai' : 'feai';
-    },
+    globalTaskFrameState: (state) => (modelID) =>
+      state.globalTaskFrameState[modelID],
+    password: (state) => (taskID) =>
+      taskID in state.passwords ? state.passwords[taskID] : null,
+    taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
+    newTasks: (state) => state.newTasksBuf,
+    tasksFramesList: (state) => _.values(state.tasksFrames),
+    platform: (state) => (state.isDecentralized ? 'deai' : 'feai')
   },
 });
 
