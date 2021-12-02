@@ -14,7 +14,7 @@
               font-medium
               leading-none
               tracking-wider
-              dark:group-hover:text-darker
+              dark:group-hover:text-primary-light
             "
           >
             {{ task.displayInformation.taskTitle }}
