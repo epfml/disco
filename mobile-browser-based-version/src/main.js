@@ -1,3 +1,4 @@
+import devtools from '@vue/devtools'
 import { createApp } from 'vue';
 import App from './components/App.vue';
 import router from './router';
@@ -6,7 +7,9 @@ import '@/assets/css/styles.css';
 import Toaster from '@meforma/vue-toaster';
 import { store } from './store/store';
 import { createCustomI18n } from './platforms/i18n.js';
-
+if (process.env.NODE_ENV === 'development') {
+    devtools.connect('http://localhost', 8081);
+}
 // create vue app
 const app = createApp(App);
 const i18n = createCustomI18n();
