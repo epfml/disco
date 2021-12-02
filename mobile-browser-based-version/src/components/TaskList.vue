@@ -2,7 +2,7 @@
   <base-layout v-bind:withSection="true">
     <!-- Main Page Content -->
     <div
-      v-for="task in tasks"
+      v-for="task in tasksFramesList"
       :key="task.taskID"
       class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
     >
@@ -38,130 +38,105 @@
 </template>
 
 <script>
-import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue';
-import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue';
-import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue';
-import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue';
+import MainTaskFrame from "../components/main_frames/MainTaskFrame.vue";
+import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame.vue";
+import MainTrainingFrame from "../components/main_frames/MainTrainingFrame.vue";
+import MainTestingFrame from "../components/main_frames/MainTestingFrame.vue";
 
-import BaseLayout from './containers/BaseLayout.vue';
-import Card from './containers/Card.vue';
-import CustomButton from './simple/CustomButton.vue';
+import BaseLayout from "./containers/BaseLayout.vue";
+import Card from "./containers/Card.vue";
+import CustomButton from "./simple/CustomButton.vue";
 
 /**
  * WARNING: Temporary code until complete modularization of task objects.
  * In the meantine, import all custom task classes here.
  */
-import { CsvTask } from '../task_definition/csv_task';
-import { ImageTask } from '../task_definition/image_task';
-
-import { defineComponent } from 'vue';
-import { mapMutations } from 'vuex';
+import { CsvTask } from "../task_definition/csv_task";
+import { ImageTask } from "../task_definition/image_task";
+import _ from "lodash";
+import { defineComponent } from "vue";
+import { mapMutations } from "vuex";
 
 export default {
-  name: 'task-list',
+  name: "task-list",
   components: {
     BaseLayout,
     Card,
     CustomButton,
   },
+  compute: {
+    ...mapGetters(["tasksFramesList", "newTasks"]),
+  },
+  watch: {
+    // whenever question changes, this function will run
+    newTasks(v) {
+      this.newTasks.forEach(this.createNewTaskComponent);
+      this.clearNewTasks();
+    },
+  },
   data() {
     return {
-      tasks: [],
+      taskFramesInfo: [
+        ["description", MainDescriptionFrame],
+        ["training", MainTrainingFrame],
+        ["testing", MainTestingFrame],
+      ],
     };
   },
   methods: {
-    ...mapMutations(['addTask']),
+    ...mapMutations(["newTask", "clearNewTasks"]),
     goToSelection(id) {
       this.$router.push({
-        name: id.concat('.description'),
+        name: id.concat(".description"),
         params: { Id: id },
       });
     },
-  },
-  async mounted() {
-    // To modularize
-    let tasksURL = process.env.VUE_APP_DEAI_SERVER.concat('tasks');
-    let rawTasks = await fetch(tasksURL).then((response) => response.json());
-    rawTasks.forEach((task) => {
+    createNewTaskComponent(task) {
       console.log(`Processing ${task.taskID}`);
-      let newTask;
-      // TODO: avoid this switch by having one Task class completely determined by a json config
-      switch (task.trainingInformation.dataType) {
-        case 'csv':
-          newTask = new CsvTask(
-            task.taskID,
-            task.displayInformation,
-            task.trainingInformation
-          );
-          break;
-        case 'image':
-          newTask = new ImageTask(
-            task.taskID,
-            task.displayInformation,
-            task.trainingInformation
-          );
-          break;
-        default:
-          console.log('No task object available');
-          break;
+      let TaskClass = getTaskClass(task.trainingInformation.dataType);
+      if (!TaskClass) {
+        console.log(`Task ${task.taskID} was not processed`);
+        return;
       }
-      console.log(newTask.displayInformation.taskTitle);
-      this.tasks.push(newTask);
-      // Definition of an extension of the task-related component
-      var MainDescriptionFrameSp = defineComponent({
-        extends: MainDescriptionFrame,
-        name: newTask.taskID.concat('.description'),
-        key: newTask.taskID.concat('.description'),
-      });
-      var MainTrainingFrameSp = defineComponent({
-        extends: MainTrainingFrame,
-        name: newTask.taskID.concat('.training'),
-        key: newTask.taskID.concat('.training'),
-      });
-      var MainTestingFrameSp = defineComponent({
-        extends: MainTestingFrame,
-        name: newTask.taskID.concat('.testing'),
-        key: newTask.taskID.concat('.testing'),
-      });
-      // Add task subroutes on the go
+      let newTask = new TaskClass(
+        task.taskID,
+        task.displayInformation,
+        task.trainingInformation
+      );
+      this.addTaskFrame({ task: newTask }); // commit to store
       let newTaskRoute = {
-        path: '/'.concat(newTask.taskID),
+        path: "/".concat(newTask.taskID),
         name: newTask.taskID,
         component: MainTaskFrame,
         props: { Id: newTask.taskID, Task: newTask },
-        children: [
-          {
-            path: 'description',
-            name: newTask.taskID.concat('.description'),
-            component: MainDescriptionFrameSp,
+        children: _.map(this.taskFramesInfo, (t) => {
+          const [info, Frame] = t;
+          const name = `${newTask.taskID}.${info}`;
+          // Definition of an extension of the task-related component
+          const component = defineComponent({
+            extends: Frame,
+            name: name,
+            key: name,
+          });
+          return {
+            path: info,
+            name: name,
+            component: component,
             props: {
               Id: newTask.taskID,
               Task: newTask,
             },
-          },
-          {
-            path: 'training',
-            name: newTask.taskID.concat('.training'),
-            component: MainTrainingFrameSp,
-            props: {
-              Id: newTask.taskID,
-              Task: newTask,
-            },
-          },
-          {
-            path: 'testing',
-            name: newTask.taskID.concat('.testing'),
-            component: MainTestingFrameSp,
-            props: {
-              Id: newTask.taskID,
-              Task: newTask,
-            },
-          },
-        ],
+          };
+        }),
       };
       this.$router.addRoute(newTaskRoute);
-    });
-    this.tasks.forEach((task) => this.addTask({ task: task }));
+    },
+  },
+  async mounted() {
+    let tasksURL = process.env.VUE_APP_DEAI_SERVER.concat("tasks");
+    let rawTasks = await fetch(tasksURL).then((response) => response.json());
+    rawTasks.concat(this.newTasks).forEach(this.createNewTaskComponent);
+    this.clearNewTasks();
   },
 };
 </script>
