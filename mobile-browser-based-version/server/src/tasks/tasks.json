@@ -156,7 +156,6 @@
         "loss": "categoricalCrossentropy",
         "metrics": ["accuracy"]
       },
-      "learningRate": 0.00166,
       "modelTrainData": {
         "epochs": 20
       },
