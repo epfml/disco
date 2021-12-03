@@ -471,11 +471,11 @@
                       v-bind:as="field.as ? field.as : field.type"
                       v-bind:type="field.type"
                       v-bind:placeholder="field.default"
-                      v-bind:row="
+                      v-bind:rows="
                         field.as === 'textarea'
                           ? field.type === 'number'
                             ? 1
-                            : 2
+                            : 6
                           : undefined
                       "
                       v-bind:value="
