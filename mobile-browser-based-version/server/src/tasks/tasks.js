@@ -7,4 +7,4 @@ if (fs.existsSync(TASKS_FILE)) {
   throw new Error(`Could not read from tasks file ${TASKS_FILE}`);
 }
 
-export default Object.freeze(tasks);
+export default tasks;

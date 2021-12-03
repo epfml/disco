@@ -11,7 +11,42 @@ import * as config from '../../server.config.js';
 const tasksRouter = express.Router();
 tasksRouter.get('/', requests.getAllTasksData);
 tasksRouter.get('/:task/:file', requests.getInitialTaskModel);
-
+// POST method route (task-creation-form)
+tasksRouter.post("/", function(req, res) {
+  const newTask = req.body,
+    newPort = START_TASK_PORT + tasks.length;
+  if (newTask["taskId"] in tasks)
+    console.log("Cannot add new task (key is already defined in Tasks.json)");
+  else {
+    // extract model file from tasks
+    const modelFile = _.cloneDeep(newTask.modelFiles.modelFile);
+    const weightsFile = _.cloneDeep(newTask.modelFiles.weightsFile);
+    _.unset(newTask, "modelFiles");
+    _.unset(newTask, "weightsFiles");
+    // create new task and server
+    ports.push(newPort);
+    tasks.push(newTask);
+    createTaskServer(newTask, newPort);
+    // store results in json file
+    fs.writeFile("./tasks/tasks.json", JSON.stringify(tasks), (err) => {
+      if (err) console.log("Error writing file:", err);
+    });
+    // synchronous directory creation so that next call to fs.writeFile doesn't fail.
+    fs.mkdirSync(`./models/${newTask.taskID}/`, { recursive: true });
+    fs.writeFile(
+      `./models/${newTask.taskID}/model.json`,
+      JSON.stringify(modelFile),
+      (err) => {
+        if (err) console.log("Error writing file:", err);
+      }
+    );
+    fs.writeFile(`./models/${newTask.taskID}/weights.bin`, weightsFile, (err) => {
+      if (err) console.log("Error writing file:", err);
+    });
+    // answer vue app
+    res.end(`Sucessfull upload`);
+  }
+});
 // Declare federated routes
 const federatedRouter = express.Router();
 federatedRouter.get('/', (req, res) => res.send('FeAI server'));
@@ -42,43 +77,46 @@ federatedRouter.use('/tasks', tasksRouter);
 federatedRouter.get('/logs', requests.queryLogs);
 
 const decentralisedRouter = express.Router();
-
+/**
+ * Set up server for peerjs
+ */
 const ports = _.range(
   config.START_TASK_PORT,
   config.START_TASK_PORT + tasks.length
 );
+const createTaskServer = (task, port) => {
+/**
+  * Create a PeerJS server for each task on its corresponding port.
+  * The path must match the reverse proxy entry point.
+  */
+const taskApp = express();
+const server = taskApp.listen(port);
+taskApp.use(
+ `/deai/${task.taskID}`,
+ ExpressPeerServer(server, {
+   path: '/',
+   allow_discovery: true,
+   port: port,
+   generateClientId: makeID(10),
+   proxied: true,
+ })
+);
+
+/**
+* Make the peer server's port accessible from a regular URL
+* on the DeAI server.
+*/
+decentralisedRouter.use(
+ createProxyMiddleware(`/deai/${task.taskID}`, {
+   target: `${config.SERVER_URI}:${port}`,
+   changeOrigin: true,
+   ws: true,
+ })
+);
+}
 _.forEach(
   _.zip(tasks, ports),
-  _.spread((task, port) => {
-    /**
-     * Create a PeerJS server for each task on its corresponding port.
-     * The path must match the reverse proxy entry point.
-     */
-    const taskApp = express();
-    const server = taskApp.listen(port);
-    taskApp.use(
-      `/deai/${task.taskID}`,
-      ExpressPeerServer(server, {
-        path: '/',
-        allow_discovery: true,
-        port: port,
-        generateClientId: makeID(10),
-        proxied: true,
-      })
-    );
-
-    /**
-     * Make the peer server's port accessible from a regular URL
-     * on the DeAI server.
-     */
-    decentralisedRouter.use(
-      createProxyMiddleware(`/deai/${task.taskID}`, {
-        target: `${config.SERVER_URI}:${port}`,
-        changeOrigin: true,
-        ws: true,
-      })
-    );
-  })
+  _.spread(createTaskServer)
 );
 
 decentralisedRouter.use('/tasks', tasksRouter);
