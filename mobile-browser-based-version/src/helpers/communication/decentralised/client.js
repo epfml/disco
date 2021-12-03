@@ -61,33 +61,30 @@ export class DecentralisedClient extends Client {
       },
     };
 
-    /**
-     * Uncomment the code below to test the app with a local server.
-     */
-    console.log(this.task.taskID);
-    this.peer = new Peer(makeID(10), {
-      host: 'localhost',
-      port: 8080,
-      path: `/deai/${this.task.taskID}`,
-    });
-
-    /*
-    this.peer = new Peer(makeID(10), {
-      host: this.serverURL,
-      path: `/${this.task.taskID}`,
-      secure: true,
-      config: {
-        iceServers: [
-          { url: 'stun:stun.l.google.com:19302' },
-          {
-            url: 'turn:34.77.172.69:3478',
-            credential: 'deai',
-            username: 'deai',
-          },
-        ],
-      },
-    });
-    */
+    // choose config of peer js server based on build mode
+    const peerConfig =
+      process.env.NODE_ENV === 'development'
+        ? {
+            host: 'localhost',
+            port: 8080,
+            path: `/deai/${this.task.taskID}`,
+          }
+        : {
+            host: this.serverURL,
+            path: `/${this.task.taskID}`,
+            secure: true,
+            config: {
+              iceServers: [
+                { url: 'stun:stun.l.google.com:19302' },
+                {
+                  url: 'turn:34.77.172.69:3478',
+                  credential: 'deai',
+                  username: 'deai',
+                },
+              ],
+            },
+          };
+    this.peer = new Peer(makeID(10), peerConfig);
 
     return new Promise((resolve, reject) => {
       this.peer.on('error', (error) => {
