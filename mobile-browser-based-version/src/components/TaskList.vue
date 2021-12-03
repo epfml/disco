@@ -2,7 +2,7 @@
   <base-layout v-bind:withSection="true">
     <!-- Main Page Content -->
     <div
-      v-for="task in tasksFramesList"
+      v-for="task in $store.getters.tasksFramesList"
       :key="task.taskID"
       class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
     >
@@ -14,7 +14,7 @@
               font-medium
               leading-none
               tracking-wider
-              dark:group-hover:text-primary-light
+              group-hover:text-primary-light
             "
           >
             {{ task.displayInformation.taskTitle }}
@@ -42,7 +42,6 @@ import MainTaskFrame from "../components/main_frames/MainTaskFrame.vue";
 import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame.vue";
 import MainTrainingFrame from "../components/main_frames/MainTrainingFrame.vue";
 import MainTestingFrame from "../components/main_frames/MainTestingFrame.vue";
-
 import BaseLayout from "./containers/BaseLayout.vue";
 import Card from "./containers/Card.vue";
 import CustomButton from "./simple/CustomButton.vue";
@@ -68,7 +67,7 @@ export default {
   },
   watch: {
     // whenever question changes, this function will run
-    newTasks(v) {
+    newTasks: function(v) {
       this.newTasks.forEach(this.createNewTaskComponent);
       this.clearNewTasks();
     },
@@ -83,7 +82,7 @@ export default {
     };
   },
   methods: {
-    ...mapMutations(["newTask", "clearNewTasks"]),
+    ...mapMutations(["addTaskFrame","newTask", "clearNewTasks"]),
     goToSelection(id) {
       this.$router.push({
         name: id.concat(".description"),
@@ -97,20 +96,20 @@ export default {
         console.log(`Task ${task.taskID} was not processed`);
         return;
       }
-      let newTask = new TaskClass(
+      let newTaskFrame = new TaskClass(
         task.taskID,
         task.displayInformation,
         task.trainingInformation
       );
-      this.addTaskFrame({ task: newTask }); // commit to store
+      this.addTaskFrame(newTaskFrame); // commit to store
       let newTaskRoute = {
-        path: "/".concat(newTask.taskID),
-        name: newTask.taskID,
+        path: "/".concat(newTaskFrame.taskID),
+        name: newTaskFrame.taskID,
         component: MainTaskFrame,
-        props: { Id: newTask.taskID, Task: newTask },
+        props: { Id: newTaskFrame.taskID, Task: newTaskFrame },
         children: _.map(this.taskFramesInfo, (t) => {
           const [info, Frame] = t;
-          const name = `${newTask.taskID}.${info}`;
+          const name = `${newTaskFrame.taskID}.${info}`;
           // Definition of an extension of the task-related component
           const component = defineComponent({
             extends: Frame,
@@ -122,8 +121,8 @@ export default {
             name: name,
             component: component,
             props: {
-              Id: newTask.taskID,
-              Task: newTask,
+              Id: newTaskFrame.taskID,
+              Task: newTaskFrame,
             },
           };
         }),
@@ -134,7 +133,7 @@ export default {
   async mounted() {
     let tasksURL = process.env.VUE_APP_DEAI_SERVER.concat("tasks");
     let rawTasks = await fetch(tasksURL).then((response) => response.json());
-    rawTasks.concat(this.newTasks).forEach(this.createNewTaskComponent);
+    rawTasks.concat(this.$store.getters.newTasks).forEach(this.createNewTaskComponent);
     this.clearNewTasks();
   },
 };
