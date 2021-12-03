@@ -84,7 +84,7 @@ export class TrainingManager {
    * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
    */
   async _onEpochEnd(model, epoch, accuracy, validationAccuracy) {
-    this.trainingInformant.updateCharts(epoch, validationAccuracy, accuracy);
+    this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy);
     await this.client.onEpochEndCommunication(
       model,
       epoch,
@@ -119,7 +119,7 @@ export class TrainingManager {
         shuffle: true,
         callbacks: {
           onEpochEnd: async (epoch, logs) => {
-            this.trainingInformant.updateCharts(
+            this.trainingInformant.updateGraph(
               epoch + 1,
               (logs['val_acc'] * 100).toFixed(2),
               (logs['acc'] * 100).toFixed(2)

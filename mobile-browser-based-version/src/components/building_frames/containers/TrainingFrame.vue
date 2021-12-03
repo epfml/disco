@@ -229,9 +229,6 @@ export default {
         this.useIndexedDB
       );
 
-      // Initialize the training informant's charts
-      this.trainingInformant.initializeCharts();
-
       // Connect to centralized server
       this.isConnected = await this.client.connect();
       if (this.isConnected) {
