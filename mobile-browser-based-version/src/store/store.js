@@ -27,17 +27,17 @@ export const store = createStore({
     },
 
     addTaskFrame(state, payload) {
-      state.tasks[payload.task.trainingInformation.modelID] = payload.task;
+      state.tasksFrames[payload.trainingInformation.modelID] = payload;
     },
 
-    newTask(state, payload) {
+    addNewTask(state, payload) {
       //need to update the reference o.w. it doesn't work
       state.newTasksBuf = _.concat(state.newTasksBuf,payload);
     },
 
     clearNewTasks(state) {
       // limit the number of update events generated if no new tasks have been added
-      state.newTasksBuf.length > 0 ? state.newTasksBuf = []: undefined;
+      state.newTasksBuf.length > 0 ? (state.newTasksBuf = []): undefined;
     },
 
     setIndexedDB(state, payload) {
@@ -64,9 +64,9 @@ export const store = createStore({
     password: (state) => (taskID) =>
       taskID in state.passwords ? state.passwords[taskID] : null,
     taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
-    newTasks: (state) => state.newTasksBuf,
+    newTasks: (state) =>state.newTasksBuf,
     tasksFramesList: (state) => _.values(state.tasksFrames),
-    platform: (state) => (state.isDecentralized ? 'deai' : 'feai')
+    platform: (state) => (state.isDecentralized ? 'decentralised' : 'decentralised'),
   },
 });
 

@@ -633,7 +633,7 @@ export default {
     };
   },
   methods: {
-    ...mapMutations(["newTask", "setActivePage"]),
+    ...mapMutations(["addNewTask", "setActivePage"]),
     allFields(formSection) {
       return _.concat(formSection.fields, formSection[this.dataType]);
     },
@@ -710,7 +710,7 @@ export default {
       // manual reset of form
       this.$refs.resetButton.click();
       // add task to store to rerender TaskList component
-      this.newTask(task);
+      this.addNewTask(task);
       // got to home component
       this.goToHome();
     },
