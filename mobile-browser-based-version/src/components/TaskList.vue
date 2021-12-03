@@ -38,54 +38,50 @@
 </template>
 
 <script>
-import MainTaskFrame from "../components/main_frames/MainTaskFrame.vue";
-import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame.vue";
-import MainTrainingFrame from "../components/main_frames/MainTrainingFrame.vue";
-import MainTestingFrame from "../components/main_frames/MainTestingFrame.vue";
-import BaseLayout from "./containers/BaseLayout.vue";
-import Card from "./containers/Card.vue";
-import CustomButton from "./simple/CustomButton.vue";
+import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue';
+import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue';
+import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue';
+import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue';
+import BaseLayout from './containers/BaseLayout.vue';
+import Card from './containers/Card.vue';
+import CustomButton from './simple/CustomButton.vue';
 
 /**
  * WARNING: Temporary code until complete modularization of task objects.
  * In the meantine, import all custom task classes here.
  */
-import _ from "lodash";
-import { defineComponent } from "vue";
-import { mapMutations,mapState } from "vuex";
-import { getTaskClass } from '../task_definition/converter.js'
+import _ from 'lodash';
+import { defineComponent } from 'vue';
+import { mapMutations, mapState } from 'vuex';
+import { getTaskClass } from '../task_definition/converter.js';
 
 export default {
-  name: "task-list",
+  name: 'task-list',
   components: {
     BaseLayout,
     Card,
     CustomButton,
   },
-  compute: {
-    ...mapState(['newTasks'])
-  },
   watch: {
-    newTasks(n) {
-      console.log("uairsetsrauietrsn");
-      this.newTasks.forEach(this.createNewTaskComponent);
+    '$store.state.newTasks': function() {
+      this.$store.state.newTasks.forEach(this.createNewTaskComponent);
       this.clearNewTasks();
     },
   },
   data() {
     return {
       taskFramesInfo: [
-        ["description", MainDescriptionFrame],
-        ["training", MainTrainingFrame],
-        ["testing", MainTestingFrame],
+        ['description', MainDescriptionFrame],
+        ['training', MainTrainingFrame],
+        ['testing', MainTestingFrame],
       ],
     };
   },
   methods: {
-    ...mapMutations(["addTaskFrame","newTask", "clearNewTasks"]),
+    ...mapMutations(['addTaskFrame', 'newTask', 'clearNewTasks']),
     goToSelection(id) {
       this.$router.push({
-        name: id.concat(".description"),
+        name: id.concat('.description'),
         params: { Id: id },
       });
     },
@@ -103,7 +99,7 @@ export default {
       );
       this.addTaskFrame(newTaskFrame); // commit to store
       let newTaskRoute = {
-        path: "/".concat(newTaskFrame.taskID),
+        path: '/'.concat(newTaskFrame.taskID),
         name: newTaskFrame.taskID,
         component: MainTaskFrame,
         props: { Id: newTaskFrame.taskID, Task: newTaskFrame },
@@ -131,9 +127,11 @@ export default {
     },
   },
   async mounted() {
-    let tasksURL = process.env.VUE_APP_DEAI_SERVER.concat("tasks");
+    let tasksURL = process.env.VUE_APP_DEAI_SERVER.concat('tasks');
     let rawTasks = await fetch(tasksURL).then((response) => response.json());
-    rawTasks.concat(this.newTasks).forEach(this.createNewTaskComponent);
+    rawTasks
+      .concat(this.$store.state.newTasks)
+      .forEach(this.createNewTaskComponent);
     this.clearNewTasks();
   },
 };
