@@ -6,7 +6,7 @@ export const store = createStore({
     globalTaskFrameState: {},
     passwords: {},
     tasksFrames: {}, // vue components
-    newTasksBuf: [], // buffer containing
+    newTasks: [], // buffer containing
     useIndexedDB: true,
     isDark: false,
     isDecentralized: true,
@@ -32,12 +32,12 @@ export const store = createStore({
 
     addNewTask(state, payload) {
       //need to update the reference o.w. it doesn't work
-      state.newTasksBuf = _.concat(state.newTasksBuf,payload);
+      state.newTasks = _.concat(state.newTasks,payload);
     },
 
     clearNewTasks(state) {
       // limit the number of update events generated if no new tasks have been added
-      state.newTasksBuf.length > 0 ? (state.newTasksBuf = []): undefined;
+      state.newTasks.length > 0 ? (state.newTasks = []): undefined;
     },
 
     setIndexedDB(state, payload) {
@@ -64,7 +64,6 @@ export const store = createStore({
     password: (state) => (taskID) =>
       taskID in state.passwords ? state.passwords[taskID] : null,
     taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
-    newTasks: (state) =>state.newTasksBuf,
     tasksFramesList: (state) => _.values(state.tasksFrames),
     platform: (state) => (state.isDecentralized ? 'deai' : 'feai'),
   },

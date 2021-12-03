@@ -637,7 +637,6 @@ export default {
     formatTaskForServer(task) {
       //task should have a json format structure as in `tasks.json` to be correctly uploaded on server
       const formated = { taskID: task.taskID };
-      console.log("-----------");
       _.forEach(this.formSections, (section) => {
         return (formated[section.id] = _.reduce(
           section.fields,
@@ -663,7 +662,6 @@ export default {
       );
       _.unset(formated, "modelCompileData");
       _.unset(formated, "generalInformation");
-      console.log(formated);
       return formated;
     },
 
