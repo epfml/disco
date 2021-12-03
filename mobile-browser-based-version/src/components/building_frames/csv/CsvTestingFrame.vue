@@ -4,7 +4,6 @@
     :Task="Task"
     :nbrClasses="1"
     :makePredictions="makePredictions"
-    :predictionsToCsv="predictionsToCsv"
   >
     <template v-slot:dataExample>
       <!-- Data Point Example -->

@@ -580,12 +580,12 @@
 <script>
 // WARNING: temporay code until serialization of Task object
 // Import the tasks objects Here
-import { mapState, mapMutations } from "vuex";
-import BaseLayout from "./containers/BaseLayout.vue";
-import _ from "lodash";
-import sections from "../task_definition/form.config.js";
-import TitleCard from "./containers/TitleCard.vue";
-import axios from "axios";
+import { mapState, mapMutations } from 'vuex';
+import BaseLayout from './containers/BaseLayout.vue';
+import _ from 'lodash';
+import sections from '../task_definition/form.config.js';
+import TitleCard from './containers/TitleCard.vue';
+import axios from 'axios';
 
 import {
   Field as VeeField,
@@ -593,11 +593,11 @@ import {
   ErrorMessage,
   FieldArray,
   handleSubmit,
-} from "vee-validate";
-import * as yup from "yup";
+} from 'vee-validate';
+import * as yup from 'yup';
 
 export default {
-  name: "NewTaskCreationForm",
+  name: 'NewTaskCreationForm',
   components: {
     BaseLayout,
     TitleCard,
@@ -608,7 +608,7 @@ export default {
   },
   data() {
     // data property defining which task-specific fields should be rendered
-    const dataType = "csv";
+    const dataType = 'csv';
     const formSections = sections;
     // validation schema used by the yup package
     let schemaData = {};
@@ -630,7 +630,7 @@ export default {
     };
   },
   methods: {
-    ...mapMutations(["addNewTask", "setActivePage"]),
+    ...mapMutations(['addNewTask', 'setActivePage']),
     allFields(formSection) {
       return _.concat(formSection.fields, formSection[this.dataType]);
     },
@@ -642,16 +642,16 @@ export default {
           section.fields,
           (acc, field) => {
             acc[field.id] =
-              field.type === "number" ? Number(task[field.id]) : task[field.id];
+              field.type === 'number' ? Number(task[field.id]) : task[field.id];
             return acc;
           },
           {}
         ));
       });
-      formated.trainingInformation["modelCompileData"] = _.cloneDeep(
+      formated.trainingInformation['modelCompileData'] = _.cloneDeep(
         formated.modelCompileData
       );
-      formated.trainingInformation["dataType"] = task.dataType;
+      formated.trainingInformation['dataType'] = task.dataType;
       formated.trainingInformation.modelTrainData = _.reduce(
         task.modelTrainData,
         (acc, f) => {
@@ -660,8 +660,8 @@ export default {
         },
         {}
       );
-      _.unset(formated, "modelCompileData");
-      _.unset(formated, "generalInformation");
+      _.unset(formated, 'modelCompileData');
+      _.unset(formated, 'generalInformation');
       return formated;
     },
 
@@ -712,9 +712,9 @@ export default {
       this.goToHome();
     },
     goToHome() {
-      this.setActivePage("home");
+      this.setActivePage('home');
       this.$router.push({
-        path: "/",
+        path: '/',
       });
     },
   },
