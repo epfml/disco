@@ -1,0 +1,80 @@
+<template>
+  <icon-card :header="header()">
+    <template v-slot:icon><upload /></template>
+    <template v-slot:extra>
+      <div v-for="item in formatLabels()" :key="item">
+        <single-upload-frame
+          :Id="Id"
+          :Task="Task"
+          :fileUploadManager="fileUploadManager"
+          :preview="preview()"
+          :label="String(item)"
+          :displayLabels="displayLabels"
+        />
+      </div>
+    </template>
+  </icon-card>
+</template>
+
+<script>
+import Upload from '../../../assets/svg/Upload.vue';
+import IconCard from '../../containers/IconCard.vue';
+import SingleUploadFrame from './SingleUploadFrame.vue';
+
+export default {
+  name: 'uploading-frame',
+  props: {
+    Id: String,
+    Task: Object,
+    fileUploadManager: Object,
+    displayLabels: { default: true, type: Boolean },
+  },
+  components: {
+    SingleUploadFrame,
+    Upload,
+    IconCard,
+  },
+  data() {
+    return {
+      labels: null,
+      nbrLabels: null,
+      csvLabels: false,
+    };
+  },
+  methods: {
+    preview() {
+      if(this.Task.trainingInformation.modelID == "cifar10-model") {
+        return false
+      }
+      return this.csvLabels || this.nbrLabels == 1;
+    },
+    header() {
+      return !this.displayLabels
+        ? 'Upload My Data'
+        : this.csvLabels
+        ? 'Link My Data'
+        : 'Connect Data';
+    },
+    formatLabels() {
+      return !this.displayLabels
+        ? ['']
+        : this.csvLabels
+        ? ['Images', 'Labels']
+        : this.nbrLabels == 1
+        ? [1]
+        : this.labels;
+    },
+  },
+  mounted() {
+    if (this.Task.trainingInformation.LABEL_LIST) {
+      this.labels = this.Task.trainingInformation.LABEL_LIST;
+      this.nbrLabels = this.Task.trainingInformation.LABEL_LIST.length;
+    } else {
+      this.nbrLabels = 1;
+    }
+    if (this.Task.trainingInformation.LABEL_ASSIGNMENT) {
+      this.csvLabels = true;
+    }
+  },
+};
+</script>
