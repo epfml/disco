@@ -1,5 +1,4 @@
 import { createStore } from 'vuex';
-import { TrainingManager } from '../helpers/training_script/training_manager'; //"../../helpers/training_script/training_manager";
 
 export const store = createStore({
   state: {
@@ -7,38 +6,59 @@ export const store = createStore({
     globalTaskFrameState: new Array(),
     passwords: new Array(),
     tasks: new Array(),
+    useIndexedDB: true,
+    isDark: false,
+    isDecentralized: true,
+    activePage: 'home',
   },
   mutations: {
     increment(state) {
       state.count++;
     },
 
-    async addGlobalTaskFrameState(state, newGlobalTaskFrameState) {
-      let modelId = newGlobalTaskFrameState.modelId;
-      state.globalTaskFrameState[modelId] = newGlobalTaskFrameState;
+    addGlobalTaskFrameState(state, newGlobalTaskFrameState) {
+      let modelID = newGlobalTaskFrameState.modelID;
+      state.globalTaskFrameState[modelID] = newGlobalTaskFrameState;
     },
 
-    async addPassword(state, payload) {
+    addPassword(state, payload) {
       state.passwords[payload.id] = payload.password;
     },
 
-    async addTask(state, payload) {
-      state.tasks[payload.task.trainingInformation.modelId] = payload.task;
+    addTask(state, payload) {
+      state.tasks[payload.task.trainingInformation.modelID] = payload.task;
+    },
+
+    setIndexedDB(state, payload) {
+      // Convert payload to boolean value
+      state.useIndexedDB = payload ? true : false;
+    },
+
+    setAppTheme(state, payload) {
+      state.isDark = payload ? true : false;
+    },
+
+    setPlatform(state, payload) {
+      state.isDecentralized = payload ? true : false;
+    },
+
+    setActivePage(state, payload) {
+      state.activePage = payload;
     },
   },
 
   getters: {
-    trainingManagers: state => {
-      return state.trainingManagers;
+    globalTaskFrameState: (state) => (modelID) => {
+      return state.globalTaskFrameState[modelID];
     },
-    globalTaskFrameState: state => modelId => {
-      return state.globalTaskFrameState[modelId];
+    password: (state) => (taskID) => {
+      return taskID in state.passwords ? state.passwords[taskID] : null;
     },
-    password: state => taskId => {
-      return taskId in state.passwords ? state.passwords[taskId] : null;
+    tasks: (state) => (modelID) => {
+      return state.tasks[modelID];
     },
-    tasks: state => modelId => {
-      return state.tasks[modelId];
+    platform: (state) => ()=> {
+      return state.isDecentralized ? 'deai' : 'feai';
     },
   },
 });

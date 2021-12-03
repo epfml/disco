@@ -2,20 +2,24 @@
   <!-- CSV tasks -->
   <!--TODO-->
   <!-- image tasks -->
-  <div v-if="Task.trainingInformation.dataType == 'image'">
-    <ImageTestingFrame v-bind:Id="Id" v-bind:Task="Task" />
-  </div>
-  <div v-if="Task.trainingInformation.dataType == 'csv'">
-    <CsvTestingFrame v-bind:Id="Id" v-bind:Task="Task" />
-  </div>
+  <image-testing-frame
+    v-if="Task.trainingInformation.dataType == 'image'"
+    v-bind:Id="Id"
+    v-bind:Task="Task"
+  />
+  <csv-testing-frame
+    v-else-if="Task.trainingInformation.dataType == 'csv'"
+    v-bind:Id="Id"
+    v-bind:Task="Task"
+  />
 </template>
 
 <script>
-import ImageTestingFrame from '../building_frames/ImageTestingFrame';
-import CsvTestingFrame from '../building_frames/CsvTestingFrame';
+import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue';
+import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame.vue';
 
 export default {
-  name: 'MainTestingFrame',
+  name: 'main-testing-frame',
   props: {
     Id: String,
     Task: Object,
@@ -25,7 +29,7 @@ export default {
     CsvTestingFrame,
   },
   async activated() {
-    this.$emit("opened-testing");
+    this.$emit('opened-testing');
   },
 };
 </script>
