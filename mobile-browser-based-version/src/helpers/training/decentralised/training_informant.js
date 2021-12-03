@@ -37,10 +37,11 @@ export class TrainingInformant {
     this.displayHeatmap = false;
 
     // default values for the validation and training charts
+    let nbEpochsOnGraphs = 10;
     this.currentValidationAccuracy = 0;
-    this.validationAccuracyDataSerie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.validationAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
     this.currentTrainingAccuracy = 0;
-    this.trainingAccuracyDataSerie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.trainingAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
   }
 
   /**
