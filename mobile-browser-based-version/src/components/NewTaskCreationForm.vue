@@ -585,7 +585,7 @@ import BaseLayout from "./containers/BaseLayout.vue";
 import _ from "lodash";
 import sections from "../task_definition/form.config.js";
 import TitleCard from "./containers/TitleCard.vue";
-const axios = require("axios");
+import axios from "axios";
 
 import {
   Field as VeeField,
@@ -605,9 +605,6 @@ export default {
     VeeForm,
     ErrorMessage,
     FieldArray,
-  },
-  computed: {
-    ...mapState(["platform"]),
   },
   data() {
     // data property defining which task-specific fields should be rendered
@@ -640,6 +637,7 @@ export default {
     formatTaskForServer(task) {
       //task should have a json format structure as in `tasks.json` to be correctly uploaded on server
       const formated = { taskID: task.taskID };
+      console.log("-----------");
       _.forEach(this.formSections, (section) => {
         return (formated[section.id] = _.reduce(
           section.fields,
@@ -665,6 +663,7 @@ export default {
       );
       _.unset(formated, "modelCompileData");
       _.unset(formated, "generalInformation");
+      console.log(formated);
       return formated;
     },
 
@@ -691,7 +690,7 @@ export default {
       resetForm();
       // Submit values to Express server
       const response = await axios.post(
-        `http://localhost:8080/${this.platform}/tasks/`,
+        `http://localhost:8080/${this.$store.getters.platform}/tasks/`,
         task
       );
       if (response.status === 200) {

@@ -66,7 +66,7 @@ export const store = createStore({
     taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
     newTasks: (state) =>state.newTasksBuf,
     tasksFramesList: (state) => _.values(state.tasksFrames),
-    platform: (state) => (state.isDecentralized ? 'decentralised' : 'decentralised'),
+    platform: (state) => (state.isDecentralized ? 'deai' : 'feai'),
   },
 });
 

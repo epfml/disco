@@ -6,7 +6,7 @@ import { ExpressPeerServer } from 'peer';
 import { makeID } from '../helpers/helpers.js';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import * as config from '../../server.config.js';
-
+import fs from 'fs';
 // General tasks routes
 const tasksRouter = express.Router();
 tasksRouter.get('/', requests.getAllTasksData);
@@ -14,7 +14,7 @@ tasksRouter.get('/:task/:file', requests.getInitialTaskModel);
 // POST method route (task-creation-form)
 tasksRouter.post("/", function(req, res) {
   const newTask = req.body,
-    newPort = START_TASK_PORT + tasks.length;
+    newPort = config.START_TASK_PORT + tasks.length;
   if (newTask["taskId"] in tasks)
     console.log("Cannot add new task (key is already defined in Tasks.json)");
   else {
@@ -32,15 +32,15 @@ tasksRouter.post("/", function(req, res) {
       if (err) console.log("Error writing file:", err);
     });
     // synchronous directory creation so that next call to fs.writeFile doesn't fail.
-    fs.mkdirSync(`./models/${newTask.taskID}/`, { recursive: true });
+    fs.mkdirSync(`../models/${newTask.taskID}/`, { recursive: true });
     fs.writeFile(
-      `./models/${newTask.taskID}/model.json`,
+      `../models/${newTask.taskID}/model.json`,
       JSON.stringify(modelFile),
       (err) => {
         if (err) console.log("Error writing file:", err);
       }
     );
-    fs.writeFile(`./models/${newTask.taskID}/weights.bin`, weightsFile, (err) => {
+    fs.writeFile(`../models/${newTask.taskID}/weights.bin`, weightsFile, (err) => {
       if (err) console.log("Error writing file:", err);
     });
     // answer vue app
