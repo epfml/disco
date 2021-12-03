@@ -52,7 +52,7 @@ import CustomButton from "./simple/CustomButton.vue";
  */
 import _ from "lodash";
 import { defineComponent } from "vue";
-import { mapMutations,mapGetters } from "vuex";
+import { mapMutations,mapState } from "vuex";
 import { getTaskClass } from '../task_definition/converter.js'
 
 export default {
@@ -63,11 +63,11 @@ export default {
     CustomButton,
   },
   compute: {
-    ...mapGetters(["tasksFramesList", "newTasks"]),
+    ...mapState(['newTasks'])
   },
   watch: {
-    // whenever question changes, this function will run
-    newTasks: function(v) {
+    newTasks(n) {
+      console.log("uairsetsrauietrsn");
       this.newTasks.forEach(this.createNewTaskComponent);
       this.clearNewTasks();
     },
@@ -133,7 +133,7 @@ export default {
   async mounted() {
     let tasksURL = process.env.VUE_APP_DEAI_SERVER.concat("tasks");
     let rawTasks = await fetch(tasksURL).then((response) => response.json());
-    rawTasks.concat(this.$store.getters.newTasks).forEach(this.createNewTaskComponent);
+    rawTasks.concat(this.newTasks).forEach(this.createNewTaskComponent);
     this.clearNewTasks();
   },
 };
