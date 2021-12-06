@@ -30,7 +30,7 @@
       </aside>
 
       <!-- Main Page -->
-      <div class="overflow-x-scroll flex-grow z-0">
+      <div class="overflow-x-hidden flex-grow z-0">
         <router-view v-slot="{ Component }">
           <keep-alive>
             <component :is="Component" />
