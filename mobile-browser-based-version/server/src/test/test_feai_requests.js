@@ -86,10 +86,10 @@ async function testServerRequests() {
   assert.equal(response.ok, true);
 
   /**
-   * Receive aggreation status for the final epoch of round #0, i.e. epoch #9.
-   * Expect failure as not enough people sent their local weights for aggregation.
+   * Receive aggregation status for round #0. Expect failure as not enough
+   * people sent their local weights for aggregation.
    */
-  response = await api.aggregationStatus(task, round, ids[0], 9);
+  response = await api.aggregationStatus(task, round, ids[0]);
   assert.equal(response.ok, true);
   body = await response.json();
   assert.equal(await body.aggregated, false);
@@ -101,19 +101,9 @@ async function testServerRequests() {
   assert.equal(response.ok, true);
 
   /**
-   * Receive aggregation status for epoch #8 of round #0. Expect failure as the
-   * training duration of 10 epochs has not been respected.
+   * Receive aggregation status, expect success.
    */
-  response = await api.aggregationStatus(task, round, ids[0], 8);
-  assert.equal(response.ok, true);
-  body = await response.json();
-  assert.equal(body.aggregated, false);
-
-  /**
-   * Receive aggregation status on the final epoch of round #0, i.e. epoch #9.
-   * Expect success.
-   */
-  response = await api.aggregationStatus(task, round, ids[0], 9);
+  response = await api.aggregationStatus(task, round, ids[0]);
   assert.equal(response.ok, true);
   body = await response.json();
   assert.equal(body.aggregated, true);
@@ -125,7 +115,7 @@ async function testServerRequests() {
   weights = msgpack.encode(Array.from(await serializeWeights(model.weights)));
 
   /**
-   * Expect success, especially for the client #2 which must have been
+   * Expect success, especially for client #2 which has have been
    * queued up for selection during the previous training round.
    */
   for (let id of ids) {
@@ -137,17 +127,22 @@ async function testServerRequests() {
   }
 
   /**
-   * Get server logs for own activity. Expect the list of all previous POST
+   * Get server logs for own activity. Expect the list of all previous successful
    * requests.
    */
-  console.log(await api.queryLogs({ clientID: ids[0] }));
-  console.log(await api.queryLogs({ taskID: task }));
-  console.log(
-    await api.queryLogs({ taskID: task, round: round, clientID: ids[0] })
-  );
+  response = await api.queryLogs({ clientID: ids[0] });
+  if (response.ok) console.log(await response.json());
+  response = await api.queryLogs({ taskID: task });
+  if (response.ok) console.log(await response.json());
+  response = await api.queryLogs({
+    taskID: task,
+    round: round,
+    clientID: ids[0],
+  });
+  if (response.ok) console.log(await response.json());
 
   /**
-   * Disconnect from server
+   * Disconnect all clients from server.
    */
   for (let id of ids) {
     response = await api.disconnect(task, id);

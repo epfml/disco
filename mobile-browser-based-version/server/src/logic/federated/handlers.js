@@ -26,10 +26,6 @@ const REQUEST_TYPES = Object.freeze({
  */
 const AGGREGATION_THRESHOLD = 0.8;
 /**
- * Proceed to the round's aggregation step after X training epochs.
- */
-const TRAINING_DURATION = 10;
-/**
  * Number of selected clients required to start federated training.
  */
 const TRAINING_THRESHOLD = 2;
@@ -83,27 +79,14 @@ tasks.forEach((task) => {
  * subsequent POST requests related to training.
  * @param {Request} request received from client
  */
-export function checkRequest(request) {
-  if (
-    !(
-      request !== undefined &&
-      request.body !== undefined &&
-      request.body.timestamp !== undefined &&
-      typeof request.body.timestamp === 'string' &&
-      request.params !== undefined &&
-      typeof request.params.task === 'string' &&
-      typeof request.params.round === 'string' &&
-      Number.isInteger(Number(request.params.round)) &&
-      request.params.round >= 0
-    )
-  ) {
-    return 400;
-  }
-
-  const id = request.body.id;
+function checkRequest(request) {
   const task = request.params.task;
   const round = request.params.round;
+  const id = request.params.id;
 
+  if (!(Number.isInteger(Number(round)) && round >= 0)) {
+    return 400;
+  }
   if (!(clients.has(task) && round <= status.get(task).round)) {
     return 404;
   }
@@ -116,21 +99,26 @@ export function checkRequest(request) {
   return 200;
 }
 
+function failRequest(response, type, code) {
+  console.log(`${type} failed with code ${code}`);
+  response.status(code).send();
+}
+
 /**
  * Appends the given POST request's timestamp and type to the logs.
  * @param {Request} request received from client
  * @param {String} type of the request (send/receive weights/metadata)
  */
-export function logsAppend(request, type) {
-  const id = request.body.id;
-  const timestamp = request.body.timestamp;
+function logsAppend(request, type) {
+  const timestamp = new Date();
   const task = request.params.task;
   const round = request.params.round;
+  const id = request.params.id;
   logs.push({
     timestamp: timestamp,
-    clientId: id,
-    taskID: task,
+    task: task,
     round: round,
+    client: id,
     request: type,
   });
 }
@@ -145,19 +133,19 @@ export function logsAppend(request, type) {
  * @param {Response} response sent to client
  */
 export function queryLogs(request, response) {
-  const id = request.query.id;
   const task = request.query.task;
   const round = request.query.round;
+  const id = request.query.id;
 
-  console.log(`Logs query: id: ${id}, task: ${task}, round: ${round}`);
+  console.log(`Logs query: task: ${task}, round: ${round}, id: ${id}`);
 
   response
     .status(200)
     .send(
       logs.filter(
         (entry) =>
-          (id ? entry.clientId === id : true) &&
-          (task ? entry.taskID === task : true) &&
+          (id ? entry.client === id : true) &&
+          (task ? entry.task === task : true) &&
           (round ? entry.round === round : true)
       )
     );
@@ -188,14 +176,17 @@ function startNextTrainingRound(task, threshold, countdown) {
 }
 
 export function selectionStatus(request, response) {
-  const requestType = REQUEST_TYPES.SELECTION_STATUS;
+  const type = REQUEST_TYPES.SELECTION_STATUS;
+
   const task = request.params.task;
   const id = request.params.id;
+
   if (!clients.has(task)) {
-    console.log(`${requestType} failed with code 404`);
-    response.status(404).send();
+    return failRequest(response, type, 404);
   }
-  logsAppend(request, requestType);
+
+  logsAppend(request, type);
+
   const selected = {
     selected: true,
     round: status.get(task).round,
@@ -223,19 +214,23 @@ export function selectionStatus(request, response) {
  * @param {Response} response sent to client
  */
 export function connect(request, response) {
-  const id = request.params.id;
+  const type = REQUEST_TYPES.CONNECT;
+
   const task = request.params.task;
+  const id = request.params.id;
+
   if (!clients.has(task)) {
-    response.status(404).send();
-    return;
+    return failRequest(response, type, 404);
   }
   if (clients.get(task).has(id)) {
-    response.status(401).send();
-    return;
+    return failRequest(response, type, 401);
   }
+
+  logsAppend(request, type);
+
   clients.get(task).add(id);
   console.log(`Client with ID ${id} connected to the server`);
-  response.status(200).send();
+  return response.status(200).send();
 }
 
 /**
@@ -249,12 +244,16 @@ export function connect(request, response) {
  * and/or weights posting frequency.
  */
 export function disconnect(request, response) {
+  const type = REQUEST_TYPES.DISCONNECT;
+
   const task = request.params.task;
   const id = request.params.id;
+
   if (!(clients.has(task) && clients.get(task).has(id))) {
-    response.status(404).send();
-    return;
+    return failRequest(response, type, 404);
   }
+
+  logsAppend(request, type);
 
   clients.get(task).delete(id);
   selectedClients.get(task).delete(id);
@@ -275,30 +274,32 @@ export function disconnect(request, response) {
  * @param {Response} response sent to client
  */
 export function postWeights(request, response) {
-  const requestType = REQUEST_TYPES.SEND_WEIGHTS;
+  const type = REQUEST_TYPES.SEND_WEIGHTS;
 
-  const httpStatus = checkRequest(request);
-  if (httpStatus !== 200) {
-    response.status(httpStatus).send();
-    console.log(`${requestType} failed with code ${httpStatus}`);
-    return;
+  const code = checkRequest(request);
+  if (code !== 200) {
+    return failRequest(response, code);
   }
-  const round = request.params.round;
+
   const task = request.params.task;
-  const id = request.body.id;
+  const round = request.params.round;
+  const id = request.params.id;
+
+  if (
+    request.body === undefined ||
+    request.body.weights === undefined ||
+    request.body.weights.data === undefined
+  ) {
+    return failRequest(response, type, 400);
+  }
+
   const encodedWeights = request.body.weights;
 
   if (!status.get(task).training) {
-    response.status(403).send();
-    console.log(`${requestType} failed with code 403`);
-    return;
+    return failRequest(response, type, 403);
   }
 
-  if (!(encodedWeights !== undefined && encodedWeights.data !== undefined)) {
-    response.status(400).send();
-    console.log(`${requestType} failed with code 400`);
-    return;
-  }
+  logsAppend(request, type);
 
   if (!weightsMap.has(task)) {
     weightsMap.set(task, new Map());
@@ -320,8 +321,7 @@ export function postWeights(request, response) {
   weightsMap.get(task).get(round).set(id, weights);
   response.status(200).send();
 
-  logsAppend(request, requestType);
-  return;
+  logsAppend(request, type);
 }
 
 /**
@@ -338,35 +338,28 @@ export function postWeights(request, response) {
  * @param {Response} response sent to client
  */
 export async function aggregationStatus(request, response) {
-  const requestType = REQUEST_TYPES.AGGREGATION_STATUS;
+  const type = REQUEST_TYPES.AGGREGATION_STATUS;
 
-  const httpStatus = checkRequest(request);
-  if (httpStatus !== 200) {
-    response.status(httpStatus).send();
-    console.log(`${requestType} failed with code ${httpStatus}`);
-    return;
+  const code = checkRequest(request);
+  if (code !== 200) {
+    return failRequest(response, type, code);
   }
 
   const task = request.params.task;
   const round = request.params.round;
-  const epoch = request.body.epoch;
 
   /**
    * The task was not trained at all.
    */
   if (!status.get(task).training && status.get(task).round === 0) {
-    response.status(403).send();
-    console.log(`${requestType} failed with code 403`);
-    return;
+    return failRequest(response, type, 403);
   }
 
   if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
-    response.status(404).send();
-    console.log(`${requestType} failed with code 404`);
-    return;
+    return failRequest(response, type, 404);
   }
 
-  logsAppend(request, requestType);
+  logsAppend(request, type);
 
   /**
    * Ensure the requested round has been completed.
@@ -376,14 +369,6 @@ export async function aggregationStatus(request, response) {
     (status.get(task).training && round < status.get(task).round)
   ) {
     response.status(200).send({ aggregated: true });
-    return;
-  }
-  /**
-   * Ensure the request is made only once the client has finished their training
-   * round, i.e. they trained for the whole required set of epochs.
-   */
-  if (epoch + 1 < TRAINING_DURATION * (round + 1)) {
-    response.status(200).send({ aggregated: false });
     return;
   }
 
@@ -459,19 +444,24 @@ export async function aggregationStatus(request, response) {
  *
  */
 export function postSamples(request, response) {
-  const requestType = REQUEST_TYPES.SEND_SAMPLES;
+  const type = REQUEST_TYPES.SEND_SAMPLES;
 
-  const httpStatus = checkRequest(request);
-  if (httpStatus !== 200) {
-    response.status(httpStatus).send();
-    console.log(`${requestType} failed with code ${httpStatus}`);
-    return;
+  const code = checkRequest(request);
+  if (code !== 200) {
+    return failRequest(response, type, code);
   }
 
-  const id = request.body.id;
-  const samples = request.body.samples;
+  logsAppend(request, type);
+
   const task = request.params.task;
   const round = request.params.round;
+  const id = request.params.id;
+
+  if (request.body === undefined || request.body.samples === undefined) {
+    return failRequest(response, type, 400);
+  }
+
+  const samples = request.body.samples;
 
   if (!dataSamplesMap.has(task)) {
     dataSamplesMap.set(task, new Map());
@@ -482,9 +472,6 @@ export function postSamples(request, response) {
 
   dataSamplesMap.get(task).get(round).set(id, samples);
   response.status(200).send();
-
-  logsAppend(request, requestType);
-  return;
 }
 
 /**
@@ -498,23 +485,21 @@ export function postSamples(request, response) {
  * @param {Response} response sent to client
  */
 export function getSamplesMap(request, response) {
-  const requestType = REQUEST_TYPES.RECEIVE_SAMPLES;
+  const type = REQUEST_TYPES.RECEIVE_SAMPLES;
 
-  const httpStatus = checkRequest(request);
-  if (httpStatus !== 200) {
-    response.status(httpStatus).send();
-    console.log(`${requestType} failed with code ${httpStatus}`);
-    return;
+  const code = checkRequest(request);
+  if (code !== 200) {
+    return failRequest(response, type, code);
   }
 
   const task = request.params.task;
   const round = request.params.round;
 
   if (!(dataSamplesMap.has(task) && round >= 0)) {
-    response.status(404).send();
-    console.log(`${requestType} failed with code 404`);
-    return;
+    return failRequest(response, type, 404);
   }
+
+  logsAppend(request, type);
 
   /**
    * Find the most recent entry round-wise for the given task (upper bounded
@@ -530,8 +515,6 @@ export function getSamplesMap(request, response) {
 
   const samples = msgpack.encode(Array.from(latestDataSamplesMap));
   response.status(200).send({ samples: samples });
-  logsAppend(request, requestType);
-  return;
 }
 
 /**
@@ -543,11 +526,13 @@ export function getSamplesMap(request, response) {
  * @param {Response} response sent to client
  */
 export function getTasksMetadata(request, response) {
+  const type = REQUEST_TYPES.TASKS_METADATA;
   if (fs.existsSync(config.TASKS_FILE)) {
+    logsAppend(request, type);
     console.log(`Serving ${config.TASKS_FILE}`);
     response.status(200).sendFile(config.TASKS_FILE);
   } else {
-    response.status(404).send();
+    failRequest(response, type, 404);
   }
 }
 
@@ -561,12 +546,13 @@ export function getTasksMetadata(request, response) {
  * @param {Response} response sent to client
  */
 export function getLatestModel(request, response) {
+  const type = REQUEST_TYPES.TASK_MODEL;
+
   const task = request.params.task;
   const file = request.params.file;
 
   if (!clients.has(task)) {
-    response.status(404).send();
-    return;
+    return failRequest(response, type, 404);
   }
   const validModelFiles = new Set(['model.json', 'weights.bin']);
   const modelFile = path.join(config.MODELS_DIR, task, file);
@@ -575,6 +561,6 @@ export function getLatestModel(request, response) {
     console.log(`${file} download for task ${task} succeeded`);
     response.status(200).sendFile(modelFile);
   } else {
-    response.status(404).send();
+    failRequest(response, type, 404);
   }
 }

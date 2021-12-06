@@ -24,7 +24,7 @@ federatedRouter.get('/disconnect/:task/:id', handlers.disconnect);
 federatedRouter.get('/selection/:task/:id', handlers.selectionStatus);
 
 federatedRouter.get(
-  '/aggregation/:task/:round/:epoch/:id',
+  '/aggregation/:task/:round/:id',
   handlers.aggregationStatus
 );
 
