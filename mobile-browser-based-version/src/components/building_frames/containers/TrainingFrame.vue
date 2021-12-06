@@ -62,7 +62,7 @@
         <template v-slot:icon><download /></template>
         <template v-slot:extra>
           <!-- Descrition -->
-          <div class="relative p-4 overflow-x-scroll">
+          <div class="relative p-4 overflow-x-hidden">
             <span
               style="white-space: pre-line"
               class="text-sm text-gray-500 dark:text-light"
