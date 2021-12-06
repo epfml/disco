@@ -10,7 +10,7 @@ import * as config from '../../server.config.js';
 // General tasks routes
 const tasksRouter = express.Router();
 tasksRouter.get('/', requests.getAllTasksData);
-tasksRouter.get('/:task/:file', requests.getInitialTaskModel);
+tasksRouter.get('/:task/:file', requests.getLatestTaskModel);
 
 // Declare federated routes
 const federatedRouter = express.Router();
@@ -19,21 +19,24 @@ federatedRouter.get('/', (req, res) => res.send('FeAI server'));
 federatedRouter.get('/connect/:task/:id', requests.connectToServer);
 federatedRouter.get('/disconnect/:task/:id', requests.disconnectFromServer);
 
+federatedRouter.get(
+  '/selection_status/:task/:id',
+  requests.receiveSelectionStatus
+);
 federatedRouter.post(
   '/send_weights/:task/:round',
   requests.sendIndividualWeights
 );
 federatedRouter.post(
-  '/receive_weights/:task/:round',
-  requests.receiveAveragedWeights
+  '/aggregation_status/:task/:round',
+  requests.receiveWeightsAggregationStatus
 );
-
 federatedRouter.post(
-  '/send_nbsamples/:task/:round',
+  '/send_samples/:task/:round',
   requests.sendDataSamplesNumber
 );
 federatedRouter.post(
-  '/receive_nbsamples/:task/:round',
+  '/receive_samples/:task/:round',
   requests.receiveDataSamplesNumbersPerClient
 );
 

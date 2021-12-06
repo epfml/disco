@@ -25,11 +25,11 @@ async function serializeVariable(variable) {
   };
 }
 
-async function serializeWeights(weights) {
+export async function serializeWeights(weights) {
   return await Promise.all(weights.map(serializeVariable));
 }
 
-async function averageWeights(peersSerializedWeights) {
+export async function averageWeights(peersSerializedWeights) {
   const firstWeights = peersSerializedWeights[0];
   const otherWeights = peersSerializedWeights.slice(1);
   let resultWeights = [];
@@ -53,4 +53,11 @@ async function averageWeights(peersSerializedWeights) {
   return serializedWeights;
 }
 
-export { serializeWeights, averageWeights };
+export function assignWeightsToModel(model, serializedWeights) {
+  model.weights.forEach((weight, idx) => {
+    const serializedWeight = serializedWeights[idx]['$variable'];
+    const tensor = deserializeTensor(serializedWeight.val);
+    weight.val.assign(tensor);
+    tensor.dispose();
+  });
+}
