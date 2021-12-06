@@ -24,7 +24,7 @@ var weights;
  * selected for round #1.
  */
 async function testServerRequests() {
-  model = await api.fetchModel(task);
+  model = await api.getLatestModel(task);
   weights = msgpack.encode(Array.from(await serializeWeights(model.weights)));
 
   /**
@@ -82,7 +82,7 @@ async function testServerRequests() {
   /**
    * Send local weights for round #0.
    */
-  response = await api.sendWeights(task, round, ids[0], weights);
+  response = await api.postWeights(task, round, ids[0], weights);
   assert.equal(response.ok, true);
 
   /**
@@ -97,7 +97,7 @@ async function testServerRequests() {
   /**
    * Send local weights for round #0.
    */
-  response = await api.sendWeights(task, round, ids[1], weights);
+  response = await api.postWeights(task, round, ids[1], weights);
   assert.equal(response.ok, true);
 
   /**
@@ -121,7 +121,7 @@ async function testServerRequests() {
   /**
    * Now that the aggregated model is available, update the local model.
    */
-  model = await api.fetchModel(task);
+  model = await api.getLatestModel(task);
   weights = msgpack.encode(Array.from(await serializeWeights(model.weights)));
 
   /**

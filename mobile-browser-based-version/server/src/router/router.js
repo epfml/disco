@@ -1,6 +1,6 @@
 import express from 'express';
 import _ from 'lodash';
-import * as requests from '../logic/federated/requests.js';
+import * as handlers from '../logic/federated/handlers.js';
 import tasks from '../tasks/tasks.js';
 import { ExpressPeerServer } from 'peer';
 import { makeID } from '../helpers/helpers.js';
@@ -9,41 +9,39 @@ import * as config from '../../server.config.js';
 
 // General tasks routes
 const tasksRouter = express.Router();
-tasksRouter.get('/', requests.getAllTasksData);
-tasksRouter.get('/:task/:file', requests.getLatestTaskModel);
+tasksRouter.get('/', handlers.getTasksMetadata);
+tasksRouter.get('/:task/:file', handlers.getLatestModel);
+
+// =======================================================================
 
 // Declare federated routes
 const federatedRouter = express.Router();
 federatedRouter.get('/', (req, res) => res.send('FeAI server'));
 
-federatedRouter.get('/connect/:task/:id', requests.connectToServer);
-federatedRouter.get('/disconnect/:task/:id', requests.disconnectFromServer);
+federatedRouter.get('/connect/:task/:id', handlers.connect);
+federatedRouter.get('/disconnect/:task/:id', handlers.disconnect);
+
+federatedRouter.get('/selection/:task/:id', handlers.selectionStatus);
 
 federatedRouter.get(
-  '/selection_status/:task/:id',
-  requests.receiveSelectionStatus
+  '/aggregation/:task/:round/:epoch/:id',
+  handlers.aggregationStatus
 );
-federatedRouter.post(
-  '/send_weights/:task/:round',
-  requests.sendIndividualWeights
-);
-federatedRouter.post(
-  '/aggregation_status/:task/:round',
-  requests.receiveWeightsAggregationStatus
-);
-federatedRouter.post(
-  '/send_samples/:task/:round',
-  requests.sendDataSamplesNumber
-);
-federatedRouter.post(
-  '/receive_samples/:task/:round',
-  requests.receiveDataSamplesNumbersPerClient
-);
+
+federatedRouter.post('/weights/:task/:round/:id', handlers.postWeights);
+
+federatedRouter
+  .route('/samples/:task/:round/:id')
+  .get(handlers.getSamplesMap)
+  .post(handlers.postSamples);
+
+federatedRouter.get('/logs', handlers.queryLogs);
 
 federatedRouter.use('/tasks', tasksRouter);
 
-federatedRouter.get('/logs', requests.queryLogs);
+// =======================================================================
 
+// Declaire decentralised routes
 const decentralisedRouter = express.Router();
 
 const ports = _.range(

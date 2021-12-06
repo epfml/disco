@@ -187,7 +187,7 @@ function startNextTrainingRound(task, threshold, countdown) {
   }
 }
 
-export function receiveSelectionStatus(request, response) {
+export function selectionStatus(request, response) {
   const requestType = REQUEST_TYPES.SELECTION_STATUS;
   const task = request.params.task;
   const id = request.params.id;
@@ -222,7 +222,7 @@ export function receiveSelectionStatus(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function connectToServer(request, response) {
+export function connect(request, response) {
   const id = request.params.id;
   const task = request.params.task;
   if (!clients.has(task)) {
@@ -248,7 +248,7 @@ export function connectToServer(request, response) {
  * with very poor and/or sparse contribution to training in terms of performance
  * and/or weights posting frequency.
  */
-export function disconnectFromServer(request, response) {
+export function disconnect(request, response) {
   const task = request.params.task;
   const id = request.params.id;
   if (!(clients.has(task) && clients.get(task).has(id))) {
@@ -274,7 +274,7 @@ export function disconnectFromServer(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function sendIndividualWeights(request, response) {
+export function postWeights(request, response) {
   const requestType = REQUEST_TYPES.SEND_WEIGHTS;
 
   const httpStatus = checkRequest(request);
@@ -337,7 +337,7 @@ export function sendIndividualWeights(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export async function receiveWeightsAggregationStatus(request, response) {
+export async function aggregationStatus(request, response) {
   const requestType = REQUEST_TYPES.AGGREGATION_STATUS;
 
   const httpStatus = checkRequest(request);
@@ -458,7 +458,7 @@ export async function receiveWeightsAggregationStatus(request, response) {
  * @param {Response} response sent to client
  *
  */
-export function sendDataSamplesNumber(request, response) {
+export function postSamples(request, response) {
   const requestType = REQUEST_TYPES.SEND_SAMPLES;
 
   const httpStatus = checkRequest(request);
@@ -497,7 +497,7 @@ export function sendDataSamplesNumber(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function receiveDataSamplesNumbersPerClient(request, response) {
+export function getSamplesMap(request, response) {
   const requestType = REQUEST_TYPES.RECEIVE_SAMPLES;
 
   const httpStatus = checkRequest(request);
@@ -542,7 +542,7 @@ export function receiveDataSamplesNumbersPerClient(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getAllTasksData(request, response) {
+export function getTasksMetadata(request, response) {
   if (fs.existsSync(config.TASKS_FILE)) {
     console.log(`Serving ${config.TASKS_FILE}`);
     response.status(200).sendFile(config.TASKS_FILE);
@@ -560,7 +560,7 @@ export function getAllTasksData(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getLatestTaskModel(request, response) {
+export function getLatestModel(request, response) {
   const task = request.params.task;
   const file = request.params.file;
 
