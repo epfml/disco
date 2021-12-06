@@ -20,7 +20,7 @@ export async function aggregationStatus(taskID, round, clientID) {
 
 export async function queryLogs(taskID, round, clientID) {
   const params = [];
-  if (taskID !== undefined) params.push(`taskID=${taskID}`);
+  if (taskID !== undefined) params.push(`task=${taskID}`);
   if (round !== undefined) params.push(`round=${round}`);
   if (clientID !== undefined) params.push(`id=${clientID}`);
   const query = params.join('&');

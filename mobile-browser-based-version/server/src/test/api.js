@@ -28,11 +28,11 @@ export async function getLatestModel(taskID) {
 
 export async function queryLogs(taskID, round, clientID) {
   const params = [];
-  if (taskID !== undefined) params.push(`taskID=${taskID}`);
+  if (taskID !== undefined) params.push(`task=${taskID}`);
   if (round !== undefined) params.push(`round=${round}`);
   if (clientID !== undefined) params.push(`id=${clientID}`);
-  const query = 'logs?'.concat(params.join('&'));
-  return await fetch(`${API}/${query}`);
+  const query = params.join('&');
+  return await fetch(`${API}/logs?${query}`);
 }
 
 export async function postWeights(taskID, round, clientID, weights) {
