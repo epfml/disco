@@ -320,8 +320,6 @@ export function postWeights(request, response) {
   const weights = msgpack.decode(Uint8Array.from(encodedWeights.data));
   weightsMap.get(task).get(round).set(id, weights);
   response.status(200).send();
-
-  logsAppend(request, type);
 }
 
 /**

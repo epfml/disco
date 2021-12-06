@@ -130,15 +130,11 @@ async function testServerRequests() {
    * Get server logs for own activity. Expect the list of all previous successful
    * requests.
    */
-  response = await api.queryLogs({ clientID: ids[0] });
+  response = await api.queryLogs(undefined, undefined, ids[0]);
   if (response.ok) console.log(await response.json());
-  response = await api.queryLogs({ taskID: task });
+  response = await api.queryLogs(task, undefined, undefined);
   if (response.ok) console.log(await response.json());
-  response = await api.queryLogs({
-    taskID: task,
-    round: round,
-    clientID: ids[0],
-  });
+  response = await api.queryLogs(task, round, ids[0]);
   if (response.ok) console.log(await response.json());
 
   /**
