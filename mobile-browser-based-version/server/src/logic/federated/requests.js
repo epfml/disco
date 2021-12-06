@@ -2,39 +2,42 @@ import path from 'path';
 import fs from 'fs';
 import msgpack from 'msgpack-lite';
 import * as config from '../../../server.config.js';
-import { averageWeights } from '../../helpers/tfjs_helpers.js';
+import {
+  averageWeights,
+  assignWeightsToModel,
+} from '../../helpers/tfjs_helpers.js';
 import tasks from '../../tasks/tasks.js';
+import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-node';
 
+const REQUEST_TYPES = Object.freeze({
+  CONNECT: 'connect',
+  DISCONNECT: 'disconnect',
+  SELECTION_STATUS: 'selection-status',
+  SEND_WEIGHTS: 'weights-send',
+  RECEIVE_WEIGHTS: 'receive-weights',
+  AGGREGATION_STATUS: 'aggregation-status',
+  SEND_SAMPLES: 'samples-send',
+  RECEIVE_SAMPLES: 'samples-receive',
+});
 /**
- * Fraction of client reponses required to complete communication round.
+ * Fraction of client gradients required on final round of federated training
+ * to proceed to the pooling step.
  */
-const POOLING_THRESHOLD = 0.8;
+const AGGREGATION_THRESHOLD = 0.8;
 /**
- * The number of rounds of local training before pooling the weights from
- * selected clients.
+ * Proceed to the round's aggregation step after X training epochs.
  */
-const POOLING_TIMESTEP = 10;
+const TRAINING_DURATION = 10;
 /**
- * Number of selected clients required before starting federated training.
+ * Number of selected clients required to start federated training.
  */
 const TRAINING_THRESHOLD = 2;
-
-const TRAINING_COUNTDOWN = 1000 * 60;
 /**
- * Save the averaged weights of each task to local storage every X rounds.
- * TODO: save automatically on pooling step (remove periodicity).
+ * Once a certain threshold has been hit, leave a small window for late clients
+ * to join the next federated training session.
  */
-const MODEL_SAVE_TIMESTEP = 5;
-/**
- * Error message for requests not containing the required fields within its body.
- */
-const INVALID_REQUEST_FORMAT_MESSAGE =
-  'Please pecify a client ID, round number and task ID.';
-/**
- * Error message for requests providing keys not contained within the server's
- * datastructures.
- */
-const INVALID_REQUEST_KEYS_MESSAGE = 'No entry matches the given keys.';
+const TRAINING_COUNTDOWN = 1000 * 10;
 
 /**
  * Contains the model weights received from clients for a given task and round.
@@ -60,16 +63,16 @@ const clients = new Map();
 
 const selectedClients = new Map();
 
-const lockedTasks = new Map();
+const selectedClientsQueue = new Map();
+
+const status = new Map();
 
 tasks.forEach((task) => {
   clients.set(task.taskID, new Set());
-  lockedTasks.set(task.taskID, false);
+  selectedClients.set(task.taskID, new Set());
+  selectedClientsQueue.set(task.taskID, new Set());
+  status.set(task.taskID, { training: false, round: 0 });
 });
-
-if (!fs.existsSync(config.MILESTONES_DIR)) {
-  fs.mkdirSync(config.MILESTONES_DIR);
-}
 
 /**
  * Verifies that the given POST request is correctly formatted. Its body must
@@ -80,17 +83,37 @@ if (!fs.existsSync(config.MILESTONES_DIR)) {
  * subsequent POST requests related to training.
  * @param {Request} request received from client
  */
-export function isValidRequest(request) {
-  return (
-    request !== undefined &&
-    request.body !== undefined &&
-    request.body.timestamp !== undefined &&
-    typeof request.body.timestamp === 'string' &&
-    request.params !== undefined &&
-    selectedClients.has(request.params.task) &&
-    selectedClients.get(request.params.task).includes(request.body.id) &&
-    request.params.round >= 0
-  );
+export function checkRequest(request) {
+  if (
+    !(
+      request !== undefined &&
+      request.body !== undefined &&
+      request.body.timestamp !== undefined &&
+      typeof request.body.timestamp === 'string' &&
+      request.params !== undefined &&
+      typeof request.params.task === 'string' &&
+      typeof request.params.round === 'string' &&
+      Number.isInteger(Number(request.params.round)) &&
+      request.params.round >= 0
+    )
+  ) {
+    return 400;
+  }
+
+  const id = request.body.id;
+  const task = request.params.task;
+  const round = request.params.round;
+
+  if (!(clients.has(task) && round <= status.get(task).round)) {
+    return 404;
+  }
+  if (!clients.get(task).has(id)) {
+    return 401;
+  }
+  if (!selectedClients.get(task).has(id)) {
+    return 403;
+  }
+  return 200;
 }
 
 /**
@@ -140,26 +163,56 @@ export function queryLogs(request, response) {
     );
 }
 
-export function receiveSelectionStatus(request, response) {
-  const id = request.params.id;
-  const task = request.params.task;
-  if (!clients.has(task)) {
-    response.status(404).send(INVALID_REQUEST_KEYS_MESSAGE);
-  }
-  response.status(200);
-  if (!lockedTasks.get(task)) {
-    selectedClients.get(task).add(id);
-    if (selectedClients.get(task).size >= TRAINING_THRESHOLD) {
-      setTimeout(() => {
-        if (selectedClients.get(task).size >= TRAINING_THRESHOLD) {
-          lockedTasks.set(task, true);
-        }
-      }, TRAINING_COUNTDOWN);
-    }
-    response.send({ selected: true });
+function startNextTrainingRound(task, threshold, countdown) {
+  let selectedClientsSize = selectedClients.get(task).size;
+  if (selectedClientsSize >= threshold) {
+    console.log(
+      `Fulfilled threshold of ${threshold}, ${selectedClientsSize} clients are selected`
+    );
+    setTimeout(() => {
+      selectedClientsSize = selectedClients.get(task).size;
+      if (selectedClientsSize >= threshold && !status.get(task).training) {
+        console.log(`Training round #${status.get(task).round} started`);
+        status.get(task).training = true;
+      } else {
+        console.log(
+          `Some clients disconnected, only ${selectedClientsSize} are now selected`
+        );
+      }
+    }, countdown);
   } else {
-    response.send({ selected: false });
+    console.log(
+      `Only ${selectedClientsSize} clients are selected, ${threshold} required`
+    );
   }
+}
+
+export function receiveSelectionStatus(request, response) {
+  const requestType = REQUEST_TYPES.SELECTION_STATUS;
+  const task = request.params.task;
+  const id = request.params.id;
+  if (!clients.has(task)) {
+    console.log(`${requestType} failed with code 404`);
+    response.status(404).send();
+  }
+  logsAppend(request, requestType);
+  const selected = {
+    selected: true,
+    round: status.get(task).round,
+  };
+  if (selectedClients.has(id)) {
+    response.status(200).send(selected);
+    return;
+  }
+  if (!status.get(task).training) {
+    console.log(`Selected client with ID ${id}`);
+    selectedClients.get(task).add(id);
+    response.status(200).send(selected);
+    startNextTrainingRound(task, TRAINING_THRESHOLD, TRAINING_COUNTDOWN);
+    return;
+  }
+  selectedClientsQueue.get(task).add(id);
+  response.status(200).send({ selected: false });
 }
 
 /**
@@ -173,18 +226,16 @@ export function connectToServer(request, response) {
   const id = request.params.id;
   const task = request.params.task;
   if (!clients.has(task)) {
-    response.status(404).send(INVALID_REQUEST_KEYS_MESSAGE);
+    response.status(404).send();
     return;
   }
   if (clients.get(task).has(id)) {
-    response
-      .status(404)
-      .send('Already connected to the server or ID already in use.');
+    response.status(401).send();
     return;
   }
   clients.get(task).add(id);
   console.log(`Client with ID ${id} connected to the server`);
-  response.status(200).send({});
+  response.status(200).send();
 }
 
 /**
@@ -198,18 +249,19 @@ export function connectToServer(request, response) {
  * and/or weights posting frequency.
  */
 export function disconnectFromServer(request, response) {
-  const id = request.params.id;
   const task = request.params.task;
+  const id = request.params.id;
   if (!(clients.has(task) && clients.get(task).has(id))) {
-    response.status(404).send(INVALID_REQUEST_KEYS_MESSAGE);
+    response.status(404).send();
     return;
   }
 
   clients.get(task).delete(id);
   selectedClients.get(task).delete(id);
+  selectedClientsQueue.get(task).delete(id);
 
   console.log(`Client with ID ${id} disconnected from the server`);
-  response.status(200).send({});
+  response.status(200).send();
 }
 
 /**
@@ -223,17 +275,30 @@ export function disconnectFromServer(request, response) {
  * @param {Response} response sent to client
  */
 export function sendIndividualWeights(request, response) {
-  const requestType = 'SEND_weights';
+  const requestType = REQUEST_TYPES.SEND_WEIGHTS;
 
-  if (!isValidRequest(request)) {
-    response.status(400).send(INVALID_REQUEST_FORMAT_MESSAGE);
-    console.log(`${requestType} failed`);
+  const httpStatus = checkRequest(request);
+  if (httpStatus !== 200) {
+    response.status(httpStatus).send();
+    console.log(`${requestType} failed with code ${httpStatus}`);
+    return;
+  }
+  const round = request.params.round;
+  const task = request.params.task;
+  const id = request.body.id;
+  const encodedWeights = request.body.weights;
+
+  if (!status.get(task).training) {
+    response.status(403).send();
+    console.log(`${requestType} failed with code 403`);
     return;
   }
 
-  const id = request.body.id;
-  const round = request.params.round;
-  const task = request.params.task;
+  if (!(encodedWeights !== undefined && encodedWeights.data !== undefined)) {
+    response.status(400).send();
+    console.log(`${requestType} failed with code 400`);
+    return;
+  }
 
   if (!weightsMap.has(task)) {
     weightsMap.set(task, new Map());
@@ -243,9 +308,17 @@ export function sendIndividualWeights(request, response) {
     weightsMap.get(task).set(round, new Map());
   }
 
-  const weights = msgpack.decode(Uint8Array.from(request.body.weights.data));
+  /**
+   * Check whether the client already sent their local weights for this round.
+   */
+  if (weightsMap.get(task).get(round).has(id)) {
+    response.status(200).send();
+    return;
+  }
+
+  const weights = msgpack.decode(Uint8Array.from(encodedWeights.data));
   weightsMap.get(task).get(round).set(id, weights);
-  response.status(200).send({});
+  response.status(200).send();
 
   logsAppend(request, requestType);
   return;
@@ -264,59 +337,114 @@ export function sendIndividualWeights(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export async function receiveAveragedWeights(request, response) {
-  const requestType = 'RECEIVE_weights';
+export async function receiveWeightsAggregationStatus(request, response) {
+  const requestType = REQUEST_TYPES.AGGREGATION_STATUS;
 
-  if (!isValidRequest(request)) {
-    response.status(400).send(INVALID_REQUEST_FORMAT_MESSAGE);
-    console.log(`${requestType} failed`);
+  const httpStatus = checkRequest(request);
+  if (httpStatus !== 200) {
+    response.status(httpStatus).send();
+    console.log(`${requestType} failed with code ${httpStatus}`);
     return;
   }
 
   const task = request.params.task;
   const round = request.params.round;
+  const epoch = request.body.epoch;
+
+  /**
+   * The task was not trained at all.
+   */
+  if (!status.get(task).training && status.get(task).round === 0) {
+    response.status(403).send();
+    console.log(`${requestType} failed with code 403`);
+    return;
+  }
 
   if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
-    response.status(404).send(INVALID_REQUEST_KEYS_MESSAGE);
-    console.log(`${requestType} failed`);
+    response.status(404).send();
+    console.log(`${requestType} failed with code 404`);
+    return;
+  }
+
+  logsAppend(request, requestType);
+
+  /**
+   * Ensure the requested round has been completed.
+   */
+  if (
+    !status.get(task).training ||
+    (status.get(task).training && round < status.get(task).round)
+  ) {
+    response.status(200).send({ aggregated: true });
+    return;
+  }
+  /**
+   * Ensure the request is made only once the client has finished their training
+   * round, i.e. they trained for the whole required set of epochs.
+   */
+  if (epoch + 1 < TRAINING_DURATION * (round + 1)) {
+    response.status(200).send({ aggregated: false });
     return;
   }
 
   const receivedWeights = weightsMap.get(task).get(round);
+  /**
+   * Ensure enough clients sent their local weights before proceeding to
+   * aggregation.
+   */
   if (
     receivedWeights.size <
-    Math.ceil(clients.get(task).length * POOLING_THRESHOLD)
+    Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
   ) {
-    response.status(200).send({ threshold: false, weights: null });
+    response.status(200).send({ aggregated: false });
     return;
   }
 
-  // TODO: use proper average of model weights (can be copied from the frontend)
-  const serializedWeights = await averageWeights(
+  // TODO: check whether this actually works
+  const serializedAggregatedWeights = await averageWeights(
     Array.from(receivedWeights.values())
   );
-  const weightsJson = JSON.stringify(serializedWeights);
+  /**
+   * Save the newly aggregated model to local storage. This is now
+   * the model served to clients for the given task. To save the newly
+   * aggregated weights, here is the (cumbersome) procedure:
+   * 1. create a new TFJS model with the right layers
+   * 2. assign the newly aggregated weights to it
+   * 3. save the model
+   */
+  console.log(`Updating ${task} model`);
+  const modelFilesPath = config.SAVING_SCHEME.concat(
+    path.join(config.MODELS_DIR, task, 'model.json')
+  );
+  const model = await tf.loadLayersModel(modelFilesPath);
+  assignWeightsToModel(model, serializedAggregatedWeights);
+  model.save(path.dirname(modelFilesPath));
 
-  if ((round - 1) % MODEL_SAVE_TIMESTEP == 0) {
-    const milestoneFile = `weights_round${round}.json`;
-    const milestoneDir = path.join(config.MILESTONES_DIR, task);
-    if (!fs.existsSync(milestoneDir)) {
-      fs.mkdirSync(milestoneDir);
-    }
-    fs.writeFile(path.join(milestoneDir, milestoneFile), weightsJson, (err) => {
-      if (err) {
-        console.log(err);
-        console.log(`Failed to save weights to ${milestoneFile}`);
-      } else {
-        console.log(`Weights saved to ${milestoneFile}`);
-      }
-    });
+  /**
+   * Training round has completed. Make the new client selection
+   * based off the current queue.
+   */
+  console.log('Proceeding to next training round');
+  selectedClients.get(task).clear();
+  for (const client of selectedClientsQueue.get(task)) {
+    selectedClients.get(task).add(client);
   }
+  selectedClientsQueue.get(task).clear();
 
-  let weights = msgpack.encode(Array.from(serializedWeights));
-  response.status(200).send({ threshold: true, weights: weights });
-  logsAppend(request, requestType);
-  return;
+  /**
+   * Enable new selection of clients.
+   */
+  status.get(task).training = false;
+  /**
+   * Communicate the correct round to selected clients.
+   */
+  status.get(task).round += 1;
+
+  /**
+   * Start the next training round.
+   */
+  startNextTrainingRound(task, TRAINING_THRESHOLD, TRAINING_COUNTDOWN);
+  response.status(200).send({ aggregated: true });
 }
 
 /**
@@ -331,11 +459,12 @@ export async function receiveAveragedWeights(request, response) {
  *
  */
 export function sendDataSamplesNumber(request, response) {
-  const requestType = 'SEND_nbsamples';
+  const requestType = REQUEST_TYPES.SEND_SAMPLES;
 
-  if (!isValidRequest(request)) {
-    response.status(400).send(INVALID_REQUEST_FORMAT_MESSAGE);
-    console.log(`${requestType} failed`);
+  const httpStatus = checkRequest(request);
+  if (httpStatus !== 200) {
+    response.status(httpStatus).send();
+    console.log(`${requestType} failed with code ${httpStatus}`);
     return;
   }
 
@@ -352,7 +481,7 @@ export function sendDataSamplesNumber(request, response) {
   }
 
   dataSamplesMap.get(task).get(round).set(id, samples);
-  response.status(200).send({});
+  response.status(200).send();
 
   logsAppend(request, requestType);
   return;
@@ -369,11 +498,12 @@ export function sendDataSamplesNumber(request, response) {
  * @param {Response} response sent to client
  */
 export function receiveDataSamplesNumbersPerClient(request, response) {
-  const requestType = 'RECEIVE_nbsamples';
+  const requestType = REQUEST_TYPES.RECEIVE_SAMPLES;
 
-  if (!isValidRequest(request)) {
-    response.status(400).send(INVALID_REQUEST_FORMAT_MESSAGE);
-    console.log(`${requestType} failed`);
+  const httpStatus = checkRequest(request);
+  if (httpStatus !== 200) {
+    response.status(httpStatus).send();
+    console.log(`${requestType} failed with code ${httpStatus}`);
     return;
   }
 
@@ -381,14 +511,14 @@ export function receiveDataSamplesNumbersPerClient(request, response) {
   const round = request.params.round;
 
   if (!(dataSamplesMap.has(task) && round >= 0)) {
-    response.status(404).send(INVALID_REQUEST_KEYS_MESSAGE);
-    console.log(`${requestType} failed`);
+    response.status(404).send();
+    console.log(`${requestType} failed with code 404`);
     return;
   }
 
   /**
    * Find the most recent entry round-wise for the given task (upper bounded
-   * by the given round).
+   * by the given round). Allows for sporadic entries in the samples map.
    */
   const allRounds = Array.from(dataSamplesMap.get(task).keys());
   const latestRound = allRounds.reduce((prev, curr) =>
@@ -417,29 +547,34 @@ export function getAllTasksData(request, response) {
     console.log(`Serving ${config.TASKS_FILE}`);
     response.status(200).sendFile(config.TASKS_FILE);
   } else {
-    response.status(400).send({});
+    response.status(404).send();
   }
 }
 
 /**
  * Request handler called when a client sends a GET request asking for the
  * TFJS model files of a given task. The files consist of the model's
- * architecture file model.json and its initial layer weights file weights.bin.
+ * architecture file model.json and its layer weights file weights.bin.
  * It requires no prior connection to the server and is thus publicly available
  * data.
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getInitialTaskModel(request, response) {
+export function getLatestTaskModel(request, response) {
   const task = request.params.task;
   const file = request.params.file;
-  const validModelFiles = ['model.json', 'weights.bin'];
+
+  if (!clients.has(task)) {
+    response.status(404).send();
+    return;
+  }
+  const validModelFiles = new Set(['model.json', 'weights.bin']);
   const modelFile = path.join(config.MODELS_DIR, task, file);
   console.log(`File path: ${modelFile}`);
-  if (validModelFiles.includes(file) && fs.existsSync(modelFile)) {
+  if (validModelFiles.has(file) && fs.existsSync(modelFile)) {
     console.log(`${file} download for task ${task} succeeded`);
     response.status(200).sendFile(modelFile);
   } else {
-    response.status(400).send({});
+    response.status(404).send();
   }
 }

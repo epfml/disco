@@ -120,7 +120,7 @@ export class FederatedClient extends Client {
 
   async sendNbrDataSamples(nbrSamples, epoch) {
     const requestURL = this.serverURL.concat(
-      `send_nbsamples/${this.task.taskID}/${epoch}`
+      `send_samples/${this.task.taskID}/${epoch}`
     );
     const requestOptions = {
       method: 'POST',
@@ -137,7 +137,7 @@ export class FederatedClient extends Client {
 
   async receiveDataShares(epoch) {
     const requestURL = this.serverURL.concat(
-      `receive_nbsamples/${this.task.taskID}/${epoch}`
+      `receive_samples/${this.task.taskID}/${epoch}`
     );
     const requestOptions = {
       method: 'POST',
