@@ -127,7 +127,7 @@ export default {
     },
   },
   async mounted() {
-    let tasksURL = process.env.VUE_APP_DEAI_SERVER.concat('tasks');
+    let tasksURL = process.env.VUE_APP_FEAI_SERVER.concat('tasks');
     let rawTasks = await fetch(tasksURL).then((response) => response.json());
     rawTasks
       .concat(this.$store.state.newTasks)
