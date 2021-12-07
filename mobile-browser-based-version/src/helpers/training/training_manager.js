@@ -69,10 +69,10 @@ export class TrainingManager {
    * @param {Object} model The current model being trained.
    * @param {Number} epoch The current training loop's epoch.
    */
-  _onEpochBegin(model, epoch) {
+  async _onEpochBegin(model, epoch) {
     // To be modified in future ... myEpoch will be removed
     console.log('EPOCH: ', ++this.myEpoch);
-    this.client.onEpochBeginCommunication(model, epoch);
+    await this.client.onEpochBeginCommunication(model, epoch);
   }
 
   /**
@@ -90,6 +90,10 @@ export class TrainingManager {
       epoch,
       this.trainingInformant
     );
+  }
+
+  async _onTrainBegin(model) {
+    await this.client.onTrainBeginCommunication(model, this.trainingInformant);
   }
 
   /**
@@ -160,16 +164,19 @@ export class TrainingManager {
     );
     await model
       .fit(data, labels, {
-        epochs: trainingInformation.epoch,
+        epochs: trainingInformation.epoch * trainingInformation.round,
         batchSize: trainingInformation.batchSize,
         validationSplit: trainingInformation.validationSplit,
         shuffle: true,
         callbacks: {
+          onTrainBegin: async (logs) => {
+            await this._onTrainBegin(model);
+          },
           onTrainEnd: async (logs) => {
-            this._onTrainEnd(model);
+            await this._onTrainEnd(model);
           },
           onEpochBegin: async (epoch, logs) => {
-            this._onEpochBegin(model, epoch);
+            await this._onEpochBegin(model, epoch);
           },
           onEpochEnd: async (epoch, logs) => {
             await this._onEpochEnd(
