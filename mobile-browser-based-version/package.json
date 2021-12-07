@@ -14,7 +14,7 @@
     "@vue/devtools": "^5.3.4",
     "aws-sdk": "^2.872.0",
     "axios": "^0.24.0",
-    "chart.js": "^2.9.4",
+    "apexcharts": "^3.31.0",
     "core-js": "^3.6.5",
     "d3": "^6.6.1",
     "danfojs": "^0.2.4",
@@ -34,7 +34,8 @@
     "vue-router": "^4.0.11",
     "vue-tippy": "^4.11.0",
     "vuex": "^4.0.2",
-    "yup": "^0.32.11"
+    "yup": "^0.32.11",
+    "vue3-apexcharts": "^1.4.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss7-compat": "^2.2.4",
