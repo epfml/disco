@@ -7,10 +7,18 @@ import '@/assets/css/styles.css';
 import Toaster from '@meforma/vue-toaster';
 import { store } from './store/store';
 import { createCustomI18n } from './platforms/i18n.js';
+import VueApexCharts from 'vue3-apexcharts';
+
 if (process.env.NODE_ENV === 'development') {
     devtools.connect('http://localhost', 8081);
 }
 // create vue app
 const app = createApp(App);
 const i18n = createCustomI18n();
-app.use(store).use(i18n).use(Toaster).use(router).mount('#app');
+app
+  .use(store)
+  .use(VueApexCharts)
+  .use(i18n)
+  .use(Toaster)
+  .use(router)
+  .mount('#app');
