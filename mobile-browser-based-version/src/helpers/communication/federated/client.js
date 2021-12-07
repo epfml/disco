@@ -1,5 +1,6 @@
 import * as msgpack from 'msgpack-lite';
 import { makeID, serializeWeights, assignWeightsToModel } from '../helpers';
+import { getSuccessfulResponse } from './heplers';
 import { Client } from '../client';
 import * as api from './api';
 
@@ -28,6 +29,7 @@ export class FederatedClient extends Client {
     super(serverURL, task);
     this.clientID = null;
     this.round = 0;
+    this.selected = false;
   }
 
   /**
@@ -55,11 +57,7 @@ export class FederatedClient extends Client {
 
   async selectionStatus() {
     const response = await api.selectionStatus(this.task.taskID, this.clientID);
-    if (response.ok) {
-      return await response.json();
-    } else {
-      return false;
-    }
+    return response.ok ? await response.json() : undefined;
   }
 
   /**
@@ -73,11 +71,7 @@ export class FederatedClient extends Client {
       this.round,
       this.clientID
     );
-    if (response.ok) {
-      return await response.json();
-    } else {
-      return false;
-    }
+    return response.ok ? await response.json() : undefined;
   }
 
   async postWeights(weights) {
@@ -117,46 +111,75 @@ export class FederatedClient extends Client {
     }
   }
 
+  async onEpochStartCommunication(model, epoch, trainingInformant) {
+    super.onEpochStartCommunication(model, epoch, trainingInformant);
+
+    const startOfNextRound =
+      this.task.trainingInformation.epochs * (this.round + 1) + 1;
+    if (epoch + 1 < startOfNextRound) {
+      return;
+    }
+    /**
+     * Wait for the server to select this client.
+     */
+    const success = await getSuccessfulResponse(
+      api.selectionStatus,
+      'selected',
+      MAX_TRIES,
+      TIME_PER_TRIES,
+      this.task.taskID,
+      this.clientID
+    );
+    /**
+     * This should not happen if the waiting process above is done right.
+     * One should definitely define a behavior to make the app robust.
+     */
+    if (!(success && success.selected)) {
+      throw Error('Not implemented');
+    }
+    /**
+     * Proceed to the training round.
+     */
+    this.selected = true;
+    this.round = success.round;
+  }
+
   async onEpochEndCommunication(model, epoch, trainingInformant) {
     super.onEpochEndCommunication(model, epoch, trainingInformant);
+
+    const endOfCurrentRound =
+      this.task.trainingInformation.epochs * (this.round + 1);
+    if (epoch + 1 < endOfCurrentRound) {
+      return;
+    }
     /**
-     * Send the epoch's local weights to the server.
+     * Once the training round is completed, send local weights to the
+     * server for aggregation.
      */
-    trainingInformant.addMessage('Sending weights to server');
     await this.postWeights(model.weights);
     /**
-     * Request the epoch's aggregated weights from the server.
-     * If successful, update the local weights with the aggregated
-     * weights.
+     * Wait for the server to proceed to weights aggregation.
      */
-    trainingInformant.addMessage(
-      'Waiting to receive aggregated weights from server.'
+    const success = await getSuccessfulResponse(
+      api.aggregationStatus,
+      'aggregated',
+      MAX_TRIES,
+      TIME_PER_TRIES,
+      this.task.taskID,
+      this.round,
+      this.clientID
     );
-    var startTime = new Date();
-    await this.aggregationStatus().then((receivedWeights) => {
-      var endTime = new Date();
-      var timeDiff = endTime - startTime; // in ms
-      timeDiff /= 1000;
-      trainingInformant.updateWaitingTime(Math.round(timeDiff));
-      trainingInformant.updateNbrUpdatesWithOthers(1);
-      trainingInformant.addMessage(
-        'Received aggregated weights from server. Updating local weights.'
-      );
-
-      if (receivedWeights.length > 0) {
-        assignWeightsToModel(model, receivedWeights);
-      }
-    });
     /**
-     * Request the epoch's data shares from the server.
+     * This should not happen if the waiting process above is done right.
+     * Continue with local weights without performing any update step.
      */
-    trainingInformant.addMessage(
-      'Waiting to receive metadata & statistics from server.'
-    );
-    await this.getSamplesMap().then((dataShares) => {
-      if (dataShares.length > 0) {
-        trainingInformant.updateDataShares(dataShares);
-      }
-    });
+    if (!(success && success.aggregated)) {
+      return;
+    }
+    /**
+     * Update local weights with the most recent model stored on server.
+     */
+    this.selected = false;
+    model = this.task.createModel();
   }
 }

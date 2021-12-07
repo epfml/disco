@@ -7,6 +7,11 @@ export class Task {
     this.trainingInformation = trainingInformation;
   }
 
+  /**
+   * 1. determine whether we should let the client handle model download
+   * 2. should the server also propose an empty model (i.e. a json only)
+   * to allow clients to start from scratch?
+   */
   async createModel() {
     // To modularize
     let serverURL = process.env.VUE_APP_DEAI_SERVER;

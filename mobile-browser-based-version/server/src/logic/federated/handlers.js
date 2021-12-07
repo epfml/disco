@@ -14,11 +14,12 @@ const REQUEST_TYPES = Object.freeze({
   CONNECT: 'connect',
   DISCONNECT: 'disconnect',
   SELECTION_STATUS: 'selection-status',
-  SEND_WEIGHTS: 'weights-send',
-  RECEIVE_WEIGHTS: 'receive-weights',
   AGGREGATION_STATUS: 'aggregation-status',
-  SEND_SAMPLES: 'samples-send',
-  RECEIVE_SAMPLES: 'samples-receive',
+  POST_WEIGHTS: 'post-weights',
+  GET_WEIGHTS: 'get-weights',
+  POST_SAMPLES: 'post-samples',
+  GET_SAMPLES: 'get-samples',
+  GET_TASKS: 'get-tasks',
 });
 /**
  * Fraction of client gradients required on final round of federated training
@@ -274,11 +275,11 @@ export function disconnect(request, response) {
  * @param {Response} response sent to client
  */
 export function postWeights(request, response) {
-  const type = REQUEST_TYPES.SEND_WEIGHTS;
+  const type = REQUEST_TYPES.POST_WEIGHTS;
 
   const code = checkRequest(request);
   if (code !== 200) {
-    return failRequest(response, code);
+    return failRequest(response, type, code);
   }
 
   const task = request.params.task;
@@ -442,7 +443,7 @@ export async function aggregationStatus(request, response) {
  *
  */
 export function postSamples(request, response) {
-  const type = REQUEST_TYPES.SEND_SAMPLES;
+  const type = REQUEST_TYPES.POST_SAMPLES;
 
   const code = checkRequest(request);
   if (code !== 200) {
@@ -483,7 +484,7 @@ export function postSamples(request, response) {
  * @param {Response} response sent to client
  */
 export function getSamplesMap(request, response) {
-  const type = REQUEST_TYPES.RECEIVE_SAMPLES;
+  const type = REQUEST_TYPES.GET_SAMPLES;
 
   const code = checkRequest(request);
   if (code !== 200) {
@@ -524,7 +525,7 @@ export function getSamplesMap(request, response) {
  * @param {Response} response sent to client
  */
 export function getTasksMetadata(request, response) {
-  const type = REQUEST_TYPES.TASKS_METADATA;
+  const type = REQUEST_TYPES.GET_TASKS;
   if (fs.existsSync(config.TASKS_FILE)) {
     logsAppend(request, type);
     console.log(`Serving ${config.TASKS_FILE}`);
@@ -544,7 +545,7 @@ export function getTasksMetadata(request, response) {
  * @param {Response} response sent to client
  */
 export function getLatestModel(request, response) {
-  const type = REQUEST_TYPES.TASK_MODEL;
+  const type = REQUEST_TYPES.GET_WEIGHTS;
 
   const task = request.params.task;
   const file = request.params.file;
