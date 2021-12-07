@@ -170,7 +170,6 @@
                         </div>
 
                         <vee-field
-                          v-bind:as="field.as"
                           v-bind:type="field.type"
                           v-bind:name="field.id"
                           v-bind:id="field.id"
@@ -189,6 +188,7 @@
                         ><i class="fa fa-lock mr-1"></i> secure</span
                       >
                     </div>
+                    <ErrorMessage class="text-red-600" v-bind:name="field.id" />
                   </div>
 
                   <FieldArray
@@ -225,7 +225,10 @@
                               focus:outline-none focus:bg-white
                             "
                           />
-                          <ErrorMessage :name="`${field.id}[${idx}]`" />
+                          <ErrorMessage
+                            class="text-red-600"
+                            :name="`${field.id}[${idx}]`"
+                          />
                         </div>
                         <div class="w-1/5 md:w-full">
                           <button
@@ -350,6 +353,7 @@
                               />
                               <ErrorMessage
                                 :name="`${field.id}[${idx}].${e.key}`"
+                                class="text-red-600"
                               />
                             </div>
                           </div>
@@ -580,7 +584,7 @@
 <script>
 // WARNING: temporay code until serialization of Task object
 // Import the tasks objects Here
-import { mapState, mapMutations } from 'vuex';
+import { mapMutations } from 'vuex';
 import BaseLayout from './containers/BaseLayout.vue';
 import _ from 'lodash';
 import sections from '../task_definition/form.config.js';
