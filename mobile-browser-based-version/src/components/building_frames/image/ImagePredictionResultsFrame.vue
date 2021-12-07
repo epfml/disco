@@ -7,7 +7,7 @@
       <template v-slot:extra>
         <div v-bind:id="imageId"></div>
 
-        <div class="relative p-4 overflow-x-scroll">
+        <div class="relative p-4 overflow-x-hidden">
           <span
             v-for="value in classes"
             class="text-sm text-gray-500 dark:text-light"
