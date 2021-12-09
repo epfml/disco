@@ -5,13 +5,13 @@ var Hashes = require('jshashes');
 
 export function getClient(platform, task, ...args) {
   switch (platform) {
-    case 'decentralised':
+    case 'deai':
       return new DecentralisedClient(
         process.env.VUE_APP_DEAI_SERVER,
         task,
         ...args
       );
-    case 'federated':
+    case 'feai':
       return new FederatedClient(
         process.env.VUE_APP_FEAI_SERVER,
         task,
