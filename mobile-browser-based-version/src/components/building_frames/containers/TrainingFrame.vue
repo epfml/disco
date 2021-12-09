@@ -14,13 +14,31 @@
 
       <slot name="extra"></slot>
 
-      <!-- Train Button -->
+      <!-- Train Buttons -->
       <div class="flex items-center justify-center p-4">
         <custom-button v-on:click="joinTraining(false)" :center="true">
           Train Alone
         </custom-button>
+        <custom-button
+          v-on:click="showDistributedOptions = !showDistributedOptions"
+          :center="true"
+        >
+          Train {{ this.$t('platform') }}
+        </custom-button>
+      </div>
+      <!-- Distributed Training Options -->
+      <div
+        v-if="showDistributedOptions"
+        class="grid items-center justify-center p-4 border-2 rounded-lg mx-auto"
+      >
+        <custom-slider
+          :center="true"
+          text="Adjust for interoperability"
+          v-on:click="useInteroperability = !useInteroperability"
+          :isClickable="isPersonalizationUsable('feai', 'csv')"
+        ></custom-slider>
         <custom-button v-on:click="joinTraining(true)" :center="true">
-          Train {{this.$t('platform')}}
+          Start {{ this.$t('platform') }} training
         </custom-button>
       </div>
       <!-- Training Board -->
@@ -90,6 +108,7 @@ import TrainingInformationFrame from '../TrainingInformationFrame.vue';
 import ActionFrame from './ActionFrame.vue';
 import IconCard from '../../containers/IconCard.vue';
 import CustomButton from '../../simple/CustomButton.vue';
+import CustomSlider from '../../simple/CustomSlider.vue';
 import Download from '../../../assets/svg/Download.vue';
 
 import { TrainingInformant } from '../../../helpers/training/decentralised/training_informant';
@@ -99,6 +118,7 @@ import { FileUploadManager } from '../../../helpers/data_validation/file_upload_
 import { saveWorkingModel } from '../../../helpers/memory/helpers';
 
 import { mapState } from 'vuex';
+import { personalizationType } from '../../../helpers/model_definition/model';
 
 export default {
   name: 'TrainingFrame',
@@ -115,6 +135,7 @@ export default {
     ActionFrame,
     IconCard,
     CustomButton,
+    CustomSlider,
     Download,
   },
   data() {
@@ -132,6 +153,10 @@ export default {
         this.Task,
         this.$store.getters.password(this.Id)
       ), // TO DO: to modularize
+      // Show the personalization options.
+      showDistributedOptions: false,
+      // Personalization Type
+      useInteroperability: false,
     };
   },
   computed: {
@@ -213,9 +238,30 @@ export default {
             `Data preprocessing has finished and training has started`
           );
           setTimeout(this.$toast.clear, 30000);
-          this.trainingManager.trainModel(processedDataset, distributed);
+          if (this.useInteroperability) {
+            this.trainingManager.trainModel(
+              processedDataset,
+              distributed,
+              personalizationType.INTEROPERABILITY
+            );
+          } else {
+            this.trainingManager.trainModel(processedDataset, distributed);
+          }
         }
       }
+    },
+    isPersonalizationUsable(
+      requiredPlatform = 'any',
+      requiredDataType = 'any'
+    ) {
+      // returns wether of not a given personalization is usable in the current settings.
+      let usableOnPlatform =
+        this.$store.getters.platform() == requiredPlatform ||
+        requiredPlatform == 'any';
+      let usableOnDatatype =
+        this.Task.trainingInformation.dataType == requiredDataType ||
+        requiredDataType == 'any';
+      return usableOnPlatform && usableOnDatatype;
     },
   },
   async mounted() {

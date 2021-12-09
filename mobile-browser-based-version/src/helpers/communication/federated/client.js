@@ -70,7 +70,7 @@ export class FederatedClient extends Client {
 
   async sendIndividualWeights(weights, epoch) {
     const encodedWeights = msgpack.encode(
-      Array.from(serializeWeights(weights))
+      Array.from(await serializeWeights(weights))
     );
     const requestURL = this.serverURL.concat(
       `send_weights/${this.task.taskID}/${epoch}`

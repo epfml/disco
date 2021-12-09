@@ -3,6 +3,7 @@ import {
   updateWorkingModel,
   getWorkingModelMetadata,
 } from '../memory/helpers';
+import * as modelDefinition from '../model_definition/model';
 
 /**
  * Class that deals with the model of a task.
@@ -39,21 +40,32 @@ export class TrainingManager {
    * Train the task's model either alone or in a distributed fashion depending on the user's choice.
    * @param {Object} dataset the dataset to train on
    * @param {Boolean} distributedTraining train in a distributed fashion
+   * @param {personalizationType} personalizationTypeChosen the type of personalization chosen for the model.
    */
-  async trainModel(dataset, distributedTraining) {
+  async trainModel(
+    dataset,
+    distributedTraining,
+    personalizationTypeChosen = modelDefinition.personalizationType.NONE
+  ) {
     let data = dataset.Xtrain;
     let labels = dataset.ytrain;
-    /**
-     * If IndexedDB is turned on and the working model exists, then load the
-     * existing model from IndexedDB. Otherwise, create a fresh new one.
-     */
-    let modelParams = [this.task.taskID, this.task.trainingInformation.modelID];
+
     let model;
-    if (this.useIndexedDB && (await getWorkingModelMetadata(...modelParams))) {
-      model = await getWorkingModel(...modelParams);
-    } else {
-      model = await this.task.createModel();
+
+    switch (personalizationTypeChosen) {
+      case modelDefinition.personalizationType.NONE:
+        model = new modelDefinition.Model(this.task, this.useIndexedDB);
+        break;
+
+      case modelDefinition.personalizationType.INTEROPERABILITY:
+        model = new modelDefinition.InteroperabilityModel(
+          this.task,
+          this.useIndexedDB
+        );
+        break;
     }
+    console.log(model);
+    await model.init();
 
     let trainingParams = [model, data, labels];
     if (distributedTraining) {
@@ -104,14 +116,16 @@ export class TrainingManager {
   async _training(model, data, labels) {
     let trainingInformation = this.task.trainingInformation;
 
-    model.compile(trainingInformation.modelCompileData);
+    model.getModel().compile(trainingInformation.modelCompileData);
 
     if (trainingInformation.learningRate) {
-      model.optimizer.learningRate = trainingInformation.learningRate;
+      model.getModel().optimizer.learningRate =
+        trainingInformation.learningRate;
     }
 
     console.log('Training started');
     await model
+      .getModel()
       .fit(data, labels, {
         batchSize: trainingInformation.batchSize,
         epochs: trainingInformation.epoch,
@@ -134,7 +148,7 @@ export class TrainingManager {
               await updateWorkingModel(
                 this.task.taskID,
                 trainingInformation.modelID,
-                model
+                model.getModel()
               );
             }
           },
@@ -148,10 +162,11 @@ export class TrainingManager {
   async _trainingDistributed(model, data, labels) {
     let trainingInformation = this.task.trainingInformation;
 
-    model.compile(trainingInformation.modelCompileData);
+    model.getModel().compile(trainingInformation.modelCompileData);
 
     if (trainingInformation.learningRate) {
-      model.optimizer.learningRate = trainingInformation.learningRate;
+      model.getModel().optimizer.learningRate =
+        trainingInformation.learningRate;
     }
 
     console.log(
@@ -159,6 +174,7 @@ export class TrainingManager {
         `Running for ${trainingInformation.epoch} epochs.`
     );
     await model
+      .getModel()
       .fit(data, labels, {
         epochs: trainingInformation.epoch,
         batchSize: trainingInformation.batchSize,
@@ -166,14 +182,14 @@ export class TrainingManager {
         shuffle: true,
         callbacks: {
           onTrainEnd: async (logs) => {
-            this._onTrainEnd(model);
+            this._onTrainEnd(model.getSharedModel());
           },
           onEpochBegin: async (epoch, logs) => {
-            this._onEpochBegin(model, epoch);
+            this._onEpochBegin(model.getSharedModel(), epoch);
           },
           onEpochEnd: async (epoch, logs) => {
             await this._onEpochEnd(
-              model,
+              model.getSharedModel(),
               epoch + 1,
               (logs.acc * 100).toFixed(2),
               (logs.val_acc * 100).toFixed(2)
@@ -187,7 +203,7 @@ export class TrainingManager {
               await updateWorkingModel(
                 this.task.taskID,
                 trainingInformation.modelID,
-                model
+                model.getModel()
               );
             }
           },
