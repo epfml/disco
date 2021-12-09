@@ -4,7 +4,6 @@
     :Task="Task"
     :dataPreprocessing="dataPreprocessing"
     :nbrClasses="1"
-    :precheckData="precheckData"
   >
     <template v-slot:dataExample>
       <!-- Data Point Example -->
