@@ -48,6 +48,28 @@ async function testServerRequests() {
   assert.equal(response.ok, false);
 
   /**
+   * Ask for selection status of client #0, expect failure.
+   */
+  response = await api.selectionStatus(task, ids[0]);
+  assert.equal(response.ok, true);
+  body = await response.json();
+  assert.equal(body.selected, false);
+
+  /**
+   * Cause the next training round to start.
+   */
+  response = await api.selectionStatus(task, ids[1]);
+  assert.equal(response.ok, true);
+  body = await response.json();
+  assert.equal(body.selected, false);
+
+  /**
+   * Wait for start of training round.
+   */
+  console.log('Await start of training round');
+  await sleep(1000 * 12);
+
+  /**
    * Ask for selection status of client #0, expect success.
    */
   response = await api.selectionStatus(task, ids[0]);
@@ -55,21 +77,6 @@ async function testServerRequests() {
   body = await response.json();
   assert.equal(body.selected, true);
   assert.equal(body.round, round);
-
-  /**
-   * Ask for selection status of client #1, expect success.
-   */
-  response = await api.selectionStatus(task, ids[1]);
-  assert.equal(response.ok, true);
-  body = await response.json();
-  assert.equal(body.selected, true);
-  assert.equal(body.round, round);
-
-  /**
-   * Wait for start of training round.
-   */
-  console.log('Await start of training round');
-  await sleep(1000 * 12);
 
   /**
    * Ask for selection status of client #2, expect failure.
@@ -118,7 +125,7 @@ async function testServerRequests() {
    * Expect success, especially for client #2 which has have been
    * queued up for selection during the previous training round.
    */
-  for (let id of ids) {
+  for (let id of [ids[0], ids[1]]) {
     response = await api.selectionStatus(task, id);
     assert.equal(response.ok, true);
     body = await response.json();

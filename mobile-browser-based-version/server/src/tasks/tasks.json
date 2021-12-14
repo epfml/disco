@@ -40,8 +40,8 @@
     },
     "trainingInformation": {
       "modelID": "titanic-model",
-      "epochs": 5,
-      "rounds": 5,
+      "epochs": 20,
+      "roundDuration": 5,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
@@ -70,7 +70,7 @@
     "trainingInformation": {
       "modelID": "mnist-model",
       "epochs": 10,
-      "rounds": 1,
+      "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
@@ -101,7 +101,7 @@
     "trainingInformation": {
       "modelID": "lus-covid-model",
       "epochs": 15,
-      "rounds": 1,
+      "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 2,
       "modelCompileData": {
@@ -135,7 +135,7 @@
     "trainingInformation": {
       "modelID": "cifar10-model",
       "epochs": 25,
-      "rounds": 1,
+      "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
