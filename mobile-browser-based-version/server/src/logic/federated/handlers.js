@@ -35,7 +35,7 @@ const TRAINING_THRESHOLD = 2;
  * to join the next federated training session.
  */
 const TRAINING_COUNTDOWN = 1000 * 10;
-
+const AGGREGATION_COUNTDOWN = 1000 * 3;
 /**
  * Contains the model weights received from clients for a given task and round.
  * Stored by task ID, round number and client ID.
@@ -153,26 +153,24 @@ export function queryLogs(request, response) {
 }
 
 function startNextTrainingRound(task, threshold, countdown) {
-  let selectedClientsSize = selectedClients.get(task).size;
-  if (selectedClientsSize >= threshold) {
-    console.log(
-      `Fulfilled threshold of ${threshold}, ${selectedClientsSize} clients are selected`
-    );
+  let queueSize = selectedClientsQueue.get(task).size;
+  if (queueSize >= threshold) {
     setTimeout(() => {
-      selectedClientsSize = selectedClients.get(task).size;
-      if (selectedClientsSize >= threshold && !status.get(task).training) {
-        console.log(`Training round #${status.get(task).round} started`);
+      queueSize = selectedClientsQueue.get(task).size;
+      if (queueSize >= threshold && !status.get(task).training) {
+        console.log(`Starting next round (${status.get(task).round + 1})`);
         status.get(task).training = true;
-      } else {
-        console.log(
-          `Some clients disconnected, only ${selectedClientsSize} are now selected`
-        );
+
+        console.log('* queue: ', selectedClientsQueue.get(task));
+        console.log('* selected clients: ', selectedClients.get(task));
+
+        selectedClients.set(task, new Set([...selectedClientsQueue.get(task)]));
+        selectedClientsQueue.get(task).clear();
+
+        console.log('* empty queue: ', selectedClientsQueue.get(task));
+        console.log('* new selected clients: ', selectedClients.get(task));
       }
     }, countdown);
-  } else {
-    console.log(
-      `Only ${selectedClientsSize} clients are selected, ${threshold} required`
-    );
   }
 }
 
@@ -188,23 +186,22 @@ export function selectionStatus(request, response) {
 
   logsAppend(request, type);
 
-  const selected = {
-    selected: true,
-    round: status.get(task).round,
-  };
-  if (selectedClients.has(id)) {
-    response.status(200).send(selected);
-    return;
-  }
-  if (!status.get(task).training) {
-    console.log(`Selected client with ID ${id}`);
-    selectedClients.get(task).add(id);
-    response.status(200).send(selected);
+  response.status(200);
+
+  console.log(`Client with ID ${id} asked to get selected`);
+  console.log('* selected clients: ', selectedClients.get(task));
+  console.log('* queued clients: ', selectedClientsQueue.get(task));
+  console.log(
+    `=> selected? ${selectedClients.get(task).has(id) ? 'yes' : 'no'}`
+  );
+
+  if (selectedClients.get(task).has(id)) {
+    response.send({ selected: true, round: status.get(task).round });
+  } else {
+    selectedClientsQueue.get(task).add(id);
+    response.send({ selected: false });
     startNextTrainingRound(task, TRAINING_THRESHOLD, TRAINING_COUNTDOWN);
-    return;
   }
-  selectedClientsQueue.get(task).add(id);
-  response.status(200).send({ selected: false });
 }
 
 /**
@@ -231,7 +228,7 @@ export function connect(request, response) {
 
   clients.get(task).add(id);
   console.log(`Client with ID ${id} connected to the server`);
-  return response.status(200).send();
+  response.status(200).send();
 }
 
 /**
@@ -296,10 +293,6 @@ export function postWeights(request, response) {
 
   const encodedWeights = request.body.weights;
 
-  if (!status.get(task).training) {
-    return failRequest(response, type, 403);
-  }
-
   logsAppend(request, type);
 
   if (!weightsMap.has(task)) {
@@ -313,14 +306,22 @@ export function postWeights(request, response) {
   /**
    * Check whether the client already sent their local weights for this round.
    */
-  if (weightsMap.get(task).get(round).has(id)) {
-    response.status(200).send();
-    return;
+  if (!weightsMap.get(task).get(round).has(id)) {
+    const weights = msgpack.decode(Uint8Array.from(encodedWeights.data));
+    weightsMap.get(task).get(round).set(id, weights);
   }
-
-  const weights = msgpack.decode(Uint8Array.from(encodedWeights.data));
-  weightsMap.get(task).get(round).set(id, weights);
   response.status(200).send();
+
+  /**
+   * Check whether enough clients sent their local weights to proceed to
+   * weights aggregation.
+   */
+  if (
+    weightsMap.get(task).get(round).size >=
+    Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
+  ) {
+    setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN);
+  }
 }
 
 /**
@@ -346,6 +347,7 @@ export async function aggregationStatus(request, response) {
 
   const task = request.params.task;
   const round = request.params.round;
+  const id = request.params.id;
 
   /**
    * The task was not trained at all.
@@ -353,40 +355,34 @@ export async function aggregationStatus(request, response) {
   if (!status.get(task).training && status.get(task).round === 0) {
     return failRequest(response, type, 403);
   }
-
+  /**
+   * No weight was posted for this task's round.
+   */
   if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
     return failRequest(response, type, 404);
   }
 
   logsAppend(request, type);
-
   /**
-   * Ensure the requested round has been completed.
+   * Check whether the requested round has completed.
    */
-  if (
+  const aggregated =
     !status.get(task).training ||
-    (status.get(task).training && round < status.get(task).round)
-  ) {
-    response.status(200).send({ aggregated: true });
-    return;
-  }
-
-  const receivedWeights = weightsMap.get(task).get(round);
+    (status.get(task).training && round < status.get(task).round);
   /**
-   * Ensure enough clients sent their local weights before proceeding to
-   * aggregation.
+   * If aggregation occured, make the client wait to get selected again so it can
+   * proceed to other jobs.
    */
-  if (
-    receivedWeights.size <
-    Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
-  ) {
-    response.status(200).send({ aggregated: false });
-    return;
+  if (aggregated) {
+    selectedClients.get(task).delete(id);
   }
+  response.status(200).send({ aggregated: aggregated });
+}
 
+async function _aggregateWeights(task, round, id) {
   // TODO: check whether this actually works
   const serializedAggregatedWeights = await averageWeights(
-    Array.from(receivedWeights.values())
+    Array.from(weightsMap.get(task).get(round).values())
   );
   /**
    * Save the newly aggregated model to local storage. This is now
@@ -403,32 +399,18 @@ export async function aggregationStatus(request, response) {
   const model = await tf.loadLayersModel(modelFilesPath);
   assignWeightsToModel(model, serializedAggregatedWeights);
   model.save(path.dirname(modelFilesPath));
-
   /**
-   * Training round has completed. Make the new client selection
-   * based off the current queue.
-   */
-  console.log('Proceeding to next training round');
-  selectedClients.get(task).clear();
-  for (const client of selectedClientsQueue.get(task)) {
-    selectedClients.get(task).add(client);
-  }
-  selectedClientsQueue.get(task).clear();
-
-  /**
-   * Enable new selection of clients.
+   * The round has completed training.
    */
   status.get(task).training = false;
   /**
    * Communicate the correct round to selected clients.
    */
   status.get(task).round += 1;
-
   /**
    * Start the next training round.
    */
   startNextTrainingRound(task, TRAINING_THRESHOLD, TRAINING_COUNTDOWN);
-  response.status(200).send({ aggregated: true });
 }
 
 /**

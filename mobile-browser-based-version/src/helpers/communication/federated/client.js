@@ -1,6 +1,6 @@
 import * as msgpack from 'msgpack-lite';
-import { makeID, serializeWeights, assignWeightsToModel } from '../helpers';
-import { getSuccessfulResponse } from './heplers';
+import { makeID, serializeWeights } from '../helpers';
+import { getSuccessfulResponse } from './helpers';
 import { Client } from '../client';
 import * as api from './api';
 
@@ -12,7 +12,7 @@ const TIME_PER_TRIES = 1000;
 /**
  * The maximum number of tries before stopping to perform requests.
  */
-const MAX_TRIES = 10;
+const MAX_TRIES = 30;
 
 /**
  * Class that deals with communication with the centralized server when training
@@ -76,7 +76,7 @@ export class FederatedClient extends Client {
 
   async postWeights(weights) {
     const encodedWeights = msgpack.encode(
-      Array.from(serializeWeights(weights))
+      Array.from(await serializeWeights(weights))
     );
     const response = await api.postWeights(
       this.task.taskID,
@@ -111,18 +111,11 @@ export class FederatedClient extends Client {
     }
   }
 
-  async onEpochStartCommunication(model, epoch, trainingInformant) {
-    super.onEpochStartCommunication(model, epoch, trainingInformant);
-
-    const startOfNextRound =
-      this.task.trainingInformation.epochs * (this.round + 1) + 1;
-    if (epoch + 1 < startOfNextRound) {
-      return;
-    }
+  async _getSelected() {
     /**
-     * Wait for the server to select this client.
+     * Wait for the selection status from server.
      */
-    const success = await getSuccessfulResponse(
+    const selectionStatus = await getSuccessfulResponse(
       api.selectionStatus,
       'selected',
       MAX_TRIES,
@@ -133,25 +126,45 @@ export class FederatedClient extends Client {
     /**
      * This should not happen if the waiting process above is done right.
      * One should definitely define a behavior to make the app robust.
+     * For example, fallback to local training.
      */
-    if (!(success && success.selected)) {
+    if (!(selectionStatus && selectionStatus.selected)) {
       throw Error('Not implemented');
     }
     /**
      * Proceed to the training round.
      */
     this.selected = true;
-    this.round = success.round;
+    this.round = selectionStatus.round;
+  }
+
+  /*async onTrainBeginCommunication(model, trainingInformant) {
+    super.onTrainBeginCommunication(model, trainingInformant);
+    await this._getSelected();
+  }*/
+
+  async onEpochBeginCommunication(model, epoch, trainingInformant) {
+    super.onEpochBeginCommunication(model, epoch, trainingInformant);
+    if ((epoch + 1) % this.task.trainingInformation.roundDuration === 1) {
+      await this._getSelected();
+    }
   }
 
   async onEpochEndCommunication(model, epoch, trainingInformant) {
     super.onEpochEndCommunication(model, epoch, trainingInformant);
 
-    const endOfCurrentRound =
-      this.task.trainingInformation.epochs * (this.round + 1);
-    if (epoch + 1 < endOfCurrentRound) {
+    /**
+     * Ensure this was the last epoch of a round.
+     */
+    if (
+      !(
+        epoch > 1 &&
+        (epoch + 1) % this.task.trainingInformation.roundDuration === 1
+      )
+    ) {
       return;
     }
+
     /**
      * Once the training round is completed, send local weights to the
      * server for aggregation.
@@ -160,7 +173,7 @@ export class FederatedClient extends Client {
     /**
      * Wait for the server to proceed to weights aggregation.
      */
-    const success = await getSuccessfulResponse(
+    const aggregationStatus = await getSuccessfulResponse(
       api.aggregationStatus,
       'aggregated',
       MAX_TRIES,
@@ -171,10 +184,11 @@ export class FederatedClient extends Client {
     );
     /**
      * This should not happen if the waiting process above is done right.
-     * Continue with local weights without performing any update step.
+     * One should definitely define a behavior to make the app robust.
+     * For example, fallback to local training.
      */
-    if (!(success && success.aggregated)) {
-      return;
+    if (!(aggregationStatus && aggregationStatus.aggregated)) {
+      throw Error('Not implemented');
     }
     /**
      * Update local weights with the most recent model stored on server.

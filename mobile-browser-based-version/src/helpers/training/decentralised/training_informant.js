@@ -101,7 +101,6 @@ export class TrainingInformant {
    * @param {Number} validationAccuracy the validation accuracy achieved by the model in the given epoch.
    */
   updateCharts(epoch, validationAccuracy, trainingAccuracy) {
-    console.log(this);
     this.validationAccuracyChart.updateGraph(epoch, validationAccuracy);
     this.trainingAccuracyChart.updateGraph(epoch, trainingAccuracy);
   }
