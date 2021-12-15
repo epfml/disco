@@ -1,3 +1,5 @@
+import { Lightsail } from 'aws-sdk';
+import { store } from '../../../store/store';
 /**
  * Class that collects information about the status of the training-loop of the model.
  */
@@ -35,6 +37,7 @@ export class TrainingInformant {
 
     // is the model using Interoperability (default to false)
     this.displayHeatmap = false;
+    this.heatmapData = null;
 
     // default values for the validation and training charts
     let nbEpochsOnGraphs = 10;
@@ -87,7 +90,7 @@ export class TrainingInformant {
     this.messages.push(msg);
   }
 
-  cssColors = color => {
+  cssColors = (color) => {
     return getComputedStyle(document.documentElement)
       .getPropertyValue(color)
       .trim();
@@ -108,7 +111,6 @@ export class TrainingInformant {
     primaryDarker: this.cssColors(`--color-${this.getColor()}-darker`),
   };
 
-
   /**
    * Update the Heatmap for Interoperability.
    */
@@ -121,22 +123,31 @@ export class TrainingInformant {
   }
 
   /**
+   * 
+   * @returns 
+   */
+  updateHeatmapData2(clientsData){
+    this.displayHeatmap = true;
+    this.heatmapData = clientsData;
+  }
+
+  getHeatmapData(){
+    return this.heatmapData;
+  }
+
+  /**
    * Give the defined options for the Interoperability Heatmap.
    * TODO: Make the fetching of categories dynamic.
    * @returns An object containing the options to style the heatmap.
    */
   getHeatmapOptions() {
+    let textColor = store.state.isDark ? '#FFF' : '#000';
     return {
-      colors: [this.colors.primaryLight],
-      dataLabels: {
-        enabled: true,
-        style: {
-          colors: ['#FFF'],
-        },
-        offsetX: 30,
-      },
       chart: {
-        id: 'vuechart-example',
+        id: 'interoperability-heatmap',
+        toolbar: {
+          show: false,
+        },
       },
       plotOptions: {
         heatmap: {
@@ -150,15 +161,28 @@ export class TrainingInformant {
         categories: ['Id', 'Age', 'SibSp', 'Parch', 'Fare', 'Pclass'],
         labels: {
           style: {
-            colors: '#FFF',
+            colors: textColor,
           },
         },
       },
       yaxis: {
         labels: {
           style: {
-            colors: '#FFF',
+            colors: textColor,
           },
+        },
+      },
+      colors: [this.colors.primaryLight],
+      dataLabels: {
+        enabled: false,
+        style: {
+          colors: ['#000'],
+        },
+        offsetX: 30,
+      },
+      tooltip: {
+        x: {
+          show: false,
         },
       },
     };

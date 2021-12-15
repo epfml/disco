@@ -213,7 +213,7 @@ export class DecentralisedClient extends Client {
     this.recvBuffer.peer = this;
     this.recvBuffer.lastUpdate = {
       epoch: this.task.trainingInformation.epoch,
-      weights: await serializeWeights(model.weights),
+      weights: await serializeWeights(model.getSharedModel().weights),
     };
     /**
      * Enter into idle state. Incoming weight requests will be processed.

@@ -21,7 +21,7 @@ export class Model {
     this.task = task;
     this.dataType = task.trainingInformation.dataType;
     this.useIndexedDB = useIndexedDB;
-    this.type = personalizationType.NONE;
+    this.typeOfPersonalization = personalizationType.NONE;
   }
 
   /**
@@ -44,7 +44,7 @@ export class Model {
       console.log('Loading model from memory');
       model = await getWorkingModel(...modelParams);
     } else {
-      console.log(`Creating new ${this.type} model`);
+      console.log(`Creating new ${this.typeOfPersonalization} model`);
       model = await this._createModel();
     }
 
@@ -53,7 +53,7 @@ export class Model {
       this.model = model;
     } else {
       console.log(
-        `Previous working model was not of type ${this.type} : creating a new one`
+        `Previous working model was not of type ${this.typeOfPersonalization} : creating a new one`
       );
       this.model = await this._createModel();
     }
@@ -92,7 +92,7 @@ export class Model {
    *  @returns the personalization type of the model.
    */
   getPersonalizationType() {
-    return this.type;
+    return this.typeOfPersonalization;
   }
 
   /**
@@ -103,7 +103,7 @@ export class Model {
   isOfCorrectType(model) {
     let modelType =
       model.getUserDefinedMetadata()['personalizationType'] ?? null;
-    return modelType == this.type;
+    return modelType == this.typeOfPersonalization;
   }
 }
 
@@ -119,7 +119,7 @@ export class Model {
 export class InteroperabilityModel extends Model {
   constructor(task, useIndexedDB) {
     super(task, useIndexedDB);
-    this.type = personalizationType.INTEROPERABILITY;
+    this.typeOfPersonalization = personalizationType.INTEROPERABILITY;
     this.dataType = task.trainingInformation.dataType;
     if (this.dataType != 'csv')
       throw 'Interoperability framework can only be used on csv data';

@@ -1,7 +1,7 @@
 import * as msgpack from 'msgpack-lite';
 import { makeID, serializeWeights, assignWeightsToModel } from '../helpers';
 import { Client } from '../client';
-
+import { personalizationType } from '../../model_definition/model';
 /**
  * The waiting time between performing requests to the centralized server.
  * Expressed in milliseconds.
@@ -198,6 +198,95 @@ export class FederatedClient extends Client {
       }
     });
   }
+
+  async onTrainEndCommunication(model, trainingInformant) {
+    trainingInformant.addMessage('Training finished.');
+    /**
+     * If we are using a model adjusting for interoperability, we want to update the
+     * Interoperability Heatmap once the training is finished.
+     */
+    if (
+      model.getPersonalizationType() == personalizationType.INTEROPERABILITY
+    ) {
+      // TODO: Add interoperability weights query
+      let heatmapData = model.getInteroperabilityParameters();
+      // Send and recieve.
+
+      let received = {
+        weightsIn: [
+          {
+            name: 'You',
+            data: heatmapData[0],
+          },
+          {
+            name: 'Caribou',
+            data: [0, 1, 2, 3, 4, 5],
+          },
+        ],
+        biasesIn: [
+          {
+            name: 'You',
+            data: heatmapData[1],
+          },
+          {
+            name: 'Caribou',
+            data: [3, 4, 5, 0, 1, 2],
+          },
+        ],
+        weightsOut: [
+          {
+            name: 'You',
+            data: heatmapData[2],
+          },
+          {
+            name: 'Caribou',
+            data: heatmapData[2],
+          },
+        ],
+        biasesOut: [
+          {
+            name: 'You',
+            data: heatmapData[3],
+          },
+          {
+            name: 'Caribou',
+            data: [1],
+          },
+        ],
+      };
+      // If response is null then we only display our parameters.
+      if (received == null) {
+        received = {
+          weightsIn: [
+            {
+              name: 'You',
+              data: heatmapData[0],
+            },
+          ],
+          biasesIn: [
+            {
+              name: 'You',
+              data: heatmapData[1],
+            },
+          ],
+          weightsOut: [
+            {
+              name: 'You',
+              data: heatmapData[2],
+            },
+          ],
+          biasesOut: [
+            {
+              name: 'You',
+              data: heatmapData[3],
+            },
+          ],
+        };
+      }
+      trainingInformant.updateHeatmapData(...heatmapData);
+      trainingInformant.updateHeatmapData2(received);
+    }
+  }
 }
 
 /**
@@ -229,3 +318,5 @@ function tryRequest(requestURL, requestOptions, tries) {
     _tryRequest(tries);
   });
 }
+
+

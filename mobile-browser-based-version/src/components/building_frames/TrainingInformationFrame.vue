@@ -121,6 +121,44 @@
       <people />
     </icon-card-small>
   </div>
+
+  <icon-card
+    v-if="displayHeatmap"
+    header="Interoperability Heatmap"
+    description="The heatmap displays the normalization operated by the
+            Interoperability layers of each peers in the network. This is a
+            placeholder heatmap and needs to be connected to the results of
+            iFedAvg."
+  >
+    <template v-slot:icon><contact /></template>
+    <template v-slot:extra>
+      <div class="grid grid-cols-2 s:grid-cols-1 p-4 space-x-4 lg:gap-2">
+        <apexchart
+          width="500"
+          type="heatmap"
+          :options="interoperabilityHeatmpaOptions"
+          :series="interoperabilityHeatmapData['weightsIn']"
+        ></apexchart>
+        <apexchart
+          width="500"
+          type="heatmap"
+          :options="interoperabilityHeatmpaOptions"
+          :series="interoperabilityHeatmapData['biasesIn']"
+        ></apexchart>
+        <apexchart
+          width="500"
+          type="heatmap"
+          :options="interoperabilityHeatmpaOptions"
+          :series="interoperabilityHeatmapData['weightsOut']"
+        ></apexchart>
+        <apexchart
+          width="500"
+          type="heatmap"
+          :options="interoperabilityHeatmpaOptions"
+          :series="interoperabilityHeatmapData['biasesOut']"
+        ></apexchart></div
+    ></template>
+  </icon-card>
 </template>
 
 <script>
@@ -153,7 +191,7 @@ export default {
       trainingAccuracyData: this.trainingInformant.getTrainingAccuracyData(),
       validationAccuracyData:
         this.trainingInformant.getValidationAccuracyData(),
-      interoperabilityHeatmpaOptions:
+      interoperabilityHeatmpaOptions2:
         this.trainingInformant.getHeatmapOptions(),
     };
   },
@@ -163,13 +201,10 @@ export default {
       return this.trainingInformant.displayHeatmap;
     },
     interoperabilityHeatmapData() {
-      // TODO: cahnge once the peers exchange actual data of their weights and biases.
-      return [
-        {
-          name: 'You',
-          data: this.trainingInformant.weightsIn,
-        },
-      ];
+      return this.trainingInformant.getHeatmapData();
+    },
+    interoperabilityHeatmpaOptions() {
+      return this.trainingInformant.getHeatmapOptions();
     },
     currentTrainingAccuracy() {
       return this.trainingInformant.currentTrainingAccuracy;

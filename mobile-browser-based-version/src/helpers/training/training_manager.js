@@ -182,7 +182,7 @@ export class TrainingManager {
         shuffle: true,
         callbacks: {
           onTrainEnd: async (logs) => {
-            this._onTrainEnd(model.getSharedModel());
+            this._onTrainEnd(model);
           },
           onEpochBegin: async (epoch, logs) => {
             this._onEpochBegin(model.getSharedModel(), epoch);
