@@ -31,9 +31,9 @@ federatedRouter.get(
 federatedRouter.post('/weights/:task/:round/:id', handlers.postWeights);
 
 federatedRouter
-  .route('/samples/:task/:round/:id')
-  .get(handlers.getSamplesMap)
-  .post(handlers.postSamples);
+  .route('/metadata/:metadata/:task/:round/:id')
+  .get(handlers.getMetadataMap)
+  .post(handlers.postMetadata);
 
 federatedRouter.get('/logs', handlers.queryLogs);
 

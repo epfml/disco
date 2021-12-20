@@ -145,7 +145,9 @@ export class FederatedClient extends Client {
 
   async onEpochBeginCommunication(model, epoch, trainingInformant) {
     super.onEpochBeginCommunication(model, epoch, trainingInformant);
-    if ((epoch + 1) % this.task.trainingInformation.roundDuration === 1) {
+    const startOfRound =
+      (epoch + 1) % this.task.trainingInformation.roundDuration === 1;
+    if (startOfRound) {
       await this._getSelected();
     }
   }
@@ -156,12 +158,10 @@ export class FederatedClient extends Client {
     /**
      * Ensure this was the last epoch of a round.
      */
-    if (
-      !(
-        epoch > 1 &&
-        (epoch + 1) % this.task.trainingInformation.roundDuration === 1
-      )
-    ) {
+    const endOfRound =
+      epoch > 1 &&
+      (epoch + 1) % this.task.trainingInformation.roundDuration === 1;
+    if (!endOfRound) {
       return;
     }
 
