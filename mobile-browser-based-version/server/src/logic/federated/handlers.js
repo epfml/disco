@@ -17,24 +17,28 @@ const REQUEST_TYPES = Object.freeze({
   AGGREGATION_STATUS: 'aggregation-status',
   POST_WEIGHTS: 'post-weights',
   GET_WEIGHTS: 'get-weights',
-  POST_SAMPLES: 'post-samples',
-  GET_SAMPLES: 'get-samples',
+  POST_METADATA: 'post-metadata',
+  GET_METADATA: 'get-metadata',
   GET_TASKS: 'get-tasks',
 });
 /**
- * Fraction of client gradients required on final round of federated training
- * to proceed to the pooling step.
+ * Fraction of client gradients required on the final step of a round
+ * to proceed to the aggregation step.
  */
 const AGGREGATION_THRESHOLD = 0.8;
 /**
- * Number of selected clients required to start federated training.
+ * Absolute number of selected clients required to start the next round.
  */
-const TRAINING_THRESHOLD = 2;
+const ROUND_THRESHOLD = 2;
 /**
- * Once a certain threshold has been hit, leave a small window for late clients
- * to join the next federated training session.
+ * Once a certain threshold has been hit, leave a small time window (in ms) for
+ * late clients to join the next round.
  */
-const TRAINING_COUNTDOWN = 1000 * 10;
+const ROUND_COUNTDOWN = 1000 * 10;
+/**
+ * Once a certain threshold has been hit, leave a small time window (in ms) for
+ * late clients to contribute to the round's aggregated model.
+ */
 const AGGREGATION_COUNTDOWN = 1000 * 3;
 /**
  * Contains the model weights received from clients for a given task and round.
@@ -42,33 +46,48 @@ const AGGREGATION_COUNTDOWN = 1000 * 3;
  */
 const weightsMap = new Map();
 /**
- * Contains the number of data samples used for training by clients for a given
- * task and round. Stored by task ID, round number and client ID.
+ * Contains metadata used for training by clients for a given task and round.
+ * Stored by task ID, round number and client ID.
  */
-const dataSamplesMap = new Map();
+const metadataMap = new Map();
 /**
  * Contains all successful requests made to the server. An entry consists of:
  * - a timestamp corresponding to the time at which the request was made
  * - the client ID used to make the request
  * - the task ID for which the request was made
  * - the round at which the request was made
- * - the request type (sending/receiving weights/metadata)
+ * - the request type
  */
 const logs = [];
-
-const clients = new Map();
-
+/**
+ * Contains client IDs currently connected to one of the server.
+ * Disconnected clients should always be removed from this set
+ */
+const clients = new Set();
+/**
+ * Contains client IDs selected for the current round. Maps a task ID to a set of
+ * selected clients. Disconnected clients should always be removed from the
+ * corresponding set of selected clients.
+ */
 const selectedClients = new Map();
-
+/**
+ * Contains client IDs queued for the next round's selection. Maps a task ID to a set
+ * of queued clients. Disconnected clients should always be removed from the
+ * corresponding set of queued set.
+ */
 const selectedClientsQueue = new Map();
-
+/**
+ * Maps a task to a status object. Currently provides the round number and
+ * round status for each task.
+ */
 const status = new Map();
-
+/**
+ * Initialize the data structures declared above.
+ */
 tasks.forEach((task) => {
-  clients.set(task.taskID, new Set());
   selectedClients.set(task.taskID, new Set());
   selectedClientsQueue.set(task.taskID, new Set());
-  status.set(task.taskID, { training: false, round: 0 });
+  status.set(task.taskID, { isRoundPending: false, round: 0 });
 });
 
 /**
@@ -80,7 +99,7 @@ tasks.forEach((task) => {
  * subsequent POST requests related to training.
  * @param {Request} request received from client
  */
-function checkRequest(request) {
+function _checkRequest(request) {
   const task = request.params.task;
   const round = request.params.round;
   const id = request.params.id;
@@ -88,10 +107,10 @@ function checkRequest(request) {
   if (!(Number.isInteger(Number(round)) && round >= 0)) {
     return 400;
   }
-  if (!(clients.has(task) && round <= status.get(task).round)) {
+  if (!(status.has(task) && round <= status.get(task).round)) {
     return 404;
   }
-  if (!clients.get(task).has(id)) {
+  if (!clients.has(id)) {
     return 401;
   }
   if (!selectedClients.get(task).has(id)) {
@@ -100,17 +119,17 @@ function checkRequest(request) {
   return 200;
 }
 
-function failRequest(response, type, code) {
+function _failRequest(response, type, code) {
   console.log(`${type} failed with code ${code}`);
   response.status(code).send();
 }
 
 /**
- * Appends the given POST request's timestamp and type to the logs.
+ * Appends the given request to the server logs.
  * @param {Request} request received from client
- * @param {String} type of the request (send/receive weights/metadata)
+ * @param {String} type of the request
  */
-function logsAppend(request, type) {
+function _logsAppend(request, type) {
   const timestamp = new Date();
   const task = request.params.task;
   const round = request.params.round;
@@ -122,6 +141,27 @@ function logsAppend(request, type) {
     client: id,
     request: type,
   });
+}
+
+function _startNextRound(task, threshold, countdown) {
+  let queueSize = selectedClientsQueue.get(task).size;
+  if (queueSize >= threshold) {
+    setTimeout(() => {
+      queueSize = selectedClientsQueue.get(task).size;
+      if (queueSize >= threshold && !status.get(task).isRoundPending) {
+        status.get(task).isRoundPending = true;
+
+        console.log('* queue: ', selectedClientsQueue.get(task));
+        console.log('* selected clients: ', selectedClients.get(task));
+
+        selectedClients.set(task, new Set([...selectedClientsQueue.get(task)]));
+        selectedClientsQueue.get(task).clear();
+
+        console.log('* empty queue: ', selectedClientsQueue.get(task));
+        console.log('* new selected clients: ', selectedClients.get(task));
+      }
+    }, countdown);
+  }
 }
 
 /**
@@ -152,39 +192,17 @@ export function queryLogs(request, response) {
     );
 }
 
-function startNextTrainingRound(task, threshold, countdown) {
-  let queueSize = selectedClientsQueue.get(task).size;
-  if (queueSize >= threshold) {
-    setTimeout(() => {
-      queueSize = selectedClientsQueue.get(task).size;
-      if (queueSize >= threshold && !status.get(task).training) {
-        console.log(`Starting next round (${status.get(task).round + 1})`);
-        status.get(task).training = true;
-
-        console.log('* queue: ', selectedClientsQueue.get(task));
-        console.log('* selected clients: ', selectedClients.get(task));
-
-        selectedClients.set(task, new Set([...selectedClientsQueue.get(task)]));
-        selectedClientsQueue.get(task).clear();
-
-        console.log('* empty queue: ', selectedClientsQueue.get(task));
-        console.log('* new selected clients: ', selectedClients.get(task));
-      }
-    }, countdown);
-  }
-}
-
 export function selectionStatus(request, response) {
   const type = REQUEST_TYPES.SELECTION_STATUS;
 
   const task = request.params.task;
   const id = request.params.id;
 
-  if (!clients.has(task)) {
-    return failRequest(response, type, 404);
+  if (!status.has(task)) {
+    return _failRequest(response, type, 404);
   }
 
-  logsAppend(request, type);
+  _logsAppend(request, type);
 
   response.status(200);
 
@@ -200,7 +218,7 @@ export function selectionStatus(request, response) {
   } else {
     selectedClientsQueue.get(task).add(id);
     response.send({ selected: false });
-    startNextTrainingRound(task, TRAINING_THRESHOLD, TRAINING_COUNTDOWN);
+    _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
   }
 }
 
@@ -217,16 +235,16 @@ export function connect(request, response) {
   const task = request.params.task;
   const id = request.params.id;
 
-  if (!clients.has(task)) {
-    return failRequest(response, type, 404);
+  if (!status.has(task)) {
+    return _failRequest(response, type, 404);
   }
-  if (clients.get(task).has(id)) {
-    return failRequest(response, type, 401);
+  if (clients.has(id)) {
+    return _failRequest(response, type, 401);
   }
 
-  logsAppend(request, type);
+  _logsAppend(request, type);
 
-  clients.get(task).add(id);
+  clients.add(id);
   console.log(`Client with ID ${id} connected to the server`);
   response.status(200).send();
 }
@@ -247,13 +265,13 @@ export function disconnect(request, response) {
   const task = request.params.task;
   const id = request.params.id;
 
-  if (!(clients.has(task) && clients.get(task).has(id))) {
-    return failRequest(response, type, 404);
+  if (!(status.has(task) && clients.has(id))) {
+    return _failRequest(response, type, 404);
   }
 
-  logsAppend(request, type);
+  _logsAppend(request, type);
 
-  clients.get(task).delete(id);
+  clients.delete(id);
   selectedClients.get(task).delete(id);
   selectedClientsQueue.get(task).delete(id);
 
@@ -262,7 +280,7 @@ export function disconnect(request, response) {
 }
 
 /**
- * Request handler called when a client sends a POST request containing their
+ * Request handler called when a client sends a GET request containing their
  * individual model weights to the server while training a task. The request is
  * made for a given task and round. The request's body must contain:
  * - the client's ID
@@ -274,9 +292,9 @@ export function disconnect(request, response) {
 export function postWeights(request, response) {
   const type = REQUEST_TYPES.POST_WEIGHTS;
 
-  const code = checkRequest(request);
+  const code = _checkRequest(request);
   if (code !== 200) {
-    return failRequest(response, type, code);
+    return _failRequest(response, type, code);
   }
 
   const task = request.params.task;
@@ -288,12 +306,12 @@ export function postWeights(request, response) {
     request.body.weights === undefined ||
     request.body.weights.data === undefined
   ) {
-    return failRequest(response, type, 400);
+    return _failRequest(response, type, 400);
   }
 
   const encodedWeights = request.body.weights;
 
-  logsAppend(request, type);
+  _logsAppend(request, type);
 
   if (!weightsMap.has(task)) {
     weightsMap.set(task, new Map());
@@ -340,9 +358,9 @@ export function postWeights(request, response) {
 export async function aggregationStatus(request, response) {
   const type = REQUEST_TYPES.AGGREGATION_STATUS;
 
-  const code = checkRequest(request);
+  const code = _checkRequest(request);
   if (code !== 200) {
-    return failRequest(response, type, code);
+    return _failRequest(response, type, code);
   }
 
   const task = request.params.task;
@@ -352,23 +370,23 @@ export async function aggregationStatus(request, response) {
   /**
    * The task was not trained at all.
    */
-  if (!status.get(task).training && status.get(task).round === 0) {
-    return failRequest(response, type, 403);
+  if (!status.get(task).isRoundPending && status.get(task).round === 0) {
+    return _failRequest(response, type, 403);
   }
   /**
    * No weight was posted for this task's round.
    */
   if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
-    return failRequest(response, type, 404);
+    return _failRequest(response, type, 404);
   }
 
-  logsAppend(request, type);
+  _logsAppend(request, type);
   /**
    * Check whether the requested round has completed.
    */
   const aggregated =
-    !status.get(task).training ||
-    (status.get(task).training && round < status.get(task).round);
+    !status.get(task).isRoundPending ||
+    (status.get(task).isRoundPending && round < status.get(task).round);
   /**
    * If aggregation occured, make the client wait to get selected again so it can
    * proceed to other jobs.
@@ -385,8 +403,8 @@ async function _aggregateWeights(task, round, id) {
     Array.from(weightsMap.get(task).get(round).values())
   );
   /**
-   * Save the newly aggregated model to local storage. This is now
-   * the model served to clients for the given task. To save the newly
+   * Save the newly aggregated model to the server's local storage. This
+   * is now the model served to clients for the given task. To save the newly
    * aggregated weights, here is the (cumbersome) procedure:
    * 1. create a new TFJS model with the right layers
    * 2. assign the newly aggregated weights to it
@@ -400,17 +418,17 @@ async function _aggregateWeights(task, round, id) {
   assignWeightsToModel(model, serializedAggregatedWeights);
   model.save(path.dirname(modelFilesPath));
   /**
-   * The round has completed training.
+   * The round has completed.
    */
-  status.get(task).training = false;
+  status.get(task).isRoundPending = false;
   /**
    * Communicate the correct round to selected clients.
    */
   status.get(task).round += 1;
   /**
-   * Start the next training round.
+   * Start next round.
    */
-  startNextTrainingRound(task, TRAINING_THRESHOLD, TRAINING_COUNTDOWN);
+  _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
 }
 
 /**
@@ -424,34 +442,41 @@ async function _aggregateWeights(task, round, id) {
  * @param {Response} response sent to client
  *
  */
-export function postSamples(request, response) {
-  const type = REQUEST_TYPES.POST_SAMPLES;
+export function postMetadata(request, response) {
+  const type = REQUEST_TYPES.POST_METADATA;
 
-  const code = checkRequest(request);
+  const code = _checkRequest(request);
   if (code !== 200) {
-    return failRequest(response, type, code);
+    return _failRequest(response, type, code);
   }
 
-  logsAppend(request, type);
+  _logsAppend(request, type);
 
+  const metadata = request.params.metadata;
   const task = request.params.task;
   const round = request.params.round;
   const id = request.params.id;
 
-  if (request.body === undefined || request.body.samples === undefined) {
-    return failRequest(response, type, 400);
+  if (request.body === undefined || request.body[metadata] === undefined) {
+    return _failRequest(response, type, 400);
   }
 
-  const samples = request.body.samples;
-
-  if (!dataSamplesMap.has(task)) {
-    dataSamplesMap.set(task, new Map());
+  if (!metadataMap.has(task)) {
+    metadataMap.set(task, new Map());
   }
-  if (!dataSamplesMap.get(task).has(round)) {
-    dataSamplesMap.get(task).set(round, new Map());
+  if (!metadataMap.get(task).has(round)) {
+    metadataMap.get(task).set(round, new Map());
   }
-
-  dataSamplesMap.get(task).get(round).set(id, samples);
+  if (!metadataMap.get(task).get(round).has(id)) {
+    metadataMap.get(task).get(round).set(id, new Map());
+  }
+  if (!metadataMap.get(task).get(round).get(id).has(metadata)) {
+    metadataMap
+      .get(task)
+      .get(round)
+      .get(id)
+      .set(metadata, request.body[metadata]);
+  }
   response.status(200).send();
 }
 
@@ -465,37 +490,46 @@ export function postSamples(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getSamplesMap(request, response) {
-  const type = REQUEST_TYPES.GET_SAMPLES;
+export function getMetadataMap(request, response) {
+  const type = REQUEST_TYPES.GET_METADATA;
 
-  const code = checkRequest(request);
+  const code = _checkRequest(request);
   if (code !== 200) {
-    return failRequest(response, type, code);
+    return _failRequest(response, type, code);
   }
 
+  const metadata = request.params.metadata;
   const task = request.params.task;
   const round = request.params.round;
 
-  if (!(dataSamplesMap.has(task) && round >= 0)) {
-    return failRequest(response, type, 404);
+  if (!(metadataMap.has(task) && round >= 0)) {
+    return _failRequest(response, type, 404);
   }
 
-  logsAppend(request, type);
+  _logsAppend(request, type);
 
   /**
    * Find the most recent entry round-wise for the given task (upper bounded
-   * by the given round). Allows for sporadic entries in the samples map.
+   * by the given round). Allows for sporadic entries in the metadata map.
    */
-  const allRounds = Array.from(dataSamplesMap.get(task).keys());
+  const allRounds = Array.from(metadataMap.get(task).keys());
   const latestRound = allRounds.reduce((prev, curr) =>
     prev <= curr && curr <= round ? curr : prev
   );
-  const latestDataSamplesMap = new Map(
-    dataSamplesMap.get(task).get(latestRound)
-  );
+  /**
+   * Fetch the required metadata from the general metadata structure stored
+   * server-side and construct the queried metadata's map accordingly. This
+   * essentially creates a "ID -> metadata" single-layer map.
+   */
+  const queriedMetadataMap = new Map();
+  for (const [id, entries] of metadataMap.get(task).get(latestRound)) {
+    if (entries.has(metadata)) {
+      queriedMetadataMap.set(id, entries.get(metadata));
+    }
+  }
 
-  const samples = msgpack.encode(Array.from(latestDataSamplesMap));
-  response.status(200).send({ samples: samples });
+  const metadataMap = msgpack.encode(Array.from(queriedMetadataMap));
+  response.status(200).send({ metadata: metadataMap });
 }
 
 /**
@@ -509,11 +543,11 @@ export function getSamplesMap(request, response) {
 export function getTasksMetadata(request, response) {
   const type = REQUEST_TYPES.GET_TASKS;
   if (fs.existsSync(config.TASKS_FILE)) {
-    logsAppend(request, type);
+    _logsAppend(request, type);
     console.log(`Serving ${config.TASKS_FILE}`);
     response.status(200).sendFile(config.TASKS_FILE);
   } else {
-    failRequest(response, type, 404);
+    _failRequest(response, type, 404);
   }
 }
 
@@ -532,8 +566,8 @@ export function getLatestModel(request, response) {
   const task = request.params.task;
   const file = request.params.file;
 
-  if (!clients.has(task)) {
-    return failRequest(response, type, 404);
+  if (!status.has(task)) {
+    return _failRequest(response, type, 404);
   }
   const validModelFiles = new Set(['model.json', 'weights.bin']);
   const modelFile = path.join(config.MODELS_DIR, task, file);
@@ -542,6 +576,6 @@ export function getLatestModel(request, response) {
     console.log(`${file} download for task ${task} succeeded`);
     response.status(200).sendFile(modelFile);
   } else {
-    failRequest(response, type, 404);
+    _failRequest(response, type, 404);
   }
 }
