@@ -10,7 +10,7 @@ export class Task {
 
   async createModel() {
     // To modularize
-    let serverURL = process.env.VUE_APP_DEAI_SERVER;
+    let serverURL = process.env.VUE_APP_FEAI_SERVER;
     let newModel = await tf.loadLayersModel(
       serverURL.concat(`tasks/${this.taskID}/model.json`)
     );

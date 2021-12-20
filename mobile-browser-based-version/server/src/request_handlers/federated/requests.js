@@ -3,7 +3,7 @@ import fs from 'fs';
 import msgpack from 'msgpack-lite';
 import * as config from '../../../server.config.js';
 import { averageWeights } from '../../helpers/tfjs_helpers.js';
-import tasks from '../../tasks/tasks.js';
+import { tasks } from '../../tasks/tasks.js';
 
 /**
  * Fraction of client reponses required to complete communication round.
