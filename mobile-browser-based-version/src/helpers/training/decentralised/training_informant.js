@@ -151,10 +151,8 @@ export class TrainingInformant {
       },
       plotOptions: {
         heatmap: {
-          colorScale: {
-            min: 0.8,
-            max: 1.2,
-          },
+          useFillColorAsStroke: true,
+          reverseNegativeShade: true,
         },
       },
       xaxis: {
@@ -163,6 +161,9 @@ export class TrainingInformant {
           style: {
             colors: textColor,
           },
+        },
+        tooltip: {
+          enabled: false,
         },
       },
       yaxis: {
@@ -181,6 +182,7 @@ export class TrainingInformant {
         offsetX: 30,
       },
       tooltip: {
+        theme: 'dark',
         x: {
           show: false,
         },

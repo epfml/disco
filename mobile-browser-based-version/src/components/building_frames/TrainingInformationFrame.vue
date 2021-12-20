@@ -132,31 +132,51 @@
   >
     <template v-slot:icon><contact /></template>
     <template v-slot:extra>
-      <div class="grid grid-cols-2 s:grid-cols-1 p-4 space-x-4 lg:gap-2">
-        <apexchart
-          width="500"
-          type="heatmap"
-          :options="interoperabilityHeatmpaOptions"
-          :series="interoperabilityHeatmapData['weightsIn']"
-        ></apexchart>
-        <apexchart
-          width="500"
-          type="heatmap"
-          :options="interoperabilityHeatmpaOptions"
-          :series="interoperabilityHeatmapData['biasesIn']"
-        ></apexchart>
-        <apexchart
-          width="500"
-          type="heatmap"
-          :options="interoperabilityHeatmpaOptions"
-          :series="interoperabilityHeatmapData['weightsOut']"
-        ></apexchart>
-        <apexchart
-          width="500"
-          type="heatmap"
-          :options="interoperabilityHeatmpaOptions"
-          :series="interoperabilityHeatmapData['biasesOut']"
-        ></apexchart></div
+      <div class="grid grid-cols-2 s:grid-cols-1 p-4 space-x-4 lg:gap-2 w-auto">
+        <div>
+          <span class="text-sm font-medium text-gray-500 dark:text-white"
+            >Input Weights</span
+          >
+          <apexchart
+            width="100%"
+            type="heatmap"
+            :options="interoperabilityHeatmpaOptions"
+            :series="interoperabilityHeatmapData['weightsIn']"
+          ></apexchart>
+        </div>
+        <div>
+          <span class="text-sm font-medium text-gray-500 dark:text-white"
+            >Input Biases</span
+          >
+          <apexchart
+            width="100%"
+            type="heatmap"
+            :options="interoperabilityHeatmpaOptions"
+            :series="interoperabilityHeatmapData['biasesIn']"
+          ></apexchart>
+        </div>
+        <div>
+          <span class="text-sm font-medium text-gray-500 dark:text-white"
+            >Output Weights</span
+          >
+          <apexchart
+            width="100%"
+            type="heatmap"
+            :options="interoperabilityHeatmpaOptions"
+            :series="interoperabilityHeatmapData['weightsOut']"
+          ></apexchart>
+        </div>
+        <div>
+          <span class="text-sm font-medium text-gray-500 dark:text-white"
+            >Output Biases</span
+          >
+          <apexchart
+            width="100%"
+            type="heatmap"
+            :options="interoperabilityHeatmpaOptions"
+            :series="interoperabilityHeatmapData['biasesOut']"
+          ></apexchart>
+        </div></div
     ></template>
   </icon-card>
 </template>

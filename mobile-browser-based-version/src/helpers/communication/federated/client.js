@@ -318,5 +318,3 @@ function tryRequest(requestURL, requestOptions, tries) {
     _tryRequest(tries);
   });
 }
-
-

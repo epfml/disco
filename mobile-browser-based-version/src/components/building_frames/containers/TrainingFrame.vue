@@ -253,8 +253,9 @@ export default {
       requiredDataType = 'any'
     ) {
       // returns wether of not a given personalization is usable in the current settings.
+      console.log(this.$store);
       let usableOnPlatform =
-        this.$store.getters.platform() == requiredPlatform ||
+        this.$store.getters.platform == requiredPlatform ||
         requiredPlatform == 'any';
       let usableOnDatatype =
         this.Task.trainingInformation.dataType == requiredDataType ||
