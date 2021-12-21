@@ -24,12 +24,9 @@ export function craftPostRequest(property, value) {
 export function getSuccessfulResponse(request, property, tries, time, ...args) {
   return new Promise((resolve) => {
     async function _tryRequest(triesLeft) {
-      console.log('tries left: ', triesLeft);
       const response = await request(...args);
-      console.log(`response ok? ${response.ok ? 'yes' : 'no'}`);
       if (response.ok) {
         const body = await response.json();
-        console.log(`${property}? ${body[property] ? 'yes' : 'no'}`);
         if (body[property]) {
           return resolve(body);
         }

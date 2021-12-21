@@ -87,61 +87,31 @@ export class FederatedClient extends Client {
     return response.ok;
   }
 
-  async postSamples(samples) {
-    const response = api.postSamples(
+  async postMetadata(metadataID, metadata) {
+    const response = api.postMetadata(
       this.task.taskID,
       this.round,
       this.clientID,
-      samples
+      metadataID,
+      metadata
     );
     return response.ok;
   }
 
-  async getSamplesMap() {
-    const response = await api.getSamplesMap(
+  async getMetadataMap(metadataID) {
+    const response = await api.getMetadataMap(
       this.task.taskID,
       this.round,
-      this.clientID
+      this.clientID,
+      metadataID
     );
     if (response.ok) {
       const body = await response.json();
-      return new Map(msgpack.decode(body.samples));
+      return new Map(msgpack.decode(body[metadataID]));
     } else {
       return new Map();
     }
   }
-
-  async _getSelected() {
-    /**
-     * Wait for the selection status from server.
-     */
-    const selectionStatus = await getSuccessfulResponse(
-      api.selectionStatus,
-      'selected',
-      MAX_TRIES,
-      TIME_PER_TRIES,
-      this.task.taskID,
-      this.clientID
-    );
-    /**
-     * This should not happen if the waiting process above is done right.
-     * One should definitely define a behavior to make the app robust.
-     * For example, fallback to local training.
-     */
-    if (!(selectionStatus && selectionStatus.selected)) {
-      throw Error('Not implemented');
-    }
-    /**
-     * Proceed to the training round.
-     */
-    this.selected = true;
-    this.round = selectionStatus.round;
-  }
-
-  /*async onTrainBeginCommunication(model, trainingInformant) {
-    super.onTrainBeginCommunication(model, trainingInformant);
-    await this._getSelected();
-  }*/
 
   async onEpochBeginCommunication(model, epoch, trainingInformant) {
     super.onEpochBeginCommunication(model, epoch, trainingInformant);
@@ -173,6 +143,7 @@ export class FederatedClient extends Client {
     /**
      * Wait for the server to proceed to weights aggregation.
      */
+    console.log('Awaiting for aggregated model from server...');
     const aggregationStatus = await getSuccessfulResponse(
       api.aggregationStatus,
       'aggregated',
@@ -195,5 +166,33 @@ export class FederatedClient extends Client {
      */
     this.selected = false;
     model = this.task.createModel();
+  }
+
+  async _getSelected() {
+    /**
+     * Wait for the selection status from server.
+     */
+    console.log('Awaiting for selection from server...');
+    const selectionStatus = await getSuccessfulResponse(
+      api.selectionStatus,
+      'selected',
+      MAX_TRIES,
+      TIME_PER_TRIES,
+      this.task.taskID,
+      this.clientID
+    );
+    /**
+     * This should not happen if the waiting process above is done right.
+     * One should definitely define a behavior to make the app robust.
+     * For example, fallback to local training.
+     */
+    if (!(selectionStatus && selectionStatus.selected)) {
+      throw Error('Not implemented');
+    }
+    /**
+     * Proceed to the training round.
+     */
+    this.selected = true;
+    this.round = selectionStatus.round;
   }
 }

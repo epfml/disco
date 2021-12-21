@@ -21,8 +21,6 @@ export class TrainingManager {
     this.client = client;
     this.trainingInformant = trainingInformant;
     this.useIndexedDB = useIndexedDB;
-    // Current epoch of the model
-    this.myEpoch = 0;
   }
 
   /**
@@ -70,8 +68,7 @@ export class TrainingManager {
    * @param {Number} epoch The current training loop's epoch.
    */
   async _onEpochBegin(model, epoch) {
-    // To be modified in future ... myEpoch will be removed
-    console.log('EPOCH: ', ++this.myEpoch);
+    console.log(`EPOCH (${epoch + 1}):`);
     await this.client.onEpochBeginCommunication(
       model,
       epoch,
@@ -89,6 +86,10 @@ export class TrainingManager {
    */
   async _onEpochEnd(model, epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateCharts(epoch, validationAccuracy, accuracy);
+    console.log(
+      `Train Accuracy: ${(accuracy * 100).toFixed(2)},
+      Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
+    );
     await this.client.onEpochEndCommunication(
       model,
       epoch,
@@ -127,8 +128,8 @@ export class TrainingManager {
         onEpochEnd: async (epoch, logs) => {
           this.trainingInformant.updateCharts(
             epoch + 1,
-            (logs['val_acc'] * 100).toFixed(2),
-            (logs['acc'] * 100).toFixed(2)
+            (logs.val_acc * 100).toFixed(2),
+            (logs.acc * 100).toFixed(2)
           );
           console.log(
             `EPOCH (${epoch + 1}):
@@ -186,11 +187,6 @@ export class TrainingManager {
             epoch + 1,
             (logs.acc * 100).toFixed(2),
             (logs.val_acc * 100).toFixed(2)
-          );
-          console.log(
-            `EPOCH (${epoch + 1}):
-            Train Accuracy: ${(logs.acc * 100).toFixed(2)},
-            Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
           );
           if (this.useIndexedDB) {
             await updateWorkingModel(
