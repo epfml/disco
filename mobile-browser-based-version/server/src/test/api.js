@@ -40,11 +40,22 @@ export async function postWeights(taskID, round, clientID, weights) {
   return await fetch(`${API}/weights/${taskID}/${round}/${clientID}`, request);
 }
 
-export async function postSamples(taskID, round, clientID, samples) {
-  const request = craftPostRequest('samples', samples);
-  return await fetch(`${API}/samples/${taskID}/${round}/${clientID}`, request);
+export async function postMetadata(
+  taskID,
+  round,
+  clientID,
+  metadataID,
+  metadata
+) {
+  const request = craftPostRequest(metadataID, metadata);
+  return await fetch(
+    `${API}/metadata/${metadataID}/${taskID}/${round}/${clientID}`,
+    request
+  );
 }
 
-export async function getSamplesMap(taskID, round, clientID) {
-  return await fetch(`${API}/samples/${taskID}/${round}/${clientID}`);
+export async function getMetadataMap(taskID, round, clientID, metadataID) {
+  return await fetch(
+    `${API}/metadata/${metadataID}/${taskID}/${round}/${clientID}`
+  );
 }

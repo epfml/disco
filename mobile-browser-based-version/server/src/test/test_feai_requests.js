@@ -16,6 +16,8 @@ var response;
 var body;
 var model;
 var weights;
+var roundCountdown = 10;
+var aggregationCountdown = 3;
 
 /**
  * Naively tests all the API requests made available by the FeAI centralized
@@ -63,20 +65,19 @@ async function testServerRequests() {
   body = await response.json();
   assert.equal(body.selected, false);
 
-  /**
-   * Wait for start of training round.
-   */
-  console.log('Await start of training round');
-  await sleep(1000 * 12);
+  console.log('Awaiting start of training round...');
+  await sleep((roundCountdown + 2) * 1000);
 
   /**
-   * Ask for selection status of client #0, expect success.
+   * Ask for selection status of clients #0 & #1, expect success.
    */
-  response = await api.selectionStatus(task, ids[0]);
-  assert.equal(response.ok, true);
-  body = await response.json();
-  assert.equal(body.selected, true);
-  assert.equal(body.round, round);
+  for (const id of ids.slice(0, 2)) {
+    response = await api.selectionStatus(task, id);
+    assert.equal(response.ok, true);
+    body = await response.json();
+    assert.equal(body.selected, true);
+    assert.equal(body.round, round);
+  }
 
   /**
    * Ask for selection status of client #2, expect failure.
@@ -96,10 +97,12 @@ async function testServerRequests() {
    * Receive aggregation status for round #0. Expect failure as not enough
    * people sent their local weights for aggregation.
    */
-  response = await api.aggregationStatus(task, round, ids[0]);
-  assert.equal(response.ok, true);
-  body = await response.json();
-  assert.equal(await body.aggregated, false);
+  for (const id of ids.slice(0, 2)) {
+    response = await api.aggregationStatus(task, round, id);
+    assert.equal(response.ok, true);
+    body = await response.json();
+    assert.equal(await body.aggregated, false);
+  }
 
   /**
    * Send local weights for round #0.
@@ -107,13 +110,18 @@ async function testServerRequests() {
   response = await api.postWeights(task, round, ids[1], weights);
   assert.equal(response.ok, true);
 
+  console.log('Awaiting weights aggregation server-side...');
+  await sleep((aggregationCountdown + 2) * 1000);
+
   /**
    * Receive aggregation status, expect success.
    */
-  response = await api.aggregationStatus(task, round, ids[0]);
-  assert.equal(response.ok, true);
-  body = await response.json();
-  assert.equal(body.aggregated, true);
+  for (const id of ids.slice(0, 2)) {
+    response = await api.aggregationStatus(task, round, id);
+    assert.equal(response.ok, true);
+    body = await response.json();
+    assert.equal(await body.aggregated, true);
+  }
 
   /**
    * Now that the aggregated model is available, update the local model.
@@ -121,11 +129,17 @@ async function testServerRequests() {
   model = await api.getLatestModel(task);
   weights = msgpack.encode(Array.from(await serializeWeights(model.weights)));
 
-  /**
-   * Expect success, especially for client #2 which has have been
-   * queued up for selection during the previous training round.
-   */
-  for (let id of [ids[0], ids[1]]) {
+  for (let id of ids.slice(0, 2)) {
+    response = await api.selectionStatus(task, id);
+    assert.equal(response.ok, true);
+    body = await response.json();
+    assert.equal(body.selected, false);
+  }
+
+  console.log('Awaiting start of next round...');
+  await sleep((roundCountdown + 2) * 1000);
+
+  for (let id of ids) {
     response = await api.selectionStatus(task, id);
     assert.equal(response.ok, true);
     body = await response.json();
