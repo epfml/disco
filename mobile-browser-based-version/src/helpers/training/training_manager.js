@@ -64,7 +64,6 @@ export class TrainingManager {
         );
         break;
     }
-    console.log(model);
     await model.init();
 
     let trainingParams = [model, data, labels];

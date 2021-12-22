@@ -1,3 +1,4 @@
+import { store } from '../../../store/store';
 /**
  * Class that collects information about the status of the training-loop of the model.
  */
@@ -5,11 +6,13 @@ export class TrainingInformant {
   /**
    *
    * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
-   * @param {String} taskID the task's name.
+   * @param {String} task the task.
    * @param {Boolean} verbose whether or not to print messages.
    */
-  constructor(length, taskID, verbose = false) {
-    this.taskID = taskID;
+  constructor(length, task, verbose = false) {
+    this.taskID = task.taskID;
+    this.taskFeatures = task.trainingInformation.inputColumns;
+    this.taskLabels = task.trainingInformation.outputColumn;
 
     /**
      * How much time I've been waiting for a model.
@@ -28,15 +31,19 @@ export class TrainingInformant {
     this.messages = [];
     this.verbose = verbose;
 
-   // is the model using Interoperability (default to false)
-   this.displayHeatmap = false;
+    /**
+     * Should we display the heatmap (model is using Interoperability)
+     * If so what is the data (fetched from the server.)
+     */
+    this.displayHeatmap = false;
+    this.heatmapData = null;
 
-   // default values for the validation and training charts
-   let nbEpochsOnGraphs = 10;
-   this.currentValidationAccuracy = 0;
-   this.validationAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
-   this.currentTrainingAccuracy = 0;
-   this.trainingAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
+    // default values for the validation and training charts
+    let nbEpochsOnGraphs = 10;
+    this.currentValidationAccuracy = 0;
+    this.validationAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
+    this.currentTrainingAccuracy = 0;
+    this.trainingAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
   }
 
   /**
@@ -75,7 +82,7 @@ export class TrainingInformant {
     }
   }
 
-  cssColors = color => {
+  cssColors = (color) => {
     return getComputedStyle(document.documentElement)
       .getPropertyValue(color)
       .trim();
@@ -96,16 +103,18 @@ export class TrainingInformant {
     primaryDarker: this.cssColors(`--color-${this.getColor()}-darker`),
   };
 
-
   /**
-   * Update the Heatmap for Interoperability.
+   * Given the data of all clients, that we fetch from the server
+   * We update the data to display on the heatmap.
    */
-  updateHeatmapData(weightsIn, biasesIn, weightsOut, biasesOut) {
+  updateHeatmapData(clientsData) {
     this.displayHeatmap = true;
-    this.weightsIn = weightsIn;
-    this.biasesIn = biasesIn;
-    this.weightsOut = weightsOut;
-    this.biasesOut = biasesOut;
+    this.heatmapData = clientsData;
+  }
+
+  getHeatmapData() {
+    console.log(this.heatmapData);
+    return this.heatmapData;
   }
 
   /**
@@ -113,40 +122,52 @@ export class TrainingInformant {
    * TODO: Make the fetching of categories dynamic.
    * @returns An object containing the options to style the heatmap.
    */
-  getHeatmapOptions() {
+  getHeatmapOptions(inputOptions) {
+    let textColor = store.state.isDark ? '#FFF' : '#000';
+    let xLabels = inputOptions ? this.taskFeatures : this.taskLabels;
+    console.log(xLabels)
     return {
-      colors: [this.colors.primaryLight],
-      dataLabels: {
-        enabled: true,
-        style: {
-          colors: ['#FFF'],
-        },
-        offsetX: 30,
-      },
       chart: {
-        id: 'vuechart-example',
+        id: 'interoperability-heatmap',
+        toolbar: {
+          show: false,
+        },
       },
       plotOptions: {
         heatmap: {
-          colorScale: {
-            min: 0.8,
-            max: 1.2,
-          },
+          useFillColorAsStroke: true,
         },
       },
       xaxis: {
-        categories: ['Id', 'Age', 'SibSp', 'Parch', 'Fare', 'Pclass'],
+        categories: xLabels,
         labels: {
           style: {
-            colors: '#FFF',
+            colors: textColor,
           },
+        },
+        tooltip: {
+          enabled: false,
         },
       },
       yaxis: {
         labels: {
           style: {
-            colors: '#FFF',
+            colors: textColor,
           },
+        },
+      },
+      colors: [this.colors.primaryLight],
+      dataLabels: {
+        enabled: false,
+        style: {
+          colors: ['#000'],
+        },
+        offsetX: 30,
+      },
+      tooltip: {
+        theme: 'dark',
+        x: {
+          show: false,
         },
       },
     };

@@ -58,6 +58,16 @@ federatedRouter.post(
   requests.receiveDataSamplesNumbersPerClient
 );
 
+federatedRouter.post(
+  '/send_personal_interoperability_parameters/:task/:round',
+  requests.sendPersonalInteroperabilityParameters
+);
+
+federatedRouter.post(
+  '/receive_aggregated_interoperability_parameters/:task/:round',
+  requests.receiveAggregatedInteroperabilityParameters
+);
+
 federatedRouter.use('/tasks', tasksRouter);
 
 federatedRouter.get('/logs', requests.queryLogs);

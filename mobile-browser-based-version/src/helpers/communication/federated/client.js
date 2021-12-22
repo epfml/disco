@@ -199,6 +199,56 @@ export class FederatedClient extends Client {
     });
   }
 
+  // TODO: Add weights encryption on server side. as they are straight forward.
+
+  /**
+   * Sends the Interoperability parameters to the server so it can be shared to other clients.
+   * @param {*} parameters the parameters of the different Interoperability Layers.
+   * @returns The response from the server
+   */
+  async sendPersonalInteroperabilityParameters(parameters) {
+    console.log(parameters);
+    const requestURL = this.serverURL.concat(
+      `send_personal_interoperability_parameters/${this.task.taskID}/1`
+    );
+    const requestOptions = {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({
+        id: this.clientID,
+        timestamp: new Date(),
+        parameters: parameters,
+      }),
+    };
+    const response = await fetch(requestURL, requestOptions);
+    return response.ok;
+  }
+
+  /**
+   * Requests the aggregated weights from the centralized server.
+   * @returns The aggregated weights of all federated clients or null if the resquest fails.
+   */
+  async receiveAggregatedInteroperabilityParameters() {
+    const requestURL = this.serverURL.concat(
+      `receive_aggregated_interoperability_parameters/${this.task.taskID}/1`
+    );
+    const requestOptions = {
+      method: 'POST',
+      headers: HEADERS,
+      body: JSON.stringify({
+        id: this.clientID,
+        timestamp: new Date(),
+      }),
+    };
+    return await tryRequest(requestURL, requestOptions, MAX_TRIES).then(
+      (response) => response.json().then((body) => body.parameters),
+      (error) => {
+        console.log(error);
+        return null;
+      }
+    );
+  }
+
   async onTrainEndCommunication(model, trainingInformant) {
     trainingInformant.addMessage('Training finished.');
     /**
@@ -210,50 +260,13 @@ export class FederatedClient extends Client {
     ) {
       // TODO: Add interoperability weights query
       let heatmapData = model.getInteroperabilityParameters();
-      // Send and recieve.
 
-      let received = {
-        weightsIn: [
-          {
-            name: 'You',
-            data: heatmapData[0],
-          },
-          {
-            name: 'Caribou',
-            data: [0, 1, 2, 3, 4, 5],
-          },
-        ],
-        biasesIn: [
-          {
-            name: 'You',
-            data: heatmapData[1],
-          },
-          {
-            name: 'Caribou',
-            data: [3, 4, 5, 0, 1, 2],
-          },
-        ],
-        weightsOut: [
-          {
-            name: 'You',
-            data: heatmapData[2],
-          },
-          {
-            name: 'Caribou',
-            data: heatmapData[2],
-          },
-        ],
-        biasesOut: [
-          {
-            name: 'You',
-            data: heatmapData[3],
-          },
-          {
-            name: 'Caribou',
-            data: [1],
-          },
-        ],
-      };
+      // Send Interoperability parameters.
+      await this.sendPersonalInteroperabilityParameters(heatmapData);
+
+      // Receive aggregated Interoperability Parameters.
+      let received = await this.receiveAggregatedInteroperabilityParameters();
+      console.log(received);
       // If response is null then we only display our parameters.
       if (received == null) {
         received = {
@@ -283,8 +296,8 @@ export class FederatedClient extends Client {
           ],
         };
       }
-      trainingInformant.updateHeatmapData(...heatmapData);
-      trainingInformant.updateHeatmapData2(received);
+      // update the training informant
+      trainingInformant.updateHeatmapData(received);
     }
   }
 }

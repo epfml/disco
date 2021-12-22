@@ -150,7 +150,7 @@ export default {
       // Assist with the training loop
       trainingManager: null,
       // Manager that returns feedbacks when training
-      trainingInformant: new TrainingInformant(10, this.Task.taskID),
+      trainingInformant: new TrainingInformant(10, this.Task),
       // Manager for the file uploading process
       fileUploadManager: new FileUploadManager(this.nbrClasses, this),
       // Take care of communication processes
@@ -253,7 +253,6 @@ export default {
       requiredDataType = 'any'
     ) {
       // returns wether of not a given personalization is usable in the current settings.
-      console.log(this.$store);
       let usableOnPlatform =
         this.$store.getters.platform == requiredPlatform ||
         requiredPlatform == 'any';

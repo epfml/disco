@@ -285,6 +285,136 @@ export async function receiveAveragedWeights(request, response) {
   return;
 }
 
+// TODO: Add weights encryption on server side. as they are straight forward.
+const interoperabilityParametersMap = new Map();
+/**
+ * Request handler called when a client sends a POST request containing their
+ * individual Interoperability model parameters to the server while training a task.
+ * The request is made for a given task. The request's body must contain:
+ * - the client's ID
+ * - a timestamp corresponding to the time at which the request was made
+ * - the client's Interoperability Parameters as an array of four arrays.
+ * with the following shape :
+ * [
+ *  [weights of Input layer],
+ *  [biases of Input layer],
+ *  [weights of Output layer],
+ *  [biases of Output layer]
+ * ]
+ * @param {*} request received from client
+ * @param {*} response sent to client
+ */
+export function sendPersonalInteroperabilityParameters(request, response) {
+  const requestType = 'SEND_interoperability_parameters';
+
+  if (!isValidRequest(request)) {
+    response.status(400).send(INVALID_REQUEST_FORMAT_MESSAGE);
+    console.log(`${requestType} failed`);
+    return;
+  }
+
+  const id = request.body.id;
+  const task = request.params.task;
+
+  if (!interoperabilityParametersMap.has(task)) {
+    interoperabilityParametersMap.set(task, new Map());
+  }
+  const parameters = request.body.parameters;
+
+  interoperabilityParametersMap.get(task).set(id, parameters);
+  response
+    .status(200)
+    .send('Interoperability Parameters successfully received.');
+
+  logsAppend(request, requestType);
+  return;
+}
+
+/**
+ * Request handler called when a client sends a POST request asking for
+ * the aggregated Interoperability Parameters of all clients  stored on server while training a task. 
+ * The request is made for a given task.
+ * The aggregation of the parameters has the shape : 
+ * {
+ *  weightsIn : [
+ *    {
+ *      name : clientId,
+ *      data : [weights of Input layer for a given client]
+ *    },
+ *    [ ... ]
+ *  ],
+ *   biasesIn : [
+ *    {
+ *      name : clientId,
+ *      data : [biases of Input layer for a given client]
+ *    },
+ *    [ ... ]
+ *  ],
+ *  weightsOut : [
+ *    {
+ *      name : clientId,
+ *      data : [weights of Input layer for a given client]
+ *    },
+ *    [ ... ]
+ *  ],
+ *   biasesOut : [
+ *    {
+ *      name : clientId,
+ *      data : [biases of Output layer for a given client]
+ *    },
+ *    [ ... ]
+ *  ],
+ * }
+ * The request's body must contain:
+ * - the client's ID
+ * - a timestamp corresponding to the time at which the request was made
+ * @param {*} request from the client
+ * @param {*} response sent to the client
+ * @returns
+ */
+export async function receiveAggregatedInteroperabilityParameters(
+  request,
+  response
+) {
+  const requestType = 'RECEIVE_interoperability_parameters';
+
+  if (!isValidRequest(request)) {
+    response.status(400).send(INVALID_REQUEST_FORMAT_MESSAGE);
+    console.log(`${requestType} failed`);
+    return;
+  }
+
+  const id = request.body.id;
+  const task = request.params.task;
+
+  if (!interoperabilityParametersMap.has(task)) {
+    response.status(404).send(INVALID_REQUEST_KEYS_MESSAGE);
+    console.log(`${requestType} failed`);
+    return;
+  }
+
+  const receivedParameters = interoperabilityParametersMap.get(task);
+
+  let parameters = {
+    weightsIn: [],
+    biasesIn: [],
+    weightsOut: [],
+    biasesOut: [],
+  };
+
+  receivedParameters.forEach((value, key) => {
+    if (value.length == 4) {
+      let name = key.localeCompare(id) == 0 ? 'You' : key;
+      parameters.weightsIn.push({ name: name, data: Object.values(value[0]) });
+      parameters.biasesIn.push({ name: name, data: Object.values(value[1]) });
+      parameters.weightsOut.push({ name: name, data: Object.values(value[2]) });
+      parameters.biasesOut.push({ name: name, data: Object.values(value[3]) });
+    }
+  });
+  response.status(200).send({ parameters: parameters });
+  logsAppend(request, requestType);
+  return;
+}
 /**
  * Request handler called when a client sends a POST request containing their
  * number of data samples to the server while training a task's model. The

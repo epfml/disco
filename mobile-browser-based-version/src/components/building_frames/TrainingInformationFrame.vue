@@ -140,7 +140,7 @@
           <apexchart
             width="100%"
             type="heatmap"
-            :options="interoperabilityHeatmpaOptions"
+            :options="interoperabilityHeatmapOptionsIn"
             :series="interoperabilityHeatmapData['weightsIn']"
           ></apexchart>
         </div>
@@ -151,7 +151,7 @@
           <apexchart
             width="100%"
             type="heatmap"
-            :options="interoperabilityHeatmpaOptions"
+            :options="interoperabilityHeatmapOptionsIn"
             :series="interoperabilityHeatmapData['biasesIn']"
           ></apexchart>
         </div>
@@ -162,7 +162,7 @@
           <apexchart
             width="100%"
             type="heatmap"
-            :options="interoperabilityHeatmpaOptions"
+            :options="interoperabilityHeatmapOptionsOut"
             :series="interoperabilityHeatmapData['weightsOut']"
           ></apexchart>
         </div>
@@ -173,7 +173,7 @@
           <apexchart
             width="100%"
             type="heatmap"
-            :options="interoperabilityHeatmpaOptions"
+            :options="interoperabilityHeatmapOptionsOut"
             :series="interoperabilityHeatmapData['biasesOut']"
           ></apexchart>
         </div></div
@@ -223,8 +223,11 @@ export default {
     interoperabilityHeatmapData() {
       return this.trainingInformant.getHeatmapData();
     },
-    interoperabilityHeatmpaOptions() {
-      return this.trainingInformant.getHeatmapOptions();
+    interoperabilityHeatmapOptionsIn() {
+      return this.trainingInformant.getHeatmapOptions(true);
+    },
+    interoperabilityHeatmapOptionsOut() {
+      return this.trainingInformant.getHeatmapOptions(false);
     },
     currentTrainingAccuracy() {
       return this.trainingInformant.currentTrainingAccuracy;

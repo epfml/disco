@@ -9,8 +9,11 @@ export class TrainingInformant {
    * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
    * @param {String} taskID the task's name.
    */
-  constructor(length, taskID) {
-    this.taskID = taskID;
+   constructor(length, task, verbose = false) {
+    this.taskID = task.taskID;
+    this.taskFeatures = task.trainingInformation.inputColumns;
+    // CAREFUL HERE : 
+    this.taskLabels = [task.trainingInformation.outputColumn];
     // number of people with whom I've shared my model
     this.whoReceivedMyModel = new Set();
 
@@ -112,26 +115,15 @@ export class TrainingInformant {
   };
 
   /**
-   * Update the Heatmap for Interoperability.
+   * Given the data of all clients, that we fetch from the server
+   * We update the data to display on the heatmap.
    */
-  updateHeatmapData(weightsIn, biasesIn, weightsOut, biasesOut) {
-    this.displayHeatmap = true;
-    this.weightsIn = weightsIn;
-    this.biasesIn = biasesIn;
-    this.weightsOut = weightsOut;
-    this.biasesOut = biasesOut;
-  }
-
-  /**
-   * 
-   * @returns 
-   */
-  updateHeatmapData2(clientsData){
+   updateHeatmapData(clientsData) {
     this.displayHeatmap = true;
     this.heatmapData = clientsData;
   }
 
-  getHeatmapData(){
+  getHeatmapData() {
     return this.heatmapData;
   }
 
@@ -140,8 +132,9 @@ export class TrainingInformant {
    * TODO: Make the fetching of categories dynamic.
    * @returns An object containing the options to style the heatmap.
    */
-  getHeatmapOptions() {
+  getHeatmapOptions(inputOptions) {
     let textColor = store.state.isDark ? '#FFF' : '#000';
+    let xLabels = inputOptions ? this.taskFeatures : this.taskLabels;
     return {
       chart: {
         id: 'interoperability-heatmap',
@@ -152,11 +145,10 @@ export class TrainingInformant {
       plotOptions: {
         heatmap: {
           useFillColorAsStroke: true,
-          reverseNegativeShade: true,
         },
       },
       xaxis: {
-        categories: ['Id', 'Age', 'SibSp', 'Parch', 'Fare', 'Pclass'],
+        categories: xLabels,
         labels: {
           style: {
             colors: textColor,
