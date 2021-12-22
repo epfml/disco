@@ -40,8 +40,8 @@
     },
     "trainingInformation": {
       "modelID": "titanic-model",
-      "port": 0,
-      "epoch": 10,
+      "epochs": 20,
+      "roundDuration": 5,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
@@ -49,7 +49,6 @@
         "loss": "binaryCrossentropy",
         "metrics": ["accuracy"]
       },
-      "modelTrainData": { "epochs": 10 },
       "receivedMessagesThreshold": 1,
       "dataType": "csv",
       "inputColumns": [
@@ -77,8 +76,8 @@
     },
     "trainingInformation": {
       "modelID": "mnist-model",
-      "port": 9001,
-      "epoch": 10,
+      "epochs": 10,
+      "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
@@ -86,7 +85,6 @@
         "loss": "categoricalCrossentropy",
         "metrics": ["accuracy"]
       },
-      "modelTrainData": { "epochs": 10 },
       "threshold": 1,
       "dataType": "image",
       "IMAGE_H": 28,
@@ -111,8 +109,8 @@
     },
     "trainingInformation": {
       "modelID": "lus-covid-model",
-      "port": 9001,
-      "epoch": 15,
+      "epochs": 15,
+      "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 2,
       "modelCompileData": {
@@ -121,7 +119,6 @@
         "metrics": ["accuracy"]
       },
       "learningRate": 0.05,
-      "modelTrainData": { "epochs": 10 },
       "threshold": 2,
       "IMAGE_H": 224,
       "IMAGE_W": 224,
@@ -147,8 +144,8 @@
     },
     "trainingInformation": {
       "modelID": "cifar10-model",
-      "port": 9001,
-      "epoch": 10,
+      "epochs": 25,
+      "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 10,
       "modelCompileData": {
@@ -156,7 +153,6 @@
         "loss": "categoricalCrossentropy",
         "metrics": ["accuracy"]
       },
-      "modelTrainData": { "epochs": 20 },
       "threshold": 1,
       "dataType": "image",
       "csvLabels": true,

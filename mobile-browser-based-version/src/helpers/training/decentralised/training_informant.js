@@ -87,7 +87,7 @@ export class TrainingInformant {
     this.messages.push(msg);
   }
 
-  cssColors = color => {
+  cssColors = (color) => {
     return getComputedStyle(document.documentElement)
       .getPropertyValue(color)
       .trim();
@@ -107,7 +107,6 @@ export class TrainingInformant {
     primaryDark: this.cssColors(`--color-${this.getColor()}-dark`),
     primaryDarker: this.cssColors(`--color-${this.getColor()}-darker`),
   };
-
 
   /**
    * Update the Heatmap for Interoperability.

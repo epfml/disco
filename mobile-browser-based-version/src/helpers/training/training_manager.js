@@ -21,8 +21,6 @@ export class TrainingManager {
     this.client = client;
     this.trainingInformant = trainingInformant;
     this.useIndexedDB = useIndexedDB;
-    // Current epoch of the model
-    this.myEpoch = 0;
   }
 
   /**
@@ -69,10 +67,13 @@ export class TrainingManager {
    * @param {Object} model The current model being trained.
    * @param {Number} epoch The current training loop's epoch.
    */
-  _onEpochBegin(model, epoch) {
-    // To be modified in future ... myEpoch will be removed
-    console.log('EPOCH: ', ++this.myEpoch);
-    this.client.onEpochBeginCommunication(model, epoch);
+  async _onEpochBegin(model, epoch) {
+    console.log(`EPOCH (${epoch + 1}):`);
+    await this.client.onEpochBeginCommunication(
+      model,
+      epoch,
+      this.trainingInformant
+    );
   }
 
   /**
@@ -85,11 +86,19 @@ export class TrainingManager {
    */
   async _onEpochEnd(model, epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy);
+    console.log(
+      `Train Accuracy: ${(accuracy * 100).toFixed(2)},
+      Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
+    );
     await this.client.onEpochEndCommunication(
       model,
       epoch,
       this.trainingInformant
     );
+  }
+
+  async _onTrainBegin(model) {
+    await this.client.onTrainBeginCommunication(model, this.trainingInformant);
   }
 
   /**
@@ -111,38 +120,34 @@ export class TrainingManager {
     }
 
     console.log('Training started');
-    await model
-      .fit(data, labels, {
-        batchSize: trainingInformation.batchSize,
-        epochs: trainingInformation.epoch,
-        validationSplit: trainingInformation.validationSplit,
-        shuffle: true,
-        callbacks: {
-          onEpochEnd: async (epoch, logs) => {
-            this.trainingInformant.updateGraph(
-              epoch + 1,
-              (logs['val_acc'] * 100).toFixed(2),
-              (logs['acc'] * 100).toFixed(2)
-            );
-            console.log(
-              `EPOCH (${epoch + 1}):
+    await model.fit(data, labels, {
+      batchSize: trainingInformation.batchSize,
+      epochs: trainingInformation.epoch,
+      validationSplit: trainingInformation.validationSplit,
+      shuffle: true,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          this.trainingInformant.updateGraph(
+            epoch + 1,
+            (logs['val_acc'] * 100).toFixed(2),
+            (logs['acc'] * 100).toFixed(2)
+          );
+          console.log(
+            `EPOCH (${epoch + 1}):
             Train Accuracy: ${(logs['acc'] * 100).toFixed(2)},
             Val Accuracy:  ${(logs['val_acc'] * 100).toFixed(2)}\n`
+          );
+          console.log(`loss ${logs.loss.toFixed(4)}`);
+          if (this.useIndexedDB) {
+            await updateWorkingModel(
+              this.task.taskID,
+              trainingInformation.modelID,
+              model
             );
-            console.log(`loss ${logs.loss.toFixed(4)}`);
-            if (this.useIndexedDB) {
-              await updateWorkingModel(
-                this.task.taskID,
-                trainingInformation.modelID,
-                model
-              );
-            }
-          },
+          }
         },
-      })
-      .then(async (info) => {
-        console.log('Training finished', info.history);
-      });
+      },
+    });
   }
 
   async _trainingDistributed(model, data, labels) {
@@ -154,47 +159,45 @@ export class TrainingManager {
       model.optimizer.learningRate = trainingInformation.learningRate;
     }
 
+    const rounds =
+      trainingInformation.epochs / trainingInformation.roundDuration;
     console.log(
       `Training for ${this.task.displayInformation.taskTitle} task started. ` +
-        `Running for ${trainingInformation.epoch} epochs.`
+        `Running for ${rounds} rounds of ${trainingInformation.roundDuration} epochs each. ` +
+        `This represents ${trainingInformation.epochs} total epochs.`
     );
-    await model
-      .fit(data, labels, {
-        epochs: trainingInformation.epoch,
-        batchSize: trainingInformation.batchSize,
-        validationSplit: trainingInformation.validationSplit,
-        shuffle: true,
-        callbacks: {
-          onTrainEnd: async (logs) => {
-            this._onTrainEnd(model);
-          },
-          onEpochBegin: async (epoch, logs) => {
-            this._onEpochBegin(model, epoch);
-          },
-          onEpochEnd: async (epoch, logs) => {
-            await this._onEpochEnd(
-              model,
-              epoch + 1,
-              (logs.acc * 100).toFixed(2),
-              (logs.val_acc * 100).toFixed(2)
-            );
-            console.log(
-              `EPOCH (${epoch + 1}):
-            Train Accuracy: ${(logs.acc * 100).toFixed(2)},
-            Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
-            );
-            if (this.useIndexedDB) {
-              await updateWorkingModel(
-                this.task.taskID,
-                trainingInformation.modelID,
-                model
-              );
-            }
-          },
+
+    await model.fit(data, labels, {
+      epochs: trainingInformation.epochs,
+      batchSize: trainingInformation.batchSize,
+      validationSplit: trainingInformation.validationSplit,
+      shuffle: true,
+      callbacks: {
+        onTrainBegin: async (logs) => {
+          await this._onTrainBegin(model);
         },
-      })
-      .then(async (info) => {
-        console.log('Training finished', info.history);
-      });
+        onTrainEnd: async (logs) => {
+          await this._onTrainEnd(model);
+        },
+        onEpochBegin: async (epoch, logs) => {
+          await this._onEpochBegin(model, epoch);
+        },
+        onEpochEnd: async (epoch, logs) => {
+          await this._onEpochEnd(
+            model,
+            epoch + 1,
+            (logs.acc * 100).toFixed(2),
+            (logs.val_acc * 100).toFixed(2)
+          );
+          if (this.useIndexedDB) {
+            await updateWorkingModel(
+              this.task.taskID,
+              trainingInformation.modelID,
+              model
+            );
+          }
+        },
+      },
+    });
   }
 }

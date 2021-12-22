@@ -1,6 +1,8 @@
 import * as msgpack from 'msgpack-lite';
-import { makeID, serializeWeights, assignWeightsToModel } from '../helpers';
+import { makeID, serializeWeights } from '../helpers';
+import { getSuccessfulResponse } from './helpers';
 import { Client } from '../client';
+import * as api from './api';
 
 /**
  * The waiting time between performing requests to the centralized server.
@@ -10,13 +12,7 @@ const TIME_PER_TRIES = 1000;
 /**
  * The maximum number of tries before stopping to perform requests.
  */
-const MAX_TRIES = 10;
-/**
- * Headers for POST requests made to the centralized server.
- */
-const HEADERS = {
-  'Content-Type': 'application/json',
-};
+const MAX_TRIES = 30;
 
 /**
  * Class that deals with communication with the centralized server when training
@@ -25,13 +21,15 @@ const HEADERS = {
 export class FederatedClient extends Client {
   /**
    * Prepares connection to a centralized server for training a given task.
-   * @param {String} ID The ID of the task.
    * @param {String} serverURL The URL of the centralized server.
-   * @param {String} taskPassword The password of the task.
+   * @param {Task} task The associated task object.
+   * @param {Number} round The training round.
    */
   constructor(serverURL, task) {
     super(serverURL, task);
     this.clientID = null;
+    this.round = 0;
+    this.selected = false;
   }
 
   /**
@@ -45,11 +43,7 @@ export class FederatedClient extends Client {
      * API requests may be made.
      */
     this.clientID = makeID(10);
-    const requestURL = this.serverURL.concat(
-      `connect/${this.task.taskID}/${this.clientID}`
-    );
-    const requestOptions = { method: 'GET' };
-    const response = await fetch(requestURL, requestOptions);
+    const response = await api.connect(this.task.taskID, this.clientID);
     return response.ok;
   }
 
@@ -57,175 +51,148 @@ export class FederatedClient extends Client {
    * Disconnection process when user quits the task.
    */
   async disconnect() {
-    const requestURL = this.serverURL.concat(
-      `disconnect/${this.task.taskID}/${this.clientID}`
-    );
-    const requestOptions = {
-      method: 'GET',
-      keepalive: true,
-    };
-    const response = await fetch(requestURL, requestOptions);
+    const response = await api.disconnect(this.task.taskID, this.clientID);
     return response.ok;
   }
 
-  async sendIndividualWeights(weights, epoch) {
-    const encodedWeights = msgpack.encode(
-      Array.from(serializeWeights(weights))
-    );
-    const requestURL = this.serverURL.concat(
-      `send_weights/${this.task.taskID}/${epoch}`
-    );
-    const requestOptions = {
-      method: 'POST',
-      headers: HEADERS,
-      body: JSON.stringify({
-        id: this.clientID,
-        timestamp: new Date(),
-        weights: encodedWeights,
-      }),
-    };
-    const response = await fetch(requestURL, requestOptions);
-    return response.ok;
+  async selectionStatus() {
+    const response = await api.selectionStatus(this.task.taskID, this.clientID);
+    return response.ok ? await response.json() : undefined;
   }
 
   /**
    * Requests the aggregated weights from the centralized server,
    * for the given epoch
-   * @param {Number} epoch The epoch.
    * @returns The aggregated weights for the given epoch.
    */
-  async receiveAggregatedWeights(epoch) {
-    const requestURL = this.serverURL.concat(
-      `receive_weights/${this.task.taskID}/${epoch}`
+  async aggregationStatus() {
+    const response = await api.aggregationStatus(
+      this.task.taskID,
+      this.round,
+      this.clientID
     );
-    const requestOptions = {
-      method: 'POST',
-      headers: HEADERS,
-      body: JSON.stringify({
-        id: this.clientID,
-        timestamp: new Date(),
-      }),
-    };
-    return await tryRequest(requestURL, requestOptions, MAX_TRIES).then(
-      (response) =>
-        response
-          .json()
-          .then((body) => msgpack.decode(Uint8Array.from(body.weights.data))),
-      (error) => {
-        console.log(error);
-        return Uint8Array.from([]);
-      }
-    );
+    return response.ok ? await response.json() : undefined;
   }
 
-  async sendNbrDataSamples(nbrSamples, epoch) {
-    const requestURL = this.serverURL.concat(
-      `send_nbsamples/${this.task.taskID}/${epoch}`
+  async postWeights(weights) {
+    const encodedWeights = msgpack.encode(
+      Array.from(await serializeWeights(weights))
     );
-    const requestOptions = {
-      method: 'POST',
-      headers: HEADERS,
-      body: JSON.stringify({
-        id: this.clientID,
-        timestamp: new Date(),
-        samples: nbrSamples,
-      }),
-    };
-    const response = await fetch(requestURL, requestOptions);
+    const response = await api.postWeights(
+      this.task.taskID,
+      this.round,
+      this.clientID,
+      encodedWeights
+    );
     return response.ok;
   }
 
-  async receiveDataShares(epoch) {
-    const requestURL = this.serverURL.concat(
-      `receive_nbsamples/${this.task.taskID}/${epoch}`
+  async postMetadata(metadataID, metadata) {
+    const response = api.postMetadata(
+      this.task.taskID,
+      this.round,
+      this.clientID,
+      metadataID,
+      metadata
     );
-    const requestOptions = {
-      method: 'POST',
-      headers: HEADERS,
-      body: JSON.stringify({
-        id: this.clientID,
-        timestamp: new Date(),
-      }),
-    };
-    const response = await fetch(requestURL, requestOptions);
+    return response.ok;
+  }
+
+  async getMetadataMap(metadataID) {
+    const response = await api.getMetadataMap(
+      this.task.taskID,
+      this.round,
+      this.clientID,
+      metadataID
+    );
     if (response.ok) {
       const body = await response.json();
-      return new Map(msgpack.decode(body.samples));
+      return new Map(msgpack.decode(body[metadataID]));
     } else {
       return new Map();
     }
   }
 
+  async onEpochBeginCommunication(model, epoch, trainingInformant) {
+    super.onEpochBeginCommunication(model, epoch, trainingInformant);
+    const startOfRound =
+      (epoch + 1) % this.task.trainingInformation.roundDuration === 1;
+    if (startOfRound) {
+      await this._getSelected();
+    }
+  }
+
   async onEpochEndCommunication(model, epoch, trainingInformant) {
     super.onEpochEndCommunication(model, epoch, trainingInformant);
-    /**
-     * Send the epoch's local weights to the server.
-     */
-    trainingInformant.addMessage('Sending weights to server');
-    await this.sendIndividualWeights(model.weights, epoch);
-    /**
-     * Request the epoch's aggregated weights from the server.
-     * If successful, update the local weights with the aggregated
-     * weights.
-     */
-    trainingInformant.addMessage(
-      'Waiting to receive aggregated weights from server.'
-    );
-    var startTime = new Date();
-    await this.receiveAggregatedWeights(epoch).then((receivedWeights) => {
-      var endTime = new Date();
-      var timeDiff = endTime - startTime; // in ms
-      timeDiff /= 1000;
-      trainingInformant.updateWaitingTime(Math.round(timeDiff));
-      trainingInformant.updateNbrUpdatesWithOthers(1);
-      trainingInformant.addMessage(
-        'Received aggregated weights from server. Updating local weights.'
-      );
 
-      if (receivedWeights.length > 0) {
-        assignWeightsToModel(model, receivedWeights);
-      }
-    });
     /**
-     * Request the epoch's data shares from the server.
+     * Ensure this was the last epoch of a round.
      */
-    trainingInformant.addMessage(
-      'Waiting to receive metadata & statistics from server.'
-    );
-    await this.receiveDataShares(epoch).then((dataShares) => {
-      if (dataShares.length > 0) {
-        trainingInformant.updateDataShares(dataShares);
-      }
-    });
-  }
-}
-
-/**
- * Tries to fetch the resource at the given URL until successful.
- * Limited to a number of tries.
- * @param {String} requestURL The request's URL.
- * @param {Object} requestOptions The request's options.
- * @param {Number} tries The number of tries.
- * @returns The successful response.
- * @throws An error if a successful response could not be obtained
- * after the specified number of tries.
- */
-function tryRequest(requestURL, requestOptions, tries) {
-  return new Promise((resolve, reject) => {
-    async function _tryRequest(triesLeft) {
-      console.log('tries left: ', triesLeft);
-      const response = await fetch(requestURL, requestOptions);
-      if (response.ok) {
-        return resolve(response);
-      }
-      if (triesLeft <= 0) {
-        return reject('Failed to get response from server.');
-      }
-      /**
-       * Wait before performing the request again.
-       */
-      setTimeout(() => _tryRequest(triesLeft - 1), TIME_PER_TRIES);
+    const endOfRound =
+      epoch > 1 &&
+      (epoch + 1) % this.task.trainingInformation.roundDuration === 1;
+    if (!endOfRound) {
+      return;
     }
-    _tryRequest(tries);
-  });
+
+    /**
+     * Once the training round is completed, send local weights to the
+     * server for aggregation.
+     */
+    await this.postWeights(model.weights);
+    /**
+     * Wait for the server to proceed to weights aggregation.
+     */
+    console.log('Awaiting for aggregated model from server...');
+    const aggregationStatus = await getSuccessfulResponse(
+      api.aggregationStatus,
+      'aggregated',
+      MAX_TRIES,
+      TIME_PER_TRIES,
+      this.task.taskID,
+      this.round,
+      this.clientID
+    );
+    /**
+     * This should not happen if the waiting process above is done right.
+     * One should definitely define a behavior to make the app robust.
+     * For example, fallback to local training.
+     */
+    if (!(aggregationStatus && aggregationStatus.aggregated)) {
+      throw Error('Not implemented');
+    }
+    /**
+     * Update local weights with the most recent model stored on server.
+     */
+    this.selected = false;
+    model = this.task.createModel();
+  }
+
+  async _getSelected() {
+    /**
+     * Wait for the selection status from server.
+     */
+    console.log('Awaiting for selection from server...');
+    const selectionStatus = await getSuccessfulResponse(
+      api.selectionStatus,
+      'selected',
+      MAX_TRIES,
+      TIME_PER_TRIES,
+      this.task.taskID,
+      this.clientID
+    );
+    /**
+     * This should not happen if the waiting process above is done right.
+     * One should definitely define a behavior to make the app robust.
+     * For example, fallback to local training.
+     */
+    if (!(selectionStatus && selectionStatus.selected)) {
+      throw Error('Not implemented');
+    }
+    /**
+     * Proceed to the training round.
+     */
+    this.selected = true;
+    this.round = selectionStatus.round;
+  }
 }
