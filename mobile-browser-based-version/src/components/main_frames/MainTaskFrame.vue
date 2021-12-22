@@ -370,7 +370,7 @@
         </aside>
 
         <div
-          class="flex flex-1 h-screen overflow-y-scroll overflow-x-scroll"
+          class="flex flex-1 h-screen overflow-y-scroll overflow-x-hidden"
           v-if="TaskTitle"
         >
           <main class="flex-1 overflow-y-scroll">
