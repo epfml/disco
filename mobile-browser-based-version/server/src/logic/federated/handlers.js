@@ -6,7 +6,7 @@ import {
   averageWeights,
   assignWeightsToModel,
 } from '../../helpers/tfjs_helpers.js';
-import tasks from '../../tasks/tasks.js';
+import { tasks } from '../../tasks/tasks.js';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-node';
 

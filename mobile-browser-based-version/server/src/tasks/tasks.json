@@ -51,11 +51,18 @@
       },
       "receivedMessagesThreshold": 1,
       "dataType": "csv",
-      "inputColumns": ["PassengerId", "Age", "SibSp", "Parch", "Fare", "Pclass"],
+      "inputColumns": [
+        "PassengerId",
+        "Age",
+        "SibSp",
+        "Parch",
+        "Fare",
+        "Pclass"
+      ],
       "outputColumn": "Survived"
     }
   },
-   {
+  {
     "taskID": "mnist",
     "displayInformation": {
       "taskTitle": "MNIST",
@@ -82,11 +89,13 @@
       "dataType": "image",
       "IMAGE_H": 28,
       "IMAGE_W": 28,
+      "RESIZED_IMAGE_H": 28,
+      "RESIZED_IMAGE_W": 28,
       "LABEL_LIST": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
       "aggregateImagesById": false
     }
-  }, 
-   {
+  },
+  {
     "taskID": "lus_covid",
     "displayInformation": {
       "taskTitle": "COVID Lung Ultrasound",
@@ -111,18 +120,19 @@
       },
       "learningRate": 0.05,
       "threshold": 2,
-
       "IMAGE_H": 224,
       "IMAGE_W": 224,
+      "RESIZED_IMAGE_H": 224,
+      "RESIZED_IMAGE_W": 224,
       "LABEL_LIST": ["COVID-Positive", "COVID-Negative"],
       "NUM_CLASSES": 2,
       "dataType": "image",
       "aggregateImagesById": true
     }
-  }, 
-   {
-    "taskID":"cifar10",
-    "displayInformation":  {
+  },
+  {
+    "taskID": "cifar10",
+    "displayInformation": {
       "taskTitle": "CIFAR10",
       "summary": "In this challenge, we ask you to classify images into categories based on the objects shown on the image.",
       "overview": "The CIFAR-10 dataset is a collection of images that are commonly used to train machine learning and computer vision algorithms. It is one of the most widely used datasets for machine learning research.",
@@ -137,7 +147,7 @@
       "epochs": 25,
       "roundDuration": 0,
       "validationSplit": 0.2,
-      "batchSize": 30,
+      "batchSize": 10,
       "modelCompileData": {
         "optimizer": "adam",
         "loss": "categoricalCrossentropy",
@@ -148,6 +158,8 @@
       "csvLabels": true,
       "IMAGE_H": 32,
       "IMAGE_W": 32,
+      "RESIZED_IMAGE_H": 224,
+      "RESIZED_IMAGE_W": 224,
       "LABEL_LIST": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
       "LABEL_ASSIGNMENT": {
         "airplane": 0,
@@ -162,5 +174,5 @@
         "truck": 9
       }
     }
-  } 
+  }
 ]

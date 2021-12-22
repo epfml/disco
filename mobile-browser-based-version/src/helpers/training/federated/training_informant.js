@@ -1,5 +1,3 @@
-import { TrainingChart } from '../training_chart';
-
 /**
  * Class that collects information about the status of the training-loop of the model.
  */
@@ -30,17 +28,15 @@ export class TrainingInformant {
     this.messages = [];
     this.verbose = verbose;
 
-    /**
-     * Validation accuracy chart.
-     */
-    this.validationAccuracyChart = null;
-    this.validationAccuracy = null;
+    // is the model using Interoperability (default to false)
+    this.displayHeatmap = false;
 
-    /**
-     * Training accuracy chart.
-     */
-    this.trainingAccuracyChart = null;
-    this.trainingAccuracy = null;
+    // default values for the validation and training charts
+    let nbEpochsOnGraphs = 10;
+    this.currentValidationAccuracy = 0;
+    this.validationAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
+    this.currentTrainingAccuracy = 0;
+    this.trainingAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
   }
 
   /**
@@ -79,58 +75,210 @@ export class TrainingInformant {
     }
   }
 
+  cssColors = (color) => {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(color)
+      .trim();
+  };
+
   /**
-   * Initialize the charts of the training information.
-   * Warning: can only be called once the component (to which the training informant is associated) has been rendered at least once.
+   * Returns the colors depending on user's choice graphs should be rendered in
    */
-  initializeCharts() {
-    this.validationAccuracyChart = new TrainingChart(
-      'validationAccuracy_'.concat(this.taskID),
-      'Validation Accuracy'
-    );
-    this.trainingAccuracyChart = new TrainingChart(
-      'trainingAccuracy_'.concat(this.taskID),
-      'Training Accuracy'
-    );
+  getColor = () => {
+    return window.localStorage.getItem('color') ?? 'cyan';
+  };
+
+  colors = {
+    primary: this.cssColors(`--color-${this.getColor()}`),
+    primaryLight: this.cssColors(`--color-${this.getColor()}-light`),
+    primaryLighter: this.cssColors(`--color-${this.getColor()}-lighter`),
+    primaryDark: this.cssColors(`--color-${this.getColor()}-dark`),
+    primaryDarker: this.cssColors(`--color-${this.getColor()}-darker`),
+  };
+
+  /**
+   * Update the Heatmap for Interoperability.
+   */
+  updateHeatmapData(weightsIn, biasesIn, weightsOut, biasesOut) {
+    this.displayHeatmap = true;
+    this.weightsIn = weightsIn;
+    this.biasesIn = biasesIn;
+    this.weightsOut = weightsOut;
+    this.biasesOut = biasesOut;
   }
 
   /**
-   * Method used to update the two charts to give user informations about the training process.
-   * @param {Number} epoch the epoch number of the current training.
-   * @param {Number} trainingAccuracy the accuracy achieved by the model in the given epoch.
-   * @param {Number} validationAccuracy the validation accuracy achieved by the model in the given epoch.
+   * Give the defined options for the Interoperability Heatmap.
+   * TODO: Make the fetching of categories dynamic.
+   * @returns An object containing the options to style the heatmap.
    */
-  updateCharts(epoch, validationAccuracy, trainingAccuracy) {
-    console.log(this);
-    this.validationAccuracyChart.updateGraph(epoch, validationAccuracy);
-    this.trainingAccuracyChart.updateGraph(epoch, trainingAccuracy);
+  getHeatmapOptions() {
+    return {
+      colors: [this.colors.primaryLight],
+      dataLabels: {
+        enabled: true,
+        style: {
+          colors: ['#FFF'],
+        },
+        offsetX: 30,
+      },
+      chart: {
+        id: 'vuechart-example',
+      },
+      plotOptions: {
+        heatmap: {
+          colorScale: {
+            min: 0.8,
+            max: 1.2,
+          },
+        },
+      },
+      xaxis: {
+        categories: ['Id', 'Age', 'SibSp', 'Parch', 'Fare', 'Pclass'],
+        labels: {
+          style: {
+            colors: '#FFF',
+          },
+        },
+      },
+      yaxis: {
+        labels: {
+          style: {
+            colors: '#FFF',
+          },
+        },
+      },
+    };
   }
 
   /**
-   * Returns the chart's training accuracy ID
+   * Give the defined options for the accuracy charts.
+   * @returns An object containing the options to style the graphs.
    */
-  getChartTrainingAccuracyID() {
-    return 'chart_trainingAccuracy_'.concat(this.taskID);
+  getAreaChartOptions() {
+    return {
+      chart: {
+        id: 'realtime',
+        width: 'auto',
+        height: 'auto',
+        type: 'area',
+        animations: {
+          enabled: true,
+          easing: 'linear',
+          dynamicAnimation: {
+            speed: 1000,
+          },
+        },
+        toolbar: {
+          show: false,
+        },
+        zoom: {
+          enabled: false,
+        },
+      },
+      dataLabels: {
+        enabled: false,
+      },
+      colors: [
+        //TODO: Make it so it immediately changes when updated
+        this.colors.primary,
+      ],
+      fill: {
+        colors: [this.colors.primaryLighter],
+        type: 'solid',
+        opacity: 0.6,
+      },
+      stroke: {
+        curve: 'smooth',
+      },
+      markers: {
+        size: 0.5,
+      },
+      grid: {
+        xaxis: {
+          lines: {
+            show: false,
+          },
+        },
+        yaxis: {
+          lines: {
+            show: false,
+          },
+        },
+      },
+      yaxis: {
+        max: 100,
+        min: 0,
+        labels: {
+          show: false,
+        },
+      },
+      xaxis: {
+        labels: {
+          show: false,
+        },
+      },
+      legend: {
+        show: false,
+      },
+      tooltip: {
+        enabled: false,
+      },
+    };
   }
 
   /**
-   * Returns the chart's training accuracy ID
+   * Returns the Validation Accuracy over the last 10 epochs.
+   * @returns the validation accuracy data
    */
-  getValTrainingAccuracyID() {
-    return 'val_trainingAccuracy_'.concat(this.taskID);
+  getValidationAccuracyData() {
+    return [
+      {
+        data: this.validationAccuracyDataSerie,
+      },
+    ];
   }
 
   /**
-   * Returns the chart's validation accuracy ID
+   * Returns the Training Accuracy over the last 10 epochs.
+   * @returns the training accuracy data
    */
-  getChartValidationAccuracyID() {
-    return 'chart_validationAccuracy_'.concat(this.taskID);
+  getTrainingAccuracyData() {
+    return [
+      {
+        data: this.trainingAccuracyDataSerie,
+      },
+    ];
   }
 
   /**
-   * Returns the chart's validation accuracy ID
+   * Update the accuracy graphs data
+   * @param {Number} epoch current epoch
+   * @param {Number} validationAccuracy the current validation accuracy of the model
+   * @param {Number} trainingAccuracy the current training accuracy of the model
    */
-  getValValidationAccuracyID() {
-    return 'val_validationAccuracy_'.concat(this.taskID);
+  updateGraph(epoch, validationAccuracy, trainingAccuracy) {
+    this._updateValidationAccuracyGraph(validationAccuracy);
+    this._updateTrainingAccuracygraph(trainingAccuracy);
+  }
+
+  /**
+   *  Updates the data to be displayed on the validation accuracy graph.
+   * @param {Number} validationAccuracy the current validation accuracy of the model
+   */
+  _updateValidationAccuracyGraph(validationAccuracy) {
+    this.validationAccuracyDataSerie.push(validationAccuracy);
+    this.validationAccuracyDataSerie.splice(0, 1);
+    this.currentValidationAccuracy = validationAccuracy;
+  }
+
+  /**
+   *  Updates the data to be displayed on the training accuracy graph.
+   * @param {Number} trainingAccuracy the current training accuracy of the model
+   */
+  _updateTrainingAccuracygraph(trainingAccuracy) {
+    this.trainingAccuracyDataSerie.push(trainingAccuracy);
+    this.trainingAccuracyDataSerie.splice(0, 1);
+    this.currentTrainingAccuracy = trainingAccuracy;
   }
 }

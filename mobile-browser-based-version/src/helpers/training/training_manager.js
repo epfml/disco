@@ -85,7 +85,7 @@ export class TrainingManager {
    * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
    */
   async _onEpochEnd(model, epoch, accuracy, validationAccuracy) {
-    this.trainingInformant.updateCharts(epoch, validationAccuracy, accuracy);
+    this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy);
     console.log(
       `Train Accuracy: ${(accuracy * 100).toFixed(2)},
       Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
@@ -119,17 +119,18 @@ export class TrainingManager {
       model.optimizer.learningRate = trainingInformation.learningRate;
     }
 
+    console.log('Training started');
     await model.fit(data, labels, {
       batchSize: trainingInformation.batchSize,
-      epochs: trainingInformation.epochs,
+      epochs: trainingInformation.epoch,
       validationSplit: trainingInformation.validationSplit,
       shuffle: true,
       callbacks: {
         onEpochEnd: async (epoch, logs) => {
-          this.trainingInformant.updateCharts(
+          this.trainingInformant.updateGraph(
             epoch + 1,
-            (logs.val_acc * 100).toFixed(2),
-            (logs.acc * 100).toFixed(2)
+            (logs['val_acc'] * 100).toFixed(2),
+            (logs['acc'] * 100).toFixed(2)
           );
           console.log(
             `EPOCH (${epoch + 1}):

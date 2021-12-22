@@ -62,7 +62,7 @@
         <template v-slot:icon><download /></template>
         <template v-slot:extra>
           <!-- Descrition -->
-          <div class="relative p-4 overflow-x-scroll">
+          <div class="relative p-4 overflow-x-hidden">
             <span
               style="white-space: pre-line"
               class="text-sm text-gray-500 dark:text-light"
@@ -91,15 +91,12 @@ import ActionFrame from './ActionFrame.vue';
 import IconCard from '../../containers/IconCard.vue';
 import CustomButton from '../../simple/CustomButton.vue';
 import Download from '../../../assets/svg/Download.vue';
-
 import { TrainingInformant } from '../../../helpers/training/decentralised/training_informant';
 import { getClient } from '../../../helpers/communication/helpers';
 import { TrainingManager } from '../../../helpers/training/training_manager';
 import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
 import { saveWorkingModel } from '../../../helpers/memory/helpers';
-
-import { mapState } from 'vuex';
-
+import { mapState, mapGetters} from 'vuex';
 export default {
   name: 'TrainingFrame',
   props: {
@@ -117,6 +114,14 @@ export default {
     CustomButton,
     Download,
   },
+  computed: {
+    ...mapState(['useIndexedDB']),
+  },
+  watch: {
+    useIndexedDB(newValue) {
+      this.trainingManager.setIndexedDB(newValue);
+    },
+  },
   data() {
     return {
       isConnected: false,
@@ -128,19 +133,11 @@ export default {
       fileUploadManager: new FileUploadManager(this.nbrClasses, this),
       // Take care of communication processes
       client: getClient(
-        this.$t('platform'),
+        this.$store.getters.platform,
         this.Task,
         this.$store.getters.password(this.Id)
       ), // TO DO: to modularize
     };
-  },
-  computed: {
-    ...mapState(['useIndexedDB']),
-  },
-  watch: {
-    useIndexedDB(newValue) {
-      this.trainingManager.setIndexedDB(newValue);
-    },
   },
   methods: {
     goToTesting() {
@@ -228,10 +225,6 @@ export default {
         this.trainingInformant,
         this.useIndexedDB
       );
-
-      // Initialize the training informant's charts
-      this.trainingInformant.initializeCharts();
-
       // Connect to centralized server
       this.isConnected = await this.client.connect();
       if (this.isConnected) {

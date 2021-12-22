@@ -16,20 +16,22 @@
           </h4>
         </div>
         <p class="p-4">
-          <span
-            class="text-2xl font-medium text-gray-500 dark:text-light"
-            v-bind:id="trainingInformant.getValValidationAccuracyID()"
-            >0</span
-          >
+          <span class="text-2xl font-medium text-gray-500 dark:text-light">{{
+            currentValidationAccuracy
+          }}</span>
           <span class="text-sm font-medium text-gray-500 dark:text-primary"
             >% of validation accuracy</span
           >
         </p>
         <!-- Chart -->
-        <div class="relative p-4">
-          <canvas
-            v-bind:id="trainingInformant.getChartValidationAccuracyID()"
-          ></canvas>
+        <div class="relative p-4 w-100% h-100%">
+          <apexchart
+            width="100%"
+            height="200"
+            type="area"
+            :options="areaChartOptions"
+            :series="validationAccuracyData"
+          ></apexchart>
         </div>
       </div>
 
@@ -41,20 +43,22 @@
           </h4>
         </div>
         <p class="p-4">
-          <span
-            class="text-2xl font-medium text-gray-500 dark:text-light"
-            v-bind:id="trainingInformant.getValTrainingAccuracyID()"
-            >0</span
-          >
+          <span class="text-2xl font-medium text-gray-500 dark:text-light">{{
+            currentTrainingAccuracy
+          }}</span>
           <span class="text-sm font-medium text-gray-500 dark:text-primary"
             >% of training accuracy</span
           >
         </p>
         <!-- Chart -->
-        <div class="relative p-4">
-          <canvas
-            v-bind:id="trainingInformant.getChartTrainingAccuracyID()"
-          ></canvas>
+        <div class="relative p-4 w-100% h-100%">
+          <apexchart
+            width="100%"
+            height="200"
+            type="area"
+            :options="areaChartOptions"
+            :series="trainingAccuracyData"
+          ></apexchart>
         </div>
       </div>
     </div>
@@ -71,7 +75,7 @@
             v-for="(message, index) in trainingInformant.messages"
             :key="index"
           >
-            <div class="relative overflow-x-scroll">
+            <div class="relative overflow-x-hidden">
               <span
                 style="white-space: pre-line"
                 class="text-sm text-gray-500 dark:text-light"
@@ -141,6 +145,38 @@ export default {
   name: 'TrainingInformationFrame',
   props: {
     trainingInformant: Object,
+  },
+  data() {
+    return {
+      // Test Apexcharts
+      areaChartOptions: this.trainingInformant.getAreaChartOptions(),
+      trainingAccuracyData: this.trainingInformant.getTrainingAccuracyData(),
+      validationAccuracyData:
+        this.trainingInformant.getValidationAccuracyData(),
+      interoperabilityHeatmpaOptions:
+        this.trainingInformant.getHeatmapOptions(),
+    };
+  },
+
+  computed: {
+    displayHeatmap() {
+      return this.trainingInformant.displayHeatmap;
+    },
+    interoperabilityHeatmapData() {
+      // TODO: cahnge once the peers exchange actual data of their weights and biases.
+      return [
+        {
+          name: 'You',
+          data: this.trainingInformant.weightsIn,
+        },
+      ];
+    },
+    currentTrainingAccuracy() {
+      return this.trainingInformant.currentTrainingAccuracy;
+    },
+    currentValidationAccuracy() {
+      return this.trainingInformant.currentValidationAccuracy;
+    },
   },
 };
 </script>
