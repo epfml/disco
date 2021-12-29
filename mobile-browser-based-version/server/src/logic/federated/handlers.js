@@ -41,6 +41,17 @@ const ROUND_COUNTDOWN = 1000 * 10;
  */
 const AGGREGATION_COUNTDOWN = 1000 * 3;
 /**
+ * Clients that didn't emit any API request within this time delay (in ms) are
+ * considered as idle and are consequently removed from the required data
+ * structures.
+ */
+const IDLE_DELAY = 1000 * 10;
+/**
+ * Same as IDLE_DELAY, except longer for clients that recently connected and thus
+ * are not critical nodes (i.e. training nodes).
+ */
+const LONGER_IDLE_DELAY = 1000 * 60;
+/**
  * Contains the model weights received from clients for a given task and round.
  * Stored by task ID, round number and client ID.
  */
@@ -65,6 +76,12 @@ const logs = [];
  */
 const clients = new Set();
 /**
+ * Contains client IDs and their amount of recently emitted API requests.
+ * This allows us to check whether clients were active within a certain time interval
+ * and thus remove possibly AFK clients.
+ */
+const activeClients = new Map();
+/**
  * Contains client IDs selected for the current round. Maps a task ID to a set of
  * selected clients. Disconnected clients should always be removed from the
  * corresponding set of selected clients.
@@ -80,14 +97,14 @@ const selectedClientsQueue = new Map();
  * Maps a task to a status object. Currently provides the round number and
  * round status for each task.
  */
-const status = new Map();
+const tasksStatus = new Map();
 /**
  * Initialize the data structures declared above.
  */
 tasks.forEach((task) => {
   selectedClients.set(task.taskID, new Set());
   selectedClientsQueue.set(task.taskID, new Set());
-  status.set(task.taskID, { isRoundPending: false, round: 0 });
+  tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 });
 });
 
 /**
@@ -107,7 +124,7 @@ function _checkRequest(request) {
   if (!(Number.isInteger(Number(round)) && round >= 0)) {
     return 400;
   }
-  if (!(status.has(task) && round <= status.get(task).round)) {
+  if (!(tasksStatus.has(task) && round <= tasksStatus.get(task).round)) {
     return 404;
   }
   if (!clients.has(id)) {
@@ -148,8 +165,8 @@ function _startNextRound(task, threshold, countdown) {
   if (queueSize >= threshold) {
     setTimeout(() => {
       queueSize = selectedClientsQueue.get(task).size;
-      if (queueSize >= threshold && !status.get(task).isRoundPending) {
-        status.get(task).isRoundPending = true;
+      if (queueSize >= threshold && !tasksStatus.get(task).isRoundPending) {
+        tasksStatus.get(task).isRoundPending = true;
 
         console.log('* queue: ', selectedClientsQueue.get(task));
         console.log('* selected clients: ', selectedClients.get(task));
@@ -162,6 +179,55 @@ function _startNextRound(task, threshold, countdown) {
       }
     }, countdown);
   }
+}
+
+async function _aggregateWeights(task, round, id) {
+  // TODO: check whether this actually works
+  const serializedAggregatedWeights = await averageWeights(
+    Array.from(weightsMap.get(task).get(round).values())
+  );
+  /**
+   * Save the newly aggregated model to the server's local storage. This
+   * is now the model served to clients for the given task. To save the newly
+   * aggregated weights, here is the (cumbersome) procedure:
+   * 1. create a new TFJS model with the right layers
+   * 2. assign the newly aggregated weights to it
+   * 3. save the model
+   */
+  console.log(`Updating ${task} model`);
+  const modelFilesPath = config.SAVING_SCHEME.concat(
+    path.join(config.MODELS_DIR, task, 'model.json')
+  );
+  const model = await tf.loadLayersModel(modelFilesPath);
+  assignWeightsToModel(model, serializedAggregatedWeights);
+  model.save(path.dirname(modelFilesPath));
+  /**
+   * The round has completed.
+   */
+  tasksStatus.get(task).isRoundPending = false;
+  /**
+   * Communicate the correct round to selected clients.
+   */
+  tasksStatus.get(task).round += 1;
+  /**
+   * Start next round.
+   */
+  _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
+}
+
+function _checkForIdleClients(client, delay) {
+  setTimeout(() => {
+    console.log(`Checking ${client} for activity`);
+    if (activeClients.get(client) === 0) {
+      console.log(`Removing idle client ${client}`);
+      clients.delete(client);
+      activeClients.delete(client);
+      selectedClients.delete(client);
+      selectedClientsQueue.delete(client);
+    } else {
+      activeClients.get(client).requests -= 1;
+    }
+  }, delay);
 }
 
 /**
@@ -198,7 +264,7 @@ export function selectionStatus(request, response) {
   const task = request.params.task;
   const id = request.params.id;
 
-  if (!status.has(task)) {
+  if (!tasksStatus.has(task)) {
     return _failRequest(response, type, 404);
   }
 
@@ -214,12 +280,14 @@ export function selectionStatus(request, response) {
   );
 
   if (selectedClients.get(task).has(id)) {
-    response.send({ selected: true, round: status.get(task).round });
+    response.send({ selected: true, round: tasksStatus.get(task).round });
   } else {
     selectedClientsQueue.get(task).add(id);
     response.send({ selected: false });
     _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
   }
+  activeClients.get(id).requests += 1;
+  _checkForIdleClients(id, IDLE_DELAY);
 }
 
 /**
@@ -235,7 +303,7 @@ export function connect(request, response) {
   const task = request.params.task;
   const id = request.params.id;
 
-  if (!status.has(task)) {
+  if (!tasksStatus.has(task)) {
     return _failRequest(response, type, 404);
   }
   if (clients.has(id)) {
@@ -247,6 +315,9 @@ export function connect(request, response) {
   clients.add(id);
   console.log(`Client with ID ${id} connected to the server`);
   response.status(200).send();
+
+  activeClients.set(id, { requests: 0 });
+  _checkForIdleClients(id, LONGER_IDLE_DELAY);
 }
 
 /**
@@ -265,13 +336,14 @@ export function disconnect(request, response) {
   const task = request.params.task;
   const id = request.params.id;
 
-  if (!(status.has(task) && clients.has(id))) {
+  if (!(tasksStatus.has(task) && clients.has(id))) {
     return _failRequest(response, type, 404);
   }
 
   _logsAppend(request, type);
 
   clients.delete(id);
+  activeClients.delete(id);
   selectedClients.get(task).delete(id);
   selectedClientsQueue.get(task).delete(id);
 
@@ -330,6 +402,9 @@ export function postWeights(request, response) {
   }
   response.status(200).send();
 
+  activeClients.get(id).requests += 1;
+  _checkForIdleClients(id, IDLE_DELAY);
+
   /**
    * Check whether enough clients sent their local weights to proceed to
    * weights aggregation.
@@ -370,7 +445,10 @@ export async function aggregationStatus(request, response) {
   /**
    * The task was not trained at all.
    */
-  if (!status.get(task).isRoundPending && status.get(task).round === 0) {
+  if (
+    !tasksStatus.get(task).isRoundPending &&
+    tasksStatus.get(task).round === 0
+  ) {
     return _failRequest(response, type, 403);
   }
   /**
@@ -385,8 +463,9 @@ export async function aggregationStatus(request, response) {
    * Check whether the requested round has completed.
    */
   const aggregated =
-    !status.get(task).isRoundPending ||
-    (status.get(task).isRoundPending && round < status.get(task).round);
+    !tasksStatus.get(task).isRoundPending ||
+    (tasksStatus.get(task).isRoundPending &&
+      round < tasksStatus.get(task).round);
   /**
    * If aggregation occured, make the client wait to get selected again so it can
    * proceed to other jobs.
@@ -395,40 +474,8 @@ export async function aggregationStatus(request, response) {
     selectedClients.get(task).delete(id);
   }
   response.status(200).send({ aggregated: aggregated });
-}
-
-async function _aggregateWeights(task, round, id) {
-  // TODO: check whether this actually works
-  const serializedAggregatedWeights = await averageWeights(
-    Array.from(weightsMap.get(task).get(round).values())
-  );
-  /**
-   * Save the newly aggregated model to the server's local storage. This
-   * is now the model served to clients for the given task. To save the newly
-   * aggregated weights, here is the (cumbersome) procedure:
-   * 1. create a new TFJS model with the right layers
-   * 2. assign the newly aggregated weights to it
-   * 3. save the model
-   */
-  console.log(`Updating ${task} model`);
-  const modelFilesPath = config.SAVING_SCHEME.concat(
-    path.join(config.MODELS_DIR, task, 'model.json')
-  );
-  const model = await tf.loadLayersModel(modelFilesPath);
-  assignWeightsToModel(model, serializedAggregatedWeights);
-  model.save(path.dirname(modelFilesPath));
-  /**
-   * The round has completed.
-   */
-  status.get(task).isRoundPending = false;
-  /**
-   * Communicate the correct round to selected clients.
-   */
-  status.get(task).round += 1;
-  /**
-   * Start next round.
-   */
-  _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
+  activeClients.get(id).requests += 1;
+  _checkForIdleClients(id, IDLE_DELAY);
 }
 
 /**
@@ -478,6 +525,9 @@ export function postMetadata(request, response) {
       .set(metadata, request.body[metadata]);
   }
   response.status(200).send();
+
+  activeClients.get(id).requests += 1;
+  _checkForIdleClients(id, IDLE_DELAY);
 }
 
 /**
@@ -501,6 +551,7 @@ export function getMetadataMap(request, response) {
   const metadata = request.params.metadata;
   const task = request.params.task;
   const round = request.params.round;
+  const id = request.params.id;
 
   if (!(metadataMap.has(task) && round >= 0)) {
     return _failRequest(response, type, 404);
@@ -530,6 +581,9 @@ export function getMetadataMap(request, response) {
 
   const metadataMap = msgpack.encode(Array.from(queriedMetadataMap));
   response.status(200).send({ metadata: metadataMap });
+
+  activeClients.get(id).requests += 1;
+  _checkForIdleClients(id, IDLE_DELAY);
 }
 
 /**
@@ -566,7 +620,7 @@ export function getLatestModel(request, response) {
   const task = request.params.task;
   const file = request.params.file;
 
-  if (!status.has(task)) {
+  if (!tasksStatus.has(task)) {
     return _failRequest(response, type, 404);
   }
   const validModelFiles = new Set(['model.json', 'weights.bin']);
