@@ -151,6 +151,7 @@ import StarIcon from "../../assets/svg/StarIcon.vue";
 import DecentralisedIcon from "../../assets/svg/DecentralisedIcon.vue";
 import FederatedIcon from "../../assets/svg/FederatedIcon.vue";
 import SettingsIcon from "../../assets/svg/SettingsIcon.vue";
+import { Platform } from "../../platforms/platform";
 
 export default {
   name: "settings",
@@ -186,8 +187,8 @@ export default {
     ...mapMutations([
       "setIndexedDB",
       "setAppTheme",
-      "setStoreStateToDecentralized",
-      "setStoreStateToFederated",
+      "setActivePage",
+      "setStoreStatePlatform",
     ]),
     toggleIndexedDB() {
       this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB);
@@ -242,14 +243,31 @@ export default {
       this.requestPlatformChange = false;
     },
     changePlatform() {
-      if (this.$store.getters.isFederated) {
-        this.setStoreStateToDecentralized();
-      } else {
-        this.setStoreStateToFederated();
+      var platform = Platform.decentralized;
+      var color = "cyan";
+
+      if (this.$store.getters.isDecentralized) {
+        platform = Platform.federated;
+        color = "violet";
       }
 
-      this.$i18n.locale = this.$store.getters.platform;
+      this.setStoreStatePlatform(platform);
+      this.setColors(color);
+      this.$i18n.locale = platform;
+      window.localStorage.setItem("platform", platform);
+
       this.setRequestPlatformChangeFalse();
+
+      // TODO
+      // Add logout from server behavior.
+      // Ideally we unmount components to reset behavior
+      this.goToHome();
+      // Both not working at the same time.
+      window.location.reload();
+    },
+    goToHome() {
+      this.setActivePage("home");
+      this.$router.push({ name: "home" });
     },
   },
 };
