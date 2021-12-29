@@ -268,7 +268,7 @@ export default {
       }
     },
   },
-  async created() {
+  created() {
     // Create the client to take care of communication processes
     this.client = getClient(
       this.$store.getters.platform,
@@ -276,7 +276,13 @@ export default {
       this.$store.getters.password(this.Id)
     );
     // Disconnect from the centralized server on page close
-    //window.addEventListener('beforeunload', () => this.client.disconnect());
+    window.addEventListener('beforeunload', () => {
+      /**
+       * Synchronous HTTP request to ensure it is performed before the page's
+       * resources are unloaded.
+       */
+      this.client.disconnect();
+    });
     // Create the training manager
     this.trainingManager = new TrainingManager(
       this.Task,
@@ -285,10 +291,10 @@ export default {
       this.useIndexedDB
     );
     // Connect to centralized server
-    await this.connectClientToServer();
+    this.connectClientToServer();
   },
-  async unmounted() {
-    await this.client.disconnect();
+  unmounted() {
+    this.client.disconnect();
   },
 };
 </script>
