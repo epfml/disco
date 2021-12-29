@@ -217,15 +217,17 @@ async function _aggregateWeights(task, round, id) {
 
 function _checkForIdleClients(client, delay) {
   setTimeout(() => {
-    console.log(`Checking ${client} for activity`);
-    if (activeClients.get(client) === 0) {
-      console.log(`Removing idle client ${client}`);
-      clients.delete(client);
-      activeClients.delete(client);
-      selectedClients.delete(client);
-      selectedClientsQueue.delete(client);
-    } else {
-      activeClients.get(client).requests -= 1;
+    if (activeClients.has(client)) {
+      console.log(`Checking ${client} for activity`);
+      if (activeClients.get(client).requests === 0) {
+        console.log(`Removing idle client ${client}`);
+        clients.delete(client);
+        activeClients.delete(client);
+        selectedClients.delete(client);
+        selectedClientsQueue.delete(client);
+      } else {
+        activeClients.get(client).requests -= 1;
+      }
     }
   }, delay);
 }
