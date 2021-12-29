@@ -7,8 +7,9 @@
         <div class="flex items-center space-x-8">
           <!-- Decentralized button -->
           <button
-            v-on:click="setDecentralized"
-            :class="buttonClass(this.$store.state.isDecentralized)"
+            :disabled="this.$store.getters.isDecentralized"
+            v-on:click="setRequestPlatformChangeTrue"
+            :class="buttonClass(this.$store.getters.isDecentralized)"
           >
             <span><decentralised-icon /></span>
             <span>Decentralized</span>
@@ -16,15 +17,35 @@
 
           <!-- Federated button -->
           <button
-            v-on:click="setFederated"
-            :class="buttonClass(!this.$store.state.isDecentralized)"
+            :disabled="this.$store.getters.isFederated"
+            v-on:click="setRequestPlatformChangeTrue"
+            :class="buttonClass(this.$store.getters.isFederated)"
           >
             <span><federated-icon /></span>
             <span>Federated</span>
           </button>
         </div>
       </tippy-card>
-      <div class="overflow-hidden hover:overflow-y-auto">
+      <!-- Confirm change platform -->
+      <tippy-card title="Confirm platform change" v-if="requestPlatformChange">
+        <span class="text-s">
+          Changing the platform will refresh the app, if a model is currently
+          training progess might be lost.
+        </span>
+        <div class="flex items-center justify-center space-x-8">
+          <button
+            :class="buttonClass()"
+            v-on:click="setRequestPlatformChangeFalse"
+          >
+            <span class="text-s"> Cancel </span>
+          </button>
+
+          <button :class="buttonClass()" v-on:click="changePlatform">
+            <span class="text-s"> Confirm </span>
+          </button>
+        </div>
+      </tippy-card>
+      <div v-else class="overflow-hidden hover:overflow-y-auto">
         <!-- IndexedDB -->
         <tippy-card title="Model library">
           <span class="text-s">
@@ -45,15 +66,37 @@
               <span class="text-s"> Use model library </span>
               <div class="relative focus:outline-none">
                 <div
-                  class="w-12 h-6 transition rounded-full outline-none bg-primary-100 dark:bg-primary-darker"
+                  class="
+                    w-12
+                    h-6
+                    transition
+                    rounded-full
+                    outline-none
+                    bg-primary-100
+                    dark:bg-primary-darker
+                  "
                 ></div>
                 <div
-                  class="absolute top-0 left-0 inline-flex w-6 h-6 transition-all duration-200 ease-in-out transform scale-110 rounded-full shadow-sm"
+                  class="
+                    absolute
+                    top-0
+                    left-0
+                    inline-flex
+                    w-6
+                    h-6
+                    transition-all
+                    duration-200
+                    ease-in-out
+                    transform
+                    scale-110
+                    rounded-full
+                    shadow-sm
+                  "
                   :class="{
-                    'translate-x-0 bg-white dark:bg-primary-100': !this.$store
-                      .state.useIndexedDB,
-                    'translate-x-6 bg-primary-light dark:bg-primary': this
-                      .$store.state.useIndexedDB,
+                    'translate-x-0 bg-white dark:bg-primary-100':
+                      !this.$store.state.useIndexedDB,
+                    'translate-x-6 bg-primary-light dark:bg-primary':
+                      this.$store.state.useIndexedDB,
                   }"
                 ></div>
               </div>
@@ -120,13 +163,14 @@ export default {
     FederatedIcon,
     SettingsIcon,
   },
-  data: function() {
+  data: function () {
     return {
       colors: ["cyan", "teal", "green", "fuchsia", "blue", "violet"],
+      requestPlatformChange: false,
     };
   },
   methods: {
-    buttonClass: function(
+    buttonClass: function (
       state,
       defaultClass = "flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
     ) {
@@ -139,7 +183,12 @@ export default {
           : " text-gray-500 dark:text-primary-light")
       );
     },
-    ...mapMutations(["setIndexedDB", "setAppTheme", "setPlatform"]),
+    ...mapMutations([
+      "setIndexedDB",
+      "setAppTheme",
+      "setStoreStateToDecentralized",
+      "setStoreStateToFederated",
+    ]),
     toggleIndexedDB() {
       this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB);
     },
@@ -186,13 +235,21 @@ export default {
       this.setAppTheme(true);
       this.setBrowserTheme(true);
     },
-    setDecentralized() {
-      this.setPlatform(true);
-      this.$i18n.locale = "deai";
+    setRequestPlatformChangeTrue() {
+      this.requestPlatformChange = true;
     },
-    setFederated() {
-      this.setPlatform(false);
-      this.$i18n.locale = "feai";
+    setRequestPlatformChangeFalse() {
+      this.requestPlatformChange = false;
+    },
+    changePlatform() {
+      if (this.$store.getters.isFederated) {
+        this.setStoreStateToDecentralized();
+      } else {
+        this.setStoreStateToFederated();
+      }
+
+      this.$i18n.locale = this.$store.getters.platform;
+      this.setRequestPlatformChangeFalse();
     },
   },
 };

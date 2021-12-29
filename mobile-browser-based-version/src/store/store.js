@@ -49,9 +49,15 @@ export const store = createStore({
       state.isDark = payload ? true : false;
     },
 
-    setPlatform(state, payload) {
-      state.isDecentralized = payload ? true : false;
+    setStoreStateToDecentralized(state) {
+      state.isDecentralized = true;
     },
+
+    setStoreStateToFederated(state) {
+      state.isDecentralized = false;
+    },
+
+    // See where else we use, isDes
 
     setActivePage(state, payload) {
       state.activePage = payload;
@@ -66,6 +72,8 @@ export const store = createStore({
     taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
     tasksFramesList: (state) => _.values(state.tasksFrames),
     platform: (state) => (state.isDecentralized ? 'deai' : 'feai'),
+    isDecentralized: (state) => state.isDecentralized,
+    isFederated: (state) => !state.isDecentralized,
   },
 });
 
