@@ -16,12 +16,26 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <custom-button v-on:click="joinTraining(false)" :center="true">
-          Train Alone
-        </custom-button>
-        <custom-button v-on:click="joinTraining(true)" :center="true">
-          Train {{this.$t('platform')}}
-        </custom-button>
+        <div v-if="!startedTraining">
+          <custom-button v-on:click="joinTraining(false)" :center="true">
+            Train Locally
+          </custom-button>
+          <custom-button v-on:click="joinTraining(true)" :center="true">
+            Train {{ this.$t('platform') }}
+          </custom-button>
+        </div>
+        <div v-else>
+          <custom-button
+            v-if="isTraining"
+            v-on:click="stopTraining()"
+            :center="true"
+          >
+            Stop Training
+          </custom-button>
+          <custom-button v-else v-on:click="resumeTraining()" :center="true">
+            Resume Training
+          </custom-button>
+        </div>
       </div>
       <!-- Training Board -->
       <div>
@@ -45,7 +59,7 @@
             <!-- make it gray & unclickable if indexeddb is turned off -->
             <custom-button
               id="train-model-button"
-              v-on:click="saveModelButton()"
+              v-on:click="saveModel()"
               :center="true"
             >
               Save My model
@@ -96,7 +110,7 @@ import { getClient } from '../../../helpers/communication/helpers';
 import { TrainingManager } from '../../../helpers/training/training_manager';
 import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
 import { saveWorkingModel } from '../../../helpers/memory/helpers';
-import { mapState, mapGetters} from 'vuex';
+import { mapState } from 'vuex';
 export default {
   name: 'TrainingFrame',
   props: {
@@ -125,27 +139,63 @@ export default {
   data() {
     return {
       isConnected: false,
-      // Assist with the training loop
-      trainingManager: null,
-      // Manager that returns feedbacks when training
+      startedTraining: false,
+      isTraining: false,
+      distributedTraining: false,
+      // Delivers training feedback to the user
       trainingInformant: new TrainingInformant(10, this.Task.taskID),
-      // Manager for the file uploading process
+      // Handles the file uploading process
       fileUploadManager: new FileUploadManager(this.nbrClasses, this),
-      // Take care of communication processes
-      client: getClient(
-        this.$store.getters.platform,
-        this.Task,
-        this.$store.getters.password(this.Id)
-      ), // TO DO: to modularize
     };
   },
   methods: {
+    async connectClientToServer() {
+      this.isConnected = await this.client.connect();
+      if (this.isConnected) {
+        this.$toast.success(
+          'Succesfully connected to server. Distributed training available.'
+        );
+      } else {
+        console.log('Error in connecting');
+        this.$toast.error(
+          'Failed to connect to server. Fallback to training alone.'
+        );
+      }
+      setTimeout(this.$toast.clear, 30000);
+    },
     goToTesting() {
       this.$router.push({
         path: 'testing',
       });
     },
-    async saveModelButton() {
+    async stopTraining() {
+      /**
+       * Stopping distributed training in a clean manner requires many
+       * additions and changes to make everything robust.
+       */
+      if (!this.distributedTraining) {
+        this.trainingManager.stopTraining();
+        if (this.isConnected) {
+          await this.client.disconnect();
+          this.$toast.success(
+            'Successfully disconnected from the centralized server.'
+          );
+          setTimeout(this.$toast.clear, 30000);
+        }
+        this.isTraining = false;
+      } else {
+        this.$toast.error('You cannot manually stop distributed training.');
+        setTimeout(this.$toast.clear, 30000);
+      }
+    },
+    async resumeTraining() {
+      await this.connectClientToServer();
+      if (this.connected || !this.distributedTraining) {
+        await this.trainingManager.resumeTraining(this.distributedTraining);
+        this.isTraining = true;
+      }
+    },
+    async saveModel() {
       if (this.useIndexedDB) {
         await saveWorkingModel(
           this.Task.taskID,
@@ -162,6 +212,7 @@ export default {
       setTimeout(this.$toast.clear, 30000);
     },
     async joinTraining(distributed) {
+      this.distributedTraining = distributed;
       if (distributed && !this.isConnected) {
         this.$toast.error('Distributed training is not available.');
         return;
@@ -210,38 +261,34 @@ export default {
             `Data preprocessing has finished and training has started`
           );
           setTimeout(this.$toast.clear, 30000);
+          this.startedTraining = true;
+          this.isTraining = true;
           this.trainingManager.trainModel(processedDataset, distributed);
         }
       }
     },
   },
-  async mounted() {
-    // This method is called when the component is created
-    this.$nextTick(async function () {
-      // Create the training manager
-      this.trainingManager = new TrainingManager(
-        this.Task,
-        this.client,
-        this.trainingInformant,
-        this.useIndexedDB
-      );
-      // Connect to centralized server
-      this.isConnected = await this.client.connect();
-      if (this.isConnected) {
-        this.$toast.success(
-          'Succesfully connected to server. Distributed training available.'
-        );
-      } else {
-        console.log('Error in connecting');
-        this.$toast.error(
-          'Failed to connect to server. Fallback to training alone.'
-        );
-      }
-      setTimeout(this.$toast.clear, 30000);
-    });
+  async created() {
+    // Create the client to take care of communication processes
+    this.client = getClient(
+      this.$store.getters.platform,
+      this.Task,
+      this.$store.getters.password(this.Id)
+    );
+    // Disconnect from the centralized server on page close
+    //window.addEventListener('beforeunload', () => this.client.disconnect());
+    // Create the training manager
+    this.trainingManager = new TrainingManager(
+      this.Task,
+      this.client,
+      this.trainingInformant,
+      this.useIndexedDB
+    );
+    // Connect to centralized server
+    await this.connectClientToServer();
   },
   async unmounted() {
-    this.client.disconnect();
+    await this.client.disconnect();
   },
 };
 </script>
