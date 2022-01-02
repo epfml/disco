@@ -24,3 +24,4 @@ pnpm-debug.log*
 *.sw?
 
 src/helpers/cli/data_dir/
+node_modules_2/
