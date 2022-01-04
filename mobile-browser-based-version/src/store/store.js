@@ -50,7 +50,7 @@ export const store = createStore({
       state.isDark = payload ? true : false;
     },
 
-    setStoreStatePlatform(state, platform) {
+    setPlatform(state, platform) {
       state.platform = platform;
     },
 

@@ -188,7 +188,7 @@ export default {
       "setIndexedDB",
       "setAppTheme",
       "setActivePage",
-      "setStoreStatePlatform",
+      "setPlatform",
     ]),
     toggleIndexedDB() {
       this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB);
@@ -256,7 +256,7 @@ export default {
       let color = this.getDefaultPlatformColor(platform);
 
       // Set platform and color
-      this.setStoreStatePlatform(platform);
+      this.setPlatform(platform);
       this.setColors(color);
       this.$i18n.locale = platform;
       window.localStorage.setItem("platform", platform);
