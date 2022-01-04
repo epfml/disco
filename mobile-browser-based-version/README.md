@@ -76,6 +76,7 @@ npm run lint
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ## How to create a new task 
+
 The task creation process will now be presented: 
 1. In the folder ./src/components create a new folder for a new task. 
 2. If one desires to create a task that relies on tabular data (i.e CSV files), in the created folder, he will copy the files from the titanic example. On the other hand, if one wishes to create a model that uses images as input, he will copy in the previously created folder the files from the MNIST example. 
@@ -129,7 +130,7 @@ For now a template that shows how to create tasks can be found.
 ### Main packages used
 
 | Name                                        |  Keyword        |  Description                                                    | 
-|---------------------------------------------|----------------:|:---------------------------------------------------------------:|
+|---------------------------------------------|:----------------:|:---------------------------------------------------------------|
 | [vuex](https://vuex.vuejs.org/)        | `Store`   | It serves as a centralized store for all the components in an application  | 
 | [vee-validate](https://vee-validate.logaretm.com/v4/) | `Form`         | Form Validation for Vue.js |
 | [vue-toaster](https://github.com/MeForma/vue-toaster) | `Notifications`| Toast notification plugin for Vue.js|
