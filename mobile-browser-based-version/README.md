@@ -1,4 +1,24 @@
 # Mobile Browser-Based Version
+
+## Folder Organisation
+
+    .
+    ├── assets       # contains the resources of the app
+    │ ├── css        # css files
+    │ ├── svg        # svg image / icons
+    ├── components   # vue file folder                         
+    │ ├── XXX.vue    # vue example file
+    ├── helpers      # javascript helpers folder
+    │ ├── XXX.js     # js example file
+    ├── platforms    # i18n related folder
+    │ ├── ...      
+    ├── router       # vue-router related folder
+    │ ├── index.js
+    ├── store        # vuex related folder
+    │ ├── store.js
+    ├── main.js      # root file of the app
+    ├── .env.XXX     # environment specific variables
+    └── ...          # rest of the files
 ## How to run the app
 All commands are ran from the folder ./mobile-browser-based-version.  
 
@@ -106,5 +126,19 @@ Explanations on communication between peers coming out soon.
 Depending on the user's screen size, the sidebar associated to task's components can disapear and be open using a button located on the left corner of the user's screen. 
 For now a template that shows how to create tasks can be found. 
  
+### Main packages used
 
+| Name                                        |  Keyword        |  Description                                                    | 
+|---------------------------------------------|----------------:|:---------------------------------------------------------------:|
+| [vuex](https://vuex.vuejs.org/)        | `Store`   | It serves as a centralized store for all the components in an application  | 
+| [vee-validate](https://vee-validate.logaretm.com/v4/) | `Form`         | Form Validation for Vue.js |
+| [vue-toaster](https://github.com/MeForma/vue-toaster) | `Notifications`| Toast notification plugin for Vue.js|
+| [tippy](https://atomiks.github.io/tippyjs/) | `Menu`|Pluging to build menu / side bars |
+| [vue-i18n](https://vue-i18n.intlify.dev/)   | `Internation.`|Internationalization plugin for Vue.js |
+| [vue-router](https://router.vuejs.org/)     | `Routing`|Official router plugin for Vue.js |
+| [tfjs](https://www.tensorflow.org/js)       | `ML backend`|Library for machine learning in JavaScript |
+| [axios](https://axios-http.com/)            | `HTTP requests`|Axios is a promise-based HTTP Client for node.js and the browser. |
+| [lodash](https://lodash.com/)               | `JS Helpers`|Functional library for higher order function on list and js objects  | 
+| [yup](https://github.com/jquense/yup)       | `Form`         | Schema builder for runtime value parsing and validation (forms). | 
+| [peerjs](https://peerjs.com/)               | `Communication` |P2P communication libary for DeAI | 
 
