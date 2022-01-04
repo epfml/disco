@@ -55,7 +55,7 @@ export default {
     ...mapState(['isDark']),
   },
   methods: {
-    ...mapMutations(['setIndexedDB', 'setAppTheme', 'setStoreStatePlatform']),
+    ...mapMutations(['setIndexedDB', 'setAppTheme', 'setPlatform']),
     getBrowserTheme() {
       if (window.localStorage.getItem('dark')) {
         return JSON.parse(window.localStorage.getItem('dark'));
@@ -96,8 +96,8 @@ export default {
     getPlatform() {
       return window.localStorage.getItem('platform') ?? Platform.decentralized;
     },
-    setPlatform(platform) {
-      this.setStoreStatePlatform(platform);
+    initPlatform(platform) {
+      this.setPlatform(platform);
       this.$i18n.locale = platform;
     },
   },
@@ -119,7 +119,7 @@ export default {
     /**
      * Intialize the app to the browser-saved platform.
      */
-    this.setPlatform(this.getPlatform());
+    this.initPlatform(this.getPlatform());
   },
 };
 </script>
