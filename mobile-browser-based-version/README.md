@@ -1,6 +1,22 @@
 # Mobile Browser-Based Version
 ## How to run the app
 All commands are ran from the folder ./mobile-browser-based-version.  
+
+### Development Environement
+
+We recommand the [VS code](https://code.visualstudio.com/) IDE with the following extensions :
+1. Vue.js Extension Pack
+2. Git Extension Pack
+3. JavaScript (ES6) code snippets
+
+To benenfit from all offered functionalities, open `VS code` using 
+```
+code . 
+```
+from the `mobile-based-version` directory.
+
+> **Tip** : you can use the `⇧⌘P` shortcut to open the **command palette** of `VS code` and use the `ESLint: Fix all auto-fixable Problems` command to lint the currently opened file.
+
 ### Node Installation and NPM installation
 The app is running under Node 15.12.0. It can be downloaded from [here](https://nodejs.org/en/download/releases/).
 
