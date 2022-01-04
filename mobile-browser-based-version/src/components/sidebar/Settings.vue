@@ -242,15 +242,20 @@ export default {
     setRequestPlatformChangeFalse() {
       this.requestPlatformChange = false;
     },
+    getDefaultPlatformColor(platform) {
+      return platform == Platform.decentralized ? "cyan" : "violet";
+    },
+    getNewPlatform(platform) {
+      return platform == Platform.decentralized
+        ? Platform.federated
+        : Platform.decentralized;
+    },
     changePlatform() {
-      var platform = Platform.decentralized;
-      var color = "cyan";
+      // Get new platform and color
+      let platform = this.getNewPlatform(this.$store.state.platform);
+      let color = this.getDefaultPlatformColor(platform);
 
-      if (this.$store.getters.isDecentralized) {
-        platform = Platform.federated;
-        color = "violet";
-      }
-
+      // Set platform and color
       this.setStoreStatePlatform(platform);
       this.setColors(color);
       this.$i18n.locale = platform;
@@ -260,10 +265,7 @@ export default {
 
       // TODO
       // Add logout from server behavior.
-      // Ideally we unmount components to reset behavior
       this.goToHome();
-      // Both not working at the same time.
-      window.location.reload();
     },
     goToHome() {
       this.setActivePage("home");
