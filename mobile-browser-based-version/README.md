@@ -19,7 +19,9 @@ npm run serve
 ```
 This will start the application locally with two visualization options: 
 1. One can access the running app locally, with a ` localhost link` 
-2. One can access the running app on any device that has access to the network of his machine. To do so, use the `network link`. 
+2. One can access the running app on any device that has access to the network of his machine. To do so, use the `network link`.
+
+> Note : the node.js sever application in `server/` needs to launched first (see [corresponding README](server/README.md)) to be able to run the `vue-app`
 
 To **test decentralized learning** between two peers, run the aformentioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.    
 Please note that currently, only the titanic task has been configured to have a decentralized training loop. 
