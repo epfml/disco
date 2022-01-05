@@ -136,7 +136,6 @@ export default {
   data() {
     return {
       isConnected: false,
-      startedTraining: false,
       isTraining: false,
       distributedTraining: false,
       // Delivers training feedback to the user
@@ -166,30 +165,14 @@ export default {
       });
     },
     async stopTraining() {
-      /**
-       * Stopping distributed training in a clean manner requires further changes.
-       */
-      if (!this.distributedTraining) {
-        this.trainingManager.stopTraining();
-        if (this.isConnected) {
-          await this.client.disconnect();
-          this.$toast.success(
-            'Successfully disconnected from the centralized server.'
-          );
-          setTimeout(this.$toast.clear, 30000);
-        }
-        this.isTraining = false;
-      } else {
-        this.$toast.error('You cannot manually stop distributed training.');
-        setTimeout(this.$toast.clear, 30000);
+      this.trainingManager.stopTraining();
+      if (this.isConnected) {
+        await this.client.disconnect();
+        this.isConnected = false;
       }
-    },
-    async resumeTraining() {
-      await this.connectClientToServer();
-      if (this.connected || !this.distributedTraining) {
-        await this.trainingManager.resumeTraining(this.distributedTraining);
-        this.isTraining = true;
-      }
+      this.$toast.success('Training was successfully interrupted.');
+      setTimeout(this.$toast.clear, 30000);
+      this.isTraining = false;
     },
     async saveModel() {
       if (this.useIndexedDB) {
@@ -208,11 +191,13 @@ export default {
       setTimeout(this.$toast.clear, 30000);
     },
     async joinTraining(distributed) {
-      this.distributedTraining = distributed;
       if (distributed && !this.isConnected) {
-        this.$toast.error('Distributed training is not available.');
-        return;
+        await this.connectClientToServer();
+        if (!this.isConnected) {
+          distributed = false;
+        }
       }
+      this.distributedTraining = distributed;
       const nbrFiles = this.fileUploadManager.numberOfFiles();
       console.log('***********************');
       console.log(nbrFiles);
@@ -251,8 +236,8 @@ export default {
             `Data preprocessing has finished and training has started`
           );
           setTimeout(this.$toast.clear, 30000);
-          this.isTraining = true;
           this.trainingManager.trainModel(processedDataset, distributed);
+          this.isTraining = true;
         } else {
           this.$toast.error(
             `Invalid input format: Number of data points with valid format: ${statusValidation.nr_accepted} out of ${nbrFiles}`
@@ -280,8 +265,6 @@ export default {
       this.trainingInformant,
       this.useIndexedDB
     );
-    // Connect to centralized server
-    this.connectClientToServer();
   },
   unmounted() {
     this.client.disconnect();

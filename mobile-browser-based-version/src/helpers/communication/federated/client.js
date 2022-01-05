@@ -114,30 +114,52 @@ export class FederatedClient extends Client {
   }
 
   async onEpochBeginCommunication(model, epoch, trainingInformant) {
-    super.onEpochBeginCommunication(model, epoch, trainingInformant);
+    await super.onEpochBeginCommunication(model, epoch, trainingInformant);
 
     /**
      * Ensure this is the first epoch of a round.
      */
-    const currentEpoch = epoch - model.getUserDefinedMetadata().epoch;
     const roundDuration = this.task.trainingInformation.roundDuration;
-    const startOfRound = (currentEpoch + 1) % roundDuration === 1;
+    const startOfRound = (epoch + 1) % roundDuration === 1;
 
-    if (startOfRound) {
-      await this._getSelected();
+    if (!startOfRound) {
+      return;
     }
+
+    /**
+     * Wait for the selection status from server.
+     */
+    console.log('Awaiting for selection from server...');
+    const selectionStatus = await getSuccessfulResponse(
+      api.selectionStatus,
+      'selected',
+      MAX_TRIES,
+      TIME_PER_TRIES,
+      this.task.taskID,
+      this.clientID
+    );
+    /**
+     * This happens if either the client is disconnected from the server,
+     * or it failed to get a success response from server after a few tries.
+     */
+    if (!(selectionStatus && selectionStatus.selected)) {
+      throw Error('Stopped training');
+    }
+    /**
+     * Proceed to the training round.
+     */
+    this.selected = true;
+    this.round = selectionStatus.round;
   }
 
   async onEpochEndCommunication(model, epoch, trainingInformant) {
-    super.onEpochEndCommunication(model, epoch, trainingInformant);
+    await super.onEpochEndCommunication(model, epoch, trainingInformant);
 
     /**
      * Ensure this was the last epoch of a round.
      */
-    const currentEpoch = epoch - model.getUserDefinedMetadata().epoch;
     const roundDuration = this.task.trainingInformation.roundDuration;
-    const endOfRound =
-      currentEpoch > 1 && (currentEpoch + 1) % roundDuration === 1;
+    const endOfRound = epoch > 1 && (epoch + 1) % roundDuration === 1;
 
     if (!endOfRound) {
       return;
@@ -162,45 +184,16 @@ export class FederatedClient extends Client {
       this.clientID
     );
     /**
-     * This should not happen if the waiting process above is done right.
-     * One should definitely define a behavior to make the app robust.
-     * For example, fallback to local training.
+     * This happens if either the client is disconnected from the server,
+     * or it failed to get a success response from server after a few tries.
      */
     if (!(aggregationStatus && aggregationStatus.aggregated)) {
-      throw Error('Not implemented');
+      throw Error('Stopped training');
     }
     /**
      * Update local weights with the most recent model stored on server.
      */
     this.selected = false;
     model = this.task.createModel();
-  }
-
-  async _getSelected() {
-    /**
-     * Wait for the selection status from server.
-     */
-    console.log('Awaiting for selection from server...');
-    const selectionStatus = await getSuccessfulResponse(
-      api.selectionStatus,
-      'selected',
-      MAX_TRIES,
-      TIME_PER_TRIES,
-      this.task.taskID,
-      this.clientID
-    );
-    /**
-     * This should not happen if the waiting process above is done right.
-     * One should definitely define a behavior to make the app robust.
-     * For example, fallback to local training.
-     */
-    if (!(selectionStatus && selectionStatus.selected)) {
-      throw Error('Not implemented');
-    }
-    /**
-     * Proceed to the training round.
-     */
-    this.selected = true;
-    this.round = selectionStatus.round;
   }
 }

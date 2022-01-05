@@ -266,6 +266,10 @@ export function selectionStatus(request, response) {
   const task = request.params.task;
   const id = request.params.id;
 
+  if (!clients.has(id)) {
+    return _failRequest(response, type, 401);
+  }
+
   if (!tasksStatus.has(task)) {
     return _failRequest(response, type, 404);
   }
@@ -489,7 +493,6 @@ export async function aggregationStatus(request, response) {
  * - the client's number of data samples
  * @param {Request} request received from client
  * @param {Response} response sent to client
- *
  */
 export function postMetadata(request, response) {
   const type = REQUEST_TYPES.POST_METADATA;
