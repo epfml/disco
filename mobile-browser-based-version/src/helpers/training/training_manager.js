@@ -79,7 +79,10 @@ export class TrainingManager {
       this.model.optimizer.learningRate = info.learningRate;
     }
 
+    // Ensure training can start
     this.model.stopTraining = false;
+    this.stopTrainingRequested = false;
+
     distributedTraining ? this._trainDistributed() : this._trainLocally();
   }
 
