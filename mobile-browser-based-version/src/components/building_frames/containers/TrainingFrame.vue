@@ -20,7 +20,7 @@
           Train Alone
         </custom-button>
         <custom-button v-on:click="joinTraining(true)" :center="true">
-          Train {{this.$t('platform')}}
+          Train {{ this.$t('platform') }}
         </custom-button>
       </div>
       <!-- Training Board -->
@@ -96,7 +96,7 @@ import { getClient } from '../../../helpers/communication/helpers';
 import { TrainingManager } from '../../../helpers/training/training_manager';
 import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
 import { saveWorkingModel } from '../../../helpers/memory/helpers';
-import { mapState, mapGetters} from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 export default {
   name: 'TrainingFrame',
   props: {
