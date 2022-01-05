@@ -108,16 +108,10 @@ and that another `vue` component can use it inside its template using the follow
 
 > **Note**: all `javascript` code inside the `<script></script>` tag shall respect the ES6 standard, in particular the imports statements. See [Helpers folder README](../helpers/README.md) for more information.
 
-### Linting
-
-TODO:
-
 ### Modularisation
 
-TODO:
+You will find below some resources that should help increase modularity and reduce the amount of code duplication in the platform:
 
-Avoid code duplication
-
-v-for
-templates
+1. `slots`: [medium](https://medium.com/js-dojo/magic-of-vue-template-slots-806bcbb64578), [vue docs](https://v3.vuejs.org/guide/component-slots.html)
+2. `v-for` and `data properties`: [vue docs](https://vuejs.org/v2/guide/list.html)
 
