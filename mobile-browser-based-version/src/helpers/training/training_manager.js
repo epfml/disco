@@ -211,6 +211,10 @@ export class TrainingManager {
               this.model
             );
           }
+          if (this.stopTrainingRequested) {
+            this.model.stopTraining = true;
+            this.stopTrainingRequested = false;
+          }
         },
       },
     });
