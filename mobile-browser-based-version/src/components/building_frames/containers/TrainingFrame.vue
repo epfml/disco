@@ -16,7 +16,7 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <div v-if="!startedTraining">
+        <div v-if="!isTraining">
           <custom-button v-on:click="joinTraining(false)" :center="true">
             Train Locally
           </custom-button>
@@ -25,15 +25,8 @@
           </custom-button>
         </div>
         <div v-else>
-          <custom-button
-            v-if="isTraining"
-            v-on:click="stopTraining()"
-            :center="true"
-          >
-            Stop Training
-          </custom-button>
-          <custom-button v-else v-on:click="resumeTraining()" :center="true">
-            Resume Training
+          <custom-button v-on:click="stopTraining()" :center="true">
+            Stop {{ trainingText }} Training
           </custom-button>
         </div>
       </div>
@@ -111,6 +104,7 @@ import { TrainingManager } from '../../../helpers/training/training_manager';
 import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
 import { saveWorkingModel } from '../../../helpers/memory/helpers';
 import { mapState } from 'vuex';
+
 export default {
   name: 'TrainingFrame',
   props: {
@@ -130,6 +124,9 @@ export default {
   },
   computed: {
     ...mapState(['useIndexedDB']),
+    trainingText() {
+      return this.distributedTraining ? 'Distributed' : 'Local';
+    },
   },
   watch: {
     useIndexedDB(newValue) {
@@ -170,8 +167,7 @@ export default {
     },
     async stopTraining() {
       /**
-       * Stopping distributed training in a clean manner requires many
-       * additions and changes to make everything robust.
+       * Stopping distributed training in a clean manner requires further changes.
        */
       if (!this.distributedTraining) {
         this.trainingManager.stopTraining();
@@ -242,28 +238,26 @@ export default {
         console.log(filesElement);
         var statusValidation = { accepted: true };
         if (this.precheckData) {
-          // data checking is optional
+          // Data checking is optional
           statusValidation = await this.precheckData(
             filesElement,
             this.Task.trainingInformation
           );
         }
-        if (!statusValidation.accepted) {
-          // print error message
-          this.$toast.error(
-            `Invalid input format : Number of data points with valid format: ${statusValidation.nr_accepted} out of ${nbrFiles}`
-          );
-          setTimeout(this.$toast.clear, 30000);
-        } else {
-          // preprocess data
+        if (statusValidation.accepted) {
+          // Preprocess the uploaded dataset and start training
           let processedDataset = await this.dataPreprocessing(filesElement);
           this.$toast.success(
             `Data preprocessing has finished and training has started`
           );
           setTimeout(this.$toast.clear, 30000);
-          this.startedTraining = true;
           this.isTraining = true;
           this.trainingManager.trainModel(processedDataset, distributed);
+        } else {
+          this.$toast.error(
+            `Invalid input format: Number of data points with valid format: ${statusValidation.nr_accepted} out of ${nbrFiles}`
+          );
+          setTimeout(this.$toast.clear, 30000);
         }
       }
     },
@@ -277,10 +271,6 @@ export default {
     );
     // Disconnect from the centralized server on page close
     window.addEventListener('beforeunload', () => {
-      /**
-       * Synchronous HTTP request to ensure it is performed before the page's
-       * resources are unloaded.
-       */
       this.client.disconnect();
     });
     // Create the training manager

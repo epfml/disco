@@ -73,7 +73,12 @@ export class TrainingManager {
     } else {
       this.model = await this.task.createModel();
     }
-    if (this.model.getUserDefinedMetadata() === undefined) {
+
+    // Continue local training from previous epoch checkpoint
+    if (
+      this.model.getUserDefinedMetadata() === undefined ||
+      distributedTraining
+    ) {
       this.model.setUserDefinedMetadata({ epoch: 0 });
     }
 
