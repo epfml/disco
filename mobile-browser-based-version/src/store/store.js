@@ -1,5 +1,5 @@
 import { createStore } from 'vuex';
-import _ from "lodash";
+import _ from 'lodash';
 import { Platform } from '../platforms/platform';
 export const store = createStore({
   state: {
@@ -33,12 +33,12 @@ export const store = createStore({
 
     addNewTask(state, payload) {
       //need to update the reference o.w. it doesn't work
-      state.newTasks = _.concat(state.newTasks,payload);
+      state.newTasks = _.concat(state.newTasks, payload);
     },
 
     clearNewTasks(state) {
       // limit the number of update events generated if no new tasks have been added
-      state.newTasks.length > 0 ? (state.newTasks = []): undefined;
+      state.newTasks.length > 0 ? (state.newTasks = []) : undefined;
     },
 
     setIndexedDB(state, payload) {
