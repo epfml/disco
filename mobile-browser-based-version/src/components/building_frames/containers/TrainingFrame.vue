@@ -25,7 +25,11 @@
           </custom-button>
         </div>
         <div v-else>
-          <custom-button v-on:click="stopTraining()" :center="true">
+          <custom-button
+            v-on:click="stopTraining()"
+            :center="true"
+            color="bg-red-500"
+          >
             Stop {{ trainingText }} Training
           </custom-button>
         </div>
