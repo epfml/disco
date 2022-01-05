@@ -21,10 +21,13 @@
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
         <!-- Titanic's card-->
         <div v-for="card in $tm('home.cards')" :key="card.header.text">
-          <title-card :title="card.header.text" :titleUnderlined="card.header.underlined">
-              <div v-for="item in card.items" :key="item">
-                <p v-html="`- ${item}`"></p>
-              </div>
+          <title-card
+            :title="card.header.text"
+            :titleUnderlined="card.header.underlined"
+          >
+            <div v-for="item in card.items" :key="item">
+              <p v-html="`- ${item}`"></p>
+            </div>
           </title-card>
         </div>
 
@@ -34,10 +37,10 @@
 
         <title-card title="Create you own task">
           <!-- Task Form card-->
-            <p class="text-base">Describe the task</p>
-            <p class="text-base">
-              Specify the desired training and evaluation parameters
-            </p>
+          <p class="text-base">Describe the task</p>
+          <p class="text-base">
+            Specify the desired training and evaluation parameters
+          </p>
         </title-card>
 
         <custom-button v-on:click="goToNewTaskCreationForm()">
