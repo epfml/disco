@@ -44,14 +44,7 @@ export class TrainingManager {
     this.stopTrainingRequested = true;
   }
 
-  async resumeTraining(distributedTraining) {
-    this.model.stopTraining = false;
-    this.stopTrainingRequested = false;
-    distributedTraining ? this._trainDistributed() : this._trainLocally();
-  }
-
-  /**this.data = null;
-    this.labels = null;
+  /**
    * Train the task's model either alone or in a distributed fashion depending on the user's choice.
    * @param {Object} dataset the dataset to train on
    * @param {Boolean} distributedTraining train in a distributed fashion
@@ -75,10 +68,7 @@ export class TrainingManager {
     }
 
     // Continue local training from previous epoch checkpoint
-    if (
-      this.model.getUserDefinedMetadata() === undefined ||
-      distributedTraining
-    ) {
+    if (this.model.getUserDefinedMetadata() === undefined) {
       this.model.setUserDefinedMetadata({ epoch: 0 });
     }
 
@@ -89,6 +79,7 @@ export class TrainingManager {
       this.model.optimizer.learningRate = info.learningRate;
     }
 
+    this.model.stopTraining = false;
     distributedTraining ? this._trainDistributed() : this._trainLocally();
   }
 
@@ -169,6 +160,7 @@ export class TrainingManager {
             Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
           );
           if (this.useIndexedDB) {
+            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
             await updateWorkingModel(
               this.task.taskID,
               info.modelID,
@@ -176,8 +168,8 @@ export class TrainingManager {
             );
           }
           if (this.stopTrainingRequested) {
-            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
             this.model.stopTraining = true;
+            this.stopTrainingRequested = false;
           }
         },
       },
@@ -188,7 +180,7 @@ export class TrainingManager {
     const info = this.task.trainingInformation;
 
     await this.model.fit(this.data, this.labels, {
-      initialEpoch: this.model.getUserDefinedMetadata().epoch,
+      initialEpoch: 0,
       epochs: info.epochs ?? MANY_EPOCHS,
       batchSize: info.batchSize,
       validationSplit: info.validationSplit,
@@ -215,10 +207,6 @@ export class TrainingManager {
               info.modelID,
               this.model
             );
-          }
-          if (this.stopTrainingRequested) {
-            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
-            this.model.stopTraining = true;
           }
         },
       },
