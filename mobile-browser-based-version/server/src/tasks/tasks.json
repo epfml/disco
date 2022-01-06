@@ -144,7 +144,7 @@
     },
     "trainingInformation": {
       "modelID": "cifar10-model",
-      "epochs": 25,
+      "epochs": 10,
       "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 10,
