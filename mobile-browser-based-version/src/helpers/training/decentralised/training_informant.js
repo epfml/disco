@@ -9,10 +9,10 @@ export class TrainingInformant {
    * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
    * @param {String} taskID the task's name.
    */
-   constructor(length, task, verbose = false) {
+  constructor(length, task, verbose = false) {
     this.taskID = task.taskID;
     this.taskFeatures = task.trainingInformation.inputColumns;
-    // CAREFUL HERE : 
+    // CAREFUL HERE :
     this.taskLabels = [task.trainingInformation.outputColumn];
     // number of people with whom I've shared my model
     this.whoReceivedMyModel = new Set();
@@ -118,7 +118,7 @@ export class TrainingInformant {
    * Given the data of all clients, that we fetch from the server
    * We update the data to display on the heatmap.
    */
-   updateHeatmapData(clientsData) {
+  updateHeatmapData(clientsData) {
     this.displayHeatmap = true;
     this.heatmapData = clientsData;
   }
@@ -134,7 +134,6 @@ export class TrainingInformant {
    */
   getHeatmapOptions(inputOptions) {
     let textColor = store.state.isDark ? '#FFF' : '#000';
-    let xLabels = inputOptions ? this.taskFeatures : this.taskLabels;
     return {
       chart: {
         id: 'interoperability-heatmap',
@@ -148,7 +147,13 @@ export class TrainingInformant {
         },
       },
       xaxis: {
-        categories: xLabels,
+        categories: inputOptions ? this.taskFeatures : this.taskLabels,
+        title: {
+          text: inputOptions ? 'Features' : 'Targets',
+          style: {
+            color: textColor,
+          },
+        },
         labels: {
           style: {
             colors: textColor,
@@ -159,6 +164,12 @@ export class TrainingInformant {
         },
       },
       yaxis: {
+        title: {
+          text: 'Clients',
+          style: {
+            color: textColor,
+          },
+        },
         labels: {
           style: {
             colors: textColor,

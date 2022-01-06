@@ -124,15 +124,19 @@
 
   <icon-card
     v-if="displayHeatmap"
-    header="Interoperability Heatmap"
-    description="The heatmap displays the normalization operated by the
-            Interoperability layers of each peers in the network. This is a
-            placeholder heatmap and needs to be connected to the results of
-            iFedAvg."
+    header="Interoperability Parameters Heatmaps"
+    description="We trained using the interoperable Federated Average framework. <br>
+    This framework adds Interoperability layers before and after the model we are training. <br>
+    These graphs below display the weights and biases of those layers for each of the clients that were part of the federation. 
+    The layers we added act as normalization layers, displaying the values of the weights and biases allow to highlight the features from each user
+    that tend to be out of distribution and skew the model more than others."
   >
     <template v-slot:icon><contact /></template>
     <template v-slot:extra>
       <div class="grid grid-cols-2 s:grid-cols-1 p-4 space-x-4 lg:gap-2 w-auto">
+        <div class="flex items-center col-span-2 border-b dark:border-primary">
+          <span aria-hidden="true"> Weights Heatmaps </span>
+        </div>
         <div>
           <span class="text-sm font-medium text-gray-500 dark:text-white"
             >Input Weights</span
@@ -146,17 +150,6 @@
         </div>
         <div>
           <span class="text-sm font-medium text-gray-500 dark:text-white"
-            >Input Biases</span
-          >
-          <apexchart
-            width="100%"
-            type="heatmap"
-            :options="interoperabilityHeatmapOptionsIn"
-            :series="interoperabilityHeatmapData['biasesIn']"
-          ></apexchart>
-        </div>
-        <div>
-          <span class="text-sm font-medium text-gray-500 dark:text-white"
             >Output Weights</span
           >
           <apexchart
@@ -164,6 +157,20 @@
             type="heatmap"
             :options="interoperabilityHeatmapOptionsOut"
             :series="interoperabilityHeatmapData['weightsOut']"
+          ></apexchart>
+        </div>
+        <div class="flex items-center col-span-2 border-b dark:border-primary">
+          <span aria-hidden="true"> Biases Heatmaps </span>
+        </div>
+        <div>
+          <span class="text-sm font-medium text-gray-500 dark:text-white"
+            >Input Biases</span
+          >
+          <apexchart
+            width="100%"
+            type="heatmap"
+            :options="interoperabilityHeatmapOptionsIn"
+            :series="interoperabilityHeatmapData['biasesIn']"
           ></apexchart>
         </div>
         <div>
