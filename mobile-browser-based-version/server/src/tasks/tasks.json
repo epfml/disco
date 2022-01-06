@@ -40,8 +40,8 @@
     },
     "trainingInformation": {
       "modelID": "titanic-model",
-      "port": 0,
-      "epoch": 10,
+      "epochs": 20,
+      "roundDuration": 5,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
@@ -49,16 +49,20 @@
         "loss": "binaryCrossentropy",
         "metrics": ["accuracy"]
       },
-      "modelTrainData": {
-        "epochs": 10
-      },
       "receivedMessagesThreshold": 1,
       "dataType": "csv",
-      "inputColumns": ["PassengerId", "Age", "SibSp", "Parch", "Fare", "Pclass"],
+      "inputColumns": [
+        "PassengerId",
+        "Age",
+        "SibSp",
+        "Parch",
+        "Fare",
+        "Pclass"
+      ],
       "outputColumn": "Survived"
     }
   },
-   {
+  {
     "taskID": "mnist",
     "displayInformation": {
       "taskTitle": "MNIST",
@@ -72,17 +76,14 @@
     },
     "trainingInformation": {
       "modelID": "mnist-model",
-      "port": 9001,
-      "epoch": 10,
+      "epochs": 10,
+      "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
         "optimizer": "rmsprop",
         "loss": "categoricalCrossentropy",
         "metrics": ["accuracy"]
-      },
-      "modelTrainData": {
-        "epochs": 10
       },
       "threshold": 1,
       "dataType": "image",
@@ -93,8 +94,8 @@
       "LABEL_LIST": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
       "aggregateImagesById": false
     }
-  }, 
-   {
+  },
+  {
     "taskID": "lus_covid",
     "displayInformation": {
       "taskTitle": "COVID Lung Ultrasound",
@@ -108,8 +109,8 @@
     },
     "trainingInformation": {
       "modelID": "lus-covid-model",
-      "port": 9001,
-      "epoch": 15,
+      "epochs": 15,
+      "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 2,
       "modelCompileData": {
@@ -118,11 +119,7 @@
         "metrics": ["accuracy"]
       },
       "learningRate": 0.05,
-      "modelTrainData": {
-        "epochs": 10
-      },
       "threshold": 2,
-
       "IMAGE_H": 224,
       "IMAGE_W": 224,
       "RESIZED_IMAGE_H": 224,
@@ -132,10 +129,10 @@
       "dataType": "image",
       "aggregateImagesById": true
     }
-  }, 
-   {
-    "taskID":"cifar10",
-    "displayInformation":  {
+  },
+  {
+    "taskID": "cifar10",
+    "displayInformation": {
       "taskTitle": "CIFAR10",
       "summary": "In this challenge, we ask you to classify images into categories based on the objects shown on the image.",
       "overview": "The CIFAR-10 dataset is a collection of images that are commonly used to train machine learning and computer vision algorithms. It is one of the most widely used datasets for machine learning research.",
@@ -147,17 +144,14 @@
     },
     "trainingInformation": {
       "modelID": "cifar10-model",
-      "port": 9001,
-      "epoch": 10,
+      "epochs": 25,
+      "roundDuration": 0,
       "validationSplit": 0.2,
       "batchSize": 10,
       "modelCompileData": {
         "optimizer": "adam",
         "loss": "categoricalCrossentropy",
         "metrics": ["accuracy"]
-      },
-      "modelTrainData": {
-        "epochs": 20
       },
       "threshold": 1,
       "dataType": "image",
@@ -180,5 +174,5 @@
         "truck": 9
       }
     }
-  } 
+  }
 ]

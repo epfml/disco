@@ -75,7 +75,7 @@
             v-for="(message, index) in trainingInformant.messages"
             :key="index"
           >
-            <div class="relative overflow-x-scroll">
+            <div class="relative overflow-x-hidden">
               <span
                 style="white-space: pre-line"
                 class="text-sm text-gray-500 dark:text-light"

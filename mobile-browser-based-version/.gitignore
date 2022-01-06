@@ -22,3 +22,6 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+src/helpers/cli/data_dir/
+node_modules_2/

@@ -4,6 +4,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '../components/Home';
 import TaskList from '../components/TaskList';
 import Information from '../components/Information';
+import NewTaskCreationForm from '../components/NewTaskCreationForm.vue';
 import NotFound from '../components/NotFound';
 
 var routes = [
@@ -16,6 +17,11 @@ var routes = [
     path: '/tasks',
     name: 'tasks',
     component: TaskList,
+  },
+  {
+    path: '/task-creation-form',
+    name: 'tasks-form',
+    component: NewTaskCreationForm,
   },
   {
     path: '/information',

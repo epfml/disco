@@ -71,7 +71,7 @@ export class DecentralisedClient extends Client {
           }
         : {
             host: this.serverURL,
-            path: `/${this.task.taskID}`,
+            path: `/deai/${this.task.taskID}`,
             secure: true,
             config: {
               iceServers: [

@@ -1,7 +1,7 @@
 import express from 'express';
 import _ from 'lodash';
-import * as requests from '../request_handlers/federated/requests.js';
-import tasks from '../tasks/tasks.js';
+import * as handlers from '../logic/federated/handlers.js';
+import { tasks, writeNewTask } from '../tasks/tasks.js';
 import { ExpressPeerServer } from 'peer';
 import { makeID } from '../helpers/helpers.js';
 import { createProxyMiddleware } from 'http-proxy-middleware';
@@ -9,77 +9,97 @@ import * as config from '../../server.config.js';
 
 // General tasks routes
 const tasksRouter = express.Router();
-tasksRouter.get('/', requests.getAllTasksData);
-tasksRouter.get('/:task/:file', requests.getInitialTaskModel);
-
+tasksRouter.get('/', handlers.getTasksMetadata);
+tasksRouter.get('/:task/:file', handlers.getLatestModel);
+// POST method route (task-creation-form)
+tasksRouter.post('/', function (req, res) {
+  const newTask = req.body,
+    newPort = config.START_TASK_PORT + tasks.length;
+  if (newTask['taskID'] in tasks)
+    console.log('Cannot add new task (key is already defined in Tasks.json)');
+  else {
+    // extract model file from tasks
+    const modelFile = _.cloneDeep(newTask.modelFiles.modelFile);
+    const weightsFile = _.cloneDeep(newTask.modelFiles.weightsFile);
+    _.unset(newTask, 'modelFiles');
+    _.unset(newTask, 'weightsFiles');
+    // create new task and server
+    ports.push(newPort);
+    tasks.push(newTask);
+    createTaskServer(newTask, newPort);
+    // store results in json file
+    writeNewTask(newTask, modelFile, weightsFile);
+    // answer vue app
+    res.end(`Sucessfull upload`);
+  }
+});
 // Declare federated routes
 const federatedRouter = express.Router();
 federatedRouter.get('/', (req, res) => res.send('FeAI server'));
 
-federatedRouter.get('/connect/:task/:id', requests.connectToServer);
-federatedRouter.get('/disconnect/:task/:id', requests.disconnectFromServer);
+federatedRouter.get('/connect/:task/:id', handlers.connect);
+federatedRouter.get('/disconnect/:task/:id', handlers.disconnect);
 
-federatedRouter.post(
-  '/send_weights/:task/:round',
-  requests.sendIndividualWeights
-);
-federatedRouter.post(
-  '/receive_weights/:task/:round',
-  requests.receiveAveragedWeights
+federatedRouter.get('/selection/:task/:id', handlers.selectionStatus);
+
+federatedRouter.get(
+  '/aggregation/:task/:round/:id',
+  handlers.aggregationStatus
 );
 
-federatedRouter.post(
-  '/send_nbsamples/:task/:round',
-  requests.sendDataSamplesNumber
-);
-federatedRouter.post(
-  '/receive_nbsamples/:task/:round',
-  requests.receiveDataSamplesNumbersPerClient
-);
+federatedRouter.post('/weights/:task/:round/:id', handlers.postWeights);
+
+federatedRouter
+  .route('/metadata/:metadata/:task/:round/:id')
+  .get(handlers.getMetadataMap)
+  .post(handlers.postMetadata);
+
+federatedRouter.get('/logs', handlers.queryLogs);
 
 federatedRouter.use('/tasks', tasksRouter);
 
-federatedRouter.get('/logs', requests.queryLogs);
+// =======================================================================
 
+// Declaire decentralised routes
 const decentralisedRouter = express.Router();
-
+/**
+ * Set up server for peerjs
+ */
 const ports = _.range(
   config.START_TASK_PORT,
   config.START_TASK_PORT + tasks.length
 );
-_.forEach(
-  _.zip(tasks, ports),
-  _.spread((task, port) => {
-    /**
-     * Create a PeerJS server for each task on its corresponding port.
-     * The path must match the reverse proxy entry point.
-     */
-    const taskApp = express();
-    const server = taskApp.listen(port);
-    taskApp.use(
-      `/deai/${task.taskID}`,
-      ExpressPeerServer(server, {
-        path: '/',
-        allow_discovery: true,
-        port: port,
-        generateClientId: makeID(10),
-        proxied: true,
-      })
-    );
+const createTaskServer = (task, port) => {
+  /**
+   * Create a PeerJS server for each task on its corresponding port.
+   * The path must match the reverse proxy entry point.
+   */
+  const taskApp = express();
+  const server = taskApp.listen(port);
+  taskApp.use(
+    `/deai/${task.taskID}`,
+    ExpressPeerServer(server, {
+      path: '/',
+      allow_discovery: true,
+      port: port,
+      generateClientId: makeID(10),
+      proxied: true,
+    })
+  );
 
-    /**
-     * Make the peer server's port accessible from a regular URL
-     * on the DeAI server.
-     */
-    decentralisedRouter.use(
-      createProxyMiddleware(`/deai/${task.taskID}`, {
-        target: `${config.SERVER_URI}:${port}`,
-        changeOrigin: true,
-        ws: true,
-      })
-    );
-  })
-);
+  /**
+   * Make the peer server's port accessible from a regular URL
+   * on the DeAI server.
+   */
+  decentralisedRouter.use(
+    createProxyMiddleware(`/deai/${task.taskID}`, {
+      target: `${config.SERVER_URI}:${port}`,
+      changeOrigin: true,
+      ws: true,
+    })
+  );
+};
+_.forEach(_.zip(tasks, ports), _.spread(createTaskServer));
 
 decentralisedRouter.use('/tasks', tasksRouter);
 decentralisedRouter.get('/', (req, res) => res.send('DeAI server'));
@@ -101,13 +121,13 @@ function eventsHandler(request, response, next) {
     console.log(peerId)
     const data = `data: ${JSON.stringify(topology.getNeighbours(peerId))}\n\n`;
     response.write(data);
-  
+
     const newPeer = {
       id: peerId,
       response
     };
     peers.push(newPeer);
-  
+
     request.on('close', () => {
       console.log(`${peerId} Connection closed`);
       peers = peers.filter(peer => peer.id !== peerId);
@@ -119,11 +139,11 @@ function eventsHandler(request, response, next) {
     let peersToNotify = peers.filter(peer => affectedPeers.has(peer.id) )
     peersToNotify.forEach(peer => peer.response.write(`data: ${JSON.stringify(topology.getNeighbours(peer.id))}\n\n`))
   }
-peerServer.on('connection', (client) => { 
+peerServer.on('connection', (client) => {
     let affectedPeers = topology.addPeer(client.getId())
     sendNewNeighbours(affectedPeers)
 });
-peerServer.on('disconnect', (client) => { 
+peerServer.on('disconnect', (client) => {
     let affectedPeers = topology.removePeer(client.getId())
     sendNewNeighbours(affectedPeers)
 });
