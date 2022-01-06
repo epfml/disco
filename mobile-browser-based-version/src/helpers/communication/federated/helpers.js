@@ -24,6 +24,9 @@ export function craftPostRequest(property, value) {
 export function getSuccessfulResponse(request, property, tries, time, ...args) {
   return new Promise((resolve) => {
     async function _tryRequest(triesLeft) {
+      if (triesLeft <= 0) {
+        return resolve(false);
+      }
       const response = await request(...args);
       if (response.ok) {
         const body = await response.json();
@@ -31,7 +34,10 @@ export function getSuccessfulResponse(request, property, tries, time, ...args) {
           return resolve(body);
         }
       }
-      if (triesLeft <= 0) {
+      /**
+       * If the client disconnected, interrupt the process.
+       */
+      if (response.status === 401) {
         return resolve(false);
       }
       /**
