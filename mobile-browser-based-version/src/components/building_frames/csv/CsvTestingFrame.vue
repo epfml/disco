@@ -4,11 +4,10 @@
     :Task="Task"
     :nbrClasses="1"
     :makePredictions="makePredictions"
-    :predictionsToCsv="predictionsToCsv"
   >
     <template v-slot:dataExample>
       <!-- Data Point Example -->
-      <div class="relative p-4 overflow-x-scroll">
+      <div class="relative p-4 overflow-x-hidden">
         <table class="table-auto">
           <thead>
             <tr>

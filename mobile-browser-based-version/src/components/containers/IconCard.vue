@@ -24,7 +24,7 @@
         </div>
       </div>
       <!-- Descrition -->
-      <div v-if="description" class="relative p-4 overflow-x-scroll">
+      <div v-if="description" class="relative p-4 overflow-x-hidden">
         <span class="text-sm text-gray-500 dark:text-light">
           <span v-html="description"></span>
         </span>

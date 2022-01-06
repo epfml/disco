@@ -28,15 +28,15 @@ export class TrainingInformant {
     this.messages = [];
     this.verbose = verbose;
 
-   // is the model using Interoperability (default to false)
-   this.displayHeatmap = false;
+    // is the model using Interoperability (default to false)
+    this.displayHeatmap = false;
 
-   // default values for the validation and training charts
-   let nbEpochsOnGraphs = 10;
-   this.currentValidationAccuracy = 0;
-   this.validationAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
-   this.currentTrainingAccuracy = 0;
-   this.trainingAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
+    // default values for the validation and training charts
+    let nbEpochsOnGraphs = 10;
+    this.currentValidationAccuracy = 0;
+    this.validationAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
+    this.currentTrainingAccuracy = 0;
+    this.trainingAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0);
   }
 
   /**
@@ -75,7 +75,7 @@ export class TrainingInformant {
     }
   }
 
-  cssColors = color => {
+  cssColors = (color) => {
     return getComputedStyle(document.documentElement)
       .getPropertyValue(color)
       .trim();
@@ -95,7 +95,6 @@ export class TrainingInformant {
     primaryDark: this.cssColors(`--color-${this.getColor()}-dark`),
     primaryDarker: this.cssColors(`--color-${this.getColor()}-darker`),
   };
-
 
   /**
    * Update the Heatmap for Interoperability.

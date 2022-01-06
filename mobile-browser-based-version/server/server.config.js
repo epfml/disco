@@ -26,13 +26,23 @@ export const TASKS_DIR = path.join(SOURCE_DIR, 'tasks');
  */
 export const TASKS_FILE = path.join(TASKS_DIR, 'tasks.json');
 /**
- * Directory containing all the generated task model files.
+ * Directory containing all the generated task models files.
  */
 export const MODELS_DIR = path.join(ROOT_DIR, 'models');
 /**
- * Directory containing all the generated milestones files.
+ * Directory containing all the generated task model files.
  */
-export const MILESTONES_DIR = path.join(ROOT_DIR, 'milestones');
+export const TASK_MODEL_DIR = (taskID) => path.join(MODELS_DIR, taskID);
+/**
+ * JSON file containing all model metadata.
+ */
+export const TASK_MODEL_FILE = (taskID) =>
+  path.join(TASK_MODEL_DIR(taskID), 'model.json');
+/**
+ * Bin file containing all model weights metadata.
+ */
+export const TASK_MODEL_WEIGHTS = (taskID) =>
+  path.join(TASK_MODEL_DIR(taskID), 'weights.bin');
 
 export const CONNECTION_PROTOCOL = 'http';
 

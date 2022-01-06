@@ -1,14 +1,16 @@
 import { createStore } from 'vuex';
-
+import _ from 'lodash';
+import { Platform } from '../platforms/platform';
 export const store = createStore({
   state: {
     count: 0,
-    globalTaskFrameState: new Array(),
-    passwords: new Array(),
-    tasks: new Array(),
+    globalTaskFrameState: {},
+    passwords: {},
+    tasksFrames: {}, // vue components
+    newTasks: [], // buffer containing
     useIndexedDB: true,
     isDark: false,
-    isDecentralized: true,
+    platform: Platform.decentralized,
     activePage: 'home',
   },
   mutations: {
@@ -25,8 +27,18 @@ export const store = createStore({
       state.passwords[payload.id] = payload.password;
     },
 
-    addTask(state, payload) {
-      state.tasks[payload.task.trainingInformation.modelID] = payload.task;
+    addTaskFrame(state, payload) {
+      state.tasksFrames[payload.trainingInformation.modelID] = payload;
+    },
+
+    addNewTask(state, payload) {
+      //need to update the reference o.w. it doesn't work
+      state.newTasks = _.concat(state.newTasks, payload);
+    },
+
+    clearNewTasks(state) {
+      // limit the number of update events generated if no new tasks have been added
+      state.newTasks.length > 0 ? (state.newTasks = []) : undefined;
     },
 
     setIndexedDB(state, payload) {
@@ -38,8 +50,8 @@ export const store = createStore({
       state.isDark = payload ? true : false;
     },
 
-    setPlatform(state, payload) {
-      state.isDecentralized = payload ? true : false;
+    setPlatform(state, platform) {
+      state.platform = platform;
     },
 
     setActivePage(state, payload) {
@@ -48,18 +60,15 @@ export const store = createStore({
   },
 
   getters: {
-    globalTaskFrameState: (state) => (modelID) => {
-      return state.globalTaskFrameState[modelID];
-    },
-    password: (state) => (taskID) => {
-      return taskID in state.passwords ? state.passwords[taskID] : null;
-    },
-    tasks: (state) => (modelID) => {
-      return state.tasks[modelID];
-    },
-    platform: (state) => ()=> {
-      return state.isDecentralized ? 'deai' : 'feai';
-    },
+    globalTaskFrameState: (state) => (modelID) =>
+      state.globalTaskFrameState[modelID],
+    password: (state) => (taskID) =>
+      taskID in state.passwords ? state.passwords[taskID] : null,
+    taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
+    tasksFramesList: (state) => _.values(state.tasksFrames),
+    platform: (state) => state.platform,
+    isDecentralized: (state) => state.platform == Platform.decentralized,
+    isFederated: (state) => state.platform == Platform.federated,
   },
 });
 

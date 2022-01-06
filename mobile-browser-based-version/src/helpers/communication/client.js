@@ -1,6 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
 
-
 export class Client {
   constructor(serverURL, task) {
     this.serverURL = serverURL;
@@ -21,6 +20,10 @@ export class Client {
    */
   async disconnect() {
     throw new Error('Abstract method');
+  }
+
+  async onTrainBeginCommunication(model, trainingInformant) {
+    return;
   }
 
   /**
@@ -52,10 +55,7 @@ export class Client {
       tf.memory().numBytes * 0.000001,
       'MB'
     );
-    console.log(
-      'Number of allocated tensors  = ',
-      tf.memory().numTensors
-    );
+    console.log('Number of allocated tensors  = ', tf.memory().numTensors);
     return;
   }
 }

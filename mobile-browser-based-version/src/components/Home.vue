@@ -21,23 +21,30 @@
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
         <!-- Titanic's card-->
         <div v-for="card in $tm('home.cards')" :key="card.header.text">
-          <card>
-            <div
-              class="ml-10 text-xl text-gray-500 dark:text-light ont-semibold"
-            >
-              <span class="text-primary-dark dark:text-primary-light">
-                {{ card.header.text }}
-                <span class="underline">{{ card.header.underlined }}</span>
-              </span>
-              <div v-for="item in card.items" :key="item">
-                <p class="text-base" v-html="`- ${item}`"></p>
-              </div>
+          <title-card
+            :title="card.header.text"
+            :titleUnderlined="card.header.underlined"
+          >
+            <div v-for="item in card.items" :key="item">
+              <p v-html="`- ${item}`"></p>
             </div>
-          </card>
+          </title-card>
         </div>
 
         <custom-button v-on:click="goToTaskList()">
           {{ $t('home.buttonText') }}
+        </custom-button>
+
+        <title-card title="Create you own task">
+          <!-- Task Form card-->
+          <p class="text-base">Describe the task</p>
+          <p class="text-base">
+            Specify the desired training and evaluation parameters
+          </p>
+        </title-card>
+
+        <custom-button v-on:click="goToNewTaskCreationForm()">
+          Create Task
         </custom-button>
       </div>
     </section>
@@ -47,7 +54,7 @@
 <script>
 import BaseLayout from './containers/BaseLayout.vue';
 import CustomButton from './simple/CustomButton.vue';
-import Card from './containers/Card.vue';
+import TitleCard from './containers/TitleCard.vue';
 
 import { useI18n } from 'vue-i18n';
 import { mapMutations } from 'vuex';
@@ -60,7 +67,7 @@ export default {
   },
   components: {
     BaseLayout,
-    Card,
+    TitleCard,
     CustomButton,
   },
   methods: {
@@ -69,6 +76,12 @@ export default {
       this.setActivePage('tasks');
       this.$router.push({
         path: '/tasks',
+      });
+    },
+    goToNewTaskCreationForm() {
+      this.setActivePage('task-creation-form');
+      this.$router.push({
+        path: '/task-creation-form',
       });
     },
   },
