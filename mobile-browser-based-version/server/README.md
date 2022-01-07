@@ -4,23 +4,45 @@
 
 This directory contains the server providing the APIs used by the two platforms available on `epfml/deai`, namely DeAI & FeAI. The two apps use the respective endpoints `/deai` & `/feai`.
 
-
 ### Requirements
+
 The server is running as a single ExpressJS app. It mainly requires [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [PeerServer](https://github.com/peers/peerjs-server) and [Tensorflow](https://www.tensorflow.org/js). All library requirements are included in the `package.json` file.
 
-### Running the servers
+### Running the servers locally
 
-From this folder, you can run the server on localhost:8080 with `npm start`
+From this folder, you can run the server on localhost:8080 with `npm start` after running `npm install`.
+
+### Deploying the server to the cloud
 
 Google App Engine (GAE) creates an HTTPS certificate automatically, making this the easiest way to deploy the helper server in the Google Cloud Platform.
 
+Since we need to install some required dependencies we deploy using Docker, we do this by choosing:
+
+```
+runtime: custom
+```
+
+in the `app.yaml` file.
+
+Deployment files:
+
+- `app.yaml` - GAE app config file.
+- `Dockerfile` - Docker [commands](https://docs.docker.com/engine/reference/builder/) we specify.
+- `.dockerignore` - Files to ignore while building the image, e.g. `node_module/`.
+
 To change the GAE app configuration, you can modify the file `app.yaml`.
 
-To deploy the app on GAE, you can run the following command, replacing PROJECT-ID with the your project ID:
+To deploy the app on GAE, you can run the following command, where deai-313515 is the current PROJECT-ID:
 
 ```
-gcloud app deploy --project=PROJECT-ID --promote --quiet app.yaml
+gcloud app deploy --project=deai-313515 --app.yaml
 ```
+
+Some useful resources:
+
+- [Docker sample app](https://docs.docker.com/get-started/02_our_app/)
+- [Dockerfile reference](https://docs.docker.com/engine/reference/builder/#from)
+- [GAE sample app](https://cloud.google.com/appengine/docs/standard/nodejs/building-app/deploying-web-service)
 
 ## DeAI Helper Server
 
@@ -51,19 +73,6 @@ Adding a new task server-side can easily be done by following the next steps:
 - add an entry to `tasks.json` with the task's parameters
 - add a `createModel` function to `models.js` with the task's model architecture and export it
 
-### Running in Google App Engine
-
-Google App Engine (GAE) creates an HTTPS certificate automatically, making this the easiest way to deploy the helper server in the Google Cloud Platform.
-
-To change the GAE app configuration, you can modify the file `app.yaml`. Do not modify the flex enviroment because it is required for WebSocket support, which is required for PeerJS.
-
-To deploy the app on GAE, you can run the following command, replacing PROJECT-ID with the your project ID:
-
-```
-gcloud app deploy --project=PROJECT-ID --promote --quiet app.yaml
-```
-
-
 ## FeAI Centralized Server
 
 Centralized server for FeAI clients.
@@ -75,6 +84,7 @@ Centralized server for FeAI clients.
 The server keeps track of connected clients and weights from each client and communication round. It provides the following endpoints.
 
 - `GET` requests publicly available without prior connection
+
   - connect client with ID `id` to task `task`
     ```
     URL: /connect/<task>/<id>
@@ -89,7 +99,7 @@ The server keeps track of connected clients and weights from each client and com
     ```
 
 - `POST` requests with required prior connection and body `{ id, timestamp, [data]}`, where the client ID and request timestamp are required for logging
-  - client sends their individual weights `weights` for communication round `round` and task `task`. 
+  - client sends their individual weights `weights` for communication round `round` and task `task`.
     ```
     URL: /send_weights/<task>/<round>
     Body: { id: String, timestamp: Date, weights: Buffer  }
