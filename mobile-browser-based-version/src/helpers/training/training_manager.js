@@ -8,12 +8,18 @@ import * as tf from '@tensorflow/tfjs';
 
 // Extra functions that are used to create Dataset object to be able to perform batch wise preprocessing of images.
 
- function trainDataGenerator(dataset, labels, trainingInformation) {
+function trainDataGenerator(dataset, labels, trainingInformation) {
   return function* dataGenerator() {
     for(let i = 0; i < dataset.shape[0] * (1 - trainingInformation.validationSplit); i++) {
-      var tensor = tf.tensor3d(dataset.arraySync()[i]);
-      const output = tf.image.resizeBilinear(tensor, [trainingInformation.RESIZED_IMAGE_H, trainingInformation.RESIZED_IMAGE_W]);
-      yield {xs: output, ys: tf.tensor(labels.arraySync()[i])}
+      var tensor = tf.tensor(dataset.arraySync()[i]);
+      console.log(trainingInformation.resize)
+      if(trainingInformation.resize) {
+        tensor = tf.image.resizeBilinear(
+          tensor, 
+          [trainingInformation.RESIZED_IMAGE_H, 
+           trainingInformation.RESIZED_IMAGE_W]);
+      }
+      yield {xs: tensor, ys: tf.tensor(labels.arraySync()[i])}
     }
   }
 }
@@ -22,19 +28,24 @@ function validationDataGenerator(dataset, labels, trainingInformation) {
   return function* dataGenerator() {
     const start_index = Math.floor(dataset.shape[0] * (1 - trainingInformation.validationSplit))
     for(let i = start_index; i < dataset.shape[0]; i++) {
-      var tensor = tf.tensor3d(dataset.arraySync()[i]);
-      const output = tf.image.resizeBilinear(tensor, [trainingInformation.RESIZED_IMAGE_H, trainingInformation.RESIZED_IMAGE_W]);
-      yield {xs: output, ys: tf.tensor(labels.arraySync()[i])}
+      var tensor = tf.tensor(dataset.arraySync()[i]);
+      if(trainingInformation.resize) {
+      tensor = tf.image.resizeBilinear(
+        tensor, 
+        [trainingInformation.RESIZED_IMAGE_H, 
+          trainingInformation.RESIZED_IMAGE_W]);
+      }
+      yield {xs: tensor, ys: tf.tensor(labels.arraySync()[i])}
     }
   }
 }
+
+const MANY_EPOCHS = 9999;
 
 /**
  * Class that deals with the model of a task.
  * Takes care of memory management of the model and the training of the model.
  */
-
-
 export class TrainingManager {
   /**
    * Constructs the training manager.
@@ -137,8 +148,8 @@ export class TrainingManager {
   async _onEpochEnd(epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy);
     console.log(
-      `Train Accuracy: ${accuracy},
-      Val Accuracy:  ${validationAccuracy}\n`
+      `Train Accuracy: ${(accuracy * 100).toFixed(2)},
+      Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
     );
     await this.client.onEpochEndCommunication(
       this.model,
@@ -169,28 +180,22 @@ export class TrainingManager {
   async _trainLocally() {
     const info = this.task.trainingInformation;
 
-    model.compile(trainingInformation.modelCompileData);
-
-    if (trainingInformation.learningRate) {
-      model.optimizer.learningRate = trainingInformation.learningRate;
-    }
-
     // Creation of Dataset objects for training
     const trainData = tf.data.generator(
       trainDataGenerator(
-        data,
-        labels,
-        trainingInformation))
-        .batch(trainingInformation.batchSize);
+        this.data,
+        this.labels,
+        info))
+        .batch(info.batchSize);
     const valData = tf.data.generator(
       validationDataGenerator(
-        data, 
-        labels, 
-        trainingInformation))
-        .batch(trainingInformation.batchSize);
+        this.data, 
+        this.labels, 
+        info))
+        .batch(info.batchSize);
 
-    await model.fitDataset(trainData, {
-      epochs: trainingInformation.epochs,
+    await this.model.fitDataset(trainData, {
+      epochs: info.epochs,
       validationData: valData,
       callbacks: {
         onEpochEnd: async (epoch, logs) => {
@@ -224,36 +229,22 @@ export class TrainingManager {
   async _trainDistributed() {
     const info = this.task.trainingInformation;
 
-    model.compile(trainingInformation.modelCompileData);
-
-    if (trainingInformation.learningRate) {
-      model.optimizer.learningRate = trainingInformation.learningRate;
-    }
-
-    const rounds =
-      trainingInformation.epochs / trainingInformation.roundDuration;
-    console.log(
-      `Training for ${this.task.displayInformation.taskTitle} task started. ` +
-        `Running for ${rounds} rounds of ${trainingInformation.roundDuration} epochs each. ` +
-        `This represents ${trainingInformation.epochs} total epochs.`
-    );
-
     // Creation of Dataset objects for training
     const trainData = tf.data.generator(
       trainDataGenerator(
-        data,
-        labels,
-        trainingInformation))
-        .batch(trainingInformation.batchSize);
+        this.data,
+        this.labels,
+        info))
+        .batch(info.batchSize);
     const valData = tf.data.generator(
       validationDataGenerator(
-        data, 
-        labels, 
-        trainingInformation))
-        .batch(trainingInformation.batchSize);
+        this.data, 
+        this.labels, 
+        info))
+        .batch(info.batchSize);
 
-    await model.fitDataset(trainData, {
-      epochs: trainingInformation.epochs,
+    await this.model.fitDataset(trainData, {
+      epochs: info.epochs,
       validationData: valData,
       callbacks: {
         onTrainBegin: async (logs) => {
@@ -268,8 +259,8 @@ export class TrainingManager {
         onEpochEnd: async (epoch, logs) => {
           await this._onEpochEnd(
             epoch + 1,
-            (logs.acc * 100).toFixed(2),
-            (logs.val_acc * 100).toFixed(2)
+            (logs.acc).toFixed(2),
+            (logs.val_acc).toFixed(2)
           );
           if (this.useIndexedDB) {
             await updateWorkingModel(
