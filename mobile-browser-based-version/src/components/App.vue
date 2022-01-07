@@ -44,6 +44,7 @@
 <script>
 import Sidebar from './sidebar/Sidebar.vue';
 import { mapState, mapMutations } from 'vuex';
+import { Platform } from '../platforms/platform';
 
 export default {
   name: 'app',
@@ -54,7 +55,7 @@ export default {
     ...mapState(['isDark']),
   },
   methods: {
-    ...mapMutations(['setIndexedDB', 'setAppTheme']),
+    ...mapMutations(['setIndexedDB', 'setAppTheme', 'setPlatform']),
     getBrowserTheme() {
       if (window.localStorage.getItem('dark')) {
         return JSON.parse(window.localStorage.getItem('dark'));
@@ -92,6 +93,13 @@ export default {
         `var(--color-${color}-darker)`
       );
     },
+    getPlatform() {
+      return window.localStorage.getItem('platform') ?? Platform.decentralized;
+    },
+    initPlatform(platform) {
+      this.setPlatform(platform);
+      this.$i18n.locale = platform;
+    },
   },
   mounted() {
     /**
@@ -108,6 +116,10 @@ export default {
      * color.
      */
     this.setAppColors(this.getBrowserColors());
+    /**
+     * Intialize the app to the browser-saved platform.
+     */
+    this.initPlatform(this.getPlatform());
   },
 };
 </script>
