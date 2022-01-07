@@ -43,10 +43,6 @@ export const TASK_MODEL_FILE = (taskID) =>
  */
 export const TASK_MODEL_WEIGHTS = (taskID) =>
   path.join(TASK_MODEL_DIR(taskID), 'weights.bin');
-/**
- * Directory containing all the generated milestones files.
- */
-export const MILESTONES_DIR = path.join(ROOT_DIR, 'milestones');
 
 export const CONNECTION_PROTOCOL = 'http';
 

@@ -5,6 +5,8 @@ import {
 } from '../memory/helpers';
 import * as modelDefinition from '../model_definition/model';
 
+const MANY_EPOCHS = 9999;
+
 /**
  * Class that deals with the model of a task.
  * Takes care of memory management of the model and the training of the model.
@@ -21,9 +23,13 @@ export class TrainingManager {
     this.task = task;
     this.client = client;
     this.trainingInformant = trainingInformant;
+
     this.useIndexedDB = useIndexedDB;
-    // Current epoch of the model
-    this.myEpoch = 0;
+    this.stopTrainingRequested = false;
+
+    this.model = null;
+    this.data = null;
+    this.labels = null;
   }
 
   /**
@@ -32,8 +38,11 @@ export class TrainingManager {
    * @param {Boolean} payload whether or not to use IndexedDB
    */
   setIndexedDB(payload) {
-    // Ensure the payload is always a boolean
     this.useIndexedDB = payload ? true : false;
+  }
+
+  stopTraining() {
+    this.stopTrainingRequested = true;
   }
 
   /**
@@ -47,31 +56,40 @@ export class TrainingManager {
     distributedTraining,
     personalizationTypeChosen = modelDefinition.personalizationType.NONE
   ) {
-    let data = dataset.Xtrain;
-    let labels = dataset.ytrain;
-
-    let model;
+    this.data = dataset.Xtrain;
+    this.labels = dataset.ytrain;
 
     switch (personalizationTypeChosen) {
       case modelDefinition.personalizationType.NONE:
-        model = new modelDefinition.Model(this.task, this.useIndexedDB);
+        this.model = new modelDefinition.Model(this.task, this.useIndexedDB);
         break;
 
       case modelDefinition.personalizationType.INTEROPERABILITY:
-        model = new modelDefinition.InteroperabilityModel(
+        this.model = new modelDefinition.InteroperabilityModel(
           this.task,
           this.useIndexedDB
         );
         break;
     }
-    await model.init();
+    await this.model.init();
 
-    let trainingParams = [model, data, labels];
-    if (distributedTraining) {
-      await this._trainingDistributed(...trainingParams);
-    } else {
-      await this._training(...trainingParams);
+    // Continue local training from previous epoch checkpoint
+    if (this.model.getModel().getUserDefinedMetadata().epoch === undefined) {
+      this.model.getModel().getUserDefinedMetadata().epoch = 0;
     }
+
+    const info = this.task.trainingInformation;
+    this.model.getModel().compile(info.modelCompileData);
+
+    if (info.learningRate) {
+      this.model.getModel().optimizer.learningRate = info.learningRate;
+    }
+
+    // Ensure training can start
+    this.model.getModel().stopTraining = false;
+    this.stopTrainingRequested = false;
+
+    distributedTraining ? this._trainDistributed() : this._trainLocally();
   }
 
   /**
@@ -80,10 +98,13 @@ export class TrainingManager {
    * @param {Object} model The current model being trained.
    * @param {Number} epoch The current training loop's epoch.
    */
-  _onEpochBegin(model, epoch) {
-    // To be modified in future ... myEpoch will be removed
-    console.log('EPOCH: ', ++this.myEpoch);
-    this.client.onEpochBeginCommunication(model, epoch);
+  async _onEpochBegin(epoch) {
+    console.log(`EPOCH (${epoch + 1}):`);
+    await this.client.onEpochBeginCommunication(
+      this.model.getSharedModel(),
+      epoch,
+      this.trainingInformant
+    );
   }
 
   /**
@@ -94,11 +115,23 @@ export class TrainingManager {
    * @param {Number} accuracy The accuracy achieved by the model in the given epoch
    * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
    */
-  async _onEpochEnd(model, epoch, accuracy, validationAccuracy) {
+  async _onEpochEnd(epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy);
+    console.log(
+      `Train Accuracy: ${(accuracy * 100).toFixed(2)},
+      Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
+    );
+    console.log(this.model.getModel().getUserDefinedMetadata());
     await this.client.onEpochEndCommunication(
-      model,
+      this.model.getSharedModel(),
       epoch,
+      this.trainingInformant
+    );
+  }
+
+  async _onTrainBegin() {
+    await this.client.onTrainBeginCommunication(
+      this.model,
       this.trainingInformant
     );
   }
@@ -108,108 +141,90 @@ export class TrainingManager {
    * subroutine.
    * @param {Object} model The current model being trained.
    */
-  async _onTrainEnd(model) {
-    await this.client.onTrainEndCommunication(model, this.trainingInformant);
-  }
-
-  async _training(model, data, labels) {
-    let trainingInformation = this.task.trainingInformation;
-
-    model.getModel().compile(trainingInformation.modelCompileData);
-
-    if (trainingInformation.learningRate) {
-      model.getModel().optimizer.learningRate =
-        trainingInformation.learningRate;
-    }
-
-    console.log('Training started');
-    await model
-      .getModel()
-      .fit(data, labels, {
-        batchSize: trainingInformation.batchSize,
-        epochs: trainingInformation.epoch,
-        validationSplit: trainingInformation.validationSplit,
-        shuffle: true,
-        callbacks: {
-          onEpochEnd: async (epoch, logs) => {
-            this.trainingInformant.updateGraph(
-              epoch + 1,
-              (logs['val_acc'] * 100).toFixed(2),
-              (logs['acc'] * 100).toFixed(2)
-            );
-            console.log(
-              `EPOCH (${epoch + 1}):
-            Train Accuracy: ${(logs['acc'] * 100).toFixed(2)},
-            Val Accuracy:  ${(logs['val_acc'] * 100).toFixed(2)}\n`
-            );
-            console.log(`loss ${logs.loss.toFixed(4)}`);
-            if (this.useIndexedDB) {
-              await updateWorkingModel(
-                this.task.taskID,
-                trainingInformation.modelID,
-                model.getModel()
-              );
-            }
-          },
-        },
-      })
-      .then(async (info) => {
-        console.log('Training finished', info.history);
-      });
-  }
-
-  async _trainingDistributed(model, data, labels) {
-    let trainingInformation = this.task.trainingInformation;
-
-    model.getModel().compile(trainingInformation.modelCompileData);
-
-    if (trainingInformation.learningRate) {
-      model.getModel().optimizer.learningRate =
-        trainingInformation.learningRate;
-    }
-
-    console.log(
-      `Training for ${this.task.displayInformation.taskTitle} task started. ` +
-        `Running for ${trainingInformation.epoch} epochs.`
+  async _onTrainEnd() {
+    await this.client.onTrainEndCommunication(
+      this.model,
+      this.trainingInformant
     );
-    await model
-      .getModel()
-      .fit(data, labels, {
-        epochs: trainingInformation.epoch,
-        batchSize: trainingInformation.batchSize,
-        validationSplit: trainingInformation.validationSplit,
-        shuffle: true,
-        callbacks: {
-          onTrainEnd: async (logs) => {
-            this._onTrainEnd(model);
-          },
-          onEpochBegin: async (epoch, logs) => {
-            this._onEpochBegin(model.getSharedModel(), epoch);
-          },
-          onEpochEnd: async (epoch, logs) => {
-            await this._onEpochEnd(
-              model.getSharedModel(),
-              epoch + 1,
-              (logs.acc * 100).toFixed(2),
-              (logs.val_acc * 100).toFixed(2)
-            );
-            console.log(
-              `EPOCH (${epoch + 1}):
+  }
+
+  async _trainLocally() {
+    const info = this.task.trainingInformation;
+
+    await this.model.getModel().fit(this.data, this.labels, {
+      initialEpoch: this.model.getModel().getUserDefinedMetadata().epoch,
+      epochs: MANY_EPOCHS,
+      batchSize: info.batchSize,
+      validationSplit: info.validationSplit,
+      shuffle: true,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          this.trainingInformant.updateGraph(
+            epoch + 1,
+            (logs.val_acc * 100).toFixed(2),
+            (logs.acc * 100).toFixed(2)
+          );
+          console.log(
+            `EPOCH (${epoch + 1}):
             Train Accuracy: ${(logs.acc * 100).toFixed(2)},
             Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
+          );
+          if (this.useIndexedDB) {
+            this.model.getModel().getUserDefinedMetadata().epoch += 1;
+            await updateWorkingModel(
+              this.task.taskID,
+              info.modelID,
+              this.model.getModel()
             );
-            if (this.useIndexedDB) {
-              await updateWorkingModel(
-                this.task.taskID,
-                trainingInformation.modelID,
-                model.getModel()
-              );
-            }
-          },
+          }
+          if (this.stopTrainingRequested) {
+            this.model.getModel().stopTraining = true;
+            this.stopTrainingRequested = false;
+          }
         },
-      })
-      .then(async (info) => {
-        console.log('Training finished', info.history);
-      });
+      },
+    });
+    this.model.getModel().getUserDefinedMetadata().epoch -= 1
+  }
+
+  async _trainDistributed() {
+    const info = this.task.trainingInformation;
+
+    await this.model.getModel().fit(this.data, this.labels, {
+      initialEpoch: 0,
+      epochs: info.epochs ?? MANY_EPOCHS,
+      batchSize: info.batchSize,
+      validationSplit: info.validationSplit,
+      shuffle: true,
+      callbacks: {
+        onTrainBegin: async (logs) => {
+          await this._onTrainBegin();
+        },
+        onTrainEnd: async (logs) => {
+          await this._onTrainEnd();
+        },
+        onEpochBegin: async (epoch, logs) => {
+          await this._onEpochBegin(epoch);
+        },
+        onEpochEnd: async (epoch, logs) => {
+          await this._onEpochEnd(
+            epoch + 1,
+            (logs.acc * 100).toFixed(2),
+            (logs.val_acc * 100).toFixed(2)
+          );
+          if (this.useIndexedDB) {
+            await updateWorkingModel(
+              this.task.taskID,
+              info.modelID,
+              this.model.getModel()
+            );
+          }
+          if (this.stopTrainingRequested) {
+            this.model.getModel().stopTraining = true;
+            this.stopTrainingRequested = false;
+          }
+        },
+      },
+    });
   }
 }

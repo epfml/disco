@@ -101,8 +101,7 @@ export class Model {
    * @returns true if the model stored in memory has the same type of personalization than the one we are currently initializing.
    */
   isOfCorrectType(model) {
-    let modelType =
-      model.getUserDefinedMetadata()['personalizationType'] ?? null;
+    let modelType = model.getUserDefinedMetadata().personalizationType ?? null;
     return modelType == this.typeOfPersonalization;
   }
 }

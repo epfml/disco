@@ -22,6 +22,10 @@ export class Client {
     throw new Error('Abstract method');
   }
 
+  async onTrainBeginCommunication(model, trainingInformant) {
+    return;
+  }
+
   /**
    * The training manager matches this function with the training loop's
    * onTrainEnd callback when training a TFJS model object. See the
