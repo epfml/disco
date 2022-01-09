@@ -48,6 +48,9 @@ npm install
 ```
 This command will install the necessary libraries required to run the application (defined in the `package.json` and `package-lock.json`). The latter command is only required when one is using the app for the first time. 
 
+> **⚠ WARNING: Apple Silicon.**  
+> `TensorFlow.js` is currently not suported for M1 mac laptops.
+
 ### Compiles and hot-reloads for development
 To launch the application run the following command: 
 ```
