@@ -10,16 +10,15 @@ import * as tf from '@tensorflow/tfjs';
 
 function trainDataGenerator(dataset, labels, trainingInformation) {
   return function* dataGenerator() {
-    for(let i = 0; i < dataset.shape[0] * (1 - trainingInformation.validationSplit); i++) {
+    for (let i = 0; i < dataset.shape[0] * (1 - trainingInformation.validationSplit); i++) {
       var tensor = tf.tensor(dataset.arraySync()[i]);
-      console.log(trainingInformation.resize)
-      if(trainingInformation.resize) {
+      if (trainingInformation.resize) {
         tensor = tf.image.resizeBilinear(
-          tensor, 
-          [trainingInformation.RESIZED_IMAGE_H, 
-           trainingInformation.RESIZED_IMAGE_W]);
+          tensor,
+          [trainingInformation.RESIZED_IMAGE_H,
+          trainingInformation.RESIZED_IMAGE_W]);
       }
-      yield {xs: tensor, ys: tf.tensor(labels.arraySync()[i])}
+      yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) }
     }
   }
 }
@@ -27,20 +26,21 @@ function trainDataGenerator(dataset, labels, trainingInformation) {
 function validationDataGenerator(dataset, labels, trainingInformation) {
   return function* dataGenerator() {
     const start_index = Math.floor(dataset.shape[0] * (1 - trainingInformation.validationSplit))
-    for(let i = start_index; i < dataset.shape[0]; i++) {
+    for (let i = start_index; i < dataset.shape[0]; i++) {
       var tensor = tf.tensor(dataset.arraySync()[i]);
-      if(trainingInformation.resize) {
-      tensor = tf.image.resizeBilinear(
-        tensor, 
-        [trainingInformation.RESIZED_IMAGE_H, 
+      if (trainingInformation.resize) {
+        tensor = tf.image.resizeBilinear(
+          tensor,
+          [trainingInformation.RESIZED_IMAGE_H,
           trainingInformation.RESIZED_IMAGE_W]);
       }
-      yield {xs: tensor, ys: tf.tensor(labels.arraySync()[i])}
+      yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) }
     }
   }
 }
 
 const MANY_EPOCHS = 9999;
+const SIZE_THRESHOLD = 1e9; //1 GigaByte
 
 /**
  * Class that deals with the model of a task.
@@ -148,8 +148,8 @@ export class TrainingManager {
   async _onEpochEnd(epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy);
     console.log(
-      `Train Accuracy: ${(accuracy * 100).toFixed(2)},
-      Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
+      `Train Accuracy: ${accuracy},
+      Val Accuracy:  ${validationAccuracy}\n`
     );
     await this.client.onEpochEndCommunication(
       this.model,
@@ -180,19 +180,28 @@ export class TrainingManager {
   async _trainLocally() {
     const info = this.task.trainingInformation;
 
+    var dataSize = -1;
+
+    if (info.resize) {
+      // 8 is for 8 bytes in a single element and 3 is for the 3 color channels for image tasks
+      dataSize = 8 * 3 * info.RESIZED_IMAGE_H * info.RESIZED_IMAGE_W * this.data.shape[0];
+    }
+
+    if (dataSize > SIZE_THRESHOLD) {
+      console.log("Memory training");
     // Creation of Dataset objects for training
     const trainData = tf.data.generator(
       trainDataGenerator(
         this.data,
         this.labels,
         info))
-        .batch(info.batchSize);
+      .batch(info.batchSize);
     const valData = tf.data.generator(
       validationDataGenerator(
-        this.data, 
-        this.labels, 
+        this.data,
+        this.labels,
         info))
-        .batch(info.batchSize);
+      .batch(info.batchSize);
 
     await this.model.fitDataset(trainData, {
       epochs: info.epochs,
@@ -226,43 +235,38 @@ export class TrainingManager {
     });
   }
 
-  async _trainDistributed() {
-    const info = this.task.trainingInformation;
+  else {
+    console.log("Fast training");
 
-    // Creation of Dataset objects for training
-    const trainData = tf.data.generator(
-      trainDataGenerator(
+    let resized_data = this.data;
+
+    if(info.resize) {
+      resized_data = tf.image.resizeBilinear(
         this.data,
-        this.labels,
-        info))
-        .batch(info.batchSize);
-    const valData = tf.data.generator(
-      validationDataGenerator(
-        this.data, 
-        this.labels, 
-        info))
-        .batch(info.batchSize);
+        [info.RESIZED_IMAGE_H,
+        info.RESIZED_IMAGE_W]);
+    }
 
-    await this.model.fitDataset(trainData, {
-      epochs: info.epochs,
-      validationData: valData,
+    await this.model.fit(resized_data, this.labels, {
+      initialEpoch: this.model.getUserDefinedMetadata().epoch,
+      epochs: info.epochs ?? MANY_EPOCHS,
+      batchSize: info.batchSize,
+      validationSplit: info.validationSplit,
+      shuffle: true,
       callbacks: {
-        onTrainBegin: async (logs) => {
-          await this._onTrainBegin();
-        },
-        onTrainEnd: async (logs) => {
-          await this._onTrainEnd();
-        },
-        onEpochBegin: async (epoch, logs) => {
-          await this._onEpochBegin(epoch);
-        },
         onEpochEnd: async (epoch, logs) => {
-          await this._onEpochEnd(
+          this.trainingInformant.updateGraph(
             epoch + 1,
-            (logs.acc).toFixed(2),
-            (logs.val_acc).toFixed(2)
+            (logs.val_acc * 100).toFixed(2),
+            (logs.acc * 100).toFixed(2)
+          );
+          console.log(
+            `EPOCH (${epoch + 1}):
+            Train Accuracy: ${(logs.acc * 100).toFixed(2)},
+            Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
           );
           if (this.useIndexedDB) {
+            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
             await updateWorkingModel(
               this.task.taskID,
               info.modelID,
@@ -276,5 +280,117 @@ export class TrainingManager {
         },
       },
     });
+  }
+}
+  async _trainDistributed() {
+    const info = this.task.trainingInformation;
+
+    //We calculate the size of the dataset to know if we need to use memory efficient training
+    var dataSize = -1;
+
+    if (info.resize) {
+      // 8 is for 8 bytes in a single element and 3 is for the 3 color channels for image tasks
+      dataSize = 8 * 3 * info.RESIZED_IMAGE_H * info.RESIZED_IMAGE_W * this.data.shape[0];
+    }
+
+    if (dataSize > SIZE_THRESHOLD) {
+      console.log("Memory training");
+      // Creation of Dataset objects for training
+      const trainData = tf.data.generator(
+        trainDataGenerator(
+          this.data,
+          this.labels,
+          info))
+        .batch(info.batchSize);
+      const valData = tf.data.generator(
+        validationDataGenerator(
+          this.data,
+          this.labels,
+          info))
+        .batch(info.batchSize);
+
+      await this.model.fitDataset(trainData, {
+        epochs: info.epochs,
+        validationData: valData,
+        callbacks: {
+          onTrainBegin: async (logs) => {
+            await this._onTrainBegin();
+          },
+          onTrainEnd: async (logs) => {
+            await this._onTrainEnd();
+          },
+          onEpochBegin: async (epoch, logs) => {
+            await this._onEpochBegin(epoch);
+          },
+          onEpochEnd: async (epoch, logs) => {
+            await this._onEpochEnd(
+              epoch + 1,
+              (logs.acc * 100).toFixed(2),
+              (logs.val_acc * 100).toFixed(2)
+            );
+            if (this.useIndexedDB) {
+              await updateWorkingModel(
+                this.task.taskID,
+                info.modelID,
+                this.model
+              );
+            }
+            if (this.stopTrainingRequested) {
+              this.model.stopTraining = true;
+              this.stopTrainingRequested = false;
+            }
+          },
+        },
+      });
+    }
+    else {
+      console.log("Fast training");
+
+      let resized_data = this.data;
+
+      if(info.resize) {
+        resized_data = tf.image.resizeBilinear(
+          this.data,
+          [info.RESIZED_IMAGE_H,
+          info.RESIZED_IMAGE_W]);
+      }
+
+      await this.model.fit(resized_data, this.labels, {
+        initialEpoch: 0,
+        epochs: info.epochs ?? MANY_EPOCHS,
+        batchSize: info.batchSize,
+        validationSplit: info.validationSplit,
+        shuffle: true,
+        callbacks: {
+          onTrainBegin: async (logs) => {
+            await this._onTrainBegin();
+          },
+          onTrainEnd: async (logs) => {
+            await this._onTrainEnd();
+          },
+          onEpochBegin: async (epoch, logs) => {
+            await this._onEpochBegin(epoch);
+          },
+          onEpochEnd: async (epoch, logs) => {
+            await this._onEpochEnd(
+              epoch + 1,
+              (logs.acc * 100).toFixed(2),
+              (logs.val_acc * 100).toFixed(2)
+            );
+            if (this.useIndexedDB) {
+              await updateWorkingModel(
+                this.task.taskID,
+                info.modelID,
+                this.model
+              );
+            }
+            if (this.stopTrainingRequested) {
+              this.model.stopTraining = true;
+              this.stopTrainingRequested = false;
+            }
+          },
+        },
+      });
+    }
   }
 }
