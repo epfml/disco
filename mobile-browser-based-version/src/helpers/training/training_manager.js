@@ -247,26 +247,29 @@ export class TrainingManager {
         info.RESIZED_IMAGE_W]);
     }
 
-    await this.model.fit(resized_data, this.labels, {
-      initialEpoch: this.model.getUserDefinedMetadata().epoch,
+    await this.model.fit(this.data, this.labels, {
+      initialEpoch: 0,
       epochs: info.epochs ?? MANY_EPOCHS,
       batchSize: info.batchSize,
       validationSplit: info.validationSplit,
       shuffle: true,
       callbacks: {
+        onTrainBegin: async (logs) => {
+          await this._onTrainBegin();
+        },
+        onTrainEnd: async (logs) => {
+          await this._onTrainEnd();
+        },
+        onEpochBegin: async (epoch, logs) => {
+          await this._onEpochBegin(epoch);
+        },
         onEpochEnd: async (epoch, logs) => {
-          this.trainingInformant.updateGraph(
+          await this._onEpochEnd(
             epoch + 1,
-            (logs.val_acc * 100).toFixed(2),
-            (logs.acc * 100).toFixed(2)
-          );
-          console.log(
-            `EPOCH (${epoch + 1}):
-            Train Accuracy: ${(logs.acc * 100).toFixed(2)},
-            Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
+            (logs.acc * 100).toFixed(2),
+            (logs.val_acc * 100).toFixed(2)
           );
           if (this.useIndexedDB) {
-            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
             await updateWorkingModel(
               this.task.taskID,
               info.modelID,
