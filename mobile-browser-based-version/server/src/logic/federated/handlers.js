@@ -269,7 +269,6 @@ export function selectionStatus(request, response) {
   if (!clients.has(id)) {
     return _failRequest(response, type, 401);
   }
-
   if (!tasksStatus.has(task)) {
     return _failRequest(response, type, 404);
   }
@@ -292,17 +291,16 @@ export function selectionStatus(request, response) {
      * with the one provided by the server.
      */
     response.send({ selected: 2, round: tasksStatus.get(task).round });
-  } else {
-    selectedClientsQueue.get(task).add(id);
+  } else if (tasksStatus.get(task).isRoundPending) {
     /**
-     * If the round is not pending anymore, this means the client that requested
+     * If the round is pending, this means the client that requested
      * to be selected should now wait for weights aggregation from the server.
      * This ensures late clients start their rounds with the most recent model.
-     * To differentiate the two states, codes "1" and "0" are used.
      */
-    response.send({
-      selected: tasksStatus.get(task).isRoundPending ? 0 : 1,
-    });
+    response.send({ selected: 1 });
+  } else {
+    selectedClientsQueue.get(task).add(id);
+    response.send({ selected: 0 });
     _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
   }
   activeClients.get(id).requests += 1;
@@ -469,10 +467,11 @@ export async function aggregationStatus(request, response) {
   _logsAppend(request, type);
 
   /**
-   * Check whether the latest round completed.
+   * Check whether the latest round completed aggregation.
    */
   const aggregated =
-    tasksStatus.get(task).isRoundPending && round < tasksStatus.get(task).round;
+    !tasksStatus.get(task).isRoundPending &&
+    round < tasksStatus.get(task).round;
   if (aggregated) {
     /**
      * If aggregation occured, make the client wait to get selected for next round so
@@ -491,7 +490,7 @@ export async function aggregationStatus(request, response) {
   ) {
     setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN);
   }
-  response.status(200).send({ aggregated: aggregated });
+  response.status(200).send({ aggregated: aggregated ? 1 : 0 });
   activeClients.get(id).requests += 1;
   _checkForIdleClients(id, IDLE_DELAY);
 }
