@@ -59,7 +59,6 @@ export class FederatedClient extends Client {
   async selectionStatus() {
     const response = await api.selectionStatus(this.task.taskID, this.clientID);
     return response.ok ? await response.json() : undefined;
-
   }
 
   /**
@@ -94,7 +93,7 @@ export class FederatedClient extends Client {
    * @param {*} parameters the parameters of the different Interoperability Layers.
    * @returns The response from the server
    */
-  async postInteroperabilityParameters(parameters){
+  async postInteroperabilityParameters(parameters) {
     const response = await api.postInteroperabilityParameters(
       this.task.taskID,
       this.round,
@@ -108,7 +107,7 @@ export class FederatedClient extends Client {
    * Requests the aggregated interoperability parameters from the centralized server.
    * @returns The aggregated weights of all federated clients or null if the resquest fails.
    */
-  async getInteroperabilityParameters(){
+  async getInteroperabilityParameters() {
     const response = await api.getInteroperabilityParameters(
       this.task.taskID,
       this.round,
@@ -120,6 +119,59 @@ export class FederatedClient extends Client {
     } else {
       return null;
     }
+  }
+
+  async handleInteroperabilityCommunications(model, trainingInformant) {
+    let heatmapData = model.getInteroperabilityParameters();
+
+    // Send Interoperability parameters.
+    await this.postInteroperabilityParameters(heatmapData);
+    // TODO : check that everybody has sent the parameters. 
+    const interoperabilityStatus = await getSuccessfulResponse(
+      api.interoperabilityStatus,
+      'aggregated',
+      MAX_TRIES,
+      TIME_PER_TRIES,
+      this.task.taskID,
+      this.round,
+      this.clientID
+    );
+
+    console.log(interoperabilityStatus);
+    // Receive aggregated Interoperability Parameters.
+    let received = await this.getInteroperabilityParameters();
+    console.log(received);
+    // If response is null then we only display our parameters.
+    if (received == null) {
+      received = {
+        weightsIn: [
+          {
+            name: 'You',
+            data: heatmapData[0],
+          },
+        ],
+        biasesIn: [
+          {
+            name: 'You',
+            data: heatmapData[1],
+          },
+        ],
+        weightsOut: [
+          {
+            name: 'You',
+            data: heatmapData[2],
+          },
+        ],
+        biasesOut: [
+          {
+            name: 'You',
+            data: heatmapData[3],
+          },
+        ],
+      };
+    }
+    // update the training informant
+    trainingInformant.updateHeatmapData(received);
   }
 
   async postMetadata(metadataID, metadata) {
@@ -189,57 +241,7 @@ export class FederatedClient extends Client {
 
   async onTrainEndCommunication(model, trainingInformant) {
     trainingInformant.addMessage('Training finished.');
-    /**
-     * If we are using a model adjusting for interoperability, we want to update the
-     * Interoperability Heatmap once the training is finished.
-     */
-    if (
-      model.getPersonalizationType() == personalizationType.INTEROPERABILITY
-    ) {
-      // TODO: Add interoperability weights query
-      let heatmapData = model.getInteroperabilityParameters();
-
-      // Send Interoperability parameters.
-      await this.postInteroperabilityParameters(heatmapData);
-
-      // Receive aggregated Interoperability Parameters.
-      let received = await this.getInteroperabilityParameters();
-      console.log(received);
-      // If response is null then we only display our parameters.
-      if (received == null) {
-        received = {
-          weightsIn: [
-            {
-              name: 'You',
-              data: heatmapData[0],
-            },
-          ],
-          biasesIn: [
-            {
-              name: 'You',
-              data: heatmapData[1],
-            },
-          ],
-          weightsOut: [
-            {
-              name: 'You',
-              data: heatmapData[2],
-            },
-          ],
-          biasesOut: [
-            {
-              name: 'You',
-              data: heatmapData[3],
-            },
-          ],
-        };
-      }
-      // update the training informant
-      trainingInformant.updateHeatmapData(received);
-    }
   }
-
-
 
   async onEpochEndCommunication(model, epoch, trainingInformant) {
     await super.onEpochEndCommunication(model, epoch, trainingInformant);
@@ -255,10 +257,22 @@ export class FederatedClient extends Client {
     }
 
     /**
+     * On the last epoch of training
+     * If we are using a model adjusting for interoperability, we want to update the
+     * Interoperability Heatmap once the training is finished.
+     */
+    if (
+      epoch == this.task.trainingInformation.epochs &&
+      model.getPersonalizationType() == personalizationType.INTEROPERABILITY
+    ) {
+      console.log('Sending Interoperability parameters on epoch: ', epoch);
+      this.handleInteroperabilityCommunications(model, trainingInformant);
+    }
+    /**
      * Once the training round is completed, send local weights to the
      * server for aggregation.
      */
-    await this.postWeights(model.weights);
+    await this.postWeights(model.getSharedModel().weights);
     /**
      * Wait for the server to proceed to weights aggregation.
      */
@@ -283,6 +297,8 @@ export class FederatedClient extends Client {
      * Update local weights with the most recent model stored on server.
      */
     this.selected = false;
-    model = this.task.createModel();
+    let updatedModel = await this.task.createModel();
+
+    model.getSharedModel().setWeights(updatedModel.getWeights());
   }
 }

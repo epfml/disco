@@ -48,6 +48,12 @@ export async function postInteroperabilityParameters(
   );
 }
 
+export async function interoperabilityStatus(taskID, round, clientID) {
+  return await fetch(
+    API.concat(`interoperability-status/${taskID}/${round}/${clientID}`)
+  );
+}
+
 export async function getInteroperabilityParameters(taskID, round, clientID) {
   return await fetch(
     API.concat(`interoperability/${taskID}/${round}/${clientID}`)

@@ -20,6 +20,7 @@ const REQUEST_TYPES = Object.freeze({
   POST_METADATA: 'post-metadata',
   GET_METADATA: 'get-metadata',
   GET_TASKS: 'get-tasks',
+  INTEROPERABILITY_STATUS: 'interoperability-status',
   POST_INTEROPERABILITY: 'post-interoperability',
   GET_INTEROPERABILITY: 'get-interoperability',
 });
@@ -511,7 +512,6 @@ export async function aggregationStatus(request, response) {
 export function postInteroperabilityParameters(request, response) {
   const type = REQUEST_TYPES.POST_INTEROPERABILITY;
 
-  console.log("here", request.body);
   const code = _checkRequest(request);
   if (code !== 200) {
     return _failRequest(response, type, code);
@@ -623,18 +623,88 @@ export function getInteroperabilityParameters(request, response) {
     biasesOut: [],
   };
 
+  // Generate the heatmap data to send to the clients with respect to all recieved weights.
   receivedParameters.forEach((value, key) => {
     if (value.length == 4) {
+      // Set the client names
       let name = key.localeCompare(id) == 0 ? 'You' : key;
+      // Normalize clientwise values
+      value = value.map((parameter) => {
+        console.log(Object.values(parameter));
+        let parameterSum = Object.values(parameter).reduce((a, b) => a + b, 0);
+        return Object.values(parameter).map(
+          (feature) => feature / parameterSum
+        );
+      });
+      // Add client data to the parameters
       parameters.weightsIn.push({ name: name, data: Object.values(value[0]) });
       parameters.biasesIn.push({ name: name, data: Object.values(value[1]) });
       parameters.weightsOut.push({ name: name, data: Object.values(value[2]) });
       parameters.biasesOut.push({ name: name, data: Object.values(value[3]) });
     }
   });
-  console.log("params", parameters);
+  console.log('params', parameters);
   response.status(200).send({ parameters: parameters });
 
+  activeClients.get(id).requests += 1;
+  _checkForIdleClients(id, IDLE_DELAY);
+}
+
+/**
+ * Request handler called when a client sends a POST request asking for
+ * the averaged model weights stored on server while training a task. The
+ * request is made for a given task and round. The request succeeds once
+ * CLIENTS_THRESHOLD % of clients sent their individual weights to the server
+ * for the given task and round. Every MODEL_SAVE_TIMESTEP rounds into the task,
+ * the requested averaged weights are saved under a JSON file at milestones/.
+ * The request's body must contain:
+ * - the client's ID
+ * - a timestamp corresponding to the time at which the request was made
+ * @param {Request} request received from client
+ * @param {Response} response sent to client
+ */
+export async function interopreabilityStatus(request, response) {
+  const type = REQUEST_TYPES.INTEROPERABILITY_STATUS;
+
+  const code = _checkRequest(request);
+  if (code !== 200) {
+    return _failRequest(response, type, code);
+  }
+
+  const task = request.params.task;
+  const round = request.params.round;
+  const id = request.params.id;
+
+  /**
+   * The task was not trained at all.
+   */
+  if (
+    !tasksStatus.get(task).isRoundPending &&
+    tasksStatus.get(task).round === 0
+  ) {
+    return _failRequest(response, type, 403);
+  }
+  /**
+   * No weight was posted for this task's round.
+   */
+  if (
+    !(
+      interoperabilityParametersMap.has(task) &&
+      interoperabilityParametersMap.get(task).has(round)
+    )
+  ) {
+    return _failRequest(response, type, 404);
+  }
+
+  _logsAppend(request, type);
+  /**
+   * Check whether the requested round has completed.
+   */
+  const aggregated =
+    interoperabilityParametersMap.get(task).get(round).size ==
+    selectedClients.get(task).size;
+
+  response.status(200).send({ aggregated: aggregated });
   activeClients.get(id).requests += 1;
   _checkForIdleClients(id, IDLE_DELAY);
 }

@@ -54,6 +54,11 @@ federatedRouter
   .get(handlers.getInteroperabilityParameters)
   .post(handlers.postInteroperabilityParameters);
 
+federatedRouter.get(
+  '/interoperability-status/:task/:round/:id',
+  handlers.interopreabilityStatus
+);
+
 federatedRouter
   .route('/metadata/:metadata/:task/:round/:id')
   .get(handlers.getMetadataMap)

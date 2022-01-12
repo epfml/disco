@@ -121,9 +121,8 @@ export class TrainingManager {
       `Train Accuracy: ${(accuracy * 100).toFixed(2)},
       Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
     );
-    console.log(this.model.getModel().getUserDefinedMetadata());
     await this.client.onEpochEndCommunication(
-      this.model.getSharedModel(),
+      this.model,
       epoch,
       this.trainingInformant
     );
@@ -184,7 +183,6 @@ export class TrainingManager {
         },
       },
     });
-    this.model.getModel().getUserDefinedMetadata().epoch -= 1
   }
 
   async _trainDistributed() {
