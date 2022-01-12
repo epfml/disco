@@ -115,22 +115,19 @@ export class FederatedClient extends Client {
 
   async onEpochBeginCommunication(model, epoch, trainingInformant) {
     await super.onEpochBeginCommunication(model, epoch, trainingInformant);
-
     /**
      * Ensure this is the first epoch of a round.
      */
     const roundDuration = this.task.trainingInformation.roundDuration;
     const startOfRound = (epoch + 1) % roundDuration === 1;
-
     if (!startOfRound) {
       return;
     }
-
     /**
      * Wait for the selection status from server.
      */
     console.log('Awaiting for selection from server...');
-    const selectionStatus = await getSuccessfulResponse(
+    var selectionStatus = await getSuccessfulResponse(
       api.selectionStatus,
       'selected',
       MAX_TRIES,
@@ -142,11 +139,56 @@ export class FederatedClient extends Client {
      * This happens if either the client is disconnected from the server,
      * or it failed to get a success response from server after a few tries.
      */
-    if (!(selectionStatus && selectionStatus.selected)) {
+    if (!(selectionStatus && selectionStatus.selected == false)) {
+      throw Error('Stopped training');
+    }
+    if (selectionStatus.selected === 1) {
+      /**
+       * The client is late, the round already started. Move to aggregation phase
+       * to get the latest model.
+       */
+      console.log(
+        'Round already started. Now awaiting for aggregated model from server...'
+      );
+      const aggregationStatus = await getSuccessfulResponse(
+        api.aggregationStatus,
+        'aggregated',
+        MAX_TRIES,
+        TIME_PER_TRIES,
+        this.task.taskID,
+        this.round,
+        this.clientID
+      );
+      /**
+       * This happens if either the client is disconnected from the server,
+       * or it failed to get a success response from server after a few tries.
+       */
+      if (!(aggregationStatus && aggregationStatus.aggregated)) {
+        throw Error('Stopped training');
+      }
+      /**
+       * Update local weights with the most recent model stored on server.
+       */
+      model = this.task.createModel();
+      console.log('Updated local model');
+      /**
+       * The client can resume selection phase.
+       */
+      console.log('Awaiting for selection from server...');
+      selectionStatus = await getSuccessfulResponse(
+        api.selectionStatus,
+        'selected',
+        MAX_TRIES,
+        TIME_PER_TRIES,
+        this.task.taskID,
+        this.clientID
+      );
+    }
+    if (!(selectionStatus && selectionStatus.selected === 2)) {
       throw Error('Stopped training');
     }
     /**
-     * Proceed to the training round.
+     * Proceed to training phase.
      */
     this.selected = true;
     this.round = selectionStatus.round;
@@ -154,17 +196,14 @@ export class FederatedClient extends Client {
 
   async onEpochEndCommunication(model, epoch, trainingInformant) {
     await super.onEpochEndCommunication(model, epoch, trainingInformant);
-
     /**
      * Ensure this was the last epoch of a round.
      */
     const roundDuration = this.task.trainingInformation.roundDuration;
     const endOfRound = epoch > 1 && (epoch + 1) % roundDuration === 1;
-
     if (!endOfRound) {
       return;
     }
-
     /**
      * Once the training round is completed, send local weights to the
      * server for aggregation.
@@ -195,5 +234,6 @@ export class FederatedClient extends Client {
      */
     this.selected = false;
     model = this.task.createModel();
+    console.log('Updated local model');
   }
 }
