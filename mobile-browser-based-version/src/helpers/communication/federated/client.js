@@ -139,7 +139,7 @@ export class FederatedClient extends Client {
      * This happens if either the client is disconnected from the server,
      * or it failed to get a success response from server after a few tries.
      */
-    if (!(selectionStatus && selectionStatus.selected == false)) {
+    if (!(selectionStatus && selectionStatus.selected > 0)) {
       throw Error('Stopped training');
     }
     if (selectionStatus.selected === 1) {
