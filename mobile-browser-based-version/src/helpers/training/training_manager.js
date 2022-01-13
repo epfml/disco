@@ -118,8 +118,8 @@ export class TrainingManager {
   async _onEpochEnd(epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy);
     console.log(
-      `Train Accuracy: ${(accuracy * 100).toFixed(2)},
-      Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
+      `Train Accuracy: ${accuracy.toFixed(2)},
+      Val Accuracy:  ${validationAccuracy.toFixed(2)}\n`
     );
     await this.client.onEpochEndCommunication(
       this.model,

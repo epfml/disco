@@ -257,16 +257,14 @@ export class FederatedClient extends Client {
     }
 
     /**
-     * On the last epoch of training
      * If we are using a model adjusting for interoperability, we want to update the
-     * Interoperability Heatmap once the training is finished.
+     * Interoperability Heatmap once the round is finished.
      */
     if (
-      epoch == this.task.trainingInformation.epochs &&
       model.getPersonalizationType() == personalizationType.INTEROPERABILITY
     ) {
       console.log('Sending Interoperability parameters on epoch: ', epoch);
-      this.handleInteroperabilityCommunications(model, trainingInformant);
+      await this.handleInteroperabilityCommunications(model, trainingInformant);
     }
     /**
      * Once the training round is completed, send local weights to the

@@ -9,7 +9,7 @@
           v-bind:Task="Task"
           v-bind:fileUploadManager="fileUploadManager"
           v-if="fileUploadManager"
-          :displayLabels="false"
+          
         />
       </div>
 

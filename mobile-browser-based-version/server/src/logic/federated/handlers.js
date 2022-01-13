@@ -630,11 +630,13 @@ export function getInteroperabilityParameters(request, response) {
       let name = key.localeCompare(id) == 0 ? 'You' : key;
       // Normalize clientwise values
       value = value.map((parameter) => {
-        console.log(Object.values(parameter));
-        let parameterSum = Object.values(parameter).reduce((a, b) => a + b, 0);
-        return Object.values(parameter).map(
-          (feature) => feature / parameterSum
-        );
+        let parameterList = Object.values(parameter);
+        //let parameterSum = parameterList.reduce((a, b) => a + b, 0);
+        let max = Math.max(...parameterList);
+        let min = Math.min(...parameterList);
+        return parameterList.length > 1
+          ? parameterList.map((feature) => (feature - min) / (min - max))
+          : parameterList;
       });
       // Add client data to the parameters
       parameters.weightsIn.push({ name: name, data: Object.values(value[0]) });
