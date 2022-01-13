@@ -146,14 +146,20 @@ export async function downloadSavedModel(taskID, modelName) {
  * @param {Integer} endIndex ending index of the split
  * @param {Function} transformation transformation function to be applied to the data
  */
-export function imageDatasetGenerator(dataset, labels, startIndex, endIndex, transformation) {
+export function imageDatasetGenerator(
+  dataset,
+  labels,
+  startIndex,
+  endIndex,
+  transformation
+) {
   return function* dataGenerator() {
     for (let i = startIndex; i < endIndex; i++) {
       var tensor = tf.tensor(dataset.arraySync()[i]);
-      if(transformation) {
+      if (transformation) {
         tensor = transformation(tensor);
       }
-      yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) }
+      yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) };
     }
-  }
+  };
 }
