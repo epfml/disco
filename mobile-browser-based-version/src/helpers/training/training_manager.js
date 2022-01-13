@@ -153,13 +153,14 @@ export class TrainingManager {
 
     var dataSize = -1;
 
+    // If info resize is not defined it will default to Fast Training
     if (info.resize) {
       // 8 is for 8 bytes in a single element and 3 is for the 3 color channels for image tasks
       dataSize = 8 * 3 * info.RESIZED_IMAGE_H * info.RESIZED_IMAGE_W * this.data.shape[0];
     }
 
     if (dataSize > SIZE_THRESHOLD) {
-      console.log("Memory training");
+      console.log("Memory Efficient training");
     // Creation of Dataset objects for training
     const trainData = tf.data.generator(
       imageDatasetGenerator(
