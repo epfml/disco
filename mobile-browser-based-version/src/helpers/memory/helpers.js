@@ -138,3 +138,22 @@ export async function downloadSavedModel(taskID, modelName) {
     DOWNLOADS_SCHEME.concat(`${taskID}_${modelName}`)
   );
 }
+/**
+ * Creates a dataset generator function for memory efficient training
+ * @param {Array} dataset the dataset of the task
+ * @param {Array} labels the labels of the task
+ * @param {Integer} startIndex staring index of the split
+ * @param {Integer} endIndex ending index of the split
+ * @param {Function} transformation transformation function to be applied to the data
+ */
+export function imageDatasetGenerator(dataset, labels, startIndex, endIndex, transformation) {
+  return function* dataGenerator() {
+    for (let i = startIndex; i < endIndex; i++) {
+      var tensor = tf.tensor(dataset.arraySync()[i]);
+      if(transformation) {
+        tensor = transformation(tensor);
+      }
+      yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) }
+    }
+  }
+}
