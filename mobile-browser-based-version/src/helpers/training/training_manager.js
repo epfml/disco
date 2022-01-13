@@ -2,45 +2,16 @@ import {
   getWorkingModel,
   updateWorkingModel,
   getWorkingModelMetadata,
+  imageDatasetGenerator
 } from '../memory/helpers';
 
 import * as tf from '@tensorflow/tfjs';
 
 // Extra functions that are used to create Dataset object to be able to perform batch wise preprocessing of images.
 
-function trainDataGenerator(dataset, labels, trainingInformation) {
-  return function* dataGenerator() {
-    for (let i = 0; i < dataset.shape[0] * (1 - trainingInformation.validationSplit); i++) {
-      var tensor = tf.tensor(dataset.arraySync()[i]);
-      if (trainingInformation.resize) {
-        tensor = tf.image.resizeBilinear(
-          tensor,
-          [trainingInformation.RESIZED_IMAGE_H,
-          trainingInformation.RESIZED_IMAGE_W]);
-      }
-      yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) }
-    }
-  }
-}
-
-function validationDataGenerator(dataset, labels, trainingInformation) {
-  return function* dataGenerator() {
-    const start_index = Math.floor(dataset.shape[0] * (1 - trainingInformation.validationSplit))
-    for (let i = start_index; i < dataset.shape[0]; i++) {
-      var tensor = tf.tensor(dataset.arraySync()[i]);
-      if (trainingInformation.resize) {
-        tensor = tf.image.resizeBilinear(
-          tensor,
-          [trainingInformation.RESIZED_IMAGE_H,
-          trainingInformation.RESIZED_IMAGE_W]);
-      }
-      yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) }
-    }
-  }
-}
 
 const MANY_EPOCHS = 9999;
-const SIZE_THRESHOLD = 1e9; //1 GigaByte
+const SIZE_THRESHOLD = 1024 * 1024 * 1024; //1 GigaByte
 
 /**
  * Class that deals with the model of a task.
@@ -191,17 +162,30 @@ export class TrainingManager {
       console.log("Memory training");
     // Creation of Dataset objects for training
     const trainData = tf.data.generator(
-      trainDataGenerator(
+      imageDatasetGenerator(
         this.data,
         this.labels,
-        info))
+        0,
+        this.data.shape[0] * (1 - info.validationSplit),
+        (tensor) => tf.image.resizeBilinear(
+                    tensor,
+                    [info.RESIZED_IMAGE_H,
+                    info.RESIZED_IMAGE_W])
+                ))
       .batch(info.batchSize);
-    const valData = tf.data.generator(
-      validationDataGenerator(
-        this.data,
-        this.labels,
-        info))
-      .batch(info.batchSize);
+
+      const valData = tf.data.generator(
+        imageDatasetGenerator(
+          this.data,
+          this.labels,
+          Math.floor(this.data.shape[0] * (1 - info.validationSplit)),
+          this.data.shape[0],
+          (tensor) => tf.image.resizeBilinear(
+                      tensor,
+                      [info.RESIZED_IMAGE_H,
+                      info.RESIZED_IMAGE_W])
+                  ))
+        .batch(info.batchSize);
 
     await this.model.fitDataset(trainData, {
       epochs: info.epochs,
@@ -247,29 +231,26 @@ export class TrainingManager {
         info.RESIZED_IMAGE_W]);
     }
 
-    await this.model.fit(this.data, this.labels, {
-      initialEpoch: 0,
+    await this.model.fit(resized_data, this.labels, {
+      initialEpoch: this.model.getUserDefinedMetadata().epoch,
       epochs: info.epochs ?? MANY_EPOCHS,
       batchSize: info.batchSize,
       validationSplit: info.validationSplit,
       shuffle: true,
       callbacks: {
-        onTrainBegin: async (logs) => {
-          await this._onTrainBegin();
-        },
-        onTrainEnd: async (logs) => {
-          await this._onTrainEnd();
-        },
-        onEpochBegin: async (epoch, logs) => {
-          await this._onEpochBegin(epoch);
-        },
         onEpochEnd: async (epoch, logs) => {
-          await this._onEpochEnd(
+          this.trainingInformant.updateGraph(
             epoch + 1,
-            (logs.acc * 100).toFixed(2),
-            (logs.val_acc * 100).toFixed(2)
+            (logs.val_acc * 100).toFixed(2),
+            (logs.acc * 100).toFixed(2)
+          );
+          console.log(
+            `EPOCH (${epoch + 1}):
+            Train Accuracy: ${(logs.acc * 100).toFixed(2)},
+            Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
           );
           if (this.useIndexedDB) {
+            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
             await updateWorkingModel(
               this.task.taskID,
               info.modelID,
@@ -300,17 +281,30 @@ export class TrainingManager {
       console.log("Memory training");
       // Creation of Dataset objects for training
       const trainData = tf.data.generator(
-        trainDataGenerator(
+        imageDatasetGenerator(
           this.data,
           this.labels,
-          info))
+          0,
+          this.data.shape[0] * (1 - info.validationSplit),
+          (tensor) => tf.image.resizeBilinear(
+                      tensor,
+                      [info.RESIZED_IMAGE_H,
+                      info.RESIZED_IMAGE_W])
+                  ))
         .batch(info.batchSize);
-      const valData = tf.data.generator(
-        validationDataGenerator(
-          this.data,
-          this.labels,
-          info))
-        .batch(info.batchSize);
+  
+        const valData = tf.data.generator(
+          imageDatasetGenerator(
+            this.data,
+            this.labels,
+            Math.floor(this.data.shape[0] * (1 - info.validationSplit)),
+            this.data.shape[0],
+            (tensor) => tf.image.resizeBilinear(
+                        tensor,
+                        [info.RESIZED_IMAGE_H,
+                        info.RESIZED_IMAGE_W])
+                    ))
+          .batch(info.batchSize);
 
       await this.model.fitDataset(trainData, {
         epochs: info.epochs,
