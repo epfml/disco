@@ -1,6 +1,6 @@
-# Mobile Browser-Based Version
+# DeAI - Mobile Browser-Based Version
 
-## Folder Organisation
+## Code Organisation
 
     .
     ├── assets       # contains the resources of the app
@@ -22,7 +22,7 @@
 ## How to run the app
 All commands are ran from the folder ./mobile-browser-based-version.  
 
-### Development Environement
+### Development Environment
 
 We recommand the [VS code](https://code.visualstudio.com/) IDE with the following extensions :
 1. Vue.js Extension Pack
@@ -51,7 +51,7 @@ This command will install the necessary libraries required to run the applicatio
 > **⚠ WARNING: Apple Silicon.**  
 > `TensorFlow.js` is currently not suported for M1 mac laptops.
 
-### Compiles and hot-reloads for development
+### Compiling and hot-reload for development
 To launch the application run the following command: 
 ```
 npm run serve
@@ -65,12 +65,12 @@ This will start the application locally with two visualization options:
 To **test decentralized learning** between two peers, run the aformentioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.    
 Please note that currently, only the titanic task has been configured to have a decentralized training loop. 
 
-### Compiles and minifies for production
+### Compiling and minifying for production
 ```
 npm run build
 ```
 
-### Lints and fixes files
+### Lint and fixe files
 ```
 npm run lint
 ```
@@ -78,7 +78,7 @@ npm run lint
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
-## How to create a new task 
+## How to create a new custom ML task 
 
 The task creation process will now be presented: 
 1. In the folder ./src/components create a new folder for a new task. 
