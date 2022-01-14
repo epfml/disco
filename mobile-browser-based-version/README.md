@@ -1,4 +1,4 @@
-# DeAI - Mobile Browser-Based Version
+# DeAI - Developer Guide
 
 ## Code Organisation
 
@@ -49,7 +49,7 @@ npm install
 This command will install the necessary libraries required to run the application (defined in the `package.json` and `package-lock.json`). The latter command is only required when one is using the app for the first time. 
 
 > **⚠ WARNING: Apple Silicon.**  
-> `TensorFlow.js` is currently not suported for M1 mac laptops.
+> `TensorFlow.js` in version `3.11.0` is currently not suported for M1 mac laptops.
 
 ### Compiling and hot-reload for development
 To launch the application run the following command: 
@@ -70,7 +70,7 @@ Please note that currently, only the titanic task has been configured to have a 
 npm run build
 ```
 
-### Lint and fixe files
+### Lint files
 ```
 npm run lint
 ```
@@ -79,14 +79,15 @@ npm run lint
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ## How to create a new custom ML task 
+This is not necessary if you want to use some of our already supported data modalities (tabular/csv, or image classification). For new tasks based on our existing data modalities and preprocessing steps, simply use the `Create Task` button on the landing page of the app.
 
-The task creation process will now be presented: 
+For creating a customized task from scratch, please follow the following steps:
 1. In the folder ./src/components create a new folder for a new task. 
-2. If one desires to create a task that relies on tabular data (i.e CSV files), in the created folder, he will copy the files from the titanic example. On the other hand, if one wishes to create a model that uses images as input, he will copy in the previously created folder the files from the MNIST example. 
+2. If one desires to create a task that relies on tabular data (i.e CSV files), in the created folder, you can copy the files from the titanic example. On the other hand, if one wishes to create a model that uses images as input, you can copy the files from the MNIST example into the previously created folder . 
 3. Rename the copied file using your task name. For instance, titanic_desc can be renamed [your_task_name]_desc. 
 4. Change the information in the javascript file to suit the requirements of the created task. There are three main objects to change. The first one is called display_informations. It contains all the textual task-related information. The second one is called training_information and holds all the information about the model (i.e model's name, architecture ...). The third one is the data_preprocessing function. This function takes the user's uploaded files and returns the processed data as a tensor. 
 5. In each vue file, look for the script part of the code (after <script>)  and replace the first import with the javascript associated with your task.  For instance, replace import {...} from "titanic_script" with import {...} from "[your_task_name]_script". 
-6. Add your task to the routing file in ./src/router/index.js. More instructions soon to come. 
+6. Add your task to the vue routing file in ./src/router/index.js. More instructions soon to come. 
 
 ## Explanation of the current architecture of the app
 ### Overview of the architecture
@@ -95,12 +96,12 @@ Tasks are organized around the following files:
 - a javascript file contains all the task-related information and methods. For instance, in this file, one can find the specific data-processing function or the textual description of the task. 
 
 ### Use of Vue.js
-The main front-end framework used by the application is Vue.js. It's a widely used framework to build single-page UI (See [Reference](https://router.vuejs.org/guide/)).    
+The main front-end framework used by the application is Vue.js, a widely used framework to build single-page UI (See [Reference](https://router.vuejs.org/guide/)).    
 The application is built around Vue.js components. Essentially, components are defined around two parts: 
 1. An HTML template that states how the component should be rendered 
 2. A script that defines the behaviors of the components
 
-### Components architecture of the project 
+### Component architecture of the project 
 Components can be organized in a parent/child relation. Meaning that one can have a parent component that holds many other child components.  
 `routers` are used to define which components are displayed to the user depending on the user's inputs. 
 
@@ -115,19 +116,21 @@ The application runs the following architecture:
 All these are served by the javascript file associated to the task. 
 
 ### Training Loop
-A global function `training` is called by all components that are training a model. This function is located in the file ./helpers/training.js.   
-The idea is that the training part for all tasks follows the same ML backend, while the processing of the data is done locally (at the component level) by each task.   
-The training process works as follow:
-1. When a user has stated that he wishes to join the training of a task, a model is created (for now with a standards initialization) and stored into the browser's local storage. (call to `create_model`, a function embedded into the task's training component)
-2. Once the user uploads a dataset, a pre-processing function is called. The pre-processing function is specifically tailored for each task and so is embedded in the task's training component under the name `data_preprocessing`. 
-3. Once the data has been pre-processed, the `training` function is called. This function loads the model from the browser's local storage and updates the model by training it on the given dataset. As mentioned earlier, this function is shared by all training components.
+A shared function `training` is called by all components that are training a model. This function is located in the file ./helpers/training.js.   
+The idea is that the training part for all tasks relies on the same ML backend, while the pre-processing of the training data is done in a custom version (at the component level) by each task.   
+The training process works as follows:
+1. When a user has stated that he wishes to join the training of a task, a TF.js model is initialized (for now with a standard initialization) and stored into the browser's local storage. (call to `create_model`, a function embedded into the task's training component)
+2. Once the user connects their dataset, a pre-processing function is called. The pre-processing function is specifically tailored for each task and so is embedded in the task's training component under the name `data_preprocessing`. This can be either one-off preprocessing of the entire dataset, or a batch-wise pre-processing function which will then be repeatedly called during training, for each new minibatch of training data.
+3. The `training` function function loads the model from the browser's local storage and updates the model by training it on the given dataset (and communicating with peers or a federated learning server). As mentioned earlier, the training function is shared by all training components.
 
 ## Communication between peers 
-Explanations on communication between peers coming out soon. 
+Explanations on communication between peers will be added soon. 
+
+The decentralized training version relies on p2p communication via [peer2js](https://peerjs.com/). The federated trainind does not need `peer2js` but direclty communicates with the server.
 
 ## Some further integrations notes 
-### Mobile Intergration 
-Depending on the user's screen size, the sidebar associated to task's components can disapear and be open using a button located on the left corner of the user's screen. 
+### Using on mobile devices
+Depending on the user's screen width, the left hand sidebar associated to task's components can disapear and be opened using the button located on the top left corner of the user's screen. 
 For now a template that shows how to create tasks can be found. 
  
 ### Main packages used
