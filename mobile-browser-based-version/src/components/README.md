@@ -1,4 +1,5 @@
 # `Vue` architecture documentation
+
 ---
 
 ## Introduction
@@ -21,14 +22,11 @@ An extensive list can be found below:
     ├── NotFound.vue             # Error page that is displayed when a session error occurs
     └── TaskList.vue             # Displays all tasks available in the platform
 
-## Main/Building Frames
-
-TODO
-
-## Reusable Components 
+## Reusable Components
 
 In this section, we will define `vue` components that can be reused by the rest of the platform using :
-1. style templates ([Simple directory](#simple-directory)) 
+
+1. style templates ([Simple directory](#simple-directory))
 2. layout templates ([Container directory](container-directory))
 
 Both approaches are described in the following sections.
@@ -39,16 +37,19 @@ The directory defines pre-styled html components such as `Button` or `Footer` (s
 
 <img width="273" alt="Screenshot 2022-01-04 at 16 06 35" src="https://user-images.githubusercontent.com/43466781/148079430-d333b520-9409-4efa-a754-5069d8bb1847.png"> <img width="1582" alt="Screenshot 2022-01-04 at 16 06 54" src="https://user-images.githubusercontent.com/43466781/148079475-822c3d42-b783-48f8-8e98-4e51f6086dda.png">
 
-> **Note**: the naming convention for files in this directory is `CustomXXX.vue` where `XXX` is the feature of the new component. They shall be imported using the `kebab-case` naming version:  
-```html 
-<custom-xxx/>
+> **Note**: the naming convention for files in this directory is `CustomXXX.vue` where `XXX` is the feature of the new component. They shall be imported using the `kebab-case` naming version:
+
+```html
+<custom-xxx />
 ```
+
 See [Naming convention section](#naming-conventions) for more information.
+
 ### `Container` directory
 
-The `container` directory holds all `vue` components that fulfil a container function. In other words, most components in this folder make extensive use of the [slot `vue` contruct](https://v3.vuejs.org/guide/component-slots.html) 
+The `container` directory holds all `vue` components that fulfil a container function. In other words, most components in this folder make extensive use of the [slot `vue` contruct](https://v3.vuejs.org/guide/component-slots.html)
 
-```html 
+```html
 <slot name="XXX"></slot>
 ```
 
@@ -64,14 +65,14 @@ The `containers` defined for this particular webapp are described below.
 
 `Cards` are containers that are displayed inside other main containers (e.g.`base layout`) with a darker background than the main background (with rounded-corners).
 
-The following types are available : 
+The following types are available :
 
-| Component       |      Description                                                       | 
-|:----------------|:-----------------------------------------------------------------------|
-| `Card.vue`      | simple `div` with darker background                                    | 
-| `TitleCard.vue` | a `Card` but with a stylised title added as `props`                    |   
-| `IconCard`      | a `Card` having a header section with a title and an icon on the right |   
-| `IconCardSmall` | Smaller version of `IconCard` (e.g. used in `TrainingInformant.vue`)   |   
+| Component       | Description                                                            |
+| :-------------- | :--------------------------------------------------------------------- |
+| `Card.vue`      | simple `div` with darker background                                    |
+| `TitleCard.vue` | a `Card` but with a stylised title added as `props`                    |
+| `IconCard`      | a `Card` having a header section with a title and an icon on the right |
+| `IconCardSmall` | Smaller version of `IconCard` (e.g. used in `TrainingInformant.vue`)   |
 
 Examples images:
 
@@ -79,31 +80,31 @@ Examples images:
 <img width="746" alt="Screenshot 2022-01-04 at 16 45 49" src="https://user-images.githubusercontent.com/43466781/148085151-2a22235a-3a37-47fd-a225-1f033e23f843.png">
 <img width="738" alt="Screenshot 2022-01-04 at 16 46 22" src="https://user-images.githubusercontent.com/43466781/148085246-b139e648-bba6-439e-bd8b-5d8865da302b.png">
 
-
 ## Code guidelines
 
 For an inexperienced `Vue` developer, we recommend going through [the official onboarding documentation of Vue 3](https://v3.vuejs.org/guide/introduction.html).
 
 ### Naming conventions
 
-Let's assume, we want to have a `vue` compoment with functionality `xxx yyy`.
+Let's assume, we want to have a `vue` component with functionality `xxx yyy`.
 
-In this project, we chose to follow :
-1. The `snakeCase` standard for the files names : `XxxYyy.vue`
-2. The `kebab-case` stantard for the exported component name : `xxx-yyy`
+In this project, we chose to follow:
+
+1. The `snakeCase` standard for the files names: `XxxYyy.vue`
+2. The `kebab-case` standard for the exported component name: `xxx-yyy`
 
 This means that each `vue` file shall contain the following code
 
 ```javascript
 export default {
-  name: 'xxx-yyy',
-}
+  name: "xxx-yyy",
+};
 ```
 
 and that another `vue` component can use it inside its template using the following syntax:
 
-```html 
-<xxx-yyy/>
+```html
+<xxx-yyy />
 ```
 
 > **Note**: all `javascript` code inside the `<script></script>` tag shall respect the ES6 standard, in particular the imports statements. See [Helpers folder README](../helpers/README.md) for more information.
@@ -114,4 +115,3 @@ You will find below some resources that should help increase modularity and redu
 
 1. `slots`: [medium](https://medium.com/js-dojo/magic-of-vue-template-slots-806bcbb64578), [vue docs](https://v3.vuejs.org/guide/component-slots.html)
 2. `v-for` and `data properties`: [vue docs](https://vuejs.org/v2/guide/list.html)
-
