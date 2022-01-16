@@ -631,11 +631,10 @@ export function getInteroperabilityParameters(request, response) {
       // Normalize clientwise values
       value = value.map((parameter) => {
         let parameterList = Object.values(parameter);
-        //let parameterSum = parameterList.reduce((a, b) => a + b, 0);
-        let max = Math.max(...parameterList);
-        let min = Math.min(...parameterList);
+        let squaredSum = parameterList.reduce((a, b) => a + b * b, 0);
+        console.log(key, squaredSum);
         return parameterList.length > 1
-          ? parameterList.map((feature) => (feature - min) / (min - max))
+          ? parameterList.map((n) => (n * n) / squaredSum)
           : parameterList;
       });
       // Add client data to the parameters
