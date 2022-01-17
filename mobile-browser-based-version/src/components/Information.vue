@@ -44,6 +44,23 @@
             <card customClass="hover:text-primary dark:hover:text-light">
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
+                  <b>Federated learning:</b>
+                  The key insight is to share weights instead of data, each user
+                  trains on his own machine and periodically shares his learned
+                  weights with a central server. The server will agreggate all
+                  these weights and send them back. We support a variety of
+                  modern deep learning architectures running on mobile device
+                  (currently via
+                  <a class="text-blue-600" href="https://www.tensorflow.org/js"
+                    >TF.js</a
+                  >).
+                </ul>
+              </div>
+            </card>
+
+            <card customClass="hover:text-primary dark:hover:text-light">
+              <div class="ml-10">
+                <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
                   <b>Decentralized learning:</b>
                   makes this possible, following the same principles as in
                   federated learning, but going one step further by removing any

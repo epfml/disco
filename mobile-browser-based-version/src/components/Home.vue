@@ -48,8 +48,8 @@
           <span class="text-primary-dark dark:text-primary-light"
             >Decentralised learning</span
           >
-          uses peer2peer communication weights are shared among the users while
-          keeping your data local at all times.
+          uses peer2peer communication to share weights among the users keeping
+          your data local at all times.
         </p>
       </div>
 
@@ -59,8 +59,8 @@
           <span class="text-primary-dark dark:text-primary-light"
             >Federated learning</span
           >
-          uses a central server weights are aggregated and then shared among the
-          users while keeping your data local at all times.
+          uses a central server to share and aggregate weights of the users
+          while keeping your data local at all times.
         </p>
       </div>
     </section>
