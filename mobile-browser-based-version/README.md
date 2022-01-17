@@ -22,7 +22,8 @@ This will start the application locally with two visualization options:
 2. One can access the running app on any device that has access to the network of his machine. To do so, use the `network link`. 
 
 To **test decentralized learning** between two peers, run the aformentioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.    
-Please note that currently, only the titanic task has been configured to have a decentralized training loop. 
+
+To choose between **decentralized** and **federated** learning go to the settings found in menu.
 
 ### Compiles and minifies for production
 ```
