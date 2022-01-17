@@ -1,6 +1,6 @@
 {
   "home": {
-      "cards": [
+      "buildCard": [
         {
           "header": {
             "text": "Build AI with collaborators but",
@@ -8,10 +8,25 @@
           },
           "items": [
             "Exchange <span class='italic'>models</span> not data",
-            "Keep data at its source"
+            "Keep data at its source",
+            "choose either <span class='italic'>decentralised</span> or <span class='italic'>federated</span> training"
           ]
         }
       ],
-      "buttonText": "Start building"
+      "taskCard": [
+        {
+          "header": {
+            "text": "Create your",
+            "underlined": "own task"
+          },
+          "items": [
+            "Choose a model",
+            "Describe the task",
+            "Specify the desired training and evaluation parameters "
+          ]
+        }
+      ],
+      "startBuildingButtonText": "Start building",
+      "createTaskButtonText": "Create task"
     }
   }
