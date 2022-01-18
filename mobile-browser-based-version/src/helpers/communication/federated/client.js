@@ -114,6 +114,9 @@ export class FederatedClient extends Client {
   }
 
   async onEpochBeginCommunication(model, epoch, trainingInformant) {
+    console.log(model)
+    console.log(epoch)
+    console.log(trainingInformant)
     await super.onEpochBeginCommunication(model, epoch, trainingInformant);
 
     /**
@@ -153,6 +156,9 @@ export class FederatedClient extends Client {
   }
 
   async onEpochEndCommunication(model, epoch, trainingInformant) {
+    console.log(model)
+    console.log(epoch)
+    console.log(trainingInformant)
     await super.onEpochEndCommunication(model, epoch, trainingInformant);
 
     /**
