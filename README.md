@@ -1,16 +1,9 @@
 # DeAI - Decentralized Collaborative Machine Learning
 
-<<<<<<< HEAD
-DeAI enables collaborative and privacy-preserving training of machine learning models. 
-DeAI is easy-to-use mobile & web code. DeAI supports both federated and distributed learning. The latest version (without the federated option) of DeAI is currently running on the following link, [directly in your browser](https://epfml.github.io/DeAI/), for mobile and desktop:
- 
-  :rocket: https://epfml.github.io/DeAI/ :rocket:
-=======
 DeAI enables collaborative and privacy-preserving training of machine learning models. DeAI offers both decentralized and federated learning.
 DeAI is easy-to-use mobile & web code. DeAI supports both federated and distributed learning. The latest version of DeAI is currently running on the following link, [directly in your browser](https://epfml.github.io/DeAI/), for mobile and desktop:
 
 :rocket: https://epfml.github.io/DeAI/ :rocket:
->>>>>>> develop
 
 **Key Question:** Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? - or - Can we train an ML model which is equally good as if all data were in one place, but respect privacy?
 
