@@ -50,7 +50,7 @@ const IDLE_DELAY = 1000 * 10;
  * Same as IDLE_DELAY, except longer for clients that recently connected and thus
  * are not critical nodes (i.e. training nodes).
  */
-const LONGER_IDLE_DELAY = 1000 * 60;
+const LONGER_IDLE_DELAY = 1000 * 600;
 /**
  * Contains the model weights received from clients for a given task and round.
  * Stored by task ID, round number and client ID.

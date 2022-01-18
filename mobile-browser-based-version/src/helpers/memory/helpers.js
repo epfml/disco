@@ -31,6 +31,7 @@ async function _deleteModel(taskID, modelName, modelType) {
   );
 }
 
+
 /**
  * Fetches metadata on the working model currently saved in IndexedDB.
  * Returns false if the specified model does not exist.
@@ -139,6 +140,23 @@ export async function downloadSavedModel(taskID, modelName) {
   );
 }
 /**
+ * Preprocesses the data based on the training information
+ * @param {Array} data the dataset of the task
+ * @param {Object} trainingInformation the training information of the task
+ */
+export function preprocessData(data, trainingInformation) {
+  var tensor = data;
+  //More preprocessing functions can be added using this template
+  if (trainingInformation.preprocessFunctions.includes('resize')) {
+    tensor = tf.image.resizeBilinear(tensor, [
+      trainingInformation.RESIZED_IMAGE_H,
+      trainingInformation.RESIZED_IMAGE_W,
+    ]);
+  }
+
+  return tensor;
+}
+/**
  * Creates a dataset generator function for memory efficient training
  * @param {Array} dataset the dataset of the task
  * @param {Array} labels the labels of the task
@@ -155,14 +173,7 @@ export function datasetGenerator(
 ) {
   return function* dataGenerator() {
     for (let i = startIndex; i < endIndex; i++) {
-      var tensor = tf.tensor(dataset.arraySync()[i]);
-      //More preprocessing functions can be added using this template
-      if (trainingInformation.preprocess_functions.includes('resize')) {
-        tensor = tf.image.resizeBilinear(tensor, [
-          trainingInformation.RESIZED_IMAGE_H,
-          trainingInformation.RESIZED_IMAGE_W,
-        ]);
-      }
+      const tensor = preprocessData(dataset.arraySync()[i], trainingInformation)
       yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) };
     }
   };
