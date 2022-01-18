@@ -144,20 +144,24 @@ export async function downloadSavedModel(taskID, modelName) {
  * @param {Array} labels the labels of the task
  * @param {Integer} startIndex staring index of the split
  * @param {Integer} endIndex ending index of the split
- * @param {Function} transformation transformation function to be applied to the data
+ * @param {Array} transformationFunctions transformation functions to be applied to the data
  */
-export function imageDatasetGenerator(
+export function datasetGenerator(
   dataset,
   labels,
   startIndex,
   endIndex,
-  transformation
+  trainingInformation
 ) {
   return function* dataGenerator() {
     for (let i = startIndex; i < endIndex; i++) {
       var tensor = tf.tensor(dataset.arraySync()[i]);
-      if (transformation) {
-        tensor = transformation(tensor);
+      //More preprocessing functions can be added using this template
+      if (trainingInformation.preprocess_functions.includes('resize')) {
+        tensor = tf.image.resizeBilinear(tensor, [
+          trainingInformation.RESIZED_IMAGE_H,
+          trainingInformation.RESIZED_IMAGE_W,
+        ]);
       }
       yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) };
     }
