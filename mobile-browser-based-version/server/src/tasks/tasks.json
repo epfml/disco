@@ -77,7 +77,7 @@
     "trainingInformation": {
       "modelID": "mnist-model",
       "epochs": 10,
-      "roundDuration": 0,
+      "roundDuration": 5,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
@@ -110,7 +110,7 @@
     "trainingInformation": {
       "modelID": "lus-covid-model",
       "epochs": 15,
-      "roundDuration": 0,
+      "roundDuration": 5,
       "validationSplit": 0.2,
       "batchSize": 2,
       "modelCompileData": {
@@ -145,7 +145,7 @@
     "trainingInformation": {
       "modelID": "cifar10-model",
       "epochs": 25,
-      "roundDuration": 0,
+      "roundDuration": 5,
       "validationSplit": 0.2,
       "batchSize": 10,
       "modelCompileData": {
