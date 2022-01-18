@@ -3,7 +3,7 @@ import {
   updateWorkingModel,
   getWorkingModelMetadata,
   preprocessData,
-  datasetGenerator
+  datasetGenerator,
 } from '../memory/helpers';
 
 import * as tf from '@tensorflow/tfjs';
@@ -148,32 +148,34 @@ export class TrainingManager {
   async _trainLocally() {
     const info = this.task.trainingInformation;
 
-    if(info.batchwise) {
-      console.log("Memory efficient training mode is used, data preprocessing is executed batch wise")
+    if (info.batchwise) {
+      console.log(
+        'Memory efficient training mode is used, data preprocessing is executed batch wise'
+      );
       // Creation of Dataset objects for training
       const trainData = tf.data
-      .generator(
-        datasetGenerator(
-          this.data,
-          this.labels,
-          0,
-          this.data.shape[0] * (1 - info.validationSplit),
-          info
+        .generator(
+          datasetGenerator(
+            this.data,
+            this.labels,
+            0,
+            this.data.shape[0] * (1 - info.validationSplit),
+            info
+          )
         )
-      )
-      .batch(info.batchSize);
+        .batch(info.batchSize);
 
-    const valData = tf.data
-      .generator(
-        datasetGenerator(
-          this.data,
-          this.labels,
-          Math.floor(this.data.shape[0] * (1 - info.validationSplit)),
-          this.data.shape[0],
-          info
+      const valData = tf.data
+        .generator(
+          datasetGenerator(
+            this.data,
+            this.labels,
+            Math.floor(this.data.shape[0] * (1 - info.validationSplit)),
+            this.data.shape[0],
+            info
+          )
         )
-      )
-      .batch(info.batchSize);
+        .batch(info.batchSize);
       await this.model.fitDataset(trainData, {
         epochs: info.epochs,
         validationData: valData,
@@ -204,78 +206,80 @@ export class TrainingManager {
           },
         },
       });
-    }
+    } else {
+      console.log(
+        'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
+      );
 
-    else {
-      console.log("Fast training mode is used, data preprocessing is executed on the entire dataset at once");
+      const tensor = preprocessData(this.data, info);
 
-      const tensor = preprocessData(this.data, info)
-
-    await this.model.fit(tensor, this.labels, {
-      initialEpoch: this.model.getUserDefinedMetadata().epoch,
-      epochs: info.epochs ?? MANY_EPOCHS,
-      batchSize: info.batchSize,
-      validationSplit: info.validationSplit,
-      shuffle: true,
-      callbacks: {
-        onEpochEnd: async (epoch, logs) => {
-          this.trainingInformant.updateGraph(
-            epoch + 1,
-            (logs.val_acc * 100).toFixed(2),
-            (logs.acc * 100).toFixed(2)
-          );
-          console.log(
-            `EPOCH (${epoch + 1}):
+      await this.model.fit(tensor, this.labels, {
+        initialEpoch: this.model.getUserDefinedMetadata().epoch,
+        epochs: info.epochs ?? MANY_EPOCHS,
+        batchSize: info.batchSize,
+        validationSplit: info.validationSplit,
+        shuffle: true,
+        callbacks: {
+          onEpochEnd: async (epoch, logs) => {
+            this.trainingInformant.updateGraph(
+              epoch + 1,
+              (logs.val_acc * 100).toFixed(2),
+              (logs.acc * 100).toFixed(2)
+            );
+            console.log(
+              `EPOCH (${epoch + 1}):
             Train Accuracy: ${(logs.acc * 100).toFixed(2)},
             Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
-          );
-          if (this.useIndexedDB) {
-            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
-            await updateWorkingModel(
-              this.task.taskID,
-              info.modelID,
-              this.model
             );
-          }
-          if (this.stopTrainingRequested) {
-            this.model.stopTraining = true;
-            this.stopTrainingRequested = false;
-          }
+            if (this.useIndexedDB) {
+              this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
+              await updateWorkingModel(
+                this.task.taskID,
+                info.modelID,
+                this.model
+              );
+            }
+            if (this.stopTrainingRequested) {
+              this.model.stopTraining = true;
+              this.stopTrainingRequested = false;
+            }
+          },
         },
-      },
-    });
-  }
+      });
+    }
   }
 
   async _trainDistributed() {
     const info = this.task.trainingInformation;
 
     // Creation of Dataset objects for training
-    if(info.batchwise) {
-      console.log("Memory efficient training mode is used, data preprocessing is executed batch wise")
+    if (info.batchwise) {
+      console.log(
+        'Memory efficient training mode is used, data preprocessing is executed batch wise'
+      );
       const trainData = tf.data
-      .generator(
-        datasetGenerator(
-          this.data,
-          this.labels,
-          0,
-          this.data.shape[0] * (1 - info.validationSplit),
-          info
+        .generator(
+          datasetGenerator(
+            this.data,
+            this.labels,
+            0,
+            this.data.shape[0] * (1 - info.validationSplit),
+            info
+          )
         )
-      )
-      .batch(info.batchSize);
+        .batch(info.batchSize);
 
-    const valData = tf.data
-      .generator(
-        datasetGenerator(
-          this.data,
-          this.labels,
-          Math.floor(this.data.shape[0] * (1 - info.validationSplit)),
-          this.data.shape[0],
-          info
+      const valData = tf.data
+        .generator(
+          datasetGenerator(
+            this.data,
+            this.labels,
+            Math.floor(this.data.shape[0] * (1 - info.validationSplit)),
+            this.data.shape[0],
+            info
+          )
         )
-      )
-      .batch(info.batchSize);
+        .batch(info.batchSize);
 
       await this.model.fitDataset(trainData, {
         epochs: info.epochs,
@@ -310,49 +314,49 @@ export class TrainingManager {
           },
         },
       });
-    }
+    } else {
+      console.log(
+        'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
+      );
 
-    else {
-    console.log("Fast training mode is used, data preprocessing is executed on the entire dataset at once");
+      const tensor = preprocessData(this.data, info);
 
-    const tensor = preprocessData(this.data, info)
-
-  await this.model.fit(tensor, this.labels, {
-      initialEpoch: 0,
-      epochs: info.epochs ?? MANY_EPOCHS,
-      batchSize: info.batchSize,
-      validationSplit: info.validationSplit,
-      shuffle: true,
-      callbacks: {
-        onTrainBegin: async (logs) => {
-          await this._onTrainBegin();
-        },
-        onTrainEnd: async (logs) => {
-          await this._onTrainEnd();
-        },
-        onEpochBegin: async (epoch, logs) => {
-          await this._onEpochBegin(epoch);
-        },
-        onEpochEnd: async (epoch, logs) => {
-          await this._onEpochEnd(
-            epoch + 1,
-            (logs.acc * 100).toFixed(2),
-            (logs.val_acc * 100).toFixed(2)
-          );
-          if (this.useIndexedDB) {
-            await updateWorkingModel(
-              this.task.taskID,
-              info.modelID,
-              this.model
+      await this.model.fit(tensor, this.labels, {
+        initialEpoch: 0,
+        epochs: info.epochs ?? MANY_EPOCHS,
+        batchSize: info.batchSize,
+        validationSplit: info.validationSplit,
+        shuffle: true,
+        callbacks: {
+          onTrainBegin: async (logs) => {
+            await this._onTrainBegin();
+          },
+          onTrainEnd: async (logs) => {
+            await this._onTrainEnd();
+          },
+          onEpochBegin: async (epoch, logs) => {
+            await this._onEpochBegin(epoch);
+          },
+          onEpochEnd: async (epoch, logs) => {
+            await this._onEpochEnd(
+              epoch + 1,
+              (logs.acc * 100).toFixed(2),
+              (logs.val_acc * 100).toFixed(2)
             );
-          }
-          if (this.stopTrainingRequested) {
-            this.model.stopTraining = true;
-            this.stopTrainingRequested = false;
-          }
+            if (this.useIndexedDB) {
+              await updateWorkingModel(
+                this.task.taskID,
+                info.modelID,
+                this.model
+              );
+            }
+            if (this.stopTrainingRequested) {
+              this.model.stopTraining = true;
+              this.stopTrainingRequested = false;
+            }
+          },
         },
-      },
-    });
-  }
+      });
+    }
   }
 }

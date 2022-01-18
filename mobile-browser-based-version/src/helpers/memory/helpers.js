@@ -31,7 +31,6 @@ async function _deleteModel(taskID, modelName, modelType) {
   );
 }
 
-
 /**
  * Fetches metadata on the working model currently saved in IndexedDB.
  * Returns false if the specified model does not exist.
@@ -173,7 +172,10 @@ export function datasetGenerator(
 ) {
   return function* dataGenerator() {
     for (let i = startIndex; i < endIndex; i++) {
-      const tensor = preprocessData(dataset.arraySync()[i], trainingInformation)
+      const tensor = preprocessData(
+        dataset.arraySync()[i],
+        trainingInformation
+      );
       yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) };
     }
   };
