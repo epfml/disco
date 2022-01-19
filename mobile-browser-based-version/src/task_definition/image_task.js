@@ -18,7 +18,6 @@ export class ImageTask extends Task {
       img.height = this.trainingInformation.IMAGE_H;
       img.onload = () => {
         var output = tf.browser.fromPixels(img)
-        // var output = tf.image.resizeBilinear(tf.browser.fromPixels(img), [this.trainingInformation.RESIZED_IMAGE_H, this.trainingInformation.RESIZED_IMAGE_W]);
         res(output);
       };
     });

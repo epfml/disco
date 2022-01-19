@@ -31,6 +31,10 @@ async function _deleteModel(taskID, modelName, modelType) {
   );
 }
 
+function _withResize(trainingInformation) {
+  return trainingInformation.preprocessFunctions.includes('resize');
+}
+
 /**
  * Fetches metadata on the working model currently saved in IndexedDB.
  * Returns false if the specified model does not exist.
@@ -146,7 +150,7 @@ export async function downloadSavedModel(taskID, modelName) {
 export function preprocessData(data, trainingInformation) {
   var tensor = data;
   //More preprocessing functions can be added using this template
-  if (trainingInformation.preprocessFunctions.includes('resize')) {
+  if (_withResize(trainingInformation)) {
     tensor = tf.image.resizeBilinear(tensor, [
       trainingInformation.RESIZED_IMAGE_H,
       trainingInformation.RESIZED_IMAGE_W,
