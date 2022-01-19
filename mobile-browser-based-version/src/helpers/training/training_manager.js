@@ -145,105 +145,115 @@ export class TrainingManager {
     );
   }
 
+  async _modelFitData(model, trainingInformation, callbacks) {
+    const tensor = preprocessData(this.data, trainingInformation);
+
+    await model.fit(tensor, this.labels, {
+      initialEpoch: this.model.getUserDefinedMetadata().epoch,
+      epochs: trainingInformation.epochs ?? MANY_EPOCHS,
+      batchSize: trainingInformation.batchSize,
+      validationSplit: trainingInformation.validationSplit,
+      shuffle: true,
+      callbacks: callbacks,
+    });
+  }
+
+  async _modelFitDataBatchWise(model, trainingInformation, callbacks) {
+    // Creation of Dataset objects for training
+    const trainData = tf.data
+      .generator(
+        datasetGenerator(
+          this.data,
+          this.labels,
+          0,
+          this.data.shape[0] * (1 - trainingInformation.validationSplit),
+          trainingInformation
+        )
+      )
+      .batch(trainingInformation.batchSize);
+
+    const valData = tf.data
+      .generator(
+        datasetGenerator(
+          this.data,
+          this.labels,
+          Math.floor(
+            this.data.shape[0] * (1 - trainingInformation.validationSplit)
+          ),
+          this.data.shape[0],
+          trainingInformation
+        )
+      )
+      .batch(trainingInformation.batchSize);
+
+    await model.fitDataset(trainData, {
+      epochs: trainingInformation.epochs,
+      validationData: valData,
+      callbacks: callbacks,
+    });
+  }
+
   async _trainLocally() {
     const info = this.task.trainingInformation;
 
-    if (info.batchwise) {
+    if (info.batchwisePreprocessing) {
       console.log(
         'Memory efficient training mode is used, data preprocessing is executed batch wise'
       );
-      // Creation of Dataset objects for training
-      const trainData = tf.data
-        .generator(
-          datasetGenerator(
-            this.data,
-            this.labels,
-            0,
-            this.data.shape[0] * (1 - info.validationSplit),
-            info
-          )
-        )
-        .batch(info.batchSize);
-
-      const valData = tf.data
-        .generator(
-          datasetGenerator(
-            this.data,
-            this.labels,
-            Math.floor(this.data.shape[0] * (1 - info.validationSplit)),
-            this.data.shape[0],
-            info
-          )
-        )
-        .batch(info.batchSize);
-      await this.model.fitDataset(trainData, {
-        epochs: info.epochs,
-        validationData: valData,
-        callbacks: {
-          onEpochEnd: async (epoch, logs) => {
-            this.trainingInformant.updateGraph(
-              epoch + 1,
-              (logs.val_acc * 100).toFixed(2),
-              (logs.acc * 100).toFixed(2)
-            );
-            console.log(
-              `EPOCH (${epoch + 1}):
+      await this._modelFitDataBatchWise(this.model, info, {
+        onEpochEnd: async (epoch, logs) => {
+          this.trainingInformant.updateGraph(
+            epoch + 1,
+            (logs.val_acc * 100).toFixed(2),
+            (logs.acc * 100).toFixed(2)
+          );
+          console.log(
+            `EPOCH (${epoch + 1}):
             Train Accuracy: ${(logs.acc * 100).toFixed(2)},
             Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
+          );
+          if (this.useIndexedDB) {
+            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
+            await updateWorkingModel(
+              this.task.taskID,
+              info.modelID,
+              this.model
             );
-            if (this.useIndexedDB) {
-              this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
-              await updateWorkingModel(
-                this.task.taskID,
-                info.modelID,
-                this.model
-              );
-            }
-            if (this.stopTrainingRequested) {
-              this.model.stopTraining = true;
-              this.stopTrainingRequested = false;
-            }
-          },
+          }
+          if (this.stopTrainingRequested) {
+            this.model.stopTraining = true;
+            this.stopTrainingRequested = false;
+          }
         },
       });
     } else {
       console.log(
         'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
       );
-
-      const tensor = preprocessData(this.data, info);
-
-      await this.model.fit(tensor, this.labels, {
-        initialEpoch: this.model.getUserDefinedMetadata().epoch,
-        epochs: info.epochs ?? MANY_EPOCHS,
-        batchSize: info.batchSize,
-        validationSplit: info.validationSplit,
-        shuffle: true,
-        callbacks: {
-          onEpochEnd: async (epoch, logs) => {
-            this.trainingInformant.updateGraph(
-              epoch + 1,
-              (logs.val_acc * 100).toFixed(2),
-              (logs.acc * 100).toFixed(2)
+      await this._modelFitData(this.model, info, {
+        onEpochEnd: async (epoch, logs) => {
+          this.trainingInformant.updateGraph(
+            epoch + 1,
+            (logs.val_acc * 100).toFixed(2),
+            (logs.acc * 100).toFixed(2)
+          );
+          console.log(
+            `EPOCH (${epoch + 1}):
+                Train Accuracy: ${(logs.acc * 100).toFixed(2)},
+                Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
+          );
+          if (this.useIndexedDB) {
+            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
+            await updateWorkingModel(
+              this.task.taskID,
+              info.modelID,
+              this.model
             );
-            console.log(
-              `EPOCH (${epoch + 1}):
-            Train Accuracy: ${(logs.acc * 100).toFixed(2)},
-            Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
-            );
-            if (this.useIndexedDB) {
-              this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
-              await updateWorkingModel(
-                this.task.taskID,
-                info.modelID,
-                this.model
-              );
-            }
-            if (this.stopTrainingRequested) {
-              this.model.stopTraining = true;
-              this.stopTrainingRequested = false;
-            }
-          },
+          }
+          if (this.stopTrainingRequested) {
+            this.model.stopTraining = true;
+            this.stopTrainingRequested = false;
+          }
         },
       });
     }
@@ -252,66 +262,38 @@ export class TrainingManager {
   async _trainDistributed() {
     const info = this.task.trainingInformation;
 
-    // Creation of Dataset objects for training
-    if (info.batchwise) {
+    if (info.batchwisePreprocessing) {
       console.log(
         'Memory efficient training mode is used, data preprocessing is executed batch wise'
       );
-      const trainData = tf.data
-        .generator(
-          datasetGenerator(
-            this.data,
-            this.labels,
-            0,
-            this.data.shape[0] * (1 - info.validationSplit),
-            info
-          )
-        )
-        .batch(info.batchSize);
 
-      const valData = tf.data
-        .generator(
-          datasetGenerator(
-            this.data,
-            this.labels,
-            Math.floor(this.data.shape[0] * (1 - info.validationSplit)),
-            this.data.shape[0],
-            info
-          )
-        )
-        .batch(info.batchSize);
-
-      await this.model.fitDataset(trainData, {
-        epochs: info.epochs,
-        validationData: valData,
-        callbacks: {
-          onTrainBegin: async (logs) => {
-            await this._onTrainBegin();
-          },
-          onTrainEnd: async (logs) => {
-            await this._onTrainEnd();
-          },
-          onEpochBegin: async (epoch, logs) => {
-            await this._onEpochBegin(epoch);
-          },
-          onEpochEnd: async (epoch, logs) => {
-            await this._onEpochEnd(
-              epoch + 1,
-              (logs.acc * 100).toFixed(2),
-              (logs.val_acc * 100).toFixed(2)
+      await this._modelFitDataBatchWise(this.model, info, {
+        onTrainBegin: async (logs) => {
+          await this._onTrainBegin();
+        },
+        onTrainEnd: async (logs) => {
+          await this._onTrainEnd();
+        },
+        onEpochBegin: async (epoch, logs) => {
+          await this._onEpochBegin(epoch);
+        },
+        onEpochEnd: async (epoch, logs) => {
+          await this._onEpochEnd(
+            epoch + 1,
+            (logs.acc * 100).toFixed(2),
+            (logs.val_acc * 100).toFixed(2)
+          );
+          if (this.useIndexedDB) {
+            await updateWorkingModel(
+              this.task.taskID,
+              info.modelID,
+              this.model
             );
-            if (this.useIndexedDB) {
-              await updateWorkingModel(
-                this.task.taskID,
-                info.modelID,
-                this.model
-              );
-            }
-            if (this.stopTrainingRequested) {
-              this.model.stopTraining = true;
-              this.stopTrainingRequested = false;
-            }
-          },
+          }
+          if (this.stopTrainingRequested) {
+            this.model.stopTraining = true;
+            this.stopTrainingRequested = false;
+          }
         },
       });
     } else {
@@ -319,42 +301,33 @@ export class TrainingManager {
         'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
       );
 
-      const tensor = preprocessData(this.data, info);
-
-      await this.model.fit(tensor, this.labels, {
-        initialEpoch: 0,
-        epochs: info.epochs ?? MANY_EPOCHS,
-        batchSize: info.batchSize,
-        validationSplit: info.validationSplit,
-        shuffle: true,
-        callbacks: {
-          onTrainBegin: async (logs) => {
-            await this._onTrainBegin();
-          },
-          onTrainEnd: async (logs) => {
-            await this._onTrainEnd();
-          },
-          onEpochBegin: async (epoch, logs) => {
-            await this._onEpochBegin(epoch);
-          },
-          onEpochEnd: async (epoch, logs) => {
-            await this._onEpochEnd(
-              epoch + 1,
-              (logs.acc * 100).toFixed(2),
-              (logs.val_acc * 100).toFixed(2)
+      await this._modelFitData(this.model, info, {
+        onTrainBegin: async (logs) => {
+          await this._onTrainBegin();
+        },
+        onTrainEnd: async (logs) => {
+          await this._onTrainEnd();
+        },
+        onEpochBegin: async (epoch, logs) => {
+          await this._onEpochBegin(epoch);
+        },
+        onEpochEnd: async (epoch, logs) => {
+          await this._onEpochEnd(
+            epoch + 1,
+            (logs.acc * 100).toFixed(2),
+            (logs.val_acc * 100).toFixed(2)
+          );
+          if (this.useIndexedDB) {
+            await updateWorkingModel(
+              this.task.taskID,
+              info.modelID,
+              this.model
             );
-            if (this.useIndexedDB) {
-              await updateWorkingModel(
-                this.task.taskID,
-                info.modelID,
-                this.model
-              );
-            }
-            if (this.stopTrainingRequested) {
-              this.model.stopTraining = true;
-              this.stopTrainingRequested = false;
-            }
-          },
+          }
+          if (this.stopTrainingRequested) {
+            this.model.stopTraining = true;
+            this.stopTrainingRequested = false;
+          }
         },
       });
     }
