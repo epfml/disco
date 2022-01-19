@@ -31,7 +31,7 @@ async function _deleteModel(taskID, modelName, modelType) {
   );
 }
 
-function _withResize(trainingInformation) {
+function _preprocessDataWithResize(trainingInformation) {
   return trainingInformation.preprocessFunctions.includes('resize');
 }
 
@@ -150,7 +150,7 @@ export async function downloadSavedModel(taskID, modelName) {
 export function preprocessData(data, trainingInformation) {
   var tensor = data;
   //More preprocessing functions can be added using this template
-  if (_withResize(trainingInformation)) {
+  if (_preprocessDataWithResize(trainingInformation)) {
     tensor = tf.image.resizeBilinear(tensor, [
       trainingInformation.RESIZED_IMAGE_H,
       trainingInformation.RESIZED_IMAGE_W,
