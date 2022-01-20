@@ -145,22 +145,17 @@ export class TrainingManager {
    * Method corresponding to the TFJS fit function's callback. Calls the client's
    * subroutine used in local training
    */
-
   async _onEpochEndLocal(
     epoch,
     accuracy,
     validationAccuracy,
     trainingInformation
   ) {
-    this.trainingInformant.updateGraph(
-      epoch + 1,
-      (validationAccuracy * 100).toFixed(2),
-      (accuracy * 100).toFixed(2)
-    );
+    this.trainingInformant.updateGraph(epoch + 1, validationAccuracy, accuracy);
     console.log(
       `EPOCH (${epoch + 1}):
-      Train Accuracy: ${(accuracy * 100).toFixed(2)},
-      Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
+      Train Accuracy: ${accuracy},
+      Val Accuracy:  ${validationAccuracy}\n`
     );
     if (this.useIndexedDB) {
       this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
@@ -224,7 +219,6 @@ export class TrainingManager {
    * @param {Object} trainingInformation Training information containing the training parameters
    * @param {Object} callbacks Callabcks used during training
    */
-
   async _modelFitDataBatchWise(model, trainingInformation, callbacks) {
     // Creation of Dataset objects for training
     const trainData = tf.data
@@ -260,81 +254,76 @@ export class TrainingManager {
     });
   }
 
+  /**
+   *  Method that chooses the appropriate modelFitData function and defines the modelFit callbacks for local training.
+   */
   async _trainLocally() {
     const info = this.task.trainingInformation;
 
-    if (info.batchwisePreprocessing) {
-      console.log(
-        'Memory efficient training mode is used, data preprocessing is executed batch wise'
-      );
-      await this._modelFitDataBatchWise(this.model, info, {
-        onEpochEnd: async (epoch, logs) => {
-          this._onEpochEndLocal(epoch, logs.acc, logs.val_acc, info);
-        },
-      });
-    } else {
-      console.log(
-        'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
-      );
-      await this._modelFitData(this.model, info, {
-        onEpochEnd: async (epoch, logs) => {
-          this._onEpochEndLocal(epoch, logs.acc, logs.val_acc, info);
-        },
-      });
-    }
+    let logText = info.batchwisePreprocessing
+      ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
+      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once';
+
+    console.log(logText);
+
+    let modelFit = (
+      info.batchwisePreprocessing
+        ? this._modelFitDataBatchWise
+        : this._modelFitData
+    ).bind(this);
+
+    await modelFit(this.model, info, {
+      onEpochEnd: async (epoch, logs) => {
+        this._onEpochEndLocal(
+          epoch,
+          this._formatAccuracy(logs.acc),
+          this._formatAccuracy(logs.val_acc),
+          info
+        );
+      },
+    });
   }
 
+  /**
+   *  Method that chooses the appropriate modelFitData function and defines the modelFit callbacks for distributed training.
+   */
   async _trainDistributed() {
     const info = this.task.trainingInformation;
 
-    if (info.batchwisePreprocessing) {
-      console.log(
-        'Memory efficient training mode is used, data preprocessing is executed batch wise'
-      );
+    let logText = info.batchwisePreprocessing
+      ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
+      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once';
 
-      await this._modelFitDataBatchWise(this.model, info, {
-        onTrainBegin: async (logs) => {
-          await this._onTrainBegin();
-        },
-        onTrainEnd: async (logs) => {
-          await this._onTrainEnd();
-        },
-        onEpochBegin: async (epoch, logs) => {
-          await this._onEpochBegin(epoch);
-        },
-        onEpochEnd: async (epoch, logs) => {
-          await this._onEpochEndDistributed(
-            epoch + 1,
-            (logs.acc * 100).toFixed(2),
-            (logs.val_acc * 100).toFixed(2),
-            info
-          );
-        },
-      });
-    } else {
-      console.log(
-        'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
-      );
+    console.log(logText);
 
-      await this._modelFitData(this.model, info, {
-        onTrainBegin: async (logs) => {
-          await this._onTrainBegin();
-        },
-        onTrainEnd: async (logs) => {
-          await this._onTrainEnd();
-        },
-        onEpochBegin: async (epoch, logs) => {
-          await this._onEpochBegin(epoch);
-        },
-        onEpochEnd: async (epoch, logs) => {
-          await this._onEpochEndDistributed(
-            epoch + 1,
-            (logs.acc * 100).toFixed(2),
-            (logs.val_acc * 100).toFixed(2),
-            info
-          );
-        },
-      });
-    }
+    let modelFit = (
+      info.batchwisePreprocessing
+        ? this._modelFitDataBatchWise
+        : this._modelFitData
+    ).bind(this);
+
+    await modelFit(this.model, info, {
+      onTrainBegin: async (logs) => {
+        await this._onTrainBegin();
+      },
+      onTrainEnd: async (logs) => {
+        await this._onTrainEnd();
+      },
+      onEpochBegin: async (epoch, logs) => {
+        await this._onEpochBegin(epoch);
+      },
+      onEpochEnd: async (epoch, logs) => {
+        await this._onEpochEndDistributed(
+          epoch + 1,
+          this._formatAccuracy(logs.acc),
+          this._formatAccuracy(logs.val_acc),
+          info
+        );
+      },
+    });
+  }
+
+  _formatAccuracy(acc) {
+    return (acc * 100).toFixed(2);
   }
 }
