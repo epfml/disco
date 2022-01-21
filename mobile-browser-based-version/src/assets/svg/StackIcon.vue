@@ -16,13 +16,13 @@
 </template>
 <script>
 export default {
-  name: "stack-icon",
+  name: 'stack-icon',
   props: {
     customClass: {
-      default: "w-10 h-10",
+      default: 'w-10 h-10',
       type: String,
     },
-    viewBox: { default: "0 0 18 15", type: String },
+    viewBox: { default: '0 0 18 15', type: String },
   },
 };
 </script>

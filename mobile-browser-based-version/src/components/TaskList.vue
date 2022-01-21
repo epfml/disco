@@ -63,7 +63,7 @@ export default {
     CustomButton,
   },
   watch: {
-    '$store.state.newTasks': function() {
+    '$store.state.newTasks': function () {
       this.$store.state.newTasks.forEach(this.createNewTaskComponent);
       this.clearNewTasks();
     },

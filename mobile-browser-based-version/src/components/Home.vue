@@ -27,11 +27,6 @@
             <div v-for="item in build.items" :key="item">
               <p v-html="`- ${item}`"></p>
             </div>
-            <p class="text-base">
-              Go to settings
-              <settings-icon customClass="inline w-5 h-5" />
-              to change the platform
-            </p>
           </title-card>
         </div>
       </div>
@@ -47,11 +42,10 @@
         <card customClass="space-y-sm">
           <decentralized-image class="w-full h-full" />
           <p class="text-xs items-center pt-10">
-            <span class="text-primary-dark dark:text-primary-light"
-              >Decentralised learning</span
-            >
-            uses peer2peer communication to share weights among the users
-            keeping your data local at all times.
+            <span class="text-primary-dark dark:text-primary-light">{{
+              $t('home.images.decentralised.title')
+            }}</span>
+            {{ $t('home.images.decentralised.text') }}
           </p>
         </card>
       </div>
@@ -60,11 +54,10 @@
         <card customClass="space-y-sm">
           <federated-image class="w-full h-full" />
           <p class="text-xs items-center pt-10">
-            <span class="text-primary-dark dark:text-primary-light"
-              >Federated learning</span
-            >
-            uses a central server to share and aggregate weights of the users
-            while keeping your data local at all times.
+            <span class="text-primary-dark dark:text-primary-light">{{
+              $t('home.images.federated.title')
+            }}</span>
+            {{ $t('home.images.federated.text') }}
           </p>
         </card>
       </div>
@@ -98,7 +91,6 @@ import BaseLayout from './containers/BaseLayout.vue';
 import CustomButton from './simple/CustomButton.vue';
 import TitleCard from './containers/TitleCard.vue';
 import FederatedImage from '../assets/svg/FederatedImage.vue';
-import SettingsIcon from '../assets/svg/SettingsIcon.vue';
 import DecentralizedImage from '../assets/svg/DecentralizedImage.vue';
 import Card from './containers/Card.vue';
 
@@ -117,7 +109,6 @@ export default {
     CustomButton,
     FederatedImage,
     DecentralizedImage,
-    SettingsIcon,
     Card,
   },
   methods: {
