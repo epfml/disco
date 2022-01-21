@@ -19,33 +19,68 @@
 
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-        <!-- Titanic's card-->
-        <div v-for="card in $tm('home.cards')" :key="card.header.text">
+        <div v-for="build in $tm('home.buildCard')" :key="build.header.text">
           <title-card
-            :title="card.header.text"
-            :titleUnderlined="card.header.underlined"
+            :title="build.header.text"
+            :titleUnderlined="build.header.underlined"
           >
-            <div v-for="item in card.items" :key="item">
+            <div v-for="item in build.items" :key="item">
+              <p v-html="`- ${item}`"></p>
+            </div>
+          </title-card>
+        </div>
+      </div>
+    </section>
+
+    <!-- TODO: This section is not algined with the top, not sure why -->
+    <div class="flex flex-row items-start pl-10">
+      <custom-button v-on:click="goToTaskList()">
+        {{ $t('home.startBuildingButtonText') }}
+      </custom-button>
+
+      <div class="w-1/6 flex flex-col items-center mx-auto">
+        <card customClass="space-y-sm">
+          <decentralized-image class="w-full h-full" />
+          <p class="text-xs items-center pt-10">
+            <span class="text-primary-dark dark:text-primary-light">{{
+              $t('home.images.decentralised.title')
+            }}</span>
+            {{ $t('home.images.decentralised.text') }}
+          </p>
+        </card>
+      </div>
+
+      <div class="w-1/6 flex flex-col items-center mr-auto">
+        <card customClass="space-y-sm">
+          <federated-image class="w-full h-full" />
+          <p class="text-xs items-center pt-10">
+            <span class="text-primary-dark dark:text-primary-light">{{
+              $t('home.images.federated.title')
+            }}</span>
+            {{ $t('home.images.federated.text') }}
+          </p>
+        </card>
+      </div>
+    </div>
+
+    <section class="flex-col items-center justify-center p-4 space-y-4">
+      <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
+        <div v-for="task in $tm('home.taskCard')" :key="task.header.text">
+          <title-card
+            :title="task.header.text"
+            :titleUnderlined="task.header.underlined"
+          >
+            <div v-for="item in task.items" :key="item">
               <p v-html="`- ${item}`"></p>
             </div>
           </title-card>
         </div>
 
-        <custom-button v-on:click="goToTaskList()">
-          {{ $t('home.buttonText') }}
-        </custom-button>
-
-        <title-card title="Create you own task">
-          <!-- Task Form card-->
-          <p class="text-base">Describe the task</p>
-          <p class="text-base">
-            Specify the desired training and evaluation parameters
-          </p>
-        </title-card>
-
-        <custom-button v-on:click="goToNewTaskCreationForm()">
-          Create Task
-        </custom-button>
+        <div class="pt-4">
+          <custom-button v-on:click="goToNewTaskCreationForm()">
+            {{ $t('home.createTaskButtonText') }}
+          </custom-button>
+        </div>
       </div>
     </section>
   </base-layout>
@@ -55,6 +90,9 @@
 import BaseLayout from './containers/BaseLayout.vue';
 import CustomButton from './simple/CustomButton.vue';
 import TitleCard from './containers/TitleCard.vue';
+import FederatedImage from '../assets/svg/FederatedImage.vue';
+import DecentralizedImage from '../assets/svg/DecentralizedImage.vue';
+import Card from './containers/Card.vue';
 
 import { useI18n } from 'vue-i18n';
 import { mapMutations } from 'vuex';
@@ -69,6 +107,9 @@ export default {
     BaseLayout,
     TitleCard,
     CustomButton,
+    FederatedImage,
+    DecentralizedImage,
+    Card,
   },
   methods: {
     ...mapMutations(['setActivePage']),

@@ -13,13 +13,13 @@
 </template>
 <script>
 export default {
-  name: "bin2-icon",
+  name: 'bin2-icon',
   props: {
     customClass: {
-      default: "h-9 w-5",
+      default: 'h-9 w-5',
       type: String,
     },
-    viewBox: { default: "0 0 17 17", type: String },
+    viewBox: { default: '0 0 17 17', type: String },
   },
 };
 </script>
