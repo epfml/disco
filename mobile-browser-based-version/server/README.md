@@ -13,9 +13,22 @@ The server is running as a single ExpressJS app. It mainly requires [Node](https
 
 From this folder, you can run the server on localhost:8080 with `npm start` after running `npm install`.
 
+To automatically restarts the process after changes, the server also supports the `nodemon` package. It can be installed using
+
+```
+npm i -g nodemon
+```
+
+To use it, run the following command
+
+```
+npm run nodemon
+```
+
 ### Testing the servers before deploying
 
 The server is deployed inside a docker container, thus before deploying it, we can locally test the container to see if any new dependencies work (The container runs a 20.04 Ubuntu server). See [docker guide](https://docs.docker.com/get-started/)
+
 ### Deploying the server to the cloud
 
 Google App Engine (GAE) creates an HTTPS certificate automatically, making this the easiest way to deploy the helper server in the Google Cloud Platform.
