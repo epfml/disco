@@ -1,4 +1,3 @@
-import { Lightsail } from 'aws-sdk';
 import { store } from '../../../store/store';
 /**
  * Class that collects information about the status of the training-loop of the model.
