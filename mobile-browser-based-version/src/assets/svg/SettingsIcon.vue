@@ -23,13 +23,13 @@
 </template>
 <script>
 export default {
-  name: "settings-icon",
+  name: 'settings-icon',
   props: {
     customClass: {
-      default: "w-7 h-7",
+      default: 'w-7 h-7',
       type: String,
     },
-    viewBox: { default: "0 0 24 24", type: String },
+    viewBox: { default: '0 0 24 24', type: String },
   },
 };
 </script>
