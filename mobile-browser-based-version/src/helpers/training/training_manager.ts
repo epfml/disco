@@ -260,13 +260,13 @@ export class TrainingManager {
   async _trainLocally() {
     const info = this.task.trainingInformation;
 
-    let logText = info.batchwisePreprocessing
+    const logText = info.batchwisePreprocessing
       ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
       : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once';
 
     console.log(logText);
 
-    let modelFit = (
+    const modelFit = (
       info.batchwisePreprocessing
         ? this._modelFitDataBatchWise
         : this._modelFitData
@@ -290,13 +290,13 @@ export class TrainingManager {
   async _trainDistributed() {
     const info = this.task.trainingInformation;
 
-    let logText = info.batchwisePreprocessing
+    const logText = info.batchwisePreprocessing
       ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
       : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once';
 
     console.log(logText);
 
-    let modelFit = (
+    const modelFit = (
       info.batchwisePreprocessing
         ? this._modelFitDataBatchWise
         : this._modelFitData

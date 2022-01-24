@@ -19,7 +19,7 @@ export const store = createStore({
     },
 
     addGlobalTaskFrameState(state, newGlobalTaskFrameState) {
-      let modelID = newGlobalTaskFrameState.modelID;
+      const modelID = newGlobalTaskFrameState.modelID;
       state.globalTaskFrameState[modelID] = newGlobalTaskFrameState;
     },
 

@@ -1,11 +1,17 @@
 import express from 'express';
 import _ from 'lodash';
 import * as handlers from '../logic/federated/handlers';
-import { tasks, writeNewTask } from '../tasks/tasks';
+import { tasks, writeNewTask, initTasks } from '../tasks/tasks';
 import { ExpressPeerServer } from 'peer';
 import { makeID } from '../helpers/helpers';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import * as config from '../../server.config';
+
+// import { hello_world } from '../tasks/hello';
+
+// hello_world();
+
+initTasks();
 
 // General tasks routes
 const tasksRouter = express.Router();
@@ -14,7 +20,7 @@ tasksRouter.get('/:task/:file', handlers.getLatestModel);
 // POST method route (task-creation-form)
 tasksRouter.post('/', function (req, res) {
   const newTask = req.body,
-    newPort = config.START_TASK_PORT + tasks.length;
+    newPort = config.START_TASK_PORT + tasks?.length();
   if (newTask['taskID'] in tasks)
     console.log('Cannot add new task (key is already defined in Tasks.json)');
   else {
@@ -28,7 +34,7 @@ tasksRouter.post('/', function (req, res) {
     tasks.push(newTask);
     createTaskServer(newTask, newPort);
     // store results in json file
-    writeNewTask(newTask, modelFile, weightsFile);
+    writeNewTask(newTask, modelFile, weightsFile, config);
     // answer vue app
     res.end(`Sucessfull upload`);
   }
@@ -67,7 +73,7 @@ const decentralisedRouter = express.Router();
  */
 const ports = _.range(
   config.START_TASK_PORT,
-  config.START_TASK_PORT + tasks.length
+  config.START_TASK_PORT + tasks?.length()
 );
 const createTaskServer = (task, port) => {
   /**
@@ -99,7 +105,8 @@ const createTaskServer = (task, port) => {
     })
   );
 };
-_.forEach(_.zip(tasks, ports), _.spread(createTaskServer));
+console.log('Router.ts tasks:', tasks);
+// _.forEach(_.zip(tasks?.tasks, ports), _.spread(createTaskServer));
 
 decentralisedRouter.use('/tasks', tasksRouter);
 decentralisedRouter.get('/', (req, res) => res.send('DeAI server'));

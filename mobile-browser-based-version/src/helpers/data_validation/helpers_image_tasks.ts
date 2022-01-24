@@ -1,6 +1,6 @@
 async function getImage(path) {
   return new Promise((resolve, reject) => {
-    var image = new Image();
+    const image = new Image();
     image.src = path;
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error('could not load image: ' + path));
@@ -22,13 +22,13 @@ export async function checkData(trainingData, trainingInfo) {
   let status = true;
   let nr_imgs = 0;
 
-  let files = Object.keys(trainingData);
+  const files = Object.keys(trainingData);
   if (trainingInfo.LABEL_ASSIGNMENT) {
     files.pop();
   }
   for (let index = 0; index < files.length; index++) {
     try {
-      var data = await getImage(files[index]);
+      const data = await getImage(files[index]);
       // filtering criteria for images
       if (data.width >= expected_width && data.height >= expected_height) {
         nr_imgs += 1;

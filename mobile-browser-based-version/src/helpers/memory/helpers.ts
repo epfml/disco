@@ -15,7 +15,7 @@ const WORKING_MODEL = 'working';
 const SAVED_MODEL = 'saved';
 
 async function _getModelMetadata(taskID, modelName, modelType) {
-  let key = INDEXEDDB_SCHEME.concat(path.join(modelType, taskID, modelName));
+  const key = INDEXEDDB_SCHEME.concat(path.join(modelType, taskID, modelName));
   return await tf.io.listModels().then((models) => models[key] ?? false);
 }
 
@@ -148,7 +148,7 @@ export async function downloadSavedModel(taskID, modelName) {
  * @param {Object} trainingInformation the training information of the task
  */
 export function preprocessData(data, trainingInformation) {
-  var tensor = data;
+  let tensor = data;
   //More preprocessing functions can be added using this template
   if (_preprocessDataWithResize(trainingInformation)) {
     tensor = tf.image.resizeBilinear(tensor, [

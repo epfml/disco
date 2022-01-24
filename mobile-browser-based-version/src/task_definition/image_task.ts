@@ -12,12 +12,12 @@ export class ImageTask extends Task {
 
   async loadLocalImage(filename) {
     return new Promise((res, rej) => {
-      var img = new Image();
+      const img = new Image();
       img.src = filename;
       img.width = this.trainingInformation.IMAGE_W;
       img.height = this.trainingInformation.IMAGE_H;
       img.onload = () => {
-        var output = tf.browser.fromPixels(img);
+        const output = tf.browser.fromPixels(img);
         res(output);
       };
     });
@@ -58,12 +58,12 @@ export class ImageTask extends Task {
 
   async dataPreprocessing(trainingData) {
     console.log('Start: Processing Uploaded Files');
-    var Xtrain = null;
-    var ytrain = null;
+    let Xtrain = null;
+    let ytrain = null;
 
     let labels = [];
-    let imageUri = [];
-    let imageNames = [];
+    const imageUri = [];
+    const imageNames = [];
 
     Object.keys(trainingData).forEach((key) => {
       labels.push(trainingData[key]['label']);
@@ -73,7 +73,7 @@ export class ImageTask extends Task {
 
     console.log('User Files Validated. Start parsing.');
     if ('LABEL_ASSIGNMENT' in this.trainingInformation) {
-      var label_file = imageUri.pop();
+      const label_file = imageUri.pop();
       labels.pop();
       labels = await this.createLabels(labels, label_file);
     }
@@ -89,7 +89,7 @@ export class ImageTask extends Task {
         const id = parseInt(imageNames[i].split('_')[0]);
         ids.add(id);
         dictLabels[id] = labels[i];
-        let res = id in dictImages ? dictImages[id] : [];
+        const res = id in dictImages ? dictImages[id] : [];
         res.push(tensor);
         dictImages[id] = res;
       }
@@ -105,7 +105,7 @@ export class ImageTask extends Task {
       for (let i = 0; i < ids.length; ++i) {
         const id = ids[i];
         // Do mean pooling over same patient representations
-        let imageTensorPerId = tf
+        const imageTensorPerId = tf
           .mean(tf.concat(dictImages[id], 0), 0)
           .expandDims(0);
         xsArray.push(imageTensorPerId);
@@ -168,7 +168,7 @@ export class ImageTask extends Task {
 
     console.log('Number of ids found was ' + Object.keys(dictImages).length);
 
-    let imageTensorsPerId = {};
+    const imageTensorsPerId = {};
     ids = Array.from(ids);
     for (let i = 0; i < ids.length; ++i) {
       const id = ids[i];
@@ -230,7 +230,7 @@ export class ImageTask extends Task {
         xTest = await preprocessedData.xTest;
         ids = await preprocessedData.ids;
       } else {
-        for (let url of Object.keys(testingData)) {
+        for (const url of Object.keys(testingData)) {
           const img_tensor = await this.imagePreprocessing(url);
           xTest.push(img_tensor);
         }
@@ -249,7 +249,7 @@ export class ImageTask extends Task {
           this.trainingInformation.LABEL_LIST
         );
 
-        let idx = ids == null ? i : ids[i];
+        const idx = ids == null ? i : ids[i];
 
         classes_dict[idx] = classes;
 
@@ -265,8 +265,8 @@ export class ImageTask extends Task {
   }
 
   async createLabels(filenames, label_file) {
-    let labels = new Array(filenames.length);
-    let lnames = this.trainingInformation.LABEL_ASSIGNMENT;
+    const labels = new Array(filenames.length);
+    const lnames = this.trainingInformation.LABEL_ASSIGNMENT;
     console.log('Reading csv file', label_file);
     console.log(
       'Using label assignment ',
@@ -278,7 +278,7 @@ export class ImageTask extends Task {
       Papa.parse(label_file, {
         download: true,
         step: function (row) {
-          let idx = filenames.indexOf(row.data[0]);
+          const idx = filenames.indexOf(row.data[0]);
           if (idx >= 0) labels[idx] = lnames[row.data[1]];
         },
         complete: function () {

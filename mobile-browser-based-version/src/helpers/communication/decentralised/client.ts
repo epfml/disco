@@ -10,7 +10,7 @@ import {
 import { checkBufferUntil, checkBufferWeightsUntil } from './helpers';
 import { Client } from '../client';
 import CMD_CODES from './communication_codes';
-var Hashes = require('jshashes');
+const Hashes = require('jshashes');
 
 /**
  * NOTE: peer.js seems to convert all array types to ArrayBuffer, making the original
@@ -227,7 +227,7 @@ export class DecentralisedClient extends Client {
    * Updates the receivers' list.
    */
   async updateReceivers() {
-    let peerIDs = await fetch(
+    const peerIDs = await fetch(
       this.serverURL.concat(`${this.task.taskID}/peerjs/peers`)
     ).then((response) => response.json());
 
@@ -274,10 +274,10 @@ export class DecentralisedClient extends Client {
     }
 
     // Convert the peerjs ArrayBuffer back into Uint8Array
-    let payload = msgpack.decode(Uint8Array.from(data.payload));
-    let epoch = payload.epoch;
-    let weights = payload.weights;
-    let receiver = payload.name;
+    const payload = msgpack.decode(Uint8Array.from(data.payload));
+    const epoch = payload.epoch;
+    const weights = payload.weights;
+    const receiver = payload.name;
 
     switch (data.cmdCode) {
       case CMD_CODES.MODEL_INFO:
@@ -317,9 +317,9 @@ export class DecentralisedClient extends Client {
 
   async _idleState(data) {
     // convert the peerjs ArrayBuffer back into Uint8Array
-    let payload = msgpack.decode(new Uint8Array(data.payload));
-    let receiver = payload.name;
-    let epochWeights = {
+    const payload = msgpack.decode(new Uint8Array(data.payload));
+    const receiver = payload.name;
+    const epochWeights = {
       epoch: this.recvBuffer.lastUpdate.epoch,
       weights: this.recvBuffer.lastUpdate.weights,
     };

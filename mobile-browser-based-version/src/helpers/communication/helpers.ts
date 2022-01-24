@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs';
 import { DecentralisedClient } from './decentralised/client';
 import { FederatedClient } from './federated/client';
-var Hashes = require('jshashes');
+const Hashes = require('jshashes');
 
 export function getClient(platform, task, ...args) {
   switch (platform) {
@@ -65,11 +65,11 @@ export function assignWeightsToModel(model, serializedWeights) {
 }
 
 export function makeID(length) {
-  var result = '';
-  var characters =
+  let result = '';
+  const characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var charactersLength = characters.length;
-  for (var i = 0; i < length; i++) {
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;

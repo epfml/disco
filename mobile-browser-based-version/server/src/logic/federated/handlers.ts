@@ -6,7 +6,7 @@ import {
   averageWeights,
   assignWeightsToModel,
 } from '../../helpers/tfjs_helpers';
-import { tasks } from '../../tasks/tasks';
+// import { tasks } from '../../tasks/tasks';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-node';
 
@@ -101,11 +101,11 @@ const tasksStatus = new Map();
 /**
  * Initialize the data structures declared above.
  */
-tasks.forEach((task) => {
-  selectedClients.set(task.taskID, new Set());
-  selectedClientsQueue.set(task.taskID, new Set());
-  tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 });
-});
+// tasks?.tasks.forEach((task) => {
+//   selectedClients.set(task.taskID, new Set());
+//   selectedClientsQueue.set(task.taskID, new Set());
+//   tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 });
+// });
 
 /**
  * Verifies that the given POST request is correctly formatted. Its body must
