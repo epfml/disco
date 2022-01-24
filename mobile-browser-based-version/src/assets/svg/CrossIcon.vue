@@ -17,13 +17,13 @@
 </template>
 <script>
 export default {
-  name: "cross-icon",
+  name: 'cross-icon',
   props: {
     customClass: {
-      default: "w-5 h-5",
+      default: 'w-5 h-5',
       type: String,
     },
-    viewBox: { default: "0 0 24 24", type: String },
+    viewBox: { default: '0 0 24 24', type: String },
   },
 };
 </script>

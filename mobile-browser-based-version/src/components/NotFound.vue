@@ -28,7 +28,6 @@
 
         <section class="flex-col items-center justify-center p-4 space-y-4">
           <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-            <!-- Titanic's card-->
             <div
               class="
                 group
