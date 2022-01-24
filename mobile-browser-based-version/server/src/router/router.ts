@@ -1,11 +1,11 @@
 import express from 'express';
 import _ from 'lodash';
-import * as handlers from '../logic/federated/handlers.js';
-import { tasks, writeNewTask } from '../tasks/tasks.js';
+import * as handlers from '../logic/federated/handlers';
+import { tasks, writeNewTask } from '../tasks/tasks';
 import { ExpressPeerServer } from 'peer';
-import { makeID } from '../helpers/helpers.js';
+import { makeID } from '../helpers/helpers';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import * as config from '../../server.config.js';
+import * as config from '../../server.config';
 
 // General tasks routes
 const tasksRouter = express.Router();

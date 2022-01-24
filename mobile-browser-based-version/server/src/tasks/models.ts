@@ -1,8 +1,7 @@
 import path from 'path';
 import * as tf from '@tensorflow/tfjs';
-import mobilenet from '@tensorflow-models/mobilenet';
 import '@tensorflow/tfjs-node';
-import * as config from '../../server.config.js';
+import * as config from '../../server.config';
 import fs from 'fs';
 
 /**
@@ -73,7 +72,7 @@ async function createCifar10Model() {
   const x = mobilenet.getLayer('global_average_pooling2d_1');
   const predictions = tf.layers
     .dense({ units: 10, activation: 'softmax', name: 'denseModified' })
-    .apply(x.output);
+    .apply(x.output) as tf.SymbolicTensor;
   const model = tf.model({
     inputs: mobilenet.input,
     outputs: predictions,
