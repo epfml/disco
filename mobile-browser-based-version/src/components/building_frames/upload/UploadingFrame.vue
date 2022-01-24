@@ -39,14 +39,13 @@ export default {
       labels: null,
       nbrLabels: null,
       csvLabels: false,
+      dataTypeIsCsv: false,
     };
   },
   methods: {
     preview() {
-      if(this.Task.trainingInformation.modelID == "cifar10-model") {
-        return false
-      }
-      return this.csvLabels || this.nbrLabels == 1;
+      // Preview only for csv (since there is no, "show only first n images").
+      return this.dataTypeIsCsv;
     },
     header() {
       return !this.displayLabels
@@ -66,6 +65,7 @@ export default {
     },
   },
   mounted() {
+    this.dataTypeIsCsv = this.Task.trainingInformation.dataType == 'csv';
     if (this.Task.trainingInformation.LABEL_LIST) {
       this.labels = this.Task.trainingInformation.LABEL_LIST;
       this.nbrLabels = this.Task.trainingInformation.LABEL_LIST.length;

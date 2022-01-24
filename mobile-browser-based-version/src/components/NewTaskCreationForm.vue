@@ -5,7 +5,6 @@
       <form @submit="handleSubmit($event, onSubmit)">
         <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1">
           <div v-for="formSection in formSections" :key="formSection.id">
-            <!-- Titanic's card-->
             <title-card :title="formSection.title">
               <div class="space-y-4">
                 <div v-for="field in allFields(formSection)" :key="field.id">
