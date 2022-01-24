@@ -2,7 +2,7 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ts",
+  "main": "server.config.ts",
   "scripts": {
     "start": "ts-node src/run_server.ts",
     "nodemon": "nodemon src/run_server.ts",
@@ -14,6 +14,7 @@
     "@tensorflow-models/mobilenet": "2.1.0",
     "@tensorflow/tfjs": "^3.13.0",
     "@tensorflow/tfjs-node": "^3.13.0",
+    "class-transformer": "^0.5.1",
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "http-proxy-middleware": "^2.0.1",
@@ -21,6 +22,7 @@
     "msgpack-lite": "^0.1.26",
     "node-fetch": "^3.2.0",
     "peer": "^0.6.1",
+    "reflect-metadata": "^0.1.13",
     "ts-node": "^10.4.0"
   },
   "nodemonConfig": {

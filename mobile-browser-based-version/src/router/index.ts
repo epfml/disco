@@ -7,7 +7,7 @@ import Information from '../components/Information';
 import NewTaskCreationForm from '../components/NewTaskCreationForm.vue';
 import NotFound from '../components/NotFound';
 
-var routes = [
+const routes = [
   {
     path: '/',
     name: 'home',

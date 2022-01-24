@@ -14,8 +14,8 @@ export class Task {
    */
   async createModel() {
     // To modularize
-    let serverURL = process.env.VUE_APP_FEAI_SERVER;
-    let newModel = await tf.loadLayersModel(
+    const serverURL = process.env.VUE_APP_FEAI_SERVER;
+    const newModel = await tf.loadLayersModel(
       serverURL.concat(`tasks/${this.taskID}/model.json`)
     );
     return newModel;
@@ -23,10 +23,10 @@ export class Task {
 
   // Should not be here
   async getModelFromStorage() {
-    let savePath = 'indexeddb://working_'.concat(
+    const savePath = 'indexeddb://working_'.concat(
       this.trainingInformation.modelID
     );
-    let model = await tf.loadLayersModel(savePath);
+    const model = await tf.loadLayersModel(savePath);
     return model;
   }
 }

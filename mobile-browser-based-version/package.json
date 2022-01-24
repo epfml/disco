@@ -2,13 +2,14 @@
   "name": "mobile-app",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "serve17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve",
-    "build17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service build",
-    "lint17": "export NODE_OPTIONS=--openssl-legacy-provider  && vue-cli-service lint",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "build17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service build",
+    "lint17": "export NODE_OPTIONS=--openssl-legacy-provider  && vue-cli-service lint",
+    "serve17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve"
   },
   "dependencies": {
     "@meforma/vue-toaster": "^1.2.2",
@@ -33,12 +34,16 @@
   "devDependencies": {
     "@tailwindcss/postcss7-compat": "^2.2.4",
     "@types/d3": "^7.1.0",
+    "@typescript-eslint/eslint-plugin": "^4.18.0",
+    "@typescript-eslint/parser": "^4.18.0",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "^4.5.11",
+    "@vue/cli-plugin-typescript": "^4.5.15",
     "@vue/cli-service": "~4.5.0",
     "@vue/compiler-sfc": "^3.0.0",
     "@vue/eslint-config-prettier": "^6.0.0",
+    "@vue/eslint-config-typescript": "^7.0.0",
     "autoprefixer": "^9.8.6",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
@@ -46,6 +51,7 @@
     "eslint-plugin-vue": "^7.18.0",
     "postcss": "^8.4.5",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.4",
+    "typescript": "~4.1.5",
     "vue-loader-v16": "npm:vue-loader@^16.1.2"
   },
   "eslintConfig": {
@@ -56,10 +62,11 @@
     "extends": [
       "plugin:vue/vue3-essential",
       "eslint:recommended",
-      "@vue/prettier"
+      "@vue/prettier",
+      "@vue/typescript"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@typescript-eslint/parser"
     },
     "rules": {
       "no-unused-vars": "off",

@@ -5,8 +5,8 @@
  * @returns
  */
 export async function checkData(file, headers) {
-  var content = file.target.result;
-  var userHeader = content.split('\n').shift().split(','); // user's header array
+  const content = file.target.result;
+  let userHeader = content.split('\n').shift().split(','); // user's header array
   userHeader = userHeader.map((element) => {
     return element.replace('/\r?\n|\r/', '').replace(/\s/g, '');
   });
@@ -16,15 +16,15 @@ export async function checkData(file, headers) {
     return element.replace('/\r?\n|\r/', '').replace(/\s/g, '');
   });
 
-  var length = userHeader.length;
+  let length = userHeader.length;
   if (length != 0) {
     // Check last column element, if empty then accept
-    var lastElement = JSON.stringify(userHeader[userHeader.length - 1]);
+    const lastElement = JSON.stringify(userHeader[userHeader.length - 1]);
     if (lastElement.replace('/\r?\n|\r/', '').replace(/\s/g, '') == '') {
       length = length - 1;
     }
   }
-  var checkHeaderLength = length == headers.length; // Check that the user's file has the right number of columns
+  const checkHeaderLength = length == headers.length; // Check that the user's file has the right number of columns
 
   if (!checkHeaderLength) {
     alert(
@@ -33,10 +33,10 @@ export async function checkData(file, headers) {
   }
 
   // Check that the user's file and what has been translated as content is correct
-  var checkHeaderContent = true;
-  var wrongRow = '';
-  var numberWrong = 0;
-  var headerCopied = [];
+  let checkHeaderContent = true;
+  let wrongRow = '';
+  let numberWrong = 0;
+  const headerCopied = [];
   if (checkHeaderLength) {
     headers.forEach((row) => {
       checkHeaderContent =

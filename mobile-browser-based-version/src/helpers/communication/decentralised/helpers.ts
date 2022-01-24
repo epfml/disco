@@ -23,7 +23,7 @@ export function checkBufferUntil(buffer, key, tries, timeout) {
 export function checkBufferWeightsUntil(buffer, length, tries, timeout) {
   return new Promise((resolve) => {
     (function waitData(n) {
-      let arr = Object.values(buffer.avgWeights).flat(1);
+      const arr = Object.values(buffer.avgWeights).flat(1);
       if (arr.length >= length || n > tries) {
         return resolve();
       }
