@@ -206,7 +206,7 @@ export class DecentralisedClient extends Client {
   }
 
   async onTrainEndCommunication(model, trainingInformant) {
-    super.onTrainEndCommunication();
+    super.onTrainEndCommunication(model, trainingInformant);
     trainingInformant.addMessage(
       'Entering idle state: seeding for online peers.'
     );

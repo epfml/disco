@@ -6,7 +6,7 @@ import Papa from 'papaparse';
 export class ImageTask extends Task {
   async loadPretrainedNet() {
     this.net = await tf.loadLayersModel(
-      'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v2_1.0_224/model.json'
+      'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
     );
   }
 
@@ -17,10 +17,7 @@ export class ImageTask extends Task {
       img.width = this.trainingInformation.IMAGE_W;
       img.height = this.trainingInformation.IMAGE_H;
       img.onload = () => {
-        var output = tf.image.resizeBilinear(tf.browser.fromPixels(img), [
-          this.trainingInformation.RESIZED_IMAGE_H,
-          this.trainingInformation.RESIZED_IMAGE_W,
-        ]);
+        var output = tf.browser.fromPixels(img);
         res(output);
       };
     });
@@ -36,8 +33,8 @@ export class ImageTask extends Task {
 
     const representation = tf.tidy(() => {
       const batched = tensor.reshape([
-        this.trainingInformation.RESIZED_IMAGE_H,
-        this.trainingInformation.RESIZED_IMAGE_W,
+        this.trainingInformation.IMAGE_H,
+        this.trainingInformation.IMAGE_W,
         3,
       ]);
 

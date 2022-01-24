@@ -50,7 +50,7 @@ const IDLE_DELAY = 1000 * 10;
  * Same as IDLE_DELAY, except longer for clients that recently connected and thus
  * are not critical nodes (i.e. training nodes).
  */
-const LONGER_IDLE_DELAY = 1000 * 60;
+const NEW_CLIENT_IDLE_DELAY = 1000 * 60;
 /**
  * Contains the model weights received from clients for a given task and round.
  * Stored by task ID, round number and client ID.
@@ -323,7 +323,7 @@ export function connect(request, response) {
   response.status(200).send();
 
   activeClients.set(id, { requests: 0 });
-  _checkForIdleClients(id, LONGER_IDLE_DELAY);
+  _checkForIdleClients(id, NEW_CLIENT_IDLE_DELAY);
 }
 
 /**
