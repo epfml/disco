@@ -6,7 +6,7 @@ import {
   averageWeights,
   assignWeightsToModel,
 } from '../../helpers/tfjs_helpers';
-// import { tasks } from '../../tasks/tasks';
+import { getTasks } from '../../tasks/tasks_helper';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-node';
 
@@ -18,6 +18,7 @@ const REQUEST_TYPES = Object.freeze({
   POST_WEIGHTS: 'post-weights',
   GET_WEIGHTS: 'get-weights',
   POST_METADATA: 'post-metadata',
+
   GET_METADATA: 'get-metadata',
   GET_TASKS: 'get-tasks',
 });
@@ -101,11 +102,11 @@ const tasksStatus = new Map();
 /**
  * Initialize the data structures declared above.
  */
-// tasks?.tasks.forEach((task) => {
-//   selectedClients.set(task.taskID, new Set());
-//   selectedClientsQueue.set(task.taskID, new Set());
-//   tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 });
-// });
+getTasks(config)?.forEach((task) => {
+  selectedClients.set(task.taskID, new Set());
+  selectedClientsQueue.set(task.taskID, new Set());
+  tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 });
+});
 
 /**
  * Verifies that the given POST request is correctly formatted. Its body must
