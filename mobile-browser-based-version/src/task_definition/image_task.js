@@ -17,7 +17,7 @@ export class ImageTask extends Task {
       img.width = this.trainingInformation.IMAGE_W;
       img.height = this.trainingInformation.IMAGE_H;
       img.onload = () => {
-        var output = tf.browser.fromPixels(img)
+        var output = tf.browser.fromPixels(img);
         res(output);
       };
     });
