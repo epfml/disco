@@ -3,20 +3,5 @@
       "target": "es6",
       "module": "CommonJS",
       "esModuleInterop": true,
-      "paths": {
-        "@/*": [
-          "src/*"
-        ]
-      },
     },
-    "include": [
-      "src/**/*.ts",
-      "src/**/*.tsx",
-      "src/**/*.vue",
-      "tests/**/*.ts",
-      "tests/**/*.tsx"
-    ],
-    "exclude": [
-      "node_modules"
-    ]
 }
