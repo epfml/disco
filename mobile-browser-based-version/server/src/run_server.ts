@@ -1,8 +1,8 @@
-import models from './tasks/models.js';
+import models from './tasks/models';
 import express from 'express';
 import cors from 'cors';
-import { federatedRouter, decentralisedRouter } from './router/router.js';
-import * as config from '../server.config.js';
+import { federatedRouter, decentralisedRouter } from './router/router';
+import * as config from '../server.config';
 
 const app = express();
 app.enable('trust proxy');

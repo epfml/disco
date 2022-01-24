@@ -12,7 +12,9 @@ export const SAVING_SCHEME = 'file://';
 /**
  * Root directory of the server app.
  */
-export const ROOT_DIR = path.dirname(new URL(import.meta.url).pathname);
+export const ROOT_DIR = path.dirname(
+  new URL(require('url').pathToFileURL(__filename).toString()).pathname
+);
 /**
  * Source directory.
  */

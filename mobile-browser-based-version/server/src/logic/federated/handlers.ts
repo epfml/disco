@@ -1,12 +1,12 @@
 import path from 'path';
 import fs from 'fs';
 import msgpack from 'msgpack-lite';
-import * as config from '../../../server.config.js';
+import * as config from '../../../server.config';
 import {
   averageWeights,
   assignWeightsToModel,
-} from '../../helpers/tfjs_helpers.js';
-import { tasks } from '../../tasks/tasks.js';
+} from '../../helpers/tfjs_helpers';
+import { tasks } from '../../tasks/tasks';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-node';
 
@@ -558,6 +558,10 @@ export function getMetadataMap(request, response) {
   const round = request.params.round;
   const id = request.params.id;
 
+  // How did this work before?
+  const queriedMetadataMap = new Map();
+  let metadataMap = msgpack.encode(Array.from(queriedMetadataMap));
+
   if (!(metadataMap.has(task) && round >= 0)) {
     return _failRequest(response, type, 404);
   }
@@ -577,14 +581,13 @@ export function getMetadataMap(request, response) {
    * server-side and construct the queried metadata's map accordingly. This
    * essentially creates a "ID -> metadata" single-layer map.
    */
-  const queriedMetadataMap = new Map();
   for (const [id, entries] of metadataMap.get(task).get(latestRound)) {
     if (entries.has(metadata)) {
       queriedMetadataMap.set(id, entries.get(metadata));
     }
   }
+  metadataMap = msgpack.encode(Array.from(queriedMetadataMap));
 
-  const metadataMap = msgpack.encode(Array.from(queriedMetadataMap));
   response.status(200).send({ metadata: metadataMap });
 
   activeClients.get(id).requests += 1;

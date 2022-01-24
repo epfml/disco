@@ -2,11 +2,10 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "start": "node src/run_server.js",
-    "nodemon": "nodemon src/run_server.js",
+    "start": "ts-node src/run_server.ts",
+    "nodemon": "nodemon src/run_server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -21,7 +20,8 @@
     "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",
     "node-fetch": "^3.2.0",
-    "peer": "^0.6.1"
+    "peer": "^0.6.1",
+    "ts-node": "^10.4.0"
   },
   "nodemonConfig": {
     "ignore": [

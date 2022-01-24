@@ -3,21 +3,21 @@
  * Run with `node test.js`
  */
 import msgpack from 'msgpack-lite';
-import { serializeWeights } from '../helpers/tfjs_helpers.js';
+import { serializeWeights } from '../helpers/tfjs_helpers';
 import assert from 'assert';
-import { sleep } from './helpers.js';
-import * as api from './api.js';
+import { sleep } from './helpers';
+import * as api from './api';
 
 // Declare parameters for the requests below
-var ids = ['a', 'b', 'c'];
-var task = 'titanic';
-var round = 0;
-var response;
-var body;
-var model;
-var weights;
-var roundCountdown = 10;
-var aggregationCountdown = 3;
+const ids = ['a', 'b', 'c'];
+const task = 'titanic';
+const round = 0;
+let response;
+let body;
+let model;
+let weights;
+const roundCountdown = 10;
+const aggregationCountdown = 3;
 
 /**
  * Naively tests all the API requests made available by the FeAI centralized
@@ -38,7 +38,7 @@ async function testServerRequests() {
   /**
    * Connect all three clients to the server.
    */
-  for (let id of ids) {
+  for (const id of ids) {
     response = await api.connect(task, id);
     assert.equal(response.ok, true);
   }
@@ -129,7 +129,7 @@ async function testServerRequests() {
   model = await api.getLatestModel(task);
   weights = msgpack.encode(Array.from(await serializeWeights(model.weights)));
 
-  for (let id of ids.slice(0, 2)) {
+  for (const id of ids.slice(0, 2)) {
     response = await api.selectionStatus(task, id);
     assert.equal(response.ok, true);
     body = await response.json();
@@ -139,7 +139,7 @@ async function testServerRequests() {
   console.log('Awaiting start of next round...');
   await sleep((roundCountdown + 2) * 1000);
 
-  for (let id of ids) {
+  for (const id of ids) {
     response = await api.selectionStatus(task, id);
     assert.equal(response.ok, true);
     body = await response.json();
@@ -161,7 +161,7 @@ async function testServerRequests() {
   /**
    * Disconnect all clients from server.
    */
-  for (let id of ids) {
+  for (const id of ids) {
     response = await api.disconnect(task, id);
     assert.equal(response.ok, true);
   }

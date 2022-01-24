@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
-import * as config from '../../server.config.js';
-import { craftPostRequest } from './helpers.js';
+import * as config from '../../server.config';
+import { craftPostRequest } from './helpers';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-node';
 
