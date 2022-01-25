@@ -1,31 +1,31 @@
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs'
 
 export class Client {
   serverURL: any;
   task: any;
-  constructor(serverURL, task) {
-    this.serverURL = serverURL;
-    this.task = task;
+  constructor (serverURL, task) {
+    this.serverURL = serverURL
+    this.task = task
   }
 
   /**
    * Handles the connection process from the client to any sort of
    * centralized server.
    */
-  async connect(epochs?): Promise<any> {
-    throw new Error('Abstract method');
+  async connect (epochs?): Promise<any> {
+    throw new Error('Abstract method')
   }
 
   /**
    * Handles the disconnection process of the client from any sort
    * of centralized server.
    */
-  disconnect() {
-    throw new Error('Abstract method');
+  disconnect () {
+    throw new Error('Abstract method')
   }
 
-  async onTrainBeginCommunication(model, trainingInformant) {
-    return;
+  async onTrainBeginCommunication (model, trainingInformant) {
+
   }
 
   /**
@@ -33,8 +33,8 @@ export class Client {
    * onTrainEnd callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  async onTrainEndCommunication(model, trainingInformant) {
-    trainingInformant.addMessage('Training finished.');
+  async onTrainEndCommunication (model, trainingInformant) {
+    trainingInformant.addMessage('Training finished.')
   }
 
   /**
@@ -42,8 +42,8 @@ export class Client {
    * onEpochBegin callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  async onEpochBeginCommunication(model, epoch, trainingInformant) {
-    return;
+  async onEpochBeginCommunication (model, epoch, trainingInformant) {
+
   }
 
   /**
@@ -51,13 +51,12 @@ export class Client {
    * onEpochEnd callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  async onEpochEndCommunication(model?, epoch?, trainingInformant?) {
+  async onEpochEndCommunication (model?, epoch?, trainingInformant?) {
     console.log(
       'Training RAM usage is  = ',
       tf.memory().numBytes * 0.000001,
       'MB'
-    );
-    console.log('Number of allocated tensors  = ', tf.memory().numTensors);
-    return;
+    )
+    console.log('Number of allocated tensors  = ', tf.memory().numTensors)
   }
 }
