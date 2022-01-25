@@ -16,13 +16,13 @@
 </template>
 <script>
 export default {
-  name: "download2-icon",
+  name: 'download2-icon',
   props: {
     customClass: {
-      default: "h-9 w-5",
+      default: 'h-9 w-5',
       type: String,
     },
-    viewBox: { default: "0 0 24 24", type: String },
+    viewBox: { default: '0 0 24 24', type: String },
   },
 };
 </script>
