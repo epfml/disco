@@ -2,6 +2,27 @@
  * Class that collects information about the status of the training-loop of the model.
  */
 export class TrainingInformant {
+  taskID: string;
+  whoReceivedMyModel: Set<unknown>;
+  nbrUpdatesWithOthers: number;
+  waitingTime: number;
+  nbrWeightRequests: number;
+  nbrMessagesToShow: number;
+  messages: any[];
+  validationAccuracyChart: any;
+  validationAccuracy: number;
+  trainingAccuracyChart: any;
+  trainingAccuracy: number;
+  displayHeatmap: boolean;
+  currentValidationAccuracy: number;
+  validationAccuracyDataSerie: number[];
+  currentTrainingAccuracy: number;
+  trainingAccuracyDataSerie: number[];
+  weightsIn: number;
+  biasesIn: number;
+  weightsOut: number;
+  biasesOut: number;
+
   /**
    *
    * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
@@ -27,11 +48,11 @@ export class TrainingInformant {
 
     // validation accurarcy chart
     this.validationAccuracyChart = null; //new TrainingChart("validationAccuracy_".concat(taskID), "Validation Accuracy")
-    this.validationAccuracy = null;
+    this.validationAccuracy = 0;
 
     // training accuracy chart
     this.trainingAccuracyChart = null; // new TrainingChart("trainingAccuracy_".concat(taskID), "Training Accuracy")
-    this.trainingAccuracy = null;
+    this.trainingAccuracy = 0;
 
     // is the model using Interoperability (default to false)
     this.displayHeatmap = false;

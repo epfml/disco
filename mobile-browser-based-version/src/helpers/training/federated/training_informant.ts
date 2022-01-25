@@ -2,6 +2,29 @@
  * Class that collects information about the status of the training-loop of the model.
  */
 export class TrainingInformant {
+  taskID: string;
+  whoReceivedMyModel: Set<unknown>;
+  nbrUpdatesWithOthers: number;
+  waitingTime: number;
+  nbrWeightRequests: number;
+  nbrMessagesToShow: number;
+  messages: any[];
+  validationAccuracyChart: any;
+  validationAccuracy: number;
+  trainingAccuracyChart: any;
+  trainingAccuracy: number;
+  displayHeatmap: boolean;
+  currentValidationAccuracy: number;
+  validationAccuracyDataSerie: number[];
+  currentTrainingAccuracy: number;
+  trainingAccuracyDataSerie: number[];
+  weightsIn: number;
+  biasesIn: number;
+  weightsOut: number;
+  biasesOut: number;
+  dataShares: Map<any, any>;
+  verbose: boolean;
+
   /**
    *
    * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
