@@ -22,7 +22,7 @@
             :class="buttonClass(this.$store.getters.isFederated)"
           >
             <span><federated-icon /></span>
-            <span>Federated</span>
+            <span>Federated {{this}}</span>
           </button>
         </div>
       </tippy-card>
@@ -34,13 +34,13 @@
         </span>
         <div class="flex items-center justify-center space-x-8">
           <button
-            :class="buttonClass()"
+            :class="buttonClass"
             v-on:click="setRequestPlatformChangeFalse"
           >
             <span class="text-s"> Cancel </span>
           </button>
 
-          <button :class="buttonClass()" v-on:click="changePlatform">
+          <button :class="buttonClass" v-on:click="changePlatform">
             <span class="text-s"> Confirm </span>
           </button>
         </div>
@@ -62,7 +62,7 @@
           </span>
 
           <div class="flex items-center justify-center">
-            <button :class="buttonClass()" v-on:click="toggleIndexedDB()">
+            <button :class="buttonClass" v-on:click="toggleIndexedDB()">
               <span class="text-s"> Use model library </span>
               <div class="relative focus:outline-none">
                 <div
@@ -142,7 +142,7 @@
     </template>
   </tippy-container>
 </template>
-<script>
+<script lang="jsx">
 import { mapMutations } from 'vuex'
 import TippyCard from './containers/TippyCard.vue'
 import TippyContainer from './containers/TippyContainer.vue'
@@ -152,9 +152,10 @@ import DecentralisedIcon from '../../assets/svg/DecentralisedIcon.vue'
 import FederatedIcon from '../../assets/svg/FederatedIcon.vue'
 import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
 import { Platform } from '../../platforms/platform'
+import { defineComponent } from 'vue'
 
-export default {
-  name: 'settings',
+export default defineComponent({
+  name: 'settings-sidebar',
   components: {
     TippyCard,
     TippyContainer,
@@ -243,10 +244,10 @@ export default {
       this.requestPlatformChange = false
     },
     getDefaultPlatformColor (platform) {
-      return platform == Platform.decentralized ? 'cyan' : 'violet'
+      return platform === Platform.decentralized ? 'cyan' : 'violet'
     },
     getNewPlatform (platform) {
-      return platform == Platform.decentralized
+      return platform === Platform.decentralized
         ? Platform.federated
         : Platform.decentralized
     },
@@ -272,5 +273,5 @@ export default {
       this.$router.push({ name: 'home' })
     }
   }
-}
+})
 </script>
