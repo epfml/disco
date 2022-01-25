@@ -27,12 +27,11 @@ export class FileUploadManager {
    * @param {String} label the label
    */
   addFile (objectURL, file, label) {
-    console.log(label)
     // Add datatype check
     if (!this.multipleClass) {
       this.filesList[objectURL] = file
     } else {
-      if (label == 'Labels') {
+      if (label === 'Labels') {
         this.labelFile[objectURL] = { label: label, name: file.name }
       } else {
         this.filesList[objectURL] = { label: label, name: file.name }
