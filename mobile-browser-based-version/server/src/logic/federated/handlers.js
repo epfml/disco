@@ -487,7 +487,7 @@ export async function aggregationStatus(request, response) {
     /**
      * To avoid any blocking state due to the disconnection of selected clients, allow
      * this request to perform aggregation. This is merely a safeguard. Ideally, this
-     * should obviously performed by the `postWeights` request handler directly, to
+     * should obviously be performed by the `postWeights` request handler directly, to
      * avoid any unnecesary delay.
      */
     setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN);
