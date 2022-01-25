@@ -1,4 +1,4 @@
-import { Store } from '@/store/store'// path to store file
+import { store } from '@/store/store'
 
 declare module '@vue/runtime-core' {
     // Vuex doesn't provide typings for this.$store property out of the box.
@@ -7,6 +7,6 @@ declare module '@vue/runtime-core' {
 
     // eslint-disable-next-line no-unused-vars
     interface ComponentCustomProperties {
-      $store: typeof Store
+      $store: typeof store
     }
   }
