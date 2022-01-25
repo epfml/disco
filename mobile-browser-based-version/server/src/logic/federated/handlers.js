@@ -460,37 +460,39 @@ export async function aggregationStatus(request, response) {
   if (!tasksStatus.has(task)) {
     return _failRequest(response, type, 404);
   }
-  if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
-    return _failRequest(response, type, 404);
-  }
 
   _logsAppend(request, type);
 
-  /**
-   * Check whether the latest round completed aggregation.
-   */
-  const aggregated =
+  response.status(200);
+  if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
+    /**
+     * If the round has no weights entry, this must come
+     * from a late client.
+     */
+    response.send({ aggregated: 0 });
+  } else if (
     !tasksStatus.get(task).isRoundPending &&
-    round < tasksStatus.get(task).round;
-  if (aggregated) {
+    round < tasksStatus.get(task).round
+  ) {
     /**
      * If aggregation occured, make the client wait to get selected for next round so
      * it can proceed to other jobs. Does nothing if this is a late client.
      */
     selectedClients.get(task).delete(id);
+    response.send({ aggregated: 1 });
   } else if (
+    weightsMap.get(task).get(round).size >=
+    Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
+  ) {
     /**
      * To avoid any blocking state due to the disconnection of selected clients, allow
      * this request to perform aggregation. This is merely a safeguard. Ideally, this
      * should obviously performed by the `postWeights` request handler directly, to
      * avoid any unnecesary delay.
      */
-    weightsMap.get(task).get(round).size >=
-    Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
-  ) {
     setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN);
+    response.send({ aggregated: 0 });
   }
-  response.status(200).send({ aggregated: aggregated ? 1 : 0 });
   activeClients.get(id).requests += 1;
   _checkForIdleClients(id, IDLE_DELAY);
 }
