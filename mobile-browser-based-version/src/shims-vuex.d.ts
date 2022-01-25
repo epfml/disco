@@ -5,6 +5,8 @@ declare module '@vue/runtime-core' {
     // When used with TypeScript, you must declare your own module augmentation:
     // https://next.vuex.vuejs.org/guide/typescript-support.html
 
+    // Better to use some sort of interface
+
     // eslint-disable-next-line no-unused-vars
     interface ComponentCustomProperties {
       $store: typeof store

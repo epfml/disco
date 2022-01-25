@@ -144,7 +144,7 @@
   </div>
 </div>
 </template>
-<script>
+<script lang="ts">
 import Settings from './Settings.vue'
 import ModelLibrary from './ModelLibrary.vue'
 import tippy from 'tippy.js'
@@ -156,7 +156,8 @@ import FileIcon from '../../assets/svg/FileIcon.vue'
 import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
 import CrossIcon from '../../assets/svg/CrossIcon.vue'
 import SidebarButton from './containers/SidebarButton.vue'
-export default {
+import { defineComponent } from 'vue'
+export default defineComponent({
   name: 'sidebar-main',
   components: {
     Settings,
@@ -220,10 +221,10 @@ export default {
       content: (reference) => reference.getAttribute('data-title'),
       onMount (instance) {
         instance.popperInstance.setOptions({
-          placement: instance.reference.getAttribute('data-placement')
+          placement: instance.reference.getAttribute('data-placement') as any
         })
       }
     })
   }
-}
+})
 </script>
