@@ -1,5 +1,7 @@
 import { serializeWeights } from '../helpers/tfjs_helpers.js';
 <template>
+<div>
+
   <a id="overview-target">
     <icon-card header="The task" :description="OverviewText">
       <template v-slot:icon><tasks /></template>
@@ -159,6 +161,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
       Join Training
     </custom-button>
   </div>
+</div>
 </template>
 
 <script>

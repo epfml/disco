@@ -26,7 +26,7 @@
         "
         style="position: sticky"
       >
-        <sidebar />
+        <SidebarMain />
       </aside>
 
       <!-- Main Page -->
@@ -42,7 +42,7 @@
 </template>
 
 <script lang="ts">
-import Sidebar from './sidebar/Sidebar.vue'
+import SidebarMain from './sidebar/Sidebar.vue'
 import { mapState, mapMutations } from 'vuex'
 import { Platform } from '../platforms/platform'
 import { defineComponent } from 'vue'
@@ -50,7 +50,7 @@ import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'app',
   components: {
-    Sidebar
+    SidebarMain
   },
   computed: {
     ...mapState(['isDark'])

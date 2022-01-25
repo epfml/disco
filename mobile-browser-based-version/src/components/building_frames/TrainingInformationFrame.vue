@@ -1,4 +1,6 @@
 <template>
+<div>
+
   <div
     x-transition:enter="transition duration-300 ease-in-out"
     x-transition:enter-start="opacity-0"
@@ -121,6 +123,7 @@
       <people />
     </icon-card-small>
   </div>
+</div>
 </template>
 
 <script>

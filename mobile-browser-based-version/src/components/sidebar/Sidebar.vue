@@ -1,4 +1,5 @@
 <template>
+<div>
   <!-- Mini Sidebar (LHS) -->
   <nav
     class="
@@ -141,6 +142,7 @@
       </section>
     </transition>
   </div>
+</div>
 </template>
 <script>
 import Settings from './Settings.vue'
@@ -155,7 +157,7 @@ import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
 import CrossIcon from '../../assets/svg/CrossIcon.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 export default {
-  name: 'Sidebar',
+  name: 'sidebar-main',
   components: {
     Settings,
     ModelLibrary,

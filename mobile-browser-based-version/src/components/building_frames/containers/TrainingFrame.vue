@@ -105,7 +105,7 @@ import { saveWorkingModel } from '../../../helpers/memory/helpers'
 import { mapState } from 'vuex'
 import { defineComponent } from 'vue'
 export default defineComponent({
-  name: 'TrainingFrame',
+  name: 'training-frame',
   props: {
     Id: String,
     Task: Object,

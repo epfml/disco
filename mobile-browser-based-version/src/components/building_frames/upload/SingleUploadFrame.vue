@@ -1,4 +1,5 @@
 <template>
+<div>
   <!-- Upload File Card-->
   <div class="relative">
     <article
@@ -294,6 +295,7 @@
       </article>
     </li>
   </template>
+</div>
 </template>
 
 <script>
@@ -367,11 +369,11 @@ export default {
         this.empty.classList.add('hidden')
         target.prepend(clone.firstElementChild)
       }
-      let label_name = this.label
-      if (this.label == 'Images') {
-        label_name = file.name.replace(/\.[^/.]+$/, '')
+      let labelName = this.label
+      if (this.label === 'Images') {
+        labelName = file.name.replace(/\.[^/.]+$/, '')
       }
-      this.fileUploadManager.addFile(objectURL, file, label_name)
+      this.fileUploadManager.addFile(objectURL, file, labelName)
       this.nbrUploadedFiles += 1
       // We keep track of ulrs in order to be able to clear them
       this.addedFilesUrl.push(objectURL)
@@ -405,7 +407,7 @@ export default {
       ++this.counter
     },
     dragLeaveHandler (e) {
-      --this.counter < 1
+      --this.counter // TODO this had a < 1 on the right hand side, did it make sense?
     },
     dragOverHandler (e) {
       if (hasFiles(e)) {

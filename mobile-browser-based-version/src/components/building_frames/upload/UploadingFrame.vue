@@ -59,13 +59,13 @@ export default {
         ? ['']
         : this.csvLabels
           ? ['Images', 'Labels']
-          : this.nbrLabels == 1
+          : this.nbrLabels === 1
             ? [1]
             : this.labels
     }
   },
   mounted () {
-    this.dataTypeIsCsv = this.Task.trainingInformation.dataType == 'csv'
+    this.dataTypeIsCsv = this.Task.trainingInformation.dataType === 'csv'
     if (this.Task.trainingInformation.LABEL_LIST) {
       this.labels = this.Task.trainingInformation.LABEL_LIST
       this.nbrLabels = this.Task.trainingInformation.LABEL_LIST.length
