@@ -1,10 +1,13 @@
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs'
 
 export class Task {
+  taskID: string;
+  displayInformation: any;
+  trainingInformation: any;
   constructor(taskID, displayInformation, trainingInformation) {
-    this.taskID = taskID;
-    this.displayInformation = displayInformation;
-    this.trainingInformation = trainingInformation;
+    this.taskID = taskID
+    this.displayInformation = displayInformation
+    this.trainingInformation = trainingInformation
   }
 
   /**
@@ -14,19 +17,19 @@ export class Task {
    */
   async createModel() {
     // To modularize
-    const serverURL = process.env.VUE_APP_FEAI_SERVER;
+    const serverURL = process.env.VUE_APP_FEAI_SERVER
     const newModel = await tf.loadLayersModel(
       serverURL.concat(`tasks/${this.taskID}/model.json`)
-    );
-    return newModel;
+    )
+    return newModel
   }
 
   // Should not be here
   async getModelFromStorage() {
     const savePath = 'indexeddb://working_'.concat(
       this.trainingInformation.modelID
-    );
-    const model = await tf.loadLayersModel(savePath);
-    return model;
+    )
+    const model = await tf.loadLayersModel(savePath)
+    return model
   }
 }

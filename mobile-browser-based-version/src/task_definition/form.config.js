@@ -1,4 +1,4 @@
-import * as yup from 'yup';
+import * as yup from 'yup'
 /* form generator
          each section should contain :
             - `fields` (general fields)
@@ -18,7 +18,7 @@ const sections = [
         yup: yup.string().required(),
         as: 'input',
         type: 'text',
-        default: 'eg. : minst',
+        default: 'eg. : minst'
       },
       {
         id: 'dataType',
@@ -27,12 +27,12 @@ const sections = [
         as: 'input',
         type: 'select',
         options: ['image', 'csv', 'other'],
-        default: 'eg. : other',
-      },
+        default: 'eg. : other'
+      }
     ],
     csv: [],
     image: [],
-    other: [],
+    other: []
   },
   // *** Section ***
   {
@@ -45,7 +45,7 @@ const sections = [
         yup: yup.string().required(),
         as: 'input',
         type: 'text',
-        default: 'eg. : MNIST',
+        default: 'eg. : MNIST'
       },
       {
         id: 'summary',
@@ -54,7 +54,7 @@ const sections = [
         as: 'textarea',
         type: 'textarea',
         default:
-          "eg. : Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers.",
+          "eg. : Test our platform by using a publicly available <b>image</b> dataset. <br><br> Download the classic MNIST imagebank of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. <br> This model learns to identify hand written numbers."
       },
       {
         id: 'overview',
@@ -63,7 +63,7 @@ const sections = [
         as: 'textarea',
         type: 'textarea',
         default:
-          'eg. : The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform.',
+          'eg. : The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform.'
       },
       {
         id: 'model',
@@ -72,7 +72,7 @@ const sections = [
         as: 'textarea',
         type: 'textarea',
         default:
-          'eg. : The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.',
+          'eg. : The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.'
       },
       {
         id: 'tradeoffs',
@@ -81,7 +81,7 @@ const sections = [
         as: 'textarea',
         type: 'textarea',
         default:
-          'eg. : We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.',
+          'eg. : We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.'
       },
       {
         id: 'dataFormatInformation',
@@ -90,7 +90,7 @@ const sections = [
         as: 'textarea',
         type: 'textarea',
         default:
-          'eg. : This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.',
+          'eg. : This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.'
       },
       {
         id: 'dataExampleText',
@@ -99,8 +99,8 @@ const sections = [
         as: 'input',
         type: 'text',
         default:
-          'eg. : Below you can find an example of an expected image representing the digit 9.',
-      },
+          'eg. : Below you can find an example of an expected image representing the digit 9.'
+      }
     ],
     csv: [
       {
@@ -113,7 +113,7 @@ const sections = [
               .object()
               .shape({
                 columnName: yup.string().required().label('Column Name'),
-                columnData: yup.string().required().label('Column Data'),
+                columnData: yup.string().required().label('Column Data')
               })
               .required()
           )
@@ -123,13 +123,13 @@ const sections = [
         elements: [
           {
             key: 'columnName',
-            default: 'eg. : PassengerID',
+            default: 'eg. : PassengerID'
           },
           {
             key: 'columnData',
-            default: 'eg. : 1',
-          },
-        ],
+            default: 'eg. : 1'
+          }
+        ]
       },
       {
         id: 'headers',
@@ -137,8 +137,8 @@ const sections = [
         yup: yup.array().of(yup.string().required()),
         as: 'input',
         type: 'array',
-        default: 'eg. : PassengerID',
-      },
+        default: 'eg. : PassengerID'
+      }
     ],
     image: [
       {
@@ -147,10 +147,10 @@ const sections = [
         yup: yup.string().required(),
         as: 'input',
         type: 'text',
-        default: 'eg. : ./9-mnist-example.png',
-      },
+        default: 'eg. : ./9-mnist-example.png'
+      }
     ],
-    other: [],
+    other: []
   },
   // *** Section ***
   {
@@ -163,7 +163,7 @@ const sections = [
         yup: yup.string().required(),
         as: 'input',
         type: 'text',
-        default: 'eg. : mnist-model',
+        default: 'eg. : mnist-model'
       },
       {
         id: 'port',
@@ -171,7 +171,7 @@ const sections = [
         yup: yup.number().integer().positive().required(),
         as: 'input',
         type: 'number',
-        default: 'eg. : 9001',
+        default: 'eg. : 9001'
       },
       {
         id: 'epoch',
@@ -179,7 +179,7 @@ const sections = [
         yup: yup.number().integer().positive().required(),
         as: 'input',
         type: 'number',
-        default: 'eg. : 10',
+        default: 'eg. : 10'
       },
       {
         id: 'validationSplit',
@@ -187,7 +187,7 @@ const sections = [
         yup: yup.number().positive().lessThan(1).required(),
         as: 'textarea',
         type: 'number',
-        default: 'eg. : 0.2',
+        default: 'eg. : 0.2'
       },
       {
         id: 'batchSize',
@@ -195,7 +195,7 @@ const sections = [
         yup: yup.number().integer().positive().required(),
         as: 'input',
         type: 'number',
-        default: 'eg. : 30',
+        default: 'eg. : 30'
       },
       {
         id: 'learningRate',
@@ -203,7 +203,7 @@ const sections = [
         yup: yup.number().positive().required(),
         as: 'textarea',
         type: 'number',
-        default: 'eg. : 0.05',
+        default: 'eg. : 0.05'
       },
       {
         id: 'modelTrainData',
@@ -218,7 +218,7 @@ const sections = [
                   .string()
                   .required()
                   .label('Training Parameter'),
-                value: yup.string().required().label('Value'),
+                value: yup.string().required().label('Value')
               })
               .required()
           )
@@ -228,14 +228,14 @@ const sections = [
         elements: [
           {
             key: 'trainingParameter',
-            default: 'eg. : epochs',
+            default: 'eg. : epochs'
           },
           {
             key: 'value',
-            default: 'eg. : 10',
-          },
-        ],
-      },
+            default: 'eg. : 10'
+          }
+        ]
+      }
     ],
     csv: [
       {
@@ -244,7 +244,7 @@ const sections = [
         yup: yup.number().required(),
         as: 'input',
         type: 'number',
-        default: 'eg. : 1',
+        default: 'eg. : 1'
       },
       {
         id: 'outputColumn',
@@ -252,7 +252,7 @@ const sections = [
         yup: yup.string().required(),
         as: 'input',
         type: 'text',
-        default: 'eg. : Survived',
+        default: 'eg. : Survived'
       },
       {
         id: 'inputColumn',
@@ -260,8 +260,8 @@ const sections = [
         yup: yup.array().of(yup.string()).min(1).required(),
         as: 'input',
         type: 'array',
-        default: 'eg. : PassengerID',
-      },
+        default: 'eg. : PassengerID'
+      }
     ],
     image: [
       {
@@ -270,7 +270,7 @@ const sections = [
         yup: yup.number().integer().positive().required(),
         as: 'input',
         type: 'number',
-        default: 'eg. : 1',
+        default: 'eg. : 1'
       },
       {
         id: 'IMAGE_H',
@@ -278,7 +278,7 @@ const sections = [
         yup: yup.number().integer().positive().required(),
         as: 'input',
         type: 'number',
-        default: 'eg. : 28',
+        default: 'eg. : 28'
       },
       {
         id: 'IMAGE_W',
@@ -286,7 +286,7 @@ const sections = [
         yup: yup.number().integer().positive().required(),
         as: 'input',
         type: 'number',
-        default: 'eg. : 28',
+        default: 'eg. : 28'
       },
       {
         id: 'LABEL_LIST',
@@ -294,7 +294,7 @@ const sections = [
         yup: yup.array().of(yup.string()).min(1).required(),
         as: 'input',
         type: 'array',
-        default: 'eg. : 0',
+        default: 'eg. : 0'
       },
       {
         id: 'NUM_CLASSES',
@@ -302,7 +302,7 @@ const sections = [
         yup: yup.number().positive().required(),
         as: 'input',
         type: 'number',
-        default: 'eg. : 2',
+        default: 'eg. : 2'
       },
       {
         id: 'LABEL_ASSIGNMENT',
@@ -314,7 +314,7 @@ const sections = [
               .object()
               .shape({
                 stringLabel: yup.string().required().label('Label (string)'),
-                intLabel: yup.string().required().label('Label (int)'),
+                intLabel: yup.string().required().label('Label (int)')
               })
               .required()
           )
@@ -324,13 +324,13 @@ const sections = [
         elements: [
           {
             key: 'stringLabel',
-            default: 'eg. : airplane',
+            default: 'eg. : airplane'
           },
           {
             key: 'intLabel',
-            default: 'eg. : 1',
-          },
-        ],
+            default: 'eg. : 1'
+          }
+        ]
       },
       {
         id: 'csvLabels',
@@ -338,7 +338,7 @@ const sections = [
         yup: yup.boolean().required(),
         as: 'input',
         type: 'checkbox',
-        default: false,
+        default: false
       },
       {
         id: 'aggregateImagesByID',
@@ -346,10 +346,10 @@ const sections = [
         yup: yup.boolean(),
         as: 'input',
         type: 'checkbox',
-        default: false,
-      },
+        default: false
+      }
     ],
-    other: [],
+    other: []
   },
   // *** Section ***
   {
@@ -368,9 +368,9 @@ const sections = [
           'adadelta',
           'adam',
           'adamax',
-          'rmsprop',
+          'rmsprop'
         ],
-        default: 'eg. : rmsprop',
+        default: 'eg. : rmsprop'
       },
       {
         id: 'loss',
@@ -388,9 +388,9 @@ const sections = [
           'logLoss',
           'meanSquaredError',
           'sigmoidCrossEntropy',
-          'softmaxCrossEntropy',
+          'softmaxCrossEntropy'
         ],
-        default: 'eg. : categoricalCrossentropy',
+        default: 'eg. : categoricalCrossentropy'
       },
       {
         id: 'metrics',
@@ -409,14 +409,14 @@ const sections = [
           'meanSquaredError',
           'precision',
           'recall',
-          'sparseCategoricalAccuracy',
+          'sparseCategoricalAccuracy'
         ],
-        default: ['accuracy'],
-      },
+        default: ['accuracy']
+      }
     ],
     csv: [],
     image: [],
-    other: [],
+    other: []
   },
   {
     title: 'Model Files',
@@ -428,12 +428,12 @@ const sections = [
         yup: yup
           .object()
           .shape({
-            file: yup.mixed().required('File is required'),
+            file: yup.mixed().required('File is required')
           })
           .required('File is required'),
         type: 'file',
         extension: '.json',
-        default: 'eg. : model.json',
+        default: 'eg. : model.json'
       },
       {
         id: 'weightsFile',
@@ -441,17 +441,17 @@ const sections = [
         up: yup
           .object()
           .shape({
-            file: yup.mixed().required('File is required'),
+            file: yup.mixed().required('File is required')
           })
           .required('File is required'),
         type: 'file',
         extension: '.bin',
-        default: 'eg. : weights.bin',
-      },
+        default: 'eg. : weights.bin'
+      }
     ],
     csv: [],
     image: [],
-    other: [],
-  },
-];
-export default sections;
+    other: []
+  }
+]
+export default sections

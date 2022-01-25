@@ -1,294 +1,296 @@
-import * as tf from '@tensorflow/tfjs';
-import { Task } from './task.js';
-import { getTopKClasses } from '../helpers/testing/testing_script';
-import Papa from 'papaparse';
+import * as tf from '@tensorflow/tfjs'
+import { Task } from './task.js'
+import { getTopKClasses } from '../helpers/testing/testing_script'
+import Papa from 'papaparse'
 
 export class ImageTask extends Task {
+  trainingInformation: any;
+  net: any;
   async loadPretrainedNet() {
     this.net = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
-    );
+    )
   }
 
   async loadLocalImage(filename) {
-    return new Promise((res, rej) => {
-      const img = new Image();
-      img.src = filename;
-      img.width = this.trainingInformation.IMAGE_W;
-      img.height = this.trainingInformation.IMAGE_H;
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.src = filename
+      img.width = this.trainingInformation.IMAGE_W
+      img.height = this.trainingInformation.IMAGE_H
       img.onload = () => {
-        const output = tf.browser.fromPixels(img);
-        res(output);
-      };
-    });
+        const output = tf.browser.fromPixels(img)
+        resolve(output)
+      }
+    })
   }
 
   async imagePreprocessing(src) {
     if (this.trainingInformation.aggregateImagesById) {
       if (this.net == null) {
-        await this.loadPretrainedNet();
+        await this.loadPretrainedNet()
       }
     }
-    const tensor = await this.loadLocalImage(src);
+    const tensor = await this.loadLocalImage(src) as tf.Tensor
 
     const representation = tf.tidy(() => {
       const batched = tensor.reshape([
         this.trainingInformation.IMAGE_H,
         this.trainingInformation.IMAGE_W,
-        3,
-      ]);
+        3
+      ])
 
-      const processedImg = batched.toFloat().div(127.5).sub(1).expandDims(0);
+      const processedImg = batched.toFloat().div(127.5).sub(1).expandDims(0)
 
-      let result = null;
-      console.log(this.trainingInformation.aggregateImagesById);
+      let result = null
+      console.log(this.trainingInformation.aggregateImagesById)
       if (this.trainingInformation.aggregateImagesById) {
-        result = this.net.predict(processedImg);
+        result = this.net.predict(processedImg)
       } else {
-        result = processedImg;
+        result = processedImg
       }
 
-      return result;
-    });
+      return result
+    })
 
-    tf.dispose(tensor);
+    tf.dispose(tensor as any)
 
-    return representation;
+    return representation
   }
 
   async dataPreprocessing(trainingData) {
-    console.log('Start: Processing Uploaded Files');
-    let Xtrain = null;
-    let ytrain = null;
+    console.log('Start: Processing Uploaded Files')
+    let Xtrain = null
+    let ytrain = null
 
-    let labels = [];
-    const imageUri = [];
-    const imageNames = [];
+    let labels = []
+    const imageUri = []
+    const imageNames = []
 
     Object.keys(trainingData).forEach((key) => {
-      labels.push(trainingData[key]['label']);
-      imageNames.push(trainingData[key]['name']);
-      imageUri.push(key);
-    });
+      labels.push(trainingData[key].label)
+      imageNames.push(trainingData[key].name)
+      imageUri.push(key)
+    })
 
-    console.log('User Files Validated. Start parsing.');
+    console.log('User Files Validated. Start parsing.')
     if ('LABEL_ASSIGNMENT' in this.trainingInformation) {
-      const label_file = imageUri.pop();
-      labels.pop();
-      labels = await this.createLabels(labels, label_file);
+      const labelFile = imageUri.pop()
+      labels.pop()
+      labels = await this.createLabels(labels, labelFile) as any[]
     }
-    const dictImages = {};
-    const dictLabels = {};
-    let ids = new Set();
-    let imageTensors = [];
+    const dictImages = {}
+    const dictLabels = {}
+    let ids = []
+    let imageTensors = []
 
     for (let i = 0; i < imageUri.length; ++i) {
-      const tensor = await this.imagePreprocessing(imageUri[i]);
-      imageTensors.push(tensor);
+      const tensor = await this.imagePreprocessing(imageUri[i])
+      imageTensors.push(tensor)
       if (this.trainingInformation.aggregateImagesById) {
-        const id = parseInt(imageNames[i].split('_')[0]);
-        ids.add(id);
-        dictLabels[id] = labels[i];
-        const res = id in dictImages ? dictImages[id] : [];
-        res.push(tensor);
-        dictImages[id] = res;
+        const id = parseInt(imageNames[i].split('_')[0])
+        ids.push(id)
+        dictLabels[id] = labels[i]
+        const res = id in dictImages ? dictImages[id] : []
+        res.push(tensor)
+        dictImages[id] = res
       }
     }
     if (this.trainingInformation.aggregateImagesById) {
-      console.log('Number of ids found was ' + Object.keys(dictImages).length);
+      console.log('Number of ids found was ' + Object.keys(dictImages).length)
 
-      const xsArray = [];
-      const labelsToProcess = [];
-      ids = Array.from(ids);
+      const xsArray = []
+      const labelsToProcess = []
+      ids = Array.from(ids)
       // shuffle ids
-      ids.sort(() => 0.5 - Math.random());
+      ids.sort(() => 0.5 - Math.random())
       for (let i = 0; i < ids.length; ++i) {
-        const id = ids[i];
+        const id = ids[i]
         // Do mean pooling over same patient representations
         const imageTensorPerId = tf
           .mean(tf.concat(dictImages[id], 0), 0)
-          .expandDims(0);
-        xsArray.push(imageTensorPerId);
-        labelsToProcess.push(dictLabels[id]);
-        labels = labelsToProcess;
-        imageTensors = xsArray;
+          .expandDims(0)
+        xsArray.push(imageTensorPerId)
+        labelsToProcess.push(dictLabels[id])
+        labels = labelsToProcess
+        imageTensors = xsArray
       }
     }
 
     // Do feature preprocessing
-    ytrain = this.labelsPreprocessing(labels);
-    Xtrain = tf.concat(imageTensors, 0);
+    ytrain = this.labelsPreprocessing(labels)
+    Xtrain = tf.concat(imageTensors, 0)
 
-    return { accepted: true, Xtrain: Xtrain, ytrain: ytrain };
+    return { accepted: true, Xtrain: Xtrain, ytrain: ytrain }
   }
 
   labelsPreprocessing(labels) {
-    const nbLabels = labels.length;
-    const labelsOneHotEncoded = [];
+    const nbLabels = labels.length
+    const labelsOneHotEncoded = []
     labels.forEach((label) =>
       labelsOneHotEncoded.push(this.oneHotEncode(label))
-    );
+    )
     return tf.tensor2d(labelsOneHotEncoded, [
       nbLabels,
-      this.trainingInformation.LABEL_LIST.length,
-    ]);
+      this.trainingInformation.LABEL_LIST.length
+    ])
   }
 
   oneHotEncode(label) {
-    const result = [];
+    const result = []
     for (let i = 0; i < this.trainingInformation.LABEL_LIST.length; i++) {
-      if (this.trainingInformation.LABEL_LIST[i] == label) {
-        result.push(1);
+      if (this.trainingInformation.LABEL_LIST[i] === label) {
+        result.push(1)
       } else {
-        result.push(0);
+        result.push(0)
       }
     }
-    return result;
+    return result
   }
 
   async aggregateTestData(imageUri, imageNames) {
-    const dictImages = {};
-    const dictLabels = {};
-    let ids = new Set();
+    const dictImages = {}
+    const dictLabels = {}
+    let ids = new Set()
 
     for (let i = 0; i < imageNames.length; ++i) {
-      const id = parseInt(imageNames[i].split('_')[0]);
-      ids.add(id);
+      const id = parseInt(imageNames[i].split('_')[0])
+      ids.add(id)
 
-      let res = [];
+      let res = []
 
       if (id in dictImages) {
-        res = dictImages[id];
+        res = dictImages[id]
       }
 
-      res.push(await this.imagePreprocessing(imageUri[i]));
+      res.push(await this.imagePreprocessing(imageUri[i]))
 
-      dictImages[id] = res;
+      dictImages[id] = res
     }
 
-    console.log('Number of ids found was ' + Object.keys(dictImages).length);
+    console.log('Number of ids found was ' + Object.keys(dictImages).length)
 
-    const imageTensorsPerId = {};
-    ids = Array.from(ids);
-    for (let i = 0; i < ids.length; ++i) {
-      const id = ids[i];
+    const imageTensorsPerId = {}
+    ids = new Set(ids)
+    for (let i = 0; i < ids.size; ++i) {
+      const id = ids[i]
       // Do mean pooling over same patient representations
       imageTensorsPerId[id] = tf
         .mean(tf.concat(dictImages[id], 0), 0)
-        .expandDims(0);
+        .expandDims(0)
     }
 
-    const xsArray = [];
-    const labelsToProcess = [];
+    const xsArray = []
+    const labelsToProcess = []
 
-    for (let i = 0; i < ids.length; ++i) {
-      const id = ids[i];
-      xsArray.push(imageTensorsPerId[id]);
-      labelsToProcess.push(dictLabels[id]);
+    for (let i = 0; i < ids.size; ++i) {
+      const id = ids[i]
+      xsArray.push(imageTensorsPerId[id])
+      labelsToProcess.push(dictLabels[id])
     }
 
     // const xs = tf.concat(xsArray, 0);
-    console.log('IDS');
-    console.log(ids);
+    console.log('IDS')
+    console.log(ids)
 
-    return { xTest: xsArray, ids: ids };
+    return { xTest: xsArray, ids: ids }
   }
 
   async predict(testingData) {
-    console.log('Loading model...');
-    let loadedModel = null;
+    console.log('Loading model...')
+    let loadedModel = null
 
     try {
-      loadedModel = await this.getModelFromStorage();
+      loadedModel = await this.getModelFromStorage()
     } catch {
-      console.log('No model found.');
-      return null;
+      console.log('No model found.')
+      return null
     }
 
     if (loadedModel) {
-      console.log('Model loaded.');
+      console.log('Model loaded.')
 
       if (this.trainingInformation.aggregateImagesById && this.net == null) {
-        await this.loadPretrainedNet();
+        await this.loadPretrainedNet()
       }
 
-      const imageUri = [];
-      const imageNames = [];
+      const imageUri = []
+      const imageNames = []
 
       Object.keys(testingData).forEach((key) => {
-        imageNames.push(testingData[key].name);
-        imageUri.push(key);
-      });
+        imageNames.push(testingData[key].name)
+        imageUri.push(key)
+      })
 
-      let xTest = [];
-      let ids = null;
+      let xTest = []
+      let ids = null
       if (this.trainingInformation.aggregateImagesById) {
         const preprocessedData = await this.aggregateTestData(
           imageUri,
           imageNames
-        );
-        xTest = await preprocessedData.xTest;
-        ids = await preprocessedData.ids;
+        )
+        xTest = await preprocessedData.xTest
+        ids = await preprocessedData.ids
       } else {
         for (const url of Object.keys(testingData)) {
-          const img_tensor = await this.imagePreprocessing(url);
-          xTest.push(img_tensor);
+          const imgTensor = await this.imagePreprocessing(url)
+          xTest.push(imgTensor)
         }
       }
 
-      const classes_dict = {};
+      const classesDict = {}
 
       // xTest = xTest.split(xTest.shape[0]);
       for (let i = 0; i < xTest.length; ++i) {
-        const logits = loadedModel.predict(xTest[i]);
+        const logits = loadedModel.predict(xTest[i])
 
         // Convert logits to probabilities and class names.
         const classes = await getTopKClasses(
           logits,
           this.trainingInformation.LABEL_LIST.length,
           this.trainingInformation.LABEL_LIST
-        );
+        )
 
-        const idx = ids == null ? i : ids[i];
+        const idx = ids == null ? i : ids[i]
 
-        classes_dict[idx] = classes;
+        classesDict[idx] = classes
 
-        console.log(classes);
+        console.log(classes)
       }
 
-      console.log('Prediction Sucessful!');
+      console.log('Prediction Sucessful!')
 
-      return classes_dict;
+      return classesDict
     } else {
-      console.log('No model has been trained or found!');
+      console.log('No model has been trained or found!')
     }
   }
 
-  async createLabels(filenames, label_file) {
-    const labels = new Array(filenames.length);
-    const lnames = this.trainingInformation.LABEL_ASSIGNMENT;
-    console.log('Reading csv file', label_file);
+  async createLabels(filenames, lavelFile) {
+    const labels = new Array(filenames.length)
+    const lnames = this.trainingInformation.LABEL_ASSIGNMENT
+    console.log('Reading csv file', lavelFile)
     console.log(
       'Using label assignment ',
       this.trainingInformation.LABEL_ASSIGNMENT
-    );
-    console.log('Filenames', filenames);
+    )
+    console.log('Filenames', filenames)
 
     return new Promise((resolve, reject) => {
-      Papa.parse(label_file, {
+      Papa.parse(lavelFile, {
         download: true,
         step: function (row) {
-          const idx = filenames.indexOf(row.data[0]);
-          if (idx >= 0) labels[idx] = lnames[row.data[1]];
+          const idx = filenames.indexOf(row.data[0])
+          if (idx >= 0) labels[idx] = lnames[row.data[1]]
         },
         complete: function () {
-          console.log('Read labels:', labels);
-          resolve(labels);
+          console.log('Read labels:', labels)
+          resolve(labels)
         },
         error(err, file) {
-          reject(err);
-        },
-      });
-    });
+          reject(err)
+        }
+      })
+    })
   }
 }

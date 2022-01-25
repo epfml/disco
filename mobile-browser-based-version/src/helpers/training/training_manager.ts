@@ -15,6 +15,15 @@ const MANY_EPOCHS = 9999;
  * Takes care of memory management of the model and the training of the model.
  */
 export class TrainingManager {
+  task: any;
+  client: any;
+  trainingInformant: any;
+  useIndexedDB: boolean;
+  stopTrainingRequested: boolean;
+  model: any;
+  data: any;
+  labels: any;
+
   /**
    * Constructs the training manager.
    * @param {Object} task the trained task
@@ -61,12 +70,17 @@ export class TrainingManager {
      * If IndexedDB is turned on and the working model exists, then load the
      * existing model from IndexedDB. Otherwise, create a fresh new one.
      */
-    const modelParams = [
-      this.task.taskID,
-      this.task.trainingInformation.modelID,
-    ];
-    if (this.useIndexedDB && (await getWorkingModelMetadata(...modelParams))) {
-      this.model = await getWorkingModel(...modelParams);
+    if (
+      this.useIndexedDB &&
+      (await getWorkingModelMetadata(
+        this.task.taskID,
+        this.task.trainingInformation.modelID
+      ))
+    ) {
+      this.model = await getWorkingModel(
+        this.task.taskID,
+        this.task.trainingInformation.modelID
+      );
     } else {
       this.model = await this.task.createModel();
     }
