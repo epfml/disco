@@ -38,7 +38,7 @@ export const store = createStore({
 
     clearNewTasks (state) {
       // limit the number of update events generated if no new tasks have been added
-      state.newTasks = state.newTasks.length > 0 ? [] : undefined // TODO does undefined make sense here?
+      state.newTasks = []
     },
 
     setIndexedDB (state, payload) {
