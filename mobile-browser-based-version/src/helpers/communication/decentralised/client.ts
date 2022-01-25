@@ -1,5 +1,6 @@
 import msgpack from 'msgpack-lite';
 import Peer from 'peerjs';
+import PeerJSOption from 'peerjs';
 
 import {
   makeID,
@@ -28,6 +29,21 @@ const TIME_PER_TRIES = 100;
  */
 const MAX_TRIES = 100;
 
+// TODO cast to this instead of unknown
+// interface IceServers {
+//   url: string;
+//   credential?: string;
+//   username?: string;
+// }
+
+// interface PeerConfig extends PeerJSOption {
+//   host: string;
+//   port: number;
+//   path: string;
+//   secure?: boolean;
+//   config?: IceServers[];
+// }
+
 /**
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
@@ -39,7 +55,14 @@ export class DecentralisedClient extends Client {
    * @param {String} taskID
    * @param {String} taskPassword
    */
-  constructor(serverURL, task, password = null) {
+  password: string;
+  receivers: any[];
+  recvBuffer: any;
+  peer: any;
+  isIdle: boolean;
+  data: any;
+
+  constructor(serverURL, task, password) {
     super(serverURL, task);
     this.password = password;
 
@@ -53,7 +76,7 @@ export class DecentralisedClient extends Client {
    * Initialize the connection to the PeerJS server.
    * @param {Number} epochs the number of epochs.
    */
-  async connect(epochs) {
+  async connect(epochs): Promise<void> {
     console.log('Connecting...');
     this.recvBuffer = {
       trainInfo: {
@@ -65,32 +88,32 @@ export class DecentralisedClient extends Client {
     const peerConfig =
       process.env.NODE_ENV === 'development'
         ? {
-            host: 'localhost',
-            port: 8080,
-            path: `/deai/${this.task.taskID}`,
-          }
+          host: 'localhost',
+          port: 8080,
+          path: `/deai/${this.task.taskID}`,
+        }
         : {
-            host: this.serverURL,
-            path: `/deai/${this.task.taskID}`,
-            secure: true,
-            config: {
-              iceServers: [
-                { url: 'stun:stun.l.google.com:19302' },
-                {
-                  url: 'turn:34.77.172.69:3478',
-                  credential: 'deai',
-                  username: 'deai',
-                },
-              ],
-            },
-          };
-    this.peer = new Peer(makeID(10), peerConfig);
+          host: this.serverURL,
+          path: `/deai/${this.task.taskID}`,
+          secure: true,
+          config: {
+            iceServers: [
+              { url: 'stun:stun.l.google.com:19302' },
+              {
+                url: 'turn:34.77.172.69:3478',
+                credential: 'deai',
+                username: 'deai',
+              },
+            ],
+          },
+        };
+    this.peer = new Peer(makeID(10), peerConfig as unknown);
 
     return new Promise((resolve, reject) => {
       this.peer.on('error', (error) => {
         console.log('Failed to connect to the centralized server');
         console.log(error);
-        resolve(false);
+        resolve();
       });
 
       this.peer.on('open', async (id) => {
@@ -102,7 +125,7 @@ export class DecentralisedClient extends Client {
             await this._handleData(data, conn.peer);
           });
         });
-        resolve(true);
+        resolve();
       });
     });
   }
@@ -172,7 +195,8 @@ export class DecentralisedClient extends Client {
           TIME_PER_TRIES
         );
         const endTime = new Date();
-        const timeDiff = (endTime - startTime) / 1000;
+        const timeDiff =
+          (endTime.getMilliseconds() - startTime.getMilliseconds()) / 1000;
         trainingInformant.updateWaitingTime(Math.round(timeDiff));
         // Timeout to avoid deadlock (10s) TODO: where is the timeout?
       }
@@ -318,19 +342,17 @@ export class DecentralisedClient extends Client {
   async _idleState(data) {
     // convert the peerjs ArrayBuffer back into Uint8Array
     const payload = msgpack.decode(new Uint8Array(data.payload));
-    const receiver = payload.name;
     const epochWeights = {
       epoch: this.recvBuffer.lastUpdate.epoch,
       weights: this.recvBuffer.lastUpdate.weights,
     };
     switch (data.cmdCode) {
       case CMD_CODES.WEIGHT_REQUEST:
-        console.log(`Sending weights to: ${receiver}`);
+        console.log(`Sending weights to: ${this.recvBuffer.peer}`);
         await this._sendData(
           epochWeights,
           CMD_CODES.AVG_WEIGHTS,
-          this.recvBuffer.peer,
-          receiver
+          this.recvBuffer.peer
         );
         break;
     }

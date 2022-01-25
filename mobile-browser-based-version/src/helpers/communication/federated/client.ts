@@ -14,11 +14,26 @@ const TIME_PER_TRIES = 1000;
  */
 const MAX_TRIES = 30;
 
+// TODO should we import this interface from the server?
+interface SelectionStatus {
+  selected: boolean;
+  round: number;
+}
+
+interface AggregationStatus {
+  aggregated: boolean;
+}
+
 /**
  * Class that deals with communication with the centralized server when training
  * a specific task.
  */
 export class FederatedClient extends Client {
+  clientID: string;
+  round: number;
+  peer: any;
+  selected: boolean;
+
   /**
    * Prepares connection to a centralized server for training a given task.
    * @param {String} serverURL The URL of the centralized server.
@@ -27,7 +42,7 @@ export class FederatedClient extends Client {
    */
   constructor(serverURL, task) {
     super(serverURL, task);
-    this.clientID = null;
+    this.clientID = '';
     this.round = 0;
     this.selected = false;
   }
@@ -95,7 +110,7 @@ export class FederatedClient extends Client {
       metadataID,
       metadata
     );
-    return response.ok;
+    return (await response).ok;
   }
 
   async getMetadataMap(metadataID) {
@@ -130,14 +145,14 @@ export class FederatedClient extends Client {
      * Wait for the selection status from server.
      */
     console.log('Awaiting for selection from server...');
-    const selectionStatus = await getSuccessfulResponse(
+    const selectionStatus = (await getSuccessfulResponse(
       api.selectionStatus,
       'selected',
       MAX_TRIES,
       TIME_PER_TRIES,
       this.task.taskID,
       this.clientID
-    );
+    )) as SelectionStatus;
     /**
      * This happens if either the client is disconnected from the server,
      * or it failed to get a success response from server after a few tries.
@@ -174,7 +189,7 @@ export class FederatedClient extends Client {
      * Wait for the server to proceed to weights aggregation.
      */
     console.log('Awaiting for aggregated model from server...');
-    const aggregationStatus = await getSuccessfulResponse(
+    const aggregationStatus = (await getSuccessfulResponse(
       api.aggregationStatus,
       'aggregated',
       MAX_TRIES,
@@ -182,7 +197,7 @@ export class FederatedClient extends Client {
       this.task.taskID,
       this.round,
       this.clientID
-    );
+    )) as AggregationStatus;
     /**
      * This happens if either the client is disconnected from the server,
      * or it failed to get a success response from server after a few tries.

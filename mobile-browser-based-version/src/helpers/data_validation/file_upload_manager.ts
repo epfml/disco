@@ -1,4 +1,10 @@
 export class FileUploadManager {
+  nbrClasses: number;
+  environment: any;
+  multipleClass: boolean;
+  filesList: any;
+  labelFile: any;
+
   /**
    *
    * @param {Number} nbrClasses number of classes associated to the task
