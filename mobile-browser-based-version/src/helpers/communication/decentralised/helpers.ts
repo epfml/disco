@@ -1,33 +1,33 @@
-export function checkBuffer(buffer, key, timeout) {
+export function checkBuffer (buffer, key, timeout) {
   return new Promise<void>((resolve) => {
-    (function waitData() {
+    (function waitData () {
       if (buffer[key]) {
-        return resolve();
+        return resolve()
       }
-      setTimeout(waitData, timeout);
-    })();
-  });
+      setTimeout(waitData, timeout)
+    })()
+  })
 }
 
-export function checkBufferUntil(buffer, key, tries, timeout) {
+export function checkBufferUntil (buffer, key, tries, timeout) {
   return new Promise<void>((resolve) => {
-    (function waitData(n) {
+    (function waitData (n) {
       if (buffer[key] || n > tries) {
-        return resolve();
+        return resolve()
       }
-      setTimeout(() => waitData(n + 1), timeout);
-    })(0);
-  });
+      setTimeout(() => waitData(n + 1), timeout)
+    })(0)
+  })
 }
 
-export function checkBufferWeightsUntil(buffer, length, tries, timeout) {
+export function checkBufferWeightsUntil (buffer, length, tries, timeout) {
   return new Promise<void>((resolve) => {
-    (function waitData(n) {
-      const arr = Object.values(buffer.avgWeights).flat(1);
+    (function waitData (n) {
+      const arr = Object.values(buffer.avgWeights).flat(1)
       if (arr.length >= length || n > tries) {
-        return resolve();
+        return resolve()
       }
-      setTimeout(() => waitData(n + 1), timeout);
-    })(0);
-  });
+      setTimeout(() => waitData(n + 1), timeout)
+    })(0)
+  })
 }

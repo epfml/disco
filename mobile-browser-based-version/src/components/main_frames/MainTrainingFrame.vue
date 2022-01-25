@@ -18,18 +18,18 @@
 </template>
 
 <script>
-import CsvTrainingFrame from '../building_frames/csv/CsvTrainingFrame.vue';
-import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame.vue';
+import CsvTrainingFrame from '../building_frames/csv/CsvTrainingFrame.vue'
+import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame.vue'
 
 export default {
   name: 'main-training-frame',
   props: {
     Id: String,
-    Task: Object,
+    Task: Object
   },
   components: {
     CsvTrainingFrame,
-    ImageTrainingFrame,
-  },
-};
+    ImageTrainingFrame
+  }
+}
 </script>

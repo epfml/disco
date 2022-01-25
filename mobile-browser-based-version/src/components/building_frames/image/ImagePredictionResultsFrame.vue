@@ -23,22 +23,22 @@
 </template>
 
 <script>
-import FileEarmarkRuledVue from '../../../assets/svg/FileEarmarkRuled.vue';
+import FileEarmarkRuledVue from '../../../assets/svg/FileEarmarkRuled.vue'
 
 export default {
   name: 'image-prediction-results-frame',
   props: {
     Id: String,
     classes: Array,
-    imageElement: HTMLImageElement,
+    imageElement: HTMLImageElement
   },
   components: {
-    FileEarmarkRuledVue,
+    FileEarmarkRuledVue
   },
-  data() {
+  data () {
     return {
-      imageId: 'image_'.concat(this.Id),
-    };
-  },
-};
+      imageId: 'image_'.concat(this.Id)
+    }
+  }
+}
 </script>

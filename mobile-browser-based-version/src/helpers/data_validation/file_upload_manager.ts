@@ -10,12 +10,12 @@ export class FileUploadManager {
    * @param {Number} nbrClasses number of classes associated to the task
    * @param {Component} environment the component in which the fileUploadManager is created from
    */
-  constructor(nbrClasses, environment) {
-    this.nbrClasses = nbrClasses;
-    this.environment = environment;
-    this.multipleClass = nbrClasses > 1;
-    this.filesList = {};
-    this.labelFile = {};
+  constructor (nbrClasses, environment) {
+    this.nbrClasses = nbrClasses
+    this.environment = environment
+    this.multipleClass = nbrClasses > 1
+    this.filesList = {}
+    this.labelFile = {}
   }
 
   /**
@@ -26,16 +26,16 @@ export class FileUploadManager {
    * @param {Object} file
    * @param {String} label the label
    */
-  addFile(objectURL, file, label) {
-    console.log(label);
+  addFile (objectURL, file, label) {
+    console.log(label)
     // Add datatype check
     if (!this.multipleClass) {
-      this.filesList[objectURL] = file;
+      this.filesList[objectURL] = file
     } else {
       if (label == 'Labels') {
-        this.labelFile[objectURL] = { label: label, name: file.name };
+        this.labelFile[objectURL] = { label: label, name: file.name }
       } else {
-        this.filesList[objectURL] = { label: label, name: file.name };
+        this.filesList[objectURL] = { label: label, name: file.name }
       }
     }
   }
@@ -44,8 +44,8 @@ export class FileUploadManager {
    * Deletes the files at position objectURL
    * @param {Object} objectURL
    */
-  deleteFile(objectURL) {
-    delete this.filesList[objectURL];
+  deleteFile (objectURL) {
+    delete this.filesList[objectURL]
   }
 
   /**
@@ -62,45 +62,45 @@ export class FileUploadManager {
    *  removed when this section is re-worked.
    *
    */
-  _appendLabelFileToFilesList() {
-    this.filesList = { ...this.filesList, ...this.labelFile };
-    this.labelFile = {};
+  _appendLabelFileToFilesList () {
+    this.filesList = { ...this.filesList, ...this.labelFile }
+    this.labelFile = {}
   }
 
   /**
    * Getter function for the first file in the file's list
    * @returns the first file in the file's list
    */
-  getFirstFile() {
-    this._appendLabelFileToFilesList();
-    return this.filesList[Object.keys(this.filesList)[0]];
+  getFirstFile () {
+    this._appendLabelFileToFilesList()
+    return this.filesList[Object.keys(this.filesList)[0]]
   }
 
   /**
    * Getter function for the file's list
    * @returns the file's list
    */
-  getFilesList() {
-    this._appendLabelFileToFilesList();
-    return this.filesList;
+  getFilesList () {
+    this._appendLabelFileToFilesList()
+    return this.filesList
   }
 
   /**
    *
    * @returns the number of files in the file's list
    */
-  numberOfFiles() {
+  numberOfFiles () {
     return (
       Object.keys(this.filesList).length + Object.keys(this.labelFile).length
-    );
+    )
   }
 
   /**
    *
    * clears the fileList
    */
-  clear() {
-    this.filesList = {};
-    this.labelFile = {};
+  clear () {
+    this.filesList = {}
+    this.labelFile = {}
   }
 }

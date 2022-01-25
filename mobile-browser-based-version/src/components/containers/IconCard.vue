@@ -41,12 +41,12 @@ export default {
   props: {
     header: { type: String },
     description: { type: String },
-    customClass: { default: '', type: String },
+    customClass: { default: '', type: String }
   },
   computed: {
-    hasExtraSlot() {
-      return this.$slots.extra;
-    },
-  },
-};
+    hasExtraSlot () {
+      return this.$slots.extra
+    }
+  }
+}
 </script>

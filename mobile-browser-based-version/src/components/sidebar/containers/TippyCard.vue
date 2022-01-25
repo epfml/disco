@@ -10,7 +10,7 @@
 export default {
   name: 'tippy-card',
   props: {
-    title: { default: '', type: String },
-  },
-};
+    title: { default: '', type: String }
+  }
+}
 </script>

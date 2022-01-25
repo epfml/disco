@@ -30,17 +30,17 @@
 </template>
 
 <script>
-import CustomFooter from '../simple/CustomFooter.vue';
+import CustomFooter from '../simple/CustomFooter.vue'
 
 export default {
   name: 'base-layout',
   components: {
-    CustomFooter,
+    CustomFooter
   },
   props: {
     customClass: { default: '', type: String },
     override: { default: false, type: Boolean },
-    withSection: { default: false, type: Boolean },
-  },
-};
+    withSection: { default: false, type: Boolean }
+  }
+}
 </script>

@@ -37,36 +37,36 @@
 </template>
 
 <script>
-import IconCard from '../../containers/IconCard.vue';
-import CheckList from '../../../assets/svg/CheckList.vue';
-import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue';
+import IconCard from '../../containers/IconCard.vue'
+import CheckList from '../../../assets/svg/CheckList.vue'
+import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue'
 
 export default {
   name: 'action-frame',
   props: {
-    Task: Object,
+    Task: Object
   },
   components: {
     IconCard,
     CheckList,
-    FileEarmarkRuled,
+    FileEarmarkRuled
   },
-  data() {
+  data () {
     return {
       // variables for general informations
       dataFormatInfoText: '',
-      dataExampleText: '',
-    };
+      dataExampleText: ''
+    }
   },
-  async mounted() {
+  async mounted () {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
       this.dataFormatInfoText =
-        this.Task.displayInformation.dataFormatInformation;
-      this.dataExampleText = this.Task.displayInformation.dataExampleText;
-      console.log(`Mounting ${this.Task.trainingInformation.modelID}`);
-    });
-  },
-};
+        this.Task.displayInformation.dataFormatInformation
+      this.dataExampleText = this.Task.displayInformation.dataExampleText
+      console.log(`Mounting ${this.Task.trainingInformation.modelID}`)
+    })
+  }
+}
 </script>

@@ -1,14 +1,14 @@
-import path from 'path';
-import fs from 'fs';
-import msgpack from 'msgpack-lite';
-import * as config from '../../../server.config';
+import path from 'path'
+import fs from 'fs'
+import msgpack from 'msgpack-lite'
+import * as config from '../../../server.config'
 import {
   averageWeights,
-  assignWeightsToModel,
-} from '../../helpers/tfjs_helpers';
-import { getTasks } from '../../tasks/tasks_helper';
-import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-node';
+  assignWeightsToModel
+} from '../../helpers/tfjs_helpers'
+import { getTasks } from '../../tasks/helpers'
+import * as tf from '@tensorflow/tfjs'
+import '@tensorflow/tfjs-node'
 
 const REQUEST_TYPES = Object.freeze({
   CONNECT: 'connect',
@@ -20,48 +20,48 @@ const REQUEST_TYPES = Object.freeze({
   POST_METADATA: 'post-metadata',
 
   GET_METADATA: 'get-metadata',
-  GET_TASKS: 'get-tasks',
-});
+  GET_TASKS: 'get-tasks'
+})
 /**
  * Fraction of client gradients required on the final step of a round
  * to proceed to the aggregation step.
  */
-const AGGREGATION_THRESHOLD = 0.8;
+const AGGREGATION_THRESHOLD = 0.8
 /**
  * Absolute number of selected clients required to start the next round.
  */
-const ROUND_THRESHOLD = 2;
+const ROUND_THRESHOLD = 2
 /**
  * Once a certain threshold has been hit, leave a small time window (in ms) for
  * late clients to join the next round.
  */
-const ROUND_COUNTDOWN = 1000 * 10;
+const ROUND_COUNTDOWN = 1000 * 10
 /**
  * Once a certain threshold has been hit, leave a small time window (in ms) for
  * late clients to contribute to the round's aggregated model.
  */
-const AGGREGATION_COUNTDOWN = 1000 * 3;
+const AGGREGATION_COUNTDOWN = 1000 * 3
 /**
  * Clients that didn't emit any API request within this time delay (in ms) are
  * considered as idle and are consequently removed from the required data
  * structures.
  */
-const IDLE_DELAY = 1000 * 10;
+const IDLE_DELAY = 1000 * 10
 /**
  * Same as IDLE_DELAY, except longer for clients that recently connected and thus
  * are not critical nodes (i.e. training nodes).
  */
-const NEW_CLIENT_IDLE_DELAY = 1000 * 60;
+const NEW_CLIENT_IDLE_DELAY = 1000 * 60
 /**
  * Contains the model weights received from clients for a given task and round.
  * Stored by task ID, round number and client ID.
  */
-const weightsMap = new Map();
+const weightsMap = new Map()
 /**
  * Contains metadata used for training by clients for a given task and round.
  * Stored by task ID, round number and client ID.
  */
-const metadataMap = new Map();
+const metadataMap = new Map()
 /**
  * Contains all successful requests made to the server. An entry consists of:
  * - a timestamp corresponding to the time at which the request was made
@@ -70,43 +70,43 @@ const metadataMap = new Map();
  * - the round at which the request was made
  * - the request type
  */
-const logs = [];
+const logs = []
 /**
  * Contains client IDs currently connected to one of the server.
  * Disconnected clients should always be removed from this set
  */
-const clients = new Set();
+const clients = new Set()
 /**
  * Contains client IDs and their amount of recently emitted API requests.
  * This allows us to check whether clients were active within a certain time interval
  * and thus remove possibly AFK clients.
  */
-const activeClients = new Map();
+const activeClients = new Map()
 /**
  * Contains client IDs selected for the current round. Maps a task ID to a set of
  * selected clients. Disconnected clients should always be removed from the
  * corresponding set of selected clients.
  */
-const selectedClients = new Map();
+const selectedClients = new Map()
 /**
  * Contains client IDs queued for the next round's selection. Maps a task ID to a set
  * of queued clients. Disconnected clients should always be removed from the
  * corresponding set of queued set.
  */
-const selectedClientsQueue = new Map();
+const selectedClientsQueue = new Map()
 /**
  * Maps a task to a status object. Currently provides the round number and
  * round status for each task.
  */
-const tasksStatus = new Map();
+const tasksStatus = new Map()
 /**
  * Initialize the data structures declared above.
  */
 getTasks(config)?.forEach((task) => {
-  selectedClients.set(task.taskID, new Set());
-  selectedClientsQueue.set(task.taskID, new Set());
-  tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 });
-});
+  selectedClients.set(task.taskID, new Set())
+  selectedClientsQueue.set(task.taskID, new Set())
+  tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 })
+})
 
 /**
  * Verifies that the given POST request is correctly formatted. Its body must
@@ -117,29 +117,29 @@ getTasks(config)?.forEach((task) => {
  * subsequent POST requests related to training.
  * @param {Request} request received from client
  */
-function _checkRequest(request) {
-  const task = request.params.task;
-  const round = request.params.round;
-  const id = request.params.id;
+function _checkRequest (request) {
+  const task = request.params.task
+  const round = request.params.round
+  const id = request.params.id
 
   if (!(Number.isInteger(Number(round)) && round >= 0)) {
-    return 400;
+    return 400
   }
   if (!(tasksStatus.has(task) && round <= tasksStatus.get(task).round)) {
-    return 404;
+    return 404
   }
   if (!clients.has(id)) {
-    return 401;
+    return 401
   }
   if (!selectedClients.get(task).has(id)) {
-    return 403;
+    return 403
   }
-  return 200;
+  return 200
 }
 
-function _failRequest(response, type, code) {
-  console.log(`${type} failed with code ${code}`);
-  response.status(code).send();
+function _failRequest (response, type, code) {
+  console.log(`${type} failed with code ${code}`)
+  response.status(code).send()
 }
 
 /**
@@ -147,46 +147,46 @@ function _failRequest(response, type, code) {
  * @param {Request} request received from client
  * @param {String} type of the request
  */
-function _logsAppend(request, type) {
-  const timestamp = new Date();
-  const task = request.params.task;
-  const round = request.params.round;
-  const id = request.params.id;
+function _logsAppend (request, type) {
+  const timestamp = new Date()
+  const task = request.params.task
+  const round = request.params.round
+  const id = request.params.id
   logs.push({
     timestamp: timestamp,
     task: task,
     round: round,
     client: id,
-    request: type,
-  });
+    request: type
+  })
 }
 
-function _startNextRound(task, threshold, countdown) {
-  let queueSize = selectedClientsQueue.get(task).size;
+function _startNextRound (task, threshold, countdown) {
+  let queueSize = selectedClientsQueue.get(task).size
   if (queueSize >= threshold) {
     setTimeout(() => {
-      queueSize = selectedClientsQueue.get(task).size;
+      queueSize = selectedClientsQueue.get(task).size
       if (queueSize >= threshold && !tasksStatus.get(task).isRoundPending) {
-        tasksStatus.get(task).isRoundPending = true;
+        tasksStatus.get(task).isRoundPending = true
 
-        console.log('* queue: ', selectedClientsQueue.get(task));
-        console.log('* selected clients: ', selectedClients.get(task));
+        console.log('* queue: ', selectedClientsQueue.get(task))
+        console.log('* selected clients: ', selectedClients.get(task))
 
-        selectedClients.set(task, new Set([...selectedClientsQueue.get(task)]));
-        selectedClientsQueue.get(task).clear();
+        selectedClients.set(task, new Set([...selectedClientsQueue.get(task)]))
+        selectedClientsQueue.get(task).clear()
 
-        console.log('* empty queue: ', selectedClientsQueue.get(task));
-        console.log('* new selected clients: ', selectedClients.get(task));
+        console.log('* empty queue: ', selectedClientsQueue.get(task))
+        console.log('* new selected clients: ', selectedClients.get(task))
       }
-    }, countdown);
+    }, countdown)
   }
 }
 
-async function _aggregateWeights(task, round, id) {
+async function _aggregateWeights (task, round, id) {
   // TODO: check whether this actually works
   const serializedAggregatedWeights = await averageWeights(
     Array.from(weightsMap.get(task).get(round).values())
-  );
+  )
   /**
    * Save the newly aggregated model to the server's local storage. This
    * is now the model served to clients for the given task. To save the newly
@@ -195,42 +195,42 @@ async function _aggregateWeights(task, round, id) {
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */
-  console.log(`Updating ${task} model`);
+  console.log(`Updating ${task} model`)
   const modelFilesPath = config.SAVING_SCHEME.concat(
     path.join(config.MODELS_DIR, task, 'model.json')
-  );
-  const model = await tf.loadLayersModel(modelFilesPath);
-  assignWeightsToModel(model, serializedAggregatedWeights);
-  model.save(path.dirname(modelFilesPath));
+  )
+  const model = await tf.loadLayersModel(modelFilesPath)
+  assignWeightsToModel(model, serializedAggregatedWeights)
+  model.save(path.dirname(modelFilesPath))
   /**
    * The round has completed.
    */
-  tasksStatus.get(task).isRoundPending = false;
+  tasksStatus.get(task).isRoundPending = false
   /**
    * Communicate the correct round to selected clients.
    */
-  tasksStatus.get(task).round += 1;
+  tasksStatus.get(task).round += 1
   /**
    * Start next round.
    */
-  _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
+  _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN)
 }
 
-function _checkForIdleClients(client, delay) {
+function _checkForIdleClients (client, delay) {
   setTimeout(() => {
     if (activeClients.has(client)) {
-      console.log(`Checking ${client} for activity`);
+      console.log(`Checking ${client} for activity`)
       if (activeClients.get(client).requests === 0) {
-        console.log(`Removing idle client ${client}`);
-        clients.delete(client);
-        activeClients.delete(client);
-        selectedClients.delete(client);
-        selectedClientsQueue.delete(client);
+        console.log(`Removing idle client ${client}`)
+        clients.delete(client)
+        activeClients.delete(client)
+        selectedClients.delete(client)
+        selectedClientsQueue.delete(client)
       } else {
-        activeClients.get(client).requests -= 1;
+        activeClients.get(client).requests -= 1
       }
     }
-  }, delay);
+  }, delay)
 }
 
 /**
@@ -242,12 +242,12 @@ function _checkForIdleClients(client, delay) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function queryLogs(request, response) {
-  const task = request.query.task;
-  const round = request.query.round;
-  const id = request.query.id;
+export function queryLogs (request, response) {
+  const task = request.query.task
+  const round = request.query.round
+  const id = request.query.id
 
-  console.log(`Logs query: task: ${task}, round: ${round}, id: ${id}`);
+  console.log(`Logs query: task: ${task}, round: ${round}, id: ${id}`)
 
   response
     .status(200)
@@ -258,43 +258,43 @@ export function queryLogs(request, response) {
           (task ? entry.task === task : true) &&
           (round ? entry.round === round : true)
       )
-    );
+    )
 }
 
-export function selectionStatus(request, response) {
-  const type = REQUEST_TYPES.SELECTION_STATUS;
+export function selectionStatus (request, response) {
+  const type = REQUEST_TYPES.SELECTION_STATUS
 
-  const task = request.params.task;
-  const id = request.params.id;
+  const task = request.params.task
+  const id = request.params.id
 
   if (!clients.has(id)) {
-    return _failRequest(response, type, 401);
+    return _failRequest(response, type, 401)
   }
 
   if (!tasksStatus.has(task)) {
-    return _failRequest(response, type, 404);
+    return _failRequest(response, type, 404)
   }
 
-  _logsAppend(request, type);
+  _logsAppend(request, type)
 
-  response.status(200);
+  response.status(200)
 
-  console.log(`Client with ID ${id} asked to get selected`);
-  console.log('* selected clients: ', selectedClients.get(task));
-  console.log('* queued clients: ', selectedClientsQueue.get(task));
+  console.log(`Client with ID ${id} asked to get selected`)
+  console.log('* selected clients: ', selectedClients.get(task))
+  console.log('* queued clients: ', selectedClientsQueue.get(task))
   console.log(
     `=> selected? ${selectedClients.get(task).has(id) ? 'yes' : 'no'}`
-  );
+  )
 
   if (selectedClients.get(task).has(id)) {
-    response.send({ selected: true, round: tasksStatus.get(task).round });
+    response.send({ selected: true, round: tasksStatus.get(task).round })
   } else {
-    selectedClientsQueue.get(task).add(id);
-    response.send({ selected: false });
-    _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
+    selectedClientsQueue.get(task).add(id)
+    response.send({ selected: false })
+    _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN)
   }
-  activeClients.get(id).requests += 1;
-  _checkForIdleClients(id, IDLE_DELAY);
+  activeClients.get(id).requests += 1
+  _checkForIdleClients(id, IDLE_DELAY)
 }
 
 /**
@@ -304,27 +304,27 @@ export function selectionStatus(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function connect(request, response) {
-  const type = REQUEST_TYPES.CONNECT;
+export function connect (request, response) {
+  const type = REQUEST_TYPES.CONNECT
 
-  const task = request.params.task;
-  const id = request.params.id;
+  const task = request.params.task
+  const id = request.params.id
 
   if (!tasksStatus.has(task)) {
-    return _failRequest(response, type, 404);
+    return _failRequest(response, type, 404)
   }
   if (clients.has(id)) {
-    return _failRequest(response, type, 401);
+    return _failRequest(response, type, 401)
   }
 
-  _logsAppend(request, type);
+  _logsAppend(request, type)
 
-  clients.add(id);
-  console.log(`Client with ID ${id} connected to the server`);
-  response.status(200).send();
+  clients.add(id)
+  console.log(`Client with ID ${id} connected to the server`)
+  response.status(200).send()
 
-  activeClients.set(id, { requests: 0 });
-  _checkForIdleClients(id, NEW_CLIENT_IDLE_DELAY);
+  activeClients.set(id, { requests: 0 })
+  _checkForIdleClients(id, NEW_CLIENT_IDLE_DELAY)
 }
 
 /**
@@ -337,25 +337,25 @@ export function connect(request, response) {
  * with very poor and/or sparse contribution to training in terms of performance
  * and/or weights posting frequency.
  */
-export function disconnect(request, response) {
-  const type = REQUEST_TYPES.DISCONNECT;
+export function disconnect (request, response) {
+  const type = REQUEST_TYPES.DISCONNECT
 
-  const task = request.params.task;
-  const id = request.params.id;
+  const task = request.params.task
+  const id = request.params.id
 
   if (!(tasksStatus.has(task) && clients.has(id))) {
-    return _failRequest(response, type, 404);
+    return _failRequest(response, type, 404)
   }
 
-  _logsAppend(request, type);
+  _logsAppend(request, type)
 
-  clients.delete(id);
-  activeClients.delete(id);
-  selectedClients.get(task).delete(id);
-  selectedClientsQueue.get(task).delete(id);
+  clients.delete(id)
+  activeClients.delete(id)
+  selectedClients.get(task).delete(id)
+  selectedClientsQueue.get(task).delete(id)
 
-  console.log(`Client with ID ${id} disconnected from the server`);
-  response.status(200).send();
+  console.log(`Client with ID ${id} disconnected from the server`)
+  response.status(200).send()
 }
 
 /**
@@ -368,49 +368,49 @@ export function disconnect(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function postWeights(request, response) {
-  const type = REQUEST_TYPES.POST_WEIGHTS;
+export function postWeights (request, response) {
+  const type = REQUEST_TYPES.POST_WEIGHTS
 
-  const code = _checkRequest(request);
+  const code = _checkRequest(request)
   if (code !== 200) {
-    return _failRequest(response, type, code);
+    return _failRequest(response, type, code)
   }
 
-  const task = request.params.task;
-  const round = request.params.round;
-  const id = request.params.id;
+  const task = request.params.task
+  const round = request.params.round
+  const id = request.params.id
 
   if (
     request.body === undefined ||
     request.body.weights === undefined ||
     request.body.weights.data === undefined
   ) {
-    return _failRequest(response, type, 400);
+    return _failRequest(response, type, 400)
   }
 
-  const encodedWeights = request.body.weights;
+  const encodedWeights = request.body.weights
 
-  _logsAppend(request, type);
+  _logsAppend(request, type)
 
   if (!weightsMap.has(task)) {
-    weightsMap.set(task, new Map());
+    weightsMap.set(task, new Map())
   }
 
   if (!weightsMap.get(task).has(round)) {
-    weightsMap.get(task).set(round, new Map());
+    weightsMap.get(task).set(round, new Map())
   }
 
   /**
    * Check whether the client already sent their local weights for this round.
    */
   if (!weightsMap.get(task).get(round).has(id)) {
-    const weights = msgpack.decode(Uint8Array.from(encodedWeights.data));
-    weightsMap.get(task).get(round).set(id, weights);
+    const weights = msgpack.decode(Uint8Array.from(encodedWeights.data))
+    weightsMap.get(task).get(round).set(id, weights)
   }
-  response.status(200).send();
+  response.status(200).send()
 
-  activeClients.get(id).requests += 1;
-  _checkForIdleClients(id, IDLE_DELAY);
+  activeClients.get(id).requests += 1
+  _checkForIdleClients(id, IDLE_DELAY)
 
   /**
    * Check whether enough clients sent their local weights to proceed to
@@ -420,7 +420,7 @@ export function postWeights(request, response) {
     weightsMap.get(task).get(round).size >=
     Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
   ) {
-    setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN);
+    setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN)
   }
 }
 
@@ -437,17 +437,17 @@ export function postWeights(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export async function aggregationStatus(request, response) {
-  const type = REQUEST_TYPES.AGGREGATION_STATUS;
+export async function aggregationStatus (request, response) {
+  const type = REQUEST_TYPES.AGGREGATION_STATUS
 
-  const code = _checkRequest(request);
+  const code = _checkRequest(request)
   if (code !== 200) {
-    return _failRequest(response, type, code);
+    return _failRequest(response, type, code)
   }
 
-  const task = request.params.task;
-  const round = request.params.round;
-  const id = request.params.id;
+  const task = request.params.task
+  const round = request.params.round
+  const id = request.params.id
 
   /**
    * The task was not trained at all.
@@ -456,33 +456,33 @@ export async function aggregationStatus(request, response) {
     !tasksStatus.get(task).isRoundPending &&
     tasksStatus.get(task).round === 0
   ) {
-    return _failRequest(response, type, 403);
+    return _failRequest(response, type, 403)
   }
   /**
    * No weight was posted for this task's round.
    */
   if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
-    return _failRequest(response, type, 404);
+    return _failRequest(response, type, 404)
   }
 
-  _logsAppend(request, type);
+  _logsAppend(request, type)
   /**
    * Check whether the requested round has completed.
    */
   const aggregated =
     !tasksStatus.get(task).isRoundPending ||
     (tasksStatus.get(task).isRoundPending &&
-      round < tasksStatus.get(task).round);
+      round < tasksStatus.get(task).round)
   /**
    * If aggregation occured, make the client wait to get selected again so it can
    * proceed to other jobs.
    */
   if (aggregated) {
-    selectedClients.get(task).delete(id);
+    selectedClients.get(task).delete(id)
   }
-  response.status(200).send({ aggregated: aggregated });
-  activeClients.get(id).requests += 1;
-  _checkForIdleClients(id, IDLE_DELAY);
+  response.status(200).send({ aggregated: aggregated })
+  activeClients.get(id).requests += 1
+  _checkForIdleClients(id, IDLE_DELAY)
 }
 
 /**
@@ -495,45 +495,45 @@ export async function aggregationStatus(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function postMetadata(request, response) {
-  const type = REQUEST_TYPES.POST_METADATA;
+export function postMetadata (request, response) {
+  const type = REQUEST_TYPES.POST_METADATA
 
-  const code = _checkRequest(request);
+  const code = _checkRequest(request)
   if (code !== 200) {
-    return _failRequest(response, type, code);
+    return _failRequest(response, type, code)
   }
 
-  _logsAppend(request, type);
+  _logsAppend(request, type)
 
-  const metadata = request.params.metadata;
-  const task = request.params.task;
-  const round = request.params.round;
-  const id = request.params.id;
+  const metadata = request.params.metadata
+  const task = request.params.task
+  const round = request.params.round
+  const id = request.params.id
 
   if (request.body === undefined || request.body[metadata] === undefined) {
-    return _failRequest(response, type, 400);
+    return _failRequest(response, type, 400)
   }
 
   if (!metadataMap.has(task)) {
-    metadataMap.set(task, new Map());
+    metadataMap.set(task, new Map())
   }
   if (!metadataMap.get(task).has(round)) {
-    metadataMap.get(task).set(round, new Map());
+    metadataMap.get(task).set(round, new Map())
   }
   if (!metadataMap.get(task).get(round).has(id)) {
-    metadataMap.get(task).get(round).set(id, new Map());
+    metadataMap.get(task).get(round).set(id, new Map())
   }
   if (!metadataMap.get(task).get(round).get(id).has(metadata)) {
     metadataMap
       .get(task)
       .get(round)
       .get(id)
-      .set(metadata, request.body[metadata]);
+      .set(metadata, request.body[metadata])
   }
-  response.status(200).send();
+  response.status(200).send()
 
-  activeClients.get(id).requests += 1;
-  _checkForIdleClients(id, IDLE_DELAY);
+  activeClients.get(id).requests += 1
+  _checkForIdleClients(id, IDLE_DELAY)
 }
 
 /**
@@ -546,37 +546,37 @@ export function postMetadata(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getMetadataMap(request, response) {
-  const type = REQUEST_TYPES.GET_METADATA;
+export function getMetadataMap (request, response) {
+  const type = REQUEST_TYPES.GET_METADATA
 
-  const code = _checkRequest(request);
+  const code = _checkRequest(request)
   if (code !== 200) {
-    return _failRequest(response, type, code);
+    return _failRequest(response, type, code)
   }
 
-  const metadata = request.params.metadata;
-  const task = request.params.task;
-  const round = request.params.round;
-  const id = request.params.id;
+  const metadata = request.params.metadata
+  const task = request.params.task
+  const round = request.params.round
+  const id = request.params.id
 
   // How did this work before?
-  const queriedMetadataMap = new Map();
-  let metadataMap = msgpack.encode(Array.from(queriedMetadataMap));
+  const queriedMetadataMap = new Map()
+  let metadataMap = msgpack.encode(Array.from(queriedMetadataMap))
 
   if (!(metadataMap.has(task) && round >= 0)) {
-    return _failRequest(response, type, 404);
+    return _failRequest(response, type, 404)
   }
 
-  _logsAppend(request, type);
+  _logsAppend(request, type)
 
   /**
    * Find the most recent entry round-wise for the given task (upper bounded
    * by the given round). Allows for sporadic entries in the metadata map.
    */
-  const allRounds = Array.from(metadataMap.get(task).keys());
+  const allRounds = Array.from(metadataMap.get(task).keys())
   const latestRound = allRounds.reduce((prev, curr) =>
     prev <= curr && curr <= round ? curr : prev
-  );
+  )
   /**
    * Fetch the required metadata from the general metadata structure stored
    * server-side and construct the queried metadata's map accordingly. This
@@ -584,15 +584,15 @@ export function getMetadataMap(request, response) {
    */
   for (const [id, entries] of metadataMap.get(task).get(latestRound)) {
     if (entries.has(metadata)) {
-      queriedMetadataMap.set(id, entries.get(metadata));
+      queriedMetadataMap.set(id, entries.get(metadata))
     }
   }
-  metadataMap = msgpack.encode(Array.from(queriedMetadataMap));
+  metadataMap = msgpack.encode(Array.from(queriedMetadataMap))
 
-  response.status(200).send({ metadata: metadataMap });
+  response.status(200).send({ metadata: metadataMap })
 
-  activeClients.get(id).requests += 1;
-  _checkForIdleClients(id, IDLE_DELAY);
+  activeClients.get(id).requests += 1
+  _checkForIdleClients(id, IDLE_DELAY)
 }
 
 /**
@@ -603,14 +603,14 @@ export function getMetadataMap(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getTasksMetadata(request, response) {
-  const type = REQUEST_TYPES.GET_TASKS;
+export function getTasksMetadata (request, response) {
+  const type = REQUEST_TYPES.GET_TASKS
   if (fs.existsSync(config.TASKS_FILE)) {
-    _logsAppend(request, type);
-    console.log(`Serving ${config.TASKS_FILE}`);
-    response.status(200).sendFile(config.TASKS_FILE);
+    _logsAppend(request, type)
+    console.log(`Serving ${config.TASKS_FILE}`)
+    response.status(200).sendFile(config.TASKS_FILE)
   } else {
-    _failRequest(response, type, 404);
+    _failRequest(response, type, 404)
   }
 }
 
@@ -623,22 +623,22 @@ export function getTasksMetadata(request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getLatestModel(request, response) {
-  const type = REQUEST_TYPES.GET_WEIGHTS;
+export function getLatestModel (request, response) {
+  const type = REQUEST_TYPES.GET_WEIGHTS
 
-  const task = request.params.task;
-  const file = request.params.file;
+  const task = request.params.task
+  const file = request.params.file
 
   if (!tasksStatus.has(task)) {
-    return _failRequest(response, type, 404);
+    return _failRequest(response, type, 404)
   }
-  const validModelFiles = new Set(['model.json', 'weights.bin']);
-  const modelFile = path.join(config.MODELS_DIR, task, file);
-  console.log(`File path: ${modelFile}`);
+  const validModelFiles = new Set(['model.json', 'weights.bin'])
+  const modelFile = path.join(config.MODELS_DIR, task, file)
+  console.log(`File path: ${modelFile}`)
   if (validModelFiles.has(file) && fs.existsSync(modelFile)) {
-    console.log(`${file} download for task ${task} succeeded`);
-    response.status(200).sendFile(modelFile);
+    console.log(`${file} download for task ${task} succeeded`)
+    response.status(200).sendFile(modelFile)
   } else {
-    _failRequest(response, type, 404);
+    _failRequest(response, type, 404)
   }
 }

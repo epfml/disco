@@ -86,22 +86,21 @@
   </base-layout>
 </template>
 
-<script>
-import BaseLayout from './containers/BaseLayout.vue';
-import CustomButton from './simple/CustomButton.vue';
-import TitleCard from './containers/TitleCard.vue';
-import FederatedImage from '../assets/svg/FederatedImage.vue';
-import DecentralizedImage from '../assets/svg/DecentralizedImage.vue';
-import Card from './containers/Card.vue';
+<script lang="ts">
+import BaseLayout from './containers/BaseLayout.vue'
+import CustomButton from './simple/CustomButton.vue'
+import TitleCard from './containers/TitleCard.vue'
+import FederatedImage from '../assets/svg/FederatedImage.vue'
+import DecentralizedImage from '../assets/svg/DecentralizedImage.vue'
+import Card from './containers/Card.vue'
+import { defineComponent } from 'vue'
 
-import { useI18n } from 'vue-i18n';
-import { mapMutations } from 'vuex';
+import { useI18n } from 'vue-i18n'
+import { mapMutations } from 'vuex'
 
-export default {
+export default defineComponent({
   name: 'home',
-  setup() {
-    const { t, locale } = useI18n();
-    return { t, locale };
+  setup () {
   },
   components: {
     BaseLayout,
@@ -109,22 +108,22 @@ export default {
     CustomButton,
     FederatedImage,
     DecentralizedImage,
-    Card,
+    Card
   },
   methods: {
     ...mapMutations(['setActivePage']),
-    goToTaskList() {
-      this.setActivePage('tasks');
+    goToTaskList () {
+      this.setActivePage('tasks')
       this.$router.push({
-        path: '/tasks',
-      });
+        path: '/tasks'
+      })
     },
-    goToNewTaskCreationForm() {
-      this.setActivePage('task-creation-form');
+    goToNewTaskCreationForm () {
+      this.setActivePage('task-creation-form')
       this.$router.push({
-        path: '/task-creation-form',
-      });
-    },
-  },
-};
+        path: '/task-creation-form'
+      })
+    }
+  }
+})
 </script>

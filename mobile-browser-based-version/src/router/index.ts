@@ -1,43 +1,43 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 // Some page components
-import Home from '../components/Home.vue';
-import TaskList from '../components/TaskList.vue';
-import Information from '../components/Information.vue';
-import NewTaskCreationForm from '../components/NewTaskCreationForm.vue';
-import NotFound from '../components/NotFound.vue';
+import Home from '../components/Home.vue'
+import TaskList from '../components/TaskList.vue'
+import Information from '../components/Information.vue'
+import NewTaskCreationForm from '../components/NewTaskCreationForm.vue'
+import NotFound from '../components/NotFound.vue'
 
 const routes = [
   {
     path: '/',
     name: 'home',
-    component: Home,
+    component: Home
   },
   {
     path: '/tasks',
     name: 'tasks',
-    component: TaskList,
+    component: TaskList
   },
   {
     path: '/task-creation-form',
     name: 'tasks-form',
-    component: NewTaskCreationForm,
+    component: NewTaskCreationForm
   },
   {
     path: '/information',
     name: 'information',
-    component: Information,
+    component: Information
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    component: NotFound,
-  },
-];
+    component: NotFound
+  }
+]
 
 const router = createRouter({
   history: createWebHashHistory(process.env.BASE_URL),
-  routes: routes,
-});
+  routes: routes
+})
 
-export default router;
+export default router

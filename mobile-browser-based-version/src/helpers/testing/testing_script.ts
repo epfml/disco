@@ -4,27 +4,27 @@
  * @param {Integer} topK
  * @returns topK classes with highest probability from logits
  */
-export async function getTopKClasses(logits, topK, labelList) {
-  const values = await logits.data();
-  const valuesAndIndices = [];
+export async function getTopKClasses (logits, topK, labelList) {
+  const values = await logits.data()
+  const valuesAndIndices = []
   for (let i = 0; i < values.length; i++) {
-    valuesAndIndices.push({ value: values[i], index: i });
+    valuesAndIndices.push({ value: values[i], index: i })
   }
   valuesAndIndices.sort((a, b) => {
-    return b.value - a.value;
-  });
-  const topkValues = new Float32Array(topK);
-  const topkIndices = new Int32Array(topK);
+    return b.value - a.value
+  })
+  const topkValues = new Float32Array(topK)
+  const topkIndices = new Int32Array(topK)
   for (let i = 0; i < topK; i++) {
-    topkValues[i] = valuesAndIndices[i].value;
-    topkIndices[i] = valuesAndIndices[i].index;
+    topkValues[i] = valuesAndIndices[i].value
+    topkIndices[i] = valuesAndIndices[i].index
   }
-  const topClassesAndProbs = [];
+  const topClassesAndProbs = []
   for (let i = 0; i < topkIndices.length; i++) {
     topClassesAndProbs.push({
       className: labelList[topkIndices[i]],
-      probability: topkValues[i],
-    });
+      probability: topkValues[i]
+    })
   }
-  return topClassesAndProbs;
+  return topClassesAndProbs
 }

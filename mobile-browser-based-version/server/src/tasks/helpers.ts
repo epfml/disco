@@ -14,10 +14,10 @@ function getTasks (config): Task[] {
   }
 
   const jsonTasks = JSON.parse(
-        fs.readFileSync(config.TASKS_FILE) as unknown as string
+    fs.readFileSync(config.TASKS_FILE) as unknown as string
   )
 
-  tasks = jsonTasks as Task[] // plainToInstance(Tasks, jsonTasks);
+  tasks = jsonTasks as Task[]
 
   return tasks
 }

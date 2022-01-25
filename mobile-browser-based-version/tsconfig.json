@@ -3,6 +3,7 @@
     "target": "es6",
     "module": "CommonJS",
     "esModuleInterop": true,
+    "allowJs": true,
     "baseUrl": ".",
         "paths": {
       "@/*": [

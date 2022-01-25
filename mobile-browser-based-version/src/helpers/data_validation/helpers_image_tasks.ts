@@ -1,10 +1,10 @@
-async function getImage(path) {
+async function getImage (path) {
   return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.src = path;
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error('could not load image: ' + path));
-  });
+    const image = new Image()
+    image.src = path
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('could not load image: ' + path))
+  })
 }
 
 /**
@@ -16,32 +16,32 @@ async function getImage(path) {
  * @returns {Object} accepted: status of data (true if all images are valid) and nr_accepted: nr of valid images
  */
 
-export async function checkData(trainingData, trainingInfo) {
-  const expected_width = trainingInfo.IMAGE_W;
-  const expected_height = trainingInfo.IMAGE_H;
-  let status = true;
-  let nr_imgs = 0;
+export async function checkData (trainingData, trainingInfo) {
+  const expectedWidth = trainingInfo.IMAGE_W
+  const expectedHeight = trainingInfo.IMAGE_H
+  let status = true
+  let nrImgs = 0
 
-  const files = Object.keys(trainingData);
+  const files = Object.keys(trainingData)
   if (trainingInfo.LABEL_ASSIGNMENT) {
-    files.pop();
+    files.pop()
   }
   for (let index = 0; index < files.length; index++) {
     try {
-      const data = await getImage(files[index]);
+      const data = await getImage(files[index]) as any
       // filtering criteria for images
-      if (data.width >= expected_width && data.height >= expected_height) {
-        nr_imgs += 1;
+      if (data.width >= expectedWidth && data.height >= expectedHeight) {
+        nrImgs += 1
       }
     } catch (e) {
-      console.log('Error during image validation: ', e);
+      console.log('Error during image validation: ', e)
     }
   }
 
-  console.log('found imgs and files: ', nr_imgs, files.length);
-  if (nr_imgs <= 1 || nr_imgs < files.length) {
-    status = false;
+  console.log('found imgs and files: ', nrImgs, files.length)
+  if (nrImgs <= 1 || nrImgs < files.length) {
+    status = false
   }
 
-  return { accepted: status, nr_accepted: nr_imgs };
+  return { accepted: status, nr_accepted: nrImgs }
 }

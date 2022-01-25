@@ -1,6 +1,6 @@
 <template>
   <button
-    v-on:click="click"
+    v-on:click="click "
     type="button"
     :class="`${
       center ? 'ml-3 py-2 px-4' : 'w-1/6'
@@ -18,7 +18,7 @@ export default {
     click: { default: () => {}, type: Function },
     center: { default: false, type: Boolean },
     id: { default: 'button', type: String },
-    color: { default: 'bg-green-500', type: String },
-  },
-};
+    color: { default: 'bg-green-500', type: String }
+  }
+}
 </script>

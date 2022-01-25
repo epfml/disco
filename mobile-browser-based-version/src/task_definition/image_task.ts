@@ -1,18 +1,18 @@
 import * as tf from '@tensorflow/tfjs'
-import { Task } from './task.js'
+import { Task } from './task'
 import { getTopKClasses } from '../helpers/testing/testing_script'
 import Papa from 'papaparse'
 
 export class ImageTask extends Task {
   trainingInformation: any;
   net: any;
-  async loadPretrainedNet() {
+  async loadPretrainedNet () {
     this.net = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
     )
   }
 
-  async loadLocalImage(filename) {
+  async loadLocalImage (filename) {
     return new Promise((resolve) => {
       const img = new Image()
       img.src = filename
@@ -25,7 +25,7 @@ export class ImageTask extends Task {
     })
   }
 
-  async imagePreprocessing(src) {
+  async imagePreprocessing (src) {
     if (this.trainingInformation.aggregateImagesById) {
       if (this.net == null) {
         await this.loadPretrainedNet()
@@ -58,7 +58,7 @@ export class ImageTask extends Task {
     return representation
   }
 
-  async dataPreprocessing(trainingData) {
+  async dataPreprocessing (trainingData) {
     console.log('Start: Processing Uploaded Files')
     let Xtrain = null
     let ytrain = null
@@ -124,7 +124,7 @@ export class ImageTask extends Task {
     return { accepted: true, Xtrain: Xtrain, ytrain: ytrain }
   }
 
-  labelsPreprocessing(labels) {
+  labelsPreprocessing (labels) {
     const nbLabels = labels.length
     const labelsOneHotEncoded = []
     labels.forEach((label) =>
@@ -136,7 +136,7 @@ export class ImageTask extends Task {
     ])
   }
 
-  oneHotEncode(label) {
+  oneHotEncode (label) {
     const result = []
     for (let i = 0; i < this.trainingInformation.LABEL_LIST.length; i++) {
       if (this.trainingInformation.LABEL_LIST[i] === label) {
@@ -148,7 +148,7 @@ export class ImageTask extends Task {
     return result
   }
 
-  async aggregateTestData(imageUri, imageNames) {
+  async aggregateTestData (imageUri, imageNames) {
     const dictImages = {}
     const dictLabels = {}
     let ids = new Set()
@@ -196,7 +196,7 @@ export class ImageTask extends Task {
     return { xTest: xsArray, ids: ids }
   }
 
-  async predict(testingData) {
+  async predict (testingData) {
     console.log('Loading model...')
     let loadedModel = null
 
@@ -266,7 +266,7 @@ export class ImageTask extends Task {
     }
   }
 
-  async createLabels(filenames, lavelFile) {
+  async createLabels (filenames, lavelFile) {
     const labels = new Array(filenames.length)
     const lnames = this.trainingInformation.LABEL_ASSIGNMENT
     console.log('Reading csv file', lavelFile)
@@ -287,7 +287,7 @@ export class ImageTask extends Task {
           console.log('Read labels:', labels)
           resolve(labels)
         },
-        error(err, file) {
+        error (err, file) {
           reject(err)
         }
       })

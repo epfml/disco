@@ -8,7 +8,7 @@ const CMD_CODES = {
   MODEL_INFO: 2, // serialized model architecture + initial weights
   COMPILE_MODEL: 3, // args to model.compile, e.g. optimizer, metrics
   AVG_WEIGHTS: 4, // weights to average into model
-  WEIGHT_REQUEST: 5, // ask for weights
-};
+  WEIGHT_REQUEST: 5 // ask for weights
+}
 
-export default Object.freeze(CMD_CODES);
+export default Object.freeze(CMD_CODES)
