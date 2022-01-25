@@ -1,13 +1,13 @@
-export function craftPostRequest(property, value) {
-  const body = {};
-  body[property] = value;
+export function craftPostRequest (property, value) {
+  const body = {}
+  body[property] = value
   return {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify(body),
-  };
+    body: JSON.stringify(body)
+  }
 }
 
 /**
@@ -21,30 +21,30 @@ export function craftPostRequest(property, value) {
  * @throws An error if a successful response could not be obtained
  * after the specified number of tries.
  */
-export function getSuccessfulResponse(request, property, tries, time, ...args) {
+export function getSuccessfulResponse (request, property, tries, time, ...args) {
   return new Promise((resolve) => {
-    async function _tryRequest(triesLeft) {
+    async function _tryRequest (triesLeft) {
       if (triesLeft <= 0) {
-        return resolve(false);
+        return resolve(false)
       }
-      const response = await request(...args);
+      const response = await request(...args)
       if (response.ok) {
-        const body = await response.json();
+        const body = await response.json()
         if (body[property]) {
-          return resolve(body);
+          return resolve(body)
         }
       }
       /**
        * If the client disconnected, interrupt the process.
        */
       if (response.status === 401) {
-        return resolve(false);
+        return resolve(false)
       }
       /**
        * Wait before performing the request again.
        */
-      setTimeout(() => _tryRequest(triesLeft - 1), time);
+      setTimeout(() => _tryRequest(triesLeft - 1), time)
     }
-    _tryRequest(tries);
-  });
+    _tryRequest(tries)
+  })
 }

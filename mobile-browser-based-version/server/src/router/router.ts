@@ -1,83 +1,81 @@
-import express from 'express';
-import _ from 'lodash';
-import * as handlers from '../logic/federated/handlers';
-import { writeNewTask, getTasks } from '../tasks/tasks_helper';
-import { ExpressPeerServer } from 'peer';
-import { makeID } from '../helpers/helpers';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import * as config from '../../server.config';
+import express from 'express'
+import _ from 'lodash'
+import * as handlers from '../logic/federated/handlers'
+import { writeNewTask, getTasks } from '../tasks/helpers'
+import { ExpressPeerServer } from 'peer'
+import { makeID } from '../helpers/helpers'
+import { createProxyMiddleware } from 'http-proxy-middleware'
+import * as config from '../../server.config'
 
-const tasks = getTasks(config);
+const tasks = getTasks(config)
 
 // General tasks routes
-const tasksRouter = express.Router();
-tasksRouter.get('/', handlers.getTasksMetadata);
-tasksRouter.get('/:task/:file', handlers.getLatestModel);
+const tasksRouter = express.Router()
+tasksRouter.get('/', handlers.getTasksMetadata)
+tasksRouter.get('/:task/:file', handlers.getLatestModel)
 // POST method route (task-creation-form)
 tasksRouter.post('/', function (req, res) {
-  const newTask = req.body,
-    newPort = config.START_TASK_PORT + tasks?.length;
-  if (newTask['taskID'] in tasks)
-    console.log('Cannot add new task (key is already defined in Tasks.json)');
-  else {
+  const newTask = req.body
+  const newPort = config.START_TASK_PORT + tasks?.length
+  if (newTask.taskID in tasks) { console.log('Cannot add new task (key is already defined in Tasks.json)') } else {
     // extract model file from tasks
-    const modelFile = _.cloneDeep(newTask.modelFiles.modelFile);
-    const weightsFile = _.cloneDeep(newTask.modelFiles.weightsFile);
-    _.unset(newTask, 'modelFiles');
-    _.unset(newTask, 'weightsFiles');
+    const modelFile = _.cloneDeep(newTask.modelFiles.modelFile)
+    const weightsFile = _.cloneDeep(newTask.modelFiles.weightsFile)
+    _.unset(newTask, 'modelFiles')
+    _.unset(newTask, 'weightsFiles')
     // create new task and server
-    ports.push(newPort);
-    tasks.push(newTask);
-    createTaskServer(newTask, newPort);
+    ports.push(newPort)
+    tasks.push(newTask)
+    createTaskServer(newTask, newPort)
     // store results in json file
-    writeNewTask(newTask, modelFile, weightsFile, config);
+    writeNewTask(newTask, modelFile, weightsFile, config)
     // answer vue app
-    res.end(`Sucessfull upload`);
+    res.end('Sucessfull upload')
   }
-});
+})
 // Declare federated routes
-const federatedRouter = express.Router();
-federatedRouter.get('/', (req, res) => res.send('FeAI server'));
+const federatedRouter = express.Router()
+federatedRouter.get('/', (req, res) => res.send('FeAI server'))
 
-federatedRouter.get('/connect/:task/:id', handlers.connect);
-federatedRouter.get('/disconnect/:task/:id', handlers.disconnect);
+federatedRouter.get('/connect/:task/:id', handlers.connect)
+federatedRouter.get('/disconnect/:task/:id', handlers.disconnect)
 
-federatedRouter.get('/selection/:task/:id', handlers.selectionStatus);
+federatedRouter.get('/selection/:task/:id', handlers.selectionStatus)
 
 federatedRouter.get(
   '/aggregation/:task/:round/:id',
   handlers.aggregationStatus
-);
+)
 
-federatedRouter.post('/weights/:task/:round/:id', handlers.postWeights);
+federatedRouter.post('/weights/:task/:round/:id', handlers.postWeights)
 
 federatedRouter
   .route('/metadata/:metadata/:task/:round/:id')
   .get(handlers.getMetadataMap)
-  .post(handlers.postMetadata);
+  .post(handlers.postMetadata)
 
-federatedRouter.get('/logs', handlers.queryLogs);
+federatedRouter.get('/logs', handlers.queryLogs)
 
-federatedRouter.use('/tasks', tasksRouter);
+federatedRouter.use('/tasks', tasksRouter)
 
 // =======================================================================
 
 // Declaire decentralised routes
-const decentralisedRouter = express.Router();
+const decentralisedRouter = express.Router()
 /**
  * Set up server for peerjs
  */
 const ports = _.range(
   config.START_TASK_PORT,
   config.START_TASK_PORT + tasks?.length
-);
+)
 const createTaskServer = (task, port) => {
   /**
    * Create a PeerJS server for each task on its corresponding port.
    * The path must match the reverse proxy entry point.
    */
-  const taskApp = express();
-  const server = taskApp.listen(port);
+  const taskApp = express()
+  const server = taskApp.listen(port)
   taskApp.use(
     `/deai/${task.taskID}`,
     ExpressPeerServer(server, {
@@ -85,9 +83,9 @@ const createTaskServer = (task, port) => {
       allow_discovery: true,
       port: port,
       generateClientId: makeID(10),
-      proxied: true,
+      proxied: true
     })
-  );
+  )
 
   /**
    * Make the peer server's port accessible from a regular URL
@@ -97,16 +95,16 @@ const createTaskServer = (task, port) => {
     createProxyMiddleware(`/deai/${task.taskID}`, {
       target: `${config.SERVER_URI}:${port}`,
       changeOrigin: true,
-      ws: true,
+      ws: true
     })
-  );
-};
-_.forEach(_.zip(tasks, ports), _.spread(createTaskServer));
+  )
+}
+_.forEach(_.zip(tasks, ports), _.spread(createTaskServer))
 
-decentralisedRouter.use('/tasks', tasksRouter);
-decentralisedRouter.get('/', (req, res) => res.send('DeAI server'));
+decentralisedRouter.use('/tasks', tasksRouter)
+decentralisedRouter.get('/', (req, res) => res.send('DeAI server'))
 
-export { federatedRouter, decentralisedRouter };
+export { federatedRouter, decentralisedRouter }
 
 // Custom topology code (currently unused)
 /*

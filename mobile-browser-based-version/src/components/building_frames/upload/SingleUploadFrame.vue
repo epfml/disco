@@ -297,10 +297,10 @@
 </template>
 
 <script>
-import Bin from '../../../assets/svg/Bin.vue';
-import File from '../../../assets/svg/File.vue';
+import Bin from '../../../assets/svg/Bin.vue'
+import File from '../../../assets/svg/File.vue'
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
-  types.indexOf('Files') > -1;
+  types.indexOf('Files') > -1
 
 export default {
   name: 'SingleUploadFrame',
@@ -314,13 +314,13 @@ export default {
     // The label associated to the task
     label: String,
     // If the label should be displayed or not
-    displayLabels: Boolean,
+    displayLabels: Boolean
   },
   components: {
     Bin,
-    File,
+    File
   },
-  data() {
+  data () {
     return {
       galleryName: this.formatName('gallery'),
       fileTemplName: this.formatName('file-template'),
@@ -336,120 +336,120 @@ export default {
       gallery: null,
       hidden: null,
       counter: 0,
-      nbrClasses: 1,
-    };
+      nbrClasses: 1
+    }
   },
   methods: {
-    formatName(prefix) {
-      return `${prefix}_${this.Id}_${this.label}`;
+    formatName (prefix) {
+      return `${prefix}_${this.Id}_${this.label}`
     },
-    addFile(target, file) {
-      const isImage = file.type.match('image.*'),
-        objectURL = URL.createObjectURL(file);
+    addFile (target, file) {
+      const isImage = file.type.match('image.*')
+      const objectURL = URL.createObjectURL(file)
       if (this.preview) {
         const clone = isImage
           ? this.imageTempl.cloneNode(true)
-          : this.fileTempl.cloneNode(true);
-        clone.querySelector('h1').textContent = file.name;
-        clone.querySelector('li').id = objectURL;
-        clone.querySelector('.delete').dataset.target = objectURL;
+          : this.fileTempl.cloneNode(true)
+        clone.querySelector('h1').textContent = file.name
+        clone.querySelector('li').id = objectURL
+        clone.querySelector('.delete').dataset.target = objectURL
         clone.querySelector('.size').textContent =
           file.size > 1024
             ? file.size > 1048576
               ? Math.round(file.size / 1048576) + 'mb'
               : Math.round(file.size / 1024) + 'kb'
-            : file.size + 'b';
+            : file.size + 'b'
         isImage &&
           Object.assign(clone.querySelector('img'), {
             src: objectURL,
-            alt: file.name,
-          });
-        this.empty.classList.add('hidden');
-        target.prepend(clone.firstElementChild);
+            alt: file.name
+          })
+        this.empty.classList.add('hidden')
+        target.prepend(clone.firstElementChild)
       }
-      let label_name = this.label;
+      let label_name = this.label
       if (this.label == 'Images') {
-        label_name = file.name.replace(/\.[^/.]+$/, '');
+        label_name = file.name.replace(/\.[^/.]+$/, '')
       }
-      this.fileUploadManager.addFile(objectURL, file, label_name);
-      this.nbrUploadedFiles += 1;
+      this.fileUploadManager.addFile(objectURL, file, label_name)
+      this.nbrUploadedFiles += 1
       // We keep track of ulrs in order to be able to clear them
-      this.addedFilesUrl.push(objectURL);
+      this.addedFilesUrl.push(objectURL)
     },
-    clearFiles() {
+    clearFiles () {
       // We remove all added files
-      for (let ou of this.addedFilesUrl) {
-        this.fileUploadManager.deleteFile(ou);
+      for (const ou of this.addedFilesUrl) {
+        this.fileUploadManager.deleteFile(ou)
       }
-      this.addedFilesUrl = [];
-      this.nbrUploadedFiles = 0;
-      this.counter = 0;
+      this.addedFilesUrl = []
+      this.nbrUploadedFiles = 0
+      this.counter = 0
     },
     // use to drag dragenter and dragleave events.
     // this is to know if the outermost parent is dragged over
     // without issues due to drag events on its children
     // reset counter and append file to gallery when file is dropped
-    dropHandler(ev) {
-      ev.preventDefault();
+    dropHandler (ev) {
+      ev.preventDefault()
       for (const file of ev.dataTransfer.files) {
-        this.addFile(this.gallery, file);
-        this.counter = 0;
+        this.addFile(this.gallery, file)
+        this.counter = 0
       }
     },
     // only react to actual files being dragged
-    dragEnterHandler(e) {
-      e.preventDefault();
+    dragEnterHandler (e) {
+      e.preventDefault()
       if (!hasFiles(e)) {
-        return;
+        return
       }
-      ++this.counter;
+      ++this.counter
     },
-    dragLeaveHandler(e) {
-      1 > --this.counter;
+    dragLeaveHandler (e) {
+      --this.counter < 1
     },
-    dragOverHandler(e) {
+    dragOverHandler (e) {
       if (hasFiles(e)) {
-        e.preventDefault();
+        e.preventDefault()
       }
-    },
+    }
   },
-  mounted() {
+  mounted () {
     if (this.preview) {
-      this.gallery = document.getElementById(this.galleryName);
-      this.fileTempl = document.getElementById(this.fileTemplName);
-      this.imageTempl = document.getElementById(this.imageTemplName);
-      this.empty = document.getElementById(this.emptyName);
+      this.gallery = document.getElementById(this.galleryName)
+      this.fileTempl = document.getElementById(this.fileTemplName)
+      this.imageTempl = document.getElementById(this.imageTemplName)
+      this.empty = document.getElementById(this.emptyName)
     }
     // click the hidden input of type file if the visible button is clicked
     // and capture the selected files
-    this.hidden = document.getElementById(this.hiddenInputName);
+    this.hidden = document.getElementById(this.hiddenInputName)
     document.getElementById(this.uploadButtonName).onclick = () =>
-      this.hidden.click();
+      this.hidden.click()
     this.hidden.onchange = (e) => {
       for (const file of e.target.files) {
-        this.addFile(this.gallery, file);
+        this.addFile(this.gallery, file)
       }
-    };
+    }
     if (this.preview) {
       // event delegation to caputre delete events
       // fron the waste buckets in the file preview cards
       this.gallery.onclick = ({ target }) => {
         if (target.classList.contains('delete')) {
-          const ou = target.dataset.target;
-          document.getElementById(ou).remove(ou);
+          const ou = target.dataset.target
+          document.getElementById(ou).remove(ou)
           this.gallery.children.length === 1 &&
-            this.empty.classList.remove('hidden');
-          this.fileUploadManager.deleteFile(ou);
-          this.nbrUploadedFiles -= 1;
+            this.empty.classList.remove('hidden')
+          this.fileUploadManager.deleteFile(ou)
+          this.nbrUploadedFiles -= 1
         }
-      };
+      }
     }
     if (this.Task.trainingInformation.LABEL_LIST) {
-      this.nbrClasses = this.Task.trainingInformation.LABEL_LIST.length;
+      this.nbrClasses = this.Task.trainingInformation.LABEL_LIST.length
     }
     if (!this.displayLabels) {
-      this.nbrClasses = 0;
+      this.nbrClasses = 0
     }
-  },
-};
+  }
+}
 </script>

@@ -27,32 +27,32 @@
   </div>
 </template>
 <script>
-import DescriptionFrame from '../building_frames/DescriptionFrame.vue';
+import DescriptionFrame from '../building_frames/DescriptionFrame.vue'
 
 export default {
   name: 'main-description-frame',
   props: {
     Id: String,
-    Task: Object,
+    Task: Object
   },
-  data() {
+  data () {
     return {
       OverviewText: '',
       ModelText: '',
       TradeOffsText: '',
       taskID: '',
-      modelID: '',
-    };
+      modelID: ''
+    }
   },
   components: {
-    DescriptionFrame,
+    DescriptionFrame
   },
-  mounted() {
-    this.OverviewText = this.Task.displayInformation.overview;
-    this.ModelText = this.Task.displayInformation.model;
-    this.TradeOffsText = this.Task.displayInformation.tradeoffs;
-    this.taskID = this.Task.taskID;
-    this.modelID = this.Task.trainingInformation.modelID;
-  },
-};
+  mounted () {
+    this.OverviewText = this.Task.displayInformation.overview
+    this.ModelText = this.Task.displayInformation.model
+    this.TradeOffsText = this.Task.displayInformation.tradeoffs
+    this.taskID = this.Task.taskID
+    this.modelID = this.Task.trainingInformation.modelID
+  }
+}
 </script>

@@ -15,21 +15,21 @@
 </template>
 
 <script>
-import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue';
-import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame.vue';
+import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue'
+import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame.vue'
 
 export default {
   name: 'main-testing-frame',
   props: {
     Id: String,
-    Task: Object,
+    Task: Object
   },
   components: {
     ImageTestingFrame,
-    CsvTestingFrame,
+    CsvTestingFrame
   },
-  async activated() {
-    this.$emit('opened-testing');
-  },
-};
+  async activated () {
+    this.$emit('opened-testing')
+  }
+}
 </script>

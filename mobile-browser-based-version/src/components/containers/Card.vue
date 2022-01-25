@@ -13,7 +13,7 @@
 export default {
   name: 'card',
   props: {
-    customClass: { default: '', type: String },
-  },
-};
+    customClass: { default: '', type: String }
+  }
+}
 </script>

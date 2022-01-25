@@ -4,7 +4,7 @@ export class Task {
   taskID: string;
   displayInformation: any;
   trainingInformation: any;
-  constructor(taskID, displayInformation, trainingInformation) {
+  constructor (taskID, displayInformation, trainingInformation) {
     this.taskID = taskID
     this.displayInformation = displayInformation
     this.trainingInformation = trainingInformation
@@ -15,7 +15,7 @@ export class Task {
    * 2. should the server also propose an empty model (i.e. a json only)
    * to allow clients to start from scratch?
    */
-  async createModel() {
+  async createModel () {
     // To modularize
     const serverURL = process.env.VUE_APP_FEAI_SERVER
     const newModel = await tf.loadLayersModel(
@@ -25,7 +25,7 @@ export class Task {
   }
 
   // Should not be here
-  async getModelFromStorage() {
+  async getModelFromStorage () {
     const savePath = 'indexeddb://working_'.concat(
       this.trainingInformation.modelID
     )

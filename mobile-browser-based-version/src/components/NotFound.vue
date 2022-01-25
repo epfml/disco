@@ -134,16 +134,17 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+export default defineComponent({
   name: 'not-found',
   methods: {
-    goToPreviousPage() {
-      this.$router.go(-1);
+    goToPreviousPage () {
+      this.$router.go(-1)
     },
-    goToHomePage() {
-      this.$router.push({ name: 'home' });
-    },
-  },
-};
+    goToHomePage () {
+      this.$router.push({ name: 'home' })
+    }
+  }
+})
 </script>

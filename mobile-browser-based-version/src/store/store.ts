@@ -1,7 +1,7 @@
-import { createStore } from 'vuex';
-import _ from 'lodash';
-import { Platform } from '../platforms/platform';
-export const store = createStore({
+import { createStore } from 'vuex'
+import _ from 'lodash'
+import { Platform } from '../platforms/platform'
+export const Store = createStore({
   state: {
     count: 0,
     globalTaskFrameState: {},
@@ -11,52 +11,52 @@ export const store = createStore({
     useIndexedDB: true,
     isDark: false,
     platform: Platform.decentralized,
-    activePage: 'home',
+    activePage: 'home'
   },
   mutations: {
-    increment(state) {
-      state.count++;
+    increment (state) {
+      state.count++
     },
 
-    addGlobalTaskFrameState(state, newGlobalTaskFrameState) {
-      const modelID = newGlobalTaskFrameState.modelID;
-      state.globalTaskFrameState[modelID] = newGlobalTaskFrameState;
+    addGlobalTaskFrameState (state, newGlobalTaskFrameState) {
+      const modelID = newGlobalTaskFrameState.modelID
+      state.globalTaskFrameState[modelID] = newGlobalTaskFrameState
     },
 
-    addPassword(state, payload) {
-      state.passwords[payload.id] = payload.password;
+    addPassword (state, payload) {
+      state.passwords[payload.id] = payload.password
     },
 
-    addTaskFrame(state, payload) {
-      state.tasksFrames[payload.trainingInformation.modelID] = payload;
+    addTaskFrame (state, payload) {
+      state.tasksFrames[payload.trainingInformation.modelID] = payload
     },
 
-    addNewTask(state, payload) {
-      //need to update the reference o.w. it doesn't work
-      state.newTasks = _.concat(state.newTasks, payload);
+    addNewTask (state, payload) {
+      // need to update the reference o.w. it doesn't work
+      state.newTasks = _.concat(state.newTasks, payload)
     },
 
-    clearNewTasks(state) {
+    clearNewTasks (state) {
       // limit the number of update events generated if no new tasks have been added
-      state.newTasks.length > 0 ? (state.newTasks = []) : undefined;
+      state.newTasks = state.newTasks.length > 0 ? [] : undefined // TODO does undefined make sense here?
     },
 
-    setIndexedDB(state, payload) {
+    setIndexedDB (state, payload) {
       // Convert payload to boolean value
-      state.useIndexedDB = payload ? true : false;
+      state.useIndexedDB = !!payload
     },
 
-    setAppTheme(state, payload) {
-      state.isDark = payload ? true : false;
+    setAppTheme (state, payload) {
+      state.isDark = !!payload
     },
 
-    setPlatform(state, platform) {
-      state.platform = platform;
+    setPlatform (state, platform) {
+      state.platform = platform
     },
 
-    setActivePage(state, payload) {
-      state.activePage = payload;
-    },
+    setActivePage (state, payload) {
+      state.activePage = payload
+    }
   },
 
   getters: {
@@ -67,9 +67,9 @@ export const store = createStore({
     taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
     tasksFramesList: (state) => _.values(state.tasksFrames),
     platform: (state) => state.platform,
-    isDecentralized: (state) => state.platform == Platform.decentralized,
-    isFederated: (state) => state.platform == Platform.federated,
-  },
-});
+    isDecentralized: (state) => state.platform === Platform.decentralized,
+    isFederated: (state) => state.platform === Platform.federated
+  }
+})
 
-export default store;
+export default store

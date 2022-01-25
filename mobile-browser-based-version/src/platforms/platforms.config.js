@@ -2,16 +2,16 @@ module.exports = {
   platforms: [
     {
       name: 'deai',
-      file: 'decentralised.json',
+      file: 'decentralised.json'
     },
     {
       name: 'feai',
-      file: 'federated.json',
-    },
+      file: 'federated.json'
+    }
   ],
   default: {
     name: 'default',
-    file: 'default.json',
+    file: 'default.json'
   },
-  locale: 'deai',
-};
+  locale: 'deai'
+}

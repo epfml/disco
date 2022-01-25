@@ -37,102 +37,102 @@
   </base-layout>
 </template>
 
-<script>
-import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue';
-import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue';
-import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue';
-import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue';
-import BaseLayout from './containers/BaseLayout.vue';
-import Card from './containers/Card.vue';
-import CustomButton from './simple/CustomButton.vue';
+<script lang="ts">
+import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue'
+import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue'
+import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue'
+import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue'
+import BaseLayout from './containers/BaseLayout.vue'
+import Card from './containers/Card.vue'
+import CustomButton from './simple/CustomButton.vue'
 
 /**
  * WARNING: Temporary code until complete modularization of task objects.
  * In the meantine, import all custom task classes here.
  */
-import _ from 'lodash';
-import { defineComponent } from 'vue';
-import { mapMutations, mapState } from 'vuex';
-import { getTaskClass } from '../task_definition/converter.js';
+import _ from 'lodash'
+import { defineComponent } from 'vue'
+import { mapMutations } from 'vuex'
+import { getTaskClass } from '../task_definition/converter'
 
-export default {
+export default defineComponent({
   name: 'task-list',
   components: {
     BaseLayout,
     Card,
-    CustomButton,
+    CustomButton
   },
   watch: {
     '$store.state.newTasks': function () {
-      this.$store.state.newTasks.forEach(this.createNewTaskComponent);
-      this.clearNewTasks();
-    },
+      this.$store.state.newTasks.forEach(this.createNewTaskComponent)
+      this.clearNewTasks()
+    }
   },
-  data() {
+  data () {
     return {
       taskFramesInfo: [
         ['description', MainDescriptionFrame],
         ['training', MainTrainingFrame],
-        ['testing', MainTestingFrame],
-      ],
-    };
+        ['testing', MainTestingFrame]
+      ]
+    }
   },
   methods: {
     ...mapMutations(['addTaskFrame', 'newTask', 'clearNewTasks']),
-    goToSelection(id) {
+    goToSelection (id) {
       this.$router.push({
         name: id.concat('.description'),
-        params: { Id: id },
-      });
+        params: { Id: id }
+      })
     },
-    createNewTaskComponent(task) {
-      console.log(`Processing ${task.taskID}`);
-      let TaskClass = getTaskClass(task.trainingInformation.dataType);
+    createNewTaskComponent (task) {
+      console.log(`Processing ${task.taskID}`)
+      const TaskClass = getTaskClass(task.trainingInformation.dataType)
       if (!TaskClass) {
-        console.log(`Task ${task.taskID} was not processed`);
-        return;
+        console.log(`Task ${task.taskID} was not processed`)
+        return
       }
-      let newTaskFrame = new TaskClass(
+      const newTaskFrame = new TaskClass(
         task.taskID,
         task.displayInformation,
         task.trainingInformation
-      );
-      this.addTaskFrame(newTaskFrame); // commit to store
-      let newTaskRoute = {
+      )
+      this.addTaskFrame(newTaskFrame) // commit to store
+      const newTaskRoute = {
         path: '/'.concat(newTaskFrame.taskID),
         name: newTaskFrame.taskID,
         component: MainTaskFrame,
         props: { Id: newTaskFrame.taskID, Task: newTaskFrame },
         children: _.map(this.taskFramesInfo, (t) => {
-          const [info, Frame] = t;
-          const name = `${newTaskFrame.taskID}.${info}`;
+          const [info, Frame] = t
+          const name = `${newTaskFrame.taskID}.${info}`
           // Definition of an extension of the task-related component
           const component = defineComponent({
             extends: Frame,
             name: name,
-            key: name,
-          });
+            key: name
+          })
           return {
             path: info,
             name: name,
             component: component,
             props: {
               Id: newTaskFrame.taskID,
-              Task: newTaskFrame,
-            },
-          };
-        }),
-      };
-      this.$router.addRoute(newTaskRoute);
-    },
+              Task: newTaskFrame
+            }
+          }
+        })
+      }
+      this.$router.addRoute(newTaskRoute)
+    }
   },
-  async mounted() {
-    let tasksURL = process.env.VUE_APP_FEAI_SERVER.concat('tasks');
-    let rawTasks = await fetch(tasksURL).then((response) => response.json());
+  async mounted () {
+    const tasksURL = process.env.VUE_APP_FEAI_SERVER.concat('tasks')
+    const rawTasks = await fetch(tasksURL).then((response) => response.json())
     rawTasks
       .concat(this.$store.state.newTasks)
-      .forEach(this.createNewTaskComponent);
-    this.clearNewTasks();
-  },
-};
+      .forEach(this.createNewTaskComponent)
+    this.clearNewTasks()
+  }
+})
 </script>

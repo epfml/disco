@@ -3,12 +3,12 @@ import {
   updateWorkingModel,
   getWorkingModelMetadata,
   preprocessData,
-  datasetGenerator,
-} from '../memory/helpers';
+  datasetGenerator
+} from '../memory/helpers'
 
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs'
 
-const MANY_EPOCHS = 9999;
+const MANY_EPOCHS = 9999
 
 /**
  * Class that deals with the model of a task.
@@ -31,17 +31,17 @@ export class TrainingManager {
    * @param {Object} trainingInformant the training informant
    * @param {Boolean} useIndexedDB use IndexedDB (browser only)
    */
-  constructor(task, client, trainingInformant, useIndexedDB) {
-    this.task = task;
-    this.client = client;
-    this.trainingInformant = trainingInformant;
+  constructor (task, client, trainingInformant, useIndexedDB) {
+    this.task = task
+    this.client = client
+    this.trainingInformant = trainingInformant
 
-    this.useIndexedDB = useIndexedDB;
-    this.stopTrainingRequested = false;
+    this.useIndexedDB = useIndexedDB
+    this.stopTrainingRequested = false
 
-    this.model = null;
-    this.data = null;
-    this.labels = null;
+    this.model = null
+    this.data = null
+    this.labels = null
   }
 
   /**
@@ -49,12 +49,12 @@ export class TrainingManager {
    * training.
    * @param {Boolean} payload whether or not to use IndexedDB
    */
-  setIndexedDB(payload) {
-    this.useIndexedDB = payload ? true : false;
+  setIndexedDB (payload) {
+    this.useIndexedDB = !!payload
   }
 
-  stopTraining() {
-    this.stopTrainingRequested = true;
+  stopTraining () {
+    this.stopTrainingRequested = true
   }
 
   /**
@@ -62,9 +62,9 @@ export class TrainingManager {
    * @param {Object} dataset the dataset to train on
    * @param {Boolean} distributedTraining train in a distributed fashion
    */
-  async trainModel(dataset, distributedTraining) {
-    this.data = dataset.Xtrain;
-    this.labels = dataset.ytrain;
+  async trainModel (dataset, distributedTraining) {
+    this.data = dataset.Xtrain
+    this.labels = dataset.ytrain
 
     /**
      * If IndexedDB is turned on and the working model exists, then load the
@@ -80,28 +80,28 @@ export class TrainingManager {
       this.model = await getWorkingModel(
         this.task.taskID,
         this.task.trainingInformation.modelID
-      );
+      )
     } else {
-      this.model = await this.task.createModel();
+      this.model = await this.task.createModel()
     }
 
     // Continue local training from previous epoch checkpoint
     if (this.model.getUserDefinedMetadata() === undefined) {
-      this.model.setUserDefinedMetadata({ epoch: 0 });
+      this.model.setUserDefinedMetadata({ epoch: 0 })
     }
 
-    const info = this.task.trainingInformation;
-    this.model.compile(info.modelCompileData);
+    const info = this.task.trainingInformation
+    this.model.compile(info.modelCompileData)
 
     if (info.learningRate) {
-      this.model.optimizer.learningRate = info.learningRate;
+      this.model.optimizer.learningRate = info.learningRate
     }
 
     // Ensure training can start
-    this.model.stopTraining = false;
-    this.stopTrainingRequested = false;
+    this.model.stopTraining = false
+    this.stopTrainingRequested = false
 
-    distributedTraining ? this._trainDistributed() : this._trainLocally();
+    distributedTraining ? this._trainDistributed() : this._trainLocally()
   }
 
   /**
@@ -110,13 +110,13 @@ export class TrainingManager {
    * @param {Object} model The current model being trained.
    * @param {Number} epoch The current training loop's epoch.
    */
-  async _onEpochBegin(epoch) {
-    console.log(`EPOCH (${epoch + 1}):`);
+  async _onEpochBegin (epoch) {
+    console.log(`EPOCH (${epoch + 1}):`)
     await this.client.onEpochBeginCommunication(
       this.model,
       epoch,
       this.trainingInformant
-    );
+    )
   }
 
   /**
@@ -127,61 +127,62 @@ export class TrainingManager {
    * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
    * @param {Object} trainingInformation Training information about the model and training parameters
    */
-  async _onEpochEndDistributed(
+  async _onEpochEndDistributed (
     epoch,
     accuracy,
     validationAccuracy,
     trainingInformation
   ) {
-    this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy);
+    this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy)
     console.log(
       `Train Accuracy: ${accuracy},
       Val Accuracy:  ${validationAccuracy}\n`
-    );
+    )
     await this.client.onEpochEndCommunication(
       this.model,
       epoch,
       this.trainingInformant
-    );
+    )
     if (this.useIndexedDB) {
       await updateWorkingModel(
         this.task.taskID,
         trainingInformation.modelID,
         this.model
-      );
+      )
     }
     if (this.stopTrainingRequested) {
-      this.model.stopTraining = true;
-      this.stopTrainingRequested = false;
+      this.model.stopTraining = true
+      this.stopTrainingRequested = false
     }
   }
+
   /**
    * Method corresponding to the TFJS fit function's callback. Calls the client's
    * subroutine used in local training
    */
-  async _onEpochEndLocal(
+  async _onEpochEndLocal (
     epoch,
     accuracy,
     validationAccuracy,
     trainingInformation
   ) {
-    this.trainingInformant.updateGraph(epoch + 1, validationAccuracy, accuracy);
+    this.trainingInformant.updateGraph(epoch + 1, validationAccuracy, accuracy)
     console.log(
       `EPOCH (${epoch + 1}):
       Train Accuracy: ${accuracy},
       Val Accuracy:  ${validationAccuracy}\n`
-    );
+    )
     if (this.useIndexedDB) {
-      this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
+      this.model.setUserDefinedMetadata({ epoch: epoch + 1 })
       await updateWorkingModel(
         this.task.taskID,
         trainingInformation.modelID,
         this.model
-      );
+      )
     }
     if (this.stopTrainingRequested) {
-      this.model.stopTraining = true;
-      this.stopTrainingRequested = false;
+      this.model.stopTraining = true
+      this.stopTrainingRequested = false
     }
   }
 
@@ -189,22 +190,22 @@ export class TrainingManager {
    * Method corresponding to the TFJS fit function's callback. Calls the client's
    * subroutine.
    */
-  async _onTrainBegin() {
+  async _onTrainBegin () {
     await this.client.onTrainBeginCommunication(
       this.model,
       this.trainingInformant
-    );
+    )
   }
 
   /**
    * Method corresponding to the TFJS fit function's callback. Calls the client's
    * subroutine.
    */
-  async _onTrainEnd() {
+  async _onTrainEnd () {
     await this.client.onTrainEndCommunication(
       this.model,
       this.trainingInformant
-    );
+    )
   }
 
   /**
@@ -214,8 +215,8 @@ export class TrainingManager {
    * @param {Object} callbacks Callabcks used during training
    */
 
-  async _modelFitData(model, trainingInformation, callbacks) {
-    const tensor = preprocessData(this.data, trainingInformation);
+  async _modelFitData (model, trainingInformation, callbacks) {
+    const tensor = preprocessData(this.data, trainingInformation)
 
     await model.fit(tensor, this.labels, {
       initialEpoch: this.model.getUserDefinedMetadata().epoch,
@@ -223,8 +224,8 @@ export class TrainingManager {
       batchSize: trainingInformation.batchSize,
       validationSplit: trainingInformation.validationSplit,
       shuffle: true,
-      callbacks: callbacks,
-    });
+      callbacks: callbacks
+    })
   }
 
   /**
@@ -233,7 +234,7 @@ export class TrainingManager {
    * @param {Object} trainingInformation Training information containing the training parameters
    * @param {Object} callbacks Callabcks used during training
    */
-  async _modelFitDataBatchWise(model, trainingInformation, callbacks) {
+  async _modelFitDataBatchWise (model, trainingInformation, callbacks) {
     // Creation of Dataset objects for training
     const trainData = tf.data
       .generator(
@@ -245,7 +246,7 @@ export class TrainingManager {
           trainingInformation
         )
       )
-      .batch(trainingInformation.batchSize);
+      .batch(trainingInformation.batchSize)
 
     const valData = tf.data
       .generator(
@@ -259,32 +260,32 @@ export class TrainingManager {
           trainingInformation
         )
       )
-      .batch(trainingInformation.batchSize);
+      .batch(trainingInformation.batchSize)
 
     await model.fitDataset(trainData, {
       epochs: trainingInformation.epochs,
       validationData: valData,
-      callbacks: callbacks,
-    });
+      callbacks: callbacks
+    })
   }
 
   /**
    *  Method that chooses the appropriate modelFitData function and defines the modelFit callbacks for local training.
    */
-  async _trainLocally() {
-    const info = this.task.trainingInformation;
+  async _trainLocally () {
+    const info = this.task.trainingInformation
 
     const logText = info.batchwisePreprocessing
       ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
-      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once';
+      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
 
-    console.log(logText);
+    console.log(logText)
 
     const modelFit = (
       info.batchwisePreprocessing
         ? this._modelFitDataBatchWise
         : this._modelFitData
-    ).bind(this);
+    ).bind(this)
 
     await modelFit(this.model, info, {
       onEpochEnd: async (epoch, logs) => {
@@ -293,38 +294,38 @@ export class TrainingManager {
           this._formatAccuracy(logs.acc),
           this._formatAccuracy(logs.val_acc),
           info
-        );
-      },
-    });
+        )
+      }
+    })
   }
 
   /**
    *  Method that chooses the appropriate modelFitData function and defines the modelFit callbacks for distributed training.
    */
-  async _trainDistributed() {
-    const info = this.task.trainingInformation;
+  async _trainDistributed () {
+    const info = this.task.trainingInformation
 
     const logText = info.batchwisePreprocessing
       ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
-      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once';
+      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
 
-    console.log(logText);
+    console.log(logText)
 
     const modelFit = (
       info.batchwisePreprocessing
         ? this._modelFitDataBatchWise
         : this._modelFitData
-    ).bind(this);
+    ).bind(this)
 
     await modelFit(this.model, info, {
       onTrainBegin: async (logs) => {
-        await this._onTrainBegin();
+        await this._onTrainBegin()
       },
       onTrainEnd: async (logs) => {
-        await this._onTrainEnd();
+        await this._onTrainEnd()
       },
       onEpochBegin: async (epoch, logs) => {
-        await this._onEpochBegin(epoch);
+        await this._onEpochBegin(epoch)
       },
       onEpochEnd: async (epoch, logs) => {
         await this._onEpochEndDistributed(
@@ -332,12 +333,12 @@ export class TrainingManager {
           this._formatAccuracy(logs.acc),
           this._formatAccuracy(logs.val_acc),
           info
-        );
-      },
-    });
+        )
+      }
+    })
   }
 
-  _formatAccuracy(acc) {
-    return (acc * 100).toFixed(2);
+  _formatAccuracy (acc) {
+    return (acc * 100).toFixed(2)
   }
 }
