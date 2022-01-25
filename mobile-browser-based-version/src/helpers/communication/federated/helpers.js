@@ -30,7 +30,7 @@ export function getSuccessfulResponse(request, property, tries, time, ...args) {
       const response = await request(...args);
       if (response.ok) {
         const body = await response.json();
-        if (body[property]) {
+        if (body[property] > 0) {
           return resolve(body);
         }
       }
