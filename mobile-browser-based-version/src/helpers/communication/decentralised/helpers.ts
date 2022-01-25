@@ -1,5 +1,5 @@
 export function checkBuffer(buffer, key, timeout) {
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     (function waitData() {
       if (buffer[key]) {
         return resolve();
@@ -10,7 +10,7 @@ export function checkBuffer(buffer, key, timeout) {
 }
 
 export function checkBufferUntil(buffer, key, tries, timeout) {
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     (function waitData(n) {
       if (buffer[key] || n > tries) {
         return resolve();
@@ -21,7 +21,7 @@ export function checkBufferUntil(buffer, key, tries, timeout) {
 }
 
 export function checkBufferWeightsUntil(buffer, length, tries, timeout) {
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     (function waitData(n) {
       const arr = Object.values(buffer.avgWeights).flat(1);
       if (arr.length >= length || n > tries) {

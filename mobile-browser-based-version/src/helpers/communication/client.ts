@@ -1,6 +1,8 @@
 import * as tf from '@tensorflow/tfjs';
 
 export class Client {
+  serverURL: any;
+  task: any;
   constructor(serverURL, task) {
     this.serverURL = serverURL;
     this.task = task;
@@ -10,7 +12,7 @@ export class Client {
    * Handles the connection process from the client to any sort of
    * centralized server.
    */
-  async connect() {
+  async connect(epochs?): Promise<any> {
     throw new Error('Abstract method');
   }
 
@@ -18,7 +20,7 @@ export class Client {
    * Handles the disconnection process of the client from any sort
    * of centralized server.
    */
-  async disconnect() {
+  disconnect() {
     throw new Error('Abstract method');
   }
 
@@ -49,7 +51,7 @@ export class Client {
    * onEpochEnd callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  async onEpochEndCommunication() {
+  async onEpochEndCommunication(model?, epoch?, trainingInformant?) {
     console.log(
       'Training RAM usage is  = ',
       tf.memory().numBytes * 0.000001,

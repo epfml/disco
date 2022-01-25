@@ -63,7 +63,7 @@ export const store = createStore({
     globalTaskFrameState: (state) => (modelID) =>
       state.globalTaskFrameState[modelID],
     password: (state) => (taskID) =>
-      taskID in state.passwords ? state.passwords[taskID] : null,
+      taskID in state.passwords ? state.passwords[taskID] : '',
     taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
     tasksFramesList: (state) => _.values(state.tasksFrames),
     platform: (state) => state.platform,
