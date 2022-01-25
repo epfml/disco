@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import _ from 'lodash'
 import { Platform } from '../platforms/platform'
-export const Store = createStore({
+export const store = createStore({
   state: {
     count: 0,
     globalTaskFrameState: {},
