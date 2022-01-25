@@ -1,6 +1,5 @@
 import msgpack from 'msgpack-lite'
 import Peer from 'peerjs'
-import PeerJSOption from 'peerjs'
 
 import {
   makeID,
@@ -107,13 +106,13 @@ export class DecentralisedClient extends Client {
               ]
             }
           }
-    this.peer = new Peer(makeID(10), peerConfig as unknown)
+    this.peer = new Peer(makeID(10), peerConfig as any)
 
     return new Promise((resolve, reject) => {
       this.peer.on('error', (error) => {
         console.log('Failed to connect to the centralized server')
         console.log(error)
-        resolve()
+        resolve(false as any)
       })
 
       this.peer.on('open', async (id) => {
@@ -125,7 +124,7 @@ export class DecentralisedClient extends Client {
             await this._handleData(data, conn.peer)
           })
         })
-        resolve()
+        resolve(true as any)
       })
     })
   }
@@ -255,7 +254,7 @@ export class DecentralisedClient extends Client {
       this.serverURL.concat(`${this.task.taskID}/peerjs/peers`)
     ).then((response) => response.json())
 
-    this.receivers = peerIDs.filter((value) => value != this.peer.id)
+    this.receivers = peerIDs.filter((value) => value !== this.peer.id)
   }
 
   /**
@@ -341,7 +340,6 @@ export class DecentralisedClient extends Client {
 
   async _idleState (data) {
     // convert the peerjs ArrayBuffer back into Uint8Array
-    const payload = msgpack.decode(new Uint8Array(data.payload))
     const epochWeights = {
       epoch: this.recvBuffer.lastUpdate.epoch,
       weights: this.recvBuffer.lastUpdate.weights
