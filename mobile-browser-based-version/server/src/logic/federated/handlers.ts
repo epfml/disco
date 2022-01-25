@@ -270,7 +270,6 @@ export function selectionStatus (request, response) {
   if (!clients.has(id)) {
     return _failRequest(response, type, 401)
   }
-
   if (!tasksStatus.has(task)) {
     return _failRequest(response, type, 404)
   }
@@ -287,11 +286,31 @@ export function selectionStatus (request, response) {
   )
 
   if (selectedClients.get(task).has(id)) {
+<<<<<<< HEAD:mobile-browser-based-version/server/src/logic/federated/handlers.ts
     response.send({ selected: true, round: tasksStatus.get(task).round })
   } else {
     selectedClientsQueue.get(task).add(id)
     response.send({ selected: false })
     _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN)
+=======
+    /**
+     * Selection status "2" means the client is selected by the server and can proceed
+     * to the next round. The client that emitted the request updates their local round
+     * with the one provided by the server.
+     */
+    response.send({ selected: 2, round: tasksStatus.get(task).round });
+  } else if (tasksStatus.get(task).isRoundPending) {
+    /**
+     * If the round is pending, this means the client that requested
+     * to be selected should now wait for weights aggregation from the server.
+     * This ensures late clients start their rounds with the most recent model.
+     */
+    response.send({ selected: 1 });
+  } else {
+    selectedClientsQueue.get(task).add(id);
+    response.send({ selected: 0 });
+    _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
+>>>>>>> develop:mobile-browser-based-version/server/src/logic/federated/handlers.js
   }
   activeClients.get(id).requests += 1
   _checkForIdleClients(id, IDLE_DELAY)
@@ -440,6 +459,7 @@ export function postWeights (request, response) {
 export async function aggregationStatus (request, response) {
   const type = REQUEST_TYPES.AGGREGATION_STATUS
 
+<<<<<<< HEAD:mobile-browser-based-version/server/src/logic/federated/handlers.ts
   const code = _checkRequest(request)
   if (code !== 200) {
     return _failRequest(response, type, code)
@@ -483,6 +503,53 @@ export async function aggregationStatus (request, response) {
   response.status(200).send({ aggregated: aggregated })
   activeClients.get(id).requests += 1
   _checkForIdleClients(id, IDLE_DELAY)
+=======
+  const task = request.params.task;
+  const round = request.params.round;
+  const id = request.params.id;
+
+  if (!clients.has(id)) {
+    return _failRequest(response, type, 401);
+  }
+  if (!tasksStatus.has(task)) {
+    return _failRequest(response, type, 404);
+  }
+
+  _logsAppend(request, type);
+
+  response.status(200);
+  if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
+    /**
+     * If the round has no weights entry, this must come
+     * from a late client.
+     */
+    response.send({ aggregated: 0 });
+  } else if (
+    !tasksStatus.get(task).isRoundPending &&
+    round < tasksStatus.get(task).round
+  ) {
+    /**
+     * If aggregation occured, make the client wait to get selected for next round so
+     * it can proceed to other jobs. Does nothing if this is a late client.
+     */
+    selectedClients.get(task).delete(id);
+    response.send({ aggregated: 1 });
+  } else if (
+    weightsMap.get(task).get(round).size >=
+    Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
+  ) {
+    /**
+     * To avoid any blocking state due to the disconnection of selected clients, allow
+     * this request to perform aggregation. This is merely a safeguard. Ideally, this
+     * should obviously be performed by the `postWeights` request handler directly, to
+     * avoid any unnecesary delay.
+     */
+    setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN);
+    response.send({ aggregated: 0 });
+  }
+  activeClients.get(id).requests += 1;
+  _checkForIdleClients(id, IDLE_DELAY);
+>>>>>>> develop:mobile-browser-based-version/server/src/logic/federated/handlers.js
 }
 
 /**
