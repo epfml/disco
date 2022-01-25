@@ -1,16 +1,16 @@
 class DataExample {
-    columnName: string;
-    columnData: string | number;
+  columnName: string;
+  columnData: string | number;
 }
 
 class TrainingInformation {
-    modelID: string;
-    epochs: number;
-    roundDuration: number;
-    validationSplit: number;
-    batchSize: number;
-    preprocessFunctions: string[];
-    modelCompileData: ModelCompileData;
+  modelID: string;
+  epochs: number;
+  roundDuration: number;
+  validationSplit: number;
+  batchSize: number;
+  preprocessFunctions: string[];
+  modelCompileData: ModelCompileData;
     receivedMessagesThreshold?: number;
     dataType: string;
     inputColumns?: string[];
