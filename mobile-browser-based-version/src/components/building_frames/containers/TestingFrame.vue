@@ -70,7 +70,7 @@ export default {
     async testModel () {
       const nbrFiles = this.fileUploadManager.numberOfFiles()
       // Check that the user indeed gave a file
-      if (nbrFiles == 0) {
+      if (nbrFiles === 0) {
         this.$toast.error('Training aborted. No uploaded file given as input.')
         setTimeout(this.$toast.clear, 30000)
       } else {

@@ -11,7 +11,7 @@
 
 <script>
 export default {
-  name: 'card',
+  name: 'card-item',
   props: {
     customClass: { default: '', type: String }
   }

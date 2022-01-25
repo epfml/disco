@@ -95,11 +95,10 @@ import DecentralizedImage from '../assets/svg/DecentralizedImage.vue'
 import Card from './containers/Card.vue'
 import { defineComponent } from 'vue'
 
-import { useI18n } from 'vue-i18n'
 import { mapMutations } from 'vuex'
 
 export default defineComponent({
-  name: 'home',
+  name: 'home-page',
   setup () {
   },
   components: {

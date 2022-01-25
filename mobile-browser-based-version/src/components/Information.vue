@@ -215,7 +215,7 @@ import { useI18n } from 'vue-i18n'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'information',
+  name: 'information-page',
   setup () {
     const { t, locale } = useI18n()
     return { t, locale }
