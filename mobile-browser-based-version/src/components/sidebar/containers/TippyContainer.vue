@@ -18,9 +18,8 @@
       <span class="text-gray-500 dark:text-primary">
         <slot name="icon"></slot>
       </span>
-      <h2 class="text-xl font-medium text-gray-500 dark:text-light"
-      >
-        {{this.title}}
+      <h2 class="text-xl font-medium text-gray-500 dark:text-light">
+        {{ this.title }}
       </h2>
     </div>
     <!-- Content -->
@@ -30,11 +29,10 @@
   </div>
 </template>
 <script>
-
 export default {
   name: 'tippy-container',
   props: {
-      title: {default: '', type: String}
+    title: { default: '', type: String },
   },
 };
 </script>

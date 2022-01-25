@@ -16,13 +16,13 @@
 </template>
 <script>
 export default {
-  name: "moon-icon",
+  name: 'moon-icon',
   props: {
     customClass: {
-      default: "w-6 h-6",
+      default: 'w-6 h-6',
       type: String,
     },
-    viewBox: { default: "0 0 24 24", type: String },
+    viewBox: { default: '0 0 24 24', type: String },
   },
 };
 </script>

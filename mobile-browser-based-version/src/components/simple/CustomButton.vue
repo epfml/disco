@@ -1,5 +1,4 @@
 <template>
-  <!-- Titanic's card-->
   <button
     v-on:click="click"
     type="button"
