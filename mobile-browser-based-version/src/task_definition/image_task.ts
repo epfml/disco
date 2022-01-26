@@ -137,14 +137,11 @@ export class ImageTask extends Task {
   }
 
   oneHotEncode (label) {
-    const result = []
-    for (let i = 0; i < this.trainingInformation.LABEL_LIST.length; i++) {
-      if (this.trainingInformation.LABEL_LIST[i] === label) {
-        result.push(1)
-      } else {
-        result.push(0)
-      }
-    }
+    // TODO: does not seem robuts, what if labels are numbers? etc
+    const encodingIndex = this.trainingInformation.LABEL_LIST.findIndex(x => +x === label)
+    const result = new Array<number>(this.trainingInformation.LABEL_LIST.length).fill(0)
+    result[encodingIndex] = 1
+
     return result
   }
 
