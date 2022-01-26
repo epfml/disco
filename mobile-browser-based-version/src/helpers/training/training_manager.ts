@@ -216,6 +216,7 @@ export class TrainingManager {
    */
 
   async _modelFitData (model, trainingInformation, callbacks) {
+    console.log('Fast training mode is used, data preprocessing is executed on the entire dataset at once')
     const tensor = preprocessData(this.data, trainingInformation)
 
     await model.fit(tensor, this.labels, {
@@ -235,6 +236,7 @@ export class TrainingManager {
    * @param {Object} callbacks Callabcks used during training
    */
   async _modelFitDataBatchWise (model, trainingInformation, callbacks) {
+    console.log('Memory efficient training mode is used, data preprocessing is executed batch wise')
     // Creation of Dataset objects for training
     const trainData = tf.data
       .generator(
@@ -275,12 +277,6 @@ export class TrainingManager {
   async _trainLocally () {
     const info = this.task.trainingInformation
 
-    const logText = info.batchwisePreprocessing
-      ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
-      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
-
-    console.log(logText)
-
     const modelFit = (
       info.batchwisePreprocessing
         ? this._modelFitDataBatchWise
@@ -304,12 +300,6 @@ export class TrainingManager {
    */
   async _trainDistributed () {
     const info = this.task.trainingInformation
-
-    const logText = info.batchwisePreprocessing
-      ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
-      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once'
-
-    console.log(logText)
 
     const modelFit = (
       info.batchwisePreprocessing
