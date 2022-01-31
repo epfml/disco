@@ -155,7 +155,7 @@ export default {
       const classes = await this.Task.predict(filesElement)
       const ids = Object.keys(classes)
       let predictions
-      if (ids.length == 1) {
+      if (ids.length === 1) {
         // display results in the component
         this.classes = classes[ids[0]]
         this.gotResults = true
@@ -168,22 +168,22 @@ export default {
     },
     async predictionsToCsv (predictions) {
       let pred = ''
-      let header_length = 0
-      for (const [id, prediction] of Object.entries(predictions)) {
-        header_length = prediction.length
+      let headerLength = 0
+      for (const [, prediction] of Object.entries(predictions)) {
+        headerLength = prediction.length
         pred += `id,${prediction
           .map((dict) => dict.className + ',' + dict.probability)
           .join(',')} \n`
       }
       let header = 'id,'
-      for (let i = 1; i <= header_length; ++i) {
-        header += `top ${i},probability${i != header_length ? ',' : '\n'}`
+      for (let i = 1; i <= headerLength; ++i) {
+        header += `top ${i},probability${i !== headerLength ? ',' : '\n'}`
       }
       const csvContent = header + pred
       return csvContent
     },
     getImage (url) {
-      if (url == '') {
+      if (url === '') {
         return null
       }
       console.log(url)
@@ -252,6 +252,7 @@ export default {
       }
       // Initilization of the color's constant
       // TO DO: add listeners to modify color when changement added
+      // eslint-disable-next-line no-unused-vars
       const colors = {
         primary: cssColors(`--color-${getColor()}`),
         primaryLight: cssColors(`--color-${getColor()}-light`),
