@@ -128,6 +128,7 @@ export default {
       this.modelMap.clear()
       await tf.io.listModels().then((models) => {
         for (const savePath in models) {
+          // eslint-disable-next-line no-unused-vars
           const [location, _, directory, task, name] = savePath.split('/')
           if (!(location === 'indexeddb:' && directory === 'saved')) {
             continue
