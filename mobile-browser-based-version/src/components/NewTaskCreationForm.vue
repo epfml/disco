@@ -594,8 +594,7 @@ import {
   Field as VeeField,
   Form as VeeForm,
   ErrorMessage,
-  FieldArray,
-  handleSubmit
+  FieldArray
 } from 'vee-validate'
 import * as yup from 'yup'
 
