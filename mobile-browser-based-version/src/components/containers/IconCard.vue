@@ -23,25 +23,61 @@
           </span>
         </div>
       </div>
-      <!-- Descrition -->
-      <div v-if="description" class="relative p-4 overflow-x-hidden">
-        <span class="text-sm text-gray-500 dark:text-light">
-          <span v-html="description"></span>
-        </span>
+      <div v-if="showCardContent">
+        <!-- Descrition -->
+        <div v-if="description" class="relative px-4 pt-4 overflow-x-hidden">
+          <span class="text-sm text-gray-500 dark:text-light">
+            <span v-html="description"></span>
+          </span>
+        </div>
+        <!-- Extra -->
+        <slot name="extra" v-if="hasExtraSlot"></slot>
       </div>
-      <!-- Extra -->
-      <slot name="extra" v-if="hasExtraSlot"></slot>
+      <!-- Hide content -->
+      <div class="pb-4">
+        <div v-if="withToggle" class="relative pt-4 px-4 flex items-center">
+          <span @click="hideToggleAction" aria-hidden="true">
+            <div v-if="showCardContent">
+              <up-arrow></up-arrow>
+            </div>
+            <div v-else class="flex flex-row">
+              <down-arrow></down-arrow>
+              <p class="px-4">
+                {{ toggleInfo }}
+              </p>
+            </div>
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import DownArrow from '../../assets/svg/DownArrow.vue';
+import UpArrow from '../../assets/svg/UpArrow.vue';
 export default {
   name: 'icon-card',
+  components: {
+    DownArrow,
+    UpArrow,
+  },
   props: {
     header: { type: String },
     description: { type: String },
     customClass: { default: '', type: String },
+    withToggle: { default: false, type: Boolean },
+    toggleInfo: { default: '', type: String },
+  },
+  data() {
+    return {
+      showCardContent: true,
+    };
+  },
+  methods: {
+    hideToggleAction() {
+      this.showCardContent = !this.showCardContent;
+    },
   },
   computed: {
     hasExtraSlot() {

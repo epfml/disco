@@ -45,6 +45,8 @@
       <icon-card
         header="Map My Data"
         description="If the header of the file that you've uploaded differs from the one shown in example, you can map the expected header to your header format bellow."
+        :withToggle="true"
+        toggleInfo="Toggle to map data"
       >
         <template v-slot:icon><bezier-2 /></template>
         <template v-slot:extra>
