@@ -42,9 +42,7 @@
             </div>
             <div v-else class="flex flex-row">
               <down-arrow></down-arrow>
-              <p class="px-4">
-                {{ toggleInfo }}
-              </p>
+              <p class="px-4">Toggle to show {{ header }}</p>
             </div>
           </span>
         </div>
@@ -67,7 +65,6 @@ export default {
     description: { type: String },
     customClass: { default: '', type: String },
     withToggle: { default: false, type: Boolean },
-    toggleInfo: { default: '', type: String },
   },
   data() {
     return {
@@ -83,6 +80,9 @@ export default {
     hasExtraSlot() {
       return this.$slots.extra;
     },
+  },
+  mounted() {
+    this.showCardContent = !this.withToggle;
   },
 };
 </script>
