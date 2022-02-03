@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
-import { memory } from '../memory/indexedb/memory.js';
+import * as memory from '../memory/helpers.js';
 export class Task {
   constructor(taskID, displayInformation, trainingInformation) {
     this.taskID = taskID;
