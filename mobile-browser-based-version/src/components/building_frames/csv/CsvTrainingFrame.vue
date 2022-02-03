@@ -137,6 +137,9 @@ export default {
   },
 
   methods: {
+    /**
+     * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
+     */
     async dataPreprocessing(filesElement) {
       return new Promise((resolve, reject) => {
         let reader = new FileReader();
