@@ -1,4 +1,4 @@
-import { memory } from '../memory/helpers.js';
+import * as memory from '../memory/helpers.js';
 
 const MANY_EPOCHS = 9999;
 
