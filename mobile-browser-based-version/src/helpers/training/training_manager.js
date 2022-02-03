@@ -1,12 +1,4 @@
-import {
-  getWorkingModel,
-  updateWorkingModel,
-  getWorkingModelMetadata,
-  preprocessData,
-  datasetGenerator,
-} from '../memory/helpers';
-
-import * as tf from '@tensorflow/tfjs';
+import { memory } from '../memory/helpers.js';
 
 const MANY_EPOCHS = 9999;
 
@@ -65,8 +57,11 @@ export class TrainingManager {
       this.task.taskID,
       this.task.trainingInformation.modelID,
     ];
-    if (this.useIndexedDB && (await getWorkingModelMetadata(...modelParams))) {
-      this.model = await getWorkingModel(...modelParams);
+    if (
+      this.useIndexedDB &&
+      (await memory.getWorkingModelMetadata(...modelParams))
+    ) {
+      this.model = await memory.getWorkingModel(...modelParams);
     } else {
       this.model = await this.task.createModel();
     }
@@ -108,73 +103,24 @@ export class TrainingManager {
   /**
    * Method corresponding to the TFJS fit function's callback. Calls the subroutines
    * for the training informant and client.
+   * @param {Object} model The current model being trained.
    * @param {Number} epoch The current training loop's epoch.
    * @param {Number} accuracy The accuracy achieved by the model in the given epoch
    * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
-   * @param {Object} trainingInformation Training information about the model and training parameters
    */
-  async _onEpochEndDistributed(
-    epoch,
-    accuracy,
-    validationAccuracy,
-    trainingInformation
-  ) {
+  async _onEpochEnd(epoch, accuracy, validationAccuracy) {
     this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy);
     console.log(
-      `Train Accuracy: ${accuracy},
-      Val Accuracy:  ${validationAccuracy}\n`
+      `Train Accuracy: ${(accuracy * 100).toFixed(2)},
+      Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
     );
     await this.client.onEpochEndCommunication(
       this.model,
       epoch,
       this.trainingInformant
     );
-    if (this.useIndexedDB) {
-      await updateWorkingModel(
-        this.task.taskID,
-        trainingInformation.modelID,
-        this.model
-      );
-    }
-    if (this.stopTrainingRequested) {
-      this.model.stopTraining = true;
-      this.stopTrainingRequested = false;
-    }
-  }
-  /**
-   * Method corresponding to the TFJS fit function's callback. Calls the client's
-   * subroutine used in local training
-   */
-  async _onEpochEndLocal(
-    epoch,
-    accuracy,
-    validationAccuracy,
-    trainingInformation
-  ) {
-    this.trainingInformant.updateGraph(epoch + 1, validationAccuracy, accuracy);
-    console.log(
-      `EPOCH (${epoch + 1}):
-      Train Accuracy: ${accuracy},
-      Val Accuracy:  ${validationAccuracy}\n`
-    );
-    if (this.useIndexedDB) {
-      this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
-      await updateWorkingModel(
-        this.task.taskID,
-        trainingInformation.modelID,
-        this.model
-      );
-    }
-    if (this.stopTrainingRequested) {
-      this.model.stopTraining = true;
-      this.stopTrainingRequested = false;
-    }
   }
 
-  /**
-   * Method corresponding to the TFJS fit function's callback. Calls the client's
-   * subroutine.
-   */
   async _onTrainBegin() {
     await this.client.onTrainBeginCommunication(
       this.model,
@@ -185,6 +131,7 @@ export class TrainingManager {
   /**
    * Method corresponding to the TFJS fit function's callback. Calls the client's
    * subroutine.
+   * @param {Object} model The current model being trained.
    */
   async _onTrainEnd() {
     await this.client.onTrainEndCommunication(
@@ -193,137 +140,82 @@ export class TrainingManager {
     );
   }
 
-  /**
-   * Function for training the model with data preprocessed before training
-   * @param {Object} model Model to be trained using the function
-   * @param {Object} trainingInformation Training information containing the training parameters
-   * @param {Object} callbacks Callabcks used during training
-   */
-
-  async _modelFitData(model, trainingInformation, callbacks) {
-    const tensor = preprocessData(this.data, trainingInformation);
-
-    await model.fit(tensor, this.labels, {
-      initialEpoch: this.model.getUserDefinedMetadata().epoch,
-      epochs: trainingInformation.epochs ?? MANY_EPOCHS,
-      batchSize: trainingInformation.batchSize,
-      validationSplit: trainingInformation.validationSplit,
-      shuffle: true,
-      callbacks: callbacks,
-    });
-  }
-
-  /**
-   * Function for training the model using batch wise preprocessing
-   * @param {Object} model Model to be trained using the function
-   * @param {Object} trainingInformation Training information containing the training parameters
-   * @param {Object} callbacks Callabcks used during training
-   */
-  async _modelFitDataBatchWise(model, trainingInformation, callbacks) {
-    // Creation of Dataset objects for training
-    const trainData = tf.data
-      .generator(
-        datasetGenerator(
-          this.data,
-          this.labels,
-          0,
-          this.data.shape[0] * (1 - trainingInformation.validationSplit),
-          trainingInformation
-        )
-      )
-      .batch(trainingInformation.batchSize);
-
-    const valData = tf.data
-      .generator(
-        datasetGenerator(
-          this.data,
-          this.labels,
-          Math.floor(
-            this.data.shape[0] * (1 - trainingInformation.validationSplit)
-          ),
-          this.data.shape[0],
-          trainingInformation
-        )
-      )
-      .batch(trainingInformation.batchSize);
-
-    await model.fitDataset(trainData, {
-      epochs: trainingInformation.epochs,
-      validationData: valData,
-      callbacks: callbacks,
-    });
-  }
-
-  /**
-   *  Method that chooses the appropriate modelFitData function and defines the modelFit callbacks for local training.
-   */
   async _trainLocally() {
     const info = this.task.trainingInformation;
 
-    let logText = info.batchwisePreprocessing
-      ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
-      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once';
-
-    console.log(logText);
-
-    let modelFit = (
-      info.batchwisePreprocessing
-        ? this._modelFitDataBatchWise
-        : this._modelFitData
-    ).bind(this);
-
-    await modelFit(this.model, info, {
-      onEpochEnd: async (epoch, logs) => {
-        this._onEpochEndLocal(
-          epoch,
-          this._formatAccuracy(logs.acc),
-          this._formatAccuracy(logs.val_acc),
-          info
-        );
+    await this.model.fit(this.data, this.labels, {
+      initialEpoch: this.model.getUserDefinedMetadata().epoch,
+      epochs: info.epochs ?? MANY_EPOCHS,
+      batchSize: info.batchSize,
+      validationSplit: info.validationSplit,
+      shuffle: true,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          this.trainingInformant.updateGraph(
+            epoch + 1,
+            (logs.val_acc * 100).toFixed(2),
+            (logs.acc * 100).toFixed(2)
+          );
+          console.log(
+            `EPOCH (${epoch + 1}):
+            Train Accuracy: ${(logs.acc * 100).toFixed(2)},
+            Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
+          );
+          if (this.useIndexedDB) {
+            this.model.setUserDefinedMetadata({ epoch: epoch + 1 });
+            await memory.updateWorkingModel(
+              this.task.taskID,
+              info.modelID,
+              this.model
+            );
+          }
+          if (this.stopTrainingRequested) {
+            this.model.stopTraining = true;
+            this.stopTrainingRequested = false;
+          }
+        },
       },
     });
   }
 
-  /**
-   *  Method that chooses the appropriate modelFitData function and defines the modelFit callbacks for distributed training.
-   */
   async _trainDistributed() {
     const info = this.task.trainingInformation;
 
-    let logText = info.batchwisePreprocessing
-      ? 'Memory efficient training mode is used, data preprocessing is executed batch wise'
-      : 'Fast training mode is used, data preprocessing is executed on the entire dataset at once';
-
-    console.log(logText);
-
-    let modelFit = (
-      info.batchwisePreprocessing
-        ? this._modelFitDataBatchWise
-        : this._modelFitData
-    ).bind(this);
-
-    await modelFit(this.model, info, {
-      onTrainBegin: async (logs) => {
-        await this._onTrainBegin();
-      },
-      onTrainEnd: async (logs) => {
-        await this._onTrainEnd();
-      },
-      onEpochBegin: async (epoch, logs) => {
-        await this._onEpochBegin(epoch);
-      },
-      onEpochEnd: async (epoch, logs) => {
-        await this._onEpochEndDistributed(
-          epoch + 1,
-          this._formatAccuracy(logs.acc),
-          this._formatAccuracy(logs.val_acc),
-          info
-        );
+    await this.model.fit(this.data, this.labels, {
+      initialEpoch: 0,
+      epochs: info.epochs ?? MANY_EPOCHS,
+      batchSize: info.batchSize,
+      validationSplit: info.validationSplit,
+      shuffle: true,
+      callbacks: {
+        onTrainBegin: async (logs) => {
+          await this._onTrainBegin();
+        },
+        onTrainEnd: async (logs) => {
+          await this._onTrainEnd();
+        },
+        onEpochBegin: async (epoch, logs) => {
+          await this._onEpochBegin(epoch);
+        },
+        onEpochEnd: async (epoch, logs) => {
+          await this._onEpochEnd(
+            epoch + 1,
+            (logs.acc * 100).toFixed(2),
+            (logs.val_acc * 100).toFixed(2)
+          );
+          if (this.useIndexedDB) {
+            await memory.updateWorkingModel(
+              this.task.taskID,
+              info.modelID,
+              this.model
+            );
+          }
+          if (this.stopTrainingRequested) {
+            this.model.stopTraining = true;
+            this.stopTrainingRequested = false;
+          }
+        },
       },
     });
-  }
-
-  _formatAccuracy(acc) {
-    return (acc * 100).toFixed(2);
   }
 }
