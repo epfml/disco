@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
 import { Task } from './task.js';
-import { getTopKClasses } from '../helpers/testing/testing_script';
+import { getTopKClasses } from '../testing/testing_script';
 import Papa from 'papaparse';
 
 export class ImageTask extends Task {

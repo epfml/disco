@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import * as tf from '@tensorflow/tfjs';
-import { checkData } from '../helpers/data_validation/helpers_csv_tasks';
+import { checkData } from '../data_validation/helpers_csv_tasks';
 import { Task } from './task.js';
 
 /**
