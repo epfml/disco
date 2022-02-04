@@ -1,7 +1,6 @@
 import { Actor } from '../actor.js';
 import { TrainingInformant } from './decentralised/training_informant.js';
 import { TrainingManager } from './training_manager.js';
-import { FileUploadManager } from '../data_validation/file_upload_manager';
 import { getClient } from '../communication/helpers.js';
 
 // number of files that should be loaded (required by the task)
@@ -19,8 +18,6 @@ export class Trainer extends Actor {
     this.platform = platform;
     // Delivers training feedback to the user
     this.trainingInformant = new TrainingInformant(10, this.task.taskID);
-    // Handles the file uploading process
-    this.fileUploadManager = new FileUploadManager(this.nbrClasses, this);
   }
 
   created() {
