@@ -7,7 +7,7 @@
         <uploading-frame
           v-bind:Id="Id"
           v-bind:Task="Task"
-          v-bind:fileUploadManager="fileUploadManager"
+          v-bind:fileUploadManager="tester.fileUploadManager"
           v-if="fileUploadManager"
           :displayLabels="false"
         />
@@ -15,7 +15,10 @@
 
       <!-- Test Button -->
       <div class="flex items-center justify-center p-4">
-        <custom-button v-on:click="testModel()" :center="true">
+        <custom-button
+          v-on:click="tester.testModel(downloadPredictions)"
+          :center="true"
+        >
           Test
         </custom-button>
       </div>
@@ -26,10 +29,11 @@
 </template>
 
 <script>
-import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
 import UploadingFrame from '../upload/UploadingFrame.vue';
 import CustomButton from '../../simple/CustomButton.vue';
 import ActionFrame from './ActionFrame.vue';
+
+import { Tester } from '../../../helpers/testing/tester.js';
 
 export default {
   name: 'TestingFrame',
@@ -37,8 +41,7 @@ export default {
     Id: String,
     Task: Object,
     nbrClasses: Number,
-    makePredictions: Function,
-    predictionsToCsv: Function,
+    helper: Object,
   },
   components: {
     ActionFrame,
@@ -48,8 +51,7 @@ export default {
   data() {
     return {
       predictions: null,
-      // takes care of uploading file process
-      fileUploadManager: new FileUploadManager(1, this),
+      tester: new Tester(this.task, this.$toast, this.helper),
     };
   },
 
@@ -66,41 +68,6 @@ export default {
       document.body.removeChild(downloadLink);
       this.$toast.success(`Predictions have been downloaded.`);
       setTimeout(this.$toast.clear, 30000);
-    },
-    async testModel() {
-      const nbrFiles = this.fileUploadManager.numberOfFiles();
-      // Check that the user indeed gave a file
-      if (nbrFiles == 0) {
-        this.$toast.error(`Training aborted. No uploaded file given as input.`);
-        setTimeout(this.$toast.clear, 30000);
-      } else {
-        // Assume we only read the first file
-        this.$toast.success(
-          `Thank you for your contribution. Testing has started`
-        );
-        setTimeout(this.$toast.clear, 30000);
-        console.log(this.fileUploadManager);
-        var filesElement =
-          nbrFiles > 1
-            ? this.fileUploadManager.getFilesList()
-            : this.fileUploadManager.getFirstFile();
-        // filtering phase (optional)
-        if (this.filterData) {
-          // data checking is optional
-          filesElement = await this.filterData(
-            filesElement,
-            this.Task.trainingInformation
-          );
-        }
-        // prediction
-        this.predictions = await this.makePredictions(filesElement);
-        // reset fileloader
-        this.fileUploadManager.clear();
-        if (this.predictions) {
-          let csvContent = await this.predictionsToCsv(this.predictions);
-          await this.downloadPredictions(csvContent);
-        }
-      }
     },
   },
 };
