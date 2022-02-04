@@ -134,7 +134,7 @@ export default {
   },
   watch: {
     useIndexedDB(newValue) {
-      this.trainingManager.setIndexedDB(newValue);
+      this.trainer.trainingManager.setIndexedDB(newValue);
     },
   },
   data() {
@@ -142,7 +142,6 @@ export default {
       trainer: new Trainer(
         this.Task,
         this.$store.getters.platform,
-        this.useIndexedDB,
         this.$toast,
         this.helper
       ),
@@ -172,7 +171,7 @@ export default {
     },
   },
   created() {
-    this.trainer.created();
+    this.trainer.created(this.useIndexedDB);
     // Disconnect from the centralized server on page close
     window.addEventListener('beforeunload', () => {
       this.trainer.client.disconnect();
