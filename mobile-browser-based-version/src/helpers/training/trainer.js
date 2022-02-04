@@ -9,18 +9,28 @@ function nbrFiles(task) {
   return llist ? llist.length : 1;
 }
 export class Trainer extends Actor {
-  constructor(task, platform, useIndexedDB, logger, helper) {
+  /**
+   * Constructor for Trainer
+   * @param {Task} task - task on which the tasking shall be performed
+   * @param {string} platform - system platform (e.g. deai or feai)
+   * @param {Logger} logger - logging system (e.g. toaster)
+   * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
+   */
+  constructor(task, platform, logger, helper) {
     super(task, logger, nbrFiles(task), helper);
     this.isConnected = false;
     this.isTraining = false;
     this.distributedTraining = false;
-    this.useIndexedDB = useIndexedDB;
     this.platform = platform;
     // Delivers training feedback to the user
     this.trainingInformant = new TrainingInformant(10, this.task.taskID);
   }
 
-  created() {
+  /**
+   * Mimics the created hooks of Vue
+   * @param {boolean} useIndexedDB - use indexededDB parameter from Vuex store
+   */
+  created(useIndexedDB) {
     // Take care of communication processes
     this.client = getClient(
       this.platform,
@@ -32,20 +42,14 @@ export class Trainer extends Actor {
       this.task,
       this.client,
       this.trainingInformant,
-      this.useIndexedDB
+      useIndexedDB
     );
   }
 
-  // wrapper for Vue interface update
-  setIndexedDB(newValue) {
-    if (newValue !== undefined) {
-      this.useIndexedDB = newValue;
-    }
-  }
-
-  // connect
-  async connectClientToServer(useIndexedDB) {
-    this.setIndexedDB(useIndexedDB);
+  /**
+   * Connects the trainer to the server
+   */
+  async connectClientToServer() {
     // Connect to centralized server
     this.isConnected = await this.client.connect();
     if (this.isConnected) {
@@ -60,10 +64,17 @@ export class Trainer extends Actor {
     }
   }
 
+  /**
+   * Disconnects the trainer from the server
+   */
   disconnect() {
     this.client.disconnect();
   }
 
+  /**
+   * Main training function
+   * @param {boolean} distributed - use distributed training (true) or local training (false)
+   */
   async joinTraining(distributed) {
     if (distributed && !this.isConnected) {
       await this.connectClientToServer();
@@ -112,6 +123,9 @@ export class Trainer extends Actor {
       }
     }
   }
+  /**
+   * Stops the training function and disconnects from
+   */
   async stopTraining() {
     this.trainingManager.stopTraining();
     if (this.isConnected) {

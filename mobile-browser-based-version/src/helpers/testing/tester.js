@@ -1,5 +1,11 @@
 import { Actor } from '../actor.js';
 export class Tester extends Actor {
+  /**
+   * Constructor for Tester
+   * @param {Task} task - task on which the tasking shall be performed
+   * @param {Logger} logger - logging system (e.g. toaster)
+   * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
+   */
   constructor(task, logger, helper) {
     super(task, logger, 1, helper);
   }
