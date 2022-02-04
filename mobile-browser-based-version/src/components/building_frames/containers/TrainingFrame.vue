@@ -7,8 +7,8 @@
         <uploading-frame
           v-bind:Id="Id"
           v-bind:Task="Task"
-          v-bind:fileUploadManager="fileUploadManager"
-          v-if="fileUploadManager"
+          v-bind:fileUploadManager="trainer.fileUploadManager"
+          v-if="trainer.fileUploadManager"
         />
       </div>
 
@@ -17,16 +17,19 @@
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
         <div v-if="!isTraining">
-          <custom-button v-on:click="joinTraining(false)" :center="true">
+          <custom-button
+            v-on:click="trainer.joinTraining(false)"
+            :center="true"
+          >
             Train Locally
           </custom-button>
-          <custom-button v-on:click="joinTraining(true)" :center="true">
+          <custom-button v-on:click="trainer.joinTraining(true)" :center="true">
             Train {{ this.$t('platform') }}
           </custom-button>
         </div>
         <div v-else>
           <custom-button
-            v-on:click="stopTraining()"
+            v-on:click="trainer.stopTraining()"
             :center="true"
             color="bg-red-500"
           >
@@ -37,8 +40,8 @@
       <!-- Training Board -->
       <div>
         <training-information-frame
-          v-bind:trainingInformant="trainingInformant"
-          v-if="trainingInformant"
+          v-bind:trainingInformant="trainer.trainingInformant"
+          v-if="trainer.trainingInformant"
         />
       </div>
 
@@ -102,20 +105,18 @@ import ActionFrame from './ActionFrame.vue';
 import IconCard from '../../containers/IconCard.vue';
 import CustomButton from '../../simple/CustomButton.vue';
 import Download from '../../../assets/svg/Download.vue';
-import { TrainingInformant } from '../../../helpers/training/decentralised/training_informant';
-import { getClient } from '../../../helpers/communication/helpers';
-import { TrainingManager } from '../../../helpers/training/training_manager';
-import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
-import { saveWorkingModel } from '../../../helpers/memory/helpers';
+
 import { mapState } from 'vuex';
+import * as memory from '../../../helpers/memory/helpers.js';
+import { Trainer } from '../../../helpers/training/trainer.js';
+
 export default {
   name: 'TrainingFrame',
   props: {
     Id: String,
     Task: Object,
-    dataPreprocessing: Function,
-    precheckData: Function,
     nbrClasses: Number,
+    helper: Object,
   },
   components: {
     UploadingFrame,
@@ -138,48 +139,24 @@ export default {
   },
   data() {
     return {
-      isConnected: false,
-      isTraining: false,
-      distributedTraining: false,
-      // Delivers training feedback to the user
-      trainingInformant: new TrainingInformant(10, this.Task.taskID),
-      // Handles the file uploading process
-      fileUploadManager: new FileUploadManager(this.nbrClasses, this),
+      trainer: new Trainer(
+        this.Task,
+        this.$store.getters.platform,
+        this.useIndexedDB,
+        this.$toast,
+        this.helper
+      ),
     };
   },
   methods: {
-    async connectClientToServer() {
-      this.isConnected = await this.client.connect();
-      if (this.isConnected) {
-        this.$toast.success(
-          'Succesfully connected to server. Distributed training available.'
-        );
-      } else {
-        console.log('Error in connecting');
-        this.$toast.error(
-          'Failed to connect to server. Fallback to training alone.'
-        );
-      }
-      setTimeout(this.$toast.clear, 30000);
-    },
     goToTesting() {
       this.$router.push({
         path: 'testing',
       });
     },
-    async stopTraining() {
-      this.trainingManager.stopTraining();
-      if (this.isConnected) {
-        await this.client.disconnect();
-        this.isConnected = false;
-      }
-      this.$toast.success('Training was successfully interrupted.');
-      setTimeout(this.$toast.clear, 30000);
-      this.isTraining = false;
-    },
     async saveModel() {
       if (this.useIndexedDB) {
-        await saveWorkingModel(
+        await memory.saveWorkingModel(
           this.Task.taskID,
           this.Task.trainingInformation.modelID
         );
@@ -193,84 +170,16 @@ export default {
       }
       setTimeout(this.$toast.clear, 30000);
     },
-    async joinTraining(distributed) {
-      if (distributed && !this.isConnected) {
-        await this.connectClientToServer();
-        if (!this.isConnected) {
-          distributed = false;
-        }
-      }
-      this.distributedTraining = distributed;
-      const nbrFiles = this.fileUploadManager.numberOfFiles();
-      console.log('***********************');
-      console.log(nbrFiles);
-      console.log(this.nbrClasses);
-      console.log(this.fileUploadManager.getFilesList());
-      console.log('***********************');
-      // Check that the user indeed gave a file
-      if (nbrFiles == 0) {
-        this.$toast.error(`Training aborted. No uploaded file given as input.`);
-        setTimeout(this.$toast.clear, 30000);
-      } else {
-        // Assume we only read the first file
-        this.$toast.success(
-          `Thank you for your contribution. Data preprocessing has started`
-        );
-        setTimeout(this.$toast.clear, 30000);
-        console.log(this.fileUploadManager);
-        const filesElement =
-          nbrFiles > 1
-            ? this.fileUploadManager.getFilesList()
-            : this.fileUploadManager.getFirstFile();
-        console.log('***********************');
-        console.log(filesElement);
-        var statusValidation = { accepted: true };
-        if (this.precheckData) {
-          // Data checking is optional
-          statusValidation = await this.precheckData(
-            filesElement,
-            this.Task.trainingInformation
-          );
-        }
-        if (statusValidation.accepted) {
-          // Preprocess the uploaded dataset and start training
-          let processedDataset = await this.dataPreprocessing(filesElement);
-          this.$toast.success(
-            `Data preprocessing has finished and training has started`
-          );
-          setTimeout(this.$toast.clear, 30000);
-          this.trainingManager.trainModel(processedDataset, distributed);
-          this.isTraining = true;
-        } else {
-          this.$toast.error(
-            `Invalid input format: Number of data points with valid format: ${statusValidation.nr_accepted} out of ${nbrFiles}`
-          );
-          setTimeout(this.$toast.clear, 30000);
-        }
-      }
-    },
   },
   created() {
-    // Create the client to take care of communication processes
-    this.client = getClient(
-      this.$store.getters.platform,
-      this.Task,
-      this.$store.getters.password(this.Id)
-    );
+    this.trainer.created();
     // Disconnect from the centralized server on page close
     window.addEventListener('beforeunload', () => {
-      this.client.disconnect();
+      this.trainer.client.disconnect();
     });
-    // Create the training manager
-    this.trainingManager = new TrainingManager(
-      this.Task,
-      this.client,
-      this.trainingInformant,
-      this.useIndexedDB
-    );
   },
   unmounted() {
-    this.client.disconnect();
+    this.trainer.disconnect();
   },
 };
 </script>
