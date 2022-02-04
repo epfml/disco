@@ -10,6 +10,11 @@ import { tasks } from '../../tasks/tasks.js';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-node';
 
+/**
+ * Unique string identifiers for each type of request the federated
+ * handlers are able to process. These strings are currently used
+ * by the logs to identify the kind of requests that were performed.
+ */
 const REQUEST_TYPES = Object.freeze({
   CONNECT: 'connect',
   DISCONNECT: 'disconnect',
@@ -53,16 +58,16 @@ const IDLE_DELAY = 1000 * 10;
 const NEW_CLIENT_IDLE_DELAY = 1000 * 60;
 /**
  * Contains the model weights received from clients for a given task and round.
- * Stored by task ID, round number and client ID.
+ * Stored by task ID, round number and client ID in a nested-map fashion.
  */
 const weightsMap = new Map();
 /**
  * Contains metadata used for training by clients for a given task and round.
- * Stored by task ID, round number and client ID.
+ * Stored by task ID, round number and client ID in a nested-map fashion.
  */
 const metadataMap = new Map();
 /**
- * Contains all successful requests made to the server. An entry consists of:
+ * Flat array that contains all successful requests made to the server. An entry consists of:
  * - a timestamp corresponding to the time at which the request was made
  * - the client ID used to make the request
  * - the task ID for which the request was made
@@ -108,13 +113,11 @@ tasks.forEach((task) => {
 });
 
 /**
- * Verifies that the given POST request is correctly formatted. Its body must
- * contain:
- * - the client's ID
- * - a timestamp corresponding to the time at which the request was made
- * The client must already be connected to the specified task before making any
- * subsequent POST requests related to training.
- * @param {Request} request received from client
+ * Helper function. Verifies that the given request object's content fulfills several
+ * format criterias. In particular, the request's body must contain its emitting client's
+ * ID, training task and current round. Furthermore, the client must already be connected
+ * to the specified task before making any subsequent requests related to training.
+ * @param {Request} request The request received from client
  */
 function _checkRequest(request) {
   const task = request.params.task;
@@ -136,15 +139,22 @@ function _checkRequest(request) {
   return 200;
 }
 
+/**
+ * Helper function. Provides feedback on stdout after a request failed to be
+ * processed. Sends a response with the provided (failure) status code.
+ * @param {Response} response The request handler's response object
+ * @param {String} type The type of the request
+ * @param {Integer} code The (failure) HTTP status code
+ */
 function _failRequest(response, type, code) {
   console.log(`${type} failed with code ${code}`);
   response.status(code).send();
 }
 
 /**
- * Appends the given request to the server logs.
- * @param {Request} request received from client
- * @param {String} type of the request
+ * Helper function. Appends the given request to the server logs.
+ * @param {Request} request The request received from client
+ * @param {String} type The type of the request
  */
 function _logsAppend(request, type) {
   const timestamp = new Date();
@@ -160,6 +170,15 @@ function _logsAppend(request, type) {
   });
 }
 
+/**
+ * Helper function. Attempts to start the next round. Called once a round has collected
+ * enough weights from clients and the server aggregated them. If enough clients are
+ * queued for selection, sets a timer at the end of which queued clients will be selected
+ * (if enough of them remained connected in the mean time).
+ * @param {String} task The task ID
+ * @param {Number} threshold The minimum required number of clients queued for selection
+ * @param {Number} countdown The time (ms) countdown before attempting to start the next round
+ */
 function _startNextRound(task, threshold, countdown) {
   let queueSize = selectedClientsQueue.get(task).size;
   if (queueSize >= threshold) {
@@ -181,7 +200,16 @@ function _startNextRound(task, threshold, countdown) {
   }
 }
 
-async function _aggregateWeights(task, round, id) {
+/**
+ * Helper function. Aggregates the weights received for a given task and round.
+ * Performs the aggregation with simple weights averaging. Saves the resulting
+ * aggregated model to the server's local storage, hence effectively updating
+ * the given task's model. Calling this function marks the end of the task's round
+ * and thus the end-of-round routine is directly made within this function.
+ * @param {String} task The task's ID
+ * @param {Integer} round The task's round
+ */
+async function _aggregateWeights(task, round) {
   // TODO: check whether this actually works
   const serializedAggregatedWeights = await averageWeights(
     Array.from(weightsMap.get(task).get(round).values())
@@ -215,6 +243,18 @@ async function _aggregateWeights(task, round, id) {
   _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
 }
 
+/**
+ * Helper function. Called every time a client performs a successful request to the server.
+ * Every client has their corresponding request counter stored server-side. The counters
+ * are incremented when their clients perform a successful request. Then, calling this function
+ * sets a timer at the end of which the given client will see its counter decremented. This timer
+ * can be seen as a time frame during which the client is considered active. If the decremented counter
+ * would be negative, the corresponding client is considered inactive and thus disconnected from
+ * the server.
+ * @param {String} client The client's ID
+ * @param {Integer} delay The time (ms) countdown before which the client's activity
+ * counter is decremented
+ */
 function _checkForIdleClients(client, delay) {
   setTimeout(() => {
     if (activeClients.has(client)) {
@@ -237,9 +277,9 @@ function _checkForIdleClients(client, delay) {
  * activity history of the server (i.e. the logs). The client is allowed to be
  * more specific by providing a client ID, task ID or round number. Each
  * parameter is optional. It requires no prior connection to the server and is thus
- * publicly available data.
- * @param {Request} request received from client
- * @param {Response} response sent to client
+ * publicly available metadata.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
  */
 export function queryLogs(request, response) {
   const task = request.query.task;
@@ -260,6 +300,19 @@ export function queryLogs(request, response) {
     );
 }
 
+/**
+ * Request handler called when a client sends a GET request asking to get
+ * selected by the server. The client is either:
+ * - queued for later selection (code 0)
+ * - late for selection (code 1)
+ * - selected (code 2)
+ * Code 0: The client is expected to ask for selection status again and will eventually
+ * get selected (code 2).
+ * Code 1: The client is expected to wait for the current round's weights to be aggregated.
+ * Code 2: The client is expected to train locally for a few epochs.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
+ */
 export function selectionStatus(request, response) {
   const type = REQUEST_TYPES.SELECTION_STATUS;
 
@@ -309,10 +362,10 @@ export function selectionStatus(request, response) {
 
 /**
  * Entry point to the server's API. Any client must go through this connection
- * process before making any subsequent POST requests to the server related to
- * the training of a task or metadata.
- * @param {Request} request received from client
- * @param {Response} response sent to client
+ * process before making any subsequent requests to the server related to
+ * the training of a task.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
  */
 export function connect(request, response) {
   const type = REQUEST_TYPES.CONNECT;
@@ -340,12 +393,8 @@ export function connect(request, response) {
 /**
  * Request handler called when a client sends a GET request notifying the server
  * it is disconnecting from a given task.
- * @param {Request} request received from client
- * @param {Response} response sent to client
- *
- * Further improvement: Automatically disconnect idle clients, i.e. clients
- * with very poor and/or sparse contribution to training in terms of performance
- * and/or weights posting frequency.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
  */
 export function disconnect(request, response) {
   const type = REQUEST_TYPES.DISCONNECT;
@@ -369,14 +418,13 @@ export function disconnect(request, response) {
 }
 
 /**
- * Request handler called when a client sends a GET request containing their
+ * Request handler called when a client sends a POST request containing their
  * individual model weights to the server while training a task. The request is
- * made for a given task and round. The request's body must contain:
- * - the client's ID
- * - a timestamp corresponding to the time at which the request was made
- * - the client's weights
- * @param {Request} request received from client
- * @param {Response} response sent to client
+ * made for a given task, round and client. The request's body must contain the client's
+ * weights. If enough weights were received for the current round, aggregate the
+ * weights and proceed to the next round.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
  */
 export function postWeights(request, response) {
   const type = REQUEST_TYPES.POST_WEIGHTS;
@@ -435,17 +483,14 @@ export function postWeights(request, response) {
 }
 
 /**
- * Request handler called when a client sends a POST request asking for
- * the averaged model weights stored on server while training a task. The
- * request is made for a given task and round. The request succeeds once
- * CLIENTS_THRESHOLD % of clients sent their individual weights to the server
- * for the given task and round. Every MODEL_SAVE_TIMESTEP rounds into the task,
- * the requested averaged weights are saved under a JSON file at milestones/.
- * The request's body must contain:
- * - the client's ID
- * - a timestamp corresponding to the time at which the request was made
- * @param {Request} request received from client
- * @param {Response} response sent to client
+ * Request handler called when a client sends a GET request asking for
+ * the averaged model weights stored on the server while training a task. The
+ * request is made for a given task, round and client. The request succeeds (code 1)
+ * if CLIENTS_THRESHOLD % of clients sent their individual weights to the server
+ * for the given task and round. Otherwise, it fails (code 0). On request success,
+ * this handler performs weights aggregation and moves to the next round.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
  */
 export async function aggregationStatus(request, response) {
   const type = REQUEST_TYPES.AGGREGATION_STATUS;
@@ -498,14 +543,12 @@ export async function aggregationStatus(request, response) {
 }
 
 /**
- * Request handler called when a client sends a POST request containing their
- * number of data samples to the server while training a task's model. The
- * request is made for a given task and round. The request's body must contain:
- * - the client's ID
- * - a timestamp corresponding to the time at which the request was made
- * - the client's number of data samples
- * @param {Request} request received from client
- * @param {Response} response sent to client
+ * Request handler called when a client sends a POST request containing metadata
+ * to the server while training a task's model. The request is made for a given task,
+ * round, client and metadata. The request's body must contain the actual metadata's
+ * content, while the metadata ID is specified in the handler's route.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
  */
 export function postMetadata(request, response) {
   const type = REQUEST_TYPES.POST_METADATA;
@@ -549,14 +592,12 @@ export function postMetadata(request, response) {
 }
 
 /**
- * Request handler called when a client sends a POST request asking the server
- * for the number of data samples held per client for a given task and round.
- * If there is no entry for the given round, sends the most recent entry for
- * each client involved in the task. The request's body must contain:
- * - the client's ID
- * - a timestamp corresponding to the time at which the request was made
- * @param {Request} request received from client
- * @param {Response} response sent to client
+ * Request handler called when a client sends a GET request asking the server
+ * for a metadata previously sent by clients in general. The request is made for
+ * a given task, round, client and metadata. If there is no entry for the given round,
+ * sends the most recent entry (round-wise) for each client involved in the task.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
  */
 export function getMetadataMap(request, response) {
   const type = REQUEST_TYPES.GET_METADATA;
@@ -606,11 +647,11 @@ export function getMetadataMap(request, response) {
 
 /**
  * Request handler called when a client sends a GET request asking for all the
- * tasks metadata stored in the server's tasks.json file. This is used for
- * generating the client's list of tasks. It requires no prior connection to the
- * server and is thus publicly available data.
- * @param {Request} request received from client
- * @param {Response} response sent to client
+ * tasks metadata stored in the server's tasks.json file. This is used by clients
+ * to generate their list of tasks to the users. It requires no prior connection to
+ * the server and is thus publicly available data.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
  */
 export function getTasksMetadata(request, response) {
   const type = REQUEST_TYPES.GET_TASKS;
@@ -625,12 +666,12 @@ export function getTasksMetadata(request, response) {
 
 /**
  * Request handler called when a client sends a GET request asking for the
- * TFJS model files of a given task. The files consist of the model's
- * architecture file model.json and its layer weights file weights.bin.
- * It requires no prior connection to the server and is thus publicly available
- * data.
- * @param {Request} request received from client
- * @param {Response} response sent to client
+ * TF.js model files of a given task. The files consist of the model's
+ * architecture file (model.json) and its layer weights file (weights.bin) and
+ * together define a task. This endpoint requires no prior connection to the
+ * server and is thus publicly available data.
+ * @param {Request} request The request received from client
+ * @param {Response} response The response sent to client
  */
 export function getLatestModel(request, response) {
   const type = REQUEST_TYPES.GET_WEIGHTS;
