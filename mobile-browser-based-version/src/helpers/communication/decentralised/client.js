@@ -54,7 +54,16 @@ export class DecentralisedClient extends Client {
    * @param {Number} epochs the number of epochs.
    */
   async connect(epochs) {
-    console.log('Connecting...');
+    /*
+     * If the server was just started (either due to having been idle, and then called, or running for the first time),
+     * it is necessary to "wake it up" before making the first connection, otherwise the first connection will be ignored.
+     * This is related to issue 196: https://github.com/epfml/DeAI/issues/196
+     */
+    let peerJsServerInfo = await fetch(
+      this.serverURL.concat(`${this.task.taskID}`)
+    ).then((response) => response.json());
+    console.log('Connecting to', peerJsServerInfo);
+
     this.recvBuffer = {
       trainInfo: {
         epochs: epochs,
