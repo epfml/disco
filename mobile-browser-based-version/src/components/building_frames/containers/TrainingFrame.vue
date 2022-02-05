@@ -136,7 +136,10 @@ import { TrainingManager } from '../../../helpers/training/training_manager';
 import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
 import { saveWorkingModel } from '../../../helpers/memory/helpers';
 import { mapState } from 'vuex';
-import { personalizationType } from '../../../helpers/model_definition/model';
+import {
+  personalizationType,
+  initializeModelWrapper,
+} from '../../../helpers/model_definition/model';
 
 export default {
   name: 'TrainingFrame',
@@ -173,7 +176,7 @@ export default {
       isTraining: false,
       distributedTraining: false,
       // Delivers training feedback to the user
-      trainingInformant: new TrainingInformant(10, this.Task/**.taskID*/), //now we should use Task here. to get acces to task definition in TrainingManager.
+      trainingInformant: new TrainingInformant(10, this.Task /**.taskID*/), //now we should use Task here. to get acces to task definition in TrainingManager.
       // Handles the file uploading process
       fileUploadManager: new FileUploadManager(this.nbrClasses, this),
       // Show the personalization options.
@@ -268,21 +271,31 @@ export default {
           );
         }
         if (statusValidation.accepted) {
-          // Preprocess the uploaded dataset and start training
+          // Preprocess the uploaded dataset, create the modelWrapper and start training
           let processedDataset = await this.dataPreprocessing(filesElement);
           this.$toast.success(
             `Data preprocessing has finished and training has started`
           );
           setTimeout(this.$toast.clear, 30000);
+          let modelWrapper;
           if (this.useInteroperability) {
-            this.trainingManager.trainModel(
-              processedDataset,
-              distributed,
+            modelWrapper = await initializeModelWrapper(
+              this.Task,
+              this.trainingManager.useIndexedDB,
               personalizationType.INTEROPERABILITY
             );
           } else {
-            this.trainingManager.trainModel(processedDataset, distributed);
+            modelWrapper = await initializeModelWrapper(
+              this.Task,
+              this.trainingManager.useIndexedDB,
+              personalizationType.NONE
+            );
           }
+          this.trainingManager.trainModel(
+            modelWrapper,
+            processedDataset,
+            distributed
+          );
           this.isTraining = true;
         } else {
           this.$toast.error(

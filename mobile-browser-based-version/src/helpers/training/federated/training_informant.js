@@ -136,6 +136,7 @@ export class TrainingInformant {
       plotOptions: {
         heatmap: {
           useFillColorAsStroke: true,
+          reverseNegativeShade: true,
         },
       },
       xaxis: {

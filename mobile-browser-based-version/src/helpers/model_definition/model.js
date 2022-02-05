@@ -6,10 +6,46 @@ import { getWorkingModel, getWorkingModelMetadata } from '../memory/helpers';
  * Enumeration of the different types of personalization.
  */
 export const personalizationType = {
-  NONE: 'NONE',
+  NONE: 'none',
   INTEROPERABILITY: 'interoperability',
 };
 
+/**
+ * Builder method to create and initialize a new modelWrapper of the specified type.
+ * @param {Task} task the task for which the model is created.
+ * @param {Boolean} useIndexedDB is IndexedDB enabled
+ * @param {personalizationType} typeOfPersonalization the type of personalization of our model.
+ * @returns the initialized modelWrapper containing the TF.js model as well as all other important informations.
+ */
+export async function initializeModelWrapper(
+  task,
+  useIndexedDB,
+  typeOfPersonalization = personalizationType.NONE
+) {
+  let modelWrapper;
+  let modelParameters = [task, useIndexedDB];
+
+  // Depending on the personalization Type chosen we initialize the right model.
+  switch (typeOfPersonalization) {
+    case personalizationType.INTEROPERABILITY:
+      modelWrapper = new InteroperabilityModel(...modelParameters);
+      break;
+
+    case personalizationType.NONE:
+      modelWrapper = new Model(...modelParameters);
+      break;
+
+    // Default model type is NONE
+    default:
+      modelWrapper = new Model(...modelParameters);
+      break;
+  }
+
+  // Initialize the created model.
+  await modelWrapper.init();
+
+  return modelWrapper;
+}
 /**
  * This class represents a default model and will simply
  * encapsulate the default model for a given task.
@@ -28,9 +64,7 @@ export class Model {
    * Initializes the model for a given task.
    *
    * It will check the metadatas we stored to see if there is already asuch model in memory and if so returns it.
-   *
    * Otherwise (no such model or we are not using index DB) it will create a new model.
-   *
    * Finally if the type of the previously stored model doesn't correspond to the one we are creating, in will also create a new one.
    *
    * This method should not need to be overriden by subclasses.
@@ -70,7 +104,7 @@ export class Model {
   }
 
   /**
-   *  Getter for the model.
+   *  Getter for the model as a whole.
    *  @returns the model we want to train.
    */
   getModel() {
@@ -79,8 +113,9 @@ export class Model {
 
   /**
    *  This is a getter for the part of the model we want to share with the network.
-   *  For personalizationType.NONE this is simply the model.
+   *  For personalizationType.NONE this is simply the model itself since it is not different.
    *  The behaviour depends on the personalization type of the model.
+   *  This method has to be redefined in subclasses.
    *  @returns the part of the model we want to share.
    */
   getSharedModel() {
@@ -169,6 +204,8 @@ export class InteroperabilityModel extends Model {
     return [
       this.model.layers[0].weights[0].read().dataSync(),
       this.model.layers[0].weights[1].read().dataSync(),
+      //[0],
+      //[1],
       this.model.layers[this.model.layers.length - 1].weights[0]
         .read()
         .dataSync(),

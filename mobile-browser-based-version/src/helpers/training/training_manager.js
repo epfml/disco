@@ -3,7 +3,6 @@ import {
   updateWorkingModel,
   getWorkingModelMetadata,
 } from '../memory/helpers';
-import * as modelDefinition from '../model_definition/model';
 
 const MANY_EPOCHS = 9999;
 
@@ -27,7 +26,7 @@ export class TrainingManager {
     this.useIndexedDB = useIndexedDB;
     this.stopTrainingRequested = false;
 
-    this.model = null;
+    this.modelWrapper = null;
     this.data = null;
     this.labels = null;
   }
@@ -51,42 +50,20 @@ export class TrainingManager {
    * @param {Boolean} distributedTraining train in a distributed fashion
    * @param {personalizationType} personalizationTypeChosen the type of personalization chosen for the model.
    */
-  async trainModel(
-    dataset,
-    distributedTraining,
-    personalizationTypeChosen = modelDefinition.personalizationType.NONE
-  ) {
+  async trainModel(modelWrapper, dataset, distributedTraining) {
     this.data = dataset.Xtrain;
     this.labels = dataset.ytrain;
-
-    switch (personalizationTypeChosen) {
-      case modelDefinition.personalizationType.NONE:
-        this.model = new modelDefinition.Model(this.task, this.useIndexedDB);
-        break;
-
-      case modelDefinition.personalizationType.INTEROPERABILITY:
-        this.model = new modelDefinition.InteroperabilityModel(
-          this.task,
-          this.useIndexedDB
-        );
-        break;
-    }
-    await this.model.init();
-
-    // Continue local training from previous epoch checkpoint
-    if (this.model.getModel().getUserDefinedMetadata().epoch === undefined) {
-      this.model.getModel().getUserDefinedMetadata().epoch = 0;
-    }
+    this.modelWrapper = modelWrapper;
 
     const info = this.task.trainingInformation;
-    this.model.getModel().compile(info.modelCompileData);
+    this.modelWrapper.getModel().compile(info.modelCompileData);
 
     if (info.learningRate) {
-      this.model.getModel().optimizer.learningRate = info.learningRate;
+      this.modelWrapper.getModel().optimizer.learningRate = info.learningRate;
     }
 
     // Ensure training can start
-    this.model.getModel().stopTraining = false;
+    this.modelWrapper.getModel().stopTraining = false;
     this.stopTrainingRequested = false;
 
     distributedTraining ? this._trainDistributed() : this._trainLocally();
@@ -101,7 +78,7 @@ export class TrainingManager {
   async _onEpochBegin(epoch) {
     console.log(`EPOCH (${epoch + 1}):`);
     await this.client.onEpochBeginCommunication(
-      this.model.getSharedModel(),
+      this.modelWrapper.getSharedModel(),
       epoch,
       this.trainingInformant
     );
@@ -122,7 +99,7 @@ export class TrainingManager {
       Val Accuracy:  ${(validationAccuracy * 100).toFixed(2)}\n`
     );
     await this.client.onEpochEndCommunication(
-      this.model,
+      this.modelWrapper,
       epoch,
       this.trainingInformant
     );
@@ -130,7 +107,7 @@ export class TrainingManager {
 
   async _onTrainBegin() {
     await this.client.onTrainBeginCommunication(
-      this.model,
+      this.modelWrapper,
       this.trainingInformant
     );
   }
@@ -142,7 +119,7 @@ export class TrainingManager {
    */
   async _onTrainEnd() {
     await this.client.onTrainEndCommunication(
-      this.model,
+      this.modelWrapper,
       this.trainingInformant
     );
   }
@@ -150,8 +127,8 @@ export class TrainingManager {
   async _trainLocally() {
     const info = this.task.trainingInformation;
 
-    await this.model.getModel().fit(this.data, this.labels, {
-      initialEpoch: this.model.getModel().getUserDefinedMetadata().epoch,
+    await this.modelWrapper.getModel().fit(this.data, this.labels, {
+      initialEpoch: this.modelWrapper.getModel().getUserDefinedMetadata().epoch,
       epochs: MANY_EPOCHS,
       batchSize: info.batchSize,
       validationSplit: info.validationSplit,
@@ -169,15 +146,15 @@ export class TrainingManager {
             Val Accuracy:  ${(logs.val_acc * 100).toFixed(2)}\n`
           );
           if (this.useIndexedDB) {
-            this.model.getModel().getUserDefinedMetadata().epoch += 1;
+            this.modelWrapper.getModel().getUserDefinedMetadata().epoch += 1;
             await updateWorkingModel(
               this.task.taskID,
               info.modelID,
-              this.model.getModel()
+              this.modelWrapper.getModel()
             );
           }
           if (this.stopTrainingRequested) {
-            this.model.getModel().stopTraining = true;
+            this.modelWrapper.getModel().stopTraining = true;
             this.stopTrainingRequested = false;
           }
         },
@@ -188,7 +165,7 @@ export class TrainingManager {
   async _trainDistributed() {
     const info = this.task.trainingInformation;
 
-    await this.model.getModel().fit(this.data, this.labels, {
+    await this.modelWrapper.getModel().fit(this.data, this.labels, {
       initialEpoch: 0,
       epochs: info.epochs ?? MANY_EPOCHS,
       batchSize: info.batchSize,
@@ -214,11 +191,11 @@ export class TrainingManager {
             await updateWorkingModel(
               this.task.taskID,
               info.modelID,
-              this.model.getModel()
+              this.modelWrapper.getModel()
             );
           }
           if (this.stopTrainingRequested) {
-            this.model.getModel().stopTraining = true;
+            this.modelWrapper.getModel().stopTraining = true;
             this.stopTrainingRequested = false;
           }
         },

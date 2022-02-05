@@ -23,6 +23,7 @@ export class Task {
     // By default we set the personalization type of a model to None.
     newModel.setUserDefinedMetadata({
       personalizationType: personalizationType.NONE,
+      epoch: 0,
     });
     return newModel;
   }
