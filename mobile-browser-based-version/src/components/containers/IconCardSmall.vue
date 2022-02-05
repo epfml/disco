@@ -1,5 +1,4 @@
 <template>
-  <!-- Nbr. of Weight Requests -->
   <div
     class="
       flex

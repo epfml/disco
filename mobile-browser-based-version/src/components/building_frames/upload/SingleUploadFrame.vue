@@ -18,7 +18,7 @@
       v-on:dragenter="dragEnterHandler"
     >
       <span v-if="nbrClasses > 1" class="text-xl font-semibold">
-        Label {{ label }}:
+        {{ label }}:
       </span>
       <!-- scroll area -->
       <section class="overflow-auto p-8 w-full h-full flex flex-col">
@@ -108,9 +108,31 @@
         <!-- If no preview of the selected file, display the nbr. of uploaded files -->
         <div v-if="!preview">
           <div class="pt-4">
-            <h1 class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex">
-              Number of selected files: {{ String(nbrUploadedFiles) }}
+            <h1
+              v-bind="nbrUploadedFiles"
+              class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex"
+            >
+              Number of selected files: {{ nbrUploadedFiles }}
             </h1>
+            <button
+              v-on:click="clearFiles"
+              class="
+                mt-2
+                p-2
+                rounded-sm
+                text-white
+                transition-colors
+                duration-200
+                bg-primary
+                hover:text-primary hover:bg-primary-100
+                dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark
+                focus:outline-none focus:bg-primary-100
+                dark:focus:bg-primary-dark
+                focus:ring-primary-darker
+              "
+            >
+              Clear files
+            </button>
           </div>
         </div>
       </section>
@@ -307,6 +329,7 @@ export default {
       hiddenInputName: this.formatName('hidden-input'),
       uploadButtonName: this.formatName('uploadButton'),
       nbrUploadedFiles: 0,
+      addedFilesUrl: [],
       fileTempl: null,
       imageTempl: null,
       empty: null,
@@ -350,6 +373,17 @@ export default {
       }
       this.fileUploadManager.addFile(objectURL, file, label_name);
       this.nbrUploadedFiles += 1;
+      // We keep track of ulrs in order to be able to clear them
+      this.addedFilesUrl.push(objectURL);
+    },
+    clearFiles() {
+      // We remove all added files
+      for (let ou of this.addedFilesUrl) {
+        this.fileUploadManager.deleteFile(ou);
+      }
+      this.addedFilesUrl = [];
+      this.nbrUploadedFiles = 0;
+      this.counter = 0;
     },
     // use to drag dragenter and dragleave events.
     // this is to know if the outermost parent is dragged over
