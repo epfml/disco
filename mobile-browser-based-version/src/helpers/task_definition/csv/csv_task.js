@@ -26,7 +26,6 @@ export class CsvTask extends Task {
     // If user's file respects our format, parse it and start training
     if (startTraining) {
       console.log('User File Validated. Start parsing.');
-
       let originalHeaders = headers.map((element) => element['userHeader']);
       let inputColumns = this.trainingInformation.inputColumns;
       let indices = Array.from({ length: headers.length }, (x, i) => i);
@@ -55,7 +54,6 @@ export class CsvTask extends Task {
           console.log(rows);
         }
       );
-
       Xtrain = tf.tensor2d(Xcsv);
       ytrain = tf.tensor1d(ycsv);
       // object to return
