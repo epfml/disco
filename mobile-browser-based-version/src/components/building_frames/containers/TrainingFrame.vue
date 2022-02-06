@@ -113,8 +113,8 @@ import { Trainer } from '../../../helpers/training/trainer.js';
 export default {
   name: 'TrainingFrame',
   props: {
-    Id: String,
-    Task: Object,
+    id: String,
+    task: Object,
     nbrClasses: Number,
     helper: Object,
   },

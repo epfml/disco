@@ -162,22 +162,22 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
 </template>
 
 <script>
-import * as memory from '../../helpers/memory/helpers';
-import CustomButton from '../simple/CustomButton.vue';
-import Tasks from '../../assets/svg/Tasks.vue';
-import Model from '../../assets/svg/Model.vue';
-import Clock from '../../assets/svg/Clock.vue';
-import IconCard from '../containers/IconCard.vue';
-import { mapState } from 'vuex';
+import * as memory from "../../helpers/memory/helpers";
+import CustomButton from "../simple/CustomButton.vue";
+import Tasks from "../../assets/svg/Tasks.vue";
+import Model from "../../assets/svg/Model.vue";
+import Clock from "../../assets/svg/Clock.vue";
+import IconCard from "../containers/IconCard.vue";
+import { mapState } from "vuex";
 
 export default {
-  name: 'description-frame',
+  name: "description-frame",
   props: {
     OverviewText: String,
     ModelText: String,
     TradeOffsText: String,
-    Id: String,
-    Task: Object,
+    id: String,
+    task: Object,
   },
   components: {
     CustomButton,
@@ -192,8 +192,8 @@ export default {
       workingModelExists: false,
       workingModelExistsOnMount: false,
       useWorkingModel: false,
-      dateSaved: '',
-      hourSaved: '',
+      dateSaved: "",
+      hourSaved: "",
     };
   },
   watch: {
@@ -212,7 +212,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(['useIndexedDB', 'isDark']),
+    ...mapState(["useIndexedDB", "isDark"]),
     /**
      * Returns true if a new model needs to be created
      */
@@ -237,8 +237,8 @@ export default {
         setTimeout(this.$toast.clear, 30000);
       }
       this.$router.push({
-        name: this.Id + '.training',
-        params: { Id: this.Id },
+        name: this.Id + ".training",
+        params: { id: this.Id },
       });
     },
     /**
@@ -312,17 +312,17 @@ export default {
           this.workingModelExistsOnMount = true;
           this.workingModelExists = true;
           let date = workingModelMetadata.dateSaved;
-          let zeroPad = (number) => String(number).padStart(2, '0');
+          let zeroPad = (number) => String(number).padStart(2, "0");
           this.dateSaved = [
             date.getDate(),
             date.getMonth() + 1,
             date.getFullYear(),
           ]
             .map(zeroPad)
-            .join('/');
+            .join("/");
           this.hourSaved = [date.getHours(), date.getMinutes()]
             .map(zeroPad)
-            .join('h');
+            .join("h");
         }
       }
     });

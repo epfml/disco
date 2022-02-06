@@ -106,10 +106,10 @@
 </template>
 
 <script>
-import TestingFrame from '../containers/TestingFrame.vue';
-import ImagePredictionResultsFrame from './ImagePredictionResultsFrame.vue';
-import PictureBackground from '../../../assets/svg/PictureBackground.vue';
-import Bin from '../../../assets/svg/Bin.vue';
+import TestingFrame from "../containers/TestingFrame.vue";
+import ImagePredictionResultsFrame from "./ImagePredictionResultsFrame.vue";
+import PictureBackground from "../../../assets/svg/PictureBackground.vue";
+import Bin from "../../../assets/svg/Bin.vue";
 
 export default {
   components: {
@@ -119,12 +119,12 @@ export default {
     Bin,
   },
   props: {
-    Id: String,
-    Task: Object,
+    id: String,
+    task: Object,
   },
   data() {
     return {
-      dataExampleImage: '',
+      dataExampleImage: "",
       // Different Task Labels
       taskLabels: [],
       IMAGE_HEIGHT: null,
@@ -143,7 +143,7 @@ export default {
       // Only process image files (skip non image files)
       for (let i = 0; i < files.length; ++i) {
         const file = files[i];
-        if (file && file.type.match('image.*')) {
+        if (file && file.type.match("image.*")) {
           const objectURL = URL.createObjectURL(file);
           this.FILES[objectURL] = { name: file.name };
         }
@@ -167,27 +167,27 @@ export default {
       return predictions;
     },
     async predictionsToCsv(predictions) {
-      let pred = '';
+      let pred = "";
       let header_length = 0;
       for (const [id, prediction] of Object.entries(predictions)) {
         header_length = prediction.length;
         pred += `id,${prediction
-          .map((dict) => dict['className'] + ',' + dict['probability'])
-          .join(',')} \n`;
+          .map((dict) => dict["className"] + "," + dict["probability"])
+          .join(",")} \n`;
       }
-      let header = 'id,';
+      let header = "id,";
       for (let i = 1; i <= header_length; ++i) {
-        header += `top ${i},probability${i != header_length ? ',' : '\n'}`;
+        header += `top ${i},probability${i != header_length ? "," : "\n"}`;
       }
       const csvContent = header + pred;
       return csvContent;
     },
     getImage(url) {
-      if (url == '') {
+      if (url == "") {
         return null;
       }
       console.log(url);
-      var images = require.context('../../../../example_training_data/', false);
+      var images = require.context("../../../../example_training_data/", false);
       return images(url);
     },
   },
@@ -207,30 +207,30 @@ export default {
       this.IMAGE_WIDTH = this.Task.trainingInformation.IMAGE_WIDTH;
       this.taskLabels = this.Task.trainingInformation.taskLabels;
 
-      const imageTempl = document.getElementById('image-template'),
-        empty = document.getElementById('empty');
+      const imageTempl = document.getElementById("image-template"),
+        empty = document.getElementById("empty");
       function addFile(target, file) {
         const objectURL = URL.createObjectURL(file);
         const clone = imageTempl.cloneNode(true);
-        clone.querySelector('h1').textContent = file.name;
-        clone.querySelector('li').id = objectURL;
-        clone.querySelector('.delete').dataset.target = objectURL;
-        clone.querySelector('.size').textContent =
+        clone.querySelector("h1").textContent = file.name;
+        clone.querySelector("li").id = objectURL;
+        clone.querySelector(".delete").dataset.target = objectURL;
+        clone.querySelector(".size").textContent =
           file.size > 1024
             ? file.size > 1048576
-              ? Math.round(file.size / 1048576) + 'mb'
-              : Math.round(file.size / 1024) + 'kb'
-            : file.size + 'b';
-        Object.assign(clone.querySelector('img'), {
+              ? Math.round(file.size / 1048576) + "mb"
+              : Math.round(file.size / 1024) + "kb"
+            : file.size + "b";
+        Object.assign(clone.querySelector("img"), {
           src: objectURL,
           alt: file.name,
         });
-        empty.classList.add('hidden');
+        empty.classList.add("hidden");
         target.prepend(clone.firstElementChild);
       }
-      const gallery = document.getElementById('gallery');
-      const hidden = document.getElementById('hidden-input');
-      document.getElementById('button').onclick = () => hidden.click();
+      const gallery = document.getElementById("gallery");
+      const hidden = document.getElementById("hidden-input");
+      document.getElementById("button").onclick = () => hidden.click();
       hidden.onchange = (e) => {
         for (const file of e.target.files) {
           addFile(gallery, file);
@@ -248,7 +248,7 @@ export default {
        * Returns the colors depending on user's choice graphs should be rendered in
        */
       const getColor = () => {
-        return window.localStorage.getItem('color') ?? 'cyan';
+        return window.localStorage.getItem("color") ?? "cyan";
       };
       // Initilization of the color's constant
       // TO DO: add listeners to modify color when changement added

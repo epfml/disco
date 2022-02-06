@@ -115,15 +115,15 @@
 </template>
 
 <script>
-import TestingFrame from '../containers/TestingFrame.vue';
-import IconCard from '../../containers/IconCard.vue';
-import Bezier2 from '../../../assets/svg/Bezier2.vue';
+import TestingFrame from "../containers/TestingFrame.vue";
+import IconCard from "../../containers/IconCard.vue";
+import Bezier2 from "../../../assets/svg/Bezier2.vue";
 
 export default {
-  name: 'csv-testing-frame',
+  name: "csv-testing-frame",
   props: {
-    Id: String,
-    Task: Object,
+    id: String,
+    task: Object,
   },
   components: {
     IconCard,
@@ -140,8 +140,8 @@ export default {
 
   methods: {
     async predictionsToCsv(predictions) {
-      let pred = predictions.join('\n');
-      const csvContent = this.classColumn + '\n' + pred;
+      let pred = predictions.join("\n");
+      const csvContent = this.classColumn + "\n" + pred;
       return csvContent;
     },
     async makePredictions(filesElement) {
