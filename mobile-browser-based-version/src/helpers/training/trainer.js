@@ -24,6 +24,7 @@ export class Trainer extends Actor {
     this.platform = platform;
     // Delivers training feedback to the user
     this.trainingInformant = new TrainingInformant(10, this.task.taskID);
+    console.log(this.trainingInformant);
   }
 
   /**
