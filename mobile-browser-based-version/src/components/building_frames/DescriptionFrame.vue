@@ -1,13 +1,13 @@
 import { serializeWeights } from '../helpers/tfjs_helpers.js';
 <template>
   <a id="overview-target">
-    <icon-card header="The task" :description="OverviewText">
+    <icon-card header="The task" :description="overviewText">
       <template v-slot:icon><tasks /></template>
     </icon-card>
   </a>
 
   <a id="limitations-target">
-    <icon-card header="The model" :description="ModelText">
+    <icon-card header="The model" :description="modelText">
       <template v-slot:icon><model /></template>
     </icon-card>
   </a>
@@ -173,9 +173,9 @@ import { mapState } from 'vuex';
 export default {
   name: 'description-frame',
   props: {
-    OverviewText: String,
-    ModelText: String,
-    TradeOffsText: String,
+    overviewText: String,
+    modelText: String,
+    tradeOffsText: String,
     id: String,
     task: Object,
   },
