@@ -17,12 +17,12 @@
 </template>
 
 <script>
-import Upload from "../../../assets/svg/Upload.vue";
-import IconCard from "../../containers/IconCard.vue";
-import SingleUploadFrame from "./SingleUploadFrame.vue";
+import Upload from '../../../assets/svg/Upload.vue';
+import IconCard from '../../containers/IconCard.vue';
+import SingleUploadFrame from './SingleUploadFrame.vue';
 
 export default {
-  name: "uploading-frame",
+  name: 'uploading-frame',
   props: {
     id: String,
     task: Object,
@@ -49,23 +49,23 @@ export default {
     },
     header() {
       return !this.displayLabels
-        ? "Upload My Data"
+        ? 'Upload My Data'
         : this.csvLabels
-        ? "Link My Data"
-        : "Connect Data";
+        ? 'Link My Data'
+        : 'Connect Data';
     },
     formatLabels() {
       return !this.displayLabels
-        ? [""]
+        ? ['']
         : this.csvLabels
-        ? ["Images", "Labels"]
+        ? ['Images', 'Labels']
         : this.nbrLabels == 1
         ? [1]
         : this.labels;
     },
   },
   mounted() {
-    this.dataTypeIsCsv = this.task.trainingInformation.dataType == "csv";
+    this.dataTypeIsCsv = this.task.trainingInformation.dataType == 'csv';
     if (this.task.trainingInformation.LABEL_LIST) {
       this.labels = this.task.trainingInformation.LABEL_LIST;
       this.nbrLabels = this.task.trainingInformation.LABEL_LIST.length;

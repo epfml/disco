@@ -35,6 +35,7 @@ export class Tester extends Actor {
       }
       // prediction
       const predictions = await this.taskHelper.makePredictions(filesElement);
+      this.logger.success(`Predictions are computed available`);
       // reset fileloader
       this.fileUploadManager.clear();
       if (predictions) {

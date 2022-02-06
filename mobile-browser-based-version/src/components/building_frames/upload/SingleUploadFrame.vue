@@ -297,13 +297,13 @@
 </template>
 
 <script>
-import Bin from "../../../assets/svg/Bin.vue";
-import File from "../../../assets/svg/File.vue";
+import Bin from '../../../assets/svg/Bin.vue';
+import File from '../../../assets/svg/File.vue';
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
-  types.indexOf("Files") > -1;
+  types.indexOf('Files') > -1;
 
 export default {
-  name: "SingleUploadFrame",
+  name: 'SingleUploadFrame',
   props: {
     id: String,
     task: Object,
@@ -322,12 +322,12 @@ export default {
   },
   data() {
     return {
-      galleryName: this.formatName("gallery"),
-      fileTemplName: this.formatName("file-template"),
-      imageTemplName: this.formatName("image-template"),
-      emptyName: this.formatName("empty"),
-      hiddenInputName: this.formatName("hidden-input"),
-      uploadButtonName: this.formatName("uploadButton"),
+      galleryName: this.formatName('gallery'),
+      fileTemplName: this.formatName('file-template'),
+      imageTemplName: this.formatName('image-template'),
+      emptyName: this.formatName('empty'),
+      hiddenInputName: this.formatName('hidden-input'),
+      uploadButtonName: this.formatName('uploadButton'),
       nbrUploadedFiles: 0,
       addedFilesUrl: [],
       fileTempl: null,
@@ -344,32 +344,32 @@ export default {
       return `${prefix}_${this.id}_${this.label}`;
     },
     addFile(target, file) {
-      const isImage = file.type.match("image.*"),
+      const isImage = file.type.match('image.*'),
         objectURL = URL.createObjectURL(file);
       if (this.preview) {
         const clone = isImage
           ? this.imageTempl.cloneNode(true)
           : this.fileTempl.cloneNode(true);
-        clone.querySelector("h1").textContent = file.name;
-        clone.querySelector("li").id = objectURL;
-        clone.querySelector(".delete").dataset.target = objectURL;
-        clone.querySelector(".size").textContent =
+        clone.querySelector('h1').textContent = file.name;
+        clone.querySelector('li').id = objectURL;
+        clone.querySelector('.delete').dataset.target = objectURL;
+        clone.querySelector('.size').textContent =
           file.size > 1024
             ? file.size > 1048576
-              ? Math.round(file.size / 1048576) + "mb"
-              : Math.round(file.size / 1024) + "kb"
-            : file.size + "b";
+              ? Math.round(file.size / 1048576) + 'mb'
+              : Math.round(file.size / 1024) + 'kb'
+            : file.size + 'b';
         isImage &&
-          Object.assign(clone.querySelector("img"), {
+          Object.assign(clone.querySelector('img'), {
             src: objectURL,
             alt: file.name,
           });
-        this.empty.classList.add("hidden");
+        this.empty.classList.add('hidden');
         target.prepend(clone.firstElementChild);
       }
       let label_name = this.label;
-      if (this.label == "Images") {
-        label_name = file.name.replace(/\.[^/.]+$/, "");
+      if (this.label == 'Images') {
+        label_name = file.name.replace(/\.[^/.]+$/, '');
       }
       this.fileUploadManager.addFile(objectURL, file, label_name);
       this.nbrUploadedFiles += 1;
@@ -434,11 +434,11 @@ export default {
       // event delegation to caputre delete events
       // fron the waste buckets in the file preview cards
       this.gallery.onclick = ({ target }) => {
-        if (target.classList.contains("delete")) {
+        if (target.classList.contains('delete')) {
           const ou = target.dataset.target;
           document.getElementById(ou).remove(ou);
           this.gallery.children.length === 1 &&
-            this.empty.classList.remove("hidden");
+            this.empty.classList.remove('hidden');
           this.fileUploadManager.deleteFile(ou);
           this.nbrUploadedFiles -= 1;
         }

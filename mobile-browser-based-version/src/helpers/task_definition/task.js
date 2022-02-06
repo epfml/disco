@@ -46,10 +46,13 @@ export class TaskHelper {
     this.task = task;
     this.context = this.createContext();
   }
+  /**
+   * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
+   */
   dataPreprocessing(filesElement) {
     throw new Error("Method 'dataPreprocessing()' must be implemented.");
   }
-
+  
   async predictionsToCsv(predictions) {
     throw new Error("Method 'predictionsToCsv()' must be implemented.");
   }
