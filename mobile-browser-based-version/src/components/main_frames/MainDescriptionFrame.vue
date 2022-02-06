@@ -48,11 +48,11 @@ export default {
     DescriptionFrame,
   },
   mounted() {
-    this.OverviewText = this.Task.displayInformation.overview;
-    this.ModelText = this.Task.displayInformation.model;
-    this.TradeOffsText = this.Task.displayInformation.tradeoffs;
-    this.taskID = this.Task.taskID;
-    this.modelID = this.Task.trainingInformation.modelID;
+    this.OverviewText = this.task.displayInformation.overview;
+    this.ModelText = this.task.displayInformation.model;
+    this.TradeOffsText = this.task.displayInformation.tradeoffs;
+    this.taskID = this.task.taskID;
+    this.modelID = this.task.trainingInformation.modelID;
   },
 };
 </script>
