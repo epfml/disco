@@ -118,15 +118,15 @@
 </template>
 
 <script>
-import TrainingFrame from '../containers/TrainingFrame.vue';
-import IconCard from '../../containers/IconCard.vue';
-import Bezier2 from '../../../assets/svg/Bezier2.vue';
+import TrainingFrame from "../containers/TrainingFrame.vue";
+import IconCard from "../../containers/IconCard.vue";
+import Bezier2 from "../../../assets/svg/Bezier2.vue";
 
 export default {
-  name: 'csv-training-frame',
+  name: "csv-training-frame",
   props: {
-    Id: String,
-    Task: Object,
+    id: String,
+    task: Object,
   },
   data() {
     return {

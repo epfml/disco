@@ -27,21 +27,21 @@
   </div>
 </template>
 <script>
-import DescriptionFrame from '../building_frames/DescriptionFrame.vue';
+import DescriptionFrame from "../building_frames/DescriptionFrame.vue";
 
 export default {
-  name: 'main-description-frame',
+  name: "main-description-frame",
   props: {
-    Id: String,
-    Task: Object,
+    id: String,
+    task: Object,
   },
   data() {
     return {
-      OverviewText: '',
-      ModelText: '',
-      TradeOffsText: '',
-      taskID: '',
-      modelID: '',
+      OverviewText: "",
+      ModelText: "",
+      TradeOffsText: "",
+      taskID: "",
+      modelID: "",
     };
   },
   components: {

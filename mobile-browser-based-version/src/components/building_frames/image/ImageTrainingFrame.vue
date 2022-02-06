@@ -21,14 +21,14 @@
 </template>
 
 <script>
-import { checkData } from '../../../helpers/data_validation/helpers_image_tasks.js';
-import TrainingFrame from '../containers/TrainingFrame.vue';
+import { checkData } from "../../../helpers/data_validation/helpers_image_tasks.js";
+import TrainingFrame from "../containers/TrainingFrame.vue";
 
 export default {
-  name: 'image-training-frame',
+  name: "image-training-frame",
   props: {
-    Id: String,
-    Task: Object,
+    id: String,
+    task: Object,
   },
   components: {
     TrainingFrame,
@@ -36,7 +36,7 @@ export default {
   data() {
     return {
       // variables for general informations
-      dataExampleImage: '',
+      dataExampleImage: "",
       dataExample: null,
       // different task labels
       taskLabels: [],
@@ -44,10 +44,10 @@ export default {
   },
   methods: {
     getImage(url) {
-      if (url == '') {
+      if (url == "") {
         return null;
       }
-      var images = require.context('../../../../example_training_data/', false);
+      var images = require.context("../../../../example_training_data/", false);
       return images(url);
     },
     /**
