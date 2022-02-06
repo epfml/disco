@@ -3,7 +3,7 @@
     :id="id"
     :task="task"
     :dataPreprocessing="dataPreprocessing"
-    :nbrClasses="Task.trainingInformation.LABEL_LIST.length"
+    :nbrClasses="task.trainingInformation.LABEL_LIST.length"
     :precheckData="precheckData"
   >
     <template v-slot:dataExample>

@@ -2,7 +2,7 @@
   <testing-frame
     :id="id"
     :task="task"
-    :nbrClasses="Task.trainingInformation.LABEL_LIST.length"
+    :nbrClasses="task.trainingInformation.LABEL_LIST.length"
     :helper="helper"
   >
     <template v-slot:dataExample>
