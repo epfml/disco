@@ -80,7 +80,6 @@ export class Trainer extends Actor {
    * @param {boolean} distributed - use distributed training (true) or local training (false)
    */
   async joinTraining(distributed) {
-    console.log(this.trainingInformant);
     if (distributed && !this.isConnected) {
       await this.connectClientToServer();
       if (!this.isConnected) {

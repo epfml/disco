@@ -115,7 +115,6 @@ export default {
   props: {
     id: String,
     task: Object,
-    nbrClasses: Number,
     helper: Object,
   },
   components: {
