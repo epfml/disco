@@ -24,7 +24,7 @@ export class Trainer extends Actor {
     this.platform = platform;
     // Delivers training feedback to the user
     this.trainingInformant = new TrainingInformant(10, this.task.taskID);
-    console.log(this.trainingInformant);
+    console.log('***** Constructor *****');
   }
 
   /**
@@ -32,12 +32,14 @@ export class Trainer extends Actor {
    * @param {boolean} useIndexedDB - use indexededDB parameter from Vuex store
    */
   created(useIndexedDB) {
+    console.log('***** Created *****');
     // Take care of communication processes
     this.client = getClient(
       this.platform,
       this.task,
       null //TODO: this.$store.getters.password(this.id)
     );
+    console.log(this.trainingInformant);
     // Assist with the training loop
     this.trainingManager = new TrainingManager(
       this.task,
@@ -45,6 +47,7 @@ export class Trainer extends Actor {
       this.trainingInformant,
       useIndexedDB
     );
+    console.log(this.trainingInformant);
   }
 
   /**
@@ -77,6 +80,7 @@ export class Trainer extends Actor {
    * @param {boolean} distributed - use distributed training (true) or local training (false)
    */
   async joinTraining(distributed) {
+    console.log(this.trainingInformant);
     if (distributed && !this.isConnected) {
       await this.connectClientToServer();
       if (!this.isConnected) {
