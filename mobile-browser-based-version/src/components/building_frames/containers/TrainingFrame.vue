@@ -140,7 +140,7 @@ export default {
   data() {
     return {
       trainer: new Trainer(
-        this.Task,
+        this.task,
         this.$store.getters.platform,
         this.$toast,
         this.helper
@@ -156,11 +156,11 @@ export default {
     async saveModel() {
       if (this.useIndexedDB) {
         await memory.saveWorkingModel(
-          this.Task.taskID,
-          this.Task.trainingInformation.modelID
+          this.task.taskID,
+          this.task.trainingInformation.modelID
         );
         this.$toast.success(
-          `The current ${this.Task.displayInformation.taskTitle} model has been saved.`
+          `The current ${this.task.displayInformation.taskTitle} model has been saved.`
         );
       } else {
         this.$toast.error(

@@ -1,7 +1,7 @@
-import { Actor } from '../actor.js';
-import { TrainingInformant } from './decentralised/training_informant.js';
-import { TrainingManager } from './training_manager.js';
-import { getClient } from '../communication/helpers.js';
+import { Actor } from "../actor.js";
+import { TrainingInformant } from "./decentralised/training_informant.js";
+import { TrainingManager } from "./training_manager.js";
+import { getClient } from "../communication/helpers.js";
 
 // number of files that should be loaded (required by the task)
 function nbrFiles(task) {
@@ -35,7 +35,7 @@ export class Trainer extends Actor {
     this.client = getClient(
       this.platform,
       this.task,
-      null //TODO: this.$store.getters.password(this.Id)
+      null //TODO: this.$store.getters.password(this.id)
     );
     // Assist with the training loop
     this.trainingManager = new TrainingManager(
@@ -54,12 +54,12 @@ export class Trainer extends Actor {
     this.isConnected = await this.client.connect();
     if (this.isConnected) {
       this.logger.success(
-        'Succesfully connected to server. Distributed training available.'
+        "Succesfully connected to server. Distributed training available."
       );
     } else {
-      console.log('Error in connecting');
+      console.log("Error in connecting");
       this.logger.error(
-        'Failed to connect to server. Fallback to training alone.'
+        "Failed to connect to server. Fallback to training alone."
       );
     }
   }
@@ -80,7 +80,7 @@ export class Trainer extends Actor {
       await this.connectClientToServer();
       if (!this.isConnected) {
         distributed = false;
-        this.logger.error('Distributed training is not available.');
+        this.logger.error("Distributed training is not available.");
       }
     }
     this.distributedTraining = distributed;
@@ -132,7 +132,7 @@ export class Trainer extends Actor {
       await this.client.disconnect();
       this.isConnected = false;
     }
-    this.logger.success('Training was successfully interrupted.');
+    this.logger.success("Training was successfully interrupted.");
     this.isTraining = false;
   }
 }

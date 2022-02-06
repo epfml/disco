@@ -65,14 +65,14 @@ export default {
     },
   },
   mounted() {
-    this.dataTypeIsCsv = this.Task.trainingInformation.dataType == "csv";
-    if (this.Task.trainingInformation.LABEL_LIST) {
-      this.labels = this.Task.trainingInformation.LABEL_LIST;
-      this.nbrLabels = this.Task.trainingInformation.LABEL_LIST.length;
+    this.dataTypeIsCsv = this.task.trainingInformation.dataType == "csv";
+    if (this.task.trainingInformation.LABEL_LIST) {
+      this.labels = this.task.trainingInformation.LABEL_LIST;
+      this.nbrLabels = this.task.trainingInformation.LABEL_LIST.length;
     } else {
       this.nbrLabels = 1;
     }
-    if (this.Task.trainingInformation.LABEL_ASSIGNMENT) {
+    if (this.task.trainingInformation.LABEL_ASSIGNMENT) {
       this.csvLabels = true;
     }
   },

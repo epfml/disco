@@ -55,7 +55,7 @@ export default {
      */
     async dataPreprocessing(filesElement) {
       return new Promise((resolve, reject) => {
-        let processedData = this.Task.dataPreprocessing(filesElement);
+        let processedData = this.task.dataPreprocessing(filesElement);
         resolve(processedData);
       });
     },
@@ -67,9 +67,9 @@ export default {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
-      this.dataExample = this.Task.displayInformation.dataExample;
-      this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
-      this.dataExampleImage = this.Task.displayInformation.dataExampleImage;
+      this.dataExample = this.task.displayInformation.dataExample;
+      this.taskLabels = this.task.trainingInformation.LABEL_LIST;
+      this.dataExampleImage = this.task.displayInformation.dataExampleImage;
     });
   },
 };

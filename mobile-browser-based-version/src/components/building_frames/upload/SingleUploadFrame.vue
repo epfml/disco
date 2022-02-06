@@ -341,7 +341,7 @@ export default {
   },
   methods: {
     formatName(prefix) {
-      return `${prefix}_${this.Id}_${this.label}`;
+      return `${prefix}_${this.id}_${this.label}`;
     },
     addFile(target, file) {
       const isImage = file.type.match("image.*"),
@@ -444,8 +444,8 @@ export default {
         }
       };
     }
-    if (this.Task.trainingInformation.LABEL_LIST) {
-      this.nbrClasses = this.Task.trainingInformation.LABEL_LIST.length;
+    if (this.task.trainingInformation.LABEL_LIST) {
+      this.nbrClasses = this.task.trainingInformation.LABEL_LIST.length;
     }
     if (!this.displayLabels) {
       this.nbrClasses = 0;

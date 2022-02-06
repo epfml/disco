@@ -29,18 +29,17 @@
 </template>
 
 <script>
-import UploadingFrame from "../upload/UploadingFrame.vue";
-import CustomButton from "../../simple/CustomButton.vue";
-import ActionFrame from "./ActionFrame.vue";
+import UploadingFrame from '../upload/UploadingFrame.vue';
+import CustomButton from '../../simple/CustomButton.vue';
+import ActionFrame from './ActionFrame.vue';
 
-import { Tester } from "../../../helpers/testing/tester.js";
+import { Tester } from '../../../helpers/testing/tester.js';
 
 export default {
-  name: "TestingFrame",
+  name: 'TestingFrame',
   props: {
     id: String,
     task: Object,
-    nbrClasses: Number,
     helper: Object,
   },
   components: {
@@ -56,10 +55,10 @@ export default {
   },
 
   methods: {
-    async downloadPredictions(csvContent, fileName = "predictions.csv") {
+    async downloadPredictions(csvContent, fileName = 'predictions.csv') {
       // artificially creates a <a> tag to simulate click event and triger download
-      var downloadLink = document.createElement("a");
-      var blob = new Blob(["\ufeff", csvContent]);
+      var downloadLink = document.createElement('a');
+      var blob = new Blob(['\ufeff', csvContent]);
       var url = URL.createObjectURL(blob);
       downloadLink.href = url;
       downloadLink.download = fileName;

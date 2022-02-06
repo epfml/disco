@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      v-if="'password_hash' in this.Task.displayInformation && !authenticated"
+      v-if="'password_hash' in this.task.displayInformation && !authenticated"
       class="flex h-screen"
     >
       <div class="m-auto">
@@ -376,7 +376,7 @@
           <main class="flex-1 overflow-y-scroll">
             <router-view
               v-on:opened-testing="
-                this.TaskTitle = this.Task.displayInformation.taskTitle;
+                this.taskTitle = this.task.displayInformation.taskTitle;
                 openSidebarMenu('test_model');
               "
               v-slot="{ Component }"
@@ -447,14 +447,14 @@ export default {
   methods: {
     goToTraining() {
       this.$router.push({
-        name: this.Task.taskID + ".training",
-        params: { id: this.Task.taskID },
+        name: this.task.taskID + ".training",
+        params: { id: this.task.taskID },
       });
     },
     goToTesting() {
       this.$router.push({
-        name: this.Task.taskID + ".testing",
-        params: { id: this.Task.taskID },
+        name: this.task.taskID + ".testing",
+        params: { id: this.task.taskID },
       });
     },
     goToModelDescription() {
@@ -471,11 +471,11 @@ export default {
       var SHA256 = new Hashes.SHA256();
       if (
         SHA256.hex(this.inputPassword) ===
-        this.Task.displayInformation.password_hash
+        this.task.displayInformation.password_hash
       ) {
         this.authenticated = true;
         this.$store.commit("addPassword", {
-          id: this.Id,
+          id: this.id,
           password: this.inputPassword,
         });
       } else {
@@ -490,14 +490,14 @@ export default {
     },
   },
   async mounted() {
-    this.TaskTitle = this.Task.displayInformation.taskTitle;
+    this.taskTitle = this.task.displayInformation.taskTitle;
     window.addEventListener("resize", this.handleResize);
   },
 
   activated() {
-    this.TaskTitle = this.Task.displayInformation.taskTitle;
+    this.taskTitle = this.task.displayInformation.taskTitle;
     let prevState = this.$store.getters.globalTaskFrameState(
-      this.Task.trainingInformation.modelID
+      this.task.trainingInformation.modelID
     );
 
     if (prevState) {
@@ -526,7 +526,7 @@ export default {
   },
   async deactivated() {
     let currentState = {
-      modelID: this.Task.trainingInformation.modelID,
+      modelID: this.task.trainingInformation.modelID,
       isActiveModelDesc: this.isActiveModelDesc,
       openModelDesc: this.openModelDesc,
       isActiveUploadData: this.isActiveUploadData,

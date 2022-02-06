@@ -3,9 +3,7 @@
     :id="id"
     :task="task"
     :nbrClasses="Task.trainingInformation.LABEL_LIST.length"
-    :filterData="filterData"
-    :makePredictions="makePredictions"
-    :predictionsToCsv="predictionsToCsv"
+    :helper="helper"
   >
     <template v-slot:dataExample>
       <!-- Data Point Example -->
@@ -110,6 +108,7 @@ import TestingFrame from "../containers/TestingFrame.vue";
 import ImagePredictionResultsFrame from "./ImagePredictionResultsFrame.vue";
 import PictureBackground from "../../../assets/svg/PictureBackground.vue";
 import Bin from "../../../assets/svg/Bin.vue";
+import { ImageTaskHelper } from "@/helpers/task_definition/image/helper";
 
 export default {
   components: {
@@ -134,6 +133,8 @@ export default {
       classes: null,
       imgTested: null,
       expectedFiles: 0,
+      // helper
+      helper: new ImageTaskHelper(this.task),
     };
   },
   methods: {
@@ -152,7 +153,7 @@ export default {
     },
 
     async makePredictions(filesElement) {
-      const classes = await this.Task.predict(filesElement);
+      const classes = await this.task.predict(filesElement);
       const ids = Object.keys(classes);
       var predictions;
       if (ids.length == 1) {
@@ -202,10 +203,10 @@ export default {
        * #######################################
        */
       // Initialize variables used by the components
-      this.dataExampleImage = this.Task.displayInformation.dataExampleImage;
-      this.IMAGE_HEIGHT = this.Task.trainingInformation.IMAGE_HEIGHT;
-      this.IMAGE_WIDTH = this.Task.trainingInformation.IMAGE_WIDTH;
-      this.taskLabels = this.Task.trainingInformation.taskLabels;
+      this.dataExampleImage = this.task.displayInformation.dataExampleImage;
+      this.IMAGE_HEIGHT = this.task.trainingInformation.IMAGE_HEIGHT;
+      this.IMAGE_WIDTH = this.task.trainingInformation.IMAGE_WIDTH;
+      this.taskLabels = this.task.trainingInformation.taskLabels;
 
       const imageTempl = document.getElementById("image-template"),
         empty = document.getElementById("empty");
