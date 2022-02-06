@@ -4,13 +4,13 @@
   <!-- image tasks -->
   <image-testing-frame
     v-if="Task.trainingInformation.dataType == 'image'"
-    v-bind:Id="Id"
-    v-bind:Task="Task"
+    v-bind:id="id"
+    v-bind:task="task"
   />
   <csv-testing-frame
     v-else-if="Task.trainingInformation.dataType == 'csv'"
-    v-bind:Id="Id"
-    v-bind:Task="Task"
+    v-bind:id="id"
+    v-bind:task="task"
   />
 </template>
 

@@ -1,12 +1,12 @@
 <template>
-  <action-frame :Task="Task">
+  <action-frame :task="task">
     <template v-slot:dataExample><slot name="dataExample"></slot></template>
     <template v-slot:action>
       <!-- Upload File -->
       <div class="relative">
         <uploading-frame
-          v-bind:Id="Id"
-          v-bind:Task="Task"
+          v-bind:id="id"
+          v-bind:task="task"
           v-bind:fileUploadManager="tester.fileUploadManager"
           v-if="fileUploadManager"
           :displayLabels="false"
