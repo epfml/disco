@@ -1,7 +1,7 @@
 <template>
   <testing-frame
-    :Id="Id"
-    :Task="Task"
+    :id="id"
+    :task="task"
     :nbrClasses="1"
     :makePredictions="makePredictions"
   >

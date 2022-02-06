@@ -19,7 +19,7 @@
           v-bind:ModelText="ModelText"
           v-bind:TradeOffsText="TradeOffsText"
           v-bind:Id="taskID"
-          v-bind:Task="Task"
+          v-bind:task="task"
           v-if="TradeOffsText"
         />
       </keep-alive>

@@ -1,7 +1,7 @@
 <template>
   <training-frame
-    :Id="Id"
-    :Task="Task"
+    :id="id"
+    :task="task"
     :dataPreprocessing="dataPreprocessing"
     :nbrClasses="Task.trainingInformation.LABEL_LIST.length"
     :precheckData="precheckData"

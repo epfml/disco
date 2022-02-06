@@ -4,8 +4,8 @@
     <template v-slot:extra>
       <div v-for="item in formatLabels()" :key="item">
         <single-upload-frame
-          :Id="Id"
-          :Task="Task"
+          :id="id"
+          :task="task"
           :fileUploadManager="fileUploadManager"
           :preview="preview()"
           :label="String(item)"
