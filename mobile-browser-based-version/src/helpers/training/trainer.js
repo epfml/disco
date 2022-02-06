@@ -114,7 +114,9 @@ export class Trainer extends Actor {
         this.logger.success(
           `Data preprocessing has finished and training has started`
         );
+        console.log(processedDataset);
         this.trainingManager.trainModel(processedDataset, distributed);
+        this.isTraining = true;
       } else {
         // print error message
         this.logger.error(

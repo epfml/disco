@@ -26,7 +26,6 @@
               bg-white
               dark:bg-dark
               rounded
-              text-sm
               shadow
               outline-none
               focus:outline-none focus:shadow-outline
