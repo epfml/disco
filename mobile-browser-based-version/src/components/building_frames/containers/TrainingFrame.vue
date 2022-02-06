@@ -129,7 +129,7 @@ export default {
   computed: {
     ...mapState(['useIndexedDB']),
     trainingText() {
-      return this.distributedTraining ? 'Distributed' : 'Local';
+      return this.trainer.distributedTraining ? 'Distributed' : 'Local';
     },
   },
   watch: {
