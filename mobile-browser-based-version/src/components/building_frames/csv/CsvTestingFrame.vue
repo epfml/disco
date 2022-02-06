@@ -110,13 +110,13 @@
 </template>
 
 <script>
-import TestingFrame from "../containers/TestingFrame.vue";
-import IconCard from "../../containers/IconCard.vue";
-import Bezier2 from "../../../assets/svg/Bezier2.vue";
-import { CsvTaskHelper } from "@/helpers/task_definition/csv/helper";
+import TestingFrame from '../containers/TestingFrame.vue';
+import IconCard from '../../containers/IconCard.vue';
+import Bezier2 from '../../../assets/svg/Bezier2.vue';
+import { CsvTaskHelper } from '@/helpers/task_definition/csv/helper';
 
 export default {
-  name: "csv-testing-frame",
+  name: 'csv-testing-frame',
   props: {
     id: String,
     task: Object,
@@ -130,7 +130,7 @@ export default {
     return {
       // Headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
-      predictions: null,
+      dataExample: null,
       helper: new CsvTaskHelper(this.task),
     };
   },
@@ -138,14 +138,13 @@ export default {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
-      this.classColumn = this.task.trainingInformation.outputColumn;
-      this.task.displayInformation.headers.forEach((item) => {
-        if (item !== this.classColumn) {
-          this.headers.push({ id: item, userHeader: item });
-        }
-      });
+      this.headers = this.helper.context.headers.filter(
+        (elem) => elem.id != this.helper.context.classColumn
+      );
+      // mutate helper object because it is passed to the <testing-frame/> component
+      this.helper.context.headers = this.headers;
       this.dataExample = this.task.displayInformation.dataExample.filter(
-        (item) => item.columnName !== this.classColumn
+        (item) => item.columnName !== this.helper.context.classColumn
       );
     });
   },

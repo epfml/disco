@@ -1,10 +1,19 @@
 import { TaskHelper } from '../task.js';
-import { checkData } from '../../data_validation/helpers_image_tasks.js';
+import {
+  checkData,
+  getExampleImage,
+} from '../../data_validation/helpers_image_tasks.js';
 
 export class ImageTaskHelper extends TaskHelper {
   createContext() {
     this.preCheckData = checkData;
-    return {};
+    this.getExampleImage = getExampleImage;
+    return {
+      testing: {
+        classes: [],
+        gotResults: false,
+      },
+    };
   }
   dataPreprocessing(filesElement) {
     return new Promise((resolve, reject) => {
@@ -28,5 +37,19 @@ export class ImageTaskHelper extends TaskHelper {
     }
     const csvContent = header + pred;
     return csvContent;
+  }
+
+  async makePredictions(filesElement) {
+    this.context.testing.classes = await this.task.predict(filesElement);
+    const ids = Object.keys(this.context.testing.classes);
+    var predictions;
+    if (ids.length == 1) {
+      // display results in the component
+      this.context.testing.classes = this.context.testing.classes[ids[0]];
+      this.context.testing.gotResults = true;
+    } else {
+      predictions = this.context.testing.classes;
+    }
+    return predictions;
   }
 }

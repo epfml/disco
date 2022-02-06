@@ -7,6 +7,14 @@ async function getImage(path) {
   });
 }
 
+export function getExampleImage(url) {
+  if (url == '') {
+    return null;
+  }
+  var images = require.context('../../../example_training_data/', false);
+  return images(url);
+}
+
 /**
  * Checks images for validity critera: if height and width of each image are at least as large as required.
  * Computes validity status that is true if all images are valid and there are at least two valid images.

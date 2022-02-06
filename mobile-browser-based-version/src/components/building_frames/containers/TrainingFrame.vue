@@ -16,7 +16,7 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <div v-if="!isTraining">
+        <div v-if="!trainer.isTraining">
           <custom-button
             v-on:click="trainer.joinTraining(false)"
             :center="true"
@@ -24,7 +24,7 @@
             Train Locally
           </custom-button>
           <custom-button v-on:click="trainer.joinTraining(true)" :center="true">
-            Train {{ this.$t("platform") }}
+            Train {{ this.$t('platform') }}
           </custom-button>
         </div>
         <div v-else>
@@ -99,19 +99,19 @@
 </template>
 
 <script>
-import UploadingFrame from "../upload/UploadingFrame.vue";
-import TrainingInformationFrame from "../TrainingInformationFrame.vue";
-import ActionFrame from "./ActionFrame.vue";
-import IconCard from "../../containers/IconCard.vue";
-import CustomButton from "../../simple/CustomButton.vue";
-import Download from "../../../assets/svg/Download.vue";
+import UploadingFrame from '../upload/UploadingFrame.vue';
+import TrainingInformationFrame from '../TrainingInformationFrame.vue';
+import ActionFrame from './ActionFrame.vue';
+import IconCard from '../../containers/IconCard.vue';
+import CustomButton from '../../simple/CustomButton.vue';
+import Download from '../../../assets/svg/Download.vue';
 
-import { mapState } from "vuex";
-import * as memory from "../../../helpers/memory/helpers.js";
-import { Trainer } from "../../../helpers/training/trainer.js";
+import { mapState } from 'vuex';
+import * as memory from '../../../helpers/memory/helpers.js';
+import { Trainer } from '../../../helpers/training/trainer.js';
 
 export default {
-  name: "TrainingFrame",
+  name: 'TrainingFrame',
   props: {
     id: String,
     task: Object,
@@ -127,9 +127,9 @@ export default {
     Download,
   },
   computed: {
-    ...mapState(["useIndexedDB"]),
+    ...mapState(['useIndexedDB']),
     trainingText() {
-      return this.distributedTraining ? "Distributed" : "Local";
+      return this.distributedTraining ? 'Distributed' : 'Local';
     },
   },
   watch: {
@@ -150,7 +150,7 @@ export default {
   methods: {
     goToTesting() {
       this.$router.push({
-        path: "testing",
+        path: 'testing',
       });
     },
     async saveModel() {
@@ -164,7 +164,7 @@ export default {
         );
       } else {
         this.$toast.error(
-          "The model library is currently turned off. See settings for more information"
+          'The model library is currently turned off. See settings for more information'
         );
       }
       setTimeout(this.$toast.clear, 30000);
@@ -173,7 +173,7 @@ export default {
   created() {
     this.trainer.created(this.useIndexedDB);
     // Disconnect from the centralized server on page close
-    window.addEventListener("beforeunload", () => {
+    window.addEventListener('beforeunload', () => {
       this.trainer.client.disconnect();
     });
   },

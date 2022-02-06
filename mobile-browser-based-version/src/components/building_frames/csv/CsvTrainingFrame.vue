@@ -1,5 +1,5 @@
 <template>
-  <training-frame :id="id" :task="task" :nbrClasses="1" :helper="helper">
+  <training-frame :id="id" :task="task" :helper="helper">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="relative p-4 overflow-x-hidden">
@@ -7,7 +7,7 @@
           <thead>
             <tr>
               <th
-                v-for="example in dataExample"
+                v-for="example in task.displayInformation.dataExample"
                 :key="example"
                 class="px-4 py-2 text-emerald-600"
               >
@@ -18,7 +18,7 @@
           <tbody>
             <tr>
               <td
-                v-for="example in dataExample"
+                v-for="example in task.displayInformation.dataExample"
                 :key="example"
                 class="
                   border border-emerald-500
@@ -51,7 +51,7 @@
             >
               <li
                 class="border-gray-400"
-                v-for="header in headers"
+                v-for="header in helper.context.headers"
                 :key="header.id"
               >
                 <div
@@ -113,13 +113,13 @@
 </template>
 
 <script>
-import TrainingFrame from "../containers/TrainingFrame.vue";
-import IconCard from "../../containers/IconCard.vue";
-import Bezier2 from "../../../assets/svg/Bezier2.vue";
-import { CsvTaskHelper } from "@/helpers/task_definition/csv/helper";
+import TrainingFrame from '../containers/TrainingFrame.vue';
+import IconCard from '../../containers/IconCard.vue';
+import Bezier2 from '../../../assets/svg/Bezier2.vue';
+import { CsvTaskHelper } from '@/helpers/task_definition/csv/helper';
 
 export default {
-  name: "csv-training-frame",
+  name: 'csv-training-frame',
   props: {
     id: String,
     task: Object,
@@ -127,8 +127,6 @@ export default {
   data() {
     return {
       // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      headers: [],
-      dataExample: null,
       helper: new CsvTaskHelper(this.task),
     };
   },
@@ -136,16 +134,6 @@ export default {
     TrainingFrame,
     IconCard,
     Bezier2,
-  },
-
-  async mounted() {
-    // This method is called when the component is created
-    this.$nextTick(async function () {
-      this.dataExample = this.task.displayInformation.dataExample;
-      this.task.displayInformation.headers.forEach((item) => {
-        this.headers.push({ id: item, userHeader: item });
-      });
-    });
   },
 };
 </script>
