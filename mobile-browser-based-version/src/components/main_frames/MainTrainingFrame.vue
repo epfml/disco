@@ -4,13 +4,13 @@
   <div v-bind:key="this.$store.state.platform">
     <!-- CSV tasks -->
     <csv-training-frame
-      v-if="Task.trainingInformation.dataType == 'csv'"
+      v-if="task.trainingInformation.dataType == 'csv'"
       v-bind:id="id"
       v-bind:task="task"
     />
     <!-- image tasks -->
     <image-training-frame
-      v-else-if="Task.trainingInformation.dataType == 'image'"
+      v-else-if="task.trainingInformation.dataType == 'image'"
       v-bind:id="id"
       v-bind:task="task"
     />
