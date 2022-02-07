@@ -142,7 +142,8 @@ export default {
         this.task,
         this.$store.getters.platform,
         this.$toast,
-        this.helper
+        this.helper,
+        this.useIndexedDB
       ),
     };
   },
@@ -170,11 +171,11 @@ export default {
     },
   },
   created() {
-    this.trainer.created(this.useIndexedDB);
     // Disconnect from the centralized server on page close
     window.addEventListener('beforeunload', () => {
       this.trainer.client.disconnect();
     });
+    this.trainer.created(this.useIndexedDB);
   },
   unmounted() {
     this.trainer.disconnect();

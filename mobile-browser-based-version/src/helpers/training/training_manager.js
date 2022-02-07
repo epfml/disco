@@ -263,10 +263,6 @@ export class TrainingManager {
 
     console.log(logText);
 
-    console.log('/////////////////////////');
-    console.log(this);
-    console.log('/////////////////////////');
-
     let modelFit = (
       info.batchwisePreprocessing
         ? this._modelFitDataBatchWise
