@@ -13,11 +13,11 @@
 </template>
 
 <script>
-import { FileUploadManager } from "../../../../../helpers/data_validation/file_upload_manager";
-import ElementData from "./ElementData.vue";
+import { FileUploadManager } from '../../../../../helpers/data_validation/file_upload_manager';
+import ElementData from './ElementData.vue';
 
 export default {
-  name: "file-data",
+  name: 'file-data',
   components: {
     ElementData,
   },
@@ -30,9 +30,9 @@ export default {
     fileSize() {
       return this.file.size > 1024
         ? this.file.size > 1048576
-          ? Math.round(this.file.size / 1048576) + "mb"
-          : Math.round(this.file.size / 1024) + "kb"
-        : this.file.size + "b";
+          ? Math.round(this.file.size / 1048576) + 'mb'
+          : Math.round(this.file.size / 1024) + 'kb'
+        : this.file.size + 'b';
     },
   },
 };

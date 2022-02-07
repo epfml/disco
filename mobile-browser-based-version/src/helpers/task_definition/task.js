@@ -52,7 +52,7 @@ export class TaskHelper {
   dataPreprocessing(filesElement) {
     throw new Error("Method 'dataPreprocessing()' must be implemented.");
   }
-  
+
   async predictionsToCsv(predictions) {
     throw new Error("Method 'predictionsToCsv()' must be implemented.");
   }

@@ -21,7 +21,7 @@
     <!-- TODO: This section is not algined with the top, not sure why -->
     <div class="flex flex-row items-start pl-10">
       <custom-button @click="goToTaskList()">
-        {{ $t("home.startBuildingButtonText") }}
+        {{ $t('home.startBuildingButtonText') }}
       </custom-button>
 
       <div class="w-1/6 flex flex-col items-center mx-auto">
@@ -29,9 +29,9 @@
           <decentralized-image class="w-full h-full" />
           <p class="text-xs items-center pt-10">
             <span class="text-primary-dark dark:text-primary-light">{{
-              $t("home.images.decentralised.title")
+              $t('home.images.decentralised.title')
             }}</span>
-            {{ $t("home.images.decentralised.text") }}
+            {{ $t('home.images.decentralised.text') }}
           </p>
         </card>
       </div>
@@ -41,9 +41,9 @@
           <federated-image class="w-full h-full" />
           <p class="text-xs items-center pt-10">
             <span class="text-primary-dark dark:text-primary-light">{{
-              $t("home.images.federated.title")
+              $t('home.images.federated.title')
             }}</span>
-            {{ $t("home.images.federated.text") }}
+            {{ $t('home.images.federated.text') }}
           </p>
         </card>
       </div>
@@ -64,7 +64,7 @@
 
         <div class="pt-4">
           <custom-button @click="goToNewTaskCreationForm()">
-            {{ $t("home.createTaskButtonText") }}
+            {{ $t('home.createTaskButtonText') }}
           </custom-button>
         </div>
       </div>
@@ -73,19 +73,19 @@
 </template>
 
 <script>
-import BaseLayout from "./containers/BaseLayout.vue";
-import TitleCard from "./containers/TitleCard.vue";
-import Card from "./containers/Card.vue";
-import CustomHeader from "./simple/CustomHeader.vue";
-import CustomButton from "./simple/CustomButton.vue";
-import FederatedImage from "../assets/svg/FederatedImage.vue";
-import DecentralizedImage from "../assets/svg/DecentralizedImage.vue";
+import BaseLayout from './containers/BaseLayout.vue';
+import TitleCard from './containers/TitleCard.vue';
+import Card from './containers/Card.vue';
+import CustomHeader from './simple/CustomHeader.vue';
+import CustomButton from './simple/CustomButton.vue';
+import FederatedImage from '../assets/svg/FederatedImage.vue';
+import DecentralizedImage from '../assets/svg/DecentralizedImage.vue';
 
-import { useI18n } from "vue-i18n";
-import { mapMutations } from "vuex";
+import { useI18n } from 'vue-i18n';
+import { mapMutations } from 'vuex';
 
 export default {
-  name: "home",
+  name: 'home',
   setup() {
     const { t, locale } = useI18n();
     return { t, locale };
@@ -100,17 +100,17 @@ export default {
     CustomHeader,
   },
   methods: {
-    ...mapMutations(["setActivePage"]),
+    ...mapMutations(['setActivePage']),
     goToTaskList() {
-      this.setActivePage("tasks");
+      this.setActivePage('tasks');
       this.$router.push({
-        path: "/tasks",
+        path: '/tasks',
       });
     },
     goToNewTaskCreationForm() {
-      this.setActivePage("task-creation-form");
+      this.setActivePage('task-creation-form');
       this.$router.push({
-        path: "/task-creation-form",
+        path: '/task-creation-form',
       });
     },
   },
