@@ -22,34 +22,31 @@ export class Trainer extends Actor {
     this.isTraining = false;
     this.distributedTraining = false;
     this.platform = platform;
-    // Delivers training feedback to the user
-    this.trainingInformant = new TrainingInformant(10, this.task.taskID);
-    console.log('***** Constructor *****');
-  }
-
-  /**
-   * Mimics the created hooks of Vue
-   * @param {boolean} useIndexedDB - use indexededDB parameter from Vuex store
-   */
-  created(useIndexedDB) {
-    console.log('***** Created *****');
     // Take care of communication processes
     this.client = getClient(
       this.platform,
       this.task,
       null //TODO: this.$store.getters.password(this.id)
     );
-    console.log(this.trainingInformant);
+    this.trainingInformant = new TrainingInformant(10, this.task.taskID);
+  }
+  /**
+   *
+   * @param {Boolean} useIndexedDB - true if indexedDB shall be used to store the models
+   */
+  created(useIndexedDB) {
     // Assist with the training loop
-    this.trainingManager = new TrainingManager(
+    const trainingManager = new TrainingManager(
       this.task,
       this.client,
       this.trainingInformant,
       useIndexedDB
     );
-    console.log(this.trainingInformant);
+    // make property unreactive through anymous function accessor
+    // otherwise get unexpected TFJS error due to Vue double bindings
+    // on the loaded model
+    this.trainingManager = () => trainingManager;
   }
-
   /**
    * Connects the trainer to the server
    */
@@ -118,8 +115,7 @@ export class Trainer extends Actor {
         this.logger.success(
           `Data preprocessing has finished and training has started`
         );
-        console.log(processedDataset);
-        this.trainingManager.trainModel(processedDataset, distributed);
+        this.trainingManager().trainModel(processedDataset, distributed);
         this.isTraining = true;
       } else {
         // print error message
@@ -133,7 +129,7 @@ export class Trainer extends Actor {
    * Stops the training function and disconnects from
    */
   async stopTraining() {
-    this.trainingManager.stopTraining();
+    this.trainingManager().stopTraining();
     if (this.isConnected) {
       await this.client.disconnect();
       this.isConnected = false;

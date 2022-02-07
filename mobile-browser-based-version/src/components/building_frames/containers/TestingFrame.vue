@@ -8,7 +8,7 @@
           v-bind:id="id"
           v-bind:task="task"
           v-bind:fileUploadManager="tester.fileUploadManager"
-          v-if="fileUploadManager"
+          v-if="tester.fileUploadManager"
           :displayLabels="false"
         />
       </div>
