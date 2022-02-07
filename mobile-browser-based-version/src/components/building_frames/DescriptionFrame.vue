@@ -164,7 +164,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
 </div>
 </template>
 
-<script>
+<script type="ts">
 import * as memory from '../../helpers/memory/helpers'
 import CustomButton from '../simple/CustomButton.vue'
 import Tasks from '../../assets/svg/Tasks.vue'
@@ -203,8 +203,8 @@ export default {
     /**
      * When useWorkingModel changed this function is called since it is "watched"
      */
-    useWorkingModel() {
-      let modelInUseMessage;
+    useWorkingModel () {
+      let modelInUseMessage
       if (this.useWorkingModel) {
         modelInUseMessage = `The previous ${this.Task.displayInformation.taskTitle} model has been selected. You can start training!`
       } else {
@@ -219,7 +219,7 @@ export default {
     /**
      * Returns true if a new model needs to be created
      */
-    shouldCreateFreshModel() {
+    shouldCreateFreshModel () {
       return (
         !this.isModelCreated &&
         !(this.workingModelExists && this.useWorkingModel)
@@ -230,10 +230,10 @@ export default {
     /**
      * If indexDB is used and a new model needs to be created do so, and then go to the training frame.
      */
-    async goToTraining() {
+    async goToTraining () {
       if (this.useIndexedDB && this.shouldCreateFreshModel) {
-        await this.loadFreshModel();
-        this.isModelCreated = true;
+        await this.loadFreshModel()
+        this.isModelCreated = true
         this.$toast.success(
           `A new ${this.Task.displayInformation.taskTitle} model has been created. You can start training!`
         )
@@ -247,8 +247,8 @@ export default {
     /**
      * Delete the model stored in indexDB corresponding to this task.
      */
-    async deleteModel() {
-      this.workingModelExists = false;
+    async deleteModel () {
+      this.workingModelExists = false
       await memory.deleteWorkingModel(
         this.Task.taskID,
         this.Task.trainingInformation.modelID
@@ -261,7 +261,7 @@ export default {
     /**
      * Save the current working model to indexDB
      */
-    async saveModel() {
+    async saveModel () {
       await memory.saveWorkingModel(
         this.Task.taskID,
         this.Task.trainingInformation.modelID
@@ -274,13 +274,13 @@ export default {
     /**
      * Toggle use working model
      */
-    async toggleUseWorkingModel() {
-      this.useWorkingModel = !this.useWorkingModel;
+    async toggleUseWorkingModel () {
+      this.useWorkingModel = !this.useWorkingModel
     },
     /**
      * Create a new model and overwite the indexDB model with the new model
      */
-    async loadFreshModel() {
+    async loadFreshModel () {
       await this.Task.createModel().then((freshModel) => {
         memory.updateWorkingModel(
           this.Task.taskID,
@@ -292,14 +292,14 @@ export default {
     /**
      * Get UI theme stored locally
      */
-    getTheme() {
-      return this.$store.state.isDark;
-    },
+    getTheme () {
+      return this.$store.state.isDark
+    }
   },
   /**
    * This method is called when the component is created
    */
-  async mounted() {
+  async mounted () {
     this.$nextTick(async function () {
       /**
        * If the IndexedDB is turned on and a working model exists in IndexedDB

@@ -20,7 +20,7 @@
   </training-frame>
 </template>
 
-<script>
+<script type="ts">
 import { checkData } from '../../../helpers/data_validation/helpers_image_tasks.ts'
 import TrainingFrame from '../containers/TrainingFrame.vue'
 
@@ -53,7 +53,7 @@ export default {
     /**
      * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
      */
-    async dataPreprocessing(filesElement) {
+    async dataPreprocessing (filesElement) {
       return new Promise((resolve, reject) => {
         const processedData = this.Task.dataPreprocessing(filesElement)
         resolve(processedData)

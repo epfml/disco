@@ -117,7 +117,7 @@
   </training-frame>
 </template>
 
-<script>
+<script type="ts">
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
@@ -140,7 +140,7 @@ export default {
     /**
      * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
      */
-    async dataPreprocessing(filesElement) {
+    async dataPreprocessing (filesElement) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader()
         reader.onload = async (e) => {
