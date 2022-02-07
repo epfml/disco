@@ -118,7 +118,7 @@ For creating a customized task from scratch, please follow the following steps:
 Tasks are organized around the following files:
 
 - vue files are used to render the task-related user interface. Users should not modify the core code of these files.
-- a javascript file contains all the task-related information and methods. For instance, in this file, one can find the specific data-processing function or the textual description of the task.
+- a typescript file contains all the task-related information and methods. For instance, in this file, one can find the specific data-processing function or the textual description of the task.
 
 ### Use of tpyescript
 
@@ -160,7 +160,7 @@ function addNumbers(a: number, b: number): number {
 var sum = addNumbers(15, 25);  
 ``` 
 
-Since we know the output type is of type number, we can safely call ``sum.toPrecision(2)``, if we wanted to get the sum with 2 significant digits. If sum was not of type number (or any other type that had a function called toPrecision) , then our editor would tell us:  ``TypeError: k.toPrecision is not a function`` . 
+Since we know the output type is of type number, we can safely call ``sum.toPrecision(2)``, if we wanted to get the sum with 2 significant digits. If sum was not of type number (that dit not have a function called toPrecision or was of type any), then our editor would tell us:  ``TypeError: k.toPrecision is not a function`` . 
 
 This brings us to our next comment, if we cast sum as type any, then we would get no compiler error:
   ```ts
@@ -201,7 +201,7 @@ The application runs the following architecture:
     - **Description of the task** under the name `[taskName]\_description.vue. It gives an overview of the task.
     - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train a model, either collaboratively using p2p communication, or alone by local training. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When a user reaches for the first time the training components, the component is created, and only then the NN model is created and stored in the browser's indexdb database. The training is done in a seperated script. To start training, the function named `join_training`is called. This function preprocess the data using the task specific data pre-processing function and then train the model using the shared `train`function.
 
-All these are served by the javascript file associated to the task.
+All these are served by the typescript file associated to the task.
 
 ### Training Loop
 
