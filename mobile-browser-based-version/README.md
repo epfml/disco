@@ -8,15 +8,15 @@
     │ ├── svg        # svg image / icons
     ├── components   # vue file folder
     │ ├── XXX.vue    # vue example file
-    ├── helpers      # javascript helpers folder
-    │ ├── XXX.js     # js example file
+    ├── helpers      # typescript helpers folder
+    │ ├── XXX.ts     # js example file
     ├── platforms    # i18n related folder
     │ ├── ...
     ├── router       # vue-router related folder
-    │ ├── index.js
+    │ ├── index.ts
     ├── store        # vuex related folder
-    │ ├── store.js
-    ├── main.js      # root file of the app
+    │ ├── store.ts
+    ├── main.ts      # root file of the app
     ├── .env.XXX     # environment specific variables
     └── ...          # rest of the files
 
@@ -119,6 +119,65 @@ Tasks are organized around the following files:
 
 - vue files are used to render the task-related user interface. Users should not modify the core code of these files.
 - a javascript file contains all the task-related information and methods. For instance, in this file, one can find the specific data-processing function or the textual description of the task.
+
+### Use of tpyescript
+
+In order to facilitate development with javascript (js) we use [typescript](https://www.typescriptlang.org/) (ts); this adds an additional layer on top of javascript that allows for a deeper integration with your editor which enables you to catch errors faster. 
+
+If you know js then you basically already know ts, since js is a subset of ts, anything you can do on js, you can also do on ts. What's new is that ts has a stricter policy (these can be silenced, and so we can indeed run ts files as if they were js), here are some examples:
+
+#### Function overloading
+
+This would run perfectly on js
+```js
+function addNumbers(a, b) {  
+    return a + b;  
+}  
+var sum = addNumbers(15, 25, 30);  
+``` 
+
+However in ts we get the following error: ``Expected 2 arguments, but got 3.  ``
+
+####  Equality checks
+
+```js
+const isEqual = 20 == '20'
+console.log(isEqual)
+``` 
+In js these two are equal since it tries to cast types and see if they are equal, while convenient in a small project, this can lead to hard to find bugs in larger ones. In ts this would yield the following error:
+```
+This condition will always return 'false' since the types 'number' and 'string' have no overlap.
+```
+
+#### Type annotations
+
+Typescript allows us to annotate the input and output of functions, this greatly simplifies using functions where  types might be ambiguous, the previous function we saw could be annotate as follows in ts:
+
+ ```ts
+function addNumbers(a: number, b: number): number {  
+    return a + b;  
+}  
+var sum = addNumbers(15, 25);  
+``` 
+
+Since we know the output type is of type number, we can safely call ``sum.toPrecision(2)``, if we wanted to get the sum with 2 significant digits. If sum was not of type number (or any other type that had a function called toPrecision) , then our editor would tell us:  ``TypeError: k.toPrecision is not a function`` . 
+
+This brings us to our next comment, if we cast sum as type any, then we would get no compiler error:
+  ```ts
+
+var sum = 'hello DeAI' as any;
+sum.toPrecision(2)  
+```
+ 
+any is a special ts type that you can use when you don't want type checking errors, this is however not desirable since this would defeat the whole purpose of using ts in the first place. 
+
+In vue files you simply need to add ts in the script tag to enable ts:
+  ```vue
+<script lang="ts">
+</script>
+```
+
+There are of course more details, but if you know js, now you should be ready for ts! If you want to learn more this [official (5min) guide](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html) is an excellent place to start.
 
 ### Use of Vue.js
 
