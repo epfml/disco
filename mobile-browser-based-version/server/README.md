@@ -52,8 +52,14 @@ To change the GAE app configuration, you can modify the file `app.yaml`.
 To deploy the app on GAE, you can run the following command, where deai-313515 is the current PROJECT-ID:
 
 ```
-gcloud app deploy --project=deai-313515 --app.yaml
+gcloud app deploy --project=deai-313515 --app.yaml --version dev
 ```
+
+:exclamation: Important!
+| :exclamation:  This is very important   |
+|-----------------------------------------|
+When deploying check that in the google cloud console -> app enginer -> versions, that no new instance is created as this will increase the cloud costs.
+This should not happen in principle due to the "--version dev" flag, it is however a good idea to check this the first time you run this command.
 
 Some useful resources:
 

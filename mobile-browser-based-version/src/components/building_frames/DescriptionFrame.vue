@@ -200,8 +200,11 @@ export default {
     }
   },
   watch: {
-    useWorkingModel () {
-      let modelInUseMessage
+    /**
+     * When useWorkingModel changed this function is called since it is "watched"
+     */
+    useWorkingModel() {
+      let modelInUseMessage;
       if (this.useWorkingModel) {
         modelInUseMessage = `The previous ${this.Task.displayInformation.taskTitle} model has been selected. You can start training!`
       } else {
@@ -213,7 +216,10 @@ export default {
   },
   computed: {
     ...mapState(['useIndexedDB', 'isDark']),
-    createFreshModel () {
+    /**
+     * Returns true if a new model needs to be created
+     */
+    shouldCreateFreshModel() {
       return (
         !this.isModelCreated &&
         !(this.workingModelExists && this.useWorkingModel)
@@ -221,10 +227,13 @@ export default {
     }
   },
   methods: {
-    async goToTraining () {
-      if (this.useIndexedDB && this.createFreshModel) {
-        await this.loadFreshModel()
-        this.isModelCreated = true
+    /**
+     * If indexDB is used and a new model needs to be created do so, and then go to the training frame.
+     */
+    async goToTraining() {
+      if (this.useIndexedDB && this.shouldCreateFreshModel) {
+        await this.loadFreshModel();
+        this.isModelCreated = true;
         this.$toast.success(
           `A new ${this.Task.displayInformation.taskTitle} model has been created. You can start training!`
         )
@@ -235,8 +244,11 @@ export default {
         params: { Id: this.Id }
       })
     },
-    async deleteModel () {
-      this.workingModelExists = false
+    /**
+     * Delete the model stored in indexDB corresponding to this task.
+     */
+    async deleteModel() {
+      this.workingModelExists = false;
       await memory.deleteWorkingModel(
         this.Task.taskID,
         this.Task.trainingInformation.modelID
@@ -246,7 +258,10 @@ export default {
       )
       setTimeout(this.$toast.clear, 30000)
     },
-    async saveModel () {
+    /**
+     * Save the current working model to indexDB
+     */
+    async saveModel() {
       await memory.saveWorkingModel(
         this.Task.taskID,
         this.Task.trainingInformation.modelID
@@ -256,10 +271,16 @@ export default {
       )
       setTimeout(this.$toast.clear, 30000)
     },
-    async toggleUseWorkingModel () {
-      this.useWorkingModel = !this.useWorkingModel
+    /**
+     * Toggle use working model
+     */
+    async toggleUseWorkingModel() {
+      this.useWorkingModel = !this.useWorkingModel;
     },
-    async loadFreshModel () {
+    /**
+     * Create a new model and overwite the indexDB model with the new model
+     */
+    async loadFreshModel() {
       await this.Task.createModel().then((freshModel) => {
         memory.updateWorkingModel(
           this.Task.taskID,
@@ -268,18 +289,17 @@ export default {
         )
       })
     },
-    getTheme () {
-      if (window.localStorage.getItem('dark')) {
-        return JSON.parse(window.localStorage.getItem('dark'))
-      }
-      return (
-        !!window.matchMedia &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches
-      )
-    }
+    /**
+     * Get UI theme stored locally
+     */
+    getTheme() {
+      return this.$store.state.isDark;
+    },
   },
-  async mounted () {
-    // This method is called when the component is created
+  /**
+   * This method is called when the component is created
+   */
+  async mounted() {
     this.$nextTick(async function () {
       /**
        * If the IndexedDB is turned on and a working model exists in IndexedDB

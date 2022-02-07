@@ -50,7 +50,10 @@ export default {
       const images = require.context('../../../../example_training_data/', false)
       return images(url)
     },
-    async dataPreprocessing (filesElement) {
+    /**
+     * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
+     */
+    async dataPreprocessing(filesElement) {
       return new Promise((resolve, reject) => {
         const processedData = this.Task.dataPreprocessing(filesElement)
         resolve(processedData)

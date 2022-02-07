@@ -24,7 +24,11 @@
 
     <!-- Data Example Card -->
     <a id="limitations-target">
-      <icon-card header="Data Example" :description="dataExampleText">
+      <icon-card
+        header="Data Example"
+        :description="dataExampleText"
+        :withToggle="true"
+      >
         <template v-slot:icon><file-earmark-ruled /></template>
         <!-- Data Point Example -->
         <template v-slot:extra>

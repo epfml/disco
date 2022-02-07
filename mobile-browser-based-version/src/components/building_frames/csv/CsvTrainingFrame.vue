@@ -45,6 +45,7 @@
       <icon-card
         header="Map My Data"
         description="If the header of the file that you've uploaded differs from the one shown in example, you can map the expected header to your header format bellow."
+        :withToggle="true"
       >
         <template v-slot:icon><bezier-2 /></template>
         <template v-slot:extra>
@@ -136,7 +137,10 @@ export default {
   },
 
   methods: {
-    async dataPreprocessing (filesElement) {
+    /**
+     * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
+     */
+    async dataPreprocessing(filesElement) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader()
         reader.onload = async (e) => {
