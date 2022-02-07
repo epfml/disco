@@ -23,31 +23,45 @@
       <custom-button @click="goToTaskList()">
         {{ $t('home.startBuildingButtonText') }}
       </custom-button>
-
-      <div class="w-1/6 flex flex-col items-center mx-auto">
-        <card customClass="space-y-sm">
-          <decentralized-image class="w-full h-full" />
-          <p class="text-xs items-center pt-10">
-            <span class="text-primary-dark dark:text-primary-light">{{
-              $t('home.images.decentralised.title')
-            }}</span>
-            {{ $t('home.images.decentralised.text') }}
-          </p>
-        </card>
-      </div>
-
-      <div class="w-1/6 flex flex-col items-center mr-auto">
-        <card customClass="space-y-sm">
-          <federated-image class="w-full h-full" />
-          <p class="text-xs items-center pt-10">
-            <span class="text-primary-dark dark:text-primary-light">{{
-              $t('home.images.federated.title')
-            }}</span>
-            {{ $t('home.images.federated.text') }}
-          </p>
-        </card>
-      </div>
     </div>
+    <section class="flex-col items-center justify-center p-4 space-y-4">
+      <!-- Decentralised insight -->
+      <div class="grid gap-8 p-4 sm:grid-cols-2">
+        <div class="flex flex-col items-center mx-auto">
+          <title-card
+            title="Insights: "
+            :titleUnderlined="$t('home.images.decentralised.title')"
+          >
+            <div class="flex justify-center my-md">
+              <decentralized-image class="sm:w-full md:w-3/5" />
+            </div>
+            <div>
+              <span class="text-primary-dark dark:text-primary-light">{{
+                $t('home.images.decentralised.title')
+              }}</span>
+              {{ $t('home.images.decentralised.text') }}
+            </div>
+          </title-card>
+        </div>
+        <!-- Federated insight -->
+        <div class="flex flex-col items-center mx-auto">
+          <title-card
+            title="Insights: "
+            :titleUnderlined="$t('home.images.federated.title')"
+          >
+            <div class="flex justify-center my-md">
+              <federated-image class="sm:w-full md:w-3/5" />
+            </div>
+            <div>
+              <span class="text-primary-dark dark:text-primary-light">{{
+                $t('home.images.federated.title')
+              }}</span>
+              {{ $t('home.images.federated.text') }}
+            </div>
+          </title-card>
+        </div>
+      </div>
+    </section>
 
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
@@ -75,7 +89,6 @@
 <script>
 import BaseLayout from './containers/BaseLayout.vue';
 import TitleCard from './containers/TitleCard.vue';
-import Card from './containers/Card.vue';
 import CustomHeader from './simple/CustomHeader.vue';
 import CustomButton from './simple/CustomButton.vue';
 import FederatedImage from '../assets/svg/FederatedImage.vue';
@@ -96,7 +109,6 @@ export default {
     CustomButton,
     FederatedImage,
     DecentralizedImage,
-    Card,
     CustomHeader,
   },
   methods: {
