@@ -120,7 +120,7 @@ Tasks are organized around the following files:
 - vue files are used to render the task-related user interface. Users should not modify the core code of these files.
 - a typescript file contains all the task-related information and methods. For instance, in this file, one can find the specific data-processing function or the textual description of the task.
 
-### Use of tpyescript
+### Use of TypeScript (a dialect of JavaScript)
 
 In order to facilitate development with javascript (js) we use [typescript](https://www.typescriptlang.org/) (ts); this adds an additional layer on top of javascript that allows for a deeper integration with your editor which enables you to catch errors faster. 
 
@@ -136,7 +136,7 @@ function addNumbers(a, b) {
 var sum = addNumbers(15, 25, 30);  
 ``` 
 
-However in ts we get the following error: ``Expected 2 arguments, but got 3.  ``
+However in ts we get the following compile error: ``Expected 2 arguments, but got 3.  ``.
 
 ####  Equality checks
 
@@ -144,7 +144,7 @@ However in ts we get the following error: ``Expected 2 arguments, but got 3.  ``
 const isEqual = 20 == '20'
 console.log(isEqual)
 ``` 
-In js these two are equal since it tries to cast types and see if they are equal, while convenient in a small project, this can lead to hard to find bugs in larger ones. In ts this would yield the following error:
+In js these two are equal since it tries to cast types and see if they are equal, while convenient in a small project, this can lead to hard to find bugs in larger ones. In ts this would yield the following compile error:
 ```
 This condition will always return 'false' since the types 'number' and 'string' have no overlap.
 ```
@@ -160,7 +160,7 @@ function addNumbers(a: number, b: number): number {
 var sum = addNumbers(15, 25);  
 ``` 
 
-Since we know the output type is of type number, we can safely call ``sum.toPrecision(2)``, if we wanted to get the sum with 2 significant digits. If sum was not of type number (that dit not have a function called toPrecision or was of type any), then our editor would tell us:  ``TypeError: k.toPrecision is not a function`` . 
+Since we know the output type is of type number, we can safely call ``sum.toPrecision(2)``, if we wanted to get the sum with 2 significant digits. If sum was not of type number (that dit not have a function called toPrecision or was of type any), then we would get a compile error:  ``TypeError: k.toPrecision is not a function`` . 
 
 This brings us to our next comment, if we cast sum as type any, then we would get no compiler error:
   ```ts
@@ -171,6 +171,9 @@ sum.toPrecision(2)
  
 any is a special ts type that you can use when you don't want type checking errors, this is however not desirable since this would defeat the whole purpose of using ts in the first place. 
 
+Note that all these compile errors will also appear in your editor, this will allow you to easily find these bugs without having to first compile!
+
+
 In vue files you simply need to add ts in the script tag to enable ts:
   ```vue
 <script lang="ts">
@@ -178,6 +181,18 @@ In vue files you simply need to add ts in the script tag to enable ts:
 ```
 
 There are of course more details, but if you know js, now you should be ready for ts! If you want to learn more this [official (5min) guide](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html) is an excellent place to start.
+
+#### Our policy
+
+We follow the standard ts policy (which is by default flexible and not very strict) since the original code base was in js; as a consequence some files might not yet be annotated.
+
+If you are on boarding, we strongly recommend that you annotate your functions and classes! However this is not strictly enforced, your code will run if you don't annotate it. Perhaps for a quick mock up of your code you may opt not to annotate, however when you are ready to pull request to develop we expect your functions and classes to be annotated. 
+
+In a nutshell the following will give compile errors:
+
+- Equality checks on objects that are not of the same type. 
+- Overloading a function.
+- If a variable is annotated or type inferred, using a non existing type function on it.
 
 ### Use of Vue.js
 
