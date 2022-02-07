@@ -1,5 +1,5 @@
 <template>
-  <base-layout v-bind:withSection="true">
+  <base-layout :withSection="true">
     <!-- Main Page Content -->
     <div
       v-for="task in $store.getters.tasksFramesList"
@@ -27,7 +27,7 @@
         </div>
         <div class="py-2">
           <span>
-            <custom-button v-on:click="goToSelection(task.taskID)">
+            <custom-button @click="goToSelection(task.taskID)">
               Join
             </custom-button>
           </span>
@@ -38,35 +38,35 @@
 </template>
 
 <script>
-import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue';
-import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue';
-import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue';
-import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue';
-import BaseLayout from './containers/BaseLayout.vue';
-import Card from './containers/Card.vue';
-import CustomButton from './simple/CustomButton.vue';
+import MainTaskFrame from "../components/main_frames/MainTaskFrame.vue";
+import MainDescriptionFrame from "../components/main_frames/MainDescriptionFrame.vue";
+import MainTrainingFrame from "../components/main_frames/MainTrainingFrame.vue";
+import MainTestingFrame from "../components/main_frames/MainTestingFrame.vue";
+import BaseLayout from "./containers/BaseLayout.vue";
+import Card from "./containers/Card.vue";
+import CustomButton from "./simple/CustomButton.vue";
 
 /**
  * WARNING: Temporary code until complete modularization of task objects.
  * In the meantine, import all custom task classes here.
  */
-import _ from 'lodash';
-import { defineComponent } from 'vue';
-import { mapMutations } from 'vuex';
+import _ from "lodash";
+import { defineComponent } from "vue";
+import { mapMutations } from "vuex";
 import {
   createTaskClass,
   loadTasks,
-} from '../helpers/task_definition/helper.js';
+} from "../helpers/task_definition/helper.js";
 
 export default {
-  name: 'task-list',
+  name: "task-list",
   components: {
     BaseLayout,
     Card,
     CustomButton,
   },
   watch: {
-    '$store.state.newTasks': function () {
+    "$store.state.newTasks": function () {
       this.$store.state.newTasks.forEach(this.createNewTaskComponent);
       this.clearNewTasks();
     },
@@ -74,17 +74,17 @@ export default {
   data() {
     return {
       taskFramesInfo: [
-        ['description', MainDescriptionFrame],
-        ['training', MainTrainingFrame],
-        ['testing', MainTestingFrame],
+        ["description", MainDescriptionFrame],
+        ["training", MainTrainingFrame],
+        ["testing", MainTestingFrame],
       ],
     };
   },
   methods: {
-    ...mapMutations(['addTaskFrame', 'newTask', 'clearNewTasks']),
+    ...mapMutations(["addTaskFrame", "newTask", "clearNewTasks"]),
     goToSelection(id) {
       this.$router.push({
-        name: id.concat('.description'),
+        name: id.concat(".description"),
         params: { id: id },
       });
     },
@@ -93,7 +93,7 @@ export default {
       const newTaskFrame = createTaskClass(task);
       this.addTaskFrame(newTaskFrame); // commit to store
       let newTaskRoute = {
-        path: '/'.concat(newTaskFrame.taskID),
+        path: "/".concat(newTaskFrame.taskID),
         name: newTaskFrame.taskID,
         component: MainTaskFrame,
         props: { id: newTaskFrame.taskID, task: newTaskFrame },

@@ -13,7 +13,7 @@
     <!-- Brand -->
     <div class="flex-shrink-0">
       <a
-        v-on:click="goToHome"
+        @click="goToHome"
         class="
           p-1
           inline-block
@@ -24,7 +24,7 @@
           dark:text-light
         "
       >
-        {{ $t('home.title.name') }}
+        {{ $t("home.title.name") }}
       </a>
     </div>
     <!-- Mini Sidebar content-->
@@ -33,7 +33,7 @@
       <!-- Active classes "bg-primary text-white" -->
       <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
       <SidebarButton
-        v-on:click="goToHome"
+        @click="goToHome"
         hoverText="home"
         :activePage="activePage"
       >
@@ -41,7 +41,7 @@
       </SidebarButton>
       <!-- Go to Task List page -->
       <SidebarButton
-        v-on:click="goToTaskList"
+        @click="goToTaskList"
         hoverText="tasks"
         :activePage="activePage"
       >
@@ -49,7 +49,7 @@
       </SidebarButton>
       <!-- Display Model Library panel -->
       <SidebarButton
-        v-on:click="openModelLibrary"
+        @click="openModelLibrary"
         hoverText="models"
         :activePage="activePage"
       >
@@ -57,7 +57,7 @@
       </SidebarButton>
       <!-- Go to Information page -->
       <SidebarButton
-        v-on:click="goToInformation"
+        @click="goToInformation"
         hoverText="information"
         :activePage="activePage"
       >
@@ -65,7 +65,7 @@
       </SidebarButton>
       <!-- Display Settings panel-->
       <SidebarButton
-        v-on:click="openSettingsPanel"
+        @click="openSettingsPanel"
         hoverText="settings"
         :activePage="activePage"
       >
@@ -87,7 +87,7 @@
     >
       <div
         v-show="isMenuOpen"
-        v-on:click="closeMenu()"
+        @click="closeMenu()"
         class="transform fixed inset-0 z-10 bg-primary-darker"
         style="opacity: 0.5"
         aria-hidden="true"
@@ -126,7 +126,7 @@
         <!-- Close button -->
         <div class="absolute left-0 p-2 transform -translate-x-full">
           <button
-            v-on:click="closeMenu()"
+            @click="closeMenu()"
             class="p-2 text-white rounded-md focus:outline-none focus:ring"
           >
             <cross-icon />
@@ -136,26 +136,26 @@
         <settings v-if="isSettingsPanelOpen" />
         <model-library
           v-else-if="isModelLibraryOpen"
-          v-on:switch-panel="switchFromModelLibraryToSettings()"
+          @switch-panel="switchFromModelLibraryToSettings()"
         />
       </section>
     </transition>
   </div>
 </template>
 <script>
-import Settings from './Settings.vue';
-import ModelLibrary from './ModelLibrary.vue';
-import tippy from 'tippy.js';
-import { mapState, mapMutations } from 'vuex';
-import HomeIcon from '../../assets/svg/HomeIcon.vue';
-import ListIcon from '../../assets/svg/ListIcon.vue';
-import InfoIcon from '../../assets/svg/InfoIcon.vue';
-import FileIcon from '../../assets/svg/FileIcon.vue';
-import SettingsIcon from '../../assets/svg/SettingsIcon.vue';
-import CrossIcon from '../../assets/svg/CrossIcon.vue';
-import SidebarButton from './containers/SidebarButton.vue';
+import Settings from "./Settings.vue";
+import ModelLibrary from "./ModelLibrary.vue";
+import tippy from "tippy.js";
+import { mapState, mapMutations } from "vuex";
+import HomeIcon from "../../assets/svg/HomeIcon.vue";
+import ListIcon from "../../assets/svg/ListIcon.vue";
+import InfoIcon from "../../assets/svg/InfoIcon.vue";
+import FileIcon from "../../assets/svg/FileIcon.vue";
+import SettingsIcon from "../../assets/svg/SettingsIcon.vue";
+import CrossIcon from "../../assets/svg/CrossIcon.vue";
+import SidebarButton from "./containers/SidebarButton.vue";
 export default {
-  name: 'Sidebar',
+  name: "Sidebar",
   components: {
     Settings,
     ModelLibrary,
@@ -176,10 +176,10 @@ export default {
     };
   },
   computed: {
-    ...mapState(['activePage']),
+    ...mapState(["activePage"]),
   },
   methods: {
-    ...mapMutations(['setActivePage']),
+    ...mapMutations(["setActivePage"]),
     switchFromModelLibraryToSettings() {
       this.isModeLibraryOpen = false;
       this.isSettingsPanelOpen = true;
@@ -198,27 +198,27 @@ export default {
       this.isModelLibraryOpen = false;
     },
     goToHome() {
-      this.setActivePage('home');
-      this.$router.push({ name: 'home' });
+      this.setActivePage("home");
+      this.$router.push({ name: "home" });
     },
     goToTaskList() {
-      this.setActivePage('tasks');
-      this.$router.push({ name: 'tasks' });
+      this.setActivePage("tasks");
+      this.$router.push({ name: "tasks" });
     },
     goToInformation() {
-      this.setActivePage('info');
-      this.$router.push({ name: 'information' });
+      this.setActivePage("info");
+      this.$router.push({ name: "information" });
     },
   },
   async mounted() {
-    tippy('a', {
-      theme: 'custom-dark',
+    tippy("a", {
+      theme: "custom-dark",
       delay: 0,
       duration: 0,
-      content: (reference) => reference.getAttribute('data-title'),
+      content: (reference) => reference.getAttribute("data-title"),
       onMount(instance) {
         instance.popperInstance.setOptions({
-          placement: instance.reference.getAttribute('data-placement'),
+          placement: instance.reference.getAttribute("data-placement"),
         });
       },
     });
