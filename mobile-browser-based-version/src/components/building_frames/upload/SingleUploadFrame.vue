@@ -105,14 +105,14 @@
 </template>
 
 <script>
-import { FileUploadManager } from "../../../helpers/data_validation/file_upload_manager";
-import PreviewGallery from "./preview/PreviewGallery.vue";
-import _ from "lodash";
+import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
+import PreviewGallery from './preview/PreviewGallery.vue';
+import _ from 'lodash';
 
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
-  types.indexOf("Files") > -1;
+  types.indexOf('Files') > -1;
 export default {
-  name: "SingleUploadFrame",
+  name: 'SingleUploadFrame',
   props: {
     id: String,
     task: Object,
@@ -131,15 +131,15 @@ export default {
       counter: 0,
       nbrUploadedFiles: 0,
       addedFilesUrl: [],
-      displayLabel: this.label ? `Label: ${this.label}` : "",
+      displayLabel: this.label ? `Label: ${this.label}` : '',
     };
   },
   computed: {
     hiddenInputName() {
-      return this.formatName("hidden-input");
+      return this.formatName('hidden-input');
     },
     uploadButtonName() {
-      return this.formatName("uploadButton");
+      return this.formatName('uploadButton');
     },
   },
   methods: {
@@ -149,8 +149,8 @@ export default {
     addFile(file) {
       const objectURL = URL.createObjectURL(file);
       let label_name = this.label;
-      if (this.label == "Images") {
-        label_name = file.name.replace(/\.[^/.]+$/, "");
+      if (this.label == 'Images') {
+        label_name = file.name.replace(/\.[^/.]+$/, '');
       }
       // add file to file manager
       this.fileUploadManager.addFile(objectURL, file, label_name);

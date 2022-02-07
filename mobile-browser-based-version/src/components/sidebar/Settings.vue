@@ -140,18 +140,18 @@
   </tippy-container>
 </template>
 <script>
-import { mapMutations } from "vuex";
-import TippyCard from "./containers/TippyCard.vue";
-import TippyContainer from "./containers/TippyContainer.vue";
-import MoonIcon from "../../assets/svg/MoonIcon.vue";
-import StarIcon from "../../assets/svg/StarIcon.vue";
-import DecentralisedIcon from "../../assets/svg/DecentralisedIcon.vue";
-import FederatedIcon from "../../assets/svg/FederatedIcon.vue";
-import SettingsIcon from "../../assets/svg/SettingsIcon.vue";
-import { Platform } from "../../platforms/platform";
+import { mapMutations } from 'vuex';
+import TippyCard from './containers/TippyCard.vue';
+import TippyContainer from './containers/TippyContainer.vue';
+import MoonIcon from '../../assets/svg/MoonIcon.vue';
+import StarIcon from '../../assets/svg/StarIcon.vue';
+import DecentralisedIcon from '../../assets/svg/DecentralisedIcon.vue';
+import FederatedIcon from '../../assets/svg/FederatedIcon.vue';
+import SettingsIcon from '../../assets/svg/SettingsIcon.vue';
+import { Platform } from '../../platforms/platform';
 
 export default {
-  name: "settings",
+  name: 'settings',
   components: {
     TippyCard,
     TippyContainer,
@@ -163,63 +163,63 @@ export default {
   },
   data: function () {
     return {
-      colors: ["cyan", "teal", "green", "fuchsia", "blue", "violet"],
+      colors: ['cyan', 'teal', 'green', 'fuchsia', 'blue', 'violet'],
       requestPlatformChange: false,
     };
   },
   methods: {
     buttonClass: function (
       state,
-      defaultClass = "flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark"
+      defaultClass = 'flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark'
     ) {
       return (
         defaultClass +
         (state === undefined
-          ? " "
+          ? ' '
           : state
-          ? " border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100"
-          : " text-gray-500 dark:text-primary-light")
+          ? ' border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100'
+          : ' text-gray-500 dark:text-primary-light')
       );
     },
     ...mapMutations([
-      "setIndexedDB",
-      "setAppTheme",
-      "setActivePage",
-      "setPlatform",
+      'setIndexedDB',
+      'setAppTheme',
+      'setActivePage',
+      'setPlatform',
     ]),
     toggleIndexedDB() {
       this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB);
     },
     setAppColors(color) {
       const root = document.documentElement;
-      root.style.setProperty("--color-primary", `var(--color-${color})`);
-      root.style.setProperty("--color-primary-50", `var(--color-${color}-50)`);
+      root.style.setProperty('--color-primary', `var(--color-${color})`);
+      root.style.setProperty('--color-primary-50', `var(--color-${color}-50)`);
       root.style.setProperty(
-        "--color-primary-100",
+        '--color-primary-100',
         `var(--color-${color}-100)`
       );
       root.style.setProperty(
-        "--color-primary-light",
+        '--color-primary-light',
         `var(--color-${color}-light)`
       );
       root.style.setProperty(
-        "--color-primary-lighter",
+        '--color-primary-lighter',
         `var(--color-${color}-lighter)`
       );
       root.style.setProperty(
-        "--color-primary-dark",
+        '--color-primary-dark',
         `var(--color-${color}-dark)`
       );
       root.style.setProperty(
-        "--color-primary-darker",
+        '--color-primary-darker',
         `var(--color-${color}-darker)`
       );
     },
     setBrowserColors(color) {
-      window.localStorage.setItem("color", color);
+      window.localStorage.setItem('color', color);
     },
     setBrowserTheme(value) {
-      window.localStorage.setItem("dark", value);
+      window.localStorage.setItem('dark', value);
     },
     setColors(color) {
       this.setAppColors(color);
@@ -240,7 +240,7 @@ export default {
       this.requestPlatformChange = false;
     },
     getDefaultPlatformColor(platform) {
-      return platform == Platform.decentralized ? "cyan" : "violet";
+      return platform == Platform.decentralized ? 'cyan' : 'violet';
     },
     getNewPlatform(platform) {
       return platform == Platform.decentralized
@@ -256,7 +256,7 @@ export default {
       this.setPlatform(platform);
       this.setColors(color);
       this.$i18n.locale = platform;
-      window.localStorage.setItem("platform", platform);
+      window.localStorage.setItem('platform', platform);
 
       this.setRequestPlatformChangeFalse();
 
@@ -265,8 +265,8 @@ export default {
       this.goToHome();
     },
     goToHome() {
-      this.setActivePage("home");
-      this.$router.push({ name: "home" });
+      this.setActivePage('home');
+      this.$router.push({ name: 'home' });
     },
   },
 };

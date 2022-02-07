@@ -29,12 +29,12 @@
 
 <script>
 export default {
-  name: "sidebar-button",
+  name: 'sidebar-button',
   props: {
     click: { default: () => {}, type: Function },
-    hoverText: { default: "", type: String },
-    activePage: { default: "home", type: String },
-    customClass: { default: "", type: String },
+    hoverText: { default: '', type: String },
+    activePage: { default: 'home', type: String },
+    customClass: { default: '', type: String },
   },
   methods: {
     firstLetterUppercase: function (str) {

@@ -11,9 +11,9 @@
 
 <script>
 export default {
-  name: "card",
+  name: 'card',
   props: {
-    customClass: { default: "", type: String },
+    customClass: { default: '', type: String },
   },
 };
 </script>

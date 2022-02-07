@@ -414,10 +414,10 @@
 </template>
 
 <script>
-var Hashes = require("jshashes");
+var Hashes = require('jshashes');
 
 export default {
-  name: "main-task-frame",
+  name: 'main-task-frame',
   props: {
     id: String,
     task: Object,
@@ -439,26 +439,26 @@ export default {
         height: window.innerHeight,
       },
       authenticated: false,
-      inputPassword: "",
+      inputPassword: '',
       incorrectLogin: false,
     };
   },
   methods: {
     goToTraining() {
       this.$router.push({
-        name: this.task.taskID + ".training",
+        name: this.task.taskID + '.training',
         params: { id: this.task.taskID },
       });
     },
     goToTesting() {
       this.$router.push({
-        name: this.task.taskID + ".testing",
+        name: this.task.taskID + '.testing',
         params: { id: this.task.taskID },
       });
     },
     goToModelDescription() {
       this.$router.push({
-        path: "description",
+        path: 'description',
       });
     },
     async handleResize() {
@@ -473,7 +473,7 @@ export default {
         this.task.displayInformation.password_hash
       ) {
         this.authenticated = true;
-        this.$store.commit("addPassword", {
+        this.$store.commit('addPassword', {
           id: this.id,
           password: this.inputPassword,
         });
@@ -482,15 +482,15 @@ export default {
       }
     },
     openSidebarMenu(menu) {
-      this.openModelDesc = menu === "model_desc";
-      this.openUploadData = menu === "upload_data";
-      this.openModelStatistic = menu === "model_statistic";
-      this.openTestModel = menu === "test_model";
+      this.openModelDesc = menu === 'model_desc';
+      this.openUploadData = menu === 'upload_data';
+      this.openModelStatistic = menu === 'model_statistic';
+      this.openTestModel = menu === 'test_model';
     },
   },
   async mounted() {
     this.taskTitle = this.task.displayInformation.taskTitle;
-    window.addEventListener("resize", this.handleResize);
+    window.addEventListener('resize', this.handleResize);
   },
 
   activated() {
@@ -536,14 +536,14 @@ export default {
       openModelStatistic: this.openModelStatistic,
       isSidebarOpen: this.isSidebarOpen,
     };
-    await this.$store.commit("addGlobalTaskFrameState", currentState);
+    await this.$store.commit('addGlobalTaskFrameState', currentState);
   },
   unmounted() {
-    window.removeEventListener("resize", this.handleResize);
+    window.removeEventListener('resize', this.handleResize);
   },
   beforeRouteUpdate(to, from, next) {
-    if (to.name.includes("training")) {
-      this.openSidebarMenu("upload_data");
+    if (to.name.includes('training')) {
+      this.openSidebarMenu('upload_data');
     }
     next();
   },

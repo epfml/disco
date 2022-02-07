@@ -14,11 +14,11 @@
   </element-data>
 </template>
 <script>
-import { FileUploadManager } from "../../../../../helpers/data_validation/file_upload_manager";
-import ElementData from "./ElementData.vue";
+import { FileUploadManager } from '../../../../../helpers/data_validation/file_upload_manager';
+import ElementData from './ElementData.vue';
 
 export default {
-  name: "image-data",
+  name: 'image-data',
   components: {
     ElementData,
   },

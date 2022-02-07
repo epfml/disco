@@ -41,12 +41,12 @@
 </template>
 
 <script>
-import IconCard from "../../containers/IconCard.vue";
-import CheckList from "../../../assets/svg/CheckList.vue";
-import FileEarmarkRuled from "../../../assets/svg/FileEarmarkRuled.vue";
+import IconCard from '../../containers/IconCard.vue';
+import CheckList from '../../../assets/svg/CheckList.vue';
+import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue';
 
 export default {
-  name: "action-frame",
+  name: 'action-frame',
   props: {
     task: Object,
   },
@@ -58,8 +58,8 @@ export default {
   data() {
     return {
       // variables for general informations
-      dataFormatInfoText: "",
-      dataExampleText: "",
+      dataFormatInfoText: '',
+      dataExampleText: '',
     };
   },
   async mounted() {

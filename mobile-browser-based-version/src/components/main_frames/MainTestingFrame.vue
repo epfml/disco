@@ -15,11 +15,11 @@
 </template>
 
 <script>
-import ImageTestingFrame from "../building_frames/image/ImageTestingFrame.vue";
-import CsvTestingFrame from "../building_frames/csv/CsvTestingFrame.vue";
+import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue';
+import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame.vue';
 
 export default {
-  name: "main-testing-frame",
+  name: 'main-testing-frame',
   props: {
     id: String,
     task: Object,
@@ -29,7 +29,7 @@ export default {
     CsvTestingFrame,
   },
   async activated() {
-    this.$emit("opened-testing");
+    this.$emit('opened-testing');
   },
 };
 </script>
