@@ -9,7 +9,6 @@
           v-bind:task="task"
           v-bind:fileUploadManager="tester.fileUploadManager"
           v-if="tester.fileUploadManager"
-          :displayLabels="false"
         />
       </div>
 
