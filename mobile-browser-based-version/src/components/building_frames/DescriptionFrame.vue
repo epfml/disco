@@ -197,6 +197,9 @@ export default {
     };
   },
   watch: {
+    /**
+     * When useWorkingModel changed this function is called since it is "watched"
+     */
     useWorkingModel() {
       let modelInUseMessage;
       if (this.useWorkingModel) {
@@ -210,7 +213,10 @@ export default {
   },
   computed: {
     ...mapState(['useIndexedDB', 'isDark']),
-    createFreshModel() {
+    /**
+     * Returns true if a new model needs to be created
+     */
+    shouldCreateFreshModel() {
       return (
         !this.isModelCreated &&
         !(this.workingModelExists && this.useWorkingModel)
@@ -218,8 +224,11 @@ export default {
     },
   },
   methods: {
+    /**
+     * If indexDB is used and a new model needs to be created do so, and then go to the training frame.
+     */
     async goToTraining() {
-      if (this.useIndexedDB && this.createFreshModel) {
+      if (this.useIndexedDB && this.shouldCreateFreshModel) {
         await this.loadFreshModel();
         this.isModelCreated = true;
         this.$toast.success(
@@ -232,6 +241,9 @@ export default {
         params: { Id: this.Id },
       });
     },
+    /**
+     * Delete the model stored in indexDB corresponding to this task.
+     */
     async deleteModel() {
       this.workingModelExists = false;
       await memory.deleteWorkingModel(
@@ -243,6 +255,9 @@ export default {
       );
       setTimeout(this.$toast.clear, 30000);
     },
+    /**
+     * Save the current working model to indexDB
+     */
     async saveModel() {
       await memory.saveWorkingModel(
         this.Task.taskID,
@@ -253,9 +268,15 @@ export default {
       );
       setTimeout(this.$toast.clear, 30000);
     },
+    /**
+     * Toggle use working model
+     */
     async toggleUseWorkingModel() {
       this.useWorkingModel = !this.useWorkingModel;
     },
+    /**
+     * Create a new model and overwite the indexDB model with the new model
+     */
     async loadFreshModel() {
       await this.Task.createModel().then((freshModel) => {
         memory.updateWorkingModel(
@@ -265,18 +286,17 @@ export default {
         );
       });
     },
+    /**
+     * Get UI theme stored locally
+     */
     getTheme() {
-      if (window.localStorage.getItem('dark')) {
-        return JSON.parse(window.localStorage.getItem('dark'));
-      }
-      return (
-        !!window.matchMedia &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches
-      );
+      return this.$store.state.isDark;
     },
   },
+  /**
+   * This method is called when the component is created
+   */
   async mounted() {
-    // This method is called when the component is created
     this.$nextTick(async function () {
       /**
        * If the IndexedDB is turned on and a working model exists in IndexedDB

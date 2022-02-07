@@ -53,7 +53,7 @@ const IDLE_DELAY = 1000 * 10;
  * Same as IDLE_DELAY, except longer for clients that recently connected and thus
  * are not critical nodes (i.e. training nodes).
  */
-const LONGER_IDLE_DELAY = 1000 * 60;
+const NEW_CLIENT_IDLE_DELAY = 1000 * 60;
 /**
  * Contains the model weights received from clients for a given task and round.
  * Stored by task ID, round number and client ID.
@@ -277,7 +277,6 @@ export function selectionStatus(request, response) {
   if (!clients.has(id)) {
     return _failRequest(response, type, 401);
   }
-
   if (!tasksStatus.has(task)) {
     return _failRequest(response, type, 404);
   }
@@ -294,10 +293,22 @@ export function selectionStatus(request, response) {
   );
 
   if (selectedClients.get(task).has(id)) {
-    response.send({ selected: true, round: tasksStatus.get(task).round });
+    /**
+     * Selection status "2" means the client is selected by the server and can proceed
+     * to the next round. The client that emitted the request updates their local round
+     * with the one provided by the server.
+     */
+    response.send({ selected: 2, round: tasksStatus.get(task).round });
+  } else if (tasksStatus.get(task).isRoundPending) {
+    /**
+     * If the round is pending, this means the client that requested
+     * to be selected should now wait for weights aggregation from the server.
+     * This ensures late clients start their rounds with the most recent model.
+     */
+    response.send({ selected: 1 });
   } else {
     selectedClientsQueue.get(task).add(id);
-    response.send({ selected: false });
+    response.send({ selected: 0 });
     _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN);
   }
   activeClients.get(id).requests += 1;
@@ -331,7 +342,7 @@ export function connect(request, response) {
   response.status(200).send();
 
   activeClients.set(id, { requests: 0 });
-  _checkForIdleClients(id, LONGER_IDLE_DELAY);
+  _checkForIdleClients(id, NEW_CLIENT_IDLE_DELAY);
 }
 
 /**
@@ -447,47 +458,49 @@ export function postWeights(request, response) {
 export async function aggregationStatus(request, response) {
   const type = REQUEST_TYPES.AGGREGATION_STATUS;
 
-  const code = _checkRequest(request);
-  if (code !== 200) {
-    return _failRequest(response, type, code);
-  }
-
   const task = request.params.task;
   const round = request.params.round;
   const id = request.params.id;
 
-  /**
-   * The task was not trained at all.
-   */
-  if (
-    !tasksStatus.get(task).isRoundPending &&
-    tasksStatus.get(task).round === 0
-  ) {
-    return _failRequest(response, type, 403);
+  if (!clients.has(id)) {
+    return _failRequest(response, type, 401);
   }
-  /**
-   * No weight was posted for this task's round.
-   */
-  if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
+  if (!tasksStatus.has(task)) {
     return _failRequest(response, type, 404);
   }
 
   _logsAppend(request, type);
-  /**
-   * Check whether the requested round has completed.
-   */
-  const aggregated =
-    !tasksStatus.get(task).isRoundPending ||
-    (tasksStatus.get(task).isRoundPending &&
-      round < tasksStatus.get(task).round);
-  /**
-   * If aggregation occured, make the client wait to get selected again so it can
-   * proceed to other jobs.
-   */
-  if (aggregated) {
+
+  response.status(200);
+  if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
+    /**
+     * If the round has no weights entry, this must come
+     * from a late client.
+     */
+    response.send({ aggregated: 0 });
+  } else if (
+    !tasksStatus.get(task).isRoundPending &&
+    round < tasksStatus.get(task).round
+  ) {
+    /**
+     * If aggregation occured, make the client wait to get selected for next round so
+     * it can proceed to other jobs. Does nothing if this is a late client.
+     */
     selectedClients.get(task).delete(id);
+    response.send({ aggregated: 1 });
+  } else if (
+    weightsMap.get(task).get(round).size >=
+    Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
+  ) {
+    /**
+     * To avoid any blocking state due to the disconnection of selected clients, allow
+     * this request to perform aggregation. This is merely a safeguard. Ideally, this
+     * should obviously be performed by the `postWeights` request handler directly, to
+     * avoid any unnecesary delay.
+     */
+    setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN);
+    response.send({ aggregated: 0 });
   }
-  response.status(200).send({ aggregated: aggregated });
   activeClients.get(id).requests += 1;
   _checkForIdleClients(id, IDLE_DELAY);
 }
