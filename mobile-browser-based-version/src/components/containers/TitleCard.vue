@@ -1,7 +1,7 @@
 <template>
   <!-- Title's card-->
   <Card>
-    <div class="ml-10 text-xl text-gray-500 dark:text-light ont-semibold">
+    <div class="ml-10 text-xl text-gray-500 dark:text-light">
       <span class="text-primary-dark dark:text-primary-light">
         {{ title }}
         <span class="underline" v-if="titleUnderlined">{{

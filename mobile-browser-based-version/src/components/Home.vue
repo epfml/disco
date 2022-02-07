@@ -1,22 +1,8 @@
 <template>
   <base-layout customClass="pt-4">
     <!-- Welcoming words -->
-    <div>
-      <h1 class="text-xl pl-10 font-medium leading-none">
-        <span class="text-primary-dark dark:text-primary-light"
-          >{{ $t('home.title.name') }}
-        </span>
-        -
-        <span class="text-primary-dark dark:text-primary-light">{{
-          $t('home.title.start')
-        }}</span
-        >{{ $t('home.title.middle') }}
-        <span class="text-primary-dark dark:text-primary-light">{{
-          $t('home.title.end')
-        }}</span>
-      </h1>
-    </div>
-
+    <custom-header />
+    <!-- Information sections -->
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
         <div v-for="build in $tm('home.buildCard')" :key="build.header.text">
@@ -88,14 +74,17 @@
 
 <script>
 import BaseLayout from './containers/BaseLayout.vue';
-import CustomButton from './simple/CustomButton.vue';
 import TitleCard from './containers/TitleCard.vue';
+import Card from './containers/Card.vue';
+import CustomHeader from './simple/CustomHeader.vue';
+import CustomButton from './simple/CustomButton.vue';
 import FederatedImage from '../assets/svg/FederatedImage.vue';
 import DecentralizedImage from '../assets/svg/DecentralizedImage.vue';
-import Card from './containers/Card.vue';
+
 
 import { useI18n } from 'vue-i18n';
 import { mapMutations } from 'vuex';
+
 
 export default {
   name: 'home',
@@ -110,6 +99,7 @@ export default {
     FederatedImage,
     DecentralizedImage,
     Card,
+    CustomHeader,
   },
   methods: {
     ...mapMutations(['setActivePage']),
