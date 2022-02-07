@@ -1,5 +1,5 @@
 <template>
-  <base-layout v-bind:withSection="true">
+  <base-layout :withSection="true">
     <!-- Form definition -->
     <vee-form v-slot="{ errors, handleSubmit }" :validation-schema="schema">
       <form @submit="handleSubmit($event, onSubmit)">
@@ -19,16 +19,16 @@
                       pr-4
                       dark:text-white
                     "
-                    v-bind:for="field.id"
+                    :for="field.id"
                   >
                     {{ field.name }}
                   </label>
                   <vee-field
                     v-if="field.type == 'select' && field.id == 'dataType'"
-                    v-bind:as="field.type"
+                    :as="field.type"
                     v-model="dataType"
-                    v-bind:name="field.id"
-                    v-bind:id="field.id"
+                    :name="field.id"
+                    :id="field.id"
                     class="
                       bg-transparent
                       border-b
@@ -55,9 +55,9 @@
 
                   <vee-field
                     v-else-if="field.type == 'select' && field.id != 'dataType'"
-                    v-bind:as="field.type"
-                    v-bind:name="field.id"
-                    v-bind:id="field.id"
+                    :as="field.type"
+                    :name="field.id"
+                    :id="field.id"
                     class="
                       bg-transparent
                       border-b
@@ -85,8 +85,8 @@
                   <vee-field
                     v-else-if="field.type == 'select-multiple'"
                     as="select"
-                    v-bind:name="field.id"
-                    v-bind:id="field.id"
+                    :name="field.id"
+                    :id="field.id"
                     class="
                       bg-transparent
                       border-b
@@ -169,11 +169,11 @@
                         </div>
 
                         <vee-field
-                          v-bind:type="field.type"
-                          v-bind:name="field.id"
-                          v-bind:id="field.id"
+                          :type="field.type"
+                          :name="field.id"
+                          :id="field.id"
                           class="h-full w-full opacity-0"
-                          v-bind:accept="field.extension"
+                          :accept="field.extension"
                         />
                       </div>
                     </div>
@@ -187,13 +187,13 @@
                         ><i class="fa fa-lock mr-1"></i> secure</span
                       >
                     </div>
-                    <ErrorMessage class="text-red-600" v-bind:name="field.id" />
+                    <ErrorMessage class="text-red-600" :name="field.id" />
                   </div>
 
                   <FieldArray
                     v-else-if="field.type == 'array'"
-                    v-bind:name="field.id"
-                    v-bind:id="field.id"
+                    :name="field.id"
+                    :id="field.id"
                     v-slot="{ fields, push, remove }"
                   >
                     <br />
@@ -210,7 +210,7 @@
                           <vee-field
                             :id="`${field.id}_${idx}`"
                             :name="`${field.id}[${idx}]`"
-                            v-bind:placeholder="field.default"
+                            :placeholder="field.default"
                             class="
                               inline
                               bg-gray-100
@@ -309,8 +309,8 @@
 
                   <FieldArray
                     v-else-if="field.type == 'arrayObject'"
-                    v-bind:name="field.id"
-                    v-bind:id="field.id"
+                    :name="field.id"
+                    :id="field.id"
                     v-slot="{ fields, push, remove }"
                   >
                     <br />
@@ -324,7 +324,7 @@
                             space-x-2
                           "
                         >
-                          <div v-for="e in field.elements" v-bind:key="e.key">
+                          <div v-for="e in field.elements" :key="e.key">
                             <div class="w-2/5 md:w-full">
                               <label
                                 :for="`${e.key}_${idx}`"
@@ -334,7 +334,7 @@
                               <vee-field
                                 :id="`${e.key}_${idx}`"
                                 :name="`${field.id}[${idx}].${e.key}`"
-                                v-bind:placeholder="e.default"
+                                :placeholder="e.default"
                                 class="
                                   inline
                                   bg-gray-100
@@ -457,8 +457,8 @@
 
                   <div v-else>
                     <vee-field
-                      v-bind:name="field.id"
-                      v-bind:id="field.id"
+                      :name="field.id"
+                      :id="field.id"
                       class="
                         bg-transparent
                         border-b
@@ -471,20 +471,20 @@
                         dark:text-gray-100
                         pb-1
                       "
-                      v-bind:as="field.as ? field.as : field.type"
-                      v-bind:type="field.type"
-                      v-bind:placeholder="field.default"
-                      v-bind:rows="
+                      :as="field.as ? field.as : field.type"
+                      :type="field.type"
+                      :placeholder="field.default"
+                      :rows="
                         field.as === 'textarea'
                           ? field.type === 'number'
                             ? 1
                             : 6
                           : undefined
                       "
-                      v-bind:value="
+                      :value="
                         field.type === 'checkbox' ? field.default : undefined
                       "
-                      v-bind:step="
+                      :step="
                         field.type === 'number' && field.as === 'textarea'
                           ? 'any'
                           : undefined
@@ -492,7 +492,7 @@
                     />
                   </div>
 
-                  <ErrorMessage class="text-red-600" v-bind:name="field.id" />
+                  <ErrorMessage class="text-red-600" :name="field.id" />
                   <span>{{ errors.field }}</span>
                 </div>
               </div>
@@ -583,12 +583,12 @@
 <script>
 // WARNING: temporay code until serialization of Task object
 // Import the tasks objects Here
-import { mapMutations } from 'vuex';
-import BaseLayout from './containers/BaseLayout.vue';
-import _ from 'lodash';
-import sections from '../helpers/task_definition/form.config.js';
-import TitleCard from './containers/TitleCard.vue';
-import axios from 'axios';
+import { mapMutations } from "vuex";
+import BaseLayout from "./containers/BaseLayout.vue";
+import _ from "lodash";
+import sections from "../helpers/task_definition/form.config.js";
+import TitleCard from "./containers/TitleCard.vue";
+import axios from "axios";
 
 import {
   Field as VeeField,
@@ -596,11 +596,11 @@ import {
   ErrorMessage,
   FieldArray,
   handleSubmit,
-} from 'vee-validate';
-import * as yup from 'yup';
+} from "vee-validate";
+import * as yup from "yup";
 
 export default {
-  name: 'NewTaskCreationForm',
+  name: "NewTaskCreationForm",
   components: {
     BaseLayout,
     TitleCard,
@@ -611,7 +611,7 @@ export default {
   },
   data() {
     // data property defining which task-specific fields should be rendered
-    const dataType = 'csv';
+    const dataType = "csv";
     const formSections = sections;
     // validation schema used by the yup package
     let schemaData = {};
@@ -633,7 +633,7 @@ export default {
     };
   },
   methods: {
-    ...mapMutations(['addNewTask', 'setActivePage']),
+    ...mapMutations(["addNewTask", "setActivePage"]),
     allFields(formSection) {
       return _.concat(formSection.fields, formSection[this.dataType]);
     },
@@ -645,16 +645,16 @@ export default {
           section.fields,
           (acc, field) => {
             acc[field.id] =
-              field.type === 'number' ? Number(task[field.id]) : task[field.id];
+              field.type === "number" ? Number(task[field.id]) : task[field.id];
             return acc;
           },
           {}
         ));
       });
-      formated.trainingInformation['modelCompileData'] = _.cloneDeep(
+      formated.trainingInformation["modelCompileData"] = _.cloneDeep(
         formated.modelCompileData
       );
-      formated.trainingInformation['dataType'] = task.dataType;
+      formated.trainingInformation["dataType"] = task.dataType;
       formated.trainingInformation.modelTrainData = _.reduce(
         task.modelTrainData,
         (acc, f) => {
@@ -663,8 +663,8 @@ export default {
         },
         {}
       );
-      _.unset(formated, 'modelCompileData');
-      _.unset(formated, 'generalInformation');
+      _.unset(formated, "modelCompileData");
+      _.unset(formated, "generalInformation");
       return formated;
     },
 
@@ -715,9 +715,9 @@ export default {
       this.goToHome();
     },
     goToHome() {
-      this.setActivePage('home');
+      this.setActivePage("home");
       this.$router.push({
-        path: '/',
+        path: "/",
       });
     },
   },

@@ -1,18 +1,18 @@
 <template>
   <!-- If we bind the key to the platform, then whenever \
   the platform is changed the component will be re-built. -->
-  <div v-bind:key="this.$store.state.platform">
+  <div :key="this.$store.state.platform">
     <!-- CSV tasks -->
     <csv-training-frame
       v-if="task.trainingInformation.dataType == 'csv'"
-      v-bind:id="id"
-      v-bind:task="task"
+      :id="id"
+      :task="task"
     />
     <!-- image tasks -->
     <image-training-frame
       v-else-if="task.trainingInformation.dataType == 'image'"
-      v-bind:id="id"
-      v-bind:task="task"
+      :id="id"
+      :task="task"
     />
   </div>
 </template>

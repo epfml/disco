@@ -39,7 +39,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
               </div>
               <button
                 class="relative focus:outline-none"
-                v-on:click="toggleUseWorkingModel()"
+                @click="toggleUseWorkingModel()"
               >
                 <div
                   class="
@@ -78,7 +78,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
             </div>
             <div class="flex pt-4 space-x-4 justify-center">
               <button
-                v-on:click="saveModel()"
+                @click="saveModel()"
                 class="
                   flex
                   items-center
@@ -108,7 +108,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
                 <span>Save Model</span>
               </button>
               <button
-                v-on:click="deleteModel()"
+                @click="deleteModel()"
                 class="
                   flex
                   items-center
@@ -153,7 +153,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
   <div class="flex items-center justify-center p-4">
     <custom-button
       id="train-model-button"
-      v-on:click="goToTraining()"
+      @click="goToTraining()"
       :center="true"
     >
       Join Training
@@ -162,16 +162,16 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
 </template>
 
 <script>
-import * as memory from '../../helpers/memory/helpers';
-import CustomButton from '../simple/CustomButton.vue';
-import Tasks from '../../assets/svg/Tasks.vue';
-import Model from '../../assets/svg/Model.vue';
-import Clock from '../../assets/svg/Clock.vue';
-import IconCard from '../containers/IconCard.vue';
-import { mapState } from 'vuex';
+import * as memory from "../../helpers/memory/helpers";
+import CustomButton from "../simple/CustomButton.vue";
+import Tasks from "../../assets/svg/Tasks.vue";
+import Model from "../../assets/svg/Model.vue";
+import Clock from "../../assets/svg/Clock.vue";
+import IconCard from "../containers/IconCard.vue";
+import { mapState } from "vuex";
 
 export default {
-  name: 'description-frame',
+  name: "description-frame",
   props: {
     overviewText: String,
     modelText: String,
@@ -192,8 +192,8 @@ export default {
       workingModelExists: false,
       workingModelExistsOnMount: false,
       useWorkingModel: false,
-      dateSaved: '',
-      hourSaved: '',
+      dateSaved: "",
+      hourSaved: "",
     };
   },
   watch: {
@@ -212,7 +212,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(['useIndexedDB', 'isDark']),
+    ...mapState(["useIndexedDB", "isDark"]),
     /**
      * Returns true if a new model needs to be created
      */
@@ -237,7 +237,7 @@ export default {
         setTimeout(this.$toast.clear, 30000);
       }
       this.$router.push({
-        name: this.id + '.training',
+        name: this.id + ".training",
         params: { id: this.id },
       });
     },
@@ -312,17 +312,17 @@ export default {
           this.workingModelExistsOnMount = true;
           this.workingModelExists = true;
           let date = workingModelMetadata.dateSaved;
-          let zeroPad = (number) => String(number).padStart(2, '0');
+          let zeroPad = (number) => String(number).padStart(2, "0");
           this.dateSaved = [
             date.getDate(),
             date.getMonth() + 1,
             date.getFullYear(),
           ]
             .map(zeroPad)
-            .join('/');
+            .join("/");
           this.hourSaved = [date.getHours(), date.getMinutes()]
             .map(zeroPad)
-            .join('h');
+            .join("h");
         }
       }
     });

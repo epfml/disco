@@ -9,7 +9,7 @@
           <p v-else>
             The model library is currently unavailable. You can turn it on in
             the
-            <button class="text-blue-600" v-on:click="switchToSettings()">
+            <button class="text-blue-600" @click="switchToSettings()">
               settings menu</button
             >.
           </p>
@@ -39,10 +39,7 @@
                 dark:focus:ring-offset-dark dark:focus:ring-primary-dark
               "
             >
-              <div
-                class="cursor-pointer w-2/3"
-                v-on:click="openTesting(item[1])"
-              >
+              <div class="cursor-pointer w-2/3" @click="openTesting(item[1])">
                 <span>
                   {{ item[1].modelName.substring(0, 16) }} <br />
                   <span class="text-xs">
@@ -53,7 +50,7 @@
               </div>
               <div class="w-1/9">
                 <button
-                  v-on:click="deleteModel(item[0])"
+                  @click="deleteModel(item[0])"
                   :class="buttonClass(isDark)"
                 >
                   <span><bin2-icon /></span>
@@ -61,7 +58,7 @@
               </div>
               <div class="w-1/9">
                 <button
-                  v-on:click="downloadModel(item[1])"
+                  @click="downloadModel(item[1])"
                   :class="buttonClass(isDark)"
                 >
                   <span><download-2-icon /></span>
@@ -69,7 +66,7 @@
               </div>
               <div class="w-1/9">
                 <button
-                  v-on:click="loadModel(item[1])"
+                  @click="loadModel(item[1])"
                   :class="buttonClass(isDark)"
                 >
                   <span><load-icon /></span>
@@ -83,19 +80,19 @@
   </tippy-container>
 </template>
 <script>
-import * as memory from '../../helpers/memory/helpers';
-import * as tf from '@tensorflow/tfjs';
-import { mapState } from 'vuex';
-import Bin2Icon from '../../assets/svg/Bin2Icon.vue';
-import Download2Icon from '../../assets/svg/Download2Icon.vue';
-import LoadIcon from '../../assets/svg/LoadIcon.vue';
-import StackIcon from '../../assets/svg/StackIcon.vue';
-import TippyCard from './containers/TippyCard.vue';
-import TippyContainer from './containers/TippyContainer.vue';
+import * as memory from "../../helpers/memory/helpers";
+import * as tf from "@tensorflow/tfjs";
+import { mapState } from "vuex";
+import Bin2Icon from "../../assets/svg/Bin2Icon.vue";
+import Download2Icon from "../../assets/svg/Download2Icon.vue";
+import LoadIcon from "../../assets/svg/LoadIcon.vue";
+import StackIcon from "../../assets/svg/StackIcon.vue";
+import TippyCard from "./containers/TippyCard.vue";
+import TippyContainer from "./containers/TippyContainer.vue";
 
 export default {
-  name: 'model-library',
-  emits: ['switch-panel'],
+  name: "model-library",
+  emits: ["switch-panel"],
   components: {
     Bin2Icon,
     Download2Icon,
@@ -110,42 +107,42 @@ export default {
     };
   },
   computed: {
-    ...mapState(['useIndexedDB']),
+    ...mapState(["useIndexedDB"]),
   },
   methods: {
     buttonClass: function (state) {
       return `flex items-center grid-cols-3 justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark ${
         state
-          ? 'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100'
-          : 'text-gray-500 dark:text-primary-light'
+          ? "border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100"
+          : "text-gray-500 dark:text-primary-light"
       }`;
     },
     switchToSettings() {
-      this.$emit('switch-panel');
+      this.$emit("switch-panel");
     },
     async refreshModelLibrary() {
-      console.log('Refreshing the model library.');
+      console.log("Refreshing the model library.");
       this.modelMap.clear();
       await tf.io.listModels().then((models) => {
         for (let savePath in models) {
-          let [location, _, directory, task, name] = savePath.split('/');
-          if (!(location === 'indexeddb:' && directory === 'saved')) {
+          let [location, _, directory, task, name] = savePath.split("/");
+          if (!(location === "indexeddb:" && directory === "saved")) {
             continue;
           }
 
           let modelMetadata = models[savePath];
           let date = new Date(modelMetadata.dateSaved);
-          let zeroPad = (number) => String(number).padStart(2, '0');
+          let zeroPad = (number) => String(number).padStart(2, "0");
           let dateSaved = [
             date.getDate(),
             date.getMonth() + 1,
             date.getFullYear(),
           ]
             .map(zeroPad)
-            .join('/');
+            .join("/");
           let hourSaved = [date.getHours(), date.getMinutes()]
             .map(zeroPad)
-            .join('h');
+            .join("h");
           let size =
             modelMetadata.modelTopologyBytes +
             modelMetadata.weightSpecsBytes +
@@ -170,7 +167,7 @@ export default {
     },
 
     openTesting(modelMetadata) {
-      this.$router.push({ name: modelMetadata.taskID.concat('.testing') });
+      this.$router.push({ name: modelMetadata.taskID.concat(".testing") });
     },
 
     downloadModel(modelMetadata) {

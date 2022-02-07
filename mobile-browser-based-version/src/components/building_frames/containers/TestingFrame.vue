@@ -5,9 +5,9 @@
       <!-- Upload File -->
       <div class="relative">
         <uploading-frame
-          v-bind:id="id"
-          v-bind:task="task"
-          v-bind:fileUploadManager="tester.fileUploadManager"
+          :id="id"
+          :task="task"
+          :fileUploadManager="tester.fileUploadManager"
           v-if="tester.fileUploadManager"
         />
       </div>
@@ -15,7 +15,7 @@
       <!-- Test Button -->
       <div class="flex items-center justify-center p-4">
         <custom-button
-          v-on:click="tester.testModel(downloadPredictions)"
+          @click="tester.testModel(downloadPredictions)"
           :center="true"
         >
           Test
@@ -28,14 +28,14 @@
 </template>
 
 <script>
-import UploadingFrame from '../upload/UploadingFrame.vue';
-import CustomButton from '../../simple/CustomButton.vue';
-import ActionFrame from './ActionFrame.vue';
+import UploadingFrame from "../upload/UploadingFrame.vue";
+import CustomButton from "../../simple/CustomButton.vue";
+import ActionFrame from "./ActionFrame.vue";
 
-import { Tester } from '../../../helpers/testing/tester.js';
+import { Tester } from "../../../helpers/testing/tester.js";
 
 export default {
-  name: 'TestingFrame',
+  name: "TestingFrame",
   props: {
     id: String,
     task: Object,
@@ -54,10 +54,10 @@ export default {
   },
 
   methods: {
-    async downloadPredictions(csvContent, fileName = 'predictions.csv') {
+    async downloadPredictions(csvContent, fileName = "predictions.csv") {
       // artificially creates a <a> tag to simulate click event and triger download
-      var downloadLink = document.createElement('a');
-      var blob = new Blob(['\ufeff', csvContent]);
+      var downloadLink = document.createElement("a");
+      var blob = new Blob(["\ufeff", csvContent]);
       var url = URL.createObjectURL(blob);
       downloadLink.href = url;
       downloadLink.download = fileName;

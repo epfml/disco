@@ -8,7 +8,7 @@
           :src="
             helper.getExampleImage(task.displayInformation.dataExampleImage)
           "
-          v-bind:alt="task.displayInformation.dataExampleImage"
+          :alt="task.displayInformation.dataExampleImage"
         /><img />
       </div>
     </template>
@@ -17,11 +17,11 @@
 </template>
 
 <script>
-import TrainingFrame from '../containers/TrainingFrame.vue';
-import { ImageTaskHelper } from '../../../helpers/task_definition/image/helper';
+import TrainingFrame from "../containers/TrainingFrame.vue";
+import { ImageTaskHelper } from "../../../helpers/task_definition/image/helper";
 
 export default {
-  name: 'image-training-frame',
+  name: "image-training-frame",
   props: {
     id: String,
     task: Object,

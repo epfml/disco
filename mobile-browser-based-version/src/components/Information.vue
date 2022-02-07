@@ -1,5 +1,5 @@
 <template>
-  <base-layout v-bind:withSection="true" customClass="pt-4">
+  <base-layout :withSection="true" customClass="pt-4">
     <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
       <card customClass="hover:text-primary dark:hover:text-light">
         <h6
@@ -13,7 +13,7 @@
             py-6
           "
         >
-          {{ $tm('information.informationTitle') }}
+          {{ $tm("information.informationTitle") }}
         </h6>
         <div class="ml-10">
           <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
@@ -100,7 +100,7 @@
               py-6
             "
           >
-            {{ $tm('information.featuresTitle') }}
+            {{ $tm("information.featuresTitle") }}
           </h6>
           <div class="ml-10">
             <div
@@ -136,7 +136,7 @@
               py-6
             "
           >
-            {{ $tm('information.howToUseTitle') }}
+            {{ $tm("information.howToUseTitle") }}
           </h6>
           <div class="ml-10">
             <div
@@ -170,7 +170,7 @@
                 py-6
               "
             >
-              {{ $tm('information.furtherLinksTitle') }}
+              {{ $tm("information.furtherLinksTitle") }}
             </h6>
             <ul class="text-lg ont-semibold text-gray-500 dark:text-light p-4">
               This app was developped in the Machine Learning and Optimization
@@ -209,12 +209,12 @@
 </template>
 
 <script>
-import BaseLayout from './containers/BaseLayout.vue';
-import Card from './containers/Card.vue';
-import { useI18n } from 'vue-i18n';
+import BaseLayout from "./containers/BaseLayout.vue";
+import Card from "./containers/Card.vue";
+import { useI18n } from "vue-i18n";
 
 export default {
-  name: 'information',
+  name: "information",
   setup() {
     const { t, locale } = useI18n();
     return { t, locale };
