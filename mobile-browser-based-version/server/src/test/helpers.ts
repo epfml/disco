@@ -1,15 +1,15 @@
-export function sleep(time) {
-  return new Promise((resolve) => setTimeout(resolve, time));
+export function sleep (time) {
+  return new Promise((resolve) => setTimeout(resolve, time))
 }
 
-export function craftPostRequest(property, value) {
-  const body = {};
-  body[property] = value;
+export function craftPostRequest (property, value) {
+  const body = {}
+  body[property] = value
   return {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify(body),
-  };
+    body: JSON.stringify(body)
+  }
 }
