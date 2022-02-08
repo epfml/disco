@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import * as tf from '@tensorflow/tfjs';
 import { checkData } from '../../data_validation/helpers_csv_tasks.js';
-import { Task } from '../task.js';
+import { Task } from '../base/task.js';
 /**
  * Dummy class to hold the Titanic Task information
  */
@@ -18,7 +18,6 @@ export class CsvTask extends Task {
     var ytrain = null;
 
     // Check some basic prop. in the user's uploaded file
-
     var checkResult = await checkData(file, headers);
     var startTraining = checkResult.accepted;
     var headerCopied = checkResult.userHeader;

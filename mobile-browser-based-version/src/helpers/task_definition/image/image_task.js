@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
-import { Task } from '../task.js';
+import { Task } from '../base/task.js';
 import { getTopKClasses } from '../../testing/testing_script.js';
 import Papa from 'papaparse';
 
