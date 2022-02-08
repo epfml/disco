@@ -4,4 +4,6 @@
       "module": "CommonJS",
       "esModuleInterop": true,
     },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "models"],
 }
