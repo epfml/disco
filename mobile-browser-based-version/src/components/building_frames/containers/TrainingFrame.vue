@@ -21,9 +21,13 @@
             Train Locally
           </custom-button>
           <custom-button
+            v-if="isPersonalizationUsable()"
             v-on:click="showDistributedOptions = !showDistributedOptions"
             :center="true"
           >
+            Train {{ this.$t('platform') }}
+          </custom-button>
+          <custom-button v-else v-on:click="joinTraining(true)" :center="true">
             Train {{ this.$t('platform') }}
           </custom-button>
 
@@ -44,7 +48,7 @@
               :center="true"
               text="Adjust for interoperability"
               v-on:click="useInteroperability = !useInteroperability"
-              :isClickable="isPersonalizationUsable('feai', 'csv')"
+              :isClickable="isPersonalizationUsable()"
             ></custom-slider>
             <custom-button v-on:click="joinTraining(true)" :center="true">
               Start {{ this.$t('platform') }} training
@@ -305,10 +309,9 @@ export default {
         }
       }
     },
-    isPersonalizationUsable(
-      requiredPlatform = 'any',
-      requiredDataType = 'any'
-    ) {
+    isPersonalizationUsable() {
+      const requiredPlatform = 'feai';
+      const requiredDataType = 'csv';
       // returns wether of not a given personalization is usable in the current settings.
       let usableOnPlatform =
         this.$store.getters.platform == requiredPlatform ||
