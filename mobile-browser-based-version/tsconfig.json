@@ -11,4 +11,6 @@
       ]
     },
   },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "server", "example_training_data"],
 }
