@@ -1,4 +1,9 @@
 class TreeNode {
+  id: any
+  leftChild: any
+  rightChild: any
+  parent: any
+
   constructor(id) {
     this.id = id;
     this.leftChild = null;
@@ -16,6 +21,8 @@ class TreeNode {
 }
 
 class BinaryTree {
+  root: any
+  index: any
   constructor() {
     this.root = null;
     this.index = {};

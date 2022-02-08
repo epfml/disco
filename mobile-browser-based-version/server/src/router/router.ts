@@ -5,7 +5,7 @@ import { writeNewTask, getTasks } from '../tasks/helpers'
 import { ExpressPeerServer } from 'peer'
 import { makeID } from '../helpers/helpers'
 import { createProxyMiddleware } from 'http-proxy-middleware'
-import * as config from '../../server.config'
+import * as config from '../server.config'
 
 const tasks = getTasks(config)
 
