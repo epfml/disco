@@ -1,4 +1,4 @@
-import { TaskHelper } from '../task.js';
+import { TaskHelper } from '../base/taskHelper.js';
 
 export class CsvTaskHelper extends TaskHelper {
   createContext() {

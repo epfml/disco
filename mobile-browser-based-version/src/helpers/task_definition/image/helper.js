@@ -1,4 +1,4 @@
-import { TaskHelper } from '../task.js';
+import { TaskHelper } from '../base/taskHelper.js';
 import {
   checkData,
   getExampleImage,
