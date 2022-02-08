@@ -3,7 +3,12 @@
       "target": "es6",
       "module": "CommonJS",
       "esModuleInterop": true,
+      "skipLibCheck": true,
+      "moduleResolution": "node",
+      "outDir": "./dist",
+      "baseUrl": "./src"
     },
     "include": ["src/**/*"],
-    "exclude": ["node_modules", "models"],
+    "exclude": ["./node_modules/", "./models/", "./tasks/"],
+    
 }

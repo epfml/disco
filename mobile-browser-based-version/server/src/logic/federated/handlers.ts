@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import msgpack from 'msgpack-lite'
-import * as config from '../../../server.config'
+import * as config from '../../server.config'
 import {
   averageWeights,
   assignWeightsToModel
