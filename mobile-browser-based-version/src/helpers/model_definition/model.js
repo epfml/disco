@@ -90,6 +90,9 @@ export class Model {
         `Previous working model was not of type ${this.typeOfPersonalization} : creating a new one`
       );
       this.model = await this._createModel();
+
+      // TODO: something like this would be good
+      // this.weights = this.model.weights;
     }
   }
 
@@ -120,6 +123,14 @@ export class Model {
    */
   getSharedModel() {
     return this.model;
+  }
+
+  /**
+   * Updates the shared model parameter
+   * @param {*} model
+   */
+  updateSharedModel(model) {
+    this.getSharedModel().setWeights(model.getWeights());
   }
 
   /**

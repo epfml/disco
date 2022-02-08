@@ -133,7 +133,9 @@ export class DecentralisedClient extends Client {
   async onEpochEndCommunication(model, epoch, trainingInformant) {
     super.onEpochEndCommunication();
     this.updateReceivers();
-    const serializedWeights = await serializeWeights(model.weights);
+    const serializedWeights = await serializeWeights(
+      model.getSharedModel().weights
+    );
     const epochWeights = { epoch: epoch, weights: serializedWeights };
 
     const threshold = this.task.trainingInformation.threshold ?? 1;
@@ -202,7 +204,7 @@ export class DecentralisedClient extends Client {
         // TODO: check whether to use averageWeights or assignWeightsToModel
         assignWeightsToModel(
           Object.values(this.recvBuffer.avgWeights).flat(1),
-          model
+          model.getSharedModel()
         );
 
         delete this.recvBuffer.avgWeights; // NOTE: this might delete useful weights...

@@ -121,12 +121,13 @@ export class FederatedClient extends Client {
     }
   }
 
+  // TODO: Damien (could be improved)
   async handleInteroperabilityCommunications(model, trainingInformant) {
     let heatmapData = model.getInteroperabilityParameters();
 
     // Send Interoperability parameters.
     await this.postInteroperabilityParameters(heatmapData);
-    // TODO : check that everybody has sent the parameters. 
+    // TODO : check that everybody has sent the parameters.
     const interoperabilityStatus = await getSuccessfulResponse(
       api.interoperabilityStatus,
       'aggregated',
@@ -200,6 +201,13 @@ export class FederatedClient extends Client {
     }
   }
 
+  async _updateSharedModel(model) {
+    let updatedModel = await this.task.createModel();
+    model.updateSharedModel(updatedModel);
+
+    console.log('Updated local model');
+  }
+
   async onEpochBeginCommunication(model, epoch, trainingInformant) {
     await super.onEpochBeginCommunication(model, epoch, trainingInformant);
     /**
@@ -256,8 +264,8 @@ export class FederatedClient extends Client {
       /**
        * Update local weights with the most recent model stored on server.
        */
-      model = this.task.createModel();
-      console.log('Updated local model');
+      this._updateSharedModel(model);
+
       /**
        * The client can resume selection phase.
        */
@@ -334,8 +342,6 @@ export class FederatedClient extends Client {
      * Update local weights with the most recent model stored on server.
      */
     this.selected = false;
-    let updatedModel = await this.task.createModel();
-
-    model.getSharedModel().setWeights(updatedModel.getWeights());
+    this._updateSharedModel(model);
   }
 }

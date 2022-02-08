@@ -80,7 +80,7 @@ export class TrainingManager {
   async _onEpochBegin(epoch) {
     console.log(`EPOCH (${epoch + 1}):`);
     await this.client.onEpochBeginCommunication(
-      this.modelWrapper.getSharedModel(),
+      this.modelWrapper,
       epoch,
       this.trainingInformant
     );
@@ -158,6 +158,7 @@ export class TrainingManager {
    * subroutine.
    */
   async _onTrainBegin() {
+    // TODO this dosen't do anything.
     await this.client.onTrainBeginCommunication(
       this.modelWrapper,
       this.trainingInformant
@@ -185,7 +186,9 @@ export class TrainingManager {
   async _modelFitData(model, trainingInformation, callbacks) {
     const tensor = preprocessData(this.data, trainingInformation);
 
-    const initialEpoch = this.modelWrapper.getModel().getUserDefinedMetadata().epoch
+    const initialEpoch = this.modelWrapper
+      .getModel()
+      .getUserDefinedMetadata().epoch;
     await model.fit(tensor, this.labels, {
       initialEpoch: initialEpoch,
       epochs: trainingInformation.epochs ?? MANY_EPOCHS,

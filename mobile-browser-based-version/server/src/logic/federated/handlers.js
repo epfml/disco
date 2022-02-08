@@ -651,7 +651,7 @@ export function getInteroperabilityParameters(request, response) {
           ? parameterList.map((n) => (n * n) / squaredSum)
           : parameterList;
       });
-      */ 
+      */
       // Add client data to the parameters
       parameters.weightsIn.push({ name: name, data: Object.values(value[0]) });
       parameters.biasesIn.push({ name: name, data: Object.values(value[1]) });
