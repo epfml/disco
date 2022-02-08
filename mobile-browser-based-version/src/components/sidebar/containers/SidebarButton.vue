@@ -34,14 +34,14 @@ export default {
     click: { default: () => {}, type: Function },
     hoverText: { default: '', type: String },
     activePage: { default: 'home', type: String },
-    customClass: { default: '', type: String },
+    customClass: { default: '', type: String }
   },
   methods: {
     firstLetterUppercase: function (str) {
-      return !str || str.charAt(0).toUpperCase() + str.slice(1);
-    },
-  },
-};
+      return !str || str.charAt(0).toUpperCase() + str.slice(1)
+    }
+  }
+}
 </script>
 
 <style></style>

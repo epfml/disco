@@ -51,38 +51,38 @@
   </div>
 </template>
 
-<script>
-import DownArrow from '../../assets/svg/DownArrow.vue';
-import UpArrow from '../../assets/svg/UpArrow.vue';
+<script type="ts">
+import DownArrow from '../../assets/svg/DownArrow.vue'
+import UpArrow from '../../assets/svg/UpArrow.vue'
 export default {
   name: 'icon-card',
   components: {
     DownArrow,
-    UpArrow,
+    UpArrow
   },
   props: {
     header: { type: String },
     description: { type: String },
     customClass: { default: '', type: String },
-    withToggle: { default: false, type: Boolean },
+    withToggle: { default: false, type: Boolean }
   },
-  data() {
+  data () {
     return {
-      showCardContent: true,
-    };
+      showCardContent: true
+    }
   },
   methods: {
-    hideToggleAction() {
-      this.showCardContent = !this.showCardContent;
-    },
+    hideToggleAction () {
+      this.showCardContent = !this.showCardContent
+    }
   },
   computed: {
-    hasExtraSlot() {
-      return this.$slots.extra;
-    },
+    hasExtraSlot () {
+      return this.$slots.extra
+    }
   },
-  mounted() {
-    this.showCardContent = !this.withToggle;
-  },
-};
+  mounted () {
+    this.showCardContent = !this.withToggle
+  }
+}
 </script>

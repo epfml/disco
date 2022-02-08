@@ -20,57 +20,57 @@
   </training-frame>
 </template>
 
-<script>
-import { checkData } from '../../../helpers/data_validation/helpers_image_tasks.js';
-import TrainingFrame from '../containers/TrainingFrame.vue';
+<script type="ts">
+import { checkData } from '../../../helpers/data_validation/helpers_image_tasks.ts'
+import TrainingFrame from '../containers/TrainingFrame.vue'
 
 export default {
   name: 'image-training-frame',
   props: {
     Id: String,
-    Task: Object,
+    Task: Object
   },
   components: {
-    TrainingFrame,
+    TrainingFrame
   },
-  data() {
+  data () {
     return {
       // variables for general informations
       dataExampleImage: '',
       dataExample: null,
       // different task labels
-      taskLabels: [],
-    };
+      taskLabels: []
+    }
   },
   methods: {
-    getImage(url) {
-      if (url == '') {
-        return null;
+    getImage (url) {
+      if (url === '') {
+        return null
       }
-      var images = require.context('../../../../example_training_data/', false);
-      return images(url);
+      const images = require.context('../../../../example_training_data/', false)
+      return images(url)
     },
     /**
      * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
      */
-    async dataPreprocessing(filesElement) {
+    async dataPreprocessing (filesElement) {
       return new Promise((resolve, reject) => {
-        let processedData = this.Task.dataPreprocessing(filesElement);
-        resolve(processedData);
-      });
+        const processedData = this.Task.dataPreprocessing(filesElement)
+        resolve(processedData)
+      })
     },
-    precheckData(filesElement, info) {
-      return checkData(filesElement, info);
-    },
+    precheckData (filesElement, info) {
+      return checkData(filesElement, info)
+    }
   },
-  async mounted() {
+  async mounted () {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // initialize information variables
-      this.dataExample = this.Task.displayInformation.dataExample;
-      this.taskLabels = this.Task.trainingInformation.LABEL_LIST;
-      this.dataExampleImage = this.Task.displayInformation.dataExampleImage;
-    });
-  },
-};
+      this.dataExample = this.Task.displayInformation.dataExample
+      this.taskLabels = this.Task.trainingInformation.LABEL_LIST
+      this.dataExampleImage = this.Task.displayInformation.dataExampleImage
+    })
+  }
+}
 </script>

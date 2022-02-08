@@ -117,58 +117,58 @@
   </training-frame>
 </template>
 
-<script>
-import TrainingFrame from '../containers/TrainingFrame.vue';
-import IconCard from '../../containers/IconCard.vue';
-import Bezier2 from '../../../assets/svg/Bezier2.vue';
+<script type="ts">
+import TrainingFrame from '../containers/TrainingFrame.vue'
+import IconCard from '../../containers/IconCard.vue'
+import Bezier2 from '../../../assets/svg/Bezier2.vue'
 
 export default {
   name: 'csv-training-frame',
   props: {
     Id: String,
-    Task: Object,
+    Task: Object
   },
-  data() {
+  data () {
     return {
       // Headers related to training task of containing item of the form {id: "", userHeader: ""}
       headers: [],
-      dataExample: null,
-    };
+      dataExample: null
+    }
   },
 
   methods: {
     /**
      * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
      */
-    async dataPreprocessing(filesElement) {
+    async dataPreprocessing (filesElement) {
       return new Promise((resolve, reject) => {
-        let reader = new FileReader();
+        const reader = new FileReader()
         reader.onload = async (e) => {
           // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-          var processedData = await this.Task.dataPreprocessing(
+          const processedData = await this.Task.dataPreprocessing(
             e,
             this.headers
-          );
-          resolve(processedData);
-        };
-        reader.readAsText(filesElement);
-      });
-    },
+          )
+          resolve(processedData)
+        }
+        reader.readAsText(filesElement)
+      })
+    }
   },
   components: {
     TrainingFrame,
     IconCard,
-    Bezier2,
+    Bezier2
   },
 
-  async mounted() {
+  async mounted () {
     // This method is called when the component is created
     this.$nextTick(async function () {
-      this.dataExample = this.Task.displayInformation.dataExample;
+      this.dataExample = this.Task.displayInformation.dataExample
       this.Task.displayInformation.headers.forEach((item) => {
-        this.headers.push({ id: item, userHeader: item });
-      });
-    });
-  },
-};
+        this.headers.push({ id: item, userHeader: item })
+      })
+    })
+  }
+}
 </script>

@@ -17,9 +17,9 @@
 </template>
 
 <script>
-import Upload from '../../../assets/svg/Upload.vue';
-import IconCard from '../../containers/IconCard.vue';
-import SingleUploadFrame from './SingleUploadFrame.vue';
+import Upload from '../../../assets/svg/Upload.vue'
+import IconCard from '../../containers/IconCard.vue'
+import SingleUploadFrame from './SingleUploadFrame.vue'
 
 export default {
   name: 'uploading-frame',
@@ -27,54 +27,54 @@ export default {
     Id: String,
     Task: Object,
     fileUploadManager: Object,
-    displayLabels: { default: true, type: Boolean },
+    displayLabels: { default: true, type: Boolean }
   },
   components: {
     SingleUploadFrame,
     Upload,
-    IconCard,
+    IconCard
   },
-  data() {
+  data () {
     return {
       labels: null,
       nbrLabels: null,
       csvLabels: false,
-      dataTypeIsCsv: false,
-    };
+      dataTypeIsCsv: false
+    }
   },
   methods: {
-    preview() {
+    preview () {
       // Preview only for csv (since there is no, "show only first n images").
-      return this.dataTypeIsCsv;
+      return this.dataTypeIsCsv
     },
-    header() {
+    header () {
       return !this.displayLabels
         ? 'Upload My Data'
         : this.csvLabels
-        ? 'Link My Data'
-        : 'Connect Data';
+          ? 'Link My Data'
+          : 'Connect Data'
     },
-    formatLabels() {
+    formatLabels () {
       return !this.displayLabels
         ? ['']
         : this.csvLabels
-        ? ['Images', 'Labels']
-        : this.nbrLabels == 1
-        ? [1]
-        : this.labels;
-    },
+          ? ['Images', 'Labels']
+          : this.nbrLabels === 1
+            ? [1]
+            : this.labels
+    }
   },
-  mounted() {
-    this.dataTypeIsCsv = this.Task.trainingInformation.dataType == 'csv';
+  mounted () {
+    this.dataTypeIsCsv = this.Task.trainingInformation.dataType === 'csv'
     if (this.Task.trainingInformation.LABEL_LIST) {
-      this.labels = this.Task.trainingInformation.LABEL_LIST;
-      this.nbrLabels = this.Task.trainingInformation.LABEL_LIST.length;
+      this.labels = this.Task.trainingInformation.LABEL_LIST
+      this.nbrLabels = this.Task.trainingInformation.LABEL_LIST.length
     } else {
-      this.nbrLabels = 1;
+      this.nbrLabels = 1
     }
     if (this.Task.trainingInformation.LABEL_ASSIGNMENT) {
-      this.csvLabels = true;
+      this.csvLabels = true
     }
-  },
-};
+  }
+}
 </script>

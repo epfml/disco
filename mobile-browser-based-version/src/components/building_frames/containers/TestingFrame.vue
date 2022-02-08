@@ -26,10 +26,10 @@
 </template>
 
 <script>
-import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
-import UploadingFrame from '../upload/UploadingFrame.vue';
-import CustomButton from '../../simple/CustomButton.vue';
-import ActionFrame from './ActionFrame.vue';
+import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager'
+import UploadingFrame from '../upload/UploadingFrame.vue'
+import CustomButton from '../../simple/CustomButton.vue'
+import ActionFrame from './ActionFrame.vue'
 
 export default {
   name: 'TestingFrame',
@@ -38,70 +38,70 @@ export default {
     Task: Object,
     nbrClasses: Number,
     makePredictions: Function,
-    predictionsToCsv: Function,
+    predictionsToCsv: Function
   },
   components: {
     ActionFrame,
     UploadingFrame,
-    CustomButton,
+    CustomButton
   },
-  data() {
+  data () {
     return {
       predictions: null,
       // takes care of uploading file process
-      fileUploadManager: new FileUploadManager(1, this),
-    };
+      fileUploadManager: new FileUploadManager(1, this)
+    }
   },
 
   methods: {
-    async downloadPredictions(csvContent, fileName = 'predictions.csv') {
+    async downloadPredictions (csvContent, fileName = 'predictions.csv') {
       // artificially creates a <a> tag to simulate click event and triger download
-      var downloadLink = document.createElement('a');
-      var blob = new Blob(['\ufeff', csvContent]);
-      var url = URL.createObjectURL(blob);
-      downloadLink.href = url;
-      downloadLink.download = fileName;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      this.$toast.success(`Predictions have been downloaded.`);
-      setTimeout(this.$toast.clear, 30000);
+      const downloadLink = document.createElement('a')
+      const blob = new Blob(['\ufeff', csvContent])
+      const url = URL.createObjectURL(blob)
+      downloadLink.href = url
+      downloadLink.download = fileName
+      document.body.appendChild(downloadLink)
+      downloadLink.click()
+      document.body.removeChild(downloadLink)
+      this.$toast.success('Predictions have been downloaded.')
+      setTimeout(this.$toast.clear, 30000)
     },
-    async testModel() {
-      const nbrFiles = this.fileUploadManager.numberOfFiles();
+    async testModel () {
+      const nbrFiles = this.fileUploadManager.numberOfFiles()
       // Check that the user indeed gave a file
-      if (nbrFiles == 0) {
-        this.$toast.error(`Training aborted. No uploaded file given as input.`);
-        setTimeout(this.$toast.clear, 30000);
+      if (nbrFiles === 0) {
+        this.$toast.error('Training aborted. No uploaded file given as input.')
+        setTimeout(this.$toast.clear, 30000)
       } else {
         // Assume we only read the first file
         this.$toast.success(
-          `Thank you for your contribution. Testing has started`
-        );
-        setTimeout(this.$toast.clear, 30000);
-        console.log(this.fileUploadManager);
-        var filesElement =
+          'Thank you for your contribution. Testing has started'
+        )
+        setTimeout(this.$toast.clear, 30000)
+        console.log(this.fileUploadManager)
+        let filesElement =
           nbrFiles > 1
             ? this.fileUploadManager.getFilesList()
-            : this.fileUploadManager.getFirstFile();
+            : this.fileUploadManager.getFirstFile()
         // filtering phase (optional)
         if (this.filterData) {
           // data checking is optional
           filesElement = await this.filterData(
             filesElement,
             this.Task.trainingInformation
-          );
+          )
         }
         // prediction
-        this.predictions = await this.makePredictions(filesElement);
+        this.predictions = await this.makePredictions(filesElement)
         // reset fileloader
-        this.fileUploadManager.clear();
+        this.fileUploadManager.clear()
         if (this.predictions) {
-          let csvContent = await this.predictionsToCsv(this.predictions);
-          await this.downloadPredictions(csvContent);
+          const csvContent = await this.predictionsToCsv(this.predictions)
+          await this.downloadPredictions(csvContent)
         }
       }
-    },
-  },
-};
+    }
+  }
+}
 </script>

@@ -16,7 +16,7 @@ export default {
   name: 'bezier2',
   props: {
     customClass: { default: 'bi bi-bezier2 w-7 h-7', type: String },
-    viewBox: { default: '0 0 16 16', type: String },
-  },
-};
+    viewBox: { default: '0 0 16 16', type: String }
+  }
+}
 </script>

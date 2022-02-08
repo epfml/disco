@@ -24,9 +24,9 @@ export default {
   props: {
     customClass: {
       default: 'h-9 w-5',
-      type: String,
+      type: String
     },
-    viewBox: { default: '0 0 24 24', type: String },
-  },
-};
+    viewBox: { default: '0 0 24 24', type: String }
+  }
+}
 </script>

@@ -22,7 +22,7 @@
             :class="buttonClass(this.$store.getters.isFederated)"
           >
             <span><federated-icon /></span>
-            <span>Federated</span>
+            <span>Federated {{this}}</span>
           </button>
         </div>
       </tippy-card>
@@ -34,13 +34,13 @@
         </span>
         <div class="flex items-center justify-center space-x-8">
           <button
-            :class="buttonClass()"
+            :class="buttonClass"
             v-on:click="setRequestPlatformChangeFalse"
           >
             <span class="text-s"> Cancel </span>
           </button>
 
-          <button :class="buttonClass()" v-on:click="changePlatform">
+          <button :class="buttonClass" v-on:click="changePlatform">
             <span class="text-s"> Confirm </span>
           </button>
         </div>
@@ -62,7 +62,7 @@
           </span>
 
           <div class="flex items-center justify-center">
-            <button :class="buttonClass()" v-on:click="toggleIndexedDB()">
+            <button :class="buttonClass" v-on:click="toggleIndexedDB()">
               <span class="text-s"> Use model library </span>
               <div class="relative focus:outline-none">
                 <div
@@ -142,19 +142,20 @@
     </template>
   </tippy-container>
 </template>
-<script>
-import { mapMutations } from 'vuex';
-import TippyCard from './containers/TippyCard.vue';
-import TippyContainer from './containers/TippyContainer.vue';
-import MoonIcon from '../../assets/svg/MoonIcon.vue';
-import StarIcon from '../../assets/svg/StarIcon.vue';
-import DecentralisedIcon from '../../assets/svg/DecentralisedIcon.vue';
-import FederatedIcon from '../../assets/svg/FederatedIcon.vue';
-import SettingsIcon from '../../assets/svg/SettingsIcon.vue';
-import { Platform } from '../../platforms/platform';
+<script lang="jsx">
+import { mapMutations } from 'vuex'
+import TippyCard from './containers/TippyCard.vue'
+import TippyContainer from './containers/TippyContainer.vue'
+import MoonIcon from '../../assets/svg/MoonIcon.vue'
+import StarIcon from '../../assets/svg/StarIcon.vue'
+import DecentralisedIcon from '../../assets/svg/DecentralisedIcon.vue'
+import FederatedIcon from '../../assets/svg/FederatedIcon.vue'
+import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
+import { Platform } from '../../platforms/platform'
+import { defineComponent } from 'vue'
 
-export default {
-  name: 'settings',
+export default defineComponent({
+  name: 'settings-sidebar',
   components: {
     TippyCard,
     TippyContainer,
@@ -162,13 +163,13 @@ export default {
     StarIcon,
     DecentralisedIcon,
     FederatedIcon,
-    SettingsIcon,
+    SettingsIcon
   },
   data: function () {
     return {
       colors: ['cyan', 'teal', 'green', 'fuchsia', 'blue', 'violet'],
-      requestPlatformChange: false,
-    };
+      requestPlatformChange: false
+    }
   },
   methods: {
     buttonClass: function (
@@ -180,97 +181,97 @@ export default {
         (state === undefined
           ? ' '
           : state
-          ? ' border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100'
-          : ' text-gray-500 dark:text-primary-light')
-      );
+            ? ' border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100'
+            : ' text-gray-500 dark:text-primary-light')
+      )
     },
     ...mapMutations([
       'setIndexedDB',
       'setAppTheme',
       'setActivePage',
-      'setPlatform',
+      'setPlatform'
     ]),
-    toggleIndexedDB() {
-      this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB);
+    toggleIndexedDB () {
+      this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB)
     },
-    setAppColors(color) {
-      const root = document.documentElement;
-      root.style.setProperty('--color-primary', `var(--color-${color})`);
-      root.style.setProperty('--color-primary-50', `var(--color-${color}-50)`);
+    setAppColors (color) {
+      const root = document.documentElement
+      root.style.setProperty('--color-primary', `var(--color-${color})`)
+      root.style.setProperty('--color-primary-50', `var(--color-${color}-50)`)
       root.style.setProperty(
         '--color-primary-100',
         `var(--color-${color}-100)`
-      );
+      )
       root.style.setProperty(
         '--color-primary-light',
         `var(--color-${color}-light)`
-      );
+      )
       root.style.setProperty(
         '--color-primary-lighter',
         `var(--color-${color}-lighter)`
-      );
+      )
       root.style.setProperty(
         '--color-primary-dark',
         `var(--color-${color}-dark)`
-      );
+      )
       root.style.setProperty(
         '--color-primary-darker',
         `var(--color-${color}-darker)`
-      );
+      )
     },
-    setBrowserColors(color) {
-      window.localStorage.setItem('color', color);
+    setBrowserColors (color) {
+      window.localStorage.setItem('color', color)
     },
-    setBrowserTheme(value) {
-      window.localStorage.setItem('dark', value);
+    setBrowserTheme (value) {
+      window.localStorage.setItem('dark', value)
     },
-    setColors(color) {
-      this.setAppColors(color);
-      this.setBrowserColors(color);
+    setColors (color) {
+      this.setAppColors(color)
+      this.setBrowserColors(color)
     },
-    setLightTheme() {
-      this.setAppTheme(false);
-      this.setBrowserTheme(false);
+    setLightTheme () {
+      this.setAppTheme(false)
+      this.setBrowserTheme(false)
     },
-    setDarkTheme() {
-      this.setAppTheme(true);
-      this.setBrowserTheme(true);
+    setDarkTheme () {
+      this.setAppTheme(true)
+      this.setBrowserTheme(true)
     },
-    setRequestPlatformChangeTrue() {
-      this.requestPlatformChange = true;
+    setRequestPlatformChangeTrue () {
+      this.requestPlatformChange = true
     },
-    setRequestPlatformChangeFalse() {
-      this.requestPlatformChange = false;
+    setRequestPlatformChangeFalse () {
+      this.requestPlatformChange = false
     },
-    getDefaultPlatformColor(platform) {
-      return platform == Platform.decentralized ? 'cyan' : 'violet';
+    getDefaultPlatformColor (platform) {
+      return platform === Platform.decentralized ? 'cyan' : 'violet'
     },
-    getNewPlatform(platform) {
-      return platform == Platform.decentralized
+    getNewPlatform (platform) {
+      return platform === Platform.decentralized
         ? Platform.federated
-        : Platform.decentralized;
+        : Platform.decentralized
     },
-    changePlatform() {
+    changePlatform () {
       // Get new platform and color
-      let platform = this.getNewPlatform(this.$store.state.platform);
-      let color = this.getDefaultPlatformColor(platform);
+      const platform = this.getNewPlatform(this.$store.state.platform)
+      const color = this.getDefaultPlatformColor(platform)
 
       // Set platform and color
-      this.setPlatform(platform);
-      this.setColors(color);
-      this.$i18n.locale = platform;
-      window.localStorage.setItem('platform', platform);
+      this.setPlatform(platform)
+      this.setColors(color)
+      this.$i18n.locale = platform
+      window.localStorage.setItem('platform', platform)
 
-      this.setRequestPlatformChangeFalse();
+      this.setRequestPlatformChangeFalse()
 
       // TODO
       // Add logout from server behavior.
-      this.goToHome();
+      this.goToHome()
     },
-    goToHome() {
-      this.setActivePage('home');
-      this.$router.push({ name: 'home' });
-    },
-  },
-};
+    goToHome () {
+      this.setActivePage('home')
+      this.$router.push({ name: 'home' })
+    }
+  }
+})
 </script>
