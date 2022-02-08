@@ -17,6 +17,6 @@ Promise.all(models.map((createModel) => createModel()))
 
 app.use('/deai', decentralisedRouter)
 app.use('/feai', federatedRouter)
-app.get('/', (req, res) => res.send('Server for DeAI & FeAI yess!'))
+app.get('/', (req, res) => res.send('Server for DeAI & FeAI'))
 
 export default app
