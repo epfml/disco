@@ -78,6 +78,9 @@ This will start the application locally with two visualization options:
 
 > Note : the node.js sever application in `server/` needs to launched first (see [corresponding README](server/README.md)) to be able to run the `vue-app`
 
+> **⚠ WARNING: Connection issues**  
+> If federated learning works, but not decentralised learning, then it might be that webRTC is not enabled, this is needed for peer2peer communication.
+
 To **test decentralized learning** between two peers, run the aformentioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.
 
 To choose between **decentralized** and **federated** learning go to the settings found in menu.
