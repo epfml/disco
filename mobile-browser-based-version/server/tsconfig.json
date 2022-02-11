@@ -6,6 +6,6 @@
   "skipLibCheck": true,
   "moduleResolution": "node",
   "baseUrl": "./src",
-  "types": ["node"],
+  "types": ["node", "mocha"],
   },
 }
