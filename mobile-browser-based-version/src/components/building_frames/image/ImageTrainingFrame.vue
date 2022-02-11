@@ -17,22 +17,22 @@
 </template>
 
 <script>
-import TrainingFrame from '../containers/TrainingFrame.vue';
-import { ImageTaskHelper } from '../../../helpers/task_definition/image/helper';
+import TrainingFrame from '../containers/TrainingFrame.vue'
+import { ImageTaskHelper } from '../../../helpers/task_definition/image/helper'
 
 export default {
   name: 'image-training-frame',
   props: {
     id: String,
-    task: Object,
+    task: Object
   },
   components: {
-    TrainingFrame,
+    TrainingFrame
   },
-  data() {
+  data () {
     return {
-      helper: new ImageTaskHelper(this.task),
-    };
-  },
-};
+      helper: new ImageTaskHelper(this.task)
+    }
+  }
+}
 </script>

@@ -33,8 +33,8 @@
           training progess might be lost.
         </span>
         <div class="flex items-center justify-center space-x-8">
-          <button 
-          :class="buttonClass()" 
+          <button
+          :class="buttonClass()"
           @click="setRequestPlatformChangeFalse">
             <span class="text-s"> Cancel </span>
           </button>

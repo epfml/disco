@@ -31,18 +31,18 @@ export class FileUploadManager {
     if (!this.multipleClass) {
       this.filesList[objectURL] = file
     } else {
-      if (label == 'Labels') {
+      if (label === 'Labels') {
         this.labelFile[objectURL] = {
           label: label,
           name: file.name,
-          isImage: file.type.match('image.*'),
-        };
+          isImage: file.type.match('image.*')
+        }
       } else {
         this.filesList[objectURL] = {
           label: label,
           name: file.name,
-          isImage: file.type.match('image.*'),
-        };
+          isImage: file.type.match('image.*')
+        }
       }
     }
   }

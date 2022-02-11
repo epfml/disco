@@ -15,6 +15,6 @@
 
 <script>
 export default {
-  name: 'empty-data',
-};
+  name: 'empty-data'
+}
 </script>

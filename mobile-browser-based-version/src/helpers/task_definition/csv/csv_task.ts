@@ -2,7 +2,6 @@ import * as d3 from 'd3'
 import * as tf from '@tensorflow/tfjs'
 import { checkData } from '../../data_validation/helpers_csv_tasks'
 import { Task } from '../base/task'
-import { any } from '@tensorflow/tfjs';
 
 type HeaderElem = String | Number;
 /**
@@ -12,21 +11,22 @@ export class CsvTask extends Task {
   headers: Array<{ id: HeaderElem, userHeader: HeaderElem }>
   classColumn: String
 
-  constructor(taskID, displayInformation, trainingInformation) {
-    super(taskID, displayInformation, trainingInformation);
-    this.headers = [];
+  constructor (taskID, displayInformation, trainingInformation) {
+    super(taskID, displayInformation, trainingInformation)
+    this.headers = []
     displayInformation.headers.forEach((item) => {
-      this.headers.push({ id: item, userHeader: item });
-    });
-    this.classColumn = trainingInformation.outputColumn;
+      this.headers.push({ id: item, userHeader: item })
+    })
+    this.classColumn = trainingInformation.outputColumn
   }
+
   /**
    * This functions takes as input a file (of type File) uploaded by the reader and checks
    * if the said file meets the constraints requirements and if so prepare the training data.
    * @param {File} file file uploaded by the user
    * @returns an object of the form: {accepted: Boolean, Xtrain: training data, ytrain: data's labels}
    */
-  async dataPreprocessing(file) {
+  async dataPreprocessing (file) {
     console.log('Start: Processing Uploaded File')
     let Xtrain = null
     let ytrain = null
@@ -70,8 +70,8 @@ export class CsvTask extends Task {
     return { accepted: startTraining, Xtrain: Xtrain, ytrain: ytrain }
   }
 
-  async predict(file):Promise<any[]> {
-    let loadedModel:tf.LayersModel  = null
+  async predict (file):Promise<any[]> {
+    let loadedModel:tf.LayersModel = null
     try {
       loadedModel = await this.getModelFromStorage()
     } catch {
@@ -83,7 +83,7 @@ export class CsvTask extends Task {
 
     // Check some basic prop. in the user's uploaded file
 
-    const checkResult = await checkData(file,this.headers)
+    const checkResult = await checkData(file, this.headers)
     const startTesting = checkResult.accepted
     const headerCopied = checkResult.userHeader
 

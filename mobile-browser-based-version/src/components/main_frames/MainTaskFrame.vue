@@ -420,7 +420,7 @@ export default {
   name: 'main-task-frame',
   props: {
     id: String,
-    task: Object,
+    task: Object
   },
   data () {
     return {
@@ -447,14 +447,14 @@ export default {
     goToTraining () {
       this.$router.push({
         name: this.task.taskID + '.training',
-        params: { id: this.task.taskID },
-      });
+        params: { id: this.task.taskID }
+      })
     },
     goToTesting () {
       this.$router.push({
         name: this.task.taskID + '.testing',
-        params: { id: this.task.taskID },
-      });
+        params: { id: this.task.taskID }
+      })
     },
     goToModelDescription () {
       this.$router.push({
@@ -475,8 +475,8 @@ export default {
         this.authenticated = true
         this.$store.commit('addPassword', {
           id: this.id,
-          password: this.inputPassword,
-        });
+          password: this.inputPassword
+        })
       } else {
         this.incorrectLogin = true
       }
@@ -488,16 +488,16 @@ export default {
       this.openTestModel = menu === 'test_model'
     }
   },
-  async mounted() {
-    this.taskTitle = this.task.displayInformation.taskTitle;
-    window.addEventListener('resize', this.handleResize);
+  async mounted () {
+    this.taskTitle = this.task.displayInformation.taskTitle
+    window.addEventListener('resize', this.handleResize)
   },
 
-  activated() {
-    this.taskTitle = this.task.displayInformation.taskTitle;
-    let prevState = this.$store.getters.globalTaskFrameState(
+  activated () {
+    this.taskTitle = this.task.displayInformation.taskTitle
+    const prevState = this.$store.getters.globalTaskFrameState(
       this.task.trainingInformation.modelID
-    );
+    )
 
     if (prevState) {
       // if previous state exist, load it
@@ -523,8 +523,8 @@ export default {
       this.isSidebarOpen = window.innerWidth > 1024
     }
   },
-  async deactivated() {
-    let currentState = {
+  async deactivated () {
+    const currentState = {
       modelID: this.task.trainingInformation.modelID,
       isActiveModelDesc: this.isActiveModelDesc,
       openModelDesc: this.openModelDesc,

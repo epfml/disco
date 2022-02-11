@@ -1,12 +1,11 @@
-import * as tf from '@tensorflow/tfjs';
-import { Task } from '../base/task';
-import { getTopKClasses } from '../../testing/testing_script';
-import Papa from 'papaparse';
+import * as tf from '@tensorflow/tfjs'
+import { Task } from '../base/task'
+import { getTopKClasses } from '../../testing/testing_script'
+import Papa from 'papaparse'
 import {
   checkData,
   getExampleImage
-} from '../../data_validation/helpers_image_tasks';
-import { Suspense } from 'vue';
+} from '../../data_validation/helpers_image_tasks'
 
 export class ImageTask extends Task {
   net: any;
@@ -15,19 +14,20 @@ export class ImageTask extends Task {
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
     )
   }
+
   preCheckData: Function = checkData;
   getExampleImage: Function = getExampleImage;
   testing: {
     classes: Object,
     gotResults: boolean,
   };
-  
-  constructor(taskID, displayInformation, trainingInformation) {
-    super(taskID, displayInformation, trainingInformation);
+
+  constructor (taskID, displayInformation, trainingInformation) {
+    super(taskID, displayInformation, trainingInformation)
     this.testing = {
-    classes: {},
-    gotResults: false,
-    };
+      classes: {},
+      gotResults: false
+    }
   }
 
   async loadLocalImage (filename) {
@@ -211,7 +211,7 @@ export class ImageTask extends Task {
     return { xTest: xsArray, ids: ids }
   }
 
-  async predict(testingData): Promise<{}> {
+  async predict (testingData): Promise<{}> {
     console.log('Loading model...')
     let loadedModel = null
 

@@ -31,19 +31,19 @@
 </template>
 
 <script>
-import EmptyData from './data_types/EmptyData.vue';
-import FileData from './data_types/FileData.vue';
-import ImageData from './data_types/ImageData.vue';
+import EmptyData from './data_types/EmptyData.vue'
+import FileData from './data_types/FileData.vue'
+import ImageData from './data_types/ImageData.vue'
 
 export default {
   name: 'preview-gallery',
   components: {
     EmptyData,
     FileData,
-    ImageData,
+    ImageData
   },
   props: {
-    fileUploadManager: Object,
-  },
-};
+    fileUploadManager: Object
+  }
+}
 </script>

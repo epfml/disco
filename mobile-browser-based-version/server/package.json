@@ -24,11 +24,14 @@
     "msgpack-lite": "^0.1.26",
     "node-fetch": "^2.6.7",
     "peer": "^0.6.1",
+    "ts-node-register": "^1.0.0",
     "typescript": "^4.5.5"
   },
   "nodemonConfig": {
     "verbose": true,
-    "watch": ["src/**/*.ts"],
+    "watch": [
+      "src/**/*.ts"
+    ],
     "ignore": [
       "models/*"
     ],

@@ -100,45 +100,45 @@
 </template>
 
 <script>
-import TestingFrame from '../containers/TestingFrame.vue';
-import ImagePredictionResultsFrame from './ImagePredictionResultsFrame.vue';
-import PictureBackground from '../../../assets/svg/PictureBackground.vue';
-import Bin from '../../../assets/svg/Bin.vue';
-import { ImageTaskHelper } from '@/helpers/task_definition/image/helper';
+import TestingFrame from '../containers/TestingFrame.vue'
+import ImagePredictionResultsFrame from './ImagePredictionResultsFrame.vue'
+import PictureBackground from '../../../assets/svg/PictureBackground.vue'
+import Bin from '../../../assets/svg/Bin.vue'
+import { ImageTaskHelper } from '@/helpers/task_definition/image/helper'
 
 export default {
   components: {
     TestingFrame,
     ImagePredictionResultsFrame,
     PictureBackground,
-    Bin,
+    Bin
   },
   props: {
     id: String,
-    task: Object,
+    task: Object
   },
-  data() {
+  data () {
     return {
       FILES: {},
       // helper
-      helper: new ImageTaskHelper(this.task),
-    };
+      helper: new ImageTaskHelper(this.task)
+    }
   },
   methods: {
-    async filterData(filesElement) {
-      let files = filesElement.files;
+    async filterData (filesElement) {
+      const files = filesElement.files
       // Only process image files (skip non image files)
       for (let i = 0; i < files.length; ++i) {
-        const file = files[i];
+        const file = files[i]
         if (file && file.type.match('image.*')) {
-          const objectURL = URL.createObjectURL(file);
-          this.FILES[objectURL] = { name: file.name };
+          const objectURL = URL.createObjectURL(file)
+          this.FILES[objectURL] = { name: file.name }
         }
       }
-      return this.FILES;
-    },
+      return this.FILES
+    }
   },
-  async mounted() {
+  async mounted () {
     // This method is called when the component is created
     this.$nextTick(async function () {
       // Code that will run only after the
@@ -149,59 +149,60 @@ export default {
        * #######################################
        */
 
-      const imageTempl = document.getElementById('image-template'),
-        empty = document.getElementById('empty');
-      function addFile(target, file) {
-        const objectURL = URL.createObjectURL(file);
-        const clone = imageTempl.cloneNode(true);
-        clone.querySelector('h1').textContent = file.name;
-        clone.querySelector('li').id = objectURL;
-        clone.querySelector('.delete').dataset.target = objectURL;
+      const imageTempl = document.getElementById('image-template')
+      const empty = document.getElementById('empty')
+      function addFile (target, file) {
+        const objectURL = URL.createObjectURL(file)
+        const clone = imageTempl.cloneNode(true)
+        clone.querySelector('h1').textContent = file.name
+        clone.querySelector('li').id = objectURL
+        clone.querySelector('.delete').dataset.target = objectURL
         clone.querySelector('.size').textContent =
           file.size > 1024
             ? file.size > 1048576
               ? Math.round(file.size / 1048576) + 'mb'
               : Math.round(file.size / 1024) + 'kb'
-            : file.size + 'b';
+            : file.size + 'b'
         Object.assign(clone.querySelector('img'), {
           src: objectURL,
-          alt: file.name,
-        });
-        empty.classList.add('hidden');
-        target.prepend(clone.firstElementChild);
+          alt: file.name
+        })
+        empty.classList.add('hidden')
+        target.prepend(clone.firstElementChild)
       }
-      const gallery = document.getElementById('gallery');
-      const hidden = document.getElementById('hidden-input');
-      document.getElementById('button').onclick = () => hidden.click();
+      const gallery = document.getElementById('gallery')
+      const hidden = document.getElementById('hidden-input')
+      document.getElementById('button').onclick = () => hidden.click()
       hidden.onchange = (e) => {
         for (const file of e.target.files) {
-          addFile(gallery, file);
+          addFile(gallery, file)
         }
-      };
+      }
       /**
        * Returns the CSS colors graphs should be rendered in
        */
       const cssColors = (color) => {
         return getComputedStyle(document.documentElement).getPropertyValue(
           color
-        );
-      };
+        )
+      }
       /**
        * Returns the colors depending on user's choice graphs should be rendered in
        */
       const getColor = () => {
-        return window.localStorage.getItem('color') ?? 'cyan';
-      };
+        return window.localStorage.getItem('color') ?? 'cyan'
+      }
       // Initilization of the color's constant
       // TO DO: add listeners to modify color when changement added
+      // eslint-disable-next-line no-unused-vars
       const colors = {
         primary: cssColors(`--color-${getColor()}`),
         primaryLight: cssColors(`--color-${getColor()}-light`),
         primaryLighter: cssColors(`--color-${getColor()}-lighter`),
         primaryDark: cssColors(`--color-${getColor()}-dark`),
-        primaryDarker: cssColors(`--color-${getColor()}-darker`),
-      };
-    });
-  },
-};
+        primaryDarker: cssColors(`--color-${getColor()}-darker`)
+      }
+    })
+  }
+}
 </script>
