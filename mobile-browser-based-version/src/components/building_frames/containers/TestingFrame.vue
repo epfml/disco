@@ -28,45 +28,45 @@
 </template>
 
 <script>
-import UploadingFrame from '../upload/UploadingFrame.vue';
-import CustomButton from '../../simple/CustomButton.vue';
-import ActionFrame from './ActionFrame.vue';
+import UploadingFrame from '../upload/UploadingFrame.vue'
+import CustomButton from '../../simple/CustomButton.vue'
+import ActionFrame from './ActionFrame.vue'
 
-import { Tester } from '../../../helpers/testing/tester.js';
+import { Tester } from '../../../helpers/testing/tester'
 
 export default {
   name: 'TestingFrame',
   props: {
     id: String,
     task: Object,
-    helper: Object,
+    helper: Object
   },
   components: {
     ActionFrame,
     UploadingFrame,
-    CustomButton,
+    CustomButton
   },
-  data() {
+  data () {
     return {
       predictions: null,
-      tester: new Tester(this.task, this.$toast, this.helper),
-    };
+      tester: new Tester(this.task, this.$toast, this.helper)
+    }
   },
 
   methods: {
-    async downloadPredictions(csvContent, fileName = 'predictions.csv') {
+    async downloadPredictions (csvContent, fileName = 'predictions.csv') {
       // artificially creates a <a> tag to simulate click event and triger download
-      var downloadLink = document.createElement('a');
-      var blob = new Blob(['\ufeff', csvContent]);
-      var url = URL.createObjectURL(blob);
-      downloadLink.href = url;
-      downloadLink.download = fileName;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      this.$toast.success(`Predictions have been downloaded.`);
-      setTimeout(this.$toast.clear, 30000);
-    },
-  },
-};
+      const downloadLink = document.createElement('a')
+      const blob = new Blob(['\ufeff', csvContent])
+      const url = URL.createObjectURL(blob)
+      downloadLink.href = url
+      downloadLink.download = fileName
+      document.body.appendChild(downloadLink)
+      downloadLink.click()
+      document.body.removeChild(downloadLink)
+      this.$toast.success('Predictions have been downloaded.')
+      setTimeout(this.$toast.clear, 30000)
+    }
+  }
+}
 </script>

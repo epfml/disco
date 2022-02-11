@@ -16,34 +16,34 @@
 </template>
 
 <script>
-import Upload from '../../../assets/svg/Upload.vue';
-import IconCard from '../../containers/IconCard.vue';
-import SingleUploadFrame from './SingleUploadFrame.vue';
+import Upload from '../../../assets/svg/Upload.vue'
+import IconCard from '../../containers/IconCard.vue'
+import SingleUploadFrame from './SingleUploadFrame.vue'
 export default {
   name: 'uploading-frame',
   props: {
     id: String,
     task: Object,
-    fileUploadManager: Object,
+    fileUploadManager: Object
   },
   components: {
     SingleUploadFrame,
     Upload,
-    IconCard,
+    IconCard
   },
   computed: {
-    preview() {
+    preview () {
       // Preview only for csv (since there is no, "show only first n images").
-      return this.task.trainingInformation.dataType == 'csv';
+      return this.task.trainingInformation.dataType === 'csv'
     },
-    formatLabels() {
+    formatLabels () {
       // Need to upload a sperated file just for the labels
       const uploadLabelFile =
-        this.task.trainingInformation.LABEL_ASSIGNMENT != undefined;
+        this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined
       // labels to be displayed. If no labels are available => binary classification => display 1
-      const labels = this.task.trainingInformation.LABEL_LIST ?? [''];
-      return uploadLabelFile ? ['Features', 'Labels'] : labels;
-    },
-  },
-};
+      const labels = this.task.trainingInformation.LABEL_LIST ?? ['']
+      return uploadLabelFile ? ['Features', 'Labels'] : labels
+    }
+  }
+}
 </script>

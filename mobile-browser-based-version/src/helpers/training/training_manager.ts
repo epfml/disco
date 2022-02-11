@@ -1,4 +1,4 @@
-import * as memory from '../memory/helpers';
+import * as memory from '../memory/helpers'
 import * as tf from '@tensorflow/tfjs'
 
 const MANY_EPOCHS = 9999

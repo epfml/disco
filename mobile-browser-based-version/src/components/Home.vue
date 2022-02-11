@@ -88,12 +88,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import BaseLayout from './containers/BaseLayout.vue';
-import TitleCard from './containers/TitleCard.vue';
-import CustomHeader from './simple/CustomHeader.vue';
-import CustomButton from './simple/CustomButton.vue';
-import FederatedImage from '../assets/svg/FederatedImage.vue';
-import DecentralizedImage from '../assets/svg/DecentralizedImage.vue';
+import BaseLayout from './containers/BaseLayout.vue'
+import TitleCard from './containers/TitleCard.vue'
+import CustomHeader from './simple/CustomHeader.vue'
+import CustomButton from './simple/CustomButton.vue'
+import FederatedImage from '../assets/svg/FederatedImage.vue'
+import DecentralizedImage from '../assets/svg/DecentralizedImage.vue'
 
 import { mapMutations } from 'vuex'
 
@@ -107,7 +107,7 @@ export default defineComponent({
     CustomButton,
     FederatedImage,
     DecentralizedImage,
-    CustomHeader,
+    CustomHeader
   },
   methods: {
     ...mapMutations(['setActivePage']),

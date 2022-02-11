@@ -113,27 +113,27 @@
 </template>
 
 <script>
-import TrainingFrame from '../containers/TrainingFrame.vue';
-import IconCard from '../../containers/IconCard.vue';
-import Bezier2 from '../../../assets/svg/Bezier2.vue';
-import { CsvTaskHelper } from '@/helpers/task_definition/csv/helper';
+import TrainingFrame from '../containers/TrainingFrame.vue'
+import IconCard from '../../containers/IconCard.vue'
+import Bezier2 from '../../../assets/svg/Bezier2.vue'
+import { CsvTaskHelper } from '@/helpers/task_definition/csv/helper'
 
 export default {
   name: 'csv-training-frame',
   props: {
     id: String,
-    task: Object,
+    task: Object
   },
-  data() {
+  data () {
     return {
       // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      helper: new CsvTaskHelper(this.task),
-    };
+      helper: new CsvTaskHelper(this.task)
+    }
   },
   components: {
     TrainingFrame,
     IconCard,
-    Bezier2,
-  },
-};
+    Bezier2
+  }
+}
 </script>

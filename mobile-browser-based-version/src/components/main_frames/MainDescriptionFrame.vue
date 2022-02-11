@@ -33,10 +33,10 @@ export default {
   name: 'main-description-frame',
   props: {
     id: String,
-    task: Object,
+    task: Object
   },
   components: {
     DescriptionFrame
-  },
-};
+  }
+}
 </script>

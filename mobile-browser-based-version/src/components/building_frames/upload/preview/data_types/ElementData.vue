@@ -44,9 +44,9 @@
 </template>
 
 <script>
-import { FileUploadManager } from '../../../../../helpers/data_validation/file_upload_manager';
-import Bin from '../../../../../assets/svg/Bin.vue';
-import File from '../../../../../assets/svg/File.vue';
+import { FileUploadManager } from '../../../../../helpers/data_validation/file_upload_manager'
+import Bin from '../../../../../assets/svg/Bin.vue'
+import File from '../../../../../assets/svg/File.vue'
 
 export default {
   name: 'element-data',
@@ -58,11 +58,11 @@ export default {
     articleClass: { default: '', type: String },
     headerClass: { default: '', type: String },
     textClass: { default: '', type: String },
-    hoverClass: { default: '', type: String },
+    hoverClass: { default: '', type: String }
   },
   components: {
     Bin,
-    File,
-  },
-};
+    File
+  }
+}
 </script>

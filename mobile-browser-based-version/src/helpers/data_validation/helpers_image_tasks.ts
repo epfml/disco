@@ -7,12 +7,12 @@ async function getImage (path) {
   })
 }
 
-export function getExampleImage(url) {
-  if (url == '') {
-    return null;
+export function getExampleImage (url) {
+  if (url === '') {
+    return null
   }
-  var images = require.context('../../../example_training_data/', false);
-  return images(url);
+  const images = require.context('../../../example_training_data/', false)
+  return images(url)
 }
 
 /**

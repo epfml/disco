@@ -22,7 +22,7 @@ export default {
   name: 'main-testing-frame',
   props: {
     id: String,
-    task: Object,
+    task: Object
   },
   components: {
     ImageTestingFrame,

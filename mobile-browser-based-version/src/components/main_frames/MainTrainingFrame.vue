@@ -24,13 +24,8 @@ import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame.vue'
 export default {
   name: 'main-training-frame',
   props: {
-<<<<<<< HEAD
     id: String,
-    task: Object,
-=======
-    Id: String,
-    Task: Object
->>>>>>> f3c86fb70cf59ee1125bc53798c7bb45e5eee31a
+    task: Object
   },
   components: {
     CsvTrainingFrame,

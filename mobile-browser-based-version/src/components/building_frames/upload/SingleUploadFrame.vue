@@ -105,12 +105,12 @@
 </template>
 
 <script>
-import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager';
-import PreviewGallery from './preview/PreviewGallery.vue';
-import _ from 'lodash';
+import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager'
+import PreviewGallery from './preview/PreviewGallery.vue'
+import _ from 'lodash'
 
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
-  types.indexOf('Files') > -1;
+  types.indexOf('Files') > -1
 export default {
   name: 'SingleUploadFrame',
   props: {
@@ -121,91 +121,91 @@ export default {
     // Preview is used to know if we have to show a snippet of the uploaded files or not
     preview: Boolean,
     // The label associated to the task
-    label: String,
+    label: String
   },
   components: {
-    PreviewGallery,
+    PreviewGallery
   },
-  data() {
+  data () {
     return {
       counter: 0,
       nbrUploadedFiles: 0,
       addedFilesUrl: [],
-      displayLabel: this.label ? `Label: ${this.label}` : '',
-    };
+      displayLabel: this.label ? `Label: ${this.label}` : ''
+    }
   },
   computed: {
-    hiddenInputName() {
-      return this.formatName('hidden-input');
+    hiddenInputName () {
+      return this.formatName('hidden-input')
     },
-    uploadButtonName() {
-      return this.formatName('uploadButton');
-    },
+    uploadButtonName () {
+      return this.formatName('uploadButton')
+    }
   },
   methods: {
-    formatName(prefix) {
-      return `${prefix}_${this.id}_${this.label}`;
+    formatName (prefix) {
+      return `${prefix}_${this.id}_${this.label}`
     },
-    addFile(file) {
-      const objectURL = URL.createObjectURL(file);
-      let label_name = this.label;
-      if (this.label == 'Images') {
-        label_name = file.name.replace(/\.[^/.]+$/, '');
+    addFile (file) {
+      const objectURL = URL.createObjectURL(file)
+      let labelName = this.label
+      if (this.label === 'Images') {
+        labelName = file.name.replace(/\.[^/.]+$/, '')
       }
       // add file to file manager
-      this.fileUploadManager.addFile(objectURL, file, label_name);
-      this.nbrUploadedFiles += 1;
+      this.fileUploadManager.addFile(objectURL, file, labelName)
+      this.nbrUploadedFiles += 1
       // We keep track of ulrs in order to be able to clear them if the user requests it
-      this.addedFilesUrl = _.concat(this.addedFilesUrl, objectURL);
+      this.addedFilesUrl = _.concat(this.addedFilesUrl, objectURL)
     },
-    clearFiles() {
+    clearFiles () {
       _.forEach(this.addedFilesUrl, (objectURL) =>
         this.fileUploadManager.deleteFile(objectURL)
-      );
-      this.addedFilesUrl = [];
-      this.nbrUploadedFiles = 0;
-      this.counter = 0;
+      )
+      this.addedFilesUrl = []
+      this.nbrUploadedFiles = 0
+      this.counter = 0
     },
     // use to drag dragenter and dragleave events.
     // this is to know if the outermost parent is dragged over
     // without issues due to drag events on its children
     // reset counter and append file to gallery when file is dropped
-    dropHandler(ev) {
-      ev.preventDefault();
+    dropHandler (ev) {
+      ev.preventDefault()
       for (const file of ev.dataTransfer.files) {
-        this.addFile(file);
-        this.counter = 0;
+        this.addFile(file)
+        this.counter = 0
       }
     },
     // only react to actual files being dragged
-    dragEnterHandler(e) {
-      e.preventDefault();
+    dragEnterHandler (e) {
+      e.preventDefault()
       if (!hasFiles(e)) {
-        return;
+        return
       }
-      ++this.counter;
+      ++this.counter
     },
-    dragLeaveHandler(e) {
-      1 > --this.counter;
+    dragLeaveHandler (e) {
+      --this.counter < 1
     },
-    dragOverHandler(e) {
+    dragOverHandler (e) {
       if (hasFiles(e)) {
-        e.preventDefault();
+        e.preventDefault()
       }
-    },
+    }
   },
 
-  mounted() {
+  mounted () {
     // click the hidden input of type file if the visible button is clicked
     // and capture the selected files
-    const hidden = document.getElementById(this.hiddenInputName);
-    const uploadButton = document.getElementById(this.uploadButtonName);
-    uploadButton.onclick = () => hidden.click();
+    const hidden = document.getElementById(this.hiddenInputName)
+    const uploadButton = document.getElementById(this.uploadButtonName)
+    uploadButton.onclick = () => hidden.click()
     hidden.onchange = (e) => {
       for (const file of e.target.files) {
-        this.addFile(file);
+        this.addFile(file)
       }
-    };
-  },
-};
+    }
+  }
+}
 </script>

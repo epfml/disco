@@ -39,10 +39,10 @@
 
 <script>
 import { defineComponent } from 'vue'
-import BaseLayout from './containers/BaseLayout.vue';
-import CustomButton from './simple/CustomButton.vue';
-import CustomHeader from './simple/CustomHeader.vue';
-import TitleCard from './containers/TitleCard.vue';
+import BaseLayout from './containers/BaseLayout.vue'
+import CustomButton from './simple/CustomButton.vue'
+import CustomHeader from './simple/CustomHeader.vue'
+import TitleCard from './containers/TitleCard.vue'
 
 export default defineComponent({
   name: 'not-found',
@@ -50,7 +50,7 @@ export default defineComponent({
     BaseLayout,
     CustomButton,
     CustomHeader,
-    TitleCard,
+    TitleCard
   },
   methods: {
     goToPreviousPage () {

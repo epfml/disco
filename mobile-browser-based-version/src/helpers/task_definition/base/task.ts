@@ -1,12 +1,12 @@
-import * as tf from '@tensorflow/tfjs';
-import * as memory from '../../memory/helpers.js';
+import * as tf from '@tensorflow/tfjs'
+import * as memory from '../../memory/helpers'
 
 /**
  * Reprents a TaskFrame containg relevant information about the task
  * for the Vue application.
  */
 type FileEvent = { target: { result: string } };
-  
+
 export abstract class Task {
   taskID: string;
   displayInformation: any;
@@ -30,16 +30,18 @@ export abstract class Task {
     )
     return newModel
   }
+
   /**
    *
    * @returns the loaded working model from the memory
    */
-  async getModelFromStorage() {
+  async getModelFromStorage () {
     return memory.getWorkingModel(
       this.taskID,
       this.trainingInformation.modelID
-    );
+    )
   }
+
   /**
    * Abstract methods
    */
@@ -47,5 +49,4 @@ export abstract class Task {
   abstract predict(filesElement: FileEvent);
 }
 
-
-//context => goes there
+// context => goes there

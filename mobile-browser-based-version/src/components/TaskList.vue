@@ -50,13 +50,13 @@ import CustomButton from './simple/CustomButton.vue'
  * WARNING: Temporary code until complete modularization of task objects.
  * In the meantine, import all custom task classes here.
  */
-import _ from 'lodash';
-import { defineComponent } from 'vue';
-import { mapMutations } from 'vuex';
+import _ from 'lodash'
+import { defineComponent } from 'vue'
+import { mapMutations } from 'vuex'
 import {
   createTaskClass,
-  loadTasks,
-} from '../helpers/task_definition/helper.js';
+  loadTasks
+} from '../helpers/task_definition/helper.js'
 
 export default defineComponent({
   name: 'task-list',
@@ -85,14 +85,14 @@ export default defineComponent({
     goToSelection (id) {
       this.$router.push({
         name: id.concat('.description'),
-        params: { id: id },
-      });
+        params: { id: id }
+      })
     },
-    createNewTaskComponent(task) {
-      console.log(`Processing ${task.taskID}`);
-      const newTaskFrame = createTaskClass(task);
-      this.addTaskFrame(newTaskFrame); // commit to store
-      let newTaskRoute = {
+    createNewTaskComponent (task) {
+      console.log(`Processing ${task.taskID}`)
+      const newTaskFrame = createTaskClass(task)
+      this.addTaskFrame(newTaskFrame) // commit to store
+      const newTaskRoute = {
         path: '/'.concat(newTaskFrame.taskID),
         name: newTaskFrame.taskID,
         component: MainTaskFrame,
@@ -112,16 +112,16 @@ export default defineComponent({
             component: component,
             props: {
               id: newTaskFrame.taskID,
-              task: newTaskFrame,
-            },
-          };
-        }),
-      };
-      this.$router.addRoute(newTaskRoute);
-    },
+              task: newTaskFrame
+            }
+          }
+        })
+      }
+      this.$router.addRoute(newTaskRoute)
+    }
   },
-  async mounted() {
-    const rawTasks = await loadTasks();
+  async mounted () {
+    const rawTasks = await loadTasks()
     rawTasks
       .concat(this.$store.state.newTasks)
       .forEach(this.createNewTaskComponent)

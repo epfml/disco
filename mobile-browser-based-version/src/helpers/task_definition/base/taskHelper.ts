@@ -1,4 +1,4 @@
-import { Task } from "./task";
+import { Task } from './task'
 
 /**
  * Abstract Class TaskHelper.
@@ -11,9 +11,10 @@ import { Task } from "./task";
 export abstract class TaskHelper<T extends Task> {
   task: T;
 
-  constructor(task) {
-    this.task = task;
+  constructor (task) {
+    this.task = task
   }
+
   /**
    * 1. Reads the files in fileselement
    * 2. Uses the task.dataPreprocessing method to preprocess the data and turn the input

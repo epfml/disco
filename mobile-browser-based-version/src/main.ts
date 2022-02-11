@@ -22,9 +22,9 @@ app
   .use(store)
   .use(VueApexCharts)
   .use(i18n)
-   .use(Toaster, {
+  .use(Toaster, {
     // display time of the toast notications
-    duration: 3000,
+    duration: 3000
   })
   .use(router)
   .mount('#app')
