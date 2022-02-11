@@ -15,6 +15,10 @@ From this folder, you can run the server on localhost:8080 with `npm run dev`. T
 
 To automatically restarts the process after changes, the server also supports the `nodemon` package. It can be installed using
 
+### Testing the server locally
+
+To run sever unit testing run `npm run test`. Make sure you are not running a server at the same time as the test suite will run a server to test on. We use [mocha](https://mochajs.org/), [chai](https://www.chaijs.com/) and [supertest](https://github.com/visionmedia/supertest) for testing; respectively they are libraries: unit tests, assertions, and http testing.
+
 ### Testing the servers before deploying
 
 The server is deployed inside a docker container, thus before deploying it, we can locally test the container to see if any new dependencies work (The container runs a 20.04 Ubuntu server). See [docker guide](https://docs.docker.com/get-started/) if you have not used docker and or need to install it.
@@ -65,7 +69,7 @@ gcloud app deploy --project=deai-313515 --app.yaml --version dev
 :exclamation: Important!
 | :exclamation:  This is very important   |
 |-----------------------------------------|
-When deploying check that in the google cloud console -> app enginer -> versions, that no new instance is created as this will increase the cloud costs.
+When deploying check that in the google cloud console -> app engine -> versions, that no new instance is created as this will increase the cloud costs.
 This should not happen in principle due to the "--version dev" flag, it is however a good idea to check this the first time you run this command.
 
 Some useful resources:
@@ -83,6 +87,14 @@ In the docker container we specify the environment and what dependencies to inst
 2. npm run start
 
 The first line compiles the ts code into js, and the second one then runs the compiled code.
+
+### tsconfig
+
+We specify compiler options as well as what directories to use for ts in the ``tsconfig.json``, we [extend](https://www.typescriptlang.org/tsconfig#extends) this config onto ``tsconfig.prod.json`` where we specify what we want for the production build.
+
+In the ``tsconfig`` we add the base esm module that we use as well as including the mocha types. In ``tsconfig.prod.json`` we further specify which source to use for building, specifically ignoring  the ``tests/`` folder. 
+
+tl;dr: ``tsconfig.json`` specifies the general setup for ts (including testing), ``tsconfig.prod.json`` adds production specific commands to ``tsconfig.json``.
 
 ## DeAI Helper Server, for decentralized training
 
