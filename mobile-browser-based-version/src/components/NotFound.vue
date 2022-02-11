@@ -14,7 +14,7 @@
             p-4
             bg-white
             rounded-md
-            dark:bg-darker dark:bg-dark
+            dark:bg-darker
           "
         >
           <title-card title="Page Not Found">
@@ -38,12 +38,13 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue'
 import BaseLayout from './containers/BaseLayout.vue';
 import CustomButton from './simple/CustomButton.vue';
 import CustomHeader from './simple/CustomHeader.vue';
 import TitleCard from './containers/TitleCard.vue';
 
-export default {
+export default defineComponent({
   name: 'not-found',
   components: {
     BaseLayout,
@@ -52,12 +53,12 @@ export default {
     TitleCard,
   },
   methods: {
-    goToPreviousPage() {
-      this.$router.go(-1);
+    goToPreviousPage () {
+      this.$router.go(-1)
     },
-    goToHomePage() {
-      this.$router.push({ name: 'home' });
-    },
-  },
-};
+    goToHomePage () {
+      this.$router.push({ name: 'home' })
+    }
+  }
+})
 </script>

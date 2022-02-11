@@ -1,17 +1,17 @@
-const colors = require('tailwindcss/colors');
+const colors = require('tailwindcss/colors')
 
 module.exports = {
   purge: ['./public/**/*.html', './src/**/*.vue'],
   darkMode: 'class', // or 'media' or false
   theme: {
     fontFamily: {
-      sans: ['cairo', 'sans-serif'],
+      sans: ['cairo', 'sans-serif']
     },
     spacing: {
       sm: '10px',
       md: '16px',
       lg: '24px',
-      xl: '48px',
+      xl: '48px'
     },
     extend: {
       colors: {
@@ -25,7 +25,7 @@ module.exports = {
           light: 'var(--color-primary-light)',
           lighter: 'var(--color-primary-lighter)',
           dark: 'var(--color-primary-dark)',
-          darker: 'var(--color-primary-darker)',
+          darker: 'var(--color-primary-darker)'
         },
         secondary: {
           DEFAULT: colors.fuchsia[600],
@@ -34,7 +34,7 @@ module.exports = {
           light: colors.fuchsia[500],
           lighter: colors.fuchsia[400],
           dark: colors.fuchsia[700],
-          darker: colors.fuchsia[800],
+          darker: colors.fuchsia[800]
         },
         success: {
           DEFAULT: colors.green[600],
@@ -43,7 +43,7 @@ module.exports = {
           light: colors.green[500],
           lighter: colors.green[400],
           dark: colors.green[700],
-          darker: colors.green[800],
+          darker: colors.green[800]
         },
         warning: {
           DEFAULT: colors.orange[600],
@@ -52,7 +52,7 @@ module.exports = {
           light: colors.orange[500],
           lighter: colors.orange[400],
           dark: colors.orange[700],
-          darker: colors.orange[800],
+          darker: colors.orange[800]
         },
         danger: {
           DEFAULT: colors.red[600],
@@ -61,7 +61,7 @@ module.exports = {
           light: colors.red[500],
           lighter: colors.red[400],
           dark: colors.red[700],
-          darker: colors.red[800],
+          darker: colors.red[800]
         },
         info: {
           DEFAULT: colors.cyan[600],
@@ -70,13 +70,13 @@ module.exports = {
           light: colors.cyan[500],
           lighter: colors.cyan[400],
           dark: colors.cyan[700],
-          darker: colors.cyan[800],
-        },
-      },
-    },
+          darker: colors.cyan[800]
+        }
+      }
+    }
   },
   variants: {
-    extend: {},
+    extend: {}
   },
-  plugins: [],
-};
+  plugins: []
+}

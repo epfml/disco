@@ -46,7 +46,7 @@
               </div>
             </card>
 
-            <!-- 
+            <!--
               To further seperate the text from the UI i18 interpolation can be be used:
               https://kazupon.github.io/vue-i18n/guide/interpolation.html
              -->
@@ -208,23 +208,24 @@
   </base-layout>
 </template>
 
-<script>
-import BaseLayout from './containers/BaseLayout.vue';
-import Card from './containers/Card.vue';
-import { useI18n } from 'vue-i18n';
+<script lang="ts">
+import BaseLayout from './containers/BaseLayout.vue'
+import Card from './containers/Card.vue'
+import { useI18n } from 'vue-i18n'
+import { defineComponent } from 'vue'
 
-export default {
-  name: 'information',
-  setup() {
-    const { t, locale } = useI18n();
-    return { t, locale };
+export default defineComponent({
+  name: 'information-page',
+  setup () {
+    const { t, locale } = useI18n()
+    return { t, locale }
   },
   components: {
     BaseLayout,
-    Card,
+    Card
   },
   methods: {
-    goToLabPage() {},
-  },
-};
+    goToLabPage () {}
+  }
+})
 </script>

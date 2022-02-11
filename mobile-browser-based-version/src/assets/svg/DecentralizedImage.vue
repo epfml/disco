@@ -698,9 +698,9 @@ export default {
   props: {
     customClass: {
       default: 'h-100 w-100 flex-no-shrink',
-      type: String,
+      type: String
     },
-    viewBox: { default: '0 0 50 50', type: String },
-  },
-};
+    viewBox: { default: '0 0 50 50', type: String }
+  }
+}
 </script>

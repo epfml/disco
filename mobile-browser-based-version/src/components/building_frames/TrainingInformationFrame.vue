@@ -1,4 +1,6 @@
 <template>
+<div>
+
   <div
     x-transition:enter="transition duration-300 ease-in-out"
     x-transition:enter-start="opacity-0"
@@ -121,16 +123,17 @@
       <people />
     </icon-card-small>
   </div>
+</div>
 </template>
 
 <script>
-import IconCardSmall from '../containers/IconCardSmall.vue';
-import IconCard from '../containers/IconCard.vue';
-import Timer from '../../assets/svg/Timer.vue';
-import People from '../../assets/svg/People.vue';
-import Performances from '../../assets/svg/Performances.vue';
-import Forward from '../../assets/svg/Forward.vue';
-import Contact from '../../assets/svg/Contact.vue';
+import IconCardSmall from '../containers/IconCardSmall.vue'
+import IconCard from '../containers/IconCard.vue'
+import Timer from '../../assets/svg/Timer.vue'
+import People from '../../assets/svg/People.vue'
+import Performances from '../../assets/svg/Performances.vue'
+import Forward from '../../assets/svg/Forward.vue'
+import Contact from '../../assets/svg/Contact.vue'
 
 export default {
   components: {
@@ -140,13 +143,13 @@ export default {
     People,
     Performances,
     Forward,
-    Contact,
+    Contact
   },
   name: 'TrainingInformationFrame',
   props: {
-    trainingInformant: Object,
+    trainingInformant: Object
   },
-  data() {
+  data () {
     return {
       // Test Apexcharts
       areaChartOptions: this.trainingInformant.getAreaChartOptions(),
@@ -154,29 +157,29 @@ export default {
       validationAccuracyData:
         this.trainingInformant.getValidationAccuracyData(),
       interoperabilityHeatmpaOptions:
-        this.trainingInformant.getHeatmapOptions(),
-    };
+        this.trainingInformant.getHeatmapOptions()
+    }
   },
 
   computed: {
-    displayHeatmap() {
-      return this.trainingInformant.displayHeatmap;
+    displayHeatmap () {
+      return this.trainingInformant.displayHeatmap
     },
-    interoperabilityHeatmapData() {
+    interoperabilityHeatmapData () {
       // TODO: cahnge once the peers exchange actual data of their weights and biases.
       return [
         {
           name: 'You',
-          data: this.trainingInformant.weightsIn,
-        },
-      ];
+          data: this.trainingInformant.weightsIn
+        }
+      ]
     },
-    currentTrainingAccuracy() {
-      return this.trainingInformant.currentTrainingAccuracy;
+    currentTrainingAccuracy () {
+      return this.trainingInformant.currentTrainingAccuracy
     },
-    currentValidationAccuracy() {
-      return this.trainingInformant.currentValidationAccuracy;
-    },
-  },
-};
+    currentValidationAccuracy () {
+      return this.trainingInformant.currentValidationAccuracy
+    }
+  }
+}
 </script>

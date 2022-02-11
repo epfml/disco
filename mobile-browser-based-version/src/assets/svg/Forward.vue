@@ -17,9 +17,9 @@ export default {
   props: {
     customClass: {
       default: 'w-12 h-12 text-gray-300 dark:text-primary-dark',
-      type: String,
+      type: String
     },
-    viewBox: { default: '-6 -3 20 20', type: String },
-  },
-};
+    viewBox: { default: '-6 -3 20 20', type: String }
+  }
+}
 </script>

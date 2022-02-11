@@ -2,11 +2,12 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
-  "main": "index.js",
+  "main": "server.config.ts",
   "scripts": {
-    "start": "node src/run_server.js",
-    "nodemon": "nodemon src/run_server.js",
+    "dev": "nodemon src/run_server.ts",
+    "start": "NODE_PATH=./dist node dist/run_server.js",
+    "build": "tsc -p tsconfig.prod.json",
+    "clean": "tsc --build --clean && rm -r dist || true",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,19 +15,30 @@
   "dependencies": {
     "@tensorflow-models/mobilenet": "2.1.0",
     "@tensorflow/tfjs": "^3.13.0",
+    "@tensorflow/tfjs-core": "^3.11.0",
     "@tensorflow/tfjs-node": "^3.13.0",
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "http-proxy-middleware": "^2.0.1",
     "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",
-    "node-fetch": "^3.2.0",
-    "peer": "^0.6.1"
+    "node-fetch": "^2.6.7",
+    "peer": "^0.6.1",
+    "typescript": "^4.5.5"
   },
   "nodemonConfig": {
+    "verbose": true,
+    "watch": ["src/**/*.ts"],
     "ignore": [
       "models/*"
     ],
+    "execMap": {
+      "ts": "node --inspect=0.0.0.0:9229 --nolazy -r ts-node/register"
+    },
     "delay": 2500
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.5.0"
   }
 }

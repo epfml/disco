@@ -86,7 +86,8 @@
   </base-layout>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import BaseLayout from './containers/BaseLayout.vue';
 import TitleCard from './containers/TitleCard.vue';
 import CustomHeader from './simple/CustomHeader.vue';
@@ -94,14 +95,11 @@ import CustomButton from './simple/CustomButton.vue';
 import FederatedImage from '../assets/svg/FederatedImage.vue';
 import DecentralizedImage from '../assets/svg/DecentralizedImage.vue';
 
-import { useI18n } from 'vue-i18n';
-import { mapMutations } from 'vuex';
+import { mapMutations } from 'vuex'
 
-export default {
-  name: 'home',
-  setup() {
-    const { t, locale } = useI18n();
-    return { t, locale };
+export default defineComponent({
+  name: 'home-page',
+  setup () {
   },
   components: {
     BaseLayout,
@@ -113,18 +111,18 @@ export default {
   },
   methods: {
     ...mapMutations(['setActivePage']),
-    goToTaskList() {
-      this.setActivePage('tasks');
+    goToTaskList () {
+      this.setActivePage('tasks')
       this.$router.push({
-        path: '/tasks',
-      });
+        path: '/tasks'
+      })
     },
-    goToNewTaskCreationForm() {
-      this.setActivePage('task-creation-form');
+    goToNewTaskCreationForm () {
+      this.setActivePage('task-creation-form')
       this.$router.push({
-        path: '/task-creation-form',
-      });
-    },
-  },
-};
+        path: '/task-creation-form'
+      })
+    }
+  }
+})
 </script>

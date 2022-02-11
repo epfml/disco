@@ -26,6 +26,6 @@
 
 <script>
 export default {
-  name: 'custom-footer',
-};
+  name: 'custom-footer'
+}
 </script>
