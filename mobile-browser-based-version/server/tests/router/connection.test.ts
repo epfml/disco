@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-expressions */
-import app from '../src/run_server'
+import app from '../../src/run_server'
 import { agent as request } from 'supertest'
 
 /** Source for test setup:
