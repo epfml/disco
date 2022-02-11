@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/run_server.ts",
     "start": "NODE_PATH=./dist node dist/run_server.js",
-    "build": "tsc -p .",
+    "build": "tsc -p tsconfig.prod.json",
     "clean": "tsc --build --clean && rm -r dist || true",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,7 +22,7 @@
     "http-proxy-middleware": "^2.0.1",
     "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",
-    "node-fetch": "^3.2.0",
+    "node-fetch": "^2.6.7",
     "peer": "^0.6.1",
     "typescript": "^4.5.5"
   },
