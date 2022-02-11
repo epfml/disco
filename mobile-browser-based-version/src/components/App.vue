@@ -26,7 +26,7 @@
         "
         style="position: sticky"
       >
-        <sidebar />
+        <SidebarMain />
       </aside>
 
       <!-- Main Page -->
@@ -41,85 +41,86 @@
   </div>
 </template>
 
-<script>
-import Sidebar from './sidebar/Sidebar.vue';
-import { mapState, mapMutations } from 'vuex';
-import { Platform } from '../platforms/platform';
+<script lang="ts">
+import SidebarMain from './sidebar/Sidebar.vue'
+import { mapState, mapMutations } from 'vuex'
+import { Platform } from '../platforms/platform'
+import { defineComponent } from 'vue'
 
-export default {
+export default defineComponent({
   name: 'app',
   components: {
-    Sidebar,
+    SidebarMain
   },
   computed: {
-    ...mapState(['isDark']),
+    ...mapState(['isDark'])
   },
   methods: {
     ...mapMutations(['setIndexedDB', 'setAppTheme', 'setPlatform']),
-    getBrowserTheme() {
+    getBrowserTheme () {
       if (window.localStorage.getItem('dark')) {
-        return JSON.parse(window.localStorage.getItem('dark'));
+        return JSON.parse(window.localStorage.getItem('dark'))
       }
       return (
         !!window.matchMedia &&
         window.matchMedia('(prefers-color-scheme: dark)').matches
-      );
+      )
     },
-    getBrowserColors() {
-      return window.localStorage.getItem('color') ?? 'cyan';
+    getBrowserColors () {
+      return window.localStorage.getItem('color') ?? 'cyan'
     },
-    setAppColors(color) {
-      const root = document.documentElement;
-      root.style.setProperty('--color-primary', `var(--color-${color})`);
-      root.style.setProperty('--color-primary-50', `var(--color-${color}-50)`);
+    setAppColors (color) {
+      const root = document.documentElement
+      root.style.setProperty('--color-primary', `var(--color-${color})`)
+      root.style.setProperty('--color-primary-50', `var(--color-${color}-50)`)
       root.style.setProperty(
         '--color-primary-100',
         `var(--color-${color}-100)`
-      );
+      )
       root.style.setProperty(
         '--color-primary-light',
         `var(--color-${color}-light)`
-      );
+      )
       root.style.setProperty(
         '--color-primary-lighter',
         `var(--color-${color}-lighter)`
-      );
+      )
       root.style.setProperty(
         '--color-primary-dark',
         `var(--color-${color}-dark)`
-      );
+      )
       root.style.setProperty(
         '--color-primary-darker',
         `var(--color-${color}-darker)`
-      );
+      )
     },
-    getPlatform() {
-      return window.localStorage.getItem('platform') ?? Platform.decentralized;
+    getPlatform () {
+      return window.localStorage.getItem('platform') ?? Platform.decentralized
     },
-    initPlatform(platform) {
-      this.setPlatform(platform);
-      this.$i18n.locale = platform;
-    },
+    initPlatform (platform) {
+      this.setPlatform(platform)
+      this.$i18n.locale = platform
+    }
   },
-  mounted() {
+  mounted () {
     /**
      * Use IndexedDB by default if it is available.
      */
-    this.setIndexedDB(window.indexedDB);
+    this.setIndexedDB(window.indexedDB)
     /**
      * Initialize the global variable "isDark" to the
      * browser-saved theme.
      */
-    this.setAppTheme(this.getBrowserTheme());
+    this.setAppTheme(this.getBrowserTheme())
     /**
      * Intialize the app's colors to the browser-saved
      * color.
      */
-    this.setAppColors(this.getBrowserColors());
+    this.setAppColors(this.getBrowserColors())
     /**
      * Intialize the app to the browser-saved platform.
      */
-    this.initPlatform(this.getPlatform());
-  },
-};
+    this.initPlatform(this.getPlatform())
+  }
+})
 </script>

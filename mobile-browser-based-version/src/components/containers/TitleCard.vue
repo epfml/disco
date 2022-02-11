@@ -16,14 +16,14 @@
 </template>
 
 <script>
-import Card from './Card.vue';
+import Card from './Card.vue'
 
 export default {
   name: 'title-card',
   components: { Card },
   props: {
     title: { default: '', type: String },
-    titleUnderlined: { default: '', type: String },
-  },
-};
+    titleUnderlined: { default: '', type: String }
+  }
+}
 </script>

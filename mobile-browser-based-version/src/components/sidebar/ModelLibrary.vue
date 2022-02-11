@@ -80,15 +80,15 @@
   </tippy-container>
 </template>
 <script>
-import * as memory from '../../helpers/memory/helpers';
-import * as tf from '@tensorflow/tfjs';
-import { mapState } from 'vuex';
-import Bin2Icon from '../../assets/svg/Bin2Icon.vue';
-import Download2Icon from '../../assets/svg/Download2Icon.vue';
-import LoadIcon from '../../assets/svg/LoadIcon.vue';
-import StackIcon from '../../assets/svg/StackIcon.vue';
-import TippyCard from './containers/TippyCard.vue';
-import TippyContainer from './containers/TippyContainer.vue';
+import * as memory from '../../helpers/memory/helpers'
+import * as tf from '@tensorflow/tfjs'
+import { mapState } from 'vuex'
+import Bin2Icon from '../../assets/svg/Bin2Icon.vue'
+import Download2Icon from '../../assets/svg/Download2Icon.vue'
+import LoadIcon from '../../assets/svg/LoadIcon.vue'
+import StackIcon from '../../assets/svg/StackIcon.vue'
+import TippyCard from './containers/TippyCard.vue'
+import TippyContainer from './containers/TippyContainer.vue'
 
 export default {
   name: 'model-library',
@@ -99,15 +99,15 @@ export default {
     LoadIcon,
     StackIcon,
     TippyCard,
-    TippyContainer,
+    TippyContainer
   },
-  data() {
+  data () {
     return {
-      modelMap: new Map(),
-    };
+      modelMap: new Map()
+    }
   },
   computed: {
-    ...mapState(['useIndexedDB']),
+    ...mapState(['useIndexedDB'])
   },
   methods: {
     buttonClass: function (state) {
@@ -115,38 +115,39 @@ export default {
         state
           ? 'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100'
           : 'text-gray-500 dark:text-primary-light'
-      }`;
+      }`
     },
-    switchToSettings() {
-      this.$emit('switch-panel');
+    switchToSettings () {
+      this.$emit('switch-panel')
     },
-    async refreshModelLibrary() {
-      console.log('Refreshing the model library.');
-      this.modelMap.clear();
+    async refreshModelLibrary () {
+      console.log('Refreshing the model library.')
+      this.modelMap.clear()
       await tf.io.listModels().then((models) => {
-        for (let savePath in models) {
-          let [location, _, directory, task, name] = savePath.split('/');
+        for (const savePath in models) {
+          // eslint-disable-next-line no-unused-vars
+          const [location, _, directory, task, name] = savePath.split('/')
           if (!(location === 'indexeddb:' && directory === 'saved')) {
-            continue;
+            continue
           }
 
-          let modelMetadata = models[savePath];
-          let date = new Date(modelMetadata.dateSaved);
-          let zeroPad = (number) => String(number).padStart(2, '0');
-          let dateSaved = [
+          const modelMetadata = models[savePath]
+          const date = new Date(modelMetadata.dateSaved)
+          const zeroPad = (number) => String(number).padStart(2, '0')
+          const dateSaved = [
             date.getDate(),
             date.getMonth() + 1,
-            date.getFullYear(),
+            date.getFullYear()
           ]
             .map(zeroPad)
-            .join('/');
-          let hourSaved = [date.getHours(), date.getMinutes()]
+            .join('/')
+          const hourSaved = [date.getHours(), date.getMinutes()]
             .map(zeroPad)
-            .join('h');
-          let size =
+            .join('h')
+          const size =
             modelMetadata.modelTopologyBytes +
             modelMetadata.weightSpecsBytes +
-            modelMetadata.weightDataBytes;
+            modelMetadata.weightDataBytes
 
           this.modelMap.set(savePath, {
             modelName: name,
@@ -154,38 +155,38 @@ export default {
             modelType: directory,
             date: dateSaved,
             hours: hourSaved,
-            fileSize: size / 1000,
-          });
+            fileSize: size / 1000
+          })
         }
-      });
+      })
     },
 
-    deleteModel(savePath) {
-      let modelMetadata = this.modelMap.get(savePath);
-      this.modelMap.delete(savePath);
-      memory.deleteSavedModel(modelMetadata.taskID, modelMetadata.modelName);
+    deleteModel (savePath) {
+      const modelMetadata = this.modelMap.get(savePath)
+      this.modelMap.delete(savePath)
+      memory.deleteSavedModel(modelMetadata.taskID, modelMetadata.modelName)
     },
 
-    openTesting(modelMetadata) {
-      this.$router.push({ name: modelMetadata.taskID.concat('.testing') });
+    openTesting (modelMetadata) {
+      this.$router.push({ name: modelMetadata.taskID.concat('.testing') })
     },
 
-    downloadModel(modelMetadata) {
-      memory.downloadSavedModel(modelMetadata.taskID, modelMetadata.modelName);
+    downloadModel (modelMetadata) {
+      memory.downloadSavedModel(modelMetadata.taskID, modelMetadata.modelName)
     },
 
-    async loadModel(modelMetadata) {
+    async loadModel (modelMetadata) {
       await memory.loadSavedModel(
         modelMetadata.taskID,
         modelMetadata.modelName
-      );
+      )
       this.$toast.success(
         `Loaded ${modelMetadata.modelName}, ready for next training session.`
-      );
-    },
+      )
+    }
   },
-  mounted() {
-    this.refreshModelLibrary();
-  },
-};
+  mounted () {
+    this.refreshModelLibrary()
+  }
+}
 </script>

@@ -17,7 +17,7 @@ export default {
     customClass: { default: 'fill-current w-4 h-4 ml-auto pt-1', type: String },
     viewBox: { default: '0 0 24 24', type: String },
     width: { default: '24', type: String },
-    height: { default: '24', type: String },
-  },
-};
+    height: { default: '24', type: String }
+  }
+}
 </script>

@@ -40,7 +40,7 @@ export default {
   props: {
     header: { type: String },
     description: { type: String },
-    customClass: { default: '', type: String },
-  },
-};
+    customClass: { default: '', type: String }
+  }
+}
 </script>

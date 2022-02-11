@@ -8,15 +8,15 @@
     │ ├── svg        # svg image / icons
     ├── components   # vue file folder
     │ ├── XXX.vue    # vue example file
-    ├── helpers      # javascript helpers folder
-    │ ├── XXX.js     # js example file
+    ├── helpers      # typescript helpers folder
+    │ ├── XXX.ts     # js example file
     ├── platforms    # i18n related folder
     │ ├── ...
     ├── router       # vue-router related folder
-    │ ├── index.js
+    │ ├── index.ts
     ├── store        # vuex related folder
-    │ ├── store.js
-    ├── main.js      # root file of the app
+    │ ├── store.ts
+    ├── main.ts      # root file of the app
     ├── .env.XXX     # environment specific variables
     └── ...          # rest of the files
 
@@ -78,6 +78,9 @@ This will start the application locally with two visualization options:
 
 > Note : the node.js sever application in `server/` needs to launched first (see [corresponding README](server/README.md)) to be able to run the `vue-app`
 
+> **⚠ WARNING: Connection issues**  
+> If federated learning works, but not decentralised learning, then it might be that webRTC is not enabled, this is needed for peer2peer communication.
+
 To **test decentralized learning** between two peers, run the aformentioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.
 
 To choose between **decentralized** and **federated** learning go to the settings found in menu.
@@ -118,7 +121,81 @@ For creating a customized task from scratch, please follow the following steps:
 Tasks are organized around the following files:
 
 - vue files are used to render the task-related user interface. Users should not modify the core code of these files.
-- a javascript file contains all the task-related information and methods. For instance, in this file, one can find the specific data-processing function or the textual description of the task.
+- a typescript file contains all the task-related information and methods. For instance, in this file, one can find the specific data-processing function or the textual description of the task.
+
+### Use of TypeScript (a dialect of JavaScript)
+
+In order to facilitate development with javascript (js) we use [typescript](https://www.typescriptlang.org/) (ts); this adds an additional layer on top of javascript that allows for a deeper integration with your editor which enables you to catch errors faster. 
+
+If you know js then you basically already know ts, since js is a subset of ts, anything you can do on js, you can also do on ts. What's new is that ts has a stricter policy (these can be silenced, and so we can indeed run ts files as if they were js), here are some examples:
+
+#### Function overloading
+
+This would run perfectly on js
+```js
+function addNumbers(a, b) {  
+    return a + b;  
+}  
+var sum = addNumbers(15, 25, 30);  
+``` 
+
+However in ts we get the following compile error: ``Expected 2 arguments, but got 3.  ``.
+
+####  Equality checks
+
+```js
+const isEqual = 20 == '20'
+console.log(isEqual)
+``` 
+In js these two are equal since it tries to cast types and see if they are equal, while convenient in a small project, this can lead to hard to find bugs in larger ones. In ts this would yield the following compile error:
+```
+This condition will always return 'false' since the types 'number' and 'string' have no overlap.
+```
+
+#### Type annotations
+
+Typescript allows us to annotate the input and output of functions, this greatly simplifies using functions where  types might be ambiguous, the previous function we saw could be annotate as follows in ts:
+
+ ```ts
+function addNumbers(a: number, b: number): number {  
+    return a + b;  
+}  
+var sum = addNumbers(15, 25);  
+``` 
+
+Since we know the output type is of type number, we can safely call ``sum.toPrecision(2)``, if we wanted to get the sum with 2 significant digits. If sum was not of type number (that dit not have a function called toPrecision or was of type any), then we would get a compile error:  ``TypeError: k.toPrecision is not a function`` . 
+
+This brings us to our next comment, if we cast sum as type any, then we would get no compiler error:
+  ```ts
+
+var sum = 'hello DeAI' as any;
+sum.toPrecision(2)  
+```
+ 
+any is a special ts type that you can use when you don't want type checking errors, this is however not desirable since this would defeat the whole purpose of using ts in the first place. 
+
+Note that all these compile errors will also appear in your editor, this will allow you to easily find these bugs without having to first compile!
+
+
+In vue files you simply need to add ts in the script tag to enable ts:
+  ```vue
+<script lang="ts">
+</script>
+```
+
+There are of course more details, but if you know js, now you should be ready for ts! If you want to learn more this [official (5min) guide](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html) is an excellent place to start.
+
+#### Our policy
+
+We follow the standard ts policy (which is by default flexible and not very strict) since the original code base was in js; as a consequence some files might not yet be annotated.
+
+If you are on boarding, we strongly recommend that you annotate your functions and classes! However this is not strictly enforced, your code will run if you don't annotate it. Perhaps for a quick mock up of your code you may opt not to annotate, however when you are ready to pull request to develop we expect your functions and classes to be annotated. 
+
+In a nutshell the following will give compile errors:
+
+- Equality checks on objects that are not of the same type. 
+- Overloading a function.
+- If a variable is annotated or type inferred, using a non existing type function on it.
 
 ### Use of Vue.js
 
@@ -142,7 +219,7 @@ The application runs the following architecture:
     - **Description of the task** under the name `[taskName]\_description.vue. It gives an overview of the task.
     - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train a model, either collaboratively using p2p communication, or alone by local training. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When a user reaches for the first time the training components, the component is created, and only then the NN model is created and stored in the browser's indexdb database. The training is done in a seperated script. To start training, the function named `join_training`is called. This function preprocess the data using the task specific data pre-processing function and then train the model using the shared `train`function.
 
-All these are served by the javascript file associated to the task.
+All these are served by the typescript file associated to the task.
 
 ### Training Loop
 

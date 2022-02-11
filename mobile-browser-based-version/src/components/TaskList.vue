@@ -37,14 +37,14 @@
   </base-layout>
 </template>
 
-<script>
-import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue';
-import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue';
-import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue';
-import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue';
-import BaseLayout from './containers/BaseLayout.vue';
-import Card from './containers/Card.vue';
-import CustomButton from './simple/CustomButton.vue';
+<script lang="ts">
+import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue'
+import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue'
+import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue'
+import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue'
+import BaseLayout from './containers/BaseLayout.vue'
+import Card from './containers/Card.vue'
+import CustomButton from './simple/CustomButton.vue'
 
 /**
  * WARNING: Temporary code until complete modularization of task objects.
@@ -58,31 +58,31 @@ import {
   loadTasks,
 } from '../helpers/task_definition/helper.js';
 
-export default {
+export default defineComponent({
   name: 'task-list',
   components: {
     BaseLayout,
     Card,
-    CustomButton,
+    CustomButton
   },
   watch: {
     '$store.state.newTasks': function () {
-      this.$store.state.newTasks.forEach(this.createNewTaskComponent);
-      this.clearNewTasks();
-    },
+      this.$store.state.newTasks.forEach(this.createNewTaskComponent)
+      this.clearNewTasks()
+    }
   },
-  data() {
+  data () {
     return {
       taskFramesInfo: [
         ['description', MainDescriptionFrame],
         ['training', MainTrainingFrame],
-        ['testing', MainTestingFrame],
-      ],
-    };
+        ['testing', MainTestingFrame]
+      ]
+    }
   },
   methods: {
     ...mapMutations(['addTaskFrame', 'newTask', 'clearNewTasks']),
-    goToSelection(id) {
+    goToSelection (id) {
       this.$router.push({
         name: id.concat('.description'),
         params: { id: id },
@@ -98,14 +98,14 @@ export default {
         component: MainTaskFrame,
         props: { id: newTaskFrame.taskID, task: newTaskFrame },
         children: _.map(this.taskFramesInfo, (t) => {
-          const [info, Frame] = t;
-          const name = `${newTaskFrame.taskID}.${info}`;
+          const [info, Frame] = t
+          const name = `${newTaskFrame.taskID}.${info}`
           // Definition of an extension of the task-related component
           const component = defineComponent({
             extends: Frame,
             name: name,
-            key: name,
-          });
+            key: name
+          })
           return {
             path: info,
             name: name,
@@ -124,8 +124,8 @@ export default {
     const rawTasks = await loadTasks();
     rawTasks
       .concat(this.$store.state.newTasks)
-      .forEach(this.createNewTaskComponent);
-    this.clearNewTasks();
-  },
-};
+      .forEach(this.createNewTaskComponent)
+    this.clearNewTasks()
+  }
+})
 </script>

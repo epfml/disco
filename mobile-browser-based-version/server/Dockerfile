@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
 
 FROM ubuntu:20.04
-ENV NODE_ENV=production
+
+ENV NODE_ENV=development
 
 WORKDIR /server
 
@@ -21,5 +22,9 @@ RUN apt-get upgrade -y \
 RUN npm install 
 
 COPY . .
+
+ENV NODE_PATH=./dist
+
+RUN npm run build
 
 CMD [ "npm", "start" ]

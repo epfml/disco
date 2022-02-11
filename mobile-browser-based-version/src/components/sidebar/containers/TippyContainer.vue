@@ -32,7 +32,7 @@
 export default {
   name: 'tippy-container',
   props: {
-    title: { default: '', type: String },
-  },
-};
+    title: { default: '', type: String }
+  }
+}
 </script>

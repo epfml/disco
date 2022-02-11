@@ -414,7 +414,7 @@
 </template>
 
 <script>
-var Hashes = require('jshashes');
+const Hashes = require('jshashes')
 
 export default {
   name: 'main-task-frame',
@@ -422,7 +422,7 @@ export default {
     id: String,
     task: Object,
   },
-  data() {
+  data () {
     return {
       taskTitle: null,
       isActiveModelDesc: false,
@@ -436,57 +436,57 @@ export default {
       isSidebarOpen: window.innerWidth > 1024,
       window: {
         width: window.innerWidth,
-        height: window.innerHeight,
+        height: window.innerHeight
       },
       authenticated: false,
       inputPassword: '',
-      incorrectLogin: false,
-    };
+      incorrectLogin: false
+    }
   },
   methods: {
-    goToTraining() {
+    goToTraining () {
       this.$router.push({
         name: this.task.taskID + '.training',
         params: { id: this.task.taskID },
       });
     },
-    goToTesting() {
+    goToTesting () {
       this.$router.push({
         name: this.task.taskID + '.testing',
         params: { id: this.task.taskID },
       });
     },
-    goToModelDescription() {
+    goToModelDescription () {
       this.$router.push({
-        path: 'description',
-      });
+        path: 'description'
+      })
     },
-    async handleResize() {
-      this.window.width = window.innerWidth;
-      this.window.height = window.innerHeight;
-      this.isSidebarOpen = this.window.width > 1024;
+    async handleResize () {
+      this.window.width = window.innerWidth
+      this.window.height = window.innerHeight
+      this.isSidebarOpen = this.window.width > 1024
     },
-    login() {
-      var SHA256 = new Hashes.SHA256();
+    login () {
+      const SHA256 = new Hashes.SHA256()
       if (
         SHA256.hex(this.inputPassword) ===
         this.task.displayInformation.password_hash
       ) {
-        this.authenticated = true;
+        this.authenticated = true
         this.$store.commit('addPassword', {
           id: this.id,
           password: this.inputPassword,
         });
       } else {
-        this.incorrectLogin = true;
+        this.incorrectLogin = true
       }
     },
-    openSidebarMenu(menu) {
-      this.openModelDesc = menu === 'model_desc';
-      this.openUploadData = menu === 'upload_data';
-      this.openModelStatistic = menu === 'model_statistic';
-      this.openTestModel = menu === 'test_model';
-    },
+    openSidebarMenu (menu) {
+      this.openModelDesc = menu === 'model_desc'
+      this.openUploadData = menu === 'upload_data'
+      this.openModelStatistic = menu === 'model_statistic'
+      this.openTestModel = menu === 'test_model'
+    }
   },
   async mounted() {
     this.taskTitle = this.task.displayInformation.taskTitle;
@@ -501,26 +501,26 @@ export default {
 
     if (prevState) {
       // if previous state exist, load it
-      this.isActiveModelDesc = prevState.isActiveModelDesc;
-      this.openModelDesc = prevState.openModelDesc;
-      this.isActiveUploadData = prevState.isActiveUploadData;
-      this.isActiveTestModel = prevState.isActiveTestModel;
-      this.openUploadData = prevState.openUploadData;
-      this.openTestModel = prevState.openTestModel;
-      this.isActiveModelStatistic = prevState.isActiveModelStatistic;
-      this.openModelStatistic = prevState.openModelStatistic;
-      this.isSidebarOpen = prevState.isSidebarOpen;
+      this.isActiveModelDesc = prevState.isActiveModelDesc
+      this.openModelDesc = prevState.openModelDesc
+      this.isActiveUploadData = prevState.isActiveUploadData
+      this.isActiveTestModel = prevState.isActiveTestModel
+      this.openUploadData = prevState.openUploadData
+      this.openTestModel = prevState.openTestModel
+      this.isActiveModelStatistic = prevState.isActiveModelStatistic
+      this.openModelStatistic = prevState.openModelStatistic
+      this.isSidebarOpen = prevState.isSidebarOpen
     } else {
       // if previous state does not exist, initilize variable to initial values
-      this.isActiveModelDesc = false;
-      this.openModelDesc = true;
-      this.isActiveUploadData = false;
-      this.isActiveTestModel = false;
-      this.openUploadData = false;
-      this.openTestModel = false;
-      this.isActiveModelStatistic = false;
-      this.openModelStatistic = false;
-      this.isSidebarOpen = window.innerWidth > 1024;
+      this.isActiveModelDesc = false
+      this.openModelDesc = true
+      this.isActiveUploadData = false
+      this.isActiveTestModel = false
+      this.openUploadData = false
+      this.openTestModel = false
+      this.isActiveModelStatistic = false
+      this.openModelStatistic = false
+      this.isSidebarOpen = window.innerWidth > 1024
     }
   },
   async deactivated() {
@@ -534,18 +534,18 @@ export default {
       openTestModel: this.openTestModel,
       isActiveModelStatistic: this.isActiveModelStatistic,
       openModelStatistic: this.openModelStatistic,
-      isSidebarOpen: this.isSidebarOpen,
-    };
-    await this.$store.commit('addGlobalTaskFrameState', currentState);
-  },
-  unmounted() {
-    window.removeEventListener('resize', this.handleResize);
-  },
-  beforeRouteUpdate(to, from, next) {
-    if (to.name.includes('training')) {
-      this.openSidebarMenu('upload_data');
+      isSidebarOpen: this.isSidebarOpen
     }
-    next();
+    await this.$store.commit('addGlobalTaskFrameState', currentState)
   },
-};
+  unmounted () {
+    window.removeEventListener('resize', this.handleResize)
+  },
+  beforeRouteUpdate (to, from, next) {
+    if (to.name.includes('training')) {
+      this.openSidebarMenu('upload_data')
+    }
+    next()
+  }
+}
 </script>

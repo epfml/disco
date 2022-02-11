@@ -27,7 +27,7 @@
   </div>
 </template>
 <script>
-import DescriptionFrame from '../building_frames/DescriptionFrame.vue';
+import DescriptionFrame from '../building_frames/DescriptionFrame.vue'
 
 export default {
   name: 'main-description-frame',
@@ -36,7 +36,7 @@ export default {
     task: Object,
   },
   components: {
-    DescriptionFrame,
+    DescriptionFrame
   },
 };
 </script>
