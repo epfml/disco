@@ -2,6 +2,7 @@ import { Actor } from '../actor'
 import { TrainingInformant } from './decentralised/training_informant'
 import { TrainingManager } from './training_manager'
 import { getClient } from '../communication/helpers'
+import { Client } from '../communication/client'
 
 // number of files that should be loaded (required by the task)
 function nbrFiles (task) {
@@ -9,6 +10,13 @@ function nbrFiles (task) {
   return llist ? llist.length : 1
 }
 export class Trainer extends Actor {
+  isConnected: Boolean
+  isTraining: Boolean
+  distributedTraining: Boolean
+  platform: String
+  client: Client
+  trainingInformant: TrainingInformant
+  trainingManager: () => TrainingManager
   /**
    * Constructor for Trainer
    * @param {Task} task - task on which the tasking shall be performed
