@@ -19,6 +19,10 @@ To automatically restarts the process after changes, the server also supports th
 
 To run sever unit testing run `npm run test`. Make sure you are not running a server at the same time as the test suite will run a server to test on. We use [mocha](https://mochajs.org/), [chai](https://www.chaijs.com/) and [supertest](https://github.com/visionmedia/supertest) for testing; respectively they are libraries: unit tests, assertions, and http testing.
 
+### Writing your own tests
+
+Server tests are saved in the `tests/` folder with root as `server/`. All tests with `.ts` extension written in this folder will be tested. To see an example of how to write your own tests have a look at `tests/example.test.ts`. You can use this as a starting template for your own tests!
+
 ### Testing the servers before deploying
 
 The server is deployed inside a docker container, thus before deploying it, we can locally test the container to see if any new dependencies work (The container runs a 20.04 Ubuntu server). See [docker guide](https://docs.docker.com/get-started/) if you have not used docker and or need to install it.
@@ -90,11 +94,11 @@ The first line compiles the ts code into js, and the second one then runs the co
 
 ### tsconfig
 
-We specify compiler options as well as what directories to use for ts in the ``tsconfig.json``, we [extend](https://www.typescriptlang.org/tsconfig#extends) this config onto ``tsconfig.prod.json`` where we specify what we want for the production build.
+We specify compiler options as well as what directories to use for ts in the `tsconfig.json`, we [extend](https://www.typescriptlang.org/tsconfig#extends) this config onto `tsconfig.prod.json` where we specify what we want for the production build.
 
-In the ``tsconfig`` we add the base esm module that we use as well as including the mocha types. In ``tsconfig.prod.json`` we further specify which source to use for building, specifically ignoring  the ``tests/`` folder. 
+In the `tsconfig` we add the base esm module that we use as well as including the mocha types. In `tsconfig.prod.json` we further specify which source to use for building, specifically ignoring  the `tests/` folder. 
 
-tl;dr: ``tsconfig.json`` specifies the general setup for ts (including testing), ``tsconfig.prod.json`` adds production specific commands to ``tsconfig.json``.
+tl;dr: `tsconfig.json` specifies the general setup for ts (including testing), `tsconfig.prod.json` adds production specific commands to `tsconfig.json`.
 
 ## DeAI Helper Server, for decentralized training
 
