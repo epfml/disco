@@ -108,15 +108,8 @@ export class Trainer extends Actor {
         nbrFiles > 1
           ? this.fileUploadManager.getFilesList()
           : this.fileUploadManager.getFirstFile()
-      let statusValidation = { accepted: true }
       // get task  specific information (preprocessing steps, precheck function)
-      if (this.taskHelper.precheckData) {
-        // data checking is optional
-        statusValidation = await this.taskHelper.precheckData(
-          filesElement,
-          this.task.trainingInformation
-        )
-      }
+      const statusValidation = await this.taskHelper.preCheckData(filesElement)
       if (statusValidation.accepted) {
         // preprocess data
         const processedDataset = await this.taskHelper.dataPreprocessing(
@@ -130,7 +123,7 @@ export class Trainer extends Actor {
       } else {
         // print error message
         this.logger.error(
-          `Invalid input format : Number of data points with valid format: ${statusValidation.nr_accepted} out of ${nbrFiles}`
+          `Invalid input format : Number of data points with valid format: ${statusValidation.nbAccepted} out of ${nbrFiles}`
         )
       }
     }

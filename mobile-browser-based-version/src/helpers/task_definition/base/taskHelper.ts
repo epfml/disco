@@ -34,5 +34,15 @@ export abstract class TaskHelper<T extends Task> {
    * Converts the result of 'makePredictions' into csv format
    * @param {any[]} predictions
    */
-  abstract predictionsToCsv(predictions : any[]): Promise<String>;
+  abstract predictionsToCsv(predictions: any[]): Promise<String>;
+
+  /**
+   * Checks if the validity of the recieved filesElements
+   * @param filesElement - file or list of files that should be preprocessed
+   * @returns {accepted: true} if all files meet the requirements
+   */
+  async preCheckData (filesElement: any): Promise<{ accepted: Boolean, nbAccepted: Number }> {
+    // default implementation => always returns true
+    return { accepted: true, nbAccepted: 0 }
+  }
 }

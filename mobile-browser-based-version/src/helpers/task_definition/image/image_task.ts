@@ -9,18 +9,22 @@ import {
 
 export class ImageTask extends Task {
   net: any;
+  testing: {
+    classes: Object,
+    gotResults: boolean,
+  };
+
+  getExampleImage: Function = getExampleImage;
   async loadPretrainedNet () {
     this.net = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
     )
   }
 
-  preCheckData: Function = checkData;
-  getExampleImage: Function = getExampleImage;
-  testing: {
-    classes: Object,
-    gotResults: boolean,
-  };
+  preCheckData (filesElement) {
+    return checkData(filesElement,
+      this.trainingInformation)
+  }
 
   constructor (taskID, displayInformation, trainingInformation) {
     super(taskID, displayInformation, trainingInformation)
