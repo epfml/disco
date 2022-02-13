@@ -28,6 +28,7 @@ export class CsvTask extends Task {
    */
   async dataPreprocessing (file) {
     console.log('Start: Processing Uploaded File')
+    console.log(file)
     let Xtrain = null
     let ytrain = null
 
@@ -40,7 +41,6 @@ export class CsvTask extends Task {
     // If user's file respects our format, parse it and start training
     if (startTraining) {
       console.log('User File Validated. Start parsing.')
-      console.log(headerCopied)
 
       const originalHeaders = this.headers.map(
         (element: { [x: string]: any }) => element.userHeader

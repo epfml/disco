@@ -107,7 +107,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['useIndexedDB'])
+    ...mapState(['useIndexedDB', 'isDark'])
   },
   methods: {
     buttonClass: function (state) {
