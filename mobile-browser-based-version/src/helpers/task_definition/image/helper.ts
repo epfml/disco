@@ -9,6 +9,7 @@ export class ImageTaskHelper extends TaskHelper<ImageTask> {
   async predictionsToCsv (predictions: any[]) {
     let pred = ''
     let headerLength = 0
+    // eslint-disable-next-line no-unused-vars
     for (const [id, prediction] of Object.entries(predictions)) {
       headerLength = prediction.length
       pred += `id,${prediction

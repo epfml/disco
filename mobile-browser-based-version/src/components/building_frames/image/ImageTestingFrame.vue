@@ -124,20 +124,6 @@ export default {
       helper: new ImageTaskHelper(this.task)
     }
   },
-  methods: {
-    async filterData (filesElement) {
-      const files = filesElement.files
-      // Only process image files (skip non image files)
-      for (let i = 0; i < files.length; ++i) {
-        const file = files[i]
-        if (file && file.type.match('image.*')) {
-          const objectURL = URL.createObjectURL(file)
-          this.FILES[objectURL] = { name: file.name }
-        }
-      }
-      return this.FILES
-    }
-  },
   async mounted () {
     // This method is called when the component is created
     this.$nextTick(async function () {

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 <template>
   <!-- Upload File Card-->
   <div class="relative">
@@ -186,7 +187,7 @@ export default {
       ++this.counter
     },
     dragLeaveHandler (e) {
-      --this.counter < 1
+      return --this.counter < 1
     },
     dragOverHandler (e) {
       if (hasFiles(e)) {

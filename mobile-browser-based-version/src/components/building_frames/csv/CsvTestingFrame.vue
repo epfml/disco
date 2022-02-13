@@ -139,7 +139,7 @@ export default {
     this.$nextTick(async function () {
       // initialize information variables
       this.headers = this.helper.context.headers.filter(
-        (elem) => elem.id != this.helper.context.classColumn
+        (elem) => elem.id !== this.helper.context.classColumn
       )
       // mutate helper object because it is passed to the <testing-frame/> component
       this.helper.context.headers = this.headers

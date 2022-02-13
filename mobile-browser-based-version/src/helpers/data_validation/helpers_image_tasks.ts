@@ -21,7 +21,7 @@ export function getExampleImage (url) {
  *
  * @param {Object} trainingData: data provided through interface
  * @param {Object} trainingInfo: training information from the specific task that is used to check validity
- * @returns {Object} accepted: status of data (true if all images are valid) and nr_accepted: nr of valid images
+ * @returns {Object} accepted: status of data (true if all images are valid) and nbAccepted: nr of valid images
  */
 
 export async function checkData (trainingData, trainingInfo) {
@@ -51,5 +51,5 @@ export async function checkData (trainingData, trainingInfo) {
     status = false
   }
 
-  return { accepted: status, nr_accepted: nrImgs }
+  return { accepted: status, nbAccepted: nrImgs }
 }

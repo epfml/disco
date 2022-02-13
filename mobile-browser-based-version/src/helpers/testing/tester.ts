@@ -1,4 +1,4 @@
-import { Actor } from '../actor.js'
+import { Actor } from '../actor'
 export class Tester extends Actor {
   /**
    * Constructor for Tester
@@ -21,18 +21,10 @@ export class Tester extends Actor {
       this.logger.success(
         'Thank you for your contribution. Testing has started'
       )
-      let filesElement =
+      const filesElement =
         nbrFiles > 1
           ? this.fileUploadManager.getFilesList()
           : this.fileUploadManager.getFirstFile()
-      // filtering phase (optional)
-      if (this.taskHelper.filterData) {
-        // data checking is optional
-        filesElement = await this.taskHelper.filterData(
-          filesElement,
-          this.task.trainingInformation
-        )
-      }
       // prediction
       const predictions = await this.taskHelper.makePredictions(filesElement)
       this.logger.success('Predictions are computed available')
