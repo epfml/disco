@@ -51,7 +51,7 @@
             >
               <li
                 class="border-gray-400"
-                v-for="header in helper.context.headers"
+                v-for="header in task.headers"
                 :key="header.id"
               >
                 <div

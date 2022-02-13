@@ -5,9 +5,7 @@
       <div class="flex object-center">
         <img
           class="object-center"
-          :src="
-            helper.getExampleImage(task.displayInformation.dataExampleImage)
-          "
+          :src="task.getExampleImage(task.displayInformation.dataExampleImage)"
           :alt="task.displayInformation.dataExampleImage"
         /><img />
       </div>

@@ -21,7 +21,7 @@ export abstract class TaskHelper<T extends Task> {
    * data into Xtrain and ytain objects.
    * @param {Object | List[Object]} filesElement - file or list of files that should be preprocessed
    */
-  abstract dataPreprocessing(filesElement: any);
+  abstract dataPreprocessing(filesElement: any): Promise<{ accepted: Boolean, Xtrain: any, ytrain: any }>;
   /**
    * 1. Reads the files in fileselement
    * 2. Use the task.predict method to generate predictions
