@@ -28,15 +28,16 @@ def img_partition(list_in, n):
     return [list_in[i::n] for i in range(n)]
 
 def read_csv(file_path):
-    with open(file_path, newline='') as f:
-        reader = csv.reader(f)
-        results = dict(reader) 
+    with open(file_path, newline='') as csvfile:
+        results = list(csv.reader(csvfile))
     return results
 
-def create_csv(dic, name):
-    with open(name, 'w') as f:
-        for key in dic.keys():
-            f.write(f"{key},{dic[key]}\n")
+def create_csv(header, data, filename):
+    with open(filename, 'w') as f:
+    # using csv.writer method from CSV package
+        write = csv.writer(f)
+        write.writerow(header)
+        write.writerows(data)
 
 def img_r_partition(list_in, n):
     random.shuffle(list_in)
@@ -79,8 +80,8 @@ def calculate_average_acc(drivers, train_acc_element_id, val_acc_element_id):
     total_train_acc = 0
     total_val_acc = 0
     for driver in drivers:
-        total_train_acc += float(driver.find_element_by_id(train_acc_element_id).text)
-        total_val_acc += float(driver.find_element_by_id(val_acc_element_id).text)
+        total_train_acc += float(driver.find_elements_by_xpath(train_acc_element_id)[0].text)
+        total_val_acc += float(driver.find_elements_by_xpath(val_acc_element_id)[0].text)
     return total_train_acc / len(drivers), total_val_acc / len(drivers)
 
 
@@ -111,9 +112,10 @@ def print_metrics(drivers, start_time, train_acc_element_id, val_acc_element_id,
                 temp_cpu += cpu_usage
             max_cpu = max(temp_cpu, max_cpu)
             temp_cpu = 0
-        if len(drivers[len(drivers) - 1].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']")) > 0:
-            for f in drivers[len(drivers) - 1].find_elements_by_xpath("//*[@class='c-toast c-toast--success c-toast--bottom-right']"):
-                if 'has finished training' in f.text:
+        
+        if len(drivers[len(drivers) - 1].find_elements_by_xpath('//*[@id="mapHeader"]/ul/li/div/span')) > 0:
+            for f in drivers[len(drivers) - 1].find_elements_by_xpath('//*[@id="mapHeader"]/ul/li/div/span'):
+                if 'Training finished' in f.text:
                     train_acc, val_acc = calculate_average_acc(drivers, train_acc_element_id, val_acc_element_id)
                     report_file.write(f"Train accuracy = {round(train_acc, 2)} \n")
                     report_file.write(f"Validation accuracy = {round(val_acc, 2)} \n")
@@ -129,12 +131,15 @@ def pick_training_mode(driver, training_mode='Federated'):
     settings = driver.find_element_by_xpath("//a[@data-title='Settings']")
     settings.click()
     time.sleep(2)
-    if training_mode != "Decentralized":
-        driver.find_element_by_xpath("//*[@id='app']/div/div/aside/div/section/div[2]/div[2]/div/button[2]").click()
-    driver.find_element_by_xpath("//*[@id='app']/div/div/aside/div/section/div[1]/button").click()
+    if training_mode != "Decentralised":
+        driver.find_element_by_xpath('//*[@id="app"]/div/div/aside/div/section/div[2]/div[2]/div[1]/div/button[2]').click()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="app"]/div/div/aside/div/section/div[2]/div[2]/div[2]/div/button[2]').click()
+    driver.find_element_by_xpath('//*[@id="app"]/div/div/aside/div/section/div[1]/button').click()
 
-def start_training(drivers, training_type):
-    for driver in drivers:
+def start_training(drivers, training_type, time_offsets):
+    for index, driver in enumerate(drivers):
+        # time.sleep(time_offsets[index])
         elements = driver.find_elements_by_tag_name('button')
         for elem in elements:
             if training_type in elem.get_attribute('innerHTML'):
@@ -146,12 +151,12 @@ def find_task_page(driver, platform, task_name, training_mode):
     driver.get(platform)
     time.sleep(2)
     pick_training_mode(driver, training_mode)
-    time.sleep(2)
+    time.sleep(1)
     elements = driver.find_elements_by_tag_name('button')
     for elem in elements:
         if 'Start building' in elem.get_attribute('innerHTML'):
             elem.click()
-
+            break
     # Find the task and click 'Join' on task list page
     time.sleep(2)
     elements = driver.find_elements_by_css_selector('div.group')

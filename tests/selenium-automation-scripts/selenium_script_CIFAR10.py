@@ -21,18 +21,20 @@ from util import find_task_page, generate_report, get_files, img_partition, img_
 
 
 #Platform
-PLATFORM = 'https://epfml.github.io/FeAI/#/'
-TRAINING_MODE = 'Federated'
+PLATFORM = 'https://epfml.github.io/DeAI/#/'
+TRAINING_MODE = 'Decentralised'
 # Defines how many browser tabs to open
-NUM_PEERS  = 1
+NUM_PEERS = 2
 # Defines the way to split the data, could be 'partition' for even size partitions, 'rpartition' for random size partitions
 # 'spartition' for parition of size passed as an argument RATIOS.
-DATA_SPLIT = 'iid'
-RATIOS = [0.5, 0.5]
+DATA_SPLIT = 'spartition'
+RATIOS = [0.6, 0.4]
+#You can set time offsets for nodes to join at variable times
+TIME_OFFSETS = [0, 0, 0]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
-# can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
-TRAINING_TYPE = 'Train decentralised' 
+# can be either 'decentralised' or 'federated'. Should match the text of the button in the train screen.
+TRAINING_TYPE = 'decentralised' 
 # paths to the file containing the CSV file of Titanic passengers with 12 columns
 IMAGE_FILE_PATH = r'train (1)/train'
 LABEL_FILE_PATH = 'labels.csv'
@@ -56,33 +58,32 @@ elif DATA_SPLIT == 'rpartition':
     partitions = img_r_partition(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png'), NUM_PEERS)
 
 
-
-
 for index, driver in enumerate(drivers):
-    find_task_page(driver, PLATFORM, TASK_NAME, TRAINING_MODE)
 
+
+    find_task_page(driver, PLATFORM, TASK_NAME, TRAINING_MODE)
     # Upload files on Task Training
     time.sleep(6)
     if DATA_SPLIT != 'iid':
-        driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(partitions[index]))
-        driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
+        driver.find_element_by_id('hidden-input_cifar10_Images').send_keys(' \n '.join(partitions[index]))
+        driver.find_element_by_id('hidden-input_cifar10_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
     else:
-        driver.find_element_by_id('hidden-input_cifar10-model_Images').send_keys(' \n '.join(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png')))
-        driver.find_element_by_id('hidden-input_cifar10-model_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
+        driver.find_element_by_id('hidden-input_cifar10_Images').send_keys(' \n '.join(get_files(IMAGE_FILE_PATH, NUM_IMAGES, '.png')))
+        driver.find_element_by_id('hidden-input_cifar10_Labels').send_keys(os.path.abspath(LABEL_FILE_PATH))
 
 # Start training on each driver
 time.sleep(5)
 train_start_time = time.time()
 time.sleep(8)
-start_training(drivers, TRAINING_TYPE)
+start_training(drivers, TRAINING_TYPE, TIME_OFFSETS)
 time.sleep(5)
 
 generate_report('report.txt', \
     drivers, \
     start_time, \
     train_start_time, \
-    'val_trainingAccuracy_cifar10-model', \
-    'val_validationAccuracy_cifar10-model', \
+    '//*[@id="app"]/div/div/div/div/div/div/div/main/div/div/div[3]/div[1]/div/div[2]/p/span[1]', \
+    '//*[@id="app"]/div/div/div/div/div/div/div/main/div/div/div[3]/div[1]/div/div[1]/p/span[1]', \
     2)
 
 for driver in drivers:

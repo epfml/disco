@@ -25,18 +25,20 @@ from webdriver_manager.chrome import ChromeDriverManager
 from util import find_task_page, generate_report, get_files, img_partition, img_r_partition, img_s_partition, start_training
 
 # Platform
-PLATFORM = 'https://epfml.github.io/FeAI/#/'
-TRAINING_MODE = 'Federated'
+PLATFORM = 'https://epfml.github.io/DeAI/#/'
+TRAINING_MODE = 'Decentralised'
 # Defines how many browser tabs to open
 NUM_PEERS  = 2
 # Defines the way to split the data,could be 'iid' for iid data, 'partition' for even size partitions, 'rparition' for random size partitions
 # 'spartition' for partition of sizes past as argument RATIOS
 DATA_SPLIT = 'iid'
-RATIOS = [0.5, 0.1, 0.2, 0.1, 0.1]
+#You can set time offsets for nodes to join at variable times
+TIME_OFFSETS = [0, 0, 0]
+RATIOS = [0.5, 0.3, 0.2]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'COVID Lung Ultrasound'
 # can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
-TRAINING_TYPE = 'Train decentralised' 
+TRAINING_TYPE = 'decentralised' 
 # Currently we take the first `NUM_IMAGES` in the folder for each peer. We should make a more complex distribution.
 NUM_IMAGES = 10
 # paths to folders containing covid positive and coivd negative patients
@@ -82,17 +84,17 @@ for index, driver in enumerate(drivers):
         driver.find_element_by_id('hidden-input_lus-covid-model_COVID-Negative').send_keys(' \n '.join(neg_partitions[index]))
 
 # Start training on each driver
-start_training(drivers, TRAINING_TYPE)
+start_training(drivers, TRAINING_TYPE, TIME_OFFSETS)
 train_start_time = time.time()
 
 generate_report('report.txt', \
     drivers, \
     start_time, \
     train_start_time, \
-    'val_trainingAccuracy_lus-covid-model', \
-    'val_validationAccuracy_lus-covid-model', \
+    '//*[@id="app"]/div/div/div/div/div/div/div/main/div/div/div[3]/div[1]/div/div[2]/p/span[1]', \
+    '//*[@id="app"]/div/div/div/div/div/div/div/main/div/div/div[3]/div[1]/div/div[1]/p/span[1]', \
     2)
 
-#for driver in drivers:
- #   driver.quit()
+for driver in drivers:
+   driver.quit()
 
