@@ -65,7 +65,6 @@ export class ImageTask extends Task {
       const processedImg = batched.toFloat().div(127.5).sub(1).expandDims(0)
 
       let result = null
-      console.log(this.trainingInformation.aggregateImagesById)
       if (this.trainingInformation.aggregateImagesById) {
         result = this.net.predict(processedImg)
       } else {
