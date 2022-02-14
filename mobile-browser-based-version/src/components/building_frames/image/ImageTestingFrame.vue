@@ -5,9 +5,7 @@
       <div class="flex object-center">
         <img
           class="object-center"
-          :src="
-            helper.getExampleImage(task.displayInformation.dataExampleImage)
-          "
+          :src="task.getExampleImage(task.displayInformation.dataExampleImage)"
           :alt="task.displayInformation.dataExampleImage"
         /><img />
       </div>
@@ -16,8 +14,8 @@
 
     <template v-slot:predictionResults>
       <image-prediction-results-frame
-        v-if="helper.context.testing.gotResults"
-        :classes="helper.context.testing.classes"
+        v-if="task.testing.gotResults"
+        :classes="task.testing.classes"
       />
 
       <div id="predictions"></div>
