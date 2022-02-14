@@ -20,6 +20,12 @@ export class CsvTask extends Task {
     this.classColumn = trainingInformation.outputColumn
   }
 
+  getTestingHeaders () {
+    return this.headers.filter(
+      (elem) => elem.id !== this.classColumn
+    )
+  }
+
   /**
    * This functions takes as input a file (of type File) uploaded by the reader and checks
    * if the said file meets the constraints requirements and if so prepare the training data.
@@ -82,21 +88,19 @@ export class CsvTask extends Task {
     console.log('Start: Processing Uploaded File')
 
     // Check some basic prop. in the user's uploaded file
-
-    const checkResult = await checkData(file, this.headers)
+    const testingHeaders = this.getTestingHeaders()
+    const checkResult = await checkData(file, testingHeaders)
     const startTesting = checkResult.accepted
     const headerCopied = checkResult.userHeader
 
     // If user's file respects our format, parse it and start training
     if (startTesting) {
       console.log('User File Validated. Start parsing.')
-      console.log(headerCopied)
-
-      const originalHeaders = this.headers.map(
+      const originalHeaders = testingHeaders.map(
         (element: { [x: string]: any }) => element.userHeader
       )
       const inputColumns = this.trainingInformation.inputColumns
-      const indices = Array.from({ length: this.headers.length }, (x, i) => i)
+      const indices = Array.from({ length: testingHeaders.length }, (x, i) => i)
       const inputIndices = indices.filter((i) =>
         inputColumns.includes(originalHeaders[i])
       )

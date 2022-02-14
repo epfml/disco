@@ -1,5 +1,5 @@
 <template>
-  <testing-frame :id="id" :task="task" :nbrClasses="1" :helper="helper">
+  <testing-frame :id="id" :task="task" :helper="helper">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="relative p-4 overflow-x-hidden">
@@ -48,7 +48,7 @@
             >
               <li
                 class="border-gray-400"
-                v-for="header in headers"
+                v-for="header in task.getTestingHeaders()"
                 :key="header.id"
               >
                 <div
@@ -110,44 +110,30 @@
 </template>
 
 <script>
-import TestingFrame from "../containers/TestingFrame.vue";
-import IconCard from "../../containers/IconCard.vue";
-import Bezier2 from "../../../assets/svg/Bezier2.vue";
-import { CsvTaskHelper } from "@/helpers/task_definition/csv/helper";
+import TestingFrame from '../containers/TestingFrame.vue'
+import IconCard from '../../containers/IconCard.vue'
+import Bezier2 from '../../../assets/svg/Bezier2.vue'
+import { CsvTaskHelper } from '@/helpers/task_definition/csv/helper'
+import { CsvTask } from '@/helpers/task_definition/csv/csv_task'
 
 export default {
-  name: "csv-testing-frame",
+  name: 'csv-testing-frame',
   props: {
     id: String,
-    task: Object,
+    task: CsvTask
   },
   components: {
     IconCard,
     TestingFrame,
-    Bezier2,
+    Bezier2
   },
-  data() {
+  data () {
     return {
-      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      headers: [],
-      dataExample: null,
-      helper: new CsvTaskHelper(this.task),
-    };
-  },
-  async mounted() {
-    // This method is called when the component is created
-    this.$nextTick(async function () {
-      // initialize information variables
-      this.headers = this.task.headers.filter(
-        (elem) => elem.id !== this.task.classColumn
-      );
-      // mutate helper object because it is passed to the <testing-frame/> component
-      // TODO: update this.task.headers
-      // this.task.headers = this.headers
-      this.dataExample = this.task.displayInformation.dataExample.filter(
+      dataExample: this.task.displayInformation.dataExample.filter(
         (item) => item.columnName !== this.task.classColumn
-      );
-    });
-  },
-};
+      ),
+      helper: new CsvTaskHelper(this.task)
+    }
+  }
+}
 </script>
