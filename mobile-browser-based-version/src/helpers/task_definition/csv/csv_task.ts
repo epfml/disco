@@ -1,43 +1,58 @@
 import * as d3 from 'd3'
 import * as tf from '@tensorflow/tfjs'
-import { checkData } from '../helpers/data_validation/helpers_csv_tasks'
-import { Task } from './task'
+import { checkData } from '../../data_validation/helpers_csv_tasks'
+import { Task } from '../base/task'
 
+type HeaderElem = String | Number;
 /**
  * Dummy class to hold the Titanic Task information
  */
 export class CsvTask extends Task {
-  trainingInformation: any;
+  headers: Array<{ id: HeaderElem, userHeader: HeaderElem }>
+  classColumn: String
+
+  constructor (taskID, displayInformation, trainingInformation) {
+    super(taskID, displayInformation, trainingInformation)
+    this.headers = []
+    displayInformation.headers.forEach((item) => {
+      this.headers.push({ id: item, userHeader: item })
+    })
+    this.classColumn = trainingInformation.outputColumn
+  }
+
+  getTestingHeaders () {
+    return this.headers.filter(
+      (elem) => elem.id !== this.classColumn
+    )
+  }
+
   /**
    * This functions takes as input a file (of type File) uploaded by the reader and checks
    * if the said file meets the constraints requirements and if so prepare the training data.
    * @param {File} file file uploaded by the user
    * @returns an object of the form: {accepted: Boolean, Xtrain: training data, ytrain: data's labels}
    */
-  async dataPreprocessing (
-    file: { target: { result: string } },
-    headers: any[]
-  ) {
+  async dataPreprocessing (file) {
     console.log('Start: Processing Uploaded File')
+    console.log(file)
     let Xtrain = null
     let ytrain = null
 
     // Check some basic prop. in the user's uploaded file
 
-    const checkResult = await checkData(file, headers)
+    const checkResult = await checkData(file, this.headers)
     const startTraining = checkResult.accepted
     const headerCopied = checkResult.userHeader
 
     // If user's file respects our format, parse it and start training
     if (startTraining) {
       console.log('User File Validated. Start parsing.')
-      console.log(headerCopied)
 
-      const originalHeaders = headers.map(
+      const originalHeaders = this.headers.map(
         (element: { [x: string]: any }) => element.userHeader
       )
       const inputColumns = this.trainingInformation.inputColumns
-      const indices = Array.from({ length: headers.length }, (x, i) => i)
+      const indices = Array.from({ length: this.headers.length }, (x, i) => i)
       const inputIndices = indices.filter((i) =>
         inputColumns.includes(originalHeaders[i])
       )
@@ -61,8 +76,8 @@ export class CsvTask extends Task {
     return { accepted: startTraining, Xtrain: Xtrain, ytrain: ytrain }
   }
 
-  async predict (file: { target: { result: string } }, headers: any[]) {
-    let loadedModel = null
+  async predict (file):Promise<any[]> {
+    let loadedModel:tf.LayersModel = null
     try {
       loadedModel = await this.getModelFromStorage()
     } catch {
@@ -73,21 +88,19 @@ export class CsvTask extends Task {
     console.log('Start: Processing Uploaded File')
 
     // Check some basic prop. in the user's uploaded file
-
-    const checkResult = await checkData(file, headers)
+    const testingHeaders = this.getTestingHeaders()
+    const checkResult = await checkData(file, testingHeaders)
     const startTesting = checkResult.accepted
     const headerCopied = checkResult.userHeader
 
     // If user's file respects our format, parse it and start training
     if (startTesting) {
       console.log('User File Validated. Start parsing.')
-      console.log(headerCopied)
-
-      const originalHeaders = headers.map(
+      const originalHeaders = testingHeaders.map(
         (element: { [x: string]: any }) => element.userHeader
       )
       const inputColumns = this.trainingInformation.inputColumns
-      const indices = Array.from({ length: headers.length }, (x, i) => i)
+      const indices = Array.from({ length: testingHeaders.length }, (x, i) => i)
       const inputIndices = indices.filter((i) =>
         inputColumns.includes(originalHeaders[i])
       )
@@ -96,7 +109,7 @@ export class CsvTask extends Task {
         return result
       })
       const xTest = tf.tensor2d(Xcsv)
-      let predictions = loadedModel.predict(xTest)
+      let predictions: any = loadedModel.predict(xTest)
       predictions = await predictions.data()
       predictions = predictions.map((p: number) => (p >= 0.5 ? 1 : 0))
       return predictions

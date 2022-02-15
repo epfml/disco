@@ -1,15 +1,37 @@
 import * as tf from '@tensorflow/tfjs'
-import { Task } from './task'
-import { getTopKClasses } from '../helpers/testing/testing_script'
+import { Task } from '../base/task'
+import { getTopKClasses } from '../../testing/testing_script'
 import Papa from 'papaparse'
+import {
+  checkData,
+  getExampleImage
+} from '../../data_validation/helpers_image_tasks'
 
 export class ImageTask extends Task {
-  trainingInformation: any;
   net: any;
+  testing: {
+    classes: Object,
+    gotResults: boolean,
+  };
+
+  getExampleImage: Function = getExampleImage;
   async loadPretrainedNet () {
     this.net = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
     )
+  }
+
+  preCheckData (filesElement) {
+    return checkData(filesElement,
+      this.trainingInformation)
+  }
+
+  constructor (taskID, displayInformation, trainingInformation) {
+    super(taskID, displayInformation, trainingInformation)
+    this.testing = {
+      classes: {},
+      gotResults: false
+    }
   }
 
   async loadLocalImage (filename) {
@@ -43,7 +65,6 @@ export class ImageTask extends Task {
       const processedImg = batched.toFloat().div(127.5).sub(1).expandDims(0)
 
       let result = null
-      console.log(this.trainingInformation.aggregateImagesById)
       if (this.trainingInformation.aggregateImagesById) {
         result = this.net.predict(processedImg)
       } else {
@@ -193,7 +214,7 @@ export class ImageTask extends Task {
     return { xTest: xsArray, ids: ids }
   }
 
-  async predict (testingData) {
+  async predict (testingData): Promise<{}> {
     console.log('Loading model...')
     let loadedModel = null
 

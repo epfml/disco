@@ -1,6 +1,13 @@
 import * as tf from '@tensorflow/tfjs'
+import * as memory from '../../memory/helpers'
 
-export class Task {
+/**
+ * Reprents a TaskFrame containg relevant information about the task
+ * for the Vue application.
+ */
+type FileEvent = { target: { result: string } };
+
+export abstract class Task {
   taskID: string;
   displayInformation: any;
   trainingInformation: any;
@@ -24,12 +31,22 @@ export class Task {
     return newModel
   }
 
-  // Should not be here
+  /**
+   *
+   * @returns the loaded working model from the memory
+   */
   async getModelFromStorage () {
-    const savePath = 'indexeddb://working_'.concat(
+    return memory.getWorkingModel(
+      this.taskID,
       this.trainingInformation.modelID
     )
-    const model = await tf.loadLayersModel(savePath)
-    return model
   }
+
+  /**
+   * Abstract methods
+   */
+  abstract dataPreprocessing(filesElement: any): Promise<{ accepted: Boolean, Xtrain: any, ytrain: any }>;
+  abstract predict(filesElement: FileEvent);
 }
+
+// context => goes there

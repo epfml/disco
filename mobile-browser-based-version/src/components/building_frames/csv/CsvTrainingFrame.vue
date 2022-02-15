@@ -1,10 +1,5 @@
 <template>
-  <training-frame
-    :Id="Id"
-    :Task="Task"
-    :dataPreprocessing="dataPreprocessing"
-    :nbrClasses="1"
-  >
+  <training-frame :id="id" :task="task" :helper="helper">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="relative p-4 overflow-x-hidden">
@@ -12,7 +7,7 @@
           <thead>
             <tr>
               <th
-                v-for="example in dataExample"
+                v-for="example in task.displayInformation.dataExample"
                 :key="example"
                 class="px-4 py-2 text-emerald-600"
               >
@@ -23,7 +18,7 @@
           <tbody>
             <tr>
               <td
-                v-for="example in dataExample"
+                v-for="example in task.displayInformation.dataExample"
                 :key="example"
                 class="
                   border border-emerald-500
@@ -56,7 +51,7 @@
             >
               <li
                 class="border-gray-400"
-                v-for="header in headers"
+                v-for="header in task.headers"
                 :key="header.id"
               >
                 <div
@@ -117,58 +112,28 @@
   </training-frame>
 </template>
 
-<script type="ts">
+<script>
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
+import { CsvTaskHelper } from '@/helpers/task_definition/csv/helper'
 
 export default {
   name: 'csv-training-frame',
   props: {
-    Id: String,
-    Task: Object
+    id: String,
+    task: Object
   },
   data () {
     return {
       // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      headers: [],
-      dataExample: null
-    }
-  },
-
-  methods: {
-    /**
-     * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
-     */
-    async dataPreprocessing (filesElement) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = async (e) => {
-          // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-          const processedData = await this.Task.dataPreprocessing(
-            e,
-            this.headers
-          )
-          resolve(processedData)
-        }
-        reader.readAsText(filesElement)
-      })
+      helper: new CsvTaskHelper(this.task)
     }
   },
   components: {
     TrainingFrame,
     IconCard,
     Bezier2
-  },
-
-  async mounted () {
-    // This method is called when the component is created
-    this.$nextTick(async function () {
-      this.dataExample = this.Task.displayInformation.dataExample
-      this.Task.displayInformation.headers.forEach((item) => {
-        this.headers.push({ id: item, userHeader: item })
-      })
-    })
   }
 }
 </script>

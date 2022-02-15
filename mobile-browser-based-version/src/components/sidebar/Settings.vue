@@ -8,7 +8,7 @@
           <!-- Decentralized button -->
           <button
             :disabled="this.$store.getters.isDecentralized"
-            v-on:click="setRequestPlatformChangeTrue"
+            @click="setRequestPlatformChangeTrue"
             :class="buttonClass(this.$store.getters.isDecentralized)"
           >
             <span><decentralised-icon /></span>
@@ -18,7 +18,7 @@
           <!-- Federated button -->
           <button
             :disabled="this.$store.getters.isFederated"
-            v-on:click="setRequestPlatformChangeTrue"
+            @click="setRequestPlatformChangeTrue"
             :class="buttonClass(this.$store.getters.isFederated)"
           >
             <span><federated-icon /></span>
@@ -34,13 +34,12 @@
         </span>
         <div class="flex items-center justify-center space-x-8">
           <button
-            :class="buttonClass"
-            v-on:click="setRequestPlatformChangeFalse"
-          >
+          :class="buttonClass()"
+          @click="setRequestPlatformChangeFalse">
             <span class="text-s"> Cancel </span>
           </button>
 
-          <button :class="buttonClass" v-on:click="changePlatform">
+          <button :class="buttonClass()" @click="changePlatform">
             <span class="text-s"> Confirm </span>
           </button>
         </div>
@@ -62,7 +61,7 @@
           </span>
 
           <div class="flex items-center justify-center">
-            <button :class="buttonClass" v-on:click="toggleIndexedDB()">
+            <button :class="buttonClass()" @click="toggleIndexedDB()">
               <span class="text-s"> Use model library </span>
               <div class="relative focus:outline-none">
                 <div
@@ -108,7 +107,7 @@
           <div class="flex items-center justify-center space-x-8">
             <!-- Light button -->
             <button
-              v-on:click="setLightTheme"
+              @click="setLightTheme"
               :class="buttonClass(!this.$store.state.isDark)"
             >
               <span><star-icon /></span>
@@ -117,7 +116,7 @@
 
             <!-- Dark button -->
             <button
-              v-on:click="setDarkTheme"
+              @click="setDarkTheme"
               :class="buttonClass(this.$store.state.isDark)"
             >
               <span><moon-icon /></span>
@@ -131,7 +130,7 @@
           <div class="flex justify-center">
             <div v-for="color in colors" :key="color">
               <button
-                v-on:click="setColors(color)"
+                @click="setColors(color)"
                 class="w-10 h-10 rounded-full"
                 :style="`background-color: var(--color-${color})`"
               />

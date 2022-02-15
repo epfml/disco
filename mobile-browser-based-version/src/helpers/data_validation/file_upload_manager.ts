@@ -32,9 +32,17 @@ export class FileUploadManager {
       this.filesList[objectURL] = file
     } else {
       if (label === 'Labels') {
-        this.labelFile[objectURL] = { label: label, name: file.name }
+        this.labelFile[objectURL] = {
+          label: label,
+          name: file.name,
+          isImage: file.type.match('image.*')
+        }
       } else {
-        this.filesList[objectURL] = { label: label, name: file.name }
+        this.filesList[objectURL] = {
+          label: label,
+          name: file.name,
+          isImage: file.type.match('image.*')
+        }
       }
     }
   }

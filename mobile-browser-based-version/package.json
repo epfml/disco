@@ -76,6 +76,7 @@
     "rules": {
       "no-unused-vars": "off",
       "multi-word-component-names": "off",
+      "vue/multi-word-component-names": "off",
       "prettier/prettier": [
         "warn",
         {

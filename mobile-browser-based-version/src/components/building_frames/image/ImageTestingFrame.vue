@@ -1,19 +1,12 @@
 <template>
-  <testing-frame
-    :Id="Id"
-    :Task="Task"
-    :nbrClasses="Task.trainingInformation.LABEL_LIST.length"
-    :filterData="filterData"
-    :makePredictions="makePredictions"
-    :predictionsToCsv="predictionsToCsv"
-  >
+  <testing-frame :id="id" :task="task" :helper="helper">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="flex object-center">
         <img
           class="object-center"
-          :src="getImage(dataExampleImage)"
-          v-bind:alt="dataExampleImage"
+          :src="task.getExampleImage(task.displayInformation.dataExampleImage)"
+          :alt="task.displayInformation.dataExampleImage"
         /><img />
       </div>
     </template>
@@ -21,9 +14,8 @@
 
     <template v-slot:predictionResults>
       <image-prediction-results-frame
-        v-if="gotResults"
-        :classes="classes"
-        :imageElement="imgTested"
+        v-if="task.testing.gotResults"
+        :classes="task.testing.classes"
       />
 
       <div id="predictions"></div>
@@ -110,6 +102,7 @@ import TestingFrame from '../containers/TestingFrame.vue'
 import ImagePredictionResultsFrame from './ImagePredictionResultsFrame.vue'
 import PictureBackground from '../../../assets/svg/PictureBackground.vue'
 import Bin from '../../../assets/svg/Bin.vue'
+import { ImageTaskHelper } from '@/helpers/task_definition/image/helper'
 
 export default {
   components: {
@@ -119,76 +112,14 @@ export default {
     Bin
   },
   props: {
-    Id: String,
-    Task: Object
+    id: String,
+    task: Object
   },
   data () {
     return {
-      dataExampleImage: '',
-      // Different Task Labels
-      taskLabels: [],
-      IMAGE_HEIGHT: null,
-      IMAGE_WIDTH: null,
       FILES: {},
-      gotResults: false,
-      classes: null,
-      imgTested: null,
-      expectedFiles: 0
-    }
-  },
-  methods: {
-    async filterData (filesElement) {
-      const files = filesElement.files
-      this.expectedFiles = files.length
-      // Only process image files (skip non image files)
-      for (let i = 0; i < files.length; ++i) {
-        const file = files[i]
-        if (file && file.type.match('image.*')) {
-          const objectURL = URL.createObjectURL(file)
-          this.FILES[objectURL] = { name: file.name }
-        }
-      }
-      return this.FILES
-    },
-
-    async makePredictions (filesElement) {
-      const classes = await this.Task.predict(filesElement)
-      const ids = Object.keys(classes)
-      let predictions
-      if (ids.length === 1) {
-        // display results in the component
-        this.classes = classes[ids[0]]
-        this.gotResults = true
-        this.$toast.success('Predictions are available below.')
-        setTimeout(this.$toast.clear, 30000)
-      } else {
-        predictions = classes
-      }
-      return predictions
-    },
-    async predictionsToCsv (predictions) {
-      let pred = ''
-      let headerLength = 0
-      for (const [, prediction] of Object.entries(predictions)) {
-        headerLength = prediction.length
-        pred += `id,${prediction
-          .map((dict) => dict.className + ',' + dict.probability)
-          .join(',')} \n`
-      }
-      let header = 'id,'
-      for (let i = 1; i <= headerLength; ++i) {
-        header += `top ${i},probability${i !== headerLength ? ',' : '\n'}`
-      }
-      const csvContent = header + pred
-      return csvContent
-    },
-    getImage (url) {
-      if (url === '') {
-        return null
-      }
-      console.log(url)
-      const images = require.context('../../../../example_training_data/', false)
-      return images(url)
+      // helper
+      helper: new ImageTaskHelper(this.task)
     }
   },
   async mounted () {
@@ -201,11 +132,6 @@ export default {
        * LOAD INFORMATION ABOUT THE TASK
        * #######################################
        */
-      // Initialize variables used by the components
-      this.dataExampleImage = this.Task.displayInformation.dataExampleImage
-      this.IMAGE_HEIGHT = this.Task.trainingInformation.IMAGE_HEIGHT
-      this.IMAGE_WIDTH = this.Task.trainingInformation.IMAGE_WIDTH
-      this.taskLabels = this.Task.trainingInformation.taskLabels
 
       const imageTempl = document.getElementById('image-template')
       const empty = document.getElementById('empty')

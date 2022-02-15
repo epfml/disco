@@ -1,5 +1,5 @@
 <template>
-  <base-layout v-bind:withSection="true">
+  <base-layout :withSection="true">
     <div
       v-for="task in $store.getters.tasksFramesList"
       :key="task.taskID"
@@ -26,7 +26,7 @@
         </div>
         <div class="py-2">
           <span>
-            <custom-button v-on:click="goToSelection(task.taskID)">
+            <custom-button @click="goToSelection(task.taskID)">
               Join
             </custom-button>
           </span>
@@ -52,7 +52,10 @@ import CustomButton from './simple/CustomButton.vue'
 import _ from 'lodash'
 import { defineComponent } from 'vue'
 import { mapMutations } from 'vuex'
-import { getTaskClass } from '../task_definition/converter'
+import {
+  createTaskClass,
+  loadTasks
+} from '../helpers/task_definition/helper.js'
 
 export default defineComponent({
   name: 'task-list',
@@ -75,27 +78,18 @@ export default defineComponent({
     goToSelection (id) {
       this.$router.push({
         name: id.concat('.description'),
-        params: { Id: id }
+        params: { id: id }
       })
     },
     createNewTaskComponent (task) {
       console.log(`Processing ${task.taskID}`)
-      const TaskClass = getTaskClass(task.trainingInformation.dataType)
-      if (!TaskClass) {
-        console.log(`Task ${task.taskID} was not processed`)
-        return
-      }
-      const newTaskFrame = new TaskClass(
-        task.taskID,
-        task.displayInformation,
-        task.trainingInformation
-      )
+      const newTaskFrame = createTaskClass(task)
       this.addTaskFrame(newTaskFrame) // commit to store
       const newTaskRoute = {
         path: '/'.concat(newTaskFrame.taskID),
         name: newTaskFrame.taskID,
         component: MainTaskFrame,
-        props: { Id: newTaskFrame.taskID, Task: newTaskFrame },
+        props: { id: newTaskFrame.taskID, task: newTaskFrame },
         children: _.map(this.taskFramesInfo, (t) => {
           const [info, Frame] = t
           const name = `${newTaskFrame.taskID}.${info}`
@@ -110,8 +104,8 @@ export default defineComponent({
             name: name,
             component: component,
             props: {
-              Id: newTaskFrame.taskID,
-              Task: newTaskFrame
+              id: newTaskFrame.taskID,
+              task: newTaskFrame
             }
           }
         })
@@ -120,10 +114,7 @@ export default defineComponent({
     }
   },
   async mounted () {
-    const tasksURL = process.env.VUE_APP_FEAI_SERVER.concat('tasks')
-    const rawTasks = await fetch(tasksURL).then((response) => response.json())
-    // TODO: not sure we need to clear new tasks?
-    this.clearNewTasks()
+    const rawTasks = await loadTasks()
     rawTasks
       .concat(this.$store.state.newTasks)
       .forEach(this.createNewTaskComponent)
