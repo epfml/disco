@@ -1,5 +1,5 @@
 <template>
-  <action-frame :task="task">
+  <model-actor-frame :task="task">
     <template v-slot:dataExample><slot name="dataExample"></slot></template>
     <template v-slot:action>
       <!-- Upload Training Data -->
@@ -45,7 +45,7 @@
       <!-- Save the model button -->
       <icon-card
         header="Save the model"
-        description="If you are satisifed with the performance of the model, don't
+        description="If you are satisfied with the performance of the model, don't
             forget to save the model by clicking on the button below. The next
             time you will load the application, you will be able to use your
             saved model."
@@ -53,7 +53,7 @@
         <template v-slot:icon><download /></template>
         <template v-slot:extra
           ><div class="flex items-center justify-center p-4">
-            <!-- make it gray & unclickable if indexeddb is turned off -->
+            <!-- make it gray & un-clickable if indexeddb is turned off -->
             <custom-button
               id="train-model-button"
               @click="saveModel()"
@@ -72,7 +72,7 @@
       >
         <template v-slot:icon><download /></template>
         <template v-slot:extra>
-          <!-- Descrition -->
+          <!-- Description -->
           <div class="relative p-4 overflow-x-hidden">
             <span
               style="white-space: pre-line"
@@ -92,13 +92,13 @@
         </template>
       </icon-card>
     </template>
-  </action-frame>
+  </model-actor-frame>
 </template>
 
 <script>
 import UploadingFrame from '../upload/UploadingFrame.vue'
 import TrainingInformationFrame from '../TrainingInformationFrame.vue'
-import ActionFrame from './ActionFrame.vue'
+import ModelActorFrame from './ModelActorFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import CustomButton from '../../simple/CustomButton.vue'
 import Download from '../../../assets/svg/Download.vue'
@@ -117,7 +117,7 @@ export default {
   components: {
     UploadingFrame,
     TrainingInformationFrame,
-    ActionFrame,
+    ModelActorFrame,
     IconCard,
     CustomButton,
     Download

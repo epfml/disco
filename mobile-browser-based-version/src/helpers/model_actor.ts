@@ -7,7 +7,7 @@ import { Logger } from './logging/logger'
  * Base class for all actors of the system (e.g. trainer, tester, etc.)
  * containing commonly used parameters
  */
-export class Actor {
+export class ModelActor {
   task: Task
   logger: Logger
   taskHelper: TaskHelper<Task>

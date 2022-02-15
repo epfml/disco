@@ -1,5 +1,5 @@
 <template>
-  <action-frame :task="task">
+  <model-actor-frame :task="task">
     <template v-slot:dataExample><slot name="dataExample"></slot></template>
     <template v-slot:action>
       <!-- Upload File -->
@@ -24,13 +24,13 @@
       <!-- Display predictions -->
       <slot name="predictionResults"></slot>
     </template>
-  </action-frame>
+  </model-actor-frame>
 </template>
 
 <script>
 import UploadingFrame from '../upload/UploadingFrame.vue'
 import CustomButton from '../../simple/CustomButton.vue'
-import ActionFrame from './ActionFrame.vue'
+import ModelActorFrame from './ModelActorFrame.vue'
 
 import { Tester } from '../../../helpers/testing/tester'
 
@@ -42,7 +42,7 @@ export default {
     helper: Object
   },
   components: {
-    ActionFrame,
+    ModelActorFrame,
     UploadingFrame,
     CustomButton
   },
