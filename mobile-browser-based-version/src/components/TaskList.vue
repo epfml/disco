@@ -1,6 +1,5 @@
 <template>
   <base-layout v-bind:withSection="true">
-    <!-- Main Page Content -->
     <div
       v-for="task in $store.getters.tasksFramesList"
       :key="task.taskID"
@@ -61,12 +60,6 @@ export default defineComponent({
     BaseLayout,
     Card,
     CustomButton
-  },
-  watch: {
-    '$store.state.newTasks': function () {
-      this.$store.state.newTasks.forEach(this.createNewTaskComponent)
-      this.clearNewTasks()
-    }
   },
   data () {
     return {
@@ -129,6 +122,8 @@ export default defineComponent({
   async mounted () {
     const tasksURL = process.env.VUE_APP_FEAI_SERVER.concat('tasks')
     const rawTasks = await fetch(tasksURL).then((response) => response.json())
+    // TODO: not sure we need to clear new tasks?
+    this.clearNewTasks()
     rawTasks
       .concat(this.$store.state.newTasks)
       .forEach(this.createNewTaskComponent)
