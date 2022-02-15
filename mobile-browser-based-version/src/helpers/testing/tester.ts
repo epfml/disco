@@ -1,5 +1,5 @@
-import { Actor } from '../actor'
-export class Tester extends Actor {
+import { ModelActor } from '../model_actor'
+export class Tester extends ModelActor {
   /**
    * Constructor for Tester
    * @param {Task} task - task on which the tasking shall be performed

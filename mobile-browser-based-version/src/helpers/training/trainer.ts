@@ -1,4 +1,4 @@
-import { Actor } from '../actor'
+import { ModelActor } from '../model_actor'
 import { TrainingInformant } from './decentralised/training_informant'
 import { TrainingManager } from './training_manager'
 import { getClient } from '../communication/helpers'
@@ -9,7 +9,7 @@ function nbrFiles (task) {
   const llist = task.trainingInformation.LABEL_LIST
   return llist ? llist.length : 1
 }
-export class Trainer extends Actor {
+export class Trainer extends ModelActor {
   isConnected: Boolean
   isTraining: Boolean
   distributedTraining: Boolean
@@ -51,7 +51,7 @@ export class Trainer extends Actor {
       this.trainingInformant,
       useIndexedDB
     )
-    // make property unreactive through anymous function accessor
+    // make property un-reactive through anonymous function accessor
     // otherwise get unexpected TFJS error due to Vue double bindings
     // on the loaded model
     this.trainingManager = () => trainingManager
@@ -65,7 +65,7 @@ export class Trainer extends Actor {
     this.isConnected = await this.client.connect()
     if (this.isConnected) {
       this.logger.success(
-        'Succesfully connected to server. Distributed training available.'
+        'Successfully connected to server. Distributed training available.'
       )
     } else {
       console.log('Error in connecting')
@@ -108,7 +108,7 @@ export class Trainer extends Actor {
         nbrFiles > 1
           ? this.fileUploadManager.getFilesList()
           : this.fileUploadManager.getFirstFile()
-      // get task  specific information (preprocessing steps, precheck function)
+      // get task  specific information (preprocessing steps, pre-check function)
       const statusValidation = await this.taskHelper.preCheckData(filesElement)
       if (statusValidation.accepted) {
         // preprocess data

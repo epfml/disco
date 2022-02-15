@@ -46,7 +46,7 @@ import CheckList from '../../../assets/svg/CheckList.vue'
 import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue'
 
 export default {
-  name: 'action-frame',
+  name: 'model-actor-frame',
   props: {
     task: Object
   },
