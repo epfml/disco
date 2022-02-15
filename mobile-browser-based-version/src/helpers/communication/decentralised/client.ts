@@ -28,21 +28,6 @@ const TIME_PER_TRIES = 100
  */
 const MAX_TRIES = 100
 
-// TODO cast to this instead of unknown
-// interface IceServers {
-//   url: string;
-//   credential?: string;
-//   username?: string;
-// }
-
-// interface PeerConfig extends PeerJSOption {
-//   host: string;
-//   port: number;
-//   path: string;
-//   secure?: boolean;
-//   config?: IceServers[];
-// }
-
 /**
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
@@ -60,15 +45,58 @@ export class DecentralisedClient extends Client {
   peer: any;
   isIdle: boolean;
   data: any;
+  peerConfig: any;
 
   constructor (serverURL, task, password) {
-    super(serverURL, task)
+    /**
+     * Note: We need append https and deai to the serverUrl here, since we
+     * need to pass the "naked" version in the peerConfig parameter. This is
+     * only necessary for production.
+     */
+    const deaiServerUrl = process.env.NODE_ENV === 'development'
+      ? serverURL
+      : 'https://'.concat(serverURL).concat('/deai/')
+
+    super(deaiServerUrl, task)
+
+    this.initPeerConfig(serverURL, task)
+
     this.password = password
 
     this.receivers = []
     this.recvBuffer = null
     this.peer = null
     this.isIdle = false
+  }
+
+  /**
+   * Init config of peer js server based on build mode
+   * @param serverURL
+   * @param task
+   */
+  initPeerConfig (serverURL, task) {
+    this.peerConfig =
+      process.env.NODE_ENV === 'development'
+        ? {
+            host: 'localhost',
+            port: 8080,
+            path: `/deai/${task.taskID}`
+          }
+        : {
+            host: serverURL,
+            path: `/deai/${task.taskID}`,
+            secure: true,
+            config: {
+              iceServers: [
+                { url: 'stun:stun.l.google.com:19302' },
+                {
+                  url: 'turn:34.77.172.69:3478',
+                  credential: 'deai',
+                  username: 'deai'
+                }
+              ]
+            }
+          }
   }
 
   /**
@@ -92,30 +120,7 @@ export class DecentralisedClient extends Client {
       }
     }
 
-    // choose config of peer js server based on build mode
-    const peerConfig =
-      process.env.NODE_ENV === 'development'
-        ? {
-            host: 'localhost',
-            port: 8080,
-            path: `/deai/${this.task.taskID}`
-          }
-        : {
-            host: this.serverURL,
-            path: `/deai/${this.task.taskID}`,
-            secure: true,
-            config: {
-              iceServers: [
-                { url: 'stun:stun.l.google.com:19302' },
-                {
-                  url: 'turn:34.77.172.69:3478',
-                  credential: 'deai',
-                  username: 'deai'
-                }
-              ]
-            }
-          }
-    this.peer = new Peer(makeID(10), peerConfig as any)
+    this.peer = new Peer(makeID(10), this.peerConfig as any)
 
     return new Promise((resolve, reject) => {
       this.peer.on('error', (error) => {
