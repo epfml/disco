@@ -1,6 +1,5 @@
 <template>
   <base-layout :withSection="true">
-    <!-- Main Page Content -->
     <div
       v-for="task in $store.getters.tasksFramesList"
       :key="task.taskID"
@@ -64,12 +63,6 @@ export default defineComponent({
     BaseLayout,
     Card,
     CustomButton
-  },
-  watch: {
-    '$store.state.newTasks': function () {
-      this.$store.state.newTasks.forEach(this.createNewTaskComponent)
-      this.clearNewTasks()
-    }
   },
   data () {
     return {
