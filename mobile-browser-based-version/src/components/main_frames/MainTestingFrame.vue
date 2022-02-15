@@ -3,14 +3,14 @@
   <!--TODO-->
   <!-- image tasks -->
   <image-testing-frame
-    v-if="Task.trainingInformation.dataType == 'image'"
-    v-bind:Id="Id"
-    v-bind:Task="Task"
+    v-if="task.trainingInformation.dataType == 'image'"
+    :id="id"
+    :task="task"
   />
   <csv-testing-frame
-    v-else-if="Task.trainingInformation.dataType == 'csv'"
-    v-bind:Id="Id"
-    v-bind:Task="Task"
+    v-else-if="task.trainingInformation.dataType == 'csv'"
+    :id="id"
+    :task="task"
   />
 </template>
 
@@ -21,8 +21,8 @@ import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame.vue'
 export default {
   name: 'main-testing-frame',
   props: {
-    Id: String,
-    Task: Object
+    id: String,
+    task: Object
   },
   components: {
     ImageTestingFrame,

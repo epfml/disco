@@ -7,13 +7,21 @@ async function getImage (path) {
   })
 }
 
+export function getExampleImage (url) {
+  if (url === '') {
+    return null
+  }
+  const images = require.context('../../../example_training_data/', false)
+  return images(url)
+}
+
 /**
  * Checks images for validity critera: if height and width of each image are at least as large as required.
  * Computes validity status that is true if all images are valid and there are at least two valid images.
  *
  * @param {Object} trainingData: data provided through interface
  * @param {Object} trainingInfo: training information from the specific task that is used to check validity
- * @returns {Object} accepted: status of data (true if all images are valid) and nr_accepted: nr of valid images
+ * @returns {Object} accepted: status of data (true if all images are valid) and nbAccepted: nr of valid images
  */
 
 export async function checkData (trainingData, trainingInfo) {
@@ -43,5 +51,5 @@ export async function checkData (trainingData, trainingInfo) {
     status = false
   }
 
-  return { accepted: status, nr_accepted: nrImgs }
+  return { accepted: status, nbAccepted: nrImgs }
 }

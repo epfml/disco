@@ -3,7 +3,7 @@
     type="a"
     :data-title="firstLetterUppercase(hoverText)"
     data-placement="right"
-    v-on:click="click()"
+    @click="click()"
     class="
       p-2
       transition-colors

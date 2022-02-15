@@ -1,11 +1,4 @@
-import {
-  getWorkingModel,
-  updateWorkingModel,
-  getWorkingModelMetadata,
-  preprocessData,
-  datasetGenerator
-} from '../memory/helpers'
-
+import * as memory from '../memory/helpers'
 import * as tf from '@tensorflow/tfjs'
 
 const MANY_EPOCHS = 9999
@@ -72,12 +65,12 @@ export class TrainingManager {
      */
     if (
       this.useIndexedDB &&
-      (await getWorkingModelMetadata(
+      (await memory.getWorkingModelMetadata(
         this.task.taskID,
         this.task.trainingInformation.modelID
       ))
     ) {
-      this.model = await getWorkingModel(
+      this.model = await memory.getWorkingModel(
         this.task.taskID,
         this.task.trainingInformation.modelID
       )
@@ -144,7 +137,7 @@ export class TrainingManager {
       this.trainingInformant
     )
     if (this.useIndexedDB) {
-      await updateWorkingModel(
+      await memory.updateWorkingModel(
         this.task.taskID,
         trainingInformation.modelID,
         this.model
@@ -174,7 +167,7 @@ export class TrainingManager {
     )
     if (this.useIndexedDB) {
       this.model.setUserDefinedMetadata({ epoch: epoch + 1 })
-      await updateWorkingModel(
+      await memory.updateWorkingModel(
         this.task.taskID,
         trainingInformation.modelID,
         this.model
@@ -217,7 +210,7 @@ export class TrainingManager {
 
   async _modelFitData (model, trainingInformation, callbacks) {
     console.log('Fast training mode is used, data preprocessing is executed on the entire dataset at once')
-    const tensor = preprocessData(this.data, trainingInformation)
+    const tensor = memory.preprocessData(this.data, trainingInformation)
 
     await model.fit(tensor, this.labels, {
       initialEpoch: this.model.getUserDefinedMetadata().epoch,
@@ -240,7 +233,7 @@ export class TrainingManager {
     // Creation of Dataset objects for training
     const trainData = tf.data
       .generator(
-        datasetGenerator(
+        memory.datasetGenerator(
           this.data,
           this.labels,
           0,
@@ -252,7 +245,7 @@ export class TrainingManager {
 
     const valData = tf.data
       .generator(
-        datasetGenerator(
+        memory.datasetGenerator(
           this.data,
           this.labels,
           Math.floor(

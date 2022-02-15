@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      v-if="'password_hash' in this.Task.displayInformation && !authenticated"
+      v-if="'password_hash' in this.task.displayInformation && !authenticated"
       class="flex h-screen"
     >
       <div class="m-auto">
@@ -26,15 +26,14 @@
               bg-white
               dark:bg-dark
               rounded
-              text-sm
               shadow
               outline-none
               focus:outline-none focus:shadow-outline
             "
-            v-bind:class="{ 'border-red-500': incorrectLogin }"
+            :class="{ 'border-red-500': incorrectLogin }"
           />
           <button
-            v-on:click="login()"
+            @click="login()"
             type="button"
             class="
               text-lg
@@ -82,7 +81,7 @@
         <div class="flex items-center md:space-x-0">
           <!-- Sidebar button (for small screens) -->
           <button
-            v-on:click="isSidebarOpen = !isSidebarOpen"
+            @click="isSidebarOpen = !isSidebarOpen"
             class="
               rounded-md
               text-primary-lighter
@@ -125,7 +124,7 @@
             </span>
           </button>
           <div class="p-1"></div>
-          <h1 class="text-2xl font-medium">{{ TaskTitle }} Model</h1>
+          <h1 class="text-2xl font-medium">{{ taskTitle }} Model</h1>
         </div>
       </header>
       <div
@@ -172,7 +171,7 @@
               <div>
                 <!-- active & hover classes 'bg-primary-100 dark:bg-primary' -->
                 <a
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('model_desc');
                     goToModelDescription();
@@ -220,7 +219,7 @@
                 <!-- active classes 'bg-primary-100 dark:bg-primary' -->
                 <a
                   href="#"
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('upload_data');
                     goToTraining();
@@ -271,7 +270,7 @@
                 <!-- active classes 'bg-primary-100 dark:bg-primary' -->
                 <a
                   href="#"
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('model_statistic');
                   "
@@ -320,7 +319,7 @@
                 <!-- active classes 'bg-primary-100 dark:bg-primary' -->
                 <a
                   href="#"
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('test_model');
                     goToTesting();
@@ -371,12 +370,12 @@
 
         <div
           class="flex flex-1 h-screen overflow-y-scroll overflow-x-hidden"
-          v-if="TaskTitle"
+          v-if="taskTitle"
         >
           <main class="flex-1 overflow-y-scroll">
             <router-view
-              v-on:opened-testing="
-                this.TaskTitle = this.Task.displayInformation.taskTitle;
+              @opened-testing="
+                this.taskTitle = this.task.displayInformation.taskTitle;
                 openSidebarMenu('test_model');
               "
               v-slot="{ Component }"
@@ -420,12 +419,12 @@ const Hashes = require('jshashes')
 export default {
   name: 'main-task-frame',
   props: {
-    Id: String,
-    Task: Object
+    id: String,
+    task: Object
   },
   data () {
     return {
-      TaskTitle: null,
+      taskTitle: null,
       isActiveModelDesc: false,
       openModelDesc: true,
       isActiveUploadData: false,
@@ -447,14 +446,14 @@ export default {
   methods: {
     goToTraining () {
       this.$router.push({
-        name: this.Task.taskID + '.training',
-        params: { Id: this.Task.taskID }
+        name: this.task.taskID + '.training',
+        params: { id: this.task.taskID }
       })
     },
     goToTesting () {
       this.$router.push({
-        name: this.Task.taskID + '.testing',
-        params: { Id: this.Task.taskID }
+        name: this.task.taskID + '.testing',
+        params: { id: this.task.taskID }
       })
     },
     goToModelDescription () {
@@ -471,11 +470,11 @@ export default {
       const SHA256 = new Hashes.SHA256()
       if (
         SHA256.hex(this.inputPassword) ===
-        this.Task.displayInformation.password_hash
+        this.task.displayInformation.password_hash
       ) {
         this.authenticated = true
         this.$store.commit('addPassword', {
-          id: this.Id,
+          id: this.id,
           password: this.inputPassword
         })
       } else {
@@ -490,14 +489,14 @@ export default {
     }
   },
   async mounted () {
-    this.TaskTitle = this.Task.displayInformation.taskTitle
+    this.taskTitle = this.task.displayInformation.taskTitle
     window.addEventListener('resize', this.handleResize)
   },
 
   activated () {
-    this.TaskTitle = this.Task.displayInformation.taskTitle
+    this.taskTitle = this.task.displayInformation.taskTitle
     const prevState = this.$store.getters.globalTaskFrameState(
-      this.Task.trainingInformation.modelID
+      this.task.trainingInformation.modelID
     )
 
     if (prevState) {
@@ -526,7 +525,7 @@ export default {
   },
   async deactivated () {
     const currentState = {
-      modelID: this.Task.trainingInformation.modelID,
+      modelID: this.task.trainingInformation.modelID,
       isActiveModelDesc: this.isActiveModelDesc,
       openModelDesc: this.openModelDesc,
       isActiveUploadData: this.isActiveUploadData,

@@ -46,9 +46,9 @@ import CheckList from '../../../assets/svg/CheckList.vue'
 import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue'
 
 export default {
-  name: 'action-frame',
+  name: 'model-actor-frame',
   props: {
-    Task: Object
+    task: Object
   },
   components: {
     IconCard,
@@ -67,9 +67,9 @@ export default {
     this.$nextTick(async function () {
       // initialize information variables
       this.dataFormatInfoText =
-        this.Task.displayInformation.dataFormatInformation
-      this.dataExampleText = this.Task.displayInformation.dataExampleText
-      console.log(`Mounting ${this.Task.trainingInformation.modelID}`)
+        this.task.displayInformation.dataFormatInformation
+      this.dataExampleText = this.task.displayInformation.dataExampleText
+      console.log(`Mounting ${this.task.trainingInformation.modelID}`)
     })
   }
 }
