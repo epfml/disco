@@ -68,12 +68,16 @@
         </header>
 
         <!-- If preview of the selected file, display of small preview of selected files -->
-        <div v-if="preview">
+
+        <!-- TODO: There is a recursion issue with preview-gallery -->
+        <!-- <div v-if="preview">
           <preview-gallery :fileUploadManager="fileUploadManager" />
-        </div>
+          <div v-else>
+            ...
+        </div> -->
 
         <!-- If no preview of the selected file, display the nbr. of uploaded files -->
-        <div v-else>
+        <div>
           <div class="pt-4">
             <h1 class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex">
               Number of selected files:
@@ -107,7 +111,7 @@
 
 <script>
 import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager'
-import PreviewGallery from './preview/PreviewGallery.vue'
+// import PreviewGallery from './preview/PreviewGallery.vue'
 import _ from 'lodash'
 
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
@@ -125,7 +129,7 @@ export default {
     label: String
   },
   components: {
-    PreviewGallery
+    // PreviewGallery
   },
   data () {
     return {
