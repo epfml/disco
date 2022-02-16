@@ -1,10 +1,14 @@
 """ Runs the MNIST task on DeAI or FeAI.
 
 Constants: 
-Use 'DIGIT_CLASS_PATHS' to point to the 9 data folders for each digit. 
+Use 'PLATFORM' to choose the platform (FeAI or DeAI)
+Use `DIGIT_CLASS_PATHS` to point to the digit folders. 
 Use `NUM_IMAGES` to limit the number of images per peer to test faster.
 Use `NUM_PEERS` to define the number of peers to run.
 Use `TRAINING_TYPE` to choose between training alone or distributed.
+Use `TRAINING_MODE` to choose between Decentralised or Federated.
+Use `DATA_SPLIT` to choose the data split
+Use `TIME_OFFSETS` to choose the time offsets to simulate asynchronous learning
 
 How to run:
 python selenium_script_MNIST.py
@@ -16,9 +20,9 @@ import time
 from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
 
-import sys 
+import sys,os
 
-sys.path.insert(0, '/run/media/laurynas/Data/EPFL/BA5/Semester-Project/DeAI/tests/selenium-automation-scripts')
+sys.path.append(os.path.realpath('..'))
 
 from util import find_task_page, generate_report, get_files, partition, r_partition, s_partition, start_training
 

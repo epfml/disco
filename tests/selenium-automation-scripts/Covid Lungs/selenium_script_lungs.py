@@ -1,19 +1,18 @@
 """ Runs the COVID Lung Ultrasound task on DeAI.
 
-Prerequisites:
-Download a chromedriver from here: https://sites.google.com/a/chromium.org/chromedriver/downloads.
-Extract the chromedriver in the current folder.
-Prepare the covid positive and covid negative images in separate folders. 
-
 Constants: 
-Use `POSITIVE_CLASS_PATH` and `NEGATIVE_CLASS_PATH` to point to the two data folders. 
+Use 'PLATFORM' to choose the platform (FeAI or DeAI)
+Use `POSITIVE_CLASS_PATH` to point to the postive images folder. 
+Use `NEGATIVE_CLASS_PATH` to point to the csv file. 
 Use `NUM_IMAGES` to limit the number of images per peer to test faster.
 Use `NUM_PEERS` to define the number of peers to run.
 Use `TRAINING_TYPE` to choose between training alone or distributed.
-Use 'DATA_SPLIT' to choose between iid data, randomly partitioned data wiht even size partitions, randomly partitioned data with random size partition
+Use `TRAINING_MODE` to choose between Decentralised or Federated.
+Use `DATA_SPLIT` to choose the data split
+Use `TIME_OFFSETS` to choose the time offsets to simulate asynchronous learning
 
 How to run:
-python run_lus_covid.py
+python selenium_script_lungs.py
 """
 
 from selenium import webdriver
@@ -22,10 +21,9 @@ import time
 import platform
 from webdriver_manager.chrome import ChromeDriverManager
 
-import sys 
+import sys,os
 
-sys.path.insert(0, '/run/media/laurynas/Data/EPFL/BA5/Semester-Project/DeAI/tests/selenium-automation-scripts')
-
+sys.path.append(os.path.realpath('..'))
 
 from util import find_task_page, generate_report, get_files, partition, r_partition, s_partition, start_training
 
