@@ -17,9 +17,9 @@ import os
 import platform
 from webdriver_manager.chrome import ChromeDriverManager
 
-import sys 
+import sys,os
 
-sys.path.insert(0, '/run/media/laurynas/Data/EPFL/BA5/Semester-Project/DeAI/tests/selenium-automation-scripts')
+sys.path.append(os.path.realpath('..'))
 
 from util import read_csv, create_csv, find_task_page, generate_report, get_files, partition, r_partition, s_partition, start_training
 
