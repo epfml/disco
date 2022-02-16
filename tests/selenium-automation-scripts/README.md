@@ -73,6 +73,8 @@ Having attained these results we can clearly see that the model is performing we
 
 Although the performances of evenly split data is comparable to state of the art models, some tests were ran to test how the plaform perform on a very uneven data split. Here are the results:
 
+![alt text](1000imgNotEvenSplit.png)
 
+This was simulated on a [0.6, 0.2, 0.2] data split, from these results we can see that decentralised learning perform poorly on uneven data splits
 
 
