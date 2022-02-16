@@ -17,7 +17,7 @@
     "@tensorflow/tfjs": "^3.13.0",
     "apexcharts": "^3.31.0",
     "axios": "^0.25.0",
-    "d3": "^7.2.1",
+    "d3": "^6.7.0",
     "jshashes": "^1.0.8",
     "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",
