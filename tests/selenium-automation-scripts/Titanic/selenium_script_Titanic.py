@@ -1,9 +1,13 @@
 """ Runs the Titanic task on DeAI or FeAI.
 
 Constants: 
-Use CSV_FILE_PATH to point to the csv data file. 
+Use 'PLATFORM' to choose the platform (FeAI or DeAI)
+Use `CSV_FILE_PATH` to point to the data file. 
 Use `NUM_PEERS` to define the number of peers to run.
 Use `TRAINING_TYPE` to choose between training alone or distributed.
+Use `TRAINING_MODE` to choose between Decentralised or Federated.
+Use `DATA_SPLIT` to choose the data split
+Use `TIME_OFFSETS` to choose the time offsets to simulate asynchronous learning
 
 How to run:
 python selenium_script_Titanic.py
