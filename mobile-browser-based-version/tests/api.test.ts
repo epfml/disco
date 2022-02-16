@@ -5,7 +5,7 @@ const task = 'titanic'
 const user = 'a'
 const nonValidTask = 'nonValidTask'
 
-describe('API test', () => {
+describe('API test', () => { // the tests container
   it('Connect to valid task', () => {
     api.connect(task, user).then((resp) => {
       expect(resp.ok).true
