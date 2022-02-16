@@ -1,9 +1,11 @@
 
 # README
 
-This folder is dedicated to aritficial simulation of the distributed training process using the DeAI (decentralized learning) or FeAI (federated learning) platform, with many simulated users present. Our script uses the selenium library for python as it is the most popular and easy to use
+# Overview
 
-We first created a simulation script that was able to open a select number of chrome drivers, upload the data and start training. In this version, the script user was only able to easily choose the following parameters: Number of peers, number of images to be uploaded (for image tasks) and the training mode between distributed and local. Although this was a useful tool it was very limited due to the data being always uniform between peers. To improve the situation, extra functions were added to partition data in various different ways between nodes. The three partition functions implemented were:
+This folder is dedicated to aritficial simulation of the distributed training process using the DeAI (decentralized learning) or FeAI (federated learning) platform, with many simulated users present. Our script uses the selenium library for python as it is the most popular and easy to use.
+
+As a high level overview each of these simulation scripts firstly opens a selected number of chrome drivers, in each of these tabs the script goes to the task training page after picking the training mode (Federated or Decentralised) and uploads the data based on a selected data split. At the moment there are 3 data split options. They are the following:
 
 *Regular even size partition* - This would be useful to model the assumption the different nodes have completely different data points and additionally have the assumption that different nodes have even amounts of data points
 
@@ -11,8 +13,26 @@ We first created a simulation script that was able to open a select number of ch
 
 *Predefined size partitions* - This partition function is undoubtedly the most useful one to determine how the platform behaves under various predefined circumstances. For example, what is the difference between nodes splitting the data evenly and having the data split with ratios of 0.6 and 0.4.
 
-At the end of these updates, the user now had the options to easily pick between these parameters for simulation: 
+after uplading the files the script starts training automatically and after trainig collects these metrics:
 
+*Train accuracy* 
+
+*Validation accuracy*
+
+*Training time*
+
+*Average CPU usage*
+
+*Average RAM usage*
+
+*Max CPU usage*
+
+*Epochs per second*
+
+
+# Usage
+
+At the top of every script a user can choose these training constants(They are also doccumented):
 
 *Number of peers* - This allowed the users to choose the number of browser instances to run.
 
@@ -24,14 +44,13 @@ At the end of these updates, the user now had the options to easily pick between
 
 *Number of Data Points* - This allowed users to choose how many total data points to use for the platform simulation
 
-# Usage
-
-Each script uses many of the same functions, they are coded and doccummented in the *util.py* file. If the UI changes and the scripts don't work as accepted the easiest way to fix these is by locating new elements using the selenium [documentation](https://selenium-python.readthedocs.io/locating-elements.html) and then simply updating the ids/xpaths of the changed elements. 
-
-To use the script, the user should simple open one of the .py files set the CONSTANTS descriped above and run the code like this: 
+After selecting these to configure your simulation parameters, the script can be run in the following way in a terminal:
 ```
 python name_of_simulation_script.py
 ```
+
+Each script uses many of the same functions, they are coded and doccummented in the *util.py* file. If the UI changes and the scripts don't work as accepted the easiest way to fix these is by locating new elements using the selenium [documentation](https://selenium-python.readthedocs.io/locating-elements.html) and then simply updating the ids/xpaths of the changed elements. 
+
 
 # DataSets
 
@@ -51,6 +70,8 @@ After using this tool to simulate the platform on a benchmark dataset like CIFAR
 ![alt text](2000-images.png)
 
 Having attained these results we can clearly see that the model is performing well on the training accuracy and taking into account that it is only running on 1000 / 2000 images its validation accuracy is approaching the state of the art models discussed previously.
+
+Although the performances of evenly split data is comparable to state of the art models, some tests were ran to test how the plaform perform on a very uneven data split. Here are the results:
 
 
 
