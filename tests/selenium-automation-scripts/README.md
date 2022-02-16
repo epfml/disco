@@ -24,6 +24,15 @@ At the end of these updates, the user now had the options to easily pick between
 
 *Number of Data Points* - This allowed users to choose how many total data points to use for the platform simulation
 
+# Usage
+
+Each script uses many of the same functions, they are coded and doccummented in the *util.py* file. If the UI changes and the scripts don't work as accepted the easiest way to fix these is by locating new elements using the selenium [documentation](https://selenium-python.readthedocs.io/locating-elements.html) and then simply updating the ids/xpaths of the changed elements. 
+
+To use the script, the user should simple open one of the .py files set the CONSTANTS descriped above and run the code like this: 
+```
+python name_of_simulation_script.py
+```
+
 # DataSets
 
 *MNIST* - a sample dataset is provided in the folder *preprocessed_images*, you can dowload the full dataset here: http://yann.lecun.com/exdb/mnist/
