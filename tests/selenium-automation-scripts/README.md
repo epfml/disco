@@ -36,7 +36,7 @@ Before running the script, a user should install the required packages. These sr
 to install the required packages, a user should run:
 
 ```
-pip install webdriver_manager selenium 
+pip install webdriver_manager selenium psutil
 ```
 
 At the top of every script a user can choose these training constants (They are also documented):
