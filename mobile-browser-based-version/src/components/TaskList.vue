@@ -55,7 +55,7 @@ import { mapMutations } from 'vuex'
 import {
   createTaskClass,
   loadTasks
-} from '../helpers/task_definition/helper.js'
+} from '../helpers/task_definition/helper'
 
 export default defineComponent({
   name: 'task-list',
