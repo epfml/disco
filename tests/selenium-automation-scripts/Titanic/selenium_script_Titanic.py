@@ -31,20 +31,20 @@ from util import read_csv, create_csv, find_task_page, generate_report, get_file
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#/'
 # can be either 'Train Alone' or 'Decentralised'/'Federated'. Should match the text of the button in the train screen.
-TRAINING_MODE = 'Decentralised'
+TRAINING_MODE = 'Federated'
 # Defines how many browser tabs to open
 NUM_PEERS  = 2
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'Titanic'
 #Can be picked to be 'decentralised'/'federated' or 'locally'
-TRAINING_TYPE = 'decentralised' 
+TRAINING_TYPE = 'federated' 
 # paths to the file containing the CSV file of Titanic passengers with 12 columns
 CSV_FILE_PATH = 'train.csv'
 #You can set time offsets for nodes to join at variable times
 TIME_OFFSETS = [0, 0, 0]
 # Defines the way to split the data,could be 'iid' for iid data, 'partition' for even size partitions, 'rparition' for random size partitions
 # 'spartition' for partition of sizes past as argument RATIOS
-DATA_SPLIT = 'spartition'
+DATA_SPLIT = 'rpartition'
 RATIOS = [0.5, 0.3, 0.2]
 
 start_time = time.time()
