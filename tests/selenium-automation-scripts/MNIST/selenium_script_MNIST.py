@@ -34,7 +34,7 @@ TRAINING_MODE = 'Decentralised'
 NUM_PEERS = 2
 # Defines the way to split the data, could be 'iid' for iid data, 'partition' for even size partitions, 'rpartition' for random size partitions
 # 'spartition' for partition of sizes past as argument RATIOS
-DATA_SPLIT = 'iid'
+DATA_SPLIT = 'rpartition'
 #sparition ratios of data splits
 RATIOS = [0.5, 0.3, 0.2]
 #You can set time offsets for nodes to join at variable times

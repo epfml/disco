@@ -30,7 +30,7 @@ from util import find_task_page, generate_report, get_files, partition, r_partit
 # Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#/'
 #Pick between local and Federated or Decentralised
-TRAINING_MODE = 'Decentralised'
+TRAINING_MODE = 'Federated'
 # Defines how many browser tabs to open
 NUM_PEERS  = 2
 # Defines the way to split the data,could be 'iid' for iid data, 'partition' for even size partitions, 'rparition' for random size partitions
@@ -41,8 +41,7 @@ TIME_OFFSETS = [0, 0, 0]
 RATIOS = [0.5, 0.3, 0.2]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'COVID Lung Ultrasound'
-# can be either 'Train Alone' or 'Train Distributed'. Should match the text of the button in the train screen.
-TRAINING_TYPE = 'decentralised' 
+TRAINING_TYPE = 'federated' 
 # Currently we take the first `NUM_IMAGES` in the folder for each peer. We should make a more complex distribution.
 NUM_IMAGES = 10
 # paths to folders containing covid positive and coivd negative patients

@@ -30,7 +30,7 @@ from util import find_task_page, generate_report, get_files, partition, r_partit
 #Platform
 PLATFORM = 'https://epfml.github.io/DeAI/#/'
 #Pick between local and Federated or Decentralised
-TRAINING_MODE = 'Decentralised'
+TRAINING_MODE = 'Federated'
 # Defines how many browser tabs to open
 NUM_PEERS = 2
 # Defines the way to split the data, could be 'partition' for even size partitions, 'rpartition' for random size partitions
@@ -41,8 +41,8 @@ RATIOS = [0.6, 0.4]
 TIME_OFFSETS = [0, 0, 0]
 # Should match the name of the task in the task list and is case sensitive
 TASK_NAME = 'CIFAR10'
-# can be either 'decentralised' or 'federated'. Should match the text of the button in the train screen.
-TRAINING_TYPE = 'decentralised' 
+# can be either 'Train Alone' or 'federated' or 'decentralised'. Should match the text of the button in the train screen.
+TRAINING_TYPE = 'federated' 
 # paths to the file containing the CSV file of Titanic passengers with 12 columns
 IMAGE_FILE_PATH = r'CIFAR10'
 LABEL_FILE_PATH = 'labels.csv'

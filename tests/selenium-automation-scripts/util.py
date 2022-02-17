@@ -203,9 +203,9 @@ def pick_training_mode(driver, training_mode='Federated'):
     settings.click()
     time.sleep(2)
     if training_mode != "Decentralised":
-        driver.find_element_by_xpath('//*[@id="app"]/div/div/aside/div/section/div[2]/div[2]/div[1]/div/button[2]').click()
+        driver.find_element_by_xpath('//*[@id="app"]/div/div/aside/div/div/section/div[2]/div[2]/div[1]/div/button[2]').click()
         time.sleep(1)
-        driver.find_element_by_xpath('//*[@id="app"]/div/div/aside/div/section/div[2]/div[2]/div[2]/div/button[2]').click()
+        driver.find_element_by_xpath('//*[@id="app"]/div/div/aside/div/div/section/div[2]/div[2]/div[2]/div/button[2]').click()
     driver.find_element_by_xpath('//*[@id="app"]/div/div/aside/div/div/section/div[1]/button').click()
 
 
