@@ -52,6 +52,7 @@
     "autoprefixer": "^9.8.6",
     "babel-eslint": "^10.1.0",
     "chai": "^4.3.6",
+    "dotenv-flow": "^3.2.0",
     "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.25.4",

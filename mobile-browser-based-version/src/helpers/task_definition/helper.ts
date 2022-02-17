@@ -1,6 +1,6 @@
 import axios from 'axios'
 import * as config from './task.config'
-// import _ from 'lodash'
+import _ from 'lodash'
 
 function createTaskClass (task) {
   const TaskClass =
@@ -32,8 +32,7 @@ async function loadTasks (convert = false) {
   const tasksURL = process.env.VUE_APP_DEAI_SERVER.concat('tasks')
   const response = await axios.get(tasksURL)
   const rawTasks = response.data
-  return rawTasks
-  // return convert ? _.map(rawTasks, createTaskClass) : rawTasks
+  return convert ? _.map(rawTasks, createTaskClass) : rawTasks
 }
 
 function onFileLoad (filesElement, callback, readAs = 'text') {
