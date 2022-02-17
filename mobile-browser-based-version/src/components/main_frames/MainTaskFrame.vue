@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      v-if="'password_hash' in this.Task.displayInformation && !authenticated"
+      v-if="'password_hash' in this.task.displayInformation && !authenticated"
       class="flex h-screen"
     >
       <div class="m-auto">
@@ -13,13 +13,46 @@
             type="password"
             v-model="inputPassword"
             placeholder="Enter password"
-            class="border text-lg ml-3 py-2 px-4 placeholder-gray-400 text-gray-700 dark:text-white relative bg-white dark:bg-dark rounded text-sm shadow outline-none focus:outline-none focus:shadow-outline"
-            v-bind:class="{ 'border-red-500': incorrectLogin }"
+            class="
+              border
+              text-lg
+              ml-3
+              py-2
+              px-4
+              placeholder-gray-400
+              text-gray-700
+              dark:text-white
+              relative
+              bg-white
+              dark:bg-dark
+              rounded
+              shadow
+              outline-none
+              focus:outline-none focus:shadow-outline
+            "
+            :class="{ 'border-red-500': incorrectLogin }"
           />
           <button
-            v-on:click="login()"
+            @click="login()"
             type="button"
-            class="text-lg border-transparent bg-green-500 ml-3 py-2 px-4 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none hover:scale-110 duration-500 focus:outline-none"
+            class="
+              text-lg
+              border-transparent
+              bg-green-500
+              ml-3
+              py-2
+              px-4
+              font-bold
+              uppercase
+              text-white
+              rounded
+              transform
+              transition
+              motion-reduce:transform-none
+              hover:scale-110
+              duration-500
+              focus:outline-none
+            "
           >
             Login
           </button>
@@ -34,15 +67,29 @@
     </div>
     <div v-else>
       <header
-        class="p-1 flex items-center justify-between p-2 bg-white border-b dark:bg-darker dark:border-primary-darker"
+        class="
+          p-1
+          flex
+          items-center
+          justify-between
+          p-2
+          bg-white
+          border-b
+          dark:bg-darker dark:border-primary-darker
+        "
       >
         <div class="flex items-center md:space-x-0">
           <!-- Sidebar button (for small screens) -->
           <button
-            v-on:click="isSidebarOpen = !isSidebarOpen"
-            class="rounded-md text-primary-lighter bg-primary-50 dark:bg-primary-darker dark:text-white"
+            @click="isSidebarOpen = !isSidebarOpen"
+            class="
+              rounded-md
+              text-primary-lighter
+              bg-primary-50
+              dark:bg-primary-darker dark:text-white
+            "
           >
-            <span class="sr-only">Open main manu</span>
+            <span class="sr-only">Open main menu</span>
             <span aria-hidden="true">
               <svg
                 v-show="!isSidebarOpen && window.width <= 1024"
@@ -77,33 +124,69 @@
             </span>
           </button>
           <div class="p-1"></div>
-          <h1 class="text-2xl font-medium">{{ TaskTitle }} Model</h1>
+          <h1 class="text-2xl font-medium">{{ taskTitle }} Model</h1>
         </div>
       </header>
       <div
-        class="flex h-screen antialiased text-gray-900 bg-gray-100 dark:bg-dark dark:text-light"
+        class="
+          flex
+          h-screen
+          antialiased
+          text-gray-900
+          bg-gray-100
+          dark:bg-dark dark:text-light
+        "
       >
         <!-- Sidebar content -->
         <aside
           v-show="isSidebarOpen"
           tabindex="-1"
-          class="fixed inset-y-1 z-10 flex flex-shrink-0 h-full overflow-hidden bg-white border-r lg:static dark:border-primary-darker dark:bg-darker"
+          class="
+            fixed
+            inset-y-1
+            z-20
+            flex flex-shrink-0
+            h-full
+            overflow-hidden
+            bg-white
+            border-r
+            lg:static
+            dark:border-primary-darker dark:bg-darker
+          "
         >
-          <div class="flex flex-col flex-shrink-0 h-full">
+          <div class="flex flex-col flex-shrink-0 h-full z-30">
             <nav
               aria-label="Main"
-              class="flex-1 w-64 px-2 py-4 space-y-2 overflow-y-hidden hover:overflow-y-auto"
+              class="
+                flex-1
+                w-64
+                px-2
+                py-4
+                space-y-2
+                overflow-y-hidden
+                hover:overflow-y-auto
+              "
             >
               <!-- Model Description links -->
               <div>
                 <!-- active & hover classes 'bg-primary-100 dark:bg-primary' -->
                 <a
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('model_desc');
                     goToModelDescription();
                   "
-                  class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                  class="
+                    flex
+                    items-center
+                    p-2
+                    text-gray-500
+                    transition-colors
+                    rounded-md
+                    dark:text-light
+                    hover:bg-primary-100
+                    dark:hover:bg-primary
+                  "
                   :class="{
                     'bg-primary-100 dark:bg-primary':
                       isActiveModelDesc || openModelDesc,
@@ -127,9 +210,7 @@
                       d="M3 8.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5zm0-5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-1z"
                     />
                   </svg>
-                  <span class="ml-2 text-sm">
-                    Overview
-                  </span>
+                  <span class="ml-2 text-sm"> Overview </span>
                 </a>
               </div>
 
@@ -138,12 +219,22 @@
                 <!-- active classes 'bg-primary-100 dark:bg-primary' -->
                 <a
                   href="#"
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('upload_data');
                     goToTraining();
                   "
-                  class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                  class="
+                    flex
+                    items-center
+                    p-2
+                    text-gray-500
+                    transition-colors
+                    rounded-md
+                    dark:text-light
+                    hover:bg-primary-100
+                    dark:hover:bg-primary
+                  "
                   :class="{
                     'bg-primary-100 dark:bg-primary':
                       isActiveUploadData || openUploadData,
@@ -179,11 +270,21 @@
                 <!-- active classes 'bg-primary-100 dark:bg-primary' -->
                 <a
                   href="#"
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('model_statistic');
                   "
-                  class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                  class="
+                    flex
+                    items-center
+                    p-2
+                    text-gray-500
+                    transition-colors
+                    rounded-md
+                    dark:text-light
+                    hover:bg-primary-100
+                    dark:hover:bg-primary
+                  "
                   :class="{
                     'bg-primary-100 dark:bg-primary':
                       isActiveModelStatistic || openModelStatistic,
@@ -218,12 +319,22 @@
                 <!-- active classes 'bg-primary-100 dark:bg-primary' -->
                 <a
                   href="#"
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('test_model');
                     goToTesting();
                   "
-                  class="flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary"
+                  class="
+                    flex
+                    items-center
+                    p-2
+                    text-gray-500
+                    transition-colors
+                    rounded-md
+                    dark:text-light
+                    hover:bg-primary-100
+                    dark:hover:bg-primary
+                  "
                   :class="{
                     'bg-primary-100 dark:bg-primary':
                       isActiveTestModel || openTestModel,
@@ -258,13 +369,13 @@
         </aside>
 
         <div
-          class="flex flex-1 h-screen overflow-y-scroll overflow-x-scroll"
-          v-if="TaskTitle"
+          class="flex flex-1 h-screen overflow-y-scroll overflow-x-hidden"
+          v-if="taskTitle"
         >
           <main class="flex-1 overflow-y-scroll">
             <router-view
-              v-on:opened-testing="
-                this.TaskTitle = this.Task.displayInformation.taskTitle;
+              @opened-testing="
+                this.taskTitle = this.task.displayInformation.taskTitle;
                 openSidebarMenu('test_model');
               "
               v-slot="{ Component }"
@@ -277,7 +388,15 @@
         </div>
       </div>
       <footer
-        class="flex items-center justify-between p-4 bg-white border-t dark:bg-darker dark:border-primary-darker"
+        class="
+          flex
+          items-center
+          justify-between
+          p-4
+          bg-white
+          border-t
+          dark:bg-darker dark:border-primary-darker
+        "
       >
         <div>De-AI &copy; 2021</div>
         <div>
@@ -295,16 +414,17 @@
 </template>
 
 <script>
-var Hashes = require('jshashes');
+const Hashes = require('jshashes')
+
 export default {
-  name: 'MainTaskFrame',
+  name: 'main-task-frame',
   props: {
-    Id: String,
-    Task: Object,
+    id: String,
+    task: Object
   },
-  data() {
+  data () {
     return {
-      TaskTitle: null,
+      taskTitle: null,
       isActiveModelDesc: false,
       openModelDesc: true,
       isActiveUploadData: false,
@@ -313,103 +433,99 @@ export default {
       openTestModel: false,
       isActiveModelStatistic: false,
       openModelStatistic: false,
-      isSidebarOpen: window.innerWidth <= 1024 ? false : true,
+      isSidebarOpen: window.innerWidth > 1024,
       window: {
         width: window.innerWidth,
-        height: window.innerHeight,
+        height: window.innerHeight
       },
       authenticated: false,
       inputPassword: '',
-      incorrectLogin: false,
-    };
+      incorrectLogin: false
+    }
   },
   methods: {
-    goToTraining() {
+    goToTraining () {
       this.$router.push({
-        name: this.Task.trainingInformation.modelId + '.training',
-        params: { Id: this.Task.trainingInformation.modelId },
-      });
+        name: this.task.taskID + '.training',
+        params: { id: this.task.taskID }
+      })
     },
-    goToTesting() {
+    goToTesting () {
       this.$router.push({
-        name: this.Task.trainingInformation.modelId + '.testing',
-        params: { Id: this.Task.trainingInformation.modelId },
-      });
+        name: this.task.taskID + '.testing',
+        params: { id: this.task.taskID }
+      })
     },
-    goToModelDescription() {
+    goToModelDescription () {
       this.$router.push({
-        path: 'description',
-      });
+        path: 'description'
+      })
     },
-    async handleResize() {
-      this.window.width = window.innerWidth;
-      this.window.height = window.innerHeight;
-      if (this.window.width <= 1024) {
-        this.isSidebarOpen = false;
-      } else {
-        this.isSidebarOpen = true;
-      }
+    async handleResize () {
+      this.window.width = window.innerWidth
+      this.window.height = window.innerHeight
+      this.isSidebarOpen = this.window.width > 1024
     },
-    login() {
-      var SHA256 = new Hashes.SHA256();
+    login () {
+      const SHA256 = new Hashes.SHA256()
       if (
         SHA256.hex(this.inputPassword) ===
-        this.Task.displayInformation.password_hash
+        this.task.displayInformation.password_hash
       ) {
-        this.authenticated = true;
+        this.authenticated = true
         this.$store.commit('addPassword', {
-          id: this.Id,
-          password: this.inputPassword,
-        });
+          id: this.id,
+          password: this.inputPassword
+        })
       } else {
-        this.incorrectLogin = true;
+        this.incorrectLogin = true
       }
     },
-    openSidebarMenu(menu) {
-      this.openModelDesc = menu === 'model_desc' ? true : false;
-      this.openUploadData = menu === 'upload_data' ? true : false;
-      this.openModelStatistic = menu === 'model_statistic' ? true : false;
-      this.openTestModel = menu === 'test_model' ? true : false;
-    },
+    openSidebarMenu (menu) {
+      this.openModelDesc = menu === 'model_desc'
+      this.openUploadData = menu === 'upload_data'
+      this.openModelStatistic = menu === 'model_statistic'
+      this.openTestModel = menu === 'test_model'
+    }
   },
-  async mounted() {
-    this.TaskTitle = this.Task.displayInformation.taskTitle;
-    window.addEventListener('resize', this.handleResize);
+  async mounted () {
+    this.taskTitle = this.task.displayInformation.taskTitle
+    window.addEventListener('resize', this.handleResize)
   },
 
-  activated() {
-    this.TaskTitle = this.Task.displayInformation.taskTitle;
-    let prevState = this.$store.getters.globalTaskFrameState(
-      this.Task.trainingInformation.modelId
-    );
+  activated () {
+    this.taskTitle = this.task.displayInformation.taskTitle
+    const prevState = this.$store.getters.globalTaskFrameState(
+      this.task.trainingInformation.modelID
+    )
 
     if (prevState) {
       // if previous state exist, load it
-      this.isActiveModelDesc = prevState.isActiveModelDesc;
-      this.openModelDesc = prevState.openModelDesc;
-      this.isActiveUploadData = prevState.isActiveUploadData;
-      this.isActiveTestModel = prevState.isActiveTestModel;
-      this.openUploadData = prevState.openUploadData;
-      this.openTestModel = prevState.openTestModel;
-      this.isActiveModelStatistic = prevState.isActiveModelStatistic;
-      this.openModelStatistic = prevState.openModelStatistic;
-      this.isSidebarOpen = prevState.isSidebarOpen;
+      this.isActiveModelDesc = prevState.isActiveModelDesc
+      this.openModelDesc = prevState.openModelDesc
+      this.isActiveUploadData = prevState.isActiveUploadData
+      this.isActiveTestModel = prevState.isActiveTestModel
+      this.openUploadData = prevState.openUploadData
+      this.openTestModel = prevState.openTestModel
+      this.isActiveModelStatistic = prevState.isActiveModelStatistic
+      this.openModelStatistic = prevState.openModelStatistic
+      this.isSidebarOpen = prevState.isSidebarOpen
     } else {
       // if previous state does not exist, initilize variable to initial values
-      this.isActiveModelDesc = false;
-      this.openModelDesc = true;
-      this.isActiveUploadData = false;
-      this.isActiveTestModel = false;
-      this.openUploadData = false;
-      this.openTestModel = false;
-      this.isActiveModelStatistic = false;
-      this.openModelStatistic = false;
-      this.isSidebarOpen = window.innerWidth <= 1024 ? false : true;
+      this.isActiveModelDesc = false
+      this.openModelDesc = true
+      this.isActiveUploadData = false
+      this.isActiveTestModel = false
+      this.openUploadData = false
+      this.openTestModel = false
+      this.isActiveModelStatistic = false
+      this.openModelStatistic = false
+      this.isSidebarOpen = window.innerWidth > 1024
     }
   },
-  async deactivated() {
-    let currentState = {
-      modelId: this.Task.trainingInformation.modelId,
+  async deactivated () {
+    const currentState = {
+      modelID: this.task.trainingInformation.modelID,
       isActiveModelDesc: this.isActiveModelDesc,
       openModelDesc: this.openModelDesc,
       isActiveUploadData: this.isActiveUploadData,
@@ -418,18 +534,18 @@ export default {
       openTestModel: this.openTestModel,
       isActiveModelStatistic: this.isActiveModelStatistic,
       openModelStatistic: this.openModelStatistic,
-      isSidebarOpen: this.isSidebarOpen,
-    };
-    await this.$store.commit('addGlobalTaskFrameState', currentState);
-  },
-  unmounted() {
-    window.removeEventListener('resize', this.handleResize);
-  },
-  beforeRouteUpdate(to, from, next) {
-    if (to.name.includes('training')) {
-      this.openSidebarMenu('upload_data');
+      isSidebarOpen: this.isSidebarOpen
     }
-    next();
+    await this.$store.commit('addGlobalTaskFrameState', currentState)
   },
-};
+  unmounted () {
+    window.removeEventListener('resize', this.handleResize)
+  },
+  beforeRouteUpdate (to, from, next) {
+    if (to.name.includes('training')) {
+      this.openSidebarMenu('upload_data')
+    }
+    next()
+  }
+}
 </script>

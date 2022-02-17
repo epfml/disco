@@ -1,4 +1,5 @@
-runtime: nodejs
+# Custom means that it will use the Dockerfile
+runtime: custom
 
 # Flex environment required for WebSocket support, which is required for PeerJS.
 env: flex

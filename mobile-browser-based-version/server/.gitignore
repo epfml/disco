@@ -1,0 +1,7 @@
+# Server-related files
+model.json
+weights.bin
+weights_round*.json
+models/
+milestones/
+dist/
