@@ -1,21 +1,24 @@
 import { craftPostRequest } from './helpers'
+import fetch from 'node-fetch'
 
-const API = process.env.VUE_APP_FEAI_SERVER
+function feaiServerUrl () {
+  return process.env.VUE_APP_FEAI_SERVER
+}
 
 export async function connect (taskID, clientID) {
-  return await fetch(API.concat(`connect/${taskID}/${clientID}`))
+  return await fetch(feaiServerUrl().concat(`connect/${taskID}/${clientID}`))
 }
 
 export async function disconnect (taskID, clientID) {
-  return await fetch(API.concat(`disconnect/${taskID}/${clientID}`))
+  return await fetch(feaiServerUrl().concat(`disconnect/${taskID}/${clientID}`))
 }
 
 export async function selectionStatus (taskID, clientID) {
-  return await fetch(API.concat(`selection/${taskID}/${clientID}`))
+  return await fetch(feaiServerUrl().concat(`selection/${taskID}/${clientID}`))
 }
 
 export async function aggregationStatus (taskID, round, clientID) {
-  return await fetch(API.concat(`aggregation/${taskID}/${round}/${clientID}`))
+  return await fetch(feaiServerUrl().concat(`aggregation/${taskID}/${round}/${clientID}`))
 }
 
 export async function queryLogs (taskID, round, clientID) {
@@ -24,13 +27,13 @@ export async function queryLogs (taskID, round, clientID) {
   if (round !== undefined) params.push(`round=${round}`)
   if (clientID !== undefined) params.push(`id=${clientID}`)
   const query = params.join('&')
-  return await fetch(API.concat(`logs?${query}`))
+  return await fetch(feaiServerUrl().concat(`logs?${query}`))
 }
 
 export async function postWeights (taskID, round, clientID, weights) {
   const request = craftPostRequest('weights', weights)
   return await fetch(
-    API.concat(`weights/${taskID}/${round}/${clientID}`),
+    feaiServerUrl().concat(`weights/${taskID}/${round}/${clientID}`),
     request
   )
 }
@@ -44,13 +47,13 @@ export async function postMetadata (
 ) {
   const request = craftPostRequest(metadataID, metadata)
   return await fetch(
-    API.concat(`metadata/${metadataID}/${taskID}/${round}/${clientID}`),
+    feaiServerUrl().concat(`metadata/${metadataID}/${taskID}/${round}/${clientID}`),
     request
   )
 }
 
 export async function getMetadataMap (taskID, round, clientID, metadataID) {
   return await fetch(
-    API.concat(`metadata/${metadataID}/${taskID}/${round}/${clientID}`)
+    feaiServerUrl().concat(`metadata/${metadataID}/${taskID}/${round}/${clientID}`)
   )
 }
