@@ -73,6 +73,7 @@ export class Trainer extends ModelActor {
         'Failed to connect to server. Fallback to training alone.'
       )
     }
+    return this.isConnected
   }
 
   /**

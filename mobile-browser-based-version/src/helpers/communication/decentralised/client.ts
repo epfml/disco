@@ -1,5 +1,4 @@
 import msgpack from 'msgpack-lite'
-import Peer from 'peerjs'
 
 import {
   makeID,
@@ -100,6 +99,15 @@ export class DecentralisedClient extends Client {
   }
 
   /**
+   * Conditionally import peerjs since it requires a window to work, which is not the case
+   * for testing, this is a good reason to move to simple-peer.
+   * @returns
+   */
+  __importPeer () {
+    return typeof navigator !== 'undefined' ? require('peerjs').default : undefined
+  }
+
+  /**
    * Initialize the connection to the PeerJS server.
    * @param {Number} epochs the number of epochs.
    */
@@ -119,6 +127,8 @@ export class DecentralisedClient extends Client {
         epochs: epochs
       }
     }
+
+    const Peer = this.__importPeer()
 
     this.peer = new Peer(makeID(10), this.peerConfig as any)
 

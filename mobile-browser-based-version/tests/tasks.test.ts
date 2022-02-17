@@ -19,6 +19,5 @@ describe('Load tasks test', () => { // the tests container
   it('load titanic', async () => {
     const tasks = await loadTasks()
     const titanicTask = tasks[0]
-    console.log(titanicTask)
   })
 })
