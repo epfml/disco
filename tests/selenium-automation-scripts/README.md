@@ -32,6 +32,13 @@ after uploading the files the script starts training automatically and after tra
 
 # Usage
 
+Before running the script, a user should install the required packages. These sripts are tested for the following Python version: 3.10.2
+to install the required packages, a user should run:
+
+```
+pip install webdriver_manager selenium 
+```
+
 At the top of every script a user can choose these training constants (They are also documented):
 
 *Number of peers* - This allowed the users to choose the number of browser instances to run.
