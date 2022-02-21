@@ -121,13 +121,18 @@ export class TrainingInformant {
     return window.localStorage.getItem('color') ?? 'cyan'
   };
 
-  colors = {
-    primary: this.cssColors(`--color-${this.getColor()}`),
-    primaryLight: this.cssColors(`--color-${this.getColor()}-light`),
-    primaryLighter: this.cssColors(`--color-${this.getColor()}-lighter`),
-    primaryDark: this.cssColors(`--color-${this.getColor()}-dark`),
-    primaryDarker: this.cssColors(`--color-${this.getColor()}-darker`)
-  };
+  /**
+   * Returns color palette
+   */
+  getColorPalette () {
+    return {
+      primary: this.cssColors(`--color-${this.getColor()}`),
+      primaryLight: this.cssColors(`--color-${this.getColor()}-light`),
+      primaryLighter: this.cssColors(`--color-${this.getColor()}-lighter`),
+      primaryDark: this.cssColors(`--color-${this.getColor()}-dark`),
+      primaryDarker: this.cssColors(`--color-${this.getColor()}-darker`)
+    }
+  }
 
   /**
    * Update the Heatmap for Interoperability.
@@ -147,7 +152,7 @@ export class TrainingInformant {
    */
   getHeatmapOptions () {
     return {
-      colors: [this.colors.primaryLight],
+      colors: [this.getColorPalette().primaryLight],
       dataLabels: {
         enabled: true,
         style: {
@@ -214,10 +219,10 @@ export class TrainingInformant {
       },
       colors: [
         // TODO: Make it so it immediately changes when updated
-        this.colors.primary
+        this.getColorPalette().primary
       ],
       fill: {
-        colors: [this.colors.primaryLighter],
+        colors: [this.getColorPalette().primaryLighter],
         type: 'solid',
         opacity: 0.6
       },
