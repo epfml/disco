@@ -1,5 +1,5 @@
 import axios from 'axios'
-import * as config from './task.config.js'
+import * as config from './task.config'
 import _ from 'lodash'
 
 function createTaskClass (task) {

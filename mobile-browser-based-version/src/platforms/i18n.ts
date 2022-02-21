@@ -1,6 +1,6 @@
 // load plaform strings
 import { createI18n } from 'vue-i18n'
-import config from './platforms.config'
+import config from './platforms.config.js'
 import _ from 'lodash'
 
 const getJSON = (name) => require(`./content/${name}`)
