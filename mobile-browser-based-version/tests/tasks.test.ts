@@ -2,15 +2,10 @@
 import { expect } from 'chai'
 import { loadTasks } from '../src/helpers/task_definition/helper'
 
+// TODO this is hard coded
 const nbrTasks = 4
 
 describe('Load tasks test', () => { // the tests container
-  before(() => {
-    process.env.NODE_ENV = 'development'
-    // Load .env.development
-    require('dotenv-flow').config()
-  })
-
   it('load tasks', async () => {
     const tasks = await loadTasks()
     expect(tasks.length).equal(nbrTasks)
