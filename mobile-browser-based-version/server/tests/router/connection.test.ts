@@ -47,12 +47,6 @@ function testConnection (platformID: string) {
       }
     })
 
-    it('disconnect non connected user from valid task', async () => { // the single test
-      await request(app)
-        .get(disconnectHeader(platformID, task, clientId))
-        .expect(404)
-    })
-
     it('connect to non existing task', async () => { // the single test
       await request(app)
         .get(connectHeader(platformID, nonExistingTask, clientId))

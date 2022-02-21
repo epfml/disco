@@ -30,7 +30,7 @@ tasksRouter.post('/', function (req, res) {
     // store results in json file
     writeNewTask(newTask, modelFile, weightsFile, config)
     // answer vue app
-    res.end('Sucessfull upload')
+    res.end('Successfully upload')
   }
 })
 // Declare federated routes
@@ -48,6 +48,8 @@ federatedRouter.get(
 )
 
 federatedRouter.post('/weights/:task/:round/:id', handlers.postWeights)
+
+federatedRouter.post('/asyncWeights/:task/:id', handlers.postAsyncWeights)
 
 federatedRouter
   .route('/metadata/:metadata/:task/:round/:id')

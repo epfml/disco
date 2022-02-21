@@ -7,6 +7,7 @@ import {
   assignWeightsToModel
 } from '../../helpers/tfjs_helpers'
 import { getTasks } from '../../tasks/helpers'
+import { AsyncWeightsHolder } from './AsyncWeightsHolder'
 import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
@@ -57,6 +58,8 @@ const NEW_CLIENT_IDLE_DELAY = 1000 * 60
  * Stored by task ID, round number and client ID.
  */
 const weightsMap = new Map()
+const asyncWeightsMap: Map<string, AsyncWeightsHolder> = new Map()
+const BUFFER_CAPACITY = 3
 /**
  * Contains metadata used for training by clients for a given task and round.
  * Stored by task ID, round number and client ID.
@@ -137,9 +140,24 @@ function _checkRequest (request) {
   return 200
 }
 
+function _checkAsyncRequest (request) {
+  const task = request.params.task
+  const id = request.params.id
+
+  if (!(tasksStatus.has(task))) {
+    return 404
+  }
+  if (!clients.has(id)) {
+    return 401
+  }
+
+  return 200
+}
+
 function _failRequest (response, type, code) {
   console.log(`${type} failed with code ${code}`)
   response.status(code).send()
+  return code
 }
 
 /**
@@ -433,6 +451,43 @@ export function postWeights (request, response) {
   ) {
     setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN)
   }
+}
+
+function _checkPostAsyncWeights (request, response) {
+  const type = REQUEST_TYPES.POST_WEIGHTS
+
+  const code = _checkAsyncRequest(request)
+  if (code !== 200) {
+    return _failRequest(response, type, code)
+  }
+
+  if (
+    request.body === undefined ||
+    request.body.weights === undefined ||
+    request.body.weights.data === undefined
+  ) {
+    return _failRequest(response, type, 400)
+  }
+
+  return 200
+}
+
+export function postAsyncWeights (request, response) {
+  const codeFromCheckingValidity = _checkPostAsyncWeights(request, response)
+  if (codeFromCheckingValidity !== 200) {
+    return codeFromCheckingValidity
+  }
+  console.log(request.body)
+
+  const task = request.params.task
+
+  if (!asyncWeightsMap.has(task)) {
+    asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY))
+  }
+  const weight = request.body.weights.data as number
+  const weightTimeStamp = request.body.weights.weightTimeStamp as number
+  const codeFromAddingWeight = asyncWeightsMap.get(task).add(weight, weightTimeStamp) ? 200 : 202
+  response.status(codeFromAddingWeight).send()
 }
 
 /**
