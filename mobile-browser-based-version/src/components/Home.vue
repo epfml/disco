@@ -1,22 +1,8 @@
 <template>
   <base-layout customClass="pt-4">
     <!-- Welcoming words -->
-    <div>
-      <h1 class="text-xl pl-10 font-medium leading-none">
-        <span class="text-primary-dark dark:text-primary-light"
-          >{{ $t('home.title.name') }}
-        </span>
-        -
-        <span class="text-primary-dark dark:text-primary-light">{{
-          $t('home.title.start')
-        }}</span
-        >{{ $t('home.title.middle') }}
-        <span class="text-primary-dark dark:text-primary-light">{{
-          $t('home.title.end')
-        }}</span>
-      </h1>
-    </div>
-
+    <custom-header />
+    <!-- Information sections -->
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
         <div v-for="build in $tm('home.buildCard')" :key="build.header.text">
@@ -34,34 +20,48 @@
 
     <!-- TODO: This section is not algined with the top, not sure why -->
     <div class="flex flex-row items-start pl-10">
-      <custom-button v-on:click="goToTaskList()">
+      <custom-button @click="goToTaskList()">
         {{ $t('home.startBuildingButtonText') }}
       </custom-button>
-
-      <div class="w-1/6 flex flex-col items-center mx-auto">
-        <card customClass="space-y-sm">
-          <decentralized-image class="w-full h-full" />
-          <p class="text-xs items-center pt-10">
-            <span class="text-primary-dark dark:text-primary-light">{{
-              $t('home.images.decentralised.title')
-            }}</span>
-            {{ $t('home.images.decentralised.text') }}
-          </p>
-        </card>
-      </div>
-
-      <div class="w-1/6 flex flex-col items-center mr-auto">
-        <card customClass="space-y-sm">
-          <federated-image class="w-full h-full" />
-          <p class="text-xs items-center pt-10">
-            <span class="text-primary-dark dark:text-primary-light">{{
-              $t('home.images.federated.title')
-            }}</span>
-            {{ $t('home.images.federated.text') }}
-          </p>
-        </card>
-      </div>
     </div>
+    <section class="flex-col items-center justify-center p-4 space-y-4">
+      <!-- Decentralised insight -->
+      <div class="grid gap-8 p-4 sm:grid-cols-2">
+        <div class="flex flex-col items-center mx-auto">
+          <title-card
+            title="Insights: "
+            :titleUnderlined="$t('home.images.decentralised.title')"
+          >
+            <div class="flex justify-center my-md">
+              <decentralized-image class="sm:w-full md:w-3/5" />
+            </div>
+            <div>
+              <span class="text-primary-dark dark:text-primary-light">{{
+                $t('home.images.decentralised.title')
+              }}</span>
+              {{ $t('home.images.decentralised.text') }}
+            </div>
+          </title-card>
+        </div>
+        <!-- Federated insight -->
+        <div class="flex flex-col items-center mx-auto">
+          <title-card
+            title="Insights: "
+            :titleUnderlined="$t('home.images.federated.title')"
+          >
+            <div class="flex justify-center my-md">
+              <federated-image class="sm:w-full md:w-3/5" />
+            </div>
+            <div>
+              <span class="text-primary-dark dark:text-primary-light">{{
+                $t('home.images.federated.title')
+              }}</span>
+              {{ $t('home.images.federated.text') }}
+            </div>
+          </title-card>
+        </div>
+      </div>
+    </section>
 
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
@@ -77,7 +77,7 @@
         </div>
 
         <div class="pt-4">
-          <custom-button v-on:click="goToNewTaskCreationForm()">
+          <custom-button @click="goToNewTaskCreationForm()">
             {{ $t('home.createTaskButtonText') }}
           </custom-button>
         </div>
@@ -86,22 +86,20 @@
   </base-layout>
 </template>
 
-<script>
-import BaseLayout from './containers/BaseLayout.vue';
-import CustomButton from './simple/CustomButton.vue';
-import TitleCard from './containers/TitleCard.vue';
-import FederatedImage from '../assets/svg/FederatedImage.vue';
-import DecentralizedImage from '../assets/svg/DecentralizedImage.vue';
-import Card from './containers/Card.vue';
+<script lang="ts">
+import { defineComponent } from 'vue'
+import BaseLayout from './containers/BaseLayout.vue'
+import TitleCard from './containers/TitleCard.vue'
+import CustomHeader from './simple/CustomHeader.vue'
+import CustomButton from './simple/CustomButton.vue'
+import FederatedImage from '../assets/svg/FederatedImage.vue'
+import DecentralizedImage from '../assets/svg/DecentralizedImage.vue'
 
-import { useI18n } from 'vue-i18n';
-import { mapMutations } from 'vuex';
+import { mapMutations } from 'vuex'
 
-export default {
-  name: 'home',
-  setup() {
-    const { t, locale } = useI18n();
-    return { t, locale };
+export default defineComponent({
+  name: 'home-page',
+  setup () {
   },
   components: {
     BaseLayout,
@@ -109,22 +107,22 @@ export default {
     CustomButton,
     FederatedImage,
     DecentralizedImage,
-    Card,
+    CustomHeader
   },
   methods: {
     ...mapMutations(['setActivePage']),
-    goToTaskList() {
-      this.setActivePage('tasks');
+    goToTaskList () {
+      this.setActivePage('tasks')
       this.$router.push({
-        path: '/tasks',
-      });
+        path: '/tasks'
+      })
     },
-    goToNewTaskCreationForm() {
-      this.setActivePage('task-creation-form');
+    goToNewTaskCreationForm () {
+      this.setActivePage('task-creation-form')
       this.$router.push({
-        path: '/task-creation-form',
-      });
-    },
-  },
-};
+        path: '/task-creation-form'
+      })
+    }
+  }
+})
 </script>

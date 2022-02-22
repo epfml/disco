@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "types": ["node"],
+  },
+  "include": ["src/**/*"],
+  "exclude": ["./node_modules/", "./models/", "./tasks/", "./tests/"],
+}

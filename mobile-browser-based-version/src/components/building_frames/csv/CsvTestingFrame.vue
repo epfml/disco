@@ -1,10 +1,5 @@
 <template>
-  <testing-frame
-    :Id="Id"
-    :Task="Task"
-    :nbrClasses="1"
-    :makePredictions="makePredictions"
-  >
+  <testing-frame :id="id" :task="task" :helper="helper">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="relative p-4 overflow-x-hidden">
@@ -53,7 +48,7 @@
             >
               <li
                 class="border-gray-400"
-                v-for="header in headers"
+                v-for="header in task.getTestingHeaders()"
                 :key="header.id"
               >
                 <div
@@ -115,61 +110,30 @@
 </template>
 
 <script>
-import TestingFrame from '../containers/TestingFrame.vue';
-import IconCard from '../../containers/IconCard.vue';
-import Bezier2 from '../../../assets/svg/Bezier2.vue';
+import TestingFrame from '../containers/TestingFrame.vue'
+import IconCard from '../../containers/IconCard.vue'
+import Bezier2 from '../../../assets/svg/Bezier2.vue'
+import { CsvTaskHelper } from '@/helpers/task_definition/csv/helper'
+import { CsvTask } from '@/helpers/task_definition/csv/csv_task'
 
 export default {
   name: 'csv-testing-frame',
   props: {
-    Id: String,
-    Task: Object,
+    id: String,
+    task: CsvTask
   },
   components: {
     IconCard,
     TestingFrame,
-    Bezier2,
+    Bezier2
   },
-  data() {
+  data () {
     return {
-      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      headers: [],
-      predictions: null,
-    };
-  },
-
-  methods: {
-    async predictionsToCsv(predictions) {
-      let pred = predictions.join('\n');
-      const csvContent = this.classColumn + '\n' + pred;
-      return csvContent;
-    },
-    async makePredictions(filesElement) {
-      return new Promise((resolve, reject) => {
-        let reader = new FileReader();
-        reader.onload = async (e) => {
-          // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-          var predictions = await this.Task.predict(e, this.headers);
-          resolve(predictions);
-        };
-        reader.readAsText(filesElement);
-      });
-    },
-  },
-  async mounted() {
-    // This method is called when the component is created
-    this.$nextTick(async function () {
-      // initialize information variables
-      this.classColumn = this.Task.trainingInformation.outputColumn;
-      this.Task.displayInformation.headers.forEach((item) => {
-        if (item !== this.classColumn) {
-          this.headers.push({ id: item, userHeader: item });
-        }
-      });
-      this.dataExample = this.Task.displayInformation.dataExample.filter(
-        (item) => item.columnName !== this.classColumn
-      );
-    });
-  },
-};
+      dataExample: this.task.displayInformation.dataExample.filter(
+        (item) => item.columnName !== this.task.classColumn
+      ),
+      helper: new CsvTaskHelper(this.task)
+    }
+  }
+}
 </script>

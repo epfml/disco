@@ -1,13 +1,14 @@
 import { serializeWeights } from '../helpers/tfjs_helpers.js';
 <template>
+  <div>
   <a id="overview-target">
-    <icon-card header="The task" :description="OverviewText">
+    <icon-card header="The task" :description="overviewText">
       <template v-slot:icon><tasks /></template>
     </icon-card>
   </a>
 
   <a id="limitations-target">
-    <icon-card header="The model" :description="ModelText">
+    <icon-card header="The model" :description="modelText">
       <template v-slot:icon><model /></template>
     </icon-card>
   </a>
@@ -26,7 +27,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
                   FeAI cached the last model you were working on for you. Select
                   it to start training from it. Otherwise, it will be overridden
                   the next time you train the
-                  {{ Task.displayInformation.taskTitle }} task. This model was
+                  {{ task.displayInformation.taskTitle }} task. This model was
                   last updated the
                   <span class="text-primary-dark dark:text-primary-light">
                     {{ dateSaved }}
@@ -39,7 +40,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
               </div>
               <button
                 class="relative focus:outline-none"
-                v-on:click="toggleUseWorkingModel()"
+                @click="toggleUseWorkingModel()"
               >
                 <div
                   class="
@@ -78,7 +79,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
             </div>
             <div class="flex pt-4 space-x-4 justify-center">
               <button
-                v-on:click="saveModel()"
+                @click="saveModel()"
                 class="
                   flex
                   items-center
@@ -108,7 +109,7 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
                 <span>Save Model</span>
               </button>
               <button
-                v-on:click="deleteModel()"
+                @click="deleteModel()"
                 class="
                   flex
                   items-center
@@ -153,150 +154,151 @@ import { serializeWeights } from '../helpers/tfjs_helpers.js';
   <div class="flex items-center justify-center p-4">
     <custom-button
       id="train-model-button"
-      v-on:click="goToTraining()"
+      @click="goToTraining()"
       :center="true"
     >
       Join Training
     </custom-button>
   </div>
+  </div>
 </template>
 
 <script>
-import * as memory from '../../helpers/memory/helpers';
-import CustomButton from '../simple/CustomButton.vue';
-import Tasks from '../../assets/svg/Tasks.vue';
-import Model from '../../assets/svg/Model.vue';
-import Clock from '../../assets/svg/Clock.vue';
-import IconCard from '../containers/IconCard.vue';
-import { mapState } from 'vuex';
+import * as memory from '../../helpers/memory/helpers'
+import CustomButton from '../simple/CustomButton.vue'
+import Tasks from '../../assets/svg/Tasks.vue'
+import Model from '../../assets/svg/Model.vue'
+import Clock from '../../assets/svg/Clock.vue'
+import IconCard from '../containers/IconCard.vue'
+import { mapState } from 'vuex'
 
 export default {
   name: 'description-frame',
   props: {
-    OverviewText: String,
-    ModelText: String,
-    TradeOffsText: String,
-    Id: String,
-    Task: Object,
+    overviewText: String,
+    modelText: String,
+    tradeOffsText: String,
+    id: String,
+    task: Object
   },
   components: {
     CustomButton,
     Tasks,
     Model,
     IconCard,
-    Clock,
+    Clock
   },
-  data() {
+  data () {
     return {
       isModelCreated: false,
       workingModelExists: false,
       workingModelExistsOnMount: false,
       useWorkingModel: false,
       dateSaved: '',
-      hourSaved: '',
-    };
+      hourSaved: ''
+    }
   },
   watch: {
     /**
      * When useWorkingModel changed this function is called since it is "watched"
      */
-    useWorkingModel() {
-      let modelInUseMessage;
+    useWorkingModel () {
+      let modelInUseMessage
       if (this.useWorkingModel) {
-        modelInUseMessage = `The previous ${this.Task.displayInformation.taskTitle} model has been selected. You can start training!`;
+        modelInUseMessage = `The previous ${this.task.displayInformation.taskTitle} model has been selected. You can start training!`
       } else {
-        modelInUseMessage = `A new ${this.Task.displayInformation.taskTitle} model will be created. You can start training!`;
+        modelInUseMessage = `A new ${this.task.displayInformation.taskTitle} model will be created. You can start training!`
       }
-      this.$toast.success(modelInUseMessage);
-      setTimeout(this.$toast.clear, 30000);
-    },
+      this.$toast.success(modelInUseMessage)
+      setTimeout(this.$toast.clear, 30000)
+    }
   },
   computed: {
     ...mapState(['useIndexedDB', 'isDark']),
     /**
      * Returns true if a new model needs to be created
      */
-    shouldCreateFreshModel() {
+    shouldCreateFreshModel () {
       return (
         !this.isModelCreated &&
         !(this.workingModelExists && this.useWorkingModel)
-      );
-    },
+      )
+    }
   },
   methods: {
     /**
      * If indexDB is used and a new model needs to be created do so, and then go to the training frame.
      */
-    async goToTraining() {
+    async goToTraining () {
       if (this.useIndexedDB && this.shouldCreateFreshModel) {
-        await this.loadFreshModel();
-        this.isModelCreated = true;
+        await this.loadFreshModel()
+        this.isModelCreated = true
         this.$toast.success(
-          `A new ${this.Task.displayInformation.taskTitle} model has been created. You can start training!`
-        );
-        setTimeout(this.$toast.clear, 30000);
+          `A new ${this.task.displayInformation.taskTitle} model has been created. You can start training!`
+        )
+        setTimeout(this.$toast.clear, 30000)
       }
       this.$router.push({
-        name: this.Id + '.training',
-        params: { Id: this.Id },
-      });
+        name: this.id + '.training',
+        params: { id: this.id }
+      })
     },
     /**
      * Delete the model stored in indexDB corresponding to this task.
      */
-    async deleteModel() {
-      this.workingModelExists = false;
+    async deleteModel () {
+      this.workingModelExists = false
       await memory.deleteWorkingModel(
-        this.Task.taskID,
-        this.Task.trainingInformation.modelID
-      );
+        this.task.taskID,
+        this.task.trainingInformation.modelID
+      )
       this.$toast.success(
-        `Deleted the cached ${this.Task.displayInformation.taskTitle} model.`
-      );
-      setTimeout(this.$toast.clear, 30000);
+        `Deleted the cached ${this.task.displayInformation.taskTitle} model.`
+      )
+      setTimeout(this.$toast.clear, 30000)
     },
     /**
      * Save the current working model to indexDB
      */
-    async saveModel() {
+    async saveModel () {
       await memory.saveWorkingModel(
-        this.Task.taskID,
-        this.Task.trainingInformation.modelID
-      );
+        this.task.taskID,
+        this.task.trainingInformation.modelID
+      )
       this.$toast.success(
-        `Saved the cached ${this.Task.displayInformation.taskTitle} model to the model library`
-      );
-      setTimeout(this.$toast.clear, 30000);
+        `Saved the cached ${this.task.displayInformation.taskTitle} model to the model library`
+      )
+      setTimeout(this.$toast.clear, 30000)
     },
     /**
      * Toggle use working model
      */
-    async toggleUseWorkingModel() {
-      this.useWorkingModel = !this.useWorkingModel;
+    async toggleUseWorkingModel () {
+      this.useWorkingModel = !this.useWorkingModel
     },
     /**
      * Create a new model and overwite the indexDB model with the new model
      */
-    async loadFreshModel() {
-      await this.Task.createModel().then((freshModel) => {
+    async loadFreshModel () {
+      await this.task.createModel().then((freshModel) => {
         memory.updateWorkingModel(
-          this.Task.taskID,
-          this.Task.trainingInformation.modelID,
+          this.task.taskID,
+          this.task.trainingInformation.modelID,
           freshModel
-        );
-      });
+        )
+      })
     },
     /**
      * Get UI theme stored locally
      */
-    getTheme() {
-      return this.$store.state.isDark;
-    },
+    getTheme () {
+      return this.$store.state.isDark
+    }
   },
   /**
    * This method is called when the component is created
    */
-  async mounted() {
+  async mounted () {
     this.$nextTick(async function () {
       /**
        * If the IndexedDB is turned on and a working model exists in IndexedDB
@@ -304,28 +306,28 @@ export default {
        * feature.
        */
       if (this.useIndexedDB) {
-        let workingModelMetadata = await memory.getWorkingModelMetadata(
-          this.Task.taskID,
-          this.Task.trainingInformation.modelID
-        );
+        const workingModelMetadata = await memory.getWorkingModelMetadata(
+          this.task.taskID,
+          this.task.trainingInformation.modelID
+        )
         if (workingModelMetadata) {
-          this.workingModelExistsOnMount = true;
-          this.workingModelExists = true;
-          let date = workingModelMetadata.dateSaved;
-          let zeroPad = (number) => String(number).padStart(2, '0');
+          this.workingModelExistsOnMount = true
+          this.workingModelExists = true
+          const date = workingModelMetadata.dateSaved
+          const zeroPad = (number) => String(number).padStart(2, '0')
           this.dateSaved = [
             date.getDate(),
             date.getMonth() + 1,
-            date.getFullYear(),
+            date.getFullYear()
           ]
             .map(zeroPad)
-            .join('/');
+            .join('/')
           this.hourSaved = [date.getHours(), date.getMinutes()]
             .map(zeroPad)
-            .join('h');
+            .join('h')
         }
       }
-    });
-  },
-};
+    })
+  }
+}
 </script>

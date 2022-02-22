@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      v-if="'password_hash' in this.Task.displayInformation && !authenticated"
+      v-if="'password_hash' in this.task.displayInformation && !authenticated"
       class="flex h-screen"
     >
       <div class="m-auto">
@@ -26,15 +26,14 @@
               bg-white
               dark:bg-dark
               rounded
-              text-sm
               shadow
               outline-none
               focus:outline-none focus:shadow-outline
             "
-            v-bind:class="{ 'border-red-500': incorrectLogin }"
+            :class="{ 'border-red-500': incorrectLogin }"
           />
           <button
-            v-on:click="login()"
+            @click="login()"
             type="button"
             class="
               text-lg
@@ -82,7 +81,7 @@
         <div class="flex items-center md:space-x-0">
           <!-- Sidebar button (for small screens) -->
           <button
-            v-on:click="isSidebarOpen = !isSidebarOpen"
+            @click="isSidebarOpen = !isSidebarOpen"
             class="
               rounded-md
               text-primary-lighter
@@ -125,7 +124,7 @@
             </span>
           </button>
           <div class="p-1"></div>
-          <h1 class="text-2xl font-medium">{{ TaskTitle }} Model</h1>
+          <h1 class="text-2xl font-medium">{{ taskTitle }} Model</h1>
         </div>
       </header>
       <div
@@ -172,7 +171,7 @@
               <div>
                 <!-- active & hover classes 'bg-primary-100 dark:bg-primary' -->
                 <a
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('model_desc');
                     goToModelDescription();
@@ -220,7 +219,7 @@
                 <!-- active classes 'bg-primary-100 dark:bg-primary' -->
                 <a
                   href="#"
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('upload_data');
                     goToTraining();
@@ -271,7 +270,7 @@
                 <!-- active classes 'bg-primary-100 dark:bg-primary' -->
                 <a
                   href="#"
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('model_statistic');
                   "
@@ -320,7 +319,7 @@
                 <!-- active classes 'bg-primary-100 dark:bg-primary' -->
                 <a
                   href="#"
-                  v-on:click="
+                  @click="
                     $event.preventDefault();
                     openSidebarMenu('test_model');
                     goToTesting();
@@ -371,12 +370,12 @@
 
         <div
           class="flex flex-1 h-screen overflow-y-scroll overflow-x-hidden"
-          v-if="TaskTitle"
+          v-if="taskTitle"
         >
           <main class="flex-1 overflow-y-scroll">
             <router-view
-              v-on:opened-testing="
-                this.TaskTitle = this.Task.displayInformation.taskTitle;
+              @opened-testing="
+                this.taskTitle = this.task.displayInformation.taskTitle;
                 openSidebarMenu('test_model');
               "
               v-slot="{ Component }"
@@ -415,17 +414,17 @@
 </template>
 
 <script>
-var Hashes = require('jshashes');
+const Hashes = require('jshashes')
 
 export default {
   name: 'main-task-frame',
   props: {
-    Id: String,
-    Task: Object,
+    id: String,
+    task: Object
   },
-  data() {
+  data () {
     return {
-      TaskTitle: null,
+      taskTitle: null,
       isActiveModelDesc: false,
       openModelDesc: true,
       isActiveUploadData: false,
@@ -437,96 +436,96 @@ export default {
       isSidebarOpen: window.innerWidth > 1024,
       window: {
         width: window.innerWidth,
-        height: window.innerHeight,
+        height: window.innerHeight
       },
       authenticated: false,
       inputPassword: '',
-      incorrectLogin: false,
-    };
+      incorrectLogin: false
+    }
   },
   methods: {
-    goToTraining() {
+    goToTraining () {
       this.$router.push({
-        name: this.Task.taskID + '.training',
-        params: { Id: this.Task.taskID },
-      });
+        name: this.task.taskID + '.training',
+        params: { id: this.task.taskID }
+      })
     },
-    goToTesting() {
+    goToTesting () {
       this.$router.push({
-        name: this.Task.taskID + '.testing',
-        params: { Id: this.Task.taskID },
-      });
+        name: this.task.taskID + '.testing',
+        params: { id: this.task.taskID }
+      })
     },
-    goToModelDescription() {
+    goToModelDescription () {
       this.$router.push({
-        path: 'description',
-      });
+        path: 'description'
+      })
     },
-    async handleResize() {
-      this.window.width = window.innerWidth;
-      this.window.height = window.innerHeight;
-      this.isSidebarOpen = this.window.width > 1024;
+    async handleResize () {
+      this.window.width = window.innerWidth
+      this.window.height = window.innerHeight
+      this.isSidebarOpen = this.window.width > 1024
     },
-    login() {
-      var SHA256 = new Hashes.SHA256();
+    login () {
+      const SHA256 = new Hashes.SHA256()
       if (
         SHA256.hex(this.inputPassword) ===
-        this.Task.displayInformation.password_hash
+        this.task.displayInformation.password_hash
       ) {
-        this.authenticated = true;
+        this.authenticated = true
         this.$store.commit('addPassword', {
-          id: this.Id,
-          password: this.inputPassword,
-        });
+          id: this.id,
+          password: this.inputPassword
+        })
       } else {
-        this.incorrectLogin = true;
+        this.incorrectLogin = true
       }
     },
-    openSidebarMenu(menu) {
-      this.openModelDesc = menu === 'model_desc';
-      this.openUploadData = menu === 'upload_data';
-      this.openModelStatistic = menu === 'model_statistic';
-      this.openTestModel = menu === 'test_model';
-    },
+    openSidebarMenu (menu) {
+      this.openModelDesc = menu === 'model_desc'
+      this.openUploadData = menu === 'upload_data'
+      this.openModelStatistic = menu === 'model_statistic'
+      this.openTestModel = menu === 'test_model'
+    }
   },
-  async mounted() {
-    this.TaskTitle = this.Task.displayInformation.taskTitle;
-    window.addEventListener('resize', this.handleResize);
+  async mounted () {
+    this.taskTitle = this.task.displayInformation.taskTitle
+    window.addEventListener('resize', this.handleResize)
   },
 
-  activated() {
-    this.TaskTitle = this.Task.displayInformation.taskTitle;
-    let prevState = this.$store.getters.globalTaskFrameState(
-      this.Task.trainingInformation.modelID
-    );
+  activated () {
+    this.taskTitle = this.task.displayInformation.taskTitle
+    const prevState = this.$store.getters.globalTaskFrameState(
+      this.task.trainingInformation.modelID
+    )
 
     if (prevState) {
       // if previous state exist, load it
-      this.isActiveModelDesc = prevState.isActiveModelDesc;
-      this.openModelDesc = prevState.openModelDesc;
-      this.isActiveUploadData = prevState.isActiveUploadData;
-      this.isActiveTestModel = prevState.isActiveTestModel;
-      this.openUploadData = prevState.openUploadData;
-      this.openTestModel = prevState.openTestModel;
-      this.isActiveModelStatistic = prevState.isActiveModelStatistic;
-      this.openModelStatistic = prevState.openModelStatistic;
-      this.isSidebarOpen = prevState.isSidebarOpen;
+      this.isActiveModelDesc = prevState.isActiveModelDesc
+      this.openModelDesc = prevState.openModelDesc
+      this.isActiveUploadData = prevState.isActiveUploadData
+      this.isActiveTestModel = prevState.isActiveTestModel
+      this.openUploadData = prevState.openUploadData
+      this.openTestModel = prevState.openTestModel
+      this.isActiveModelStatistic = prevState.isActiveModelStatistic
+      this.openModelStatistic = prevState.openModelStatistic
+      this.isSidebarOpen = prevState.isSidebarOpen
     } else {
       // if previous state does not exist, initilize variable to initial values
-      this.isActiveModelDesc = false;
-      this.openModelDesc = true;
-      this.isActiveUploadData = false;
-      this.isActiveTestModel = false;
-      this.openUploadData = false;
-      this.openTestModel = false;
-      this.isActiveModelStatistic = false;
-      this.openModelStatistic = false;
-      this.isSidebarOpen = window.innerWidth > 1024;
+      this.isActiveModelDesc = false
+      this.openModelDesc = true
+      this.isActiveUploadData = false
+      this.isActiveTestModel = false
+      this.openUploadData = false
+      this.openTestModel = false
+      this.isActiveModelStatistic = false
+      this.openModelStatistic = false
+      this.isSidebarOpen = window.innerWidth > 1024
     }
   },
-  async deactivated() {
-    let currentState = {
-      modelID: this.Task.trainingInformation.modelID,
+  async deactivated () {
+    const currentState = {
+      modelID: this.task.trainingInformation.modelID,
       isActiveModelDesc: this.isActiveModelDesc,
       openModelDesc: this.openModelDesc,
       isActiveUploadData: this.isActiveUploadData,
@@ -535,18 +534,18 @@ export default {
       openTestModel: this.openTestModel,
       isActiveModelStatistic: this.isActiveModelStatistic,
       openModelStatistic: this.openModelStatistic,
-      isSidebarOpen: this.isSidebarOpen,
-    };
-    await this.$store.commit('addGlobalTaskFrameState', currentState);
-  },
-  unmounted() {
-    window.removeEventListener('resize', this.handleResize);
-  },
-  beforeRouteUpdate(to, from, next) {
-    if (to.name.includes('training')) {
-      this.openSidebarMenu('upload_data');
+      isSidebarOpen: this.isSidebarOpen
     }
-    next();
+    await this.$store.commit('addGlobalTaskFrameState', currentState)
   },
-};
+  unmounted () {
+    window.removeEventListener('resize', this.handleResize)
+  },
+  beforeRouteUpdate (to, from, next) {
+    if (to.name.includes('training')) {
+      this.openSidebarMenu('upload_data')
+    }
+    next()
+  }
+}
 </script>

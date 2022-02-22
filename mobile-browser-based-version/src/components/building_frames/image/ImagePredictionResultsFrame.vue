@@ -5,13 +5,13 @@
       <template v-slot:icon><file-earmark-ruled-vue /></template>
       <!-- Data Point Example -->
       <template v-slot:extra>
-        <div v-bind:id="imageId"></div>
+        <div :id="imageId"></div>
 
         <div class="relative p-4 overflow-x-hidden">
           <span
             v-for="value in classes"
             class="text-sm text-gray-500 dark:text-light"
-            v-bind:key="value"
+            :key="value"
           >
             {{ value.className }} label with probability of
             {{ (value.probability * 100).toFixed(3) }}% <br />
@@ -23,22 +23,21 @@
 </template>
 
 <script>
-import FileEarmarkRuledVue from '../../../assets/svg/FileEarmarkRuled.vue';
+import FileEarmarkRuledVue from '../../../assets/svg/FileEarmarkRuled.vue'
 
 export default {
   name: 'image-prediction-results-frame',
   props: {
-    Id: String,
-    classes: Array,
-    imageElement: HTMLImageElement,
+    id: String,
+    classes: Array
   },
   components: {
-    FileEarmarkRuledVue,
+    FileEarmarkRuledVue
   },
-  data() {
+  data () {
     return {
-      imageId: 'image_'.concat(this.Id),
-    };
-  },
-};
+      imageid: 'image_'.concat(this.Id)
+    }
+  }
+}
 </script>

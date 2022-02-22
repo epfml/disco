@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-1 h-screen overflow-y-scroll">
     <!-- Main Page Header -->
-    <main v-bind:class="`${override ? '' : 'flex-1'} ${customClass}`">
+    <main :class="`${override ? '' : 'flex-1'} ${customClass}`">
       <div
         class="
           flex flex-col
@@ -30,17 +30,17 @@
 </template>
 
 <script>
-import CustomFooter from '../simple/CustomFooter.vue';
+import CustomFooter from '../simple/CustomFooter.vue'
 
 export default {
   name: 'base-layout',
   components: {
-    CustomFooter,
+    CustomFooter
   },
   props: {
     customClass: { default: '', type: String },
     override: { default: false, type: Boolean },
-    withSection: { default: false, type: Boolean },
-  },
-};
+    withSection: { default: false, type: Boolean }
+  }
+}
 </script>
