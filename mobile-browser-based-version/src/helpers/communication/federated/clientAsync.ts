@@ -103,7 +103,7 @@ export class FederatedAsyncClient extends Client {
 
   async _weightsAreOutOfDate (): Promise<boolean> {
     console.log('Fetching are weights out of date?')
-    const response = await api.getAreWeightsOutOfDate(this.task.taskID, this.clientID, this.timeStamp)
+    const response = await api.getIsVersionOld(this.task.taskID, this.clientID, this.timeStamp)
 
     if (response.status === 200) {
       return response.data.isTimeStampOutOfDate
