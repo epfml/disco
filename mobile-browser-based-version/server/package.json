@@ -22,7 +22,6 @@
     "http-proxy-middleware": "^2.0.1",
     "lodash": "^4.17.21",
     "msgpack-lite": "^0.1.26",
-    "node-fetch": "^2.6.7",
     "peer": "^0.6.1",
     "ts-node-register": "^1.0.0",
     "typescript": "^4.5.5"
