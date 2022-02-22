@@ -4,29 +4,33 @@
  * async weights buffer.
  *
  * @remarks
- * The variables are self explanatory, the class works as follows:
+ * taskID: corresponds to the task that weights correspond to.
+ * bufferCapacity: size of the buffer.
+ * buffer: holds a map of users to their added weights.
+ * version: the latest version of the weight holder.
  *
- * At initialization the buffer is empty and the latestWeightsTimeStamp is 0,
- * hence any new weights are accepted during add(weight,weightTimeStamp) so
- * long as weightTimeStamp > 0. Once the buffer
+ * the class works as follows:
+ *
+ * At initialization the buffer is empty and the version is 0,
+ * hence any new weights are accepted during add(weight,version) so
+ * long as version > 0. Once the buffer
  * is full, we average the weights in the buffer and store it in the weight, we then also
- * update the latestWeightsTimeStamp to the current time.
+ * update the version by incrementing it.
  *
- * The latest aggregated weights is stored in the weights variable
  */
 export class AsyncWeightsHolder {
     taskID: string;
     bufferCapacity: number
     buffer: Map<string, any>;
-    latestWeightsTimeStamp: number;
+    version: number;
     _aggregateAndStoreWeights: (weights: any) => Promise<void>;
 
-    constructor (taskId: string, bufferCapacity: number, aggregateAndStoreWeights: (weights: any) => Promise<void>, initialTimeStamp: number = 0) {
+    constructor (taskId: string, bufferCapacity: number, aggregateAndStoreWeights: (weights: any) => Promise<void>) {
       this.taskID = taskId
       this.bufferCapacity = bufferCapacity
       this.buffer = new Map<string, any>()
       this._aggregateAndStoreWeights = aggregateAndStoreWeights
-      this.latestWeightsTimeStamp = initialTimeStamp
+      this.version = 0
     }
 
     _resetBuffer () {
@@ -37,8 +41,8 @@ export class AsyncWeightsHolder {
       return this.buffer.size >= this.bufferCapacity
     }
 
-    _setLatestWeightsTimeStamp () {
-      this.latestWeightsTimeStamp = Date.now()
+    _updateVersion () {
+      this.version += 1
     }
 
     _getWeightsFromBuffer () {
@@ -48,30 +52,31 @@ export class AsyncWeightsHolder {
     async _updateWeightsIfBufferIsFull () {
       if (this._bufferIsFull()) {
         this._aggregateAndStoreWeights(this._getWeightsFromBuffer())
-        this._setLatestWeightsTimeStamp()
+        this._updateVersion()
         this._resetBuffer()
       }
     }
 
     /**
-     * Returns true if the weightsTimeStamp is older than the latestWeightsTimeStamp.
-     * The latestWeightsTimeStamp corresponds to the timeStamp of the latest aggregation
+     * Returns true if the given version is older than this version.
+     * The version corresponds to the version of the latest aggregation
      * phase.
-     * @param weightsTimeStamp
+     * @param otherVersion
      * @returns
      */
-    weightsTimeStampIsOutDated (weightsTimeStamp: number) {
-      return weightsTimeStamp < this.latestWeightsTimeStamp
+    versionIsOld (version: number) {
+      return version < this.version
     }
 
     /**
-     * Add weights originating from weights of weightsTimeStamp
+     * Add weights originating from weights of a given version.
+     * Only add to buffer if the given version is not old.
      * @param weights
-     * @param weightTimeStamp
+     * @param version
      * @returns true if weights were added, and false otherwise
      */
-    async add (id: string, weights: number, weightTimeStamp: number): Promise<boolean> {
-      if (this.weightsTimeStampIsOutDated(weightTimeStamp)) {
+    async add (id: string, weights: number, version: number): Promise<boolean> {
+      if (this.versionIsOld(version)) {
         return false
       }
       this.buffer.set(id, weights)

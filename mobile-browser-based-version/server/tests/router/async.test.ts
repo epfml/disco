@@ -6,19 +6,19 @@ const platformID = 'feai'
 const clientId = 'clientId'
 const task = 'titanic'
 
-const oldTimeStamp = -1
-const newTimeStamp = 1
+const oldVersion = -1
+const newVersion = 1
 const weightsData = {
   weights: {
     data: [0, 1],
-    timeStamp: newTimeStamp
+    version: newVersion
   }
 }
 
 const oldWeightsData = {
   weights: {
     data: [0, 1],
-    timeStamp: oldTimeStamp
+    version: oldVersion
   }
 }
 
@@ -30,8 +30,8 @@ function postAsyncWeightHeader (platformID: string, taskID: string, clientID: st
   return `/${platformID}/asyncWeights/${taskID}/${clientID}`
 }
 
-function getAreWeightsOutOfDateWeightHeader (platformID: string, taskID: string, clientID: string) {
-  return `/${platformID}/areWeightsOutOfDate/${taskID}/${clientID}`
+function getIsVersionOldHeader (platformID: string, taskID: string, clientID: string) {
+  return `/${platformID}/isVersionOld/${taskID}/${clientID}`
 }
 
 describe('async connection tests', () => {
@@ -55,22 +55,22 @@ describe('async connection tests', () => {
       .expect(202)
   })
 
-  it('check old timeStamp getAreWeightsOutOfDateWeightHeader', async () => {
+  it('isOldVersion true for new version', async () => {
     await request(app)
-      .get(getAreWeightsOutOfDateWeightHeader(platformID, task, clientId))
-      .send({ timeStamp: oldTimeStamp })
+      .get(getIsVersionOldHeader(platformID, task, clientId))
+      .send({ version: oldVersion })
       .expect(200)
       .then(response => {
-        expect(response.body.isTimeStampOutOfDate).true
+        expect(response.body.versionIsOld).true
       })
   })
-  it('check new timeStamp getAreWeightsOutOfDateWeightHeader', async () => {
+  it('isOldVersion false for old version', async () => {
     await request(app)
-      .get(getAreWeightsOutOfDateWeightHeader(platformID, task, clientId))
-      .send({ timeStamp: newTimeStamp })
+      .get(getIsVersionOldHeader(platformID, task, clientId))
+      .send({ version: newVersion })
       .expect(200)
       .then(response => {
-        expect(response.body.isTimeStampOutOfDate).false
+        expect(response.body.versionIsOld).false
       })
   })
 })
