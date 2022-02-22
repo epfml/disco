@@ -140,7 +140,7 @@ function _checkRequest (request) {
   return 200
 }
 
-function _checkAsyncRequest (request) {
+function _checkIfHasValidTaskAndId (request) {
   const task = request.params.task
   const id = request.params.id
 
@@ -200,10 +200,10 @@ function _startNextRound (task, threshold, countdown) {
   }
 }
 
-async function _aggregateWeights (task, round, id) {
+async function _aggregateAndStoreWeights (weights, task) {
   // TODO: check whether this actually works
   const serializedAggregatedWeights = await averageWeights(
-    Array.from(weightsMap.get(task).get(round).values())
+    weights
   )
   /**
    * Save the newly aggregated model to the server's local storage. This
@@ -213,13 +213,20 @@ async function _aggregateWeights (task, round, id) {
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */
-  console.log(`Updating ${task} model`)
   const modelFilesPath = config.SAVING_SCHEME.concat(
     path.join(config.MODELS_DIR, task, 'model.json')
   )
   const model = await tf.loadLayersModel(modelFilesPath)
   assignWeightsToModel(model, serializedAggregatedWeights)
   model.save(path.dirname(modelFilesPath))
+}
+
+async function _aggregateWeightsForRound (task, round, id) {
+  const weights = Array.from(weightsMap.get(task).get(round).values())
+
+  console.log(`Updating ${task} model`)
+  _aggregateAndStoreWeights(weights, task)
+
   /**
    * The round has completed.
    */
@@ -433,6 +440,10 @@ export function postWeights (request, response) {
    * Check whether the client already sent their local weights for this round.
    */
   if (!weightsMap.get(task).get(round).has(id)) {
+    console.log('Incoming weight:')
+    console.log('weight content', encodedWeights)
+    console.log('weight type', typeof encodedWeights)
+    console.log('------------------')
     const weights = msgpack.decode(Uint8Array.from(encodedWeights.data))
     weightsMap.get(task).get(round).set(id, weights)
   }
@@ -449,14 +460,14 @@ export function postWeights (request, response) {
     weightsMap.get(task).get(round).size >=
     Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
   ) {
-    setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN)
+    setTimeout(() => _aggregateWeightsForRound(task, round, id), AGGREGATION_COUNTDOWN)
   }
 }
 
 function _checkPostAsyncWeights (request, response) {
   const type = REQUEST_TYPES.POST_WEIGHTS
 
-  const code = _checkAsyncRequest(request)
+  const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
     return _failRequest(response, type, code)
   }
@@ -472,7 +483,12 @@ function _checkPostAsyncWeights (request, response) {
   return 200
 }
 
-export function postAsyncWeights (request, response) {
+function _decodeWeights (request) {
+  const encodedWeights = request.body.weights.data
+  return msgpack.decode(Uint8Array.from(encodedWeights))
+}
+
+export async function postAsyncWeights (request, response) {
   const codeFromCheckingValidity = _checkPostAsyncWeights(request, response)
   if (codeFromCheckingValidity !== 200) {
     return codeFromCheckingValidity
@@ -482,11 +498,14 @@ export function postAsyncWeights (request, response) {
   const task = request.params.task
 
   if (!asyncWeightsMap.has(task)) {
-    asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY))
+    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
+    asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
   }
-  const weight = request.body.weights.data as number
-  const weightTimeStamp = request.body.weights.weightTimeStamp as number
-  const codeFromAddingWeight = asyncWeightsMap.get(task).add(weight, weightTimeStamp) ? 200 : 202
+  const weights = _decodeWeights(request)
+
+  console.log('weights', weights)
+  const weightsTimeStamp = request.body.weights.timeStamp as number
+  const codeFromAddingWeight = await asyncWeightsMap.get(task).add(weights, weightsTimeStamp) ? 200 : 202
   response.status(codeFromAddingWeight).send()
 }
 
@@ -546,7 +565,7 @@ export async function aggregationStatus (request, response) {
      * should obviously be performed by the `postWeights` request handler directly, to
      * avoid any unnecesary delay.
      */
-    setTimeout(() => _aggregateWeights(task, round, id), AGGREGATION_COUNTDOWN)
+    setTimeout(() => _aggregateWeightsForRound(task, round, id), AGGREGATION_COUNTDOWN)
     response.send({ aggregated: 0 })
   }
   activeClients.get(id).requests += 1

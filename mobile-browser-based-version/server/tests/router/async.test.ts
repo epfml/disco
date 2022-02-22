@@ -6,14 +6,14 @@ const clientId = 'clientId'
 const task = 'titanic'
 const weightsData = {
   weights: {
-    data: 0,
-    weightTimeStamp: 1
+    data: [0, 1],
+    timeStamp: 1
   }
 }
 
 const oldWeightsData = {
   weights: {
-    data: 0,
+    data: [0, 1],
     weightTimeStamp: -1
   }
 }
