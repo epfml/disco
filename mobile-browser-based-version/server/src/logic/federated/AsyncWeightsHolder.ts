@@ -17,40 +17,51 @@
 export class AsyncWeightsHolder {
     taskID: string;
     bufferCapacity: number
-    buffer: any[];
+    buffer: Map<string, any>;
     latestWeightsTimeStamp: number;
     _aggregateAndStoreWeights: (weights: any) => Promise<void>;
 
     constructor (taskId: string, bufferCapacity: number, aggregateAndStoreWeights: (weights: any) => Promise<void>, initialTimeStamp: number = 0) {
       this.taskID = taskId
       this.bufferCapacity = bufferCapacity
-      this.buffer = []
+      this.buffer = new Map<string, any>()
       this._aggregateAndStoreWeights = aggregateAndStoreWeights
       this.latestWeightsTimeStamp = initialTimeStamp
     }
 
     _resetBuffer () {
-      this.buffer = []
+      this.buffer = new Map<string, any>()
     }
 
     _bufferIsFull (): boolean {
-      return this.buffer.length >= this.bufferCapacity
+      return this.buffer.size >= this.bufferCapacity
     }
 
     _setLatestWeightsTimeStamp () {
       this.latestWeightsTimeStamp = Date.now()
     }
 
-    _weightsTimeStampIsOutDated (weightsTimeStamp: number) {
-      return weightsTimeStamp < this.latestWeightsTimeStamp
+    _getWeightsFromBuffer () {
+      return Array.from(this.buffer.values())
     }
 
     async _updateWeightsIfBufferIsFull () {
       if (this._bufferIsFull()) {
-        this._aggregateAndStoreWeights(this.buffer)
+        this._aggregateAndStoreWeights(this._getWeightsFromBuffer())
         this._setLatestWeightsTimeStamp()
         this._resetBuffer()
       }
+    }
+
+    /**
+     * Returns true if the weightsTimeStamp is older than the latestWeightsTimeStamp.
+     * The latestWeightsTimeStamp corresponds to the timeStamp of the latest aggregation
+     * phase.
+     * @param weightsTimeStamp
+     * @returns
+     */
+    weightsTimeStampIsOutDated (weightsTimeStamp: number) {
+      return weightsTimeStamp < this.latestWeightsTimeStamp
     }
 
     /**
@@ -59,12 +70,11 @@ export class AsyncWeightsHolder {
      * @param weightTimeStamp
      * @returns true if weights were added, and false otherwise
      */
-    async add (weights: number, weightTimeStamp: number): Promise<boolean> {
-      if (this._weightsTimeStampIsOutDated(weightTimeStamp)) {
+    async add (id: string, weights: number, weightTimeStamp: number): Promise<boolean> {
+      if (this.weightsTimeStampIsOutDated(weightTimeStamp)) {
         return false
       }
-      // TODO: add id to each weight (to check if they already pushed)
-      this.buffer.push(weights)
+      this.buffer.set(id, weights)
       await this._updateWeightsIfBufferIsFull()
       return true
     }

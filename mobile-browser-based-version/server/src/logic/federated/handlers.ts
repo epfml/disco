@@ -19,7 +19,7 @@ const REQUEST_TYPES = Object.freeze({
   POST_WEIGHTS: 'post-weights',
   GET_WEIGHTS: 'get-weights',
   POST_METADATA: 'post-metadata',
-
+  GET_IS_TIMESTAMP_OUT_OF_DATE: 'get-is-timestamp-out-of-date',
   GET_METADATA: 'get-metadata',
   GET_TASKS: 'get-tasks'
 })
@@ -59,7 +59,7 @@ const NEW_CLIENT_IDLE_DELAY = 1000 * 60
  */
 const weightsMap = new Map()
 const asyncWeightsMap: Map<string, AsyncWeightsHolder> = new Map()
-const BUFFER_CAPACITY = 3
+const BUFFER_CAPACITY = 2
 /**
  * Contains metadata used for training by clients for a given task and round.
  * Stored by task ID, round number and client ID.
@@ -440,10 +440,6 @@ export function postWeights (request, response) {
    * Check whether the client already sent their local weights for this round.
    */
   if (!weightsMap.get(task).get(round).has(id)) {
-    console.log('Incoming weight:')
-    console.log('weight content', encodedWeights)
-    console.log('weight type', typeof encodedWeights)
-    console.log('------------------')
     const weights = msgpack.decode(Uint8Array.from(encodedWeights.data))
     weightsMap.get(task).get(round).set(id, weights)
   }
@@ -484,18 +480,24 @@ function _checkPostAsyncWeights (request, response) {
 }
 
 function _decodeWeights (request) {
-  const encodedWeights = request.body.weights.data
-  return msgpack.decode(Uint8Array.from(encodedWeights))
+  const encodedWeights = request.body.weights
+  return msgpack.decode(Uint8Array.from(encodedWeights.data))
 }
 
+/**
+ *
+ * @param request
+ * @param response
+ * @returns
+ */
 export async function postAsyncWeights (request, response) {
   const codeFromCheckingValidity = _checkPostAsyncWeights(request, response)
   if (codeFromCheckingValidity !== 200) {
     return codeFromCheckingValidity
   }
-  console.log(request.body)
 
   const task = request.params.task
+  const id = request.params.id
 
   if (!asyncWeightsMap.has(task)) {
     const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
@@ -503,10 +505,39 @@ export async function postAsyncWeights (request, response) {
   }
   const weights = _decodeWeights(request)
 
-  console.log('weights', weights)
   const weightsTimeStamp = request.body.weights.timeStamp as number
-  const codeFromAddingWeight = await asyncWeightsMap.get(task).add(weights, weightsTimeStamp) ? 200 : 202
+  const codeFromAddingWeight = await asyncWeightsMap.get(task).add(id, weights, weightsTimeStamp) ? 200 : 202
   response.status(codeFromAddingWeight).send()
+}
+
+export async function getIsTimeStampOutOfDate (request, response) {
+  const type = REQUEST_TYPES.GET_IS_TIMESTAMP_OUT_OF_DATE
+  const code = _checkIfHasValidTaskAndId(request)
+  if (code !== 200) {
+    return _failRequest(response, type, code)
+  }
+
+  if (
+    request.body === undefined ||
+    request.body.timeStamp === undefined
+  ) {
+    return _failRequest(response, type, 400)
+  }
+
+  const task = request.params.task
+
+  if (!asyncWeightsMap.has(task)) {
+    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
+    asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
+  }
+
+  const timeStamp = request.body.timeStamp as number
+
+  console.log(timeStamp)
+
+  const isTimeStampOutOfDate = asyncWeightsMap.get(task).weightsTimeStampIsOutDated(timeStamp)
+
+  response.status(200).send({ isTimeStampOutOfDate: isTimeStampOutOfDate })
 }
 
 /**
@@ -550,7 +581,7 @@ export async function aggregationStatus (request, response) {
     round < tasksStatus.get(task).round
   ) {
     /**
-     * If aggregation occured, make the client wait to get selected for next round so
+     * If aggregation occurred, make the client wait to get selected for next round so
      * it can proceed to other jobs. Does nothing if this is a late client.
      */
     selectedClients.get(task).delete(id)
@@ -563,7 +594,7 @@ export async function aggregationStatus (request, response) {
      * To avoid any blocking state due to the disconnection of selected clients, allow
      * this request to perform aggregation. This is merely a safeguard. Ideally, this
      * should obviously be performed by the `postWeights` request handler directly, to
-     * avoid any unnecesary delay.
+     * avoid any unnecessary delay.
      */
     setTimeout(() => _aggregateWeightsForRound(task, round, id), AGGREGATION_COUNTDOWN)
     response.send({ aggregated: 0 })

@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 function feaiServerUrl () {
-  // We place this in a function since during a test script the env might not be defined
+  // We place this in a function since during a test script the env
   return process.env.VUE_APP_FEAI_SERVER
 }
 
@@ -37,6 +37,29 @@ export async function postWeights (taskID, round, clientID, weights) {
     url: url,
     data: {
       weights: weights
+    }
+  })
+}
+
+export async function postAsyncWeights (taskID, clientID, weights, timeStamp: number) {
+  const url = feaiServerUrl().concat(`asyncWeights/${taskID}/${clientID}`)
+  return await axios({
+    method: 'post',
+    url: url,
+    data: {
+      weights: weights,
+      timeStamp: timeStamp
+    }
+  })
+}
+
+export async function getAreWeightsOutOfDate (taskID, clientID, timeStamp: number) {
+  const url = feaiServerUrl().concat(`areWeightsOutOfDate/${taskID}/${clientID}`)
+  return await axios({
+    method: 'get',
+    url: url,
+    data: {
+      timeStamp: timeStamp
     }
   })
 }
