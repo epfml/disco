@@ -533,8 +533,6 @@ export async function getIsTimeStampOutOfDate (request, response) {
 
   const timeStamp = request.body.timeStamp as number
 
-  console.log(timeStamp)
-
   const isTimeStampOutOfDate = asyncWeightsMap.get(task).weightsTimeStampIsOutDated(timeStamp)
 
   response.status(200).send({ isTimeStampOutOfDate: isTimeStampOutOfDate })
