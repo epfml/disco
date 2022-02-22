@@ -1,6 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 import { DecentralisedClient } from './decentralised/client'
-import { FederatedClient } from './federated/client'
+// import { FederatedClient } from './federated/client'
+import { FederatedAsyncClient } from './federated/clientAsync'
 const Hashes = require('jshashes')
 
 export function getClient (platform, task, password: string) {
@@ -12,7 +13,7 @@ export function getClient (platform, task, password: string) {
         password
       )
     case 'feai':
-      return new FederatedClient(process.env.VUE_APP_FEAI_SERVER, task)
+      return new FederatedAsyncClient(process.env.VUE_APP_FEAI_SERVER, task)
     default:
       throw new Error('Platform does not exist')
   }
