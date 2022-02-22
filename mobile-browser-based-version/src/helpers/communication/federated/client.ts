@@ -59,7 +59,7 @@ export class FederatedClient extends Client {
      */
     this.clientID = makeID(10)
     const response = await api.connect(this.task.taskID, this.clientID)
-    return response.ok
+    return response.status === 200
   }
 
   /**
@@ -67,12 +67,13 @@ export class FederatedClient extends Client {
    */
   async disconnect () {
     const response = await api.disconnect(this.task.taskID, this.clientID)
-    return response.ok
+    return response.status === 200
   }
 
   async selectionStatus () {
     const response = await api.selectionStatus(this.task.taskID, this.clientID)
-    return response.ok ? await response.json() : undefined
+    // TODO: test
+    return response.status === 200 ? await response.data.json() : undefined
   }
 
   /**
@@ -86,7 +87,8 @@ export class FederatedClient extends Client {
       this.round,
       this.clientID
     )
-    return response.ok ? await response.json() : undefined
+    // TODO: test
+    return response.status === 200 ? await response.data.json() : undefined
   }
 
   async postWeights (weights) {
@@ -99,7 +101,7 @@ export class FederatedClient extends Client {
       this.clientID,
       encodedWeights
     )
-    return response.ok
+    return response.status === 200
   }
 
   async postMetadata (metadataID, metadata) {
@@ -110,7 +112,7 @@ export class FederatedClient extends Client {
       metadataID,
       metadata
     )
-    return (await response).ok
+    return (await response).status === 200
   }
 
   async getMetadataMap (metadataID) {
@@ -120,8 +122,9 @@ export class FederatedClient extends Client {
       this.clientID,
       metadataID
     )
-    if (response.ok) {
-      const body = await response.json()
+    if (response.status === 200) {
+      // TODO: test
+      const body = await response.data
       return new Map(msgpack.decode(body[metadataID]))
     } else {
       return new Map()
