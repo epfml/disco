@@ -17,15 +17,15 @@
 export class AsyncWeightsHolder {
     taskID: string;
     bufferCapacity: number
-    buffer: number[];
-    latestWeights: number;
+    buffer: any[];
     latestWeightsTimeStamp: number;
+    _aggregateAndStoreWeights: (weights: any) => Promise<void>;
 
-    constructor (taskId: string, bufferCapacity: number, initialWeights: number = 0, initialTimeStamp: number = 0) {
+    constructor (taskId: string, bufferCapacity: number, aggregateAndStoreWeights: (weights: any) => Promise<void>, initialTimeStamp: number = 0) {
       this.taskID = taskId
       this.bufferCapacity = bufferCapacity
       this.buffer = []
-      this.latestWeights = initialWeights
+      this._aggregateAndStoreWeights = aggregateAndStoreWeights
       this.latestWeightsTimeStamp = initialTimeStamp
     }
 
@@ -37,12 +37,6 @@ export class AsyncWeightsHolder {
       return this.buffer.length >= this.bufferCapacity
     }
 
-    _aggregateWeightsFromBufferIntoLatestWeights () {
-      const bufferLength = this.buffer.length
-      this.latestWeights = this.buffer.reduce((partialSum, a) => partialSum + a, 0)
-      this.latestWeights = this.latestWeights / bufferLength
-    }
-
     _setLatestWeightsTimeStamp () {
       this.latestWeightsTimeStamp = Date.now()
     }
@@ -51,9 +45,9 @@ export class AsyncWeightsHolder {
       return weightsTimeStamp < this.latestWeightsTimeStamp
     }
 
-    _updateWeightsIfBufferIsFull () {
+    async _updateWeightsIfBufferIsFull () {
       if (this._bufferIsFull()) {
-        this._aggregateWeightsFromBufferIntoLatestWeights()
+        this._aggregateAndStoreWeights(this.buffer)
         this._setLatestWeightsTimeStamp()
         this._resetBuffer()
       }
@@ -65,12 +59,13 @@ export class AsyncWeightsHolder {
      * @param weightTimeStamp
      * @returns true if weights were added, and false otherwise
      */
-    add (weights: number, weightTimeStamp: number):boolean {
+    async add (weights: number, weightTimeStamp: number): Promise<boolean> {
       if (this._weightsTimeStampIsOutDated(weightTimeStamp)) {
         return false
       }
+      // TODO: add id to each weight (to check if they already pushed)
       this.buffer.push(weights)
-      this._updateWeightsIfBufferIsFull()
+      await this._updateWeightsIfBufferIsFull()
       return true
     }
 }
