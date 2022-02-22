@@ -35,6 +35,7 @@ describe('AsyncWeightHandler tests', () => {
       asyncWeightHolder.add(w.toString(), w, t0)
     })
     expect(weights).to.eql(mockUpdatedWeights)
+    expect(asyncWeightHolder.version).equal(1)
   })
   it('Adding enough weight to buffer lunches aggregator - trying twice', () => {
     const asyncWeightHolder = new AsyncWeightsHolder(taskId, bufferCapacity, mockAggregateAndStoreWeights)

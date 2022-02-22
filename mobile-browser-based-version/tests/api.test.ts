@@ -4,7 +4,7 @@ import * as api from '../src/helpers/communication/federated/api'
 const task = 'titanic'
 const user = 'a'
 const nonValidTask = 'nonValidTask'
-const oldTimeStamp = -1
+const oldVersion = -1
 
 describe('API test', () => { // the tests container
   it('Connect to valid task', async () => {
@@ -21,10 +21,10 @@ describe('API test', () => { // the tests container
     })
   })
 
-  it('getAreWeightsOutOfDate for old time stamp is true', async () => {
+  it('versionIsOld true for old version', async () => {
     await api.connect(task, user)
-    const resp = await api.getAreWeightsOutOfDate(task, user, oldTimeStamp)
-    expect(resp.data.isTimeStampOutOfDate).true
+    const resp = await api.getIsVersionOld(task, user, oldVersion)
+    expect(resp.data.versionIsOld).true
     await api.disconnect(task, user)
   })
 })

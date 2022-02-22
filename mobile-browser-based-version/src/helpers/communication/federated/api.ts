@@ -53,13 +53,13 @@ export async function postAsyncWeights (taskID, clientID, weights, timeStamp: nu
   })
 }
 
-export async function getAreWeightsOutOfDate (taskID, clientID, timeStamp: number) {
-  const url = feaiServerUrl().concat(`areWeightsOutOfDate/${taskID}/${clientID}`)
+export async function getIsVersionOld (taskID, clientID, version: number) {
+  const url = feaiServerUrl().concat(`isVersionOld/${taskID}/${clientID}`)
   return await axios({
     method: 'get',
     url: url,
     data: {
-      timeStamp: timeStamp
+      version: version
     }
   })
 }
