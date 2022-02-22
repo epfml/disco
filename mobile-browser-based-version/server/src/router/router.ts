@@ -51,7 +51,7 @@ federatedRouter.post('/weights/:task/:round/:id', handlers.postWeights)
 
 federatedRouter.post('/asyncWeights/:task/:id', handlers.postAsyncWeights)
 
-federatedRouter.get('/areWeightsOutOfDate/:task/:id', handlers.getIsTimeStampOutOfDate)
+federatedRouter.get('/isVersionOld/:task/:id', handlers.getIsVersionOld)
 
 federatedRouter
   .route('/metadata/:metadata/:task/:round/:id')

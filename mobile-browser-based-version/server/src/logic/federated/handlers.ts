@@ -19,7 +19,7 @@ const REQUEST_TYPES = Object.freeze({
   POST_WEIGHTS: 'post-weights',
   GET_WEIGHTS: 'get-weights',
   POST_METADATA: 'post-metadata',
-  GET_IS_TIMESTAMP_OUT_OF_DATE: 'get-is-timestamp-out-of-date',
+  VERSION_IS_OLD: 'get-version-is-old',
   GET_METADATA: 'get-metadata',
   GET_TASKS: 'get-tasks'
 })
@@ -471,7 +471,8 @@ function _checkPostAsyncWeights (request, response) {
   if (
     request.body === undefined ||
     request.body.weights === undefined ||
-    request.body.weights.data === undefined
+    request.body.weights.data === undefined ||
+    request.body.weights.version === undefined
   ) {
     return _failRequest(response, type, 400)
   }
@@ -505,13 +506,13 @@ export async function postAsyncWeights (request, response) {
   }
   const weights = _decodeWeights(request)
 
-  const weightsTimeStamp = request.body.weights.timeStamp as number
-  const codeFromAddingWeight = await asyncWeightsMap.get(task).add(id, weights, weightsTimeStamp) ? 200 : 202
+  const version = request.body.weights.version as number
+  const codeFromAddingWeight = await asyncWeightsMap.get(task).add(id, weights, version) ? 200 : 202
   response.status(codeFromAddingWeight).send()
 }
 
-export async function getIsTimeStampOutOfDate (request, response) {
-  const type = REQUEST_TYPES.GET_IS_TIMESTAMP_OUT_OF_DATE
+export async function getIsVersionOld (request, response) {
+  const type = REQUEST_TYPES.VERSION_IS_OLD
   const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
     return _failRequest(response, type, code)
@@ -519,7 +520,7 @@ export async function getIsTimeStampOutOfDate (request, response) {
 
   if (
     request.body === undefined ||
-    request.body.timeStamp === undefined
+    request.body.version === undefined
   ) {
     return _failRequest(response, type, 400)
   }
@@ -531,11 +532,11 @@ export async function getIsTimeStampOutOfDate (request, response) {
     asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
   }
 
-  const timeStamp = request.body.timeStamp as number
+  const version = request.body.version as number
 
-  const isTimeStampOutOfDate = asyncWeightsMap.get(task).weightsTimeStampIsOutDated(timeStamp)
+  const versionIsOld = asyncWeightsMap.get(task).versionIsOld(version)
 
-  response.status(200).send({ isTimeStampOutOfDate: isTimeStampOutOfDate })
+  response.status(200).send({ versionIsOld: versionIsOld })
 }
 
 /**
