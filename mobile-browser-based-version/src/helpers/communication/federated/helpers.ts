@@ -1,15 +1,3 @@
-export function craftPostRequest (property, value) {
-  const body = {}
-  body[property] = value
-  return {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  }
-}
-
 /**
  * Tries to fetch a resource with the given request function until successful.
  * Limited to a number of tries.
@@ -28,8 +16,8 @@ export function getSuccessfulResponse (request, property, tries, time, ...args) 
         return resolve(false)
       }
       const response = await request(...args)
-      if (response.ok) {
-        const body = await response.json()
+      if (response.status === 200) {
+        const body = await response.data
         if (body[property] > 0) {
           return resolve(body)
         }
