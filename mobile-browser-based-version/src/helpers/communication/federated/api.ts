@@ -1,24 +1,24 @@
-import { craftPostRequest } from './helpers'
-import fetch from 'node-fetch'
+import axios from 'axios'
 
 function feaiServerUrl () {
+  // We place this in a function since during a test script the env might not be defined
   return process.env.VUE_APP_FEAI_SERVER
 }
 
 export async function connect (taskID, clientID) {
-  return await fetch(feaiServerUrl().concat(`connect/${taskID}/${clientID}`))
+  return await axios.get(feaiServerUrl().concat(`connect/${taskID}/${clientID}`))
 }
 
 export async function disconnect (taskID, clientID) {
-  return await fetch(feaiServerUrl().concat(`disconnect/${taskID}/${clientID}`))
+  return await axios.get(feaiServerUrl().concat(`disconnect/${taskID}/${clientID}`))
 }
 
 export async function selectionStatus (taskID, clientID) {
-  return await fetch(feaiServerUrl().concat(`selection/${taskID}/${clientID}`))
+  return await axios.get(feaiServerUrl().concat(`selection/${taskID}/${clientID}`))
 }
 
 export async function aggregationStatus (taskID, round, clientID) {
-  return await fetch(feaiServerUrl().concat(`aggregation/${taskID}/${round}/${clientID}`))
+  return await axios.get(feaiServerUrl().concat(`aggregation/${taskID}/${round}/${clientID}`))
 }
 
 export async function queryLogs (taskID, round, clientID) {
@@ -27,15 +27,18 @@ export async function queryLogs (taskID, round, clientID) {
   if (round !== undefined) params.push(`round=${round}`)
   if (clientID !== undefined) params.push(`id=${clientID}`)
   const query = params.join('&')
-  return await fetch(feaiServerUrl().concat(`logs?${query}`))
+  return await axios.get(feaiServerUrl().concat(`logs?${query}`))
 }
 
 export async function postWeights (taskID, round, clientID, weights) {
-  const request = craftPostRequest('weights', weights)
-  return await fetch(
-    feaiServerUrl().concat(`weights/${taskID}/${round}/${clientID}`),
-    request
-  )
+  const url = feaiServerUrl().concat(`weights/${taskID}/${round}/${clientID}`)
+  return await axios({
+    method: 'post',
+    url: url,
+    data: {
+      weights: weights
+    }
+  })
 }
 
 export async function postMetadata (
@@ -45,15 +48,18 @@ export async function postMetadata (
   metadataID,
   metadata
 ) {
-  const request = craftPostRequest(metadataID, metadata)
-  return await fetch(
-    feaiServerUrl().concat(`metadata/${metadataID}/${taskID}/${round}/${clientID}`),
-    request
-  )
+  const url = feaiServerUrl().concat(`metadata/${metadataID}/${taskID}/${round}/${clientID}`)
+  return await axios({
+    method: 'post',
+    url: url,
+    data: {
+      metadataID: metadata
+    }
+  })
 }
 
 export async function getMetadataMap (taskID, round, clientID, metadataID) {
-  return await fetch(
+  return await axios.get(
     feaiServerUrl().concat(`metadata/${metadataID}/${taskID}/${round}/${clientID}`)
   )
 }
