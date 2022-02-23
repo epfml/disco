@@ -4,19 +4,13 @@ import { Client } from '../client'
 import * as api from './api'
 
 /**
- * TODO: When should you update the timeStamp:
- * - Model fetch
- * - Latest locally trained model?
- */
-
-/**
  * Class that deals with communication with the centralized server when training
  * a specific task.
  */
 export class FederatedAsyncClient extends Client {
   clientID: string;
   peer: any;
-  timeStamp: number;
+  version: number;
   // TODO how to adapt round?
   round: number;
 
@@ -29,7 +23,7 @@ export class FederatedAsyncClient extends Client {
   constructor (serverURL, task) {
     super(serverURL, task)
     this.clientID = ''
-    this.timeStamp = -1 // Ensure that our model is out of date if we query
+    this.version = -1 // Ensure that our model is out of date if we query
     this.round = 0
   }
 
@@ -64,9 +58,8 @@ export class FederatedAsyncClient extends Client {
       this.task.taskID,
       this.clientID,
       encodedWeights,
-      this.timeStamp
+      this.version
     )
-    this._updateTimeStamp()
     return response.status === 200
   }
 
@@ -89,7 +82,6 @@ export class FederatedAsyncClient extends Client {
       metadataID
     )
     if (response.status === 200) {
-      // TODO: test
       const body = await response.data
       return new Map(msgpack.decode(body[metadataID]))
     } else {
@@ -97,33 +89,39 @@ export class FederatedAsyncClient extends Client {
     }
   }
 
-  _updateTimeStamp () {
-    this.timeStamp = Date.now()
-  }
-
-  async _weightsAreOutOfDate (): Promise<boolean> {
-    console.log('Fetching are weights out of date?')
-    const response = await api.getIsVersionOld(this.task.taskID, this.clientID, this.timeStamp)
+  async _getServerVersion (): Promise<number> {
+    const response = await api.getAsyncVersion(this.task.taskID, this.clientID)
 
     if (response.status === 200) {
-      return response.data.isTimeStampOutOfDate
+      return response.data.version
     }
     console.log('Error getting weights: code', response.status)
-    return false
+    return -1
   }
 
   _updateLocalModelWithMostRecentServerModel () {
-    // TODO: naming is not good, seems like you are just creating + only do so if it is more recent.
+  // TODO: naming is not good, seems like you are just creating + only do so if it is more recent.
+  //! !!!!
     this.task.createModel()
     console.log('Updated local model')
   }
 
   async onEpochBeginCommunication (model, epoch, trainingInformant) {
     await super.onEpochBeginCommunication(model, epoch, trainingInformant)
-    const weightsAreOutOfDate = await this._weightsAreOutOfDate()
-    console.log('Epoch begin')
-    console.log('weightsAreOutOfDate', weightsAreOutOfDate)
-    if (weightsAreOutOfDate) {
+
+    // Check for latest version in server, if it is new, update weights.
+    await this._update()
+  }
+
+  async _update () {
+    // get server version of latest model
+    const serverVersion = await this._getServerVersion()
+
+    const localVersionIsOld = this.version < serverVersion
+    if (localVersionIsOld) {
+      // update local version
+      // TODO need to check that update method did not fail!
+      this.version = serverVersion
       // update local model from server
       this._updateLocalModelWithMostRecentServerModel()
     }
@@ -135,15 +133,9 @@ export class FederatedAsyncClient extends Client {
      * Once the training round is completed, send local weights to the
      * server for aggregation.
      */
-    this._updateTimeStamp()
     await this.postWeights(model.weights)
 
-    const weightsAreOutOfDate = await this._weightsAreOutOfDate()
-    console.log('Epoch end')
-    console.log('weightsAreOutOfDate', weightsAreOutOfDate)
-    if (weightsAreOutOfDate) {
-      // update local model from server
-      this._updateLocalModelWithMostRecentServerModel()
-    }
+    // Check for latest version in server, if it is new, update weights.
+    await this._update()
   }
 }

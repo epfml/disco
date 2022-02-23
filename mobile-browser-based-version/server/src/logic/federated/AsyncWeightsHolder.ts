@@ -57,14 +57,7 @@ export class AsyncWeightsHolder {
       }
     }
 
-    /**
-     * Returns true if the given version is older than this version.
-     * The version corresponds to the version of the latest aggregation
-     * phase.
-     * @param otherVersion
-     * @returns
-     */
-    versionIsOld (version: number) {
+    _versionIsOld (version: number) {
       return version < this.version
     }
 
@@ -76,7 +69,7 @@ export class AsyncWeightsHolder {
      * @returns true if weights were added, and false otherwise
      */
     async add (id: string, weights: number, version: number): Promise<boolean> {
-      if (this.versionIsOld(version)) {
+      if (this._versionIsOld(version)) {
         return false
       }
       this.buffer.set(id, weights)

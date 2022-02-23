@@ -72,7 +72,6 @@ export class FederatedClient extends Client {
 
   async selectionStatus () {
     const response = await api.selectionStatus(this.task.taskID, this.clientID)
-    // TODO: test
     return response.status === 200 ? await response.data.json() : undefined
   }
 
@@ -87,7 +86,6 @@ export class FederatedClient extends Client {
       this.round,
       this.clientID
     )
-    // TODO: test
     return response.status === 200 ? await response.data.json() : undefined
   }
 
@@ -123,7 +121,6 @@ export class FederatedClient extends Client {
       metadataID
     )
     if (response.status === 200) {
-      // TODO: test
       const body = await response.data
       return new Map(msgpack.decode(body[metadataID]))
     } else {

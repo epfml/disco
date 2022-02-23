@@ -41,27 +41,21 @@ export async function postWeights (taskID, round, clientID, weights) {
   })
 }
 
-export async function postAsyncWeights (taskID, clientID, weights, timeStamp: number) {
-  const url = feaiServerUrl().concat(`asyncWeights/${taskID}/${clientID}`)
+export async function postAsyncWeights (taskID, clientID, weights, version: number) {
+  const url = feaiServerUrl().concat(`async/weights/${taskID}/${clientID}`)
   return await axios({
     method: 'post',
     url: url,
     data: {
       weights: weights,
-      timeStamp: timeStamp
+      version: version
     }
   })
 }
 
-export async function getIsVersionOld (taskID, clientID, version: number) {
-  const url = feaiServerUrl().concat(`isVersionOld/${taskID}/${clientID}`)
-  return await axios({
-    method: 'get',
-    url: url,
-    data: {
-      version: version
-    }
-  })
+export async function getAsyncVersion (taskID, clientID) {
+  const url = feaiServerUrl().concat(`async/version/${taskID}/${clientID}`)
+  return await axios.get(url)
 }
 
 export async function postMetadata (

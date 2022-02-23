@@ -17,9 +17,10 @@ const REQUEST_TYPES = Object.freeze({
   SELECTION_STATUS: 'selection-status',
   AGGREGATION_STATUS: 'aggregation-status',
   POST_WEIGHTS: 'post-weights',
+  POST_ASYNC_WEIGHTS: 'post-async-weights',
   GET_WEIGHTS: 'get-weights',
   POST_METADATA: 'post-metadata',
-  VERSION_IS_OLD: 'get-version-is-old',
+  GET_VERSION: 'get-version',
   GET_METADATA: 'get-metadata',
   GET_TASKS: 'get-tasks'
 })
@@ -461,7 +462,7 @@ export function postWeights (request, response) {
 }
 
 function _checkPostAsyncWeights (request, response) {
-  const type = REQUEST_TYPES.POST_WEIGHTS
+  const type = REQUEST_TYPES.POST_ASYNC_WEIGHTS
 
   const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
@@ -470,9 +471,9 @@ function _checkPostAsyncWeights (request, response) {
 
   if (
     request.body === undefined ||
+    request.body.version === undefined ||
     request.body.weights === undefined ||
-    request.body.weights.data === undefined ||
-    request.body.weights.version === undefined
+    request.body.weights.data === undefined
   ) {
     return _failRequest(response, type, 400)
   }
@@ -506,37 +507,32 @@ export async function postAsyncWeights (request, response) {
   }
   const weights = _decodeWeights(request)
 
-  const version = request.body.weights.version as number
+  const version = request.body.version
   const codeFromAddingWeight = await asyncWeightsMap.get(task).add(id, weights, version) ? 200 : 202
   response.status(codeFromAddingWeight).send()
 }
 
-export async function getIsVersionOld (request, response) {
-  const type = REQUEST_TYPES.VERSION_IS_OLD
+export async function getAsyncVersion (request, response) {
+  // Check for errors
+  const type = REQUEST_TYPES.GET_VERSION
   const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
     return _failRequest(response, type, code)
   }
 
-  if (
-    request.body === undefined ||
-    request.body.version === undefined
-  ) {
-    return _failRequest(response, type, 400)
-  }
-
   const task = request.params.task
 
+  // If the asyncWeightHolder has not been initialized, built it.
   if (!asyncWeightsMap.has(task)) {
     const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
     asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
   }
 
-  const version = request.body.version as number
+  // Get latest version
+  const version = asyncWeightsMap.get(task).version
 
-  const versionIsOld = asyncWeightsMap.get(task).versionIsOld(version)
-
-  response.status(200).send({ versionIsOld: versionIsOld })
+  // Send back latest version
+  response.status(200).send({ version: version })
 }
 
 /**

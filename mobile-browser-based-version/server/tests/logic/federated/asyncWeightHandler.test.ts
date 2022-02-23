@@ -28,7 +28,7 @@ describe('AsyncWeightHandler tests', () => {
     const asyncWeightHolder = new AsyncWeightsHolder(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     expect(asyncWeightHolder._bufferIsFull()).false
   })
-  it('Adding enough weight to buffer lunches aggregator', () => {
+  it('Adding enough weight to buffer lunches aggregator and updates weights', () => {
     const asyncWeightHolder = new AsyncWeightsHolder(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     const t0 = Date.now()
     weights.forEach((w) => {
@@ -37,7 +37,7 @@ describe('AsyncWeightHandler tests', () => {
     expect(weights).to.eql(mockUpdatedWeights)
     expect(asyncWeightHolder.version).equal(1)
   })
-  it('Adding enough weight to buffer lunches aggregator - trying twice', () => {
+  it('Testing two full cycles (adding x2 buffer capacity)', () => {
     const asyncWeightHolder = new AsyncWeightsHolder(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     mockUpdatedWeights = []
 
@@ -52,5 +52,6 @@ describe('AsyncWeightHandler tests', () => {
       asyncWeightHolder.add(w.toString(), w, t1)
     })
     expect(newWeights).to.eql(mockUpdatedWeights)
+    expect(asyncWeightHolder.version).equal(2)
   })
 })
