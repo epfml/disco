@@ -1,7 +1,7 @@
 import { ModelActor } from '../model_actor'
 import { TrainingInformant } from './decentralised/training_informant'
 import { TrainingManager } from './training_manager'
-import { getClient } from '../communication/helpers'
+import { getClient } from '../communication/client_builder'
 import { Client } from '../communication/client'
 
 // number of files that should be loaded (required by the task)

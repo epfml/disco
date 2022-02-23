@@ -7,7 +7,7 @@ import {
   assignWeightsToModel
 } from '../../helpers/tfjs_helpers'
 import { getTasks } from '../../tasks/helpers'
-import { AsyncWeightsHolder } from './AsyncWeightsHolder'
+import { AsyncWeightsHolder } from './async_weights_holder'
 import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
@@ -20,7 +20,7 @@ const REQUEST_TYPES = Object.freeze({
   POST_ASYNC_WEIGHTS: 'post-async-weights',
   GET_WEIGHTS: 'get-weights',
   POST_METADATA: 'post-metadata',
-  GET_VERSION: 'get-version',
+  GET_ASYNC_ROUND: 'get-async-round',
   GET_METADATA: 'get-metadata',
   GET_TASKS: 'get-tasks'
 })
@@ -461,6 +461,12 @@ export function postWeights (request, response) {
   }
 }
 
+/**
+ * Checks if the request is valid for post async weights.
+ * @param request
+ * @param response
+ * @returns
+ */
 function _checkPostAsyncWeights (request, response) {
   const type = REQUEST_TYPES.POST_ASYNC_WEIGHTS
 
@@ -471,7 +477,7 @@ function _checkPostAsyncWeights (request, response) {
 
   if (
     request.body === undefined ||
-    request.body.version === undefined ||
+    request.body.round === undefined ||
     request.body.weights === undefined ||
     request.body.weights.data === undefined
   ) {
@@ -486,8 +492,17 @@ function _decodeWeights (request) {
   return msgpack.decode(Uint8Array.from(encodedWeights.data))
 }
 
+// Inits the AsyncWeightsHolder for the task if it does not yet exist.
+function _initAsyncWeightsHolderIfNotExists (task) {
+  if (!asyncWeightsMap.has(task)) {
+    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
+    asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
+  }
+}
+
 /**
- *
+ * Post weights to the async weights holder, returns true in response if successful, and false otherwise.
+ * It is successful if task and user id exist + weight corresponds to a recent round (see AsyncWeightHolder class for more info on this).
  * @param request
  * @param response
  * @returns
@@ -501,20 +516,25 @@ export async function postAsyncWeights (request, response) {
   const task = request.params.task
   const id = request.params.id
 
-  if (!asyncWeightsMap.has(task)) {
-    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
-    asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
-  }
+  _initAsyncWeightsHolderIfNotExists(task)
+
   const weights = _decodeWeights(request)
 
-  const version = request.body.version
-  const codeFromAddingWeight = await asyncWeightsMap.get(task).add(id, weights, version) ? 200 : 202
+  const round = request.body.round
+  const codeFromAddingWeight = await asyncWeightsMap.get(task).add(id, weights, round) ? 200 : 202
   response.status(codeFromAddingWeight).send()
 }
 
-export async function getAsyncVersion (request, response) {
+/**
+ * Get the current round of the async weights holder
+ *
+ * @param request
+ * @param response
+ * @returns
+ */
+export async function getAsyncRound (request, response) {
   // Check for errors
-  const type = REQUEST_TYPES.GET_VERSION
+  const type = REQUEST_TYPES.GET_ASYNC_ROUND
   const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
     return _failRequest(response, type, code)
@@ -522,17 +542,13 @@ export async function getAsyncVersion (request, response) {
 
   const task = request.params.task
 
-  // If the asyncWeightHolder has not been initialized, built it.
-  if (!asyncWeightsMap.has(task)) {
-    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
-    asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
-  }
+  _initAsyncWeightsHolderIfNotExists(task)
 
-  // Get latest version
-  const version = asyncWeightsMap.get(task).version
+  // Get latest round
+  const round = asyncWeightsMap.get(task).round
 
-  // Send back latest version
-  response.status(200).send({ version: version })
+  // Send back latest round
+  response.status(200).send({ round: round })
 }
 
 /**

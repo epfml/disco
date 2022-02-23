@@ -1,5 +1,6 @@
 import * as msgpack from 'msgpack-lite'
-import { makeID, serializeWeights } from '../helpers'
+import { makeID } from '../authenticator'
+import { serializeWeights } from '../tensor_serializer'
 import { Client } from '../client'
 import * as api from './api'
 
@@ -10,8 +11,6 @@ import * as api from './api'
 export class FederatedAsyncClient extends Client {
   clientID: string;
   peer: any;
-  version: number;
-  // TODO how to adapt round?
   round: number;
 
   /**
@@ -24,8 +23,7 @@ export class FederatedAsyncClient extends Client {
     super(serverURL, task)
     console.log('building Federated Async client')
     this.clientID = ''
-    this.version = -1 // Ensure that our model is out of date if we query
-    this.round = 0
+    this.round = -1 // The server starts at round 0, in the beginning we are behind
   }
 
   /**
@@ -59,7 +57,7 @@ export class FederatedAsyncClient extends Client {
       this.task.taskID,
       this.clientID,
       encodedWeights,
-      this.version
+      this.round
     )
     return response.status === 200
   }
@@ -90,11 +88,11 @@ export class FederatedAsyncClient extends Client {
     }
   }
 
-  async _getServerVersion (): Promise<number> {
-    const response = await api.getAsyncVersion(this.task.taskID, this.clientID)
+  async _getServerRound (): Promise<number> {
+    const response = await api.getAsyncRound(this.task.taskID, this.clientID)
 
     if (response.status === 200) {
-      return response.data.version
+      return response.data.round
     }
     console.log('Error getting weights: code', response.status)
     return -1
@@ -110,19 +108,19 @@ export class FederatedAsyncClient extends Client {
   async onEpochBeginCommunication (model, epoch, trainingInformant) {
     await super.onEpochBeginCommunication(model, epoch, trainingInformant)
 
-    // Check for latest version in server, if it is new, update weights.
+    // Check for latest round in server, if it is new, update weights.
     await this._update()
   }
 
   async _update () {
-    // get server version of latest model
-    const serverVersion = await this._getServerVersion()
+    // get server round of latest model
+    const serverRound = await this._getServerRound()
 
-    const localVersionIsOld = this.version < serverVersion
-    if (localVersionIsOld) {
-      // update local version
+    const localRoundIsOld = this.round < serverRound
+    if (localRoundIsOld) {
+      // update local round
       // TODO need to check that update method did not fail!
-      this.version = serverVersion
+      this.round = serverRound
       // update local model from server
       this._updateLocalModelWithMostRecentServerModel()
     }
@@ -136,7 +134,7 @@ export class FederatedAsyncClient extends Client {
      */
     await this.postWeights(model.weights)
 
-    // Check for latest version in server, if it is new, update weights.
+    // Check for latest round in server, if it is new, update weights.
     await this._update()
   }
 }

@@ -41,20 +41,20 @@ export async function postWeights (taskID, round, clientID, weights) {
   })
 }
 
-export async function postAsyncWeights (taskID, clientID, weights, version: number) {
+export async function postAsyncWeights (taskID, clientID, weights, round: number) {
   const url = feaiServerUrl().concat(`async/weights/${taskID}/${clientID}`)
   return await axios({
     method: 'post',
     url: url,
     data: {
       weights: weights,
-      version: version
+      round: round
     }
   })
 }
 
-export async function getAsyncVersion (taskID, clientID) {
-  const url = feaiServerUrl().concat(`async/version/${taskID}/${clientID}`)
+export async function getAsyncRound (taskID, clientID) {
+  const url = feaiServerUrl().concat(`async/round/${taskID}/${clientID}`)
   return await axios.get(url)
 }
 
