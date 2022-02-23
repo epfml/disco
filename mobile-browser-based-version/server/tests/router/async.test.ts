@@ -6,20 +6,20 @@ const platformID = 'feai'
 const clientId = 'clientId'
 const task = 'titanic'
 
-const oldVersion = -1
-const newVersion = 1
+const oldRound = -1
+const newRound = 1
 const weightsData = {
   weights: {
-    data: [0, 1],
-    version: newVersion
-  }
+    data: [0, 1]
+  },
+  round: newRound
 }
 
 const oldWeightsData = {
   weights: {
-    data: [0, 1],
-    version: oldVersion
-  }
+    data: [0, 1]
+  },
+  round: oldRound
 }
 
 function connectHeader (platformID: string, taskID: string, clientID: string) {
@@ -34,8 +34,8 @@ function postAsyncWeightHeader (platformID: string, taskID: string, clientID: st
   return `/${platformID}/async/weights/${taskID}/${clientID}`
 }
 
-function getIsVersionOldHeader (platformID: string, taskID: string, clientID: string) {
-  return `/${platformID}/async/version/${taskID}/${clientID}`
+function getisRoundOldHeader (platformID: string, taskID: string, clientID: string) {
+  return `/${platformID}/async/round/${taskID}/${clientID}`
 }
 
 describe(`${platformID} async connection tests`, () => {
@@ -58,19 +58,19 @@ describe(`${platformID} async connection tests`, () => {
       .expect(200)
   })
 
-  it('POST /async/weights with old version returns 202', async () => {
+  it('POST /async/weights with old round returns 202', async () => {
     await request(app)
       .post(postAsyncWeightHeader(platformID, task, clientId))
       .send(oldWeightsData)
       .expect(202)
   })
 
-  it('GET /async/version', async () => {
+  it('GET /async/round', async () => {
     await request(app)
-      .get(getIsVersionOldHeader(platformID, task, clientId))
+      .get(getisRoundOldHeader(platformID, task, clientId))
       .expect(200)
       .then(response => {
-        expect(response.body.version).equal(0)
+        expect(response.body.round).equal(0)
       })
   })
 })

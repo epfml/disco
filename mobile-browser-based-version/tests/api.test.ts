@@ -20,17 +20,17 @@ describe('api test', () => { // the tests container
     })
   })
 
-  it('getAsyncVersion', async () => {
+  it('getAsyncRound', async () => {
     await api.connect(task, user)
-    const resp = await api.getAsyncVersion(task, user)
-    expect(resp.data.version).equal(0)
+    const resp = await api.getAsyncRound(task, user)
+    expect(resp.data.round).equal(0)
     await api.disconnect(task, user)
   })
 
-  it('getAsyncVersion at server init', async () => {
+  it('getAsyncRound at server init', async () => {
     await api.connect(task, user)
-    const resp = await api.getAsyncVersion(task, user)
-    expect(resp.data.version).equal(0)
+    const resp = await api.getAsyncRound(task, user)
+    expect(resp.data.round).equal(0)
     await api.disconnect(task, user)
   })
 })

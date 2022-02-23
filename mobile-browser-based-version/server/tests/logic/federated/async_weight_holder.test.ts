@@ -1,5 +1,5 @@
 
-import { AsyncWeightsHolder } from '../../../src/logic/federated/AsyncWeightsHolder'
+import { AsyncWeightsHolder } from '../../../src/logic/federated/async_weights_holder'
 import { expect } from 'chai'
 
 const taskId = 'titanic'
@@ -35,7 +35,7 @@ describe('AsyncWeightHandler tests', () => {
       asyncWeightHolder.add(w.toString(), w, t0)
     })
     expect(weights).to.eql(mockUpdatedWeights)
-    expect(asyncWeightHolder.version).equal(1)
+    expect(asyncWeightHolder.round).equal(1)
   })
   it('Testing two full cycles (adding x2 buffer capacity)', () => {
     const asyncWeightHolder = new AsyncWeightsHolder(taskId, bufferCapacity, mockAggregateAndStoreWeights)
@@ -52,6 +52,6 @@ describe('AsyncWeightHandler tests', () => {
       asyncWeightHolder.add(w.toString(), w, t1)
     })
     expect(newWeights).to.eql(mockUpdatedWeights)
-    expect(asyncWeightHolder.version).equal(2)
+    expect(asyncWeightHolder.round).equal(2)
   })
 })

@@ -2,10 +2,12 @@ import msgpack from 'msgpack-lite'
 
 import {
   makeID,
-  serializeWeights,
-  assignWeightsToModel,
   authenticate
-} from '../helpers'
+} from '../authenticator'
+import {
+  assignWeightsToModel,
+  serializeWeights
+} from '../tensor_serializer'
 import { checkBufferUntil, checkBufferWeightsUntil } from './helpers'
 import { Client } from '../client'
 import CMD_CODES from './communication_codes'

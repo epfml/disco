@@ -1,6 +1,7 @@
 import * as msgpack from 'msgpack-lite'
-import { makeID, serializeWeights } from '../helpers'
-import { getSuccessfulResponse } from './helpers'
+import { makeID } from '../authenticator'
+import { serializeWeights } from '../tensor_serializer'
+import { getSuccessfulResponse } from './regular_pooling'
 import { Client } from '../client'
 import * as api from './api'
 
