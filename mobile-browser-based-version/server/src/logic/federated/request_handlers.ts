@@ -3,10 +3,12 @@ import fs from 'fs'
 import msgpack from 'msgpack-lite'
 import * as config from '../../server.config'
 import {
-  averageWeights,
+  averageWeights
+} from '../../helpers/tensor_operations'
+import {
   assignWeightsToModel
-} from '../../helpers/tfjs_helpers'
-import { getTasks } from '../../tasks/helpers'
+} from '../../helpers/tensor_serializer'
+import { getTasks } from '../../tasks/tasks_io'
 import { AsyncWeightsHolder } from './async_weights_holder'
 import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'

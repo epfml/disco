@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
-import * as memory from '../../memory/helpers'
+import * as memory from '../../memory/model_io'
 
 /**
  * Reprents a TaskFrame containg relevant information about the task

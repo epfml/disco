@@ -80,7 +80,7 @@
   </tippy-container>
 </template>
 <script>
-import * as memory from '../../helpers/memory/helpers'
+import * as memory from '../../helpers/memory/model_io'
 import * as tf from '@tensorflow/tfjs'
 import { mapState } from 'vuex'
 import Bin2Icon from '../../assets/svg/Bin2Icon.vue'
