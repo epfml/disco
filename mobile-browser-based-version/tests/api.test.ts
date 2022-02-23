@@ -4,10 +4,9 @@ import * as api from '../src/helpers/communication/federated/api'
 const task = 'titanic'
 const user = 'a'
 const nonValidTask = 'nonValidTask'
-const oldVersion = -1
 
-describe('API test', () => { // the tests container
-  it('Connect to valid task', async () => {
+describe('api test', () => { // the tests container
+  it('connect to valid task', async () => {
     expect((await api.connect(task, user)).status).equal(200)
   })
 
@@ -21,10 +20,17 @@ describe('API test', () => { // the tests container
     })
   })
 
-  it('versionIsOld true for old version', async () => {
+  it('getAsyncVersion', async () => {
     await api.connect(task, user)
-    const resp = await api.getIsVersionOld(task, user, oldVersion)
-    expect(resp.data.versionIsOld).true
+    const resp = await api.getAsyncVersion(task, user)
+    expect(resp.data.version).equal(0)
+    await api.disconnect(task, user)
+  })
+
+  it('getAsyncVersion at server init', async () => {
+    await api.connect(task, user)
+    const resp = await api.getAsyncVersion(task, user)
+    expect(resp.data.version).equal(0)
     await api.disconnect(task, user)
   })
 })

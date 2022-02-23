@@ -26,51 +26,51 @@ function connectHeader (platformID: string, taskID: string, clientID: string) {
   return `/${platformID}/connect/${taskID}/${clientID}`
 }
 
+function disconnectHeader (platformID: string, taskID: string, clientID: string) {
+  return `/${platformID}/disconnect/${taskID}/${clientID}`
+}
+
 function postAsyncWeightHeader (platformID: string, taskID: string, clientID: string) {
-  return `/${platformID}/asyncWeights/${taskID}/${clientID}`
+  return `/${platformID}/async/weights/${taskID}/${clientID}`
 }
 
 function getIsVersionOldHeader (platformID: string, taskID: string, clientID: string) {
-  return `/${platformID}/isVersionOld/${taskID}/${clientID}`
+  return `/${platformID}/async/version/${taskID}/${clientID}`
 }
 
-describe('async connection tests', () => {
-  it('connect to task', async () => {
+describe(`${platformID} async connection tests`, () => {
+  before(async () => {
     await request(app)
       .get(connectHeader(platformID, task, clientId))
       .expect(200)
   })
 
-  it('post weights', async () => {
+  after(async () => {
+    await request(app)
+      .get(disconnectHeader(platformID, task, clientId))
+      .expect(200)
+  })
+
+  it('POST /async/weights', async () => {
     await request(app)
       .post(postAsyncWeightHeader(platformID, task, clientId))
       .send(weightsData)
       .expect(200)
   })
 
-  it('post old weights returns 202', async () => {
+  it('POST /async/weights with old version returns 202', async () => {
     await request(app)
       .post(postAsyncWeightHeader(platformID, task, clientId))
       .send(oldWeightsData)
       .expect(202)
   })
 
-  it('isOldVersion true for new version', async () => {
+  it('GET /async/version', async () => {
     await request(app)
       .get(getIsVersionOldHeader(platformID, task, clientId))
-      .send({ version: oldVersion })
       .expect(200)
       .then(response => {
-        expect(response.body.versionIsOld).true
-      })
-  })
-  it('isOldVersion false for old version', async () => {
-    await request(app)
-      .get(getIsVersionOldHeader(platformID, task, clientId))
-      .send({ version: newVersion })
-      .expect(200)
-      .then(response => {
-        expect(response.body.versionIsOld).false
+        expect(response.body.version).equal(0)
       })
   })
 })
