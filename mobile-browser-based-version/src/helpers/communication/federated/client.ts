@@ -42,6 +42,7 @@ export class FederatedClient extends Client {
    */
   constructor (serverURL, task) {
     super(serverURL, task)
+    console.log('building Federated Sync client')
     this.clientID = ''
     this.round = 0
     this.selected = false

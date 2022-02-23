@@ -22,6 +22,7 @@ export class FederatedAsyncClient extends Client {
    */
   constructor (serverURL, task) {
     super(serverURL, task)
+    console.log('building Federated Async client')
     this.clientID = ''
     this.version = -1 // Ensure that our model is out of date if we query
     this.round = 0
