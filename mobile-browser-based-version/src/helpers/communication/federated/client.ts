@@ -48,14 +48,13 @@ export class FederatedClient extends Client {
   }
 
   /**
-   * Initialize the connection to the server. TODO: In the case of FeAI,
-   * should return the current server-side round for the task.
+   * Initializes the connection to the centralized server via its API.
+   * @returns The connection request's status code.
    */
   async connect () {
     /**
      * Create an ID used to connect to the server.
-     * The client is now considered as connected and further
-     * API requests may be made.
+     * The client is now considered as connected and further API requests may be made.
      */
     this.clientID = makeID(10)
     const response = await api.connect(this.task.taskID, this.clientID)
@@ -63,13 +62,19 @@ export class FederatedClient extends Client {
   }
 
   /**
-   * Disconnection process when user quits the task.
+   * Notify the centralized server via its API that the client left the task.
+   * @returns The disconnection request's status code.
    */
   async disconnect () {
     const response = await api.disconnect(this.task.taskID, this.clientID)
     return response.status === 200
   }
 
+  /**
+   * Requests the centralized server via its API to select this client for the
+   * upcoming round.
+   * @returns The selection request's status code.
+   */
   async selectionStatus () {
     const response = await api.selectionStatus(this.task.taskID, this.clientID)
     // TODO: test
@@ -77,9 +82,9 @@ export class FederatedClient extends Client {
   }
 
   /**
-   * Requests the aggregated weights from the centralized server,
-   * for the given epoch
-   * @returns The aggregated weights for the given epoch.
+   * Requests the aggregated weights from the centralized server via its API,
+   * for the given round
+   * @returns The aggregated weights or undefined if the request failed
    */
   async aggregationStatus () {
     const response = await api.aggregationStatus(
@@ -87,10 +92,14 @@ export class FederatedClient extends Client {
       this.round,
       this.clientID
     )
-    // TODO: test
     return response.status === 200 ? await response.data.json() : undefined
   }
 
+  /**
+   * Sends the client's local weights to the centralized server via its API.
+   * @param weights The local weights to be sent
+   * @returns The request's status code
+   */
   async postWeights (weights) {
     const encodedWeights = msgpack.encode(
       Array.from(await serializeWeights(weights))
@@ -104,17 +113,28 @@ export class FederatedClient extends Client {
     return response.status === 200
   }
 
+  /**
+   * Sends the client's given metadata to the centralized server via its API.
+   * @param metadataID The metadata's ID
+   * @param metadata The metadata's content
+   * @returns The request's status code
+   */
   async postMetadata (metadataID, metadata) {
-    const response = api.postMetadata(
+    const response = await api.postMetadata(
       this.task.taskID,
       this.round,
       this.clientID,
       metadataID,
       metadata
     )
-    return (await response).status === 200
+    return response.status === 200
   }
 
+  /**
+   * Fetches the given metadata from the centralized server via its API.
+   * @param metadataID The metadata's ID
+   * @returns The request's status code
+   */
   async getMetadataMap (metadataID) {
     const response = await api.getMetadataMap(
       this.task.taskID,
@@ -123,7 +143,6 @@ export class FederatedClient extends Client {
       metadataID
     )
     if (response.status === 200) {
-      // TODO: test
       const body = await response.data
       return new Map(msgpack.decode(body[metadataID]))
     } else {
@@ -131,6 +150,18 @@ export class FederatedClient extends Client {
     }
   }
 
+  /**
+   * On the start of each round of the task's training loop, perform the required
+   * communication routine with the centralized server. Requests the server to select
+   * this client, or move to aggregation phase if the selection phase has already ended
+   * and the requested round already started. The selection requests are performed in a
+   * regular polling fashion.
+   * @param model The task's TF.js model
+   * @param epoch The task's epoch
+   * @param trainingInformant The task's training informant
+   * @throws Throws an error if the regular polling failed to obtain a successful
+   * response after a few tries.
+   */
   async onEpochBeginCommunication (model, epoch, trainingInformant) {
     await super.onEpochBeginCommunication(model, epoch, trainingInformant)
     /**
@@ -212,6 +243,18 @@ export class FederatedClient extends Client {
     this.round = selectionStatus.round
   }
 
+  /**
+   * On the end of each round of the task's training loop, perform the required
+   * communication routine with the centralized server. Checks whether the requested
+   * round has completed, i.e. the server aggregated weights for this round. This is
+   * done by regularly polling the server for aggregation status via its API. The
+   * aggregation requests are performed in a regular polling fashion.
+   * @param model The task's TF.js model
+   * @param epoch The task's epoch
+   * @param trainingInformant The task's training informant
+   * @throws Throws an error if the regular polling failed to obtain a successful
+   * response after a few tries.
+   */
   async onEpochEndCommunication (model, epoch, trainingInformant) {
     await super.onEpochEndCommunication(model, epoch, trainingInformant)
     /**
