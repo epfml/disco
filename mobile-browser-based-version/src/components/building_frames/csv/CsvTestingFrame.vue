@@ -113,8 +113,8 @@
 import TestingFrame from '../containers/TestingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
-import { CsvTaskHelper } from '@/helpers/task_definition/csv/helper'
-import { CsvTask } from '@/helpers/task_definition/csv/csv_task'
+import { CsvTaskHelper } from '../../../logic/task_definition/csv/csv_task_helper'
+import { CsvTask } from '../../../logic/task_definition/csv/csv_task'
 
 export default {
   name: 'csv-testing-frame',

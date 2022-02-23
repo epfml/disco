@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { FileUploadManager } from '../../../../../helpers/data_validation/file_upload_manager'
+import { FileUploadManager } from '../../../../../logic/data_validation/file_upload_manager'
 import Bin from '../../../../../assets/svg/Bin.vue'
 import File from '../../../../../assets/svg/File.vue'
 

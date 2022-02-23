@@ -52,10 +52,8 @@ import CustomButton from './simple/CustomButton.vue'
 import _ from 'lodash'
 import { defineComponent } from 'vue'
 import { mapMutations } from 'vuex'
-import {
-  createTaskClass,
-  loadTasks
-} from '../helpers/task_definition/helper'
+import { createTaskClass } from '../logic/task_definition/task_builder'
+import { loadTasks } from '../logic/task_definition/tasks_io'
 
 export default defineComponent({
   name: 'task-list',

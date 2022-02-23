@@ -107,7 +107,7 @@ and that another `vue` component can use it inside its template using the follow
 <xxx-yyy />
 ```
 
-> **Note**: all `javascript` code inside the `<script></script>` tag shall respect the ES6 standard, in particular the imports statements. See [Helpers folder README](../helpers/README.md) for more information.
+> **Note**: all `javascript` code inside the `<script></script>` tag shall respect the ES6 standard, in particular the imports statements. See [Helpers folder README](../logic/README.md) for more information.
 
 ### Modularisation
 

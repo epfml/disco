@@ -1,9 +1,9 @@
 import express from 'express'
 import _ from 'lodash'
-import * as handlers from '../logic/federated/handlers'
-import { writeNewTask, getTasks } from '../tasks/helpers'
+import * as handlers from '../logic/federated/request_handlers'
+import { writeNewTask, getTasks } from '../tasks/tasks_io'
 import { ExpressPeerServer } from 'peer'
-import { makeID } from '../helpers/helpers'
+import { makeID } from './authenticator'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import * as config from '../server.config'
 
@@ -30,7 +30,7 @@ tasksRouter.post('/', function (req, res) {
     // store results in json file
     writeNewTask(newTask, modelFile, weightsFile, config)
     // answer vue app
-    res.end('Sucessfull upload')
+    res.end('Successfully upload')
   }
 })
 // Declare federated routes
@@ -48,6 +48,10 @@ federatedRouter.get(
 )
 
 federatedRouter.post('/weights/:task/:round/:id', handlers.postWeights)
+
+federatedRouter.post('/async/weights/:task/:id', handlers.postAsyncWeights)
+
+federatedRouter.get('/async/round/:task/:id', handlers.getAsyncRound)
 
 federatedRouter
   .route('/metadata/:metadata/:task/:round/:id')

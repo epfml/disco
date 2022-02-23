@@ -102,7 +102,7 @@ import TestingFrame from '../containers/TestingFrame.vue'
 import ImagePredictionResultsFrame from './ImagePredictionResultsFrame.vue'
 import PictureBackground from '../../../assets/svg/PictureBackground.vue'
 import Bin from '../../../assets/svg/Bin.vue'
-import { ImageTaskHelper } from '@/helpers/task_definition/image/helper'
+import { ImageTaskHelper } from '../../../logic/task_definition/image/image_task_helper'
 
 export default {
   components: {
