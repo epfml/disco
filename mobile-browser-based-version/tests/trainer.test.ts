@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 import { expect } from 'chai'
-import { loadTasks } from '../src/helpers/task_definition/helper'
-import Trainer from '../src/helpers/training/trainer'
-import { CsvTaskHelper } from '../src/helpers/task_definition/csv/helper'
-import { logger } from '../src/helpers/logging/console_logger'
+import { loadTasks } from '../src/logic/task_definition/tasks_io'
+import Trainer from '../src/logic/training/trainer'
+import { CsvTaskHelper } from '../src/logic/task_definition/csv/csv_task_helper'
+import { logger } from '../src/logic/logging/console_logger'
 
 const platform = 'feai'
 
