@@ -133,8 +133,5 @@ export class FederatedAsyncClient extends Client {
      * server for aggregation.
      */
     await this.postWeights(model.weights)
-
-    // Check for latest round in server, if it is new, update weights.
-    await this._update()
   }
 }
