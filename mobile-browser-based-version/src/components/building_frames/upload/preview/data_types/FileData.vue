@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { FileUploadManager } from '../../../../../helpers/data_validation/file_upload_manager'
+import { FileUploadManager } from '../../../../../logic/data_validation/file_upload_manager'
 import ElementData from './ElementData.vue'
 
 export default {

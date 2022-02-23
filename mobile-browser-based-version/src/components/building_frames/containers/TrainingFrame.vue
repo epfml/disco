@@ -104,8 +104,8 @@ import CustomButton from '../../simple/CustomButton.vue'
 import Download from '../../../assets/svg/Download.vue'
 
 import { mapState } from 'vuex'
-import * as memory from '../../../helpers/memory/helpers'
-import { Trainer } from '../../../helpers/training/trainer'
+import * as memory from '../../../logic/memory/model_io'
+import { Trainer } from '../../../logic/training/trainer'
 
 export default {
   name: 'TrainingFrame',
