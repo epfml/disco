@@ -25,8 +25,8 @@ export class AsyncWeightsHolder {
     round: number;
     _aggregateAndStoreWeights: (weights: any) => Promise<void>;
 
-    constructor (taskId: string, bufferCapacity: number, aggregateAndStoreWeights: (weights: any) => Promise<void>) {
-      this.taskID = taskId
+    constructor (taskID: string, bufferCapacity: number, aggregateAndStoreWeights: (weights: any) => Promise<void>) {
+      this.taskID = taskID
       this.bufferCapacity = bufferCapacity
       this.buffer = new Map<string, any>()
       this._aggregateAndStoreWeights = aggregateAndStoreWeights
@@ -34,7 +34,7 @@ export class AsyncWeightsHolder {
     }
 
     _resetBuffer () {
-      this.buffer = new Map<string, any>()
+      this.buffer.clear()
     }
 
     _bufferIsFull (): boolean {

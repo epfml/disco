@@ -34,6 +34,7 @@ describe('AsyncWeightHandler tests', () => {
     weights.forEach((w) => {
       asyncWeightHolder.add(w.toString(), w, t0)
     })
+    expect(asyncWeightHolder.buffer.size).equal(0)
     expect(weights).to.eql(mockUpdatedWeights)
     expect(asyncWeightHolder.round).equal(1)
   })
