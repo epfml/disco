@@ -1,7 +1,7 @@
 import { CsvTask } from './csv/csv_task'
 import { ImageTask } from './image/image_task'
-import { CsvTaskHelper } from './csv/helper'
-import { ImageTaskHelper } from './image/helper'
+import { CsvTaskHelper } from './csv/csv_task_helper'
+import { ImageTaskHelper } from './image/image_task_helper'
 
 /**
  * Constants related to tasks. Each '*_TASK' constant should

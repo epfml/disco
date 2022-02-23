@@ -1,4 +1,4 @@
-import { TaskHelper } from '../base/taskHelper'
+import { TaskHelper } from '../base/task_helper'
 import { CsvTask } from './csv_task'
 
 export class CsvTaskHelper extends TaskHelper<CsvTask> {

@@ -110,7 +110,7 @@
 </template>
 
 <script>
-import { FileUploadManager } from '../../../helpers/data_validation/file_upload_manager'
+import { FileUploadManager } from '../../../logic/data_validation/file_upload_manager'
 // import PreviewGallery from './preview/PreviewGallery.vue'
 import _ from 'lodash'
 
