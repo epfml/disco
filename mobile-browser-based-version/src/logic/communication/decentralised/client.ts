@@ -8,7 +8,7 @@ import {
   assignWeightsToModel,
   serializeWeights
 } from '../tensor_serializer'
-import { checkBufferUntil, checkBufferWeightsUntil } from './helpers'
+import { checkBufferUntil, checkBufferWeightsUntil } from './check_buffer'
 import { Client } from '../client'
 import CMD_CODES from './communication_codes'
 const Hashes = require('jshashes')

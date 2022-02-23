@@ -16,7 +16,7 @@
 
 <script>
 import TrainingFrame from '../containers/TrainingFrame.vue'
-import { ImageTaskHelper } from '../../../helpers/task_definition/image/helper'
+import { ImageTaskHelper } from '../../../logic/task_definition/image/image_task_helper'
 
 export default {
   name: 'image-training-frame',

@@ -1,6 +1,6 @@
 import { FileUploadManager } from './data_validation/file_upload_manager'
 import { Task } from './task_definition/base/task'
-import { TaskHelper } from './task_definition/base/taskHelper'
+import { TaskHelper } from './task_definition/base/task_helper'
 import { createTaskHelper } from './task_definition/task_builder'
 import { Logger } from './logging/logger'
 /**

@@ -1,4 +1,4 @@
-import { TaskHelper } from '../base/taskHelper'
+import { TaskHelper } from '../base/task_helper'
 import { ImageTask } from './image_task'
 
 export class ImageTaskHelper extends TaskHelper<ImageTask> {

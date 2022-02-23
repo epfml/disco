@@ -32,7 +32,7 @@ import UploadingFrame from '../upload/UploadingFrame.vue'
 import CustomButton from '../../simple/CustomButton.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 
-import { Tester } from '../../../helpers/testing/tester'
+import { Tester } from '../../../logic/testing/tester'
 
 export default {
   name: 'TestingFrame',
