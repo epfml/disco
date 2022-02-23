@@ -3,7 +3,7 @@
  * Run with `node test.js`
  */
 import msgpack from 'msgpack-lite'
-import { serializeWeights } from '../helpers/tfjs_helpers'
+import { serializeWeights } from '../helpers/tensor_serializer'
 import assert from 'assert'
 import { sleep } from './helpers'
 import * as api from './api'

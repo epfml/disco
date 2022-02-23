@@ -1,4 +1,6 @@
-import * as memory from '../memory/helpers'
+import * as memory from '../memory/model_io'
+import { preprocessData } from '../dataset/preprocessing'
+import { datasetGenerator } from '../dataset/dataset_generator'
 import * as tf from '@tensorflow/tfjs'
 
 const MANY_EPOCHS = 9999
@@ -210,7 +212,7 @@ export class TrainingManager {
 
   async _modelFitData (model, trainingInformation, callbacks) {
     console.log('Fast training mode is used, data preprocessing is executed on the entire dataset at once')
-    const tensor = memory.preprocessData(this.data, trainingInformation)
+    const tensor = preprocessData(this.data, trainingInformation)
 
     await model.fit(tensor, this.labels, {
       initialEpoch: this.model.getUserDefinedMetadata().epoch,
@@ -233,7 +235,7 @@ export class TrainingManager {
     // Creation of Dataset objects for training
     const trainData = tf.data
       .generator(
-        memory.datasetGenerator(
+        datasetGenerator(
           this.data,
           this.labels,
           0,
@@ -245,7 +247,7 @@ export class TrainingManager {
 
     const valData = tf.data
       .generator(
-        memory.datasetGenerator(
+        datasetGenerator(
           this.data,
           this.labels,
           Math.floor(

@@ -1,9 +1,9 @@
 import express from 'express'
 import _ from 'lodash'
-import * as handlers from '../logic/federated/handlers'
-import { writeNewTask, getTasks } from '../tasks/helpers'
+import * as handlers from '../logic/federated/request_handlers'
+import { writeNewTask, getTasks } from '../tasks/tasks_io'
 import { ExpressPeerServer } from 'peer'
-import { makeID } from '../helpers/helpers'
+import { makeID } from '../helpers/authenticator'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import * as config from '../server.config'
 

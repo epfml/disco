@@ -31,10 +31,6 @@ async function _deleteModel (taskID, modelName, modelType) {
   )
 }
 
-function _preprocessDataWithResize (trainingInformation) {
-  return trainingInformation.preprocessFunctions.includes('resize')
-}
-
 /**
  * Fetches metadata on the working model currently saved in IndexedDB.
  * Returns false if the specified model does not exist.
@@ -141,46 +137,4 @@ export async function downloadSavedModel (taskID, modelName) {
     INDEXEDDB_SCHEME.concat(path.join(SAVED_MODEL, taskID, modelName)),
     DOWNLOADS_SCHEME.concat(`${taskID}_${modelName}`)
   )
-}
-/**
- * Preprocesses the data based on the training information
- * @param {Array} data the dataset of the task
- * @param {Object} trainingInformation the training information of the task
- */
-export function preprocessData (data, trainingInformation) {
-  let tensor = data
-  // More preprocessing functions can be added using this template
-  if (_preprocessDataWithResize(trainingInformation)) {
-    tensor = tf.image.resizeBilinear(tensor, [
-      trainingInformation.RESIZED_IMAGE_H,
-      trainingInformation.RESIZED_IMAGE_W
-    ])
-  }
-
-  return tensor
-}
-/**
- * Creates a dataset generator function for memory efficient training
- * @param {Array} dataset the dataset of the task
- * @param {Array} labels the labels of the task
- * @param {Integer} startIndex staring index of the split
- * @param {Integer} endIndex ending index of the split
- * @param {Array} transformationFunctions transformation functions to be applied to the data
- */
-export function datasetGenerator (
-  dataset,
-  labels,
-  startIndex,
-  endIndex,
-  trainingInformation
-) {
-  return function * dataGenerator () {
-    for (let i = startIndex; i < endIndex; i++) {
-      const tensor = preprocessData(
-        dataset.arraySync()[i],
-        trainingInformation
-      )
-      yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) }
-    }
-  }
 }

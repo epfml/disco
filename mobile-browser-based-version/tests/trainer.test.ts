@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import { loadTasks } from '../src/helpers/task_definition/helper'
 import Trainer from '../src/helpers/training/trainer'
 import { CsvTaskHelper } from '../src/helpers/task_definition/csv/helper'
-import { logger } from '../src/helpers/logging/ConsoleLogger'
+import { logger } from '../src/helpers/logging/console_logger'
 
 const platform = 'feai'
 
