@@ -9,7 +9,7 @@ import {
   assignWeightsToModel
 } from './tensor_helpers/tensor_serializer'
 import { getTasks } from '../../tasks/tasks_io'
-import { AsyncWeightsHolder } from './async_weights_holder'
+import { AsyncWeightsBuffer } from './async_weights_buffer'
 import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
@@ -61,7 +61,7 @@ const NEW_CLIENT_IDLE_DELAY = 1000 * 60
  * Stored by task ID, round number and client ID.
  */
 const weightsMap = new Map()
-const asyncWeightsMap: Map<string, AsyncWeightsHolder> = new Map()
+const asyncWeightsMap: Map<string, AsyncWeightsBuffer> = new Map()
 const BUFFER_CAPACITY = 2
 /**
  * Contains metadata used for training by clients for a given task and round.
@@ -494,11 +494,11 @@ function _decodeWeights (request) {
   return msgpack.decode(Uint8Array.from(encodedWeights.data))
 }
 
-// Inits the AsyncWeightsHolder for the task if it does not yet exist.
-function _initAsyncWeightsHolderIfNotExists (task) {
+// Inits the AsyncWeightsBuffer for the task if it does not yet exist.
+function _initAsyncWeightsBufferIfNotExists (task) {
   if (!asyncWeightsMap.has(task)) {
     const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
-    asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
+    asyncWeightsMap.set(task, new AsyncWeightsBuffer(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
   }
 }
 
@@ -518,7 +518,7 @@ export async function postAsyncWeights (request, response) {
   const task = request.params.task
   const id = request.params.id
 
-  _initAsyncWeightsHolderIfNotExists(task)
+  _initAsyncWeightsBufferIfNotExists(task)
 
   const weights = _decodeWeights(request)
 
@@ -544,7 +544,7 @@ export async function getAsyncRound (request, response) {
 
   const task = request.params.task
 
-  _initAsyncWeightsHolderIfNotExists(task)
+  _initAsyncWeightsBufferIfNotExists(task)
 
   // Get latest round
   const round = asyncWeightsMap.get(task).round
