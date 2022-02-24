@@ -21,7 +21,6 @@ export class FederatedAsyncClient extends Client {
    */
   constructor (serverURL, task) {
     super(serverURL, task)
-    console.log('building Federated Async client')
     this.clientID = ''
     this.round = -1 // The server starts at round 0, in the beginning we are behind
   }
@@ -123,6 +122,20 @@ export class FederatedAsyncClient extends Client {
       this.round = serverRound
       // update local model from server
       this._updateLocalModelWithMostRecentServerModel()
+    }
+  }
+
+  async onBatchBeginCommunication (model, batch, batchSize, trainSize, roundDuration) {
+    if (this._localRoundHasStarted(batch, batchSize, trainSize, roundDuration)) {
+      console.log('updating weights...')
+      await this._update()
+    }
+  }
+
+  async onBatchEndCommunication (model, batch, batchSize, trainSize, roundDuration) {
+    if (this._localRoundHasEnded(batch, batchSize, trainSize, roundDuration)) {
+      console.log('sending weights...')
+      await this.postWeights(model.weights)
     }
   }
 

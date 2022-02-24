@@ -18,6 +18,10 @@ export class TrainingManager {
   model: any;
   data: any;
   labels: any;
+  trainSize: number;
+  batchSize: number;
+  trainSplit: number;
+  roundDuration: number;
 
   /**
    * Constructs the training manager.
@@ -37,6 +41,10 @@ export class TrainingManager {
     this.model = null
     this.data = null
     this.labels = null
+    this.trainSize = 0
+    this.trainSplit = 1 - task.trainingInformation.validationSplit
+    this.batchSize = task.trainingInformation.batchSize
+    this.roundDuration = 2 // TODO: trainingInformation.roundDuration
   }
 
   /**
@@ -60,6 +68,10 @@ export class TrainingManager {
   async trainModel (dataset, distributedTraining) {
     this.data = dataset.Xtrain
     this.labels = dataset.ytrain
+
+    // Init train size used for keeping track of round
+    this.trainSize = this.data.shape[0] * this.trainSplit
+    console.log(this.trainSize)
 
     /**
      * If IndexedDB is turned on and the working model exists, then load the
@@ -105,18 +117,14 @@ export class TrainingManager {
    * @param {Object} model The current model being trained.
    * @param {Number} epoch The current training loop's epoch.
    */
-  async _onEpochBegin (epoch) {
+  async _onEpochBeginDistributed (epoch) {
     console.log(`EPOCH (${epoch + 1}):`)
-    await this.client.onEpochBeginCommunication(
-      this.model,
-      epoch,
-      this.trainingInformant
-    )
   }
 
   /**
-   * Method corresponding to the TFJS fit function's callback. Calls the subroutines
-   * for the training informant and client.
+   * Method corresponding to the TFJS fit function's callback.
+   * We update the graph, other important updates such as weight sharing is done in onBatchEnd due to new
+   * fractional round setting.
    * @param {Number} epoch The current training loop's epoch.
    * @param {Number} accuracy The accuracy achieved by the model in the given epoch
    * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
@@ -133,24 +141,9 @@ export class TrainingManager {
       `Train Accuracy: ${accuracy},
       Val Accuracy:  ${validationAccuracy}\n`
     )
-    await this.client.onEpochEndCommunication(
-      this.model,
-      epoch,
-      this.trainingInformant
-    )
-    if (this.useIndexedDB) {
-      await memory.updateWorkingModel(
-        this.task.taskID,
-        trainingInformation.modelID,
-        this.model
-      )
-    }
-    if (this.stopTrainingRequested) {
-      this.model.stopTraining = true
-      this.stopTrainingRequested = false
-    }
   }
 
+  // TODO
   /**
    * Method corresponding to the TFJS fit function's callback. Calls the client's
    * subroutine used in local training
@@ -266,6 +259,37 @@ export class TrainingManager {
     })
   }
 
+  async _onBatchBeginDistributed (
+    batch
+  ) {
+    await this.client.onBatchBeginCommunication(this.model, batch, this.batchSize, this.trainSize, this.roundDuration)
+  }
+
+  async _onBatchEndDistributed (
+    batch,
+    accuracy,
+    validationAccuracy,
+    trainingInformation
+  ) {
+    console.log('On batch end')
+    console.log(
+      `Train Accuracy: ${accuracy},
+      Val Accuracy:  ${validationAccuracy}\n`
+    )
+    await this.client.onBatchEndCommunication(this.model, batch, this.batchSize, this.trainSize, this.roundDuration)
+    if (this.useIndexedDB) {
+      await memory.updateWorkingModel(
+        this.task.taskID,
+        trainingInformation.modelID,
+        this.model
+      )
+    }
+    if (this.stopTrainingRequested) {
+      this.model.stopTraining = true
+      this.stopTrainingRequested = false
+    }
+  }
+
   /**
    *  Method that chooses the appropriate modelFitData function and defines the modelFit callbacks for local training.
    */
@@ -310,11 +334,24 @@ export class TrainingManager {
         await this._onTrainEnd()
       },
       onEpochBegin: async (epoch, logs) => {
-        await this._onEpochBegin(epoch)
+        await this._onEpochBeginDistributed(epoch)
       },
       onEpochEnd: async (epoch, logs) => {
         await this._onEpochEndDistributed(
           epoch + 1,
+          this._formatAccuracy(logs.acc),
+          this._formatAccuracy(logs.val_acc),
+          info
+        )
+      },
+      onBatchBegin: async (batch, logs) => {
+        this._onBatchBeginDistributed(
+          batch
+        )
+      },
+      onBatchEnd: async (batch, logs) => {
+        this._onBatchEndDistributed(
+          batch + 1,
           this._formatAccuracy(logs.acc),
           this._formatAccuracy(logs.val_acc),
           info
