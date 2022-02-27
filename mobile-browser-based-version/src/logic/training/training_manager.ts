@@ -18,10 +18,11 @@ export class TrainingManager {
   model: any;
   data: any;
   labels: any;
-  trainSize: number;
+  trainSize: number = 0;
   batchSize: number;
   trainSplit: number;
   roundDuration: number;
+  epoch: number = 0;
 
   /**
    * Constructs the training manager.
@@ -41,10 +42,9 @@ export class TrainingManager {
     this.model = null
     this.data = null
     this.labels = null
-    this.trainSize = 0
     this.trainSplit = 1 - task.trainingInformation.validationSplit
     this.batchSize = task.trainingInformation.batchSize
-    this.roundDuration = 2 // TODO: trainingInformation.roundDuration
+    this.roundDuration = task.trainingInformation.roundDuration
   }
 
   /**
@@ -71,8 +71,11 @@ export class TrainingManager {
 
     // Init train size used for keeping track of round
     this.trainSize = this.data.shape[0] * this.trainSplit
-    console.log(this.trainSize)
 
+    // TODO have a pretty print logging the setup of train
+    console.log('starting trainModel:')
+    console.log(`data size: ${this.data.shape[0]}, split:${this.trainSplit}`)
+    console.log(`batchSize=${this.batchSize}, trainSize=${this.trainSize}, roundDuration=${this.roundDuration}`)
     /**
      * If IndexedDB is turned on and the working model exists, then load the
      * existing model from IndexedDB. Otherwise, create a fresh new one.
@@ -136,6 +139,8 @@ export class TrainingManager {
     validationAccuracy,
     trainingInformation
   ) {
+    // Important: needed for onBatchEnd
+    this._updateEpoch()
     this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy)
     console.log(
       `Train Accuracy: ${accuracy},
@@ -154,6 +159,7 @@ export class TrainingManager {
     validationAccuracy,
     trainingInformation
   ) {
+    this._updateEpoch()
     this.trainingInformant.updateGraph(epoch + 1, validationAccuracy, accuracy)
     console.log(
       `EPOCH (${epoch + 1}):
@@ -259,10 +265,8 @@ export class TrainingManager {
     })
   }
 
-  async _onBatchBeginDistributed (
-    batch
-  ) {
-    await this.client.onBatchBeginCommunication(this.model, batch, this.batchSize, this.trainSize, this.roundDuration)
+  _updateEpoch () {
+    this.epoch += 1
   }
 
   async _onBatchEndDistributed (
@@ -276,7 +280,8 @@ export class TrainingManager {
       `Train Accuracy: ${accuracy},
       Val Accuracy:  ${validationAccuracy}\n`
     )
-    await this.client.onBatchEndCommunication(this.model, batch, this.batchSize, this.trainSize, this.roundDuration)
+    console.log(`epoch:${this.epoch}, batch:${batch}, batchLength:${batch * this.batchSize}`)
+    await this.client.onBatchEndCommunication(this.model, batch, this.batchSize, this.trainSize, this.roundDuration, this.epoch)
     if (this.useIndexedDB) {
       await memory.updateWorkingModel(
         this.task.taskID,
@@ -342,11 +347,6 @@ export class TrainingManager {
           this._formatAccuracy(logs.acc),
           this._formatAccuracy(logs.val_acc),
           info
-        )
-      },
-      onBatchBegin: async (batch, logs) => {
-        this._onBatchBeginDistributed(
-          batch
         )
       },
       onBatchEnd: async (batch, logs) => {
