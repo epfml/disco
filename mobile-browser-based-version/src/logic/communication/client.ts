@@ -47,29 +47,37 @@ export class Client {
   }
 
   /**
-   * Returns the true if a local round has ended. A round is the number of epochs we locally train
-   * before posting our weights on the server. Fractional rounds are allowed, if roundDuration = 1,
-   * then we share every epoch.
+   * Returns true if a local round has ended, false otherwise.
+   *
+   * @remark
+   * Batch is the current batch, this goes from 1, ... , batchSize*trainSize.
+   * Epoch is the current epoch, this goes from 0, 1, ... m
+   *
+   * Returns true if (the current batch number since start) mod (batches per round) == 0, false otherwise
+   *
+   * E.g if there are 1000 samples in total, and roundDuration is
+   * 2.5, withBatchSize 100, then if batch is a multiple of 25, the local round has ended.
+   *
    */
-  _localRoundHasEnded (batch: number, batchSize: number, trainSize: number, roundDuration: number) {
-    return batch * batchSize >= trainSize * roundDuration
+  _localRoundHasEnded (batch: number, batchSize: number, trainSize: number, roundDuration: number, epoch: number): boolean {
+    if (batch === 0 && epoch === 0) {
+      return false
+    }
+    const numberOfBatchesInAnEpoch = this._numberOfBatchesInAnEpoch(trainSize, batchSize)
+    const batchesPerRound = Math.floor(numberOfBatchesInAnEpoch * roundDuration)
+    const currentBatchNumberSinceStart = batch + (epoch * numberOfBatchesInAnEpoch)
+    return currentBatchNumberSinceStart % batchesPerRound === 0
   }
 
-  /**
-   * Returns the true if a local round has started. A round is the number of epochs we locally train
-   * before posting our weights on the server. Fractional rounds are allowed, if roundDuration = 1,
-   * then we share every epoch.
-   */
-  _localRoundHasStarted (batch: number, batchSize: number, trainSize: number, roundDuration: number) {
-    console.log(((batch - 1) * batchSize) % (trainSize * roundDuration))
-    return ((batch - 1) * batchSize) % (trainSize * roundDuration) === 0
+  _numberOfBatchesInAnEpoch (trainSize, batchSize) {
+    const carryOver = trainSize % batchSize === 0 ? 0 : 1
+    return Math.floor(trainSize / batchSize) + carryOver
   }
 
   /**
    * TODO: for deai need to also implement!
    */
-  async onBatchEndCommunication (model, batch, batchSize, trainSize, roundDuration) {
-
+  async onBatchEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch) {
   }
 
   /**

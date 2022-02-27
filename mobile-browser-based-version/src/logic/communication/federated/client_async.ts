@@ -11,7 +11,7 @@ import * as api from './api'
 export class FederatedAsyncClient extends Client {
   clientID: string;
   peer: any;
-  round: number;
+  remoteModelRoundNumber: number;
 
   /**
    * Prepares connection to a centralized server for training a given task.
@@ -22,7 +22,7 @@ export class FederatedAsyncClient extends Client {
   constructor (serverURL, task) {
     super(serverURL, task)
     this.clientID = ''
-    this.round = -1 // The server starts at round 0, in the beginning we are behind
+    this.remoteModelRoundNumber = -1 // The server starts at round 0, in the beginning we are behind
   }
 
   /**
@@ -56,7 +56,7 @@ export class FederatedAsyncClient extends Client {
       this.task.taskID,
       this.clientID,
       encodedWeights,
-      this.round
+      this.remoteModelRoundNumber
     )
     return response.status === 200
   }
@@ -64,7 +64,7 @@ export class FederatedAsyncClient extends Client {
   async postMetadata (metadataID, metadata) {
     const response = api.postMetadata(
       this.task.taskID,
-      this.round,
+      this.remoteModelRoundNumber,
       this.clientID,
       metadataID,
       metadata
@@ -75,7 +75,7 @@ export class FederatedAsyncClient extends Client {
   async getMetadataMap (metadataID) {
     const response = await api.getMetadataMap(
       this.task.taskID,
-      this.round,
+      this.remoteModelRoundNumber,
       this.clientID,
       metadataID
     )
@@ -115,36 +115,21 @@ export class FederatedAsyncClient extends Client {
     // get server round of latest model
     const serverRound = await this._getServerRound()
 
-    const localRoundIsOld = this.round < serverRound
+    const localRoundIsOld = this.remoteModelRoundNumber < serverRound
     if (localRoundIsOld) {
       // update local round
       // TODO need to check that update method did not fail!
-      this.round = serverRound
+      this.remoteModelRoundNumber = serverRound
       // update local model from server
       this._updateLocalModelWithMostRecentServerModel()
     }
   }
 
-  async onBatchBeginCommunication (model, batch, batchSize, trainSize, roundDuration) {
-    if (this._localRoundHasStarted(batch, batchSize, trainSize, roundDuration)) {
-      console.log('updating weights...')
+  async onBatchEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch) {
+    if (this._localRoundHasEnded(batch, batchSize, trainSize, roundDuration, epoch)) {
+      console.log('LocalRoundHasEnded, posting weights')
+      await this.postWeights(model.weights)
       await this._update()
     }
-  }
-
-  async onBatchEndCommunication (model, batch, batchSize, trainSize, roundDuration) {
-    if (this._localRoundHasEnded(batch, batchSize, trainSize, roundDuration)) {
-      console.log('sending weights...')
-      await this.postWeights(model.weights)
-    }
-  }
-
-  async onEpochEndCommunication (model, epoch, trainingInformant) {
-    await super.onEpochEndCommunication(model, epoch, trainingInformant)
-    /**
-     * Once the training round is completed, send local weights to the
-     * server for aggregation.
-     */
-    await this.postWeights(model.weights)
   }
 }
