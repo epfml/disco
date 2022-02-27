@@ -1,4 +1,4 @@
-# DeAI - Decentralized Collaborative Machine Learning
+# Disco - Decentralized Collaborative Machine Learning
 
 Disco enables collaborative and privacy-preserving training of machine learning models. DeAI offers both decentralized and federated learning.
 Disco is easy-to-use mobile & web code. Disco supports both federated and distributed learning. The latest version of Disco is currently running on the following link, [directly in your browser](https://epfml.github.io/disco/), for mobile and desktop:
