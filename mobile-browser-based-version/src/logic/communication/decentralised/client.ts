@@ -165,12 +165,7 @@ export class DecentralisedClient extends Client {
     }
   }
 
-  /**
-   * Request weights from peers, carry on if the number of received weights is
-   * greater than the provided threshold
-   */
-  async onEpochEndCommunication (model, epoch, trainingInformant) {
-    super.onEpochEndCommunication()
+  async onRoundEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant) {
     this.updateReceivers()
     const serializedWeights = await serializeWeights(model.weights)
     const epochWeights = { epoch: epoch, weights: serializedWeights }
@@ -255,7 +250,6 @@ export class DecentralisedClient extends Client {
   }
 
   async onTrainEndCommunication (model, trainingInformant) {
-    super.onTrainEndCommunication(model, trainingInformant)
     trainingInformant.addMessage(
       'Entering idle state: seeding for online peers.'
     )
@@ -270,6 +264,7 @@ export class DecentralisedClient extends Client {
      * Within a P2P network, this acts like a seeding state w.r.t. the weights.
      */
     this.isIdle = true
+    trainingInformant.addMessage('Training finished.')
   }
 
   /**

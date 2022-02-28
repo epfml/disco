@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 
-export class Client {
+export abstract class Client {
   serverURL: any;
   task: any;
   constructor (serverURL, task) {
@@ -12,38 +12,49 @@ export class Client {
    * Handles the connection process from the client to any sort of
    * centralized server.
    */
-  async connect (epochs?): Promise<any> {
-    throw new Error('Abstract method')
-  }
+  abstract connect (epochs?): Promise<any>
 
   /**
    * Handles the disconnection process of the client from any sort
    * of centralized server.
    */
-  disconnect () {
-    throw new Error('Abstract method')
-  }
-
-  async onTrainBeginCommunication (model, trainingInformant) {
-
-  }
+  abstract disconnect (): void
 
   /**
    * The training manager matches this function with the training loop's
    * onTrainEnd callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  async onTrainEndCommunication (model, trainingInformant) {
-    trainingInformant.addMessage('Training finished.')
-  }
+  abstract onTrainEndCommunication (model, trainingInformant): Promise<void>
 
   /**
-   * The training manager matches this function with the training loop's
-   * onEpochBegin callback when training a TFJS model object. See the
-   * training manager for more details.
+   * This function will be called whenever a local round has ended.
+   *
+   * @param model
+   * @param batch
+   * @param batchSize
+   * @param trainSize
+   * @param roundDuration
+   * @param epoch
+   * @param trainingInformant
    */
-  async onEpochBeginCommunication (model, epoch, trainingInformant) {
+  abstract onRoundEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant): Promise<void>
 
+  /**
+   * Callback function for onBatchEnd in TF training callbacks, this will call onRoundEndCommunication whenever a round has ended.
+   * @param model
+   * @param batch
+   * @param batchSize
+   * @param trainSize
+   * @param roundDuration
+   * @param epoch
+   * @param trainingInformant
+   */
+  async onBatchEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant) {
+    if (this._localRoundHasEnded(batch, batchSize, trainSize, roundDuration, epoch)) {
+      console.log('LocalRoundHasEnded')
+      this.onRoundEndCommunication(model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant)
+    }
   }
 
   /**
@@ -69,23 +80,18 @@ export class Client {
     return currentBatchNumberSinceStart % batchesPerRound === 0
   }
 
-  _numberOfBatchesInAnEpoch (trainSize, batchSize) {
-    const carryOver = trainSize % batchSize === 0 ? 0 : 1
-    return Math.floor(trainSize / batchSize) + carryOver
+  /**
+   * Return the number of batches in an epoch given train size batch size
+   */
+  _numberOfBatchesInAnEpoch (dataSize, batchSize) {
+    const carryOver = dataSize % batchSize === 0 ? 0 : 1
+    return Math.floor(dataSize / batchSize) + carryOver
   }
 
   /**
-   * TODO: for deai need to also implement!
+   *  Display ram usage
    */
-  async onBatchEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch) {
-  }
-
-  /**
-   * The training manager matches this function with the training loop's
-   * onEpochEnd callback when training a TFJS model object. See the
-   * training manager for more details.
-   */
-  async onEpochEndCommunication (model?, epoch?, trainingInformant?) {
+  _logRamUsage () {
     console.log(
       'Training RAM usage is  = ',
       tf.memory().numBytes * 0.000001,
