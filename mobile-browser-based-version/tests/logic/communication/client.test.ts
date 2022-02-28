@@ -5,7 +5,25 @@ import { Client } from '../../../src/logic/communication/client'
 const mockUrl = ''
 const mockTask = ''
 
-const client = new Client(mockUrl, mockTask)
+class MockClient extends Client {
+  async connect (epochs?: any): Promise<any> {
+    console.log('mock connect')
+  }
+
+  disconnect (): void {
+    console.log('mock disconnect')
+  }
+
+  async onRoundEndCommunication (model: any, batch: any, batchSize: any, trainSize: any, roundDuration: any, epoch: any, trainingInformant: any): Promise<void> {
+    console.log('mock onRoundEndCommunication')
+  }
+
+  async onTrainEndCommunication (model, trainingInformant) {
+    console.log('mock onTrainEndCommunication')
+  }
+}
+
+const client = new MockClient(mockUrl, mockTask)
 
 const roundDurationIsOne = [
   // batch, batchSize, trainSize, roundDuration, epoch

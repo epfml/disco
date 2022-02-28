@@ -48,7 +48,7 @@ export class FederatedAsyncClient extends Client {
     return response.status === 200
   }
 
-  async postWeights (weights) {
+  async _postWeightsToServer (weights) {
     const encodedWeights = msgpack.encode(
       Array.from(await serializeWeights(weights))
     )
@@ -104,14 +104,7 @@ export class FederatedAsyncClient extends Client {
     console.log('Updated local model')
   }
 
-  async onEpochBeginCommunication (model, epoch, trainingInformant) {
-    await super.onEpochBeginCommunication(model, epoch, trainingInformant)
-
-    // Check for latest round in server, if it is new, update weights.
-    await this._update()
-  }
-
-  async _update () {
+  async _fetchServerRoundAndUpdateLocalModelIfOld () {
     // get server round of latest model
     const serverRound = await this._getServerRound()
 
@@ -125,11 +118,12 @@ export class FederatedAsyncClient extends Client {
     }
   }
 
-  async onBatchEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch) {
-    if (this._localRoundHasEnded(batch, batchSize, trainSize, roundDuration, epoch)) {
-      console.log('LocalRoundHasEnded, posting weights')
-      await this.postWeights(model.weights)
-      await this._update()
-    }
+  async onRoundEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant) {
+    await this._postWeightsToServer(model.weights)
+    await this._fetchServerRoundAndUpdateLocalModelIfOld()
+  }
+
+  async onTrainEndCommunication (model, trainingInformant) {
+    trainingInformant.addMessage('Training finished.')
   }
 }

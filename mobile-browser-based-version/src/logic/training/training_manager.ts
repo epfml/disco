@@ -184,17 +184,6 @@ export class TrainingManager {
    * Method corresponding to the TFJS fit function's callback. Calls the client's
    * subroutine.
    */
-  async _onTrainBegin () {
-    await this.client.onTrainBeginCommunication(
-      this.model,
-      this.trainingInformant
-    )
-  }
-
-  /**
-   * Method corresponding to the TFJS fit function's callback. Calls the client's
-   * subroutine.
-   */
   async _onTrainEnd () {
     await this.client.onTrainEndCommunication(
       this.model,
@@ -281,7 +270,7 @@ export class TrainingManager {
       Val Accuracy:  ${validationAccuracy}\n`
     )
     console.log(`epoch:${this.epoch}, batch:${batch}, batchLength:${batch * this.batchSize}`)
-    await this.client.onBatchEndCommunication(this.model, batch, this.batchSize, this.trainSize, this.roundDuration, this.epoch)
+    await this.client.onBatchEndCommunication(this.model, batch, this.batchSize, this.trainSize, this.roundDuration, this.epoch, this.trainingInformant)
     if (this.useIndexedDB) {
       await memory.updateWorkingModel(
         this.task.taskID,
@@ -332,9 +321,6 @@ export class TrainingManager {
     ).bind(this)
 
     await modelFit(this.model, info, {
-      onTrainBegin: async (logs) => {
-        await this._onTrainBegin()
-      },
       onTrainEnd: async (logs) => {
         await this._onTrainEnd()
       },

@@ -30,6 +30,14 @@ interface AggregationStatus {
  * a specific task.
  */
 export class FederatedClient extends Client {
+  onTrainEndCommunication (model: any, trainingInformant: any): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  onRoundEndCommunication (model: any, batch: any, batchSize: any, trainSize: any, roundDuration: any, epoch: any, trainingInformant: any): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
   clientID: string;
   round: number;
   peer: any;
@@ -131,7 +139,7 @@ export class FederatedClient extends Client {
   }
 
   async onEpochBeginCommunication (model, epoch, trainingInformant) {
-    await super.onEpochBeginCommunication(model, epoch, trainingInformant)
+    // await super.onEpochBeginCommunication(model, epoch, trainingInformant)
     /**
      * Ensure this is the first epoch of a round.
      */
@@ -212,7 +220,7 @@ export class FederatedClient extends Client {
   }
 
   async onEpochEndCommunication (model, epoch, trainingInformant) {
-    await super.onEpochEndCommunication(model, epoch, trainingInformant)
+    // await super.onEpochEndCommunication(model, epoch, trainingInformant)
     /**
      * Ensure this was the last epoch of a round.
      */
