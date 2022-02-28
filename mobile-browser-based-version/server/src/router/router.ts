@@ -40,18 +40,9 @@ federatedRouter.get('/', (req, res) => res.send('FeAI server'))
 federatedRouter.get('/connect/:task/:id', handlers.connect)
 federatedRouter.get('/disconnect/:task/:id', handlers.disconnect)
 
-federatedRouter.get('/selection/:task/:id', handlers.selectionStatus)
+federatedRouter.post('/weights/:task/:id', handlers.postWeights)
 
-federatedRouter.get(
-  '/aggregation/:task/:round/:id',
-  handlers.aggregationStatus
-)
-
-federatedRouter.post('/weights/:task/:round/:id', handlers.postWeights)
-
-federatedRouter.post('/async/weights/:task/:id', handlers.postAsyncWeights)
-
-federatedRouter.get('/async/round/:task/:id', handlers.getAsyncRound)
+federatedRouter.get('/round/:task/:id', handlers.getRound)
 
 federatedRouter
   .route('/metadata/:metadata/:task/:round/:id')
