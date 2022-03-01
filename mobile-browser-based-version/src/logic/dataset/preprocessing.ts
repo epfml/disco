@@ -17,6 +17,8 @@ export function preprocessData (data, trainingInformation) {
       trainingInformation.RESIZED_IMAGE_H,
       trainingInformation.RESIZED_IMAGE_W
     ])
+  } else {
+    tensor = tf.tensor(data)
   }
 
   return tensor

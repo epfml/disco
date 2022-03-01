@@ -17,11 +17,26 @@ export function datasetGenerator (
 ) {
   return function * dataGenerator () {
     for (let i = startIndex; i < endIndex; i++) {
-      const tensor = preprocessData(
+      const sampleTensor = preprocessData(
         dataset.arraySync()[i],
         trainingInformation
       )
-      yield { xs: tensor, ys: tf.tensor(labels.arraySync()[i]) }
+      const labelTensor = _formatLabels(labels.arraySync()[i])
+      yield { xs: sampleTensor, ys: labelTensor }
     }
   }
+}
+
+/**
+ * Format the labels into a tensor and add a dimension if it has none
+ * @param label
+ * @returns
+ */
+function _formatLabels (label: any) {
+  let tensor = tf.tensor(label)
+  // If the label has no dimension, reshape it to have 1 dimension.
+  if (tensor.shape.length === 0) {
+    tensor = tf.tensor(label, [1])
+  }
+  return tensor
 }
