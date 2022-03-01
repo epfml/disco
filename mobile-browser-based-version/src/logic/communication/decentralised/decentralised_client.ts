@@ -165,9 +165,10 @@ export class DecentralisedClient extends Client {
     }
   }
 
-  async onRoundEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant) {
+  async onRoundEndCommunication (model, epoch, trainingInformant) {
     this.updateReceivers()
     const serializedWeights = await serializeWeights(model.weights)
+    // TODO: Should send the current epoch
     const epochWeights = { epoch: epoch, weights: serializedWeights }
 
     const threshold = this.task.trainingInformation.threshold ?? 1

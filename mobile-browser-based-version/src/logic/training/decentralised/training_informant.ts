@@ -291,11 +291,10 @@ export class TrainingInformant {
 
   /**
    * Update the accuracy graphs data
-   * @param {Number} epoch current epoch
    * @param {Number} validationAccuracy the current validation accuracy of the model
    * @param {Number} trainingAccuracy the current training accuracy of the model
    */
-  updateGraph (epoch, validationAccuracy, trainingAccuracy) {
+  updateGraph (validationAccuracy, trainingAccuracy) {
     this._updateValidationAccuracyGraph(validationAccuracy)
     this._updateTrainingAccuracygraph(trainingAccuracy)
   }
