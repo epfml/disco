@@ -12,7 +12,7 @@ export abstract class Client {
    * Init holder for federated, we need to fetch latest server round
    * and model before training.
    */
-  async init () {}
+  async getInitialModelAndRound () {}
 
   /**
    * Handles the connection process from the client to any sort of
@@ -44,55 +44,7 @@ export abstract class Client {
    * @param epoch
    * @param trainingInformant
    */
-  abstract onRoundEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant): Promise<void>
-
-  /**
-   * Callback function for onBatchEnd in TF training callbacks, this will call onRoundEndCommunication whenever a round has ended.
-   * @param model
-   * @param batch
-   * @param batchSize
-   * @param trainSize
-   * @param roundDuration
-   * @param epoch
-   * @param trainingInformant
-   */
-  async onBatchEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant) {
-    if (this._localRoundHasEnded(batch, batchSize, trainSize, roundDuration, epoch)) {
-      console.log('LocalRoundHasEnded')
-      this.onRoundEndCommunication(model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant)
-    }
-  }
-
-  /**
-   * Returns true if a local round has ended, false otherwise.
-   *
-   * @remark
-   * Batch is the current batch, this goes from 1, ... , batchSize*trainSize.
-   * Epoch is the current epoch, this goes from 0, 1, ... m
-   *
-   * Returns true if (the current batch number since start) mod (batches per round) == 0, false otherwise
-   *
-   * E.g if there are 1000 samples in total, and roundDuration is
-   * 2.5, withBatchSize 100, then if batch is a multiple of 25, the local round has ended.
-   *
-   */
-  _localRoundHasEnded (batch: number, batchSize: number, trainSize: number, roundDuration: number, epoch: number): boolean {
-    if (batch === 0 && epoch === 0) {
-      return false
-    }
-    const numberOfBatchesInAnEpoch = this._numberOfBatchesInAnEpoch(trainSize, batchSize)
-    const batchesPerRound = Math.floor(numberOfBatchesInAnEpoch * roundDuration)
-    const currentBatchNumberSinceStart = batch + (epoch * numberOfBatchesInAnEpoch)
-    return currentBatchNumberSinceStart % batchesPerRound === 0
-  }
-
-  /**
-   * Return the number of batches in an epoch given train size batch size
-   */
-  _numberOfBatchesInAnEpoch (dataSize, batchSize) {
-    const carryOver = dataSize % batchSize === 0 ? 0 : 1
-    return Math.floor(dataSize / batchSize) + carryOver
-  }
+  abstract onRoundEndCommunication (model, epoch, trainingInformant): Promise<void>
 
   /**
    *  Display ram usage

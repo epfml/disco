@@ -73,10 +73,8 @@ export class TrainingManager {
     // Init train size used for keeping track of round
     this.trainSize = this.data.shape[0] * this.trainSplit
 
-    // TODO have a pretty print logging the setup of train
-    logger.success('starting trainModel, setup:')
-    logger.success(`data size: ${this.data.shape[0]}, split: ${this.trainSplit}`)
-    logger.success(`batchSize: ${this.batchSize}, trainSize: ${this.trainSize}, roundDuration: ${this.roundDuration}`)
+    this._logTrainInfo()
+
     /**
      * If IndexedDB is turned on and the working model exists, then load the
      * existing model from IndexedDB. Otherwise, create a fresh new one.
@@ -113,6 +111,7 @@ export class TrainingManager {
     this.stopTrainingRequested = false
 
     distributedTraining ? this._trainDistributed() : this._trainLocally()
+    // TODO: make 2 classes.
   }
 
   /**
@@ -123,8 +122,11 @@ export class TrainingManager {
 
     await this._modelFitDataBatchWise(this.model, info, {
       onEpochEnd: async (epoch, logs) => {
-        this._onEpochEndLocal(
-          epoch,
+        this._updateEpoch()
+      },
+      onBatchEnd: async (batch, logs) => {
+        this._onBatchEndLocal(
+          batch + 1,
           this._formatAccuracy(logs.acc),
           this._formatAccuracy(logs.val_acc),
           info
@@ -139,19 +141,14 @@ export class TrainingManager {
   async _trainDistributed () {
     const info = this.task.trainingInformation
 
-    await this.client.init()
+    await this.client.getInitialModelAndRound()
 
     await this._modelFitDataBatchWise(this.model, info, {
       onTrainEnd: async (logs) => {
         await this._onTrainEnd()
       },
       onEpochEnd: async (epoch, logs) => {
-        await this._onEpochEndDistributed(
-          epoch + 1,
-          this._formatAccuracy(logs.acc),
-          this._formatAccuracy(logs.val_acc),
-          info
-        )
+        this._updateEpoch()
       },
       onBatchEnd: async (batch, logs) => {
         this._onBatchEndDistributed(
@@ -162,100 +159,6 @@ export class TrainingManager {
         )
       }
     })
-  }
-
-  /**
-   * Callback functions
-   */
-
-  /**
-   * Method corresponding to the TFJS fit function's callback. Calls the client's
-   * subroutine used in local training
-   */
-  async _onEpochEndLocal (
-    epoch,
-    accuracy,
-    validationAccuracy,
-    trainingInformation
-  ) {
-    this._updateEpoch()
-    this.trainingInformant.updateGraph(epoch + 1, validationAccuracy, accuracy)
-    logger.success(
-        `EPOCH (${epoch + 1}):
-        Train Accuracy: ${accuracy},
-        Val Accuracy:  ${validationAccuracy}\n`
-    )
-    if (this.useIndexedDB) {
-      this.model.setUserDefinedMetadata({ epoch: epoch + 1 })
-      await memory.updateWorkingModel(
-        this.task.taskID,
-        trainingInformation.modelID,
-        this.model
-      )
-    }
-    if (this.stopTrainingRequested) {
-      this.model.stopTraining = true
-      this.stopTrainingRequested = false
-    }
-  }
-
-  /**
-   * We update the graph, other important updates such as weight sharing is done in onBatchEnd due to new
-   * fractional round setting.
-   * @param {Number} epoch The current training loop's epoch.
-   * @param {Number} accuracy The accuracy achieved by the model in the given epoch
-   * @param {Number} validationAccuracy The validation accuracy achieved by the model in the given epoch
-   * @param {Object} trainingInformation Training information about the model and training parameters
-   */
-  async _onEpochEndDistributed (
-    epoch,
-    accuracy,
-    validationAccuracy,
-    trainingInformation
-  ) {
-    // Important: needed for onBatchEnd
-    this._updateEpoch()
-    this.trainingInformant.updateGraph(epoch, validationAccuracy, accuracy)
-    logger.success(
-      `Train Accuracy: ${accuracy},
-      Val Accuracy:  ${validationAccuracy}\n`
-    )
-  }
-
-  /**
-   * On batch end we call the onBatchEndCommunication of client, this in turn will call the onRoundEnd whenever a round has ended.
-   *
-   * @Remark Since we support fractional rounds this might before an epoch, since it might be after an epoch, we keep track of
-   * epochs globally and pass it as an argument.
-   * @param batch
-   * @param accuracy
-   * @param validationAccuracy
-   * @param trainingInformation
-   */
-  async _onBatchEndDistributed (
-    batch,
-    accuracy,
-    validationAccuracy,
-    trainingInformation
-  ) {
-    logger.success('On batch end')
-    logger.success(
-      `Train Accuracy: ${accuracy},
-      Val Accuracy:  ${validationAccuracy}\n`
-    )
-    logger.success(`epoch:${this.epoch}, batch:${batch}, batchLength:${batch * this.batchSize}`)
-    await this.client.onBatchEndCommunication(this.model, batch, this.batchSize, this.trainSize, this.roundDuration, this.epoch, this.trainingInformant)
-    if (this.useIndexedDB) {
-      await memory.updateWorkingModel(
-        this.task.taskID,
-        trainingInformation.modelID,
-        this.model
-      )
-    }
-    if (this.stopTrainingRequested) {
-      this.model.stopTraining = true
-      this.stopTrainingRequested = false
-    }
   }
 
   /**
@@ -275,6 +178,108 @@ export class TrainingManager {
     })
   }
 
+  // *********************************************************************************************
+  // *********************************************************************************************
+  // ************  Local Training Callback Functions
+  // *********************************************************************************************
+  // *********************************************************************************************
+
+  /**
+   * Method corresponding to the TFJS fit function's callback. Calls the client's
+   * subroutine used in local training
+   */
+  async _onRoundEndLocal (
+    accuracy,
+    validationAccuracy,
+    trainingInformation
+  ) {
+    this._updateEpoch()
+    this.trainingInformant.updateGraph(validationAccuracy, accuracy)
+    logger.success(
+        `Train Accuracy: ${accuracy},
+        Val Accuracy:  ${validationAccuracy}\n`
+    )
+    if (this.useIndexedDB) {
+      await memory.updateWorkingModel(
+        this.task.taskID,
+        trainingInformation.modelID,
+        this.model
+      )
+    }
+    if (this.stopTrainingRequested) {
+      this.model.stopTraining = true
+      this.stopTrainingRequested = false
+    }
+  }
+
+  async _onBatchEndLocal (
+    batch,
+    accuracy,
+    validationAccuracy,
+    trainingInformation
+  ) {
+    this._logBatchEnd(batch, accuracy, validationAccuracy)
+    if (this._localRoundHasEnded(batch)) {
+      this._onRoundEndLocal(
+        accuracy,
+        validationAccuracy,
+        trainingInformation
+      )
+    }
+  }
+
+  // *********************************************************************************************
+  // *********************************************************************************************
+  // ************  Distributed Training Callback Functions
+  // *********************************************************************************************
+  // *********************************************************************************************
+
+  async _onRoundEndDistributed (
+    accuracy,
+    validationAccuracy,
+    trainingInformation
+  ) {
+    this.trainingInformant.updateGraph(validationAccuracy, accuracy)
+    await this.client.onRoundEndCommunication(this.model, this.epoch, this.trainingInformant)
+    if (this.useIndexedDB) {
+      await memory.updateWorkingModel(
+        this.task.taskID,
+        trainingInformation.modelID,
+        this.model
+      )
+    }
+    if (this.stopTrainingRequested) {
+      this.model.stopTraining = true
+      this.stopTrainingRequested = false
+    }
+  }
+
+  /**
+   * On batch end we call the onBatchEndCommunication of client, this in turn will call the onRoundEnd whenever a round has ended.
+   *
+   * @Remark Since we support fractional rounds this might before an epoch, since it might be after an epoch, we keep track of
+   * epochs globally and pass it as an argument.
+   * @param batch
+   * @param accuracy
+   * @param validationAccuracy
+   * @param trainingInformation
+   */
+  async _onBatchEndDistributed (
+    batch,
+    accuracy,
+    validationAccuracy,
+    trainingInformation
+  ) {
+    this._logBatchEnd(batch, accuracy, validationAccuracy)
+    if (this._localRoundHasEnded(batch)) {
+      this._onRoundEndDistributed(
+        accuracy,
+        validationAccuracy,
+        trainingInformation
+      )
+    }
+  }
+
   /**
    * Method corresponding to the TFJS fit function's callback. Calls the client's
    * subroutine.
@@ -285,6 +290,12 @@ export class TrainingManager {
       this.trainingInformant
     )
   }
+
+  // *********************************************************************************************
+  // *********************************************************************************************
+  // ************  misc (builders, formatters, checkers, ...)
+  // *********************************************************************************************
+  // *********************************************************************************************
 
   /**
    * Builds the train dataset
@@ -332,6 +343,41 @@ export class TrainingManager {
    */
   _updateEpoch () {
     this.epoch += 1
+    logger.success(`Epoch started: ${this.epoch}`)
+  }
+
+  /// Other
+  /**
+   * Returns true if a local round has ended, false otherwise.
+   *
+   * @remark
+   * Batch is the current batch, this goes from 1, ... , batchSize*trainSize.
+   * Epoch is the current epoch, this goes from 0, 1, ... m
+   *
+   * Returns true if (the current batch number since start) mod (batches per round) == 0, false otherwise
+   *
+   * E.g if there are 1000 samples in total, and roundDuration is
+   * 2.5, withBatchSize 100, then if batch is a multiple of 25, the local round has ended.
+   *
+   */
+  _localRoundHasEnded (batch: number): boolean {
+    if (batch === 0 && this.epoch === 0) {
+      return false
+    }
+    const numberOfBatchesInAnEpoch = this._numberOfBatchesInAnEpoch(this.trainSize, this.batchSize)
+    const batchesPerRound = Math.floor(numberOfBatchesInAnEpoch * this.roundDuration)
+    const currentBatchNumberSinceStart = batch + (this.epoch * numberOfBatchesInAnEpoch)
+    return currentBatchNumberSinceStart % batchesPerRound === 0
+  }
+
+  // Note that we only get the trainSize once we start training, and this part is not yet testable, hence we
+  // separate this functions in order to test it.
+  /**
+   * Return the number of batches in an epoch given train size batch size
+   */
+  _numberOfBatchesInAnEpoch (trainSize, batchSize) {
+    const carryOver = trainSize % batchSize === 0 ? 0 : 1
+    return Math.floor(trainSize / batchSize) + carryOver
   }
 
   /**
@@ -339,5 +385,20 @@ export class TrainingManager {
    */
   _formatAccuracy (accuracy) {
     return (accuracy * 100).toFixed(2)
+  }
+
+  _logBatchEnd (batch, accuracy, validationAccuracy) {
+    logger.success('On batch end')
+    logger.success(
+      `Train Accuracy: ${accuracy},
+      Val Accuracy:  ${validationAccuracy}\n`
+    )
+    logger.success(`batch:${batch}`)
+  }
+
+  _logTrainInfo () {
+    logger.success('starting trainModel, setup:')
+    logger.success(`data size: ${this.data.shape[0]}, split: ${this.trainSplit}`)
+    logger.success(`batchSize: ${this.batchSize}, trainSize: ${this.trainSize}, roundDuration: ${this.roundDuration}`)
   }
 }

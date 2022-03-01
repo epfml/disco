@@ -11,7 +11,7 @@ import * as api from './api'
 export class FederatedClient extends Client {
   clientID: string;
   peer: any;
-  remoteModelRoundNumber: number;
+  modelUpdateIsBasedOnRoundNumber: number;
 
   /**
    * Prepares connection to a centralized server for training a given task.
@@ -22,14 +22,14 @@ export class FederatedClient extends Client {
   constructor (serverURL, task) {
     super(serverURL, task)
     this.clientID = ''
-    this.remoteModelRoundNumber = -1 // The server starts at round 0, in the beginning we are behind
+    this.modelUpdateIsBasedOnRoundNumber = -1 // The server starts at round 0, in the beginning we are behind
   }
 
   /**
    * Fetch the server round and update the local model at init
    */
-  async init () {
-    super.init()
+  async getInitialModelAndRound () {
+    super.getInitialModelAndRound()
     await this._fetchServerRoundAndUpdateLocalModelIfOld()
   }
 
@@ -64,7 +64,7 @@ export class FederatedClient extends Client {
       this.task.taskID,
       this.clientID,
       encodedWeights,
-      this.remoteModelRoundNumber
+      this.modelUpdateIsBasedOnRoundNumber
     )
     return response.status === 200
   }
@@ -72,7 +72,7 @@ export class FederatedClient extends Client {
   async postMetadata (metadataID, metadata) {
     const response = api.postMetadata(
       this.task.taskID,
-      this.remoteModelRoundNumber,
+      this.modelUpdateIsBasedOnRoundNumber,
       this.clientID,
       metadataID,
       metadata
@@ -83,7 +83,7 @@ export class FederatedClient extends Client {
   async getMetadataMap (metadataID) {
     const response = await api.getMetadataMap(
       this.task.taskID,
-      this.remoteModelRoundNumber,
+      this.modelUpdateIsBasedOnRoundNumber,
       this.clientID,
       metadataID
     )
@@ -116,17 +116,17 @@ export class FederatedClient extends Client {
     // get server round of latest model
     const serverRound = await this._getLatestServerRound()
 
-    const localRoundIsOld = this.remoteModelRoundNumber < serverRound
+    const localRoundIsOld = this.modelUpdateIsBasedOnRoundNumber < serverRound
     if (localRoundIsOld) {
       // update local round
       // TODO need to check that update method did not fail!
-      this.remoteModelRoundNumber = serverRound
+      this.modelUpdateIsBasedOnRoundNumber = serverRound
       // update local model from server
       this._updateLocalModelWithMostRecentServerModel()
     }
   }
 
-  async onRoundEndCommunication (model, batch, batchSize, trainSize, roundDuration, epoch, trainingInformant) {
+  async onRoundEndCommunication (model, epoch, trainingInformant) {
     await this._postWeightsToServer(model.weights)
     await this._fetchServerRoundAndUpdateLocalModelIfOld()
   }
