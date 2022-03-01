@@ -7,7 +7,7 @@ import { Logger } from './logger'
  */
 class ConsoleLogger extends Logger {
   /**
-   * Logs sucess message on the console (in green)
+   * Logs success message on the console (in green)
    * @param {String} message - message to be displayed
    */
   success (message) {

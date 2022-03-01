@@ -26,6 +26,14 @@ export class FederatedClient extends Client {
   }
 
   /**
+   * Fetch the server round and update the local model at init
+   */
+  async init () {
+    super.init()
+    await this._fetchServerRoundAndUpdateLocalModelIfOld()
+  }
+
+  /**
    * Initialize the connection to the server. TODO: In the case of FeAI,
    * should return the current server-side round for the task.
    */

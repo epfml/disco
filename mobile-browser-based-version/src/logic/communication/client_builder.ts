@@ -1,5 +1,5 @@
-import { DecentralisedClient } from './decentralised/client'
-import { FederatedClient } from './federated/client'
+import { DecentralisedClient } from './decentralised/decentralised_client'
+import { FederatedClient } from './federated/federated_client'
 
 export function getClient (platform, task, password: string) {
   switch (platform) {
