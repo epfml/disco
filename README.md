@@ -1,7 +1,7 @@
 # Disco - Decentralized Collaborative Machine Learning
 
-Disco enables collaborative and privacy-preserving training of machine learning models. DeAI offers both decentralized and federated learning.
-Disco is easy-to-use mobile & web code. Disco supports both federated and distributed learning. The latest version of Disco is currently running on the following link, [directly in your browser](https://epfml.github.io/disco/), for mobile and desktop:
+Disco enables collaborative and privacy-preserving training of machine learning models. Disco offers both decentralized and federated learning.
+Disco is easy-to-use mobile & web code. The latest version of Disco is always running on the following link, [directly in your browser](https://epfml.github.io/disco/), for mobile and desktop:
 
 :rocket: https://epfml.github.io/disco/ :rocket:
 
@@ -14,7 +14,7 @@ We support all modern deep learning architectures running on device (currently v
 
 **Applications:** We're investigating many applications which could be enabled by Disco, including from the medical domain. Currently we offer a predefined list of training tasks, but will facilitate creating new tasks for everyone soon. For now if you have a new application in mind, just send us a pull request.
 
-**Join us:** We follow an open development process - you're more than welcome to join the conversation on [our slack space](https://join.slack.com/t/deai-workspace/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw), as well as on the issues pages here.
+**Join us:** We follow an open development process - you're more than welcome to join the conversation on [our slack space](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw), as well as on the issues pages here.
 
 **Science behind Disco:** In this project we aim to build and improve decentralized versions of current machine learning algorithms, which are at the same time (i) efficient ([R1](https://github.com/epfml/powergossip),[R2](https://github.com/epfml/ChocoSGD)), (ii) privacy-preserving ([R3](https://eprint.iacr.org/2017/281.pdf),[R4](https://arxiv.org/abs/2006.04747)), (iii) fault-tolerant and dynamic over time ([R5](https://arxiv.org/abs/1910.12308)), (iv) robust to malicious actors ([R6](https://arxiv.org/abs/2012.10333),[R7](https://arxiv.org/abs/2006.09365)), and (v) support fair incentives and transparency on the resulting utility of trained ML models. We currently follow a public model, private data approach.
 
@@ -39,4 +39,4 @@ Under the sidebar on the left, you will find a **_settings_** button. We offer m
 2. **Model library**: storage options can be enabled so that your models are safely saved in your browser database :floppy_disk:
 3. **Themes and colors**: customise the look of the platform as you please :rainbow:
 
-If you have any questions related to Disco, feel free to raise an issue or join our [slack workspace](https://join.slack.com/t/deai-workspace/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw) :question:
+If you have any questions related to Disco, feel free to raise an issue or join our [slack workspace](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw) :question:
