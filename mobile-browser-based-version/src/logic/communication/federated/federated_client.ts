@@ -28,8 +28,8 @@ export class FederatedClient extends Client {
   /**
    * Fetch the server round and update the local model at init
    */
-  async getInitialModelAndRound () {
-    super.getInitialModelAndRound()
+  async updateModelAndRoundFromServer () {
+    super.updateModelAndRoundFromServer()
     await this._fetchServerRoundAndUpdateLocalModelIfOld()
   }
 

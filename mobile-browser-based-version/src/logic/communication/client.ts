@@ -12,7 +12,7 @@ export abstract class Client {
    * Init holder for federated, we need to fetch latest server round
    * and model before training.
    */
-  async getInitialModelAndRound () {}
+  async updateModelAndRoundFromServer () {}
 
   /**
    * Handles the connection process from the client to any sort of

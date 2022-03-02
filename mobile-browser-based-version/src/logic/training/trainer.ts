@@ -1,147 +1,221 @@
-import { ModelActor } from '../model_actor'
-import { TrainingInformant } from './decentralised/training_informant'
-import { TrainingManager } from './training_manager'
-import { getClient } from '../communication/client_builder'
+import * as memory from '../memory/model_io'
+import { datasetGenerator } from '../dataset/dataset_generator'
+import * as tf from '@tensorflow/tfjs'
+import { logger } from '../logging/console_logger'
 import { Client } from '../communication/client'
+import { RoundTracker } from './round_tracker'
 
-// number of files that should be loaded (required by the task)
-function nbrFiles (task) {
-  const llist = task.trainingInformation.LABEL_LIST
-  return llist ? llist.length : 1
-}
-export class Trainer extends ModelActor {
-  isConnected: Boolean
-  isTraining: Boolean
-  distributedTraining: Boolean
-  platform: String
-  client: Client
-  trainingInformant: TrainingInformant
-  trainingManager: () => TrainingManager
+/** Abstract class whose role is to train a model with a given dataset. This can be either done
+ * locally or in a distributed way.
+ */
+export abstract class Trainer {
+  task: any; // TODO: use class type
+  client: Client;
+  trainingInformant: any; // TODO: use class type
+  useIndexedDB: boolean;
+  stopTrainingRequested: boolean;
+  model: any;
+  data: any; // TODO: use class type @s314cy once you have created the dataset class
+  labels: any; // TODO: use class type @s314cy once you have created the dataset class
+  roundTracker: RoundTracker
+
   /**
-   * Constructor for Trainer
-   * @param {Task} task - task on which the tasking shall be performed
-   * @param {string} platform - system platform (e.g. deai or feai)
-   * @param {Logger} logger - logging system (e.g. toaster)
-   * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
+   * Constructs the training manager.
+   * @param {Object} task the trained task
+   * @param {Object} client the client
+   * @param {Object} trainingInformant the training informant
+   * @param {Boolean} useIndexedDB use IndexedDB (browser only)
    */
-  constructor (task, platform, logger, helper) {
-    super(task, logger, nbrFiles(task), helper)
-    this.isConnected = false
-    this.isTraining = false
-    this.distributedTraining = false
-    this.platform = platform
-    // Take care of communication processes
-    this.client = getClient(
-      this.platform,
-      this.task,
-      null // TODO: this.$store.getters.password(this.id)
-    )
-    this.trainingInformant = new TrainingInformant(10, this.task.taskID)
+  constructor (task, client, trainingInformant, useIndexedDB, roundTracker) {
+    this.task = task
+    this.client = client
+    this.trainingInformant = trainingInformant
+
+    this.useIndexedDB = useIndexedDB
+    this.stopTrainingRequested = false
+
+    this.model = null
+    this.data = null
+    this.labels = null
+    this.roundTracker = roundTracker
   }
 
-  /**
-   *
-   * @param {Boolean} useIndexedDB - true if indexedDB shall be used to store the models
-   */
-  created (useIndexedDB) {
-    // Assist with the training loop
-    const trainingManager = new TrainingManager(
-      this.task,
-      this.client,
-      this.trainingInformant,
-      useIndexedDB
-    )
-    // make property un-reactive through anonymous function accessor
-    // otherwise get unexpected TFJS error due to Vue double bindings
-    // on the loaded model
-    this.trainingManager = () => trainingManager
-  }
+  abstract trainModel(dataset): Promise<void>
 
   /**
-   * Connects the trainer to the server
+   * Setter called by the UI to update the IndexedDB status midway through
+   * training.
+   * @param {Boolean} payload whether or not to use IndexedDB
    */
-  async connectClientToServer () {
-    // Connect to centralized server
-    this.isConnected = await this.client.connect()
-    if (this.isConnected) {
-      this.logger.success(
-        'Successfully connected to server. Distributed training available.'
+  setIndexedDB (payload) {
+    this.useIndexedDB = !!payload
+  }
+
+  stopTraining () {
+    this.stopTrainingRequested = true
+  }
+
+  async _fetchModelFromIndexedDBOrCreateNewOne () {
+    if (
+      this.useIndexedDB &&
+      (await memory.getWorkingModelMetadata(
+        this.task.taskID,
+        this.task.trainingInformation.modelID
+      ))
+    ) {
+      this.model = await memory.getWorkingModel(
+        this.task.taskID,
+        this.task.trainingInformation.modelID
       )
     } else {
-      console.log('Error in connecting')
-      this.logger.error(
-        'Failed to connect to server. Fallback to training alone.'
+      this.model = await this.task.createModel()
+    }
+  }
+
+  /**
+   * Train the task's model either alone or in a distributed fashion depending on the user's choice.
+   * @param {Object} dataset the dataset to train on
+   * @param {Boolean} distributedTraining train in a distributed fashion
+   */
+  async _initDatasetAndModel (dataset) {
+    this.data = dataset.Xtrain
+    this.labels = dataset.ytrain
+
+    /**
+     * If IndexedDB is turned on and the working model exists, then load the
+     * existing model from IndexedDB. Otherwise, create a fresh new one.
+     */
+    await this._fetchModelFromIndexedDBOrCreateNewOne()
+
+    // Continue local training from previous epoch checkpoint
+    if (this.model.getUserDefinedMetadata() === undefined) {
+      this.model.setUserDefinedMetadata({ epoch: 0 })
+    }
+
+    const info = this.task.trainingInformation
+    this.model.compile(info.modelCompileData)
+
+    if (info.learningRate) {
+      this.model.optimizer.learningRate = info.learningRate
+    }
+
+    // Ensure training can start
+    this.model.stopTraining = false
+    this.stopTrainingRequested = false
+  }
+
+  /**
+   * Function for training the model using batch wise preprocessing.
+   * @param {Object} model Model to be trained using the function
+   * @param {Object} trainingInformation Training information containing the training parameters
+   * @param {Object} callbacks Callabcks used during training
+   */
+  async _modelFitDataBatchWise (model, trainingInformation, callbacks) {
+    const trainData = this._buildTrainDataset(trainingInformation)
+    const valData = this._buildValidationDataset(trainingInformation)
+
+    await model.fitDataset(trainData, {
+      epochs: trainingInformation.epochs,
+      validationData: valData,
+      callbacks: callbacks
+    })
+  }
+
+  /**
+   * We update the epoch for the round manager (he needs this to keep track of rounds).
+   * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
+   */
+  _onEpochEnd (accuracy, validationAccuracy) {
+    this.roundTracker.updateEpoch()
+    console.log('Epoch end', this._formatAccuracy(accuracy), this._formatAccuracy(validationAccuracy))
+    // updateGraph does not work in onBatchEnd since we do not get validation accuracy.
+    this.trainingInformant.updateGraph(this._formatAccuracy(accuracy), this._formatAccuracy(validationAccuracy))
+  }
+
+  /**
+   * If stop training is requested, do so
+   */
+  _stopTrainModelIfRequested () {
+    if (this.stopTrainingRequested) {
+      this.model.stopTraining = true
+      this.stopTrainingRequested = false
+    }
+  }
+
+  /**
+   * Common onBatchEnd functionality for local and distributed training:
+   * - Log information
+   * - stop training if requested.
+   */
+  _onBatchEnd (batch, accuracy, trainingInformation) {
+    this._logBatchEnd(batch, accuracy)
+    this._stopTrainModelIfRequested()
+  }
+
+  // *********************************************************************************************
+  // *********************************************************************************************
+  // ************  misc (builders, formatters, checkers, ...)
+  // *********************************************************************************************
+  // *********************************************************************************************
+
+  /**
+   * Builds the train dataset
+   * TODO: @s314cy, put these build dataset functions in the dataset class.
+   * @param trainingInformation
+   * @returns
+   */
+  _buildTrainDataset (trainingInformation) {
+    return tf.data
+      .generator(
+        datasetGenerator(
+          this.data,
+          this.labels,
+          0,
+          this.data.shape[0] * (1 - trainingInformation.validationSplit),
+          trainingInformation
+        )
       )
-    }
-    return this.isConnected
+      .batch(trainingInformation.batchSize)
   }
 
   /**
-   * Disconnects the trainer from the server
+   * Builds the validation data set
+   * TODO: @s314cy, put these build dataset functions in the dataset class.
+   * @param trainingInformation
+   * @returns
    */
-  disconnect () {
-    this.client.disconnect()
-  }
-
-  /**
-   * Main training function
-   * @param {boolean} distributed - use distributed training (true) or local training (false)
-   */
-  async joinTraining (distributed) {
-    if (distributed && !this.isConnected) {
-      await this.connectClientToServer()
-      if (!this.isConnected) {
-        distributed = false
-        this.logger.error('Distributed training is not available.')
-      }
-    }
-    this.distributedTraining = distributed
-    const nbrFiles = this.fileUploadManager.numberOfFiles()
-    // Check that the user indeed gave a file
-    if (nbrFiles === 0) {
-      this.logger.error('Training aborted. No uploaded file given as input.')
-    } else {
-      // Assume we only read the first file
-      this.logger.success(
-        'Thank you for your contribution. Data preprocessing has started'
+  _buildValidationDataset (trainingInformation) {
+    return tf.data
+      .generator(
+        datasetGenerator(
+          this.data,
+          this.labels,
+          Math.floor(
+            this.data.shape[0] * (1 - trainingInformation.validationSplit)
+          ),
+          this.data.shape[0],
+          trainingInformation
+        )
       )
-      const filesElement =
-        nbrFiles > 1
-          ? this.fileUploadManager.getFilesList()
-          : this.fileUploadManager.getFirstFile()
-      // get task  specific information (preprocessing steps, pre-check function)
-      const statusValidation = await this.taskHelper.preCheckData(filesElement)
-      if (statusValidation.accepted) {
-        // preprocess data
-        const processedDataset = await this.taskHelper.dataPreprocessing(
-          filesElement
-        )
-        this.logger.success(
-          'Data preprocessing has finished and training has started'
-        )
-        this.trainingManager().trainModel(processedDataset, distributed)
-        this.isTraining = true
-      } else {
-        // print error message
-        this.logger.error(
-          `Invalid input format : Number of data points with valid format: ${statusValidation.nbAccepted} out of ${nbrFiles}`
-        )
-      }
-    }
+      .batch(trainingInformation.batchSize)
   }
 
   /**
-   * Stops the training function and disconnects from
+   * Format accuracy
    */
-  async stopTraining () {
-    this.trainingManager().stopTraining()
-    if (this.isConnected) {
-      await this.client.disconnect()
-      this.isConnected = false
-    }
-    this.logger.success('Training was successfully interrupted.')
-    this.isTraining = false
+  _formatAccuracy (accuracy) {
+    return (accuracy * 100).toFixed(2)
+  }
+
+  _logAccuracy (accuracy, validationAccuracy) {
+    logger.success(
+      `Train Accuracy: ${accuracy},
+      Val Accuracy:  ${validationAccuracy}\n`
+    )
+  }
+
+  _logBatchEnd (batch, accuracy) {
+    logger.success(`On batch end:${batch}`)
+    logger.success(`Train Accuracy: ${accuracy}`)
   }
 }
-
-export default Trainer

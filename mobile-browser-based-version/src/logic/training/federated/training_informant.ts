@@ -282,7 +282,7 @@ export class TrainingInformant {
    */
   updateGraph (validationAccuracy, trainingAccuracy) {
     this._updateValidationAccuracyGraph(validationAccuracy)
-    this._updateTrainingAccuracygraph(trainingAccuracy)
+    this._updateTrainingAccuracyGraph(trainingAccuracy)
   }
 
   /**
@@ -299,7 +299,7 @@ export class TrainingInformant {
    *  Updates the data to be displayed on the training accuracy graph.
    * @param {Number} trainingAccuracy the current training accuracy of the model
    */
-  _updateTrainingAccuracygraph (trainingAccuracy) {
+  _updateTrainingAccuracyGraph (trainingAccuracy) {
     this.trainingAccuracyDataSerie.push(trainingAccuracy)
     this.trainingAccuracyDataSerie.splice(0, 1)
     this.currentTrainingAccuracy = trainingAccuracy
