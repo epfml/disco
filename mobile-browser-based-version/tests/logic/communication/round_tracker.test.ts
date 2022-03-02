@@ -1,29 +1,6 @@
 import { expect } from 'chai'
 
-import { Client } from '../../../src/logic/communication/client'
-
-const mockUrl = ''
-const mockTask = ''
-
-class MockClient extends Client {
-  async connect (epochs?: any): Promise<any> {
-    console.log('mock connect')
-  }
-
-  disconnect (): void {
-    console.log('mock disconnect')
-  }
-
-  async onRoundEndCommunication (model: any, batch: any, batchSize: any, trainSize: any, roundDuration: any, epoch: any, trainingInformant: any): Promise<void> {
-    console.log('mock onRoundEndCommunication')
-  }
-
-  async onTrainEndCommunication (model, trainingInformant) {
-    console.log('mock onTrainEndCommunication')
-  }
-}
-
-const client = new MockClient(mockUrl, mockTask)
+import { RoundTracker } from '../../../src/logic/training/round_tracker'
 
 const roundDurationIsOne = [
   // batch, batchSize, trainSize, roundDuration, epoch
@@ -52,32 +29,47 @@ const roundDurationGreaterThanOne = [
   { values: [5, 1, 10, 1.5, 0], output: false }
 ]
 
-describe('Client test: _numberOfBatchesInAnEpoch', () => {
+describe('RoundTracker test: _numberOfBatchesInAnEpoch', () => {
   it('Simple test', () => {
     let batchSize = 5
     let trainSize = 10
-    expect(client._numberOfBatchesInAnEpoch(trainSize, batchSize)).equal(2)
+    expect(RoundTracker.numberOfBatchesInAnEpoch(trainSize, batchSize)).equal(2)
     // Titanic example
     batchSize = 4
     trainSize = 10
-    expect(client._numberOfBatchesInAnEpoch(trainSize, batchSize)).equal(3)
+    expect(RoundTracker.numberOfBatchesInAnEpoch(trainSize, batchSize)).equal(3)
   })
 })
 
-describe('Client test: _localRoundHasEnded', () => {
+describe('RoundTracker test: _localRoundHasEnded', () => {
   it('Case: roundDuration == 1', () => {
     roundDurationIsOne.forEach((example) => {
-      expect(client._localRoundHasEnded(example.values[0], example.values[1], example.values[2], example.values[3], example.values[4])).equal(example.output)
+      const batchSize = example.values[1]
+      const trainSize = example.values[2]
+      const roundDuration = example.values[3]
+      const epoch = example.values[4]
+      const roundTracker = new RoundTracker(roundDuration, trainSize, batchSize, epoch)
+      expect(roundTracker.roundHasEnded(example.values[0])).equal(example.output)
     })
   })
   it('Case: roundDuration < 1', () => {
     roundDurationLessThanOne.forEach((example) => {
-      expect(client._localRoundHasEnded(example.values[0], example.values[1], example.values[2], example.values[3], example.values[4])).equal(example.output)
+      const batchSize = example.values[1]
+      const trainSize = example.values[2]
+      const roundDuration = example.values[3]
+      const epoch = example.values[4]
+      const roundTracker = new RoundTracker(roundDuration, trainSize, batchSize, epoch)
+      expect(roundTracker.roundHasEnded(example.values[0])).equal(example.output)
     })
   })
   it('Case: roundDuration > 1', () => {
     roundDurationGreaterThanOne.forEach((example) => {
-      expect(client._localRoundHasEnded(example.values[0], example.values[1], example.values[2], example.values[3], example.values[4])).equal(example.output)
+      const batchSize = example.values[1]
+      const trainSize = example.values[2]
+      const roundDuration = example.values[3]
+      const epoch = example.values[4]
+      const roundTracker = new RoundTracker(roundDuration, trainSize, batchSize, epoch)
+      expect(roundTracker.roundHasEnded(example.values[0])).equal(example.output)
     })
   })
 })

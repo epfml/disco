@@ -41,7 +41,7 @@
     "trainingInformation": {
       "modelID": "titanic-model",
       "epochs": 20,
-      "roundDuration": 5,
+      "roundDuration": 1,
       "validationSplit": 0.2,
       "batchSize": 30,
       "preprocessFunctions": [],
