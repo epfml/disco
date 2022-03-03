@@ -3,18 +3,20 @@ import { datasetGenerator } from '../dataset/dataset_generator'
 import * as tf from '@tensorflow/tfjs'
 import { logger } from '../logging/console_logger'
 import { Client } from '../communication/client'
+import { Task, TrainingInformation } from '../task_definition/base/task'
 import { RoundTracker } from './round_tracker'
+import { TrainingInformant } from './training_informant'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally or in a distributed way.
  */
 export abstract class Trainer {
-  task: any; // TODO: use class type
+  task: Task;
   client: Client;
-  trainingInformant: any; // TODO: use class type
+  trainingInformant: TrainingInformant;
   useIndexedDB: boolean;
   stopTrainingRequested: boolean;
-  model: any;
+  model: tf.LayersModel;
   data: any; // TODO: use class type @s314cy once you have created the dataset class
   labels: any; // TODO: use class type @s314cy once you have created the dataset class
   roundTracker: RoundTracker
@@ -26,7 +28,7 @@ export abstract class Trainer {
    * @param {Object} trainingInformant the training informant
    * @param {Boolean} useIndexedDB use IndexedDB (browser only)
    */
-  constructor (task, client, trainingInformant, useIndexedDB, roundTracker) {
+  constructor (task: Task, client: Client, trainingInformant: TrainingInformant, useIndexedDB: boolean, roundTracker: RoundTracker) {
     this.task = task
     this.client = client
     this.trainingInformant = trainingInformant
@@ -96,7 +98,10 @@ export abstract class Trainer {
     this.model.compile(info.modelCompileData)
 
     if (info.learningRate) {
-      this.model.optimizer.learningRate = info.learningRate
+      // TODO: Not the right way to change learningRate and hence we cast to any
+      // the right way is to construct the optimiser and pass learningRate via
+      // argument.
+      (this.model.optimizer as any).learningRate = info.learningRate
     }
 
     // Ensure training can start
@@ -110,9 +115,11 @@ export abstract class Trainer {
    * @param {Object} trainingInformation Training information containing the training parameters
    * @param {Object} callbacks Callabcks used during training
    */
-  async _modelFitDataBatchWise (model, trainingInformation, callbacks) {
+  async _modelFitDataBatchWise (model, trainingInformation: TrainingInformation, callbacks) {
     const trainData = this._buildTrainDataset(trainingInformation)
     const valData = this._buildValidationDataset(trainingInformation)
+
+    console.log('type of model', typeof (model))
 
     await model.fitDataset(trainData, {
       epochs: trainingInformation.epochs,
@@ -124,7 +131,7 @@ export abstract class Trainer {
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
-  _onEpochEnd (accuracy, validationAccuracy) {
+  _onEpochEnd (accuracy: number, validationAccuracy: number) {
     console.log('Epoch end', this._formatAccuracy(accuracy), this._formatAccuracy(validationAccuracy))
     // updateGraph does not work in onBatchEnd since we do not get validation accuracy.
     this.trainingInformant.updateGraph(this._formatAccuracy(accuracy), this._formatAccuracy(validationAccuracy))
@@ -145,7 +152,7 @@ export abstract class Trainer {
    * - Log information
    * - stop training if requested.
    */
-  _onBatchEnd (batch, accuracy, trainingInformation) {
+  _onBatchEnd (batch: number, accuracy: string, trainingInformation: TrainingInformation) {
     this.roundTracker.updateBatch()
     this._logBatchEnd(batch, accuracy)
     this._stopTrainModelIfRequested()
@@ -163,7 +170,7 @@ export abstract class Trainer {
    * @param trainingInformation
    * @returns
    */
-  _buildTrainDataset (trainingInformation) {
+  _buildTrainDataset (trainingInformation: TrainingInformation) {
     return tf.data
       .generator(
         datasetGenerator(
@@ -183,7 +190,7 @@ export abstract class Trainer {
    * @param trainingInformation
    * @returns
    */
-  _buildValidationDataset (trainingInformation) {
+  _buildValidationDataset (trainingInformation: TrainingInformation) {
     return tf.data
       .generator(
         datasetGenerator(
@@ -202,18 +209,18 @@ export abstract class Trainer {
   /**
    * Format accuracy
    */
-  _formatAccuracy (accuracy) {
+  _formatAccuracy (accuracy: number) {
     return (accuracy * 100).toFixed(2)
   }
 
-  _logAccuracy (accuracy, validationAccuracy) {
+  _logAccuracy (accuracy: number, validationAccuracy: number) {
     logger.success(
       `Train Accuracy: ${accuracy},
       Val Accuracy:  ${validationAccuracy}\n`
     )
   }
 
-  _logBatchEnd (batch, accuracy) {
+  _logBatchEnd (batch: number, accuracy: string) {
     logger.success(`On batch end:${batch}`)
     logger.success(`Train Accuracy: ${accuracy}`)
   }

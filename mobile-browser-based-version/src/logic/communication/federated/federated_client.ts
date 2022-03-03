@@ -2,6 +2,8 @@ import * as msgpack from 'msgpack-lite'
 import { makeID } from '../authenticator'
 import { serializeWeights } from '../tensor_serializer'
 import { Client } from '../client'
+import { Task } from '@/logic/task_definition/base/task'
+import { TrainingInformant } from '@/logic/training/training_informant'
 import * as api from './api'
 
 /**
@@ -19,7 +21,7 @@ export class FederatedClient extends Client {
    * @param {Task} task The associated task object.
    * @param {Number} round The training round.
    */
-  constructor (serverURL, task) {
+  constructor (serverURL: string, task: Task) {
     super(serverURL, task)
     this.clientID = ''
     this.modelUpdateIsBasedOnRoundNumber = -1 // The server starts at round 0, in the beginning we are behind
@@ -126,12 +128,12 @@ export class FederatedClient extends Client {
     }
   }
 
-  async onRoundEndCommunication (model, epoch, trainingInformant) {
+  async onRoundEndCommunication (model, round: number, trainingInformant: TrainingInformant) {
     await this._postWeightsToServer(model.weights)
     await this._fetchServerRoundAndUpdateLocalModelIfOld()
   }
 
-  async onTrainEndCommunication (model, trainingInformant) {
+  async onTrainEndCommunication (model, trainingInformant: TrainingInformant) {
     trainingInformant.addMessage('Training finished.')
   }
 }

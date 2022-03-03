@@ -1,7 +1,8 @@
 import { DecentralisedClient } from './decentralised/decentralised_client'
 import { FederatedClient } from './federated/federated_client'
+import { Client } from './client'
 
-export function getClient (platform, task, password: string) {
+export function getClient (platform, task, password: string): Client {
   switch (platform) {
     case 'deai':
       return new DecentralisedClient(
