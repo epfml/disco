@@ -9,6 +9,7 @@ import { RoundTracker } from './round_tracker'
 import { Task } from '../task_definition/base/task'
 import { Logger } from '../logging/logger'
 import { TaskHelper } from '../task_definition/base/task_helper'
+import { Platform } from '../../platforms/platform'
 
 // number of files that should be loaded (required by the task)
 function nbrFiles (task: Task) {
@@ -19,7 +20,7 @@ export class TrainingManager extends ModelActor {
   isConnected: Boolean
   isTraining: Boolean
   distributedTraining: Boolean
-  platform: String
+  platform: Platform
   useIndexedDB: boolean
   client: Client
   trainingInformant: TrainingInformant
@@ -31,7 +32,7 @@ export class TrainingManager extends ModelActor {
    * @param {Logger} logger - logging system (e.g. toaster)
    * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
    */
-  constructor (task: Task, platform, logger: Logger, helper: TaskHelper<Task>, useIndexedDB: boolean) {
+  constructor (task: Task, platform: Platform, logger: Logger, helper: TaskHelper<Task>, useIndexedDB: boolean) {
     super(task, logger, nbrFiles(task), helper)
     this.isConnected = false
     this.isTraining = false
