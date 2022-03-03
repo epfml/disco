@@ -19,7 +19,7 @@ export class ModelActor {
    * @param {Number} nbrFiles - number of files that shall be uploaded to the file upload manager
    * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
    */
-  constructor (task, logger, nbrFiles, helper) {
+  constructor (task: Task, logger: Logger, nbrFiles: number, helper: TaskHelper<Task>) {
     this.task = task
     this.logger = logger
     // Manager for the file uploading process

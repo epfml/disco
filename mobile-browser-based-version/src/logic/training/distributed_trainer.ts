@@ -1,4 +1,5 @@
 import * as memory from '../memory/model_io'
+import { TrainingInformation } from '../task_definition/base/task'
 import { Trainer } from './trainer'
 
 // TODO: user trainingInformant and task as class
@@ -43,8 +44,8 @@ export class DistributedTrainer extends Trainer {
    * Callback called every time a round is over
    */
   async _onRoundEnd (
-    accuracy,
-    trainingInformation
+    accuracy: string,
+    trainingInformation: TrainingInformation
   ) {
     await this.client.onRoundEndCommunication(this.model, this.roundTracker.round, this.trainingInformant)
     if (this.useIndexedDB) {
@@ -67,9 +68,9 @@ export class DistributedTrainer extends Trainer {
    * @param trainingInformation
    */
   async _onBatchEnd (
-    batch,
-    accuracy,
-    trainingInformation
+    batch: number,
+    accuracy: string,
+    trainingInformation: TrainingInformation
   ) {
     // Important to call parent onBatchEnd, this adds additional functionality such as listening to
     // the stop train event and logging.

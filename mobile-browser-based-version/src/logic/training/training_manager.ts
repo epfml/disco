@@ -1,16 +1,19 @@
 import { ModelActor } from '../model_actor'
-import { TrainingInformant } from './decentralised/training_informant'
+import { TrainingInformant } from './training_informant'
 import { Trainer } from './trainer'
 import { LocalTrainer } from './local_trainer'
 import { DistributedTrainer } from './distributed_trainer'
 import { getClient } from '../communication/client_builder'
 import { Client } from '../communication/client'
 import { RoundTracker } from './round_tracker'
+import { Task } from '../task_definition/base/task'
+import { Logger } from '../logging/logger'
+import { TaskHelper } from '../task_definition/base/task_helper'
 
 // number of files that should be loaded (required by the task)
-function nbrFiles (task) {
-  const llist = task.trainingInformation.LABEL_LIST
-  return llist ? llist.length : 1
+function nbrFiles (task: Task) {
+  const labelList = task.trainingInformation.LABEL_LIST
+  return labelList ? labelList.length : 1
 }
 export class TrainingManager extends ModelActor {
   isConnected: Boolean
@@ -28,7 +31,7 @@ export class TrainingManager extends ModelActor {
    * @param {Logger} logger - logging system (e.g. toaster)
    * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
    */
-  constructor (task, platform, logger, helper, useIndexedDB) {
+  constructor (task: Task, platform, logger: Logger, helper: TaskHelper<Task>, useIndexedDB: boolean) {
     super(task, logger, nbrFiles(task), helper)
     this.isConnected = false
     this.isTraining = false
@@ -112,7 +115,7 @@ export class TrainingManager extends ModelActor {
    * Main training function
    * @param {boolean} distributed - use distributed training (true) or local training (false)
    */
-  async joinTraining (distributed) {
+  async joinTraining (distributed: boolean) {
     if (distributed && !this.isConnected) {
       await this.connectClientToServer()
       if (!this.isConnected) {

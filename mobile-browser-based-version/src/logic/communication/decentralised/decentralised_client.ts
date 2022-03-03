@@ -10,6 +10,8 @@ import {
 } from '../tensor_serializer'
 import { checkBufferUntil, checkBufferWeightsUntil } from './check_buffer'
 import { Client } from '../client'
+import { Task } from '@/logic/task_definition/base/task'
+import { TrainingInformant } from '@/logic/training/training_informant'
 import CMD_CODES from './communication_codes'
 const Hashes = require('jshashes')
 
@@ -48,7 +50,7 @@ export class DecentralisedClient extends Client {
   data: any;
   peerConfig: any;
 
-  constructor (serverURL, task, password) {
+  constructor (serverURL: string, task: Task, password: string) {
     /**
      * Note: We need append https and deai to the serverUrl here, since we
      * need to pass the "naked" version in the peerConfig parameter. This is
@@ -75,7 +77,7 @@ export class DecentralisedClient extends Client {
    * @param serverURL
    * @param task
    */
-  initPeerConfig (serverURL, task) {
+  initPeerConfig (serverURL: string, task: Task) {
     this.peerConfig =
       process.env.NODE_ENV === 'development'
         ? {
@@ -113,7 +115,7 @@ export class DecentralisedClient extends Client {
    * Initialize the connection to the PeerJS server.
    * @param {Number} epochs the number of epochs.
    */
-  async connect (epochs) {
+  async connect (epochs: number) {
     /*
      * If the server was just started (either due to having been idle, and then called, or running for the first time),
      * it is necessary to "wake it up" before making the first connection, otherwise the first connection will be ignored.
@@ -158,14 +160,14 @@ export class DecentralisedClient extends Client {
   /**
    * Disconnection process when user quits the task.
    */
-  disconnect () {
+  async disconnect () {
     if (this.peer != null) {
       this.peer.disconnect()
       this.peer.destroy()
     }
   }
 
-  async onRoundEndCommunication (model, epoch, trainingInformant) {
+  async onRoundEndCommunication (model, epoch: number, trainingInformant: TrainingInformant) {
     this.updateReceivers()
     const serializedWeights = await serializeWeights(model.weights)
     // TODO: Should send the current epoch
@@ -250,13 +252,13 @@ export class DecentralisedClient extends Client {
     }
   }
 
-  async onTrainEndCommunication (model, trainingInformant) {
+  async onTrainEndCommunication (model, trainingInformant: TrainingInformant) {
     trainingInformant.addMessage(
       'Entering idle state: seeding for online peers.'
     )
     this.recvBuffer.peer = this
     this.recvBuffer.lastUpdate = {
-      epoch: this.task.trainingInformation.epoch,
+      epoch: this.task.trainingInformation.epochs,
       weights: await serializeWeights(model.weights)
     }
     /**

@@ -1,5 +1,6 @@
 import * as memory from '../memory/model_io'
 import { Trainer } from './trainer'
+import { TrainingInformation } from '../task_definition/base/task'
 
 /** Class whose role is to locally train a model with a given dataset.
  */
@@ -37,8 +38,8 @@ export class LocalTrainer extends Trainer {
    * Callback called every time a round is over
    */
   async _onRoundEnd (
-    accuracy,
-    trainingInformation
+    accuracy: string,
+    trainingInformation: TrainingInformation
   ) {
     if (this.useIndexedDB) {
       await memory.updateWorkingModel(
@@ -54,9 +55,9 @@ export class LocalTrainer extends Trainer {
    * subroutine used in local training
    */
   async _onBatchEnd (
-    batch,
-    accuracy,
-    trainingInformation
+    batch: number,
+    accuracy: string,
+    trainingInformation: TrainingInformation
   ) {
     // Important to call parent onBatchEnd, this adds additional functionality such as listening to
     // the stop train event and logging.
