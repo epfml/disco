@@ -2,60 +2,54 @@
  * Class that keeps track of everything round related.
  *
  * @remark
- * A round is unit of time measured in epochs. The client wishes to share his weights with the
- * server every r rounds. If r = 1.5 that means every 1.5 epochs, the onBatchEnd(batch, log) callback function
- * of TF .fit is used to know when a round is done. Since the given batch in onBatchEnd is not cumulative, i.e.
- * it is 0 after an epoch is done, we need to keep track of the current epoch in training to compute the
- * currentBatchNumberSinceStart which is required in order to know if a round is done.
+ * In distributed training, the client trains locally for a certain amount of epochs before sharing his weights to the server/neighbor, this
+ * is what we call a round. A round is measured in epochs (1 round == 1 epoch), a round can be any number > 0, if roundDuration = 0.5, then
+ * every half epoch we share our weights with the server.
  *
+ * The role of the RoundTracker is to keep track of when a roundHasEnded, to do so in the trainer, onBatchEnd we updateBatch, in order to
+ * keep track of the current batch number. The batch in the RoundTracker is cumulative whereas in the onBatchEnd it is not (it resets to 0
+ * after each epoch).
  */
 export class RoundTracker {
-    round: number;
-    epoch: number;
+    round: number = 0;
+    batch: number = 0;
     roundDuration: number;
     numberOfBatchesInAnEpoch: number
+    batchesPerRound: number
 
-    constructor (roundDuration: number, trainSize: number, batchSize: number, epoch: number = 0) {
-      this.round = 0
-      this.epoch = epoch
+    constructor (roundDuration: number, trainSize: number, batchSize: number) {
       this.roundDuration = roundDuration
       this.numberOfBatchesInAnEpoch = RoundTracker.numberOfBatchesInAnEpoch(trainSize, batchSize)
+      this.batchesPerRound = Math.floor(this.numberOfBatchesInAnEpoch * this.roundDuration)
 
       console.log(`RoundTracker: roundDuration: ${roundDuration}, nb batches in an epoch ${this.numberOfBatchesInAnEpoch}`)
+    }
+
+    updateBatch () {
+      this.batch += 1
     }
 
     /**
    * Returns true if a local round has ended, false otherwise.
    *
    * @remark
-   * Batch is the current batch, this goes from 1, ... , batchSize*trainSize.
-   * Epoch is the current epoch, this goes from 0, 1, ... m
-   *
-   * Returns true if (the current batch number since start) mod (batches per round) == 0, false otherwise
+   * Returns true if (batch) mod (batches per round) == 0, false otherwise
    *
    * E.g if there are 1000 samples in total, and roundDuration is
    * 2.5, withBatchSize 100, then if batch is a multiple of 25, the local round has ended.
    *
    */
-    roundHasEnded (batch: number): boolean {
-      if (batch === 0 && this.epoch === 0) {
+    roundHasEnded (): boolean {
+      if (this.batch === 0) {
         return false
       }
-      const batchesPerRound = Math.floor(this.numberOfBatchesInAnEpoch * this.roundDuration)
-      const currentBatchNumberSinceStart = batch + (this.epoch * this.numberOfBatchesInAnEpoch)
-      const roundHasEnded = currentBatchNumberSinceStart % batchesPerRound === 0
+
+      const roundHasEnded = this.batch % this.batchesPerRound === 0
       if (roundHasEnded) {
         this.round += 1
         console.log('Round has ended.')
       }
       return roundHasEnded
-    }
-
-    /**
-     * To be called at onEpochEnd in order to keep track of the current epoch
-     */
-    updateEpoch () {
-      this.epoch += 1
     }
 
     /**

@@ -44,32 +44,38 @@ describe('RoundTracker test: _numberOfBatchesInAnEpoch', () => {
 describe('RoundTracker test: _localRoundHasEnded', () => {
   it('Case: roundDuration == 1', () => {
     roundDurationIsOne.forEach((example) => {
+      const batch = example.values[0]
       const batchSize = example.values[1]
       const trainSize = example.values[2]
       const roundDuration = example.values[3]
       const epoch = example.values[4]
-      const roundTracker = new RoundTracker(roundDuration, trainSize, batchSize, epoch)
-      expect(roundTracker.roundHasEnded(example.values[0])).equal(example.output)
+      const roundTracker = new RoundTracker(roundDuration, trainSize, batchSize)
+      roundTracker.batch = batch + epoch * roundTracker.numberOfBatchesInAnEpoch
+      expect(roundTracker.roundHasEnded()).equal(example.output)
     })
   })
   it('Case: roundDuration < 1', () => {
     roundDurationLessThanOne.forEach((example) => {
+      const batch = example.values[0]
       const batchSize = example.values[1]
       const trainSize = example.values[2]
       const roundDuration = example.values[3]
       const epoch = example.values[4]
-      const roundTracker = new RoundTracker(roundDuration, trainSize, batchSize, epoch)
-      expect(roundTracker.roundHasEnded(example.values[0])).equal(example.output)
+      const roundTracker = new RoundTracker(roundDuration, trainSize, batchSize)
+      roundTracker.batch = batch + epoch * roundTracker.numberOfBatchesInAnEpoch
+      expect(roundTracker.roundHasEnded()).equal(example.output)
     })
   })
   it('Case: roundDuration > 1', () => {
     roundDurationGreaterThanOne.forEach((example) => {
+      const batch = example.values[0]
       const batchSize = example.values[1]
       const trainSize = example.values[2]
       const roundDuration = example.values[3]
       const epoch = example.values[4]
-      const roundTracker = new RoundTracker(roundDuration, trainSize, batchSize, epoch)
-      expect(roundTracker.roundHasEnded(example.values[0])).equal(example.output)
+      const roundTracker = new RoundTracker(roundDuration, trainSize, batchSize)
+      roundTracker.batch = batch + epoch * roundTracker.numberOfBatchesInAnEpoch
+      expect(roundTracker.roundHasEnded()).equal(example.output)
     })
   })
 })

@@ -61,7 +61,7 @@ export class LocalTrainer extends Trainer {
     // Important to call parent onBatchEnd, this adds additional functionality such as listening to
     // the stop train event and logging.
     super._onBatchEnd(batch, accuracy, trainingInformation)
-    if (this.roundTracker.roundHasEnded(batch)) {
+    if (this.roundTracker.roundHasEnded()) {
       this._onRoundEnd(
         accuracy,
         trainingInformation
