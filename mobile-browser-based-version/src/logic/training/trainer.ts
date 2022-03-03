@@ -122,11 +122,9 @@ export abstract class Trainer {
   }
 
   /**
-   * We update the epoch for the round manager (he needs this to keep track of rounds).
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
   _onEpochEnd (accuracy, validationAccuracy) {
-    this.roundTracker.updateEpoch()
     console.log('Epoch end', this._formatAccuracy(accuracy), this._formatAccuracy(validationAccuracy))
     // updateGraph does not work in onBatchEnd since we do not get validation accuracy.
     this.trainingInformant.updateGraph(this._formatAccuracy(accuracy), this._formatAccuracy(validationAccuracy))
@@ -148,6 +146,7 @@ export abstract class Trainer {
    * - stop training if requested.
    */
   _onBatchEnd (batch, accuracy, trainingInformation) {
+    this.roundTracker.updateBatch()
     this._logBatchEnd(batch, accuracy)
     this._stopTrainModelIfRequested()
   }

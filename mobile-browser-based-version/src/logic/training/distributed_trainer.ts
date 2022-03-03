@@ -46,7 +46,7 @@ export class DistributedTrainer extends Trainer {
     accuracy,
     trainingInformation
   ) {
-    await this.client.onRoundEndCommunication(this.model, this.roundTracker.epoch, this.trainingInformant)
+    await this.client.onRoundEndCommunication(this.model, this.roundTracker.round, this.trainingInformant)
     if (this.useIndexedDB) {
       await memory.updateWorkingModel(
         this.task.taskID,
@@ -74,7 +74,7 @@ export class DistributedTrainer extends Trainer {
     // Important to call parent onBatchEnd, this adds additional functionality such as listening to
     // the stop train event and logging.
     super._onBatchEnd(batch, accuracy, trainingInformation)
-    if (this.roundTracker.roundHasEnded(batch)) {
+    if (this.roundTracker.roundHasEnded()) {
       this._onRoundEnd(
         accuracy,
         trainingInformation
