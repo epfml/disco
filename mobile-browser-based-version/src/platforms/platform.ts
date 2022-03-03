@@ -1,4 +1,5 @@
-export const Platform = Object.freeze({
-  decentralized: 'deai',
-  federated: 'feai'
-})
+/* eslint-disable no-unused-vars */
+export enum Platform {
+  decentralized = 'deai',
+  federated = 'feai'
+}

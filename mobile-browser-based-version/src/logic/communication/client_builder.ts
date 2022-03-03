@@ -1,18 +1,18 @@
 import { DecentralisedClient } from './decentralised/decentralised_client'
 import { FederatedClient } from './federated/federated_client'
 import { Client } from './client'
+import { Task } from '../task_definition/base/task'
+import { Platform } from '../../platforms/platform'
 
-export function getClient (platform, task, password: string): Client {
+export function getClient (platform: Platform, task: Task, password: string): Client {
   switch (platform) {
-    case 'deai':
+    case Platform.decentralized:
       return new DecentralisedClient(
         process.env.VUE_APP_DEAI_SERVER,
         task,
         password
       )
-    case 'feai':
+    case Platform.federated:
       return new FederatedClient(process.env.VUE_APP_FEAI_SERVER, task)
-    default:
-      throw new Error('Platform does not exist')
   }
 }
