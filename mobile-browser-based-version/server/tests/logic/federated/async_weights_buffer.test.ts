@@ -13,9 +13,9 @@ const mockAggregateAndStoreWeights = async (_weights: any) => {
   mockUpdatedWeights = _weights
 }
 
-describe('AsyncWeightHandler tests', () => {
+describe('AsyncWeightBuffer tests', () => {
   it('add weight with old time stamp returns false', async () => {
-    const t0 = -1 //
+    const t0 = -1
     const asyncWeightBuffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     expect(await asyncWeightBuffer.add(id, weights[0], t0)).false
   })
