@@ -106,7 +106,7 @@ export default defineComponent({
     /**
      * Use IndexedDB by default if it is available.
      */
-    this.setIndexedDB(window.indexedDB)
+    this.setIndexedDB(!!window.indexedDB)
     /**
      * Initialize the global variable "isDark" to the
      * browser-saved theme.

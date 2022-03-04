@@ -9,7 +9,7 @@ import {
   assignWeightsToModel
 } from './tensor_helpers/tensor_serializer'
 import { getTasks } from '../../tasks/tasks_io'
-import { AsyncWeightsHolder } from './async_weights_holder'
+import { AsyncWeightsBuffer } from './async_weights_buffer'
 import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
@@ -26,42 +26,12 @@ const REQUEST_TYPES = Object.freeze({
   GET_METADATA: 'get-metadata',
   GET_TASKS: 'get-tasks'
 })
-/**
- * Fraction of client gradients required on the final step of a round
- * to proceed to the aggregation step.
- */
-const AGGREGATION_THRESHOLD = 0.8
-/**
- * Absolute number of selected clients required to start the next round.
- */
-const ROUND_THRESHOLD = 2
-/**
- * Once a certain threshold has been hit, leave a small time window (in ms) for
- * late clients to join the next round.
- */
-const ROUND_COUNTDOWN = 1000 * 10
-/**
- * Once a certain threshold has been hit, leave a small time window (in ms) for
- * late clients to contribute to the round's aggregated model.
- */
-const AGGREGATION_COUNTDOWN = 1000 * 3
-/**
- * Clients that didn't emit any API request within this time delay (in ms) are
- * considered as idle and are consequently removed from the required data
- * structures.
- */
-const IDLE_DELAY = 1000 * 10
-/**
- * Same as IDLE_DELAY, except longer for clients that recently connected and thus
- * are not critical nodes (i.e. training nodes).
- */
-const NEW_CLIENT_IDLE_DELAY = 1000 * 60
+
 /**
  * Contains the model weights received from clients for a given task and round.
  * Stored by task ID, round number and client ID.
  */
-const weightsMap = new Map()
-const asyncWeightsMap: Map<string, AsyncWeightsHolder> = new Map()
+const asyncWeightsMap: Map<string, AsyncWeightsBuffer> = new Map()
 const BUFFER_CAPACITY = 2
 /**
  * Contains metadata used for training by clients for a given task and round.
@@ -95,12 +65,6 @@ const activeClients = new Map()
  */
 const selectedClients = new Map()
 /**
- * Contains client IDs queued for the next round's selection. Maps a task ID to a set
- * of queued clients. Disconnected clients should always be removed from the
- * corresponding set of queued set.
- */
-const selectedClientsQueue = new Map()
-/**
  * Maps a task to a status object. Currently provides the round number and
  * round status for each task.
  */
@@ -109,10 +73,17 @@ const tasksStatus = new Map()
  * Initialize the data structures declared above.
  */
 getTasks(config)?.forEach((task) => {
-  selectedClients.set(task.taskID, new Set())
-  selectedClientsQueue.set(task.taskID, new Set())
   tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 })
+  _initAsyncWeightsBufferIfNotExists(task)
 })
+
+// Inits the AsyncWeightsBuffer for the task if it does not yet exist.
+function _initAsyncWeightsBufferIfNotExists (task) {
+  if (!asyncWeightsMap.has(task)) {
+    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
+    asyncWeightsMap.set(task, new AsyncWeightsBuffer(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
+  }
+}
 
 /**
  * Verifies that the given POST request is correctly formatted. Its body must
@@ -182,27 +153,6 @@ function _logsAppend (request, type) {
   })
 }
 
-function _startNextRound (task, threshold, countdown) {
-  let queueSize = selectedClientsQueue.get(task).size
-  if (queueSize >= threshold) {
-    setTimeout(() => {
-      queueSize = selectedClientsQueue.get(task).size
-      if (queueSize >= threshold && !tasksStatus.get(task).isRoundPending) {
-        tasksStatus.get(task).isRoundPending = true
-
-        console.log('* queue: ', selectedClientsQueue.get(task))
-        console.log('* selected clients: ', selectedClients.get(task))
-
-        selectedClients.set(task, new Set([...selectedClientsQueue.get(task)]))
-        selectedClientsQueue.get(task).clear()
-
-        console.log('* empty queue: ', selectedClientsQueue.get(task))
-        console.log('* new selected clients: ', selectedClients.get(task))
-      }
-    }, countdown)
-  }
-}
-
 async function _aggregateAndStoreWeights (weights, task) {
   // TODO: check whether this actually works
   const serializedAggregatedWeights = await averageWeights(
@@ -222,43 +172,6 @@ async function _aggregateAndStoreWeights (weights, task) {
   const model = await tf.loadLayersModel(modelFilesPath)
   assignWeightsToModel(model, serializedAggregatedWeights)
   model.save(path.dirname(modelFilesPath))
-}
-
-async function _aggregateWeightsForRound (task, round, id) {
-  const weights = Array.from(weightsMap.get(task).get(round).values())
-
-  console.log(`Updating ${task} model`)
-  _aggregateAndStoreWeights(weights, task)
-
-  /**
-   * The round has completed.
-   */
-  tasksStatus.get(task).isRoundPending = false
-  /**
-   * Communicate the correct round to selected clients.
-   */
-  tasksStatus.get(task).round += 1
-  /**
-   * Start next round.
-   */
-  _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN)
-}
-
-function _checkForIdleClients (client, delay) {
-  setTimeout(() => {
-    if (activeClients.has(client)) {
-      console.log(`Checking ${client} for activity`)
-      if (activeClients.get(client).requests === 0) {
-        console.log(`Removing idle client ${client}`)
-        clients.delete(client)
-        activeClients.delete(client)
-        selectedClients.delete(client)
-        selectedClientsQueue.delete(client)
-      } else {
-        activeClients.get(client).requests -= 1
-      }
-    }
-  }, delay)
 }
 
 /**
@@ -289,53 +202,6 @@ export function queryLogs (request, response) {
     )
 }
 
-export function selectionStatus (request, response) {
-  const type = REQUEST_TYPES.SELECTION_STATUS
-
-  const task = request.params.task
-  const id = request.params.id
-
-  if (!clients.has(id)) {
-    return _failRequest(response, type, 401)
-  }
-  if (!tasksStatus.has(task)) {
-    return _failRequest(response, type, 404)
-  }
-
-  _logsAppend(request, type)
-
-  response.status(200)
-
-  console.log(`Client with ID ${id} asked to get selected`)
-  console.log('* selected clients: ', selectedClients.get(task))
-  console.log('* queued clients: ', selectedClientsQueue.get(task))
-  console.log(
-    `=> selected? ${selectedClients.get(task).has(id) ? 'yes' : 'no'}`
-  )
-
-  if (selectedClients.get(task).has(id)) {
-    /**
-     * Selection status "2" means the client is selected by the server and can proceed
-     * to the next round. The client that emitted the request updates their local round
-     * with the one provided by the server.
-     */
-    response.send({ selected: 2, round: tasksStatus.get(task).round })
-  } else if (tasksStatus.get(task).isRoundPending) {
-    /**
-     * If the round is pending, this means the client that requested
-     * to be selected should now wait for weights aggregation from the server.
-     * This ensures late clients start their rounds with the most recent model.
-     */
-    response.send({ selected: 1 })
-  } else {
-    selectedClientsQueue.get(task).add(id)
-    response.send({ selected: 0 })
-    _startNextRound(task, ROUND_THRESHOLD, ROUND_COUNTDOWN)
-  }
-  activeClients.get(id).requests += 1
-  _checkForIdleClients(id, IDLE_DELAY)
-}
-
 /**
  * Entry point to the server's API. Any client must go through this connection
  * process before making any subsequent POST requests to the server related to
@@ -361,9 +227,6 @@ export function connect (request, response) {
   clients.add(id)
   console.log(`Client with ID ${id} connected to the server`)
   response.status(200).send()
-
-  activeClients.set(id, { requests: 0 })
-  _checkForIdleClients(id, NEW_CLIENT_IDLE_DELAY)
 }
 
 /**
@@ -390,77 +253,9 @@ export function disconnect (request, response) {
 
   clients.delete(id)
   activeClients.delete(id)
-  selectedClients.get(task).delete(id)
-  selectedClientsQueue.get(task).delete(id)
 
   console.log(`Client with ID ${id} disconnected from the server`)
   response.status(200).send()
-}
-
-/**
- * Request handler called when a client sends a GET request containing their
- * individual model weights to the server while training a task. The request is
- * made for a given task and round. The request's body must contain:
- * - the client's ID
- * - a timestamp corresponding to the time at which the request was made
- * - the client's weights
- * @param {Request} request received from client
- * @param {Response} response sent to client
- */
-export function postWeights (request, response) {
-  const type = REQUEST_TYPES.POST_WEIGHTS
-
-  const code = _checkRequest(request)
-  if (code !== 200) {
-    return _failRequest(response, type, code)
-  }
-
-  const task = request.params.task
-  const round = request.params.round
-  const id = request.params.id
-
-  if (
-    request.body === undefined ||
-    request.body.weights === undefined ||
-    request.body.weights.data === undefined
-  ) {
-    return _failRequest(response, type, 400)
-  }
-
-  const encodedWeights = request.body.weights
-
-  _logsAppend(request, type)
-
-  if (!weightsMap.has(task)) {
-    weightsMap.set(task, new Map())
-  }
-
-  if (!weightsMap.get(task).has(round)) {
-    weightsMap.get(task).set(round, new Map())
-  }
-
-  /**
-   * Check whether the client already sent their local weights for this round.
-   */
-  if (!weightsMap.get(task).get(round).has(id)) {
-    const weights = msgpack.decode(Uint8Array.from(encodedWeights.data))
-    weightsMap.get(task).get(round).set(id, weights)
-  }
-  response.status(200).send()
-
-  activeClients.get(id).requests += 1
-  _checkForIdleClients(id, IDLE_DELAY)
-
-  /**
-   * Check whether enough clients sent their local weights to proceed to
-   * weights aggregation.
-   */
-  if (
-    weightsMap.get(task).get(round).size >=
-    Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
-  ) {
-    setTimeout(() => _aggregateWeightsForRound(task, round, id), AGGREGATION_COUNTDOWN)
-  }
 }
 
 /**
@@ -469,7 +264,7 @@ export function postWeights (request, response) {
  * @param response
  * @returns
  */
-function _checkPostAsyncWeights (request, response) {
+function _checkPostWeights (request, response) {
   const type = REQUEST_TYPES.POST_ASYNC_WEIGHTS
 
   const code = _checkIfHasValidTaskAndId(request)
@@ -494,14 +289,6 @@ function _decodeWeights (request) {
   return msgpack.decode(Uint8Array.from(encodedWeights.data))
 }
 
-// Inits the AsyncWeightsHolder for the task if it does not yet exist.
-function _initAsyncWeightsHolderIfNotExists (task) {
-  if (!asyncWeightsMap.has(task)) {
-    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
-    asyncWeightsMap.set(task, new AsyncWeightsHolder(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
-  }
-}
-
 /**
  * Post weights to the async weights holder, returns true in response if successful, and false otherwise.
  * It is successful if task and user id exist + weight corresponds to a recent round (see AsyncWeightHolder class for more info on this).
@@ -509,8 +296,8 @@ function _initAsyncWeightsHolderIfNotExists (task) {
  * @param response
  * @returns
  */
-export async function postAsyncWeights (request, response) {
-  const codeFromCheckingValidity = _checkPostAsyncWeights(request, response)
+export async function postWeights (request, response) {
+  const codeFromCheckingValidity = _checkPostWeights(request, response)
   if (codeFromCheckingValidity !== 200) {
     return codeFromCheckingValidity
   }
@@ -518,7 +305,7 @@ export async function postAsyncWeights (request, response) {
   const task = request.params.task
   const id = request.params.id
 
-  _initAsyncWeightsHolderIfNotExists(task)
+  _initAsyncWeightsBufferIfNotExists(task)
 
   const weights = _decodeWeights(request)
 
@@ -534,7 +321,7 @@ export async function postAsyncWeights (request, response) {
  * @param response
  * @returns
  */
-export async function getAsyncRound (request, response) {
+export async function getRound (request, response) {
   // Check for errors
   const type = REQUEST_TYPES.GET_ASYNC_ROUND
   const code = _checkIfHasValidTaskAndId(request)
@@ -544,76 +331,13 @@ export async function getAsyncRound (request, response) {
 
   const task = request.params.task
 
-  _initAsyncWeightsHolderIfNotExists(task)
+  _initAsyncWeightsBufferIfNotExists(task)
 
   // Get latest round
   const round = asyncWeightsMap.get(task).round
 
   // Send back latest round
   response.status(200).send({ round: round })
-}
-
-/**
- * Request handler called when a client sends a POST request asking for
- * the averaged model weights stored on server while training a task. The
- * request is made for a given task and round. The request succeeds once
- * CLIENTS_THRESHOLD % of clients sent their individual weights to the server
- * for the given task and round. Every MODEL_SAVE_TIMESTEP rounds into the task,
- * the requested averaged weights are saved under a JSON file at milestones/.
- * The request's body must contain:
- * - the client's ID
- * - a timestamp corresponding to the time at which the request was made
- * @param {Request} request received from client
- * @param {Response} response sent to client
- */
-export async function aggregationStatus (request, response) {
-  const type = REQUEST_TYPES.AGGREGATION_STATUS
-
-  const task = request.params.task
-  const round = request.params.round
-  const id = request.params.id
-
-  if (!clients.has(id)) {
-    return _failRequest(response, type, 401)
-  }
-  if (!tasksStatus.has(task)) {
-    return _failRequest(response, type, 404)
-  }
-
-  _logsAppend(request, type)
-
-  response.status(200)
-  if (!(weightsMap.has(task) && weightsMap.get(task).has(round))) {
-    /**
-     * If the round has no weights entry, this must come
-     * from a late client.
-     */
-    response.send({ aggregated: 0 })
-  } else if (
-    !tasksStatus.get(task).isRoundPending &&
-    round < tasksStatus.get(task).round
-  ) {
-    /**
-     * If aggregation occurred, make the client wait to get selected for next round so
-     * it can proceed to other jobs. Does nothing if this is a late client.
-     */
-    selectedClients.get(task).delete(id)
-    response.send({ aggregated: 1 })
-  } else if (
-    weightsMap.get(task).get(round).size >=
-    Math.round(selectedClients.get(task).size * AGGREGATION_THRESHOLD)
-  ) {
-    /**
-     * To avoid any blocking state due to the disconnection of selected clients, allow
-     * this request to perform aggregation. This is merely a safeguard. Ideally, this
-     * should obviously be performed by the `postWeights` request handler directly, to
-     * avoid any unnecessary delay.
-     */
-    setTimeout(() => _aggregateWeightsForRound(task, round, id), AGGREGATION_COUNTDOWN)
-    response.send({ aggregated: 0 })
-  }
-  activeClients.get(id).requests += 1
-  _checkForIdleClients(id, IDLE_DELAY)
 }
 
 /**
@@ -664,7 +388,6 @@ export function postMetadata (request, response) {
   response.status(200).send()
 
   activeClients.get(id).requests += 1
-  _checkForIdleClients(id, IDLE_DELAY)
 }
 
 /**
@@ -723,7 +446,6 @@ export function getMetadataMap (request, response) {
   response.status(200).send({ metadata: metadataMap })
 
   activeClients.get(id).requests += 1
-  _checkForIdleClients(id, IDLE_DELAY)
 }
 
 /**

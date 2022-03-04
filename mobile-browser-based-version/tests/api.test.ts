@@ -20,17 +20,10 @@ describe('api test', () => { // the tests container
     })
   })
 
-  it('getAsyncRound', async () => {
+  it('getRound', async () => {
     await api.connect(task, user)
-    const resp = await api.getAsyncRound(task, user)
-    expect(resp.data.round).equal(0)
-    await api.disconnect(task, user)
-  })
-
-  it('getAsyncRound at server init', async () => {
-    await api.connect(task, user)
-    const resp = await api.getAsyncRound(task, user)
-    expect(resp.data.round).equal(0)
+    const resp = await api.getRound(task, user)
+    expect(resp.data.round).greaterThanOrEqual(0) // Since the server you are running might have trained and round > 0
     await api.disconnect(task, user)
   })
 })
