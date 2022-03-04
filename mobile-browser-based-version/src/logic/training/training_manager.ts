@@ -1,15 +1,13 @@
 import { ModelActor } from '../model_actor'
 import { TrainingInformant } from './training_informant'
-import { Trainer } from './trainer'
-import { LocalTrainer } from './local_trainer'
-import { DistributedTrainer } from './distributed_trainer'
+import { Trainer } from './trainer/trainer'
 import { getClient } from '../communication/client_builder'
 import { Client } from '../communication/client'
-import { RoundTracker } from './round_tracker'
 import { Task } from '../task_definition/base/task'
 import { Logger } from '../logging/logger'
 import { TaskHelper } from '../task_definition/base/task_helper'
 import { Platform } from '../../platforms/platform'
+import { TrainerBuilder } from './trainer/trainer_builder'
 
 // number of files that should be loaded (required by the task)
 function nbrFiles (task: Task) {
@@ -49,41 +47,30 @@ export class TrainingManager extends ModelActor {
   }
 
   /**
-   * Build a round tracker, this keeps track of what round a training environment is currently on.
+   * Build the appropriate training class (either local or distributed)
    */
-  _buildRoundTracker (dataset) {
-    const batchSize = this.task.trainingInformation.batchSize
-    const roundDuration = this.task.trainingInformation.roundDuration
-    const trainSize = this._getTrainSize(dataset)
-    return new RoundTracker(roundDuration, trainSize, batchSize)
+  private async initTrainer (dataset) {
+    const trainerBuilder = new TrainerBuilder(
+      this.useIndexedDB, this.task, this.trainingInformant
+    )
+    const trainSize = this.getTrainSize(dataset)
+    const trainer = await (this.distributedTraining
+      ? trainerBuilder.buildDistributedTrainer(trainSize, this.client)
+      : trainerBuilder.buildLocalTrainer(trainSize))
+
+    // make property un-reactive through anonymous function accessor
+    // otherwise get unexpected TFJS error due to Vue double bindings
+    // on the loaded model
+    this.trainer = () => trainer
   }
 
   /**
    * TODO: can be integrated to the dataset classes @s314cy
    * Get the number of samples in the training set.
    */
-  _getTrainSize (dataset): number {
+  private getTrainSize (dataset): number {
     const trainSplit = 1 - this.task.trainingInformation.validationSplit
     return dataset.Xtrain.shape[0] * trainSplit
-  }
-
-  /**
-   * Build the appropriate training class (either local or distributed)
-   */
-  _initTrainer (dataset) {
-    const TrainerClass = this.distributedTraining ? DistributedTrainer : LocalTrainer
-    const trainer = new TrainerClass(
-      this.task,
-      this.client,
-      this.trainingInformant,
-      this.useIndexedDB,
-      this._buildRoundTracker(dataset)
-    )
-
-    // make property un-reactive through anonymous function accessor
-    // otherwise get unexpected TFJS error due to Vue double bindings
-    // on the loaded model
-    this.trainer = () => trainer
   }
 
   /**
@@ -149,7 +136,7 @@ export class TrainingManager extends ModelActor {
         this.logger.success(
           'Data preprocessing has finished and training has started'
         )
-        this._initTrainer(processedDataset)
+        await this.initTrainer(processedDataset)
         this.trainer().trainModel(processedDataset)
         this.isTraining = true
       } else {

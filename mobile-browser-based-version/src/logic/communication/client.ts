@@ -1,4 +1,3 @@
-import * as tf from '@tensorflow/tfjs'
 import { Task } from '../task_definition/base/task'
 import { TrainingInformant } from '../training/training_informant'
 
@@ -9,12 +8,6 @@ export abstract class Client {
     this.serverURL = serverURL
     this.task = task
   }
-
-  /**
-   * Init holder for federated, we need to fetch latest server round
-   * and model before training.
-   */
-  async updateModelAndRoundFromServer () {}
 
   /**
    * Handles the connection process from the client to any sort of
@@ -43,16 +36,4 @@ export abstract class Client {
    * @param trainingInformant
    */
   abstract onRoundEndCommunication (model, round: number, trainingInformant: TrainingInformant): Promise<void>
-
-  /**
-   *  Display ram usage
-   */
-  _logRamUsage () {
-    console.log(
-      'Training RAM usage is  = ',
-      tf.memory().numBytes * 0.000001,
-      'MB'
-    )
-    console.log('Number of allocated tensors  = ', tf.memory().numTensors)
-  }
 }
