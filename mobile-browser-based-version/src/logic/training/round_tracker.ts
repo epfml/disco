@@ -1,14 +1,13 @@
 /**
- * Class that keeps track of everything round related.
+ * Class that keeps track of the current batch in order for the trainer to query when round has ended.
  *
  * @remark
  * In distributed training, the client trains locally for a certain amount of epochs before sharing his weights to the server/neighbor, this
  * is what we call a round. A round is measured in epochs (1 round == 1 epoch), a round can be any number > 0, if roundDuration = 0.5, then
  * every half epoch we share our weights with the server.
  *
- * The role of the RoundTracker is to keep track of when a roundHasEnded, to do so in the trainer, onBatchEnd we updateBatch, in order to
- * keep track of the current batch number. The batch in the RoundTracker is cumulative whereas in the onBatchEnd it is not (it resets to 0
- * after each epoch).
+ * The role of the RoundTracker is to keep track of when a roundHasEnded using the current batch number. The batch in the RoundTracker is cumulative whereas
+ * in the onBatchEnd it is not (it resets to 0 after each epoch).
  */
 export class RoundTracker {
     round: number = 0;
@@ -25,6 +24,10 @@ export class RoundTracker {
       console.log(`RoundTracker: roundDuration: ${roundDuration}, nb batches in an epoch ${this.numberOfBatchesInAnEpoch}`)
     }
 
+    /**
+     * Update the batch number, to be called inside onBatchEnd. (We do not use batch output of onBatchEnd since it is
+     * not cumulative).
+     */
     updateBatch () {
       this.batch += 1
     }
