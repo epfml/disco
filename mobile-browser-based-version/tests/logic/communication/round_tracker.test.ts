@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { RoundTracker } from '../../../src/logic/training/round_tracker'
+import { RoundTracker } from '../../../src/logic/training/trainer/round_tracker'
 
 const roundDurationIsOne = [
   // batch, batchSize, trainSize, roundDuration, epoch
