@@ -30,15 +30,15 @@ function disconnectHeader (platformID: string, taskID: string, clientID: string)
   return `/${platformID}/disconnect/${taskID}/${clientID}`
 }
 
-function postAsyncWeightHeader (platformID: string, taskID: string, clientID: string) {
-  return `/${platformID}/async/weights/${taskID}/${clientID}`
+function postWeightHeader (platformID: string, taskID: string, clientID: string) {
+  return `/${platformID}/weights/${taskID}/${clientID}`
 }
 
 function getisRoundOldHeader (platformID: string, taskID: string, clientID: string) {
-  return `/${platformID}/async/round/${taskID}/${clientID}`
+  return `/${platformID}/round/${taskID}/${clientID}`
 }
 
-describe(`${platformID} async connection tests`, () => {
+describe(`${platformID} connection tests`, () => {
   before(async () => {
     await request(app)
       .get(connectHeader(platformID, task, clientId))
@@ -51,21 +51,21 @@ describe(`${platformID} async connection tests`, () => {
       .expect(200)
   })
 
-  it('POST /async/weights', async () => {
+  it('POST /weights', async () => {
     await request(app)
-      .post(postAsyncWeightHeader(platformID, task, clientId))
+      .post(postWeightHeader(platformID, task, clientId))
       .send(weightsData)
       .expect(200)
   })
 
-  it('POST /async/weights with old round returns 202', async () => {
+  it('POST /weights with old round returns 202', async () => {
     await request(app)
-      .post(postAsyncWeightHeader(platformID, task, clientId))
+      .post(postWeightHeader(platformID, task, clientId))
       .send(oldWeightsData)
       .expect(202)
   })
 
-  it('GET /async/round', async () => {
+  it('GET /round', async () => {
     await request(app)
       .get(getisRoundOldHeader(platformID, task, clientId))
       .expect(200)

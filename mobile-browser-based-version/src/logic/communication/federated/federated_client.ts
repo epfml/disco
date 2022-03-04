@@ -2,16 +2,18 @@ import * as msgpack from 'msgpack-lite'
 import { makeID } from '../authenticator'
 import { serializeWeights } from '../tensor_serializer'
 import { Client } from '../client'
+import { Task } from '@/logic/task_definition/base/task'
+import { TrainingInformant } from '@/logic/training/training_informant'
 import * as api from './api'
 
 /**
  * Class that deals with communication with the centralized server when training
  * a specific task.
  */
-export class FederatedAsyncClient extends Client {
+export class FederatedClient extends Client {
   clientID: string;
   peer: any;
-  round: number;
+  modelUpdateIsBasedOnRoundNumber: number;
 
   /**
    * Prepares connection to a centralized server for training a given task.
@@ -19,11 +21,10 @@ export class FederatedAsyncClient extends Client {
    * @param {Task} task The associated task object.
    * @param {Number} round The training round.
    */
-  constructor (serverURL, task) {
+  constructor (serverURL: string, task: Task) {
     super(serverURL, task)
-    console.log('building Federated Async client')
     this.clientID = ''
-    this.round = -1 // The server starts at round 0, in the beginning we are behind
+    this.modelUpdateIsBasedOnRoundNumber = -1 // The server starts at round 0, in the beginning we are behind
   }
 
   /**
@@ -49,15 +50,15 @@ export class FederatedAsyncClient extends Client {
     return response.status === 200
   }
 
-  async postWeights (weights) {
+  async _postWeightsToServer (weights) {
     const encodedWeights = msgpack.encode(
       Array.from(await serializeWeights(weights))
     )
-    const response = await api.postAsyncWeights(
+    const response = await api.postWeights(
       this.task.taskID,
       this.clientID,
       encodedWeights,
-      this.round
+      this.modelUpdateIsBasedOnRoundNumber
     )
     return response.status === 200
   }
@@ -65,7 +66,7 @@ export class FederatedAsyncClient extends Client {
   async postMetadata (metadataID, metadata) {
     const response = api.postMetadata(
       this.task.taskID,
-      this.round,
+      this.modelUpdateIsBasedOnRoundNumber,
       this.clientID,
       metadataID,
       metadata
@@ -76,7 +77,7 @@ export class FederatedAsyncClient extends Client {
   async getMetadataMap (metadataID) {
     const response = await api.getMetadataMap(
       this.task.taskID,
-      this.round,
+      this.modelUpdateIsBasedOnRoundNumber,
       this.clientID,
       metadataID
     )
@@ -88,8 +89,8 @@ export class FederatedAsyncClient extends Client {
     }
   }
 
-  async _getServerRound (): Promise<number> {
-    const response = await api.getAsyncRound(this.task.taskID, this.clientID)
+  async _getLatestServerRound (): Promise<number> {
+    const response = await api.getRound(this.task.taskID, this.clientID)
 
     if (response.status === 200) {
       return response.data.round
@@ -105,33 +106,26 @@ export class FederatedAsyncClient extends Client {
     console.log('Updated local model')
   }
 
-  async onEpochBeginCommunication (model, epoch, trainingInformant) {
-    await super.onEpochBeginCommunication(model, epoch, trainingInformant)
-
-    // Check for latest round in server, if it is new, update weights.
-    await this._update()
-  }
-
-  async _update () {
+  async _fetchServerRoundAndUpdateLocalModelIfOld () {
     // get server round of latest model
-    const serverRound = await this._getServerRound()
+    const serverRound = await this._getLatestServerRound()
 
-    const localRoundIsOld = this.round < serverRound
+    const localRoundIsOld = this.modelUpdateIsBasedOnRoundNumber < serverRound
     if (localRoundIsOld) {
       // update local round
       // TODO need to check that update method did not fail!
-      this.round = serverRound
+      this.modelUpdateIsBasedOnRoundNumber = serverRound
       // update local model from server
       this._updateLocalModelWithMostRecentServerModel()
     }
   }
 
-  async onEpochEndCommunication (model, epoch, trainingInformant) {
-    await super.onEpochEndCommunication(model, epoch, trainingInformant)
-    /**
-     * Once the training round is completed, send local weights to the
-     * server for aggregation.
-     */
-    await this.postWeights(model.weights)
+  async onRoundEndCommunication (model, round: number, trainingInformant: TrainingInformant) {
+    await this._postWeightsToServer(model.weights)
+    await this._fetchServerRoundAndUpdateLocalModelIfOld()
+  }
+
+  async onTrainEndCommunication (model, trainingInformant: TrainingInformant) {
+    trainingInformant.addMessage('Training finished.')
   }
 }

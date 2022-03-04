@@ -7,8 +7,8 @@
         <uploading-frame
           :id="id"
           :task="task"
-          :fileUploadManager="trainer.fileUploadManager"
-          v-if="trainer.fileUploadManager"
+          :fileUploadManager="training_manager.fileUploadManager"
+          v-if="training_manager.fileUploadManager"
         />
       </div>
 
@@ -16,17 +16,17 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <div v-if="!trainer.isTraining">
-          <custom-button @click="trainer.joinTraining(false)" :center="true">
+        <div v-if="!training_manager.isTraining">
+          <custom-button @click="training_manager.joinTraining(false)" :center="true">
             Train Locally
           </custom-button>
-          <custom-button @click="trainer.joinTraining(true)" :center="true">
+          <custom-button @click="training_manager.joinTraining(true)" :center="true">
             Train {{ this.$t('platform') }}
           </custom-button>
         </div>
         <div v-else>
           <custom-button
-            @click="trainer.stopTraining()"
+            @click="training_manager.stopTraining()"
             :center="true"
             color="bg-red-500"
           >
@@ -37,8 +37,8 @@
       <!-- Training Board -->
       <div>
         <training-information-frame
-          :trainingInformant="trainer.trainingInformant"
-          v-if="trainer.trainingInformant"
+          :trainingInformant="training_manager.trainingInformant"
+          v-if="training_manager.trainingInformant"
         />
       </div>
 
@@ -105,7 +105,7 @@ import Download from '../../../assets/svg/Download.vue'
 
 import { mapState } from 'vuex'
 import * as memory from '../../../logic/memory/model_io'
-import { Trainer } from '../../../logic/training/trainer'
+import { TrainingManager } from '../../../logic/training/training_manager'
 
 export default {
   name: 'TrainingFrame',
@@ -125,17 +125,18 @@ export default {
   computed: {
     ...mapState(['useIndexedDB']),
     trainingText () {
-      return this.trainer.distributedTraining ? 'Distributed' : 'Local'
+      return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
     }
   },
   watch: {
+    // TODO: @s314cy, what does this do?
     useIndexedDB (newValue) {
-      this.trainer.trainingManager.setIndexedDB(newValue)
+      this.training_manager.trainer().setIndexedDB(!!newValue)
     }
   },
   data () {
     return {
-      trainer: new Trainer(
+      training_manager: new TrainingManager(
         this.task,
         this.$store.getters.platform,
         this.$toast,
@@ -170,12 +171,11 @@ export default {
   created () {
     // Disconnect from the centralized server on page close
     window.addEventListener('beforeunload', () => {
-      this.trainer.client.disconnect()
+      this.training_manager.client.disconnect()
     })
-    this.trainer.created(this.useIndexedDB)
   },
   unmounted () {
-    this.trainer.disconnect()
+    this.training_manager.disconnect()
   }
 }
 </script>

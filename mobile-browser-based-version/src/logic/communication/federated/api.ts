@@ -30,19 +30,8 @@ export async function queryLogs (taskID, round, clientID) {
   return await axios.get(feaiServerUrl().concat(`logs?${query}`))
 }
 
-export async function postWeights (taskID, round, clientID, weights) {
-  const url = feaiServerUrl().concat(`weights/${taskID}/${round}/${clientID}`)
-  return await axios({
-    method: 'post',
-    url: url,
-    data: {
-      weights: weights
-    }
-  })
-}
-
-export async function postAsyncWeights (taskID, clientID, weights, round: number) {
-  const url = feaiServerUrl().concat(`async/weights/${taskID}/${clientID}`)
+export async function postWeights (taskID, clientID, weights, round: number) {
+  const url = feaiServerUrl().concat(`weights/${taskID}/${clientID}`)
   return await axios({
     method: 'post',
     url: url,
@@ -53,8 +42,8 @@ export async function postAsyncWeights (taskID, clientID, weights, round: number
   })
 }
 
-export async function getAsyncRound (taskID, clientID) {
-  const url = feaiServerUrl().concat(`async/round/${taskID}/${clientID}`)
+export async function getRound (taskID, clientID) {
+  const url = feaiServerUrl().concat(`round/${taskID}/${clientID}`)
   return await axios.get(url)
 }
 

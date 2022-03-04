@@ -41,7 +41,7 @@
     "trainingInformation": {
       "modelID": "titanic-model",
       "epochs": 20,
-      "roundDuration": 5,
+      "roundDuration": 1,
       "validationSplit": 0.2,
       "batchSize": 30,
       "preprocessFunctions": [],
@@ -158,7 +158,6 @@
       "csvLabels": true,
       "IMAGE_H": 32,
       "IMAGE_W": 32,
-      "batchwisePreprocessing": true,
       "preprocessFunctions": ["resize"],
       "RESIZED_IMAGE_H": 224,
       "RESIZED_IMAGE_W": 224,
