@@ -129,8 +129,9 @@ export default {
     }
   },
   watch: {
+    // TODO: @s314cy, what does this do?
     useIndexedDB (newValue) {
-      this.training_manager.trainingManager.setIndexedDB(newValue)
+      this.training_manager.trainer().setIndexedDB(!!newValue)
     }
   },
   data () {

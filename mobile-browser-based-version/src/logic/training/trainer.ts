@@ -15,7 +15,7 @@ export abstract class Trainer {
   client: Client;
   trainingInformant: TrainingInformant;
   useIndexedDB: boolean;
-  stopTrainingRequested: boolean;
+  stopTrainingRequested: boolean = false;
   model: tf.LayersModel;
   data: any; // TODO: use class type @s314cy once you have created the dataset class
   labels: any; // TODO: use class type @s314cy once you have created the dataset class
@@ -32,13 +32,7 @@ export abstract class Trainer {
     this.task = task
     this.client = client
     this.trainingInformant = trainingInformant
-
     this.useIndexedDB = useIndexedDB
-    this.stopTrainingRequested = false
-
-    this.model = null
-    this.data = null
-    this.labels = null
     this.roundTracker = roundTracker
   }
 
@@ -47,12 +41,15 @@ export abstract class Trainer {
   /**
    * Setter called by the UI to update the IndexedDB status midway through
    * training.
-   * @param {Boolean} payload whether or not to use IndexedDB
+   * @param {Boolean} useIndexedDB whether or not to use IndexedDB
    */
-  setIndexedDB (payload) {
-    this.useIndexedDB = !!payload
+  setIndexedDB (useIndexedDB: boolean) {
+    this.useIndexedDB = useIndexedDB
   }
 
+  /**
+   * Request stop training to be used from the training_manager or any class that is taking care of the trainer.
+   */
   stopTraining () {
     this.stopTrainingRequested = true
   }

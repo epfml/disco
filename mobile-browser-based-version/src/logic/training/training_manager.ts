@@ -24,7 +24,7 @@ export class TrainingManager extends ModelActor {
   useIndexedDB: boolean
   client: Client
   trainingInformant: TrainingInformant
-  trainer: () => Trainer
+  trainer: () => Trainer // we keep trainer as a function call due to reactivity issues with vue. (by @giordano-lucas)
   /**
    * Constructor for TrainingManager
    * @param {Task} task - task on which the tasking shall be performed
@@ -113,6 +113,7 @@ export class TrainingManager extends ModelActor {
   }
 
   /**
+   * TODO: @s314cy, this function needs to be cleaned up with the new data loader update.
    * Main training function
    * @param {boolean} distributed - use distributed training (true) or local training (false)
    */
@@ -173,5 +174,3 @@ export class TrainingManager extends ModelActor {
     this.isTraining = false
   }
 }
-
-export default TrainingManager

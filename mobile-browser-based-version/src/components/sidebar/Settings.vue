@@ -191,7 +191,7 @@ export default defineComponent({
       'setPlatform'
     ]),
     toggleIndexedDB () {
-      this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB)
+      this.setIndexedDB(!!(!this.$store.state.useIndexedDB && window.indexedDB))
     },
     setAppColors (color) {
       const root = document.documentElement
