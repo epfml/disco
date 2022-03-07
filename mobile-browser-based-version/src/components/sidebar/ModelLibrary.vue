@@ -9,7 +9,7 @@
           <p v-else>
             The model library is currently unavailable. You can turn it on in
             the
-            <button class="text-blue-600" v-on:click="switchToSettings()">
+            <button class="text-blue-600" @click="switchToSettings()">
               settings menu</button
             >.
           </p>
@@ -39,10 +39,7 @@
                 dark:focus:ring-offset-dark dark:focus:ring-primary-dark
               "
             >
-              <div
-                class="cursor-pointer w-2/3"
-                v-on:click="openTesting(item[1])"
-              >
+              <div class="cursor-pointer w-2/3" @click="openTesting(item[1])">
                 <span>
                   {{ item[1].modelName.substring(0, 16) }} <br />
                   <span class="text-xs">
@@ -53,7 +50,7 @@
               </div>
               <div class="w-1/9">
                 <button
-                  v-on:click="deleteModel(item[0])"
+                  @click="deleteModel(item[0])"
                   :class="buttonClass(isDark)"
                 >
                   <span><bin2-icon /></span>
@@ -61,7 +58,7 @@
               </div>
               <div class="w-1/9">
                 <button
-                  v-on:click="downloadModel(item[1])"
+                  @click="downloadModel(item[1])"
                   :class="buttonClass(isDark)"
                 >
                   <span><download-2-icon /></span>
@@ -69,7 +66,7 @@
               </div>
               <div class="w-1/9">
                 <button
-                  v-on:click="loadModel(item[1])"
+                  @click="loadModel(item[1])"
                   :class="buttonClass(isDark)"
                 >
                   <span><load-icon /></span>
@@ -83,7 +80,7 @@
   </tippy-container>
 </template>
 <script>
-import * as memory from '../../helpers/memory/helpers'
+import * as memory from '../../logic/memory/model_io'
 import * as tf from '@tensorflow/tfjs'
 import { mapState } from 'vuex'
 import Bin2Icon from '../../assets/svg/Bin2Icon.vue'
@@ -110,7 +107,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['useIndexedDB'])
+    ...mapState(['useIndexedDB', 'isDark'])
   },
   methods: {
     buttonClass: function (state) {

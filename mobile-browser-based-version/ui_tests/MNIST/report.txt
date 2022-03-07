@@ -1,0 +1,8 @@
+Using 2 to simulate distributed learning: 
+Train accuracy = 0.0 
+Validation accuracy = 0.0 
+Total Training time was: 143.27 seconds 
+Average CPU usage was: 51.09% 
+Average RAM usage was: 0.42% 
+Max CPU usage was: 97.8% 
+Epochs/s was: 0.0 

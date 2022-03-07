@@ -5,12 +5,10 @@
     "esModuleInterop": true,
     "allowJs": true,
     "baseUrl": ".",
-        "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    },
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "server", "example_training_data"],
+  "exclude": ["node_modules", "server", "example_training_data"]
 }

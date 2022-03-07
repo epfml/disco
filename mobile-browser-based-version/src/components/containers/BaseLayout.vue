@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-1 h-screen overflow-y-scroll">
     <!-- Main Page Header -->
-    <main v-bind:class="`${override ? '' : 'flex-1'} ${customClass}`">
+    <main :class="`${override ? '' : 'flex-1'} ${customClass}`">
       <div
         class="
           flex flex-col

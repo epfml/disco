@@ -1,10 +1,5 @@
 <template>
-  <testing-frame
-    :Id="Id"
-    :Task="Task"
-    :nbrClasses="1"
-    :makePredictions="makePredictions"
-  >
+  <testing-frame :id="id" :task="task" :helper="helper">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="relative p-4 overflow-x-hidden">
@@ -53,7 +48,7 @@
             >
               <li
                 class="border-gray-400"
-                v-for="header in headers"
+                v-for="header in task.getTestingHeaders()"
                 :key="header.id"
               >
                 <div
@@ -118,12 +113,14 @@
 import TestingFrame from '../containers/TestingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
+import { CsvTaskHelper } from '../../../logic/task_definition/csv/csv_task_helper'
+import { CsvTask } from '../../../logic/task_definition/csv/csv_task'
 
 export default {
   name: 'csv-testing-frame',
   props: {
-    Id: String,
-    Task: Object
+    id: String,
+    task: CsvTask
   },
   components: {
     IconCard,
@@ -132,44 +129,11 @@ export default {
   },
   data () {
     return {
-      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      headers: [],
-      predictions: null
+      dataExample: this.task.displayInformation.dataExample.filter(
+        (item) => item.columnName !== this.task.classColumn
+      ),
+      helper: new CsvTaskHelper(this.task)
     }
-  },
-
-  methods: {
-    async predictionsToCsv (predictions) {
-      const pred = predictions.join('\n')
-      const csvContent = this.classColumn + '\n' + pred
-      return csvContent
-    },
-    async makePredictions (filesElement) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = async (e) => {
-          // Preprocess the data and get object of the form {accepted: True/False, Xtrain: training data, ytrain: lavels}
-          const predictions = await this.Task.predict(e, this.headers)
-          resolve(predictions)
-        }
-        reader.readAsText(filesElement)
-      })
-    }
-  },
-  async mounted () {
-    // This method is called when the component is created
-    this.$nextTick(async function () {
-      // initialize information variables
-      this.classColumn = this.Task.trainingInformation.outputColumn
-      this.Task.displayInformation.headers.forEach((item) => {
-        if (item !== this.classColumn) {
-          this.headers.push({ id: item, userHeader: item })
-        }
-      })
-      this.dataExample = this.Task.displayInformation.dataExample.filter(
-        (item) => item.columnName !== this.classColumn
-      )
-    })
   }
 }
 </script>

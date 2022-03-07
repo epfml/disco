@@ -81,9 +81,19 @@ This will start the application locally with two visualization options:
 > **⚠ WARNING: Connection issues**  
 > If federated learning works, but not decentralised learning, then it might be that webRTC is not enabled, this is needed for peer2peer communication.
 
-To **test decentralized learning** between two peers, run the aformentioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.
+To **Manually test decentralized learning** between two peers, run the aformentioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.
 
 To choose between **decentralized** and **federated** learning go to the settings found in menu.
+
+### Testing the server locally
+
+To run unit testing run `npm run test`. Make sure you are running a server at the same time. We use [mocha](https://mochajs.org/) and [chai](https://www.chaijs.com/) for testing; respectively they are libraries: unit tests and assertions.
+
+Note that tests for the server are found under `server/tests/`.
+
+### Writing your own tests
+
+Tests are saved in the `tests/` folder. All tests with `.ts` extension written in this folder will be tested. To see an example of how to write your own tests have a look at `tests/example.test.ts`. You can use this as a starting template for your own tests!
 
 ### Compiling and minifying for production
 
