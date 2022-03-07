@@ -29,7 +29,6 @@ class TrainingInformation {
   learningRate?: number
   NUM_CLASSES?: number
   csvLabels?: boolean
-  batchwisePreprocessing?: boolean
   RESIZED_IMAGE_H?: number
   RESIZED_IMAGE_W?: number
   LABEL_ASSIGNMENT?: DataExample[]

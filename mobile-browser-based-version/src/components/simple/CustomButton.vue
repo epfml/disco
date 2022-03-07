@@ -1,6 +1,6 @@
 <template>
   <button
-    v-on:click="click "
+    @click="click"
     type="button"
     :class="`${
       center ? 'ml-3 py-2 px-4' : 'w-1/6'

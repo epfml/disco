@@ -1,5 +1,5 @@
 <template>
-  <base-layout v-bind:withSection="true" customClass="pt-4">
+  <base-layout :withSection="true" customClass="pt-4">
     <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
       <card customClass="hover:text-primary dark:hover:text-light">
         <h6

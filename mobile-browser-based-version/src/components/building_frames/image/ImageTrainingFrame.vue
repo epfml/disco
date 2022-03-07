@@ -1,18 +1,12 @@
 <template>
-  <training-frame
-    :Id="Id"
-    :Task="Task"
-    :dataPreprocessing="dataPreprocessing"
-    :nbrClasses="Task.trainingInformation.LABEL_LIST.length"
-    :precheckData="precheckData"
-  >
+  <training-frame :id="id" :task="task">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="flex object-center">
         <img
           class="object-center"
-          :src="getImage(dataExampleImage)"
-          v-bind:alt="dataExampleImage"
+          :src="task.getExampleImage(task.displayInformation.dataExampleImage)"
+          :alt="task.displayInformation.dataExampleImage"
         /><img />
       </div>
     </template>
@@ -20,57 +14,23 @@
   </training-frame>
 </template>
 
-<script type="ts">
-import { checkData } from '../../../helpers/data_validation/helpers_image_tasks.ts'
+<script>
 import TrainingFrame from '../containers/TrainingFrame.vue'
+import { ImageTaskHelper } from '../../../logic/task_definition/image/image_task_helper'
 
 export default {
   name: 'image-training-frame',
   props: {
-    Id: String,
-    Task: Object
+    id: String,
+    task: Object
   },
   components: {
     TrainingFrame
   },
   data () {
     return {
-      // variables for general informations
-      dataExampleImage: '',
-      dataExample: null,
-      // different task labels
-      taskLabels: []
+      helper: new ImageTaskHelper(this.task)
     }
-  },
-  methods: {
-    getImage (url) {
-      if (url === '') {
-        return null
-      }
-      const images = require.context('../../../../example_training_data/', false)
-      return images(url)
-    },
-    /**
-     * Checks if the data is in the correct format (accepted: True / False) and turns the input data into Xtrain and ytain objects.
-     */
-    async dataPreprocessing (filesElement) {
-      return new Promise((resolve, reject) => {
-        const processedData = this.Task.dataPreprocessing(filesElement)
-        resolve(processedData)
-      })
-    },
-    precheckData (filesElement, info) {
-      return checkData(filesElement, info)
-    }
-  },
-  async mounted () {
-    // This method is called when the component is created
-    this.$nextTick(async function () {
-      // initialize information variables
-      this.dataExample = this.Task.displayInformation.dataExample
-      this.taskLabels = this.Task.trainingInformation.LABEL_LIST
-      this.dataExampleImage = this.Task.displayInformation.dataExampleImage
-    })
   }
 }
 </script>
