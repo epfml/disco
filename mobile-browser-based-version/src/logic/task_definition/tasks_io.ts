@@ -4,7 +4,8 @@ import _ from 'lodash'
 import { createTaskClass } from './task_builder'
 
 export async function loadTasks (convert = false) {
-  const tasksURL = process.env.VUE_APP_DEAI_SERVER.concat('tasks')
+  const tasksURL = process.env.VUE_APP_FEAI_SERVER.concat('tasks')
+  console.log('task url', tasksURL)
   const response = await axios.get(tasksURL)
   const rawTasks = response.data
   return convert ? _.map(rawTasks, createTaskClass) : rawTasks
