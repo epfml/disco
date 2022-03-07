@@ -2,7 +2,7 @@
 
 ### Helper server for federated and decentralized training
 
-This directory contains the helper server providing the APIs used by the decentralized and federated learning available in `epfml/deai`.
+This directory contains the helper server providing the APIs used by the decentralized and federated learning available in `epfml/disco`.
 For federated learning, the helper server receives all weight updates (but never any training data). For decentralized training, the helper server never receives models or data, but helps keeping a list of available tasks, and participants (clients) available for each task, to help peering via `peerjs`.
 
 ### Requirements
@@ -30,17 +30,17 @@ The server is deployed inside a docker container, thus before deploying it, we c
 To test the server do the following steps:
 
 ```
-sudo docker build -t deai-server .
+sudo docker build -t disco-server .
 ```
 
 This builds the docker image, and then run it:
 
 ```
-sudo docker run -p 8080:8080 deai-server:latest
+sudo docker run -p 8080:8080 disco-server:latest
 ```
 
 > **⚠ WARNING: Using VPN while running docker**  
-> If you are running a, VPN docker might not properly work, e.g. ``http://localhost:8080/`` will result in ``page not found``.
+> If you are running a, VPN docker might not properly work, e.g. `http://localhost:8080/` will result in `page not found`.
 
 ### Deploying the server to the cloud
 
@@ -71,7 +71,7 @@ gcloud app deploy --project=deai-313515 app.yaml --version prod
 ```
 
 :exclamation: Important!
-| :exclamation:  This is very important   |
+| :exclamation: This is very important |
 |-----------------------------------------|
 When deploying check that in the google cloud console -> app engine -> versions, that no new instance is created as this will increase the cloud costs.
 This should not happen in principle due to the "--version dev" flag, it is however a good idea to check this the first time you run this command.
@@ -81,7 +81,6 @@ Some useful resources:
 - [Docker sample app](https://docs.docker.com/get-started/02_our_app/)
 - [Dockerfile reference](https://docs.docker.com/engine/reference/builder/#from)
 - [GAE sample app](https://cloud.google.com/appengine/docs/standard/nodejs/building-app/deploying-web-service)
-
 
 #### Docker
 
@@ -96,7 +95,7 @@ The first line compiles the ts code into js, and the second one then runs the co
 
 We specify compiler options as well as what directories to use for ts in the `tsconfig.json`, we [extend](https://www.typescriptlang.org/tsconfig#extends) this config onto `tsconfig.prod.json` where we specify what we want for the production build.
 
-In the `tsconfig` we add the base esm module that we use as well as including the mocha types. In `tsconfig.prod.json` we further specify which source to use for building, specifically ignoring  the `tests/` folder. 
+In the `tsconfig` we add the base esm module that we use as well as including the mocha types. In `tsconfig.prod.json` we further specify which source to use for building, specifically ignoring the `tests/` folder.
 
 tl;dr: `tsconfig.json` specifies the general setup for ts (including testing), `tsconfig.prod.json` adds production specific commands to `tsconfig.json`.
 

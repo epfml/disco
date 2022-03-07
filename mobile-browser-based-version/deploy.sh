@@ -14,7 +14,7 @@ git init
 git add -A
 git commit -m 'deploy'
 
-# push to DeAI repo
-git push -f https://github.com/epfml/DeAI.git master:gh-pages
+# push to disco repo
+git push -f https://github.com/epfml/disco.git master:gh-pages
 
 cd -
