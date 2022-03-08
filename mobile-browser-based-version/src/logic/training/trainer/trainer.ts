@@ -101,7 +101,7 @@ export abstract class Trainer {
           this.onEpochEnd(logs.acc, logs.val_acc)
         },
         onBatchEnd: async (batch, logs) => {
-          this.onBatchEnd(batch + 1, logs.acc)
+          await this.onBatchEnd(batch + 1, logs.acc)
         }
       }
     })
@@ -124,7 +124,7 @@ export abstract class Trainer {
     this.stopTrainModelIfRequested()
 
     if (this.roundTracker.roundHasEnded()) {
-      this.onRoundEnd(accuracy)
+      await this.onRoundEnd(accuracy)
     }
   }
 
