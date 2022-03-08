@@ -1,0 +1,98 @@
+name: Lint, test and build
+on:
+  push:
+    branch: production
+  pull_request:
+
+env:
+  node_version: 15
+  client_dir: mobile-browser-based-version
+  server_dir: mobile-browser-based-version/server
+
+jobs:
+  lint-client-and-server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.client_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.client_dir }}/package-lock.json
+      - run: npm ci
+      - run: npx eslint --max-warnings 0 .
+      - run: npm run lint
+
+  build-server:
+    needs: lint-client-and-server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.server_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
+      - run: npm ci
+      - run: npm run build
+  build-server-docker:
+    needs: build-server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/setup-buildx-action@v1
+        with:
+          install: true
+      - run: docker build ${{ env.server_dir }}
+  build-client:
+    needs: lint-client-and-server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.client_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.client_dir }}/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  test-server:
+    needs: build-server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.server_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
+      - run: npm ci
+      - run: npm run test
+  test-client:
+    needs: [build-client, build-server-docker, test-server]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.client_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.client_dir }}/package-lock.json
+      - run: npm ci
+      - run: npm run test
