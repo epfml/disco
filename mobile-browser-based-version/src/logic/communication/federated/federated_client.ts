@@ -5,7 +5,7 @@ import { Client } from '../client'
 import { Task } from '@/logic/task_definition/base/task'
 import { TrainingInformant } from '@/logic/training/training_informant'
 import * as api from './api'
-
+import * as tf from '@tensorflow/tfjs'
 /**
  * Class that deals with communication with the centralized server when training
  * a specific task.
@@ -99,14 +99,32 @@ export class FederatedClient extends Client {
     return -1
   }
 
-  _updateLocalModelWithMostRecentServerModel () {
-  // TODO: naming is not good, seems like you are just creating + only do so if it is more recent.
-  //! !!!!
-    this.task.createModel()
+  checkIdentical (a4, b4) {
+    for (let i = 0; i < a4.length; ++i) {
+      if (a4[i] !== b4[i]) {
+        console.log('different')
+        return
+      }
+    }
+    console.log('same')
+  }
+
+  async _updateLocalModel (model: tf.LayersModel) {
+    // get global model from server
+    console.log('before ', model.layers[0].weights[0].read().dataSync())
+    const b4 = model.layers[0].weights[0].read().dataSync()
+    const globalModel = await this.task.createModel()
+    console.log('after ', model.layers[0].weights[0].read().dataSync())
+    console.log('global ', globalModel.layers[0].weights[0].read().dataSync())
+    const a4 = model.layers[0].weights[0].read().dataSync()
+    this.checkIdentical(a4, b4)
+    this.checkIdentical(a4, globalModel.layers[0].weights[0].read().dataSync())
+
+    // update the model weights
     console.log('Updated local model')
   }
 
-  async _fetchServerRoundAndUpdateLocalModelIfOld () {
+  async _fetchChangesAndUpdateModel (model: tf.LayersModel) {
     // get server round of latest model
     const serverRound = await this._getLatestServerRound()
 
@@ -116,16 +134,16 @@ export class FederatedClient extends Client {
       // TODO need to check that update method did not fail!
       this.modelUpdateIsBasedOnRoundNumber = serverRound
       // update local model from server
-      this._updateLocalModelWithMostRecentServerModel()
+      await this._updateLocalModel(model)
     }
   }
 
-  async onRoundEndCommunication (model, round: number, trainingInformant: TrainingInformant) {
+  async onRoundEndCommunication (model: tf.LayersModel, round: number, trainingInformant: TrainingInformant) {
     await this._postWeightsToServer(model.weights)
-    await this._fetchServerRoundAndUpdateLocalModelIfOld()
+    await this._fetchChangesAndUpdateModel(model)
   }
 
-  async onTrainEndCommunication (model, trainingInformant: TrainingInformant) {
+  async onTrainEndCommunication (model: tf.LayersModel, trainingInformant: TrainingInformant) {
     trainingInformant.addMessage('Training finished.')
   }
 }
