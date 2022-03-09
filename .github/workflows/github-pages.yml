@@ -1,8 +1,10 @@
 name: Build and Deploy
 on:
-  push:
-    branches:
-      - production
+  workflow_run:
+    workflows: ["Lint, test and build"]
+    branches: [production]
+    types: [completed]
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -10,9 +12,9 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v2
         with:
-         ref: 'production'
+          ref: "production"
 
-      - name: Install and Build 🔧 
+      - name: Install and Build 🔧
         run: |
           npm install
           npm run build
@@ -21,6 +23,5 @@ jobs:
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
-          branch: gh-pages 
-          folder: mobile-browser-based-version/dist 
-
+          branch: gh-pages
+          folder: mobile-browser-based-version/dist
