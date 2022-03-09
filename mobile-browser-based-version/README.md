@@ -2,9 +2,9 @@
 
 Welcome to the disco developer guide, the guide is broken down into small chapters. To get up and running you can find the information here as well as in the [SERVER](server/README.md) chapter.
 
-If you run into any sort of trouble then hopefully you can find an answer in our [FAQ](information/FAQ.md). Otherwise please create a new issue.
+If you run into any sort of trouble then hopefully you can find an answer in our [FAQ](information/FAQ.md); otherwise please create a new issue.
 
-To learn how about the contribution process or our architecture you can go to the respective chapters.
+To learn more about the development (contributing) process or our architecture you can go to the respective chapters.
 
 #### Chapters
 
