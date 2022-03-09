@@ -116,7 +116,7 @@ The application runs the following architecture:
   - **The task list component** is called `TaskList.vue`. It's the default component used to fill this space. It shows which ML tasks are open for collaborative training.
   - **Task-related Components** are components used to display the interface associated with a particular task. The UI components for an ML task come in a parent-child relation: one global component (called `[taskName]_model.vue`) is used to implement a sidebar that allows the user to navigate through the different components associated with a task. On the right side of this global component, the following components are used to create a task (and note that all of them need to be created for each task):
     - **Description of the task** under the name `[taskName]\_description.vue. It gives an overview of the task.
-    - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train a model, either collaboratively using p2p communication, or alone by local training. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When a user reaches for the first time the training components, the component is created, and only then the NN model is created and stored in the browser's indexdb database. The training is done in a seperated script. To start training, the function named `join_training`is called. This function preprocess the data using the task specific data pre-processing function and then train the model using the shared `train`function.
+    - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train a model, either collaboratively using p2p communication, or alone by local training. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When a user reaches for the first time the training components, the component is created, and only then the NN model is created and stored in the browser's indexdb database. The training is done in a separated script. To start training, the function named `join_training`is called. This function preprocess the data using the task specific data pre-processing function and then train the model using the shared `train`function.
 
 All these are served by the typescript file associated to the task.
 
@@ -127,20 +127,20 @@ The idea is that the training part for all tasks relies on the same ML backend, 
 The training process works as follows:
 
 1. When a user has stated that he wishes to join the training of a task, a TF.js model is initialized (for now with a standard initialization) and stored into the browser's local storage. (call to `create_model`, a function embedded into the task's training component)
-2. Once the user connects their dataset, a pre-processing function is called. The pre-processing function is specifically tailored for each task and so is embedded in the task's training component under the name `data_preprocessing`. This can be either one-off preprocessing of the entire dataset, or a batch-wise pre-processing function which will then be repeatedly called during training, for each new minibatch of training data.
+2. Once the user connects their dataset, a pre-processing function is called. The pre-processing function is specifically tailored for each task and so is embedded in the task's training component under the name `data_preprocessing`. This can be either one-off preprocessing of the entire dataset, or a batch-wise pre-processing function which will then be repeatedly called during training, for each new mini batch of training data.
 3. The `training` function function loads the model from the browser's local storage and updates the model by training it on the given dataset (and communicating with peers or a federated learning server). As mentioned earlier, the training function is shared by all training components.
 
 ## Communication between peers
 
 Explanations on communication between peers will be added soon.
 
-The decentralized training version relies on p2p communication via [peer2js](https://peerjs.com/). The federated trainind does not need `peer2js` but direclty communicates with the server.
+The decentralized training version relies on p2p communication via [peer2js](https://peerjs.com/). The federated training does not need `peer2js` but directly communicates with the server.
 
 ## Some further integrations notes
 
 ### Using on mobile devices
 
-Depending on the user's screen width, the left hand sidebar associated to task's components can disapear and be opened using the button located on the top left corner of the user's screen.
+Depending on the user's screen width, the left hand sidebar associated to task's components can disappear and be opened using the button located on the top left corner of the user's screen.
 For now a template that shows how to create tasks can be found.
 
 ### Main packages used
@@ -157,4 +157,4 @@ For now a template that shows how to create tasks can be found.
 | [axios](https://axios-http.com/)                      | `HTTP requests` | Axios is a promise-based HTTP Client for node.js and the browser.         |
 | [lodash](https://lodash.com/)                         |  `JS Helpers`   | Functional library for higher order function on list and js objects       |
 | [yup](https://github.com/jquense/yup)                 |     `Form`      | Schema builder for runtime value parsing and validation (forms).          |
-| [peerjs](https://peerjs.com/)                         | `Communication` | P2P communication libary for DeAI                                         |
+| [peerjs](https://peerjs.com/)                         | `Communication` | P2P communication library for DeAI                                        |
