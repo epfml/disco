@@ -22,13 +22,13 @@ All commands are ran from the folder ./mobile-browser-based-version.
 
 ### Development Environment
 
-We recommand the [VS code](https://code.visualstudio.com/) IDE with the following extensions :
+We recommend the [VS code](https://code.visualstudio.com/) IDE with the following extensions :
 
 1. Vue.js Extension Pack
 2. Git Extension Pack
 3. JavaScript (ES6) code snippets
 
-To benenfit from all offered functionalities, open `VS code` using
+To benefit from all offered functionalities, open `VS code` using
 
 ```
 code .
@@ -53,7 +53,7 @@ npm install
 This command will install the necessary libraries required to run the application (defined in the `package.json` and `package-lock.json`). The latter command is only required when one is using the app for the first time.
 
 > **⚠ WARNING: Apple Silicon.**  
-> `TensorFlow.js` in version `3.13.0` currently suportes for M1 mac laptops. However, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
+> `TensorFlow.js` in version `3.13.0` currently supports for M1 mac laptops. However, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
 
 ```
 node -p "process.arch"
@@ -77,7 +77,7 @@ This will start the application locally with two visualization options:
 > **⚠ WARNING: Connection issues**  
 > If federated learning works, but not decentralised learning, then it might be that webRTC is not enabled, this is needed for peer2peer communication.
 
-To **Manually test decentralized learning** between two peers, run the aformentioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.
+To **Manually test decentralized learning** between two peers, run the aforementioned command twice (on different terminal pages). This will create another link that can be used to represent a second user. Open the two links on two different page windows.
 
 To choose between **decentralized** and **federated** learning go to the settings found in menu.
 
