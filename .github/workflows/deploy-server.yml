@@ -6,16 +6,12 @@ on:
     types: [completed]
 
 env:
-  server_dir: mobile-browser-based-version/server
   server_url: https://deai-313515.ew.r.appspot.com/
 
 jobs:
   deploy:
     name: deploy-gae
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.server_dir }}
 
     steps:
       - name: checkout
@@ -24,6 +20,7 @@ jobs:
       - name: deploy
         uses: google-github-actions/deploy-appengine@v0.2.0
         with:
+          working_directory: mobile-browser-based-version/server
           deliverables: app.yaml
           version: prod
           project_id: ${{ secrets.GCP_PROJECT }}
