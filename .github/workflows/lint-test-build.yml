@@ -1,4 +1,4 @@
-name: Lint, test and build
+name: lint-test-build
 on:
   push:
     branch: production
@@ -41,6 +41,7 @@ jobs:
           cache-dependency-path: ${{ env.server_dir }}/package-lock.json
       - run: npm ci
       - run: npm run build
+
   build-server-docker:
     needs: build-server
     runs-on: ubuntu-latest
@@ -50,6 +51,7 @@ jobs:
         with:
           install: true
       - run: docker build ${{ env.server_dir }}
+
   build-client:
     needs: lint-client-and-server
     runs-on: ubuntu-latest
@@ -81,6 +83,7 @@ jobs:
           cache-dependency-path: ${{ env.server_dir }}/package-lock.json
       - run: npm ci
       - run: npm run test
+
   test-client:
     needs: [build-client, build-server-docker, test-server]
     runs-on: ubuntu-latest

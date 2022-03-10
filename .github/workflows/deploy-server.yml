@@ -1,7 +1,7 @@
-name: Deploy to GAE
+name: deploy-server
 on:
   workflow_run:
-    workflows: ["Lint, test and build"]
+    workflows: ["lint-test-build"]
     branches: [production]
     types: [completed]
 
@@ -11,17 +11,17 @@ env:
 
 jobs:
   deploy:
-    name: Deploying to Google Cloud
+    name: deploy-gae
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.server_dir }}
 
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v2
 
-      - name: Deploy to App Engine
+      - name: deploy
         uses: google-github-actions/deploy-appengine@v0.2.0
         with:
           deliverables: app.yaml
@@ -29,5 +29,5 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT }}
           credentials: ${{ secrets.GCP_CREDENTIALS }}
 
-      - name: Test
+      - name: test
         run: curl "${{ env.server_url }}"
