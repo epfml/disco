@@ -1,0 +1,34 @@
+name: deploy-server
+on:
+  workflow_run:
+    workflows: ["lint-test-build"]
+    branches: [production]
+    types: [completed]
+
+env:
+  server_url: https://deai-313515.ew.r.appspot.com/
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: authenticate-to-google-cloud
+        uses: "google-github-actions/auth@v0"
+        with:
+          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
+
+      - name: deploy-to-google-cloud
+        uses: google-github-actions/deploy-appengine@v0.8.0
+        with:
+          working_directory: mobile-browser-based-version/server
+          deliverables: app.yaml
+          version: prod
+          project_id: ${{ secrets.GCP_PROJECT }}
+
+      - name: test
+        run: curl "${{ env.server_url }}"
