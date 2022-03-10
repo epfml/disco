@@ -1,0 +1,33 @@
+name: Deploy to GAE
+on:
+  workflow_run:
+    workflows: ["Lint, test and build"]
+    branches: [production]
+    types: [completed]
+
+env:
+  server_dir: mobile-browser-based-version/server
+  server_url: https://deai-313515.ew.r.appspot.com/
+
+jobs:
+  deploy:
+    name: Deploying to Google Cloud
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.server_dir }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Deploy to App Engine
+        uses: google-github-actions/deploy-appengine@v0.2.0
+        with:
+          deliverables: app.yaml
+          version: prod
+          project_id: ${{ secrets.GCP_PROJECT }}
+          credentials: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Test
+        run: curl "${{ env.server_url }}"
