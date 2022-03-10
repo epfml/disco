@@ -2,9 +2,9 @@
 
 ## TODO list
 
-To get an overview of who is working on what we use the [project](https://github.com/epfml/disco/projects/7) feature of GitHub as described earlier, this gives us a table with the currents todo’s, what is currently being worked on, and what has been finished.
+To get an overview of who is working on what we use the [project](https://github.com/epfml/disco/projects/7) feature of GitHub as described earlier, this gives us a table with the current TODOs, what is currently being worked on, and what has been finished.
 
-Each note in the the project can be linked to an issue by tagging it, e.g. add #202 in the note content. You cannot assign yourself a note, but you can assign yourself an issue, which is how we can keep track of who his working on what feature.
+Each note in the the project can be linked to an issue by tagging it, e.g. add #202 in the note content. You cannot assign yourself a note, but you can assign yourself an issue, which is how we can keep track of who is working on what feature.
 
 > **Tip** : When creating a new issue, on the right hand side, under the assignees menu, you can also add a project, if you add the `TODO` project, this will directly create a note in our project with the issue
 

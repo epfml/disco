@@ -22,7 +22,7 @@
 
 ### Use of TypeScript (a dialect of JavaScript)
 
-In order to facilitate development with javascript (js) we use [typescript](https://www.typescriptlang.org/) (ts); this adds an additional layer on top of javascript that allows for a deeper integration with your editor which enables you to catch errors faster.
+In order to facilitate development with JavaScript (js) we use [TypeScript](https://www.typescriptlang.org/) (ts); this adds an additional layer on top of JavaScript that allows for a deeper integration with your editor which enables you to catch errors faster.
 
 If you know js then you basically already know ts, since js is a subset of ts, anything you can do on js, you can also do on ts. What's new is that ts has a stricter policy (these can be silenced, and so we can indeed run ts files as if they were js), here are some examples:
 
@@ -54,7 +54,7 @@ This condition will always return 'false' since the types 'number' and 'string' 
 
 #### Type annotations
 
-Typescript allows us to annotate the input and output of functions, this greatly simplifies using functions where types might be ambiguous, the previous function we saw could be annotate as follows in ts:
+TypeScript allows us to annotate the input and output of functions, this greatly simplifies using functions where types might be ambiguous, the previous function we saw could be annotate as follows in ts:
 
 ```ts
 function addNumbers(a: number, b: number): number {
@@ -118,7 +118,7 @@ The application runs the following architecture:
     - **Description of the task** under the name `[taskName]\_description.vue. It gives an overview of the task.
     - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train a model, either collaboratively using p2p communication, or alone by local training. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When a user reaches for the first time the training components, the component is created, and only then the NN model is created and stored in the browser's indexdb database. The training is done in a separated script. To start training, the function named `join_training`is called. This function preprocess the data using the task specific data pre-processing function and then train the model using the shared `train`function.
 
-All these are served by the typescript file associated to the task.
+All these are served by the TypeScript file associated to the task.
 
 ### Training Loop
 

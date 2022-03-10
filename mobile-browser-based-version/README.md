@@ -1,6 +1,6 @@
 # Disco - Developer Guide
 
-Welcome to the disco developer guide, the guide is broken down into small chapters. To get up and running you can find the information here as well as in the [SERVER](server/README.md) chapter.
+Welcome to the Disco developer guide, the guide is broken down into small chapters. To get up and running you can find the information here as well as in the [SERVER](server/README.md) chapter.
 
 If you run into any sort of trouble then hopefully you can find an answer in our [FAQ](information/FAQ.md); otherwise please create a new issue.
 
