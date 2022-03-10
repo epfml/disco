@@ -7,7 +7,6 @@
     "prod": "vue-cli-service serve --mode production",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "blam": "false; true",
     "test": "./with_server env TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --exit -r ts-node/register --file tests/setup.ts 'tests/**/*.ts'",
     "build17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service build",
     "lint17": "export NODE_OPTIONS=--openssl-legacy-provider  && vue-cli-service lint",
