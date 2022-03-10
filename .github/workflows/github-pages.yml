@@ -1,26 +1,27 @@
-name: Build and Deploy
+name: github-pages
 on:
-  push:
-    branches:
-      - production
+  workflow_run:
+    workflows: ["lint-test-build"]
+    branches: [production]
+    types: [completed]
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
+      - name: checkout
         uses: actions/checkout@v2
         with:
-         ref: 'production'
+          ref: "production"
 
-      - name: Install and Build 🔧 
+      - name: install-and-build
         run: |
           npm install
           npm run build
         working-directory: mobile-browser-based-version
 
-      - name: Deploy 🚀
+      - name: deploy
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
-          branch: gh-pages 
-          folder: mobile-browser-based-version/dist 
-
+          branch: gh-pages
+          folder: mobile-browser-based-version/dist
