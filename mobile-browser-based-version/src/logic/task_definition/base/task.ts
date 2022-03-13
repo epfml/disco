@@ -37,7 +37,7 @@ export class TrainingInformation {
   LABEL_ASSIGNMENT?: DataExample[]
 }
 
-class DisplayInformation {
+export class DisplayInformation {
   taskTitle: string
   summary: string
   overview: string

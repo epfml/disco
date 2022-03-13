@@ -4,11 +4,9 @@
     <template v-slot:action>
       <!-- Upload Training Data -->
       <div class="relative">
-        <uploading-frame
+        <dataset-input-frame
           :id="id"
           :task="task"
-          :fileUploadManager="training_manager.fileUploadManager"
-          v-if="training_manager.fileUploadManager"
         />
       </div>
 
@@ -96,7 +94,7 @@
 </template>
 
 <script>
-import UploadingFrame from '../upload/UploadingFrame.vue'
+import DatasetInputFrame from '../upload/DatasetInputFrame.vue'
 import TrainingInformationFrame from '../TrainingInformationFrame.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
@@ -108,14 +106,14 @@ import * as memory from '../../../logic/memory/model_io'
 import { TrainingManager } from '../../../logic/training/training_manager'
 
 export default {
-  name: 'TrainingFrame',
+  name: 'training-frame',
   props: {
     id: String,
     task: Object,
     helper: Object
   },
   components: {
-    UploadingFrame,
+    DatasetInputFrame,
     TrainingInformationFrame,
     ModelActorFrame,
     IconCard,
@@ -124,12 +122,12 @@ export default {
   },
   computed: {
     ...mapState(['useIndexedDB']),
+    // shouldn't this be moved to the HTML template (v-if)?
     trainingText () {
       return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
     }
   },
   watch: {
-    // TODO: @s314cy, what does this do?
     useIndexedDB (newValue) {
       this.training_manager.trainer().setIndexedDB(!!newValue)
     }

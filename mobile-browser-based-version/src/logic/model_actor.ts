@@ -1,4 +1,4 @@
-import { FileUploadManager } from './data_validation/file_upload_manager'
+import { DatasetBuilder } from './NEW_data_pipeline/dataset_builder'
 import { Task } from './task_definition/base/task'
 import { TaskHelper } from './task_definition/base/task_helper'
 import { createTaskHelper } from './task_definition/task_builder'
@@ -11,19 +11,18 @@ export class ModelActor {
   task: Task
   logger: Logger
   taskHelper: TaskHelper<Task>
-  fileUploadManager: FileUploadManager
+  datasetBuilder: DatasetBuilder
   /**
    * Constructor for Actor
    * @param {Task} task - task on which the tasking shall be performed
    * @param {Logger} logger - logging system (e.g. toaster)
-   * @param {Number} nbrFiles - number of files that shall be uploaded to the file upload manager
    * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
    */
-  constructor (task: Task, logger: Logger, nbrFiles: number, helper: TaskHelper<Task>) {
+  constructor (task: Task, logger: Logger, helper: TaskHelper<Task>) {
     this.task = task
     this.logger = logger
     // Manager for the file uploading process
-    this.fileUploadManager = new FileUploadManager(nbrFiles, this)
+    this.datasetBuilder = new DatasetBuilder()
     // Task helper class
     this.taskHelper = helper ?? createTaskHelper(this.task)
   }

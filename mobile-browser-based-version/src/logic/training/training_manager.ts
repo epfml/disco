@@ -10,10 +10,7 @@ import { Platform } from '../../platforms/platform'
 import { TrainerBuilder } from './trainer/trainer_builder'
 
 // number of files that should be loaded (required by the task)
-function nbrFiles (task: Task) {
-  const labelList = task.trainingInformation.LABEL_LIST
-  return labelList ? labelList.length : 1
-}
+
 export class TrainingManager extends ModelActor {
   isConnected: Boolean
   isTraining: Boolean
@@ -31,7 +28,7 @@ export class TrainingManager extends ModelActor {
    * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
    */
   constructor (task: Task, platform: Platform, logger: Logger, helper: TaskHelper<Task>, useIndexedDB: boolean) {
-    super(task, logger, nbrFiles(task), helper)
+    super(task, logger, helper)
     this.isConnected = false
     this.isTraining = false
     this.distributedTraining = false

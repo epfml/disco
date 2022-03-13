@@ -11,7 +11,7 @@ import { Task } from './task'
 export abstract class TaskHelper<T extends Task> {
   task: T;
 
-  constructor (task) {
+  constructor (task: T) {
     this.task = task
   }
 

@@ -4,11 +4,9 @@
     <template v-slot:action>
       <!-- Upload File -->
       <div class="relative">
-        <uploading-frame
+        <dataset-input-frame
           :id="id"
           :task="task"
-          :fileUploadManager="tester.fileUploadManager"
-          v-if="tester.fileUploadManager"
         />
       </div>
 
@@ -28,7 +26,7 @@
 </template>
 
 <script>
-import UploadingFrame from '../upload/UploadingFrame.vue'
+import DatasetInputFrame from '../upload/DatasetInputFrame.vue'
 import CustomButton from '../../simple/CustomButton.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 
@@ -43,7 +41,7 @@ export default {
   },
   components: {
     ModelActorFrame,
-    UploadingFrame,
+    DatasetInputFrame,
     CustomButton
   },
   data () {

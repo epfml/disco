@@ -116,10 +116,10 @@
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
-import { CsvTaskHelper } from '../../../logic/task_definition/csv/csv_task_helper'
+import { TextTaskHelper } from '../../../logic/task_definition/text/text_task_helper'
 
 export default {
-  name: 'csv-training-frame',
+  name: 'text-training-frame',
   props: {
     id: String,
     task: Object
@@ -127,7 +127,7 @@ export default {
   data () {
     return {
       // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      helper: new CsvTaskHelper(this.task)
+      helper: new TextTaskHelper(this.task)
     }
   },
   components: {

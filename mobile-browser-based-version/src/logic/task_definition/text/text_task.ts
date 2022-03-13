@@ -1,17 +1,17 @@
 import * as d3 from 'd3'
 import * as tf from '@tensorflow/tfjs'
 import { checkData } from '../../data_validation/check_data'
-import { Task } from '../base/task'
+import { Task, DisplayInformation, TrainingInformation } from '../base/task'
 
 type HeaderElem = String | Number;
 /**
  * Dummy class to hold the Titanic Task information
  */
-export class CsvTask extends Task {
+export class TextTask extends Task {
   headers: Array<{ id: HeaderElem, userHeader: HeaderElem }>
   classColumn: String
 
-  constructor (taskID, displayInformation, trainingInformation) {
+  constructor (taskID: string, displayInformation: DisplayInformation, trainingInformation: TrainingInformation) {
     super(taskID, displayInformation, trainingInformation)
     this.headers = []
     displayInformation.headers.forEach((item) => {
