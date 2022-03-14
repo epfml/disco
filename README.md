@@ -1,4 +1,4 @@
-# Disco - Decentralized Collaborative Machine Learning
+# Disco - Distributed Collaborative Machine Learning
 
 Disco enables collaborative and privacy-preserving training of machine learning models. Disco offers both decentralized and federated learning.
 Disco is easy-to-use mobile & web code. The latest version of Disco is always running on the following link, [directly in your browser](https://epfml.github.io/disco/), for mobile and desktop:
