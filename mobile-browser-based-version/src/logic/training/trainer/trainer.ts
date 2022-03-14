@@ -118,7 +118,7 @@ export abstract class Trainer {
 
   /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
    */
-  private onBatchEnd (batch: number, accuracy: number) {
+  private async onBatchEnd (batch: number, accuracy: number) {
     this.trainerLogger.onBatchEnd(batch, accuracy)
     this.roundTracker.updateBatch()
     this.stopTrainModelIfRequested()

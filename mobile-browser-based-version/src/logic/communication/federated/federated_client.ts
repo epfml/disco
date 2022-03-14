@@ -99,26 +99,10 @@ export class FederatedClient extends Client {
     return -1
   }
 
-  checkIdentical (a4, b4) {
-    for (let i = 0; i < a4.length; ++i) {
-      if (a4[i] !== b4[i]) {
-        console.log('different')
-        return
-      }
-    }
-    console.log('same')
-  }
-
   async _updateLocalModel (model: tf.LayersModel) {
     // get global model from server
-    console.log('before ', model.layers[0].weights[0].read().dataSync())
-    const b4 = model.layers[0].weights[0].read().dataSync()
     const globalModel = await this.task.createModel()
-    console.log('after ', model.layers[0].weights[0].read().dataSync())
-    console.log('global ', globalModel.layers[0].weights[0].read().dataSync())
-    const a4 = model.layers[0].weights[0].read().dataSync()
-    this.checkIdentical(a4, b4)
-    this.checkIdentical(a4, globalModel.layers[0].weights[0].read().dataSync())
+    model.setWeights(globalModel.getWeights())
 
     // update the model weights
     console.log('Updated local model')
