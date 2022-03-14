@@ -102,9 +102,10 @@ export class FederatedClient extends Client {
   async _updateLocalModel (model: tf.LayersModel) {
     // get global model from server
     const globalModel = await this.task.createModel()
-    model.setWeights(globalModel.getWeights())
 
     // update the model weights
+    model.setWeights(globalModel.getWeights())
+
     console.log('Updated local model')
   }
 
