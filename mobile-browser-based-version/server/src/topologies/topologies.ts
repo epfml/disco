@@ -1,8 +1,8 @@
 class TreeNode {
-  id: any
-  leftChild: any
-  rightChild: any
-  parent: any
+  id: any;
+  leftChild: any;
+  rightChild: any;
+  parent: any;
 
   constructor (id) {
     this.id = id
@@ -21,8 +21,8 @@ class TreeNode {
 }
 
 class BinaryTree {
-  root: any
-  index: any
+  root: any;
+  index: any;
   constructor () {
     this.root = null
     this.index = {}
@@ -78,16 +78,16 @@ class BinaryTree {
       this.root = null
       return
     }
-    const removeLeft = deepestNode.parent.leftChild == deepestNode
+    const removeLeft = deepestNode.parent.leftChild === deepestNode
 
     let childId = deepestNode.id
     const deepestParent = deepestNode.parent
 
     let current = deepestParent
     const affectedPeers = new Set()
-    while (current != node.parent) {
+    while (current !== node.parent) {
       const currentNeighbours = this.getNeighbours(current.id)
-      currentNeighbours.forEach(neighbour => affectedPeers.add(neighbour))
+      currentNeighbours.forEach((neighbour) => affectedPeers.add(neighbour))
       const tmp = current.id
       current.id = childId
       this.index[current.id] = current
