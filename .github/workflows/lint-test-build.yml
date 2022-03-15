@@ -98,4 +98,4 @@ jobs:
           cache: npm
           cache-dependency-path: ${{ env.client_dir }}/package-lock.json
       - run: npm ci
-      - run: npm run test
+      - run: ./with_server npm run test
