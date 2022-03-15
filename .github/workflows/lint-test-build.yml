@@ -1,7 +1,7 @@
 name: lint-test-build
 on:
   push:
-    branch: production
+    branches: production
   pull_request:
 
 env:
