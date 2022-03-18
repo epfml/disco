@@ -28,7 +28,7 @@ from util import find_task_page, generate_report, get_files, partition, r_partit
 
 
 #Platform
-PLATFORM = 'https://epfml.github.io/DeAI/#/'
+PLATFORM = 'https://github.com/epfml/disco/#/'
 #Pick between local and Federated or Decentralised
 TRAINING_MODE = 'Federated'
 # Defines how many browser tabs to open

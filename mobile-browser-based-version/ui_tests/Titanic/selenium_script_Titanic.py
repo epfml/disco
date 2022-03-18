@@ -29,7 +29,7 @@ from util import read_csv, create_csv, find_task_page, generate_report, get_file
 
 
 #Platform
-PLATFORM = 'https://epfml.github.io/DeAI/#/'
+PLATFORM = 'https://github.com/epfml/disco/#/'
 # can be either 'Train Alone' or 'Decentralised'/'Federated'. Should match the text of the button in the train screen.
 TRAINING_MODE = 'Federated'
 # Defines how many browser tabs to open
