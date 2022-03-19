@@ -1,5 +1,5 @@
 <template>
-  <training-frame :id="id" :task="task">
+  <training-frame :id="id" :task="task" :datasetBuilder="datasetBuilder">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="flex object-center">
@@ -16,7 +16,8 @@
 
 <script>
 import TrainingFrame from '../containers/TrainingFrame.vue'
-import { ImageTaskHelper } from '../../../logic/task_definition/image/image_task_helper'
+import { DatasetBuilder } from '../../../logic/NEW_data_pipeline/dataset_builder'
+import { ImageReadOperator } from '../../logic/NEW_data_pipeline/read_operators/image_read_operator'
 
 export default {
   name: 'image-training-frame',
@@ -27,10 +28,8 @@ export default {
   components: {
     TrainingFrame
   },
-  data () {
-    return {
-      helper: new ImageTaskHelper(this.task)
-    }
+  mounted () {
+    this.datasetBuilder = new DatasetBuilder(new ImageReadOperator())
   }
 }
 </script>

@@ -3,14 +3,14 @@
   the platform is changed the component will be re-built. -->
   <div :key="this.$store.state.platform">
     <!-- CSV tasks -->
-    <csv-training-frame
-      v-if="task.trainingInformation.dataType == 'csv'"
+    <text-training-frame
+      v-if="task.trainingInformation.dataType === 'text'"
       :id="id"
       :task="task"
     />
     <!-- image tasks -->
     <image-training-frame
-      v-else-if="task.trainingInformation.dataType == 'image'"
+      v-else-if="task.trainingInformation.dataType === 'image'"
       :id="id"
       :task="task"
     />
@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import CsvTrainingFrame from '../building_frames/csv/CsvTrainingFrame.vue'
+import TextTrainingFrame from '../building_frames/text/TextTrainingFrame.vue'
 import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame.vue'
 
 export default {
@@ -28,7 +28,7 @@ export default {
     task: Object
   },
   components: {
-    CsvTrainingFrame,
+    TextTrainingFrame,
     ImageTrainingFrame
   }
 }

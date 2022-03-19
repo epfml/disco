@@ -1,5 +1,5 @@
 <template>
-  <training-frame :id="id" :task="task" :helper="helper">
+  <training-frame :id="id" :task="task" :datasetBuilder="datasetBuilder">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="relative p-4 overflow-x-hidden">
@@ -116,7 +116,8 @@
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
-import { TextTaskHelper } from '../../../logic/task_definition/text/text_task_helper'
+import { DatasetBuilder } from '../../../logic/NEW_data_pipeline/dataset_builder'
+import { TextReadOperator } from '../../../logic/NEW_data_pipeline/read_operators/text_read_operator'
 
 export default {
   name: 'text-training-frame',
@@ -124,16 +125,16 @@ export default {
     id: String,
     task: Object
   },
-  data () {
-    return {
-      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      helper: new TextTaskHelper(this.task)
-    }
-  },
   components: {
     TrainingFrame,
     IconCard,
     Bezier2
+  },
+  mounted () {
+    const browserFileReader = () => {
+
+    }
+    this.datasetBuilder = new DatasetBuilder(browserFileReader, new TextReadOperator(','))
   }
 }
 </script>

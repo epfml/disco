@@ -14,29 +14,29 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <div v-if="!training_manager.isTraining">
-          <custom-button @click="training_manager.joinTraining(false)" :center="true">
+        <div v-if="!trainingManager.isTraining">
+          <custom-button @click="startTraining(false)" :center="true">
             Train Locally
           </custom-button>
-          <custom-button @click="training_manager.joinTraining(true)" :center="true">
+          <custom-button @click="startTraining(true)" :center="true">
             Train {{ this.$t('platform') }}
           </custom-button>
         </div>
         <div v-else>
           <custom-button
-            @click="training_manager.stopTraining()"
+            @click="trainingManager.stopTraining()"
             :center="true"
             color="bg-red-500"
           >
-            Stop {{ trainingText }} Training
+            Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
           </custom-button>
         </div>
       </div>
       <!-- Training Board -->
       <div>
         <training-information-frame
-          :trainingInformant="training_manager.trainingInformant"
-          v-if="training_manager.trainingInformant"
+          :trainingInformant="trainingManager.trainingInformant"
+          v-if="trainingManager.trainingInformant"
         />
       </div>
 
@@ -102,15 +102,16 @@ import CustomButton from '../../simple/CustomButton.vue'
 import Download from '../../../assets/svg/Download.vue'
 
 import { mapState } from 'vuex'
-import * as memory from '../../../logic/memory/model_io'
+import * as memory from '../../../logic/memory/utils'
 import { TrainingManager } from '../../../logic/training/training_manager'
+import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
 
 export default {
   name: 'training-frame',
   props: {
     id: String,
     task: Object,
-    helper: Object
+    datasetBuilder: DatasetBuilder
   },
   components: {
     DatasetInputFrame,
@@ -121,26 +122,11 @@ export default {
     Download
   },
   computed: {
-    ...mapState(['useIndexedDB']),
-    // shouldn't this be moved to the HTML template (v-if)?
-    trainingText () {
-      return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
-    }
+    ...mapState(['useIndexedDB'])
   },
   watch: {
     useIndexedDB (newValue) {
-      this.training_manager.trainer().setIndexedDB(!!newValue)
-    }
-  },
-  data () {
-    return {
-      training_manager: new TrainingManager(
-        this.task,
-        this.$store.getters.platform,
-        this.$toast,
-        this.helper,
-        this.useIndexedDB
-      )
+      this.trainingManager.trainer.setIndexedDB(!!newValue)
     }
   },
   methods: {
@@ -164,16 +150,21 @@ export default {
         )
       }
       setTimeout(this.$toast.clear, 30000)
+    },
+    startTraining (distributedTraining) {
+      if (!this.datasetBuilder.isConsumed()) {
+        this.dataset = this.datasetBuilder.build()
+      }
+      this.trainingManager.startTraining(this.dataset, distributedTraining)
     }
   },
-  created () {
-    // Disconnect from the centralized server on page close
-    window.addEventListener('beforeunload', () => {
-      this.training_manager.client.disconnect()
-    })
-  },
-  unmounted () {
-    this.training_manager.disconnect()
+  mounted () {
+    this.trainingManager = new TrainingManager(
+      this.task,
+      this.$store.getters.platform,
+      this.$toast,
+      this.useIndexedDB
+    )
   }
 }
 </script>
