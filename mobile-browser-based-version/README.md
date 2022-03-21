@@ -9,10 +9,10 @@ To learn more about the development (contributing) process or our architecture y
 #### Chapters
 
 - README _(you are here)_
-- [SERVER](server/README.md)
 - [FAQ](information/FAQ.md)
 - [CONTRIBUTING](information/CONTRIBUTING.md)
 - [ARCHITECTURE](information/ARCHITECTURE.md)
+- [SERVER](server/README.md)
 
 ## Headers
 
