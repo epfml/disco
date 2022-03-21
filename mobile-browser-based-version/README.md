@@ -83,7 +83,13 @@ To choose between **decentralized** and **federated** learning go to the setting
 
 ### Testing the server locally
 
-To run unit testing run `npm run test`. Make sure you are running a server at the same time. We use [mocha](https://mochajs.org/) and [chai](https://www.chaijs.com/) for testing; respectively they are libraries: unit tests and assertions.
+To run unit testing use `npm run test`.
+Make sure you are running a server at the same time.
+
+- You can `( cd server && npm run dev ) &` to start one in the background.
+- Or if you have docker, `./with_server` starts one for you and run the command given as arguments. So you can directly run `./with_server npm run test`.
+
+We use [mocha](https://mochajs.org/) and [chai](https://www.chaijs.com/) for testing; respectively they are libraries: unit tests and assertions.
 
 Note that tests for the server are found under `server/tests/`.
 
