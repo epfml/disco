@@ -8,10 +8,8 @@
     │ ├── svg        # svg image / icons
     ├── components   # vue file folder
     │ ├── XXX.vue    # vue example file
-    ├── helpers      # typescript helpers folder
-    │ ├── XXX.ts     # js example file
-    ├── platforms    # i18n related folder
-    │ ├── ...
+    ├── core         # core code of the client (training, communication, ...)
+    │ ├── XXX.ts     # ts example file
     ├── router       # vue-router related folder
     │ ├── index.ts
     ├── store        # vuex related folder
