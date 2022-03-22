@@ -35,6 +35,10 @@ const REQUEST_TYPES = Object.freeze({
 const asyncWeightsMap: Map<string, AsyncWeightsBuffer> = new Map()
 const BUFFER_CAPACITY = 2
 /**
+ * Contains the informants for each task. 
+ */
+ const asyncWeightsInformantsMap: Map<string, AsyncWeightsInformant> = new Map()
+/**
  * Contains metadata used for training by clients for a given task and round.
  * Stored by task ID, round number and client ID.
  */
@@ -83,8 +87,7 @@ function _initAsyncWeightsBufferIfNotExists (task) {
   if (!asyncWeightsMap.has(task)) {
     const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
     asyncWeightsMap.set(task, new AsyncWeightsBuffer(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
-    console.log("init informant for "+ task.taskID)
-    new AsyncWeightsInformant(task.taskID, asyncWeightsMap.get(task))
+    asyncWeightsInformantsMap.set(task.taskID,  new AsyncWeightsInformant(task.taskID, asyncWeightsMap.get(task)))
   }
 }
 
