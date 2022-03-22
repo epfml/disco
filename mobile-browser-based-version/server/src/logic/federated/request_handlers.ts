@@ -10,6 +10,7 @@ import {
 } from './tensor_helpers/tensor_serializer'
 import { getTasks } from '../../tasks/tasks_io'
 import { AsyncWeightsBuffer } from './async_weights_buffer'
+import { AsyncWeightsInformant } from './async_weights_informant'
 import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
@@ -82,6 +83,8 @@ function _initAsyncWeightsBufferIfNotExists (task) {
   if (!asyncWeightsMap.has(task)) {
     const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
     asyncWeightsMap.set(task, new AsyncWeightsBuffer(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
+    console.log("init informant")
+    new AsyncWeightsInformant(task, asyncWeightsMap.get(task))
   }
 }
 
