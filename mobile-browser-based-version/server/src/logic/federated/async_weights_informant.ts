@@ -1,4 +1,4 @@
-import { AsyncWeightsBuffer } from "./async_weights_buffer";
+import { AsyncWeightsBuffer } from './async_weights_buffer';
 
 
 /**
@@ -31,14 +31,14 @@ import { AsyncWeightsBuffer } from "./async_weights_buffer";
 
     update() {
         // DEBUG 
-        console.log("Before update")
+        console.log('Before update')
         this.printAllInfos()
 
         this._updateRound()
         this._updateNumberOfParticipants()
 
         // DEBUG
-        console.log("After update")
+        console.log('After update')
         this.printAllInfos()
     }
 
