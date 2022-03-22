@@ -4,7 +4,7 @@ import { serializeWeights } from '../tensor_serializer'
 import { Client } from '../client'
 import { Task } from '@/logic/task_definition/base/task'
 import { TrainingInformant } from '@/logic/training/training_informant'
-import * as api from './api'
+import * as api from './federated_api'
 import * as tf from '@tensorflow/tfjs'
 /**
  * Class that deals with communication with the centralized server when training
@@ -100,11 +100,11 @@ export class FederatedClient extends Client {
   }
 
   async _updateLocalModel (model: tf.LayersModel) {
-    // get global model from server
-    const globalModel = await this.task.createModel()
+    // get latest model from the server
+    const latestModel = await api.getLatestModel(this.task.taskID)
 
     // update the model weights
-    model.setWeights(globalModel.getWeights())
+    model.setWeights(latestModel.getWeights())
 
     console.log('Updated local model')
   }
