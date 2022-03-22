@@ -1,4 +1,17 @@
-# Disco - Developer Guide
+<div align="center">
+  <h1><code>Disco 🪩</code></h1>
+
+  <p>
+    <strong>Distributed collaborative learning</strong>
+  </p>
+
+  <p>
+    <a href="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml"><img src="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml/badge.svg" alt="build status" /></a>
+    <a href="https://github.com/epfml/disco/actions/workflows/deploy-server.yml"><img src="https://github.com/epfml/disco/actions/workflows/deploy-server.yml/badge.svg" alt="build status" /></a>
+  </p>
+  </br>
+
+</div>
 
 Welcome to the Disco developer guide, the guide is broken down into small chapters. To get up and running you can find the information here as well as in the [SERVER](server/README.md) chapter.
 
