@@ -21,11 +21,11 @@ To learn more about the development (contributing) process or our architecture y
 
 #### Chapters
 
-- README _(you are here)_
-- [FAQ](information/FAQ.md)
-- [CONTRIBUTING](information/CONTRIBUTING.md)
-- [ARCHITECTURE](information/ARCHITECTURE.md)
-- [SERVER](server/README.md)
+- 📖 README _(📍 you are here)_
+- ❓ [FAQ](information/FAQ.md)
+- ☝️ [CONTRIBUTING](information/CONTRIBUTING.md)
+- 📐 [ARCHITECTURE](information/ARCHITECTURE.md)
+- 🌐 [SERVER](server/README.md)
 
 ## Headers
 
@@ -33,7 +33,7 @@ To learn more about the development (contributing) process or our architecture y
 
 All commands are ran from the folder ./mobile-browser-based-version.
 
-### Development Environment
+### Development Environment ⚙
 
 We recommend the [VS code](https://code.visualstudio.com/) IDE with the following extensions :
 
@@ -51,7 +51,7 @@ from the `mobile-based-version` directory.
 
 > **Tip** : you can use the `⇧⌘P` shortcut to open the **command palette** of `VS code` and use the `ESLint: Fix all auto-fixable Problems` command to lint the currently opened file.
 
-### Node Installation and NPM installation
+### Node Installation and NPM installation 💾
 
 The app is running under Node 15.12.0. It can be downloaded from [here](https://nodejs.org/en/download/releases/).
 
@@ -94,7 +94,7 @@ To **Manually test decentralized learning** between two peers, run the aforement
 
 To choose between **decentralized** and **federated** learning go to the settings found in menu.
 
-### Testing the server locally
+### Testing the server locally 🔍
 
 To run unit testing use `npm run test`.
 Make sure you are running a server at the same time.
@@ -106,7 +106,7 @@ We use [mocha](https://mochajs.org/) and [chai](https://www.chaijs.com/) for tes
 
 Note that tests for the server are found under `server/tests/`.
 
-### Writing your own tests
+### Writing your own tests ✍️
 
 Tests are saved in the `tests/` folder. All tests with `.ts` extension written in this folder will be tested. To see an example of how to write your own tests have a look at `tests/example.test.ts`. You can use this as a starting template for your own tests!
 
@@ -126,7 +126,7 @@ npm run lint
 
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
-## How to create a new custom ML task
+## How to create a new custom ML task 🤖
 
 This is not necessary if you want to use some of our already supported data modalities (tabular/csv, or image classification). For new tasks based on our existing data modalities and preprocessing steps, simply use the `Create Task` button on the landing page of the app.
 
