@@ -83,8 +83,8 @@ function _initAsyncWeightsBufferIfNotExists (task) {
   if (!asyncWeightsMap.has(task)) {
     const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
     asyncWeightsMap.set(task, new AsyncWeightsBuffer(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
-    console.log("init informant")
-    new AsyncWeightsInformant(task, asyncWeightsMap.get(task))
+    console.log("init informant for "+ task.taskID)
+    new AsyncWeightsInformant(task.taskID, asyncWeightsMap.get(task))
   }
 }
 

@@ -15,15 +15,16 @@ import { AsyncWeightsBuffer } from "./async_weights_buffer";
     // so everytime we aggregate, we store the history
     bufferHistory: Map<number, Map<string, any>>
 
-    round: number
-    currentNumberOfParticipants: number
-    totalNumberOfParticipants: number
-    averageNumberOfParticipants : number
+    round: number = 0
+    currentNumberOfParticipants: number = 0
+    totalNumberOfParticipants: number = 0
+    averageNumberOfParticipants : number = 0 
 
     constructor (taskID: string, asyncWeightsBuffer: AsyncWeightsBuffer) {
       this.taskID = taskID
       this.asyncWeightsBuffer = asyncWeightsBuffer
       this.asyncWeightsBuffer.registerObserver(this)
+      this.printAllInfos()
     }
 
     // Update functions 
@@ -52,7 +53,7 @@ import { AsyncWeightsBuffer } from "./async_weights_buffer";
     }
 
     _updateAverageNumberOfParticipants(){
-        this.averageNumberOfParticipants = this.totalNumberOfParticipants / this.currentRound
+        this.averageNumberOfParticipants = this.totalNumberOfParticipants / this.round
     }
 
     _updateTotalNumberOfParticipants(currentNumberOfParticipants : number) {
