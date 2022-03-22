@@ -48,7 +48,7 @@ export async function getRound (taskID: string, clientID: string) {
  * @returns
  */
 export async function getLatestModel (taskId: string) {
-  const url = serverUrl().concat(`tasks/${this.taskID}/model.json`)
+  const url = serverUrl().concat(`tasks/${taskId}/model.json`)
   const latestModel = await tf.loadLayersModel(url)
   return latestModel
 }
