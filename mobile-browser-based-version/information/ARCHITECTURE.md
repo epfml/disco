@@ -18,19 +18,19 @@ The core of disco is the typescript code that runs data loading, training and co
 
 #### Data
 
-The data module takes care of uploading data, converting it into tensors and preparing it for training.
+The data module takes care of connecting local data, converting it into tensors and preparing it for training (preprocessing).
 
 #### Train
 
-The train does as the name imply training, this can be either decentralised or federated. To take care of weight sharing we use callback functions that are called every n rounds; e.g. if n = 1.5, then every 1.5 epochs the callback is executed, which in brief is the client sharing the weights.
+As the name implies, this takes care of training, which is either decentralised or federated mode. For communication of model updates (weight sharing) we use callback functions that are called every n epochs; e.g. if n = 1.5, then every 1.5 epochs the callback is executed, which in brief is the client sharing the model weights.
 
 #### Client
 
-The client takes care of communication, if it is federated then it is with the server, and if decentralised then between peers.
+The client takes care of communication, if it is federated then communication is with the server, and if decentralised then between peers.
 
 #### Server
 
-The server takes care of listening for incoming weights and aggregating them whenever enough have been added (federated). For the decentralised case it simply keeps track of who the clients are in order to let them know who they can share weights with.
+The helper server in the federated case takes care of listening for incoming weights, and aggregating them whenever enough have been received. For the decentralised case the helper server only keeps track of the list of available clients, in order to let them know who they can share weights with.
 
 ## Code Organisation
 
