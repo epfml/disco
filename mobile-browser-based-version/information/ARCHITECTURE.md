@@ -1,5 +1,19 @@
 # Disco - Architecture
 
+## High level architecture
+
+At a high level disco has the following architecture:
+
+![architecture](information/architecture.png)
+
+- The UI is a browser built with Vue3
+- Manager (interactions between UI and core)
+- The core of disco is composed of the following modules:
+  - Data
+  - Train
+  - Client
+- Server
+
 ## Code Organisation
 
     .
