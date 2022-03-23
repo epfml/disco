@@ -13,9 +13,9 @@
 
 </div>
 
-Welcome to the Disco🔮 developer guide. To get up and running you can find the relevant information here as well as in the [SERVER](server/README.md) document.
+Welcome to the Disco🔮 developer guide. To get up and running you can find the relevant information here as well as in the [server](server/README.md) document.
 
-If you run into any sort of trouble then hopefully you can find an answer in our [FAQ](information/FAQ.md); otherwise please create a new issue. If you want to contribute to Disco🔮, then please have a look at our [contributing](information/CONTRIBUTING.md) guide; and if you are curious about our architecture you can find information [here](information/ARCHITECTURE.md).
+If you run into any sort of trouble then hopefully you can find an answer in our [faq](information/FAQ.md); otherwise please create a new issue. If you want to contribute to Disco🔮, then please have a look at our [contributing](information/CONTRIBUTING.md) guide; and if you are curious about our architecture you can find information [here](information/ARCHITECTURE.md).
 
 ## Sections
 
