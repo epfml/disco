@@ -23,7 +23,7 @@ If you run into any sort of trouble then hopefully you can find an answer in our
   - [Development Environment](#development-environment)
   - [Node Installation and NPM installation](#node-installation-and-npm-installation)
   - [Compiling and hot-reload for development](#compiling-and-hot-reload-for-development)
-  - [Testing the server locally](#testing-the-server-locally)
+  - [Testing the helper server locally](#testing-the-helper-server-locally)
   - [Writing your own tests](#writing-your-own-tests)
   - [Compiling and minifying for production](#compiling-and-minifying-for-production)
   - [Lint files](#lint-files)
@@ -95,7 +95,7 @@ To **Manually test decentralized learning** between two peers, run the aforement
 
 To choose between **decentralized** and **federated** learning go to the settings found in menu.
 
-### Testing the server locally
+### Testing the helper server locally
 
 To run unit testing use `npm run test`.
 Make sure you are running a server at the same time.
