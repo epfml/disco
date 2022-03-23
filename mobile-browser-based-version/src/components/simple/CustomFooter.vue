@@ -11,11 +11,11 @@
       dark:bg-darker dark:border-primary-darker
     "
   >
-    <div>De-AI &copy; 2021</div>
+    <div>Disco &copy; 2021</div>
     <div>
       Join us on
       <a
-        href="https://github.com/epfml/DeAI"
+        href="https://github.com/epfml/disco"
         target="_blank"
         class="text-blue-500 hover:underline"
         >Github</a
