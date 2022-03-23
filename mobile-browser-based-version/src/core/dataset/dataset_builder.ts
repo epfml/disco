@@ -1,35 +1,39 @@
-import { Dataset } from './dataset'
-import { ReadOperator } from './read_operators/read_operator'
+import { SourceType } from './source_type'
+import { DataLoader } from './data_loader/data_loader'
+import * as tf from '@tensorflow/tfjs'
 
 export class DatasetBuilder {
-  samples: Array<File>
-  labels: Array<File>
-  readOperator: ReadOperator
-  consumed: boolean
+  private sources: Map<SourceType, Array<string>>
+  private dataLoader: DataLoader
+  private built: boolean
 
-  constructor (readOperator: ReadOperator) {
-    this.readOperator = readOperator
-    this.samples = new Array<File>()
-    this.labels = new Array<File>()
-    this.consumed = false
+  constructor (dataLoader: DataLoader) {
+    this.dataLoader = dataLoader
+    this.built = false
   }
 
-  addFiles (dataType: DataType, files: Array<File>) {
-
+  addFiles (sourceType: SourceType, sources: Array<string>) {
+    if (this.built) {
+      throw new Error()
+    }
+    this.sources.set(sourceType, sources)
   }
 
-  clearFiles () {
-    this.samples = new Array<File>()
-    this.labels = new Array<File>()
+  clearFiles (sourceType: SourceType) {
+    if (this.built) {
+      throw new Error()
+    }
+    this.sources.set(sourceType, [])
   }
 
-  /**
-   * 1. read from files
-   * 2. feed the tf dataset with read data
-   */
-  build (): Dataset {
-    this.readOperator.read(this.samples)
-    this.consumed = true
-    return new Dataset(true)
+  build (): tf.data.Dataset<tf.TensorContainer> {
+    // for now, expect a single source type ({X,y} from a single .csv file)
+    const dataset = this.dataLoader.load(this.sources.get(SourceType.DATASET))
+    this.built = true
+    return dataset
+  }
+
+  isBuilt (): boolean {
+    return this.built
   }
 }

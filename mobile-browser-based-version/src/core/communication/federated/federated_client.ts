@@ -2,8 +2,8 @@ import * as msgpack from 'msgpack-lite'
 import { makeID } from '../authenticator'
 import { serializeWeights } from '../tensor_serializer'
 import { Client } from '../client'
-import { Task } from '@/logic/task_definition/base/task'
-import { TrainingInformant } from '@/logic/training/training_informant'
+import { Task } from '@/core/task/task'
+import { TrainingInformant } from '@/core/training/training_informant'
 import * as api from './api'
 
 /**

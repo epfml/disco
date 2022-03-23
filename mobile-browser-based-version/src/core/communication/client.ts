@@ -1,4 +1,4 @@
-import { Task } from '../task_definition/base/task'
+import { Task } from '../task/base/task'
 import { TrainingInformant } from '../training/training_informant'
 import { Platform } from '../../platforms/platform'
 import { DecentralisedClient } from './decentralised/decentralised_client'

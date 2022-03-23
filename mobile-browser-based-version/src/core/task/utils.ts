@@ -1,6 +1,8 @@
 import axios from 'axios'
 import _ from 'lodash'
 
+// should be considered as a regular API call and regrouped accordingly, it does
+// not belong to this file
 export async function loadTasks (convert = false) {
   const tasksURL = process.env.VUE_APP_FEAI_SERVER.concat('tasks')
   console.log('task url', tasksURL)

@@ -11,7 +11,7 @@ import {
 import { checkBufferUntil, checkBufferWeightsUntil } from './check_buffer'
 import { Client } from '../client'
 import { Task } from '@/logic/task_definition/base/task'
-import { TrainingInformant } from '@/logic/training/training_informant'
+import { TrainingInformant } from '@/core/training/training_informant'
 import CMD_CODES from './communication_codes'
 const Hashes = require('jshashes')
 

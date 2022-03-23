@@ -1,4 +1,4 @@
-import * as memory from '../../memory/model_io'
+import * as memory from '../../memory/utils'
 import { Trainer } from './trainer'
 
 /** Class whose role is to locally train a model with a given dataset.

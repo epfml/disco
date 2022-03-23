@@ -7,6 +7,7 @@
         <dataset-input-frame
           :id="id"
           :task="task"
+          :datasetBuilder="datasetBuilder"
         />
       </div>
 
@@ -130,10 +131,11 @@ export default {
     }
   },
   methods: {
-    goToTesting () {
-      this.$router.push({
-        path: 'testing'
-      })
+    startTraining (distributedTraining) {
+      if (!this.datasetBuilder.isBuilt()) {
+        this.dataset = this.datasetBuilder.build()
+      }
+      this.trainingManager.startTraining(this.dataset, distributedTraining)
     },
     async saveModel () {
       if (this.useIndexedDB) {
@@ -151,11 +153,10 @@ export default {
       }
       setTimeout(this.$toast.clear, 30000)
     },
-    startTraining (distributedTraining) {
-      if (!this.datasetBuilder.isConsumed()) {
-        this.dataset = this.datasetBuilder.build()
-      }
-      this.trainingManager.startTraining(this.dataset, distributedTraining)
+    goToTesting () {
+      this.$router.push({
+        path: 'testing'
+      })
     }
   },
   mounted () {

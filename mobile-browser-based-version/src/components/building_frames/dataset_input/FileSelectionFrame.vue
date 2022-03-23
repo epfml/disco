@@ -17,7 +17,7 @@
       @dragover.prevent
       @dragenter.prevent
     >
-      <span class="text-xl font-semibold"> {{ dataType }} </span>
+      <span class="text-xl font-semibold"> {{ sourceType }} </span>
       <!-- scroll area -->
       <section class="overflow-auto p-8 w-full h-full flex flex-col">
         <header
@@ -110,6 +110,7 @@
 
 <script>
 // import PreviewGallery from './preview/PreviewGallery.vue'
+import { SourceType } from '../../../core/dataset/source_type'
 
 export default {
   name: 'file-selection-frame',
@@ -118,7 +119,7 @@ export default {
     // Preview is used to know if we have to show a snippet of the uploaded files or not
     preview: Boolean,
     // The label associated to the task
-    dataType: String
+    sourceType: SourceType
   },
   components: {
     // PreviewGallery

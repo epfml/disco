@@ -116,8 +116,8 @@
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
-import { DatasetBuilder } from '../../../logic/NEW_data_pipeline/dataset_builder'
-import { TextReadOperator } from '../../../logic/NEW_data_pipeline/read_operators/text_read_operator'
+import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
+import { TextReadOperator } from '../../../core/dataset/read_operator/text_read_operator'
 
 export default {
   name: 'text-training-frame',
@@ -131,10 +131,7 @@ export default {
     Bezier2
   },
   mounted () {
-    const browserFileReader = () => {
-
-    }
-    this.datasetBuilder = new DatasetBuilder(browserFileReader, new TextReadOperator(','))
+    this.datasetBuilder = new DatasetBuilder(new TextReadOperator(','))
   }
 }
 </script>

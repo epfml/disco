@@ -1,9 +1,8 @@
-import { datasetGenerator } from '../../dataset/dataset_generator'
 import * as tf from '@tensorflow/tfjs'
-import { Task, TrainingInformation } from '../../task_definition/base/task'
-import { RoundTracker } from './round_tracker'
+import { Task, TrainingInformation } from '../../task/task'
+import { RoundTracker } from '../trainer/round_tracker'
 import { TrainingInformant } from '../training_informant'
-import { TrainerLogger } from './trainer_logger'
+import { TrainerLogger } from '../trainer/trainer_logger'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally or in a distributed way. The Trainer works as follows:

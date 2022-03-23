@@ -2,9 +2,8 @@ import { TrainingInformant } from './training_informant'
 import { Trainer } from './trainer/trainer'
 import { DistributedTrainer } from './trainer/distributed_trainer'
 import { LocalTrainer } from './trainer/local_trainer'
-import { getClient } from '../communication/client_builder'
 import { Client } from '../communication/client'
-import { Task } from '../task_definition/base/task'
+import { Task } from '../task/task'
 import { Logger } from '../logging/logger'
 import { Platform } from '../../platforms/platform'
 
@@ -31,7 +30,7 @@ export class TrainingManager {
     this.distributedTraining = false
     this.platform = platform
     this.useIndexedDB = useIndexedDB
-    this.client = getClient(
+    this.client = Client.getClient(
       this.platform,
       this.task,
       null // TODO: this.$store.getters.password(this.id)
@@ -42,8 +41,8 @@ export class TrainingManager {
   /**
    * Build the appropriate training class (either local or distributed)
    */
-  private async initTrainer (dataset) {
-    const params = [dataset, this.task, this.trainingInformant, this.useIndexedDB]
+  private async initTrainer (dataset: any) {
+    const params = [this.task, this.trainingInformant, this.useIndexedDB] as const
     if (this.distributedTraining) {
       this.trainer = new DistributedTrainer(...params, this.client)
     } else {
@@ -82,7 +81,7 @@ export class TrainingManager {
    * @param {boolean} distributed Whether to train in a distributed or local fashion
    */
   async startTraining (dataset: any, distributed: boolean) {
-    this.initTrainer(dataset)
+    const params = [this.task] as const
     if (distributed && !this.isConnected) {
       await this.connect()
       if (!this.isConnected) {
