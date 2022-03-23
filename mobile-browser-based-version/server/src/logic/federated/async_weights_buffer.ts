@@ -71,7 +71,7 @@ export class AsyncWeightsBuffer {
      * @param round
      * @returns true if weights were added, and false otherwise
      */
-    async add (id: string, weights: number, round: number): Promise<boolean> {
+    async add (id: string, weights: any, round: number): Promise<boolean> {
       if (this._isNotWithinRoundCutoff(round)) {
         console.log(`Did not add weights of ${id} to buffer. Due to old round update: ${round}, current round is ${this.round}`)
         return false

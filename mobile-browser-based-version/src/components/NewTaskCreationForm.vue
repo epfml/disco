@@ -551,7 +551,7 @@
             </button>
 
             <a
-              href="https://join.slack.com/t/deai-workspace/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
+              href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
               class="
                 w-2/5
                 text-lg text-center

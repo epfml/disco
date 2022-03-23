@@ -119,7 +119,7 @@ export class DecentralisedClient extends Client {
     /*
      * If the server was just started (either due to having been idle, and then called, or running for the first time),
      * it is necessary to "wake it up" before making the first connection, otherwise the first connection will be ignored.
-     * This is related to issue 196: https://github.com/epfml/DeAI/issues/196
+     * This is related to issue 196: https://github.com/epfml/disco/issues/196
      */
     const peerJsServerInfo = await fetch(
       this.serverURL.concat(`${this.task.taskID}`)

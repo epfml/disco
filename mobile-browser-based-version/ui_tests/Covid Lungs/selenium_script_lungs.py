@@ -28,7 +28,7 @@ sys.path.append(os.path.realpath('..'))
 from util import find_task_page, generate_report, get_files, partition, r_partition, s_partition, start_training
 
 # Platform
-PLATFORM = 'https://epfml.github.io/DeAI/#/'
+PLATFORM = 'https://github.com/epfml/disco/#/'
 #Pick between local and Federated or Decentralised
 TRAINING_MODE = 'Federated'
 # Defines how many browser tabs to open

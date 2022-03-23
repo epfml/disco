@@ -1,20 +1,34 @@
-# Disco - Developer Guide
+<div align="center">
+  <h1><code>Disco</code></h1>
 
-Welcome to the Disco developer guide, the guide is broken down into small chapters. To get up and running you can find the information here as well as in the [SERVER](server/README.md) chapter.
+  <p>
+    <strong>Distributed collaborative learning</strong>
+  </p>
 
-If you run into any sort of trouble then hopefully you can find an answer in our [FAQ](information/FAQ.md); otherwise please create a new issue.
+  <p>
+    <a href="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml"><img src="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml/badge.svg" alt="build status" /></a>
+    <a href="https://github.com/epfml/disco/actions/workflows/deploy-server.yml"><img src="https://github.com/epfml/disco/actions/workflows/deploy-server.yml/badge.svg" alt="build status" /></a>
+  </p>
+  </br>
 
-To learn more about the development (contributing) process or our architecture you can go to the respective chapters.
+</div>
 
-#### Chapters
+Welcome to the Disco🔮 developer guide. To get up and running you can find the relevant information here as well as in the [server](server/README.md) document.
 
-- README _(you are here)_
-- [FAQ](information/FAQ.md)
-- [CONTRIBUTING](information/CONTRIBUTING.md)
-- [ARCHITECTURE](information/ARCHITECTURE.md)
-- [SERVER](server/README.md)
+If you run into any sort of trouble then hopefully you can find an answer in our [faq](information/FAQ.md); otherwise please create a new issue. If you want to contribute to Disco🔮, then please have a look at our [contributing](information/CONTRIBUTING.md) guide; and if you are curious about our architecture you can find information [here](information/ARCHITECTURE.md).
 
-## Headers
+## Sections
+
+- [How to run the app](#how-to-run-the-app)
+  - [Development Environment](#development-environment)
+  - [Node Installation and NPM installation](#node-installation-and-npm-installation)
+  - [Compiling and hot-reload for development](#compiling-and-hot-reload-for-development)
+  - [Testing the server locally](#testing-the-server-locally)
+  - [Writing your own tests](#writing-your-own-tests)
+  - [Compiling and minifying for production](#compiling-and-minifying-for-production)
+  - [Lint files](#lint-files)
+  - [Customize configuration](#customize-configuration)
+- [How to create a new custom ML task](#how-to-create-a-new-custom-ml-task)
 
 ## How to run the app
 
