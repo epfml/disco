@@ -1,6 +1,6 @@
 import * as msgpack from 'msgpack-lite'
 import { makeID } from '../authentication'
-import { serializeWeights } from '../tensor_serializer'
+import { serializeWeights } from '../serialization'
 import { Client } from '../client'
 import { Task } from '@/core/task/base/task'
 import { TrainingInformant } from '@/core/training/training_informant'

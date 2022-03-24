@@ -6,7 +6,7 @@ import {
 import {
   assignWeightsToModel,
   serializeWeights
-} from '../tensor_serializer'
+} from '../serialization'
 import { checkBufferUntil, checkBufferWeightsUntil } from './check_buffer'
 import { Client } from '../client'
 import { Task } from '@/core/task/base/task'
