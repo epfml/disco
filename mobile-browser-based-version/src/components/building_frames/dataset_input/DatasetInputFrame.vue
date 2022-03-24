@@ -66,7 +66,7 @@ export default {
   computed: {
     preview () {
       // Preview only for csv (since there is no, "show only first n images").
-      return this.task.trainingInformation.SourceType === 'text'
+      return this.task.trainingInformation.sourceType === 'text'
     },
     requireLabelFiles () {
       return this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined

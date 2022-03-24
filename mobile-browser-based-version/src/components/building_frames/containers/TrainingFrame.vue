@@ -95,7 +95,7 @@
 </template>
 
 <script>
-import DatasetInputFrame from '../upload/DatasetInputFrame.vue'
+import DatasetInputFrame from '../dataset_input/DatasetInputFrame.vue'
 import TrainingInformationFrame from '../TrainingInformationFrame.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 import IconCard from '../../containers/IconCard.vue'

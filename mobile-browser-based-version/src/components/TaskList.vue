@@ -52,8 +52,8 @@ import CustomButton from './simple/CustomButton.vue'
 import _ from 'lodash'
 import { defineComponent } from 'vue'
 import { mapMutations } from 'vuex'
-import { createTaskClass } from '../logic/task_definition/task_builder'
-import { loadTasks } from '../logic/task_definition/tasks_io'
+import { createTaskClass, loadTasks } from '../core/task/utils'
+import { Task } from '../core/task/task'
 
 export default defineComponent({
   name: 'task-list',
@@ -73,13 +73,13 @@ export default defineComponent({
   },
   methods: {
     ...mapMutations(['addTaskFrame', 'newTask', 'clearNewTasks']),
-    goToSelection (id) {
+    goToSelection (id: string) {
       this.$router.push({
         name: id.concat('.description'),
         params: { id: id }
       })
     },
-    createNewTaskComponent (task) {
+    createNewTaskComponent (task: Task) {
       console.log(`Processing ${task.taskID}`)
       const newTaskFrame = createTaskClass(task)
       this.addTaskFrame(newTaskFrame) // commit to store
