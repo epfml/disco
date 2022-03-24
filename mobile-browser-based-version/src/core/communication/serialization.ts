@@ -1,4 +1,4 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
 // TODO pack it more
 export type SerializedVariable<R extends tf.Rank = tf.Rank> = {
@@ -28,9 +28,9 @@ export function isSerializedVariable (data: unknown): data is SerializedVariable
     return false
   }
 
-  // ensure full check
+  // TODO ensure full check
   // eslint-disable-next-line no-unused-vars
-  // TODO const _: SerializedVariable = data
+  // const _: SerializedVariable = data
 
   return true
 }
