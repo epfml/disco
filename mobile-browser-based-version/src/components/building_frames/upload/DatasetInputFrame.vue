@@ -3,7 +3,7 @@
     <template v-slot:icon><upload /></template>
     <template v-slot:extra>
       <div v-for="item in getDataTypes" :key="item">
-        <single-upload-frame
+        <file-selection-frame
           :id="id"
           :task="task"
           :fileUploadManager="fileUploadManager"
@@ -18,16 +18,16 @@
 <script>
 import Upload from '../../../assets/svg/Upload.vue'
 import IconCard from '../../containers/IconCard.vue'
-import SingleUploadFrame from './SingleUploadFrame.vue'
+import FileSelectionFrame from './FileSelectionFrame.vue'
 export default {
-  name: 'uploading-frame',
+  name: 'dataset-input-frame',
   props: {
     id: String,
     task: Object,
     fileUploadManager: Object
   },
   components: {
-    SingleUploadFrame,
+    FileSelectionFrame,
     Upload,
     IconCard
   },

@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
-import * as memory from '../../memory/model_io'
+import * as memory from '../../memory/memory'
 
 class DataExample {
   columnName: string;

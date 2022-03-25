@@ -1,7 +1,7 @@
-import { FileUploadManager } from './data_validation/file_upload_manager'
-import { Task } from './task_definition/base/task'
-import { TaskHelper } from './task_definition/base/task_helper'
-import { createTaskHelper } from './task_definition/task_builder'
+import { FileUploadManager } from './dataset/data_format_check/file_upload_manager'
+import { Task } from './task/base/task'
+import { TaskHelper } from './task/base/task_helper'
+import { createTaskHelper } from './task/task_builder'
 import { Logger } from './logging/logger'
 /**
  * Base class for all actors of the system (e.g. trainer, tester, etc.)
