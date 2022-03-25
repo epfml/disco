@@ -1,5 +1,5 @@
 import * as msgpack from 'msgpack-lite'
-import { makeID } from '../authenticator'
+import { makeID } from '../authentication'
 import { serializeWeights } from '../tensor_serializer'
 import { Client } from '../client'
 import { Task } from '@/core/task/task'
@@ -99,14 +99,17 @@ export class FederatedClient extends Client {
     return -1
   }
 
-  _updateLocalModelWithMostRecentServerModel () {
-  // TODO: naming is not good, seems like you are just creating + only do so if it is more recent.
-  //! !!!!
-    this.task.createModel()
+  async _updateLocalModel (model: tf.LayersModel) {
+    // get latest model from the server
+    const latestModel = await api.getLatestModel(this.task.taskID)
+
+    // update the model weights
+    model.setWeights(latestModel.getWeights())
+
     console.log('Updated local model')
   }
 
-  async _fetchServerRoundAndUpdateLocalModelIfOld () {
+  async _fetchChangesAndUpdateModel (model: tf.LayersModel) {
     // get server round of latest model
     const serverRound = await this._getLatestServerRound()
 
@@ -116,16 +119,16 @@ export class FederatedClient extends Client {
       // TODO need to check that update method did not fail!
       this.modelUpdateIsBasedOnRoundNumber = serverRound
       // update local model from server
-      this._updateLocalModelWithMostRecentServerModel()
+      await this._updateLocalModel(model)
     }
   }
 
-  async onRoundEndCommunication (model, round: number, trainingInformant: TrainingInformant) {
+  async onRoundEndCommunication (model: tf.LayersModel, round: number, trainingInformant: TrainingInformant) {
     await this._postWeightsToServer(model.weights)
-    await this._fetchServerRoundAndUpdateLocalModelIfOld()
+    await this._fetchChangesAndUpdateModel(model)
   }
 
-  async onTrainEndCommunication (model, trainingInformant: TrainingInformant) {
+  async onTrainEndCommunication (model: tf.LayersModel, trainingInformant: TrainingInformant) {
     trainingInformant.addMessage('Training finished.')
   }
 }

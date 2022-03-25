@@ -1,16 +1,19 @@
 import msgpack from 'msgpack-lite'
-
 import {
   makeID,
   authenticate
-} from '../authenticator'
+} from '../authentication'
 import {
   assignWeightsToModel,
   serializeWeights
 } from '../tensor_serializer'
 import { checkBufferUntil, checkBufferWeightsUntil } from './check_buffer'
 import { Client } from '../client'
+<<<<<<<< HEAD:mobile-browser-based-version/src/core/communication/decentralised/decentralised_client.ts
 import { Task } from '@/logic/task_definition/base/task'
+========
+import { Task } from '@/core/task/base/task'
+>>>>>>>> ac58a0cd1c50e6d846ac9fa403768c683eee716e:mobile-browser-based-version/src/core/communication/decentralized/decentralized_client.ts
 import { TrainingInformant } from '@/core/training/training_informant'
 import CMD_CODES from './communication_codes'
 const Hashes = require('jshashes')
@@ -35,7 +38,7 @@ const MAX_TRIES = 100
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
-export class DecentralisedClient extends Client {
+export class DecentralizedClient extends Client {
   /**
    * Constructs the client for decentralised training.
    * @param {String} serverURL
@@ -119,7 +122,7 @@ export class DecentralisedClient extends Client {
     /*
      * If the server was just started (either due to having been idle, and then called, or running for the first time),
      * it is necessary to "wake it up" before making the first connection, otherwise the first connection will be ignored.
-     * This is related to issue 196: https://github.com/epfml/DeAI/issues/196
+     * This is related to issue 196: https://github.com/epfml/disco/issues/196
      */
     const peerJsServerInfo = await fetch(
       this.serverURL.concat(`${this.task.taskID}`)

@@ -45,7 +45,7 @@
       "informationCard": [
         {
           "title": "Goal:",
-          "text": "DeAI enables collaborative and privacy-preserving training of machine learning models. DeAI is an easy-to-use mobile app & web software, running directly in your browser."
+          "text": "Disco enables collaborative and privacy-preserving training of machine learning models. Disco is an easy-to-use mobile app & web software, running directly in your browser."
         },
         {
           "title": "Key Question:",
@@ -57,7 +57,7 @@
         },
         {
           "title": "Decentralized learning:",
-          "text": "makes this possible, following the same principles as in federated learning, but going one step further by removing any central coordinator. DeAI only uses peer2peer communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure. We support a variety of modern deep learning architectures running on mobile devices."
+          "text": "makes this possible, following the same principles as in federated learning, but going one step further by removing any central coordinator. Disco only uses peer2peer communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure. We support a variety of modern deep learning architectures running on mobile devices."
         }
       ],
       "featuresTitle" : "Features",
@@ -72,7 +72,7 @@
         },
         {
           "title" :"Runs anywhere",
-          "text":"DeAI runs in the browser, from any device equipped with a modern browser."
+          "text":"Disco runs in the browser, from any device equipped with a modern browser."
         },
         {
           "title" :"Collaborative training",

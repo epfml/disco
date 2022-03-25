@@ -103,8 +103,8 @@ import CustomButton from '../../simple/CustomButton.vue'
 import Download from '../../../assets/svg/Download.vue'
 
 import { mapState } from 'vuex'
-import * as memory from '../../../logic/memory/utils'
-import { TrainingManager } from '../../../logic/training/training_manager'
+import * as memory from '../../../core/memory/memory'
+import { TrainingManager } from '../../../core/training/training_manager'
 import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
 
 export default {

@@ -16,8 +16,8 @@
 
 <script>
 import TrainingFrame from '../containers/TrainingFrame.vue'
-import { DatasetBuilder } from '../../../logic/NEW_data_pipeline/dataset_builder'
-import { ImageReadOperator } from '../../logic/NEW_data_pipeline/read_operators/image_read_operator'
+import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
+import { ImageLoader } from '../../core/dataset/data_loader/image_loader'
 
 export default {
   name: 'image-training-frame',
@@ -29,7 +29,7 @@ export default {
     TrainingFrame
   },
   mounted () {
-    this.datasetBuilder = new DatasetBuilder(new ImageReadOperator())
+    this.datasetBuilder = new DatasetBuilder(new ImageLoader())
   }
 }
 </script>

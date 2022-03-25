@@ -1,8 +1,5 @@
 import { Task } from '../task/task'
 import { TrainingInformant } from '../training/training_informant'
-import { Platform } from '../../platforms/platform'
-import { DecentralisedClient } from './decentralised/decentralised_client'
-import { FederatedClient } from './federated/federated_client'
 import { LayersModel } from '@tensorflow/tfjs'
 
 export abstract class Client {
@@ -40,17 +37,4 @@ export abstract class Client {
    * @param trainingInformant
    */
   abstract onRoundEndCommunication (model: LayersModel, round: number, trainingInformant: TrainingInformant): Promise<void>
-
-  static getClient (platform: Platform, task: Task, password: string): Client {
-    switch (platform) {
-      case Platform.decentralized:
-        return new DecentralisedClient(
-          process.env.VUE_APP_DEAI_SERVER,
-          task,
-          password
-        )
-      case Platform.federated:
-        return new FederatedClient(process.env.VUE_APP_FEAI_SERVER, task)
-    }
-  }
 }

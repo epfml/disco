@@ -100,7 +100,7 @@ export abstract class Trainer {
           this.onEpochEnd(logs.acc, logs.val_acc)
         },
         onBatchEnd: async (batch, logs) => {
-          this.onBatchEnd(batch + 1, logs.acc)
+          await this.onBatchEnd(batch + 1, logs.acc)
         }
       }
     })
@@ -117,13 +117,13 @@ export abstract class Trainer {
 
   /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
    */
-  private onBatchEnd (batch: number, accuracy: number) {
+  private async onBatchEnd (batch: number, accuracy: number) {
     this.trainerLogger.onBatchEnd(batch, accuracy)
     this.roundTracker.updateBatch()
     this.stopTrainModelIfRequested()
 
     if (this.roundTracker.roundHasEnded()) {
-      this.onRoundEnd(accuracy)
+      await this.onRoundEnd(accuracy)
     }
   }
 

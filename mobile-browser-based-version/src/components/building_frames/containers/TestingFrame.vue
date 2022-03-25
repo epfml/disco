@@ -30,7 +30,7 @@ import DatasetInputFrame from '../upload/DatasetInputFrame.vue'
 import CustomButton from '../../simple/CustomButton.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 
-import { Tester } from '../../../logic/testing/tester'
+import { Tester } from '../../../core/testing/tester'
 
 export default {
   name: 'TestingFrame',

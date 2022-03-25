@@ -25,7 +25,7 @@
           dark:text-light
         "
       >
-        {{ $t('home.title.name') }}
+        {{ 'Disco' }}
       </a>
     </div>
     <!-- Mini Sidebar content-->
