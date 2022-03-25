@@ -1,3 +1,4 @@
+import { Task } from './task'
 import axios from 'axios'
 import _ from 'lodash'
 
@@ -8,7 +9,7 @@ export async function loadTasks (convert = false) {
   console.log('task url', tasksURL)
   const response = await axios.get(tasksURL)
   const rawTasks = response.data
-  return convert ? _.map(rawTasks, createTaskClass) : rawTasks
+  return convert ? _.map(rawTasks, ({ id, trainInfo, displayInfo }) => new Task(id, trainInfo, displayInfo)) : rawTasks
 }
 
 export function onFileLoad (filesElement, callback, readAs = 'text') {
@@ -23,30 +24,4 @@ export function onFileLoad (filesElement, callback, readAs = 'text') {
       filesElement
     )
   })
-}
-
-export function createTaskClass (task) {
-  const TaskClass =
-    config.TASK_INFO[task.trainingInformation.dataType].frameClass
-  if (!TaskClass) {
-    console.log(`Task ${task.taskID} was not processed`)
-    return
-  }
-  const newTaskFrame = new TaskClass(
-    task.taskID,
-    task.displayInformation,
-    task.trainingInformation
-  )
-  return newTaskFrame
-}
-
-export function createTaskHelper (task) {
-  const TaskHelper =
-    config.TASK_INFO[task.trainingInformation.dataType].helperClass
-  if (!TaskHelper) {
-    console.log(`Task ${task.taskID} Helper cannot be created`)
-    return
-  }
-  const taskHelper = new TaskHelper(task)
-  return taskHelper
 }
