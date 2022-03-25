@@ -82,7 +82,7 @@
         Settings
       </SidebarButton>
       <span style="margin-bottom:20px"></span>
-      <!-- Display Settings panel-->
+      <!-- Display About Us page-->
       <SidebarButton
         @click="goToAboutUs"
         hoverText="aboutus"
