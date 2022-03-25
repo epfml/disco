@@ -22,25 +22,6 @@
         </section>
         <slot v-else></slot>
       </div>
-
-      <!-- Main Page Footer-->
-      <custom-footer></custom-footer>
     </main>
   </div>
 </template>
-
-<script>
-import CustomFooter from '../simple/CustomFooter.vue'
-
-export default {
-  name: 'base-layout',
-  components: {
-    CustomFooter
-  },
-  props: {
-    customClass: { default: '', type: String },
-    override: { default: false, type: Boolean },
-    withSection: { default: false, type: Boolean }
-  }
-}
-</script>
