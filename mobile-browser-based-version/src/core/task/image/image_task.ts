@@ -5,7 +5,7 @@ import Papa from 'papaparse'
 import {
   checkData,
   getExampleImage
-} from '../../data_validation/helpers_image_tasks'
+} from '../../dataset/data_format_check/helpers_image_tasks'
 
 export class ImageTask extends Task {
   net: any;

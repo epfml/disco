@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 import * as tf from '@tensorflow/tfjs'
-import { checkData } from '../../data_validation/check_data'
+import { checkData } from '../../dataset/data_format_check/check_data'
 import { Task } from '../base/task'
 
 type HeaderElem = String | Number;

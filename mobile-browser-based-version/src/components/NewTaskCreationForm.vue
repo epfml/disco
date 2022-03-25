@@ -586,7 +586,7 @@
 import { mapMutations } from 'vuex'
 import BaseLayout from './containers/BaseLayout.vue'
 import _ from 'lodash'
-import sections from '../logic/task_definition/form.config'
+import sections from '../core/task/form.config'
 import TitleCard from './containers/TitleCard.vue'
 import axios from 'axios'
 

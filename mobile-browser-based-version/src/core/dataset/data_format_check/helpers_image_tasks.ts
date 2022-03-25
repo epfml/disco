@@ -11,7 +11,7 @@ export function getExampleImage (url) {
   if (url === '') {
     return null
   }
-  const images = require.context('../../../example_training_data/', false)
+  const images = require.context('../../../../example_training_data/', false)
   return images(url)
 }
 

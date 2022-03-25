@@ -110,14 +110,14 @@
 </template>
 
 <script>
-import { FileUploadManager } from '../../../logic/data_validation/file_upload_manager'
+import { FileUploadManager } from '../../../core/dataset/data_format_check/file_upload_manager'
 // import PreviewGallery from './preview/PreviewGallery.vue'
 import _ from 'lodash'
 
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
   types.indexOf('Files') > -1
 export default {
-  name: 'SingleUploadFrame',
+  name: 'file-selection-frame',
   props: {
     id: String,
     task: Object,

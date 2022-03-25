@@ -163,7 +163,7 @@
 </template>
 
 <script>
-import * as memory from '../../logic/memory/model_io'
+import * as memory from '../../core/memory/memory'
 import CustomButton from '../simple/CustomButton.vue'
 import Tasks from '../../assets/svg/Tasks.vue'
 import Model from '../../assets/svg/Model.vue'

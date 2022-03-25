@@ -1,13 +1,13 @@
 import { ModelActor } from '../model_actor'
 import { TrainingInformant } from './training_informant'
 import { Trainer } from './trainer/trainer'
-import { getClient } from '../communication/client_builder'
 import { Client } from '../communication/client'
-import { Task } from '../task_definition/base/task'
+import { Task } from '../task/base/task'
 import { Logger } from '../logging/logger'
-import { TaskHelper } from '../task_definition/base/task_helper'
+import { TaskHelper } from '../task/base/task_helper'
 import { Platform } from '../../platforms/platform'
 import { TrainerBuilder } from './trainer/trainer_builder'
+import { getClient } from '../communication/client_builder'
 
 // number of files that should be loaded (required by the task)
 function nbrFiles (task: Task) {

@@ -1,17 +1,16 @@
 import msgpack from 'msgpack-lite'
-
 import {
   makeID,
   authenticate
-} from '../authenticator'
+} from '../authentication'
 import {
   assignWeightsToModel,
   serializeWeights
 } from '../tensor_serializer'
 import { checkBufferUntil, checkBufferWeightsUntil } from './check_buffer'
 import { Client } from '../client'
-import { Task } from '@/logic/task_definition/base/task'
-import { TrainingInformant } from '@/logic/training/training_informant'
+import { Task } from '@/core/task/base/task'
+import { TrainingInformant } from '@/core/training/training_informant'
 import CMD_CODES from './communication_codes'
 const Hashes = require('jshashes')
 
@@ -35,7 +34,7 @@ const MAX_TRIES = 100
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
-export class DecentralisedClient extends Client {
+export class DecentralizedClient extends Client {
   /**
    * Constructs the client for decentralised training.
    * @param {String} serverURL

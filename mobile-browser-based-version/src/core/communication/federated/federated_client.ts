@@ -1,9 +1,9 @@
 import * as msgpack from 'msgpack-lite'
-import { makeID } from '../authenticator'
+import { makeID } from '../authentication'
 import { serializeWeights } from '../tensor_serializer'
 import { Client } from '../client'
-import { Task } from '@/logic/task_definition/base/task'
-import { TrainingInformant } from '@/logic/training/training_informant'
+import { Task } from '@/core/task/base/task'
+import { TrainingInformant } from '@/core/training/training_informant'
 import * as api from './federated_api'
 import * as tf from '@tensorflow/tfjs'
 /**

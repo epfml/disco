@@ -1,4 +1,4 @@
-import { Task } from '../../task_definition/base/task'
+import { Task } from '../../task/base/task'
 import { RoundTracker } from './round_tracker'
 import { TrainingInformant } from '../training_informant'
 import { Client } from '../../communication/client'
@@ -6,7 +6,7 @@ import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
 import { Trainer } from './trainer'
 import * as tf from '@tensorflow/tfjs'
-import * as memory from '../../memory/model_io'
+import * as memory from '../../memory/memory'
 
 /**
  * A class that helps build the Trainer and auxiliary classes.

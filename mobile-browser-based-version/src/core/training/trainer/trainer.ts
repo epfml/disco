@@ -1,6 +1,6 @@
 import { datasetGenerator } from '../../dataset/dataset_generator'
 import * as tf from '@tensorflow/tfjs'
-import { Task, TrainingInformation } from '../../task_definition/base/task'
+import { Task, TrainingInformation } from '../../task/base/task'
 import { RoundTracker } from './round_tracker'
 import { TrainingInformant } from '../training_informant'
 import { TrainerLogger } from './trainer_logger'
