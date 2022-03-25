@@ -4,7 +4,7 @@
     <template v-slot:action>
       <!-- Upload File -->
       <div class="relative">
-        <uploading-frame
+        <dataset-input-frame
           :id="id"
           :task="task"
           :fileUploadManager="tester.fileUploadManager"
@@ -28,11 +28,11 @@
 </template>
 
 <script>
-import UploadingFrame from '../upload/UploadingFrame.vue'
+import DatasetInputFrame from '../upload/DatasetInputFrame.vue'
 import CustomButton from '../../simple/CustomButton.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 
-import { Tester } from '../../../logic/testing/tester'
+import { Tester } from '../../../core/testing/tester'
 
 export default {
   name: 'TestingFrame',
@@ -43,7 +43,7 @@ export default {
   },
   components: {
     ModelActorFrame,
-    UploadingFrame,
+    DatasetInputFrame,
     CustomButton
   },
   data () {
