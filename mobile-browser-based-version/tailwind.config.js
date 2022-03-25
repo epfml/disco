@@ -18,6 +18,8 @@ module.exports = {
         light: 'var(--light)',
         dark: 'var(--dark)',
         darker: 'var(--darker)',
+        blue: colors.sky,
+        yellow: colors.amber,
         primary: {
           DEFAULT: 'var(--color-primary)',
           50: 'var(--color-primary-50)',

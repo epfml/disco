@@ -6,6 +6,7 @@ import TaskList from '../components/TaskList.vue'
 import Information from '../components/Information.vue'
 import NewTaskCreationForm from '../components/NewTaskCreationForm.vue'
 import NotFound from '../components/NotFound.vue'
+import AboutUs from '../components/AboutUs.vue'
 
 const routes = [
   {
@@ -27,6 +28,11 @@ const routes = [
     path: '/information',
     name: 'information',
     component: Information
+  },
+  {
+    path: '/about-us',
+    name: 'aboutus',
+    component: AboutUs
   },
   {
     path: '/:pathMatch(.*)*',

@@ -72,6 +72,13 @@
       >
         <settings-icon />
       </SidebarButton>
+      <!-- Go to About Us page -->
+      <SidebarButton
+        @click="goToAboutUs"
+        :activePage="activePage"
+      >
+        About Us
+      </SidebarButton>
     </div>
   </nav>
 
@@ -211,6 +218,10 @@ export default defineComponent({
     goToInformation () {
       this.setActivePage('info')
       this.$router.push({ name: 'information' })
+    },
+    goToAboutUs () {
+      this.setActivePage('aboutus')
+      this.$router.push({ name: 'aboutus' })
     }
   },
   async mounted () {
