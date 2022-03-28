@@ -1,4 +1,4 @@
-import { AsyncWeightsInformant } from "./async_weights_informant";
+import { AsyncWeightsInformant } from './async_weights_informant'
 
 /**
  * The AsyncWeightsBuffer class holds and manipulates information about the
@@ -33,7 +33,7 @@ export class AsyncWeightsBuffer {
       this._aggregateAndStoreWeights = aggregateAndStoreWeights
       this.roundCutoff = roundCutoff
       this.round = 0
-      this.observers = [] 
+      this.observers = []
     }
 
     registerObserver (observer: AsyncWeightsInformant) {
