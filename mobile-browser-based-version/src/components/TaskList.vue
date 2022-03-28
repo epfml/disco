@@ -52,7 +52,7 @@ import CustomButton from './simple/CustomButton.vue'
 import _ from 'lodash'
 import { defineComponent } from 'vue'
 import { mapMutations } from 'vuex'
-import { createTaskClass, loadTasks } from '../core/task/utils'
+import { loadTasks } from '../core/task/utils'
 import { Task } from '../core/task/task'
 
 export default defineComponent({
@@ -81,16 +81,15 @@ export default defineComponent({
     },
     createNewTaskComponent (task: Task) {
       console.log(`Processing ${task.taskID}`)
-      const newTaskFrame = createTaskClass(task)
-      this.addTaskFrame(newTaskFrame) // commit to store
+      this.addTaskFrame(task) // commit to store
       const newTaskRoute = {
-        path: '/'.concat(newTaskFrame.taskID),
-        name: newTaskFrame.taskID,
+        path: '/'.concat(task.taskID),
+        name: task.taskID,
         component: MainTaskFrame,
-        props: { id: newTaskFrame.taskID, task: newTaskFrame },
+        props: { id: task.taskID, task: task },
         children: _.map(this.taskFramesInfo, (t) => {
           const [info, Frame] = t
-          const name = `${newTaskFrame.taskID}.${info}`
+          const name = `${task.taskID}.${info}`
           // Definition of an extension of the task-related component
           const component = defineComponent({
             extends: Frame,
@@ -102,8 +101,8 @@ export default defineComponent({
             name: name,
             component: component,
             props: {
-              id: newTaskFrame.taskID,
-              task: newTaskFrame
+              id: task.taskID,
+              task: task
             }
           }
         })

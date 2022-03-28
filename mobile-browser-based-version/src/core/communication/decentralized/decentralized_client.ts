@@ -9,11 +9,7 @@ import {
 } from '../tensor_serializer'
 import { checkBufferUntil, checkBufferWeightsUntil } from './check_buffer'
 import { Client } from '../client'
-<<<<<<<< HEAD:mobile-browser-based-version/src/core/communication/decentralised/decentralised_client.ts
-import { Task } from '@/logic/task_definition/base/task'
-========
-import { Task } from '@/core/task/base/task'
->>>>>>>> ac58a0cd1c50e6d846ac9fa403768c683eee716e:mobile-browser-based-version/src/core/communication/decentralized/decentralized_client.ts
+import { Task } from '@/core/task/task'
 import { TrainingInformant } from '@/core/training/training_informant'
 import CMD_CODES from './communication_codes'
 const Hashes = require('jshashes')

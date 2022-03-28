@@ -170,6 +170,7 @@ import Model from '../../assets/svg/Model.vue'
 import Clock from '../../assets/svg/Clock.vue'
 import IconCard from '../containers/IconCard.vue'
 import { mapState } from 'vuex'
+import { Task } from '../../core/task/task'
 
 export default {
   name: 'description-frame',
@@ -178,7 +179,7 @@ export default {
     modelText: String,
     tradeOffsText: String,
     id: String,
-    task: Object
+    task: Task
   },
   components: {
     CustomButton,
@@ -279,7 +280,7 @@ export default {
      * Create a new model and overwite the indexDB model with the new model
      */
     async loadFreshModel () {
-      await this.task.createModel().then((freshModel) => {
+      await this.task.getLatestModel().then((freshModel) => {
         memory.updateWorkingModel(
           this.task.taskID,
           this.task.trainingInformation.modelID,

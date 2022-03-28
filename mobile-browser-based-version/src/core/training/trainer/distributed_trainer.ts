@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-import * as memory from '../../memory/utils'
-import { Trainer } from './trainer'
-import { Task } from '../../task/task'
-=======
 import * as memory from '../../memory/memory'
 import { Trainer } from './trainer'
-import { Task } from '../../task/base/task'
->>>>>>> ac58a0cd1c50e6d846ac9fa403768c683eee716e
+import { Task } from '../../task/task'
 import { RoundTracker } from './round_tracker'
 import { Client } from '../../communication/client'
 import { TrainingInformant } from '../training_informant'

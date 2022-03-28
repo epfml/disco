@@ -7,8 +7,8 @@
     :id="id"
     :task="task"
   />
-  <csv-testing-frame
-    v-else-if="task.trainingInformation.dataType == 'csv'"
+  <text-testing-frame
+    v-else-if="task.trainingInformation.dataType == 'text'"
     :id="id"
     :task="task"
   />
@@ -16,7 +16,7 @@
 
 <script>
 import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue'
-import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame.vue'
+import TextTestingFrame from '../building_frames/text/TextTestingFrame.vue'
 
 export default {
   name: 'main-testing-frame',
@@ -26,7 +26,7 @@ export default {
   },
   components: {
     ImageTestingFrame,
-    CsvTestingFrame
+    TextTestingFrame
   },
   async activated () {
     this.$emit('opened-testing')

@@ -1,3 +1,5 @@
+import { loadLayersModel } from '@tensorflow/tfjs'
+
 class DataExample {
   columnName: string;
   columnData: string | number;
@@ -49,12 +51,22 @@ export class DisplayInformation {
 }
 
 export class Task {
-  taskID: string;
-  displayInformation: DisplayInformation;
-  trainingInformation: TrainingInformation;
+  taskID: string
+  displayInformation: DisplayInformation
+  trainingInformation: TrainingInformation
+
   constructor (taskID: string, displayInformation: DisplayInformation, trainingInformation: TrainingInformation) {
     this.taskID = taskID
     this.displayInformation = displayInformation
     this.trainingInformation = trainingInformation
+  }
+
+  /**
+   * TODO @s314cy:
+   * Should be moved to @/core/communication/client.ts in some way
+   * and be modular w.r.t. the server URL
+   */
+  async getLatestModel (): Promise<any> {
+    return await loadLayersModel(process.env.VUE_APP_FEAI_SERVER.concat(`tasks/${this.taskID}/model.json`))
   }
 }

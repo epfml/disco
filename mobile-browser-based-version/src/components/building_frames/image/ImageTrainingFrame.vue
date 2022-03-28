@@ -17,7 +17,7 @@
 <script>
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
-import { ImageLoader } from '../../core/dataset/data_loader/image_loader'
+import { ImageLoader } from '../../../core/dataset/data_loader/image_loader'
 
 export default {
   name: 'image-training-frame',

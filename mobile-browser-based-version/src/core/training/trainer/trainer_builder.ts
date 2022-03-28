@@ -1,4 +1,4 @@
-import { Task } from '../../task/base/task'
+import { Task } from '../../task/task'
 import { RoundTracker } from './round_tracker'
 import { TrainingInformant } from '../training_informant'
 import { Client } from '../../communication/client'
@@ -23,39 +23,33 @@ export class TrainerBuilder {
   }
 
   /**
-   * Build a distributed trainer that uses the client to share weights
+   * Builds a trainer object.
    *
    * @param trainSize number of samples in the training set
    * @param client client to share weights with (either distributed or federated)
+   * @param local whether to build a local or distributed trainer
    * @returns
    */
-  async buildDistributedTrainer (trainSize: number, client: Client): Promise<Trainer> {
-    const model = await this.getModel()
-    return new DistributedTrainer(
-      this.task,
-      this.trainingInformant,
-      this.useIndexedDB,
-      this.buildRoundTracker(trainSize),
-      model,
-      client
-    )
-  }
-
-  /**
-   * Build a local trainer
-   *
-   * @param trainSize number of samples in the training set
-   * @returns
-   */
-  async buildLocalTrainer (trainSize: number): Promise<Trainer> {
-    const model = await this.getModel()
-    return new LocalTrainer(
-      this.task,
-      this.trainingInformant,
-      this.useIndexedDB,
-      this.buildRoundTracker(trainSize),
-      model
-    )
+  async build (trainSize: number, client: Client, local: boolean = false): Promise<Trainer> {
+    const model = await this.getModel(client)
+    if (local) {
+      return new LocalTrainer(
+        this.task,
+        this.trainingInformant,
+        this.useIndexedDB,
+        this.buildRoundTracker(trainSize),
+        model
+      )
+    } else {
+      return new DistributedTrainer(
+        this.task,
+        this.trainingInformant,
+        this.useIndexedDB,
+        this.buildRoundTracker(trainSize),
+        model,
+        client
+      )
+    }
   }
 
   /**
@@ -70,8 +64,8 @@ export class TrainerBuilder {
     return new RoundTracker(roundDuration, trainSize, batchSize)
   }
 
-  private async getModel () {
-    const model = await this.getModelFromMemoryOrFetchIt()
+  private async getModel (client: Client) {
+    const model = await this.getModelFromMemoryOrFetchIt(client)
     return this.updateModelInformation(model)
   }
 
@@ -79,7 +73,7 @@ export class TrainerBuilder {
    *
    * @returns
    */
-  private async getModelFromMemoryOrFetchIt () {
+  private async getModelFromMemoryOrFetchIt (client: Client) {
     const modelExistsInMemory = await memory.getWorkingModelMetadata(
       this.task.taskID,
       this.task.trainingInformation.modelID
@@ -91,7 +85,7 @@ export class TrainerBuilder {
         this.task.trainingInformation.modelID
       )
     }
-    return await this.task.createModel()
+    return await client.getLatestModel()
   }
 
   private updateModelInformation (model: tf.LayersModel) {

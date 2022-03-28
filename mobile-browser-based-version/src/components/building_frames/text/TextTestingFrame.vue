@@ -113,14 +113,13 @@
 import TestingFrame from '../containers/TestingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
-import { CsvTaskHelper } from '../../../core/task/csv/csv_task_helper'
-import { CsvTask } from '../../../core/task/csv/csv_task'
+import { Task } from '../../../core/task/task'
 
 export default {
   name: 'csv-testing-frame',
   props: {
     id: String,
-    task: CsvTask
+    task: Task
   },
   components: {
     IconCard,
@@ -131,8 +130,7 @@ export default {
     return {
       dataExample: this.task.displayInformation.dataExample.filter(
         (item) => item.columnName !== this.task.classColumn
-      ),
-      helper: new CsvTaskHelper(this.task)
+      )
     }
   }
 }
