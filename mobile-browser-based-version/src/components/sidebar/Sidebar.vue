@@ -43,11 +43,11 @@
       </SidebarButton>
       <!-- Go to Find Out More page -->
       <SidebarButton
-        @click="goToFindOutMore"
-        hoverText= "findoutmore"
+        @click="goToTutorial"
+        hoverText= "tutorial"
         :activePage="activePage"
       >
-        Find Out More
+        Tutorial
       </SidebarButton>
       <!-- Go to Get Started page -->
       <SidebarButton
@@ -215,9 +215,9 @@ export default defineComponent({
       this.setActivePage('home')
       this.$router.push({ name: 'home' })
     },
-    goToFindOutMore () {
-      this.setActivePage('findoutmore')
-      this.$router.push({ name: 'findoutmore' })
+    goToTutorial () {
+      this.setActivePage('tutorial')
+      this.$router.push({ name: 'tutorial' })
     },
     goToGetStarted () {
       this.setActivePage('getstarted')
