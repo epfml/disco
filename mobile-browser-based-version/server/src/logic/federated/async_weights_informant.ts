@@ -83,7 +83,7 @@ export class AsyncWeightsInformant {
 
     // Debug
 
-    printAllInfos () {
+    printAllInfos () {
       console.log('round : ', this.getCurrentRound())
       console.log('participants : ', this.getNumberOfParticipants())
       console.log('total : ', this.getTotalNumberOfParticipants())
