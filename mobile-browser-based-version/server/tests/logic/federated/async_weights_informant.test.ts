@@ -5,31 +5,26 @@ import { AsyncWeightsBuffer } from '../../../src/logic/federated/async_weights_b
 import { expect } from 'chai'
 
 const taskId = 'titanic'
-const id = 'a'
 const bufferCapacity = 3
 const weights = [0, 1, 2]
-const newWeights = [3, 4, 5]
-let mockUpdatedWeights = []
 
-const mockAggregateAndStoreWeights = async (_weights: any) => {
-  mockUpdatedWeights = _weights
-}
+const mockAggregateAndStoreWeights = async (_weights: any) => {}
 
 describe('AsyncWeightInformant tests', () => {
-    it('get correct round number', async () => {
-        const buffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
-        const informant = new AsyncWeightsInformant(taskId, buffer)
-        expect(informant.round).to.eql(0)
-        weights.forEach((w) => {
-            buffer.add(w.toString(), w, Date.now())
-        })
-        expect(informant.round).to.eql(1)
-      })
+  it('get correct round number', async () => {
+    const buffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const informant = new AsyncWeightsInformant(taskId, buffer)
+    expect(informant.round).to.eql(0)
+    weights.forEach((w) => {
+      buffer.add(w.toString(), w, Date.now())
+    })
+    expect(informant.round).to.eql(1)
+  })
   it('get correct number of participants for last round', async () => {
     const buffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     const informant = new AsyncWeightsInformant(taskId, buffer)
     weights.forEach((w) => {
-        buffer.add(w.toString(), w, Date.now())
+      buffer.add(w.toString(), w, Date.now())
     })
     expect(informant.currentNumberOfParticipants).to.eql(bufferCapacity)
   })
@@ -37,10 +32,10 @@ describe('AsyncWeightInformant tests', () => {
     const buffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     const informant = new AsyncWeightsInformant(taskId, buffer)
     weights.forEach((w) => {
-        buffer.add(w.toString(), w, Date.now())
+      buffer.add(w.toString(), w, Date.now())
     })
     weights.forEach((w) => {
-        buffer.add(w.toString(), w, Date.now())
+      buffer.add(w.toString(), w, Date.now())
     })
     expect(informant.averageNumberOfParticipants).to.eql(bufferCapacity)
   })
@@ -48,10 +43,10 @@ describe('AsyncWeightInformant tests', () => {
     const buffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     const informant = new AsyncWeightsInformant(taskId, buffer)
     weights.forEach((w) => {
-        buffer.add(w.toString(), w, Date.now())
+      buffer.add(w.toString(), w, Date.now())
     })
     weights.forEach((w) => {
-        buffer.add(w.toString(), w, Date.now())
+      buffer.add(w.toString(), w, Date.now())
     })
     expect(informant.totalNumberOfParticipants).to.eql(2 * bufferCapacity)
   })

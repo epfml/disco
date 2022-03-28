@@ -35,9 +35,9 @@ const REQUEST_TYPES = Object.freeze({
 const asyncWeightsMap: Map<string, AsyncWeightsBuffer> = new Map()
 const BUFFER_CAPACITY = 2
 /**
- * Contains the informants for each task. 
+ * Contains the informants for each task.
  */
- const asyncWeightsInformantsMap: Map<string, AsyncWeightsInformant> = new Map()
+const asyncWeightsInformantsMap: Map<string, AsyncWeightsInformant> = new Map()
 /**
  * Contains metadata used for training by clients for a given task and round.
  * Stored by task ID, round number and client ID.
