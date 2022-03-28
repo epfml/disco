@@ -87,7 +87,7 @@ function _initAsyncWeightsBufferIfNotExists (task) {
   if (!asyncWeightsMap.has(task)) {
     const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
     asyncWeightsMap.set(task, new AsyncWeightsBuffer(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
-    asyncWeightsInformantsMap.set(task.taskID,  new AsyncWeightsInformant(task.taskID, asyncWeightsMap.get(task)))
+    asyncWeightsInformantsMap.set(task.taskID, new AsyncWeightsInformant(task.taskID, asyncWeightsMap.get(task)))
   }
 }
 
