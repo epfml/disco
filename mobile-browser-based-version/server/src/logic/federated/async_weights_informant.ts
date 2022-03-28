@@ -77,6 +77,7 @@ import { AsyncWeightsBuffer } from './async_weights_buffer';
         return this.averageNumberOfParticipants
     }
 
+    // Future statistics 
     getDistanceFromGlobalModel() {}
 
     getShapleyValueForUser(id) {}
