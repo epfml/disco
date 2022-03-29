@@ -1,6 +1,10 @@
 /**
  * Class that collects information about the status of the training-loop of the model.
  */
+
+type DataSerie = {
+  data: number[];
+};
 export class TrainingInformant {
   taskID: string;
   whoReceivedMyModel: Set<unknown>;
@@ -214,7 +218,7 @@ export class TrainingInformant {
    * Returns the Validation Accuracy over the last 10 epochs.
    * @returns the validation accuracy data
    */
-  getValidationAccuracyData () {
+  getValidationAccuracyData (): DataSerie[] {
     return [
       {
         data: this.validationAccuracyDataSerie
@@ -226,7 +230,7 @@ export class TrainingInformant {
    * Returns the Training Accuracy over the last 10 epochs.
    * @returns the training accuracy data
    */
-  getTrainingAccuracyData () {
+  getTrainingAccuracyData (): DataSerie[] {
     return [
       {
         data: this.trainingAccuracyDataSerie
