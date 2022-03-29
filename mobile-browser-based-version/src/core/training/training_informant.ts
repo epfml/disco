@@ -1,10 +1,11 @@
-/**
- * Class that collects information about the status of the training-loop of the model.
- */
 
 type DataSerie = {
   data: number[];
 };
+
+/**
+ * Class that collects information about the status of the training-loop of the model.
+ */
 export class TrainingInformant {
   taskID: string;
   whoReceivedMyModel: Set<unknown>;
