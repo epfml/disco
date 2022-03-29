@@ -110,8 +110,8 @@ export abstract class Trainer {
   /**
    * Format accuracy
    */
-  private formatAccuracy (accuracy: number) {
-    return +(accuracy * 100).toFixed(2)
+  private roundDecimals (accuracy: number, decimalsToRound: number = 2): number {
+    return +(accuracy * 100).toFixed(decimalsToRound)
   }
 
   /**
@@ -120,8 +120,8 @@ export abstract class Trainer {
   private onEpochEnd (trainingAccuracy: number, validationAccuracy: number) {
     this.trainerLogger.onEpochEnd(trainingAccuracy, validationAccuracy)
     if (!isNaN(trainingAccuracy) && !isNaN(validationAccuracy)) {
-      this.trainingInformant.updateValidationAccuracyGraph(this.formatAccuracy(validationAccuracy))
-      this.trainingInformant.updateTrainingAccuracyGraph(this.formatAccuracy(trainingAccuracy))
+      this.trainingInformant.updateValidationAccuracyGraph(this.roundDecimals(validationAccuracy))
+      this.trainingInformant.updateTrainingAccuracyGraph(this.roundDecimals(trainingAccuracy))
     }
   }
 
