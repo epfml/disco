@@ -17,7 +17,7 @@
 </template>
 <script>
 export default {
-  name: 'upload',
+  name: 'Upload',
   props: {
     customClass: { default: 'bi bi-cloud-upload w-7 h-7', type: String },
     viewBox: { default: '0 0 16 16', type: String }

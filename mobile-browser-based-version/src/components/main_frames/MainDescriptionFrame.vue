@@ -16,10 +16,10 @@
       <keep-alive>
         <description-frame
           v-if="task.displayInformation.tradeoffs"
-          :overviewText="task.displayInformation.overview"
-          :modelText="task.displayInformation.model"
-          :tradeOffsText="task.displayInformation.tradeoffs"
           :id="task.taskID"
+          :overview-text="task.displayInformation.overview"
+          :model-text="task.displayInformation.model"
+          :trade-offs-text="task.displayInformation.tradeoffs"
           :task="task"
         />
       </keep-alive>
@@ -30,13 +30,13 @@
 import DescriptionFrame from '../building_frames/DescriptionFrame.vue'
 
 export default {
-  name: 'main-description-frame',
+  name: 'MainDescriptionFrame',
+  components: {
+    DescriptionFrame
+  },
   props: {
     id: String,
     task: Object
-  },
-  components: {
-    DescriptionFrame
   }
 }
 </script>

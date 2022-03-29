@@ -13,7 +13,7 @@
 </template>
 <script>
 export default {
-  name: 'forward',
+  name: 'Forward',
   props: {
     customClass: {
       default: 'w-12 h-12 text-gray-300 dark:text-primary-dark',

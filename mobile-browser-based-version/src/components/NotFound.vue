@@ -1,5 +1,5 @@
 <template>
-  <base-layout customClass="pt-4">
+  <base-layout custom-class="pt-4">
     <!-- Welcoming words -->
     <custom-header />
     <!-- Information sections -->
@@ -25,10 +25,16 @@
         </div>
 
         <div class="flex items-center justify-center p-4">
-          <custom-button @click="goToPreviousPage()" :center="true">
+          <custom-button
+            :center="true"
+            @click="goToPreviousPage()"
+          >
             Go Back
           </custom-button>
-          <custom-button @click="goToHomePage()" :center="true">
+          <custom-button
+            :center="true"
+            @click="goToHomePage()"
+          >
             Home Page
           </custom-button>
         </div>
@@ -45,7 +51,7 @@ import CustomHeader from './simple/CustomHeader.vue'
 import TitleCard from './containers/TitleCard.vue'
 
 export default defineComponent({
-  name: 'not-found',
+  name: 'NotFound',
   components: {
     BaseLayout,
     CustomButton,

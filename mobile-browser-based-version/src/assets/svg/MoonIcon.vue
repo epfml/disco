@@ -16,7 +16,7 @@
 </template>
 <script>
 export default {
-  name: 'moon-icon',
+  name: 'MoonIcon',
   props: {
     customClass: {
       default: 'w-6 h-6',

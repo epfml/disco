@@ -1,14 +1,14 @@
 <!-- Upload File Data Template -->
 <template :id="fileTemplName">
   <element-data
-    :fileUploadManager="fileUploadManager"
-    :objectURL="objectURL"
+    :file-upload-manager="fileUploadManager"
+    :object-u-r-l="objectURL"
     :header="file.name"
     :body="fileSize"
-    headerClass="group-hover:text-primary dark:group-hover:text-primary z-10"
-    articleClass="bg-primary-100 dark:bg-dark focus-within:cursor-pointer"
-    textClass="text-gray-800 dark:text-gray-50"
-    hoverClass="hover:bg-white dark:hover:bg-gray-500"
+    header-class="group-hover:text-primary dark:group-hover:text-primary z-10"
+    article-class="bg-primary-100 dark:bg-dark focus-within:cursor-pointer"
+    text-class="text-gray-800 dark:text-gray-50"
+    hover-class="hover:bg-white dark:hover:bg-gray-500"
   />
 </template>
 
@@ -17,7 +17,7 @@ import { FileUploadManager } from '../../../../../logic/data_validation/file_upl
 import ElementData from './ElementData.vue'
 
 export default {
-  name: 'file-data',
+  name: 'FileData',
   components: {
     ElementData
   },

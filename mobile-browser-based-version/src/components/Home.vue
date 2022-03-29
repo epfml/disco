@@ -1,17 +1,23 @@
 <template>
-  <base-layout customClass="pt-4">
+  <base-layout custom-class="pt-4">
     <!-- Welcoming words -->
     <custom-header />
     <!-- Information sections -->
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-        <div v-for="build in $tm('home.buildCard')" :key="build.header.text">
+        <div
+          v-for="build in $tm('home.buildCard')"
+          :key="build.header.text"
+        >
           <title-card
             :title="build.header.text"
-            :titleUnderlined="build.header.underlined"
+            :title-underlined="build.header.underlined"
           >
-            <div v-for="item in build.items" :key="item">
-              <p v-html="`- ${item}`"></p>
+            <div
+              v-for="item in build.items"
+              :key="item"
+            >
+              <p v-html="`- ${item}`" />
             </div>
           </title-card>
         </div>
@@ -30,7 +36,7 @@
         <div class="flex flex-col items-center mx-auto">
           <title-card
             title="Insights: "
-            :titleUnderlined="$t('home.images.decentralised.title')"
+            :title-underlined="$t('home.images.decentralised.title')"
           >
             <div class="flex justify-center my-md">
               <decentralized-image class="sm:w-full md:w-3/5" />
@@ -47,7 +53,7 @@
         <div class="flex flex-col items-center mx-auto">
           <title-card
             title="Insights: "
-            :titleUnderlined="$t('home.images.federated.title')"
+            :title-underlined="$t('home.images.federated.title')"
           >
             <div class="flex justify-center my-md">
               <federated-image class="sm:w-full md:w-3/5" />
@@ -65,13 +71,19 @@
 
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-        <div v-for="task in $tm('home.taskCard')" :key="task.header.text">
+        <div
+          v-for="task in $tm('home.taskCard')"
+          :key="task.header.text"
+        >
           <title-card
             :title="task.header.text"
-            :titleUnderlined="task.header.underlined"
+            :title-underlined="task.header.underlined"
           >
-            <div v-for="item in task.items" :key="item">
-              <p v-html="`- ${item}`"></p>
+            <div
+              v-for="item in task.items"
+              :key="item"
+            >
+              <p v-html="`- ${item}`" />
             </div>
           </title-card>
         </div>
@@ -98,9 +110,7 @@ import DecentralizedImage from '../assets/svg/DecentralizedImage.vue'
 import { mapMutations } from 'vuex'
 
 export default defineComponent({
-  name: 'home-page',
-  setup () {
-  },
+  name: 'HomePage',
   components: {
     BaseLayout,
     TitleCard,
@@ -108,6 +118,8 @@ export default defineComponent({
     FederatedImage,
     DecentralizedImage,
     CustomHeader
+  },
+  setup () {
   },
   methods: {
     ...mapMutations(['setActivePage']),

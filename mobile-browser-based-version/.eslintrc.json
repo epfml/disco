@@ -5,7 +5,7 @@
         "mocha": true
     },
     "extends": [
-        "plugin:vue/essential",
+        "plugin:vue/recommended",
         "standard"
     ],
     "globals": {
