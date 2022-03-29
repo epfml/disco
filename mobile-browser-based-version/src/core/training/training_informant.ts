@@ -28,7 +28,7 @@ export class TrainingInformant {
    * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
    * @param {String} taskID the task's name.
    */
-  constructor (length, taskID) {
+  constructor (length: number, taskID: string) {
     this.taskID = taskID
     // number of people with whom I've shared my model
     this.whoReceivedMyModel = new Set()
@@ -46,7 +46,7 @@ export class TrainingInformant {
     this.nbrMessagesToShow = length
     this.messages = []
 
-    // validation accurarcy chart
+    // validation accuracy chart
     this.validationAccuracyChart = null // new TrainingChart("validationAccuracy_".concat(taskID), "Validation Accuracy")
     this.validationAccuracy = 0
 
@@ -69,7 +69,7 @@ export class TrainingInformant {
    * Updates the set of peers who received my model.
    * @param {String} peerName the peer's name to whom I recently shared my model to.
    */
-  updateWhoReceivedMyModel (peerName) {
+  updateWhoReceivedMyModel (peerName: string) {
     this.whoReceivedMyModel.add(peerName)
   }
 
@@ -77,7 +77,7 @@ export class TrainingInformant {
    * Updates the number of updates I did with other peers.
    * @param {Number} nbrUpdates the number of updates I did thanks to other peers contribution since the last update of the parameter.
    */
-  updateNbrUpdatesWithOthers (nbrUpdates) {
+  updateNbrUpdatesWithOthers (nbrUpdates: number) {
     this.nbrUpdatesWithOthers += nbrUpdates
   }
 
@@ -85,7 +85,7 @@ export class TrainingInformant {
    * Updates the time I waited to receive weights.
    * @param {Number} time
    */
-  updateWaitingTime (time) {
+  updateWaitingTime (time: number) {
     this.waitingTime += time
   }
 
@@ -93,7 +93,7 @@ export class TrainingInformant {
    * Updates the number of weights request I received.
    * @param {Number} nbrRequests the number of weight requests I received since the last update of the parameter.
    */
-  updateNbrWeightsRequests (nbrRequests) {
+  updateNbrWeightsRequests (nbrRequests: number) {
     this.nbrWeightRequests += nbrRequests
   }
 
@@ -101,14 +101,14 @@ export class TrainingInformant {
    * Add a new message to the message list.
    * @param {String} msg a message.
    */
-  addMessage (msg) {
+  addMessage (msg: string) {
     if (this.messages.length >= this.nbrMessagesToShow) {
       this.messages.shift()
     }
     this.messages.push(msg)
   }
 
-  cssColors = (color) => {
+  cssColors = (color: string) => {
     return getComputedStyle(document.documentElement)
       .getPropertyValue(color)
       .trim()
@@ -131,61 +131,6 @@ export class TrainingInformant {
       primaryLighter: this.cssColors(`--color-${this.getColor()}-lighter`),
       primaryDark: this.cssColors(`--color-${this.getColor()}-dark`),
       primaryDarker: this.cssColors(`--color-${this.getColor()}-darker`)
-    }
-  }
-
-  /**
-   * Update the Heatmap for Interoperability.
-   */
-  updateHeatmapData (weightsIn, biasesIn, weightsOut, biasesOut) {
-    this.displayHeatmap = true
-    this.weightsIn = weightsIn
-    this.biasesIn = biasesIn
-    this.weightsOut = weightsOut
-    this.biasesOut = biasesOut
-  }
-
-  /**
-   * Give the defined options for the Interoperability Heatmap.
-   * TODO: Make the fetching of categories dynamic.
-   * @returns An object containing the options to style the heatmap.
-   */
-  getHeatmapOptions () {
-    return {
-      colors: [this.getColorPalette().primaryLight],
-      dataLabels: {
-        enabled: true,
-        style: {
-          colors: ['#FFF']
-        },
-        offsetX: 30
-      },
-      chart: {
-        id: 'vuechart-example'
-      },
-      plotOptions: {
-        heatmap: {
-          colorScale: {
-            min: 0.8,
-            max: 1.2
-          }
-        }
-      },
-      xaxis: {
-        categories: ['Id', 'Age', 'SibSp', 'Parch', 'Fare', 'Pclass'],
-        labels: {
-          style: {
-            colors: '#FFF'
-          }
-        }
-      },
-      yaxis: {
-        labels: {
-          style: {
-            colors: '#FFF'
-          }
-        }
-      }
     }
   }
 
@@ -290,20 +235,10 @@ export class TrainingInformant {
   }
 
   /**
-   * Update the accuracy graphs data
-   * @param {Number} validationAccuracy the current validation accuracy of the model
-   * @param {Number} trainingAccuracy the current training accuracy of the model
-   */
-  updateGraph (validationAccuracy, trainingAccuracy) {
-    this._updateValidationAccuracyGraph(validationAccuracy)
-    this._updateTrainingAccuracyGraph(trainingAccuracy)
-  }
-
-  /**
    *  Updates the data to be displayed on the validation accuracy graph.
    * @param {Number} validationAccuracy the current validation accuracy of the model
    */
-  _updateValidationAccuracyGraph (validationAccuracy) {
+  updateValidationAccuracyGraph (validationAccuracy: number) {
     this.validationAccuracyDataSerie.push(validationAccuracy)
     this.validationAccuracyDataSerie.splice(0, 1)
     this.currentValidationAccuracy = validationAccuracy
@@ -313,7 +248,7 @@ export class TrainingInformant {
    *  Updates the data to be displayed on the training accuracy graph.
    * @param {Number} trainingAccuracy the current training accuracy of the model
    */
-  _updateTrainingAccuracyGraph (trainingAccuracy) {
+  updateTrainingAccuracyGraph (trainingAccuracy: number) {
     this.trainingAccuracyDataSerie.push(trainingAccuracy)
     this.trainingAccuracyDataSerie.splice(0, 1)
     this.currentTrainingAccuracy = trainingAccuracy
