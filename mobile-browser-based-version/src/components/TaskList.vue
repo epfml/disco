@@ -1,7 +1,7 @@
 <template>
   <base-layout :withSection="true">
     <div
-      v-for="task in $store.getters.tasksFramesList"
+      v-for="task in Array.from(tasks.values())"
       :key="task.taskID"
       class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
     >
@@ -45,10 +45,6 @@ import BaseLayout from './containers/BaseLayout.vue'
 import Card from './containers/Card.vue'
 import CustomButton from './simple/CustomButton.vue'
 
-/**
- * WARNING: Temporary code until complete modularization of task objects.
- * In the meantine, import all custom task classes here.
- */
 import _ from 'lodash'
 import { defineComponent } from 'vue'
 import { mapMutations } from 'vuex'
@@ -64,6 +60,7 @@ export default defineComponent({
   },
   data () {
     return {
+      tasks: new Map<string, Task>(),
       taskFramesInfo: [
         ['description', MainDescriptionFrame],
         ['training', MainTrainingFrame],
@@ -72,7 +69,7 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapMutations(['addTaskFrame', 'newTask', 'clearNewTasks']),
+    ...mapMutations(['addTask']),
     goToSelection (id: string) {
       this.$router.push({
         name: id.concat('.description'),
@@ -80,19 +77,18 @@ export default defineComponent({
       })
     },
     createNewTaskComponent (task: Task) {
-      console.log(`Processing ${task.taskID}`)
-      this.addTaskFrame(task) // commit to store
+      this.tasks.set(task.taskID, task)
+
       const newTaskRoute = {
         path: '/'.concat(task.taskID),
         name: task.taskID,
         component: MainTaskFrame,
         props: { id: task.taskID, task: task },
         children: _.map(this.taskFramesInfo, (t) => {
-          const [info, Frame] = t
+          const [info, frame] = t
           const name = `${task.taskID}.${info}`
-          // Definition of an extension of the task-related component
           const component = defineComponent({
-            extends: Frame,
+            extends: frame,
             name: name,
             key: name
           })
@@ -110,12 +106,12 @@ export default defineComponent({
       this.$router.addRoute(newTaskRoute)
     }
   },
-  async mounted () {
-    const rawTasks = await loadTasks()
-    rawTasks
-      .concat(this.$store.state.newTasks)
-      .forEach(this.createNewTaskComponent)
-    this.clearNewTasks()
+  async created () {
+    this.tasks.clear()
+    const tasks: Task[] = await loadTasks()
+    _.forEach(tasks, this.createNewTaskComponent)
+    const array: Task[] = Array.from(this.tasks.values())
+    _.forEach(array, e => console.log(e.taskID, e.displayInformation, e.displayInformation.taskTitle))
   }
 })
 </script>

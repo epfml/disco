@@ -171,6 +171,7 @@ import Clock from '../../assets/svg/Clock.vue'
 import IconCard from '../containers/IconCard.vue'
 import { mapState } from 'vuex'
 import { Task } from '../../core/task/task'
+import { getLatestModel } from '../../core/task/utils'
 
 export default {
   name: 'description-frame',
@@ -227,7 +228,7 @@ export default {
   },
   methods: {
     /**
-     * If indexDB is used and a new model needs to be created do so, and then go to the training frame.
+     * If IndexedDB is used and a new model needs to be created do so, and then go to the training frame.
      */
     async goToTraining () {
       if (this.useIndexedDB && this.shouldCreateFreshModel) {
@@ -244,7 +245,7 @@ export default {
       })
     },
     /**
-     * Delete the model stored in indexDB corresponding to this task.
+     * Delete the model stored in IndexedDB corresponding to this task.
      */
     async deleteModel () {
       this.workingModelExists = false
@@ -258,7 +259,7 @@ export default {
       setTimeout(this.$toast.clear, 30000)
     },
     /**
-     * Save the current working model to indexDB
+     * Save the current working model to IndexedDB
      */
     async saveModel () {
       await memory.saveWorkingModel(
@@ -277,10 +278,10 @@ export default {
       this.useWorkingModel = !this.useWorkingModel
     },
     /**
-     * Create a new model and overwite the indexDB model with the new model
+     * Create a new model and overwite the IndexedDB model with the new model
      */
     async loadFreshModel () {
-      await this.task.getLatestModel().then((freshModel) => {
+      await getLatestModel(this.task.taskID).then((freshModel) => {
         memory.updateWorkingModel(
           this.task.taskID,
           this.task.trainingInformation.modelID,

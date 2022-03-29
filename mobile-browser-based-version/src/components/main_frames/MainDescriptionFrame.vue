@@ -28,12 +28,13 @@
 </template>
 <script>
 import DescriptionFrame from '../building_frames/DescriptionFrame.vue'
+import { Task } from '../../core/task/task'
 
 export default {
   name: 'main-description-frame',
   props: {
     id: String,
-    task: Object
+    task: Task
   },
   components: {
     DescriptionFrame
