@@ -23,8 +23,14 @@ export default {
   },
   props: {
     fileUploadManager: FileUploadManager,
-    objectURL: String,
-    file: Object
+    objectURL: {
+      type: String,
+      default: ''
+    },
+    file: {
+      type: Object,
+      default: undefined
+    }
   },
   computed: {
     fileSize () {

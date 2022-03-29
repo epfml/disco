@@ -429,8 +429,14 @@ export default {
     next()
   },
   props: {
-    id: String,
-    task: Object
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {

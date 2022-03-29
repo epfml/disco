@@ -53,7 +53,10 @@ export default {
     FileEarmarkRuled
   },
   props: {
-    task: Object
+    task: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {

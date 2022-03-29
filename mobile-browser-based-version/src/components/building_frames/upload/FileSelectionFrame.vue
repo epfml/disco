@@ -127,14 +127,23 @@ export default {
     // PreviewGallery
   },
   props: {
-    id: String,
-    task: Object,
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    },
     // The file upload manager associated to the task
     fileUploadManager: FileUploadManager,
     // Preview is used to know if we have to show a snippet of the uploaded files or not
     preview: Boolean,
     // The label associated to the task
-    label: String
+    label: {
+      type: String,
+      default: ''
+    }
   },
   data () {
     return {

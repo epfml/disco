@@ -43,7 +43,10 @@ export default {
     ImageData
   },
   props: {
-    fileUploadManager: Object
+    fileUploadManager: {
+      type: Object,
+      default: undefined
+    }
   }
 }
 </script>

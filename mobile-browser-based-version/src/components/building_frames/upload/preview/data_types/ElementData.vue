@@ -56,7 +56,7 @@ export default {
   },
   props: {
     fileUploadManager: FileUploadManager,
-    objectURL: String,
+    objectURL: { default: '', type: String },
     header: { default: '', type: String },
     body: { default: '', type: String },
     articleClass: { default: '', type: String },

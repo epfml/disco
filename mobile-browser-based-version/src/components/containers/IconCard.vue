@@ -76,8 +76,8 @@ export default {
     UpArrow
   },
   props: {
-    header: { type: String },
-    description: { type: String },
+    header: { type: String, default: '' },
+    description: { type: String, default: '' },
     customClass: { default: '', type: String },
     withToggle: { default: false, type: Boolean }
   },
