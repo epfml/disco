@@ -1,7 +1,7 @@
 import path from 'path'
 import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
-import * as config from '../server.config'
+import * as config from '../config'
 import fs from 'fs'
 
 /**

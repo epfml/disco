@@ -3,13 +3,13 @@ import expressWS from 'express-ws'
 import _ from 'lodash'
 import * as handlers from '../logic/federated/request_handlers'
 import { writeNewTask, getTasks } from '../tasks/tasks_io'
-import * as config from '../server.config'
+import * as config from '../config'
 import { SignalingServer } from './signaling_server'
 
 // enable websocket
 const wsApplier = expressWS(express())
 
-const tasks = getTasks(config)
+const tasks = getTasks(config.TASKS_FILE)
 
 // WebSocket server
 const signalingServer = new SignalingServer()

@@ -3,7 +3,7 @@ import express from 'express'
 import expressWS from 'express-ws'
 
 import { federatedRouter, decentralisedRouter } from './router/router'
-import * as config from './server.config'
+import * as config from './config'
 import models from './tasks/models'
 
 // enable websocket
