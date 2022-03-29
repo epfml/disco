@@ -1,5 +1,5 @@
 <template>
-  <base-layout :withSection="true">
+  <base-layout :with-section="true">
     <div
       v-for="task in $store.getters.tasksFramesList"
       :key="task.taskID"
@@ -21,7 +21,7 @@
         </div>
         <div class="ml-10">
           <ul class="text-base ont-semibold text-gray-500 dark:text-light">
-            <span v-html="task.displayInformation.summary"></span>
+            <span v-html="task.displayInformation.summary" />
           </ul>
         </div>
         <div class="py-2">
@@ -56,7 +56,7 @@ import { createTaskClass } from '../core/task/task_builder'
 import { loadTasks } from '../core/task/tasks_io'
 
 export default defineComponent({
-  name: 'task-list',
+  name: 'TaskList',
   components: {
     BaseLayout,
     Card,
@@ -70,6 +70,13 @@ export default defineComponent({
         ['testing', MainTestingFrame]
       ]
     }
+  },
+  async mounted () {
+    const rawTasks = await loadTasks()
+    rawTasks
+      .concat(this.$store.state.newTasks)
+      .forEach(this.createNewTaskComponent)
+    this.clearNewTasks()
   },
   methods: {
     ...mapMutations(['addTaskFrame', 'newTask', 'clearNewTasks']),
@@ -93,9 +100,9 @@ export default defineComponent({
           const name = `${newTaskFrame.taskID}.${info}`
           // Definition of an extension of the task-related component
           const component = defineComponent({
-            extends: Frame,
             name: name,
-            key: name
+            key: name,
+            extends: Frame
           })
           return {
             path: info,
@@ -110,13 +117,6 @@ export default defineComponent({
       }
       this.$router.addRoute(newTaskRoute)
     }
-  },
-  async mounted () {
-    const rawTasks = await loadTasks()
-    rawTasks
-      .concat(this.$store.state.newTasks)
-      .forEach(this.createNewTaskComponent)
-    this.clearNewTasks()
   }
 })
 </script>

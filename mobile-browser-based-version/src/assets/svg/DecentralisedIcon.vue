@@ -12,7 +12,7 @@
 </template>
 <script>
 export default {
-  name: 'decentralised-icon',
+  name: 'DecentralisedIcon',
   props: {
     customClass: {
       default: 'w-6 h-6',

@@ -18,7 +18,7 @@
         header="Data Format Information"
         :description="dataFormatInfoText"
       >
-        <template v-slot:icon><check-list /></template>
+        <template #icon><check-list /></template>
       </icon-card>
     </a>
 
@@ -27,16 +27,16 @@
       <icon-card
         header="Data Example"
         :description="dataExampleText"
-        :withToggle="true"
+        :with-toggle="true"
       >
-        <template v-slot:icon><file-earmark-ruled /></template>
+        <template #icon><file-earmark-ruled /></template>
         <!-- Data Point Example -->
-        <template v-slot:extra>
-          <slot name="dataExample"></slot>
+        <template #extra>
+          <slot name="dataExample" />
         </template>
       </icon-card>
     </a>
-    <slot name="action"></slot>
+    <slot name="action" />
   </div>
 </template>
 
@@ -46,14 +46,14 @@ import CheckList from '../../../assets/svg/CheckList.vue'
 import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue'
 
 export default {
-  name: 'model-actor-frame',
-  props: {
-    task: Object
-  },
+  name: 'ModelActorFrame',
   components: {
     IconCard,
     CheckList,
     FileEarmarkRuled
+  },
+  props: {
+    task: Object
   },
   data () {
     return {

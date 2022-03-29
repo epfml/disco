@@ -8,21 +8,21 @@
       <empty-data v-if="fileUploadManager.numberOfFiles() == 0" />
       <!-- No file to dislay -->
       <li
-        v-else
         v-for="(file, objectURL) in fileUploadManager.getFilesList()"
+        v-else
         :key="objectURL"
         class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24"
       >
         <image-data
           v-if="file.isImage"
-          :fileUploadManager="fileUploadManager"
-          :objectURL="objectURL"
+          :file-upload-manager="fileUploadManager"
+          :object-u-r-l="objectURL"
         />
 
         <file-data
           v-else
-          :fileUploadManager="fileUploadManager"
-          :objectURL="objectURL"
+          :file-upload-manager="fileUploadManager"
+          :object-u-r-l="objectURL"
           :file="file"
         />
       </li>
@@ -36,7 +36,7 @@ import FileData from './data_types/FileData.vue'
 import ImageData from './data_types/ImageData.vue'
 
 export default {
-  name: 'preview-gallery',
+  name: 'PreviewGallery',
   components: {
     EmptyData,
     FileData,
