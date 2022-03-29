@@ -7,8 +7,8 @@
     :id="id"
     :task="task"
   />
-  <text-testing-frame
-    v-else-if="task.trainingInformation.dataType == 'text'"
+  <tabular-testing-frame
+    v-else-if="task.trainingInformation.dataType == 'tabular'"
     :id="id"
     :task="task"
   />
@@ -16,7 +16,7 @@
 
 <script>
 import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue'
-import TextTestingFrame from '../building_frames/text/TextTestingFrame.vue'
+import TabularTestingFrame from '../building_frames/tabular/TabularTestingFrame.vue'
 
 export default {
   name: 'main-testing-frame',
@@ -26,7 +26,7 @@ export default {
   },
   components: {
     ImageTestingFrame,
-    TextTestingFrame
+    TabularTestingFrame
   },
   async activated () {
     this.$emit('opened-testing')

@@ -2,7 +2,7 @@ import { DataLoader } from './data_loader'
 import * as tf from '@tensorflow/tfjs'
 import _ from 'lodash'
 
-export class TextLoader extends DataLoader {
+export class TabularLoader extends DataLoader {
   private delimiter: string
 
   constructor (delimiter: string) {

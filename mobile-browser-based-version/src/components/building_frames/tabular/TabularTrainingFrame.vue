@@ -117,10 +117,10 @@ import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
 import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
-import { TextLoader } from '../../../core/dataset/data_loader/text_loader'
+import { TabularLoader } from '../../../core/dataset/data_loader/tabular_loader'
 
 export default {
-  name: 'text-training-frame',
+  name: 'tabular-training-frame',
   props: {
     id: String,
     task: Object
@@ -131,7 +131,7 @@ export default {
     Bezier2
   },
   mounted () {
-    this.datasetBuilder = new DatasetBuilder(new TextLoader(','))
+    this.datasetBuilder = new DatasetBuilder(new TabularLoader(','))
   }
 }
 </script>
