@@ -47,7 +47,6 @@ import CustomButton from './simple/CustomButton.vue'
 
 import _ from 'lodash'
 import { defineComponent } from 'vue'
-import { mapMutations } from 'vuex'
 import { loadTasks } from '../core/task/utils'
 import { Task } from '../core/task/task'
 
@@ -69,7 +68,6 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapMutations(['addTask']),
     goToSelection (id: string) {
       this.$router.push({
         name: id.concat('.description'),
@@ -110,8 +108,6 @@ export default defineComponent({
     this.tasks.clear()
     const tasks: Task[] = await loadTasks()
     _.forEach(tasks, this.createNewTaskComponent)
-    const array: Task[] = Array.from(this.tasks.values())
-    _.forEach(array, e => console.log(e.taskID, e.displayInformation, e.displayInformation.taskTitle))
   }
 })
 </script>

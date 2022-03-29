@@ -9,6 +9,7 @@ export class DatasetBuilder {
 
   constructor (dataLoader: DataLoader) {
     this.dataLoader = dataLoader
+    this.sources = new Map()
     this.built = false
   }
 

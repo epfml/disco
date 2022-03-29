@@ -112,25 +112,26 @@
   </training-frame>
 </template>
 
-<script>
+<script lang="ts">
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
 import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
 import { TabularLoader } from '../../../core/dataset/data_loader/tabular_loader'
+import { Task } from '../../../core/task/task'
 
 export default {
   name: 'tabular-training-frame',
   props: {
     id: String,
-    task: Object
+    task: Task
   },
   components: {
     TrainingFrame,
     IconCard,
     Bezier2
   },
-  mounted () {
+  created () {
     this.datasetBuilder = new DatasetBuilder(new TabularLoader(','))
   }
 }

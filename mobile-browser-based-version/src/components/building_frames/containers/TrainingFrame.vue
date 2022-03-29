@@ -106,12 +106,13 @@ import { mapState } from 'vuex'
 import * as memory from '../../../core/memory/memory'
 import { TrainingManager } from '../../../core/training/training_manager'
 import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
+import { Task } from '../../../core/task/task'
 
 export default {
   name: 'training-frame',
   props: {
     id: String,
-    task: Object,
+    task: Task,
     datasetBuilder: DatasetBuilder
   },
   components: {
@@ -159,7 +160,7 @@ export default {
       })
     }
   },
-  mounted () {
+  created () {
     this.trainingManager = new TrainingManager(
       this.task,
       this.$store.getters.platform,
