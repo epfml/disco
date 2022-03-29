@@ -32,9 +32,18 @@ export default {
     IconCard
   },
   props: {
-    id: String,
-    task: Object,
-    fileUploadManager: Object
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    },
+    fileUploadManager: {
+      type: Object,
+      default: undefined
+    }
   },
   computed: {
     preview () {

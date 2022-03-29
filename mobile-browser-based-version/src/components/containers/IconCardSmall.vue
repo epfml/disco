@@ -38,8 +38,14 @@
 export default {
   name: 'IconCardSmall',
   props: {
-    header: { type: String },
-    description: { type: String },
+    header: {
+      type: String,
+      default: ''
+    },
+    description: {
+      type: String,
+      default: ''
+    },
     customClass: { default: '', type: String }
   }
 }

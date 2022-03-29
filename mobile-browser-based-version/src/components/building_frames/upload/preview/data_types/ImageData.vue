@@ -24,7 +24,10 @@ export default {
   },
   props: {
     fileUploadManager: FileUploadManager,
-    objectURL: String
+    objectURL: {
+      type: String,
+      default: ''
+    }
   }
 }
 </script>

@@ -25,8 +25,14 @@ export default {
     CsvTestingFrame
   },
   props: {
-    id: String,
-    task: Object
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    }
   },
   async activated () {
     this.$emit('opened-testing')

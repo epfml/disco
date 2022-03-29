@@ -28,8 +28,14 @@ export default {
     ImageTrainingFrame
   },
   props: {
-    id: String,
-    task: Object
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    }
   }
 }
 </script>
