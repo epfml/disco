@@ -1,5 +1,5 @@
 <template>
-  <training-frame :id="id" :task="task" :datasetBuilder="datasetBuilder">
+  <training-frame :id="id" :task="task" :dataLoader="tabularLoader">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="relative p-4 overflow-x-hidden">
@@ -116,7 +116,6 @@
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
-import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
 import { TabularLoader } from '../../../core/dataset/data_loader/tabular_loader'
 import { Task } from '../../../core/task/task'
 
@@ -132,7 +131,7 @@ export default {
     Bezier2
   },
   created () {
-    this.datasetBuilder = new DatasetBuilder(new TabularLoader(','))
+    this.tabularLoader = new TabularLoader(',')
   }
 }
 </script>

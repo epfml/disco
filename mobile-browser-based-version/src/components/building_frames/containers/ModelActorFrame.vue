@@ -44,11 +44,12 @@
 import IconCard from '../../containers/IconCard.vue'
 import CheckList from '../../../assets/svg/CheckList.vue'
 import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue'
+import { Task } from '../../../core/task/task'
 
 export default {
   name: 'model-actor-frame',
   props: {
-    task: Object
+    task: Task
   },
   components: {
     IconCard,

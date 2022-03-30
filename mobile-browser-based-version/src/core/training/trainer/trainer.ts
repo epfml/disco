@@ -80,12 +80,14 @@ export abstract class Trainer {
    * @param dataset
    */
   async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>) {
+    console.log(`Trainer: dataset=${dataset}`) // DEBUG
     // Reset stopTraining setting
     this.resetStopTrainerState()
 
     // const { trainingDataset, validationDataset } = this.validationSplit(dataset)
 
     // Assign callbacks and start training
+    console.log('Are you working?') // DEBUG
     await this.model.fitDataset(dataset, {
       epochs: this.trainingInformation.epochs,
       // validationData: validationDataset,
@@ -98,6 +100,7 @@ export abstract class Trainer {
         }
       }
     })
+    console.log('BEEP BOOP') // DEBUG
   }
 
   /**

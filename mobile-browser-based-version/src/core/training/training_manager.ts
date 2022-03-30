@@ -1,14 +1,11 @@
 import { TrainingInformant } from './training_informant'
 import { Trainer } from './trainer/trainer'
-import { DistributedTrainer } from './trainer/distributed_trainer'
-import { LocalTrainer } from './trainer/local_trainer'
 import { Client } from '../communication/client'
 import { getClient } from '../communication/client_builder'
 import { Task } from '../task/task'
 import { Logger } from '../logging/logger'
 import { Platform } from '../../platforms/platform'
-import { RoundTracker } from './trainer/round_tracker'
-import * as memory from '../memory/memory'
+import { TrainerBuilder } from './trainer/trainer_builder'
 import * as tf from '@tensorflow/tfjs'
 
 /**
@@ -34,7 +31,6 @@ export class TrainingManager {
     this.distributedTraining = false
     this.platform = platform
     this.useIndexedDB = useIndexedDB
-    // Take care of communication processes
     this.client = getClient(
       this.platform,
       this.task,
@@ -70,10 +66,11 @@ export class TrainingManager {
   }
 
   /**
-   * @param {any} dataset The preprocessed dataset to train on
+   * @param {tf.data.Dataset<tf.TensorContainer>} dataset The preprocessed dataset to train on
    * @param {boolean} distributed Whether to train in a distributed or local fashion
    */
   async startTraining (dataset: tf.data.Dataset<tf.TensorContainer>, distributed: boolean) {
+    console.log(`TrainingManager: dataset=${dataset}`) // DEBUG
     if (distributed && !this.isConnected) {
       await this.connect()
       if (!this.isConnected) {
@@ -88,7 +85,7 @@ export class TrainingManager {
       this.logger.success(
         'Thank you for your contribution. Data preprocessing has started'
       )
-      this.initTrainer(dataset)
+      await this.initTrainer(dataset)
       this.trainer.trainModel(dataset)
       this.isTraining = true
     }
@@ -110,66 +107,12 @@ export class TrainingManager {
   /**
    * Build the appropriate training class (either local or distributed)
    */
-  private async initTrainer (dataset: any) {
-    const roundTracker = new RoundTracker(
-      this.task.trainingInformation.roundDuration,
-      dataset.size(),
-      this.task.trainingInformation.batchSize
+  private async initTrainer (dataset: tf.data.Dataset<tf.TensorContainer>) {
+    const trainerBuilder = new TrainerBuilder(this.useIndexedDB, this.task, this.trainingInformant)
+    this.trainer = await trainerBuilder.build(
+      dataset.size,
+      this.client,
+      this.distributedTraining
     )
-    const params = [
-      this.task,
-      this.trainingInformant,
-      this.useIndexedDB,
-      roundTracker,
-      await this.getModel()
-    ] as const
-    if (this.distributedTraining) {
-      this.trainer = new DistributedTrainer(...params, this.client)
-    } else {
-      this.trainer = new LocalTrainer(...params)
-    }
-  }
-
-  private async getModel () {
-    const model = await this.getModelFromMemoryOrFetchIt()
-    return this.updateModelInformation(model)
-  }
-
-  /**
-   *
-   * @returns
-   */
-  private async getModelFromMemoryOrFetchIt () {
-    const modelExistsInMemory = await memory.getWorkingModelMetadata(
-      this.task.taskID,
-      this.task.trainingInformation.modelID
-    )
-
-    if (this.useIndexedDB && modelExistsInMemory) {
-      await memory.getWorkingModel(
-        this.task.taskID,
-        this.task.trainingInformation.modelID
-      )
-    }
-    return await this.client.getLatestModel()
-  }
-
-  private updateModelInformation (model: tf.LayersModel) {
-    // Continue local training from previous epoch checkpoint
-    if (model.getUserDefinedMetadata() === undefined) {
-      model.setUserDefinedMetadata({ epoch: 0 })
-    }
-
-    const info = this.task.trainingInformation
-    model.compile(info.modelCompileData)
-
-    if (info.learningRate) {
-      // TODO: Not the right way to change learningRate and hence we cast to any
-      // the right way is to construct the optimiser and pass learningRate via
-      // argument.
-      (model.optimizer as any).learningRate = info.learningRate
-    }
-
-    return model
   }
 }

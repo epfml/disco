@@ -105,6 +105,7 @@ import Download from '../../../assets/svg/Download.vue'
 import { mapState } from 'vuex'
 import * as memory from '../../../core/memory/memory'
 import { TrainingManager } from '../../../core/training/training_manager'
+import { DataLoader } from '../../../core/dataset/data_loader/data_loader'
 import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
 import { Task } from '../../../core/task/task'
 
@@ -113,7 +114,7 @@ export default {
   props: {
     id: String,
     task: Task,
-    datasetBuilder: DatasetBuilder
+    dataLoader: DataLoader
   },
   components: {
     DatasetInputFrame,
@@ -133,8 +134,10 @@ export default {
   },
   methods: {
     startTraining (distributedTraining) {
+      console.log(`TrainingFrame: datasetBuilder=${this.datasetBuilder}`) // DEBUG
       if (!this.datasetBuilder.isBuilt()) {
         this.dataset = this.datasetBuilder.build()
+        console.log(`TrainingFrame: dataset=${this.dataset}`) // DEBUG
       }
       this.trainingManager.startTraining(this.dataset, distributedTraining)
     },
@@ -167,6 +170,7 @@ export default {
       this.$toast,
       this.useIndexedDB
     )
+    this.datasetBuilder = new DatasetBuilder(this.dataLoader, this.task)
   }
 }
 </script>

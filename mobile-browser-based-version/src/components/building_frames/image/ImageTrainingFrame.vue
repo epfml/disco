@@ -1,5 +1,5 @@
 <template>
-  <training-frame :id="id" :task="task" :datasetBuilder="datasetBuilder">
+  <training-frame :id="id" :task="task" :dataLoader="imageLoader">
     <template v-slot:dataExample>
       <!-- Data Point Example -->
       <div class="flex object-center">
@@ -16,20 +16,20 @@
 
 <script>
 import TrainingFrame from '../containers/TrainingFrame.vue'
-import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
 import { ImageLoader } from '../../../core/dataset/data_loader/image_loader'
+import { Task } from '../../../core/task/task'
 
 export default {
   name: 'image-training-frame',
   props: {
     id: String,
-    task: Object
+    task: Task
   },
   components: {
     TrainingFrame
   },
   mounted () {
-    this.datasetBuilder = new DatasetBuilder(new ImageLoader())
+    this.imageLoader = new ImageLoader()
   }
 }
 </script>

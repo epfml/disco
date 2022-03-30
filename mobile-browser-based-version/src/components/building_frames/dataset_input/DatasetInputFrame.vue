@@ -69,7 +69,8 @@ export default {
       return this.task.trainingInformation.dataType === 'tabular'
     },
     requireLabelFiles () {
-      return this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined
+      // return this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined
+      return true
     }
   },
   methods: {

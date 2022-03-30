@@ -18,7 +18,7 @@ export class TabularLoader extends DataLoader {
    * @param label Label column name.
    * @returns A TF.js dataset built upon read textual data stored in the given sources.
    */
-  load (sources: Array<string>, features: Array<string>, label: string): tf.data.Dataset<tf.TensorContainer> {
+  load (sources: Array<string>, features: Array<string>, label: string): tf.data.CSVDataset {
     const csvConfig = {
       hasHeader: true,
       columnNames: features,
@@ -27,7 +27,14 @@ export class TabularLoader extends DataLoader {
     }
     csvConfig[label] = { isLabel: true }
 
+    _.forEach(sources, console.log) // DEBUG
+    _.forEach(features, console.log) // DEBUG
+    console.log(label) // DEBUG
+
     const datasets = _.map(sources, source => tf.data.csv(source, csvConfig))
-    return _.reduce(datasets, (prev, curr) => prev.concatenate(curr))
+    console.log(`TabularLoader: datasets=${datasets}`) // DEBUG
+    const dataset = _.reduce(datasets, (prev, curr) => prev.concatenate(curr) as tf.data.CSVDataset)
+    console.log(`TabularLoader: dataset=${dataset}`) // DEBUG
+    return dataset
   }
 }
