@@ -151,13 +151,9 @@ export default {
   },
   data () {
     return {
-      // Test Apexcharts
       areaChartOptions: this.trainingInformant.getAreaChartOptions(),
       trainingAccuracyData: this.trainingInformant.getTrainingAccuracyData(),
-      validationAccuracyData:
-        this.trainingInformant.getValidationAccuracyData(),
-      interoperabilityHeatmpaOptions:
-        this.trainingInformant.getHeatmapOptions()
+      validationAccuracyData: this.trainingInformant.getValidationAccuracyData()
     }
   },
 
