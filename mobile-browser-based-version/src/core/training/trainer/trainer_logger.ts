@@ -24,13 +24,6 @@ export class TrainerLogger extends Logger {
     console.log(chalk.red(message))
   }
 
-  /**
-   * Format accuracy
-   */
-  static formatAccuracy (accuracy: number) {
-    return (accuracy * 100).toFixed(2)
-  }
-
   onBatchEnd (batch: number, accuracy: number) {
     this.success(`On batch end:${batch}`)
     this.success(`Train Accuracy: ${accuracy}`)
