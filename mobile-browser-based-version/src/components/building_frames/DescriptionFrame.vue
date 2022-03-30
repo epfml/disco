@@ -193,11 +193,26 @@ export default {
     Clock
   },
   props: {
-    overviewText: String,
-    modelText: String,
-    tradeOffsText: String,
-    id: String,
-    task: Object
+    overviewText: {
+      type: String,
+      default: ''
+    },
+    modelText: {
+      type: String,
+      default: ''
+    },
+    tradeOffsText: {
+      type: String,
+      default: ''
+    },
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {
@@ -207,6 +222,18 @@ export default {
       useWorkingModel: false,
       dateSaved: '',
       hourSaved: ''
+    }
+  },
+  computed: {
+    ...mapState(['useIndexedDB', 'isDark']),
+    /**
+       * Returns true if a new model needs to be created
+       */
+    shouldCreateFreshModel () {
+      return (
+        !this.isModelCreated &&
+          !(this.workingModelExists && this.useWorkingModel)
+      )
     }
   },
   watch: {
@@ -222,18 +249,6 @@ export default {
       }
       this.$toast.success(modelInUseMessage)
       setTimeout(this.$toast.clear, 30000)
-    }
-  },
-  computed: {
-    ...mapState(['useIndexedDB', 'isDark']),
-    /**
-     * Returns true if a new model needs to be created
-     */
-    shouldCreateFreshModel () {
-      return (
-        !this.isModelCreated &&
-        !(this.workingModelExists && this.useWorkingModel)
-      )
     }
   },
   /**

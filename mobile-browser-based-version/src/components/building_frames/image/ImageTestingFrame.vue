@@ -24,7 +24,7 @@
 
       <div id="predictions" />
       <!-- Upload Image Data Template-->
-      <template id="image-template">
+      <div>
         <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
           <article
             tabindex="0"
@@ -96,7 +96,7 @@
             </section>
           </article>
         </li>
-      </template>
+      </div>
     </template>
   </testing-frame>
 </template>
@@ -116,8 +116,14 @@ export default {
     Bin
   },
   props: {
-    id: String,
-    task: Object
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {

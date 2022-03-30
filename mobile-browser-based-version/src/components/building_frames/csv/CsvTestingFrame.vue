@@ -133,8 +133,14 @@ export default {
     Bezier2
   },
   props: {
-    id: String,
-    task: CsvTask
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: CsvTask,
+      default: undefined
+    }
   },
   data () {
     return {

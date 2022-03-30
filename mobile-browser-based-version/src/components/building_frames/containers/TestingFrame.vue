@@ -44,9 +44,18 @@ export default {
     CustomButton
   },
   props: {
-    id: String,
-    task: Object,
-    helper: Object
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    },
+    helper: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {

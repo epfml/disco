@@ -1,3 +1,4 @@
+
 <template>
   <training-frame
     :id="id"
