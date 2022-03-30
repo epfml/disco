@@ -144,7 +144,10 @@ export default {
     Contact
   },
   props: {
-    trainingInformant: Object
+    trainingInformant: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {

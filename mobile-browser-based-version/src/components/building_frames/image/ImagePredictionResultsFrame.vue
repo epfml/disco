@@ -34,8 +34,14 @@ export default {
     FileEarmarkRuledVue
   },
   props: {
-    id: String,
-    classes: Array
+    id: {
+      type: String,
+      default: ''
+    },
+    classes: {
+      type: Array,
+      default: () => []
+    }
   },
   data () {
     return {

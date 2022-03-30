@@ -129,20 +129,17 @@ export default {
     Download
   },
   props: {
-    id: String,
-    task: Object,
-    helper: Object
-  },
-  computed: {
-    ...mapState(['useIndexedDB']),
-    trainingText () {
-      return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
-    }
-  },
-  watch: {
-    // TODO: @s314cy, what does this do?
-    useIndexedDB (newValue) {
-      this.training_manager.trainer().setIndexedDB(!!newValue)
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    },
+    helper: {
+      type: Object,
+      default: undefined
     }
   },
   data () {
@@ -154,6 +151,18 @@ export default {
         this.helper,
         this.useIndexedDB
       )
+    }
+  },
+  computed: {
+    ...mapState(['useIndexedDB']),
+    trainingText () {
+      return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
+    }
+  },
+  watch: {
+    // TODO: @s314cy, what does this do?
+    useIndexedDB (newValue) {
+      this.training_manager.trainer().setIndexedDB(!!newValue)
     }
   },
   created () {
