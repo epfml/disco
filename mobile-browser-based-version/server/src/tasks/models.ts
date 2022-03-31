@@ -1,8 +1,8 @@
-import path from 'path'
-import * as tf from '@tensorflow/tfjs'
-import '@tensorflow/tfjs-node'
-import * as config from '../config'
 import fs from 'fs'
+import path from 'path'
+import * as tf from '@tensorflow/tfjs-node'
+
+import * as config from '../config'
 
 /**
  * Create the models directory for the TFJS model files of

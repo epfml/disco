@@ -1,7 +1,10 @@
-import path from 'path'
 import fs from 'fs'
 import msgpack from 'msgpack-lite'
+import path from 'path'
+import * as tf from '@tensorflow/tfjs-node'
+
 import * as config from '../../config'
+
 import {
   averageWeights
 } from './tensor_helpers/tensor_operations'
@@ -11,8 +14,6 @@ import {
 import { getTasks } from '../../tasks/tasks_io'
 import { AsyncWeightsBuffer } from './async_weights_buffer'
 import { AsyncWeightsInformant } from './async_weights_informant'
-import * as tf from '@tensorflow/tfjs'
-import '@tensorflow/tfjs-node'
 
 const REQUEST_TYPES = Object.freeze({
   CONNECT: 'connect',
