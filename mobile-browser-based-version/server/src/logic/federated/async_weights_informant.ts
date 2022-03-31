@@ -80,7 +80,7 @@ export class AsyncWeightsInformant {
     }
 
     // Future statistics
-    getDistanceFromGlobalModel () {}
+    getDistanceFromGlobalModel (id) {}
 
     getShapleyValueForUser (id) {}
 

@@ -123,9 +123,16 @@ export class FederatedClient extends Client {
     }
   }
 
+  private async fetchServerStatisticsAndUpdateInformant (trainingInformant: TrainingInformant) {
+    const serverStatistics = await api.getAsyncWeightInformantStatistics(this.task.taskID, this.clientID)
+    console.log(serverStatistics)
+    trainingInformant.updateServerStatistics(serverStatistics)
+  }
+
   async onRoundEndCommunication (model: tf.LayersModel, round: number, trainingInformant: TrainingInformant) {
     await this._postWeightsToServer(model.weights)
     await this._fetchChangesAndUpdateModel(model)
+    await this.fetchServerStatisticsAndUpdateInformant(trainingInformant)
   }
 
   async onTrainEndCommunication (model: tf.LayersModel, trainingInformant: TrainingInformant) {

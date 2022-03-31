@@ -14,6 +14,7 @@ export class TrainingInformant {
   nbrWeightRequests: number;
   nbrMessagesToShow: number;
   messages: any[];
+  serverStatistics: any; // Check the type, for now it's a JSON object
   validationAccuracyChart: any;
   validationAccuracy: number;
   trainingAccuracyChart: any;
@@ -50,6 +51,9 @@ export class TrainingInformant {
     // message feedback from peer-to-peer training
     this.nbrMessagesToShow = length
     this.messages = []
+
+    // statistics received from the server
+    this.serverStatistics = null
 
     // validation accuracy chart
     this.validationAccuracyChart = null // new TrainingChart("validationAccuracy_".concat(taskID), "Validation Accuracy")
@@ -111,6 +115,16 @@ export class TrainingInformant {
       this.messages.shift()
     }
     this.messages.push(msg)
+  }
+
+  /**
+   * Update the server statistics with the JSON received from the server
+   * For now it's just the JSON, but we might want to keep it as a dictionnary
+   * @param {String} msg a message.
+   */
+  updateServerStatistics (receivedStatistics: any) {
+    this.serverStatistics = JSON.parse(receivedStatistics)
+    console.log('Received Stats :', this.serverStatistics)
   }
 
   cssColors = (color: string) => {
