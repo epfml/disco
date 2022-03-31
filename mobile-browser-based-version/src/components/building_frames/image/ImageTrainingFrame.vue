@@ -1,7 +1,11 @@
 
 <template>
-  <training-frame :id="id" :task="task" :dataLoader="imageLoader">
-    <template v-slot:dataExample>
+  <training-frame
+    :id="id"
+    :task="task"
+    :data-loader="imageLoader"
+  >
+    <template #dataExample>
       <!-- Data Point Example -->
       <div class="flex object-center">
         <img

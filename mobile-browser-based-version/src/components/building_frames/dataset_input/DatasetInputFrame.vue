@@ -1,13 +1,15 @@
 <template>
   <icon-card header="Upload my data">
-    <template v-slot:icon><upload /></template>
-    <template v-slot:extra>
+    <template #icon>
+      <upload />
+    </template>
+    <template #extra>
       <div v-if="requireLabelFiles">
         <div v-if="task.trainingInformation.dataType === 'tabular'">
           <file-selection-frame
             :id="id"
             :preview="preview"
-            :sourceType="dataset"
+            :source-type="dataset"
             @input="addFiles(dataset, $event)"
             @clear="clearFiles(dataset)"
           />
@@ -16,14 +18,14 @@
           <file-selection-frame
             :id="id"
             :preview="preview"
-            :sourceType="samples"
+            :source-type="samples"
             @input="addFiles(samples, $event)"
             @clear="clearFiles(samples)"
           />
           <file-selection-frame
             :id="id"
             :preview="preview"
-            :sourceType="labels"
+            :source-type="labels"
             @input="addFiles(labels, $event)"
             @clear="clearFiles(labels)"
           />
@@ -33,7 +35,7 @@
         <file-selection-frame
           :id="id"
           :preview="preview"
-          :sourceType="samples"
+          :source-type="samples"
           @input="addFiles(samples, $event)"
           @clear="clearFiles(samples)"
         />
@@ -51,16 +53,25 @@ import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
 import { Task } from '../../../core/task/task'
 
 export default {
-  name: 'dataset-input-frame',
-  props: {
-    id: String,
-    task: Task,
-    datasetBuilder: DatasetBuilder
-  },
+  name: 'DatasetInputFrame',
   components: {
     FileSelectionFrame,
     Upload,
     IconCard
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Task,
+      default: undefined
+    },
+    datasetBuilder: {
+      type: DatasetBuilder,
+      default: undefined
+    }
   },
   computed: {
     preview () {
@@ -71,6 +82,12 @@ export default {
       // return this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined
       return true
     }
+  },
+  created () {
+    // For some reason, the template does not understand direct accesses to the enum
+    this.samples = SourceType.SAMPLES
+    this.labels = SourceType.LABELS
+    this.dataset = SourceType.DATASET
   },
   methods: {
     addFiles (sourceType: SourceType, files: FileList) {
@@ -83,12 +100,6 @@ export default {
         this.datasetBuilder.clearFiles(sourceType)
       }
     }
-  },
-  created () {
-    // For some reason, the template does not understand direct accesses to the enum
-    this.samples = SourceType.SAMPLES
-    this.labels = SourceType.LABELS
-    this.dataset = SourceType.DATASET
   }
 }
 </script>

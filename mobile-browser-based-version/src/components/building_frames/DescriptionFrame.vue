@@ -212,7 +212,7 @@ export default {
       default: ''
     },
     task: {
-      type: Object,
+      type: Task,
       default: undefined
     }
   },

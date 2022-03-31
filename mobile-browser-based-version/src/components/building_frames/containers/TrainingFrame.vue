@@ -9,7 +9,7 @@
         <dataset-input-frame
           :id="id"
           :task="task"
-          :datasetBuilder="datasetBuilder"
+          :dataset-builder="datasetBuilder"
         />
       </div>
 
@@ -18,18 +18,24 @@
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
         <div v-if="!trainingManager.isTraining">
-          <custom-button @click="startTraining(false)" :center="true">
+          <custom-button
+            :center="true"
+            @click="startTraining(false)"
+          >
             Train Locally
           </custom-button>
-          <custom-button @click="startTraining(true)" :center="true">
-            Train {{ this.$t('platform') }}
+          <custom-button
+            :center="true"
+            @click="startTraining(true)"
+          >
+            Train {{ $t('platform') }}
           </custom-button>
         </div>
         <div v-else>
           <custom-button
-            @click="trainingManager.stopTraining()"
             :center="true"
             color="bg-red-500"
+            @click="trainingManager.stopTraining()"
           >
             Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
           </custom-button>
@@ -38,8 +44,8 @@
       <!-- Training Board -->
       <div>
         <training-information-frame
-          :trainingInformant="trainingManager.trainingInformant"
           v-if="trainingManager.trainingInformant"
+          :training-informant="trainingManager.trainingInformant"
         />
       </div>
 
@@ -141,14 +147,17 @@ export default {
       this.trainingManager.setIndexedDB(!!newValue)
     }
   },
-  created () {
-    // Disconnect from the centralized server on page close
-    window.addEventListener('beforeunload', () => {
-      this.trainingManager.client.disconnect()
-    })
-  },
   unmounted () {
     this.trainingManager.disconnect()
+  },
+  created () {
+    this.trainingManager = new TrainingManager(
+      this.task,
+      this.$store.getters.platform,
+      this.$toast,
+      this.useIndexedDB
+    )
+    this.datasetBuilder = new DatasetBuilder(this.dataLoader, this.task)
   },
   methods: {
     startTraining (distributedTraining) {
@@ -178,15 +187,6 @@ export default {
         path: 'testing'
       })
     }
-  },
-  created () {
-    this.trainingManager = new TrainingManager(
-      this.task,
-      this.$store.getters.platform,
-      this.$toast,
-      this.useIndexedDB
-    )
-    this.datasetBuilder = new DatasetBuilder(this.dataLoader, this.task)
   }
 }
 </script>

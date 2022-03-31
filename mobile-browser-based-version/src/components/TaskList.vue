@@ -74,6 +74,11 @@ export default defineComponent({
       .forEach(this.createNewTaskComponent)
     this.clearNewTasks()
   },
+  async created () {
+    this.tasks.clear()
+    const tasks: Task[] = await loadTasks()
+    _.forEach(tasks, this.createNewTaskComponent)
+  },
   methods: {
     goToSelection (id: string) {
       this.$router.push({
@@ -93,9 +98,9 @@ export default defineComponent({
           const [info, frame] = t
           const name = `${task.taskID}.${info}`
           const component = defineComponent({
-            extends: frame,
             name: name,
-            key: name
+            key: name,
+            extends: frame
           })
           return {
             path: info,
@@ -110,11 +115,6 @@ export default defineComponent({
       }
       this.$router.addRoute(newTaskRoute)
     }
-  },
-  async created () {
-    this.tasks.clear()
-    const tasks: Task[] = await loadTasks()
-    _.forEach(tasks, this.createNewTaskComponent)
   }
 })
 </script>

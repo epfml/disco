@@ -1,6 +1,10 @@
 <template>
-  <training-frame :id="id" :task="task" :dataLoader="tabularLoader">
-    <template v-slot:dataExample>
+  <training-frame
+    :id="id"
+    :task="task"
+    :data-loader="tabularLoader"
+  >
+    <template #dataExample>
       <!-- Data Point Example -->
       <div class="relative p-4 overflow-x-hidden">
         <table class="table-auto">

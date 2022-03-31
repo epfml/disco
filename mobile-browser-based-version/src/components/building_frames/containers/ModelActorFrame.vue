@@ -66,9 +66,9 @@ export default {
     }
   },
   async created () {
-      this.dataFormatInfoText = this.task.displayInformation.dataFormatInformation
-      this.dataExampleText = this.task.displayInformation.dataExampleText
-      console.log(`Mounting ${this.task.trainingInformation.modelID}`)
+    this.dataFormatInfoText = this.task.displayInformation.dataFormatInformation
+    this.dataExampleText = this.task.displayInformation.dataExampleText
+    console.log(`Mounting ${this.task.trainingInformation.modelID}`)
   }
 }
 </script>

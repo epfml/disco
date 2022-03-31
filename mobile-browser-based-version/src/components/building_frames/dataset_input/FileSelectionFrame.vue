@@ -21,7 +21,6 @@
       <!-- scroll area -->
       <section class="overflow-auto p-8 w-full h-full flex flex-col">
         <header
-          @drop="dragFiles"
           class="
             border-dashed border-2 border-gray-500
             dark:border-primary
@@ -29,6 +28,7 @@
             justify-center
             items-center
           "
+          @drop="dragFiles"
         >
           <p
             class="
@@ -45,7 +45,8 @@
           </p>
           <label>
             <div class="p-4">
-              <span class="
+              <span
+                class="
               mt-2
               p-2
               rounded-sm
@@ -58,11 +59,17 @@
               focus:outline-none focus:bg-primary-100
               dark:focus:bg-primary-dark
               focus:ring-primary-darker
-            ">
-              Select files
+            "
+              >
+                Select files
               </span>
             </div>
-            <input type="file" @change="submitFiles" multiple class="hidden" />
+            <input
+              type="file"
+              multiple
+              class="hidden"
+              @change="submitFiles"
+            >
           </label>
         </header>
 
@@ -80,10 +87,9 @@
           <div class="pt-4">
             <h1 class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex">
               Number of selected files:
-              {{ this.nbrSelectedFiles }}
+              {{ nbrSelectedFiles }}
             </h1>
             <button
-              @click="clearFiles"
               class="
                 mt-2
                 p-2
@@ -98,6 +104,7 @@
                 dark:focus:bg-primary-dark
                 focus:ring-primary-darker
               "
+              @click="clearFiles"
             >
               Clear files
             </button>
@@ -113,14 +120,23 @@
 import { SourceType } from '../../../core/dataset/source_type'
 
 export default {
-  name: 'file-selection-frame',
-  props: {
-    id: String,
-    preview: Boolean,
-    sourceType: SourceType
-  },
+  name: 'FileSelectionFrame',
   components: {
     // PreviewGallery
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    preview: {
+      type: Boolean,
+      default: false
+    },
+    sourceType: {
+      type: SourceType,
+      default: SourceType.SAMPLES
+    }
   },
   data () {
     return {
