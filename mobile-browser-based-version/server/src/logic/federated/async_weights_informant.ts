@@ -1,11 +1,6 @@
 import { AsyncWeightsBuffer } from './async_weights_buffer'
 
-/**
- * @remarks
- * taskID: corresponds to the task that weights correspond to.
- */
 export class AsyncWeightsInformant {
-    taskID: string;
     asyncWeightsBuffer: AsyncWeightsBuffer
 
     // This could rapidly grow so we should have some way to do garbage collection ?
@@ -19,8 +14,7 @@ export class AsyncWeightsInformant {
     totalNumberOfParticipants: number = 0
     averageNumberOfParticipants : number = 0
 
-    constructor (taskID: string, asyncWeightsBuffer: AsyncWeightsBuffer) {
-      this.taskID = taskID
+    constructor (asyncWeightsBuffer: AsyncWeightsBuffer) {
       this.asyncWeightsBuffer = asyncWeightsBuffer
       this.asyncWeightsBuffer.registerObserver(this)
       this.printAllInfos()
@@ -33,29 +27,29 @@ export class AsyncWeightsInformant {
       console.log('Before update')
       this.printAllInfos()
 
-      this._updateRound()
-      this._updateNumberOfParticipants()
+      this.updateRound()
+      this.updateNumberOfParticipants()
 
       // DEBUG
       console.log('After update')
       this.printAllInfos()
     }
 
-    _updateRound () {
+    private updateRound () {
       this.round = this.asyncWeightsBuffer.round
     }
 
-    _updateNumberOfParticipants () {
+    private updateNumberOfParticipants () {
       this.currentNumberOfParticipants = this.asyncWeightsBuffer.buffer.size
-      this._updateTotalNumberOfParticipants(this.currentNumberOfParticipants)
-      this._updateAverageNumberOfParticipants()
+      this.updateTotalNumberOfParticipants(this.currentNumberOfParticipants)
+      this.updateAverageNumberOfParticipants()
     }
 
-    _updateAverageNumberOfParticipants () {
+    private updateAverageNumberOfParticipants () {
       this.averageNumberOfParticipants = this.totalNumberOfParticipants / this.round
     }
 
-    _updateTotalNumberOfParticipants (currentNumberOfParticipants : number) {
+    private updateTotalNumberOfParticipants (currentNumberOfParticipants : number) {
       this.totalNumberOfParticipants += currentNumberOfParticipants
     }
 
@@ -74,6 +68,15 @@ export class AsyncWeightsInformant {
 
     getAverageNumberOfParticipants () {
       return this.averageNumberOfParticipants
+    }
+
+    getAllStatistics () {
+      return `{
+        'round': ${this.round},
+        'currentNumberOfParticipants': ${this.currentNumberOfParticipants},
+        'totalNumberOfParticipants': ${this.totalNumberOfParticipants},
+        'averageNumberOfParticipants': ${this.averageNumberOfParticipants}
+      }`
     }
 
     // Future statistics

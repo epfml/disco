@@ -87,7 +87,7 @@ function _initAsyncWeightsBufferIfNotExists (task) {
   if (!asyncWeightsMap.has(task)) {
     const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
     asyncWeightsMap.set(task, new AsyncWeightsBuffer(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
-    asyncWeightsInformantsMap.set(task.taskID, new AsyncWeightsInformant(task.taskID, asyncWeightsMap.get(task)))
+    asyncWeightsInformantsMap.set(task.taskID, new AsyncWeightsInformant(asyncWeightsMap.get(task)))
   }
 }
 
@@ -344,6 +344,34 @@ export async function getRound (request, response) {
 
   // Send back latest round
   response.status(200).send({ round: round })
+}
+
+/**
+ * Get the JSON containing statistics about the async weight buffer
+ *
+ * @param request
+ * @param response
+ * @returns
+ */
+export async function getAsyncWeightInformantStatistics (request, response) {
+  // Check for errors
+  const type = REQUEST_TYPES.GET_ASYNC_ROUND
+  const code = _checkIfHasValidTaskAndId(request)
+  if (code !== 200) {
+    return _failRequest(response, type, code)
+  }
+
+  const task = request.params.task
+  // We can use the id of requester to compute weights distance serverside
+  // const id = request.params.id
+
+  _initAsyncWeightsBufferIfNotExists(task)
+
+  // Get latest round
+  const statistics = asyncWeightsInformantsMap.get(task).getAllStatistics
+
+  // Send back latest round
+  response.status(200).send({ statistics: statistics })
 }
 
 /**
