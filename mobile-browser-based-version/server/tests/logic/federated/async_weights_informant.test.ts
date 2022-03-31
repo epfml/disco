@@ -13,7 +13,7 @@ const mockAggregateAndStoreWeights = async (_weights: any) => {}
 describe('AsyncWeightInformant tests', () => {
   it('get correct round number', async () => {
     const buffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
-    const informant = new AsyncWeightsInformant(taskId, buffer)
+    const informant = new AsyncWeightsInformant(buffer)
     expect(informant.round).to.eql(0)
     weights.forEach((w) => {
       buffer.add(w.toString(), w, Date.now())
@@ -22,7 +22,7 @@ describe('AsyncWeightInformant tests', () => {
   })
   it('get correct number of participants for last round', async () => {
     const buffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
-    const informant = new AsyncWeightsInformant(taskId, buffer)
+    const informant = new AsyncWeightsInformant(buffer)
     weights.forEach((w) => {
       buffer.add(w.toString(), w, Date.now())
     })
@@ -30,7 +30,7 @@ describe('AsyncWeightInformant tests', () => {
   })
   it('get correct average number of participants', async () => {
     const buffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
-    const informant = new AsyncWeightsInformant(taskId, buffer)
+    const informant = new AsyncWeightsInformant(buffer)
     weights.forEach((w) => {
       buffer.add(w.toString(), w, Date.now())
     })
@@ -41,7 +41,7 @@ describe('AsyncWeightInformant tests', () => {
   })
   it('get correct total number of participants', async () => {
     const buffer = new AsyncWeightsBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
-    const informant = new AsyncWeightsInformant(taskId, buffer)
+    const informant = new AsyncWeightsInformant(buffer)
     weights.forEach((w) => {
       buffer.add(w.toString(), w, Date.now())
     })
