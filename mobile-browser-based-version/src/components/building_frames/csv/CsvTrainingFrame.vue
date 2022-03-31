@@ -116,7 +116,7 @@
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
-import { CsvTaskHelper } from '../../../logic/task_definition/csv/csv_task_helper'
+import { CsvTaskHelper } from '../../../core/task/csv/csv_task_helper'
 
 export default {
   name: 'csv-training-frame',

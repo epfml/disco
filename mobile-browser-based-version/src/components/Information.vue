@@ -35,7 +35,7 @@
             <card customClass="hover:text-primary dark:hover:text-light">
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  <b>Technology behind DeAI:</b>
+                  <b>Technology behind Disco:</b>
                   The ML models are trained on the web app via
                   <a class="text-blue-600" href="https://www.tensorflow.org/js"
                     >TF.js</a
@@ -54,7 +54,7 @@
             <card customClass="hover:text-primary dark:hover:text-light">
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  <b>Science behind DeAI:</b>
+                  <b>Science behind Disco:</b>
                   In this project we aim to build and improve decentralized
                   versions of current machine learning algorithms, which are at
                   the same time (i) efficient (<a
@@ -186,7 +186,7 @@
               <br />
               The source code of the app can be found on
               <a
-                href="https://github.com/epfml/DeAI"
+                href="https://github.com/epfml/disco"
                 target="_blank"
                 class="text-blue-500 hover:underline"
                 >Github</a
@@ -194,7 +194,7 @@
               <br />
               Finally, you can join our
               <a
-                href="https://deai.slack.com/"
+                href="https:/disco-decentralized.slack.com/"
                 target="_blank"
                 class="text-blue-500 hover:underline"
                 >Slack</a

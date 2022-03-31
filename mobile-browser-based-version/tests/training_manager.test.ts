@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 import { expect } from 'chai'
-import { loadTasks } from '../src/logic/task_definition/tasks_io'
-import { TrainingManager } from '../src/logic/training/training_manager'
-import { CsvTaskHelper } from '../src/logic/task_definition/csv/csv_task_helper'
-import { logger } from '../src/logic/logging/console_logger'
+import { loadTasks } from '../src/core/task/tasks_io'
+import { TrainingManager } from '../src/core/training/training_manager'
+import { CsvTaskHelper } from '../src/core/task/csv/csv_task_helper'
+import { logger } from '../src/core/logging/console_logger'
 import { Platform } from '../src/platforms/platform'
 
 const platform = Platform.federated
