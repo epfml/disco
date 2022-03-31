@@ -15,7 +15,7 @@
 </template>
 <script>
 export default {
-  name: 'bin',
+  name: 'Bin',
   props: {
     customClass: {
       default: 'pointer-events-none fill-current w-4 h-4 ml-auto',

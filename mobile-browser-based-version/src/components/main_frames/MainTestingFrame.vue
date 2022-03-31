@@ -19,14 +19,20 @@ import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue'
 import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame.vue'
 
 export default {
-  name: 'main-testing-frame',
-  props: {
-    id: String,
-    task: Object
-  },
+  name: 'MainTestingFrame',
   components: {
     ImageTestingFrame,
     CsvTestingFrame
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    }
   },
   async activated () {
     this.$emit('opened-testing')

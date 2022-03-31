@@ -20,9 +20,7 @@
             <span class="text-2xl font-medium text-gray-500 dark:text-light">{{
               currentValidationAccuracy
             }}</span>
-            <span class="text-sm font-medium text-gray-500 dark:text-primary"
-              >% of validation accuracy</span
-            >
+            <span class="text-sm font-medium text-gray-500 dark:text-primary">% of validation accuracy</span>
           </p>
           <!-- Chart -->
           <div class="relative p-4 w-100% h-100%">
@@ -32,7 +30,7 @@
               type="area"
               :options="areaChartOptions"
               :series="validationAccuracyData"
-            ></apexchart>
+            />
           </div>
         </div>
 
@@ -47,9 +45,7 @@
             <span class="text-2xl font-medium text-gray-500 dark:text-light">{{
               currentTrainingAccuracy
             }}</span>
-            <span class="text-sm font-medium text-gray-500 dark:text-primary"
-              >% of training accuracy</span
-            >
+            <span class="text-sm font-medium text-gray-500 dark:text-primary">% of training accuracy</span>
           </p>
           <!-- Chart -->
           <div class="relative p-4 w-100% h-100%">
@@ -59,7 +55,7 @@
               type="area"
               :options="areaChartOptions"
               :series="trainingAccuracyData"
-            ></apexchart>
+            />
           </div>
         </div>
       </div>
@@ -67,21 +63,22 @@
 
     <!-- Communication Console -->
     <icon-card header="Peer Training Console">
-      <template v-slot:icon><contact /></template>
-      <template v-slot:extra>
+      <template #icon>
+        <contact />
+      </template>
+      <template #extra>
         <div id="mapHeader">
           <ul class="grid grid-cols-1 p-4">
             <li
-              class="border-gray-400"
               v-for="(message, index) in trainingInformant.messages"
               :key="index"
+              class="border-gray-400"
             >
               <div class="relative overflow-x-hidden">
                 <span
                   style="white-space: pre-line"
                   class="text-sm text-gray-500 dark:text-light"
-                  >{{ message }}</span
-                >
+                >{{ message }}</span>
               </div>
             </li>
           </ul>
@@ -103,8 +100,9 @@
       <icon-card-small
         header="Waiting Time"
         :description="`${trainingInformant.waitingTime} sec`"
-        ><timer
-      /></icon-card-small>
+      >
+        <timer />
+      </icon-card-small>
 
       <!-- Nbr. of Weight Requests -->
       <icon-card-small
@@ -135,6 +133,7 @@ import Forward from '../../assets/svg/Forward.vue'
 import Contact from '../../assets/svg/Contact.vue'
 
 export default {
+  name: 'TrainingInformationFrame',
   components: {
     IconCardSmall,
     IconCard,
@@ -144,9 +143,11 @@ export default {
     Forward,
     Contact
   },
-  name: 'TrainingInformationFrame',
   props: {
-    trainingInformant: Object
+    trainingInformant: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {

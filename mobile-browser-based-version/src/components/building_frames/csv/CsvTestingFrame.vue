@@ -1,6 +1,10 @@
 <template>
-  <testing-frame :id="id" :task="task" :helper="helper">
-    <template v-slot:dataExample>
+  <testing-frame
+    :id="id"
+    :task="task"
+    :helper="helper"
+  >
+    <template #dataExample>
       <!-- Data Point Example -->
       <div class="relative p-4 overflow-x-hidden">
         <table class="table-auto">
@@ -35,21 +39,26 @@
         </table>
       </div>
     </template>
-    <template v-slot:extra>
+    <template #extra>
       <!-- Modification of Header Card -->
 
-      <icon-card header="Map My Data" :description="dataExampleText">
-        <template v-slot:icon><bezier-2 /></template>
-        <template v-slot:extra>
+      <icon-card
+        header="Map My Data"
+        :description="dataExampleText"
+      >
+        <template #icon>
+          <bezier-2 />
+        </template>
+        <template #extra>
           <!-- Display all the possible headers -->
           <div id="mapHeader">
             <ul
               class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-4"
             >
               <li
-                class="border-gray-400"
                 v-for="header in task.getTestingHeaders()"
                 :key="header.id"
+                class="border-gray-400"
               >
                 <div
                   class="
@@ -78,8 +87,8 @@
                     <div>&larr;</div>
                     <div class="mb-3 pt-0">
                       <input
-                        type="text"
                         v-model="header.userHeader"
+                        type="text"
                         placeholder="Enter your header"
                         class="
                           p-1
@@ -96,7 +105,7 @@
                           focus:outline-none focus:shadow-outline
                           w-full
                         "
-                      />
+                      >
                     </div>
                   </div>
                 </div>
@@ -117,15 +126,21 @@ import { CsvTaskHelper } from '../../../core/task/csv/csv_task_helper'
 import { CsvTask } from '../../../core/task/csv/csv_task'
 
 export default {
-  name: 'csv-testing-frame',
-  props: {
-    id: String,
-    task: CsvTask
-  },
+  name: 'CsvTestingFrame',
   components: {
     IconCard,
     TestingFrame,
     Bezier2
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: CsvTask,
+      default: undefined
+    }
   },
   data () {
     return {
