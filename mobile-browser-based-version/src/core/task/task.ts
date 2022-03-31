@@ -20,7 +20,7 @@ export class TrainingInformation {
   receivedMessagesThreshold?: number
   dataType: string
   inputColumns?: string[]
-  outputColumn?: string
+  outputColumns?: string[]
   threshold?: number
   IMAGE_H?: number
   IMAGE_W?: number

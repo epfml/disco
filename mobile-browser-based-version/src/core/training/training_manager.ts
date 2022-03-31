@@ -70,7 +70,6 @@ export class TrainingManager {
    * @param {boolean} distributed Whether to train in a distributed or local fashion
    */
   async startTraining (dataset: tf.data.Dataset<tf.TensorContainer>, distributed: boolean) {
-    console.log(`TrainingManager: dataset=${dataset}`) // DEBUG
     if (distributed && !this.isConnected) {
       await this.connect()
       if (!this.isConnected) {

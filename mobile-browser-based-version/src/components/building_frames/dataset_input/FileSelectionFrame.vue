@@ -116,9 +116,7 @@ export default {
   name: 'file-selection-frame',
   props: {
     id: String,
-    // Preview is used to know if we have to show a snippet of the uploaded files or not
     preview: Boolean,
-    // The label associated to the task
     sourceType: SourceType
   },
   components: {

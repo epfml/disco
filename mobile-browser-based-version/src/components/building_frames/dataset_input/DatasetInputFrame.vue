@@ -49,7 +49,6 @@ import IconCard from '../../containers/IconCard.vue'
 import FileSelectionFrame from './FileSelectionFrame.vue'
 import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
 import { Task } from '../../../core/task/task'
-import _ from 'lodash'
 
 export default {
   name: 'dataset-input-frame',
@@ -76,8 +75,7 @@ export default {
   methods: {
     addFiles (sourceType: SourceType, files: FileList) {
       if (!this.datasetBuilder.isBuilt()) {
-        const sources = _.map(Array.from(files), URL.createObjectURL)
-        this.datasetBuilder.addFiles(sourceType, sources)
+        this.datasetBuilder.addFiles(sourceType, Array.from(files))
       }
     },
     clearFiles (sourceType: SourceType) {

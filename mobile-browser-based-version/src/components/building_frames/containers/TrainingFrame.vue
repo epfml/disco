@@ -134,10 +134,8 @@ export default {
   },
   methods: {
     startTraining (distributedTraining) {
-      console.log(`TrainingFrame: datasetBuilder=${this.datasetBuilder}`) // DEBUG
       if (!this.datasetBuilder.isBuilt()) {
         this.dataset = this.datasetBuilder.build()
-        console.log(`TrainingFrame: dataset=${this.dataset}`) // DEBUG
       }
       this.trainingManager.startTraining(this.dataset, distributedTraining)
     },

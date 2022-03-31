@@ -60,7 +60,9 @@
         "Fare",
         "Pclass"
       ],
-      "outputColumn": "Survived"
+      "outputColumns": [
+        "Survived"
+      ]
     }
   },
   {
