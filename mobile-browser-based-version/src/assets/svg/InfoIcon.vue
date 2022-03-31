@@ -16,7 +16,7 @@
 </template>
 <script>
 export default {
-  name: 'info-icon',
+  name: 'InfoIcon',
   props: {
     customClass: {
       default: 'bi bi-info-circlew-7 h-7',

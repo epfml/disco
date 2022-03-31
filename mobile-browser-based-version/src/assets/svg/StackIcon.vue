@@ -16,7 +16,7 @@
 </template>
 <script>
 export default {
-  name: 'stack-icon',
+  name: 'StackIcon',
   props: {
     customClass: {
       default: 'w-10 h-10',

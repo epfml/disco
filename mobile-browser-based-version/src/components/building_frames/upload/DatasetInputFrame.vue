@@ -1,12 +1,17 @@
 <template>
   <icon-card header="Upload my data">
-    <template v-slot:icon><upload /></template>
-    <template v-slot:extra>
-      <div v-for="item in getDataTypes" :key="item">
+    <template #icon>
+      <upload />
+    </template>
+    <template #extra>
+      <div
+        v-for="item in getDataTypes"
+        :key="item"
+      >
         <file-selection-frame
           :id="id"
           :task="task"
-          :fileUploadManager="fileUploadManager"
+          :file-upload-manager="fileUploadManager"
           :preview="preview"
           :label="String(item)"
         />
@@ -20,28 +25,24 @@ import Upload from '../../../assets/svg/Upload.vue'
 import IconCard from '../../containers/IconCard.vue'
 import FileSelectionFrame from './FileSelectionFrame.vue'
 export default {
-  name: 'dataset-input-frame',
-  props: {
-    id: String,
-    task: Object,
-    fileUploadManager: Object
-  },
+  name: 'DatasetInputFrame',
   components: {
     FileSelectionFrame,
     Upload,
     IconCard
   },
-  methods: {
-    /**
-     * Returns true if the user needs to add a separate file with labels.
-     *
-     * mnist: false, since per label there is a single upload frame where the user must add images.
-     *
-     * cifar-10: true, the user needs to add both images and a csv file with the labels of these images.
-     *
-     */
-    taskRequiresToUploadLabelFile () {
-      return this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    },
+    fileUploadManager: {
+      type: Object,
+      default: undefined
     }
   },
   computed: {
@@ -67,6 +68,19 @@ export default {
       const labels = this.task.trainingInformation.LABEL_LIST ?? ['']
       const imagesAndLabels = ['Images', 'Labels']
       return this.taskRequiresToUploadLabelFile() ? imagesAndLabels : labels
+    }
+  },
+  methods: {
+    /**
+     * Returns true if the user needs to add a separate file with labels.
+     *
+     * mnist: false, since per label there is a single upload frame where the user must add images.
+     *
+     * cifar-10: true, the user needs to add both images and a csv file with the labels of these images.
+     *
+     */
+    taskRequiresToUploadLabelFile () {
+      return this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined
     }
   }
 }

@@ -13,7 +13,7 @@
 </template>
 <script>
 export default {
-  name: 'federated-icon',
+  name: 'FederatedIcon',
   props: {
     customClass: {
       default: 'w-6 h-6',

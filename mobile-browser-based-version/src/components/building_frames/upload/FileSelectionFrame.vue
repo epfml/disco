@@ -43,7 +43,12 @@
           >
             <span>Drag and drop your</span>&nbsp;<span>files anywhere or</span>
           </p>
-          <input :id="hiddenInputName" type="file" multiple class="hidden" />
+          <input
+            :id="hiddenInputName"
+            type="file"
+            multiple
+            class="hidden"
+          >
           <div class="p-4">
             <button
               :id="uploadButtonName"
@@ -81,10 +86,9 @@
           <div class="pt-4">
             <h1 class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex">
               Number of selected files:
-              {{ this.nbrUploadedFiles }}
+              {{ nbrUploadedFiles }}
             </h1>
             <button
-              @click="clearFiles"
               class="
                 mt-2
                 p-2
@@ -99,6 +103,7 @@
                 dark:focus:bg-primary-dark
                 focus:ring-primary-darker
               "
+              @click="clearFiles"
             >
               Clear files
             </button>
@@ -117,19 +122,28 @@ import _ from 'lodash'
 const hasFiles = ({ dataTransfer: { types = [] } }) =>
   types.indexOf('Files') > -1
 export default {
-  name: 'file-selection-frame',
+  name: 'FileSelectionFrame',
+  components: {
+    // PreviewGallery
+  },
   props: {
-    id: String,
-    task: Object,
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    },
     // The file upload manager associated to the task
     fileUploadManager: FileUploadManager,
     // Preview is used to know if we have to show a snippet of the uploaded files or not
     preview: Boolean,
     // The label associated to the task
-    label: String
-  },
-  components: {
-    // PreviewGallery
+    label: {
+      type: String,
+      default: ''
+    }
   },
   data () {
     return {
@@ -145,6 +159,19 @@ export default {
     },
     uploadButtonName () {
       return this.formatName('uploadButton')
+    }
+  },
+
+  mounted () {
+    // click the hidden input of type file if the visible button is clicked
+    // and capture the selected files
+    const hidden = document.getElementById(this.hiddenInputName)
+    const uploadButton = document.getElementById(this.uploadButtonName)
+    uploadButton.onclick = () => hidden.click()
+    hidden.onchange = (e) => {
+      for (const file of e.target.files) {
+        this.addFile(file)
+      }
     }
   },
   methods: {
@@ -196,19 +223,6 @@ export default {
     dragOverHandler (e) {
       if (hasFiles(e)) {
         e.preventDefault()
-      }
-    }
-  },
-
-  mounted () {
-    // click the hidden input of type file if the visible button is clicked
-    // and capture the selected files
-    const hidden = document.getElementById(this.hiddenInputName)
-    const uploadButton = document.getElementById(this.uploadButtonName)
-    uploadButton.onclick = () => hidden.click()
-    hidden.onchange = (e) => {
-      for (const file of e.target.files) {
-        this.addFile(file)
       }
     }
   }
