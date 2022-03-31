@@ -14,7 +14,7 @@
 </template>
 <script>
 export default {
-  name: 'picture-background',
+  name: 'PictureBackground',
   props: {
     customClass: { default: 'fill-current w-4 h-4 ml-auto pt-', type: String },
     viewBox: { default: '0 0 24 24', type: String },

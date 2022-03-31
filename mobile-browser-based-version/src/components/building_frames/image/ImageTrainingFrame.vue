@@ -1,3 +1,4 @@
+
 <template>
   <training-frame :id="id" :task="task" :dataLoader="imageLoader">
     <template v-slot:dataExample>
@@ -7,10 +8,10 @@
           class="object-center"
           :src="task.getExampleImage(task.displayInformation.dataExampleImage)"
           :alt="task.displayInformation.dataExampleImage"
-        /><img />
+        ><img>
       </div>
     </template>
-    <template v-slot:extra></template>
+    <template #extra />
   </training-frame>
 </template>
 
@@ -20,13 +21,19 @@ import { ImageLoader } from '../../../core/dataset/data_loader/image_loader'
 import { Task } from '../../../core/task/task'
 
 export default {
-  name: 'image-training-frame',
-  props: {
-    id: String,
-    task: Task
-  },
+  name: 'ImageTrainingFrame',
   components: {
     TrainingFrame
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Task,
+      default: undefined
+    }
   },
   mounted () {
     this.imageLoader = new ImageLoader()

@@ -1,5 +1,5 @@
 <template>
-  <base-layout :withSection="true">
+  <base-layout :with-section="true">
     <div
       v-for="task in Array.from(tasks.values())"
       :key="task.taskID"
@@ -21,7 +21,7 @@
         </div>
         <div class="ml-10">
           <ul class="text-base ont-semibold text-gray-500 dark:text-light">
-            <span v-html="task.displayInformation.summary"></span>
+            <span v-html="task.displayInformation.summary" />
           </ul>
         </div>
         <div class="py-2">
@@ -51,7 +51,7 @@ import { loadTasks } from '../core/task/utils'
 import { Task } from '../core/task/task'
 
 export default defineComponent({
-  name: 'task-list',
+  name: 'TaskList',
   components: {
     BaseLayout,
     Card,
@@ -66,6 +66,13 @@ export default defineComponent({
         ['testing', MainTestingFrame]
       ]
     }
+  },
+  async mounted () {
+    const rawTasks = await loadTasks()
+    rawTasks
+      .concat(this.$store.state.newTasks)
+      .forEach(this.createNewTaskComponent)
+    this.clearNewTasks()
   },
   methods: {
     goToSelection (id: string) {

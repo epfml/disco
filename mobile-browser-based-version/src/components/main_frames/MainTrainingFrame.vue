@@ -1,7 +1,7 @@
 <template>
   <!-- If we bind the key to the platform, then whenever \
   the platform is changed the component will be re-built. -->
-  <div :key="this.$store.state.platform">
+  <div :key="$store.state.platform">
     <!-- CSV tasks -->
     <tabular-training-frame
       v-if="task.trainingInformation.dataType === 'tabular'"
@@ -23,14 +23,20 @@ import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame.vue'
 import { Task } from '../../core/task/task'
 
 export default {
-  name: 'main-training-frame',
-  props: {
-    id: String,
-    task: Task
-  },
+  name: 'MainTrainingFrame',
   components: {
     TabularTrainingFrame,
     ImageTrainingFrame
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Task,
+      default: undefined
+    }
   }
 }
 </script>

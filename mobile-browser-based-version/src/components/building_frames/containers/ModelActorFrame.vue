@@ -18,7 +18,7 @@
         header="Data Format Information"
         :description="dataFormatInfoText"
       >
-        <template v-slot:icon><check-list /></template>
+        <template #icon><check-list /></template>
       </icon-card>
     </a>
 
@@ -27,16 +27,16 @@
       <icon-card
         header="Data Example"
         :description="dataExampleText"
-        :withToggle="true"
+        :with-toggle="true"
       >
-        <template v-slot:icon><file-earmark-ruled /></template>
+        <template #icon><file-earmark-ruled /></template>
         <!-- Data Point Example -->
-        <template v-slot:extra>
-          <slot name="dataExample"></slot>
+        <template #extra>
+          <slot name="dataExample" />
         </template>
       </icon-card>
     </a>
-    <slot name="action"></slot>
+    <slot name="action" />
   </div>
 </template>
 
@@ -47,31 +47,28 @@ import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue'
 import { Task } from '../../../core/task/task'
 
 export default {
-  name: 'model-actor-frame',
-  props: {
-    task: Task
-  },
+  name: 'ModelActorFrame',
   components: {
     IconCard,
     CheckList,
     FileEarmarkRuled
   },
+  props: {
+    task: {
+      type: Task,
+      default: undefined
+    }
+  },
   data () {
     return {
-      // variables for general informations
       dataFormatInfoText: '',
       dataExampleText: ''
     }
   },
-  async mounted () {
-    // This method is called when the component is created
-    this.$nextTick(async function () {
-      // initialize information variables
-      this.dataFormatInfoText =
-        this.task.displayInformation.dataFormatInformation
+  async created () {
+      this.dataFormatInfoText = this.task.displayInformation.dataFormatInformation
       this.dataExampleText = this.task.displayInformation.dataExampleText
       console.log(`Mounting ${this.task.trainingInformation.modelID}`)
-    })
   }
 }
 </script>

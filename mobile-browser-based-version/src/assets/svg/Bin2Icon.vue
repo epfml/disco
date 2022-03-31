@@ -13,7 +13,7 @@
 </template>
 <script>
 export default {
-  name: 'bin2-icon',
+  name: 'Bin2Icon',
   props: {
     customClass: {
       default: 'h-9 w-5',

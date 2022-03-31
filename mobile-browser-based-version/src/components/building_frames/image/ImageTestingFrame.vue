@@ -1,26 +1,30 @@
 <template>
-  <testing-frame :id="id" :task="task" :helper="helper">
-    <template v-slot:dataExample>
+  <testing-frame
+    :id="id"
+    :task="task"
+    :helper="helper"
+  >
+    <template #dataExample>
       <!-- Data Point Example -->
       <div class="flex object-center">
         <img
           class="object-center"
           :src="task.getExampleImage(task.displayInformation.dataExampleImage)"
           :alt="task.displayInformation.dataExampleImage"
-        /><img />
+        ><img>
       </div>
     </template>
-    <template v-slot:extra></template>
+    <template #extra />
 
-    <template v-slot:predictionResults>
+    <template #predictionResults>
       <image-prediction-results-frame
         v-if="task.testing.gotResults"
         :classes="task.testing.classes"
       />
 
-      <div id="predictions"></div>
+      <div id="predictions" />
       <!-- Upload Image Data Template-->
-      <template id="image-template">
+      <div>
         <li class="block p-1 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 xl:w-1/8 h-24">
           <article
             tabindex="0"
@@ -50,7 +54,7 @@
                 rounded-md
                 bg-fixed
               "
-            />
+            >
 
             <section
               class="
@@ -67,7 +71,7 @@
                 px-3
               "
             >
-              <h1 class="flex-1"></h1>
+              <h1 class="flex-1" />
               <div class="flex">
                 <span class="p-1">
                   <i>
@@ -75,7 +79,7 @@
                   </i>
                 </span>
 
-                <p class="p-1 size text-xs"></p>
+                <p class="p-1 size text-xs" />
                 <button
                   class="
                     delete
@@ -92,7 +96,7 @@
             </section>
           </article>
         </li>
-      </template>
+      </div>
     </template>
   </testing-frame>
 </template>
@@ -111,8 +115,14 @@ export default {
     Bin
   },
   props: {
-    id: String,
-    task: Object
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {

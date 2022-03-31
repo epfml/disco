@@ -35,24 +35,26 @@
         </table>
       </div>
     </template>
-    <template v-slot:extra>
+    <template #extra>
       <!-- Modification of Header Card -->
       <icon-card
         header="Map My Data"
         description="If the header of the file that you've uploaded differs from the one shown in example, you can map the expected header to your header format bellow."
-        :withToggle="true"
+        :with-toggle="true"
       >
-        <template v-slot:icon><bezier-2 /></template>
-        <template v-slot:extra>
+        <template #icon>
+          <bezier-2 />
+        </template>
+        <template #extra>
           <!-- Display all the possible headers -->
           <div id="mapHeader">
             <ul
               class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-4"
             >
               <li
-                class="border-gray-400"
                 v-for="header in task.headers"
                 :key="header.id"
+                class="border-gray-400"
               >
                 <div
                   class="
@@ -81,8 +83,8 @@
                     <div>&larr;</div>
                     <div class="mb-3 pt-0">
                       <input
-                        type="text"
                         v-model="header.userHeader"
+                        type="text"
                         placeholder="Enter your header"
                         class="
                           p-1
@@ -99,7 +101,7 @@
                           focus:outline-none focus:shadow-outline
                           w-full
                         "
-                      />
+                      >
                     </div>
                   </div>
                 </div>
@@ -120,15 +122,21 @@ import { TabularLoader } from '../../../core/dataset/data_loader/tabular_loader'
 import { Task } from '../../../core/task/task'
 
 export default {
-  name: 'tabular-training-frame',
-  props: {
-    id: String,
-    task: Task
-  },
+  name: 'TabularTrainingFrame',
   components: {
     TrainingFrame,
     IconCard,
     Bezier2
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Task,
+      default: undefined
+    }
   },
   created () {
     this.tabularLoader = new TabularLoader(',')

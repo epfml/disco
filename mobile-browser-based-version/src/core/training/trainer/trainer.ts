@@ -101,12 +101,21 @@ export abstract class Trainer {
   }
 
   /**
+   * Format accuracy
+   */
+  private roundDecimals (accuracy: number, decimalsToRound: number = 2): number {
+    return +(accuracy * 100).toFixed(decimalsToRound)
+  }
+
+  /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
-  private onEpochEnd (accuracy: number, validationAccuracy: number) {
-    this.trainerLogger.onEpochEnd(accuracy, validationAccuracy)
-    // updateGraph does not work in onBatchEnd since we do not get validation accuracy.
-    this.trainingInformant.updateGraph(TrainerLogger.formatAccuracy(accuracy), TrainerLogger.formatAccuracy(validationAccuracy))
+  private onEpochEnd (trainingAccuracy: number, validationAccuracy: number) {
+    this.trainerLogger.onEpochEnd(trainingAccuracy, validationAccuracy)
+    if (!isNaN(trainingAccuracy) && !isNaN(validationAccuracy)) {
+      this.trainingInformant.updateValidationAccuracyGraph(this.roundDecimals(validationAccuracy))
+      this.trainingInformant.updateTrainingAccuracyGraph(this.roundDecimals(trainingAccuracy))
+    }
   }
 
   /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)

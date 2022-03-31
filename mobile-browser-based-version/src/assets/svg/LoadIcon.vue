@@ -20,7 +20,7 @@
 </template>
 <script>
 export default {
-  name: 'download2-icon',
+  name: 'Download2Icon',
   props: {
     customClass: {
       default: 'h-9 w-5',

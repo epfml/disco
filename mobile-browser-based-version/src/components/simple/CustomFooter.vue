@@ -18,14 +18,13 @@
         href="https://github.com/epfml/disco"
         target="_blank"
         class="text-blue-500 hover:underline"
-        >Github</a
-      >
+      >Github</a>
     </div>
   </footer>
 </template>
 
 <script>
 export default {
-  name: 'custom-footer'
+  name: 'CustomFooter'
 }
 </script>

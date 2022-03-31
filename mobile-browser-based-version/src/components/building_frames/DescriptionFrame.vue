@@ -1,48 +1,57 @@
 <template>
   <div>
-  <a id="overview-target">
-    <icon-card header="The task" :description="overviewText">
-      <template v-slot:icon><tasks /></template>
-    </icon-card>
-  </a>
+    <a id="overview-target">
+      <icon-card
+        header="The task"
+        :description="overviewText"
+      >
+        <template #icon><tasks /></template>
+      </icon-card>
+    </a>
 
-  <a id="limitations-target">
-    <icon-card header="The model" :description="modelText">
-      <template v-slot:icon><model /></template>
-    </icon-card>
-  </a>
+    <a id="limitations-target">
+      <icon-card
+        header="The model"
+        :description="modelText"
+      >
+        <template #icon><model /></template>
+      </icon-card>
+    </a>
 
-  <!-- Card to load a model-->
-  <a id="load-model" v-if="workingModelExistsOnMount">
-    <icon-card header="Join training with a previous model">
-      <template v-slot:icon><clock /></template>
-      <template v-slot:extra>
-        <!-- Restore Model -->
-        <div class="p-4">
-          <div v-if="useIndexedDB && workingModelExists">
-            <div class="grid grid-cols-4 items-center justify-items-center">
-              <div class="col-span-3">
-                <div class="text-sm text-gray-500 dark:text-light">
-                  FeAI cached the last model you were working on for you. Select
-                  it to start training from it. Otherwise, it will be overridden
-                  the next time you train the
-                  {{ task.displayInformation.taskTitle }} task. This model was
-                  last updated the
-                  <span class="text-primary-dark dark:text-primary-light">
-                    {{ dateSaved }}
-                  </span>
-                  at
-                  <span class="text-primary-dark dark:text-primary-light">
-                    {{ hourSaved }}
-                  </span>
+    <!-- Card to load a model-->
+    <a
+      v-if="workingModelExistsOnMount"
+      id="load-model"
+    >
+      <icon-card header="Join training with a previous model">
+        <template #icon><clock /></template>
+        <template #extra>
+          <!-- Restore Model -->
+          <div class="p-4">
+            <div v-if="useIndexedDB && workingModelExists">
+              <div class="grid grid-cols-4 items-center justify-items-center">
+                <div class="col-span-3">
+                  <div class="text-sm text-gray-500 dark:text-light">
+                    FeAI cached the last model you were working on for you. Select
+                    it to start training from it. Otherwise, it will be overridden
+                    the next time you train the
+                    {{ task.displayInformation.taskTitle }} task. This model was
+                    last updated the
+                    <span class="text-primary-dark dark:text-primary-light">
+                      {{ dateSaved }}
+                    </span>
+                    at
+                    <span class="text-primary-dark dark:text-primary-light">
+                      {{ hourSaved }}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <button
-                class="relative focus:outline-none"
-                @click="toggleUseWorkingModel()"
-              >
-                <div
-                  class="
+                <button
+                  class="relative focus:outline-none"
+                  @click="toggleUseWorkingModel()"
+                >
+                  <div
+                    class="
                     w-12
                     h-6
                     transition
@@ -51,9 +60,9 @@
                     bg-primary-100
                     dark:bg-primary-darker
                   "
-                ></div>
-                <div
-                  class="
+                  />
+                  <div
+                    class="
                     absolute
                     top-0
                     left-0
@@ -67,19 +76,48 @@
                     rounded-full
                     shadow-sm
                   "
+                    :class="{
+                      'translate-x-0 bg-white dark:bg-primary-100':
+                        !useWorkingModel,
+                      'translate-x-6 bg-primary-light dark:bg-primary':
+                        useWorkingModel,
+                    }"
+                  />
+                </button>
+              </div>
+              <div class="flex pt-4 space-x-4 justify-center">
+                <button
+                  class="
+                  flex
+                  items-center
+                  justify-center
+                  px-4
+                  py-2
+                  space-x-4
+                  transition-colors
+                  border
+                  rounded-md
+                  hover:text-gray-900 hover:border-gray-900
+                  dark:border-primary
+                  dark:hover:text-primary-100
+                  dark:hover:border-primary-light
+                  focus:outline-none
+                  focus:ring
+                  focus:ring-primary-lighter
+                  focus:ring-offset-2
+                  dark:focus:ring-offset-dark dark:focus:ring-primary-dark
+                "
                   :class="{
-                    'translate-x-0 bg-white dark:bg-primary-100':
-                      !useWorkingModel,
-                    'translate-x-6 bg-primary-light dark:bg-primary':
-                      useWorkingModel,
+                    'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
+                      !isDark,
+                    'text-gray-500 dark:text-primary-light': isDark,
                   }"
-                ></div>
-              </button>
-            </div>
-            <div class="flex pt-4 space-x-4 justify-center">
-              <button
-                @click="saveModel()"
-                class="
+                  @click="saveModel()"
+                >
+                  <span>Save Model</span>
+                </button>
+                <button
+                  class="
                   flex
                   items-center
                   justify-center
@@ -99,66 +137,40 @@
                   focus:ring-offset-2
                   dark:focus:ring-offset-dark dark:focus:ring-primary-dark
                 "
-                :class="{
-                  'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-                    !isDark,
-                  'text-gray-500 dark:text-primary-light': isDark,
-                }"
-              >
-                <span>Save Model</span>
-              </button>
-              <button
-                @click="deleteModel()"
-                class="
-                  flex
-                  items-center
-                  justify-center
-                  px-4
-                  py-2
-                  space-x-4
-                  transition-colors
-                  border
-                  rounded-md
-                  hover:text-gray-900 hover:border-gray-900
-                  dark:border-primary
-                  dark:hover:text-primary-100
-                  dark:hover:border-primary-light
-                  focus:outline-none
-                  focus:ring
-                  focus:ring-primary-lighter
-                  focus:ring-offset-2
-                  dark:focus:ring-offset-dark dark:focus:ring-primary-dark
-                "
-                :class="{
-                  'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-                    !isDark,
-                  'text-gray-500 dark:text-primary-light': isDark,
-                }"
-              >
-                <span>Delete Model</span>
-              </button>
+                  :class="{
+                    'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
+                      !isDark,
+                    'text-gray-500 dark:text-primary-light': isDark,
+                  }"
+                  @click="deleteModel()"
+                >
+                  <span>Delete Model</span>
+                </button>
+              </div>
+            </div>
+            <div
+              v-else
+              class="text-sm text-gray-500 dark:text-light"
+            >
+              <p v-if="!useIndexedDB && workingModelExists">
+                FeAI cached the last model you were working on for you. Turn on
+                the model library (see settings) to see additional options.
+              </p>
+              <p v-else>The previous working model has been deleted.</p>
             </div>
           </div>
-          <div v-else class="text-sm text-gray-500 dark:text-light">
-            <p v-if="!useIndexedDB && workingModelExists">
-              FeAI cached the last model you were working on for you. Turn on
-              the model library (see settings) to see additional options.
-            </p>
-            <p v-else>The previous working model has been deleted.</p>
-          </div>
-        </div>
-      </template>
-    </icon-card>
-  </a>
-  <div class="flex items-center justify-center p-4">
-    <custom-button
-      id="train-model-button"
-      @click="goToTraining()"
-      :center="true"
-    >
-      Join Training
-    </custom-button>
-  </div>
+        </template>
+      </icon-card>
+    </a>
+    <div class="flex items-center justify-center p-4">
+      <custom-button
+        id="train-model-button"
+        :center="true"
+        @click="goToTraining()"
+      >
+        Join Training
+      </custom-button>
+    </div>
   </div>
 </template>
 
@@ -174,20 +186,35 @@ import { Task } from '../../core/task/task'
 import { getLatestModel } from '../../core/task/utils'
 
 export default {
-  name: 'description-frame',
-  props: {
-    overviewText: String,
-    modelText: String,
-    tradeOffsText: String,
-    id: String,
-    task: Task
-  },
+  name: 'DescriptionFrame',
   components: {
     CustomButton,
     Tasks,
     Model,
     IconCard,
     Clock
+  },
+  props: {
+    overviewText: {
+      type: String,
+      default: ''
+    },
+    modelText: {
+      type: String,
+      default: ''
+    },
+    tradeOffsText: {
+      type: String,
+      default: ''
+    },
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {
@@ -197,6 +224,18 @@ export default {
       useWorkingModel: false,
       dateSaved: '',
       hourSaved: ''
+    }
+  },
+  computed: {
+    ...mapState(['useIndexedDB', 'isDark']),
+    /**
+       * Returns true if a new model needs to be created
+       */
+    shouldCreateFreshModel () {
+      return (
+        !this.isModelCreated &&
+          !(this.workingModelExists && this.useWorkingModel)
+      )
     }
   },
   watch: {
@@ -214,17 +253,39 @@ export default {
       setTimeout(this.$toast.clear, 30000)
     }
   },
-  computed: {
-    ...mapState(['useIndexedDB', 'isDark']),
-    /**
-     * Returns true if a new model needs to be created
-     */
-    shouldCreateFreshModel () {
-      return (
-        !this.isModelCreated &&
-        !(this.workingModelExists && this.useWorkingModel)
-      )
-    }
+  /**
+   * This method is called when the component is created
+   */
+  async mounted () {
+    this.$nextTick(async function () {
+      /**
+       * If the IndexedDB is turned on and a working model exists in IndexedDB
+       * on loading the description frame, then display the model restoration
+       * feature.
+       */
+      if (this.useIndexedDB) {
+        const workingModelMetadata = await memory.getWorkingModelMetadata(
+          this.task.taskID,
+          this.task.trainingInformation.modelID
+        )
+        if (workingModelMetadata) {
+          this.workingModelExistsOnMount = true
+          this.workingModelExists = true
+          const date = workingModelMetadata.dateSaved
+          const zeroPad = (number) => String(number).padStart(2, '0')
+          this.dateSaved = [
+            date.getDate(),
+            date.getMonth() + 1,
+            date.getFullYear()
+          ]
+            .map(zeroPad)
+            .join('/')
+          this.hourSaved = [date.getHours(), date.getMinutes()]
+            .map(zeroPad)
+            .join('h')
+        }
+      }
+    })
   },
   methods: {
     /**
@@ -295,40 +356,6 @@ export default {
     getTheme () {
       return this.$store.state.isDark
     }
-  },
-  /**
-   * This method is called when the component is created
-   */
-  async mounted () {
-    this.$nextTick(async function () {
-      /**
-       * If the IndexedDB is turned on and a working model exists in IndexedDB
-       * on loading the description frame, then display the model restoration
-       * feature.
-       */
-      if (this.useIndexedDB) {
-        const workingModelMetadata = await memory.getWorkingModelMetadata(
-          this.task.taskID,
-          this.task.trainingInformation.modelID
-        )
-        if (workingModelMetadata) {
-          this.workingModelExistsOnMount = true
-          this.workingModelExists = true
-          const date = workingModelMetadata.dateSaved
-          const zeroPad = (number) => String(number).padStart(2, '0')
-          this.dateSaved = [
-            date.getDate(),
-            date.getMonth() + 1,
-            date.getFullYear()
-          ]
-            .map(zeroPad)
-            .join('/')
-          this.hourSaved = [date.getHours(), date.getMinutes()]
-            .map(zeroPad)
-            .join('h')
-        }
-      }
-    })
   }
 }
 </script>

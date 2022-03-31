@@ -1,16 +1,16 @@
 <!-- Upload Image Data Template-->
 <template :id="imageTemplName">
   <element-data
-    :fileUploadManager="fileUploadManager"
-    :objectURL="objectURL"
-    articleClass="bg-gray-100 cursor-pointer text-transparent"
-    hoverClass="hover:bg-gray-300"
+    :file-upload-manager="fileUploadManager"
+    :object-u-r-l="objectURL"
+    article-class="bg-gray-100 cursor-pointer text-transparent"
+    hover-class="hover:bg-gray-300"
   >
     <img
       :src="objectURL"
       :alt="file.name"
       class="img-preview w-full h-full sticky object-cover rounded-md bg-fixed"
-    />
+    >
   </element-data>
 </template>
 <script>
@@ -18,13 +18,16 @@ import { FileUploadManager } from '../../../../../logic/data_validation/file_upl
 import ElementData from './ElementData.vue'
 
 export default {
-  name: 'image-data',
+  name: 'ImageData',
   components: {
     ElementData
   },
   props: {
     fileUploadManager: FileUploadManager,
-    objectURL: String
+    objectURL: {
+      type: String,
+      default: ''
+    }
   }
 }
 </script>
