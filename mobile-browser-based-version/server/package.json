@@ -8,7 +8,7 @@
     "start": "NODE_PATH=./dist node dist/run_server.js",
     "build": "tsc -p tsconfig.prod.json",
     "clean": "tsc --build --clean && rm -r dist || true",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --exit -r ts-node/register 'tests/**/*.ts'"
+    "test": "mocha --exit -r ts-node/register 'tests/**/*.ts'"
   },
   "author": "",
   "license": "ISC",
