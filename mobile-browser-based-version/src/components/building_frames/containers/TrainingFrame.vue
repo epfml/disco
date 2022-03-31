@@ -4,7 +4,7 @@
     <template v-slot:action>
       <!-- Upload Training Data -->
       <div class="relative">
-        <uploading-frame
+        <dataset-input-frame
           :id="id"
           :task="task"
           :fileUploadManager="training_manager.fileUploadManager"
@@ -96,7 +96,7 @@
 </template>
 
 <script>
-import UploadingFrame from '../upload/UploadingFrame.vue'
+import DatasetInputFrame from '../upload/DatasetInputFrame.vue'
 import TrainingInformationFrame from '../TrainingInformationFrame.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
@@ -104,18 +104,18 @@ import CustomButton from '../../simple/CustomButton.vue'
 import Download from '../../../assets/svg/Download.vue'
 
 import { mapState } from 'vuex'
-import * as memory from '../../../logic/memory/model_io'
-import { TrainingManager } from '../../../logic/training/training_manager'
+import * as memory from '../../../core/memory/memory'
+import { TrainingManager } from '../../../core/training/training_manager'
 
 export default {
-  name: 'TrainingFrame',
+  name: 'training-frame',
   props: {
     id: String,
     task: Object,
     helper: Object
   },
   components: {
-    UploadingFrame,
+    DatasetInputFrame,
     TrainingInformationFrame,
     ModelActorFrame,
     IconCard,

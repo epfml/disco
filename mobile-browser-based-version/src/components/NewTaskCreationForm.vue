@@ -551,7 +551,7 @@
             </button>
 
             <a
-              href="https://join.slack.com/t/deai-workspace/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
+              href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
               class="
                 w-2/5
                 text-lg text-center
@@ -586,7 +586,7 @@
 import { mapMutations } from 'vuex'
 import BaseLayout from './containers/BaseLayout.vue'
 import _ from 'lodash'
-import sections from '../logic/task_definition/form.config'
+import sections from '../core/task/form.config'
 import TitleCard from './containers/TitleCard.vue'
 import axios from 'axios'
 

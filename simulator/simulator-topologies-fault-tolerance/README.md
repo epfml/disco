@@ -1,6 +1,6 @@
 # Why this simulator?
 
-Decentralized Machine Learning has been getting more and more attention lately, both for its efficient scaling to an important number of machines and for the solutions it offers in terms of data privacy. The [DeAI](https://github.com/epfml/DeAI) project aims at building a generic infrastructure for executing algorithms on many machines concurrently.
+Decentralized Machine Learning has been getting more and more attention lately, both for its efficient scaling to an important number of machines and for the solutions it offers in terms of data privacy. The [Disco](https://github.com/epfml/disco) project aims at building a generic infrastructure for executing algorithms on many machines concurrently.
 Before a real-world implementation, simulations were required to gain insights about the consequences of different network aspects, such as the topology, the failures, the delays, the Byzantine agents... Besides, a well-designed simulator could constitute a nice standard benchmarking for testing decentralized algorithms before deploying them.
 
 # Base features
