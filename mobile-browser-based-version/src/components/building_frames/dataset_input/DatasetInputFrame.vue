@@ -12,7 +12,7 @@
             @clear="clearFiles(dataset)"
           />
         </div>
-        <div v-else>
+        <div v-else-if="task.trainingInformation.dataType === 'image'">
           <file-selection-frame
             :id="id"
             :preview="preview"
@@ -67,7 +67,7 @@ export default {
       // Preview only for csv (since there is no, "show only first n images").
       return this.task.trainingInformation.dataType === 'tabular'
     },
-    requireLabelFiles () {
+    requireLabels () {
       // return this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined
       return true
     }

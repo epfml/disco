@@ -27,7 +27,7 @@ export class TabularLoader extends DataLoader {
       columnConfigs[label] = { required: true, isLabel: true }
     })
     _.forEach(features, (feature) => {
-      columnConfigs[feature] = { default: 0, isLabel: false }
+      columnConfigs[feature] = { required: false, isLabel: false }
     })
     const csvConfig = {
       hasHeader: true,
