@@ -18,7 +18,7 @@
 </template>
 <script>
 export default {
-  name: 'people',
+  name: 'People',
   props: {
     customClass: {
       default: 'w-12 h-12 text-gray-300 dark:text-primary-dark',

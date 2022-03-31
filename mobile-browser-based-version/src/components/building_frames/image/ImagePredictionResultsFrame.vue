@@ -1,20 +1,23 @@
 <template>
   <!-- Predictions Results Example Card -->
   <a id="limitations-target">
-    <icon-card header="Predictions Results" :description="dataExampleText">
-      <template v-slot:icon><file-earmark-ruled-vue /></template>
+    <icon-card
+      header="Predictions Results"
+      :description="dataExampleText"
+    >
+      <template #icon><file-earmark-ruled-vue /></template>
       <!-- Data Point Example -->
-      <template v-slot:extra>
-        <div :id="imageId"></div>
+      <template #extra>
+        <div :id="imageId" />
 
         <div class="relative p-4 overflow-x-hidden">
           <span
             v-for="value in classes"
-            class="text-sm text-gray-500 dark:text-light"
             :key="value"
+            class="text-sm text-gray-500 dark:text-light"
           >
             {{ value.className }} label with probability of
-            {{ (value.probability * 100).toFixed(3) }}% <br />
+            {{ (value.probability * 100).toFixed(3) }}% <br>
           </span>
         </div>
       </template>
@@ -26,13 +29,19 @@
 import FileEarmarkRuledVue from '../../../assets/svg/FileEarmarkRuled.vue'
 
 export default {
-  name: 'image-prediction-results-frame',
-  props: {
-    id: String,
-    classes: Array
-  },
+  name: 'ImagePredictionResultsFrame',
   components: {
     FileEarmarkRuledVue
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    classes: {
+      type: Array,
+      default: () => []
+    }
   },
   data () {
     return {

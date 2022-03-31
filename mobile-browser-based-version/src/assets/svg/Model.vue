@@ -16,7 +16,7 @@
 </template>
 <script>
 export default {
-  name: 'model',
+  name: 'Model',
   props: {
     customClass: { default: 'bi h-7 w-7', type: String },
     viewBox: { default: '0 0 24 24', type: String }

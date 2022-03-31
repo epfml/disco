@@ -5,9 +5,13 @@
         "mocha": true
     },
     "extends": [
-        "plugin:vue/essential",
+        "plugin:vue/recommended",
         "standard"
     ],
+    "rules": {
+        "vue/one-component-per-file": "off",
+        "vue/no-v-html": "off"
+    },
     "globals": {
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"

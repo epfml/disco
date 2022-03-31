@@ -23,7 +23,7 @@
 </template>
 <script>
 export default {
-  name: 'settings-icon',
+  name: 'SettingsIcon',
   props: {
     customClass: {
       default: 'w-7 h-7',

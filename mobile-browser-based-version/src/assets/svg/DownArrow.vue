@@ -12,7 +12,7 @@
 </template>
 <script>
 export default {
-  name: 'down-arrow',
+  name: 'DownArrow',
   props: {
     customClass: { default: 'bi bi-ui-checks w-7 h-7', type: String },
     viewBox: { default: '0 0 30 30', type: String }

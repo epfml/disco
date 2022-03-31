@@ -3,7 +3,6 @@
     type="a"
     :data-title="firstLetterUppercase(hoverText)"
     data-placement="right"
-    @click="click()"
     class="
       p-2
       transition-colors
@@ -16,20 +15,21 @@
       focus:ring-primary-darker
     "
     :class="[
-      this.activePage === this.hoverText ? 'bg-primary' : 'bg-primary-50',
-      this.activePage === this.hoverText
+      activePage === hoverText ? 'bg-primary' : 'bg-primary-50',
+      activePage === hoverText
         ? 'text-white'
         : 'text-primary-lighter',
     ]"
+    @click="click()"
   >
-    <span class="sr-only">{{ this.hoverText }}</span>
-    <slot></slot>
+    <span class="sr-only">{{ hoverText }}</span>
+    <slot />
   </a>
 </template>
 
 <script>
 export default {
-  name: 'sidebar-button',
+  name: 'SidebarButton',
   props: {
     click: { default: () => {}, type: Function },
     hoverText: { default: '', type: String },

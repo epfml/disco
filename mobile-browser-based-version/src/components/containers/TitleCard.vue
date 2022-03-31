@@ -4,12 +4,15 @@
     <div class="ml-10 text-xl text-gray-500 dark:text-light">
       <span class="text-primary-dark dark:text-primary-light">
         {{ title }}
-        <span class="underline" v-if="titleUnderlined">{{
+        <span
+          v-if="titleUnderlined"
+          class="underline"
+        >{{
           titleUnderlined
         }}</span>
       </span>
       <div class="text-base">
-        <slot></slot>
+        <slot />
       </div>
     </div>
   </Card>
@@ -19,7 +22,7 @@
 import Card from './Card.vue'
 
 export default {
-  name: 'title-card',
+  name: 'TitleCard',
   components: { Card },
   props: {
     title: { default: '', type: String },
