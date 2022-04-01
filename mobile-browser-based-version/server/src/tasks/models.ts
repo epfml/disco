@@ -2,14 +2,14 @@ import fs from 'fs'
 import path from 'path'
 import * as tf from '@tensorflow/tfjs-node'
 
-import * as config from '../config'
+import { CONFIG } from '../config'
 
 /**
  * Create the models directory for the TFJS model files of
  * the tasks defined below.
  */
-if (!fs.existsSync(config.MODELS_DIR)) {
-  fs.mkdirSync(config.MODELS_DIR)
+if (!fs.existsSync(CONFIG.modelsDir)) {
+  fs.mkdirSync(CONFIG.modelsDir)
 }
 
 async function createTitanicModel () {
@@ -25,8 +25,8 @@ async function createTitanicModel () {
   model.add(tf.layers.dense({ units: 64, activation: 'relu' }))
   model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
   model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }))
-  const savePath = path.join(config.MODELS_DIR, 'titanic')
-  await model.save(config.SAVING_SCHEME.concat(savePath))
+  const savePath = path.join(CONFIG.modelsDir, 'titanic')
+  await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
 async function createMnistModel () {
@@ -50,8 +50,8 @@ async function createMnistModel () {
   model.add(tf.layers.flatten({}))
   model.add(tf.layers.dense({ units: 64, activation: 'relu' }))
   model.add(tf.layers.dense({ units: 10, activation: 'softmax' }))
-  const savePath = path.join(config.MODELS_DIR, 'mnist')
-  await model.save(config.SAVING_SCHEME.concat(savePath))
+  const savePath = path.join(CONFIG.modelsDir, 'mnist')
+  await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
 async function createLUSCovidModel () {
@@ -61,8 +61,8 @@ async function createLUSCovidModel () {
   )
   model.add(tf.layers.dense({ units: 64, activation: 'relu' }))
   model.add(tf.layers.dense({ units: 2, activation: 'softmax' }))
-  const savePath = path.join(config.MODELS_DIR, 'lus_covid')
-  await model.save(config.SAVING_SCHEME.concat(savePath))
+  const savePath = path.join(CONFIG.modelsDir, 'lus_covid')
+  await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
 async function createCifar10Model () {
@@ -79,8 +79,8 @@ async function createCifar10Model () {
     name: 'modelModified'
   })
 
-  const savePath = path.join(config.MODELS_DIR, 'cifar10')
-  await model.save(config.SAVING_SCHEME.concat(savePath))
+  const savePath = path.join(CONFIG.modelsDir, 'cifar10')
+  await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
 export default [

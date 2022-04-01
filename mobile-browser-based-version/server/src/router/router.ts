@@ -3,13 +3,13 @@ import expressWS from 'express-ws'
 import _ from 'lodash'
 import * as handlers from '../logic/federated/request_handlers'
 import { writeNewTask, getTasks } from '../tasks/tasks_io'
-import * as config from '../config'
+import { CONFIG } from '../config'
 import { SignalingServer } from './signaling_server'
 
 // enable websocket
 const wsApplier = expressWS(express())
 
-const tasks = getTasks(config.TASKS_FILE)
+const tasks = getTasks(CONFIG.tasksFile)
 
 // WebSocket server
 const signalingServer = new SignalingServer()
@@ -33,7 +33,7 @@ tasksRouter.post('/', function (req, res) {
     console.log(`new task: ${newTask.taskID}`)
     tasksRouter.ws(`/${newTask.taskID}`, (ws) => signalingServer.handle(newTask, ws))
     // store results in json file
-    writeNewTask(newTask, modelFile, weightsFile, config)
+    writeNewTask(newTask, modelFile, weightsFile, CONFIG)
     // answer vue app
     res.end('Successfully upload')
   }
