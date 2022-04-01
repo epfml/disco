@@ -3,8 +3,7 @@ import msgpack from 'msgpack-lite'
 import path from 'path'
 import * as tf from '@tensorflow/tfjs-node'
 
-import * as config from '../../config'
-
+import { CONFIG } from '../../config'
 import {
   averageWeights
 } from './tensor_helpers/tensor_operations'
@@ -78,7 +77,7 @@ const tasksStatus = new Map()
 /**
  * Initialize the data structures declared above.
  */
-getTasks(config.TASKS_FILE)?.forEach((task) => {
+getTasks(CONFIG.tasksFile)?.forEach((task) => {
   tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 })
   _initAsyncWeightsBufferIfNotExists(task)
 })
@@ -174,8 +173,8 @@ async function _aggregateAndStoreWeights (weights, task) {
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */
-  const modelFilesPath = config.SAVING_SCHEME.concat(
-    path.join(config.MODELS_DIR, task, 'model.json')
+  const modelFilesPath = CONFIG.savingScheme.concat(
+    path.join(CONFIG.modelsDir, task, 'model.json')
   )
   const model = await tf.loadLayersModel(modelFilesPath)
   assignWeightsToModel(model, serializedAggregatedWeights)
@@ -493,10 +492,10 @@ export function getMetadataMap (request, response) {
  */
 export function getTasksMetadata (request, response) {
   const type = REQUEST_TYPES.GET_TASKS
-  if (fs.existsSync(config.TASKS_FILE)) {
+  if (fs.existsSync(CONFIG.tasksFile)) {
     _logsAppend(request, type)
-    console.log(`Serving ${config.TASKS_FILE}`)
-    response.status(200).sendFile(config.TASKS_FILE)
+    console.log(`Serving ${CONFIG.tasksFile}`)
+    response.status(200).sendFile(CONFIG.tasksFile)
   } else {
     _failRequest(response, type, 404)
   }
@@ -521,7 +520,7 @@ export function getLatestModel (request, response) {
     return _failRequest(response, type, 404)
   }
   const validModelFiles = new Set(['model.json', 'weights.bin'])
-  const modelFile = path.join(config.MODELS_DIR, task, file)
+  const modelFile = path.join(CONFIG.modelsDir, task, file)
   console.log(`File path: ${modelFile}`)
   if (validModelFiles.has(file) && fs.existsSync(modelFile)) {
     console.log(`${file} download for task ${task} succeeded`)
