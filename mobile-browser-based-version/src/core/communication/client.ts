@@ -15,7 +15,7 @@ export abstract class Client {
    * Handles the connection process from the client to any sort of
    * centralized server.
    */
-  abstract connect (epochs?: number): Promise<any>
+  abstract connect (): Promise<void>
 
   /**
    * Handles the disconnection process of the client from any sort

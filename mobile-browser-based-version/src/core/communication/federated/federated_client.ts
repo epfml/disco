@@ -1,6 +1,6 @@
 import * as msgpack from 'msgpack-lite'
 import { makeID } from '../authentication'
-import { serializeWeights } from '../tensor_serializer'
+import { serializeWeights } from '../serialization'
 import { Client } from '../client'
 import { Task } from '@/core/task/task'
 import { TrainingInformant } from '@/core/training/training_informant'
@@ -32,7 +32,7 @@ export class FederatedClient extends Client {
    * Initialize the connection to the server. TODO: In the case of FeAI,
    * should return the current server-side round for the task.
    */
-  async connect () {
+  async connect (): Promise<void> {
     /**
      * Create an ID used to connect to the server.
      * The client is now considered as connected and further
@@ -40,7 +40,9 @@ export class FederatedClient extends Client {
      */
     this.clientID = makeID(10)
     const response = await api.connect(this.task.taskID, this.clientID)
-    return response.status === 200
+    if (response.status !== 200) {
+      throw new Error('connect api')
+    }
   }
 
   /**

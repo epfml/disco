@@ -9,7 +9,7 @@ const platform = Platform.federated
 const inputFiles = ['file://./example_training_data/titanic.csv']
 
 describe('train test', () => {
-  it('start and stop training the titanic task', async () => {
+  it('connect then start and stop training the titanic task', async () => {
     const titanic = (await loadTasks())[0]
     const loader = new TabularLoader(',')
     const dataset = loader.load(
