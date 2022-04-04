@@ -79,12 +79,12 @@ export default {
       return this.task.trainingInformation.dataType === 'tabular'
     },
     requireLabels () {
-      // return this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined
-      return true
+      const dataType = this.task.trainingInformation.dataType
+      return dataType === 'tabular' || (dataType === 'image' && this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined)
     }
   },
   created () {
-    // For some reason, the template does not understand direct accesses to the enum
+    // For some reason, the template does not understand direct accesses to the SourceType enum
     this.samples = SourceType.SAMPLES
     this.labels = SourceType.LABELS
     this.dataset = SourceType.DATASET

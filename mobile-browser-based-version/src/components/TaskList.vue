@@ -67,13 +67,6 @@ export default defineComponent({
       ]
     }
   },
-  async mounted () {
-    const rawTasks = await loadTasks()
-    rawTasks
-      .concat(this.$store.state.newTasks)
-      .forEach(this.createNewTaskComponent)
-    this.clearNewTasks()
-  },
   async created () {
     this.tasks.clear()
     const tasks: Task[] = await loadTasks()

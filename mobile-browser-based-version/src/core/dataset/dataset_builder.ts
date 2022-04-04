@@ -3,6 +3,8 @@ import { DataLoader, Source } from './data_loader/data_loader'
 import * as tf from '@tensorflow/tfjs'
 import { Task } from '../task/task'
 
+export type Dataset = tf.data.Dataset<tf.TensorContainer>
+
 export class DatasetBuilder {
   private sources: Map<SourceType, Array<Source>>
   private dataLoader: DataLoader
@@ -16,7 +18,7 @@ export class DatasetBuilder {
     this.built = false
   }
 
-  addFiles (sourceType: SourceType, sources: Array<Source>) {
+  addFiles (sourceType: SourceType, sources: Source[]) {
     if (this.built) {
       throw new Error()
     }
@@ -30,7 +32,15 @@ export class DatasetBuilder {
     this.sources.set(sourceType, [])
   }
 
-  build (): tf.data.Dataset<tf.TensorContainer> {
+  build (): Dataset {
+    switch (this.task.trainingInformation.dataType) {
+      case 'tabular':
+        break
+      case 'image':
+        break
+      default:
+        throw new Error('not implemented')
+    }
     /**
      * TODO @s314cy:
      * For now, expect a single source type ({X,y} from a single .csv file).
@@ -41,6 +51,10 @@ export class DatasetBuilder {
       this.task.trainingInformation.outputColumns
     )
     this.built = true
+    /**
+     * TODO @s314cy:
+     * Should not assume the dataset includes labels. Linked to the TODO above.
+     */
     const flattenedDataset = dataset.map(({ xs, ys }) => {
       return { xs: Object.values(xs), ys: Object.values(ys) }
     }).batch(this.task.trainingInformation.batchSize)

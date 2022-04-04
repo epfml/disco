@@ -147,9 +147,6 @@ export default {
       this.trainingManager.setIndexedDB(!!newValue)
     }
   },
-  unmounted () {
-    this.trainingManager.disconnect()
-  },
   created () {
     this.trainingManager = new TrainingManager(
       this.task,
