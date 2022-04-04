@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import msgpack from 'msgpack-lite'
-import * as config from '../../server.config'
+import * as config from '../../config'
 import {
   averageWeights
 } from './tensor_helpers/tensor_operations'
@@ -72,7 +72,7 @@ const tasksStatus = new Map()
 /**
  * Initialize the data structures declared above.
  */
-getTasks(config)?.forEach((task) => {
+getTasks(config.TASKS_FILE)?.forEach((task) => {
   tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 })
   _initAsyncWeightsBufferIfNotExists(task)
 })
@@ -415,9 +415,8 @@ export function getMetadataMap (request, response) {
 
   // How did this work before?
   const queriedMetadataMap = new Map()
-  let metadataMap = msgpack.encode(Array.from(queriedMetadataMap))
 
-  if (!(metadataMap.has(task) && round >= 0)) {
+  if (!(queriedMetadataMap.has(task) && round >= 0)) {
     return _failRequest(response, type, 404)
   }
 
@@ -427,7 +426,7 @@ export function getMetadataMap (request, response) {
    * Find the most recent entry round-wise for the given task (upper bounded
    * by the given round). Allows for sporadic entries in the metadata map.
    */
-  const allRounds = Array.from(metadataMap.get(task).keys())
+  const allRounds = Array.from(queriedMetadataMap.get(task).keys())
   const latestRound = allRounds.reduce((prev, curr) =>
     prev <= curr && curr <= round ? curr : prev
   )
@@ -436,12 +435,12 @@ export function getMetadataMap (request, response) {
    * server-side and construct the queried metadata's map accordingly. This
    * essentially creates a "ID -> metadata" single-layer map.
    */
-  for (const [id, entries] of metadataMap.get(task).get(latestRound)) {
+  for (const [id, entries] of queriedMetadataMap.get(task).get(latestRound)) {
     if (entries.has(metadata)) {
       queriedMetadataMap.set(id, entries.get(metadata))
     }
   }
-  metadataMap = msgpack.encode(Array.from(queriedMetadataMap))
+  const metadataMap = msgpack.encode(Array.from(queriedMetadataMap))
 
   response.status(200).send({ metadata: metadataMap })
 
