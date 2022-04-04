@@ -3,6 +3,9 @@ set -o pipefail
 
 readonly PORT=8080
 
+# prebuild to show progress
+docker build server
+
 container=$(
 	docker build --quiet server |
 		xargs docker run --rm --detach --publish $PORT:$PORT

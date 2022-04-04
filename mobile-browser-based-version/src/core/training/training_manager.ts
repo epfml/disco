@@ -41,7 +41,7 @@ export class TrainingManager extends ModelActor {
     this.client = getClient(
       this.platform,
       this.task,
-      null // TODO: this.$store.getters.password(this.id)
+      undefined // TODO: this.$store.getters.password(this.id)
     )
     this.trainingInformant = new TrainingInformant(10, this.task.taskID)
   }
@@ -76,27 +76,27 @@ export class TrainingManager extends ModelActor {
   /**
    * Connects the TrainingManager to the server
    */
-  async connectClientToServer () {
-    // Connect to centralized server
-    this.isConnected = await this.client.connect()
-    if (this.isConnected) {
+  async connectClientToServer (): Promise<void> {
+    try {
+      await this.client.connect()
       this.logger.success(
         'Successfully connected to server. Distributed training available.'
       )
-    } else {
-      console.log('Error in connecting')
+      this.isConnected = true
+    } catch (err) {
+      console.log(`connect server: ${err}`)
       this.logger.error(
         'Failed to connect to server. Fallback to training alone.'
       )
+      this.isConnected = false
     }
-    return this.isConnected
   }
 
   /**
    * Disconnects the TrainingManager from the server
    */
-  disconnect () {
-    this.client.disconnect()
+  async disconnect () {
+    await this.client.disconnect()
   }
 
   /**

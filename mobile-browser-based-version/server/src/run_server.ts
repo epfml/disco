@@ -1,11 +1,14 @@
-import models from './tasks/models'
-import express from 'express'
 import cors from 'cors'
+import express from 'express'
+import expressWS from 'express-ws'
 
 import { federatedRouter, decentralisedRouter } from './router/router'
-import * as config from './server.config'
+import * as config from './config'
+import models from './tasks/models'
 
-const app = express()
+// enable websocket
+const app = expressWS(express()).app
+
 app.enable('trust proxy')
 app.use(cors())
 app.use(express.json({ limit: '50mb' }))
@@ -17,6 +20,6 @@ Promise.all(models.map((createModel) => createModel()))
 
 app.use('/deai', decentralisedRouter)
 app.use('/feai', federatedRouter)
-app.get('/', (req, res) => res.send('Server for DeAI & FeAI'))
+app.get('/', (_, res) => res.send('Server for DeAI & FeAI'))
 
 export default app

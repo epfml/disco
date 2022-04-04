@@ -3,18 +3,18 @@ import { Task } from './task'
 
 let tasks: Task[] = []
 
-function getTasks (config): Task[] {
+function getTasks (tasksFile: string): Task[] {
   // Load tasks only if they have not been yet loaded.
   if (tasks.length > 0) {
     return tasks
   }
 
-  if (!fs.existsSync(config.TASKS_FILE)) {
-    throw new Error(`Could not read from tasks file ${config.TASKS_FILE}`)
+  if (!fs.existsSync(tasksFile)) {
+    throw new Error(`Could not read from tasks file ${tasksFile}`)
   }
 
   const jsonTasks = JSON.parse(
-    fs.readFileSync(config.TASKS_FILE) as unknown as string
+    fs.readFileSync(tasksFile) as unknown as string
   )
 
   tasks = jsonTasks as Task[]
