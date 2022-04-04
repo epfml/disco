@@ -1,9 +1,11 @@
 import fs from 'fs'
 import { Task } from './task'
+import { Path } from '../types'
 
+// TODO avoid state
 let tasks: Task[] = []
 
-function getTasks (tasksFile: string): Task[] {
+function getTasks (tasksFile: Path): Task[] {
   // Load tasks only if they have not been yet loaded.
   if (tasks.length > 0) {
     return tasks
@@ -13,11 +15,14 @@ function getTasks (tasksFile: string): Task[] {
     throw new Error(`Could not read from tasks file ${tasksFile}`)
   }
 
-  const jsonTasks = JSON.parse(
+  const loadedTasks: unknown = JSON.parse(
     fs.readFileSync(tasksFile) as unknown as string
   )
+  if (!Array.isArray(loadedTasks) || !loadedTasks.every(Task.isTask)) {
+    throw new Error('invalid file loaded')
+  }
 
-  tasks = jsonTasks as Task[]
+  tasks = loadedTasks
 
   return tasks
 }
