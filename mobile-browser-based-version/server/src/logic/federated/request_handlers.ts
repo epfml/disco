@@ -368,8 +368,9 @@ export async function getAsyncWeightInformantStatistics (request, response) {
   _initAsyncWeightsBufferIfNotExists(task)
 
   // Get latest round
-  const statistics = asyncWeightsInformantsMap.get(task).getAllStatistics
+  const statistics = asyncWeightsInformantsMap.get(task).getAllStatistics()
 
+  console.log('sending', statistics)
   // Send back latest round
   response.status(200).send({ statistics: statistics })
 }

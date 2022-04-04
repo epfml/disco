@@ -71,12 +71,12 @@ export class AsyncWeightsInformant {
     }
 
     getAllStatistics () {
-      return `{
-        'round': ${this.round},
-        'currentNumberOfParticipants': ${this.currentNumberOfParticipants},
-        'totalNumberOfParticipants': ${this.totalNumberOfParticipants},
-        'averageNumberOfParticipants': ${this.averageNumberOfParticipants}
-      }`
+      return {
+        'round': this.round,
+        'currentNumberOfParticipants': this.currentNumberOfParticipants,
+        'totalNumberOfParticipants': this.totalNumberOfParticipants,
+        'averageNumberOfParticipants': this.averageNumberOfParticipants
+      }
     }
 
     // Future statistics
