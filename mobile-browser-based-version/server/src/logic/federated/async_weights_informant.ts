@@ -17,7 +17,6 @@ export class AsyncWeightsInformant {
     constructor (asyncWeightsBuffer: AsyncWeightsBuffer) {
       this.asyncWeightsBuffer = asyncWeightsBuffer
       this.asyncWeightsBuffer.registerObserver(this)
-      this.printAllInfos()
     }
 
     // Update functions
@@ -72,10 +71,10 @@ export class AsyncWeightsInformant {
 
     getAllStatistics () {
       return {
-        'round': this.round,
-        'currentNumberOfParticipants': this.currentNumberOfParticipants,
-        'totalNumberOfParticipants': this.totalNumberOfParticipants,
-        'averageNumberOfParticipants': this.averageNumberOfParticipants
+        round: this.getCurrentRound(),
+        currentNumberOfParticipants: this.getNumberOfParticipants(),
+        totalNumberOfParticipants: this.getTotalNumberOfParticipants(),
+        averageNumberOfParticipants: this.getAverageNumberOfParticipants()
       }
     }
 
@@ -87,6 +86,7 @@ export class AsyncWeightsInformant {
     // Debug
 
     printAllInfos () {
+      console.log('task : ', this.asyncWeightsBuffer.taskID)
       console.log('round : ', this.getCurrentRound())
       console.log('participants : ', this.getNumberOfParticipants())
       console.log('total : ', this.getTotalNumberOfParticipants())
