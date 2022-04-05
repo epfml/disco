@@ -84,10 +84,11 @@ getTasks(config)?.forEach((task) => {
 
 // Inits the AsyncWeightsBuffer for the task if it does not yet exist.
 function _initAsyncWeightsBufferIfNotExists (task) {
-  if (!asyncWeightsMap.has(task)) {
-    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, task)
-    asyncWeightsMap.set(task, new AsyncWeightsBuffer(task, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
-    asyncWeightsInformantsMap.set(task.taskID, new AsyncWeightsInformant(asyncWeightsMap.get(task)))
+  if (!asyncWeightsMap.has(task.taskID)) {
+    const taskID = task.taskID
+    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, taskID)
+    asyncWeightsMap.set(taskID, new AsyncWeightsBuffer(taskID, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
+    asyncWeightsInformantsMap.set(taskID, new AsyncWeightsInformant(asyncWeightsMap.get(taskID)))
   }
 }
 
@@ -370,7 +371,6 @@ export async function getAsyncWeightInformantStatistics (request, response) {
   // Get latest round
   const statistics = asyncWeightsInformantsMap.get(task).getAllStatistics()
 
-  console.log('sending', statistics)
   // Send back latest round
   response.status(200).send({ statistics: statistics })
 }
