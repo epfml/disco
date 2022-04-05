@@ -14,19 +14,23 @@ import { getTasks } from '../../tasks/tasks_io'
 import { AsyncWeightsBuffer } from './async_weights_buffer'
 import { AsyncWeightsInformant } from './async_weights_informant'
 
-const REQUEST_TYPES = Object.freeze({
-  CONNECT: 'connect',
-  DISCONNECT: 'disconnect',
-  SELECTION_STATUS: 'selection-status',
-  AGGREGATION_STATUS: 'aggregation-status',
-  POST_WEIGHTS: 'post-weights',
-  POST_ASYNC_WEIGHTS: 'post-async-weights',
-  GET_WEIGHTS: 'get-weights',
-  POST_METADATA: 'post-metadata',
-  GET_ASYNC_ROUND: 'get-async-round',
-  GET_METADATA: 'get-metadata',
-  GET_TASKS: 'get-tasks'
-})
+enum RequestType {
+  Connect,
+  Disconnect,
+
+  SelectionStatus,
+  AggregationStatus,
+
+  GetWeights,
+  PostWeights,
+  PostAsyncWeights,
+
+  GetMetadata,
+  PostMetadata,
+
+  GetAsyncRound,
+  GetTasks,
+}
 
 /**
  * Contains the model weights received from clients for a given task and round.
@@ -217,7 +221,7 @@ export function queryLogs (request, response) {
  * @param {Response} response sent to client
  */
 export function connect (request, response) {
-  const type = REQUEST_TYPES.CONNECT
+  const type = RequestType.Connect
 
   const task = request.params.task
   const id = request.params.id
@@ -247,7 +251,7 @@ export function connect (request, response) {
  * and/or weights posting frequency.
  */
 export function disconnect (request, response) {
-  const type = REQUEST_TYPES.DISCONNECT
+  const type = RequestType.Disconnect
 
   const task = request.params.task
   const id = request.params.id
@@ -272,7 +276,7 @@ export function disconnect (request, response) {
  * @returns
  */
 function _checkPostWeights (request, response) {
-  const type = REQUEST_TYPES.POST_ASYNC_WEIGHTS
+  const type = RequestType.PostAsyncWeights
 
   const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
@@ -330,7 +334,7 @@ export async function postWeights (request, response) {
  */
 export async function getRound (request, response) {
   // Check for errors
-  const type = REQUEST_TYPES.GET_ASYNC_ROUND
+  const type = RequestType.GetAsyncRound
   const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
     return _failRequest(response, type, code)
@@ -386,7 +390,7 @@ export async function getAsyncWeightInformantStatistics (request, response) {
  * @param {Response} response sent to client
  */
 export function postMetadata (request, response) {
-  const type = REQUEST_TYPES.POST_METADATA
+  const type = RequestType.PostMetadata
 
   const code = _checkRequest(request)
   if (code !== 200) {
@@ -436,7 +440,7 @@ export function postMetadata (request, response) {
  * @param {Response} response sent to client
  */
 export function getMetadataMap (request, response) {
-  const type = REQUEST_TYPES.GET_METADATA
+  const type = RequestType.GetMetadata
 
   const code = _checkRequest(request)
   if (code !== 200) {
@@ -491,7 +495,7 @@ export function getMetadataMap (request, response) {
  * @param {Response} response sent to client
  */
 export function getTasksMetadata (request, response) {
-  const type = REQUEST_TYPES.GET_TASKS
+  const type = RequestType.GetTasks
   if (fs.existsSync(CONFIG.tasksFile)) {
     _logsAppend(request, type)
     console.log(`Serving ${CONFIG.tasksFile}`)
@@ -511,7 +515,7 @@ export function getTasksMetadata (request, response) {
  * @param {Response} response sent to client
  */
 export function getLatestModel (request, response) {
-  const type = REQUEST_TYPES.GET_WEIGHTS
+  const type = RequestType.GetWeights
 
   const task = request.params.task
   const file = request.params.file
