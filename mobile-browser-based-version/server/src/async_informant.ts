@@ -1,8 +1,6 @@
-import { AsyncWeightsBuffer } from './async_weights_buffer'
+import { AsyncBuffer } from './async_buffer'
 
-export class AsyncWeightsInformant {
-    asyncWeightsBuffer: AsyncWeightsBuffer
-
+export class AsyncInformant<T> {
     // This could rapidly grow so we should have some way to do garbage collection ?
     // This could be interesting for measures based on gradient history
     // Maybe we could have some sort of observer on the buffer
@@ -14,9 +12,10 @@ export class AsyncWeightsInformant {
     totalNumberOfParticipants: number = 0
     averageNumberOfParticipants : number = 0
 
-    constructor (asyncWeightsBuffer: AsyncWeightsBuffer) {
-      this.asyncWeightsBuffer = asyncWeightsBuffer
-      this.asyncWeightsBuffer.registerObserver(this)
+    constructor (
+      private readonly asyncBuffer: AsyncBuffer<T>
+    ) {
+      this.asyncBuffer.registerObserver(this)
     }
 
     // Update functions
@@ -35,11 +34,11 @@ export class AsyncWeightsInformant {
     }
 
     private updateRound () {
-      this.round = this.asyncWeightsBuffer.round
+      this.round = this.asyncBuffer.round
     }
 
     private updateNumberOfParticipants () {
-      this.currentNumberOfParticipants = this.asyncWeightsBuffer.buffer.size
+      this.currentNumberOfParticipants = this.asyncBuffer.buffer.size
       this.updateTotalNumberOfParticipants(this.currentNumberOfParticipants)
       this.updateAverageNumberOfParticipants()
     }
@@ -86,7 +85,7 @@ export class AsyncWeightsInformant {
     // Debug
 
     printAllInfos () {
-      console.log('task : ', this.asyncWeightsBuffer.taskID)
+      console.log('task : ', this.asyncBuffer.taskID)
       console.log('round : ', this.getCurrentRound())
       console.log('participants : ', this.getNumberOfParticipants())
       console.log('total : ', this.getTotalNumberOfParticipants())
