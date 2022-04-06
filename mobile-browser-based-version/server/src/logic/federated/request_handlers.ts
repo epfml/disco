@@ -1,3 +1,4 @@
+import { Request, Response } from 'express'
 import fs from 'fs'
 import msgpack from 'msgpack-lite'
 import path from 'path'
@@ -8,6 +9,7 @@ import { averageWeights } from '../aggregation'
 import { AsyncInformant } from '../../async_informant'
 import { AsyncBuffer } from '../../async_buffer'
 import { CONFIG } from '../../config'
+import { SerializedVariable } from '../serialization'
 import { TaskID } from '../../tasks'
 import { getTasks } from '../../tasks/tasks_io'
 import { Weights } from '../../types'
@@ -53,7 +55,15 @@ const metadataMap = new Map()
  * - the round at which the request was made
  * - the request type
  */
-const logs = []
+// TODO use real log system
+interface Log {
+  timestamp: Date,
+  task: TaskID,
+  round: string,
+  client: string,
+  request: RequestType,
+}
+const logs: Log[] = []
 /**
  * Contains client IDs currently connected to one of the server.
  * Disconnected clients should always be removed from this set
@@ -81,19 +91,22 @@ const tasksStatus = new Map()
  */
 getTasks(CONFIG.tasksFile)?.forEach((task) => {
   tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 })
-  _initAsyncWeightsBufferIfNotExists(task.taskID)
+  getOrInitAsyncWeightsBuffer(task.taskID)
 })
 
 // Inits the AsyncWeightsBuffer for the task if it does not yet exist.
-function _initAsyncWeightsBufferIfNotExists (taskID: TaskID) {
+function getOrInitAsyncWeightsBuffer (taskID: TaskID): AsyncBuffer<Weights> {
   let buffer = asyncBuffersMap.get(taskID)
   if (buffer === undefined) {
     const _taskAggregateAndStoreWeights = (weights: Weights[]) => _aggregateAndStoreWeights(weights, taskID)
     buffer = new AsyncBuffer(taskID, BUFFER_CAPACITY, _taskAggregateAndStoreWeights)
 
-    asyncBuffersMap.set(taskID, buffer)
     asyncInformantsMap.set(taskID, new AsyncInformant(buffer))
   }
+
+  asyncBuffersMap.set(taskID, buffer)
+
+  return buffer
 }
 
 /**
@@ -105,12 +118,13 @@ function _initAsyncWeightsBufferIfNotExists (taskID: TaskID) {
  * subsequent POST requests related to training.
  * @param {Request} request received from client
  */
-function _checkRequest (request) {
+// TODO use https://expressjs.com/en/guide/error-handling.html
+function _checkRequest (request: Request) {
   const task = request.params.task
-  const round = request.params.round
+  const round = Number.parseInt(request.params.round)
   const id = request.params.id
 
-  if (!(Number.isInteger(Number(round)) && round >= 0)) {
+  if (Number.isNaN(round)) {
     return 400
   }
   if (!(tasksStatus.has(task) && round <= tasksStatus.get(task).round)) {
@@ -125,7 +139,7 @@ function _checkRequest (request) {
   return 200
 }
 
-function _checkIfHasValidTaskAndId (request) {
+function _checkIfHasValidTaskAndId (request: Request) {
   const task = request.params.task
   const id = request.params.id
 
@@ -139,7 +153,7 @@ function _checkIfHasValidTaskAndId (request) {
   return 200
 }
 
-function _failRequest (response, type, code) {
+function _failRequest (response: Response, type: RequestType, code: number): number {
   console.log(`${type} failed with code ${code}`)
   response.status(code).send()
   return code
@@ -150,16 +164,12 @@ function _failRequest (response, type, code) {
  * @param {Request} request received from client
  * @param {String} type of the request
  */
-function _logsAppend (request, type) {
-  const timestamp = new Date()
-  const task = request.params.task
-  const round = request.params.round
-  const id = request.params.id
+function _logsAppend (request: Request, type: RequestType): void {
   logs.push({
-    timestamp: timestamp,
-    task: task,
-    round: round,
-    client: id,
+    timestamp: new Date(),
+    task: request.params.task,
+    round: request.params.round,
+    client: request.params.id,
     request: type
   })
 }
@@ -194,7 +204,7 @@ async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function queryLogs (request, response) {
+export function queryLogs (request: Request, response: Response): void {
   const task = request.query.task
   const round = request.query.round
   const id = request.query.id
@@ -220,17 +230,19 @@ export function queryLogs (request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function connect (request, response) {
+export function connect (request: Request, response: Response): void {
   const type = RequestType.Connect
 
   const task = request.params.task
   const id = request.params.id
 
   if (!tasksStatus.has(task)) {
-    return _failRequest(response, type, 404)
+    _failRequest(response, type, 404)
+    return
   }
   if (clients.has(id)) {
-    return _failRequest(response, type, 401)
+    _failRequest(response, type, 401)
+    return
   }
 
   _logsAppend(request, type)
@@ -250,14 +262,15 @@ export function connect (request, response) {
  * with very poor and/or sparse contribution to training in terms of performance
  * and/or weights posting frequency.
  */
-export function disconnect (request, response) {
+export function disconnect (request: Request, response: Response): void {
   const type = RequestType.Disconnect
 
   const task = request.params.task
   const id = request.params.id
 
   if (!(tasksStatus.has(task) && clients.has(id))) {
-    return _failRequest(response, type, 404)
+    _failRequest(response, type, 404)
+    return
   }
 
   _logsAppend(request, type)
@@ -275,7 +288,7 @@ export function disconnect (request, response) {
  * @param response
  * @returns
  */
-function _checkPostWeights (request, response) {
+function _checkPostWeights (request: Request, response: Response): number {
   const type = RequestType.PostAsyncWeights
 
   const code = _checkIfHasValidTaskAndId(request)
@@ -295,9 +308,11 @@ function _checkPostWeights (request, response) {
   return 200
 }
 
-function _decodeWeights (request) {
+function _decodeWeights (request: Request): Weights {
   const encodedWeights = request.body.weights
-  return msgpack.decode(Uint8Array.from(encodedWeights.data))
+  const obj = msgpack.decode(Uint8Array.from(encodedWeights.data))
+
+  return obj
 }
 
 /**
@@ -307,27 +322,24 @@ function _decodeWeights (request) {
  * @param response
  * @returns
  */
-export async function postWeights (request, response) {
+export async function postWeights (request: Request, response: Response): Promise<void> {
   const codeFromCheckingValidity = _checkPostWeights(request, response)
   if (codeFromCheckingValidity !== 200) {
-    return codeFromCheckingValidity
+    // request already failed
+    return
   }
 
   const task = request.params.task
   const id = request.params.id
 
-  _initAsyncWeightsBufferIfNotExists(task)
+  const buffer = getOrInitAsyncWeightsBuffer(task)
 
   const weights = _decodeWeights(request)
 
   const round = request.body.round
-  try {
-    const codeFromAddingWeight = await asyncBuffersMap.get(task).add(id, weights, round) ? 200 : 202
-    response.status(codeFromAddingWeight).send()
-  } catch (e) {
-    console.warn(e)
-    throw e
-  }
+
+  const codeFromAddingWeight = await buffer.add(id, weights, round) ? 200 : 202
+  response.status(codeFromAddingWeight).send()
 }
 
 /**
@@ -337,7 +349,7 @@ export async function postWeights (request, response) {
  * @param response
  * @returns
  */
-export async function getRound (request, response) {
+export async function getRound (request: Request, response: Response) {
   // Check for errors
   const type = RequestType.GetAsyncRound
   const code = _checkIfHasValidTaskAndId(request)
@@ -347,10 +359,10 @@ export async function getRound (request, response) {
 
   const task = request.params.task
 
-  _initAsyncWeightsBufferIfNotExists(task)
+  const buffer = getOrInitAsyncWeightsBuffer(task)
 
   // Get latest round
-  const round = asyncBuffersMap.get(task).round
+  const round = buffer.round
 
   // Send back latest round
   response.status(200).send({ round: round })
@@ -375,7 +387,7 @@ export async function getAsyncWeightInformantStatistics (request, response) {
   // We can use the id of requester to compute weights distance serverside
   // const id = request.params.id
 
-  _initAsyncWeightsBufferIfNotExists(task)
+  getOrInitAsyncWeightsBuffer(task)
 
   // Get latest round
   const statistics = asyncInformantsMap.get(task).getAllStatistics()
@@ -394,7 +406,7 @@ export async function getAsyncWeightInformantStatistics (request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function postMetadata (request, response) {
+export function postMetadata (request: Request, response: Response) {
   const type = RequestType.PostMetadata
 
   const code = _checkRequest(request)
@@ -444,24 +456,30 @@ export function postMetadata (request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getMetadataMap (request, response) {
+export function getMetadataMap (request: Request, response: Response): void {
   const type = RequestType.GetMetadata
 
   const code = _checkRequest(request)
   if (code !== 200) {
-    return _failRequest(response, type, code)
+    _failRequest(response, type, code)
+    return
   }
 
   const metadata = request.params.metadata
   const task = request.params.task
-  const round = request.params.round
+  const round = Number.parseInt(request.params.round, 0)
+  if (Number.isNaN(round)) {
+    _failRequest(response, type, 400)
+    return
+  }
   const id = request.params.id
 
   // How did this work before?
-  const queriedMetadataMap = new Map()
+  const queriedMetadataMap = new Map<TaskID, Map<number, any>>()
 
   if (!(queriedMetadataMap.has(task) && round >= 0)) {
-    return _failRequest(response, type, 404)
+    _failRequest(response, type, 404)
+    return
   }
 
   _logsAppend(request, type)
@@ -499,7 +517,7 @@ export function getMetadataMap (request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getTasksMetadata (request, response) {
+export function getTasksMetadata (request: Request, response: Response): void {
   const type = RequestType.GetTasks
   if (fs.existsSync(CONFIG.tasksFile)) {
     _logsAppend(request, type)
@@ -519,14 +537,15 @@ export function getTasksMetadata (request, response) {
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function getLatestModel (request, response) {
+export function getLatestModel (request: Request, response: Response): void {
   const type = RequestType.GetWeights
 
   const task = request.params.task
   const file = request.params.file
 
   if (!tasksStatus.has(task)) {
-    return _failRequest(response, type, 404)
+    _failRequest(response, type, 404)
+    return
   }
   const validModelFiles = new Set(['model.json', 'weights.bin'])
   const modelFile = path.join(CONFIG.modelsDir, task, file)
