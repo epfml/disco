@@ -17,7 +17,7 @@
 </template>
 <script>
 export default {
-  name: 'cross-icon',
+  name: 'CrossIcon',
   props: {
     customClass: {
       default: 'w-5 h-5',

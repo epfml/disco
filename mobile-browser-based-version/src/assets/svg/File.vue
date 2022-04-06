@@ -12,7 +12,7 @@
 </template>
 <script>
 export default {
-  name: 'file',
+  name: 'File',
   props: {
     customClass: { default: 'fill-current w-4 h-4 ml-auto pt-1', type: String },
     viewBox: { default: '0 0 24 24', type: String },

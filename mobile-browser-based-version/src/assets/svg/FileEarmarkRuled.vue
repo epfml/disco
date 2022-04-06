@@ -12,7 +12,7 @@
 </template>
 <script>
 export default {
-  name: '"file-earmark-ruled"',
+  name: 'FileEarmarkRuled',
   props: {
     customClass: { default: 'bi bi-file-earmark-ruled w-7 h-7', type: String },
     viewBox: { default: '0 0 16 16', type: String }
