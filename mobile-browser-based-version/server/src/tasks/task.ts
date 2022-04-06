@@ -1,7 +1,7 @@
-import { Set } from "immutable";
+import { Set } from 'immutable'
 
 export class DataExample {
-  static isDataExample(raw: unknown): raw is DataExample {
+  static isDataExample (raw: unknown): raw is DataExample {
     if (typeof raw !== 'object') {
       return false
     }
@@ -27,14 +27,14 @@ export class DataExample {
     return true
   }
 
-  constructor(
+  constructor (
     public readonly columnName: string,
     public readonly columnData: string | number
   ) {}
 }
 
 export class DisplayInformation {
-  static isDisplayInformation(raw: unknown): raw is DisplayInformation {
+  static isDisplayInformation (raw: unknown): raw is DisplayInformation {
     if (typeof raw !== 'object') {
       return false
     }
@@ -48,7 +48,7 @@ export class DisplayInformation {
       'overview',
       'summary',
       'taskTitle',
-      'tradeoffs',
+      'tradeoffs'
     )
     type Fields =
       'dataExample' |
@@ -76,7 +76,7 @@ export class DisplayInformation {
       overview,
       summary,
       taskTitle,
-      tradeoffs,
+      tradeoffs
     } = raw as Record<Fields, unknown | undefined>
 
     if (
@@ -119,13 +119,13 @@ export class DisplayInformation {
       dataExample,
       headers,
       dataExampleImage,
-      limitations,
+      limitations
     )
 
     return true
   }
 
-  constructor(
+  constructor (
     public readonly taskTitle: string,
     public readonly summary: string,
     public readonly overview: string,
@@ -143,10 +143,10 @@ export class DisplayInformation {
   ) {}
 }
 
-export type TaskID = string;
+export type TaskID = string
 
 export class Task {
-  static isTask(raw: unknown): raw is Task {
+  static isTask (raw: unknown): raw is Task {
     if (typeof raw !== 'object') {
       return false
     }
@@ -176,7 +176,7 @@ export class Task {
     return true
   }
 
-  private constructor(
+  private constructor (
     // TODO rename to ID
     public readonly taskID: TaskID,
     public readonly displayInformation?: DisplayInformation

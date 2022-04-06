@@ -1,4 +1,6 @@
 import fs from 'fs'
+
+import { Config } from '../config'
 import { Task } from './task'
 import { Path } from '../types'
 
@@ -27,10 +29,11 @@ function getTasks (tasksFile: Path): Task[] {
   return tasks
 }
 
-function writeNewTask (newTask, modelFile, weightsFile, config) {
+// TODO better types
+function writeNewTask (newTask: Task, modelFile: unknown, weightsFile: Buffer, config: Config) {
   // store results in json file
   fs.writeFile(config.tasksFile, JSON.stringify(tasks), (err) => {
-    if (err) console.log('Error writing file:', err)
+    if (err !== null) console.log('Error writing file:', err)
   })
   // synchronous directory creation so that next call to fs.writeFile doesn't fail.
   fs.mkdirSync(config.modelDir(newTask.taskID), { recursive: true })
@@ -38,14 +41,14 @@ function writeNewTask (newTask, modelFile, weightsFile, config) {
     config.modelFile(newTask.taskID),
     JSON.stringify(modelFile),
     (err) => {
-      if (err) console.log('Error writing file:', err)
+      if (err !== null) console.log('Error writing file:', err)
     }
   )
   fs.writeFile(
     config.modelWeights(newTask.taskID),
     weightsFile,
     (err) => {
-      if (err) console.log('Error writing file:', err)
+      if (err !== null) console.log('Error writing file:', err)
     }
   )
 }
