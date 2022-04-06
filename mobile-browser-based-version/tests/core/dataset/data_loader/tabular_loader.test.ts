@@ -11,20 +11,24 @@ describe('tabular loader test', () => {
     const features = titanic.trainingInformation.inputColumns
     const labels = titanic.trainingInformation.outputColumns
     const dataset = loader.load(
-      inputFiles,
-      features,
-      labels
+      inputFiles[0],
+      {
+        features: features,
+        labels: labels
+      }
     )
-    expect(await dataset.columnNames()).eql(labels.concat(features))
+    expect(await dataset.columnNames()).eql(features.concat(labels))
   })
 
   it('titanic csv row types', async () => {
     const titanic = (await loadTasks())[0]
     const loader = new TabularLoader(',')
     const dataset = loader.load(
-      [inputFiles[0]],
-      titanic.trainingInformation.inputColumns,
-      titanic.trainingInformation.outputColumns
+      inputFiles[0],
+      {
+        features: titanic.trainingInformation.inputColumns,
+        labels: titanic.trainingInformation.outputColumns
+      }
     )
     const iterator = await dataset.iterator()
     const sample = await iterator.next()

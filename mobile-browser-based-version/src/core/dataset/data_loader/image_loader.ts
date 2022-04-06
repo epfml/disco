@@ -44,8 +44,8 @@ export class ImageLoader extends DataLoader {
         const iterator = {
           next: () => {
             return {
-              value: index++,
-              done: false
+              value: { xs: '', ys: '' },
+              done: index++ >= images.length - 1
             }
           }
         }

@@ -13,9 +13,11 @@ describe('train test', () => {
     const titanic = (await loadTasks())[0]
     const loader = new TabularLoader(',')
     const dataset = loader.load(
-      inputFiles,
-      titanic.trainingInformation.inputColumns,
-      titanic.trainingInformation.outputColumns
+      inputFiles[0],
+      {
+        features: titanic.trainingInformation.inputColumns,
+        labels: titanic.trainingInformation.outputColumns
+      }
     )
     const trainer = new TrainingManager(titanic, platform, logger, false)
 
