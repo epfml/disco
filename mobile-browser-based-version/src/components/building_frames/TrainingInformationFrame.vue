@@ -126,7 +126,6 @@
     <!-- Federated Training Information -->
     <div v-if="platform() == 'feai'"
     class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
-
       <!-- Current Round -->
       <icon-card-small
         header="Current Round"
