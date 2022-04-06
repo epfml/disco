@@ -18,7 +18,7 @@
 </template>
 <script>
 export default {
-  name: 'list-icon',
+  name: 'ListIcon',
   props: {
     customClass: {
       default: 'w-6 h-6',

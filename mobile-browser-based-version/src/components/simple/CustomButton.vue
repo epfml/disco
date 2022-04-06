@@ -1,19 +1,19 @@
 <template>
   <button
-    @click="click"
+    :id="id"
     type="button"
     :class="`${
       center ? 'ml-3 py-2 px-4' : 'w-1/6'
     } text-lg border-2 border-transparent ${color} my-2 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 hover:scale-110 focus:outline-none`"
-    :id="id"
+    @click="click"
   >
-    <slot></slot>
+    <slot />
   </button>
 </template>
 
 <script>
 export default {
-  name: 'custom-button',
+  name: 'CustomButton',
   props: {
     click: { default: () => {}, type: Function },
     center: { default: false, type: Boolean },

@@ -1,28 +1,30 @@
 <template>
   <model-actor-frame :task="task">
-    <template v-slot:dataExample><slot name="dataExample"></slot></template>
-    <template v-slot:action>
+    <template #dataExample>
+      <slot name="dataExample" />
+    </template>
+    <template #action>
       <!-- Upload File -->
       <div class="relative">
         <dataset-input-frame
+          v-if="tester.fileUploadManager"
           :id="id"
           :task="task"
-          :fileUploadManager="tester.fileUploadManager"
-          v-if="tester.fileUploadManager"
+          :file-upload-manager="tester.fileUploadManager"
         />
       </div>
 
       <!-- Test Button -->
       <div class="flex items-center justify-center p-4">
         <custom-button
-          @click="tester.testModel(downloadPredictions)"
           :center="true"
+          @click="tester.testModel(downloadPredictions)"
         >
           Test
         </custom-button>
       </div>
       <!-- Display predictions -->
-      <slot name="predictionResults"></slot>
+      <slot name="predictionResults" />
     </template>
   </model-actor-frame>
 </template>
@@ -36,15 +38,24 @@ import { Tester } from '../../../core/testing/tester'
 
 export default {
   name: 'TestingFrame',
-  props: {
-    id: String,
-    task: Object,
-    helper: Object
-  },
   components: {
     ModelActorFrame,
     DatasetInputFrame,
     CustomButton
+  },
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Object,
+      default: undefined
+    },
+    helper: {
+      type: Object,
+      default: undefined
+    }
   },
   data () {
     return {
