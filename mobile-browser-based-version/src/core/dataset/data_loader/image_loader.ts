@@ -1,5 +1,5 @@
-import { DataLoader, Source } from './data_loader'
 import { Dataset } from '../dataset_builder'
+import { DataLoader, Source, DataConfig } from './data_loader'
 import * as tf from '@tensorflow/tfjs'
 import fs from 'fs'
 
@@ -11,29 +11,57 @@ import fs from 'fs'
  */
 
 export class ImageLoader extends DataLoader {
-  load (images: Source[], labels?: Source[]): Dataset {
-    return tf.data.generator(() => {
-      let index = 0
-      const iterator = {
-        next: () => {
-          const image = images[index++]
-          const label = labels[index]
-          const done = index >= images.length
-          return this.convertImageToTensor(image, label, done)
-        }
+  load (image: Source, config: DataConfig): Dataset {
+    let tensorContainer: tf.TensorContainer
+    if (config.labels === undefined) {
+      tensorContainer = ImageLoader.readImageFrom(image)
+    } else {
+      tensorContainer = {
+        xs: [ImageLoader.readImageFrom(image)],
+        ys: [config.labels[0]]
       }
-      return iterator
-    })
+    }
+    return tf.data.array([tensorContainer])
   }
 
-  private convertImageToTensor (image: Source, label: Source, done: boolean): { value: any, done: boolean } {
-    if (image instanceof File && label instanceof File) {
-      const imageContent = image.stream().read()
-      const labelContent = label.stream().read()
-      return { value: { xs: tf.tensor(imageContent), ys: labelContent }, done: done }
-    } else if (typeof image === 'string' && typeof label === 'string') {
-      const imageContent = fs.readFileSync(image)
-      return { value: tf.tensor(imageContent), done: done }
+  loadAll (images: Source[], config: DataConfig): Dataset {
+    if (config.labels === undefined) {
+      return tf.data.generator(() => {
+        let index = 0
+        const iterator = {
+          next: () => {
+            return {
+              value: ImageLoader.readImageFrom(images[index++]),
+              done: index >= images.length - 1
+            }
+          }
+        }
+        return iterator
+      })
+    } else {
+      return tf.data.generator(() => {
+        let index = 0
+        const iterator = {
+          next: () => {
+            return {
+              value: index++,
+              done: false
+            }
+          }
+        }
+        return iterator
+      })
+    }
+  }
+
+  private static readImageFrom (image: Source): tf.Tensor {
+    if (typeof image === 'string') {
+      // Node environment
+      const tfNode = require('@tensorflow/tfjs-node')
+      return tfNode.node.decodeImage(fs.readFileSync(image))
+    } else if (image instanceof File) {
+      // TODO: Browser environment
+      return tf.tensor([1]) // tf.browser.fromPixels(image)
     } else {
       throw new Error('not implemented')
     }

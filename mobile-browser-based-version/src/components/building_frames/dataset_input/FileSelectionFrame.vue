@@ -17,7 +17,6 @@
       @dragover.prevent
       @dragenter.prevent
     >
-      <span class="text-xl font-semibold"> {{ sourceType }} </span>
       <!-- scroll area -->
       <section class="overflow-auto p-8 w-full h-full flex flex-col">
         <header
@@ -116,9 +115,6 @@
 </template>
 
 <script>
-// import PreviewGallery from './preview/PreviewGallery.vue'
-import { SourceType } from '../../../core/dataset/source_type'
-
 export default {
   name: 'FileSelectionFrame',
   components: {
@@ -132,10 +128,6 @@ export default {
     preview: {
       type: Boolean,
       default: false
-    },
-    sourceType: {
-      type: SourceType,
-      default: SourceType.SAMPLES
     }
   },
   data () {

@@ -1,4 +1,4 @@
-import { DataLoader, Source } from './data_loader'
+import { DataLoader, Source, DataConfig } from './data_loader'
 import * as tf from '@tensorflow/tfjs'
 import _ from 'lodash'
 
@@ -14,12 +14,11 @@ export class TabularLoader extends DataLoader {
    * Expects delimiter-separated tabular data made of N columns. The data may be
    * potentially split among several sources. Every source should contain N-1
    * feature columns and 1 single label column.
-   * @param sources List of File objects, URLs or file system paths.
-   * @param features List of feature column names.
-   * @param labels Label column name.
+   * @param source List of File objects, URLs or file system paths.
+   * @param config
    * @returns A TF.js dataset built upon read tabular data stored in the given sources.
    */
-  load (sources: Source[], features: string[], labels: string[]): tf.data.CSVDataset {
+  load (source: Source, config: DataConfig): tf.data.CSVDataset {
     /**
      * Prepare the CSV config object based off the given features and labels.
      * If labels is empty, then the returned dataset is comprised of samples only.
@@ -27,26 +26,31 @@ export class TabularLoader extends DataLoader {
      * as labels.
      */
     const columnConfigs = {}
-    _.forEach(labels, (label) => {
-      columnConfigs[label] = { required: true, isLabel: true }
-    })
-    _.forEach(features, (feature) => {
+    _.forEach(config.features, (feature) => {
       columnConfigs[feature] = { required: false, isLabel: false }
     })
+    if (config.labels !== undefined) {
+      _.forEach(config.labels, (label) => {
+        columnConfigs[label] = { required: true, isLabel: true }
+      })
+    }
+
     const csvConfig = {
       hasHeader: true,
       columnConfigs: columnConfigs,
       configuredColumnsOnly: true,
       delimiter: this.delimiter
     }
+    return TabularLoader.loadTabularDatasetFrom(source, csvConfig)
+  }
 
-    /**
-     * Create the CSV datasets based off the given sources, then fuse them into a single CSV
-     * dataset.
-     */
-    const datasets = _.map(sources, source => this.readTabularDatasetFrom(source, csvConfig))
-    const dataset = _.reduce(datasets, (prev, curr) => prev.concatenate(curr) as tf.data.CSVDataset)
-    return dataset
+  /**
+    * Creates the CSV datasets based off the given sources, then fuses them into a single CSV
+    * dataset.
+    */
+  loadAll (sources: Source[], config: DataConfig): tf.data.CSVDataset {
+    const datasets = _.map(sources, (source) => this.load(source, config))
+    return _.reduce(datasets, (prev, curr) => prev.concatenate(curr) as tf.data.CSVDataset)
   }
 
   /**
@@ -58,10 +62,12 @@ export class TabularLoader extends DataLoader {
    * @param csvConfig Object expected by TF.js to create a CSVDataset.
    * @returns The CSVDataset object built upon the given source.
    */
-  private readTabularDatasetFrom (source: Source, csvConfig: any): tf.data.CSVDataset {
+  static loadTabularDatasetFrom (source: Source, csvConfig: any): tf.data.CSVDataset {
     if (typeof source === 'string') {
+      // Node environment
       return tf.data.csv(source, csvConfig)
     } else if (source instanceof File) {
+      // Browser environment
       return new tf.data.CSVDataset(new tf.data.FileDataSource(source), csvConfig)
     } else {
       throw new Error('not implemented')

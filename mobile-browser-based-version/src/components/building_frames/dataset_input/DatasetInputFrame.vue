@@ -4,48 +4,43 @@
       <upload />
     </template>
     <template #extra>
-      <div v-if="requireLabelFiles">
-        <div v-if="task.trainingInformation.dataType === 'tabular'">
-          <file-selection-frame
-            :id="id"
-            :preview="preview"
-            :source-type="dataset"
-            @input="addFiles(dataset, $event)"
-            @clear="clearFiles(dataset)"
-          />
-        </div>
-        <div v-else-if="task.trainingInformation.dataType === 'image'">
-          <file-selection-frame
-            :id="id"
-            :preview="preview"
-            :source-type="samples"
-            @input="addFiles(samples, $event)"
-            @clear="clearFiles(samples)"
-          />
-          <file-selection-frame
-            :id="id"
-            :preview="preview"
-            :source-type="labels"
-            @input="addFiles(labels, $event)"
-            @clear="clearFiles(labels)"
-          />
-        </div>
-      </div>
-      <div v-else>
+      <div v-if="task.trainingInformation.dataType === 'tabular'">
         <file-selection-frame
           :id="id"
           :preview="preview"
-          :source-type="samples"
-          @input="addFiles(samples, $event)"
-          @clear="clearFiles(samples)"
+          @input="addFiles($event)"
+          @clear="clearFiles()"
         />
+      </div>
+      <div v-else-if="task.trainingInformation.dataType === 'image'">
+        <div v-if="requireLabels">
+          <div
+            v-for="label in task.trainingInformation.outputColumns"
+            :key="label"
+          >
+            <span class="text-xl font-semibold"> {{ label }} </span>
+            <file-selection-frame
+              :id="id"
+              :preview="preview"
+              @input="addFiles($event, label)"
+              @clear="clearFiles(label)"
+            />
+          </div>
+        </div>
+        <div v-else>
+          <file-selection-frame
+            :id="id"
+            :preview="preview"
+            @input="addFiles($event)"
+            @clear="clearFiles()"
+          />
+        </div>
       </div>
     </template>
   </icon-card>
 </template>
 
 <script lang="ts">
-import { SourceType } from '../../../core/dataset/source_type'
 import Upload from '../../../assets/svg/Upload.vue'
 import IconCard from '../../containers/IconCard.vue'
 import FileSelectionFrame from './FileSelectionFrame.vue'
@@ -79,25 +74,18 @@ export default {
       return this.task.trainingInformation.dataType === 'tabular'
     },
     requireLabels () {
-      const dataType = this.task.trainingInformation.dataType
-      return dataType === 'tabular' || (dataType === 'image' && this.task.trainingInformation.LABEL_ASSIGNMENT !== undefined)
+      return this.task.trainingInformation.outputColumns !== undefined
     }
   },
-  created () {
-    // For some reason, the template does not understand direct accesses to the SourceType enum
-    this.samples = SourceType.SAMPLES
-    this.labels = SourceType.LABELS
-    this.dataset = SourceType.DATASET
-  },
   methods: {
-    addFiles (sourceType: SourceType, files: FileList) {
+    addFiles (files: FileList, key?: string) {
       if (!this.datasetBuilder.isBuilt()) {
-        this.datasetBuilder.addFiles(sourceType, Array.from(files))
+        this.datasetBuilder.addFiles(Array.from(files), key)
       }
     },
-    clearFiles (sourceType: SourceType) {
+    clearFiles (key?: string) {
       if (!this.datasetBuilder.isBuilt()) {
-        this.datasetBuilder.clearFiles(sourceType)
+        this.datasetBuilder.clearFiles(key)
       }
     }
   }

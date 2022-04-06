@@ -1,7 +1,10 @@
-import * as tf from '@tensorflow/tfjs'
+import { Dataset } from '../dataset_builder'
 
 export type Source = string | File
+export type DataConfig = { features?: string[], labels?: string[] }
 
 export abstract class DataLoader {
-  abstract load (sources: Source[], ...args: any): tf.data.Dataset<any>
+  abstract load (source: Source, config: DataConfig): Dataset
+
+  abstract loadAll (sources: Source[], config: DataConfig): Dataset
 }
