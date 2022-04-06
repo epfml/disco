@@ -90,7 +90,8 @@
     </icon-card>
 
     <!-- Distributed Training Information -->
-    <div v-if="platform() == 'deai'" class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
+    <div v-if="platform() == 'deai'"
+    class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
       <!-- Number of time model updated with someone else's model card -->
       <icon-card-small
         header="# of Averaging"
@@ -123,7 +124,8 @@
       </icon-card-small>
     </div>
     <!-- Federated Training Information -->
-    <div v-if="platform() == 'feai'" class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
+    <div v-if="platform() == 'feai'"
+    class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
 
       <!-- Current Round -->
       <icon-card-small
