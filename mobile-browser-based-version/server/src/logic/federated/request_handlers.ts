@@ -2,17 +2,15 @@ import fs from 'fs'
 import msgpack from 'msgpack-lite'
 import path from 'path'
 import * as tf from '@tensorflow/tfjs-node'
+import immutable from 'immutable'
 
-import { CONFIG } from '../../config'
-import {
-  averageWeights
-} from './tensor_helpers/tensor_operations'
-import {
-  assignWeightsToModel
-} from './tensor_helpers/tensor_serializer'
-import { getTasks } from '../../tasks/tasks_io'
+import { averageWeights } from '../aggregation'
 import { AsyncWeightsBuffer } from './async_weights_buffer'
 import { AsyncWeightsInformant } from './async_weights_informant'
+import { CONFIG } from '../../config'
+import { TaskID } from '../../tasks'
+import { getTasks } from '../../tasks/tasks_io'
+import { Weights } from '../../types'
 
 enum RequestType {
   Connect,
@@ -164,11 +162,10 @@ function _logsAppend (request, type) {
   })
 }
 
-async function _aggregateAndStoreWeights (weights, task) {
+async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID) {
   // TODO: check whether this actually works
-  const serializedAggregatedWeights = await averageWeights(
-    weights
-  )
+  const averaged = await averageWeights(immutable.Set(weights))
+
   /**
    * Save the newly aggregated model to the server's local storage. This
    * is now the model served to clients for the given task. To save the newly
@@ -178,10 +175,11 @@ async function _aggregateAndStoreWeights (weights, task) {
    * 3. save the model
    */
   const modelFilesPath = CONFIG.savingScheme.concat(
-    path.join(CONFIG.modelsDir, task, 'model.json')
+    path.join(CONFIG.modelDir(taskID))
   )
+
   const model = await tf.loadLayersModel(modelFilesPath)
-  assignWeightsToModel(model, serializedAggregatedWeights)
+  model.setWeights(averaged)
   model.save(path.dirname(modelFilesPath))
 }
 
@@ -360,7 +358,7 @@ export async function getRound (request, response) {
  */
 export async function getAsyncWeightInformantStatistics (request, response) {
   // Check for errors
-  const type = REQUEST_TYPES.GET_ASYNC_ROUND
+  const type = RequestType.GetAsyncRound
   const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
     return _failRequest(response, type, code)

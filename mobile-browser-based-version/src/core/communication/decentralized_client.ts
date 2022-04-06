@@ -1,8 +1,9 @@
-import { List, Map, Seq, Set } from 'immutable'
+import { List, Map, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
 import tf from '@tensorflow/tfjs'
 
+import { averageWeights } from '../aggregation'
 import {
   deserializeWeights,
   isSerializedVariable,
@@ -286,19 +287,16 @@ export class DecentralizedClient extends Client {
     })
 
     const receivedWeights = getWeights()
-      .filter((weights) => weights !== undefined) as Seq.Indexed<Weights>
+      .filter((weights) => weights !== undefined)
+      .map((weights) => weights.map((w) => w.read()))
+      .toSet()
 
     // average weights
     trainingInformant.addMessage('Averaging weights')
     trainingInformant.updateNbrUpdatesWithOthers(1)
 
-    // TODO is it really averaging?
-    // TODO use tf.layers.average() ?
-    receivedWeights
-      .reduce((acc, weights) => {
-        acc.zip(List(weights)).forEach(([modelWeight, peerWeight]) => modelWeight.write(peerWeight.read()))
-        return acc
-      }, List(model.weights))
+    const averagedWeights = averageWeights(receivedWeights)
+    model.setWeights(averagedWeights)
   }
 
   async onTrainEndCommunication (_: tf.LayersModel, trainingInformant: TrainingInformant): Promise<void> {
