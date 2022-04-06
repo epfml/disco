@@ -5,8 +5,8 @@ import * as tf from '@tensorflow/tfjs-node'
 import immutable from 'immutable'
 
 import { averageWeights } from '../aggregation'
-import { AsyncWeightsBuffer } from './async_weights_buffer'
-import { AsyncWeightsInformant } from './async_weights_informant'
+import { AsyncInformant } from '../../async_informant'
+import { AsyncBuffer } from '../../async_buffer'
 import { CONFIG } from '../../config'
 import { TaskID } from '../../tasks'
 import { getTasks } from '../../tasks/tasks_io'
@@ -34,12 +34,12 @@ enum RequestType {
  * Contains the model weights received from clients for a given task and round.
  * Stored by task ID, round number and client ID.
  */
-const asyncWeightsMap: Map<string, AsyncWeightsBuffer> = new Map()
+const asyncBuffersMap: Map<TaskID, AsyncBuffer<Weights>> = new Map()
 const BUFFER_CAPACITY = 2
 /**
  * Contains the informants for each task.
  */
-const asyncWeightsInformantsMap: Map<string, AsyncWeightsInformant> = new Map()
+const asyncInformantsMap: Map<string, AsyncInformant<Weights>> = new Map()
 /**
  * Contains metadata used for training by clients for a given task and round.
  * Stored by task ID, round number and client ID.
@@ -81,16 +81,18 @@ const tasksStatus = new Map()
  */
 getTasks(CONFIG.tasksFile)?.forEach((task) => {
   tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 })
-  _initAsyncWeightsBufferIfNotExists(task)
+  _initAsyncWeightsBufferIfNotExists(task.taskID)
 })
 
 // Inits the AsyncWeightsBuffer for the task if it does not yet exist.
-function _initAsyncWeightsBufferIfNotExists (task) {
-  if (!asyncWeightsMap.has(task.taskID)) {
-    const taskID = task.taskID
-    const _taskAggregateAndStoreWeights = (weights: any) => _aggregateAndStoreWeights(weights, taskID)
-    asyncWeightsMap.set(taskID, new AsyncWeightsBuffer(taskID, BUFFER_CAPACITY, _taskAggregateAndStoreWeights))
-    asyncWeightsInformantsMap.set(taskID, new AsyncWeightsInformant(asyncWeightsMap.get(taskID)))
+function _initAsyncWeightsBufferIfNotExists (taskID: TaskID) {
+  let buffer = asyncBuffersMap.get(taskID)
+  if (buffer === undefined) {
+    const _taskAggregateAndStoreWeights = (weights: Weights[]) => _aggregateAndStoreWeights(weights, taskID)
+    buffer = new AsyncBuffer(taskID, BUFFER_CAPACITY, _taskAggregateAndStoreWeights)
+
+    asyncBuffersMap.set(taskID, buffer)
+    asyncInformantsMap.set(taskID, new AsyncInformant(buffer))
   }
 }
 
@@ -164,7 +166,7 @@ function _logsAppend (request, type) {
 
 async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID) {
   // TODO: check whether this actually works
-  const averaged = await averageWeights(immutable.Set(weights))
+  const averaged = averageWeights(immutable.Set(weights))
 
   /**
    * Save the newly aggregated model to the server's local storage. This
@@ -319,8 +321,13 @@ export async function postWeights (request, response) {
   const weights = _decodeWeights(request)
 
   const round = request.body.round
-  const codeFromAddingWeight = await asyncWeightsMap.get(task).add(id, weights, round) ? 200 : 202
-  response.status(codeFromAddingWeight).send()
+  try {
+    const codeFromAddingWeight = await asyncBuffersMap.get(task).add(id, weights, round) ? 200 : 202
+    response.status(codeFromAddingWeight).send()
+  } catch (e) {
+    console.warn(e)
+    throw e
+  }
 }
 
 /**
@@ -343,7 +350,7 @@ export async function getRound (request, response) {
   _initAsyncWeightsBufferIfNotExists(task)
 
   // Get latest round
-  const round = asyncWeightsMap.get(task).round
+  const round = asyncBuffersMap.get(task).round
 
   // Send back latest round
   response.status(200).send({ round: round })
@@ -371,7 +378,7 @@ export async function getAsyncWeightInformantStatistics (request, response) {
   _initAsyncWeightsBufferIfNotExists(task)
 
   // Get latest round
-  const statistics = asyncWeightsInformantsMap.get(task).getAllStatistics()
+  const statistics = asyncInformantsMap.get(task).getAllStatistics()
 
   // Send back latest round
   response.status(200).send({ statistics: statistics })
