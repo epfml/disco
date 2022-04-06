@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@types/chai": "4",
+    "@types/cors": "2",
     "@types/express-ws": "3",
     "@types/mocha": "9",
     "@types/ws": "8",
