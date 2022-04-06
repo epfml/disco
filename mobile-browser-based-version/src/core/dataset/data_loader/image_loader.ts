@@ -11,9 +11,9 @@ import fs from 'fs'
  */
 
 export class ImageLoader extends DataLoader {
-  load (image: Source, config: DataConfig): Dataset {
+  load (image: Source, config?: DataConfig): Dataset {
     let tensorContainer: tf.TensorContainer
-    if (config.labels === undefined) {
+    if (config === undefined || config.labels === undefined) {
       tensorContainer = ImageLoader.readImageFrom(image)
     } else {
       tensorContainer = {
@@ -24,15 +24,22 @@ export class ImageLoader extends DataLoader {
     return tf.data.array([tensorContainer])
   }
 
-  loadAll (images: Source[], config: DataConfig): Dataset {
-    if (config.labels === undefined) {
+  loadAll (images: Source[], config?: DataConfig): Dataset {
+    console.log(images.length)
+    if (config === undefined || config.labels === undefined) {
       return tf.data.generator(() => {
         let index = 0
         const iterator = {
           next: () => {
+            if (index < images.length) {
+              return {
+                value: ImageLoader.readImageFrom(images[index++]),
+                done: false
+              }
+            }
             return {
-              value: ImageLoader.readImageFrom(images[index++]),
-              done: index >= images.length - 1
+              value: ImageLoader.readImageFrom(images[images.length - 1]),
+              done: true
             }
           }
         }
@@ -54,12 +61,12 @@ export class ImageLoader extends DataLoader {
     }
   }
 
-  private static readImageFrom (image: Source): tf.Tensor {
-    if (typeof image === 'string') {
+  private static readImageFrom (source: Source): tf.Tensor {
+    if (typeof source === 'string') {
       // Node environment
       const tfNode = require('@tensorflow/tfjs-node')
-      return tfNode.node.decodeImage(fs.readFileSync(image))
-    } else if (image instanceof File) {
+      return tfNode.node.decodeImage(fs.readFileSync(source))
+    } else if (source instanceof File) {
       // TODO: Browser environment
       return tf.tensor([1]) // tf.browser.fromPixels(image)
     } else {

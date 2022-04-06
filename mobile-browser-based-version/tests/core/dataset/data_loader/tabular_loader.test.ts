@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { TabularLoader } from '../../../../src/core/dataset/data_loader/tabular_loader'
 import { loadTasks } from '../../../../src/core/task/utils'
 
-const inputFiles = ['file://./example_training_data/titanic.csv']
+const inputFiles = ['./example_training_data/titanic.csv']
 
 describe('tabular loader test', () => {
   it('titanic csv column names', async () => {
@@ -11,7 +11,7 @@ describe('tabular loader test', () => {
     const features = titanic.trainingInformation.inputColumns
     const labels = titanic.trainingInformation.outputColumns
     const dataset = loader.load(
-      inputFiles[0],
+      'file://'.concat(inputFiles[0]),
       {
         features: features,
         labels: labels
@@ -24,7 +24,7 @@ describe('tabular loader test', () => {
     const titanic = (await loadTasks())[0]
     const loader = new TabularLoader(',')
     const dataset = loader.load(
-      inputFiles[0],
+      'file://'.concat(inputFiles[0]),
       {
         features: titanic.trainingInformation.inputColumns,
         labels: titanic.trainingInformation.outputColumns

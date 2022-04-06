@@ -18,13 +18,17 @@ export class TabularLoader extends DataLoader {
    * @param config
    * @returns A TF.js dataset built upon read tabular data stored in the given sources.
    */
-  load (source: Source, config: DataConfig): tf.data.CSVDataset {
+  load (source: Source, config?: DataConfig): tf.data.CSVDataset {
     /**
      * Prepare the CSV config object based off the given features and labels.
      * If labels is empty, then the returned dataset is comprised of samples only.
      * Otherwise, each entry is of the form `{ xs, ys }` with `xs` as features and `ys`
      * as labels.
      */
+    if (config === undefined || config.features === undefined) {
+      // TODO @s314cy
+      throw new Error('not implemented')
+    }
     const columnConfigs = {}
     _.forEach(config.features, (feature) => {
       columnConfigs[feature] = { required: false, isLabel: false }
