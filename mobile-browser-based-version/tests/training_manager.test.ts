@@ -3,9 +3,7 @@ import { loadTasks } from '../src/core/task/tasks_io'
 import { TrainingManager } from '../src/core/training/training_manager'
 import { CsvTaskHelper } from '../src/core/task/csv/csv_task_helper'
 import { logger } from '../src/core/logging/console_logger'
-import { Platform } from '../src/platforms/platform'
-
-const platform = Platform.federated
+import { TrainingSchemes } from '../src/core/training/trainingSchemes'
 
 describe('train test', () => { // the tests container
   it('connect/disconnect to titanic task', async () => {
@@ -14,6 +12,7 @@ describe('train test', () => { // the tests container
     const task = tasks[0]
     const helper = new CsvTaskHelper(task)
     const trainer = new TrainingManager(task, logger, helper, useIndexedDB)
+    await trainer.initOrUpdateClient(TrainingSchemes.DECENTRALIZED)
     await trainer.connectClientToServer()
     await trainer.disconnect()
   })

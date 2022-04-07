@@ -699,8 +699,9 @@ export default {
       const task = this.formatTaskForServer(rawTask)
       resetForm()
       // Submit values to Express server
+      // TODO : CHANGE THE PATH HERE AND IN SERVER CREATE ISSUE PLIZ
       const response = await axios.post(
-        `http://localhost:8080/${this.$store.getters.platform}/tasks/`,
+        'http://localhost:8080/disco/tasks/',
         task
       )
       if (response.status === 200) {
