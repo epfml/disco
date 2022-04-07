@@ -38,6 +38,7 @@
     "@types/cors": "2",
     "@types/express-ws": "3",
     "@types/mocha": "9",
+    "@types/supertest": "^2.0.12",
     "@types/ws": "8",
     "chai": "4",
     "mocha": "9",
