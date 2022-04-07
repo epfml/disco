@@ -37,6 +37,5 @@ Under the sidebar on the left, you will find a **_settings_** button. We offer m
 
 1. **Platform type**: train `decentralised` or `federated` according to your needs :rocket: Be aware that changing the platform type during training will reset the state of the platform. In other words, your training progress will be lost :warning:
 2. **Model library**: storage options can be enabled so that your models are safely saved in your browser database :floppy_disk:
-3. **Themes and colors**: customise the look of the platform as you please :rainbow:
 
 If you have any questions related to Disco, feel free to raise an issue or join our [slack workspace](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw) :question:

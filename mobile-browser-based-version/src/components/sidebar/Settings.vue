@@ -137,22 +137,6 @@
             </button>
           </div>
         </tippy-card>
-
-        <!-- Colors -->
-        <tippy-card title="Secondary colors">
-          <div class="flex justify-center">
-            <div
-              v-for="color in colors"
-              :key="color"
-            >
-              <button
-                class="w-10 h-10 rounded-full"
-                :style="`background-color: var(--color-${color})`"
-                @click="setColors(color)"
-              />
-            </div>
-          </div>
-        </tippy-card>
       </div>
     </template>
   </tippy-container>
@@ -182,7 +166,6 @@ export default defineComponent({
   },
   data: function () {
     return {
-      colors: ['cyan', 'teal', 'green', 'fuchsia', 'blue', 'violet'],
       requestPlatformChange: false
     }
   },
