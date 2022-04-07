@@ -17,7 +17,15 @@ describe('image loader test', () => {
     const imagesContent = files.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
     const datasetContent = await new ImageLoader().loadAll(files).toArray()
     expect(datasetContent.length).equal(imagesContent.length)
-    expect((datasetContent[0] as any).shape).eql(imagesContent[0].shape)
+    expect((datasetContent[0] as tfNode.Tensor3D).shape).eql(imagesContent[0].shape)
+  })
+
+  it('load single cifar10 sample with label', async () => {
+    const path = './example_training_data/CIFAR10/0.png'
+    const imageContent = tfNode.node.decodeImage(fs.readFileSync(path))
+    const datasetContent = await new ImageLoader().load(path, { labels: ['example'] }).toArray()
+    expect((datasetContent[0] as any).xs[0].shape).eql(imageContent.shape)
+    expect((datasetContent[0] as any).ys).eql(['example'])
   })
 
   it('load multiple cifar10 samples with labels', () => {

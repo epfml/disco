@@ -25,43 +25,35 @@ export class ImageLoader extends DataLoader {
   }
 
   loadAll (images: Source[], config?: DataConfig): Dataset {
-    console.log(images.length)
-    if (config === undefined || config.labels === undefined) {
-      return tf.data.generator(() => {
-        let index = 0
-        const iterator = {
-          next: () => {
-            if (index < images.length) {
-              return {
-                value: ImageLoader.readImageFrom(images[index++]),
-                done: false
-              }
+    const withLabels = config !== undefined && config.labels !== undefined
+    return tf.data.generator(() => {
+      let index = 0
+      const iterator = {
+        next: () => {
+          let sample: tf.Tensor3D
+          let label: string
+          if (index < images.length) {
+            sample = ImageLoader.readImageFrom(images[index])
+            if (withLabels) {
+              label = config.labels[index]
             }
+            index++
             return {
-              value: ImageLoader.readImageFrom(images[images.length - 1]),
-              done: true
+              value: withLabels ? { xs: sample, ys: label } : sample,
+              done: false
             }
           }
-        }
-        return iterator
-      })
-    } else {
-      return tf.data.generator(() => {
-        let index = 0
-        const iterator = {
-          next: () => {
-            return {
-              value: { xs: '', ys: '' },
-              done: index++ >= images.length - 1
-            }
+          return {
+            value: withLabels ? { xs: sample, ys: label } : sample,
+            done: true
           }
         }
-        return iterator
-      })
-    }
+      }
+      return iterator
+    })
   }
 
-  private static readImageFrom (source: Source): tf.Tensor {
+  private static readImageFrom (source: Source): tf.Tensor3D {
     if (typeof source === 'string') {
       // Node environment
       const tfNode = require('@tensorflow/tfjs-node')
