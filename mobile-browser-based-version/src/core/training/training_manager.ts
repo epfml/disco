@@ -30,19 +30,14 @@ export class TrainingManager extends ModelActor {
    * @param {Logger} logger - logging system (e.g. toaster)
    * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
    */
-  constructor (task: Task, platform: Platform, logger: Logger, helper: TaskHelper<Task>, useIndexedDB: boolean) {
+  constructor (task: Task, logger: Logger, helper: TaskHelper<Task>, useIndexedDB: boolean) {
     super(task, logger, nbrFiles(task), helper)
     this.isConnected = false
     this.isTraining = false
     this.distributedTraining = false
-    this.platform = platform
     this.useIndexedDB = useIndexedDB
     // Take care of communication processes
-    this.client = getClient(
-      this.platform,
-      this.task,
-      undefined // TODO: this.$store.getters.password(this.id)
-    )
+    this.client = undefined
     this.trainingInformant = new TrainingInformant(10, this.task.taskID)
   }
 
@@ -71,6 +66,21 @@ export class TrainingManager extends ModelActor {
   private getTrainSize (dataset): number {
     const trainSplit = 1 - this.task.trainingInformation.validationSplit
     return dataset.Xtrain.shape[0] * trainSplit
+  }
+
+  /**
+   * Initialize the client, or updates it if we choose a different platform
+   */
+  private initOrUpdateClient (platform : Platform): void {
+    console.log('initializing client with', platform)
+    if (this.client === undefined || platform !== this.platform) {
+      this.platform = platform
+      this.client = getClient(
+        platform,
+        this.task,
+        undefined // TODO: this.$store.getters.password(this.id)
+      )
+    }
   }
 
   /**
@@ -104,7 +114,11 @@ export class TrainingManager extends ModelActor {
    * Main training function
    * @param {boolean} distributed - use distributed training (true) or local training (false)
    */
-  async joinTraining (distributed: boolean) {
+  async joinTraining (distributed: boolean, platform: Platform) {
+    // Initialize the client
+    this.initOrUpdateClient(platform)
+
+    // Connects to the server
     if (distributed && !this.isConnected) {
       await this.connectClientToServer()
       if (!this.isConnected) {

@@ -27,9 +27,15 @@
           </custom-button>
           <custom-button
             :center="true"
-            @click="training_manager.joinTraining(true)"
+            @click="training_manager.joinTraining(true, decentralizedPlatform)"
           >
-            Train {{ $t('platform') }}
+            Train Decentralized
+          </custom-button>
+          <custom-button
+            :center="true"
+            @click="training_manager.joinTraining(true, federatedPlatform)"
+          >
+            Train Federated
           </custom-button>
         </div>
         <div v-else>
@@ -117,6 +123,7 @@ import Download from '../../../assets/svg/Download.vue'
 import { mapState } from 'vuex'
 import * as memory from '../../../core/memory/memory'
 import { TrainingManager } from '../../../core/training/training_manager'
+import { Platform } from '../../../platforms/platform'
 
 export default {
   name: 'TrainingFrame',
@@ -146,11 +153,12 @@ export default {
     return {
       training_manager: new TrainingManager(
         this.task,
-        this.$store.getters.platform,
         this.$toast,
         this.helper,
         this.useIndexedDB
-      )
+      ),
+      decentralizedPlatform: Platform.decentralized,
+      federatedPlatform: Platform.federated
     }
   },
   computed: {
