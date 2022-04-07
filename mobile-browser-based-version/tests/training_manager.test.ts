@@ -13,7 +13,7 @@ describe('train test', () => { // the tests container
     const tasks = await loadTasks()
     const task = tasks[0]
     const helper = new CsvTaskHelper(task)
-    const trainer = new TrainingManager(task, platform, logger, helper, useIndexedDB)
+    const trainer = new TrainingManager(task, logger, helper, useIndexedDB)
     await trainer.connectClientToServer()
     await trainer.disconnect()
   })
