@@ -17,15 +17,10 @@ describe('image loader test', () => {
     const imagesContent = files.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
     const datasetContent = await new ImageLoader().loadAll(files).toArray()
     expect(datasetContent.length).equal(imagesContent.length)
+    expect((datasetContent[0] as any).shape).eql(imagesContent[0].shape)
   })
 
-//   it('load multiple cifar10 samples with labels', async () => {
-//     const dir = './example_training/data/CIFAR10/'
-//     const files = fs.readdirSync(dir).map((file) => dir.concat(file))
-//     const imagesContent = files.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
-//     const labels = []
-//     const datasetContent = await new ImageLoader().loadAll(files).toArray()
-//     expect(datasetContent.length).equal(imagesContent.length)
-//     expect(datasetContent[0]).eql(labels[0])
-//   })
+  it('load multiple cifar10 samples with labels', () => {
+    // TODO @s314cy
+  })
 })
