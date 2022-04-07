@@ -4,57 +4,7 @@
       <settings-icon />
     </template>
     <template #content>
-      <!-- Platform -->
-      <tippy-card title="Platform">
-        <div class="flex items-center space-x-8">
-          <!-- Decentralized button -->
-          <button
-            :disabled="$store.getters.isDecentralized"
-            :class="buttonClass($store.getters.isDecentralized)"
-            @click="setRequestPlatformChangeTrue"
-          >
-            <span><decentralised-icon /></span>
-            <span>Decentralized</span>
-          </button>
-
-          <!-- Federated button -->
-          <button
-            :disabled="$store.getters.isFederated"
-            :class="buttonClass($store.getters.isFederated)"
-            @click="setRequestPlatformChangeTrue"
-          >
-            <span><federated-icon /></span>
-            <span>Federated {{ this }}</span>
-          </button>
-        </div>
-      </tippy-card>
-      <!-- Confirm change platform -->
-      <tippy-card
-        v-if="requestPlatformChange"
-        title="Confirm platform change"
-      >
-        <span class="text-s">
-          Changing the platform will refresh the app, if a model is currently
-          training progess might be lost.
-        </span>
-        <div class="flex items-center justify-center space-x-8">
-          <button
-            :class="buttonClass()"
-            @click="setRequestPlatformChangeFalse"
-          >
-            <span class="text-s"> Cancel </span>
-          </button>
-
-          <button
-            :class="buttonClass()"
-            @click="changePlatform"
-          >
-            <span class="text-s"> Confirm </span>
-          </button>
-        </div>
-      </tippy-card>
       <div
-        v-else
         class="overflow-hidden hover:overflow-y-auto"
       >
         <!-- IndexedDB -->
@@ -163,8 +113,6 @@ import TippyCard from './containers/TippyCard.vue'
 import TippyContainer from './containers/TippyContainer.vue'
 import MoonIcon from '../../assets/svg/MoonIcon.vue'
 import StarIcon from '../../assets/svg/StarIcon.vue'
-import DecentralisedIcon from '../../assets/svg/DecentralisedIcon.vue'
-import FederatedIcon from '../../assets/svg/FederatedIcon.vue'
 import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
 import { Platform } from '../../platforms/platform'
 import { defineComponent } from 'vue'
@@ -176,8 +124,6 @@ export default defineComponent({
     TippyContainer,
     MoonIcon,
     StarIcon,
-    DecentralisedIcon,
-    FederatedIcon,
     SettingsIcon
   },
   data: function () {

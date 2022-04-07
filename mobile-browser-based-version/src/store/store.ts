@@ -66,9 +66,7 @@ export const store = createStore({
       taskID in state.passwords ? state.passwords[taskID] : '',
     taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
     tasksFramesList: (state) => _.values(state.tasksFrames),
-    platform: (state) => state.platform,
-    isDecentralized: (state) => state.platform === Platform.decentralized,
-    isFederated: (state) => state.platform === Platform.federated
+    platform: (state) => state.platform
   }
 })
 
