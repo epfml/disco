@@ -46,7 +46,8 @@ const asyncInformantsMap: Map<string, AsyncInformant<Weights>> = new Map()
  * Contains metadata used for training by clients for a given task and round.
  * Stored by task ID, round number and client ID.
  */
-const metadataMap = new Map()
+const metadataMap = immutable.Map<TaskID, immutable.Map<number, immutable.Map<string, immutable.Map<string, string>>>>()
+
 /**
  * Contains all successful requests made to the server. An entry consists of:
  * - a timestamp corresponding to the time at which the request was made
@@ -57,11 +58,11 @@ const metadataMap = new Map()
  */
 // TODO use real log system
 interface Log {
-  timestamp: Date,
-  task: TaskID,
-  round: string,
-  client: string,
-  request: RequestType,
+  timestamp: Date
+  task: TaskID
+  round: string
+  client: string
+  request: RequestType
 }
 const logs: Log[] = []
 /**
@@ -98,7 +99,7 @@ getTasks(CONFIG.tasksFile)?.forEach((task) => {
 function getOrInitAsyncWeightsBuffer (taskID: TaskID): AsyncBuffer<Weights> {
   let buffer = asyncBuffersMap.get(taskID)
   if (buffer === undefined) {
-    const _taskAggregateAndStoreWeights = (weights: Weights[]) => _aggregateAndStoreWeights(weights, taskID)
+    const _taskAggregateAndStoreWeights = async (weights: Weights[]) => await _aggregateAndStoreWeights(weights, taskID)
     buffer = new AsyncBuffer(taskID, BUFFER_CAPACITY, _taskAggregateAndStoreWeights)
 
     asyncInformantsMap.set(taskID, new AsyncInformant(buffer))
@@ -425,22 +426,11 @@ export function postMetadata (request: Request, response: Response) {
     return _failRequest(response, type, 400)
   }
 
-  if (!metadataMap.has(task)) {
-    metadataMap.set(task, new Map())
+  if (metadataMap.hasIn([task, round, id, metadata])) {
+    throw new Error('metadata already set')
   }
-  if (!metadataMap.get(task).has(round)) {
-    metadataMap.get(task).set(round, new Map())
-  }
-  if (!metadataMap.get(task).get(round).has(id)) {
-    metadataMap.get(task).get(round).set(id, new Map())
-  }
-  if (!metadataMap.get(task).get(round).get(id).has(metadata)) {
-    metadataMap
-      .get(task)
-      .get(round)
-      .get(id)
-      .set(metadata, request.body[metadata])
-  }
+  metadataMap.setIn([task, round, id, metadata], request.body[metadata])
+
   response.status(200).send()
 
   activeClients.get(id).requests += 1
@@ -475,9 +465,9 @@ export function getMetadataMap (request: Request, response: Response): void {
   const id = request.params.id
 
   // How did this work before?
-  const queriedMetadataMap = new Map<TaskID, Map<number, any>>()
+  const taskMetadata = metadataMap.get(task)
 
-  if (!(queriedMetadataMap.has(task) && round >= 0)) {
+  if (!(taskMetadata !== undefined && round >= 0)) {
     _failRequest(response, type, 404)
     return
   }
@@ -488,23 +478,22 @@ export function getMetadataMap (request: Request, response: Response): void {
    * Find the most recent entry round-wise for the given task (upper bounded
    * by the given round). Allows for sporadic entries in the metadata map.
    */
-  const allRounds = Array.from(queriedMetadataMap.get(task).keys())
-  const latestRound = allRounds.reduce((prev, curr) =>
-    prev <= curr && curr <= round ? curr : prev
-  )
+  const latestRound = taskMetadata.keySeq().max() ?? round
+
   /**
    * Fetch the required metadata from the general metadata structure stored
    * server-side and construct the queried metadata's map accordingly. This
    * essentially creates a "ID -> metadata" single-layer map.
    */
-  for (const [id, entries] of queriedMetadataMap.get(task).get(latestRound)) {
-    if (entries.has(metadata)) {
-      queriedMetadataMap.set(id, entries.get(metadata))
-    }
-  }
-  const metadataMap = msgpack.encode(Array.from(queriedMetadataMap))
+  const queriedMetadataMap = immutable.Map(
+    taskMetadata
+      .get(latestRound, immutable.Map<string, immutable.Map<string, string>>())
+      .filter((entries) => entries.has(metadata))
+      .mapEntries(([id, entries]) => [id, entries.get(metadata)]))
 
-  response.status(200).send({ metadata: metadataMap })
+  response.status(200).send({
+    metadata: msgpack.encode(Array.from(queriedMetadataMap))
+  })
 
   activeClients.get(id).requests += 1
 }
