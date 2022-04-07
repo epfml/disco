@@ -114,7 +114,6 @@ import TippyContainer from './containers/TippyContainer.vue'
 import MoonIcon from '../../assets/svg/MoonIcon.vue'
 import StarIcon from '../../assets/svg/StarIcon.vue'
 import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
-import { Platform } from '../../platforms/platform'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
@@ -128,8 +127,7 @@ export default defineComponent({
   },
   data: function () {
     return {
-      colors: ['cyan', 'teal', 'green', 'fuchsia', 'blue', 'violet'],
-      requestPlatformChange: false
+      colors: ['cyan', 'teal', 'green', 'fuchsia', 'blue', 'violet']
     }
   },
   methods: {
@@ -149,8 +147,7 @@ export default defineComponent({
     ...mapMutations([
       'setIndexedDB',
       'setAppTheme',
-      'setActivePage',
-      'setPlatform'
+      'setActivePage'
     ]),
     toggleIndexedDB () {
       this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB)
@@ -197,37 +194,6 @@ export default defineComponent({
     setDarkTheme () {
       this.setAppTheme(true)
       this.setBrowserTheme(true)
-    },
-    setRequestPlatformChangeTrue () {
-      this.requestPlatformChange = true
-    },
-    setRequestPlatformChangeFalse () {
-      this.requestPlatformChange = false
-    },
-    getDefaultPlatformColor (platform) {
-      return platform === Platform.decentralized ? 'cyan' : 'violet'
-    },
-    getNewPlatform (platform) {
-      return platform === Platform.decentralized
-        ? Platform.federated
-        : Platform.decentralized
-    },
-    changePlatform () {
-      // Get new platform and color
-      const platform = this.getNewPlatform(this.$store.state.platform)
-      const color = this.getDefaultPlatformColor(platform)
-
-      // Set platform and color
-      this.setPlatform(platform)
-      this.setColors(color)
-      this.$i18n.locale = platform
-      window.localStorage.setItem('platform', platform)
-
-      this.setRequestPlatformChangeFalse()
-
-      // TODO
-      // Add logout from server behavior.
-      this.goToHome()
     },
     goToHome () {
       this.setActivePage('home')

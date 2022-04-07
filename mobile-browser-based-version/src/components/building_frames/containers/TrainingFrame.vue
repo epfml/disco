@@ -21,19 +21,19 @@
         <div v-if="!training_manager.isTraining">
           <custom-button
             :center="true"
-            @click="training_manager.joinTraining(false)"
+            @click="training_manager.joinTraining(localScheme)"
           >
             Train Locally
           </custom-button>
           <custom-button
             :center="true"
-            @click="training_manager.joinTraining(true, decentralizedPlatform)"
+            @click="training_manager.joinTraining(decentralizedScheme)"
           >
             Train Decentralized
           </custom-button>
           <custom-button
             :center="true"
-            @click="training_manager.joinTraining(true, federatedPlatform)"
+            @click="training_manager.joinTraining(federatedScheme)"
           >
             Train Federated
           </custom-button>
@@ -123,7 +123,7 @@ import Download from '../../../assets/svg/Download.vue'
 import { mapState } from 'vuex'
 import * as memory from '../../../core/memory/memory'
 import { TrainingManager } from '../../../core/training/training_manager'
-import { Platform } from '../../../platforms/platform'
+import { TrainingSchemes } from '../../../core/training/trainingSchemes'
 
 export default {
   name: 'TrainingFrame',
@@ -157,8 +157,9 @@ export default {
         this.helper,
         this.useIndexedDB
       ),
-      decentralizedPlatform: Platform.decentralized,
-      federatedPlatform: Platform.federated
+      localScheme: TrainingSchemes.LOCAL,
+      decentralizedScheme: TrainingSchemes.DECENTRALIZED,
+      federatedScheme: TrainingSchemes.FEDERATED
     }
   },
   computed: {

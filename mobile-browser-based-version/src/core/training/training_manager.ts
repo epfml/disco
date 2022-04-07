@@ -5,7 +5,7 @@ import { Client } from '../communication/client'
 import { Task } from '../task/base/task'
 import { Logger } from '../logging/logger'
 import { TaskHelper } from '../task/base/task_helper'
-import { Platform } from '../../platforms/platform'
+import { TrainingSchemes } from './trainingSchemes'
 import { TrainerBuilder } from './trainer/trainer_builder'
 import { getClient } from '../communication/client_builder'
 
@@ -18,7 +18,7 @@ export class TrainingManager extends ModelActor {
   isConnected: Boolean
   isTraining: Boolean
   distributedTraining: Boolean
-  platform: Platform
+  trainingScheme: TrainingSchemes
   useIndexedDB: boolean
   client: Client
   trainingInformant: TrainingInformant
@@ -26,7 +26,6 @@ export class TrainingManager extends ModelActor {
   /**
    * Constructor for TrainingManager
    * @param {Task} task - task on which the tasking shall be performed
-   * @param {string} platform - system platform (e.g. deai or feai)
    * @param {Logger} logger - logging system (e.g. toaster)
    * @param {TaskHelper} helper - helper containing task specific functions (e.g. preprocessing)
    */
@@ -38,6 +37,7 @@ export class TrainingManager extends ModelActor {
     this.useIndexedDB = useIndexedDB
     // Take care of communication processes
     this.client = undefined
+    this.trainingScheme = undefined
     this.trainingInformant = new TrainingInformant(10, this.task.taskID)
   }
 
@@ -69,17 +69,22 @@ export class TrainingManager extends ModelActor {
   }
 
   /**
-   * Initialize the client, or updates it if we choose a different platform
+   * Initialize the client depending on the trainingType Chosen
    */
-  private initOrUpdateClient (platform : Platform): void {
-    console.log('initializing client with', platform)
-    if (this.client === undefined || platform !== this.platform) {
-      this.platform = platform
+  // Training scheme
+  async initOrUpdateClient (trainingScheme : TrainingSchemes) {
+    if (trainingScheme === TrainingSchemes.LOCAL) {
+      this.client = undefined
+      this.trainingScheme = trainingScheme
+      console.log('No client needed when Training Locally')
+    } else if (this.client === undefined || trainingScheme !== this.trainingScheme) {
       this.client = getClient(
-        platform,
+        trainingScheme,
         this.task,
         undefined // TODO: this.$store.getters.password(this.id)
       )
+      this.trainingScheme = trainingScheme
+      console.log('Initialized client ' + trainingScheme)
     }
   }
 
@@ -100,6 +105,7 @@ export class TrainingManager extends ModelActor {
       )
       this.isConnected = false
     }
+    console.log(this.isConnected)
   }
 
   /**
@@ -107,6 +113,7 @@ export class TrainingManager extends ModelActor {
    */
   async disconnect () {
     await this.client.disconnect()
+    this.isConnected = false
   }
 
   /**
@@ -114,19 +121,19 @@ export class TrainingManager extends ModelActor {
    * Main training function
    * @param {boolean} distributed - use distributed training (true) or local training (false)
    */
-  async joinTraining (distributed: boolean, platform: Platform) {
+  async joinTraining (trainingScheme: TrainingSchemes) {
     // Initialize the client
-    this.initOrUpdateClient(platform)
+    await this.initOrUpdateClient(trainingScheme)
 
     // Connects to the server
-    if (distributed && !this.isConnected) {
+    if (trainingScheme !== TrainingSchemes.LOCAL && !this.isConnected) {
       await this.connectClientToServer()
       if (!this.isConnected) {
-        distributed = false
         this.logger.error('Distributed training is not available.')
+      } else {
+        this.distributedTraining = true
       }
     }
-    this.distributedTraining = distributed
     const nbrFiles = this.fileUploadManager.numberOfFiles()
     // Check that the user indeed gave a file
     if (nbrFiles === 0) {
@@ -169,7 +176,6 @@ export class TrainingManager extends ModelActor {
     this.trainer().stopTraining()
     if (this.isConnected) {
       await this.client.disconnect()
-      this.isConnected = false
     }
     this.logger.success('Training was successfully interrupted.')
     this.isTraining = false

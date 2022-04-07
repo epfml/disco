@@ -1,5 +1,11 @@
 {
   "home": {
+      "title": {
+        "name": "DisCo",
+        "start": "Distributed ",
+        "middle": "Collaborative ",
+        "end": "AI"
+      },
       "buildCard": [
         {
           "header": {

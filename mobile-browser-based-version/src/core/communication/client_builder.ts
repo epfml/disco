@@ -1,18 +1,18 @@
 import { Client } from './client'
 import { DecentralizedClient } from './decentralized_client'
 import { FederatedClient } from './federated/federated_client'
-import { Platform } from '../../platforms/platform'
+import { TrainingSchemes } from '../training/trainingSchemes'
 import { Task } from '../task/base/task'
 
-export function getClient (platform: Platform, task: Task, password?: string): Client {
-  switch (platform) {
-    case Platform.decentralized:
+export function getClient (trainingScheme: TrainingSchemes, task: Task, password?: string): Client {
+  switch (trainingScheme) {
+    case TrainingSchemes.DECENTRALIZED:
       return new DecentralizedClient(
         process.env.VUE_APP_DEAI_SERVER,
         task,
         password
       )
-    case Platform.federated:
+    case TrainingSchemes.FEDERATED:
       if (password !== undefined) {
         throw new Error('unexpected password for federated client')
       }
