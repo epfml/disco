@@ -12,7 +12,7 @@ describe('train test', () => { // the tests container
     const task = tasks[0]
     const helper = new CsvTaskHelper(task)
     const trainer = new TrainingManager(task, logger, helper, useIndexedDB)
-    await trainer.initOrUpdateClient(TrainingSchemes.DECENTRALIZED)
+    await trainer.initOrUpdateClient(TrainingSchemes.FEDERATED)
     await trainer.connectClientToServer()
     await trainer.disconnect()
   })
