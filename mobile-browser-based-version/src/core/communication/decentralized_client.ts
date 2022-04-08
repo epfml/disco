@@ -13,7 +13,7 @@ import {
 import { Client } from './client'
 import { Task } from '@/core/task/task'
 import { TrainingInformant } from '@/core/training/training_informant'
-import {Weights} from '@/types'
+import { Weights } from '@/types'
 
 type PeerMessage = { epoch: number, weights: SerializedWeights }
 

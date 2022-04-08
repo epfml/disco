@@ -1,3 +1,5 @@
-import { Task, TaskID } from './task'
-
-export { Task, TaskID }
+export {
+  Task,
+  TaskID,
+  isTaskID
+} from './task'
