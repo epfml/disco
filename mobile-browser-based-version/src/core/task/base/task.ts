@@ -35,6 +35,7 @@ export class TrainingInformation {
   RESIZED_IMAGE_H?: number
   RESIZED_IMAGE_W?: number
   LABEL_ASSIGNMENT?: DataExample[]
+  scheme?: string
 }
 
 class DisplayInformation {
