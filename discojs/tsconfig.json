@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    // TODO "strict": true,
+
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+
+    "outDir": "dist",
+    "declaration": true,
+
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    }
+  }
+}
