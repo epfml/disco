@@ -21,7 +21,6 @@
     "immutable": "4",
     "lodash": "4",
     "msgpack-lite": "0.1",
-    "typescript": "4",
     "ws": "8"
   },
   "nodemonConfig": {
@@ -38,13 +37,17 @@
     "@types/cors": "2",
     "@types/express-ws": "3",
     "@types/mocha": "9",
-    "@types/supertest": "^2.0.12",
+    "@types/supertest": "2",
     "@types/ws": "8",
+    "@typescript-eslint/eslint-plugin": "5",
+    "@typescript-eslint/parser": "5",
     "chai": "4",
+    "eslint": "8",
     "mocha": "9",
     "nodemon": "2",
     "supertest": "6",
     "ts-node": "10",
-    "ts-node-register": "1"
+    "ts-node-register": "1",
+    "typescript": "<4.5.0"
   }
 }
