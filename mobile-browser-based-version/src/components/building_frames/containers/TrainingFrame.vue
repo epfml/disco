@@ -21,21 +21,27 @@
         <div v-if="!training_manager.isTraining">
           <custom-button
             :center="true"
-            @click="training_manager.joinTraining(localScheme)"
+            @click="training_manager.joinLocalTraining()"
           >
-            Train Locally
+            {{
+              $t('training.trainingFrame.localTrainingButton')
+            }}
           </custom-button>
           <custom-button
             :center="true"
-            @click="training_manager.joinTraining(decentralizedScheme)"
+            @click="training_manager.joinDecentralizedTraining()"
           >
-            Train Decentralized
+            {{
+              $t('training.trainingFrame.decentralizedTrainingButton')
+            }}
           </custom-button>
           <custom-button
             :center="true"
-            @click="training_manager.joinTraining(federatedScheme)"
+            @click="training_manager.joinFederatedTraining()"
           >
-            Train Federated
+            {{
+              $t('training.trainingFrame.federatedTrainingButton')
+            }}
           </custom-button>
         </div>
         <div v-else>
@@ -58,11 +64,8 @@
 
       <!-- Save the model button -->
       <icon-card
-        header="Save the model"
-        description="If you are satisfied with the performance of the model, don't
-            forget to save the model by clicking on the button below. The next
-            time you will load the application, you will be able to use your
-            saved model."
+        :header="$t('training.trainingFrame.saveModel.header')"
+        :description="$t('training.trainingFrame.saveModel.description')"
       >
         <template #icon>
           <download />
@@ -75,16 +78,15 @@
               :center="true"
               @click="saveModel()"
             >
-              Save My model
+              {{ $t('training.trainingFrame.saveModel.button') }}
             </custom-button>
           </div>
         </template>
       </icon-card>
       <!-- Test the model button -->
       <icon-card
-        header="Test the model"
-        description="Once you have finished training your model it might be a great idea
-            to go test it."
+        :header="$t('training.trainingFrame.testModel.header')"
+        :description="$t('training.trainingFrame.testModel.description')"
       >
         <template #icon>
           <download />
@@ -103,7 +105,7 @@
               :center="true"
               @click="goToTesting()"
             >
-              Test the model
+              {{ $t('training.trainingFrame.testModel.button') }}
             </custom-button>
           </div>
         </template>
@@ -123,7 +125,6 @@ import Download from '../../../assets/svg/Download.vue'
 import { mapState } from 'vuex'
 import * as memory from '../../../core/memory/memory'
 import { TrainingManager } from '../../../core/training/training_manager'
-import { TrainingSchemes } from '../../../core/training/trainingSchemes'
 
 export default {
   name: 'TrainingFrame',
@@ -156,17 +157,15 @@ export default {
         this.$toast,
         this.helper,
         this.useIndexedDB
-      ),
-      localScheme: TrainingSchemes.LOCAL,
-      decentralizedScheme: TrainingSchemes.DECENTRALIZED,
-      federatedScheme: TrainingSchemes.FEDERATED
+      )
     }
   },
   computed: {
     ...mapState(['useIndexedDB']),
     trainingText () {
       return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
-    }
+    },
+    ye () { return this.$t('training.trainingFrame.saveModel.header') }
   },
   watch: {
     // TODO: @s314cy, what does this do?
