@@ -5,22 +5,7 @@ import { loadTasks } from '../../../../src/core/task/utils'
 const inputFiles = ['./example_training_data/titanic.csv']
 
 describe('tabular loader test', () => {
-  it('titanic csv column names', async () => {
-    const titanic = (await loadTasks())[0]
-    const loader = new TabularLoader(',')
-    const features = titanic.trainingInformation.inputColumns
-    const labels = titanic.trainingInformation.outputColumns
-    const dataset = loader.load(
-      'file://'.concat(inputFiles[0]),
-      {
-        features: features,
-        labels: labels
-      }
-    )
-    expect(await dataset.columnNames()).eql(features.concat(labels))
-  })
-
-  it('titanic csv row types', async () => {
+  it('titanic csv load  sample', async () => {
     const titanic = (await loadTasks())[0]
     const loader = new TabularLoader(',')
     const dataset = loader.load(
@@ -36,17 +21,10 @@ describe('tabular loader test', () => {
      * They do NOT apply any transform/conversion, which is left to the
      * dataset builder.
      */
-    expect(sample).eql({
+    expect(sample).to.eql({
       value: {
-        xs: {
-          PassengerId: 1,
-          Pclass: 3,
-          Age: 22,
-          SibSp: 1,
-          Parch: 0,
-          Fare: 7.25
-        },
-        ys: { Survived: 0 }
+        xs: [1, 3, 22, 1, 0, 7.25],
+        ys: [0]
       },
       done: false
     })
