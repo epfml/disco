@@ -21,7 +21,7 @@ export class DataExample {
       return false
     }
 
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _ = new DataExample(columnName, columnData)
 
     return true
@@ -107,7 +107,7 @@ export class DisplayInformation {
       return false
     }
 
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _ = new DisplayInformation(
       taskTitle,
       summary,
@@ -170,7 +170,7 @@ export class Task {
       return false
     }
 
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _ = new Task(taskID, displayInformation)
 
     return true

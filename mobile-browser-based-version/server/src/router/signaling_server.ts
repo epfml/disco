@@ -25,7 +25,7 @@ function isPeerMessage (msg: unknown): msg is PeerMessage {
     return false
   }
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _: PeerMessage = [id, signal]
 
   return true
