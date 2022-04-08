@@ -37,6 +37,7 @@
     "@types/cors": "2",
     "@types/express-ws": "3",
     "@types/mocha": "9",
+    "@types/msgpack-lite": "^0.1.8",
     "@types/supertest": "2",
     "@types/ws": "8",
     "@typescript-eslint/eslint-plugin": "5",

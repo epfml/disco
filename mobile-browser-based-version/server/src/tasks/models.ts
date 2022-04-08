@@ -12,7 +12,7 @@ if (!fs.existsSync(CONFIG.modelsDir)) {
   fs.mkdirSync(CONFIG.modelsDir)
 }
 
-async function createTitanicModel () {
+async function createTitanicModel (): Promise<void> {
   const model = tf.sequential()
   model.add(
     tf.layers.dense({
@@ -29,7 +29,7 @@ async function createTitanicModel () {
   await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
-async function createMnistModel () {
+async function createMnistModel (): Promise<void> {
   const model = tf.sequential()
   model.add(
     tf.layers.conv2d({
@@ -54,7 +54,7 @@ async function createMnistModel () {
   await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
-async function createLUSCovidModel () {
+async function createLUSCovidModel (): Promise<void> {
   const model = tf.sequential()
   model.add(
     tf.layers.dense({ inputShape: [1000], units: 512, activation: 'relu' })
@@ -65,7 +65,7 @@ async function createLUSCovidModel () {
   await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
-async function createCifar10Model () {
+async function createCifar10Model (): Promise<void> {
   const mobilenet = await tf.loadLayersModel(
     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
   )

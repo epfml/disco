@@ -19,19 +19,19 @@ const oldWeightsData = {
   round: oldRound
 }
 
-function connectHeader (platformID: string, taskID: string, clientID: string) {
+function connectHeader (platformID: string, taskID: string, clientID: string): string {
   return `/${platformID}/connect/${taskID}/${clientID}`
 }
 
-function disconnectHeader (platformID: string, taskID: string, clientID: string) {
+function disconnectHeader (platformID: string, taskID: string, clientID: string): string {
   return `/${platformID}/disconnect/${taskID}/${clientID}`
 }
 
-function postWeightHeader (platformID: string, taskID: string, clientID: string) {
+function postWeightHeader (platformID: string, taskID: string, clientID: string): string {
   return `/${platformID}/weights/${taskID}/${clientID}`
 }
 
-function getisRoundOldHeader (platformID: string, taskID: string, clientID: string) {
+function getisRoundOldHeader (platformID: string, taskID: string, clientID: string): string {
   return `/${platformID}/round/${taskID}/${clientID}`
 }
 
