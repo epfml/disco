@@ -9,7 +9,6 @@ import { averageWeights } from '../aggregation'
 import { AsyncInformant } from '../../async_informant'
 import { AsyncBuffer } from '../../async_buffer'
 import { CONFIG } from '../../config'
-import { SerializedVariable } from '../serialization'
 import { TaskID } from '../../tasks'
 import { getTasks } from '../../tasks/tasks_io'
 import { Weights } from '../../types'
@@ -96,6 +95,7 @@ getTasks(CONFIG.tasksFile)?.forEach((task) => {
 })
 
 // Inits the AsyncWeightsBuffer for the task if it does not yet exist.
+// TODO return both buffer and informant
 function getOrInitAsyncWeightsBuffer (taskID: TaskID): AsyncBuffer<Weights> {
   let buffer = asyncBuffersMap.get(taskID)
   if (buffer === undefined) {
@@ -300,8 +300,7 @@ function _checkPostWeights (request: Request, response: Response): number {
   if (
     request.body === undefined ||
     request.body.round === undefined ||
-    request.body.weights === undefined ||
-    request.body.weights.data === undefined
+    request.body.weights === undefined
   ) {
     return _failRequest(response, type, 400)
   }
@@ -309,11 +308,17 @@ function _checkPostWeights (request: Request, response: Response): number {
   return 200
 }
 
-function _decodeWeights (request: Request): Weights {
-  const encodedWeights = request.body.weights
-  const obj = msgpack.decode(Uint8Array.from(encodedWeights.data))
+function getWeights (request: Request): Weights {
+  const obj: unknown = request.body.weights
 
-  return obj
+  if (!Array.isArray(obj)) {
+    throw new Error('weights is not an array')
+  }
+  if (!obj.every((w) => typeof w === 'number')) {
+    throw new Error('a weight is not a number')
+  }
+
+  return obj.map((w) => tf.tensor(w))
 }
 
 /**
@@ -335,7 +340,7 @@ export async function postWeights (request: Request, response: Response): Promis
 
   const buffer = getOrInitAsyncWeightsBuffer(task)
 
-  const weights = _decodeWeights(request)
+  const weights = getWeights(request)
 
   const round = request.body.round
 
@@ -376,12 +381,13 @@ export async function getRound (request: Request, response: Response) {
  * @param response
  * @returns
  */
-export async function getAsyncWeightInformantStatistics (request, response) {
+export async function getAsyncWeightInformantStatistics (request: Request, response: Response): Promise<void> {
   // Check for errors
   const type = RequestType.GetAsyncRound
   const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
-    return _failRequest(response, type, code)
+    _failRequest(response, type, code)
+    return
   }
 
   const task = request.params.task
@@ -391,7 +397,7 @@ export async function getAsyncWeightInformantStatistics (request, response) {
   getOrInitAsyncWeightsBuffer(task)
 
   // Get latest round
-  const statistics = asyncInformantsMap.get(task).getAllStatistics()
+  const statistics = asyncInformantsMap.get(task)?.getAllStatistics()
 
   // Send back latest round
   response.status(200).send({ statistics: statistics })

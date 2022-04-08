@@ -1,69 +1,27 @@
 import * as tf from '@tensorflow/tfjs'
 
-// TODO pack it more
-export type SerializedVariable<R extends tf.Rank = tf.Rank> = {
-  $variable: {
-    name: string
-    val: {
-      $tensor: {
-        data: tf.TypedArray
-        shape: tf.ShapeMap[R]
-        dtype: tf.DataType
-      }
-    }
-  }
-}
+import { Weights } from '@/types'
 
-export function isSerializedVariable (data: unknown): data is SerializedVariable {
-  // TODO check more
+export type SerializedWeights = Float32Array[]
 
-  if (typeof data !== 'object') {
+export function isSerializedWeights (obj: unknown): obj is SerializedWeights {
+  if (!Array.isArray(obj)) {
     return false
   }
-  if (data === null) {
+  if (!obj.every((w) => w instanceof Float32Array)) {
     return false
   }
 
-  if (!('$variable' in data)) {
-    return false
-  }
-
-  // TODO ensure full check
   // eslint-disable-next-line no-unused-vars
-  // const _: SerializedVariable = data
+  const _: SerializedWeights = obj
 
   return true
 }
 
-export async function serializeVariable (variable: tf.LayerVariable): Promise<SerializedVariable<tf.Rank>> {
-  const tensor = variable.read()
-
-  return {
-    $variable: {
-      name: variable.name,
-      val: {
-        $tensor: {
-          // Doesn't copy (maybe depending on runtime)!
-          data: await tensor.data(),
-          shape: tensor.shape,
-          dtype: tensor.dtype
-        }
-      }
-    }
-  }
+export async function serializeWeights (weights: Weights): Promise<SerializedWeights> {
+  return await Promise.all(weights.map(async (t) => await t.data<'float32'>()))
 }
 
-export function deserializeVariable (serialized: SerializedVariable): tf.LayerVariable {
-  const serializedTensor = serialized.$variable.val.$tensor
-  const tensor = tf.tensor(serializedTensor.data, serializedTensor.shape, serializedTensor.dtype)
-
-  return new tf.LayerVariable(tensor, undefined, serialized.$variable.name)
-}
-
-export function serializeWeights (weights: tf.LayerVariable[]): Promise<SerializedVariable[]> {
-  return Promise.all(weights.map(serializeVariable))
-}
-
-export function deserializeWeights (serialized: SerializedVariable[]): tf.LayerVariable[] {
-  return serialized.map(deserializeVariable)
+export function deserializeWeights (serialized: SerializedWeights): Weights {
+  return serialized.map((w) => tf.tensor(w))
 }

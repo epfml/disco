@@ -6,16 +6,16 @@ import tf from '@tensorflow/tfjs'
 import { averageWeights } from '../aggregation'
 import {
   deserializeWeights,
-  isSerializedVariable,
-  SerializedVariable,
+  isSerializedWeights,
+  SerializedWeights,
   serializeWeights
 } from './serialization'
 import { Client } from './client'
 import { Task } from '@/core/task/task'
 import { TrainingInformant } from '@/core/training/training_informant'
+import {Weights} from '@/types'
 
-type Weights = tf.LayerVariable[]
-type PeerMessage = { epoch: number, weights: SerializedVariable[] }
+type PeerMessage = { epoch: number, weights: SerializedWeights }
 
 // TODO take it from the server sources
 type PeerID = number
@@ -41,11 +41,7 @@ function isPeerMessage (data: unknown): data is PeerMessage {
   if (typeof epoch !== 'number') {
     return false
   }
-
-  if (!(weights instanceof Array)) {
-    return false
-  }
-  if (!weights.every(isSerializedVariable)) {
+  if (!isSerializedWeights(weights)) {
     return false
   }
 
@@ -245,7 +241,7 @@ export class DecentralizedClient extends Client {
     // broadcast our weights
     const msg: PeerMessage = {
       epoch: epoch,
-      weights: await serializeWeights(model.weights)
+      weights: await serializeWeights(model.weights.map((w) => w.read()))
     }
     const encodedMsg = msgpack.encode(msg)
 
@@ -288,7 +284,6 @@ export class DecentralizedClient extends Client {
 
     const receivedWeights = getWeights()
       .filter((weights) => weights !== undefined)
-      .map((weights) => weights.map((w) => w.read()))
       .toSet()
 
     // average weights

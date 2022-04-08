@@ -1,12 +1,13 @@
 import * as msgpack from 'msgpack-lite'
+import * as tf from '@tensorflow/tfjs'
+
 import { makeID } from '../authentication'
-import { serializeWeights } from '../serialization'
 import { Client } from '../client'
+import { serializeWeights } from '../serialization'
 import { Task } from '@/core/task/task'
 import { TrainingInformant } from '@/core/training/training_informant'
 import * as api from './federated_api'
-import { LayersModel } from '@tensorflow/tfjs'
-
+import { Weights } from '@/types'
 /**
  * Class that deals with communication with the centralized server when training
  * a specific task.
@@ -53,14 +54,12 @@ export class FederatedClient extends Client {
     return response.status === 200
   }
 
-  private async postWeightsToServer (weights) {
-    const encodedWeights = msgpack.encode(
-      Array.from(await serializeWeights(weights))
-    )
+  private async postWeightsToServer (weights: Weights) {
+    const serializedWeights = (await serializeWeights(weights))
     const response = await api.postWeights(
       this.task.taskID,
       this.clientID,
-      encodedWeights,
+      serializedWeights,
       this.modelUpdateIsBasedOnRoundNumber
     )
     return response.status === 200
@@ -102,7 +101,7 @@ export class FederatedClient extends Client {
     return -1
   }
 
-  private async updateLocalModel (model: LayersModel) {
+  private async updateLocalModel (model: tf.LayersModel) {
     // get latest model from the server
     const latestModel = await this.getLatestModel()
 
@@ -112,7 +111,7 @@ export class FederatedClient extends Client {
     console.log('Updated local model')
   }
 
-  private async fetchChangesAndUpdateModel (model: LayersModel) {
+  private async fetchChangesAndUpdateModel (model: tf.LayersModel) {
     // get server round of latest model
     const serverRound = await this.getLatestServerRound()
 
@@ -131,13 +130,13 @@ export class FederatedClient extends Client {
     trainingInformant.updateWithServerStatistics(serverStatistics.data.statistics)
   }
 
-  async onRoundEndCommunication (model: LayersModel, round: number, trainingInformant: TrainingInformant) {
-    await this.postWeightsToServer(model.weights)
+  async onRoundEndCommunication (model: tf.LayersModel, _: number, trainingInformant: TrainingInformant) {
+    await this.postWeightsToServer(model.weights.map((w) => w.read()))
     await this.fetchChangesAndUpdateModel(model)
     await this.fetchServerStatisticsAndUpdateInformant(trainingInformant)
   }
 
-  async onTrainEndCommunication (model: LayersModel, trainingInformant: TrainingInformant) {
+  async onTrainEndCommunication (_: tf.LayersModel, trainingInformant: TrainingInformant) {
     trainingInformant.addMessage('Training finished.')
   }
 }
