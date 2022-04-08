@@ -1,16 +1,10 @@
 import { AsyncBuffer } from './async_buffer'
 
 export class AsyncInformant<T> {
-    // This could rapidly grow so we should have some way to do garbage collection ?
-    // This could be interesting for measures based on gradient history
-    // Maybe we could have some sort of observer on the buffer
-    // so everytime we aggregate, we store the history
-    bufferHistory: Map<number, Map<string, any>>
-
-    round: number = 0
-    currentNumberOfParticipants: number = 0
-    totalNumberOfParticipants: number = 0
-    averageNumberOfParticipants : number = 0
+    private round = 0
+    private currentNumberOfParticipants = 0
+    private totalNumberOfParticipants = 0
+    private averageNumberOfParticipants = 0
 
     constructor (
       private readonly asyncBuffer: AsyncBuffer<T>
@@ -76,11 +70,6 @@ export class AsyncInformant<T> {
         averageNumberOfParticipants: this.getAverageNumberOfParticipants()
       }
     }
-
-    // Future statistics
-    getDistanceFromGlobalModel (id) {}
-
-    getShapleyValueForUser (id) {}
 
     // Debug
 

@@ -1,6 +1,7 @@
-import app from '../../src/run_server'
-import { agent as request } from 'supertest'
 import { expect } from 'chai'
+import { agent as request } from 'supertest'
+
+import app from '../../src/run_server'
 
 const platformID = 'feai'
 const clientId = 'clientId'
@@ -9,16 +10,12 @@ const task = 'titanic'
 const oldRound = -1
 const newRound = 1
 const weightsData = {
-  weights: {
-    data: [0, 1]
-  },
+  weights: [0, 1],
   round: newRound
 }
 
 const oldWeightsData = {
-  weights: {
-    data: [0, 1]
-  },
+  weights: [0, 1],
   round: oldRound
 }
 
