@@ -3,6 +3,7 @@ import * as tf from '@tensorflow/tfjs'
 import { Task } from '../task/task'
 
 export type Dataset = tf.data.Dataset<tf.TensorContainer>
+export type LabelledDataset = tf.data.Dataset<{ xs: tf.TensorContainer[], ys: tf.TensorContainer[] }>
 
 export class DatasetBuilder {
   private task: Task
@@ -21,30 +22,30 @@ export class DatasetBuilder {
 
   addFiles (sources: Source[], label?: string) {
     if (this.built) {
-      throw new Error()
+      throw new Error('builder already consumed')
     }
     if (label === undefined) {
-      this.sources.concat(sources)
+      this.sources = this.sources.concat(sources)
     } else {
       sources.forEach((source) => this.labelledSources.set(source, label))
     }
   }
 
-  clearFiles (key?: string) {
+  clearFiles (label?: string) {
     if (this.built) {
-      throw new Error()
+      throw new Error('builder already consumed')
     }
-    if (key === undefined) {
+    if (label === undefined) {
       this.sources = []
     } else {
-      this.labelledSources.delete(key)
+      this.labelledSources.delete(label)
     }
   }
 
   build (): Dataset {
     // Require that at leat one source collection is non-empty, but not both
     if ((this.sources.length > 0) === (this.labelledSources.size > 0)) {
-      throw new Error()
+      throw new Error('invalid sources')
     }
 
     let dataset: Dataset
@@ -64,10 +65,14 @@ export class DatasetBuilder {
     }
     // TODO @s314cy: Support .csv labels for image datasets
     this.built = true
-    return dataset.batch(this.task.trainingInformation.batchSize)
+    return dataset
   }
 
   isBuilt (): boolean {
     return this.built
+  }
+
+  size (): number {
+    return Math.max(this.sources.length, this.labelledSources.size)
   }
 }

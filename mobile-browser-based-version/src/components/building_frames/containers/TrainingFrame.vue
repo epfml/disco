@@ -117,6 +117,7 @@ import { mapState } from 'vuex'
 import * as memory from '../../../core/memory/memory'
 import { TrainingManager } from '../../../core/training/training_manager'
 import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
+import { DataLoader } from '../../../core/dataset/data_loader/data_loader'
 import { Task } from '../../../core/task/task'
 
 export default {
@@ -136,6 +137,10 @@ export default {
     },
     task: {
       type: Task,
+      default: undefined
+    },
+    dataLoader: {
+      type: DataLoader,
       default: undefined
     }
   },
@@ -158,10 +163,17 @@ export default {
   },
   methods: {
     startTraining (distributedTraining) {
-      if (!this.datasetBuilder.isBuilt()) {
-        this.dataset = this.datasetBuilder.build()
+      try {
+        if (!this.datasetBuilder.isBuilt()) {
+          this.dataset = this.datasetBuilder
+            .build()
+            .batch(this.task.trainingInformation.batchSize)
+        }
+        this.trainingManager.startTraining(this.dataset, distributedTraining)
+      } catch {
+        this.$toast.error('Invalid files were given!')
+        setTimeout(this.$toast.clear, 30000)
       }
-      this.trainingManager.startTraining(this.dataset, distributedTraining)
     },
     async saveModel () {
       if (this.useIndexedDB) {

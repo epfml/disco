@@ -1,4 +1,5 @@
 import { DataLoader, Source, DataConfig } from './data_loader'
+import { Dataset } from '../dataset_builder'
 import * as tf from '@tensorflow/tfjs'
 import _ from 'lodash'
 
@@ -18,7 +19,7 @@ export class TabularLoader extends DataLoader {
    * @param config
    * @returns A TF.js dataset built upon read tabular data stored in the given sources.
    */
-  load (source: Source, config?: DataConfig): tf.data.CSVDataset {
+  load (source: Source, config?: DataConfig): Dataset {
     /**
      * Prepare the CSV config object based off the given features and labels.
      * If labels is empty, then the returned dataset is comprised of samples only.
@@ -45,16 +46,17 @@ export class TabularLoader extends DataLoader {
       configuredColumnsOnly: true,
       delimiter: this.delimiter
     }
-    return TabularLoader.loadTabularDatasetFrom(source, csvConfig)
+    const dataset = TabularLoader.loadTabularDatasetFrom(source, csvConfig)
+    return DataLoader.flattenDataset(dataset as any)
   }
 
   /**
     * Creates the CSV datasets based off the given sources, then fuses them into a single CSV
     * dataset.
     */
-  loadAll (sources: Source[], config: DataConfig): tf.data.CSVDataset {
+  loadAll (sources: Source[], config: DataConfig): Dataset {
     const datasets = _.map(sources, (source) => this.load(source, config))
-    return _.reduce(datasets, (prev, curr) => prev.concatenate(curr) as tf.data.CSVDataset)
+    return _.reduce(datasets, (prev, curr) => prev.concatenate(curr))
   }
 
   /**

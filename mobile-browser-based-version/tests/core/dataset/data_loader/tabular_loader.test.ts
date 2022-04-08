@@ -30,8 +30,7 @@ describe('tabular loader test', () => {
         labels: titanic.trainingInformation.outputColumns
       }
     )
-    const iterator = await dataset.iterator()
-    const sample = await iterator.next()
+    const sample = await (await dataset.iterator()).next()
     /**
      * Data loaders simply return a dataset object read from input sources.
      * They do NOT apply any transform/conversion, which is left to the

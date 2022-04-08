@@ -15,7 +15,7 @@
       <div v-else-if="task.trainingInformation.dataType === 'image'">
         <div v-if="requireLabels">
           <div
-            v-for="label in task.trainingInformation.outputColumns"
+            v-for="label in task.trainingInformation.LABEL_LIST"
             :key="label"
           >
             <span class="text-xl font-semibold"> {{ label }} </span>
@@ -74,18 +74,18 @@ export default {
       return this.task.trainingInformation.dataType === 'tabular'
     },
     requireLabels () {
-      return this.task.trainingInformation.outputColumns !== undefined
+      return this.task.trainingInformation.LABEL_LIST !== undefined
     }
   },
   methods: {
-    addFiles (files: FileList, key?: string) {
+    addFiles (files: FileList, label?: string) {
       if (!this.datasetBuilder.isBuilt()) {
-        this.datasetBuilder.addFiles(Array.from(files), key)
+        this.datasetBuilder.addFiles(Array.from(files), label)
       }
     },
-    clearFiles (key?: string) {
+    clearFiles (label?: string) {
       if (!this.datasetBuilder.isBuilt()) {
-        this.datasetBuilder.clearFiles(key)
+        this.datasetBuilder.clearFiles(label)
       }
     }
   }

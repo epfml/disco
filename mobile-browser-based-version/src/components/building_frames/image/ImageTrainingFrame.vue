@@ -5,16 +5,15 @@
     :task="task"
     :data-loader="imageLoader"
   >
-    <template #dataExample>
-      <!-- Data Point Example -->
+    <!--<template #dataExample>
+      Data Point Example
       <div class="flex object-center">
         <img
           class="object-center"
-          :src="task.getExampleImage(task.displayInformation.dataExampleImage)"
-          :alt="task.displayInformation.dataExampleImage"
+          :src="getExampleImage(task.displayInformation.dataExampleImage)"
         ><img>
       </div>
-    </template>
+    </template> -->
     <template #extra />
   </training-frame>
 </template>
@@ -39,7 +38,7 @@ export default {
       default: undefined
     }
   },
-  mounted () {
+  created () {
     this.imageLoader = new ImageLoader()
   }
 }
