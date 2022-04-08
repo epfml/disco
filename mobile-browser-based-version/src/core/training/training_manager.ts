@@ -117,6 +117,19 @@ export class TrainingManager extends ModelActor {
   }
 
   /**
+   * Runs training according to the scheme defined in the Task's trainingInformation.
+   * If default scheme is Decentralized for now, if nothing is specified.
+   */
+  async joinTaskDefinedTraining () {
+    if (this.task.trainingInformation.scheme === 'Federated') {
+      await this.joinFederatedTraining()
+    } else {
+      // The Default training scheme is Decentralized
+      await this.joinDecentralizedTraining()
+    }
+  }
+
+  /**
    * Runs training using Local Scheme
    */
   async joinLocalTraining () {
