@@ -28,6 +28,7 @@
             }}
           </custom-button>
           <custom-button
+            v-if="isTaskDecentralized"
             :center="true"
             @click="training_manager.joinDecentralizedTraining()"
           >
@@ -36,6 +37,7 @@
             }}
           </custom-button>
           <custom-button
+            v-if="isTaskFederated"
             :center="true"
             @click="training_manager.joinFederatedTraining()"
           >
@@ -165,7 +167,8 @@ export default {
     trainingText () {
       return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
     },
-    ye () { return this.$t('training.trainingFrame.saveModel.header') }
+    isTaskDecentralized () { return this.task.trainingInformation.scheme === 'Decentralized' },
+    isTaskFederated () { return this.task.trainingInformation.scheme === 'Federated' }
   },
   watch: {
     // TODO: @s314cy, what does this do?

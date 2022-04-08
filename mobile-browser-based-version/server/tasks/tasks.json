@@ -60,7 +60,8 @@
         "Fare",
         "Pclass"
       ],
-      "outputColumn": "Survived"
+      "outputColumn": "Survived",
+      "scheme": "Federated"
     }
   },
   {
@@ -93,7 +94,8 @@
       "IMAGE_W": 28,
       "preprocessFunctions": [],
       "LABEL_LIST": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-      "aggregateImagesById": false
+      "aggregateImagesById": false,
+      "scheme": "Decentralized"
     }
   },
   {
@@ -127,7 +129,8 @@
       "LABEL_LIST": ["COVID-Positive", "COVID-Negative"],
       "NUM_CLASSES": 2,
       "dataType": "image",
-      "aggregateImagesById": true
+      "aggregateImagesById": true,
+      "scheme": "Decentralized"
     }
   },
   {
@@ -173,7 +176,8 @@
         "horse": 7,
         "ship": 8,
         "truck": 9
-      }
+      },
+      "scheme": "Decentralized"
     }
   }
 ]
