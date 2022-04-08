@@ -28,21 +28,11 @@
             }}
           </custom-button>
           <custom-button
-            v-if="isTaskDecentralized"
             :center="true"
-            @click="training_manager.joinDecentralizedTraining()"
+            @click="training_manager.joinTaskDefinedTraining()"
           >
             {{
-              $t('training.trainingFrame.decentralizedTrainingButton')
-            }}
-          </custom-button>
-          <custom-button
-            v-if="isTaskFederated"
-            :center="true"
-            @click="training_manager.joinFederatedTraining()"
-          >
-            {{
-              $t('training.trainingFrame.federatedTrainingButton')
+              $t('training.trainingFrame.collaborativeTrainingButton')
             }}
           </custom-button>
         </div>
@@ -166,9 +156,7 @@ export default {
     ...mapState(['useIndexedDB']),
     trainingText () {
       return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
-    },
-    isTaskDecentralized () { return this.task.trainingInformation.scheme === 'Decentralized' },
-    isTaskFederated () { return this.task.trainingInformation.scheme === 'Federated' }
+    }
   },
   watch: {
     // TODO: @s314cy, what does this do?

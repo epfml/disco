@@ -114,6 +114,7 @@
       "trainingFrame": {
         "dataExample": "Data Example",
         "localTrainingButton": "Train Locally",
+        "collaborativeTrainingButton": "Train Collaboratively",
         "decentralizedTrainingButton": "Train Decentralized",
         "federatedTrainingButton": "Train Federated",
         "saveModel": {
