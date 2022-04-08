@@ -10,7 +10,7 @@ env:
   server_dir: mobile-browser-based-version/server
 
 jobs:
-  lint-client-and-server:
+  lint-client:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,8 +26,24 @@ jobs:
       - run: npx eslint --max-warnings 0 .
       - run: npm run lint
 
+  lint-server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.server_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
+      - run: npm ci
+      - run: npx eslint --max-warnings 0 .
+      - run: npx ts-standard
+
   build-server:
-    needs: lint-client-and-server
+    needs: lint-server
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -53,7 +69,7 @@ jobs:
       - run: docker build ${{ env.server_dir }}
 
   build-client:
-    needs: lint-client-and-server
+    needs: lint-client
     runs-on: ubuntu-latest
     defaults:
       run:
