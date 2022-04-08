@@ -109,5 +109,23 @@
         }
       ],
       "furtherLinksTitle": "Further links"
+    },
+    "training": {
+      "trainingFrame": {
+        "dataExample": "Data Example",
+        "localTrainingButton": "Train Locally",
+        "decentralizedTrainingButton": "Train Decentralized",
+        "federatedTrainingButton": "Train Federated",
+        "saveModel": {
+          "header": "Save the model",
+          "description": "If you are satisfied with the performance of the model, don't forget to save the model by clicking on the button below. The next time you will load the application, you will be able to use your saved model.",
+          "button": "Save my model"
+        },
+        "testModel": {
+          "header": "Test the model",
+          "description": "If you are satisfied with the performance of the model, don't forget to save the model by clicking on the button below. The next time you will load the application, you will be able to use your saved model.",
+          "button": "Test my model"
+        }
+      }
     }
   }

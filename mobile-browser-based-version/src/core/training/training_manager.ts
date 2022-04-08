@@ -117,9 +117,30 @@ export class TrainingManager extends ModelActor {
   }
 
   /**
+   * Runs training using Local Scheme
+   */
+  async joinLocalTraining () {
+    await this.joinTraining(TrainingSchemes.LOCAL)
+  }
+
+  /**
+   * Runs training using Decentralized Scheme
+   */
+  async joinDecentralizedTraining () {
+    await this.joinTraining(TrainingSchemes.DECENTRALIZED)
+  }
+
+  /**
+   * Runs training using Federated Scheme
+   */
+  async joinFederatedTraining () {
+    await this.joinTraining(TrainingSchemes.FEDERATED)
+  }
+
+  /**
    * TODO: @s314cy, this function needs to be cleaned up with the new data loader update.
    * Main training function
-   * @param {boolean} distributed - use distributed training (true) or local training (false)
+   * @param {TrainingSchemes} trainingScheme which training scheme to use (Local, Decentralized or Federated)
    */
   async joinTraining (trainingScheme: TrainingSchemes) {
     // Initialize the client
