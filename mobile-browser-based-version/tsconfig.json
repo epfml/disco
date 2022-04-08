@@ -4,9 +4,9 @@
     "module": "CommonJS",
     "esModuleInterop": true,
     "allowJs": true,
-    "baseUrl": ".",
+    "baseUrl": "src",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["*"]
     }
   },
   "include": ["src/**/*"],
