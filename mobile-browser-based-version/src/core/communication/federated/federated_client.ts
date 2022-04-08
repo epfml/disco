@@ -2,10 +2,11 @@ import * as msgpack from 'msgpack-lite'
 import { makeID } from '../authentication'
 import { serializeWeights } from '../serialization'
 import { Client } from '../client'
-import { Task } from '@/core/task/base/task'
+import { Task } from '@/core/task/task'
 import { TrainingInformant } from '@/core/training/training_informant'
 import * as api from './federated_api'
-import * as tf from '@tensorflow/tfjs'
+import { LayersModel } from '@tensorflow/tfjs'
+
 /**
  * Class that deals with communication with the centralized server when training
  * a specific task.
@@ -52,7 +53,7 @@ export class FederatedClient extends Client {
     return response.status === 200
   }
 
-  async _postWeightsToServer (weights) {
+  private async postWeightsToServer (weights) {
     const encodedWeights = msgpack.encode(
       Array.from(await serializeWeights(weights))
     )
@@ -91,7 +92,7 @@ export class FederatedClient extends Client {
     }
   }
 
-  async _getLatestServerRound (): Promise<number> {
+  private async getLatestServerRound (): Promise<number> {
     const response = await api.getRound(this.task.taskID, this.clientID)
 
     if (response.status === 200) {
@@ -101,9 +102,9 @@ export class FederatedClient extends Client {
     return -1
   }
 
-  async _updateLocalModel (model: tf.LayersModel) {
+  private async updateLocalModel (model: LayersModel) {
     // get latest model from the server
-    const latestModel = await api.getLatestModel(this.task.taskID)
+    const latestModel = await this.getLatestModel()
 
     // update the model weights
     model.setWeights(latestModel.getWeights())
@@ -111,9 +112,9 @@ export class FederatedClient extends Client {
     console.log('Updated local model')
   }
 
-  async _fetchChangesAndUpdateModel (model: tf.LayersModel) {
+  private async fetchChangesAndUpdateModel (model: LayersModel) {
     // get server round of latest model
-    const serverRound = await this._getLatestServerRound()
+    const serverRound = await this.getLatestServerRound()
 
     const localRoundIsOld = this.modelUpdateIsBasedOnRoundNumber < serverRound
     if (localRoundIsOld) {
@@ -121,16 +122,16 @@ export class FederatedClient extends Client {
       // TODO need to check that update method did not fail!
       this.modelUpdateIsBasedOnRoundNumber = serverRound
       // update local model from server
-      await this._updateLocalModel(model)
+      await this.updateLocalModel(model)
     }
   }
 
-  async onRoundEndCommunication (model: tf.LayersModel, round: number, trainingInformant: TrainingInformant) {
-    await this._postWeightsToServer(model.weights)
-    await this._fetchChangesAndUpdateModel(model)
+  async onRoundEndCommunication (model: LayersModel, round: number, trainingInformant: TrainingInformant) {
+    await this.postWeightsToServer(model.weights)
+    await this.fetchChangesAndUpdateModel(model)
   }
 
-  async onTrainEndCommunication (model: tf.LayersModel, trainingInformant: TrainingInformant) {
+  async onTrainEndCommunication (model: LayersModel, trainingInformant: TrainingInformant) {
     trainingInformant.addMessage('Training finished.')
   }
 }
