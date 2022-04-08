@@ -1,0 +1,118 @@
+{
+  "name": "mobile-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "build17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service build",
+    "lint17": "export NODE_OPTIONS=--openssl-legacy-provider  && vue-cli-service lint",
+    "prod": "vue-cli-service serve --mode production",
+    "serve17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve",
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --exit -r ts-node/register --file tests/setup.ts 'tests/**/*.ts'"
+  },
+  "dependencies": {
+    "@meforma/vue-toaster": "1",
+    "@tensorflow/tfjs": "3",
+    "@tensorflow/tfjs-core": "3",
+    "@tensorflow/tfjs-node": "3",
+    "apexcharts": "3",
+    "aws-sdk": "2",
+    "axios": "0",
+    "core-js": "3",
+    "d3": "6",
+    "discojs": "file:../discojs",
+    "immutable": "4",
+    "jshashes": "1",
+    "lodash": "4",
+    "mock-aws-s3": "4",
+    "msgpack-lite": "0",
+    "nock": "13",
+    "papaparse": "5",
+    "path-browserify": "1",
+    "seedrandom": "3",
+    "simple-peer": "9",
+    "tippy.js": "6",
+    "ts-node-register": "1",
+    "vee-validate": "4",
+    "vue": "3",
+    "vue-i18n": "9",
+    "vue-router": "4",
+    "vue3-apexcharts": "1",
+    "vuex": "4",
+    "yup": "0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss7-compat": "2",
+    "@types/chai": "4",
+    "@types/d3": "7",
+    "@types/dotenv-flow": "3",
+    "@types/mocha": "9",
+    "@types/msgpack-lite": "0.1",
+    "@types/simple-peer": "9",
+    "@typescript-eslint/eslint-plugin": "5",
+    "@typescript-eslint/parser": "5",
+    "@vue/cli-plugin-babel": "5",
+    "@vue/cli-plugin-eslint": "5",
+    "@vue/cli-plugin-router": "5",
+    "@vue/cli-plugin-typescript": "5",
+    "@vue/cli-service": "5",
+    "@vue/compiler-sfc": "3",
+    "@vue/eslint-config-prettier": "6",
+    "@vue/eslint-config-standard": "6",
+    "@vue/eslint-config-typescript": "7",
+    "autoprefixer": "9",
+    "babel-eslint": "10",
+    "chai": "4",
+    "dotenv-flow": "3",
+    "eslint": "7",
+    "eslint-config-standard": "16",
+    "eslint-plugin-import": "2",
+    "eslint-plugin-node": "11",
+    "eslint-plugin-prettier": "3",
+    "eslint-plugin-promise": "5",
+    "eslint-plugin-vue": "8",
+    "mocha": "9",
+    "postcss": "8",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat@2",
+    "typescript": "4",
+    "vue-loader-v16": "npm:vue-loader@16"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended",
+      "@vue/prettier",
+      "@vue/typescript",
+      "@vue/standard",
+      "@vue/typescript/recommended"
+    ],
+    "parserOptions": {
+      "parser": "@typescript-eslint/parser",
+      "ecmaVersion": 2020
+    },
+    "rules": {
+      "no-unused-vars": "off",
+      "multi-word-component-names": "off",
+      "vue/multi-word-component-names": "off",
+      "prettier/prettier": [
+        "warn",
+        {
+          "singleQuote": true,
+          "trailingComma": "es5"
+        }
+      ]
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}

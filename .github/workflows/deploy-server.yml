@@ -25,7 +25,7 @@ jobs:
       - name: deploy-to-google-cloud
         uses: google-github-actions/deploy-appengine@v0.8.0
         with:
-          working_directory: mobile-browser-based-version/server
+          working_directory: server
           deliverables: app.yaml
           version: prod
           project_id: ${{ secrets.GCP_PROJECT }}
