@@ -12,7 +12,7 @@ export function isSerializedWeights (obj: unknown): obj is SerializedWeights {
     return false
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line
   const _: SerializedWeights = obj
 
   return true

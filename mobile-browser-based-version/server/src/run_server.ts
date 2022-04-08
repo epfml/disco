@@ -16,7 +16,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: false }))
 app.listen(CONFIG.serverPort)
 
 // Asynchronously create and save Tensorflow models to local storage
-Promise.all(models.map(async (createModel) => await createModel()))
+models.forEach((createModel) => { createModel().catch(console.error) })
 
 app.use('/deai', decentralisedRouter)
 app.use('/feai', federatedRouter)

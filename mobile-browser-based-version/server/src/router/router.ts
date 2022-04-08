@@ -1,10 +1,10 @@
 import express from 'express'
 import expressWS from 'express-ws'
-import _ from 'lodash'
 import * as handlers from '../logic/federated/request_handlers'
 import { writeNewTask, getTasks } from '../tasks/tasks_io'
 import { CONFIG } from '../config'
 import { SignalingServer } from './signaling_server'
+import { Task } from '../tasks'
 
 // enable websocket
 const wsApplier = expressWS(express())
@@ -20,32 +20,43 @@ wsApplier.applyTo(tasksRouter)
 
 tasksRouter.get('/', handlers.getTasksMetadata)
 // POST method route (task-creation-form)
-tasksRouter.post('/', function (req, res) {
+tasksRouter.post('/', (req, res, next) => {
+  const modelFile = req.body.modelFiles.modelFile
+  const weightsFile = req.body.modelFiles.weightsFile
   const newTask = req.body
-  if (newTask.taskID in tasks) { console.log('Cannot add new task (key is already defined in Tasks.json)') } else {
-    // extract model file from tasks
-    const modelFile = _.cloneDeep(newTask.modelFiles.modelFile)
-    const weightsFile = _.cloneDeep(newTask.modelFiles.weightsFile)
-    _.unset(newTask, 'modelFiles')
-    _.unset(newTask, 'weightsFiles')
-    // create new task and server
-    tasks.push(newTask)
-    console.log(`new task: ${newTask.taskID}`)
-    tasksRouter.ws(`/${newTask.taskID}`, (ws) => signalingServer.handle(newTask, ws))
-    // store results in json file
-    writeNewTask(newTask, modelFile, weightsFile, CONFIG)
-    // answer vue app
-    res.end('Successfully upload')
-  }
-})
-
-tasksRouter.ws('/:task', (ws, req) => {
-  const task = tasks.find((task) => task.taskID === req.params.task)
-  if (task === undefined) {
-    ws.close(undefined, 'no such task')
+  if (
+    typeof modelFile !== 'string' ||
+    (weightsFile instanceof Uint8Array) ||
+    !Task.isTask(newTask)
+  ) {
+    res.status(400)
     return
   }
-  signalingServer.handle(task.taskID, ws)
+  if (newTask.taskID in tasks) {
+    console.log('Cannot add new task (key is already defined in Tasks.json)')
+    res.status(400)
+    return
+  }
+
+  // create new task and server
+  tasks.then((ts) => ts.push(newTask)).catch(next)
+  console.log(`new task: ${newTask.taskID}`)
+  tasksRouter.ws(`/${newTask.taskID}`, (ws) => signalingServer.handle(newTask.taskID, ws))
+  // store results in json file
+  writeNewTask(newTask, modelFile, weightsFile, CONFIG).catch(next)
+  // answer vue app
+  res.end('Successfully upload')
+})
+
+tasksRouter.ws('/:task', (ws, req, next) => {
+  tasks.then(async () => {
+    const task = (await tasks).find((task) => task.taskID === req.params.task)
+    if (task === undefined) {
+      ws.close(undefined, 'no such task')
+      return
+    }
+    signalingServer.handle(task.taskID, ws)
+  }).catch(next)
 })
 
 tasksRouter.get('/:task/:file', handlers.getLatestModel)
@@ -57,9 +68,13 @@ federatedRouter.get('/', (_, res) => res.send('FeAI server'))
 federatedRouter.get('/connect/:task/:id', handlers.connect)
 federatedRouter.get('/disconnect/:task/:id', handlers.disconnect)
 
-federatedRouter.post('/weights/:task/:id', handlers.postWeights)
+federatedRouter.post('/weights/:task/:id', (req, res, next) => {
+  handlers.postWeights(req, res).catch(next)
+})
 
-federatedRouter.get('/round/:task/:id', handlers.getRound)
+federatedRouter.get('/round/:task/:id', (req, res, next) => {
+  handlers.getRound(req, res).catch(next)
+})
 federatedRouter.get('/statistics/:task/:id', handlers.getAsyncWeightInformantStatistics)
 
 federatedRouter

@@ -145,6 +145,10 @@ export class DisplayInformation {
 
 export type TaskID = string
 
+export function isTaskID (obj: unknown): obj is TaskID {
+  return typeof obj === 'string'
+}
+
 export class Task {
   static isTask (raw: unknown): raw is Task {
     if (typeof raw !== 'object') {

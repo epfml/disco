@@ -9,7 +9,7 @@ import { averageWeights } from '../aggregation'
 import { AsyncInformant } from '../../async_informant'
 import { AsyncBuffer } from '../../async_buffer'
 import { CONFIG } from '../../config'
-import { TaskID } from '../../tasks'
+import { TaskID, isTaskID } from '../../tasks'
 import { getTasks } from '../../tasks/tasks_io'
 import { Weights } from '../../types'
 
@@ -59,7 +59,7 @@ const metadataMap = immutable.Map<TaskID, immutable.Map<number, immutable.Map<st
 interface Log {
   timestamp: Date
   task: TaskID
-  round: string
+  round: number
   client: string
   request: RequestType
 }
@@ -70,18 +70,6 @@ const logs: Log[] = []
  */
 const clients = new Set()
 /**
- * Contains client IDs and their amount of recently emitted API requests.
- * This allows us to check whether clients were active within a certain time interval
- * and thus remove possibly AFK clients.
- */
-const activeClients = new Map()
-/**
- * Contains client IDs selected for the current round. Maps a task ID to a set of
- * selected clients. Disconnected clients should always be removed from the
- * corresponding set of selected clients.
- */
-const selectedClients = new Map()
-/**
  * Maps a task to a status object. Currently provides the round number and
  * round status for each task.
  */
@@ -89,18 +77,21 @@ const tasksStatus = new Map()
 /**
  * Initialize the data structures declared above.
  */
-getTasks(CONFIG.tasksFile)?.forEach((task) => {
+getTasks(CONFIG.tasksFile).then((tasks) => tasks.forEach((task) => {
   tasksStatus.set(task.taskID, { isRoundPending: false, round: 0 })
   getOrInitAsyncWeightsBuffer(task.taskID)
-})
+})).catch(console.log)
 
 // Inits the AsyncWeightsBuffer for the task if it does not yet exist.
 // TODO return both buffer and informant
 function getOrInitAsyncWeightsBuffer (taskID: TaskID): AsyncBuffer<Weights> {
   let buffer = asyncBuffersMap.get(taskID)
   if (buffer === undefined) {
-    const _taskAggregateAndStoreWeights = async (weights: Weights[]) => await _aggregateAndStoreWeights(weights, taskID)
-    buffer = new AsyncBuffer(taskID, BUFFER_CAPACITY, _taskAggregateAndStoreWeights)
+    buffer = new AsyncBuffer(
+      taskID,
+      BUFFER_CAPACITY,
+      async (weights: Weights[]) => await _aggregateAndStoreWeights(weights, taskID)
+    )
 
     asyncInformantsMap.set(taskID, new AsyncInformant(buffer))
   }
@@ -120,7 +111,7 @@ function getOrInitAsyncWeightsBuffer (taskID: TaskID): AsyncBuffer<Weights> {
  * @param {Request} request received from client
  */
 // TODO use https://expressjs.com/en/guide/error-handling.html
-function _checkRequest (request: Request) {
+function _checkRequest (request: Request): number {
   const task = request.params.task
   const round = Number.parseInt(request.params.round)
   const id = request.params.id
@@ -134,13 +125,10 @@ function _checkRequest (request: Request) {
   if (!clients.has(id)) {
     return 401
   }
-  if (!selectedClients.get(task).has(id)) {
-    return 403
-  }
   return 200
 }
 
-function _checkIfHasValidTaskAndId (request: Request) {
+function _checkIfHasValidTaskAndId (request: Request): number {
   const task = request.params.task
   const id = request.params.id
 
@@ -166,16 +154,21 @@ function _failRequest (response: Response, type: RequestType, code: number): num
  * @param {String} type of the request
  */
 function _logsAppend (request: Request, type: RequestType): void {
+  const round = parseRound(request.params.round)
+  if (round === undefined) {
+    return
+  }
+
   logs.push({
     timestamp: new Date(),
     task: request.params.task,
-    round: request.params.round,
+    round,
     client: request.params.id,
     request: type
   })
 }
 
-async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID) {
+async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): Promise<void> {
   // TODO: check whether this actually works
   const averaged = averageWeights(immutable.Set(weights))
 
@@ -193,7 +186,20 @@ async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID) {
 
   const model = await tf.loadLayersModel(modelFilesPath)
   model.setWeights(averaged)
-  model.save(path.dirname(modelFilesPath))
+  await model.save(path.dirname(modelFilesPath))
+}
+
+function parseRound (raw: unknown): number | undefined {
+  if (typeof raw !== 'string') {
+    return undefined
+  }
+
+  const round = Number.parseInt(raw)
+  if (Number.isNaN(round)) {
+    return undefined
+  }
+
+  return round
 }
 
 /**
@@ -207,21 +213,36 @@ async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID) {
  */
 export function queryLogs (request: Request, response: Response): void {
   const task = request.query.task
-  const round = request.query.round
+  const rawRound = request.query.round
   const id = request.query.id
 
-  console.log(`Logs query: task: ${task}, round: ${round}, id: ${id}`)
+  if (
+    (task !== undefined && !isTaskID(task)) ||
+    (rawRound !== undefined && typeof rawRound === 'string') ||
+    (id !== undefined && typeof id !== 'string')
+  ) {
+    response.status(400)
+    return
+  }
+
+  let round: number | undefined
+  if (rawRound !== undefined) {
+    round = parseRound(rawRound)
+    if (typeof round !== 'number') {
+      response.status(400)
+      return
+    }
+  }
+
+  const undef = '[undefined]'
+  console.log('Logs query: task:', task ?? undef, 'round:', round ?? undef, 'id:', id ?? undef)
 
   response
     .status(200)
-    .send(
-      logs.filter(
-        (entry) =>
-          (id ? entry.client === id : true) &&
-          (task ? entry.task === task : true) &&
-          (round ? entry.round === round : true)
-      )
-    )
+    .send(logs
+      .filter((entry) => (id !== undefined ? entry.client === id : true))
+      .filter((entry) => (task !== undefined ? entry.task === task : true))
+      .filter((entry) => (round !== undefined ? entry.round === round : true)))
 }
 
 /**
@@ -277,7 +298,6 @@ export function disconnect (request: Request, response: Response): void {
   _logsAppend(request, type)
 
   clients.delete(id)
-  activeClients.delete(id)
 
   console.log(`Client with ID ${id} disconnected from the server`)
   response.status(200).send()
@@ -355,12 +375,13 @@ export async function postWeights (request: Request, response: Response): Promis
  * @param response
  * @returns
  */
-export async function getRound (request: Request, response: Response) {
+export async function getRound (request: Request, response: Response): Promise<void> {
   // Check for errors
   const type = RequestType.GetAsyncRound
   const code = _checkIfHasValidTaskAndId(request)
   if (code !== 200) {
-    return _failRequest(response, type, code)
+    _failRequest(response, type, code)
+    return
   }
 
   const task = request.params.task
@@ -413,12 +434,13 @@ export async function getAsyncWeightInformantStatistics (request: Request, respo
  * @param {Request} request received from client
  * @param {Response} response sent to client
  */
-export function postMetadata (request: Request, response: Response) {
+export function postMetadata (request: Request, response: Response): void {
   const type = RequestType.PostMetadata
 
   const code = _checkRequest(request)
   if (code !== 200) {
-    return _failRequest(response, type, code)
+    _failRequest(response, type, code)
+    return
   }
 
   _logsAppend(request, type)
@@ -429,7 +451,8 @@ export function postMetadata (request: Request, response: Response) {
   const id = request.params.id
 
   if (request.body === undefined || request.body[metadata] === undefined) {
-    return _failRequest(response, type, 400)
+    _failRequest(response, type, 400)
+    return
   }
 
   if (metadataMap.hasIn([task, round, id, metadata])) {
@@ -438,8 +461,6 @@ export function postMetadata (request: Request, response: Response) {
   metadataMap.setIn([task, round, id, metadata], request.body[metadata])
 
   response.status(200).send()
-
-  activeClients.get(id).requests += 1
 }
 
 /**
@@ -468,7 +489,6 @@ export function getMetadataMap (request: Request, response: Response): void {
     _failRequest(response, type, 400)
     return
   }
-  const id = request.params.id
 
   // How did this work before?
   const taskMetadata = metadataMap.get(task)
@@ -500,8 +520,6 @@ export function getMetadataMap (request: Request, response: Response): void {
   response.status(200).send({
     metadata: msgpack.encode(Array.from(queriedMetadataMap))
   })
-
-  activeClients.get(id).requests += 1
 }
 
 /**

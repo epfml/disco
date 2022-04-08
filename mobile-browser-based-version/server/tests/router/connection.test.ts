@@ -10,11 +10,11 @@ const clientIds = ['a', 'b', 'c']
 const task = 'titanic'
 const nonExistingTask = 'nonExistingTask'
 
-function connectHeader (platformID: string, taskID: string, clientID: string) {
+function connectHeader (platformID: string, taskID: string, clientID: string): string {
   return `/${platformID}/connect/${taskID}/${clientID}`
 }
 
-function disconnectHeader (platformID: string, taskID: string, clientID: string) {
+function disconnectHeader (platformID: string, taskID: string, clientID: string): string {
   return `/${platformID}/disconnect/${taskID}/${clientID}`
 }
 
@@ -24,7 +24,7 @@ function disconnectHeader (platformID: string, taskID: string, clientID: string)
  * @param task task to connect to, e.g. titanic
  * @param clientID clientID
  */
-async function testConnectThenDisconnect (platformID: string, task: string, clientID: string) {
+async function testConnectThenDisconnect (platformID: string, task: string, clientID: string): Promise<void> {
   await request(app)
     .get(connectHeader(platformID, task, clientID))
     .expect(200)
@@ -39,11 +39,11 @@ async function testConnectThenDisconnect (platformID: string, task: string, clie
  * Platform connection tests on platformID
  * @param platformID
  */
-function testConnection (platformID: string) {
+function testConnection (platformID: string): void {
   describe(`${platformID} connection tests`, () => {
     it('connect and then disconnect to valid task', async () => {
       for (const id of clientIds) {
-        testConnectThenDisconnect(platformID, task, id)
+        await testConnectThenDisconnect(platformID, task, id)
       }
     })
 
