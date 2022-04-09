@@ -13,7 +13,7 @@ The server is running as a single ExpressJS app. It mainly requires [Node](https
 
 From this folder, you can run the server on localhost:8080 with `npm run dev`. This runs via the `nodemon` package, so it automatically restarts the process after changes.
 
-To automatically restarts the process after changes, the server also supports the `nodemon` package. It can be installed using
+To automatically restarts the process after changes, the server also supports the `nodemon` package.
 
 ### Testing the server locally
 
