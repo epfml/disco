@@ -1,6 +1,6 @@
 import * as memory from '../../memory/memory'
 import { Trainer } from './trainer'
-import { Task } from '../../task/base/task'
+import { Task } from '../../task/task'
 import { RoundTracker } from './round_tracker'
 import { Client } from '../../communication/client'
 import { TrainingInformant } from '../training_informant'

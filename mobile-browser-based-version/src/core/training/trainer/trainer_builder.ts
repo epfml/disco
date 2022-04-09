@@ -1,10 +1,11 @@
-import { Task } from '../../task/base/task'
+import { Task } from '../../task/task'
 import { RoundTracker } from './round_tracker'
 import { TrainingInformant } from '../training_informant'
 import { Client } from '../../communication/client'
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
 import { Trainer } from './trainer'
+import { getLatestModel } from '../../task/utils'
 import * as tf from '@tensorflow/tfjs'
 import * as memory from '../../memory/memory'
 
@@ -23,39 +24,33 @@ export class TrainerBuilder {
   }
 
   /**
-   * Build a distributed trainer that uses the client to share weights
+   * Builds a trainer object.
    *
    * @param trainSize number of samples in the training set
    * @param client client to share weights with (either distributed or federated)
+   * @param distributed whether to build a distributed or local trainer
    * @returns
    */
-  async buildDistributedTrainer (trainSize: number, client: Client): Promise<Trainer> {
+  async build (trainSize: number, client: Client, distributed: boolean = false): Promise<Trainer> {
     const model = await this.getModel()
-    return new DistributedTrainer(
-      this.task,
-      this.trainingInformant,
-      this.useIndexedDB,
-      this.buildRoundTracker(trainSize),
-      model,
-      client
-    )
-  }
-
-  /**
-   * Build a local trainer
-   *
-   * @param trainSize number of samples in the training set
-   * @returns
-   */
-  async buildLocalTrainer (trainSize: number): Promise<Trainer> {
-    const model = await this.getModel()
-    return new LocalTrainer(
-      this.task,
-      this.trainingInformant,
-      this.useIndexedDB,
-      this.buildRoundTracker(trainSize),
-      model
-    )
+    if (distributed) {
+      return new DistributedTrainer(
+        this.task,
+        this.trainingInformant,
+        this.useIndexedDB,
+        this.buildRoundTracker(trainSize),
+        model,
+        client
+      )
+    } else {
+      return new LocalTrainer(
+        this.task,
+        this.trainingInformant,
+        this.useIndexedDB,
+        this.buildRoundTracker(trainSize),
+        model
+      )
+    }
   }
 
   /**
@@ -91,7 +86,7 @@ export class TrainerBuilder {
         this.task.trainingInformation.modelID
       )
     }
-    return await this.task.createModel()
+    return await getLatestModel(this.task.taskID)
   }
 
   private updateModelInformation (model: tf.LayersModel) {

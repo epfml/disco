@@ -10,7 +10,6 @@
           v-if="tester.fileUploadManager"
           :id="id"
           :task="task"
-          :file-upload-manager="tester.fileUploadManager"
         />
       </div>
 
@@ -30,11 +29,12 @@
 </template>
 
 <script>
-import DatasetInputFrame from '../upload/DatasetInputFrame.vue'
+import DatasetInputFrame from '../dataset_input/DatasetInputFrame.vue'
 import CustomButton from '../../simple/CustomButton.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 
 import { Tester } from '../../../core/testing/tester'
+import { Task } from '../../../core/task/task'
 
 export default {
   name: 'TestingFrame',
@@ -49,11 +49,7 @@ export default {
       default: ''
     },
     task: {
-      type: Object,
-      default: undefined
-    },
-    helper: {
-      type: Object,
+      type: Task,
       default: undefined
     }
   },
