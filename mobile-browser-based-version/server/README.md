@@ -13,8 +13,6 @@ The server is running as a single ExpressJS app. It mainly requires [Node](https
 
 From this folder, you can run the server on localhost:8080 with `npm run dev`. This runs via the `nodemon` package, so it automatically restarts the process after changes.
 
-To automatically restarts the process after changes, the server also supports the `nodemon` package.
-
 ### Testing the server locally
 
 To run sever unit testing run `npm run test`. Make sure you are not running a server at the same time as the test suite will run a server to test on. We use [mocha](https://mochajs.org/), [chai](https://www.chaijs.com/) and [supertest](https://github.com/visionmedia/supertest) for testing; respectively they are libraries: unit tests, assertions, and http testing.
