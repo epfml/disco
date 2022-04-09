@@ -7,8 +7,8 @@
     :id="id"
     :task="task"
   />
-  <csv-testing-frame
-    v-else-if="task.trainingInformation.dataType == 'csv'"
+  <tabular-testing-frame
+    v-else-if="task.trainingInformation.dataType == 'tabular'"
     :id="id"
     :task="task"
   />
@@ -16,13 +16,13 @@
 
 <script>
 import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue'
-import CsvTestingFrame from '../building_frames/csv/CsvTestingFrame.vue'
+import TabularTestingFrame from '../building_frames/tabular/TabularTestingFrame.vue'
 
 export default {
   name: 'MainTestingFrame',
   components: {
     ImageTestingFrame,
-    CsvTestingFrame
+    TabularTestingFrame
   },
   props: {
     id: {

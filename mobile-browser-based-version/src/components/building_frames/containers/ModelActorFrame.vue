@@ -44,6 +44,7 @@
 import IconCard from '../../containers/IconCard.vue'
 import CheckList from '../../../assets/svg/CheckList.vue'
 import FileEarmarkRuled from '../../../assets/svg/FileEarmarkRuled.vue'
+import { Task } from '../../../core/task/task'
 
 export default {
   name: 'ModelActorFrame',
@@ -54,26 +55,20 @@ export default {
   },
   props: {
     task: {
-      type: Object,
+      type: Task,
       default: undefined
     }
   },
   data () {
     return {
-      // variables for general informations
       dataFormatInfoText: '',
       dataExampleText: ''
     }
   },
-  async mounted () {
-    // This method is called when the component is created
-    this.$nextTick(async function () {
-      // initialize information variables
-      this.dataFormatInfoText =
-        this.task.displayInformation.dataFormatInformation
-      this.dataExampleText = this.task.displayInformation.dataExampleText
-      console.log(`Mounting ${this.task.trainingInformation.modelID}`)
-    })
+  async created () {
+    this.dataFormatInfoText = this.task.displayInformation.dataFormatInformation
+    this.dataExampleText = this.task.displayInformation.dataExampleText
+    console.log(`Mounting ${this.task.trainingInformation.modelID}`)
   }
 }
 </script>

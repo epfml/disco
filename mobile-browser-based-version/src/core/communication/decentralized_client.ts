@@ -10,7 +10,7 @@ import {
   serializeWeights
 } from './serialization'
 import { Client } from './client'
-import { Task } from '@/core/task/base/task'
+import { Task } from '@/core/task/task'
 import { TrainingInformant } from '@/core/training/training_informant'
 
 type Weights = tf.LayerVariable[]
