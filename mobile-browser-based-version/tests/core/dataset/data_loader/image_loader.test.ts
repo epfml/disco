@@ -26,7 +26,7 @@ describe('image loader test', () => {
     const imageContent = tfNode.node.decodeImage(fs.readFileSync(path))
     const datasetContent = await new ImageLoader().load(path, { labels: ['example'] }).toArray()
     expect((datasetContent[0] as any).xs[0].shape).eql(imageContent.shape)
-    expect((datasetContent[0] as any).ys).eql(['example'])
+    expect((datasetContent[0] as any).ys[0]).eql('example')
   })
 
   it('load multiple cifar10 samples with labels', async () => {
@@ -41,7 +41,7 @@ describe('image loader test', () => {
     _.forEach(
       _.zip(datasetContent, imagesContent, labels), ([actual, sample, label]) => {
         expect((actual as any).xs[0].shape).eql(sample.shape)
-        expect((actual as any).ys).eql(label)
+        expect((actual as any).ys[0]).eql(label)
       }
     )
   })

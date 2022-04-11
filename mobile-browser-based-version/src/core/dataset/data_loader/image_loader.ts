@@ -39,12 +39,12 @@ export class ImageLoader extends DataLoader {
             }
             index++
             return {
-              value: withLabels ? { xs: [sample], ys: label } : sample,
+              value: withLabels ? { xs: [sample], ys: [label] } : sample,
               done: false
             }
           }
           return {
-            value: withLabels ? { xs: [sample], ys: label } : sample,
+            value: withLabels ? { xs: [sample], ys: [label] } : sample,
             done: true
           }
         }
