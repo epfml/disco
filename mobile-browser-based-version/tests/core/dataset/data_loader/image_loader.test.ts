@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import { ImageLoader } from '../../../../src/core/dataset/data_loader/image_loader'
 import * as tfNode from '@tensorflow/tfjs-node'
 import fs from 'fs'
+import _ from 'lodash'
 
 describe('image loader test', () => {
   it('load single mnist sample without label', () => {
@@ -28,7 +29,20 @@ describe('image loader test', () => {
     expect((datasetContent[0] as any).ys).eql(['example'])
   })
 
-  it('load multiple cifar10 samples with labels', () => {
-    // TODO @s314cy
+  it('load multiple cifar10 samples with labels', async () => {
+    const dir = './example_training_data/CIFAR10/'
+    const files = fs.readdirSync(dir).map((file) => dir.concat(file))
+    const labels = _.map(_.range(24), (label) => label.toString())
+
+    const imagesContent = files.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
+    const datasetContent = await new ImageLoader().loadAll(files, { labels: labels }).toArray()
+
+    expect(datasetContent.length).equal(imagesContent.length)
+    _.forEach(
+      _.zip(datasetContent, imagesContent, labels), ([actual, sample, label]) => {
+        expect((actual as any).xs[0].shape).eql(sample.shape)
+        expect((actual as any).ys).eql(label)
+      }
+    )
   })
 })

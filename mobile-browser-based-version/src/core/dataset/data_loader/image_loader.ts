@@ -39,12 +39,12 @@ export class ImageLoader extends DataLoader {
             }
             index++
             return {
-              value: withLabels ? { xs: sample, ys: label } : sample,
+              value: withLabels ? { xs: [sample], ys: label } : sample,
               done: false
             }
           }
           return {
-            value: withLabels ? { xs: sample, ys: label } : sample,
+            value: withLabels ? { xs: [sample], ys: label } : sample,
             done: true
           }
         }
@@ -57,10 +57,13 @@ export class ImageLoader extends DataLoader {
     if (typeof source === 'string') {
       // Node environment
       const tfNode = require('@tensorflow/tfjs-node')
-      return tfNode.node.decodeImage(fs.readFileSync(source))
+      const image = tfNode.node.decodeImage(fs.readFileSync(source))
+      return image
     } else if (source instanceof File) {
-      // TODO: Browser environment
-      return tf.tensor([1]) // tf.browser.fromPixels(image)
+      // Browser environment
+      // TODO: synchronous loading of image sample
+      // return tf.browser.fromPixels(await createImageBitmap(source))
+      return tf.tensor([1])
     } else {
       throw new Error('not implemented')
     }

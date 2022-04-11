@@ -47,7 +47,12 @@ export class TabularLoader extends DataLoader {
       delimiter: this.delimiter
     }
     const dataset = TabularLoader.loadTabularDatasetFrom(source, csvConfig)
-    return DataLoader.flattenDataset(dataset as any)
+    return (dataset as any).map(({ xs, ys }) => {
+      return {
+        xs: Object.values(xs),
+        ys: Object.values(ys)
+      }
+    })
   }
 
   /**
