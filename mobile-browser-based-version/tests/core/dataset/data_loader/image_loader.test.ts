@@ -62,6 +62,6 @@ describe('image loader test', () => {
     const trainingManager = new TrainingManager(cifar10, Platform.federated, logger, false)
     trainingManager.startTraining(dataset, false)
     await timer(500) // TODO: ugly
-    assert(trainingManager.trainer)
+    assert(trainingManager.isTraining)
   })
 })
