@@ -23,6 +23,8 @@ export function save (benchmarkResult: BenchmarkResult, config: SaveConfig) {
     fs.mkdirSync(config.path, { recursive: true })
   }
 
+  console.log({ benchmarkResult })
+
   // Map data to dict (easier to parse to json)
   const benchmarkDict = resultToDict(benchmarkResult)
 

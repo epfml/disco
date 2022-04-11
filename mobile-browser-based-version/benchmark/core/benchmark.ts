@@ -1,8 +1,8 @@
 import { BenchmarkConfig } from './config'
 import { User, UserId } from './user'
-import { LoggerResult } from './benchmark_logger'
+import { TrainerLog } from '../../src/core/training/trainer/trainer_logger'
 
-export type BenchmarkResult = Map<UserId, LoggerResult>
+export type BenchmarkResult = Map<UserId, TrainerLog>
 
 export class Benchmark<U extends User> {
     config: BenchmarkConfig
@@ -18,7 +18,7 @@ export class Benchmark<U extends User> {
     }
 
     getResult (): BenchmarkResult {
-      const result = new Map<UserId, LoggerResult>()
+      const result = new Map<UserId, TrainerLog>()
       this.users.forEach(user => {
         result.set(user.id, user.getResult())
       })

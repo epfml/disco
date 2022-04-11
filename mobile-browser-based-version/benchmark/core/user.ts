@@ -1,27 +1,27 @@
 import { UserConfig } from './config'
-import { BenchmarkLogger, LoggerResult } from './benchmark_logger'
+import { TrainerLogger, TrainerLog } from '../../src/core/training/trainer/trainer_logger'
 
 export type UserId = string
 
 export interface User {
     id: UserId
     config: UserConfig
-    logger: BenchmarkLogger
+    logger: TrainerLogger
 
     start(): Promise<void>
-    getResult(): LoggerResult
+    getResult(): TrainerLog
 
 }
 
 export class DiscoUser implements User {
   id: string
   config: UserConfig
-  logger: BenchmarkLogger
+  logger: TrainerLogger
   start (): Promise<void> {
     throw new Error('Method not implemented.')
   }
 
-  getResult (): LoggerResult {
+  getResult (): TrainerLog {
     throw new Error('Method not implemented.')
   }
 }
@@ -39,30 +39,34 @@ export function MockUserGenerator (config: UserConfig): MockUser[] {
 export class MockUser implements User {
     id: UserId
     config: UserConfig
-    logger: BenchmarkLogger
+    logger: TrainerLogger
 
     constructor (id: UserId, config: UserConfig) {
       this.id = id
       this.config = config
-      this.logger = new BenchmarkLogger()
+      this.logger = new TrainerLogger(true)
     }
 
     async start (): Promise<void> {
       this.simulateTraining()
     }
 
-    private simulateTraining (): void {
-      this.logger.success('connected.')
-      this.logger.success('train accuracy:.10')
-      this.logger.success('validation accuracy:.15')
-      this.logger.success('train accuracy:.30')
-      this.logger.success('validation accuracy:.15')
-      this.logger.success('train accuracy:.10')
-      this.logger.success('validation accuracy:.20')
-      this.logger.success('disconnected.')
+    private simulateEpoch (): void {
+      const log = {
+        acc: 0.5,
+        val_acc: 0.5,
+        loss: 0.5
+      }
+      this.logger.onEpochEnd(1, log)
     }
 
-    getResult (): LoggerResult {
-      return this.logger.loggerResult
+    private simulateTraining (): void {
+      this.simulateEpoch()
+      this.simulateEpoch()
+      this.simulateEpoch()
+    }
+
+    getResult (): TrainerLog {
+      return this.logger.getTrainerLog()
     }
 }
