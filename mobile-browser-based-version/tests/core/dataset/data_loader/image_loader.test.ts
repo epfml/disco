@@ -1,6 +1,6 @@
 import { expect, assert } from 'chai'
 import { ImageLoader } from '../../../../src/core/dataset/data_loader/image_loader'
-import { TrainingManager } from '../../../../src/core/training/training_manager'
+import { Disco } from '../../../../src/core/training/disco'
 import { loadTasks } from '../../../../src/core/task/utils'
 import { Platform } from '../../../../src/platforms/platform'
 import { logger } from '../../../../src/core/logging/console_logger'
@@ -59,9 +59,9 @@ describe('image loader test', () => {
 
     const dataset = new ImageLoader().loadAll(files, { labels: labels })
     const cifar10 = (await loadTasks())[3]
-    const trainingManager = new TrainingManager(cifar10, Platform.federated, logger, false)
-    trainingManager.startTraining(dataset, false)
+    const disco = new Disco(cifar10, Platform.federated, logger, false)
+    disco.startTraining(dataset, false)
     await timer(500) // TODO: ugly
-    assert(trainingManager.isTraining)
+    assert(disco.isTraining)
   })
 })

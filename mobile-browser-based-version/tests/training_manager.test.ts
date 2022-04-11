@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { loadTasks } from '../src/core/task/utils'
 import { TabularLoader } from '../src/core/dataset/data_loader/tabular_loader'
-import { TrainingManager } from '../src/core/training/training_manager'
+import { Disco } from '../src/core/training/disco'
 import { logger } from '../src/core/logging/console_logger'
 import { Platform } from '../src/platforms/platform'
 
@@ -19,7 +19,7 @@ describe('train test', () => {
         labels: titanic.trainingInformation.outputColumns
       }
     )
-    const trainer = new TrainingManager(titanic, platform, logger, false)
+    const trainer = new Disco(titanic, platform, logger, false)
 
     await trainer.connect()
     expect(trainer.isConnected).true
