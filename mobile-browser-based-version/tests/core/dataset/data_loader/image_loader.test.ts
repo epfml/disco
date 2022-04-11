@@ -1,8 +1,14 @@
-import { expect } from 'chai'
+import { expect, assert } from 'chai'
 import { ImageLoader } from '../../../../src/core/dataset/data_loader/image_loader'
+import { TrainingManager } from '../../../../src/core/training/training_manager'
+import { loadTasks } from '../../../../src/core/task/utils'
+import { Platform } from '../../../../src/platforms/platform'
+import { logger } from '../../../../src/core/logging/console_logger'
 import * as tfNode from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import _ from 'lodash'
+
+const timer = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 describe('image loader test', () => {
   it('load single mnist sample without label', () => {
@@ -44,5 +50,18 @@ describe('image loader test', () => {
         expect((actual as any).ys[0]).eql(label)
       }
     )
+  })
+
+  it('start training cifar10', async () => {
+    const dir = './example_training_data/CIFAR10/'
+    const files = fs.readdirSync(dir).map((file) => dir.concat(file))
+    const labels = _.map(_.range(24), (label) => label.toString())
+
+    const dataset = new ImageLoader().loadAll(files, { labels: labels })
+    const cifar10 = (await loadTasks())[3]
+    const trainingManager = new TrainingManager(cifar10, Platform.federated, logger, false)
+    trainingManager.startTraining(dataset, false)
+    await timer(500) // TODO: ugly
+    assert(trainingManager.trainer)
   })
 })
