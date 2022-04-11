@@ -1,23 +1,25 @@
-import { Benchmark } from './core/benchmark'
-import { save } from './core/result_io'
+import { Benchmark } from '../core/benchmark'
+import { MockUserGenerator } from '../core/user'
+import { save } from '../core/result_io'
 
 describe('Running benchmark', () => {
-  it('simple', async () => {
+  it('MockUser', async () => {
     const taskId = 'test'
     // init config
     const config = {
-      numberOfUsers: 2,
       userConfig: {
+        numberOfUsers: 2,
         trainingScheme: 'federated'
       },
       saveConfig: {
-        path: './benchmark/experiments/test/',
+        path: './benchmark/tests/results/',
         fileName: `${taskId}.csv`
       }
     }
 
     // run benchmark
-    const benchmark = new Benchmark(config)
+    const users = MockUserGenerator(config.userConfig)
+    const benchmark = new Benchmark(config, users)
     await benchmark.start()
     save(benchmark.getResult(), config.saveConfig)
   })

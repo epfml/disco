@@ -1,25 +1,16 @@
 import { BenchmarkConfig } from './config'
-import { MockUser, User, UserId } from './user'
+import { User, UserId } from './user'
 import { LoggerResult } from './benchmark_logger'
 
 export type BenchmarkResult = Map<UserId, LoggerResult>
 
-export class Benchmark {
+export class Benchmark<U extends User> {
     config: BenchmarkConfig
-    users: User[]
+    users: U[]
 
-    constructor (config: BenchmarkConfig) {
+    constructor (config: BenchmarkConfig, users: U[]) {
       this.config = config
-      this.initUsers()
-    }
-
-    private initUsers () {
-      this.users = []
-      let count = this.config.numberOfUsers
-      while (count--) {
-        const id = count.toString()
-        this.users = [...this.users, new MockUser(id, this.config.userConfig)]
-      }
+      this.users = users
     }
 
     async start (): Promise<void> {
