@@ -3,7 +3,6 @@ import * as tf from '@tensorflow/tfjs'
 import { Task } from '../task/task'
 
 export type Dataset = tf.data.Dataset<tf.TensorContainer>
-export type LabelledDataset = tf.data.Dataset<{ xs: tf.TensorContainer[], ys: tf.TensorContainer[] }>
 
 export class DatasetBuilder {
   private task: Task
