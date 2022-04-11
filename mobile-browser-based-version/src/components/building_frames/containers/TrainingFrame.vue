@@ -7,10 +7,9 @@
       <!-- Upload Training Data -->
       <div class="relative">
         <dataset-input-frame
-          v-if="training_manager.fileUploadManager"
           :id="id"
           :task="task"
-          :file-upload-manager="training_manager.fileUploadManager"
+          :dataset-builder="datasetBuilder"
         />
       </div>
 
@@ -18,16 +17,16 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <div v-if="!training_manager.isTraining">
+        <div v-if="!disco.isTraining">
           <custom-button
             :center="true"
-            @click="training_manager.joinTraining(false)"
+            @click="startTraining(false)"
           >
             Train Locally
           </custom-button>
           <custom-button
             :center="true"
-            @click="training_manager.joinTraining(true)"
+            @click="startTraining(true)"
           >
             Train {{ $t('platform') }}
           </custom-button>
@@ -36,17 +35,17 @@
           <custom-button
             :center="true"
             color="bg-red-500"
-            @click="training_manager.stopTraining()"
+            @click="disco.stopTraining()"
           >
-            Stop {{ trainingText }} Training
+            Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
           </custom-button>
         </div>
       </div>
       <!-- Training Board -->
       <div>
         <training-information-frame
-          v-if="training_manager.trainingInformant"
-          :training-informant="training_manager.trainingInformant"
+          v-if="disco.trainingInformant"
+          :training-informant="disco.trainingInformant"
         />
       </div>
 
@@ -107,7 +106,7 @@
 </template>
 
 <script>
-import DatasetInputFrame from '../upload/DatasetInputFrame.vue'
+import DatasetInputFrame from '../dataset_input/DatasetInputFrame.vue'
 import TrainingInformationFrame from '../TrainingInformationFrame.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
@@ -116,7 +115,10 @@ import Download from '../../../assets/svg/Download.vue'
 
 import { mapState } from 'vuex'
 import * as memory from '../../../core/memory/memory'
-import { TrainingManager } from '../../../core/training/training_manager'
+import { Disco } from '../../../core/training/disco'
+import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
+import { DataLoader } from '../../../core/dataset/data_loader/data_loader'
+import { Task } from '../../../core/task/task'
 
 export default {
   name: 'TrainingFrame',
@@ -134,51 +136,44 @@ export default {
       default: ''
     },
     task: {
-      type: Object,
+      type: Task,
       default: undefined
     },
-    helper: {
-      type: Object,
+    dataLoader: {
+      type: DataLoader,
       default: undefined
-    }
-  },
-  data () {
-    return {
-      training_manager: new TrainingManager(
-        this.task,
-        this.$store.getters.platform,
-        this.$toast,
-        this.helper,
-        this.useIndexedDB
-      )
     }
   },
   computed: {
-    ...mapState(['useIndexedDB']),
-    trainingText () {
-      return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
-    }
+    ...mapState(['useIndexedDB'])
   },
   watch: {
-    // TODO: @s314cy, what does this do?
     useIndexedDB (newValue) {
-      this.training_manager.trainer().setIndexedDB(!!newValue)
+      this.disco.setIndexedDB(!!newValue)
     }
   },
   created () {
-    // Disconnect from the centralized server on page close
-    window.addEventListener('beforeunload', () => {
-      this.training_manager.client.disconnect()
-    })
-  },
-  unmounted () {
-    this.training_manager.disconnect()
+    this.disco = new Disco(
+      this.task,
+      this.$store.getters.platform,
+      this.$toast,
+      this.useIndexedDB
+    )
+    this.datasetBuilder = new DatasetBuilder(this.dataLoader, this.task)
   },
   methods: {
-    goToTesting () {
-      this.$router.push({
-        path: 'testing'
-      })
+    startTraining (distributedTraining) {
+      try {
+        if (!this.datasetBuilder.isBuilt()) {
+          this.dataset = this.datasetBuilder
+            .build()
+            .batch(this.task.trainingInformation.batchSize)
+        }
+        this.disco.startTraining(this.dataset, distributedTraining)
+      } catch {
+        this.$toast.error('Invalid files were given!')
+        setTimeout(this.$toast.clear, 30000)
+      }
     },
     async saveModel () {
       if (this.useIndexedDB) {
@@ -195,6 +190,11 @@ export default {
         )
       }
       setTimeout(this.$toast.clear, 30000)
+    },
+    goToTesting () {
+      this.$router.push({
+        path: 'testing'
+      })
     }
   }
 }

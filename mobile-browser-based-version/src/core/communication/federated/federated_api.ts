@@ -1,5 +1,4 @@
 import axios from 'axios'
-import * as tf from '@tensorflow/tfjs'
 
 function serverUrl () {
   // We place this in a function since during a test script the env is not defined
@@ -49,19 +48,6 @@ export async function getRound (taskID: string, clientID: string) {
 
 export async function getAsyncWeightInformantStatistics (taskID: string, clientID: string) {
   return await fetchFromServer('statistics', taskID, clientID)
-}
-
-/**
- * Gets the latest model of taskId from the server. On the server side, the request_handlers.ts updates the model
- * of taskId after each new round (i.e the buffer is full) by averaging the weights in the buffer and storing them
- * in the server; these weights are being fetched by getLatestModel.
- * @param taskId
- * @returns
- */
-export async function getLatestModel (taskId: string) {
-  const url = serverUrl().concat(`tasks/${taskId}/model.json`)
-  const latestModel = await tf.loadLayersModel(url)
-  return latestModel
 }
 
 export async function postMetadata (
