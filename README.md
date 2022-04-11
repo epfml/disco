@@ -22,21 +22,19 @@ We support all modern deep learning architectures running on device (currently v
 
 ### Tasks
 
-The platform already contains several **_popular tasks_** such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python).
+The platform already hosts several **_popular tasks_** such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python).
 
-New tasks can be created [the following form](https://epfml.github.io/disco/#/task-creation-form). To do so, practical information related to the task (e.g. description, features, learning rate, etc.) must be provided. Furthermore, two extra `TensorFlow.js` files need to be uploaded:
+New tasks can easily be created using [the following form](https://epfml.github.io/disco/#/task-creation-form). To do so, practical information related to the task (e.g. description, features, learning rate, etc.) must be provided. Furthermore, two extra `TensorFlow.js` files need to be provided:
 
 - A model file in `JSON` format. Please refer to the following official documentation pages to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model.
 - A weight file in `.bin` format. These are the initial weights that will be provided to new users upon joining the training of your task. You can either provide a pre-trained model or use a simple random initialisation scheme.
 
-> **Note**: for the moment, only `CSV` and `Image` data types are supported but stay tuned: it will soon be possible to add new types directly on the platform :mega:
+> **Note**: for the moment, `CSV` and `Image` data types are supported by default. If you want to add a completely new data type with its own preprocessing code, currently you are required to copy and change the correspondig code (see [developer guide](https://github.com/epfml/disco/tree/develop/mobile-browser-based-version#readme)) :mega:
 
 ### Settings
 
-Under the sidebar on the left, you will find a **_settings_** button. We offer multiple personalisation options for the user. In particular:
+Under the sidebar on the left, you will find a **_settings_** button. We offer multiple personalisation options for the user. For example:
 
-1. **Platform type**: train `decentralised` or `federated` according to your needs :rocket: Be aware that changing the platform type during training will reset the state of the platform. In other words, your training progress will be lost :warning:
-2. **Model library**: storage options can be enabled so that your models are safely saved in your browser database :floppy_disk:
-3. **Themes and colors**: customise the look of the platform as you please :rainbow:
+- **Model library**: storage options can be enabled so that your models are safely saved in your browser database :floppy_disk:
 
 If you have any questions related to Disco, feel free to raise an issue or join our [slack workspace](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw) :question:
