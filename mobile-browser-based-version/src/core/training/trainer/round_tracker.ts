@@ -20,8 +20,6 @@ export class RoundTracker {
       this.roundDuration = roundDuration
       this.numberOfBatchesInAnEpoch = RoundTracker.numberOfBatchesInAnEpoch(trainSize, batchSize)
       this.batchesPerRound = Math.floor(this.numberOfBatchesInAnEpoch * this.roundDuration)
-
-      console.log(`RoundTracker: roundDuration: ${roundDuration}, nb batches in an epoch ${this.numberOfBatchesInAnEpoch}`)
     }
 
     /**

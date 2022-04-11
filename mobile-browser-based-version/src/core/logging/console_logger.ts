@@ -5,12 +5,12 @@ import { Logger } from './logger'
  *
  * @class Logger
  */
-class ConsoleLogger extends Logger {
+export class ConsoleLogger extends Logger {
   /**
    * Logs success message on the console (in green)
    * @param {String} message - message to be displayed
    */
-  success (message) {
+  success (message: string): void {
     console.log(chalk.green(message))
   }
 
@@ -18,8 +18,16 @@ class ConsoleLogger extends Logger {
    * Logs error message on the console (in red)
    * @param {String} message - message to be displayed
    */
-  error (message) {
+  error (message: string): void {
     console.log(chalk.red(message))
+  }
+
+  /**
+   * Logs information message on the console (in gray)
+   * @param {String} message - message to be displayed
+   */
+  information (message: string): void {
+    console.log(chalk.gray(message))
   }
 }
 

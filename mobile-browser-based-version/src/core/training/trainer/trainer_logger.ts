@@ -1,46 +1,65 @@
-import chalk from 'chalk'
-import { Logger } from '../../logging/logger'
+import { ConsoleLogger } from '../../logging/console_logger'
 import * as tf from '@tensorflow/tfjs'
 
+export interface TrainerLog {
+  epochs: number[]
+  trainAccuracy: number[]
+  validationAccuracy: number[]
+  loss: number[]
+}
+
 /**
- * Same properties as Toaster but on the console
  *
- * @class Logger
+ * @class TrainerLogger
  */
-export class TrainerLogger extends Logger {
-  /**
-   * Logs success message on the console (in green)
-   * @param {String} message - message to be displayed
-   */
-  success (message: string) {
-    console.log(chalk.green(message))
+export class TrainerLogger extends ConsoleLogger {
+  epochs: number[] = []
+  trainAccuracy: number[] = []
+  validationAccuracy: number[] = []
+  loss: number[] = []
+  isLogSaveEnabled: boolean
+
+  constructor (isLogSaveEnabled: boolean = false) {
+    super()
+    this.isLogSaveEnabled = isLogSaveEnabled
   }
 
-  /**
-   * Logs error message on the console (in red)
-   * @param {String} message - message to be displayed
-   */
-  error (message: string) {
-    console.log(chalk.red(message))
+  onBatchEnd (batch: number, logs: tf.Logs): void {
+    // logs.val_acc is not available on batch end
+    this.information(`On batch end:${batch}\n Train Accuracy:${logs.acc}`)
   }
 
-  onBatchEnd (batch: number, accuracy: number) {
-    this.success(`On batch end:${batch}`)
-    this.success(`Train Accuracy: ${accuracy}`)
+  onEpochEnd (epoch: number, logs: tf.Logs): void {
+    // save logs
+    if (this.isLogSaveEnabled) {
+      this.saveLog(epoch, logs)
+    }
+    // console output
+    const msg = `Train:${logs.acc}\nValidation:${logs.val_acc}\nLoss:${logs.loss}`
+    this.information(`On epoch end accuracy:\n${msg}`)
   }
 
-  onEpochEnd (accuracy: number, validationAccuracy: number) {
-    this.success(
-      `OnEpochEnd:\n Train Accuracy: ${accuracy},
-      Val Accuracy:  ${validationAccuracy}\n`
-    )
+  getTrainerLog (): TrainerLog {
+    return {
+      epochs: this.epochs,
+      trainAccuracy: this.trainAccuracy,
+      validationAccuracy: this.validationAccuracy,
+      loss: this.loss
+    }
+  }
+
+  private saveLog (epoch: number, logs: tf.Logs): void {
+    this.epochs.push(epoch)
+    this.trainAccuracy.push(logs.acc)
+    this.validationAccuracy.push(logs.val_acc)
+    this.loss.push(logs.loss)
   }
 
   /**
    *  Display ram usage
    */
-  ramUsage () {
-    this.success(`Training RAM usage is  = ${tf.memory().numBytes * 0.000001} MB`)
-    this.success(`Number of allocated tensors  = ${tf.memory().numTensors}`)
+  ramUsage (): void {
+    this.information(`Training RAM usage is  = ${tf.memory().numBytes * 0.000001} MB`)
+    this.information(`Number of allocated tensors  = ${tf.memory().numTensors}`)
   }
 }
