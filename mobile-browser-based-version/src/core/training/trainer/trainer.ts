@@ -67,7 +67,7 @@ export abstract class Trainer {
   }
 
   /**
-   * Request stop training to be used from the training_manager or any class that is taking care of the trainer.
+   * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
    */
   stopTraining () {
     this.stopTrainingRequested = true

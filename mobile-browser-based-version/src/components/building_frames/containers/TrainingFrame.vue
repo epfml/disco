@@ -17,7 +17,7 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <div v-if="!trainingManager.isTraining">
+        <div v-if="!disco.isTraining">
           <custom-button
             :center="true"
             @click="startTraining(false)"
@@ -35,7 +35,7 @@
           <custom-button
             :center="true"
             color="bg-red-500"
-            @click="trainingManager.stopTraining()"
+            @click="disco.stopTraining()"
           >
             Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
           </custom-button>
@@ -44,8 +44,8 @@
       <!-- Training Board -->
       <div>
         <training-information-frame
-          v-if="trainingManager.trainingInformant"
-          :training-informant="trainingManager.trainingInformant"
+          v-if="disco.trainingInformant"
+          :training-informant="disco.trainingInformant"
         />
       </div>
 
@@ -115,7 +115,7 @@ import Download from '../../../assets/svg/Download.vue'
 
 import { mapState } from 'vuex'
 import * as memory from '../../../core/memory/memory'
-import { TrainingManager } from '../../../core/training/training_manager'
+import { Disco } from '../../../core/training/disco'
 import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
 import { DataLoader } from '../../../core/dataset/data_loader/data_loader'
 import { Task } from '../../../core/task/task'
@@ -149,11 +149,11 @@ export default {
   },
   watch: {
     useIndexedDB (newValue) {
-      this.trainingManager.setIndexedDB(!!newValue)
+      this.disco.setIndexedDB(!!newValue)
     }
   },
   created () {
-    this.trainingManager = new TrainingManager(
+    this.disco = new Disco(
       this.task,
       this.$store.getters.platform,
       this.$toast,
@@ -169,7 +169,7 @@ export default {
             .build()
             .batch(this.task.trainingInformation.batchSize)
         }
-        this.trainingManager.startTraining(this.dataset, distributedTraining)
+        this.disco.startTraining(this.dataset, distributedTraining)
       } catch {
         this.$toast.error('Invalid files were given!')
         setTimeout(this.$toast.clear, 30000)
