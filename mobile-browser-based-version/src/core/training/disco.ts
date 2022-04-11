@@ -11,7 +11,7 @@ import * as tf from '@tensorflow/tfjs'
 /**
  * Handles the training loop, server communication & provides the user with feedback.
  */
-export class TrainingManager {
+export class Disco {
   platform: Platform
   task: Task
   client: Client
@@ -40,7 +40,7 @@ export class TrainingManager {
   }
 
   /**
-   * Connects the TrainingManager to the server
+   * Connects the Disco instance to the server
    */
   async connect (): Promise<void> {
     try {
