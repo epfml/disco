@@ -8,12 +8,19 @@ type DataSerie = {
  */
 export class TrainingInformant {
   taskID: string;
+  // Decentralized Informations
   whoReceivedMyModel: Set<unknown>;
   nbrUpdatesWithOthers: number;
   waitingTime: number;
   nbrWeightRequests: number;
   nbrMessagesToShow: number;
   messages: any[];
+  // Federated Informations
+  currentRound: number;
+  currentNumberOfParticipants: number;
+  totalNumberOfParticipants: number;
+  averageNumberOfParticipants : number;
+  // Common Informations
   validationAccuracyChart: any;
   validationAccuracy: number;
   trainingAccuracyChart: any;
@@ -50,6 +57,13 @@ export class TrainingInformant {
     // message feedback from peer-to-peer training
     this.nbrMessagesToShow = length
     this.messages = []
+
+    // statistics received from the server
+
+    this.currentRound = 0
+    this.currentNumberOfParticipants = 0
+    this.totalNumberOfParticipants = 0
+    this.averageNumberOfParticipants = 0
 
     // validation accuracy chart
     this.validationAccuracyChart = null // new TrainingChart("validationAccuracy_".concat(taskID), "Validation Accuracy")
@@ -111,6 +125,18 @@ export class TrainingInformant {
       this.messages.shift()
     }
     this.messages.push(msg)
+  }
+
+  /**
+   * Update the server statistics with the JSON received from the server
+   * For now it's just the JSON, but we might want to keep it as a dictionnary
+   * @param {any} receivedStatistics statistics received from the server.
+   */
+  updateWithServerStatistics (receivedStatistics: any) {
+    this.currentRound = receivedStatistics.round
+    this.currentNumberOfParticipants = receivedStatistics.currentNumberOfParticipants
+    this.totalNumberOfParticipants = receivedStatistics.totalNumberOfParticipants
+    this.averageNumberOfParticipants = receivedStatistics.averageNumberOfParticipants
   }
 
   cssColors = (color: string) => {
