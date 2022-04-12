@@ -1,13 +1,14 @@
 import { DataLoader, Source, DataConfig } from './data_loader'
 import { Dataset } from '../dataset_builder'
+import { Task } from '../../task/task'
 import * as tf from '@tensorflow/tfjs'
 import _ from 'lodash'
 
 export class TabularLoader extends DataLoader {
   private delimiter: string
 
-  constructor (delimiter: string) {
-    super()
+  constructor (task: Task, delimiter: string) {
+    super(task)
     this.delimiter = delimiter
   }
 

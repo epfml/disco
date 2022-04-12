@@ -85,7 +85,7 @@ export class Disco {
         'Thank you for your contribution. Data preprocessing has started'
       )
       await this.initTrainer(dataset)
-      this.trainer.trainModel(dataset)
+      await this.trainer.trainModel(dataset)
       this.isTraining = true
     }
   }
