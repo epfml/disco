@@ -34,9 +34,20 @@ export async function postWeights (taskID: string, clientID: string, weights, ro
   })
 }
 
-export async function getRound (taskID: string, clientID: string) {
-  const url = serverUrl().concat(`round/${taskID}/${clientID}`)
+// I was thinking that since simple gets like this might be used quite commonly it could be nice to
+// have a function that crafts the query directly, what do you think ?
+async function fetchFromServer (route: string, ...requiredParameters: string[]) {
+  const queryUrl = route + requiredParameters.map(x => '/' + x).join('')
+  const url = serverUrl().concat(queryUrl)
   return await axios.get(url)
+}
+
+export async function getRound (taskID: string, clientID: string) {
+  return await fetchFromServer('round', taskID, clientID)
+}
+
+export async function getAsyncWeightInformantStatistics (taskID: string, clientID: string) {
+  return await fetchFromServer('statistics', taskID, clientID)
 }
 
 export async function postMetadata (
