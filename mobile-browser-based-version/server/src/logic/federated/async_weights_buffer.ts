@@ -1,3 +1,4 @@
+import { AsyncWeightsInformant } from './async_weights_informant'
 
 /**
  * The AsyncWeightsBuffer class holds and manipulates information about the
@@ -22,6 +23,7 @@ export class AsyncWeightsBuffer {
     buffer: Map<string, any>;
     round: number;
     roundCutoff: number;
+    observer: AsyncWeightsInformant
     _aggregateAndStoreWeights: (weights: any) => Promise<void>;
 
     constructor (taskID: string, bufferCapacity: number, aggregateAndStoreWeights: (weights: any) => Promise<void>, roundCutoff: number = 0) {
@@ -31,6 +33,17 @@ export class AsyncWeightsBuffer {
       this._aggregateAndStoreWeights = aggregateAndStoreWeights
       this.roundCutoff = roundCutoff
       this.round = 0
+      this.observer = null
+    }
+
+    registerObserver (observer: AsyncWeightsInformant) {
+      this.observer = observer
+    }
+
+    _notifyObserver () {
+      if (this.observer != null) {
+        this.observer.update()
+      }
     }
 
     _resetBuffer () {
@@ -43,6 +56,7 @@ export class AsyncWeightsBuffer {
 
     _updateRound () {
       this.round += 1
+      this._notifyObserver()
     }
 
     _getWeightsFromBuffer () {
