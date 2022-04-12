@@ -162,7 +162,7 @@ export default {
     this.datasetBuilder = new DatasetBuilder(this.dataLoader, this.task)
   },
   methods: {
-    startTraining (distributedTraining) {
+    async startTraining (distributedTraining) {
       try {
         if (!this.datasetBuilder.isBuilt()) {
           this.dataset = await this.datasetBuilder
