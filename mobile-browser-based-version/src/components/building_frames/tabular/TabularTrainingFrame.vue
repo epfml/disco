@@ -2,7 +2,7 @@
   <training-frame
     :id="id"
     :task="task"
-    :helper="helper"
+    :data-loader="tabularLoader"
   >
     <template #dataExample>
       <!-- Data Point Example -->
@@ -118,14 +118,15 @@
   </training-frame>
 </template>
 
-<script>
+<script lang="ts">
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
-import { CsvTaskHelper } from '../../../core/task/csv/csv_task_helper'
+import { TabularLoader } from '../../../core/dataset/data_loader/tabular_loader'
+import { Task } from '../../../core/task/task'
 
 export default {
-  name: 'CsvTrainingFrame',
+  name: 'TabularTrainingFrame',
   components: {
     TrainingFrame,
     IconCard,
@@ -137,15 +138,12 @@ export default {
       default: ''
     },
     task: {
-      type: Object,
+      type: Task,
       default: undefined
     }
   },
-  data () {
-    return {
-      // Headers related to training task of containing item of the form {id: "", userHeader: ""}
-      helper: new CsvTaskHelper(this.task)
-    }
+  created () {
+    this.tabularLoader = new TabularLoader(',')
   }
 }
 </script>

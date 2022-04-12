@@ -28,6 +28,7 @@
 </template>
 <script>
 import DescriptionFrame from '../building_frames/DescriptionFrame.vue'
+import { Task } from '../../core/task/task'
 
 export default {
   name: 'MainDescriptionFrame',
@@ -40,7 +41,7 @@ export default {
       default: ''
     },
     task: {
-      type: Object,
+      type: Task,
       default: undefined
     }
   }

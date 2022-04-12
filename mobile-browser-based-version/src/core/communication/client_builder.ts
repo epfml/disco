@@ -2,7 +2,7 @@ import { Client } from './client'
 import { DecentralizedClient } from './decentralized_client'
 import { FederatedClient } from './federated/federated_client'
 import { TrainingSchemes } from '../training/trainingSchemes'
-import { Task } from '../task/base/task'
+import { Task } from '../task/task'
 
 export function getClient (trainingScheme: TrainingSchemes, task: Task, password?: string): Client {
   switch (trainingScheme) {
