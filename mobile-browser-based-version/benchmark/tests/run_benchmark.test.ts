@@ -13,7 +13,7 @@ describe('Running benchmark', () => {
       },
       saveConfig: {
         path: './benchmark/tests/results/',
-        fileName: `${taskId}.csv`
+        fileName: `${taskId}.json`
       }
     }
 
