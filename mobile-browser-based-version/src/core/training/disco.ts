@@ -37,9 +37,28 @@ export class Disco {
   }
 
   /**
+   * Initialize the client depending on the trainingType Chosen
+   */
+  private async initOrUpdateClient (trainingScheme : TrainingSchemes) {
+    if (trainingScheme === TrainingSchemes.LOCAL) {
+      this.client = undefined
+      this.trainingScheme = trainingScheme
+      console.log('No client needed when Training Locally')
+    } else if (this.client === undefined || trainingScheme !== this.trainingScheme) {
+      this.client = getClient(
+        trainingScheme,
+        this.task,
+        undefined // TODO: this.$store.getters.password(this.id)
+      )
+      this.trainingScheme = trainingScheme
+      console.log('Initialized client ' + trainingScheme)
+    }
+  }
+
+  /**
    * Connects the Disco instance to the server
    */
-  async connect (): Promise<void> {
+  private async connect (): Promise<void> {
     try {
       await this.client.connect()
       this.logger.success(
@@ -58,27 +77,8 @@ export class Disco {
   /**
    * Disconnects the client from the server
    */
-  async disconnect () {
+  private async disconnect () {
     await this.client.disconnect()
-  }
-
-  /**
-   * Initialize the client depending on the trainingType Chosen
-   */
-  private async initOrUpdateClient (trainingScheme : TrainingSchemes) {
-    if (trainingScheme === TrainingSchemes.LOCAL) {
-      this.client = undefined
-      this.trainingScheme = trainingScheme
-      console.log('No client needed when Training Locally')
-    } else if (this.client === undefined || trainingScheme !== this.trainingScheme) {
-      this.client = getClient(
-        trainingScheme,
-        this.task,
-        undefined // TODO: this.$store.getters.password(this.id)
-      )
-      this.trainingScheme = trainingScheme
-      console.log('Initialized client ' + trainingScheme)
-    }
   }
 
   /**
