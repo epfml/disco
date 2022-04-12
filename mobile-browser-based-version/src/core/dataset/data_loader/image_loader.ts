@@ -28,7 +28,8 @@ export class ImageLoader extends DataLoader {
     const withLabels = config !== undefined && config.labels !== undefined
     let labels: any
     if (withLabels) {
-      labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), this.task.trainingInformation.LABEL_LIST.length).arraySync()
+      const numberOfClasses = this.task.trainingInformation.LABEL_LIST.length
+      labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), numberOfClasses).arraySync()
     }
     return tf.data.generator(() => {
       let index = 0
