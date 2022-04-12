@@ -7,8 +7,7 @@ const inputFiles = ['./example_training_data/titanic.csv']
 describe('tabular loader test', () => {
   it('titanic csv load  sample', async () => {
     const titanic = (await loadTasks())[0]
-    const loader = new TabularLoader(',')
-    const dataset = loader.load(
+    const dataset = new TabularLoader(titanic, ',').load(
       'file://'.concat(inputFiles[0]),
       {
         features: titanic.trainingInformation.inputColumns,

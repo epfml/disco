@@ -86,7 +86,7 @@ export abstract class Trainer {
     // const { trainingDataset, validationDataset } = this.validationSplit(dataset)
 
     // Assign callbacks and start training
-    await this.model.fitDataset(dataset, {
+    await this.model.fitDataset(dataset.batch(this.task.trainingInformation.batchSize), {
       epochs: this.trainingInformation.epochs,
       // validationData: validationDataset,
       callbacks: {

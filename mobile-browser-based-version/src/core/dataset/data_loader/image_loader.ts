@@ -17,8 +17,8 @@ export class ImageLoader extends DataLoader {
       tensorContainer = ImageLoader.readImageFrom(image)
     } else {
       tensorContainer = {
-        xs: [ImageLoader.readImageFrom(image)],
-        ys: [config.labels[0]]
+        xs: ImageLoader.readImageFrom(image),
+        ys: config.labels[0]
       }
     }
     return tf.data.array([tensorContainer])
@@ -26,25 +26,29 @@ export class ImageLoader extends DataLoader {
 
   loadAll (images: Source[], config?: DataConfig): Dataset {
     const withLabels = config !== undefined && config.labels !== undefined
+    let labels: any
+    if (withLabels) {
+      labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), this.task.trainingInformation.LABEL_LIST.length).arraySync()
+    }
     return tf.data.generator(() => {
       let index = 0
       const iterator = {
         next: () => {
-          let sample: tf.Tensor3D
-          let label: string
+          let sample: tf.Tensor
+          let label: tf.Tensor
           if (index < images.length) {
             sample = ImageLoader.readImageFrom(images[index])
             if (withLabels) {
-              label = config.labels[index]
+              label = labels[index]
             }
             index++
             return {
-              value: withLabels ? { xs: [sample], ys: [label] } : sample,
+              value: withLabels ? { xs: sample, ys: label } : sample,
               done: false
             }
           }
           return {
-            value: withLabels ? { xs: [sample], ys: [label] } : sample,
+            value: withLabels ? { xs: sample, ys: label } : sample,
             done: true
           }
         }
