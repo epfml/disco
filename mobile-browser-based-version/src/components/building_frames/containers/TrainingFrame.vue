@@ -169,7 +169,7 @@ export default {
     startDistributedTraining () {
       this.startTraining(true)
     },
-    startTraining (distributedTraining) {
+    async startTraining (distributedTraining) {
       try {
         if (!this.datasetBuilder.isBuilt()) {
           this.dataset = this.datasetBuilder
@@ -181,7 +181,6 @@ export default {
         } else {
           await this.disco.startLocalTraining(this.dataset)
         }
-        this.disco.startTraining(this.dataset, distributedTraining)
       } catch {
         this.$toast.error('Invalid files were given!')
         setTimeout(this.$toast.clear, 30000)

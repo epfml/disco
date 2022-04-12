@@ -79,6 +79,7 @@ export class Disco {
    */
   private async disconnect () {
     await this.client.disconnect()
+    this.isConnected = false
   }
 
   /**
@@ -137,8 +138,7 @@ export class Disco {
   async stopTraining () {
     this.trainer.stopTraining()
     if (this.isConnected) {
-      await this.client.disconnect()
-      this.isConnected = false
+      await this.disconnect()
     }
     this.logger.success('Training was successfully interrupted.')
     this.isTraining = false
