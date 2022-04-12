@@ -11,7 +11,7 @@ export abstract class DataLoader {
     this.task = task
   }
 
-  abstract load (source: Source, config: DataConfig): Dataset
+  abstract load (source: Source, config: DataConfig): Promise<Dataset>
 
-  abstract loadAll (sources: Source[], config: DataConfig): Dataset
+  abstract loadAll (sources: Source[], config: DataConfig): Promise<Dataset>
 }
