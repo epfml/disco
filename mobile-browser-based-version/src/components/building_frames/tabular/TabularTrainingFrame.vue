@@ -143,7 +143,7 @@ export default {
     }
   },
   created () {
-    this.tabularLoader = new TabularLoader(',')
+    this.tabularLoader = new TabularLoader(this.task, ',')
   }
 }
 </script>

@@ -82,7 +82,7 @@ export abstract class Trainer {
     this.resetStopTrainerState()
 
     // Assign callbacks and start training
-    await this.model.fitDataset(dataset, {
+    await this.model.fitDataset(dataset.batch(this.task.trainingInformation.batchSize), {
       epochs: this.trainingInformation.epochs,
       // validationData: validationDataset,
       callbacks: {

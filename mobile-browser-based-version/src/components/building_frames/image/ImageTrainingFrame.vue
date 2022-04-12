@@ -39,7 +39,7 @@ export default {
     }
   },
   created () {
-    this.imageLoader = new ImageLoader()
+    this.imageLoader = new ImageLoader(this.task)
   }
 }
 </script>
