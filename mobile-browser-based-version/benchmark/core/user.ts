@@ -9,19 +9,19 @@ export interface User {
     logger: TrainerLogger
 
     start(): Promise<void>
-    getResult(): TrainerLog
+    getLog(): TrainerLog
 
 }
 
 export class DiscoUser implements User {
-  id: string
-  config: UserConfig
-  logger: TrainerLogger
+  readonly id: string
+  readonly config: UserConfig
+  readonly logger: TrainerLogger
   start (): Promise<void> {
     throw new Error('Method not implemented.')
   }
 
-  getResult (): TrainerLog {
+  getLog (): TrainerLog {
     throw new Error('Method not implemented.')
   }
 }
@@ -37,9 +37,9 @@ export function MockUserGenerator (config: UserConfig): MockUser[] {
   return users
 }
 export class MockUser implements User {
-    id: UserId
-    config: UserConfig
-    logger: TrainerLogger
+    readonly id: UserId
+    readonly config: UserConfig
+    readonly logger: TrainerLogger
 
     constructor (id: UserId, config: UserConfig) {
       this.id = id
@@ -66,7 +66,7 @@ export class MockUser implements User {
       this.simulateEpoch()
     }
 
-    getResult (): TrainerLog {
-      return this.logger.getTrainerLog()
+    getLog (): TrainerLog {
+      return this.logger.log
     }
 }

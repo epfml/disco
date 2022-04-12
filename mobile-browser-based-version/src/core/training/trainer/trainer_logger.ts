@@ -1,11 +1,18 @@
 import { ConsoleLogger } from '../../logging/console_logger'
 import * as tf from '@tensorflow/tfjs'
 
-export interface TrainerLog {
-  epochs: number[]
-  trainAccuracy: number[]
-  validationAccuracy: number[]
-  loss: number[]
+export class TrainerLog {
+  epochs: number[] = []
+  trainAccuracy: number[] = []
+  validationAccuracy: number[] = []
+  loss: number[] = []
+
+  push (epoch: number, logs: tf.Logs): void {
+    this.epochs.push(epoch)
+    this.trainAccuracy.push(logs.acc)
+    this.validationAccuracy.push(logs.val_acc)
+    this.loss.push(logs.loss)
+  }
 }
 
 /**
@@ -13,15 +20,13 @@ export interface TrainerLog {
  * @class TrainerLogger
  */
 export class TrainerLogger extends ConsoleLogger {
-  epochs: number[] = []
-  trainAccuracy: number[] = []
-  validationAccuracy: number[] = []
-  loss: number[] = []
-  isLogSaveEnabled: boolean
+  readonly log: TrainerLog
+  readonly isLogSaveEnabled: boolean
 
   constructor (isLogSaveEnabled: boolean = false) {
     super()
     this.isLogSaveEnabled = isLogSaveEnabled
+    this.log = new TrainerLog()
   }
 
   onBatchEnd (batch: number, logs: tf.Logs): void {
@@ -32,27 +37,11 @@ export class TrainerLogger extends ConsoleLogger {
   onEpochEnd (epoch: number, logs: tf.Logs): void {
     // save logs
     if (this.isLogSaveEnabled) {
-      this.saveLog(epoch, logs)
+      this.log.push(epoch, logs)
     }
     // console output
     const msg = `Train:${logs.acc}\nValidation:${logs.val_acc}\nLoss:${logs.loss}`
     this.information(`On epoch end accuracy:\n${msg}`)
-  }
-
-  getTrainerLog (): TrainerLog {
-    return {
-      epochs: this.epochs,
-      trainAccuracy: this.trainAccuracy,
-      validationAccuracy: this.validationAccuracy,
-      loss: this.loss
-    }
-  }
-
-  private saveLog (epoch: number, logs: tf.Logs): void {
-    this.epochs.push(epoch)
-    this.trainAccuracy.push(logs.acc)
-    this.validationAccuracy.push(logs.val_acc)
-    this.loss.push(logs.loss)
   }
 
   /**
