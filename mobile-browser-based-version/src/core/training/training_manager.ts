@@ -71,7 +71,6 @@ export class TrainingManager extends ModelActor {
   /**
    * Initialize the client depending on the trainingType Chosen
    */
-  // Training scheme
   async initOrUpdateClient (trainingScheme : TrainingSchemes) {
     if (trainingScheme === TrainingSchemes.LOCAL) {
       this.client = undefined

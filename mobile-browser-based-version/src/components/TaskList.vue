@@ -1,7 +1,7 @@
 <template>
   <base-layout :with-section="true">
     <div
-      v-for="task in $store.getters.tasksFramesList"
+      v-for="task in Array.from(tasks.values())"
       :key="task.taskID"
       class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
     >
@@ -45,15 +45,10 @@ import BaseLayout from './containers/BaseLayout.vue'
 import Card from './containers/Card.vue'
 import CustomButton from './simple/CustomButton.vue'
 
-/**
- * WARNING: Temporary code until complete modularization of task objects.
- * In the meantine, import all custom task classes here.
- */
 import _ from 'lodash'
 import { defineComponent } from 'vue'
-import { mapMutations } from 'vuex'
-import { createTaskClass } from '../core/task/task_builder'
-import { loadTasks } from '../core/task/tasks_io'
+import { loadTasks } from '../core/task/utils'
+import { Task } from '../core/task/task'
 
 export default defineComponent({
   name: 'TaskList',
@@ -64,6 +59,7 @@ export default defineComponent({
   },
   data () {
     return {
+      tasks: new Map<string, Task>(),
       taskFramesInfo: [
         ['description', MainDescriptionFrame],
         ['training', MainTrainingFrame],
@@ -71,46 +67,41 @@ export default defineComponent({
       ]
     }
   },
-  async mounted () {
-    const rawTasks = await loadTasks()
-    rawTasks
-      .concat(this.$store.state.newTasks)
-      .forEach(this.createNewTaskComponent)
-    this.clearNewTasks()
+  async created () {
+    this.tasks.clear()
+    const tasks: Task[] = await loadTasks()
+    _.forEach(tasks, this.createNewTaskComponent)
   },
   methods: {
-    ...mapMutations(['addTaskFrame', 'newTask', 'clearNewTasks']),
-    goToSelection (id) {
+    goToSelection (id: string) {
       this.$router.push({
         name: id.concat('.description'),
         params: { id: id }
       })
     },
-    createNewTaskComponent (task) {
-      console.log(`Processing ${task.taskID}`)
-      const newTaskFrame = createTaskClass(task)
-      this.addTaskFrame(newTaskFrame) // commit to store
+    createNewTaskComponent (task: Task) {
+      this.tasks.set(task.taskID, task)
+
       const newTaskRoute = {
-        path: '/'.concat(newTaskFrame.taskID),
-        name: newTaskFrame.taskID,
+        path: '/'.concat(task.taskID),
+        name: task.taskID,
         component: MainTaskFrame,
-        props: { id: newTaskFrame.taskID, task: newTaskFrame },
+        props: { id: task.taskID, task: task },
         children: _.map(this.taskFramesInfo, (t) => {
-          const [info, Frame] = t
-          const name = `${newTaskFrame.taskID}.${info}`
-          // Definition of an extension of the task-related component
+          const [info, frame] = t
+          const name = `${task.taskID}.${info}`
           const component = defineComponent({
             name: name,
             key: name,
-            extends: Frame
+            extends: frame
           })
           return {
             path: info,
             name: name,
             component: component,
             props: {
-              id: newTaskFrame.taskID,
-              task: newTaskFrame
+              id: task.taskID,
+              task: task
             }
           }
         })

@@ -1,6 +1,6 @@
 class DataExample {
-  columnName: string;
-  columnData: string | number;
+  columnName: string
+  columnData: string | number
 }
 
 class ModelCompileData {
@@ -9,7 +9,7 @@ class ModelCompileData {
   metrics: string[]
 }
 
-class TrainingInformation {
+export class TrainingInformation {
   modelID: string
   epochs: number
   roundDuration: number
@@ -35,7 +35,7 @@ class TrainingInformation {
   scheme?: string
 }
 
-class DisplayInformation {
+export class DisplayInformation {
   taskTitle: string
   summary: string
   overview: string
@@ -49,19 +49,14 @@ class DisplayInformation {
   limitations?: string
 }
 
-class Task {
+export class Task {
   taskID: string
-  displayInformation?: DisplayInformation
+  displayInformation: DisplayInformation
+  trainingInformation: TrainingInformation
 
-  constructor (taskID: string) {
+  constructor (taskID: string, displayInformation: DisplayInformation, trainingInformation: TrainingInformation) {
     this.taskID = taskID
+    this.displayInformation = displayInformation
+    this.trainingInformation = trainingInformation
   }
-}
-
-export {
-  Task,
-  DisplayInformation,
-  ModelCompileData,
-  TrainingInformation,
-  DataExample
 }

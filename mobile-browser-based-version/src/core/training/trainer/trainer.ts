@@ -1,9 +1,8 @@
-import { datasetGenerator } from '../../dataset/dataset_generator'
 import * as tf from '@tensorflow/tfjs'
-import { Task, TrainingInformation } from '../../task/base/task'
-import { RoundTracker } from './round_tracker'
+import { Task, TrainingInformation } from '../../task/task'
+import { RoundTracker } from '../trainer/round_tracker'
 import { TrainingInformant } from '../training_informant'
-import { TrainerLogger } from './trainer_logger'
+import { TrainerLogger } from '../trainer/trainer_logger'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally or in a distributed way. The Trainer works as follows:
@@ -28,10 +27,9 @@ export abstract class Trainer {
 
   /**
    * Constructs the training manager.
-   * @param {Object} task the trained task
-   * @param {Object} client the client
-   * @param {Object} trainingInformant the training informant
-   * @param {Boolean} useIndexedDB use IndexedDB (browser only)
+   * @param {Task} task the trained task
+   * @param {TrainingInformant} trainingInformant the training informant
+   * @param {boolean} useIndexedDB use IndexedDB (browser only)
    */
   constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, roundTracker: RoundTracker, model: tf.LayersModel) {
     this.task = task
@@ -71,7 +69,7 @@ export abstract class Trainer {
   }
 
   /**
-   * Request stop training to be used from the training_manager or any class that is taking care of the trainer.
+   * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
    */
   stopTraining () {
     this.stopTrainingRequested = true
@@ -81,21 +79,16 @@ export abstract class Trainer {
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (dataset) {
+  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>) {
     // Reset stopTraining setting
     this.resetStopTrainerState()
 
-    // Build data
-    this.data = dataset.Xtrain
-    this.labels = dataset.ytrain
-
-    const trainData = this.buildTrainDataset(this.trainingInformation)
-    const valData = this.buildValidationDataset(this.trainingInformation)
+    // const { trainingDataset, validationDataset } = this.validationSplit(dataset)
 
     // Assign callbacks and start training
-    await this.model.fitDataset(trainData, {
+    await this.model.fitDataset(dataset, {
       epochs: this.trainingInformation.epochs,
-      validationData: valData,
+      // validationData: validationDataset,
       callbacks: {
         onEpochEnd: async (epoch, logs) => {
           this.onEpochEnd(logs.acc, logs.val_acc)
@@ -155,45 +148,10 @@ export abstract class Trainer {
     }
   }
 
-  /**
-   * Builds the train dataset
-   * TODO: @s314cy, put these build dataset functions in the dataset class.
-   * @param trainingInformation
-   * @returns
-   */
-  private buildTrainDataset (trainingInformation: TrainingInformation) {
-    return tf.data
-      .generator(
-        datasetGenerator(
-          this.data,
-          this.labels,
-          0,
-          this.data.shape[0] * (1 - trainingInformation.validationSplit),
-          trainingInformation
-        )
-      )
-      .batch(trainingInformation.batchSize)
-  }
-
-  /**
-   * Builds the validation data set
-   * TODO: @s314cy, put these build dataset functions in the dataset class.
-   * @param trainingInformation
-   * @returns
-   */
-  private buildValidationDataset (trainingInformation: TrainingInformation) {
-    return tf.data
-      .generator(
-        datasetGenerator(
-          this.data,
-          this.labels,
-          Math.floor(
-            this.data.shape[0] * (1 - trainingInformation.validationSplit)
-          ),
-          this.data.shape[0],
-          trainingInformation
-        )
-      )
-      .batch(trainingInformation.batchSize)
+  private validationSplit (dataset: tf.data.Dataset<tf.TensorContainer>) {
+    // const split = this.task.trainingInformation.validationSplit
+    const train = 3
+    const validation = 3
+    return { trainingDataset: train, validationDataset: validation }
   }
 }
