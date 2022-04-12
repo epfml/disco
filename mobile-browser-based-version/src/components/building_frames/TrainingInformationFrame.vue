@@ -88,7 +88,7 @@
 
     <!-- Distributed Training Information -->
     <div
-      v-if="platform() == 'deai'"
+      v-if="platform === 'deai'"
       class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4"
     >
       <!-- Number of time model updated with someone else's model card -->
@@ -125,7 +125,7 @@
     </div>
     <!-- Federated Training Information -->
     <div
-      v-if="platform() == 'feai'"
+      v-else
       class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4"
     >
       <!-- Current Round -->
@@ -185,16 +185,14 @@ export default {
     return {
       areaChartOptions: this.trainingInformant.getAreaChartOptions(),
       trainingAccuracyData: this.trainingInformant.getTrainingAccuracyData(),
-      validationAccuracyData: this.trainingInformant.getValidationAccuracyData()
+      validationAccuracyData: this.trainingInformant.getValidationAccuracyData(),
+      platform: this.$store.getters.platform
     }
   },
 
   computed: {
     displayHeatmap () {
       return this.trainingInformant.displayHeatmap
-    },
-    platform () {
-      return this.$store.getters.platform
     },
     interoperabilityHeatmapData () {
       // TODO: cahnge once the peers exchange actual data of their weights and biases.
