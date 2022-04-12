@@ -1,13 +1,22 @@
 <template>
-  <base-layout :withSection="true">
+  <base-layout :with-section="true">
     <!-- Form definition -->
-    <vee-form v-slot="{ errors, handleSubmit }" :validation-schema="schema">
+    <vee-form
+      v-slot="{ errors, handleSubmit }"
+      :validation-schema="schema"
+    >
       <form @submit="handleSubmit($event, onSubmit)">
         <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1">
-          <div v-for="formSection in formSections" :key="formSection.id">
+          <div
+            v-for="formSection in formSections"
+            :key="formSection.id"
+          >
             <title-card :title="formSection.title">
               <div class="space-y-4">
-                <div v-for="field in allFields(formSection)" :key="field.id">
+                <div
+                  v-for="field in allFields(formSection)"
+                  :key="field.id"
+                >
                   <label
                     class="
                       inline
@@ -25,10 +34,11 @@
                   </label>
                   <vee-field
                     v-if="field.type == 'select' && field.id == 'dataType'"
-                    :as="field.type"
-                    v-model="dataType"
-                    :name="field.id"
                     :id="field.id"
+                    v-slot="{ value }"
+                    v-model="dataType"
+                    :as="field.type"
+                    :name="field.id"
                     class="
                       bg-transparent
                       border-b
@@ -41,7 +51,6 @@
                       dark:text-gray-100
                       pb-1
                     "
-                    v-slot="{ value }"
                   >
                     <option
                       v-for="option in field.options"
@@ -55,9 +64,10 @@
 
                   <vee-field
                     v-else-if="field.type == 'select' && field.id != 'dataType'"
+                    :id="field.id"
+                    v-slot="{ value }"
                     :as="field.type"
                     :name="field.id"
-                    :id="field.id"
                     class="
                       bg-transparent
                       border-b
@@ -70,7 +80,6 @@
                       dark:text-gray-100
                       pb-1
                     "
-                    v-slot="{ value }"
                   >
                     <option
                       v-for="option in field.options"
@@ -84,9 +93,10 @@
 
                   <vee-field
                     v-else-if="field.type == 'select-multiple'"
+                    :id="field.id"
+                    v-slot="{ value }"
                     as="select"
                     :name="field.id"
-                    :id="field.id"
                     class="
                       bg-transparent
                       border-b
@@ -99,7 +109,6 @@
                       dark:text-gray-100
                       pb-1
                     "
-                    v-slot="{ value }"
                     multiple
                   >
                     <option
@@ -137,13 +146,8 @@
                             >
                               <path
                                 d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z"
-                              /></svg
-                            ><span class="block text-gray-400 font-normal"
-                              >Drag and drop your file anywhere or</span
-                            >
-                            <span class="block text-gray-400 font-normal"
-                              >or</span
-                            >
+                              /></svg><span class="block text-gray-400 font-normal">Drag and drop your file anywhere or</span>
+                            <span class="block text-gray-400 font-normal">or</span>
                             <span
                               class="
                                 block
@@ -163,15 +167,14 @@
                                 dark:focus:bg-primary-dark
                                 focus:ring-primary-darker
                               "
-                              >select file</span
-                            >
+                            >select file</span>
                           </div>
                         </div>
 
                         <vee-field
+                          :id="field.id"
                           :type="field.type"
                           :name="field.id"
-                          :id="field.id"
                           class="h-full w-full opacity-0"
                           :accept="field.extension"
                         />
@@ -180,24 +183,26 @@
                     <div
                       class="flex justify-between items-center text-gray-400"
                     >
-                      <span
-                        >Accepted file type: {{ field.extension }} only</span
-                      >
-                      <span class="flex items-center"
-                        ><i class="fa fa-lock mr-1"></i> secure</span
-                      >
+                      <span>Accepted file type: {{ field.extension }} only</span>
+                      <span class="flex items-center"><i class="fa fa-lock mr-1" /> secure</span>
                     </div>
-                    <ErrorMessage class="text-red-600" :name="field.id" />
+                    <ErrorMessage
+                      class="text-red-600"
+                      :name="field.id"
+                    />
                   </div>
 
                   <FieldArray
                     v-else-if="field.type == 'array'"
-                    :name="field.id"
                     :id="field.id"
                     v-slot="{ fields, push, remove }"
+                    :name="field.id"
                   >
-                    <br />
-                    <fieldset v-for="(f, idx) in fields" :key="f.key">
+                    <br>
+                    <fieldset
+                      v-for="(f, idx) in fields"
+                      :key="f.key"
+                    >
                       <div
                         class="
                           grid grid-flow-col
@@ -232,7 +237,6 @@
                         <div class="w-1/5 md:w-full">
                           <button
                             type="button"
-                            @click="remove(idx)"
                             class="
                               inline-flex
                               transition-colors
@@ -242,6 +246,7 @@
                               focus:shadow-outline
                               hover:bg-red-100
                             "
+                            @click="remove(idx)"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -256,12 +261,12 @@
                                 fill="#F44336"
                                 d="M21.5 4.5H26.501V43.5H21.5z"
                                 transform="rotate(45.001 24 24)"
-                              ></path>
+                              />
                               <path
                                 fill="#F44336"
                                 d="M21.5 4.5H26.5V43.501H21.5z"
                                 transform="rotate(135.008 24 24)"
-                              ></path>
+                              />
                             </svg>
                           </button>
                         </div>
@@ -270,7 +275,6 @@
 
                     <button
                       type="button"
-                      @click="push('')"
                       class="
                         inline-flex
                         items-center
@@ -285,6 +289,7 @@
                         hover:bg-gray-100
                         dark:hover:text-gray-500
                       "
+                      @click="push('')"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -299,23 +304,25 @@
                         <path
                           fill-rule="evenodd"
                           d="M 11 2 L 11 11 L 2 11 L 2 13 L 11 13 L 11 22 L 13 22 L 13 13 L 22 13 L 22 11 L 13 11 L 13 2 Z"
-                        ></path>
+                        />
                       </svg>
                       <span class="md:text-right mb-1 md:mb-0 pr-4">
-                        Add Element</span
-                      >
+                        Add Element</span>
                     </button>
                   </FieldArray>
 
                   <FieldArray
                     v-else-if="field.type == 'arrayObject'"
-                    :name="field.id"
                     :id="field.id"
                     v-slot="{ fields, push, remove }"
+                    :name="field.id"
                   >
-                    <br />
+                    <br>
                     <div class="space-y-2">
-                      <fieldset v-for="(f, idx) in fields" :key="f.key">
+                      <fieldset
+                        v-for="(f, idx) in fields"
+                        :key="f.key"
+                      >
                         <div
                           class="
                             grid grid-flow-col
@@ -324,13 +331,15 @@
                             space-x-2
                           "
                         >
-                          <div v-for="e in field.elements" :key="e.key">
+                          <div
+                            v-for="e in field.elements"
+                            :key="e.key"
+                          >
                             <div class="w-2/5 md:w-full">
                               <label
                                 :for="`${e.key}_${idx}`"
                                 class="inline md:text-right mb-1 md:mb-0 pr-4"
-                                >{{ e.key }}</label
-                              >
+                              >{{ e.key }}</label>
                               <vee-field
                                 :id="`${e.key}_${idx}`"
                                 :name="`${field.id}[${idx}].${e.key}`"
@@ -368,11 +377,9 @@
                                 text-white
                                 dark:text-dark
                               "
-                              >.</label
-                            >
+                            >.</label>
                             <button
                               type="button"
-                              @click="remove(idx)"
                               class="
                                 inline-flex
                                 transition-colors
@@ -382,6 +389,7 @@
                                 focus:shadow-outline
                                 hover:bg-red-100
                               "
+                              @click="remove(idx)"
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -396,12 +404,12 @@
                                   fill="#F44336"
                                   d="M21.5 4.5H26.501V43.5H21.5z"
                                   transform="rotate(45.001 24 24)"
-                                ></path>
+                                />
                                 <path
                                   fill="#F44336"
                                   d="M21.5 4.5H26.5V43.501H21.5z"
                                   transform="rotate(135.008 24 24)"
-                                ></path>
+                                />
                               </svg>
                             </button>
                           </div>
@@ -410,14 +418,6 @@
 
                       <button
                         type="button"
-                        @click="
-                          push(
-                            field.elements.reduce(
-                              (acc, e) => ((acc[e.key] = ''), acc),
-                              {}
-                            )
-                          )
-                        "
                         class="
                           inline-flex
                           items-center
@@ -431,6 +431,14 @@
                           focus:shadow-outline
                           hover:bg-gray-100
                           dark:hover:text-gray-500
+                        "
+                        @click="
+                          push(
+                            field.elements.reduce(
+                              (acc, e) => ((acc[e.key] = ''), acc),
+                              {}
+                            )
+                          )
                         "
                       >
                         <svg
@@ -446,19 +454,18 @@
                           <path
                             fill-rule="evenodd"
                             d="M 11 2 L 11 11 L 2 11 L 2 13 L 11 13 L 11 22 L 13 22 L 13 13 L 22 13 L 22 11 L 13 11 L 13 2 Z"
-                          ></path>
+                          />
                         </svg>
                         <span class="md:text-right mb-1 md:mb-0 pr-4">
-                          Add Element</span
-                        >
+                          Add Element</span>
                       </button>
                     </div>
                   </FieldArray>
 
                   <div v-else>
                     <vee-field
-                      :name="field.id"
                       :id="field.id"
+                      :name="field.id"
                       class="
                         bg-transparent
                         border-b
@@ -492,7 +499,10 @@
                     />
                   </div>
 
-                  <ErrorMessage class="text-red-600" :name="field.id" />
+                  <ErrorMessage
+                    class="text-red-600"
+                    :name="field.id"
+                  />
                   <span>{{ errors.field }}</span>
                 </div>
               </div>
@@ -525,8 +535,8 @@
               Submit
             </button>
             <button
-              type="reset"
               ref="resetButton"
+              type="reset"
               value="Reset"
               class="
                 w-1/6
@@ -551,7 +561,7 @@
             </button>
 
             <a
-              href="https://join.slack.com/t/deai-workspace/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
+              href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
               class="
                 w-2/5
                 text-lg text-center
@@ -586,7 +596,7 @@
 import { mapMutations } from 'vuex'
 import BaseLayout from './containers/BaseLayout.vue'
 import _ from 'lodash'
-import sections from '../logic/task_definition/form.config'
+import sections from '../core/task/form.config'
 import TitleCard from './containers/TitleCard.vue'
 import axios from 'axios'
 

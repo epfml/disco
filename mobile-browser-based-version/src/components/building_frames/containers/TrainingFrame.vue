@@ -1,44 +1,51 @@
 <template>
   <model-actor-frame :task="task">
-    <template v-slot:dataExample><slot name="dataExample"></slot></template>
-    <template v-slot:action>
+    <template #dataExample>
+      <slot name="dataExample" />
+    </template>
+    <template #action>
       <!-- Upload Training Data -->
       <div class="relative">
-        <uploading-frame
+        <dataset-input-frame
           :id="id"
           :task="task"
-          :fileUploadManager="training_manager.fileUploadManager"
-          v-if="training_manager.fileUploadManager"
+          :dataset-builder="datasetBuilder"
         />
       </div>
 
-      <slot name="extra"></slot>
+      <slot name="extra" />
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <div v-if="!training_manager.isTraining">
-          <custom-button @click="training_manager.joinTraining(false)" :center="true">
+        <div v-if="!disco.isTraining">
+          <custom-button
+            :center="true"
+            @click="startTraining(false)"
+          >
             Train Locally
           </custom-button>
-          <custom-button @click="training_manager.joinTraining(true)" :center="true">
-            Train {{ this.$t('platform') }}
+          <custom-button
+            :center="true"
+            @click="startTraining(true)"
+          >
+            Train {{ $t('platform') }}
           </custom-button>
         </div>
         <div v-else>
           <custom-button
-            @click="training_manager.stopTraining()"
             :center="true"
             color="bg-red-500"
+            @click="disco.stopTraining()"
           >
-            Stop {{ trainingText }} Training
+            Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
           </custom-button>
         </div>
       </div>
       <!-- Training Board -->
       <div>
         <training-information-frame
-          :trainingInformant="training_manager.trainingInformant"
-          v-if="training_manager.trainingInformant"
+          v-if="disco.trainingInformant"
+          :training-informant="disco.trainingInformant"
         />
       </div>
 
@@ -50,19 +57,21 @@
             time you will load the application, you will be able to use your
             saved model."
       >
-        <template v-slot:icon><download /></template>
-        <template v-slot:extra
-          ><div class="flex items-center justify-center p-4">
+        <template #icon>
+          <download />
+        </template>
+        <template #extra>
+          <div class="flex items-center justify-center p-4">
             <!-- make it gray & un-clickable if indexeddb is turned off -->
             <custom-button
               id="train-model-button"
-              @click="saveModel()"
               :center="true"
+              @click="saveModel()"
             >
               Save My model
             </custom-button>
-          </div></template
-        >
+          </div>
+        </template>
       </icon-card>
       <!-- Test the model button -->
       <icon-card
@@ -70,21 +79,22 @@
         description="Once you have finished training your model it might be a great idea
             to go test it."
       >
-        <template v-slot:icon><download /></template>
-        <template v-slot:extra>
+        <template #icon>
+          <download />
+        </template>
+        <template #extra>
           <!-- Description -->
           <div class="relative p-4 overflow-x-hidden">
             <span
               style="white-space: pre-line"
               class="text-sm text-gray-500 dark:text-light"
-            >
-            </span>
+            />
           </div>
           <div class="flex items-center justify-center p-4">
             <custom-button
               id="train-model-button"
-              @click="goToTesting()"
               :center="true"
+              @click="goToTesting()"
             >
               Test the model
             </custom-button>
@@ -96,7 +106,7 @@
 </template>
 
 <script>
-import UploadingFrame from '../upload/UploadingFrame.vue'
+import DatasetInputFrame from '../dataset_input/DatasetInputFrame.vue'
 import TrainingInformationFrame from '../TrainingInformationFrame.vue'
 import ModelActorFrame from './ModelActorFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
@@ -104,52 +114,66 @@ import CustomButton from '../../simple/CustomButton.vue'
 import Download from '../../../assets/svg/Download.vue'
 
 import { mapState } from 'vuex'
-import * as memory from '../../../logic/memory/model_io'
-import { TrainingManager } from '../../../logic/training/training_manager'
+import * as memory from '../../../core/memory/memory'
+import { Disco } from '../../../core/training/disco'
+import { DatasetBuilder } from '../../../core/dataset/dataset_builder'
+import { DataLoader } from '../../../core/dataset/data_loader/data_loader'
+import { Task } from '../../../core/task/task'
 
 export default {
   name: 'TrainingFrame',
-  props: {
-    id: String,
-    task: Object,
-    helper: Object
-  },
   components: {
-    UploadingFrame,
+    DatasetInputFrame,
     TrainingInformationFrame,
     ModelActorFrame,
     IconCard,
     CustomButton,
     Download
   },
-  computed: {
-    ...mapState(['useIndexedDB']),
-    trainingText () {
-      return this.training_manager.distributedTraining ? 'Distributed' : 'Local'
+  props: {
+    id: {
+      type: String,
+      default: ''
+    },
+    task: {
+      type: Task,
+      default: undefined
+    },
+    dataLoader: {
+      type: DataLoader,
+      default: undefined
     }
+  },
+  computed: {
+    ...mapState(['useIndexedDB'])
   },
   watch: {
-    // TODO: @s314cy, what does this do?
     useIndexedDB (newValue) {
-      this.training_manager.trainer().setIndexedDB(!!newValue)
+      this.disco.setIndexedDB(!!newValue)
     }
   },
-  data () {
-    return {
-      training_manager: new TrainingManager(
-        this.task,
-        this.$store.getters.platform,
-        this.$toast,
-        this.helper,
-        this.useIndexedDB
-      )
-    }
+  created () {
+    this.disco = new Disco(
+      this.task,
+      this.$store.getters.platform,
+      this.$toast,
+      this.useIndexedDB
+    )
+    this.datasetBuilder = new DatasetBuilder(this.dataLoader, this.task)
   },
   methods: {
-    goToTesting () {
-      this.$router.push({
-        path: 'testing'
-      })
+    startTraining (distributedTraining) {
+      try {
+        if (!this.datasetBuilder.isBuilt()) {
+          this.dataset = this.datasetBuilder
+            .build()
+            .batch(this.task.trainingInformation.batchSize)
+        }
+        this.disco.startTraining(this.dataset, distributedTraining)
+      } catch {
+        this.$toast.error('Invalid files were given!')
+        setTimeout(this.$toast.clear, 30000)
+      }
     },
     async saveModel () {
       if (this.useIndexedDB) {
@@ -166,16 +190,12 @@ export default {
         )
       }
       setTimeout(this.$toast.clear, 30000)
+    },
+    goToTesting () {
+      this.$router.push({
+        path: 'testing'
+      })
     }
-  },
-  created () {
-    // Disconnect from the centralized server on page close
-    window.addEventListener('beforeunload', () => {
-      this.training_manager.client.disconnect()
-    })
-  },
-  unmounted () {
-    this.training_manager.disconnect()
   }
 }
 </script>

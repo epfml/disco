@@ -51,7 +51,7 @@
         "metrics": ["accuracy"]
       },
       "receivedMessagesThreshold": 1,
-      "dataType": "csv",
+      "dataType": "tabular",
       "inputColumns": [
         "PassengerId",
         "Age",
@@ -60,7 +60,9 @@
         "Fare",
         "Pclass"
       ],
-      "outputColumn": "Survived"
+      "outputColumns": [
+        "Survived"
+      ]
     }
   },
   {

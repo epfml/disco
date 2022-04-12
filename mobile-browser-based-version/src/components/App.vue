@@ -48,12 +48,32 @@ import { Platform } from '../platforms/platform'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'app',
+  name: 'App',
   components: {
     SidebarMain
   },
   computed: {
     ...mapState(['isDark'])
+  },
+  mounted () {
+    /**
+       * Use IndexedDB by default if it is available.
+       */
+    this.setIndexedDB(!!window.indexedDB)
+    /**
+       * Initialize the global variable "isDark" to the
+       * browser-saved theme.
+       */
+    this.setAppTheme(this.getBrowserTheme())
+    /**
+       * Initialize the app's colors to the browser-saved
+       * color.
+       */
+    this.setAppColors(this.getBrowserColors())
+    /**
+       * Initialize the app to the browser-saved platform.
+       */
+    this.initPlatform(this.getPlatform())
   },
   methods: {
     ...mapMutations(['setIndexedDB', 'setAppTheme', 'setPlatform']),
@@ -101,26 +121,6 @@ export default defineComponent({
       this.setPlatform(platform)
       this.$i18n.locale = platform
     }
-  },
-  mounted () {
-    /**
-     * Use IndexedDB by default if it is available.
-     */
-    this.setIndexedDB(!!window.indexedDB)
-    /**
-     * Initialize the global variable "isDark" to the
-     * browser-saved theme.
-     */
-    this.setAppTheme(this.getBrowserTheme())
-    /**
-     * Intialize the app's colors to the browser-saved
-     * color.
-     */
-    this.setAppColors(this.getBrowserColors())
-    /**
-     * Intialize the app to the browser-saved platform.
-     */
-    this.initPlatform(this.getPlatform())
   }
 })
 </script>

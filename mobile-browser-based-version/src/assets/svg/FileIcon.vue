@@ -13,7 +13,7 @@
 </template>
 <script>
 export default {
-  name: 'file-icon',
+  name: 'FileIcon',
   props: {
     customClass: {
       default: 'w-6 h-6',

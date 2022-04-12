@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { expect } from 'chai'
-import { loadTasks } from '../src/logic/task_definition/tasks_io'
+import { loadTasks } from '../src/core/task/utils'
 
 // TODO this is hard coded
 const nbrTasks = 4

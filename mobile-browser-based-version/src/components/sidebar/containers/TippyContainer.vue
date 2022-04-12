@@ -16,21 +16,21 @@
       "
     >
       <span class="text-gray-500 dark:text-primary">
-        <slot name="icon"></slot>
+        <slot name="icon" />
       </span>
       <h2 class="text-xl font-medium text-gray-500 dark:text-light">
-        {{ this.title }}
+        {{ title }}
       </h2>
     </div>
     <!-- Content -->
     <div class="flex-1 overflow-hidden hover:overflow-y-auto">
-      <slot name="content"></slot>
+      <slot name="content" />
     </div>
   </div>
 </template>
 <script>
 export default {
-  name: 'tippy-container',
+  name: 'TippyContainer',
   props: {
     title: { default: '', type: String }
   }

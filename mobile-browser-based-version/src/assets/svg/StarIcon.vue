@@ -16,7 +16,7 @@
 </template>
 <script>
 export default {
-  name: 'star-icon',
+  name: 'StarIcon',
   props: {
     customClass: {
       default: 'w-6 h-6',

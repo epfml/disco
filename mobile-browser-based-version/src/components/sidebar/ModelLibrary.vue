@@ -1,7 +1,9 @@
 <template>
   <tippy-container title="Model Library">
-    <template v-slot:icon> <stack-icon /></template>
-    <template v-slot:content>
+    <template #icon>
+      <stack-icon />
+    </template>
+    <template #content>
       <!-- Model list -->
       <tippy-card title="My model library">
         <span class="text-s">
@@ -9,13 +11,18 @@
           <p v-else>
             The model library is currently unavailable. You can turn it on in
             the
-            <button class="text-blue-600" @click="switchToSettings()">
-              settings menu</button
-            >.
+            <button
+              class="text-blue-600"
+              @click="switchToSettings()"
+            >
+              settings menu</button>.
           </p>
         </span>
         <div v-if="useIndexedDB">
-          <div v-for="(item, idx) in modelMap" :key="idx">
+          <div
+            v-for="(item, idx) in modelMap"
+            :key="idx"
+          >
             <div
               class="
                 flex
@@ -39,35 +46,38 @@
                 dark:focus:ring-offset-dark dark:focus:ring-primary-dark
               "
             >
-              <div class="cursor-pointer w-2/3" @click="openTesting(item[1])">
+              <div
+                class="cursor-pointer w-2/3"
+                @click="openTesting(item[1])"
+              >
                 <span>
-                  {{ item[1].modelName.substring(0, 16) }} <br />
+                  {{ item[1].modelName.substring(0, 16) }} <br>
                   <span class="text-xs">
-                    {{ item[1].date }} at {{ item[1].hours }} <br />
+                    {{ item[1].date }} at {{ item[1].hours }} <br>
                     {{ item[1].fileSize }} KB
                   </span>
                 </span>
               </div>
               <div class="w-1/9">
                 <button
-                  @click="deleteModel(item[0])"
                   :class="buttonClass(isDark)"
+                  @click="deleteModel(item[0])"
                 >
                   <span><bin2-icon /></span>
                 </button>
               </div>
               <div class="w-1/9">
                 <button
-                  @click="downloadModel(item[1])"
                   :class="buttonClass(isDark)"
+                  @click="downloadModel(item[1])"
                 >
                   <span><download-2-icon /></span>
                 </button>
               </div>
               <div class="w-1/9">
                 <button
-                  @click="loadModel(item[1])"
                   :class="buttonClass(isDark)"
+                  @click="loadModel(item[1])"
                 >
                   <span><load-icon /></span>
                 </button>
@@ -80,7 +90,7 @@
   </tippy-container>
 </template>
 <script>
-import * as memory from '../../logic/memory/model_io'
+import * as memory from '../../core/memory/memory'
 import * as tf from '@tensorflow/tfjs'
 import { mapState } from 'vuex'
 import Bin2Icon from '../../assets/svg/Bin2Icon.vue'
@@ -91,8 +101,7 @@ import TippyCard from './containers/TippyCard.vue'
 import TippyContainer from './containers/TippyContainer.vue'
 
 export default {
-  name: 'model-library',
-  emits: ['switch-panel'],
+  name: 'ModelLibrary',
   components: {
     Bin2Icon,
     Download2Icon,
@@ -101,6 +110,7 @@ export default {
     TippyCard,
     TippyContainer
   },
+  emits: ['switch-panel'],
   data () {
     return {
       modelMap: new Map()
@@ -108,6 +118,9 @@ export default {
   },
   computed: {
     ...mapState(['useIndexedDB', 'isDark'])
+  },
+  mounted () {
+    this.refreshModelLibrary()
   },
   methods: {
     buttonClass: function (state) {
@@ -184,9 +197,6 @@ export default {
         `Loaded ${modelMetadata.modelName}, ready for next training session.`
       )
     }
-  },
-  mounted () {
-    this.refreshModelLibrary()
   }
 }
 </script>
