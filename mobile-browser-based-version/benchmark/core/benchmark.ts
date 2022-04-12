@@ -1,9 +1,9 @@
 import { BenchmarkConfig } from './config'
-import { User, UserId } from './user'
+import { User, UserID } from './users/user'
 import { TrainerLog } from '../../src/core/training/trainer/trainer_logger'
 import { List } from 'immutable'
 
-export type BenchmarkLog = Map<UserId, TrainerLog>
+export type BenchmarkLog = Map<UserID, TrainerLog>
 
 export class Benchmark<U extends User> {
     readonly config: BenchmarkConfig
@@ -19,7 +19,7 @@ export class Benchmark<U extends User> {
     }
 
     getResult (): BenchmarkLog {
-      const result = new Map<UserId, TrainerLog>()
+      const result = new Map<UserID, TrainerLog>()
       this.users.forEach(user => {
         result.set(user.id, user.getLog())
       })

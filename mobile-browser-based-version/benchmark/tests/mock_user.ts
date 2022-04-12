@@ -1,31 +1,7 @@
-import { UserConfig } from './config'
+import { UserConfig } from '../core/config'
 import { TrainerLogger, TrainerLog } from '../../src/core/training/trainer/trainer_logger'
 import { List } from 'immutable'
-
-export type UserId = string
-
-export interface User {
-    id: UserId
-    config: UserConfig
-    logger: TrainerLogger
-
-    start(): Promise<void>
-    getLog(): TrainerLog
-
-}
-
-export class DiscoUser implements User {
-  readonly id: string
-  readonly config: UserConfig
-  readonly logger: TrainerLogger
-  start (): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-
-  getLog (): TrainerLog {
-    throw new Error('Method not implemented.')
-  }
-}
+import { UserID, User } from '../core/users/user'
 
 export function MockUserGenerator (config: UserConfig): List<MockUser> {
   let users = List<MockUser>()
@@ -38,11 +14,11 @@ export function MockUserGenerator (config: UserConfig): List<MockUser> {
   return users
 }
 export class MockUser implements User {
-    readonly id: UserId
+    readonly id: UserID
     readonly config: UserConfig
     readonly logger: TrainerLogger
 
-    constructor (id: UserId, config: UserConfig) {
+    constructor (id: UserID, config: UserConfig) {
       this.id = id
       this.config = config
       this.logger = new TrainerLogger(true)

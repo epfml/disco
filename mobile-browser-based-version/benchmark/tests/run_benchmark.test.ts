@@ -1,5 +1,5 @@
 import { Benchmark } from '../core/benchmark'
-import { MockUserGenerator } from '../core/user'
+import { MockUserGenerator } from './mock_user'
 import { save } from '../core/result_io'
 
 describe('Running benchmark', () => {
