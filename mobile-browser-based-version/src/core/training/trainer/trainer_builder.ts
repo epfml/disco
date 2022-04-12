@@ -31,7 +31,7 @@ export class TrainerBuilder {
    * @param distributed whether to build a distributed or local trainer
    * @returns
    */
-  async build (trainSize: number, client: Client, distributed: boolean = false): Promise<Trainer> {
+  async build (trainSize: number, client: Client, distributed: boolean, saveTrainerLog: boolean): Promise<Trainer> {
     const model = await this.getModel()
     if (distributed) {
       return new DistributedTrainer(
@@ -40,7 +40,8 @@ export class TrainerBuilder {
         this.useIndexedDB,
         this.buildRoundTracker(trainSize),
         model,
-        client
+        client,
+        saveTrainerLog
       )
     } else {
       return new LocalTrainer(
@@ -48,7 +49,8 @@ export class TrainerBuilder {
         this.trainingInformant,
         this.useIndexedDB,
         this.buildRoundTracker(trainSize),
-        model
+        model,
+        saveTrainerLog
       )
     }
   }

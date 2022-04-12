@@ -2,7 +2,7 @@ import * as tf from '@tensorflow/tfjs'
 import { Task, TrainingInformation } from '../../task/task'
 import { RoundTracker } from '../trainer/round_tracker'
 import { TrainingInformant } from '../training_informant'
-import { TrainerLogger } from '../trainer/trainer_logger'
+import { TrainerLogger, TrainerLog } from '../trainer/trainer_logger'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally or in a distributed way. The Trainer works as follows:
@@ -29,13 +29,13 @@ export abstract class Trainer {
    * @param {TrainingInformant} trainingInformant the training informant
    * @param {boolean} useIndexedDB use IndexedDB (browser only)
    */
-  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, roundTracker: RoundTracker, model: tf.LayersModel) {
+  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, roundTracker: RoundTracker, model: tf.LayersModel, saveTrainerLog: boolean) {
     this.task = task
     this.trainingInformant = trainingInformant
     this.useIndexedDB = useIndexedDB
     this.roundTracker = roundTracker
     this.model = model
-    this.trainerLogger = new TrainerLogger()
+    this.trainerLogger = new TrainerLogger(saveTrainerLog)
     this.trainingInformation = this.task.trainingInformation
   }
 
@@ -144,5 +144,9 @@ export abstract class Trainer {
       this.model.stopTraining = true
       this.stopTrainingRequested = false
     }
+  }
+
+  getTrainerLog (): TrainerLog {
+    return this.trainerLogger.log
   }
 }

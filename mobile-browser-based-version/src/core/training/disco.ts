@@ -4,6 +4,7 @@ import { Client } from '../communication/client'
 import { getClient } from '../communication/client_builder'
 import { Task } from '../task/task'
 import { Logger } from '../logging/logger'
+import { TrainerLog } from './trainer/trainer_logger'
 import { Platform } from '../../platforms/platform'
 import { TrainerBuilder } from './trainer/trainer_builder'
 import * as tf from '@tensorflow/tfjs'
@@ -22,8 +23,9 @@ export class Disco {
   isTraining: boolean
   distributedTraining: boolean
   useIndexedDB: boolean
+  saveTrainerLog: boolean
 
-  constructor (task: Task, platform: Platform, logger: Logger, useIndexedDB: boolean) {
+  constructor (task: Task, platform: Platform, logger: Logger, useIndexedDB: boolean, saveTrainerLog: boolean = false) {
     this.task = task
     this.logger = logger
     this.isConnected = false
@@ -31,6 +33,7 @@ export class Disco {
     this.distributedTraining = false
     this.platform = platform
     this.useIndexedDB = useIndexedDB
+    this.saveTrainerLog = saveTrainerLog
     this.client = getClient(
       this.platform,
       this.task,
@@ -111,7 +114,12 @@ export class Disco {
     this.trainer = await trainerBuilder.build(
       dataset.size,
       this.client,
-      this.distributedTraining
+      this.distributedTraining,
+      this.saveTrainerLog
     )
+  }
+
+  getTrainerLog (): TrainerLog {
+    return this.trainer.getTrainerLog()
   }
 }
