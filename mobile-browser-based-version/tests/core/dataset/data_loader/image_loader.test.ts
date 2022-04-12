@@ -60,7 +60,7 @@ describe('image loader test', () => {
     const dataset = new ImageLoader().loadAll(files, { labels: labels })
     const cifar10 = (await loadTasks())[3]
     const disco = new Disco(cifar10, logger, false)
-    disco.startTraining(dataset, TrainingSchemes.DECENTRALIZED)
+    disco.startTraining(dataset, TrainingSchemes.FEDERATED)
     await timer(500) // TODO: ugly
     assert(disco.isTraining)
   })

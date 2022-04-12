@@ -20,11 +20,9 @@ describe('train test', () => {
       }
     )
     const trainer = new Disco(titanic, logger, false)
-
-    await trainer.connect()
-    expect(trainer.isConnected).true
     await trainer.startTraining(dataset, trainingScheme)
     expect(trainer.isTraining).true
+    expect(trainer.isConnected).true
     await trainer.stopTraining()
     expect(trainer.isTraining).false
     expect(trainer.isConnected).false
