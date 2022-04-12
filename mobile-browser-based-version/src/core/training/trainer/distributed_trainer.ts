@@ -13,8 +13,8 @@ export class DistributedTrainer extends Trainer {
   client: Client
   /** DistributedTrainer constructor, accepts same arguments as Trainer and in additional also a client who takes care of communicating weights.
    */
-  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, roundTracker: RoundTracker, model: tf.LayersModel, client: Client) {
-    super(task, trainingInformant, useIndexedDB, roundTracker, model)
+  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, roundTracker: RoundTracker, model: tf.LayersModel, client: Client, saveTrainerLog: boolean) {
+    super(task, trainingInformant, useIndexedDB, roundTracker, model, saveTrainerLog)
     this.client = client
   }
 
