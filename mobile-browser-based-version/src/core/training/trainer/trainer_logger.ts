@@ -1,17 +1,18 @@
 import { ConsoleLogger } from '../../logging/console_logger'
 import * as tf from '@tensorflow/tfjs'
+import { List } from 'immutable'
 
 export class TrainerLog {
-  epochs: number[] = []
-  trainAccuracy: number[] = []
-  validationAccuracy: number[] = []
-  loss: number[] = []
+  epochs: List<number> = List()
+  trainAccuracy: List<number> = List()
+  validationAccuracy: List<number> = List()
+  loss: List<number> = List()
 
-  push (epoch: number, logs: tf.Logs): void {
-    this.epochs.push(epoch)
-    this.trainAccuracy.push(logs.acc)
-    this.validationAccuracy.push(logs.val_acc)
-    this.loss.push(logs.loss)
+  add (epoch: number, logs: tf.Logs): void {
+    this.epochs = this.epochs.push(epoch)
+    this.trainAccuracy = this.trainAccuracy.push(logs.acc)
+    this.validationAccuracy = this.validationAccuracy.push(logs.val_acc)
+    this.loss = this.loss.push(logs.loss)
   }
 }
 
@@ -37,7 +38,7 @@ export class TrainerLogger extends ConsoleLogger {
   onEpochEnd (epoch: number, logs: tf.Logs): void {
     // save logs
     if (this.isLogSaveEnabled) {
-      this.log.push(epoch, logs)
+      this.log.add(epoch, logs)
     }
     // console output
     const msg = `Train:${logs.acc}\nValidation:${logs.val_acc}\nLoss:${logs.loss}`

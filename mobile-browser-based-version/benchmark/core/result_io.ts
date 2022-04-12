@@ -17,14 +17,14 @@ function logToDict (benchmarkLog: BenchmarkLog): BenchmarkDict {
   return benchmarkDict
 }
 
-export function save (BenchmarkLog: BenchmarkLog, config: SaveConfig) {
+export function save (benchmarkLog: BenchmarkLog, config: SaveConfig) {
   // If folder does not exist, make it
   if (!fs.existsSync(config.path)) {
     fs.mkdirSync(config.path, { recursive: true })
   }
 
   // Map data to dict (easier to parse to json)
-  const benchmarkDict = logToDict(BenchmarkLog)
+  const benchmarkDict = logToDict(benchmarkLog)
 
   // stringify
   const data = JSON.stringify(benchmarkDict)

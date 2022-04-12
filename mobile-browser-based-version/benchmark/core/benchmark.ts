@@ -1,14 +1,15 @@
 import { BenchmarkConfig } from './config'
 import { User, UserId } from './user'
 import { TrainerLog } from '../../src/core/training/trainer/trainer_logger'
+import { List } from 'immutable'
 
 export type BenchmarkLog = Map<UserId, TrainerLog>
 
 export class Benchmark<U extends User> {
     readonly config: BenchmarkConfig
-    readonly users: U[]
+    readonly users: List<U>
 
-    constructor (config: BenchmarkConfig, users: U[]) {
+    constructor (config: BenchmarkConfig, users: List<U>) {
       this.config = config
       this.users = users
     }

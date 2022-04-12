@@ -1,5 +1,6 @@
 import { UserConfig } from './config'
 import { TrainerLogger, TrainerLog } from '../../src/core/training/trainer/trainer_logger'
+import { List } from 'immutable'
 
 export type UserId = string
 
@@ -26,12 +27,12 @@ export class DiscoUser implements User {
   }
 }
 
-export function MockUserGenerator (config: UserConfig): MockUser[] {
-  const users = []
+export function MockUserGenerator (config: UserConfig): List<MockUser> {
+  let users = List<MockUser>()
   let count = config.numberOfUsers
   while (count--) {
     const id = count.toString()
-    users.push(new MockUser(id, config))
+    users = users.push(new MockUser(id, config))
   }
 
   return users
