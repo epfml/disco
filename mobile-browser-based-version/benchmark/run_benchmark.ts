@@ -21,7 +21,7 @@ describe('Running benchmark', () => {
     const taskID: string = 'cifar10'
     const config: BenchmarkConfig = {
       platform: Platform.federated,
-      usersConfig: [getUserConfig()],
+      usersConfig: [getUserConfig(), getUserConfig()],
       saveConfig: {
         path: './benchmark/results/',
         fileName: `${taskID}.json`
@@ -31,6 +31,6 @@ describe('Running benchmark', () => {
 
     const benchmark = new Benchmark(List(users))
     await benchmark.start()
-    // save(benchmark.getResult(), config.saveConfig)
+    save(benchmark.getResult(), config.saveConfig)
   }).timeout(5 * 60 * 1000)
 })
