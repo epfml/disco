@@ -41,7 +41,7 @@ export class DatasetBuilder {
     }
   }
 
-  build (): Dataset {
+  async build (): Promise<Dataset> {
     // Require that at leat one source collection is non-empty, but not both
     if ((this.sources.length > 0) === (this.labelledSources.size > 0)) {
       throw new Error('invalid sources')
@@ -54,13 +54,13 @@ export class DatasetBuilder {
         features: this.task.trainingInformation.inputColumns,
         labels: this.task.trainingInformation.outputColumns
       }
-      dataset = this.dataLoader.loadAll(this.sources, config)
+      dataset = await this.dataLoader.loadAll(this.sources, config)
     } else if (this.labelledSources.size > 0) {
       // Labels are inferred from the file selection boxes
       const config = {
         labels: Array.from(this.labelledSources.values())
       }
-      dataset = this.dataLoader.loadAll(Array.from(this.labelledSources.keys()), config)
+      dataset = await this.dataLoader.loadAll(Array.from(this.labelledSources.keys()), config)
     }
     // TODO @s314cy: Support .csv labels for image datasets
     this.built = true
