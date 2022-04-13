@@ -22,11 +22,11 @@ export class TrainerLog {
  */
 export class TrainerLogger extends ConsoleLogger {
   readonly log: TrainerLog
-  readonly isLogSaveEnabled: boolean
+  readonly saveTrainerLog: boolean
 
-  constructor (isLogSaveEnabled: boolean = false) {
+  constructor (saveTrainerLog: boolean) {
     super()
-    this.isLogSaveEnabled = isLogSaveEnabled
+    this.saveTrainerLog = saveTrainerLog
     this.log = new TrainerLog()
   }
 
@@ -37,7 +37,7 @@ export class TrainerLogger extends ConsoleLogger {
 
   onEpochEnd (epoch: number, logs: tf.Logs): void {
     // save logs
-    if (this.isLogSaveEnabled) {
+    if (this.saveTrainerLog) {
       this.log.add(epoch, logs)
     }
     // console output
