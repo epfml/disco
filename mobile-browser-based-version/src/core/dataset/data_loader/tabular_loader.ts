@@ -1,4 +1,4 @@
-import { DataLoader, Source, DataConfig } from './data_loader'
+import { DataLoader, Source, DataConfig, Data } from './data_loader'
 import { Dataset } from '../dataset_builder'
 import { Task } from '../../task/task'
 import * as tf from '@tensorflow/tfjs'
@@ -60,9 +60,13 @@ export class TabularLoader extends DataLoader {
     * Creates the CSV datasets based off the given sources, then fuses them into a single CSV
     * dataset.
     */
-  async loadAll (sources: Source[], config: DataConfig): Promise<Dataset> {
+  async loadAll (sources: Source[], config: DataConfig): Promise<Data> {
     const datasets = await Promise.all(_.map(sources, (source) => this.load(source, config)))
-    return _.reduce(datasets, (prev, curr) => prev.concatenate(curr))
+    const dataset = _.reduce(datasets, (prev, curr) => prev.concatenate(curr))
+    return {
+      dataset: dataset,
+      size: dataset.size // TODO: needs to be tested
+    }
   }
 
   /**
