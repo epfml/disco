@@ -7,7 +7,7 @@ import { Logger } from '../logging/logger'
 import { TrainerLog } from './trainer/trainer_logger'
 import { Platform } from '../../platforms/platform'
 import { TrainerBuilder } from './trainer/trainer_builder'
-import * as tf from '@tensorflow/tfjs'
+import { Data } from '../dataset/data_loader/data_loader'
 
 /**
  * Handles the training loop, server communication & provides the user with feedback.
@@ -72,7 +72,7 @@ export class Disco {
    * @param {tf.data.Dataset<tf.TensorContainer>} dataset The preprocessed dataset to train on
    * @param {boolean} distributed Whether to train in a distributed or local fashion
    */
-  async startTraining (dataset: tf.data.Dataset<tf.TensorContainer>, distributed: boolean): Promise<void> {
+  async startTraining (data: Data, distributed: boolean): Promise<void> {
     if (distributed && !this.isConnected) {
       await this.connect()
       if (!this.isConnected) {
@@ -81,14 +81,15 @@ export class Disco {
       }
     }
     this.distributedTraining = distributed
-    if (dataset.size === 0) {
+    if (data.size === 0) {
       this.logger.error('Training aborted. No uploaded file given as input.')
     } else {
       this.logger.success(
         'Thank you for your contribution. Data preprocessing has started'
       )
-      await this.initTrainer(dataset)
-      await this.trainer.trainModel(dataset)
+      // TODO: dataset.size = null, since we build it with an iterator (issues occurs with ImageLoader) see issue 279
+      await this.initTrainer()
+      await this.trainer.trainModel(data.dataset, data.size)
       this.isTraining = true
     }
   }
@@ -109,10 +110,9 @@ export class Disco {
   /**
    * Build the appropriate training class (either local or distributed)
    */
-  private async initTrainer (dataset: tf.data.Dataset<tf.TensorContainer>) {
+  private async initTrainer () {
     const trainerBuilder = new TrainerBuilder(this.useIndexedDB, this.task, this.trainingInformant)
     this.trainer = await trainerBuilder.build(
-      dataset.size,
       this.client,
       this.distributedTraining,
       this.saveTrainerLog

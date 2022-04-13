@@ -1,5 +1,4 @@
 import { Task } from '../../task/task'
-import { RoundTracker } from './round_tracker'
 import { TrainingInformant } from '../training_informant'
 import { Client } from '../../communication/client'
 import { DistributedTrainer } from './distributed_trainer'
@@ -26,19 +25,17 @@ export class TrainerBuilder {
   /**
    * Builds a trainer object.
    *
-   * @param trainSize number of samples in the training set
    * @param client client to share weights with (either distributed or federated)
    * @param distributed whether to build a distributed or local trainer
    * @returns
    */
-  async build (trainSize: number, client: Client, distributed: boolean, saveTrainerLog: boolean): Promise<Trainer> {
+  async build (client: Client, distributed: boolean, saveTrainerLog: boolean): Promise<Trainer> {
     const model = await this.getModel()
     if (distributed) {
       return new DistributedTrainer(
         this.task,
         this.trainingInformant,
         this.useIndexedDB,
-        this.buildRoundTracker(trainSize),
         model,
         client,
         saveTrainerLog
@@ -48,23 +45,10 @@ export class TrainerBuilder {
         this.task,
         this.trainingInformant,
         this.useIndexedDB,
-        this.buildRoundTracker(trainSize),
         model,
         saveTrainerLog
       )
     }
-  }
-
-  /**
-   * Build a round tracker, this keeps track of what round a training environment is currently on.
-   *
-   * @param trainSize number of samples in the training set
-   * @returns
-   */
-  buildRoundTracker (trainSize: number) {
-    const batchSize = this.task.trainingInformation.batchSize
-    const roundDuration = this.task.trainingInformation.roundDuration
-    return new RoundTracker(roundDuration, trainSize, batchSize)
   }
 
   private async getModel () {

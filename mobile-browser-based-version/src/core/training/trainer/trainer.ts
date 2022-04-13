@@ -29,11 +29,10 @@ export abstract class Trainer {
    * @param {TrainingInformant} trainingInformant the training informant
    * @param {boolean} useIndexedDB use IndexedDB (browser only)
    */
-  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, roundTracker: RoundTracker, model: tf.LayersModel, saveTrainerLog: boolean) {
+  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, model: tf.LayersModel, saveTrainerLog: boolean) {
     this.task = task
     this.trainingInformant = trainingInformant
     this.useIndexedDB = useIndexedDB
-    this.roundTracker = roundTracker
     this.model = model
     this.trainerLogger = new TrainerLogger(saveTrainerLog)
     this.trainingInformation = this.task.trainingInformation
@@ -74,17 +73,32 @@ export abstract class Trainer {
   }
 
   /**
+   * Build a round tracker, this keeps track of what round a training environment is currently on.
+   *
+   * @param trainSize number of samples in the training set
+   * @returns
+   */
+  private initRoundTracker (trainSize: number) {
+    const batchSize = this.task.trainingInformation.batchSize
+    const roundDuration = this.task.trainingInformation.roundDuration
+    this.roundTracker = new RoundTracker(roundDuration, trainSize, batchSize)
+  }
+
+  /**
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>) {
+  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>, trainSize: number) {
+    // Init round tracker - requires size info
+    this.initRoundTracker(trainSize)
+
     // Reset stopTraining setting
     this.resetStopTrainerState()
 
     // Assign callbacks and start training
     await this.model.fitDataset(dataset.batch(this.task.trainingInformation.batchSize), {
       epochs: this.trainingInformation.epochs,
-      // validationData: validationDataset,
+      // TODO: not yet implemented, validationData: validationDataset,
       callbacks: {
         onEpochEnd: async (epoch, logs) => {
           this.onEpochEnd(epoch, logs)
