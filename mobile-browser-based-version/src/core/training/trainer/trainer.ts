@@ -98,7 +98,7 @@ export abstract class Trainer {
     // Assign callbacks and start training
     await this.model.fitDataset(dataset.batch(this.task.trainingInformation.batchSize), {
       epochs: this.trainingInformation.epochs,
-      // TODO: not yet implemented, validationData: validationDataset,
+      validationData: dataset.batch(this.task.trainingInformation.batchSize),
       callbacks: {
         onEpochEnd: async (epoch, logs) => {
           this.onEpochEnd(epoch, logs)
