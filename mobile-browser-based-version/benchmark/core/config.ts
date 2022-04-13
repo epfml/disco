@@ -1,10 +1,16 @@
 import { SaveConfig } from './result_io'
+import { Platform } from '../../src/platforms/platform'
+export interface TrainConfig {
+    epochs: number
+}
 export interface UserConfig {
-    trainingScheme: string // TODO: @Nacho114, change type to training scheme
-    numberOfUsers: number
+    trainDir: string
+    validDir: string
+    trainConfig: TrainConfig
 }
 
 export interface BenchmarkConfig {
-    userConfig: UserConfig
+    platform: Platform
+    usersConfig: UserConfig[]
     saveConfig: SaveConfig
 }

@@ -1,4 +1,3 @@
-import { BenchmarkConfig } from './config'
 import { User, UserID } from './users/user'
 import { TrainerLog } from '../../src/core/training/trainer/trainer_logger'
 import { List } from 'immutable'
@@ -6,16 +5,15 @@ import { List } from 'immutable'
 export type BenchmarkLog = Map<UserID, TrainerLog>
 
 export class Benchmark<U extends User> {
-    readonly config: BenchmarkConfig
     readonly users: List<U>
 
-    constructor (config: BenchmarkConfig, users: List<U>) {
-      this.config = config
+    constructor (users: List<U>) {
       this.users = users
     }
 
     async start (): Promise<void> {
-      this.users.forEach(user => user.start())
+      const runningUsers = this.users.map(user => user.start())
+      await Promise.all(runningUsers)
     }
 
     getResult (): BenchmarkLog {
