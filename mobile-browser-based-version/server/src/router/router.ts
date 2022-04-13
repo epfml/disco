@@ -60,6 +60,7 @@ federatedRouter.get('/disconnect/:task/:id', handlers.disconnect)
 federatedRouter.post('/weights/:task/:id', handlers.postWeights)
 
 federatedRouter.get('/round/:task/:id', handlers.getRound)
+federatedRouter.get('/statistics/:task/:id', handlers.getAsyncWeightInformantStatistics)
 
 federatedRouter
   .route('/metadata/:metadata/:task/:round/:id')

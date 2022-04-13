@@ -87,7 +87,10 @@
     </icon-card>
 
     <!-- Distributed Training Information -->
-    <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
+    <div
+      v-if="platform === 'deai'"
+      class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4"
+    >
       <!-- Number of time model updated with someone else's model card -->
       <icon-card-small
         header="# of Averaging"
@@ -116,6 +119,35 @@
       <icon-card-small
         header="# of People Helped"
         :description="String(trainingInformant.whoReceivedMyModel.size)"
+      >
+        <people />
+      </icon-card-small>
+    </div>
+    <!-- Federated Training Information -->
+    <div
+      v-else
+      class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4"
+    >
+      <!-- Current Round -->
+      <icon-card-small
+        header="Current Round"
+        :description="String(trainingInformant.currentRound)"
+      >
+        <timer />
+      </icon-card-small>
+
+      <!-- Current Number of Participants -->
+      <icon-card-small
+        header="Current # of participants"
+        :description="String(trainingInformant.currentNumberOfParticipants)"
+      >
+        <people />
+      </icon-card-small>
+
+      <!-- Average Number of Participants -->
+      <icon-card-small
+        header="Average # of Participants"
+        :description="String(trainingInformant.averageNumberOfParticipants)"
       >
         <people />
       </icon-card-small>
@@ -153,7 +185,8 @@ export default {
     return {
       areaChartOptions: this.trainingInformant.getAreaChartOptions(),
       trainingAccuracyData: this.trainingInformant.getTrainingAccuracyData(),
-      validationAccuracyData: this.trainingInformant.getValidationAccuracyData()
+      validationAccuracyData: this.trainingInformant.getValidationAccuracyData(),
+      platform: this.$store.getters.platform
     }
   },
 
