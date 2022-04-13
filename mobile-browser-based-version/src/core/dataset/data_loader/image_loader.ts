@@ -1,5 +1,5 @@
 import { Dataset } from '../dataset_builder'
-import { DataLoader, Source, DataConfig } from './data_loader'
+import { DataLoader, Source, DataConfig, Data } from './data_loader'
 import * as tf from '@tensorflow/tfjs'
 import fs from 'fs'
 
@@ -24,14 +24,14 @@ export class ImageLoader extends DataLoader {
     return tf.data.array([tensorContainer])
   }
 
-  async loadAll (images: Source[], config?: DataConfig): Promise<Dataset> {
+  async loadAll (images: Source[], config?: DataConfig): Promise<Data> {
     const withLabels = config !== undefined && config.labels !== undefined
     let labels: any
     if (withLabels) {
       const numberOfClasses = this.task.trainingInformation.LABEL_LIST.length
       labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), numberOfClasses).arraySync()
     }
-    return tf.data.generator(() => {
+    const dataset = tf.data.generator(() => {
       let index = 0
       const iterator = {
         next: async () => {
@@ -56,6 +56,11 @@ export class ImageLoader extends DataLoader {
       }
       return iterator as any // Lazy
     })
+
+    return {
+      dataset: dataset,
+      size: images.length
+    }
   }
 
   private static async readImageFrom (source: Source): Promise<tf.Tensor3D> {
