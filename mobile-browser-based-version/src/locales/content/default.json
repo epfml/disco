@@ -128,6 +128,28 @@
           "description": "If you are satisfied with the performance of the model, don't forget to save the model by clicking on the button below. The next time you will load the application, you will be able to use your saved model.",
           "button": "Test my model"
         }
+      },
+      "trainingInformationFrame": {
+        "accuracyCharts": {
+          "validationAccuracyHeader": "Validation Accuracy of the Model",
+          "validationAccuracyText": "% of validation accuracy",
+          "trainingAccuracyHeader": "Training Accuracy of the Model",
+          "trainingAccuracyText": "% of training accuracy"
+        },
+        "trainingInformations": {
+          "trainingConsoleHeader": "Peer Training Console",
+          "distributed": {
+            "averaging": "# of Averaging",
+            "waitingTime": "Waiting Time",
+            "weightRequests": "# Weight Requests",
+            "peopleHelped": "# of People Helped"
+          },
+          "federated": {
+            "round": "Current Round",
+            "numberParticipants": "Current # of participants",
+            "averageParticipants": "Average # of Participants"
+          }
+        }
       }
     }
   }

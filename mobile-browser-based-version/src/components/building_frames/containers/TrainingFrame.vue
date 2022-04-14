@@ -17,7 +17,7 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <div v-if="!disco.isTraining">
+        <div v-if="!isTraining">
           <custom-button
             :center="true"
             @click="startLocalTraining()"
@@ -147,7 +147,10 @@ export default {
     }
   },
   computed: {
-    ...mapState(['useIndexedDB'])
+    ...mapState(['useIndexedDB']),
+    isTraining () {
+      return this.disco.isTraining
+    }
   },
   watch: {
     useIndexedDB (newValue) {

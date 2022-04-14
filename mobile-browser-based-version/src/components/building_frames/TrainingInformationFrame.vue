@@ -13,14 +13,20 @@
           <!-- Card header -->
           <div class="p-4 border-b dark:border-primary">
             <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-              Validation Accuracy of the Model
+              {{
+                $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyHeader')
+              }}
             </h4>
           </div>
           <p class="p-4">
             <span class="text-2xl font-medium text-gray-500 dark:text-light">{{
               currentValidationAccuracy
             }}</span>
-            <span class="text-sm font-medium text-gray-500 dark:text-primary">% of validation accuracy</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-primary">
+              {{
+                $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyText')
+              }}
+            </span>
           </p>
           <!-- Chart -->
           <div class="relative p-4 w-100% h-100%">
@@ -38,14 +44,20 @@
           <!-- Card header -->
           <div class="p-4 border-b dark:border-primary">
             <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-              Training Accuracy of the Model
+              {{
+                $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
+              }}
             </h4>
           </div>
           <p class="p-4">
             <span class="text-2xl font-medium text-gray-500 dark:text-light">{{
               currentTrainingAccuracy
             }}</span>
-            <span class="text-sm font-medium text-gray-500 dark:text-primary">% of training accuracy</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-primary">
+              {{
+                $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
+              }}
+            </span>
           </p>
           <!-- Chart -->
           <div class="relative p-4 w-100% h-100%">
@@ -62,7 +74,7 @@
     </div>
 
     <!-- Communication Console -->
-    <icon-card header="Peer Training Console">
+    <icon-card :header="$t('training.trainingInformationFrame.trainingInformations.trainingConsoleHeader')">
       <template #icon>
         <contact />
       </template>
@@ -88,12 +100,12 @@
 
     <!-- Distributed Training Information -->
     <div
-      v-if="platform === 'deai'"
+      v-if="isDecentralizedTrainingScheme"
       class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4"
     >
       <!-- Number of time model updated with someone else's model card -->
       <icon-card-small
-        header="# of Averaging"
+        :header="$t('training.trainingInformationFrame.trainingInformations.distributed.averaging')"
         :description="String(trainingInformant.nbrUpdatesWithOthers)"
       >
         <performances />
@@ -101,7 +113,7 @@
 
       <!-- How much time I've been waiting for weights to arrive -->
       <icon-card-small
-        header="Waiting Time"
+        :header="$t('training.trainingInformationFrame.trainingInformations.distributed.waitingTime')"
         :description="`${trainingInformant.waitingTime} sec`"
       >
         <timer />
@@ -109,7 +121,7 @@
 
       <!-- Nbr. of Weight Requests -->
       <icon-card-small
-        header="# Weight Requests"
+        :header="$t('training.trainingInformationFrame.trainingInformations.distributed.weightRequests')"
         :description="String(trainingInformant.nbrWeightRequests)"
       >
         <forward />
@@ -117,7 +129,7 @@
 
       <!-- Nbr. of people helped -->
       <icon-card-small
-        header="# of People Helped"
+        :header="$t('training.trainingInformationFrame.trainingInformations.distributed.peopleHelped')"
         :description="String(trainingInformant.whoReceivedMyModel.size)"
       >
         <people />
@@ -130,7 +142,7 @@
     >
       <!-- Current Round -->
       <icon-card-small
-        header="Current Round"
+        :header="$t('training.trainingInformationFrame.trainingInformations.federated.round')"
         :description="String(trainingInformant.currentRound)"
       >
         <timer />
@@ -138,7 +150,7 @@
 
       <!-- Current Number of Participants -->
       <icon-card-small
-        header="Current # of participants"
+        :header="$t('training.trainingInformationFrame.trainingInformations.federated.numberParticipants')"
         :description="String(trainingInformant.currentNumberOfParticipants)"
       >
         <people />
@@ -146,7 +158,7 @@
 
       <!-- Average Number of Participants -->
       <icon-card-small
-        header="Average # of Participants"
+        :header="$t('training.trainingInformationFrame.trainingInformations.federated.averageParticipants')"
         :description="String(trainingInformant.averageNumberOfParticipants)"
       >
         <people />
@@ -163,6 +175,7 @@ import People from '../../assets/svg/People.vue'
 import Performances from '../../assets/svg/Performances.vue'
 import Forward from '../../assets/svg/Forward.vue'
 import Contact from '../../assets/svg/Contact.vue'
+import { TrainingInformant } from '@/core/training/training_informant'
 
 export default {
   name: 'TrainingInformationFrame',
@@ -177,7 +190,7 @@ export default {
   },
   props: {
     trainingInformant: {
-      type: Object,
+      type: TrainingInformant,
       default: undefined
     }
   },
@@ -186,7 +199,7 @@ export default {
       areaChartOptions: this.trainingInformant.getAreaChartOptions(),
       trainingAccuracyData: this.trainingInformant.getTrainingAccuracyData(),
       validationAccuracyData: this.trainingInformant.getValidationAccuracyData(),
-      platform: this.$store.getters.platform
+      isDecentralizedTrainingScheme: this.trainingInformant.isTaskTrainingSchemeDecentralized()
     }
   },
 
