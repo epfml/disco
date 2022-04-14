@@ -8,12 +8,11 @@ import * as tfNode from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import _ from 'lodash'
 
-const timer = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
 describe('image loader test', () => {
-  it('load single mnist sample without label', () => {
+  it('load single mnist sample without label', async () => {
     const file = './example_training_data/9-mnist-example.png'
-    const singletonDataset = new ImageLoader().load(file)
+    const mnist = (await loadTasks())[1]
+    const singletonDataset = await new ImageLoader(mnist).load(file)
     const imageContent = tfNode.node.decodeImage(fs.readFileSync(file))
     singletonDataset.forEachAsync((entry) => expect(entry).eql(imageContent))
   })
@@ -22,7 +21,8 @@ describe('image loader test', () => {
     const dir = './example_training_data/CIFAR10/'
     const files = fs.readdirSync(dir).map((file) => dir.concat(file))
     const imagesContent = files.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
-    const datasetContent = await new ImageLoader().loadAll(files).toArray()
+    const cifar10 = (await loadTasks())[3]
+    const datasetContent = await (await new ImageLoader(cifar10).loadAll(files)).dataset.toArray()
     expect(datasetContent.length).equal(imagesContent.length)
     expect((datasetContent[0] as tfNode.Tensor3D).shape).eql(imagesContent[0].shape)
   })
@@ -30,24 +30,29 @@ describe('image loader test', () => {
   it('load single cifar10 sample with label', async () => {
     const path = './example_training_data/CIFAR10/0.png'
     const imageContent = tfNode.node.decodeImage(fs.readFileSync(path))
-    const datasetContent = await new ImageLoader().load(path, { labels: ['example'] }).toArray()
-    expect((datasetContent[0] as any).xs[0].shape).eql(imageContent.shape)
-    expect((datasetContent[0] as any).ys[0]).eql('example')
+    const cifar10 = (await loadTasks())[3]
+    const datasetContent = await (await new ImageLoader(cifar10).load(path, { labels: ['example'] })).toArray()
+    expect((datasetContent[0] as any).xs.shape).eql(imageContent.shape)
+    expect((datasetContent[0] as any).ys).eql('example')
   })
 
   it('load multiple cifar10 samples with labels', async () => {
     const dir = './example_training_data/CIFAR10/'
     const files = fs.readdirSync(dir).map((file) => dir.concat(file))
-    const labels = _.map(_.range(24), (label) => label.toString())
+    const labels = _.map(_.range(24), (label) => (label % 10))
+    const stringLabels = _.map(labels, (label) => label.toString())
+    const oneHotLabels = tfNode.oneHot(labels, 10).arraySync()
+
+    const cifar10 = (await loadTasks())[3]
 
     const imagesContent = files.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
-    const datasetContent = await new ImageLoader().loadAll(files, { labels: labels }).toArray()
+    const datasetContent = await (await new ImageLoader(cifar10).loadAll(files, { labels: stringLabels })).dataset.toArray()
 
     expect(datasetContent.length).equal(imagesContent.length)
     _.forEach(
-      _.zip(datasetContent, imagesContent, labels), ([actual, sample, label]) => {
-        expect((actual as any).xs[0].shape).eql(sample.shape)
-        expect((actual as any).ys[0]).eql(label)
+      _.zip(datasetContent, imagesContent, oneHotLabels as any), ([actual, sample, label]) => {
+        expect((actual as any).xs.shape).eql(sample.shape)
+        expect((actual as any).ys).eql(label)
       }
     )
   })
@@ -55,13 +60,12 @@ describe('image loader test', () => {
   it('start training cifar10', async () => {
     const dir = './example_training_data/CIFAR10/'
     const files = fs.readdirSync(dir).map((file) => dir.concat(file))
-    const labels = _.map(_.range(24), (label) => label.toString())
+    const labels = _.map(_.range(24), (label) => (label % 10).toString())
 
-    const dataset = new ImageLoader().loadAll(files, { labels: labels })
     const cifar10 = (await loadTasks())[3]
+    const data = await new ImageLoader(cifar10).loadAll(files, { labels: labels })
     const disco = new Disco(cifar10, logger, false)
-    disco.startTraining(dataset, TrainingSchemes.FEDERATED)
-    await timer(500) // TODO: ugly
+    await disco.startTraining(data, TrainingSchemes.FEDERATED)
     assert(disco.isTraining)
-  })
+  }).timeout(5 * 60 * 1000)
 })

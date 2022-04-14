@@ -11,9 +11,9 @@ const inputFiles = ['file://./example_training_data/titanic.csv']
 describe('train test', () => {
   it('connect then start and stop training the titanic task', async () => {
     const titanic = (await loadTasks())[0]
-    const loader = new TabularLoader(',')
-    const dataset = loader.load(
-      inputFiles[0],
+    const loader = new TabularLoader(titanic, ',')
+    const dataset = await loader.loadAll(
+      inputFiles,
       {
         features: titanic.trainingInformation.inputColumns,
         labels: titanic.trainingInformation.outputColumns

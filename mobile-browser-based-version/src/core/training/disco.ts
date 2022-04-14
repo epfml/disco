@@ -5,8 +5,8 @@ import { getClient } from '../communication/client_builder'
 import { Task } from '../task/task'
 import { Logger } from '../logging/logger'
 import { TrainerBuilder } from './trainer/trainer_builder'
-import * as tf from '@tensorflow/tfjs'
 import { TrainingSchemes } from './trainingSchemes'
+import { Data } from '../dataset/data_loader/data_loader'
 
 /**
  * Handles the training loop, server communication & provides the user with feedback.
@@ -86,27 +86,27 @@ export class Disco {
    * Runs training according to the scheme defined in the Task's trainingInformation.
    * If default scheme is Decentralized for now, if nothing is specified.
    */
-  async startTaskDefinedTraining (dataset: tf.data.Dataset<tf.TensorContainer>) {
+  async startTaskDefinedTraining (data: Data) {
     if (this.task.trainingInformation.scheme === 'Federated') {
-      await this.startTraining(dataset, TrainingSchemes.FEDERATED)
+      await this.startTraining(data, TrainingSchemes.FEDERATED)
     } else {
       // The Default training scheme is Decentralized
-      await this.startTraining(dataset, TrainingSchemes.DECENTRALIZED)
+      await this.startTraining(data, TrainingSchemes.DECENTRALIZED)
     }
   }
 
   /**
    * Runs training using Local Scheme
    */
-  async startLocalTraining (dataset: tf.data.Dataset<tf.TensorContainer>) {
-    await this.startTraining(dataset, TrainingSchemes.LOCAL)
+  async startLocalTraining (data: Data) {
+    await this.startTraining(data, TrainingSchemes.LOCAL)
   }
 
   /**
-   * @param {tf.data.Dataset<tf.TensorContainer>} dataset The preprocessed dataset to train on
+   * @param {Data} dataset The preprocessed dataset to train on
    * @param {boolean} distributed Whether to train in a distributed or local fashion
    */
-  async startTraining (dataset: tf.data.Dataset<tf.TensorContainer>, trainingScheme: TrainingSchemes): Promise<void> {
+  async startTraining (data: Data, trainingScheme: TrainingSchemes): Promise<void> {
     await this.initOrUpdateClient(trainingScheme)
 
     // Connects to the server
@@ -119,15 +119,15 @@ export class Disco {
         this.distributedTraining = true
       }
     }
-
-    if (dataset.size === 0) {
+    if (data.size === 0) {
       this.logger.error('Training aborted. No uploaded file given as input.')
     } else {
       this.logger.success(
         'Thank you for your contribution. Data preprocessing has started'
       )
-      await this.initTrainer(dataset)
-      this.trainer.trainModel(dataset)
+      // TODO: dataset.size = null, since we build it with an iterator (issues occurs with ImageLoader) see issue 279
+      await this.initTrainer()
+      await this.trainer.trainModel(data.dataset, data.size)
       this.isTraining = true
     }
   }
@@ -147,10 +147,9 @@ export class Disco {
   /**
    * Build the appropriate training class (either local or distributed)
    */
-  private async initTrainer (dataset: tf.data.Dataset<tf.TensorContainer>) {
+  private async initTrainer () {
     const trainerBuilder = new TrainerBuilder(this.useIndexedDB, this.task, this.trainingInformant)
     this.trainer = await trainerBuilder.build(
-      dataset.size,
       this.client,
       this.distributedTraining
     )
