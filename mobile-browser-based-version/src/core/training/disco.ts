@@ -21,6 +21,7 @@ export class Disco {
   isTraining: boolean
   distributedTraining: boolean
   trainingScheme: TrainingSchemes
+  taskDefinedTrainingScheme : TrainingSchemes
   useIndexedDB: boolean
 
   constructor (task: Task, logger: Logger, useIndexedDB: boolean) {
@@ -33,7 +34,10 @@ export class Disco {
 
     this.client = undefined
     this.trainingScheme = undefined
-    this.trainingInformant = new TrainingInformant(10, this.task.taskID)
+    this.taskDefinedTrainingScheme = this.task.trainingInformation.scheme === 'Federated'
+      ? TrainingSchemes.FEDERATED
+      : TrainingSchemes.DECENTRALIZED
+    this.trainingInformant = new TrainingInformant(10, this.task.taskID, this.taskDefinedTrainingScheme)
   }
 
   /**
@@ -87,12 +91,7 @@ export class Disco {
    * If default scheme is Decentralized for now, if nothing is specified.
    */
   async startTaskDefinedTraining (data: Data) {
-    if (this.task.trainingInformation.scheme === 'Federated') {
-      await this.startTraining(data, TrainingSchemes.FEDERATED)
-    } else {
-      // The Default training scheme is Decentralized
-      await this.startTraining(data, TrainingSchemes.DECENTRALIZED)
-    }
+    await this.startTraining(data, this.taskDefinedTrainingScheme)
   }
 
   /**

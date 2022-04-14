@@ -26,5 +26,5 @@ describe('train test', () => {
     await trainer.stopTraining()
     expect(trainer.isTraining).false
     expect(trainer.isConnected).false
-  })
+  }).timeout(5 * 60 * 1000)
 })

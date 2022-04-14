@@ -1,3 +1,4 @@
+import { TrainingSchemes } from './trainingSchemes'
 
 type DataSerie = {
   data: number[];
@@ -8,6 +9,7 @@ type DataSerie = {
  */
 export class TrainingInformant {
   taskID: string;
+  taskTrainingScheme: string;
   // Decentralized Informations
   whoReceivedMyModel: Set<unknown>;
   nbrUpdatesWithOthers: number;
@@ -30,18 +32,15 @@ export class TrainingInformant {
   validationAccuracyDataSerie: number[];
   currentTrainingAccuracy: number;
   trainingAccuracyDataSerie: number[];
-  weightsIn: number;
-  biasesIn: number;
-  weightsOut: number;
-  biasesOut: number;
 
   /**
    *
    * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
    * @param {String} taskID the task's name.
    */
-  constructor (length: number, taskID: string) {
+  constructor (length: number, taskID: string, taskTrainingScheme: TrainingSchemes) {
     this.taskID = taskID
+    this.taskTrainingScheme = taskTrainingScheme
     // number of people with whom I've shared my model
     this.whoReceivedMyModel = new Set()
 
@@ -128,7 +127,7 @@ export class TrainingInformant {
   }
 
   /**
-   * Update the server statistics with the JSON received from the server
+   * Update the server statistics with the JSON received from the Federated server
    * For now it's just the JSON, but we might want to keep it as a dictionnary
    * @param {any} receivedStatistics statistics received from the server.
    */
@@ -137,6 +136,22 @@ export class TrainingInformant {
     this.currentNumberOfParticipants = receivedStatistics.currentNumberOfParticipants
     this.totalNumberOfParticipants = receivedStatistics.totalNumberOfParticipants
     this.averageNumberOfParticipants = receivedStatistics.averageNumberOfParticipants
+  }
+
+  /**
+   * Returns wether or not the Task's training scheme is Decentralized
+   * @returns Boolean value
+   */
+  isTaskTrainingSchemeDecentralized () {
+    return this.taskTrainingScheme === TrainingSchemes.DECENTRALIZED
+  }
+
+  /**
+   * Returns wether or not the Task's training scheme is Federated
+   * @returns Boolean value
+   */
+  isTaskTrainingSchemeFederated () {
+    return this.taskTrainingScheme === TrainingSchemes.FEDERATED
   }
 
   cssColors = (color: string) => {
