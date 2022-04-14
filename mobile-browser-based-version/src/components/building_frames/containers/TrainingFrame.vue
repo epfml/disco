@@ -172,9 +172,8 @@ export default {
     async startTraining (distributedTraining) {
       try {
         if (!this.datasetBuilder.isBuilt()) {
-          this.dataset = this.datasetBuilder
+          this.dataset = await this.datasetBuilder
             .build()
-            .batch(this.task.trainingInformation.batchSize)
         }
         if (distributedTraining) {
           await this.disco.startTaskDefinedTraining(this.dataset)

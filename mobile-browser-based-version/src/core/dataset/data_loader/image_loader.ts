@@ -1,5 +1,5 @@
 import { Dataset } from '../dataset_builder'
-import { DataLoader, Source, DataConfig } from './data_loader'
+import { DataLoader, Source, DataConfig, Data } from './data_loader'
 import * as tf from '@tensorflow/tfjs'
 import fs from 'fs'
 
@@ -11,49 +11,59 @@ import fs from 'fs'
  */
 
 export class ImageLoader extends DataLoader {
-  load (image: Source, config?: DataConfig): Dataset {
+  async load (image: Source, config?: DataConfig): Promise<Dataset> {
     let tensorContainer: tf.TensorContainer
     if (config === undefined || config.labels === undefined) {
-      tensorContainer = ImageLoader.readImageFrom(image)
+      tensorContainer = await ImageLoader.readImageFrom(image)
     } else {
       tensorContainer = {
-        xs: [ImageLoader.readImageFrom(image)],
-        ys: [config.labels[0]]
+        xs: await ImageLoader.readImageFrom(image),
+        ys: config.labels[0]
       }
     }
     return tf.data.array([tensorContainer])
   }
 
-  loadAll (images: Source[], config?: DataConfig): Dataset {
+  async loadAll (images: Source[], config?: DataConfig): Promise<Data> {
     const withLabels = config !== undefined && config.labels !== undefined
-    return tf.data.generator(() => {
+    let labels: any
+    if (withLabels) {
+      const numberOfClasses = this.task.trainingInformation.LABEL_LIST.length
+      labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), numberOfClasses).arraySync()
+    }
+    const dataset = tf.data.generator(() => {
       let index = 0
       const iterator = {
-        next: () => {
-          let sample: tf.Tensor3D
-          let label: string
+        next: async () => {
+          let sample: tf.Tensor
+          let label: tf.Tensor
           if (index < images.length) {
-            sample = ImageLoader.readImageFrom(images[index])
+            sample = await ImageLoader.readImageFrom(images[index])
             if (withLabels) {
-              label = config.labels[index]
+              label = labels[index]
             }
             index++
             return {
-              value: withLabels ? { xs: [sample], ys: [label] } : sample,
+              value: withLabels ? { xs: sample, ys: label } : sample,
               done: false
             }
           }
           return {
-            value: withLabels ? { xs: [sample], ys: [label] } : sample,
+            value: withLabels ? { xs: sample, ys: label } : sample,
             done: true
           }
         }
       }
-      return iterator
+      return iterator as any // Lazy
     })
+
+    return {
+      dataset: dataset,
+      size: images.length
+    }
   }
 
-  private static readImageFrom (source: Source): tf.Tensor3D {
+  private static async readImageFrom (source: Source): Promise<tf.Tensor3D> {
     if (typeof source === 'string') {
       // Node environment
       const tfNode = require('@tensorflow/tfjs-node')
@@ -61,9 +71,7 @@ export class ImageLoader extends DataLoader {
       return image
     } else if (source instanceof File) {
       // Browser environment
-      // TODO: synchronous loading of image sample
-      // return tf.browser.fromPixels(await createImageBitmap(source))
-      return tf.tensor([1])
+      return tf.browser.fromPixels(await createImageBitmap(source))
     } else {
       throw new Error('not implemented')
     }

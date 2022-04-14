@@ -1,4 +1,4 @@
-import { DataLoader, Source } from './data_loader/data_loader'
+import { DataLoader, Source, Data } from './data_loader/data_loader'
 import * as tf from '@tensorflow/tfjs'
 import { Task } from '../task/task'
 
@@ -41,30 +41,30 @@ export class DatasetBuilder {
     }
   }
 
-  build (): Dataset {
+  async build (): Promise<Data> {
     // Require that at leat one source collection is non-empty, but not both
     if ((this.sources.length > 0) === (this.labelledSources.size > 0)) {
       throw new Error('invalid sources')
     }
 
-    let dataset: Dataset
+    let data: Data
     if (this.sources.length > 0) {
       // Labels are contained in the given sources
       const config = {
         features: this.task.trainingInformation.inputColumns,
         labels: this.task.trainingInformation.outputColumns
       }
-      dataset = this.dataLoader.loadAll(this.sources, config)
+      data = await this.dataLoader.loadAll(this.sources, config)
     } else if (this.labelledSources.size > 0) {
       // Labels are inferred from the file selection boxes
       const config = {
         labels: Array.from(this.labelledSources.values())
       }
-      dataset = this.dataLoader.loadAll(Array.from(this.labelledSources.keys()), config)
+      data = await this.dataLoader.loadAll(Array.from(this.labelledSources.keys()), config)
     }
     // TODO @s314cy: Support .csv labels for image datasets
     this.built = true
-    return dataset
+    return data
   }
 
   isBuilt (): boolean {

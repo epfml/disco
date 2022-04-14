@@ -1,13 +1,14 @@
-import { DataLoader, Source, DataConfig } from './data_loader'
+import { DataLoader, Source, DataConfig, Data } from './data_loader'
 import { Dataset } from '../dataset_builder'
+import { Task } from '../../task/task'
 import * as tf from '@tensorflow/tfjs'
 import _ from 'lodash'
 
 export class TabularLoader extends DataLoader {
   private delimiter: string
 
-  constructor (delimiter: string) {
-    super()
+  constructor (task: Task, delimiter: string) {
+    super(task)
     this.delimiter = delimiter
   }
 
@@ -19,7 +20,7 @@ export class TabularLoader extends DataLoader {
    * @param config
    * @returns A TF.js dataset built upon read tabular data stored in the given sources.
    */
-  load (source: Source, config?: DataConfig): Dataset {
+  async load (source: Source, config?: DataConfig): Promise<Dataset> {
     /**
      * Prepare the CSV config object based off the given features and labels.
      * If labels is empty, then the returned dataset is comprised of samples only.
@@ -59,9 +60,13 @@ export class TabularLoader extends DataLoader {
     * Creates the CSV datasets based off the given sources, then fuses them into a single CSV
     * dataset.
     */
-  loadAll (sources: Source[], config: DataConfig): Dataset {
-    const datasets = _.map(sources, (source) => this.load(source, config))
-    return _.reduce(datasets, (prev, curr) => prev.concatenate(curr))
+  async loadAll (sources: Source[], config: DataConfig): Promise<Data> {
+    const datasets = await Promise.all(_.map(sources, (source) => this.load(source, config)))
+    const dataset = _.reduce(datasets, (prev, curr) => prev.concatenate(curr))
+    return {
+      dataset: dataset,
+      size: dataset.size // TODO: needs to be tested
+    }
   }
 
   /**
