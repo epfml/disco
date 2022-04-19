@@ -1,18 +1,18 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { DataLoader, Source, Data } from './data_loader/data_loader'
+import { DataLoader, Data } from './data_loader/data_loader'
 import { Task } from '@/task'
 
 export type Dataset = tf.data.Dataset<tf.TensorContainer>
 
-export class DatasetBuilder {
+export class DatasetBuilder<Source> {
   private readonly task: Task
-  private readonly dataLoader: DataLoader
+  private readonly dataLoader: DataLoader<Source>
   private sources: Source[]
-  private readonly labelledSources: Map<Source, string>
+  private readonly labelledSources: Map<string, Source>
   private built: boolean
 
-  constructor (dataLoader: DataLoader, task: Task) {
+  constructor (dataLoader: DataLoader<Source>, task: Task) {
     this.dataLoader = dataLoader
     this.task = task
     this.sources = []
@@ -27,7 +27,7 @@ export class DatasetBuilder {
     if (label === undefined) {
       this.sources = this.sources.concat(sources)
     } else {
-      sources.forEach((source) => this.labelledSources.set(source, label))
+      sources.forEach((source) => this.labelledSources.set(label, source))
     }
   }
 
@@ -59,9 +59,9 @@ export class DatasetBuilder {
     } else if (this.labelledSources.size > 0) {
       // Labels are inferred from the file selection boxes
       const config = {
-        labels: Array.from(this.labelledSources.values())
+        labels: Array.from(this.labelledSources.keys())
       }
-      data = await this.dataLoader.loadAll(Array.from(this.labelledSources.keys()), config)
+      data = await this.dataLoader.loadAll(Array.from(this.labelledSources.values()), config)
     }
     // TODO @s314cy: Support .csv labels for image datasets
     this.built = true
