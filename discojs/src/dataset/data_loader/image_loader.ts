@@ -1,7 +1,8 @@
-import { Dataset } from '../dataset_builder'
-import { DataLoader, Source, DataConfig, Data } from './data_loader'
 import * as tf from '@tensorflow/tfjs'
-import fs from 'fs'
+
+import { Dataset } from '../dataset_builder'
+import { DataLoader, DataConfig, Data } from './data_loader'
+import { Task } from '@/task'
 
 /**
  * TODO @s314cy:
@@ -10,14 +11,22 @@ import fs from 'fs'
  * 2. Labels are given as multiple labels/1 file, each label file can contain a different amount of labels
  */
 
-export class ImageLoader extends DataLoader {
+export abstract class ImageLoader<Source> extends DataLoader<Source> {
+  abstract readImageFrom (source: Source): Promise<tf.Tensor3D>
+
+  constructor (
+    task: Task,
+  ) {
+    super(task)
+  }
+
   async load (image: Source, config?: DataConfig): Promise<Dataset> {
     let tensorContainer: tf.TensorContainer
     if (config === undefined || config.labels === undefined) {
-      tensorContainer = await ImageLoader.readImageFrom(image)
+      tensorContainer = await this.readImageFrom(image)
     } else {
       tensorContainer = {
-        xs: await ImageLoader.readImageFrom(image),
+        xs: await this.readImageFrom(image),
         ys: config.labels[0]
       }
     }
@@ -38,7 +47,7 @@ export class ImageLoader extends DataLoader {
           let sample: tf.Tensor
           let label: number
           if (index < images.length) {
-            sample = await ImageLoader.readImageFrom(images[index])
+            sample = await this.readImageFrom(images[index])
             if (withLabels) {
               label = labels[index]
             }
@@ -61,22 +70,6 @@ export class ImageLoader extends DataLoader {
     return {
       dataset: dataset,
       size: images.length
-    }
-  }
-
-  private static async readImageFrom (source: Source): Promise<tf.Tensor3D> {
-    // TODO do not depend on node
-    if (typeof source === 'string') {
-      // Node environment
-      // eslint-disable-next-line
-      const tfNode = require('@tensorflow/tfjs-node')
-      const image = tfNode.node.decodeImage(fs.readFileSync(source))
-      return image
-    } else if (source instanceof File) {
-      // Browser environment
-      return tf.browser.fromPixels(await createImageBitmap(source))
-    } else {
-      throw new Error('not implemented')
     }
   }
 }

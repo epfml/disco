@@ -182,8 +182,87 @@ export default {
     }
   },
   data () {
+    // TODO copied from ImageTestingFrame
+    const getColor = () => {
+      return window.localStorage.getItem('color') ?? 'cyan'
+    }
+
+    const colorPalette = {
+      primary: this.cssColors(`--color-${getColor()}`),
+      primaryLight: this.cssColors(`--color-${getColor()}-light`)
+    }
+    const areaChartOptions = {
+      chart: {
+        id: 'realtime',
+        width: 'auto',
+        height: 'auto',
+        type: 'area',
+        animations: {
+          enabled: true,
+          easing: 'linear',
+          dynamicAnimation: {
+            speed: 1000
+          }
+        },
+        toolbar: {
+          show: false
+        },
+        zoom: {
+          enabled: false
+        }
+      },
+      dataLabels: {
+        enabled: false
+      },
+      colors: [
+        // TODO: Make it so it immediately changes when updated
+        colorPalette().primary
+      ],
+      fill: {
+        colors: [colorPalette().primaryLighter],
+        type: 'solid',
+        opacity: 0.6
+      },
+      stroke: {
+        curve: 'smooth'
+      },
+      markers: {
+        size: 0.5
+      },
+      grid: {
+        xaxis: {
+          lines: {
+            show: false
+          }
+        },
+        yaxis: {
+          lines: {
+            show: false
+          }
+        }
+      },
+      yaxis: {
+        max: 100,
+        min: 0,
+        labels: {
+          show: false
+        }
+      },
+      xaxis: {
+        labels: {
+          show: false
+        }
+      },
+      legend: {
+        show: false
+      },
+      tooltip: {
+        enabled: false
+      }
+    }
+
     return {
-      areaChartOptions: this.trainingInformant.getAreaChartOptions(),
+      areaChartOptions,
       trainingAccuracyData: this.trainingInformant.getTrainingAccuracyData(),
       validationAccuracyData: this.trainingInformant.getValidationAccuracyData(),
       platform: this.$store.getters.platform

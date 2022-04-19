@@ -1,14 +1,13 @@
 import { Dataset } from '../dataset_builder'
 import { Task } from '../../task'
 
-export type Source = string | File
 export interface DataConfig { features?: string[], labels?: string[] }
 export type Data = {
   dataset: Dataset
   size: number
 }
 
-export abstract class DataLoader {
+export abstract class DataLoader<Source> {
   protected task: Task
 
   constructor (task: Task) {
