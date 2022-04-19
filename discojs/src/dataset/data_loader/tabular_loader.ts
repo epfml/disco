@@ -1,16 +1,24 @@
-import { DataLoader, Source, DataConfig, Data } from './data_loader'
+import { DataLoader, DataConfig, Data } from './data_loader'
 import { Dataset } from '../dataset_builder'
 import { Task } from '../../task'
 import * as tf from '@tensorflow/tfjs'
 import _ from 'lodash'
 
-export class TabularLoader extends DataLoader {
+export abstract class TabularLoader<Source> extends DataLoader<Source> {
   private readonly delimiter: string
 
   constructor (task: Task, delimiter: string) {
     super(task)
     this.delimiter = delimiter
   }
+
+  /**
+   * Creates a CSV dataset object based off the given source.
+   * @param source File object, URL string or local file system path.
+   * @param csvConfig Object expected by TF.js to create a CSVDataset.
+   * @returns The CSVDataset object built upon the given source.
+   */
+  abstract loadTabularDatasetFrom (source: Source, csvConfig: Record<string, unknown>): tf.data.CSVDataset
 
   /**
    * Expects delimiter-separated tabular data made of N columns. The data may be
@@ -47,7 +55,7 @@ export class TabularLoader extends DataLoader {
       configuredColumnsOnly: true,
       delimiter: this.delimiter
     }
-    const dataset = TabularLoader.loadTabularDatasetFrom(source, csvConfig)
+    const dataset = this.loadTabularDatasetFrom(source, csvConfig)
     return (dataset).map((t) => {
       const { xs, ys } = t as Record<string, unknown>
       return {
@@ -67,27 +75,6 @@ export class TabularLoader extends DataLoader {
     return {
       dataset: dataset,
       size: dataset.size // TODO: needs to be tested
-    }
-  }
-
-  /**
-   * Creates a CSV dataset object based off the given source. If the source is a string,
-   * uses the available tf.data.csv function handling URLs and file system paths. If the
-   * source is instead a File object, manually creates the dataset with the help of the
-   * tf.data.FileDataSource class. The latter is undocumented but mimics tf.data.csv.
-   * @param source File object, URL string or local file system path.
-   * @param csvConfig Object expected by TF.js to create a CSVDataset.
-   * @returns The CSVDataset object built upon the given source.
-   */
-  static loadTabularDatasetFrom (source: Source, csvConfig: Record<string, unknown>): tf.data.CSVDataset {
-    if (typeof source === 'string') {
-      // Node environment
-      return tf.data.csv(source, csvConfig)
-    } else if (source instanceof File) {
-      // Browser environment
-      return new tf.data.CSVDataset(new tf.data.FileDataSource(source), csvConfig)
-    } else {
-      throw new Error('not implemented')
     }
   }
 }

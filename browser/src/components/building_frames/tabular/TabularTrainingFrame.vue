@@ -120,11 +120,12 @@
 
 <script lang="ts">
 
-import { Task, dataset } from 'discojs'
+import { Task } from 'discojs'
 
 import TrainingFrame from '../containers/TrainingFrame.vue'
 import IconCard from '../../containers/IconCard.vue'
 import Bezier2 from '../../../assets/svg/Bezier2.vue'
+import { WebTabularLoader } from '../../../data_loader'
 
 export default {
   name: 'TabularTrainingFrame',
@@ -144,7 +145,7 @@ export default {
     }
   },
   created () {
-    this.tabularLoader = new dataset.TabularLoader(this.task, ',')
+    this.tabularLoader = new WebTabularLoader(this.task, ',')
   }
 }
 </script>

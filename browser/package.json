@@ -16,7 +16,6 @@
     "@meforma/vue-toaster": "1",
     "@tensorflow/tfjs": "3",
     "@tensorflow/tfjs-core": "3",
-    "@tensorflow/tfjs-node": "3",
     "apexcharts": "3",
     "aws-sdk": "2",
     "axios": "0",
@@ -45,6 +44,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss7-compat": "2",
+    "@tensorflow/tfjs-node": "3",
     "@types/chai": "4",
     "@types/d3": "7",
     "@types/dotenv-flow": "3",

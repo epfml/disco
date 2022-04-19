@@ -19,8 +19,10 @@
 </template>
 
 <script>
+import { Task } from 'discojs'
+
 import TrainingFrame from '../containers/TrainingFrame.vue'
-import { Task, dataset } from 'discojs'
+import { WebImageLoader } from '../../../data_loader'
 
 export default {
   name: 'ImageTrainingFrame',
@@ -38,7 +40,7 @@ export default {
     }
   },
   created () {
-    this.imageLoader = new dataset.ImageLoader(this.task)
+    this.imageLoader = new WebImageLoader(this.task)
   }
 }
 </script>

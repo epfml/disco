@@ -1,15 +1,22 @@
 import { expect } from 'chai'
+import * as tf from '@tensorflow/tfjs-node'
 
 import { dataset } from 'discojs'
 
 import { loadTasks } from '../../../src/tasks'
+
+export class NodeTabularLoader extends dataset.TabularLoader<string> {
+  loadTabularDatasetFrom (source: string, csvConfig: Record<string, unknown>): tf.data.CSVDataset {
+    return tf.data.csv(source, csvConfig)
+  }
+}
 
 const inputFiles = ['./example_training_data/titanic.csv']
 
 describe('tabular loader test', () => {
   it('titanic csv load  sample', async () => {
     const titanic = (await loadTasks())[0]
-    const loaded = new dataset.TabularLoader(titanic, ',').load(
+    const loaded = new NodeTabularLoader(titanic, ',').load(
       'file://'.concat(inputFiles[0]),
       {
         features: titanic.trainingInformation.inputColumns,
