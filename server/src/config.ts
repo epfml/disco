@@ -40,5 +40,5 @@ export const CONFIG = new Config(
   path.join(ROOT_DIR, 'tasks'),
   path.join(ROOT_DIR, 'tasks', 'tasks.json'),
   path.join(ROOT_DIR, 'models'),
-  8080
+  8081
 )
