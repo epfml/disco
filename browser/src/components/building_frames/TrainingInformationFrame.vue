@@ -155,7 +155,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import IconCardSmall from '../containers/IconCardSmall.vue'
 import IconCard from '../containers/IconCard.vue'
 import Timer from '../../assets/svg/Timer.vue'
@@ -187,10 +187,17 @@ export default {
       return window.localStorage.getItem('color') ?? 'cyan'
     }
 
-    const colorPalette = {
-      primary: this.cssColors(`--color-${getColor()}`),
-      primaryLight: this.cssColors(`--color-${getColor()}-light`)
+    const cssColors = (color: string): string => {
+      return getComputedStyle(document.documentElement)
+        .getPropertyValue(color)
+        .trim()
     }
+
+    const colorPalette = {
+      primary: cssColors(`--color-${getColor()}`),
+      primaryLight: cssColors(`--color-${getColor()}-light`)
+    }
+
     const areaChartOptions = {
       chart: {
         id: 'realtime',
@@ -216,10 +223,10 @@ export default {
       },
       colors: [
         // TODO: Make it so it immediately changes when updated
-        colorPalette().primary
+        colorPalette.primary
       ],
       fill: {
-        colors: [colorPalette().primaryLighter],
+        colors: [colorPalette.primaryLight],
         type: 'solid',
         opacity: 0.6
       },
