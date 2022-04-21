@@ -63,29 +63,34 @@ export class Disco {
   }
 
   /**
-   * @param {tf.data.Dataset<tf.TensorContainer>} dataset The preprocessed dataset to train on
-   * @param {boolean} distributed Whether to train in a distributed or local fashion
+   * @param data The preprocessed dataset to train on
+   * @param distributed Whether to train in a distributed or local fashion
    */
   async startTraining (data: dataset.Data, distributed: boolean): Promise<void> {
+    if (data.size === 0) {
+      this.logger.error('Training aborted. No uploaded file given as input.')
+      throw new Error('No data in dataset')
+    }
+
     if (distributed && !this.isConnected) {
       await this.connect()
       if (!this.isConnected) {
         distributed = false
         this.logger.error('Distributed training is not available.')
+        throw new Error('No distributed training available')
       }
     }
     this.distributedTraining = distributed
-    if (data.size === 0) {
-      this.logger.error('Training aborted. No uploaded file given as input.')
-    } else {
-      this.logger.success(
-        'Thank you for your contribution. Data preprocessing has started'
-      )
-      // TODO: dataset.size = null, since we build it with an iterator (issues occurs with ImageLoader) see issue 279
-      await this.initTrainer()
-      await this.trainer.trainModel(data.dataset, data.size)
-      this.isTraining = true
-    }
+
+    this.logger.success(
+      'Thank you for your contribution. Data preprocessing has started'
+    )
+
+    // TODO: dataset.size = null, since we build it with an iterator (issues occurs with ImageLoader) see issue 279
+    await this.initTrainer()
+
+    this.trainer.trainModel(data.dataset, data.size)
+    this.isTraining = true
   }
 
   /**

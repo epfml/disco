@@ -166,9 +166,9 @@ export default {
           this.dataset = await this.datasetBuilder
             .build()
         }
-        this.disco.startTraining(this.dataset, distributedTraining)
-      } catch {
-        this.$toast.error('Invalid files were given!')
+        await this.disco.startTraining(this.dataset, distributedTraining)
+      } catch (e) {
+        this.$toast.error(e)
         setTimeout(this.$toast.clear, 30000)
       }
     },
