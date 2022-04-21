@@ -11,7 +11,7 @@ export class ConsoleLogger extends Logger {
    * Logs success message on the console (in green)
    * @param {String} message - message to be displayed
    */
-  success (message: unknown): void {
+  success (message: string): void {
     console.log(chalk.green(message))
   }
 
@@ -19,7 +19,7 @@ export class ConsoleLogger extends Logger {
    * Logs error message on the console (in red)
    * @param message - message to be displayed
    */
-  error (message: unknown): void {
+  error (message: string): void {
     console.log(chalk.red(message))
   }
 }
