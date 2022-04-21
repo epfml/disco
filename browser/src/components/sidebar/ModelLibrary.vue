@@ -90,9 +90,10 @@
   </tippy-container>
 </template>
 <script>
-import { memory } from 'discojs'
 import * as tf from '@tensorflow/tfjs'
 import { mapState } from 'vuex'
+
+import * as memory from '../../memory.ts'
 import Bin2Icon from '../../assets/svg/Bin2Icon.vue'
 import Download2Icon from '../../assets/svg/Download2Icon.vue'
 import LoadIcon from '../../assets/svg/LoadIcon.vue'
