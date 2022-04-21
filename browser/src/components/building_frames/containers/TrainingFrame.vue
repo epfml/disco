@@ -142,6 +142,9 @@ export default {
       default: undefined
     }
   },
+  data: () => {
+    return { disco: undefined }
+  },
   computed: {
     ...mapState(['useIndexedDB'])
   },
