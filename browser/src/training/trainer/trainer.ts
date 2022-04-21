@@ -3,7 +3,7 @@ import * as tf from '@tensorflow/tfjs'
 import { Task, TrainingInformation, TrainingInformant } from 'discojs'
 
 import { RoundTracker } from './round_tracker'
-import { TrainerLogger } from './trainer_logger'
+import { TrainerLogger, TrainerLog } from './trainer_logger'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally or in a distributed way. The Trainer works as follows:
@@ -96,18 +96,16 @@ export abstract class Trainer {
     // Reset stopTraining setting
     this.resetStopTrainerState()
 
-    // const { trainingDataset, validationDataset } = this.validationSplit(dataset)
-
     // Assign callbacks and start training
     await this.model.fitDataset(dataset.batch(this.task.trainingInformation.batchSize), {
       epochs: this.trainingInformation.epochs,
-      // TODO: not yet implemented, validationData: validationDataset,
+      validationData: dataset.batch(this.task.trainingInformation.batchSize),
       callbacks: {
         onEpochEnd: async (epoch, logs) => {
-          this.onEpochEnd(logs.acc, logs.val_acc)
+          this.onEpochEnd(epoch, logs)
         },
         onBatchEnd: async (batch, logs) => {
-          await this.onBatchEnd(batch + 1, logs.acc)
+          await this.onBatchEnd(batch, logs)
         }
       }
     })
@@ -123,23 +121,25 @@ export abstract class Trainer {
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
-  private onEpochEnd (trainingAccuracy: number, validationAccuracy: number) {
-    this.trainerLogger.onEpochEnd(trainingAccuracy, validationAccuracy)
-    if (!isNaN(trainingAccuracy) && !isNaN(validationAccuracy)) {
-      this.trainingInformant.updateValidationAccuracyGraph(this.roundDecimals(validationAccuracy))
-      this.trainingInformant.updateTrainingAccuracyGraph(this.roundDecimals(trainingAccuracy))
+  private onEpochEnd (epoch: number, logs: tf.Logs) {
+    if (!isNaN(logs.acc) && !isNaN(logs.val_acc)) {
+      this.trainerLogger.onEpochEnd(epoch, logs)
+      this.trainingInformant.updateTrainingAccuracyGraph(this.roundDecimals(logs.acc))
+      this.trainingInformant.updateValidationAccuracyGraph(this.roundDecimals(logs.val_acc))
+    } else {
+      this.trainerLogger.error('onEpochEnd: NaN value')
     }
   }
 
   /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
    */
-  private async onBatchEnd (batch: number, accuracy: number) {
-    this.trainerLogger.onBatchEnd(batch, accuracy)
+  private async onBatchEnd (batch: number, logs: tf.Logs) {
+    this.trainerLogger.onBatchEnd(batch, logs)
     this.roundTracker.updateBatch()
     this.stopTrainModelIfRequested()
 
     if (this.roundTracker.roundHasEnded()) {
-      await this.onRoundEnd(accuracy)
+      await this.onRoundEnd(logs.acc)
     }
   }
 
@@ -161,7 +161,7 @@ export abstract class Trainer {
     }
   }
 
-  private validationSplit (dataset: tf.data.Dataset<tf.TensorContainer>) {
-    // TODO: not yet implemented
+  getTrainerLog (): TrainerLog {
+    return this.trainerLogger.log
   }
 }
