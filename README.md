@@ -3,11 +3,13 @@
 Disco enables collaborative and privacy-preserving training of machine learning models. Disco offers both decentralized and federated learning.
 Disco is easy-to-use mobile & web code. The latest version of Disco is always running on the following link, [directly in your browser](https://epfml.github.io/disco/), for mobile and desktop:
 
-:rocket: https://epfml.github.io/disco/ :rocket:
+:rocket: <https://epfml.github.io/disco/> :rocket:
+
+If you want to run disco locally or want to contribute, please go to our [developer section](DEV.md)
 
 **Key Question:** Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? - or - Can we train an ML model which is equally good as if all data were in one place, but respect privacy?
 
-**Federated learning:** The key insight is to share weights instead of data, each user trains on his own machine and periodically shares his learned weights with a central server. The server will agreggate all these weights and send them back. 
+**Federated learning:** The key insight is to share weights instead of data, each user trains on his own machine and periodically shares his learned weights with a central server. The server will agreggate all these weights and send them back.
 We support all modern deep learning architectures running on device (currently via [TF.js](https://www.tensorflow.org/js)).
 
 **Decentralized learning:** makes this possible, following the same principles as in **federated learning**, but going one step further by removing any central coordinator. Disco only uses [peer2peer](https://peerjs.com/) communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure. We support all modern deep learning architectures running on device (currently via [TF.js](https://www.tensorflow.org/js)).
