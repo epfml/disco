@@ -3,7 +3,7 @@ import { assert, expect } from 'chai'
 import { loadTasks } from '../src/tasks'
 
 // TODO this is hard coded
-const nbrTasks = 4
+const nbrTasks = 5
 
 describe('Load tasks test', () => { // the tests container
   it('load tasks', async () => {
