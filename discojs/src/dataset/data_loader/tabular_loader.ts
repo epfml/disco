@@ -2,7 +2,7 @@ import { DataLoader, DataConfig, Data } from './data_loader'
 import { Dataset } from '../dataset_builder'
 import { Task } from '../../task'
 import * as tf from '@tensorflow/tfjs'
-import _ from 'lodash'
+import { List, Map, Set } from 'immutable'
 
 export abstract class TabularLoader<Source> extends DataLoader<Source> {
   private readonly delimiter: string
@@ -35,29 +35,31 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
      * Otherwise, each entry is of the form `{ xs, ys }` with `xs` as features and `ys`
      * as labels.
      */
-    if (config === undefined || config.features === undefined) {
+    if (config?.features === undefined) {
       // TODO @s314cy
       throw new Error('not implemented')
     }
-    const columnConfigs = {}
-    _.forEach(config.features, (feature) => {
-      columnConfigs[feature] = { required: false, isLabel: false }
-    })
-    if (config.labels !== undefined) {
-      _.forEach(config.labels, (label) => {
-        columnConfigs[label] = { required: true, isLabel: true }
-      })
-    }
+    const columnConfigs = Map(
+      Set(config.features).map((feature) => [feature, { required: false, isLabel: false }])
+    ).merge(
+      Set(config.labels).map((label) => [label, { required: true, isLabel: true }])
+    )
 
     const csvConfig = {
       hasHeader: true,
-      columnConfigs,
+      columnConfigs: columnConfigs.toObject(),
       configuredColumnsOnly: true,
       delimiter: this.delimiter
     }
-    const dataset = this.loadTabularDatasetFrom(source, csvConfig)
-    return (dataset).map((t) => {
-      const { xs, ys } = t as Record<string, unknown>
+
+    return this.loadTabularDatasetFrom(source, csvConfig).map((t) => {
+      if (typeof t === 'object' && ('xs' in t) && ('ys' in t)) {
+        return t
+      }
+      throw new Error('expected TensorContainerObject')
+    }).map((t) => {
+      // TODO order may not be stable between tensor
+      const { xs, ys } = t as Record<string, Record<string, number>>
       return {
         xs: Object.values(xs),
         ys: Object.values(ys)
@@ -70,10 +72,10 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
     * dataset.
     */
   async loadAll (sources: Source[], config: DataConfig): Promise<Data> {
-    const datasets = await Promise.all(_.map(sources, (source) => this.load(source, config)))
-    const dataset = _.reduce(datasets, (prev, curr) => prev.concatenate(curr))
+    const datasets = await Promise.all(sources.map((source) => this.load(source, config)))
+    const dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
     return {
-      dataset: dataset,
+      dataset,
       size: dataset.size // TODO: needs to be tested
     }
   }
