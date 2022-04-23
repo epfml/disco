@@ -1,4 +1,4 @@
-import { expect, assert } from 'chai'
+import { expect } from 'chai'
 import * as tfNode from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import _ from 'lodash'
@@ -77,6 +77,5 @@ describe('image loader test', () => {
     const disco = new Disco(cifar10, Platform.federated, logger, false)
 
     await disco.startTraining(loaded, false)
-    assert(disco.isTraining)
   }).timeout(5 * 60 * 1000)
 })
