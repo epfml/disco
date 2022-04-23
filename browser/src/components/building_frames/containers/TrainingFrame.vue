@@ -17,7 +17,7 @@
 
       <!-- Train Button -->
       <div class="flex items-center justify-center p-4">
-        <div v-if="!disco.isTraining">
+        <div v-if="!isTraining">
           <custom-button
             :center="true"
             @click="startTraining(false)"
@@ -35,7 +35,7 @@
           <custom-button
             :center="true"
             color="bg-red-500"
-            @click="disco.stopTraining()"
+            @click="stopTraining()"
           >
             Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
           </custom-button>
@@ -44,8 +44,8 @@
       <!-- Training Board -->
       <div>
         <training-information-frame
-          v-if="disco.trainingInformant"
-          :training-informant="disco.trainingInformant"
+          v-if="trainingInformant"
+          :training-informant="trainingInformant"
         />
       </div>
 
@@ -133,19 +133,28 @@ export default {
       type: String,
       default: ''
     },
-    task: {
-      type: Task,
-      default: undefined
-    },
-    dataLoader: {
-      type: dataset.DataLoader,
-      default: undefined
+    task: Task,
+    dataLoader: dataset.DataLoader
+  },
+  data () {
+    return {
+      isTraining: false,
+      distributedTraining: undefined,
+      trainingInformant: undefined
     }
   },
-  data: () => {
-    return { disco: undefined }
-  },
   computed: {
+    disco () {
+      return new Disco(
+        this.task,
+        this.$store.getters.platform,
+        this.$toast,
+        this.useIndexedDB
+      )
+    },
+    datasetBuilder () {
+      return new dataset.DatasetBuilder(this.dataLoader, this.task)
+    },
     ...mapState(['useIndexedDB'])
   },
   watch: {
@@ -153,27 +162,33 @@ export default {
       this.disco.setIndexedDB(!!newValue)
     }
   },
-  created () {
-    this.disco = new Disco(
-      this.task,
-      this.$store.getters.platform,
-      this.$toast,
-      this.useIndexedDB
-    )
-    this.datasetBuilder = new dataset.DatasetBuilder(this.dataLoader, this.task)
+
+  mounted () {
+    // transform trainingInformant into a JS proxy
+    this.trainingInformant = this.disco.trainingInformant
+    this.disco.trainingInformant = this.trainingInformant
   },
+
   methods: {
     async startTraining (distributedTraining) {
+      this.distributedTraining = distributedTraining
+
       try {
         if (!this.datasetBuilder.isBuilt()) {
           this.dataset = await this.datasetBuilder
             .build()
         }
         await this.disco.startTraining(this.dataset, distributedTraining)
+        this.isTraining = true
       } catch (e) {
-        this.$toast.error(e)
+        const msg = e instanceof Error ? e.message : e.toString()
+        this.$toast.error(msg)
         setTimeout(this.$toast.clear, 30000)
       }
+    },
+    async stopTraining () {
+      await this.disco.stopTraining()
+      this.isTraining = false
     },
     async saveModel () {
       if (this.useIndexedDB) {

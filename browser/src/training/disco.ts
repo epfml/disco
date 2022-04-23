@@ -16,7 +16,6 @@ export class Disco {
   logger: Logger
   trainingInformant: TrainingInformant
   isConnected: boolean
-  isTraining: boolean
   distributedTraining: boolean
   useIndexedDB: boolean
 
@@ -24,7 +23,6 @@ export class Disco {
     this.task = task
     this.logger = logger
     this.isConnected = false
-    this.isTraining = false
     this.distributedTraining = false
     this.platform = platform
     this.useIndexedDB = useIndexedDB
@@ -90,7 +88,6 @@ export class Disco {
     await this.initTrainer()
 
     this.trainer.trainModel(data.dataset, data.size)
-    this.isTraining = true
   }
 
   /**
@@ -103,7 +100,6 @@ export class Disco {
       this.isConnected = false
     }
     this.logger.success('Training was successfully interrupted.')
-    this.isTraining = false
   }
 
   /**
