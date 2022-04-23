@@ -61,22 +61,26 @@ export class SignalingServer {
     ws.send(msgpack.encode(msg), { binary: true })
 
     ws.on('message', (data: Buffer) => {
-      const peerMessage = msgpack.decode(data)
-      if (!isPeerMessage(peerMessage)) {
-        throw new Error('recv msg is not valid')
+      try {
+        const peerMessage = msgpack.decode(data)
+        if (!isPeerMessage(peerMessage)) {
+          throw new Error('recv msg is not valid')
+        }
+
+        console.debug('peer', peerID, 'send message to', peerMessage[0])
+
+        const peerToSendTo = this.rooms
+          .get(taskID, Map<PeerID, WebSocket>())
+          .get(peerMessage[0])
+        if (peerToSendTo === undefined) {
+          throw new Error('no such peer to send to')
+        }
+
+        const forwardMsg: PeerMessage = [peerID, peerMessage[1]]
+        peerToSendTo.send(msgpack.encode(forwardMsg), { binary: true })
+      } catch (e) {
+        console.error(`when processing WebSocket message: ${e}`)
       }
-
-      console.debug('peer', peerID, 'send message to', peerMessage[0])
-
-      const peerToSendTo = this.rooms
-        .get(taskID, Map<PeerID, WebSocket>())
-        .get(peerMessage[0])
-      if (peerToSendTo === undefined) {
-        throw new Error('no such peer to send to')
-      }
-
-      const forwardMsg: PeerMessage = [peerID, peerMessage[1]]
-      peerToSendTo.send(msgpack.encode(forwardMsg), { binary: true })
     })
   }
 }
