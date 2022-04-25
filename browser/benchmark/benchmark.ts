@@ -6,6 +6,7 @@ import fs from 'fs'
 import * as tfNode from '@tensorflow/tfjs-node'
 import { Disco } from '../src/training/disco'
 import { Platform } from '../src/platforms/platform'
+import { getModel } from './model'
 
 // Setup ENV
 process.env.NODE_ENV = 'development'
@@ -37,21 +38,33 @@ async function loadData () {
   console.log({ labels })
   console.log({ files })
 
+  // shuffle(labels, files)
+
+  console.log({ labels })
+
   const simpleFace = (await loadTasks())[4]
   return await new NodeImageLoader(simpleFace).loadAll(files, { labels: labels })
 }
 
 // Cannot run await in main context
 async function main () {
-  const tasks = await loadTasks()
-
-  const task = tasks[4]
+  // const tasks = await loadTasks()
+  // const task = tasks[4]
 
   const data = await loadData()
 
-  const logger = new ConsoleLogger()
-  const disco = new Disco(task, Platform.federated, logger, false)
-  await disco.startTraining(data, false)
+  const model = getModel(200, 200, 3, 2)
+
+  const batchSize = 1
+
+  const dataset = data.dataset.shuffle(data.size, 'seed').batch(batchSize)
+  model.fitDataset(dataset, {
+    epochs: 10
+  })
+
+  // const logger = new ConsoleLogger()
+  // const disco = new Disco(task, Platform.federated, logger, false)
+  // await disco.startTraining(data, false)
 }
 
 const runMain = async () => {
