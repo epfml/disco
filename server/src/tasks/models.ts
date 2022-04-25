@@ -1,16 +1,18 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'fs/promises'
 import * as tf from '@tensorflow/tfjs-node'
+
+import { Path, TaskID } from 'discojs'
 
 import { CONFIG } from '../config'
 import { faceModel } from './face_model'
 
-/**
- * Create the models directory for the TFJS model files of
- * the tasks defined below.
- */
-if (!fs.existsSync(CONFIG.modelsDir)) {
-  fs.mkdirSync(CONFIG.modelsDir)
+// Compute model directory path and create it.
+async function getTaskDir (taskID: TaskID): Promise<Path> {
+  const dir = CONFIG.modelDir(taskID)
+
+  await fs.mkdir(dir, { recursive: true })
+
+  return dir
 }
 
 async function createTitanicModel (): Promise<void> {
@@ -26,7 +28,8 @@ async function createTitanicModel (): Promise<void> {
   model.add(tf.layers.dense({ units: 64, activation: 'relu' }))
   model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
   model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }))
-  const savePath = path.join(CONFIG.modelsDir, 'titanic')
+
+  const savePath = await getTaskDir('titanic')
   await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
@@ -51,7 +54,8 @@ async function createMnistModel (): Promise<void> {
   model.add(tf.layers.flatten({}))
   model.add(tf.layers.dense({ units: 64, activation: 'relu' }))
   model.add(tf.layers.dense({ units: 10, activation: 'softmax' }))
-  const savePath = path.join(CONFIG.modelsDir, 'mnist')
+
+  const savePath = await getTaskDir('mnist')
   await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
@@ -62,7 +66,8 @@ async function createLUSCovidModel (): Promise<void> {
   )
   model.add(tf.layers.dense({ units: 64, activation: 'relu' }))
   model.add(tf.layers.dense({ units: 2, activation: 'softmax' }))
-  const savePath = path.join(CONFIG.modelsDir, 'lus_covid')
+
+  const savePath = await getTaskDir('lus_covid')
   await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
@@ -80,16 +85,16 @@ async function createCifar10Model (): Promise<void> {
     name: 'modelModified'
   })
 
-  const savePath = path.join(CONFIG.modelsDir, 'cifar10')
+  const savePath = await getTaskDir('cifar10')
   await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
-async function createFaceModel(): Promise<void> {
+async function createFaceModel (): Promise<void> {
   const model = faceModel()
-  const savePath = path.join(CONFIG.modelsDir, 'simple_face')
+
+  const savePath = await getTaskDir('simple_face')
   await model.save(CONFIG.savingScheme.concat(savePath))
 }
-
 
 export default [
   createTitanicModel,
