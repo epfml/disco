@@ -116,7 +116,7 @@ function _checkRequest (request: Request): number {
   if (Number.isNaN(round)) {
     return 400
   }
-  if (!(tasksStatus.has(task))){
+  if (!(tasksStatus.has(task))) {
     return 404
   }
   if (!clients.has(id)) {
@@ -165,16 +165,15 @@ function _logsAppend (request: Request, type: RequestType): void {
   })
 }
 
-  /**
-   * Save the newly aggregated model to the server's local storage. This
-   * is now the model served to clients for the given task. To save the newly
-   * aggregated weights, here is the (cumbersome) procedure:
-   * 1. create a new TFJS model with the right layers
-   * 2. assign the newly aggregated weights to it
-   * 3. save the model
-   */
+/**
+ * Save the newly aggregated model to the server's local storage. This
+ * is now the model served to clients for the given task. To save the newly
+ * aggregated weights, here is the (cumbersome) procedure:
+ * 1. create a new TFJS model with the right layers
+ * 2. assign the newly aggregated weights to it
+ * 3. save the model
+ */
 async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): Promise<void> {
-
   // Get averaged weights
   const averagedWeights = aggregation.averageWeights(immutable.Set(weights))
 
@@ -331,7 +330,6 @@ function _checkPostWeights (request: Request, response: Response): number {
 }
 
 export async function getWeightsHandler (request: Request, response: Response): Promise<void> {
-
   // Check for errors
   const task = request.params.task
 
@@ -542,7 +540,7 @@ export function getTasksMetadata (request: Request, response: Response): void {
   const type = RequestType.GetTasks
   if (fs.existsSync(CONFIG.tasksFile)) {
     _logsAppend(request, type)
-    console.log(`Serving ${CONFIG.tasksFile as string}`)
+    console.log(`Serving ${CONFIG.tasksFile}`)
     response.status(200).sendFile(CONFIG.tasksFile)
   } else {
     _failRequest(response, type, 404)
