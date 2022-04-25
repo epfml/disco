@@ -49,10 +49,11 @@ function filesFromFolder (dir: string, folder: string, fractionToKeep: number) {
 }
 
 async function loadData (validSplit = 0.2) {
-  const dir = '../../face_age/'
+  // const dir = '../../face_age/'
+  const dir = './example_training_data/simple_face/'
 
-  const youngFolders = ['007', '008', '009', '010', '011', '012', '013', '014']
-  const oldFolders = ['021', '022', '023', '024', '025', '026']
+  const youngFolders = ['child']// ['007', '008', '009', '010', '011', '012', '013', '014']
+  const oldFolders = ['adult']// ['021', '022', '023', '024', '025', '026']
 
   // TODO: we just keep x% of data for faster training
   const fractionToKeep = 0.1
