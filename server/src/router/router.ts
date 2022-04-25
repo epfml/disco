@@ -42,8 +42,8 @@ tasksRouter.post('/', (req, res, next) => {
 
   // create new task and server
   tasks.then((ts) => ts.push(newTask)).catch(next)
-  console.log(`new task: ${newTask.taskID as string}`)
-  tasksRouter.ws(`/${newTask.taskID as string}`, (ws) => signalingServer.handle(newTask.taskID, ws))
+  console.log(`new task: ${newTask.taskID}`)
+  tasksRouter.ws(`/${newTask.taskID}`, (ws) => signalingServer.handle(newTask.taskID, ws))
   // store results in json file
   writeNewTask(newTask, modelFile, weightsFile, CONFIG).catch(next)
   // answer vue app
@@ -80,7 +80,10 @@ federatedRouter.get('/round/:task/:id', (req, res, next) => {
 federatedRouter.get('/weights/:task/:id', (req, res, next) => {
   handlers.getWeightsHandler(req, res).catch(next)
 })
-federatedRouter.get('/statistics/:task/:id', handlers.getAsyncWeightInformantStatistics)
+
+federatedRouter.get('/statistics/:task/:id', (req, res, next) => {
+  handlers.getAsyncWeightInformantStatistics(req, res).catch(next)
+})
 
 federatedRouter
   .route('/metadata/:metadata/:task/:round/:id')
