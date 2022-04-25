@@ -33,7 +33,7 @@ export class TrainerLogger extends ConsoleLogger {
 
   onBatchEnd (batch: number, logs: tf.Logs): void {
     // logs.val_acc is not available on batch end
-    this.success(`On batch end:${batch}\n Train Accuracy:${logs.acc}`)
+    // this.success(`On batch end:${batch}\n Train Accuracy:${logs.acc}`)
   }
 
   onEpochEnd (epoch: number, logs: tf.Logs): void {

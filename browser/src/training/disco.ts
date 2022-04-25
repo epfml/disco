@@ -66,7 +66,7 @@ export class Disco {
    * @param data The preprocessed dataset to train on
    * @param distributed Whether to train in a distributed or local fashion
    */
-  async startTraining (data: dataset.Data, distributed: boolean): Promise<void> {
+  async startTraining (data: dataset.Data, validData: dataset.Data, distributed: boolean): Promise<void> {
     if (data.size === 0) {
       this.logger.error('Training aborted. No uploaded file given as input.')
       throw new Error('No data in dataset')
@@ -89,7 +89,7 @@ export class Disco {
     // TODO: dataset.size = null, since we build it with an iterator (issues occurs with ImageLoader) see issue 279
     await this.initTrainer()
 
-    this.trainer.trainModel(data.dataset, data.size)
+    this.trainer.trainModel(data.dataset, validData.dataset, data.size)
     this.isTraining = true
   }
 

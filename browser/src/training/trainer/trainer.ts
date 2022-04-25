@@ -89,7 +89,7 @@ export abstract class Trainer {
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>, trainSize: number) {
+  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>, validDataset: tf.data.Dataset<tf.TensorContainer>, trainSize: number) {
     // Init round tracker - requires size info
     this.initRoundTracker(trainSize)
 
@@ -99,7 +99,7 @@ export abstract class Trainer {
     // Assign callbacks and start training
     await this.model.fitDataset(dataset.batch(this.task.trainingInformation.batchSize), {
       epochs: this.trainingInformation.epochs,
-      validationData: dataset.batch(this.task.trainingInformation.batchSize),
+      validationData: validDataset.batch(this.task.trainingInformation.batchSize),
       callbacks: {
         onEpochEnd: async (epoch, logs) => {
           this.onEpochEnd(epoch, logs)

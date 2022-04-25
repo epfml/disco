@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { loadTasks } from '../src/tasks'
 import dotenv from 'dotenv-flow'
 import { dataset, ConsoleLogger } from 'discojs'
@@ -6,7 +5,8 @@ import fs from 'fs'
 import * as tfNode from '@tensorflow/tfjs-node'
 import { Disco } from '../src/training/disco'
 import { Platform } from '../src/platforms/platform'
-import { getModel } from './model'
+import * as tf from '@tensorflow/tfjs'
+import Rand from 'rand-seed'
 
 // Setup ENV
 process.env.NODE_ENV = 'development'
@@ -15,56 +15,91 @@ console.log('***********************************\n\n')
 // Load .env.development
 dotenv.config()
 
+const rand = new Rand('1234')
+
 class NodeImageLoader extends dataset.ImageLoader<string> {
   async readImageFrom (source: string): Promise<tfNode.Tensor3D> {
-    return tfNode.node.decodeImage(fs.readFileSync(source)) as tfNode.Tensor3D
+    const imageBuffer = fs.readFileSync(source)
+    let tensor = tfNode.node.decodeImage(imageBuffer) as tf.Tensor3D
+    // TODO: If resize needed, e.g. mobilenet
+    // tensor = tf.image.resizeBilinear(tensor, [
+    //   32, 32
+    // ]).div(tf.scalar(255))
+    tensor = tensor.div(tf.scalar(255))
+    return tensor
   }
 }
 
-async function loadData () {
-  const dir = './example_training_data/simple_face/'
-  const foldersInDir = fs.readdirSync(dir).filter(f => fs.statSync(dir + f).isDirectory())
+function shuffle (array: any[], arrayTwo: any[]) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(rand.next() * (i + 1))
+    const temp = array[i]
+    array[i] = array[j]
+    array[j] = temp
 
-  const filesPerFolder = foldersInDir.map((folder) => {
-    const folderPath = dir.concat(folder, '/')
-    const filesInFolder = fs.readdirSync(folderPath)
-    return filesInFolder.map((file) => folderPath.concat(file))
-  })
-
-  const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
-
-  const files = filesPerFolder.flat()
-
-  console.log({ labels })
-  console.log({ files })
-
-  // shuffle(labels, files)
-
-  console.log({ labels })
-
-  const simpleFace = (await loadTasks())[4]
-  return await new NodeImageLoader(simpleFace).loadAll(files, { labels: labels })
+    const tempTwo = arrayTwo[i]
+    arrayTwo[i] = arrayTwo[j]
+    arrayTwo[j] = tempTwo
+  }
 }
 
-// Cannot run await in main context
-async function main () {
-  // const tasks = await loadTasks()
-  // const task = tasks[4]
+function filesFromFolder (dir: string, folder: string, fractionToKeep: number) {
+  const f = fs.readdirSync(dir + folder)
+  return f.slice(0, Math.round(f.length * fractionToKeep)).map(file => dir + folder + '/' + file)
+}
 
-  const data = await loadData()
+async function loadData (validSplit = 0.2) {
+  const dir = '../../face_age/'
 
-  const model = getModel(200, 200, 3, 2)
+  const youngFolders = ['007', '008', '009', '010', '011', '012', '013', '014']
+  const oldFolders = ['021', '022', '023', '024', '025', '026']
 
-  const batchSize = 1
-
-  const dataset = data.dataset.shuffle(data.size, 'seed').batch(batchSize)
-  model.fitDataset(dataset, {
-    epochs: 10
+  // TODO: we just keep x% of data for faster training
+  const fractionToKeep = 0.1
+  const youngFiles = youngFolders.flatMap(folder => {
+    return filesFromFolder(dir, folder, fractionToKeep)
   })
 
-  // const logger = new ConsoleLogger()
-  // const disco = new Disco(task, Platform.federated, logger, false)
-  // await disco.startTraining(data, false)
+  const oldFiles = oldFolders.flatMap(folder => {
+    return filesFromFolder(dir, folder, fractionToKeep)
+  })
+
+  const filesPerFolder = [youngFiles, oldFiles]
+
+  const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
+  const files = filesPerFolder.flat()
+
+  shuffle(files, labels)
+
+  const trainFiles = files.slice(0, Math.round(files.length * (1 - validSplit)))
+  const trainLabels = labels.slice(0, Math.round(files.length * (1 - validSplit)))
+
+  const validFiles = files.slice(Math.round(files.length * (1 - validSplit)))
+  const validLabels = labels.slice(Math.round(files.length * (1 - validSplit)))
+
+  const simpleFace = (await loadTasks())[4]
+  const trainDataset = await new NodeImageLoader(simpleFace).loadAll(trainFiles, { labels: trainLabels })
+  const validDataset = await new NodeImageLoader(simpleFace).loadAll(validFiles, { labels: validLabels })
+
+  return {
+    train: trainDataset,
+    valid: validDataset
+  }
+}
+
+async function runUser () {
+  const tasks = await loadTasks()
+  const task = tasks[4]
+  const data = await loadData()
+
+  const logger = new ConsoleLogger()
+  const disco = new Disco(task, Platform.federated, logger, false)
+  disco.startTraining(data.train, data.valid, true)
+}
+
+async function main () {
+  // TODO multi users, etc
+  await runUser()
 }
 
 const runMain = async () => {
