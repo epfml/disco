@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 
-export function faceModel (imageWidth=200, imageHeight=200, imageChannels=3, numOutputClasses=2): tf.Sequential {
+export function faceModel (imageWidth = 200, imageHeight = 200, imageChannels = 3, numOutputClasses = 2): tf.Sequential {
   const model = tf.sequential()
 
   // In the first layer of our convolutional neural network we have
