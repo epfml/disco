@@ -1,12 +1,11 @@
 {
-  "root": true,
-  "env": {
-    "node": true,
-    "es6": true,
-    "mocha": true
-  },
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"]
+	"extends": "standard-with-typescript",
+	"parserOptions": {
+		"project": "./tsconfig.eslint.json"
+	},
+	"env": {
+		"node": true,
+		"es6": true,
+		"mocha": true
+	}
 }
-
