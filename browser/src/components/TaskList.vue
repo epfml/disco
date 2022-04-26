@@ -1,5 +1,5 @@
 <template>
-  <base-layout :with-section="true">
+  <div>
     <div
       v-for="task in Array.from(tasks.values())"
       :key="task.taskID"
@@ -33,7 +33,7 @@
         </div>
       </card>
     </div>
-  </base-layout>
+  </div>
 </template>
 
 <script lang="ts">
@@ -41,7 +41,6 @@ import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue'
 import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue'
 import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue'
 import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue'
-import BaseLayout from './containers/BaseLayout.vue'
 import Card from './containers/Card.vue'
 import CustomButton from './simple/CustomButton.vue'
 
@@ -54,7 +53,6 @@ import { loadTasks } from '../tasks'
 export default defineComponent({
   name: 'TaskList',
   components: {
-    BaseLayout,
     Card,
     CustomButton
   },
@@ -78,6 +76,7 @@ export default defineComponent({
       this.$router.push({
         path: `/tasks/${id}/description`
       })
+      this.$emit('next-step')
     },
     createNewTaskComponent (task: Task) {
       this.tasks.set(task.taskID, task)

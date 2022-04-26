@@ -300,10 +300,8 @@ export default {
         )
         setTimeout(this.$toast.clear, 30000)
       }
-      this.$router.push({
-        name: this.id + '.training',
-        params: { id: this.id }
-      })
+      this.$emit('next-step')
+      this.$router.push({ path: 'training' })
     },
     /**
      * Delete the model stored in IndexedDB corresponding to this task.
