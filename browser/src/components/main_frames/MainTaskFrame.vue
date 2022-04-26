@@ -1,12 +1,20 @@
 <template>
-  <div>
+  <base-layout>
     <!-- Progress Bar -->
     <div class="w-full py-6">
       <div class="flex">
+        <!-- Step 1 -->
         <div class="w-1/4">
           <div class="relative mb-2">
-            <div class="w-10 h-10 mx-auto bg-green-500 rounded-full text-lg text-white flex items-center">
-              <span class="text-center text-white w-full">
+            <!-- Icon -->
+            <div
+              class="w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
+              :class="step === 0 ? 'bg-green-500' : 'bg-white border-2 border-gray-200'"
+            >
+              <span
+                class="text-center w-full"
+                :class="step === 0 ? 'text-white' : 'text-gray-700'"
+              >
                 <svg
                   class="w-full fill-current"
                   xmlns="http://www.w3.org/2000/svg"
@@ -22,12 +30,15 @@
               </span>
             </div>
           </div>
+          <!-- Text -->
           <div class="text-xs text-center md:text-base">
             Choose Task
           </div>
         </div>
+        <!-- Step 2 -->
         <div class="w-1/4">
           <div class="relative mb-2">
+            <!-- Horizontal Line --->
             <div
               class="absolute flex align-center items-center align-middle content-center"
               style="width: calc(100% - 2.5rem - 1rem); top: 50%; transform: translate(-50%, -50%)"
@@ -39,9 +50,15 @@
                 />
               </div>
             </div>
-
-            <div class="w-10 h-10 mx-auto bg-white border-2 border-gray-200 rounded-full text-lg text-white flex items-center">
-              <span class="text-center text-gray-700 w-full">
+            <!-- Icon -->
+            <div
+              class="w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
+              :class="step === 1 ? 'bg-green-500' : 'bg-white border-2 border-gray-200'"
+            >
+              <span
+                class="text-center w-full"
+                :class="step === 1 ? 'text-white' : 'text-gray-700'"
+              >
                 <svg
                   class="w-full fill-current"
                   xmlns="http://www.w3.org/2000/svg"
@@ -57,14 +74,15 @@
               </span>
             </div>
           </div>
-
+          <!-- Text -->
           <div class="text-xs text-center md:text-base">
             Connect Data
           </div>
         </div>
-
+        <!-- Step 3 -->
         <div class="w-1/4">
           <div class="relative mb-2">
+            <!-- Horizontal Line -->
             <div
               class="absolute flex align-center items-center align-middle content-center"
               style="width: calc(100% - 2.5rem - 1rem); top: 50%; transform: translate(-50%, -50%)"
@@ -76,9 +94,15 @@
                 />
               </div>
             </div>
-
-            <div class="w-10 h-10 mx-auto bg-white border-2 border-gray-200 rounded-full text-lg text-white flex items-center">
-              <span class="text-center text-gray-600 w-full">
+            <!-- Icon -->
+            <div
+              class="w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
+              :class="step === 2 ? 'bg-green-500' : 'bg-white border-2 border-gray-200'"
+            >
+              <span
+                class="text-center w-full"
+                :class="step === 2 ? 'text-white' : 'text-gray-700'"
+              >
                 <svg
                   class="w-full fill-current"
                   xmlns="http://www.w3.org/2000/svg"
@@ -94,14 +118,15 @@
               </span>
             </div>
           </div>
-
+          <!-- Text -->
           <div class="text-xs text-center md:text-base">
             Train Your Model
           </div>
         </div>
-
+        <!-- Step 4 -->
         <div class="w-1/4">
           <div class="relative mb-2">
+            <!-- Horizontal -->
             <div
               class="absolute flex align-center items-center align-middle content-center"
               style="width: calc(100% - 2.5rem - 1rem); top: 50%; transform: translate(-50%, -50%)"
@@ -113,9 +138,15 @@
                 />
               </div>
             </div>
-
-            <div class="w-10 h-10 mx-auto bg-white border-2 border-gray-200 rounded-full text-lg text-white flex items-center">
-              <span class="text-center text-gray-600 w-full">
+            <!-- Icon -->
+            <div
+              class="w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
+              :class="step === 3 ? 'bg-green-500' : 'bg-white border-2 border-gray-200'"
+            >
+              <span
+                class="text-center w-full"
+                :class="step === 3 ? 'text-white' : 'text-gray-700'"
+              >
                 <svg
                   class="w-full fill-current"
                   xmlns="http://www.w3.org/2000/svg"
@@ -131,7 +162,7 @@
               </span>
             </div>
           </div>
-
+          <!-- Text -->
           <div class="text-xs text-center md:text-base">
             Finished
           </div>
@@ -140,15 +171,23 @@
     </div>
     <div>
       <router-view v-slot="{ Component }">
-        <component :is="Component" />
+        <keep-alive>
+          <component
+            :is="Component"
+            @next-step="nextStep()"
+          />
+        </keep-alive>
       </router-view>
     </div>
-  </div>
+  </base-layout>
 </template>
 
 <script lang="ts">
+import BaseLayout from '../containers/BaseLayout.vue'
+
 export default {
   name: 'MainTaskFrame',
+  components: { BaseLayout },
   props: {
     id: {
       type: String,
@@ -157,6 +196,18 @@ export default {
     task: {
       type: Object,
       default: undefined
+    }
+  },
+  data (): { step: number } {
+    return {
+      step: 0
+    }
+  },
+  methods: {
+    nextStep () {
+      if (this.step < 3) {
+        this.step++
+      }
     }
   }
 }
