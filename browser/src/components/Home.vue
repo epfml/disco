@@ -98,7 +98,7 @@
   </base-layout>
 </template>
 
-<script lang="ts">
+<script>
 import { defineComponent } from 'vue'
 import BaseLayout from './containers/BaseLayout.vue'
 import TitleCard from './containers/TitleCard.vue'
@@ -126,7 +126,7 @@ export default defineComponent({
     goToTaskList () {
       this.setActivePage('tasks')
       this.$router.push({
-        path: '/tasks'
+        path: '/tasks/list'
       })
     },
     goToNewTaskCreationForm () {

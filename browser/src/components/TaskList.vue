@@ -76,15 +76,14 @@ export default defineComponent({
   methods: {
     goToSelection (id: string) {
       this.$router.push({
-        name: id.concat('.description'),
-        params: { id: id }
+        path: `/tasks/${id}/description`
       })
     },
     createNewTaskComponent (task: Task) {
       this.tasks.set(task.taskID, task)
 
       const newTaskRoute = {
-        path: '/'.concat(task.taskID),
+        path: `/tasks/${task.taskID}`,
         name: task.taskID,
         component: MainTaskFrame,
         props: { id: task.taskID, task: task },
