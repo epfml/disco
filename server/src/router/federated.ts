@@ -5,7 +5,7 @@ import msgpack from 'msgpack-lite'
 import path from 'path'
 import * as tf from '@tensorflow/tfjs-node'
 
-import { aggregation, AsyncInformant, TaskID, isTaskID, AsyncBuffer, Weights } from 'discojs'
+import { serialization, aggregation, AsyncInformant, TaskID, isTaskID, AsyncBuffer, Weights } from 'discojs'
 
 import { CONFIG } from '../config'
 import { getTasks } from '../tasks/tasks_io'
@@ -165,6 +165,15 @@ function _logsAppend (request: Request, type: RequestType): void {
   })
 }
 
+async function writeWeights (taskID: TaskID, weights: Weights): Promise<void> {
+  console.log('writing weights >>', weights)
+
+  fs.writeFileSync(
+    path.join(CONFIG.modelDir(taskID), 'new_weights'),
+    msgpack.encode(await serialization.serializeWeights(weights)))
+  console.log('writing weights <<')
+}
+
 async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): Promise<void> {
   // TODO: check whether this actually works
   const averaged = aggregation.averageWeights(immutable.Set(weights))
@@ -182,7 +191,9 @@ async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): P
   )
 
   const model = await tf.loadLayersModel(modelFilesPath)
-  model.setWeights(averaged)
+  await writeWeights(taskID, model.getWeights())
+
+  model.setWeights(model.getWeights())
   await model.save(path.dirname(modelFilesPath))
 }
 
@@ -325,17 +336,43 @@ function _checkPostWeights (request: Request, response: Response): number {
   return 200
 }
 
+export async function getWeightsHandler (request: Request, response: Response): Promise<void> {
+  console.log('balance')
+
+  // Check for errors
+  const task = request.params.task
+
+  const modelFilesPath = CONFIG.savingScheme.concat(
+    path.join(CONFIG.modelDir(task), 'model.json')
+  )
+  const model = await tf.loadLayersModel(modelFilesPath)
+
+  // Send back latest round
+
+  response.status(200).send(await serialization.serializeWeights(await Promise.all(model.weights.map((e) => e.read()))))
+}
+
 function getWeights (request: Request): Weights {
   const obj: unknown = request.body.weights
+  console.log('getWeights:', {obj})
 
   if (!Array.isArray(obj)) {
     throw new Error('weights is not an array')
   }
+  const withArrays = obj.map((e) => {
+    if (typeof e === 'object') {
+        return Float32Array.from(Object.values(e))
+     }
+     return e
+  })
+
+  /*
   if (!obj.every((w) => typeof w === 'number')) {
     throw new Error('a weight is not a number')
   }
+  */
 
-  return obj.map((w) => tf.tensor(w))
+  return withArrays.map((e) => tf.tensor(e))
 }
 
 /**
@@ -358,6 +395,7 @@ export async function postWeights (request: Request, response: Response): Promis
   const buffer = getOrInitAsyncWeightsBuffer(task)
 
   const weights = getWeights(request)
+  await writeWeights(task, weights)
 
   const round = request.body.round
 
@@ -557,7 +595,7 @@ export function getLatestModel (request: Request, response: Response): void {
     _failRequest(response, type, 404)
     return
   }
-  const validModelFiles = new Set(['model.json', 'weights.bin'])
+  const validModelFiles = new Set(['model.json', 'weights.bin', 'new_weights'])
   const modelFile = path.join(CONFIG.modelsDir, task, file)
   console.log(`File path: ${modelFile}`)
   if (validModelFiles.has(file) && fs.existsSync(modelFile)) {

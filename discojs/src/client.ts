@@ -25,7 +25,7 @@ export abstract class Client {
   abstract disconnect (): Promise<void>
 
   async getLatestModel (): Promise<tf.LayersModel> {
-    const url = this.serverURL.concat(`tasks/${this.task.taskID}/model.json`)
+    const url = this.serverURL.concat(`tasks/${this.task.taskID}/new_weights`)
     return await tf.loadLayersModel(url)
   }
 

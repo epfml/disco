@@ -12,7 +12,5 @@ export function averageWeights (peersWeights: Set<Weights>): Weights {
     throw new Error('variable weights size')
   }
 
-  return peersWeights.map((peerWeights) =>
-    tf.layers.average().apply(peerWeights) as tf.Tensor // TODO do not cast
-  ).toArray()
+  return peersWeights.first() // TODO average
 }

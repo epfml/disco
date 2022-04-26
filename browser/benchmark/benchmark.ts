@@ -8,6 +8,8 @@ import { Platform } from '../src/platforms/platform'
 import * as tf from '@tensorflow/tfjs'
 import Rand from 'rand-seed'
 
+const TASK_INDEX = 4
+
 // Setup ENV
 process.env.NODE_ENV = 'development'
 console.log('Setting up NODE_ENV to', process.env.NODE_ENV)
@@ -78,7 +80,7 @@ async function loadData (validSplit = 0.2) {
   const validFiles = files.slice(Math.round(files.length * (1 - validSplit)))
   const validLabels = labels.slice(Math.round(files.length * (1 - validSplit)))
 
-  const simpleFace = (await loadTasks())[4]
+  const simpleFace = (await loadTasks())[TASK_INDEX]
   const trainDataset = await new NodeImageLoader(simpleFace).loadAll(trainFiles, { labels: trainLabels })
   const validDataset = await new NodeImageLoader(simpleFace).loadAll(validFiles, { labels: validLabels })
 
@@ -90,7 +92,7 @@ async function loadData (validSplit = 0.2) {
 
 async function runUser () {
   const tasks = await loadTasks()
-  const task = tasks[4]
+  const task = tasks[TASK_INDEX]
   const data = await loadData()
 
   const logger = new ConsoleLogger()
