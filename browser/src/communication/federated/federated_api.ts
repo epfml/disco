@@ -1,4 +1,6 @@
 import axios from 'axios'
+import * as msgpack from 'msgpack-lite'
+import { serialization } from 'discojs'
 
 function serverUrl () {
   // We place this in a function since during a test script the env is not defined
@@ -44,6 +46,24 @@ async function fetchFromServer (route: string, ...requiredParameters: string[]) 
 
 export async function getRound (taskID: string, clientID: string) {
   return await fetchFromServer('round', taskID, clientID)
+}
+
+export async function getWeights (taskID: string, clientID: string) {
+  const res = await fetchFromServer('new_weights', taskID, clientID)
+
+  console.log('weights got', res.data)
+
+  const withArrays = res.data.map((e) => {
+    if ('data' in e) {
+      return {
+        data: Float32Array.from(Object.values(e.data)),
+        shape: e.shape
+      }
+    }
+    return e
+  })
+
+  return serialization.deserializeWeights(withArrays)
 }
 
 export async function getAsyncWeightInformantStatistics (taskID: string, clientID: string) {
