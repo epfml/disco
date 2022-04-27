@@ -19,7 +19,6 @@ export class FederatedClient extends Client {
    * Prepares connection to a centralized server for training a given task.
    * @param {String} serverURL The URL of the centralized server.
    * @param {Task} task The associated task object.
-   * @param {Number} round The training round.
    */
   constructor (serverURL: string, task: Task) {
     super(serverURL, task)
@@ -102,43 +101,23 @@ export class FederatedClient extends Client {
   }
 
   private async updateLocalModel (model: tf.LayersModel) {
-    console.log('updateLocalModel >>')
-
     // get latest model from the server
     const weights = await api.getWeights(this.task.taskID, this.clientID)
-
-    // console.log('updateLocalModel', weights)
-    // console.log('local model weights', model.getWeights())
-
     model.setWeights(weights)
-
-    // update the model weights
-    // model.setWeights(
-    //   serialization.deserializeWeights(
-    //     await serialization.serializeWeights(
-    //       model.getWeights())))
-
-    console.log('updateLocalModel <<')
 
     console.log('Updated local model')
   }
 
   private async fetchChangesAndUpdateModel (model: tf.LayersModel) {
     // get server round of latest model
-    console.log('fetchChangesAndUpdateModel >>')
     const serverRound = await this.getLatestServerRound()
-
-    console.log('fetchChangesAndUpdateModel =1')
 
     const localRoundIsOld = this.modelUpdateIsBasedOnRoundNumber < serverRound
     if (localRoundIsOld) {
-      // update local round
-      // TODO need to check that update method did not fail!
       this.modelUpdateIsBasedOnRoundNumber = serverRound
       // update local model from server
       await this.updateLocalModel(model)
     }
-    console.log('fetchChangesAndUpdateModel <<')
   }
 
   private async fetchServerStatisticsAndUpdateInformant (trainingInformant: TrainingInformant) {
@@ -147,13 +126,9 @@ export class FederatedClient extends Client {
   }
 
   async onRoundEndCommunication (model: tf.LayersModel, _: number, trainingInformant: TrainingInformant) {
-    console.log('onRoundEndCommunication >>')
     await this.postWeightsToServer(model.weights.map((w) => w.read()))
-    console.log('onRoundEndCommunication ~1')
     await this.fetchChangesAndUpdateModel(model)
-    console.log('onRoundEndCommunication ~2')
     await this.fetchServerStatisticsAndUpdateInformant(trainingInformant)
-    console.log('onRoundEndCommunication <<')
   }
 
   async onTrainEndCommunication (_: tf.LayersModel, trainingInformant: TrainingInformant) {
