@@ -12,5 +12,11 @@ export function averageWeights (peersWeights: Set<Weights>): Weights {
     throw new Error('variable weights size')
   }
 
-  return peersWeights.first() // TODO average
+  const numberOfPeers = peersWeights.size
+
+  const peersAverageWeights = peersWeights.reduce((accum: Weights, weights) => {
+    return accum.map((w, i) => w.add(weights[i]))
+  }).map((w) => w.div(numberOfPeers))
+
+  return peersAverageWeights//peersWeights.first() // TODO average
 }
