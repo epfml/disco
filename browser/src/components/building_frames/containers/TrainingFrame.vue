@@ -207,9 +207,7 @@ export default {
       setTimeout(this.$toast.clear, 30000)
     },
     goToTesting () {
-      this.$router.push({
-        path: 'testing'
-      })
+      this.$router.push({ path: 'testing' })
     }
   }
 }
