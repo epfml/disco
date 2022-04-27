@@ -348,7 +348,6 @@ export async function getWeightsHandler (request: Request, response: Response): 
 
 function getWeights (request: Request): Weights {
   const obj: unknown = request.body.weights
-  console.log('getWeights:', {obj})
 
   if (!Array.isArray(obj)) {
     throw new Error('weights is not an array')
