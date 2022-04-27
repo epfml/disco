@@ -9,7 +9,7 @@ interface SerializedWeight {
 }
 
 function isSerializedWeight (raw: unknown): raw is SerializedWeight {
-  if (typeof raw !== 'object') {
+  if (typeof raw !== 'object' || raw === null) {
     return false
   }
   if (!('shape' in raw && 'data' in raw)) {
@@ -32,17 +32,17 @@ function isSerializedWeight (raw: unknown): raw is SerializedWeight {
 
 export type EncodedWeights = number[]
 
-export function isEncodedWeights(raw: unknown): raw is EncodedWeights {
+export function isEncodedWeights (raw: unknown): raw is EncodedWeights {
   return Array.isArray(raw) && raw.every((e) => typeof e === 'number')
 }
 
 export async function encodeWeights (weights: Weights): Promise<EncodedWeights> {
   const serialized = await Promise.all(weights.map(async (t) => {
-      return {
-        shape: t.shape,
-        data: await t.data<'float32'>()
-      }
-    }))
+    return {
+      shape: t.shape,
+      data: await t.data<'float32'>()
+    }
+  }))
 
   return [...msgpack.encode(serialized).values()]
 }
