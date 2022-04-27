@@ -33,7 +33,7 @@ enum RequestType {
  * Stored by task ID, round number and client ID.
  */
 const asyncBuffersMap: Map<TaskID, AsyncBuffer<Weights>> = new Map()
-const BUFFER_CAPACITY = 2
+const BUFFER_CAPACITY = 2//TODO: NACHO
 /**
  * Contains the informants for each task.
  */
@@ -166,7 +166,7 @@ function _logsAppend (request: Request, type: RequestType): void {
 }
 
 async function writeWeights (taskID: TaskID, weights: Weights): Promise<void> {
-  console.log('writing weights >>', weights)
+  console.log('writing weights >>')
 
   fs.writeFileSync(
     path.join(CONFIG.modelDir(taskID), 'new_weights'),
@@ -346,6 +346,8 @@ export async function getWeightsHandler (request: Request, response: Response): 
     path.join(CONFIG.modelDir(task), 'model.json')
   )
   const model = await tf.loadLayersModel(modelFilesPath)
+
+  console.log('model loaded')
 
   // Send back latest round
 
