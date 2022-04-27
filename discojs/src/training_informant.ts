@@ -33,10 +33,8 @@ export class TrainingInformant {
   validationAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList()
   currentTrainingAccuracy: number
   trainingAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList()
-  weightsIn: number
-  biasesIn: number
-  weightsOut: number
-  biasesOut: number
+  weightsIn = 0
+  weightsOut = 0
 
   /**
    *
