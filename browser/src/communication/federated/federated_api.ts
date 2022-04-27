@@ -48,7 +48,7 @@ export async function getRound (taskID: string, clientID: string) {
 }
 
 export async function getWeights (taskID: string, clientID: string) {
-  const res = await fetchFromServer('new_weights', taskID, clientID)
+  const res = await fetchFromServer('weights', taskID, clientID)
 
   const withArrays = res.data.map((e) => {
     if ('data' in e) {
