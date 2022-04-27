@@ -1,5 +1,4 @@
 import { Set } from 'immutable'
-import * as tf from '@tensorflow/tfjs'
 
 import { Weights } from './types'
 
@@ -18,5 +17,5 @@ export function averageWeights (peersWeights: Set<Weights>): Weights {
     return accum.map((w, i) => w.add(weights[i]))
   }).map((w) => w.div(numberOfPeers))
 
-  return peersAverageWeights//peersWeights.first() // TODO average
+  return peersAverageWeights
 }
