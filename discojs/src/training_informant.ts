@@ -1,40 +1,42 @@
-import { List, Repeat, Set } from "immutable";
+import { List, Repeat, Set } from 'immutable'
+import { TaskID } from '.'
 import { TrainingSchemes } from './training/trainingSchemes'
+
 const nbEpochsOnGraphs = 10
 
 /**
  * Class that collects information about the status of the training-loop of the model.
  */
 export class TrainingInformant {
-  taskID: string;
-  taskTrainingScheme: string;
+  taskID: TaskID
+  taskTrainingScheme: string
   // Decentralized Informations
   // number of people with whom I've shared my model
-  whoReceivedMyModel = Set();
-  nbrUpdatesWithOthers: number;
-  waitingTime: number;
-  nbrWeightRequests: number;
+  whoReceivedMyModel = Set()
+  nbrUpdatesWithOthers: number
+  waitingTime: number
+  nbrWeightRequests: number
   // message feedback from peer-to-peer training
-  messages = List();
+  messages = List()
   // Federated Informations
-  currentRound: number;
-  currentNumberOfParticipants: number;
-  totalNumberOfParticipants: number;
-  averageNumberOfParticipants : number;
+  currentRound: number
+  currentNumberOfParticipants: number
+  totalNumberOfParticipants: number
+  averageNumberOfParticipants: number
   // Common Informations
-  validationAccuracyChart: unknown;
-  validationAccuracy: number;
-  trainingAccuracyChart: unknown;
-  trainingAccuracy: number;
-  displayHeatmap: boolean;
-  currentValidationAccuracy: number;
-  validationAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList();
-  currentTrainingAccuracy: number;
-  trainingAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList();
-  weightsIn: number;
-  biasesIn: number;
-  weightsOut: number;
-  biasesOut: number;
+  validationAccuracyChart: unknown
+  validationAccuracy: number
+  trainingAccuracyChart: unknown
+  trainingAccuracy: number
+  displayHeatmap: boolean
+  currentValidationAccuracy: number
+  validationAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList()
+  currentTrainingAccuracy: number
+  trainingAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList()
+  weightsIn: number
+  biasesIn: number
+  weightsOut: number
+  biasesOut: number
 
   /**
    *
@@ -149,7 +151,7 @@ export class TrainingInformant {
    * Returns wether or not the Task's training scheme is Decentralized
    * @returns Boolean value
    */
-   isTaskTrainingSchemeDecentralized () {
+  isTaskTrainingSchemeDecentralized (): boolean {
     return this.taskTrainingScheme === TrainingSchemes.DECENTRALIZED
   }
 
@@ -157,7 +159,7 @@ export class TrainingInformant {
    * Returns wether or not the Task's training scheme is Federated
    * @returns Boolean value
    */
-  isTaskTrainingSchemeFederated () {
+  isTaskTrainingSchemeFederated (): boolean {
     return this.taskTrainingScheme === TrainingSchemes.FEDERATED
   }
 

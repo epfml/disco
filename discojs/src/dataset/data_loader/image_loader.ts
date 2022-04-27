@@ -2,7 +2,6 @@ import * as tf from '@tensorflow/tfjs'
 
 import { Dataset } from '../dataset_builder'
 import { DataLoader, DataConfig, Data } from './data_loader'
-import { Task } from '@/task'
 
 /**
  * TODO @s314cy:
@@ -13,12 +12,6 @@ import { Task } from '@/task'
 
 export abstract class ImageLoader<Source> extends DataLoader<Source> {
   abstract readImageFrom (source: Source): Promise<tf.Tensor3D>
-
-  constructor (
-    task: Task,
-  ) {
-    super(task)
-  }
 
   async load (image: Source, config?: DataConfig): Promise<Dataset> {
     let tensorContainer: tf.TensorContainer

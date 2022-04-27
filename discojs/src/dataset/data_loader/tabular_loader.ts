@@ -72,7 +72,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
     * dataset.
     */
   async loadAll (sources: Source[], config: DataConfig): Promise<Data> {
-    const datasets = await Promise.all(sources.map((source) => this.load(source, config)))
+    const datasets = await Promise.all(sources.map(async (source) => await this.load(source, config)))
     const dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
     return {
       dataset,
