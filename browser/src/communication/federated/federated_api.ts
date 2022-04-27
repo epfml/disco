@@ -1,5 +1,4 @@
 import axios from 'axios'
-import * as msgpack from 'msgpack-lite'
 import { serialization } from 'discojs'
 
 function serverUrl () {
@@ -24,7 +23,7 @@ export async function queryLogs (taskID: string, round: number, clientID: string
   return await axios.get(serverUrl().concat(`logs?${query}`))
 }
 
-export async function postWeights (taskID: string, clientID: string, weights, round: number) {
+export async function postWeights (taskID: string, clientID: string, weights: serialization.SerializedWeights, round: number) {
   const url = serverUrl().concat(`weights/${taskID}/${clientID}`)
   return await axios({
     method: 'post',
@@ -50,8 +49,6 @@ export async function getRound (taskID: string, clientID: string) {
 
 export async function getWeights (taskID: string, clientID: string) {
   const res = await fetchFromServer('new_weights', taskID, clientID)
-
-  // console.log('weights got', res.data)
 
   const withArrays = res.data.map((e) => {
     if ('data' in e) {
