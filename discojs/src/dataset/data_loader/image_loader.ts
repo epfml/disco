@@ -27,36 +27,38 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
   }
 
   async loadAll (images: Source[], config?: DataConfig): Promise<Data> {
-    const withLabels = config?.labels !== undefined
     let labels: number[]
-    if (withLabels) {
-      const numberOfClasses = this.task.trainingInformation.LABEL_LIST.length
+    if (config?.labels !== undefined) {
+      const numberOfClasses = this.task.trainingInformation?.LABEL_LIST?.length
+      if (numberOfClasses === undefined) {
+        throw new Error('wanted labels but none found in task')
+      }
+
       labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), numberOfClasses).arraySync() as number[]
     }
+
     const dataset = tf.data.generator(() => {
+      const withLabels = config?.labels !== undefined
+
       let index = 0
       const iterator = {
         next: async () => {
-          let sample: tf.Tensor
-          let label: number
-          if (index < images.length) {
-            sample = await this.readImageFrom(images[index])
-            if (withLabels) {
-              label = labels[index]
-            }
-            index++
-            return {
-              value: withLabels ? { xs: sample, ys: label } : sample,
-              done: false
-            }
+          if (index === images.length) {
+            return { done: true }
           }
+
+          const sample = await this.readImageFrom(images[index])
+          const label = withLabels ? labels[index] : undefined
+          const value = withLabels ? { xs: sample, ys: label } : sample
+
+          index++
+
           return {
-            value: withLabels ? { xs: sample, ys: label } : sample,
-            done: true
+            value,
+            done: false
           }
         }
       }
-      // TODO fix tfjs types
       return iterator as unknown as Iterator<tf.Tensor> // Lazy
     })
 
