@@ -98,18 +98,23 @@
   </base-layout>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script lang="ts">
 import BaseLayout from './containers/BaseLayout.vue'
 import TitleCard from './containers/TitleCard.vue'
 import CustomHeader from './simple/CustomHeader.vue'
 import CustomButton from './simple/CustomButton.vue'
 import FederatedImage from '../assets/svg/FederatedImage.vue'
 import DecentralizedImage from '../assets/svg/DecentralizedImage.vue'
+import MainTaskFrame from './main_frames/MainTaskFrame.vue'
+import TaskList from './TaskList.vue'
+import MainDescriptionFrame from './main_frames/MainDescriptionFrame.vue'
+import MainTrainingFrame from './main_frames/MainTrainingFrame.vue'
+import MainTestingFrame from './main_frames/MainTestingFrame.vue'
+import { loadTasks } from '../tasks'
 
-import { mapMutations } from 'vuex'
+import { Task } from 'discojs'
 
-export default defineComponent({
+export default {
   name: 'HomePage',
   components: {
     BaseLayout,
@@ -119,22 +124,57 @@ export default defineComponent({
     DecentralizedImage,
     CustomHeader
   },
-  setup () {
+  async created () {
+    this.routesComponents = [
+      ['description', MainDescriptionFrame],
+      ['training', MainTrainingFrame],
+      ['testing', MainTestingFrame]
+    ]
+    const tasks: Task[] = await loadTasks()
+    tasks.forEach((task: Task) => {
+      this.$router.addRoute({
+        path: `/${task.taskID}`,
+        component: MainTaskFrame,
+        props: {
+          task: task
+        },
+        children: this.getTaskRoutes(task)
+      })
+    })
+    this.$router.addRoute({
+      path: '/list',
+      component: TaskList,
+      props: { tasks: tasks }
+    })
   },
   methods: {
-    ...mapMutations(['setActivePage']),
+    getTaskRoutes (task: Task) {
+      return this.routesComponents.map((m) => {
+        const [route, component] = m
+        return {
+          path: route,
+          component: {
+            name: route,
+            key: route,
+            extends: component
+          },
+          props: {
+            id: task.taskID,
+            task: task
+          }
+        }
+      })
+    },
     goToTaskList () {
-      this.setActivePage('tasks')
       this.$router.push({
-        path: '/tasks/list'
+        path: '/list'
       })
     },
     goToNewTaskCreationForm () {
-      this.setActivePage('task-creation-form')
       this.$router.push({
-        path: '/task-creation-form'
+        path: '/create'
       })
     }
   }
-})
+}
 </script>
