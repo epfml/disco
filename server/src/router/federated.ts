@@ -33,7 +33,7 @@ enum RequestType {
  * Stored by task ID, round number and client ID.
  */
 const asyncBuffersMap: Map<TaskID, AsyncBuffer<Weights>> = new Map()
-const BUFFER_CAPACITY = 2//TODO: NACHO
+const BUFFER_CAPACITY = 2
 /**
  * Contains the informants for each task.
  */
@@ -165,19 +165,6 @@ function _logsAppend (request: Request, type: RequestType): void {
   })
 }
 
-async function writeWeights (taskID: TaskID, weights: Weights): Promise<void> {
-  console.log('writing weights >>')
-
-  fs.writeFileSync(
-    path.join(CONFIG.modelDir(taskID), 'new_weights'),
-    msgpack.encode(await serialization.serializeWeights(weights)))
-  console.log('writing weights <<')
-}
-
-async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): Promise<void> {
-  // TODO: check whether this actually works
-  const averaged = aggregation.averageWeights(immutable.Set(weights))
-
   /**
    * Save the newly aggregated model to the server's local storage. This
    * is now the model served to clients for the given task. To save the newly
@@ -186,14 +173,21 @@ async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): P
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */
+async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): Promise<void> {
+
+  // Get averaged weights
+  const averagedWeights = aggregation.averageWeights(immutable.Set(weights))
+
+  // Get model
   const modelFilesPath = CONFIG.savingScheme.concat(
-    path.join(CONFIG.modelDir(taskID))
+    path.join(CONFIG.modelDir(taskID), 'model.json')
   )
-
   const model = await tf.loadLayersModel(modelFilesPath)
-  await writeWeights(taskID, model.getWeights())
 
-  model.setWeights(model.getWeights())
+  // Update model
+  model.setWeights(averagedWeights)
+
+  // Save model
   await model.save(path.dirname(modelFilesPath))
 }
 
@@ -337,7 +331,6 @@ function _checkPostWeights (request: Request, response: Response): number {
 }
 
 export async function getWeightsHandler (request: Request, response: Response): Promise<void> {
-  console.log('balance')
 
   // Check for errors
   const task = request.params.task
@@ -347,11 +340,10 @@ export async function getWeightsHandler (request: Request, response: Response): 
   )
   const model = await tf.loadLayersModel(modelFilesPath)
 
-  console.log('model loaded')
+  const weights = await Promise.all(model.weights.map((e) => e.read()))
+  const serializedWeights = await serialization.serializeWeights(weights)
 
-  // Send back latest round
-
-  response.status(200).send(await serialization.serializeWeights(await Promise.all(model.weights.map((e) => e.read()))))
+  response.status(200).send(serializedWeights)
 }
 
 function getWeights (request: Request): Weights {
@@ -361,20 +353,18 @@ function getWeights (request: Request): Weights {
   if (!Array.isArray(obj)) {
     throw new Error('weights is not an array')
   }
+
   const withArrays = obj.map((e) => {
-    if (typeof e === 'object') {
-        return Float32Array.from(Object.values(e))
-     }
-     return e
+    if ('data' in e) {
+      return {
+        data: Float32Array.from(Object.values(e.data)),
+        shape: e.shape
+      }
+    }
+    return e
   })
 
-  /*
-  if (!obj.every((w) => typeof w === 'number')) {
-    throw new Error('a weight is not a number')
-  }
-  */
-
-  return withArrays.map((e) => tf.tensor(e))
+  return serialization.deserializeWeights(withArrays)
 }
 
 /**
@@ -397,7 +387,6 @@ export async function postWeights (request: Request, response: Response): Promis
   const buffer = getOrInitAsyncWeightsBuffer(task)
 
   const weights = getWeights(request)
-  await writeWeights(task, weights)
 
   const round = request.body.round
 
