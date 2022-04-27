@@ -1,12 +1,13 @@
 <template>
   <base-layout>
     <div>
-      <progress-bar :step="currentStep" />
+      <progress-bar :step="progress" />
       <router-view v-slot="{ Component }">
         <keep-alive>
           <component
             :is="Component"
             @next-step="nextStep"
+            @prev-step="prevStep"
           />
         </keep-alive>
       </router-view>
@@ -21,35 +22,47 @@ import ProgressBar from '../ProgressBar.vue'
 import { Task } from 'discojs'
 
 const STEPS = ['list', 'description', 'training']
+// const STEPS = ['list', 'description', 'dataset', 'training']
 
 export default {
   name: 'MainTaskFrame',
   components: { BaseLayout, ProgressBar },
   props: {
+    id: {
+      type: String,
+      default: ''
+    },
     task: {
       type: Task,
       default: undefined
     }
   },
-  data (): { currentStep: number } {
+  data (): { step: number, progress: number } {
     return {
-      currentStep: 1
+      step: 1,
+      progress: 1
     }
   },
   mounted () {
-    const step = STEPS[this.currentStep]
+    console.log(`Mounting MainTaskFrame for ${this.task.displayInformation.taskTitle}`)
+  },
+  activated () {
+    console.log(`Activating MainTaskFrame for ${this.task.displayInformation.taskTitle}`)
+    this.step = this.progress
+    const step = STEPS[this.progress]
     this.$router.replace({ path: `/${this.task.taskID}/${step}` })
   },
   methods: {
-    /**
-     * This component is responsible for switching between frames and updating the progress
-     * bar accordingly.
-     */
     nextStep () {
-      if (this.currentStep < 3) {
-        const nextStep = STEPS[++this.currentStep]
-        this.$router.push({ path: `/${this.task.taskID}/${nextStep}` })
-      }
+      this.step = Math.min(3, this.step + 1)
+      this.progress = Math.max(this.progress, this.step)
+      const nextStep = STEPS[this.step]
+      this.$router.replace({ path: `/${this.task.taskID}/${nextStep}` })
+    },
+    prevStep () {
+      this.step = Math.max(1, this.step - 1)
+      const prevStep = STEPS[this.step]
+      this.$router.replace({ path: `${this.task.taskID}/${prevStep}` })
     }
   }
 }
