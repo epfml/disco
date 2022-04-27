@@ -7,6 +7,7 @@ import { Disco } from '../src/training/disco'
 import { Platform } from '../src/platforms/platform'
 import * as tf from '@tensorflow/tfjs'
 import Rand from 'rand-seed'
+// import { Set } from 'immutable'
 
 const TASK_INDEX = 4
 
@@ -101,8 +102,8 @@ async function runUser () {
 }
 
 async function main () {
-  // TODO multi users, etc
-  await runUser()
+  await Promise.all([runUser(), runUser()])
+  // await runUser()
 }
 
 const runMain = async () => {
