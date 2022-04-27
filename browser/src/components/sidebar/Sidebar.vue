@@ -35,14 +35,14 @@
         <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
         <SidebarButton
           hover-text="home"
-          @click="goToHome"
+          @click="goToHome()"
         >
           <home-icon />
         </SidebarButton>
         <!-- Go to Task List page -->
         <SidebarButton
           hover-text="tasks"
-          @click="goToTaskList"
+          @click="goToTaskList()"
         >
           <list-icon />
         </SidebarButton>
