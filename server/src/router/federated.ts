@@ -116,7 +116,7 @@ function _checkRequest (request: Request): number {
   if (Number.isNaN(round)) {
     return 400
   }
-  if (!(tasksStatus.has(task) && round <= tasksStatus.get(task).round)) {
+  if (!(tasksStatus.has(task))){
     return 404
   }
   if (!clients.has(id)) {
@@ -585,7 +585,7 @@ export function getLatestModel (request: Request, response: Response): void {
     _failRequest(response, type, 404)
     return
   }
-  const validModelFiles = new Set(['model.json', 'weights.bin', 'new_weights'])
+  const validModelFiles = new Set(['model.json', 'weights.bin'])
   const modelFile = path.join(CONFIG.modelsDir, task, file)
   console.log(`File path: ${modelFile}`)
   if (validModelFiles.has(file) && fs.existsSync(modelFile)) {

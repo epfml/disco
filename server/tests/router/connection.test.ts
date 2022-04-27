@@ -52,15 +52,24 @@ function testConnection (platformID: string): void {
         .get(connectHeader(platformID, nonExistingTask, clientId))
         .expect(404)
     })
+
+    //TODO: add get weights test
+    // it('Get weights', async () => { // the single test
+    //   await request(app)
+    //     .get(connectHeader(platformID, task, clientId))
+    //     .expect(200)
+    //     .then (async () => {
+    //         await request(app)
+    //         .get(`/weights/${task}/${clientId}`)
+    //         .expect(200)
+    //     })
+    // })
+
+
   })
 }
 
 testConnection('feai')
-
-/**
- * TODO: Due to the reverse proxy testing deai is different.
- */
-// testConnection('deai')
 
 /**
  * Adding done() turns of the express app once the tests are done
