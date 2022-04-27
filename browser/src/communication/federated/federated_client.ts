@@ -107,14 +107,16 @@ export class FederatedClient extends Client {
     // get latest model from the server
     const weights = await api.getWeights(this.task.taskID, this.clientID)
 
-    console.log('updateLocalModel', weights)
-    console.log('local model weights', model.getWeights())
+    // console.log('updateLocalModel', weights)
+    // console.log('local model weights', model.getWeights())
+
+    model.setWeights(weights)
 
     // update the model weights
-    model.setWeights(
-      serialization.deserializeWeights(
-        await serialization.serializeWeights(
-          model.getWeights())))
+    // model.setWeights(
+    //   serialization.deserializeWeights(
+    //     await serialization.serializeWeights(
+    //       model.getWeights())))
 
     console.log('updateLocalModel <<')
 
