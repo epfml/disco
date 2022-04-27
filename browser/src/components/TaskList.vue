@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <base-layout>
     <progress-bar
       :blocked="true"
       :blocked-step="0"
@@ -37,10 +37,11 @@
         </div>
       </card>
     </div>
-  </div>
+  </base-layout>
 </template>
 
 <script lang="ts">
+import BaseLayout from './containers/BaseLayout.vue'
 import ProgressBar from './ProgressBar.vue'
 import Card from './containers/Card.vue'
 import CustomButton from './simple/CustomButton.vue'
@@ -48,6 +49,7 @@ import CustomButton from './simple/CustomButton.vue'
 export default {
   name: 'TaskList',
   components: {
+    BaseLayout,
     Card,
     CustomButton,
     ProgressBar

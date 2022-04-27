@@ -19,8 +19,6 @@
       focus:bg-primary-100
       dark:focus:bg-primary-dark
       focus:ring-primary-darker
-      focus:bg-primary
-      focus:text-white
     "
     @click="click()"
   >

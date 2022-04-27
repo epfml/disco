@@ -113,6 +113,7 @@ import MainTestingFrame from './main_frames/MainTestingFrame.vue'
 import { loadTasks } from '../tasks'
 
 import { Task } from 'discojs'
+import { defineComponent } from 'vue'
 
 export default {
   name: 'HomePage',
@@ -132,10 +133,16 @@ export default {
     ]
     const tasks: Task[] = await loadTasks()
     tasks.forEach((task: Task) => {
+      const route = `/${task.taskID}`
       this.$router.addRoute({
-        path: `/${task.taskID}`,
-        component: MainTaskFrame,
+        path: route,
+        // So that KeepAlive can differentiate the components
+        component: defineComponent({
+          key: task.taskID,
+          extends: MainTaskFrame
+        }),
         props: {
+          id: task.taskID,
           task: task
         },
         children: this.getTaskRoutes(task)
@@ -153,11 +160,11 @@ export default {
         const [route, component] = m
         return {
           path: route,
-          component: {
-            name: route,
-            key: route,
+          // So that KeepAlive can differentiate the components
+          component: defineComponent({
+            key: `${route}:${task.taskID}`,
             extends: component
-          },
+          }),
           props: {
             id: task.taskID,
             task: task
