@@ -27,12 +27,13 @@
     "@types/lodash": "4",
     "@types/mocha": "9",
     "@types/msgpack-lite": "0.1",
-    "@typescript-eslint/eslint-plugin": "5",
-    "@typescript-eslint/parser": "5",
+    "@typescript-eslint/eslint-plugin": "4",
+    "@typescript-eslint/parser": "4",
     "chai": "4",
-    "eslint": "8",
+    "eslint": "7",
+    "eslint-config-standard-with-typescript": "21",
     "mocha": "9",
     "ts-node": "10",
-    "typescript": "4"
+    "typescript": "<4.5.0"
   }
 }
