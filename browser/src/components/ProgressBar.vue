@@ -190,8 +190,6 @@ export default {
   methods: {
     isActive (step: number): boolean {
       if (this.blocked) {
-        console.log('blocked!!')
-        console.log(this.step, this.blockedStep)
         return step === this.blockedStep
       } else {
         return step <= this.step

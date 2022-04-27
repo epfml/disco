@@ -207,7 +207,7 @@ export default {
       this.$router.push({ path: '/' })
     },
     goToTaskList () {
-      this.$router.push({ path: '/tasks/list' })
+      this.$router.push({ path: '/list' })
     },
     goToInformation () {
       this.$router.push({ path: '/information' })
