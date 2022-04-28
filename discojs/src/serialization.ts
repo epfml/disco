@@ -1,4 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
+import * as msgpack from 'msgpack-lite'
 
 import { Weights } from '@/types'
 
@@ -29,32 +30,29 @@ function isSerializedWeight (raw: unknown): raw is SerializedWeight {
   return true
 }
 
-export type SerializedWeights = SerializedWeight[]
+export type EncodedWeights = number[]
 
-export function isSerializedWeights (obj: unknown): obj is SerializedWeights {
-  if (!Array.isArray(obj)) {
-    return false
-  }
-  const arr: unknown[] = obj
-  if (!arr.every(isSerializedWeight)) {
-    return false
-  }
-
-  // eslint-disable-next-line
-  const _: SerializedWeights = arr
-
-  return true
+export function isEncodedWeights(raw: unknown): raw is EncodedWeights {
+  return Array.isArray(raw) && raw.every((e) => typeof e === 'number')
 }
 
-export async function serializeWeights (weights: Weights): Promise<SerializedWeights> {
-  return await Promise.all(weights.map(async (t) => {
-    return {
-      shape: t.shape,
-      data: await t.data<'float32'>()
-    }
-  }))
+export async function encodeWeights (weights: Weights): Promise<EncodedWeights> {
+  const serialized = await Promise.all(weights.map(async (t) => {
+      return {
+        shape: t.shape,
+        data: await t.data<'float32'>()
+      }
+    }))
+
+  return [...msgpack.encode(serialized).values()]
 }
 
-export function deserializeWeights (serialized: SerializedWeights): Weights {
-  return serialized.map((w) => tf.tensor(w.data, w.shape))
+export function decodeWeights (encoded: EncodedWeights): Weights {
+  const raw = msgpack.decode(encoded)
+
+  if (!(Array.isArray(raw) && raw.every(isSerializedWeight))) {
+    throw new Error('expected to decode an array of serialized weights')
+  }
+
+  return raw.map((w) => tf.tensor(w.data, w.shape))
 }
