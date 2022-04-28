@@ -5,7 +5,7 @@ import msgpack from 'msgpack-lite'
 import path from 'path'
 import * as tf from '@tensorflow/tfjs-node'
 
-import { aggregation, AsyncInformant, TaskID, isTaskID, AsyncBuffer, Weights } from 'discojs'
+import { serialization, aggregation, AsyncInformant, TaskID, isTaskID, AsyncBuffer, Weights } from 'discojs'
 
 import { CONFIG } from '../config'
 import { getTasks } from '../tasks/tasks_io'
@@ -116,7 +116,7 @@ function _checkRequest (request: Request): number {
   if (Number.isNaN(round)) {
     return 400
   }
-  if (!(tasksStatus.has(task) && round <= tasksStatus.get(task).round)) {
+  if (!(tasksStatus.has(task))){
     return 404
   }
   if (!clients.has(id)) {
@@ -165,10 +165,6 @@ function _logsAppend (request: Request, type: RequestType): void {
   })
 }
 
-async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): Promise<void> {
-  // TODO: check whether this actually works
-  const averaged = aggregation.averageWeights(immutable.Set(weights))
-
   /**
    * Save the newly aggregated model to the server's local storage. This
    * is now the model served to clients for the given task. To save the newly
@@ -177,12 +173,21 @@ async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): P
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */
-  const modelFilesPath = CONFIG.savingScheme.concat(
-    path.join(CONFIG.modelDir(taskID))
-  )
+async function _aggregateAndStoreWeights (weights: Weights[], taskID: TaskID): Promise<void> {
 
+  // Get averaged weights
+  const averagedWeights = aggregation.averageWeights(immutable.Set(weights))
+
+  // Get model
+  const modelFilesPath = CONFIG.savingScheme.concat(
+    path.join(CONFIG.modelDir(taskID), 'model.json')
+  )
   const model = await tf.loadLayersModel(modelFilesPath)
-  model.setWeights(averaged)
+
+  // Update model
+  model.setWeights(averagedWeights)
+
+  // Save model
   await model.save(path.dirname(modelFilesPath))
 }
 
@@ -325,17 +330,40 @@ function _checkPostWeights (request: Request, response: Response): number {
   return 200
 }
 
+export async function getWeightsHandler (request: Request, response: Response): Promise<void> {
+
+  // Check for errors
+  const task = request.params.task
+
+  const modelFilesPath = CONFIG.savingScheme.concat(
+    path.join(CONFIG.modelDir(task), 'model.json')
+  )
+  const model = await tf.loadLayersModel(modelFilesPath)
+
+  const weights = await Promise.all(model.weights.map((e) => e.read()))
+  const serializedWeights = await serialization.serializeWeights(weights)
+
+  response.status(200).send(serializedWeights)
+}
+
 function getWeights (request: Request): Weights {
   const obj: unknown = request.body.weights
 
   if (!Array.isArray(obj)) {
     throw new Error('weights is not an array')
   }
-  if (!obj.every((w) => typeof w === 'number')) {
-    throw new Error('a weight is not a number')
-  }
 
-  return obj.map((w) => tf.tensor(w))
+  const withArrays = obj.map((e) => {
+    if ('data' in e) {
+      return {
+        data: Float32Array.from(Object.values(e.data)),
+        shape: e.shape
+      }
+    }
+    return e
+  })
+
+  return serialization.deserializeWeights(withArrays)
 }
 
 /**
