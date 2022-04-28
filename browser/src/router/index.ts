@@ -1,10 +1,10 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 // Some page components
-import Home from '../components/Home.vue'
-import Information from '../components/Information.vue'
-import NewTaskCreationForm from '../components/NewTaskCreationForm.vue'
-import NotFound from '../components/NotFound.vue'
+import Home from '../components/pages/Home.vue'
+import Information from '../components/pages/Information.vue'
+import NewTaskCreationForm from '../components/pages/NewTaskCreationForm.vue'
+import NotFound from '../components/pages/NotFound.vue'
 
 const routes = [
   {

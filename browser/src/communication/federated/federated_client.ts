@@ -19,7 +19,6 @@ export class FederatedClient extends Client {
    * Prepares connection to a centralized server for training a given task.
    * @param {String} serverURL The URL of the centralized server.
    * @param {Task} task The associated task object.
-   * @param {Number} round The training round.
    */
   constructor (serverURL: string, task: Task) {
     super(serverURL, task)
@@ -103,10 +102,8 @@ export class FederatedClient extends Client {
 
   private async updateLocalModel (model: tf.LayersModel) {
     // get latest model from the server
-    const latestModel = await this.getLatestModel()
-
-    // update the model weights
-    model.setWeights(latestModel.getWeights())
+    const weights = await api.getWeights(this.task.taskID, this.clientID)
+    model.setWeights(weights)
 
     console.log('Updated local model')
   }
@@ -117,8 +114,6 @@ export class FederatedClient extends Client {
 
     const localRoundIsOld = this.modelUpdateIsBasedOnRoundNumber < serverRound
     if (localRoundIsOld) {
-      // update local round
-      // TODO need to check that update method did not fail!
       this.modelUpdateIsBasedOnRoundNumber = serverRound
       // update local model from server
       await this.updateLocalModel(model)

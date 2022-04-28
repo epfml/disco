@@ -594,10 +594,10 @@
 // WARNING: temporay code until serialization of Task object
 // Import the tasks objects Here
 import { mapMutations } from 'vuex'
-import BaseLayout from './containers/BaseLayout.vue'
+import BaseLayout from '../containers/BaseLayout.vue'
 import _ from 'lodash'
-import sections from './form.config'
-import TitleCard from './containers/TitleCard.vue'
+import sections from '../form.config'
+import TitleCard from '../containers/TitleCard.vue'
 import axios from 'axios'
 
 import {

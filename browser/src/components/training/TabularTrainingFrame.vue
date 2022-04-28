@@ -122,10 +122,10 @@
 
 import { Task } from 'discojs'
 
-import TrainingFrame from '../containers/TrainingFrame.vue'
-import IconCard from '../../containers/IconCard.vue'
-import Bezier2 from '../../../assets/svg/Bezier2.vue'
-import { WebTabularLoader } from '../../../data_loader'
+import TrainingFrame from './TrainingFrame.vue'
+import IconCard from '../containers/IconCard.vue'
+import Bezier2 from '../../assets/svg/Bezier2.vue'
+import { WebTabularLoader } from '../../data_loader'
 
 export default {
   name: 'TabularTrainingFrame',

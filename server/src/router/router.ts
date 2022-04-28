@@ -77,6 +77,9 @@ federatedRouter.post('/weights/:task/:id', (req, res, next) => {
 federatedRouter.get('/round/:task/:id', (req, res, next) => {
   handlers.getRound(req, res).catch(next)
 })
+federatedRouter.get('/weights/:task/:id', (req, res, next) => {
+  handlers.getWeightsHandler(req, res).catch(next)
+})
 federatedRouter.get('/statistics/:task/:id', handlers.getAsyncWeightInformantStatistics)
 
 federatedRouter
