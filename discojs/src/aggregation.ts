@@ -1,5 +1,4 @@
 import { Set } from 'immutable'
-import * as tf from '@tensorflow/tfjs'
 
 import { Weights } from './types'
 
@@ -12,7 +11,11 @@ export function averageWeights (peersWeights: Set<Weights>): Weights {
     throw new Error('variable weights size')
   }
 
-  return peersWeights.map((peerWeights) =>
-    tf.layers.average().apply(peerWeights) as tf.Tensor // TODO do not cast
-  ).toArray()
+  const numberOfPeers = peersWeights.size
+
+  const peersAverageWeights = peersWeights.reduce((accum: Weights, weights) => {
+    return accum.map((w, i) => w.add(weights[i]))
+  }).map((w) => w.div(numberOfPeers))
+
+  return peersAverageWeights
 }

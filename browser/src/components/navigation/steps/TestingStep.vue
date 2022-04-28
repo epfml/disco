@@ -15,8 +15,8 @@
 </template>
 
 <script>
-import ImageTestingFrame from '../building_frames/image/ImageTestingFrame.vue'
-import TabularTestingFrame from '../building_frames/tabular/TabularTestingFrame.vue'
+import ImageTestingFrame from '../../testing/ImageTestingFrame.vue'
+import TabularTestingFrame from '../../testing/TabularTestingFrame.vue'
 
 export default {
   name: 'MainTestingFrame',
@@ -33,9 +33,6 @@ export default {
       type: Object,
       default: undefined
     }
-  },
-  async activated () {
-    this.$emit('opened-testing')
   }
 }
 </script>
