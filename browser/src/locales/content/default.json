@@ -1,0 +1,155 @@
+{
+  "home": {
+      "title": {
+        "name": "DisCo",
+        "start": "Distributed ",
+        "middle": "Collaborative ",
+        "end": "AI"
+      },
+      "buildCard": [
+        {
+          "header": {
+            "text": "Build AI with collaborators but",
+            "underlined": "without sharing any data"
+          },
+          "items": [
+            "Exchange <span class='italic'>models</span> not data",
+            "Keep data at its source",
+            "choose either <span class='italic'>decentralised</span> or <span class='italic'>federated</span> training",
+            "Go to settings to change the platform"
+          ]
+        }
+      ],
+      "taskCard": [
+        {
+          "header": {
+            "text": "Create your",
+            "underlined": "own task"
+          },
+          "items": [
+            "Choose a model",
+            "Describe the task",
+            "Specify the desired training and evaluation parameters "
+          ]
+        }
+      ],
+      "startBuildingButtonText": "Start building",
+      "createTaskButtonText": "Create task",
+      "images": {
+        "federated": {
+          "title": "Federated learning",
+          "text": "uses a central server to share and aggregate weights of the users while keeping your data local at all times."
+        },
+        "decentralised": {
+          "title": "Decentralised learning",
+          "text": "uses peer2peer communication to share weights among the users keeping your data local at all times."
+        }
+      }
+    },
+    "information": {
+      "informationTitle": "Information",
+      "informationCard": [
+        {
+          "title": "Goal:",
+          "text": "Disco enables collaborative and privacy-preserving training of machine learning models. Disco is an easy-to-use mobile app & web software, running directly in your browser."
+        },
+        {
+          "title": "Key Question:",
+          "text": "Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? - or - Can we train a ML model which is equally good as if all data were in one place, but respect privacy?"
+        },
+        {
+          "title": "Federated learning:",
+          "text": "The key insight is to share weights instead of data, each user trains on his own machine and periodically shares his learned weights with a central server. The server will agreggate all these weights and send them back. We support a variety of modern deep learning architectures running on mobile device"
+        },
+        {
+          "title": "Decentralized learning:",
+          "text": "makes this possible, following the same principles as in federated learning, but going one step further by removing any central coordinator. Disco only uses peer2peer communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure. We support a variety of modern deep learning architectures running on mobile devices."
+        }
+      ],
+      "featuresTitle" : "Features",
+      "featuresCard": [
+        {
+          "title": "Supports Deep Learning architectures",
+          "text": "Supports a high variety of neural network models for training ranging from logistic regression to modern deep learning architectures, and different data types ranging from image classification to natural language processing."
+        },
+        {
+          "title" :"Data and model privacy",
+          "text":"Data privacy by design - no data ever leaves any device. Models can be protected from access through passwords."
+        },
+        {
+          "title" :"Runs anywhere",
+          "text":"Disco runs in the browser, from any device equipped with a modern browser."
+        },
+        {
+          "title" :"Collaborative training",
+          "text":"Neural network training is done in a collaborative fashion, through peer to peer communication neural network weights are exchanged between participants, with the goal to train a machine learning model that can achieve better generalisation across different types of data, without ever having had access to the data itself."
+        }
+      ],
+      "howToUseTitle": "How to use",
+      "howToUseCard": [
+        {
+          "title": "Step 1: Select a task",
+          "text": "- choose different tasks and data sets for training, ranging from tabular data to images, and from binary classification to class-wise prediction."
+        },
+        {
+          "title": "Step 2: Select data for the training process",
+          "text": "- choose the files that are used for the training process on your local devices. Those files will not be uploaded."
+        },
+        {
+          "title": "Step 3: Neural network training",
+          "text": "- select between local training and distributed training. Local training will fine tune the model with your local data and the resulting model will only be available to your device. Distributed training will allow communication between local devices during training after every epoch so the local models are aggregated into a global model.After completing training, you can find training statistics on the model accuracy in the dashboard. For distributed training, details on the communication rounds will also appear on the board."
+        },
+        {
+          "title": "Step 4: Save the model",
+          "text": "- click on the button to save the model for later."
+        },
+        {
+          "title": "Step 5: Reuse the model",
+          "text": "- come back any time to reuse your local model and resume training or test it against other data."
+        }
+      ],
+      "furtherLinksTitle": "Further links"
+    },
+    "training": {
+      "trainingFrame": {
+        "dataExample": "Data Example",
+        "localTrainingButton": "Train Locally",
+        "collaborativeTrainingButton": "Train Collaboratively",
+        "decentralizedTrainingButton": "Train Decentralized",
+        "federatedTrainingButton": "Train Federated",
+        "stopTrainingButton": "Stop Training",
+        "saveModel": {
+          "header": "Save the model",
+          "description": "If you are satisfied with the performance of the model, don't forget to save the model by clicking on the button below. The next time you will load the application, you will be able to use your saved model.",
+          "button": "Save my model"
+        },
+        "testModel": {
+          "header": "Test the model",
+          "description": "If you are satisfied with the performance of the model, don't forget to save the model by clicking on the button below. The next time you will load the application, you will be able to use your saved model.",
+          "button": "Test my model"
+        }
+      },
+      "trainingInformationFrame": {
+        "accuracyCharts": {
+          "validationAccuracyHeader": "Validation Accuracy of the Model",
+          "validationAccuracyText": "% of validation accuracy",
+          "trainingAccuracyHeader": "Training Accuracy of the Model",
+          "trainingAccuracyText": "% of training accuracy"
+        },
+        "trainingInformations": {
+          "trainingConsoleHeader": "Peer Training Console",
+          "distributed": {
+            "averaging": "# of Averaging",
+            "waitingTime": "Waiting Time",
+            "weightRequests": "# Weight Requests",
+            "peopleHelped": "# of People Helped"
+          },
+          "federated": {
+            "round": "Current Round",
+            "numberParticipants": "Current # of participants",
+            "averageParticipants": "Average # of Participants"
+          }
+        }
+      }
+    }
+  }

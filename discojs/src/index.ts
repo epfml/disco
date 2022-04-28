@@ -1,3 +1,5 @@
+import { exp } from '@tensorflow/tfjs';
+
 export * as aggregation from './aggregation'
 export * as dataset from './dataset'
 export * as serialization from './serialization'
@@ -10,3 +12,4 @@ export { TrainingInformant } from "./training_informant";
 export { ModelActor } from "./model_actor";
 export { Path, Weights } from "./types";
 export { Logger, ConsoleLogger } from "./logging"
+export { TrainingSchemes } from "./training/trainingSchemes"

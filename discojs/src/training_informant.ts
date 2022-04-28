@@ -1,5 +1,5 @@
 import { List, Repeat, Set } from "immutable";
-import { TrainingSchemes } from './trainingSchemes'
+import { TrainingSchemes } from './training/trainingSchemes'
 const nbEpochsOnGraphs = 10
 
 /**
