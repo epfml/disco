@@ -341,29 +341,9 @@ export async function getWeightsHandler (request: Request, response: Response): 
   const model = await tf.loadLayersModel(modelFilesPath)
 
   const weights = await Promise.all(model.weights.map((e) => e.read()))
-  const serializedWeights = await serialization.serializeWeights(weights)
+  const serializedWeights = await serialization.encodeWeights(weights)
 
   response.status(200).send(serializedWeights)
-}
-
-function getWeights (request: Request): Weights {
-  const obj: unknown = request.body.weights
-
-  if (!Array.isArray(obj)) {
-    throw new Error('weights is not an array')
-  }
-
-  const withArrays = obj.map((e) => {
-    if ('data' in e) {
-      return {
-        data: Float32Array.from(Object.values(e.data)),
-        shape: e.shape
-      }
-    }
-    return e
-  })
-
-  return serialization.deserializeWeights(withArrays)
 }
 
 /**
@@ -380,14 +360,17 @@ export async function postWeights (request: Request, response: Response): Promis
     return
   }
 
+  const rawWeights: unknown = request.body.weights
+  if (!(Array.isArray(rawWeights) && rawWeights.every((e) => typeof e === 'number'))) {
+    throw new Error('invalid weights format')
+  }
+  const weights = serialization.decodeWeights(rawWeights)
+
   const task = request.params.task
   const id = request.params.id
+  const round = request.body.round
 
   const buffer = getOrInitAsyncWeightsBuffer(task)
-
-  const weights = getWeights(request)
-
-  const round = request.body.round
 
   const codeFromAddingWeight = (await buffer.add(id, weights, round)) ? 200 : 202
   response.status(codeFromAddingWeight).send()
