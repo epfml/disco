@@ -10,6 +10,7 @@
     "skipLibCheck": true,
     "moduleResolution": "node",
     "importHelpers": true,
+    "downlevelIteration": true, // needed by <ES6
 
     "outDir": "dist",
     "declaration": true,

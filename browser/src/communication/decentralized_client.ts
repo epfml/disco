@@ -7,7 +7,7 @@ import { Client, Task, TrainingInformant, aggregation, serialization } from 'dis
 
 import { Weights } from '@/types'
 
-type PeerMessage = { epoch: number, weights: serialization.SerializedWeights }
+type PeerMessage = { epoch: number, weights: serialization.EncodedWeights }
 
 // TODO take it from the server sources
 type PeerID = number
@@ -26,14 +26,12 @@ function isPeerMessage (data: unknown): data is PeerMessage {
   if (!Set(Object.keys(data)).equals(Set.of('epoch', 'weights'))) {
     return false
   }
+  const { epoch, weights } = data as Record<'epoch' | 'weights', unknown>
 
-  // TODO do not cast
-  const { epoch, weights } = data as { epoch: unknown, weights: unknown }
-
-  if (typeof epoch !== 'number') {
-    return false
-  }
-  if (!serialization.isSerializedWeights(weights)) {
+  if (
+    typeof epoch !== 'number' ||
+    !serialization.isEncodedWeights(weights)
+  ) {
     return false
   }
 
@@ -189,15 +187,16 @@ export class DecentralizedClient extends Client {
       if (!isPeerMessage(message)) {
         throw new Error(`invalid message received from ${peer}`)
       }
+      const weights = serialization.decodeWeights(message.weights)
 
-      console.debug('peer', peerID, 'sent weights', message.weights)
+      console.debug('peer', peerID, 'sent weights', weights)
 
       if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
         throw new Error(`weights from ${peer} already received`)
       }
       this.weights.set(peer,
         this.weights.get(peer, List<Weights>())
-          .set(message.epoch, serialization.deserializeWeights(message.weights)))
+          .set(message.epoch, weights))
     })
 
     peer.on('connect', () => console.info('connected to peer', peerID))
@@ -233,7 +232,7 @@ export class DecentralizedClient extends Client {
     // broadcast our weights
     const msg: PeerMessage = {
       epoch: epoch,
-      weights: await serialization.serializeWeights(model.weights.map((w) => w.read()))
+      weights: await serialization.encodeWeights(model.weights.map((w) => w.read()))
     }
     const encodedMsg = msgpack.encode(msg)
 

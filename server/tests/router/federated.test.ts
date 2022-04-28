@@ -80,9 +80,8 @@ describe(`${platformID} weight sharing tests`, () => {
   })
 
   it("POST /weights", async () => {
-    const serializedWeights = await serialization.serializeWeights(weights);
     const data = {
-      weights: serializedWeights,
+      weights: await serialization.encodeWeights(weights),
       round: newRound,
     };
     await request(app)
