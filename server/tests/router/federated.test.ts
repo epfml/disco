@@ -1,75 +1,106 @@
-import { expect } from 'chai'
-import { agent as request } from 'supertest'
+import { expect } from "chai";
+import { agent as request } from "supertest";
 
-import * as tf from '@tensorflow/tfjs-node'
-import app from '../../src/run_server'
+import { serialization, Weights } from "discojs";
 
-const platformID = 'feai'
-const clientId = 'clientId'
-const task = 'titanic'
+import * as tf from "@tensorflow/tfjs-node";
+import app from "../../src/run_server";
 
-const oldRound = -1
-const newRound = 1
-const weightsData = {
-  weights: [0, 1],
-  round: newRound
+const platformID = "feai";
+const clients = {
+  one: 'one',
+  two: 'two'
+}
+const task = "titanic";
+
+const weights: Weights = [tf.tensor([1, 1]), tf.tensor([1, 1])];
+
+const oldRound = -1;
+const newRound = 1;
+
+function connectHeader(
+  platformID: string,
+  taskID: string,
+  clientID: string
+): string {
+  return `/${platformID}/connect/${taskID}/${clientID}`;
 }
 
-const oldWeightsData = {
-  weights: [0, 1],
-  round: oldRound
+function disconnectHeader(
+  platformID: string,
+  taskID: string,
+  clientID: string
+): string {
+  return `/${platformID}/disconnect/${taskID}/${clientID}`;
 }
 
-function connectHeader (platformID: string, taskID: string, clientID: string): string {
-  return `/${platformID}/connect/${taskID}/${clientID}`
+function postWeightHeader(
+  platformID: string,
+  taskID: string,
+  clientID: string
+): string {
+  return `/${platformID}/weights/${taskID}/${clientID}`;
 }
 
-function disconnectHeader (platformID: string, taskID: string, clientID: string): string {
-  return `/${platformID}/disconnect/${taskID}/${clientID}`
+function getIsRoundOldHeader(
+  platformID: string,
+  taskID: string,
+  clientID: string
+): string {
+  return `/${platformID}/round/${taskID}/${clientID}`;
 }
 
-function postWeightHeader (platformID: string, taskID: string, clientID: string): string {
-  return `/${platformID}/weights/${taskID}/${clientID}`
-}
+describe(`${platformID} simple connection tests`, () => {
+  it("connect and then disconnect to valid task", async () => {
+    await request(app)
+      .get(connectHeader(platformID, task, clients.one))
+      .expect(200)
+      .then(async () => {
+        await request(app)
+          .get(disconnectHeader(platformID, task, clients.one))
+          .expect(200);
+      });
+  });
 
-function getisRoundOldHeader (platformID: string, taskID: string, clientID: string): string {
-  return `/${platformID}/round/${taskID}/${clientID}`
-}
+  it("connect to non existing task", async () => {
+    // the single test
+    await request(app)
+      .get(connectHeader(platformID, "fakeTask", clients.one))
+      .expect(404);
+  });
+});
 
-describe(`${platformID} connection tests`, () => {
+describe(`${platformID} weight sharing tests`, () => {
   before(async () => {
     await request(app)
-      .get(connectHeader(platformID, task, clientId))
-      .expect(200)
-  })
+      .get(connectHeader(platformID, task, clients.one))
+      .expect(200);
+  });
 
   after(async () => {
     await request(app)
-      .get(disconnectHeader(platformID, task, clientId))
-      .expect(200)
+      .get(disconnectHeader(platformID, task, clients.one))
+      .expect(200);
+  });
+
+  it('GET /weights', async () => { // the single test
+      await request(app)
+        .get(`/${platformID}/weights/${task}/${clients.one}`)
+        .expect(200)
   })
 
-  //TODO: Update tests
-  // it('POST /weights', async () => {
-  //   await request(app)
-  //     .post(postWeightHeader(platformID, task, clientId))
-  //     .send(weightsData)
-  //     .expect(200)
-  // })
+  it("POST /weights", async () => {
+    const serializedWeights = await serialization.serializeWeights(weights);
+    const data = {
+      weights: serializedWeights,
+      round: newRound,
+    };
+    await request(app)
+      .post(postWeightHeader(platformID, task, clients.one))
+      .send(data)
+      .expect(200);
+  });
 
-  // it('POST /weights with old round returns 202', async () => {
-  //   await request(app)
-  //     .post(postWeightHeader(platformID, task, clientId))
-  //     .send(oldWeightsData)
-  //     .expect(202)
-  // })
+  //TODO: Add a test with a whole round, etc
 
-  // it('GET /round', async () => {
-  //   await request(app)
-  //     .get(getisRoundOldHeader(platformID, task, clientId))
-  //     .expect(200)
-  //     .then(response => {
-  //       expect(response.body.round).equal(0)
-  //     })
-  // })
-})
+});
