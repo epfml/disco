@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { agent as request } from "supertest";
 
 import { serialization, Weights } from "discojs";
@@ -15,7 +14,6 @@ const task = "titanic";
 
 const weights: Weights = [tf.tensor([1, 1]), tf.tensor([1, 1])];
 
-const oldRound = -1;
 const newRound = 1;
 
 function connectHeader(
@@ -40,14 +38,6 @@ function postWeightHeader(
   clientID: string
 ): string {
   return `/${platformID}/weights/${taskID}/${clientID}`;
-}
-
-function getIsRoundOldHeader(
-  platformID: string,
-  taskID: string,
-  clientID: string
-): string {
-  return `/${platformID}/round/${taskID}/${clientID}`;
 }
 
 describe(`${platformID} simple connection tests`, () => {
