@@ -3,6 +3,7 @@ import path from 'path'
 import * as tf from '@tensorflow/tfjs-node'
 
 import { CONFIG } from '../config'
+import { faceModel } from './face_model'
 
 /**
  * Create the models directory for the TFJS model files of
@@ -83,9 +84,17 @@ async function createCifar10Model (): Promise<void> {
   await model.save(CONFIG.savingScheme.concat(savePath))
 }
 
+async function createFaceModel(): Promise<void> {
+  const model = faceModel()
+  const savePath = path.join(CONFIG.modelsDir, 'simple_face')
+  await model.save(CONFIG.savingScheme.concat(savePath))
+}
+
+
 export default [
   createTitanicModel,
   createMnistModel,
   createLUSCovidModel,
-  createCifar10Model
+  createCifar10Model,
+  createFaceModel
 ]
