@@ -1,5 +1,6 @@
 import axios from 'axios'
-import { serialization } from 'discojs'
+
+import { serialization, Weights } from 'discojs'
 
 function serverUrl () {
   // We place this in a function since during a test script the env is not defined
@@ -23,14 +24,14 @@ export async function queryLogs (taskID: string, round: number, clientID: string
   return await axios.get(serverUrl().concat(`logs?${query}`))
 }
 
-export async function postWeights (taskID: string, clientID: string, weights: serialization.SerializedWeights, round: number) {
+export async function postWeights (taskID: string, clientID: string, weights: Weights, round: number) {
   const url = serverUrl().concat(`weights/${taskID}/${clientID}`)
   return await axios({
     method: 'post',
     url: url,
     data: {
-      weights: weights,
-      round: round
+      weights: await serialization.encodeWeights(weights),
+      round
     }
   })
 }
@@ -47,20 +48,9 @@ export async function getRound (taskID: string, clientID: string) {
   return await fetchFromServer('round', taskID, clientID)
 }
 
-export async function getWeights (taskID: string, clientID: string) {
+export async function getWeights (taskID: string, clientID: string): Promise<Weights> {
   const res = await fetchFromServer('weights', taskID, clientID)
-
-  const withArrays = res.data.map((e) => {
-    if ('data' in e) {
-      return {
-        data: Float32Array.from(Object.values(e.data)),
-        shape: e.shape
-      }
-    }
-    return e
-  })
-
-  return serialization.deserializeWeights(withArrays)
+  return serialization.decodeWeights(res.data)
 }
 
 export async function getAsyncWeightInformantStatistics (taskID: string, clientID: string) {
