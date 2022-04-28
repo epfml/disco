@@ -5,12 +5,45 @@ on:
   pull_request:
 
 env:
-  node_version: 15
-  client_dir: mobile-browser-based-version
-  server_dir: mobile-browser-based-version/server
+  node_version: 16
+  lib_dir: discojs
+  client_dir: browser
+  server_dir: server
 
 jobs:
-  lint-client-and-server:
+  lint-lib:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.lib_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+      - run: npm ci
+      - run: npx eslint --max-warnings 0 .
+      # TODO npx ts-standard
+
+  lint-server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.server_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
+      - run: npm ci
+      - run: npx eslint --max-warnings 0 .
+      # TODO npx ts-standard
+
+  lint-client:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,8 +59,24 @@ jobs:
       - run: npx eslint --max-warnings 0 .
       - run: npm run lint
 
+  build-lib:
+    needs: lint-lib
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.lib_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
   build-server:
-    needs: lint-client-and-server
+    needs: [lint-server, build-lib]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -38,7 +87,11 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.server_dir }}/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_dir }}
       - run: npm ci
       - run: npm run build
 
@@ -50,10 +103,10 @@ jobs:
       - uses: docker/setup-buildx-action@v1
         with:
           install: true
-      - run: docker build ${{ env.server_dir }}
+      - run: docker build .
 
   build-client:
-    needs: lint-client-and-server
+    needs: [lint-client, build-lib]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -64,7 +117,11 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.client_dir }}/package-lock.json
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.client_dir }}/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_dir }}
       - run: npm ci
       - run: npm run build
 
@@ -80,7 +137,11 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.server_dir }}/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_dir }}
       - run: npm ci
       - run: npm run test
 
@@ -96,6 +157,11 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.client_dir }}/package-lock.json
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.server_dir }}/package-lock.json
+            ${{ env.client_dir }}/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_dir }}
       - run: npm ci
       - run: ./with_server npm run test
