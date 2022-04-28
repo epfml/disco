@@ -1,6 +1,6 @@
 import { loadTasks } from '../src/tasks'
 import dotenv from 'dotenv-flow'
-import { dataset, ConsoleLogger } from 'discojs'
+import { dataset, ConsoleLogger, TrainingSchemes } from 'discojs'
 import fs from 'fs'
 import * as tfNode from '@tensorflow/tfjs-node'
 import { Disco } from '../src/training/disco'
@@ -37,7 +37,7 @@ async function cifar10user () {
   const logger = new ConsoleLogger()
   const disco = new Disco(cifar10, logger, false)
 
-  await disco.startTraining(loaded, true)
+  await disco.startTraining(loaded, TrainingSchemes.FEDERATED)
 }
 
 async function titanicUser () {
@@ -62,7 +62,7 @@ async function titanicUser () {
   console.log('here', loaded.size)
   const disco = new Disco(titanic, logger, false)
 
-  await disco.startTraining(data, true)
+  await disco.startTraining(data, TrainingSchemes.FEDERATED)
 }
 
 async function main () {
