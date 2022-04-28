@@ -30,6 +30,7 @@
     "nock": "13",
     "papaparse": "5",
     "path-browserify": "1",
+    "rand-seed": "^1.0.1",
     "seedrandom": "3",
     "simple-peer": "9",
     "tippy.js": "6",
