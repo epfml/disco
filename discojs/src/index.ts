@@ -1,5 +1,3 @@
-import { exp } from '@tensorflow/tfjs';
-
 export * as aggregation from './aggregation'
 export * as dataset from './dataset'
 export * as serialization from './serialization'
