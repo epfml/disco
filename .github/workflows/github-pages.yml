@@ -18,10 +18,10 @@ jobs:
         run: |
           npm install
           npm run build
-        working-directory: mobile-browser-based-version
+        working-directory: browser
 
       - name: deploy
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
-          folder: mobile-browser-based-version/dist
+          folder: browser

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    // TODO ES6 disallow server's test
+    "target": "ES5",
+    "lib": ["ES5"],
+
+    // TODO "strict": true,
+
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+
+    "outDir": "dist",
+    "declaration": true,
+
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    }
+  }
+}

@@ -1,0 +1,187 @@
+<template>
+  <base-layout custom-class="pt-4">
+    <!-- Welcoming words -->
+    <custom-header />
+    <!-- Information sections -->
+    <section class="flex-col items-center justify-center p-4 space-y-4">
+      <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
+        <div
+          v-for="build in $tm('home.buildCard')"
+          :key="build.header.text"
+        >
+          <title-card
+            :title="build.header.text"
+            :title-underlined="build.header.underlined"
+          >
+            <div
+              v-for="item in build.items"
+              :key="item"
+            >
+              <p v-html="`- ${item}`" />
+            </div>
+          </title-card>
+        </div>
+      </div>
+    </section>
+
+    <!-- TODO: This section is not algined with the top, not sure why -->
+    <div class="flex flex-row items-start pl-10">
+      <custom-button @click="goToTaskList()">
+        {{ $t('home.startBuildingButtonText') }}
+      </custom-button>
+    </div>
+    <section class="flex-col items-center justify-center p-4 space-y-4">
+      <!-- Decentralised insight -->
+      <div class="grid gap-8 p-4 sm:grid-cols-2">
+        <div class="flex flex-col items-center mx-auto">
+          <title-card
+            title="Insights: "
+            :title-underlined="$t('home.images.decentralised.title')"
+          >
+            <div class="flex justify-center my-md">
+              <decentralized-image class="sm:w-full md:w-3/5" />
+            </div>
+            <div>
+              <span class="text-primary-dark dark:text-primary-light">{{
+                $t('home.images.decentralised.title')
+              }}</span>
+              {{ $t('home.images.decentralised.text') }}
+            </div>
+          </title-card>
+        </div>
+        <!-- Federated insight -->
+        <div class="flex flex-col items-center mx-auto">
+          <title-card
+            title="Insights: "
+            :title-underlined="$t('home.images.federated.title')"
+          >
+            <div class="flex justify-center my-md">
+              <federated-image class="sm:w-full md:w-3/5" />
+            </div>
+            <div>
+              <span class="text-primary-dark dark:text-primary-light">{{
+                $t('home.images.federated.title')
+              }}</span>
+              {{ $t('home.images.federated.text') }}
+            </div>
+          </title-card>
+        </div>
+      </div>
+    </section>
+
+    <section class="flex-col items-center justify-center p-4 space-y-4">
+      <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
+        <div
+          v-for="task in $tm('home.taskCard')"
+          :key="task.header.text"
+        >
+          <title-card
+            :title="task.header.text"
+            :title-underlined="task.header.underlined"
+          >
+            <div
+              v-for="item in task.items"
+              :key="item"
+            >
+              <p v-html="`- ${item}`" />
+            </div>
+          </title-card>
+        </div>
+
+        <div class="pt-4">
+          <custom-button @click="goToNewTaskCreationForm()">
+            {{ $t('home.createTaskButtonText') }}
+          </custom-button>
+        </div>
+      </div>
+    </section>
+  </base-layout>
+</template>
+
+<script lang="ts">
+import BaseLayout from './containers/BaseLayout.vue'
+import TitleCard from './containers/TitleCard.vue'
+import CustomHeader from './simple/CustomHeader.vue'
+import CustomButton from './simple/CustomButton.vue'
+import FederatedImage from '../assets/svg/FederatedImage.vue'
+import DecentralizedImage from '../assets/svg/DecentralizedImage.vue'
+import MainTaskFrame from './main_frames/MainTaskFrame.vue'
+import TaskList from './TaskList.vue'
+import MainDescriptionFrame from './main_frames/MainDescriptionFrame.vue'
+import MainTrainingFrame from './main_frames/MainTrainingFrame.vue'
+import MainTestingFrame from './main_frames/MainTestingFrame.vue'
+import { loadTasks } from '../tasks'
+
+import { Task } from 'discojs'
+import { defineComponent } from 'vue'
+
+export default {
+  name: 'HomePage',
+  components: {
+    BaseLayout,
+    TitleCard,
+    CustomButton,
+    FederatedImage,
+    DecentralizedImage,
+    CustomHeader
+  },
+  async created () {
+    this.routesComponents = [
+      ['description', MainDescriptionFrame],
+      ['training', MainTrainingFrame],
+      ['testing', MainTestingFrame]
+    ]
+    const tasks: Task[] = await loadTasks()
+    tasks.forEach((task: Task) => {
+      const route = `/${task.taskID}`
+      this.$router.addRoute({
+        path: route,
+        // So that KeepAlive can differentiate the components
+        component: defineComponent({
+          key: task.taskID,
+          extends: MainTaskFrame
+        }),
+        props: {
+          id: task.taskID,
+          task: task
+        },
+        children: this.getTaskRoutes(task)
+      })
+    })
+    this.$router.addRoute({
+      path: '/list',
+      component: TaskList,
+      props: { tasks: tasks }
+    })
+  },
+  methods: {
+    getTaskRoutes (task: Task) {
+      return this.routesComponents.map((m) => {
+        const [route, component] = m
+        return {
+          path: route,
+          // So that KeepAlive can differentiate the components
+          component: defineComponent({
+            key: `${route}:${task.taskID}`,
+            extends: component
+          }),
+          props: {
+            id: task.taskID,
+            task: task
+          }
+        }
+      })
+    },
+    goToTaskList () {
+      this.$router.push({
+        path: '/list'
+      })
+    },
+    goToNewTaskCreationForm () {
+      this.$router.push({
+        path: '/create'
+      })
+    }
+  }
+}
+</script>
