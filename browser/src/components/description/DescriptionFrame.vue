@@ -253,6 +253,9 @@ export default {
       setTimeout(this.$toast.clear, 30000)
     }
   },
+  activated () {
+    this.$emit('refresh-step')
+  },
   /**
    * This method is called when the component is created
    */

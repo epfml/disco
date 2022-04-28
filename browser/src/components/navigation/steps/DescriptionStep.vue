@@ -22,13 +22,14 @@
           :trade-offs-text="task.displayInformation.tradeoffs"
           :task="task"
           @next-step="nextStep"
+          @refresh-step="refreshStep"
         />
       </keep-alive>
     </div>
   </div>
 </template>
 <script lang="ts">
-import DescriptionFrame from '../building_frames/DescriptionFrame.vue'
+import DescriptionFrame from '../../description/DescriptionFrame.vue'
 import { Task } from 'discojs'
 
 export default {
@@ -46,7 +47,13 @@ export default {
       default: undefined
     }
   },
+  activated () {
+    this.$emit('step', 1)
+  },
   methods: {
+    refreshStep () {
+      this.$emit('refresh-step', 1)
+    },
     nextStep () {
       this.$emit('next-step')
     }

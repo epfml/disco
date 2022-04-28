@@ -41,10 +41,10 @@
 </template>
 
 <script lang="ts">
-import BaseLayout from './containers/BaseLayout.vue'
-import ProgressBar from './ProgressBar.vue'
-import Card from './containers/Card.vue'
-import CustomButton from './simple/CustomButton.vue'
+import BaseLayout from '../containers/BaseLayout.vue'
+import ProgressBar from '../navigation/ProgressBar.vue'
+import Card from '../containers/Card.vue'
+import CustomButton from '../simple/CustomButton.vue'
 
 export default {
   name: 'TaskList',
