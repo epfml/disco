@@ -1,5 +1,5 @@
 <template>
-  <icon-card header="Upload my data">
+  <icon-card header="My dataset">
     <template #icon>
       <upload />
     </template>
@@ -43,8 +43,8 @@
 <script lang="ts">
 import { Task, dataset } from 'discojs'
 
-import Upload from '../../../assets/svg/Upload.vue'
-import IconCard from '../../containers/IconCard.vue'
+import Upload from '../../assets/svg/Upload.vue'
+import IconCard from '../containers/IconCard.vue'
 import FileSelectionFrame from './FileSelectionFrame.vue'
 
 export default {
