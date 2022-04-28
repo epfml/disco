@@ -4,9 +4,9 @@ import { dataset, ConsoleLogger } from 'discojs'
 import fs from 'fs'
 import * as tfNode from '@tensorflow/tfjs-node'
 import { Disco } from '../src/training/disco'
-import { Platform } from '../src/platforms/platform'
 import * as tf from '@tensorflow/tfjs'
 import Rand from 'rand-seed'
+import { TrainingSchemes } from 'discojs/dist/training/trainingSchemes'
 // import { Set } from 'immutable'
 
 const TASK_INDEX = 4
@@ -99,8 +99,8 @@ async function runUser () {
   const data = await loadData()
 
   const logger = new ConsoleLogger()
-  const disco = new Disco(task, Platform.federated, logger, false)
-  disco.startTraining(data.train, data.valid, true)
+  const disco = new Disco(task, logger, false)
+  disco.startTraining(data.train, TrainingSchemes.FEDERATED)
 }
 
 async function main () {
