@@ -2,24 +2,24 @@
   <!-- CSV tasks -->
   <!--TODO-->
   <!-- image tasks -->
-  <image-testing-frame
+  <ImageTestingFrame
     v-if="task.trainingInformation.dataType == 'image'"
     :id="id"
     :task="task"
   />
-  <tabular-testing-frame
+  <TabularTestingFrame
     v-else-if="task.trainingInformation.dataType == 'tabular'"
     :id="id"
     :task="task"
   />
 </template>
 
-<script>
+<script lang="ts">
 import ImageTestingFrame from '../../testing/ImageTestingFrame.vue'
 import TabularTestingFrame from '../../testing/TabularTestingFrame.vue'
 
 export default {
-  name: 'MainTestingFrame',
+  name: 'TrainingStep',
   components: {
     ImageTestingFrame,
     TabularTestingFrame

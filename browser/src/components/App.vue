@@ -103,8 +103,7 @@ export default defineComponent({
         props: {
           id: task.taskID,
           task: task
-        },
-        children: this.getTaskRoutes(task)
+        }
       })
     })
     this.$router.addRoute({
@@ -115,23 +114,6 @@ export default defineComponent({
   },
   methods: {
     ...mapMutations(['setIndexedDB', 'setAppTheme', 'setPlatform']),
-    getTaskRoutes (task: Task) {
-      return this.routesComponents.map((m) => {
-        const [route, component] = m
-        return {
-          path: route,
-          // So that KeepAlive can differentiate the components
-          component: defineComponent({
-            key: `${route}:${task.taskID}`,
-            extends: component
-          }),
-          props: {
-            id: task.taskID,
-            task: task
-          }
-        }
-      })
-    },
     getBrowserTheme () {
       if (window.localStorage.getItem('dark')) {
         return JSON.parse(window.localStorage.getItem('dark'))

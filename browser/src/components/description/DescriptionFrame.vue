@@ -174,16 +174,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import * as memory from '../../memory'
 import CustomButton from '../simple/CustomButton.vue'
 import Tasks from '../../assets/svg/Tasks.vue'
 import Model from '../../assets/svg/Model.vue'
 import Clock from '../../assets/svg/Clock.vue'
 import IconCard from '../containers/IconCard.vue'
-import { mapState } from 'vuex'
-import { Task } from 'discojs'
 import { getLatestModel } from '../../tasks'
+
+import { mapState } from 'vuex'
 
 export default {
   name: 'DescriptionFrame',
@@ -212,7 +212,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      type: Object,
       default: undefined
     }
   },
@@ -252,9 +252,6 @@ export default {
       this.$toast.success(modelInUseMessage)
       setTimeout(this.$toast.clear, 30000)
     }
-  },
-  activated () {
-    this.$emit('refresh-step')
   },
   /**
    * This method is called when the component is created

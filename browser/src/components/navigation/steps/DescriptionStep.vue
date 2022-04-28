@@ -13,24 +13,21 @@
     "
   >
     <div>
-      <keep-alive>
-        <description-frame
-          v-if="task.displayInformation.tradeoffs"
-          :id="task.taskID"
-          :overview-text="task.displayInformation.overview"
-          :model-text="task.displayInformation.model"
-          :trade-offs-text="task.displayInformation.tradeoffs"
-          :task="task"
-          @next-step="nextStep"
-          @refresh-step="refreshStep"
-        />
-      </keep-alive>
+      <DescriptionFrame
+        v-if="task.displayInformation.tradeoffs"
+        :id="task.taskID"
+        :overview-text="task.displayInformation.overview"
+        :model-text="task.displayInformation.model"
+        :trade-offs-text="task.displayInformation.tradeoffs"
+        :task="task"
+        @next-step="nextStep"
+        @prev-step="prevStep"
+      />
     </div>
   </div>
 </template>
 <script lang="ts">
 import DescriptionFrame from '../../description/DescriptionFrame.vue'
-import { Task } from 'discojs'
 
 export default {
   name: 'MainDescriptionFrame',
@@ -43,19 +40,16 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      type: Object,
       default: undefined
     }
   },
-  activated () {
-    this.$emit('step', 1)
-  },
   methods: {
-    refreshStep () {
-      this.$emit('refresh-step', 1)
-    },
     nextStep () {
       this.$emit('next-step')
+    },
+    prevStep () {
+      this.$emit('prev-step')
     }
   }
 }

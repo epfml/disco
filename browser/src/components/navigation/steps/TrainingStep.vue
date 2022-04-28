@@ -3,13 +3,13 @@
   the platform is changed the component will be re-built. -->
   <div :key="$store.state.platform">
     <!-- CSV tasks -->
-    <tabular-training-frame
+    <TabularTrainingFrame
       v-if="task.trainingInformation.dataType === 'tabular'"
       :id="id"
       :task="task"
     />
     <!-- image tasks -->
-    <image-training-frame
+    <ImageTrainingFrame
       v-else-if="task.trainingInformation.dataType === 'image'"
       :id="id"
       :task="task"
@@ -17,11 +17,9 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import TabularTrainingFrame from '../../training/TabularTrainingFrame.vue'
 import ImageTrainingFrame from '../../training/ImageTrainingFrame.vue'
-
-import { Task } from 'discojs'
 
 export default {
   name: 'MainTrainingFrame',
@@ -35,7 +33,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      type: Object,
       default: undefined
     }
   }
