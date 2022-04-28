@@ -107,15 +107,15 @@
 
 <script>
 import DatasetInputFrame from '../dataset_input/DatasetInputFrame.vue'
-import TrainingInformationFrame from '../TrainingInformationFrame.vue'
-import ModelActorFrame from './ModelActorFrame.vue'
-import IconCard from '../../containers/IconCard.vue'
-import CustomButton from '../../simple/CustomButton.vue'
-import Download from '../../../assets/svg/Download.vue'
+import TrainingInformationFrame from './TrainingInformationFrame.vue'
+import ModelActorFrame from '../ModelActorFrame.vue'
+import IconCard from '../containers/IconCard.vue'
+import CustomButton from '../simple/CustomButton.vue'
+import Download from '../../assets/svg/Download.vue'
 
 import { mapState } from 'vuex'
-import { Disco } from '../../../training/disco'
-import * as memory from '../../../memory'
+import { Disco } from '../../training/disco'
+import * as memory from '../../memory'
 import { dataset, Task } from 'discojs'
 
 export default {

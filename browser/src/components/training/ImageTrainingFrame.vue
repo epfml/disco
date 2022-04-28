@@ -21,8 +21,8 @@
 <script>
 import { Task } from 'discojs'
 
-import TrainingFrame from '../containers/TrainingFrame.vue'
-import { WebImageLoader } from '../../../data_loader'
+import TrainingFrame from './TrainingFrame.vue'
+import { WebImageLoader } from '../../data_loader'
 
 export default {
   name: 'ImageTrainingFrame',

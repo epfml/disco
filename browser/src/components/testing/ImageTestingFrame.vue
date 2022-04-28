@@ -102,10 +102,10 @@
 </template>
 
 <script>
-import TestingFrame from '../containers/TestingFrame.vue'
+import TestingFrame from './TestingFrame.vue'
 import ImagePredictionResultsFrame from './ImagePredictionResultsFrame.vue'
-import PictureBackground from '../../../assets/svg/PictureBackground.vue'
-import Bin from '../../../assets/svg/Bin.vue'
+import PictureBackground from '../../assets/svg/PictureBackground.vue'
+import Bin from '../../assets/svg/Bin.vue'
 
 export default {
   components: {

@@ -6,6 +6,7 @@
         <keep-alive>
           <component
             :is="Component"
+            @refresh-step="refreshStep"
             @next-step="nextStep"
             @prev-step="prevStep"
           />
@@ -17,7 +18,7 @@
 
 <script lang="ts">
 import BaseLayout from '../containers/BaseLayout.vue'
-import ProgressBar from '../ProgressBar.vue'
+import ProgressBar from './ProgressBar.vue'
 
 import { Task } from 'discojs'
 
@@ -46,6 +47,7 @@ export default {
   mounted () {
     console.log(`Mounting MainTaskFrame for ${this.task.displayInformation.taskTitle}`)
   },
+  // TODO: @s314cy move replace logic to subcomponents which communicate via events
   activated () {
     console.log(`Activating MainTaskFrame for ${this.task.displayInformation.taskTitle}`)
     this.step = this.progress
@@ -53,6 +55,12 @@ export default {
     this.$router.replace({ path: `/${this.task.taskID}/${step}` })
   },
   methods: {
+    refreshStep (step: number) {
+      if (step >= 1 && step <= 3) {
+        this.step = step
+        this.progress = Math.max(this.progress, step)
+      }
+    },
     nextStep () {
       this.step = Math.min(3, this.step + 1)
       this.progress = Math.max(this.progress, this.step)

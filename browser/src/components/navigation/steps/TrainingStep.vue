@@ -18,8 +18,9 @@
 </template>
 
 <script>
-import TabularTrainingFrame from '../building_frames/tabular/TabularTrainingFrame.vue'
-import ImageTrainingFrame from '../building_frames/image/ImageTrainingFrame.vue'
+import TabularTrainingFrame from '../../training/TabularTrainingFrame.vue'
+import ImageTrainingFrame from '../../training/ImageTrainingFrame.vue'
+
 import { Task } from 'discojs'
 
 export default {

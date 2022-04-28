@@ -206,9 +206,9 @@
   </base-layout>
 </template>
 
-<script lang="ts">
-import BaseLayout from './containers/BaseLayout.vue'
-import Card from './containers/Card.vue'
+<script>
+import BaseLayout from '../containers/BaseLayout.vue'
+import Card from '../containers/Card.vue'
 import { useI18n } from 'vue-i18n'
 import { defineComponent } from 'vue'
 

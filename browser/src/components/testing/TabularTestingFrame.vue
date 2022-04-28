@@ -119,9 +119,9 @@
 </template>
 
 <script>
-import TestingFrame from '../containers/TestingFrame.vue'
-import IconCard from '../../containers/IconCard.vue'
-import Bezier2 from '../../../assets/svg/Bezier2.vue'
+import TestingFrame from './TestingFrame.vue'
+import IconCard from '../containers/IconCard.vue'
+import Bezier2 from '../../assets/svg/Bezier2.vue'
 import { Task } from 'discojs'
 
 export default {
