@@ -35,40 +35,35 @@
         <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
         <SidebarButton
           hover-text="home"
-          :active-page="activePage"
-          @click="goToHome"
+          @click="goToHome()"
         >
           <home-icon />
         </SidebarButton>
         <!-- Go to Task List page -->
         <SidebarButton
           hover-text="tasks"
-          :active-page="activePage"
-          @click="goToTaskList"
+          @click="goToTaskList()"
         >
           <list-icon />
         </SidebarButton>
         <!-- Display Model Library panel -->
         <SidebarButton
           hover-text="models"
-          :active-page="activePage"
-          @click="openModelLibrary"
+          @click="openModelLibrary()"
         >
           <file-icon />
         </SidebarButton>
         <!-- Go to Information page -->
         <SidebarButton
           hover-text="information"
-          :active-page="activePage"
-          @click="goToInformation"
+          @click="goToInformation()"
         >
           <info-icon />
         </SidebarButton>
         <!-- Display Settings panel-->
         <SidebarButton
           hover-text="settings"
-          :active-page="activePage"
-          @click="openSettingsPanel"
+          @click="openSettingsPanel()"
         >
           <settings-icon />
         </SidebarButton>
@@ -148,7 +143,6 @@
 import Settings from './Settings.vue'
 import ModelLibrary from './ModelLibrary.vue'
 import tippy from 'tippy.js'
-import { mapState, mapMutations } from 'vuex'
 import HomeIcon from '../../assets/svg/HomeIcon.vue'
 import ListIcon from '../../assets/svg/ListIcon.vue'
 import InfoIcon from '../../assets/svg/InfoIcon.vue'
@@ -156,8 +150,8 @@ import FileIcon from '../../assets/svg/FileIcon.vue'
 import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
 import CrossIcon from '../../assets/svg/CrossIcon.vue'
 import SidebarButton from './containers/SidebarButton.vue'
-import { defineComponent } from 'vue'
-export default defineComponent({
+
+export default {
   name: 'SidebarMain',
   components: {
     Settings,
@@ -178,9 +172,6 @@ export default defineComponent({
       isModelLibraryOpen: false
     }
   },
-  computed: {
-    ...mapState(['activePage'])
-  },
   async mounted () {
     tippy('a', {
       theme: 'custom-dark',
@@ -195,7 +186,6 @@ export default defineComponent({
     })
   },
   methods: {
-    ...mapMutations(['setActivePage']),
     switchFromModelLibraryToSettings () {
       this.isModeLibraryOpen = false
       this.isSettingsPanelOpen = true
@@ -214,18 +204,15 @@ export default defineComponent({
       this.isModelLibraryOpen = false
     },
     goToHome () {
-      this.setActivePage('home')
-      this.$router.push({ name: 'home' })
+      this.$router.push({ path: '/' })
     },
     goToTaskList () {
-      this.setActivePage('tasks')
-      this.$router.push({ name: 'tasks' })
+      this.$router.push({ path: '/list' })
     },
     goToInformation () {
-      this.setActivePage('info')
-      this.$router.push({ name: 'information' })
+      this.$router.push({ path: '/information' })
     }
   }
 
-})
+}
 </script>

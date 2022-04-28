@@ -1,6 +1,6 @@
-interface DataSerie {
-  data: number[]
-}
+import { List, Repeat, Set } from "immutable";
+
+const nbEpochsOnGraphs = 10
 
 /**
  * Class that collects information about the status of the training-loop of the model.
@@ -8,12 +8,13 @@ interface DataSerie {
 export class TrainingInformant {
   taskID: string;
   // Decentralized Informations
-  whoReceivedMyModel: Set<unknown>;
+  // number of people with whom I've shared my model
+  whoReceivedMyModel = Set();
   nbrUpdatesWithOthers: number;
   waitingTime: number;
   nbrWeightRequests: number;
-  nbrMessagesToShow: number;
-  messages: string[];
+  // message feedback from peer-to-peer training
+  messages = List();
   // Federated Informations
   currentRound: number;
   currentNumberOfParticipants: number;
@@ -26,9 +27,9 @@ export class TrainingInformant {
   trainingAccuracy: number;
   displayHeatmap: boolean;
   currentValidationAccuracy: number;
-  validationAccuracyDataSerie: number[];
+  validationAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList();
   currentTrainingAccuracy: number;
-  trainingAccuracyDataSerie: number[];
+  trainingAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList();
   weightsIn: number;
   biasesIn: number;
   weightsOut: number;
@@ -36,13 +37,14 @@ export class TrainingInformant {
 
   /**
    *
-   * @param {Number} length the number of messages to be kept to inform the users about status of communication with other peers.
-   * @param {String} taskID the task's name.
+   * @param nbrMessagesToShow the number of messages to be kept to inform the users about status of communication with other peers.
+   * @param taskID the task's name.
    */
-  constructor (length: number, taskID: string) {
+  constructor (
+    private readonly nbrMessagesToShow: number,
+    taskID: string
+  ) {
     this.taskID = taskID
-    // number of people with whom I've shared my model
-    this.whoReceivedMyModel = new Set()
 
     // how many times the model has been averaged with someone's else model
     this.nbrUpdatesWithOthers = 0
@@ -53,12 +55,7 @@ export class TrainingInformant {
     // number of weight requests I've responded to
     this.nbrWeightRequests = 0
 
-    // message feedback from peer-to-peer training
-    this.nbrMessagesToShow = length
-    this.messages = []
-
     // statistics received from the server
-
     this.currentRound = 0
     this.currentNumberOfParticipants = 0
     this.totalNumberOfParticipants = 0
@@ -76,11 +73,8 @@ export class TrainingInformant {
     this.displayHeatmap = false
 
     // default values for the validation and training charts
-    const nbEpochsOnGraphs = 10
     this.currentValidationAccuracy = 0
-    this.validationAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0)
     this.currentTrainingAccuracy = 0
-    this.trainingAccuracyDataSerie = new Array(nbEpochsOnGraphs).fill(0)
   }
 
   /**
@@ -88,7 +82,7 @@ export class TrainingInformant {
    * @param {String} peerName the peer's name to whom I recently shared my model to.
    */
   updateWhoReceivedMyModel (peerName: string): void {
-    this.whoReceivedMyModel.add(peerName)
+    this.whoReceivedMyModel = this.whoReceivedMyModel.add(peerName)
   }
 
   /**
@@ -120,10 +114,10 @@ export class TrainingInformant {
    * @param {String} msg a message.
    */
   addMessage (msg: string): void {
-    if (this.messages.length >= this.nbrMessagesToShow) {
-      this.messages.shift()
+    if (this.messages.size >= this.nbrMessagesToShow) {
+      this.messages = this.messages.shift()
     }
-    this.messages.push(msg)
+    this.messages = this.messages.push(msg)
   }
 
   /**
@@ -139,36 +133,12 @@ export class TrainingInformant {
   }
 
   /**
-   * Returns the Validation Accuracy over the last 10 epochs.
-   * @returns the validation accuracy data
-   */
-  getValidationAccuracyData (): DataSerie[] {
-    return [
-      {
-        data: this.validationAccuracyDataSerie
-      }
-    ]
-  }
-
-  /**
-   * Returns the Training Accuracy over the last 10 epochs.
-   * @returns the training accuracy data
-   */
-  getTrainingAccuracyData (): DataSerie[] {
-    return [
-      {
-        data: this.trainingAccuracyDataSerie
-      }
-    ]
-  }
-
-  /**
    *  Updates the data to be displayed on the validation accuracy graph.
    * @param {Number} validationAccuracy the current validation accuracy of the model
    */
   updateValidationAccuracyGraph (validationAccuracy: number): void {
-    this.validationAccuracyDataSerie.push(validationAccuracy)
-    this.validationAccuracyDataSerie.splice(0, 1)
+    this.validationAccuracyDataSerie =
+      this.validationAccuracyDataSerie.shift().push(validationAccuracy)
     this.currentValidationAccuracy = validationAccuracy
   }
 
@@ -177,8 +147,8 @@ export class TrainingInformant {
    * @param {Number} trainingAccuracy the current training accuracy of the model
    */
   updateTrainingAccuracyGraph (trainingAccuracy: number): void {
-    this.trainingAccuracyDataSerie.push(trainingAccuracy)
-    this.trainingAccuracyDataSerie.splice(0, 1)
+    this.trainingAccuracyDataSerie =
+      this.trainingAccuracyDataSerie.shift().push(trainingAccuracy)
     this.currentTrainingAccuracy = trainingAccuracy
   }
 }

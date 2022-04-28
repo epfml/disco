@@ -1,7 +1,11 @@
 <template>
-  <base-layout :with-section="true">
+  <base-layout>
+    <progress-bar
+      :blocked="true"
+      :blocked-step="0"
+    />
     <div
-      v-for="task in Array.from(tasks.values())"
+      v-for="task in tasks"
       :key="task.taskID"
       class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
     >
@@ -37,78 +41,29 @@
 </template>
 
 <script lang="ts">
-import MainTaskFrame from '../components/main_frames/MainTaskFrame.vue'
-import MainDescriptionFrame from '../components/main_frames/MainDescriptionFrame.vue'
-import MainTrainingFrame from '../components/main_frames/MainTrainingFrame.vue'
-import MainTestingFrame from '../components/main_frames/MainTestingFrame.vue'
 import BaseLayout from './containers/BaseLayout.vue'
+import ProgressBar from './ProgressBar.vue'
 import Card from './containers/Card.vue'
 import CustomButton from './simple/CustomButton.vue'
 
-import { Task } from 'discojs'
-
-import _ from 'lodash'
-import { defineComponent } from 'vue'
-import { loadTasks } from '../tasks'
-
-export default defineComponent({
+export default {
   name: 'TaskList',
   components: {
     BaseLayout,
     Card,
-    CustomButton
+    CustomButton,
+    ProgressBar
   },
-  data () {
-    return {
-      tasks: new Map<string, Task>(),
-      taskFramesInfo: [
-        ['description', MainDescriptionFrame],
-        ['training', MainTrainingFrame],
-        ['testing', MainTestingFrame]
-      ]
+  props: {
+    tasks: {
+      type: Object,
+      default: undefined
     }
-  },
-  async created () {
-    this.tasks.clear()
-    const tasks: Task[] = await loadTasks()
-    _.forEach(tasks, this.createNewTaskComponent)
   },
   methods: {
-    goToSelection (id: string) {
-      this.$router.push({
-        name: id.concat('.description'),
-        params: { id: id }
-      })
-    },
-    createNewTaskComponent (task: Task) {
-      this.tasks.set(task.taskID, task)
-
-      const newTaskRoute = {
-        path: '/'.concat(task.taskID),
-        name: task.taskID,
-        component: MainTaskFrame,
-        props: { id: task.taskID, task: task },
-        children: _.map(this.taskFramesInfo, (t) => {
-          const [info, frame] = t
-          const name = `${task.taskID}.${info}`
-          const component = defineComponent({
-            name: name,
-            key: name,
-            extends: frame
-          })
-          return {
-            path: info,
-            name: name,
-            component: component,
-            props: {
-              id: task.taskID,
-              task: task
-            }
-          }
-        })
-      }
-      this.$router.addRoute(newTaskRoute)
+    goToSelection (taskID: string) {
+      this.$router.push({ path: `/${taskID}` })
     }
   }
-})
+}
 </script>

@@ -21,12 +21,13 @@
           :model-text="task.displayInformation.model"
           :trade-offs-text="task.displayInformation.tradeoffs"
           :task="task"
+          @next-step="nextStep"
         />
       </keep-alive>
     </div>
   </div>
 </template>
-<script>
+<script lang="ts">
 import DescriptionFrame from '../building_frames/DescriptionFrame.vue'
 import { Task } from 'discojs'
 
@@ -43,6 +44,11 @@ export default {
     task: {
       type: Task,
       default: undefined
+    }
+  },
+  methods: {
+    nextStep () {
+      this.$emit('next-step')
     }
   }
 }
