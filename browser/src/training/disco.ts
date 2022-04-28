@@ -123,7 +123,6 @@ export class Disco {
 
     // TODO: dataset.size = null, since we build it with an iterator (issues occurs with ImageLoader) see issue 279
     await this.initTrainer()
-    // this.isTraining = true
     await this.trainer.trainModel(data.dataset, data.size)
   }
 

@@ -184,12 +184,12 @@ export default {
           this.dataset = await this.datasetBuilder
             .build()
         }
+        this.isTraining = true
         if (distributedTraining) {
           await this.disco.startTaskDefinedTraining(this.dataset)
         } else {
           await this.disco.startLocalTraining(this.dataset)
         }
-        this.isTraining = true
       } catch (e) {
         const msg = e instanceof Error ? e.message : e.toString()
         this.$toast.error(msg)
