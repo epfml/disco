@@ -193,7 +193,7 @@
     "trainingInformation": {
       "modelID": "simple_face-model",
       "epochs": 50,
-      "roundDuration": 5,
+      "roundDuration": 2,
       "validationSplit": 0.2,
       "batchSize": 10,
       "modelCompileData": {

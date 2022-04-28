@@ -2,7 +2,6 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 // Some page components
 import Home from '../components/Home.vue'
-import TaskList from '../components/TaskList.vue'
 import Information from '../components/Information.vue'
 import NewTaskCreationForm from '../components/NewTaskCreationForm.vue'
 import NotFound from '../components/NotFound.vue'
@@ -14,13 +13,8 @@ const routes = [
     component: Home
   },
   {
-    path: '/tasks',
-    name: 'tasks',
-    component: TaskList
-  },
-  {
-    path: '/task-creation-form',
-    name: 'tasks-form',
+    path: '/create',
+    name: 'new-task-form',
     component: NewTaskCreationForm
   },
   {

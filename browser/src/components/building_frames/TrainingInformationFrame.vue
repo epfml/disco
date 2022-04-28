@@ -156,6 +156,8 @@
 </template>
 
 <script lang="ts">
+import { TrainingInformant } from 'discojs'
+
 import IconCardSmall from '../containers/IconCardSmall.vue'
 import IconCard from '../containers/IconCard.vue'
 import Timer from '../../assets/svg/Timer.vue'
@@ -176,10 +178,7 @@ export default {
     Contact
   },
   props: {
-    trainingInformant: {
-      type: Object,
-      default: undefined
-    }
+    trainingInformant: TrainingInformant
   },
   data () {
     // TODO copied from ImageTestingFrame
@@ -270,8 +269,6 @@ export default {
 
     return {
       areaChartOptions,
-      trainingAccuracyData: this.trainingInformant.getTrainingAccuracyData(),
-      validationAccuracyData: this.trainingInformant.getValidationAccuracyData(),
       platform: this.$store.getters.platform
     }
   },
@@ -294,6 +291,20 @@ export default {
     },
     currentValidationAccuracy () {
       return this.trainingInformant.currentValidationAccuracy
+    },
+    trainingAccuracyData () {
+      return [
+        {
+          data: this.trainingInformant.trainingAccuracyDataSerie.toArray()
+        }
+      ]
+    },
+    validationAccuracyData () {
+      return [
+        {
+          data: this.trainingInformant.validationAccuracyDataSerie.toArray()
+        }
+      ]
     }
   }
 }
