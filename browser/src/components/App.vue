@@ -48,7 +48,6 @@ import MainTaskFrame from './navigation/Navigation.vue'
 import MainDescriptionFrame from './navigation/steps/DescriptionStep.vue'
 import MainTrainingFrame from './navigation/steps/TrainingStep.vue'
 import MainTestingFrame from './navigation/steps/TestingStep.vue'
-import { Platform } from '../platforms/platform'
 import { loadTasks } from '../tasks'
 
 import { Task } from 'discojs'
@@ -81,7 +80,7 @@ export default defineComponent({
     /**
        * Initialize the app to the browser-saved platform.
        */
-    this.initPlatform(this.getPlatform())
+    this.initPlatform()
   },
   async created () {
     // Load tasks and create dynamic routes
@@ -114,7 +113,7 @@ export default defineComponent({
     })
   },
   methods: {
-    ...mapMutations(['setIndexedDB', 'setAppTheme', 'setPlatform']),
+    ...mapMutations(['setIndexedDB', 'setAppTheme']),
     getTaskRoutes (task: Task) {
       return this.routesComponents.map((m) => {
         const [route, component] = m
@@ -169,12 +168,8 @@ export default defineComponent({
         `var(--color-${color}-darker)`
       )
     },
-    getPlatform () {
-      return window.localStorage.getItem('platform') ?? Platform.decentralized
-    },
-    initPlatform (platform) {
-      this.setPlatform(platform)
-      this.$i18n.locale = platform
+    initPlatform () {
+      this.$i18n.locale = 'english'
     }
   }
 })

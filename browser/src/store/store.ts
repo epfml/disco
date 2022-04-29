@@ -1,5 +1,4 @@
 import { createStore } from 'vuex'
-import { Platform } from '../platforms/platform'
 
 export const store = createStore({
   state: {
@@ -8,7 +7,6 @@ export const store = createStore({
     passwords: {},
     useIndexedDB: true,
     isDark: false,
-    platform: Platform.decentralized,
     activePage: 'home'
   },
 
@@ -35,10 +33,6 @@ export const store = createStore({
       state.isDark = !!payload
     },
 
-    setPlatform (state, platform) {
-      state.platform = platform
-    },
-
     setActivePage (state, payload) {
       state.activePage = payload
     }
@@ -49,13 +43,9 @@ export const store = createStore({
       state.globalTaskFrameState[modelID],
 
     password: (state) => (taskID: string) =>
-      taskID in state.passwords ? state.passwords[taskID] : '',
-
-    platform: (state) => state.platform,
-
-    isDecentralized: (state) => state.platform === Platform.decentralized,
-
-    isFederated: (state) => state.platform === Platform.federated
+      taskID in state.passwords ? state.passwords[taskID] : ''
+    // taskFrame: (state) => (modelID) => state.tasksFrames[modelID],
+    // tasksFramesList: (state) => _.values(state.tasksFrames)
   }
 })
 

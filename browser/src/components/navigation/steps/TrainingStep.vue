@@ -1,7 +1,5 @@
 <template>
-  <!-- If we bind the key to the platform, then whenever \
-  the platform is changed the component will be re-built. -->
-  <div :key="$store.state.platform">
+  <div>
     <!-- CSV tasks -->
     <tabular-training-frame
       v-if="task.trainingInformation.dataType === 'tabular'"

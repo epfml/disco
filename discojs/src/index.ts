@@ -10,3 +10,4 @@ export { TrainingInformant } from "./training_informant";
 export { ModelActor } from "./model_actor";
 export { Path, Weights } from "./types";
 export { Logger, ConsoleLogger } from "./logging"
+export { TrainingSchemes } from "./training/trainingSchemes"

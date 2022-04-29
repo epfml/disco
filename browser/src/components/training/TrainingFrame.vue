@@ -20,15 +20,19 @@
         <div v-if="!isTraining">
           <custom-button
             :center="true"
-            @click="startTraining(false)"
+            @click="startLocalTraining()"
           >
-            Train Locally
+            {{
+              $t('training.trainingFrame.localTrainingButton')
+            }}
           </custom-button>
           <custom-button
             :center="true"
-            @click="startTraining(true)"
+            @click="startDistributedTraining()"
           >
-            Train {{ $t('platform') }}
+            {{
+              $t('training.trainingFrame.collaborativeTrainingButton')
+            }}
           </custom-button>
         </div>
         <div v-else>
@@ -37,7 +41,9 @@
             color="bg-red-500"
             @click="stopTraining()"
           >
-            Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
+            {{
+              $t('training.trainingFrame.stopTrainingButton')
+            }}
           </custom-button>
         </div>
       </div>
@@ -51,11 +57,8 @@
 
       <!-- Save the model button -->
       <icon-card
-        header="Save the model"
-        description="If you are satisfied with the performance of the model, don't
-            forget to save the model by clicking on the button below. The next
-            time you will load the application, you will be able to use your
-            saved model."
+        :header="$t('training.trainingFrame.saveModel.header')"
+        :description="$t('training.trainingFrame.saveModel.description')"
       >
         <template #icon>
           <download />
@@ -68,16 +71,15 @@
               :center="true"
               @click="saveModel()"
             >
-              Save My model
+              {{ $t('training.trainingFrame.saveModel.button') }}
             </custom-button>
           </div>
         </template>
       </icon-card>
       <!-- Test the model button -->
       <icon-card
-        header="Test the model"
-        description="Once you have finished training your model it might be a great idea
-            to go test it."
+        :header="$t('training.trainingFrame.testModel.header')"
+        :description="$t('training.trainingFrame.testModel.description')"
       >
         <template #icon>
           <download />
@@ -96,7 +98,7 @@
               :center="true"
               @click="goToTesting()"
             >
-              Test the model
+              {{ $t('training.trainingFrame.testModel.button') }}
             </custom-button>
           </div>
         </template>
@@ -147,7 +149,6 @@ export default {
     disco () {
       return new Disco(
         this.task,
-        this.$store.getters.platform,
         this.$toast,
         this.useIndexedDB
       )
@@ -162,7 +163,6 @@ export default {
       this.disco.setIndexedDB(!!newValue)
     }
   },
-
   mounted () {
     // transform trainingInformant into a JS proxy
     this.trainingInformant = this.disco.trainingInformant
@@ -170,6 +170,12 @@ export default {
   },
 
   methods: {
+    startLocalTraining () {
+      this.startTraining(false)
+    },
+    startDistributedTraining () {
+      this.startTraining(true)
+    },
     async startTraining (distributedTraining) {
       this.distributedTraining = distributedTraining
 
@@ -178,8 +184,12 @@ export default {
           this.dataset = await this.datasetBuilder
             .build()
         }
-        await this.disco.startTraining(this.dataset, distributedTraining)
         this.isTraining = true
+        if (distributedTraining) {
+          await this.disco.startTaskDefinedTraining(this.dataset)
+        } else {
+          await this.disco.startLocalTraining(this.dataset)
+        }
       } catch (e) {
         const msg = e instanceof Error ? e.message : e.toString()
         this.$toast.error(msg)
