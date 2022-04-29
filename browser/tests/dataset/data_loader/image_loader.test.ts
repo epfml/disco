@@ -3,11 +3,10 @@ import * as tfNode from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import _ from 'lodash'
 
-import { ConsoleLogger, dataset } from 'discojs'
+import { ConsoleLogger, dataset, TrainingSchemes } from 'discojs'
 
 import { Disco } from '../../../src/training/disco'
 import { loadTasks } from '../../../src/tasks'
-import { Platform } from '../../../src/platforms/platform'
 
 export class NodeImageLoader extends dataset.ImageLoader<string> {
   async readImageFrom (source: string): Promise<tfNode.Tensor3D> {
@@ -70,12 +69,11 @@ describe('image loader test', () => {
     const labels = _.map(_.range(24), (label) => (label % 10).toString())
 
     const cifar10 = (await loadTasks())[3]
-
     const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 
     const logger = new ConsoleLogger()
-    const disco = new Disco(cifar10, Platform.federated, logger, false)
+    const disco = new Disco(cifar10, logger, false)
 
-    await disco.startTraining(loaded, false)
+    await disco.startTraining(loaded, TrainingSchemes.FEDERATED)
   }).timeout(5 * 60 * 1000)
 })

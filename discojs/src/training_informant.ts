@@ -1,5 +1,5 @@
 import { List, Repeat, Set } from "immutable";
-
+import { TrainingSchemes } from './training/trainingSchemes'
 const nbEpochsOnGraphs = 10
 
 /**
@@ -7,6 +7,7 @@ const nbEpochsOnGraphs = 10
  */
 export class TrainingInformant {
   taskID: string;
+  taskTrainingScheme: string;
   // Decentralized Informations
   // number of people with whom I've shared my model
   whoReceivedMyModel = Set();
@@ -42,9 +43,11 @@ export class TrainingInformant {
    */
   constructor (
     private readonly nbrMessagesToShow: number,
-    taskID: string
+    taskID: string,
+    taskTrainingScheme: TrainingSchemes
   ) {
     this.taskID = taskID
+    this.taskTrainingScheme = taskTrainingScheme
 
     // how many times the model has been averaged with someone's else model
     this.nbrUpdatesWithOthers = 0
@@ -140,6 +143,22 @@ export class TrainingInformant {
     this.validationAccuracyDataSerie =
       this.validationAccuracyDataSerie.shift().push(validationAccuracy)
     this.currentValidationAccuracy = validationAccuracy
+  }
+
+  /**
+   * Returns wether or not the Task's training scheme is Decentralized
+   * @returns Boolean value
+   */
+   isTaskTrainingSchemeDecentralized () {
+    return this.taskTrainingScheme === TrainingSchemes.DECENTRALIZED
+  }
+
+  /**
+   * Returns wether or not the Task's training scheme is Federated
+   * @returns Boolean value
+   */
+  isTaskTrainingSchemeFederated () {
+    return this.taskTrainingScheme === TrainingSchemes.FEDERATED
   }
 
   /**

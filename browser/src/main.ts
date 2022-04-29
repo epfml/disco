@@ -4,7 +4,7 @@ import App from './components/App.vue'
 import router from './router'
 import Toaster from '@meforma/vue-toaster'
 import { store } from './store/store'
-import { createCustomI18n } from './platforms/i18n'
+import { createCustomI18n } from './locales/i18n'
 import VueApexCharts from 'vue3-apexcharts'
 
 import '@/assets/css/tailwind.css'
