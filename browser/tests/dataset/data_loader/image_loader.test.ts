@@ -69,11 +69,7 @@ describe('image loader test', () => {
     const labels = _.map(_.range(24), (label) => (label % 10).toString())
 
     const cifar10 = (await loadTasks())[3]
-    const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
-
-    const logger = new ConsoleLogger()
-    const disco = new Disco(cifar10, logger, false)
-
-    await disco.startTraining(loaded, TrainingSchemes.FEDERATED)
+    await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+    // TODO: implement test?
   }).timeout(5 * 60 * 1000)
 })
