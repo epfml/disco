@@ -41,7 +41,7 @@
     "trainingInformation": {
       "modelID": "titanic-model",
       "epochs": 20,
-      "roundDuration": 1,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 30,
       "preprocessFunctions": [],
@@ -81,7 +81,7 @@
     "trainingInformation": {
       "modelID": "mnist-model",
       "epochs": 10,
-      "roundDuration": 5,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
@@ -115,7 +115,7 @@
     "trainingInformation": {
       "modelID": "lus-covid-model",
       "epochs": 15,
-      "roundDuration": 5,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 2,
       "modelCompileData": {
@@ -150,7 +150,7 @@
     "trainingInformation": {
       "modelID": "cifar10-model",
       "epochs": 10,
-      "roundDuration": 5,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 10,
       "modelCompileData": {
@@ -197,7 +197,7 @@
     "trainingInformation": {
       "modelID": "simple_face-model",
       "epochs": 50,
-      "roundDuration": 2,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 10,
       "modelCompileData": {
