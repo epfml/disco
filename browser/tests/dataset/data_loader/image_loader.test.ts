@@ -3,9 +3,7 @@ import * as tfNode from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import _ from 'lodash'
 
-import { ConsoleLogger, dataset, TrainingSchemes } from 'discojs'
-
-import { Disco } from '../../../src/training/disco'
+import { dataset } from 'discojs'
 import { loadTasks } from '../../../src/tasks'
 
 export class NodeImageLoader extends dataset.ImageLoader<string> {
