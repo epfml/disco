@@ -158,16 +158,16 @@
 <script lang="ts">
 import { TrainingInformant } from 'discojs'
 
-import IconCardSmall from '../containers/IconCardSmall.vue'
-import IconCard from '../containers/IconCard.vue'
-import Timer from '../../assets/svg/Timer.vue'
-import People from '../../assets/svg/People.vue'
-import Performances from '../../assets/svg/Performances.vue'
-import Forward from '../../assets/svg/Forward.vue'
-import Contact from '../../assets/svg/Contact.vue'
+import IconCardSmall from '@/components/containers/IconCardSmall.vue'
+import IconCard from '@/components/containers/IconCard.vue'
+import Timer from '@/assets/svg/Timer.vue'
+import People from '@/assets/svg/People.vue'
+import Performances from '@/assets/svg/Performances.vue'
+import Forward from '@/assets/svg/Forward.vue'
+import Contact from '@/assets/svg/Contact.vue'
 
 export default {
-  name: 'TrainingInformationFrame',
+  name: 'TrainingInformation',
   components: {
     IconCardSmall,
     IconCard,

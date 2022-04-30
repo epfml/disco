@@ -5,7 +5,7 @@
     </template>
     <template #extra>
       <div v-if="task.trainingInformation.dataType === 'tabular'">
-        <FileSelectionFrame
+        <FileSelection
           :id="id"
           :preview="preview"
           @input="addFiles($event)"
@@ -19,7 +19,7 @@
             :key="label"
           >
             <span class="text-xl font-semibold"> {{ label }} </span>
-            <FileSelectionFrame
+            <FileSelection
               :id="id"
               :preview="preview"
               @input="addFiles($event, label)"
@@ -28,7 +28,7 @@
           </div>
         </div>
         <div v-else>
-          <FileSelectionFrame
+          <FileSelection
             :id="id"
             :preview="preview"
             @input="addFiles($event)"
@@ -43,14 +43,14 @@
 <script lang="ts">
 import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'
-import FileSelectionFrame from './FileSelectionFrame.vue'
+import FileSelection from './FileSelection.vue'
 
 import { Task, dataset } from 'discojs'
 
 export default {
-  name: 'DatasetInputFrame',
+  name: 'DatasetInput',
   components: {
-    FileSelectionFrame,
+    FileSelection,
     Upload,
     IconCard
   },
@@ -69,12 +69,22 @@ export default {
     }
   },
   computed: {
-    preview () {
+    preview (): boolean {
       // Preview only for csv (since there is no, "show only first n images").
       return this.task.trainingInformation.dataType === 'tabular'
     },
-    requireLabels () {
+    requireLabels (): boolean {
       return this.task.trainingInformation.LABEL_LIST !== undefined
+    },
+    completed (): boolean {
+      return this.datasetBuilder.size() > 0
+    }
+  },
+  watch: {
+    completed (newValue): void {
+      if (newValue) {
+        this.$emit('completed')
+      }
     }
   },
   methods: {

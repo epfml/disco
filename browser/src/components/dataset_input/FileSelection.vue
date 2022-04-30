@@ -116,7 +116,7 @@
 
 <script>
 export default {
-  name: 'FileSelectionFrame',
+  name: 'FileSelection',
   components: {
     // PreviewGallery
   },

@@ -1,9 +1,5 @@
 <template>
   <div>
-    <ModelCaching
-      :id="id"
-      :task="task"
-    />
     <!-- Train Button -->
     <div class="flex items-center justify-center p-4">
       <div v-if="!isTraining">
@@ -32,7 +28,7 @@
     </div>
     <!-- Training Board -->
     <div>
-      <TrainingInformationFrame
+      <TrainingInformation
         v-if="trainingInformant"
         :training-informant="trainingInformant"
       />
@@ -94,10 +90,9 @@
 </template>
 
 <script lang="ts">
-import TrainingInformationFrame from './TrainingInformationFrame.vue'
+import TrainingInformation from './TrainingInformation.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
-import ModelCaching from './ModelCaching.vue'
 import Download from '@/assets/svg/Download.vue'
 import { Disco } from '@/training/disco'
 import * as memory from '@/memory'
@@ -106,10 +101,9 @@ import { mapState } from 'vuex'
 import { dataset, Task } from 'discojs'
 
 export default {
-  name: 'TrainingFrame',
+  name: 'Training',
   components: {
-    TrainingInformationFrame,
-    ModelCaching,
+    TrainingInformation,
     IconCard,
     CustomButton,
     Download

@@ -218,7 +218,7 @@
 export default {
   name: 'ProgressBar',
   props: {
-    step: {
+    progress: {
       type: Number,
       default: 0
     },
@@ -226,7 +226,7 @@ export default {
       type: Boolean,
       default: false
     },
-    blockedStep: {
+    blockedProgress: {
       type: Number,
       default: 0
     }
@@ -234,9 +234,9 @@ export default {
   methods: {
     isActive (step: number): boolean {
       if (this.blocked) {
-        return step === this.blockedStep
+        return step === this.blockedProgress
       } else {
-        return step <= this.step
+        return step <= this.progress
       }
     }
   }
