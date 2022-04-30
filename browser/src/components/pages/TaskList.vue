@@ -56,6 +56,7 @@ export default {
   },
   props: {
     tasks: {
+      // Array<Task>() constructor would be preferable but is forbidden by ESLint
       type: Object,
       default: undefined
     }

@@ -1,5 +1,5 @@
 <template>
-  <training-frame
+  <TrainingFrame
     :id="id"
     :task="task"
     :data-loader="tabularLoader"
@@ -41,13 +41,13 @@
     </template>
     <template #extra>
       <!-- Modification of Header Card -->
-      <icon-card
+      <IconCard
         header="Map My Data"
         description="If the header of the file that you've uploaded differs from the one shown in example, you can map the expected header to your header format bellow."
         :with-toggle="true"
       >
         <template #icon>
-          <bezier-2 />
+          <Bezier2 />
         </template>
         <template #extra>
           <!-- Display all the possible headers -->
@@ -113,19 +113,16 @@
             </ul>
           </div>
         </template>
-      </icon-card>
+      </IconCard>
     </template>
-  </training-frame>
+  </TrainingFrame>
 </template>
 
 <script lang="ts">
-
-import { Task } from 'discojs'
-
 import TrainingFrame from './TrainingFrame.vue'
-import IconCard from '../containers/IconCard.vue'
-import Bezier2 from '../../assets/svg/Bezier2.vue'
-import { WebTabularLoader } from '../../data_loader'
+import IconCard from '@/components/containers/IconCard.vue'
+import Bezier2 from '@/assets/svg/Bezier2.vue'
+import { WebTabularLoader } from '@/data_loader'
 
 export default {
   name: 'TabularTrainingFrame',
@@ -140,7 +137,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      type: Object,
       default: undefined
     }
   },

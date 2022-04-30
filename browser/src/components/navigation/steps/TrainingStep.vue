@@ -1,31 +1,21 @@
 <template>
-  <!-- If we bind the key to the platform, then whenever \
-  the platform is changed the component will be re-built. -->
-  <div :key="$store.state.platform">
-    <!-- CSV tasks -->
-    <TabularTrainingFrame
-      v-if="task.trainingInformation.dataType === 'tabular'"
-      :id="id"
-      :task="task"
-    />
-    <!-- image tasks -->
-    <ImageTrainingFrame
-      v-else-if="task.trainingInformation.dataType === 'image'"
-      :id="id"
-      :task="task"
-    />
-  </div>
+  <TrainingFrame
+    :id="id"
+    :task="task"
+    :dataset-builder="datasetBuilder"
+    @next-step="nextStep"
+    @prev-step="prevStep"
+  />
 </template>
 
 <script lang="ts">
-import TabularTrainingFrame from '../../training/TabularTrainingFrame.vue'
-import ImageTrainingFrame from '../../training/ImageTrainingFrame.vue'
+import TrainingFrame from '@/components/training/TrainingFrame.vue'
+import { dataset, Task } from 'discojs'
 
 export default {
-  name: 'MainTrainingFrame',
+  name: 'TrainingStep',
   components: {
-    TabularTrainingFrame,
-    ImageTrainingFrame
+    TrainingFrame
   },
   props: {
     id: {
@@ -33,8 +23,20 @@ export default {
       default: ''
     },
     task: {
-      type: Object,
+      type: Task,
       default: undefined
+    },
+    datasetBuilder: {
+      type: dataset.DatasetBuilder,
+      default: undefined
+    }
+  },
+  methods: {
+    nextStep (): void {
+      this.$emit('next-step')
+    },
+    prevStep (): void {
+      this.$emit('prev-step')
     }
   }
 }

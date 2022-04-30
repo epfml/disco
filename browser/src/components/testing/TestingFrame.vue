@@ -31,7 +31,6 @@
 <script>
 import DatasetInputFrame from '../dataset_input/DatasetInputFrame.vue'
 import CustomButton from '../simple/CustomButton.vue'
-import ModelActorFrame from '../ModelActorFrame.vue'
 
 import { Tester } from '../../testing/tester'
 import { Task } from 'discojs'
@@ -39,7 +38,6 @@ import { Task } from 'discojs'
 export default {
   name: 'TestingFrame',
   components: {
-    ModelActorFrame,
     DatasetInputFrame,
     CustomButton
   },

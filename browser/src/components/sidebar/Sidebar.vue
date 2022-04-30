@@ -37,35 +37,35 @@
           hover-text="home"
           @click="goToHome()"
         >
-          <home-icon />
+          <HomeIcon />
         </SidebarButton>
         <!-- Go to Task List page -->
         <SidebarButton
           hover-text="tasks"
           @click="goToTaskList()"
         >
-          <list-icon />
+          <ListIcon />
         </SidebarButton>
         <!-- Display Model Library panel -->
         <SidebarButton
           hover-text="models"
           @click="openModelLibrary()"
         >
-          <file-icon />
+          <FileIcon />
         </SidebarButton>
         <!-- Go to Information page -->
         <SidebarButton
           hover-text="information"
           @click="goToInformation()"
         >
-          <info-icon />
+          <InfoIcon />
         </SidebarButton>
         <!-- Display Settings panel-->
         <SidebarButton
           hover-text="settings"
           @click="openSettingsPanel()"
         >
-          <settings-icon />
+          <SettingsIcon />
         </SidebarButton>
       </div>
     </nav>
@@ -73,7 +73,7 @@
     <!-- Menu (RHS) -->
     <div class="absolute">
       <!-- Backdrop -->
-      <transition
+      <Transition
         enter-class="transition duration-300 ease-in-out"
         enter-from-class="opacity-0"
         enter-to-class="opacity-100"
@@ -88,10 +88,10 @@
           aria-hidden="true"
           @click="closeMenu()"
         />
-      </transition>
+      </Transition>
 
       <!-- Panel -->
-      <transition
+      <Transition
         enter-active-class="transition duration-300 ease-in-out sm:duration-500"
         enter-from-class="translate-x-full"
         enter-class="translate-x-0"
@@ -125,17 +125,17 @@
               class="p-2 text-white rounded-md focus:outline-none focus:ring"
               @click="closeMenu()"
             >
-              <cross-icon />
+              <CrossIcon />
             </button>
           </div>
           <!-- Panel content -->
-          <settings v-if="isSettingsPanelOpen" />
-          <model-library
+          <Settings v-if="isSettingsPanelOpen" />
+          <ModelLibrary
             v-else-if="isModelLibraryOpen"
             @switch-panel="switchFromModelLibraryToSettings()"
           />
         </section>
-      </transition>
+      </Transition>
     </div>
   </div>
 </template>
@@ -143,12 +143,12 @@
 import Settings from './Settings.vue'
 import ModelLibrary from './ModelLibrary.vue'
 import tippy from 'tippy.js'
-import HomeIcon from '../../assets/svg/HomeIcon.vue'
-import ListIcon from '../../assets/svg/ListIcon.vue'
-import InfoIcon from '../../assets/svg/InfoIcon.vue'
-import FileIcon from '../../assets/svg/FileIcon.vue'
-import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
-import CrossIcon from '../../assets/svg/CrossIcon.vue'
+import HomeIcon from '@/assets/svg/HomeIcon.vue'
+import ListIcon from '@/assets/svg/ListIcon.vue'
+import InfoIcon from '@/assets/svg/InfoIcon.vue'
+import FileIcon from '@/assets/svg/FileIcon.vue'
+import SettingsIcon from '@/assets/svg/SettingsIcon.vue'
+import CrossIcon from '@/assets/svg/CrossIcon.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 
 export default {

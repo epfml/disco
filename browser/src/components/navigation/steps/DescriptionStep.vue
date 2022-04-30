@@ -27,10 +27,12 @@
   </div>
 </template>
 <script lang="ts">
-import DescriptionFrame from '../../description/DescriptionFrame.vue'
+import DescriptionFrame from '@/components/description/DescriptionFrame.vue'
+
+import { Task } from 'discojs'
 
 export default {
-  name: 'MainDescriptionFrame',
+  name: 'DescriptionStep',
   components: {
     DescriptionFrame
   },
@@ -40,7 +42,7 @@ export default {
       default: ''
     },
     task: {
-      type: Object,
+      type: Task,
       default: undefined
     }
   },
