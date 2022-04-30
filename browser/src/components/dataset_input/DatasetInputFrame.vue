@@ -1,11 +1,11 @@
 <template>
-  <icon-card header="My dataset">
+  <IconCard header="My dataset">
     <template #icon>
-      <upload />
+      <Upload />
     </template>
     <template #extra>
       <div v-if="task.trainingInformation.dataType === 'tabular'">
-        <file-selection-frame
+        <FileSelectionFrame
           :id="id"
           :preview="preview"
           @input="addFiles($event)"
@@ -19,7 +19,7 @@
             :key="label"
           >
             <span class="text-xl font-semibold"> {{ label }} </span>
-            <file-selection-frame
+            <FileSelectionFrame
               :id="id"
               :preview="preview"
               @input="addFiles($event, label)"
@@ -28,7 +28,7 @@
           </div>
         </div>
         <div v-else>
-          <file-selection-frame
+          <FileSelectionFrame
             :id="id"
             :preview="preview"
             @input="addFiles($event)"
@@ -37,15 +37,15 @@
         </div>
       </div>
     </template>
-  </icon-card>
+  </IconCard>
 </template>
 
 <script lang="ts">
-import { Task, dataset } from 'discojs'
-
-import Upload from '../../assets/svg/Upload.vue'
-import IconCard from '../containers/IconCard.vue'
+import Upload from '@/assets/svg/Upload.vue'
+import IconCard from '@/components/containers/IconCard.vue'
 import FileSelectionFrame from './FileSelectionFrame.vue'
+
+import { Task, dataset } from 'discojs'
 
 export default {
   name: 'DatasetInputFrame',

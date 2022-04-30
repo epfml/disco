@@ -15,8 +15,9 @@
 </template>
 
 <script lang="ts">
-import ImageTestingFrame from '../../testing/ImageTestingFrame.vue'
-import TabularTestingFrame from '../../testing/TabularTestingFrame.vue'
+import ImageTestingFrame from '@/components/testing/ImageTestingFrame.vue'
+import TabularTestingFrame from '@/components/testing/TabularTestingFrame.vue'
+import { Task } from 'discojs'
 
 export default {
   name: 'TrainingStep',
@@ -30,7 +31,7 @@ export default {
       default: ''
     },
     task: {
-      type: Object,
+      type: Task,
       default: undefined
     }
   }

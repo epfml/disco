@@ -212,7 +212,7 @@ export class Task {
     return true
   }
 
-  private constructor (
+  constructor (
     // TODO rename to ID
     public readonly taskID: TaskID,
     public readonly displayInformation?: DisplayInformation,

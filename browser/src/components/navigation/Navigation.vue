@@ -10,10 +10,19 @@
         @next-step="nextStep"
         @prev-step="prevStep"
       />
-      <TrainingStep
+      <DatasetInputStep
         v-show="step === 2"
         :id="id"
         :task="task"
+        :dataset-builder="datasetBuilder"
+        @next-step="nextStep"
+        @prev-step="prevStep"
+      />
+      <TrainingStep
+        v-show="step === 3"
+        :id="id"
+        :task="task"
+        :dataset-builder="datasetBuilder"
         @next-step="nextStep"
         @prev-step="prevStep"
       />
@@ -25,13 +34,19 @@
 import ProgressBar from './ProgressBar.vue'
 import DescriptionStep from './steps/DescriptionStep.vue'
 import TrainingStep from './steps/TrainingStep.vue'
-import BaseLayout from '../containers/BaseLayout.vue'
+import DatasetInputStep from './steps/DatasetInputStep.vue'
+import BaseLayout from '@/components/containers/BaseLayout.vue'
+import { WebImageLoader, WebTabularLoader } from '@/data_loader'
+
+import { Task } from 'discojs'
+import { DataLoader, DatasetBuilder } from 'discojs/dist/dataset'
 
 export default {
   name: 'Navigation',
   components: {
     ProgressBar,
     DescriptionStep,
+    DatasetInputStep,
     TrainingStep,
     BaseLayout
   },
@@ -41,7 +56,7 @@ export default {
       default: ''
     },
     task: {
-      type: Object,
+      type: Task,
       default: undefined
     }
   },
@@ -50,6 +65,20 @@ export default {
       step: 1,
       progress: 1
     }
+  },
+  created (): void {
+    let dataLoader: DataLoader<File>
+    switch (this.task.trainingInformation.dataType) {
+      case 'tabular':
+        dataLoader = new WebTabularLoader(this.task, ',')
+        break
+      case 'image':
+        dataLoader = new WebImageLoader(this.task)
+        break
+      default:
+        throw new Error('not implemented')
+    }
+    this.datasetBuilder = new DatasetBuilder(dataLoader, this.task)
   },
   activated () {
     this.step = this.progress
