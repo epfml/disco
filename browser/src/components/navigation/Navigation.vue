@@ -1,40 +1,50 @@
-/* eslint-disable no-unused-vars */
 <template>
   <BaseLayout>
     <div>
-      <ProgressBar :step="progress" />
-      <DescriptionStep
+      <ProgressBar :progress="step" />
+      <Step
         v-show="step === 1"
-        :id="id"
-        :task="task"
+        :born-ready="true"
         @next-step="nextStep"
         @prev-step="prevStep"
-      />
-      <DatasetInputStep
+      >
+        <Description
+          :id="id"
+          :task="task"
+        />
+      </Step>
+      <Step
         v-show="step === 2"
-        :id="id"
-        :task="task"
-        :dataset-builder="datasetBuilder"
         @next-step="nextStep"
         @prev-step="prevStep"
-      />
-      <TrainingStep
+      >
+        <DatasetInput
+          :id="id"
+          :task="task"
+          :dataset-builder="datasetBuilder"
+        />
+      </Step>
+      <Step
         v-show="step === 3"
-        :id="id"
-        :task="task"
-        :dataset-builder="datasetBuilder"
         @next-step="nextStep"
         @prev-step="prevStep"
-      />
+      >
+        <Training
+          :id="id"
+          :task="task"
+          :dataset-builder="datasetBuilder"
+        />
+      </Step>
     </div>
   </BaseLayout>
 </template>
 
 <script lang="ts">
 import ProgressBar from './ProgressBar.vue'
-import DescriptionStep from './steps/DescriptionStep.vue'
-import TrainingStep from './steps/TrainingStep.vue'
-import DatasetInputStep from './steps/DatasetInputStep.vue'
+import Step from './Step.vue'
+import Description from '@/components/Description.vue'
+import Training from '@/components/training/Training.vue'
+import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
 import BaseLayout from '@/components/containers/BaseLayout.vue'
 import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 
@@ -45,9 +55,10 @@ export default {
   name: 'Navigation',
   components: {
     ProgressBar,
-    DescriptionStep,
-    DatasetInputStep,
-    TrainingStep,
+    Description,
+    DatasetInput,
+    Training,
+    Step,
     BaseLayout
   },
   props: {
@@ -60,36 +71,37 @@ export default {
       default: undefined
     }
   },
-  data (): { step: number, progress: number } {
+  data (): { step: number } {
     return {
-      step: 1,
-      progress: 1
+      step: 1
     }
   },
-  created (): void {
-    let dataLoader: DataLoader<File>
-    switch (this.task.trainingInformation.dataType) {
-      case 'tabular':
-        dataLoader = new WebTabularLoader(this.task, ',')
-        break
-      case 'image':
-        dataLoader = new WebImageLoader(this.task)
-        break
-      default:
-        throw new Error('not implemented')
+  computed: {
+    datasetBuilder (): DatasetBuilder<File> {
+      let dataLoader: DataLoader<File>
+      switch (this.task.trainingInformation.dataType) {
+        case 'tabular':
+          dataLoader = new WebTabularLoader(this.task, ',')
+          break
+        case 'image':
+          dataLoader = new WebImageLoader(this.task)
+          break
+        default:
+          throw new Error('not implemented')
+      }
+      return new DatasetBuilder(dataLoader, this.task)
     }
-    this.datasetBuilder = new DatasetBuilder(dataLoader, this.task)
-  },
-  activated () {
-    this.step = this.progress
   },
   methods: {
     nextStep () {
       this.step = Math.min(3, this.step + 1)
-      this.progress = Math.max(this.progress, this.step)
     },
     prevStep () {
-      this.step = Math.max(1, this.step - 1)
+      if (this.step <= 1) {
+        this.$router.push({ path: '/list' })
+      } else {
+        this.step -= 1
+      }
     }
   }
 }

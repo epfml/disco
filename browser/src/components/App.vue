@@ -31,11 +31,11 @@
 
       <!-- Main Page -->
       <div class="overflow-x-hidden flex-grow z-0">
-        <router-view v-slot="{ Component }">
-          <keep-alive>
-            <component :is="Component" />
-          </keep-alive>
-        </router-view>
+        <RouterView v-slot="{ Component }">
+          <KeepAlive>
+            <Component :is="Component" />
+          </KeepAlive>
+        </RouterView>
       </div>
     </div>
   </div>
@@ -44,10 +44,7 @@
 <script lang="ts">
 import SidebarMain from './sidebar/Sidebar.vue'
 import TaskList from './pages/TaskList.vue'
-import MainTaskFrame from './navigation/Navigation.vue'
-import MainDescriptionFrame from './navigation/steps/DescriptionStep.vue'
-import MainTrainingFrame from './navigation/steps/TrainingStep.vue'
-import MainTestingFrame from './navigation/steps/TestingStep.vue'
+import Navigation from './navigation/Navigation.vue'
 import { Platform } from '../platforms/platform'
 import { loadTasks } from '../tasks'
 
@@ -55,7 +52,7 @@ import { Task } from 'discojs'
 import { mapState, mapMutations } from 'vuex'
 import { defineComponent } from 'vue'
 
-export default defineComponent({
+export default {
   name: 'App',
   components: {
     SidebarMain
@@ -84,12 +81,6 @@ export default defineComponent({
     this.initPlatform(this.getPlatform())
   },
   async created () {
-    // Load tasks and create dynamic routes
-    this.routesComponents = [
-      ['description', MainDescriptionFrame],
-      ['training', MainTrainingFrame],
-      ['testing', MainTestingFrame]
-    ]
     const tasks: Task[] = await loadTasks()
     tasks.forEach((task: Task) => {
       const route = `/${task.taskID}`
@@ -98,7 +89,7 @@ export default defineComponent({
         // So that KeepAlive can differentiate the components
         component: defineComponent({
           key: task.taskID,
-          extends: MainTaskFrame
+          extends: Navigation
         }),
         props: {
           id: task.taskID,
@@ -159,5 +150,5 @@ export default defineComponent({
       this.$i18n.locale = platform
     }
   }
-})
+}
 </script>
