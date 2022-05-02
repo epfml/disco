@@ -37,7 +37,7 @@
       <!-- Step 2 -->
       <div class="w-1/4">
         <div class="relative mb-2">
-          <!-- Horizontal Line --->
+          <!-- Horizontal Line -->
           <div
             class="absolute flex align-center items-center align-middle content-center"
             style="width: calc(100% - 2.5rem - 1rem); top: 50%; transform: translate(-50%, -50%)"
@@ -45,7 +45,7 @@
             <div class="w-full bg-gray-200 rounded items-center align-middle align-center flex-1">
               <div
                 class="w-0 bg-green-300 py-1 rounded"
-                style="width: 0%;"
+                :style="isActive(1) ? 'width: 100%;' : 'width: 0%'"
               />
             </div>
           </div>
@@ -89,7 +89,7 @@
             <div class="w-full bg-gray-200 rounded items-center align-middle align-center flex-1">
               <div
                 class="w-0 bg-green-300 py-1 rounded"
-                style="width: 0%;"
+                :style="isActive(2) ? 'width: 100%;' : 'width: 0%'"
               />
             </div>
           </div>
@@ -133,7 +133,7 @@
             <div class="w-full bg-gray-200 rounded items-center align-middle align-center flex-1">
               <div
                 class="w-0 bg-green-300 py-1 rounded"
-                style="width: 0%;"
+                :style="isActive(3) ? 'width: 100%;' : 'width: 0%'"
               />
             </div>
           </div>

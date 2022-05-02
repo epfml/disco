@@ -32,7 +32,7 @@
               <div class="grid grid-cols-4 items-center justify-items-center">
                 <div class="col-span-3">
                   <div class="text-sm text-gray-500 dark:text-light">
-                    FeAI cached the last model you were working on for you. Select
+                    Disco cached the last model you were working on for you. Select
                     it to start training from it. Otherwise, it will be overridden
                     the next time you train the
                     {{ task.displayInformation.taskTitle }} task. This model was
@@ -153,7 +153,7 @@
               class="text-sm text-gray-500 dark:text-light"
             >
               <p v-if="!useIndexedDB && workingModelExists">
-                FeAI cached the last model you were working on for you. Turn on
+                Disco cached the last model you were working on for you. Turn on
                 the model library (see settings) to see additional options.
               </p>
               <p v-else>The previous working model has been deleted.</p>
