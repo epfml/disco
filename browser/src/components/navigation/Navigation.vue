@@ -4,7 +4,6 @@
       <ProgressBar :progress="step" />
       <Step
         v-show="step === 1"
-        :born-ready="true"
         @next-step="nextStep"
         @prev-step="prevStep"
       >
@@ -22,6 +21,8 @@
           :id="id"
           :task="task"
           :dataset-builder="datasetBuilder"
+          @add-files="addFiles"
+          @clear-files="clearFiles"
         />
       </Step>
       <Step
@@ -34,6 +35,13 @@
           :task="task"
           :dataset-builder="datasetBuilder"
         />
+      </Step>
+      <Step
+        v-show="step === 4"
+        :next="false"
+        @prev-step="prevStep"
+      >
+        blank
       </Step>
     </div>
   </BaseLayout>
@@ -93,8 +101,14 @@ export default {
     }
   },
   methods: {
+    addFiles (files: FileList, label?: string) {
+      this.datasetBuilder.addFiles(Array.from(files), label)
+    },
+    clearFiles (label?: string) {
+      this.datasetBuilder.clearFiles(label)
+    },
     nextStep () {
-      this.step = Math.min(3, this.step + 1)
+      this.step = Math.min(4, this.step + 1)
     },
     prevStep () {
       if (this.step <= 1) {

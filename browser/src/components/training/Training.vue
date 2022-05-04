@@ -75,15 +75,6 @@
             class="text-sm text-gray-500 dark:text-light"
           />
         </div>
-        <div class="flex items-center justify-center p-4">
-          <CustomButton
-            id="train-model-button"
-            :center="true"
-            @click="goToTesting()"
-          >
-            Test the model
-          </CustomButton>
-        </div>
       </template>
     </IconCard>
   </div>
@@ -188,9 +179,6 @@ export default {
         )
       }
       setTimeout(this.$toast.clear, 30000)
-    },
-    goToTesting () {
-      this.$emit('next-step')
     }
   }
 }
