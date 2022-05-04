@@ -80,15 +80,17 @@
 </template>
 
 <script lang="ts">
+import { mapState } from 'vuex'
+
+import { dataset, training, EmptyMemory, Task, TrainingSchemes } from 'discojs'
+
+import { IndexedDB } from '@/memory'
 import TrainingInformation from './TrainingInformation.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Download from '@/assets/svg/Download.vue'
-import { Disco } from '@/training/disco'
-import * as memory from '@/memory'
 
-import { mapState } from 'vuex'
-import { dataset, Task, TrainingSchemes } from 'discojs'
+import { getClient } from '@/communication/client_builder'
 
 export default {
   name: 'Training',
@@ -116,22 +118,29 @@ export default {
     return {
       isTraining: false,
       distributedTraining: undefined,
-      trainingInformant: undefined
+      trainingInformant: undefined,
+      memory: new IndexedDB()
     }
   },
   computed: {
     disco () {
-      return new Disco(
+      const client = getClient(
+        TrainingSchemes.LOCAL, // unused
+        this.task
+      )
+
+      return new training.Disco(
         this.task,
         this.$toast,
-        this.useIndexedDB
+        this.memory,
+        client
       )
     },
     ...mapState(['useIndexedDB'])
   },
   watch: {
     useIndexedDB (newValue: boolean) {
-      this.disco.setIndexedDB(newValue)
+      this.memory = newValue ? new IndexedDB() : new EmptyMemory()
     }
   },
 
@@ -167,8 +176,8 @@ export default {
       this.isTraining = false
     },
     async saveModel () {
-      if (this.useIndexedDB) {
-        await memory.saveWorkingModel(
+      if (this.memory !== undefined) {
+        await this.memory.saveWorkingModel(
           this.task.taskID,
           this.task.trainingInformation.modelID
         )
