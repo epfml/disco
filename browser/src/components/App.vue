@@ -42,11 +42,11 @@
 </template>
 
 <script lang="ts">
-import SidebarMain from './sidebar/Sidebar.vue'
-import TaskList from './pages/TaskList.vue'
-import Navigation from './navigation/Navigation.vue'
-import { Platform } from '../platforms/platform'
-import { loadTasks } from '../tasks'
+import SidebarMain from '@/components/sidebar/Sidebar.vue'
+import TaskList from '@/components/pages/TaskList.vue'
+import Navigation from '@/components/navigation/Navigation.vue'
+import { Platform } from '@/platforms/platform'
+import { loadTasks } from '@/tasks'
 
 import { Task } from 'discojs'
 import { mapState, mapMutations } from 'vuex'
@@ -56,6 +56,11 @@ export default {
   name: 'App',
   components: {
     SidebarMain
+  },
+  data () {
+    return {
+      isLoading: false
+    }
   },
   computed: {
     ...mapState(['isDark'])
