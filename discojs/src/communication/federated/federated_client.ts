@@ -1,7 +1,7 @@
 import * as msgpack from 'msgpack-lite'
 import * as tf from '@tensorflow/tfjs'
 
-import { Client, Task, TrainingInformant } from 'discojs'
+import { Client, Task, TrainingInformant, MetadataID } from '../..'
 
 import { makeID } from '../authentication'
 import * as api from './federated_api'
@@ -11,9 +11,9 @@ import { Weights } from '@/types'
  * a specific task.
  */
 export class FederatedClient extends Client {
-  clientID: string;
-  peer: any;
-  modelUpdateIsBasedOnRoundNumber: number;
+  clientID: string
+  peer: any
+  modelUpdateIsBasedOnRoundNumber: number
 
   /**
    * Prepares connection to a centralized server for training a given task.
@@ -63,7 +63,7 @@ export class FederatedClient extends Client {
     return response.status === 200
   }
 
-  async postMetadata (metadataID, metadata): Promise<boolean> {
+  async postMetadata (metadataID: string, metadata: string): Promise<boolean> {
     const response = api.postMetadata(
       this.task.taskID,
       this.modelUpdateIsBasedOnRoundNumber,
@@ -74,7 +74,7 @@ export class FederatedClient extends Client {
     return (await response).status === 200
   }
 
-  async getMetadataMap (metadataID) {
+  async getMetadataMap (metadataID: MetadataID): Promise<Map<string, unknown>> {
     const response = await api.getMetadataMap(
       this.task.taskID,
       this.modelUpdateIsBasedOnRoundNumber,
@@ -99,7 +99,7 @@ export class FederatedClient extends Client {
     return -1
   }
 
-  private async updateLocalModel (model: tf.LayersModel) {
+  private async updateLocalModel (model: tf.LayersModel): Promise<void> {
     // get latest model from the server
     const weights = await api.getWeights(this.task.taskID, this.clientID)
     model.setWeights(weights)
@@ -107,7 +107,7 @@ export class FederatedClient extends Client {
     console.log('Updated local model')
   }
 
-  private async fetchChangesAndUpdateModel (model: tf.LayersModel) {
+  private async fetchChangesAndUpdateModel (model: tf.LayersModel): Promise<void> {
     // get server round of latest model
     const serverRound = await this.getLatestServerRound()
 
@@ -119,18 +119,18 @@ export class FederatedClient extends Client {
     }
   }
 
-  private async fetchServerStatisticsAndUpdateInformant (trainingInformant: TrainingInformant) {
+  private async fetchServerStatisticsAndUpdateInformant (trainingInformant: TrainingInformant): Promise<void> {
     const serverStatistics = await api.getAsyncWeightInformantStatistics(this.task.taskID, this.clientID)
     trainingInformant.updateWithServerStatistics(serverStatistics.data.statistics)
   }
 
-  async onRoundEndCommunication (model: tf.LayersModel, _: number, trainingInformant: TrainingInformant) {
+  async onRoundEndCommunication (model: tf.LayersModel, _: number, trainingInformant: TrainingInformant): Promise<void> {
     await this.postWeightsToServer(model.weights.map((w) => w.read()))
     await this.fetchChangesAndUpdateModel(model)
     await this.fetchServerStatisticsAndUpdateInformant(trainingInformant)
   }
 
-  async onTrainEndCommunication (_: tf.LayersModel, trainingInformant: TrainingInformant) {
+  async onTrainEndCommunication (_: tf.LayersModel, trainingInformant: TrainingInformant): Promise<void> {
     trainingInformant.addMessage('Training finished.')
   }
 }

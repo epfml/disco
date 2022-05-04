@@ -17,16 +17,22 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@tensorflow/tfjs": "3",
+    "axios": "0.27",
     "immutable": "4",
+    "isomorphic-ws": "4",
     "lodash": "4",
     "msgpack-lite": "0.1",
-    "tslib": "2"
+    "simple-peer": "9",
+    "tslib": "2",
+    "ws": "8"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-node": "3",
     "@types/chai": "4",
     "@types/lodash": "4",
     "@types/mocha": "9",
     "@types/msgpack-lite": "0.1",
+    "@types/simple-peer": "9",
     "@typescript-eslint/eslint-plugin": "4",
     "@typescript-eslint/parser": "4",
     "chai": "4",

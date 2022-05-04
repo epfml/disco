@@ -1,26 +1,20 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { Client, Task, TrainingInformant } from 'discojs'
+import { Client, Task, TrainingInformant, Memory, ModelType } from '../..'
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
 import { Trainer } from './trainer'
-import { getLatestModel } from '../../tasks'
-import * as memory from '../../memory'
 
 /**
  * A class that helps build the Trainer and auxiliary classes.
  */
 export class TrainerBuilder {
-  useIndexedDB: boolean
-  task: Task
-  trainingInformant: TrainingInformant
-
-  constructor (useIndexedDB: boolean, task: Task, trainingInformant: TrainingInformant) {
-    this.useIndexedDB = useIndexedDB
-    this.task = task
-    this.trainingInformant = trainingInformant
-  }
+  constructor (
+    private readonly memory: Memory,
+    private readonly task: Task,
+    private readonly trainingInformant: TrainingInformant
+  ) {}
 
   /**
    * Builds a trainer object.
@@ -35,7 +29,7 @@ export class TrainerBuilder {
       return new DistributedTrainer(
         this.task,
         this.trainingInformant,
-        this.useIndexedDB,
+        this.memory,
         model,
         client
       )
@@ -43,46 +37,57 @@ export class TrainerBuilder {
       return new LocalTrainer(
         this.task,
         this.trainingInformant,
-        this.useIndexedDB,
+        this.memory,
         model
       )
     }
   }
 
-  private async getModel () {
-    const model = await this.getModelFromMemoryOrFetchIt()
-    return this.updateModelInformation(model)
+  private async getModel (): Promise<tf.LayersModel> {
+    const model = await this.getModelFromMemory()
+    return await this.updateModelInformation(model)
   }
 
   /**
    *
    * @returns
    */
-  private async getModelFromMemoryOrFetchIt () {
-    const modelExistsInMemory = await memory.getWorkingModelMetadata(
-      this.task.taskID,
-      this.task.trainingInformation.modelID
-    )
+  private async getModelFromMemory (): Promise<tf.LayersModel> {
+    const modelID = this.task.trainingInformation?.modelID
+    if (modelID === undefined) {
+      throw new Error('undefined model ID')
+    }
 
-    if (this.useIndexedDB && modelExistsInMemory) {
-      await memory.getWorkingModel(
+    const modelExistsInMemory = await this.memory.getModelMetadata(
+      ModelType.WORKING,
+      this.task.taskID,
+      modelID
+    )
+    if (modelExistsInMemory !== undefined) {
+      return await this.memory.getModel(
+        ModelType.WORKING,
         this.task.taskID,
-        this.task.trainingInformation.modelID
+        modelID
       )
     }
-    return await getLatestModel(this.task.taskID)
+
+    throw new Error('no model in memory')
   }
 
-  private updateModelInformation (model: tf.LayersModel) {
+  private async updateModelInformation (model: tf.LayersModel): Promise<tf.LayersModel> {
     // Continue local training from previous epoch checkpoint
     if (model.getUserDefinedMetadata() === undefined) {
       model.setUserDefinedMetadata({ epoch: 0 })
     }
 
     const info = this.task.trainingInformation
+    if (info === undefined) {
+      throw new Error('undefined training information')
+    }
+
     model.compile(info.modelCompileData)
 
-    if (info.learningRate) {
+    if (info.learningRate !== undefined) {
       // TODO: Not the right way to change learningRate and hence we cast to any
       // the right way is to construct the optimiser and pass learningRate via
       // argument.

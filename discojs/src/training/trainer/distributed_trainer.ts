@@ -1,40 +1,42 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { Client, Task, TrainingInformant } from 'discojs'
+import { Client, Memory, Task, TrainingInformant } from '@/.'
 
-import * as memory from '../../memory'
 import { Trainer } from './trainer'
 
 /**
  * Class whose role is to train a model in a distributed way with a given dataset.
  */
 export class DistributedTrainer extends Trainer {
-  client: Client
   /** DistributedTrainer constructor, accepts same arguments as Trainer and in additional also a client who takes care of communicating weights.
    */
-  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, model: tf.LayersModel, client: Client) {
-    super(task, trainingInformant, useIndexedDB, model)
-    this.client = client
+  constructor (
+    task: Task,
+    trainingInformant: TrainingInformant,
+    memory: Memory,
+    model: tf.LayersModel,
+    private readonly client: Client
+  ) {
+    super(task, trainingInformant, memory, model)
   }
 
   /**
    * Callback called every time a round is over
    */
-  async onRoundEnd (accuracy: number) {
+  async onRoundEnd (accuracy: number): Promise<void> {
     await this.client.onRoundEndCommunication(this.model, this.roundTracker.round, this.trainingInformant)
-    if (this.useIndexedDB) {
-      await memory.updateWorkingModel(
-        this.task.taskID,
-        this.trainingInformation.modelID,
-        this.model
-      )
-    }
+
+    await this.memory.updateWorkingModel(
+      this.task.taskID,
+      this.trainingInformation.modelID,
+      this.model
+    )
   }
 
   /**
    * Callback called once training is over
    */
-  async onTrainEnd () {
+  async onTrainEnd (): Promise<void> {
     await this.client.onTrainEndCommunication(
       this.model,
       this.trainingInformant

@@ -11,34 +11,34 @@
  * The roundDuration is the length of a round (in batches).
  */
 export class RoundTracker {
-    round: number = 0;
-    batch: number = 0;
-    roundDuration: number;
+  round: number = 0
+  batch: number = 0
+  roundDuration: number
 
-    constructor (roundDuration: number) {
-      this.roundDuration = roundDuration
-    }
+  constructor (roundDuration: number) {
+    this.roundDuration = roundDuration
+  }
 
-    /**
-     * Update the batch number, to be called inside onBatchEnd. (We do not use batch output of onBatchEnd since it is
-     * not cumulative).
-     */
-    updateBatch () {
-      this.batch += 1
-    }
+  /**
+   * Update the batch number, to be called inside onBatchEnd. (We do not use batch output of onBatchEnd since it is
+   * not cumulative).
+   */
+  updateBatch (): void {
+    this.batch += 1
+  }
 
-    /**
+  /**
    * Returns true if a local round has ended, false otherwise.
    *
    * @remark
    * Returns true if (batch) mod (batches per round) == 0, false otherwise
    */
-    roundHasEnded (): boolean {
-      if (this.batch === 0) {
-        return false
-      }
-
-      const roundHasEnded = this.batch % this.roundDuration === 0
-      return roundHasEnded
+  roundHasEnded (): boolean {
+    if (this.batch === 0) {
+      return false
     }
+
+    const roundHasEnded = this.batch % this.roundDuration === 0
+    return roundHasEnded
+  }
 }

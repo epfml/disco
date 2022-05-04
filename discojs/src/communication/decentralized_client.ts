@@ -1,13 +1,14 @@
-import { List, Map, Set } from 'immutable'
+import { List, Map, Seq, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
 import tf from '@tensorflow/tfjs'
+import isomorphic from 'isomorphic-ws'
 
-import { Client, Task, TrainingInformant, aggregation, serialization } from 'discojs'
+import { Client, Task, TrainingInformant, aggregation, serialization } from '..'
 
 import { Weights } from '@/types'
 
-type PeerMessage = { epoch: number, weights: serialization.EncodedWeights }
+interface PeerMessage { epoch: number, weights: serialization.EncodedWeights }
 
 // TODO take it from the server sources
 type PeerID = number
@@ -35,7 +36,7 @@ function isPeerMessage (data: unknown): data is PeerMessage {
     return false
   }
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _: PeerMessage = { epoch, weights }
 
   return true
@@ -50,7 +51,7 @@ function isServerOpeningMessage (msg: unknown): msg is ServerOpeningMessage {
     return false
   }
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _: ServerOpeningMessage = msg
 
   return true
@@ -72,7 +73,7 @@ function isServerPeerMessage (msg: unknown): msg is ServerPeerMessage {
     return false
   }
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _: ServerPeerMessage = [id, signal]
 
   return true
@@ -89,17 +90,17 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class DecentralizedClient extends Client {
-  private server?: WebSocket;
-  private peers = Map<PeerID, SimplePeer.Instance>();
+  private server?: isomorphic.WebSocket
+  private peers = Map<PeerID, SimplePeer.Instance>()
 
-  private weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
+  private readonly weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
 
   constructor (rawServerURL: string, task: Task, password?: string) {
+    super(rawServerURL, task)
+
     // TODO do not have a client per task
     const serverURL = new URL(rawServerURL)
     serverURL.pathname += `tasks/${task.taskID}`
-
-    super(serverURL.href, task)
 
     if (password !== undefined) {
       // TODO use tweetnacl.secretbox
@@ -111,11 +112,11 @@ export class DecentralizedClient extends Client {
     }
   }
 
-  connectServer (url: URL): Promise<WebSocket> {
-    const ws = new WebSocket(url)
+  private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
+    const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
-    ws.onmessage = (event: MessageEvent<ArrayBuffer | string>) => {
+    ws.onmessage = (event: isomorphic.MessageEvent) => {
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
@@ -145,8 +146,8 @@ export class DecentralizedClient extends Client {
       }
     }
 
-    return new Promise((resolve, reject) => {
-      ws.onerror = (err) => reject(new Error(`connecting server: ${err}`))
+    return await new Promise((resolve, reject) => {
+      ws.onerror = (err: string) => reject(new Error(`connecting server: ${err}`))
       ws.onopen = () => resolve(ws)
     })
   }
@@ -155,7 +156,7 @@ export class DecentralizedClient extends Client {
   //
   // if initiator is true, we start the connection on our side
   // see SimplePeer.Options.initiator for more info
-  connectNewPeer (peerID: PeerID, initiator: boolean): SimplePeer.Instance {
+  private connectNewPeer (peerID: PeerID, initiator: boolean): SimplePeer.Instance {
     console.debug('connect new peer with initiator:', initiator)
 
     const peer = new SimplePeer({
@@ -171,7 +172,7 @@ export class DecentralizedClient extends Client {
       }
     })
 
-    peer.on('signal', (signal) => {
+    peer.on('signal', (signal: unknown) => {
       console.debug('local', peerID, 'is signaling', signal)
 
       if (this.server === undefined) {
@@ -185,14 +186,14 @@ export class DecentralizedClient extends Client {
     peer.on('data', (data) => {
       const message = msgpack.decode(data)
       if (!isPeerMessage(message)) {
-        throw new Error(`invalid message received from ${peer}`)
+        throw new Error(`invalid message received from ${peerID}`)
       }
       const weights = serialization.decodeWeights(message.weights)
 
       console.debug('peer', peerID, 'sent weights', weights)
 
       if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
-        throw new Error(`weights from ${peer} already received`)
+        throw new Error(`weights from ${peerID} already received`)
       }
       this.weights.set(peer,
         this.weights.get(peer, List<Weights>())
@@ -210,7 +211,7 @@ export class DecentralizedClient extends Client {
   /**
    * Initialize the connection to the peers and to the other nodes.
    */
-  async connect () {
+  async connect (): Promise<void> {
     // TODO move to args
     const serverURL = new URL(this.serverURL)
 
@@ -220,7 +221,7 @@ export class DecentralizedClient extends Client {
   /**
    * Disconnection process when user quits the task.
    */
-  async disconnect () {
+  async disconnect (): Promise<void> {
     this.peers.forEach((peer) => peer.destroy())
     this.peers = Map()
 
@@ -246,7 +247,7 @@ export class DecentralizedClient extends Client {
       })
 
     // get weights from the others
-    const getWeights = () =>
+    const getWeights = (): Seq.Indexed<Weights | undefined> =>
       this.weights
         .valueSeq()
         .map((epochesWeights) => epochesWeights.get(epoch))
@@ -275,7 +276,7 @@ export class DecentralizedClient extends Client {
 
     const receivedWeights = getWeights()
       .filter((weights) => weights !== undefined)
-      .toSet()
+      .toSet() as Set<Weights>
 
     // average weights
     trainingInformant.addMessage('Averaging weights')

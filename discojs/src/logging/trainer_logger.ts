@@ -1,6 +1,7 @@
-import { ConsoleLogger } from 'discojs'
 import * as tf from '@tensorflow/tfjs'
 import { List } from 'immutable'
+
+import { ConsoleLogger } from '.'
 
 export class TrainerLog {
   epochs: List<number> = List()
@@ -8,11 +9,13 @@ export class TrainerLog {
   validationAccuracy: List<number> = List()
   loss: List<number> = List()
 
-  add (epoch: number, logs: tf.Logs): void {
+  add (epoch: number, logs?: tf.Logs): void {
     this.epochs = this.epochs.push(epoch)
-    this.trainAccuracy = this.trainAccuracy.push(logs.acc)
-    this.validationAccuracy = this.validationAccuracy.push(logs.val_acc)
-    this.loss = this.loss.push(logs.loss)
+    if (logs !== undefined) {
+      this.trainAccuracy = this.trainAccuracy.push(logs.acc)
+      this.validationAccuracy = this.validationAccuracy.push(logs.val_acc)
+      this.loss = this.loss.push(logs.loss)
+    }
   }
 }
 
@@ -31,18 +34,15 @@ export class TrainerLogger extends ConsoleLogger {
     this.log = new TrainerLog()
   }
 
-  onBatchEnd (batch: number, logs: tf.Logs): void {
-    // logs.val_acc is not available on batch end
-  }
-
-  onEpochEnd (epoch: number, logs: tf.Logs): void {
+  onEpochEnd (epoch: number, logs?: tf.Logs): void {
     // save logs
     if (this.saveTrainerLog) {
       this.log.add(epoch, logs)
     }
+
     // console output
-    const msg = `Train:${logs.acc}\nValidation:${logs.val_acc}\nLoss:${logs.loss}`
-    this.success(`On epoch end accuracy:\n${msg}`)
+    const msg = `Train: ${logs?.acc ?? 'undefined'}\nValidation:${logs?.val_acc ?? 'undefined'}\nLoss:${logs?.loss ?? 'undefined'}`
+    this.success(`On epoch end:\n${msg}`)
   }
 
   /**

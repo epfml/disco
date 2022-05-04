@@ -51,6 +51,7 @@
     "eslint-plugin-promise": "5",
     "mocha": "9",
     "nodemon": "2",
+    "rand-seed": "^1.0.1",
     "supertest": "6",
     "ts-node": "10",
     "ts-node-register": "1",
