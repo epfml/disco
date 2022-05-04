@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import * as api from '../src/communication/federated/federated_api'
+import * as api from './federated_api'
 
 const task = 'titanic'
 const user = 'a'

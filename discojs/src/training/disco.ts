@@ -1,6 +1,6 @@
-import { TrainingInformant, Client, Task, Logger, dataset, TrainingSchemes } from 'discojs'
+import { Memory } from '@/memory'
+import { TrainingInformant, Client, Task, Logger, dataset, TrainingSchemes } from '..'
 
-import { getClient } from '../communication/client_builder'
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
 
@@ -8,48 +8,27 @@ import { TrainerBuilder } from './trainer/trainer_builder'
  * Handles the training loop, server communication & provides the user with feedback.
  */
 export class Disco {
-  task: Task
-  client: Client
-  trainer: Trainer
-  logger: Logger
   trainingInformant: TrainingInformant
   isConnected: boolean
   distributedTraining: boolean
-  trainingScheme: TrainingSchemes
-  taskDefinedTrainingScheme : TrainingSchemes
-  useIndexedDB: boolean
+  taskDefinedTrainingScheme: TrainingSchemes
 
-  constructor (task: Task, logger: Logger, useIndexedDB: boolean) {
-    this.task = task
-    this.logger = logger
+  // cached trainer
+  private readonly trainer: Trainer | undefined
+
+  constructor (
+    public readonly task: Task,
+    public readonly logger: Logger,
+    public readonly memory: Memory,
+    public readonly client: Client
+  ) {
     this.isConnected = false
     this.distributedTraining = false
-    this.useIndexedDB = useIndexedDB
 
-    this.client = undefined
-    this.trainingScheme = undefined
-    this.taskDefinedTrainingScheme = this.task.trainingInformation.scheme === 'Federated'
+    this.taskDefinedTrainingScheme = this.task.trainingInformation?.scheme === 'Federated'
       ? TrainingSchemes.FEDERATED
       : TrainingSchemes.DECENTRALIZED
     this.trainingInformant = new TrainingInformant(10, this.task.taskID, this.taskDefinedTrainingScheme)
-  }
-
-  /**
-   * Initialize the client depending on the trainingType Chosen
-   */
-  private async initOrUpdateClient (trainingScheme : TrainingSchemes) {
-    if (trainingScheme === TrainingSchemes.LOCAL) {
-      this.client = undefined
-      this.trainingScheme = trainingScheme
-    } else if (this.client === undefined || trainingScheme !== this.trainingScheme) {
-      this.client = getClient(
-        trainingScheme,
-        this.task,
-        undefined // TODO: this.$store.getters.password(this.id)
-      )
-      this.trainingScheme = trainingScheme
-      console.log('Initialized client ' + trainingScheme)
-    }
   }
 
   /**
@@ -63,7 +42,7 @@ export class Disco {
       )
       this.isConnected = true
     } catch (err) {
-      console.log(`connect server: ${err}`)
+      console.log('connect server', err)
       this.logger.error(
         'Failed to connect to server. Fallback to training alone.'
       )
@@ -74,7 +53,7 @@ export class Disco {
   /**
    * Disconnects the client from the server
    */
-  private async disconnect () {
+  private async disconnect (): Promise<void> {
     await this.client.disconnect()
     this.isConnected = false
   }
@@ -83,14 +62,14 @@ export class Disco {
    * Runs training according to the scheme defined in the Task's trainingInformation.
    * If default scheme is Decentralized for now, if nothing is specified.
    */
-  async startTaskDefinedTraining (data: dataset.Data) {
+  async startTaskDefinedTraining (data: dataset.Data): Promise<void> {
     await this.startTraining(data, this.taskDefinedTrainingScheme)
   }
 
   /**
    * Runs training using Local Scheme
    */
-  async startLocalTraining (data: dataset.Data) {
+  async startLocalTraining (data: dataset.Data): Promise<void> {
     await this.startTraining(data, TrainingSchemes.LOCAL)
   }
 
@@ -99,8 +78,6 @@ export class Disco {
    * @param distributed Whether to train in a distributed or local fashion
    */
   async startTraining (data: dataset.Data, trainingScheme: TrainingSchemes): Promise<void> {
-    await this.initOrUpdateClient(trainingScheme)
-
     if (data.size === 0) {
       this.logger.error('Training aborted. No uploaded file given as input.')
       throw new Error('No data in dataset')
@@ -122,15 +99,15 @@ export class Disco {
     )
 
     // TODO: dataset.size = null, since we build it with an iterator (issues occurs with ImageLoader) see issue 279
-    await this.initTrainer()
-    await this.trainer.trainModel(data.dataset)
+    const trainer = await this.getTrainer()
+    await trainer.trainModel(data.dataset)
   }
 
   /**
    * Stops the training function and disconnects from
    */
-  async stopTraining () {
-    this.trainer.stopTraining()
+  async stopTraining (): Promise<void> {
+    await (await this.getTrainer()).stopTraining()
     if (this.isConnected) {
       await this.disconnect()
     }
@@ -140,9 +117,13 @@ export class Disco {
   /**
    * Build the appropriate training class (either local or distributed)
    */
-  private async initTrainer () {
-    const trainerBuilder = new TrainerBuilder(this.useIndexedDB, this.task, this.trainingInformant)
-    this.trainer = await trainerBuilder.build(
+  private async getTrainer (): Promise<Trainer> {
+    if (this.trainer !== undefined) {
+      return this.trainer
+    }
+
+    const trainerBuilder = new TrainerBuilder(this.memory, this.task, this.trainingInformant)
+    return await trainerBuilder.build(
       this.client,
       this.distributedTraining
     )

@@ -1,10 +1,11 @@
 import { expect } from 'chai'
+import * as tf from '@tensorflow/tfjs'
 import * as tfNode from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import _ from 'lodash'
 
-import { dataset } from 'discojs'
-import { loadTasks } from '../../../src/tasks'
+import { dataset } from '../../../src'
+import { loadTasks } from './tasks'
 
 export class NodeImageLoader extends dataset.ImageLoader<string> {
   async readImageFrom (source: string): Promise<tfNode.Tensor3D> {
@@ -18,7 +19,9 @@ describe('image loader test', () => {
     const mnist = (await loadTasks())[1]
     const singletonDataset = await new NodeImageLoader(mnist).load(file)
     const imageContent = tfNode.node.decodeImage(fs.readFileSync(file))
-    singletonDataset.forEachAsync((entry) => expect(entry).eql(imageContent))
+    await Promise.all((await singletonDataset.toArrayForTest()).map(async (entry) => {
+      expect(await imageContent.bytes()).eql(await (entry as tf.Tensor).bytes())
+    }))
   })
 
   it('load multiple cifar10 samples without labels', async () => {
@@ -55,8 +58,15 @@ describe('image loader test', () => {
     expect(datasetContent.length).equal(imagesContent.length)
     _.forEach(
       _.zip(datasetContent, imagesContent, oneHotLabels as any), ([actual, sample, label]) => {
-        expect((actual as any).xs.shape).eql(sample.shape)
-        expect((actual as any).ys).eql(label)
+        if (
+          typeof actual !== 'object' ||
+          !('xs' in actual && 'ys' in actual)
+        ) {
+          throw new Error('unexpected type')
+        }
+        const { xs, ys } = actual as { xs: tf.Tensor, ys: number[] }
+        expect(xs.shape).eql(sample?.shape)
+        expect(ys).eql(label)
       }
     )
   })

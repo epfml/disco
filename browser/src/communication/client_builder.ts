@@ -1,7 +1,4 @@
-import { Client, Task, TrainingSchemes } from 'discojs'
-
-import { DecentralizedClient } from './decentralized_client'
-import { FederatedClient } from './federated/federated_client'
+import { Client, Task, TrainingSchemes, DecentralizedClient, FederatedClient } from 'discojs'
 
 export function getClient (trainingScheme: TrainingSchemes, task: Task, password?: string): Client {
   switch (trainingScheme) {

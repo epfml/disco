@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { RoundTracker } from '../../src/training/trainer/round_tracker'
+import { RoundTracker } from './round_tracker'
 
 const roundDuration = 2
 

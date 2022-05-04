@@ -89,11 +89,13 @@
     </template>
   </tippy-container>
 </template>
-<script>
+<script lang="ts">
 import * as tf from '@tensorflow/tfjs'
 import { mapState } from 'vuex'
 
-import * as memory from '../../memory.ts'
+import { Memory, EmptyMemory } from 'discojs'
+
+import { IndexedDB } from '../../memory'
 import Bin2Icon from '../../assets/svg/Bin2Icon.vue'
 import Download2Icon from '../../assets/svg/Download2Icon.vue'
 import LoadIcon from '../../assets/svg/LoadIcon.vue'
@@ -118,6 +120,9 @@ export default {
     }
   },
   computed: {
+    memory (): Memory {
+      return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+    },
     ...mapState(['useIndexedDB', 'isDark'])
   },
   mounted () {
@@ -178,7 +183,7 @@ export default {
     deleteModel (savePath) {
       const modelMetadata = this.modelMap.get(savePath)
       this.modelMap.delete(savePath)
-      memory.deleteSavedModel(modelMetadata.taskID, modelMetadata.modelName)
+      this.memory.deleteSavedModel(modelMetadata.taskID, modelMetadata.modelName)
     },
 
     openTesting (modelMetadata) {
@@ -186,11 +191,11 @@ export default {
     },
 
     downloadModel (modelMetadata) {
-      memory.downloadSavedModel(modelMetadata.taskID, modelMetadata.modelName)
+      this.memory.downloadSavedModel(modelMetadata.taskID, modelMetadata.modelName)
     },
 
     async loadModel (modelMetadata) {
-      await memory.loadSavedModel(
+      await this.memory.loadSavedModel(
         modelMetadata.taskID,
         modelMetadata.modelName
       )

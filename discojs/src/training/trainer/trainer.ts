@@ -1,9 +1,9 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { Task, TrainingInformation, TrainingInformant } from 'discojs'
+import { Memory, Task, TrainingInformant, TrainingInformation } from '@/.'
 
 import { RoundTracker } from './round_tracker'
-import { TrainerLogger, TrainerLog } from './trainer_logger'
+import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally or in a distributed way. The Trainer works as follows:
@@ -15,28 +15,32 @@ import { TrainerLogger, TrainerLog } from './trainer_logger'
  * a round has ended we use the roundTracker object.
  */
 export abstract class Trainer {
-  task: Task;
-  trainingInformant: TrainingInformant;
-  useIndexedDB: boolean;
-  stopTrainingRequested: boolean = false;
-  model: tf.LayersModel;
-  roundTracker: RoundTracker;
-  trainerLogger: TrainerLogger;
-  trainingInformation: TrainingInformation;
+  public readonly trainingInformation: TrainingInformation
+  public readonly roundTracker: RoundTracker
+
+  private stopTrainingRequested = false
+  private readonly trainerLogger: TrainerLogger
 
   /**
    * Constructs the training manager.
-   * @param {Task} task the trained task
-   * @param {TrainingInformant} trainingInformant the training informant
-   * @param {boolean} useIndexedDB use IndexedDB (browser only)
+   * @param task the trained task
+   * @param trainingInformant the training informant
    */
-  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, model: tf.LayersModel) {
-    this.task = task
-    this.trainingInformant = trainingInformant
-    this.useIndexedDB = useIndexedDB
-    this.model = model
+  constructor (
+    public readonly task: Task,
+    public readonly trainingInformant: TrainingInformant,
+    public readonly memory: Memory,
+    public readonly model: tf.LayersModel
+  ) {
     this.trainerLogger = new TrainerLogger()
-    this.trainingInformation = this.task.trainingInformation
+
+    const trainingInformation = task.trainingInformation
+    if (trainingInformation === undefined) {
+      throw new Error('round duration is undefined')
+    }
+    this.trainingInformation = trainingInformation
+
+    this.roundTracker = new RoundTracker(trainingInformation.roundDuration)
   }
 
   //* ***************************************************************
@@ -58,54 +62,26 @@ export abstract class Trainer {
   //* ***************************************************************
 
   /**
-   * Setter called by the UI to update the IndexedDB status midway through
-   * training.
-   * @param {Boolean} useIndexedDB whether or not to use IndexedDB
-   */
-  setIndexedDB (useIndexedDB: boolean) {
-    this.useIndexedDB = useIndexedDB
-  }
-
-  /**
    * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
    */
-  stopTraining () {
+  async stopTraining (): Promise<void> {
     this.stopTrainingRequested = true
-  }
-
-  /**
-   * Build a round tracker, this keeps track of what round a training environment is currently on.
-   *
-   * @param trainSize number of samples in the training set
-   * @returns
-   */
-  private initRoundTracker () {
-    const roundDuration = this.task.trainingInformation.roundDuration
-    this.roundTracker = new RoundTracker(roundDuration)
   }
 
   /**
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>) {
-    // Init round tracker - requires size info
-    this.initRoundTracker()
-
-    // Reset stopTraining setting
+  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>): Promise<void> {
     this.resetStopTrainerState()
 
     // Assign callbacks and start training
-    await this.model.fitDataset(dataset.batch(this.task.trainingInformation.batchSize), {
+    await this.model.fitDataset(dataset.batch(this.trainingInformation.batchSize), {
       epochs: this.trainingInformation.epochs,
-      validationData: dataset.batch(this.task.trainingInformation.batchSize),
+      validationData: dataset.batch(this.trainingInformation.batchSize),
       callbacks: {
-        onEpochEnd: async (epoch, logs) => {
-          this.onEpochEnd(epoch, logs)
-        },
-        onBatchEnd: async (batch, logs) => {
-          await this.onBatchEnd(batch, logs)
-        }
+        onEpochEnd: (epoch, logs) => this.onEpochEnd(epoch, logs),
+        onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs)
       }
     })
   }
@@ -120,9 +96,10 @@ export abstract class Trainer {
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
-  private onEpochEnd (epoch: number, logs: tf.Logs) {
-    if (!isNaN(logs.acc) && !isNaN(logs.val_acc)) {
-      this.trainerLogger.onEpochEnd(epoch, logs)
+  private onEpochEnd (epoch: number, logs?: tf.Logs): void {
+    this.trainerLogger.onEpochEnd(epoch, logs)
+
+    if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
       this.trainingInformant.updateTrainingAccuracyGraph(this.roundDecimals(logs.acc))
       this.trainingInformant.updateValidationAccuracyGraph(this.roundDecimals(logs.val_acc))
     } else {
@@ -132,8 +109,11 @@ export abstract class Trainer {
 
   /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
    */
-  private async onBatchEnd (batch: number, logs: tf.Logs) {
-    this.trainerLogger.onBatchEnd(batch, logs)
+  private async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
+    if (logs === undefined) {
+      return
+    }
+
     this.roundTracker.updateBatch()
     this.stopTrainModelIfRequested()
 
@@ -145,7 +125,7 @@ export abstract class Trainer {
   /**
    * reset stop training state
    */
-  private resetStopTrainerState () {
+  private resetStopTrainerState (): void {
     this.model.stopTraining = false
     this.stopTrainingRequested = false
   }
@@ -153,7 +133,7 @@ export abstract class Trainer {
   /**
    * If stop training is requested, do so
    */
-  private stopTrainModelIfRequested () {
+  private stopTrainModelIfRequested (): void {
     if (this.stopTrainingRequested) {
       this.model.stopTraining = true
       this.stopTrainingRequested = false

@@ -4,13 +4,10 @@ import { Task } from '@/task'
 import { TrainingInformant } from '@/training_informant'
 
 export abstract class Client {
-  serverURL: string
-  task: Task
-
-  constructor (serverURL: string, task: Task) {
-    this.serverURL = serverURL
-    this.task = task
-  }
+  constructor (
+    public readonly serverURL: string,
+    public readonly task: Task
+  ) {}
 
   /**
    * Handles the connection process from the client to any sort of

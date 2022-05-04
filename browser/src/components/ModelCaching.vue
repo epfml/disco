@@ -153,14 +153,15 @@
 </template>
 
 <script lang="ts">
-import * as memory from '@/memory'
+import { mapState } from 'vuex'
+
+import { EmptyMemory, Memory, Task } from 'discojs'
+
+import { IndexedDB } from '@/memory'
 import { getLatestModel } from '@/tasks'
 import Clock from '@/assets/svg/Clock.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
-
-import { mapState } from 'vuex'
-import { Task } from 'discojs'
 
 export default {
   name: 'DescriptionFrame',
@@ -199,6 +200,9 @@ export default {
         !this.isModelCreated &&
           !(this.workingModelExists && this.useWorkingModel)
       )
+    },
+    memory (): Memory {
+      return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     }
   },
   watch: {
@@ -227,7 +231,7 @@ export default {
        * feature.
        */
       if (this.useIndexedDB) {
-        const workingModelMetadata = await memory.getWorkingModelMetadata(
+        const workingModelMetadata = await this.memory.getWorkingModelMetadata(
           this.task.taskID,
           this.task.trainingInformation.modelID
         )
@@ -256,7 +260,7 @@ export default {
      */
     async deleteModel (): Promise<void> {
       this.workingModelExists = false
-      await memory.deleteWorkingModel(
+      await this.memory.deleteWorkingModel(
         this.task.taskID,
         this.task.trainingInformation.modelID
       )
@@ -269,7 +273,7 @@ export default {
      * Save the current working model to IndexedDB
      */
     async saveModel () {
-      await memory.saveWorkingModel(
+      await this.memory.saveWorkingModel(
         this.task.taskID,
         this.task.trainingInformation.modelID
       )
@@ -289,7 +293,7 @@ export default {
      */
     async loadFreshModel () {
       await getLatestModel(this.task.taskID).then((freshModel) => {
-        memory.updateWorkingModel(
+        this.memory.updateWorkingModel(
           this.task.taskID,
           this.task.trainingInformation.modelID,
           freshModel

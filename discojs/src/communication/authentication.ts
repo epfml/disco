@@ -1,6 +1,5 @@
-const Hashes = require('jshashes')
-
-export function makeID (length) {
+// TODO not cryptographically secure
+export function makeID (length: number): string {
   let result = ''
   const characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -9,8 +8,4 @@ export function makeID (length) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength))
   }
   return result
-}
-
-export function authenticate (hash, username, password) {
-  return new Hashes.SHA256().hex(username + ' ' + password) === hash
 }
