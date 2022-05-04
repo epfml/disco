@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-1 h-screen overflow-y-scroll">
+  <div class="flex flex-1 h-screen overflow-y-auto">
     <!-- Main Page Header -->
     <main :class="`${override ? '' : 'flex-1'} ${customClass}`">
       <div
@@ -9,9 +9,6 @@
           items-right
           justify-start
           flex-1
-          h-full
-          min-h-screen
-          overflow-y-auto
         "
       >
         <section
@@ -24,13 +21,13 @@
       </div>
 
       <!-- Main Page Footer-->
-      <custom-footer />
+      <CustomFooter />
     </main>
   </div>
 </template>
 
-<script>
-import CustomFooter from '../simple/CustomFooter.vue'
+<script lang="ts">
+import CustomFooter from '@/components/simple/CustomFooter.vue'
 
 export default {
   name: 'BaseLayout',
