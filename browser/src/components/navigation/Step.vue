@@ -1,21 +1,28 @@
 <template>
   <div>
-    <div class="flex items-center justify-center p-4">
-      <CustomButton
-        :center="true"
-        @click="prevStep"
+    <div class="grid grid-cols-2 p-4">
+      <div
+        v-if="prev"
+        class="text-right p-4"
       >
-        Previous Step
-      </CustomButton>
-      <CustomButton
-        v-show="stepCompleted"
-        :center="true"
-        @click="nextStep"
+        <CustomButton
+          @click="prevStep"
+        >
+          Previous
+        </CustomButton>
+      </div>
+      <div
+        v-if="next"
+        class="text-left p-4"
       >
-        Next Step
-      </CustomButton>
+        <CustomButton
+          @click="nextStep"
+        >
+          Next
+        </CustomButton>
+      </div>
     </div>
-    <slot @completed="markStepAsReady" />
+    <slot />
   </div>
 </template>
 
@@ -24,28 +31,22 @@ import CustomButton from '@/components/simple/CustomButton.vue'
 
 /**
  * TODO:
- * Add slot event "step-completed" to allow for the nextStep button to be displayed
+ * Add slot event "step-completed" to conditionally display the nextStep button.
+ * Otherwise, use a single Step component (without slot) in Navgation.
  */
-
 export default {
   name: 'Step',
   components: {
     CustomButton
   },
   props: {
-    bornReady: {
+    prev: {
       type: Boolean,
-      default: false
-    }
-  },
-  data () {
-    return {
-      markedReady: false
-    }
-  },
-  computed: {
-    stepCompleted (): boolean {
-      return this.bornReady || this.markedReady
+      default: true
+    },
+    next: {
+      type: Boolean,
+      default: true
     }
   },
   methods: {
@@ -54,9 +55,6 @@ export default {
     },
     prevStep (): void {
       this.$emit('prev-step')
-    },
-    markStepAsReady (): void {
-      this.markedReady = true
     }
   }
 }

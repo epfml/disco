@@ -22,8 +22,10 @@
             <FileSelection
               :id="id"
               :preview="preview"
+              :allowed="allowed"
               @input="addFiles($event, label)"
               @clear="clearFiles(label)"
+              @fail="fail()"
             />
           </div>
         </div>
@@ -31,8 +33,10 @@
           <FileSelection
             :id="id"
             :preview="preview"
+            :allowd="allowed"
             @input="addFiles($event)"
             @clear="clearFiles()"
+            @fail="fail()"
           />
         </div>
       </div>
@@ -75,28 +79,14 @@ export default {
     },
     requireLabels (): boolean {
       return this.task.trainingInformation.LABEL_LIST !== undefined
-    },
-    completed (): boolean {
-      return this.datasetBuilder.size() > 0
-    }
-  },
-  watch: {
-    completed (newValue): void {
-      if (newValue) {
-        this.$emit('completed')
-      }
     }
   },
   methods: {
     addFiles (files: FileList, label?: string) {
-      if (!this.datasetBuilder.isBuilt()) {
-        this.datasetBuilder.addFiles(Array.from(files), label)
-      }
+      this.$emit('add-files', files, label)
     },
     clearFiles (label?: string) {
-      if (!this.datasetBuilder.isBuilt()) {
-        this.datasetBuilder.clearFiles(label)
-      }
+      this.$emit('clear-files', label)
     }
   }
 }

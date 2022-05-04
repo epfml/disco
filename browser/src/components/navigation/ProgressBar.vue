@@ -59,15 +59,19 @@
               :class="isActive(1) ? 'text-white' : 'text-gray-700'"
             >
               <svg
-                class="w-full fill-current"
                 xmlns="http://www.w3.org/2000/svg"
+                class="w-full fill-current"
+                fill="none"
                 viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
                 width="24"
                 height="24"
               >
                 <path
-                  class="heroicon-ui"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
             </span>
@@ -75,7 +79,7 @@
         </div>
         <!-- Text -->
         <div class="text-xs text-center md:text-base">
-          Connect Data
+          Description
         </div>
       </div>
       <!-- Step 3 -->
@@ -119,7 +123,7 @@
         </div>
         <!-- Text -->
         <div class="text-xs text-center md:text-base">
-          Train Your Model
+          Connect Your Data
         </div>
       </div>
       <!-- Step 4 -->
@@ -155,7 +159,7 @@
               >
                 <path
                   class="heroicon-ui"
-                  d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-2.3-8.7l1.3 1.29 3.3-3.3a1 1 0 0 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-2-2a1 1 0 0 1 1.4-1.42z"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
             </span>
@@ -163,7 +167,7 @@
         </div>
         <!-- Text -->
         <div class="text-xs text-center md:text-base">
-          Finished
+          Train Your Task
         </div>
       </div>
       <!-- Step 5 -->
