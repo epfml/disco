@@ -1,7 +1,7 @@
 <template>
-  <base-layout custom-class="pt-4">
+  <BaseLayout custom-class="pt-4">
     <!-- Welcoming words -->
-    <custom-header />
+    <CustomHeader />
     <!-- Information sections -->
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
@@ -9,7 +9,7 @@
           v-for="build in $tm('home.buildCard')"
           :key="build.header.text"
         >
-          <title-card
+          <TitleCard
             :title="build.header.text"
             :title-underlined="build.header.underlined"
           >
@@ -19,27 +19,27 @@
             >
               <p v-html="`- ${item}`" />
             </div>
-          </title-card>
+          </TitleCard>
         </div>
       </div>
     </section>
 
     <!-- TODO: This section is not algined with the top, not sure why -->
     <div class="flex flex-row items-start pl-10">
-      <custom-button @click="goToTaskList()">
+      <CustomButton @click="goToTaskList()">
         {{ $t('home.startBuildingButtonText') }}
-      </custom-button>
+      </CustomButton>
     </div>
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <!-- Decentralised insight -->
       <div class="grid gap-8 p-4 sm:grid-cols-2">
         <div class="flex flex-col items-center mx-auto">
-          <title-card
+          <TitleCard
             title="Insights: "
             :title-underlined="$t('home.images.decentralised.title')"
           >
             <div class="flex justify-center my-md">
-              <decentralized-image class="sm:w-full md:w-3/5" />
+              <DecentralizedImage class="sm:w-full md:w-3/5" />
             </div>
             <div>
               <span class="text-primary-dark dark:text-primary-light">{{
@@ -47,16 +47,16 @@
               }}</span>
               {{ $t('home.images.decentralised.text') }}
             </div>
-          </title-card>
+          </TitleCard>
         </div>
         <!-- Federated insight -->
         <div class="flex flex-col items-center mx-auto">
-          <title-card
+          <TitleCard
             title="Insights: "
             :title-underlined="$t('home.images.federated.title')"
           >
             <div class="flex justify-center my-md">
-              <federated-image class="sm:w-full md:w-3/5" />
+              <FederatedImage class="sm:w-full md:w-3/5" />
             </div>
             <div>
               <span class="text-primary-dark dark:text-primary-light">{{
@@ -64,7 +64,7 @@
               }}</span>
               {{ $t('home.images.federated.text') }}
             </div>
-          </title-card>
+          </TitleCard>
         </div>
       </div>
     </section>
@@ -75,7 +75,7 @@
           v-for="task in $tm('home.taskCard')"
           :key="task.header.text"
         >
-          <title-card
+          <TitleCard
             :title="task.header.text"
             :title-underlined="task.header.underlined"
           >
@@ -85,17 +85,17 @@
             >
               <p v-html="`- ${item}`" />
             </div>
-          </title-card>
+          </TitleCard>
         </div>
 
         <div class="pt-4">
-          <custom-button @click="goToNewTaskCreationForm()">
+          <CustomButton @click="goToNewTaskCreationForm()">
             {{ $t('home.createTaskButtonText') }}
-          </custom-button>
+          </CustomButton>
         </div>
       </div>
     </section>
-  </base-layout>
+  </BaseLayout>
 </template>
 
 <script lang="ts">
