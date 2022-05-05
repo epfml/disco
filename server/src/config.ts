@@ -2,6 +2,8 @@ import { Path, TaskID } from 'discojs'
 import path from 'path'
 
 export class Config {
+  public readonly serverUrl: URL
+
   constructor (
     // File system saving scheme (URL-like).
     public readonly savingScheme: string,
@@ -15,7 +17,11 @@ export class Config {
 
     // port to bind the server to
     public readonly serverPort: number
-  ) {}
+  ) {
+    const url = new URL('http://localhost')
+    url.port = `${serverPort}`
+    this.serverUrl = url
+  }
 
   // Directory for the given task
   public modelDir (taskID: TaskID): Path {
@@ -33,12 +39,12 @@ export class Config {
   }
 }
 
-const ROOT_DIR = path.join(__filename, '..', '..')
+const ROOT_DIR = path.join(__filename, '..', '..', '..')
 
 export const CONFIG = new Config(
   'file://',
-  path.join(ROOT_DIR, 'tasks'),
-  path.join(ROOT_DIR, 'tasks', 'tasks.json'),
-  path.join(ROOT_DIR, 'models'),
+  path.join(ROOT_DIR, 'discojs', 'tasks'),
+  path.join(ROOT_DIR, 'discojs', 'tasks', 'tasks.json'),
+  path.join(ROOT_DIR, 'server', 'models'),
   8080
 )
