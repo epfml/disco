@@ -4,11 +4,11 @@
     <div class="flex">
       <!-- Step 1 -->
       <div class="w-1/5">
-        <div class="relative mb-2">
+        <div class="relative mb-4">
           <!-- Icon -->
           <div
             class="w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
-            :class="isActive(0) ? 'bg-green-500' : 'bg-white border-2 border-gray-200'"
+            :class="isActive(0) ? 'bg-disco-cyan' : 'bg-white border-2 border-gray-200'"
           >
             <span
               class="text-center w-full"
@@ -36,7 +36,7 @@
       </div>
       <!-- Step 2 -->
       <div class="w-1/5">
-        <div class="relative mb-2">
+        <div class="relative mb-4">
           <!-- Horizontal Line --->
           <div
             class="absolute flex align-center items-center align-middle content-center"
@@ -52,7 +52,7 @@
           <!-- Icon -->
           <div
             class="w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
-            :class="isActive(1) ? 'bg-green-500' : 'bg-white border-2 border-gray-200'"
+            :class="isActive(1) ? 'bg-disco-cyan' : 'bg-white border-2 border-gray-200'"
           >
             <span
               class="text-center w-full"
@@ -84,7 +84,7 @@
       </div>
       <!-- Step 3 -->
       <div class="w-1/5">
-        <div class="relative mb-2">
+        <div class="relative mb-3">
           <!-- Horizontal Line -->
           <div
             class="absolute flex align-center items-center align-middle content-center"
@@ -100,7 +100,7 @@
           <!-- Icon -->
           <div
             class="w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
-            :class="isActive(2) ? 'bg-green-500' : 'bg-white border-2 border-gray-200'"
+            :class="isActive(2) ? 'bg-disco-cyan' : 'bg-white border-2 border-gray-200'"
           >
             <span
               class="text-center w-full"
@@ -144,7 +144,7 @@
           <!-- Icon -->
           <div
             class="w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
-            :class="isActive(3) ? 'bg-green-500' : 'bg-white border-2 border-gray-200'"
+            :class="isActive(3) ? 'bg-disco-cyan' : 'bg-white border-2 border-gray-200'"
           >
             <span
               class="text-center w-full"
@@ -188,7 +188,7 @@
           <!-- Icon -->
           <div
             class="w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
-            :class="isActive(4) ? 'bg-green-500' : 'bg-white border-2 border-gray-200'"
+            :class="isActive(4) ? 'bg-disco-cyan' : 'bg-white border-2 border-gray-200'"
           >
             <span
               class="text-center w-full"
