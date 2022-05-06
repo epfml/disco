@@ -1,11 +1,14 @@
 module.exports = {
   content: ['./public/**/*.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
+    fontFamily: {
+      sans: ['cairo', 'sans-serif']
+    },
     extend: {
       colors: {
         disco: {
-          blue: '#6096BA',
-          cyan: '#274C78'
+          cyan: '#6096BA',
+          blue: '#274C78'
         }
       }
     }

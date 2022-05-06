@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-screen overflow-y-auto">
+  <div class="flex flex-col h-screen overflow-y-auto m-8">
     <main
       class="mb-auto"
       :class="customClass"
