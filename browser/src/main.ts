@@ -14,7 +14,7 @@ import '@/assets/css/styles.css'
   process.env.NODE_ENV === 'development' &&
   process.env.DEV_TOOLS === 'enabled'
 ) {
-  devtools.connect('http://localhost', 8081);
+  devtools.connect('http://localhost', 8080);
 } */
 // create vue app
 const app = createApp(App)
