@@ -12,10 +12,10 @@
         class="group"
       >
         <TitleCard :title="task.displayInformation.taskTitle">
-          <ul class="text-base ont-semibold text-slate-500 dark:text-light">
+          <ul class="text-base ont-semibold text-slate-500 dark:text-light py-3">
             <span v-html="task.displayInformation.summary" />
           </ul>
-          <div class="pt-3">
+          <div class="pt-2">
             <CustomButton
               @click="goToSelection(task.taskID)"
             >

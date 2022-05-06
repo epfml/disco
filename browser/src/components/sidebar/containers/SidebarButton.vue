@@ -5,20 +5,16 @@
     data-placement="right"
     class="
       p-2
-      transition-colors
       duration-200
       rounded-full
-      bg-primary-50
-      text-primary-lighter
-      hover:text-primary
-      hover:bg-primary-100
-      dark:hover:text-light
-      dark:hover:bg-primary-dark
-      dark:bg-dark
-      focus:outline-none
-      focus:bg-primary-100
-      dark:focus:bg-primary-dark
-      focus:ring-primary-darker
+      hover:outline
+      hover:outline-2
+      hover:outline-disco-blue
+      hover:text-disco-blue
+      hover:bg-white
+      text-white
+      bg-disco-blue
+      outline-none
     "
     @click="click()"
   >

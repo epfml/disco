@@ -19,10 +19,10 @@ export default {
   name: 'InfoIcon',
   props: {
     customClass: {
-      default: 'bi bi-info-circlew-7 h-7',
+      default: 'bi bi-info-circle w-7 h-7',
       type: String
     },
-    viewBox: { default: '0 0 16 16', type: String }
+    viewBox: { default: '-1 -1 18 18', type: String }
   }
 }
 </script>
