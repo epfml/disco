@@ -79,7 +79,7 @@ export class SignalingServer {
         const forwardMsg: PeerMessage = [peerID, peerMessage[1]]
         peerToSendTo.send(msgpack.encode(forwardMsg), { binary: true })
       } catch (e) {
-        console.error(`when processing WebSocket message: ${e}`)
+        console.error('when processing WebSocket message', e)
       }
     })
   }

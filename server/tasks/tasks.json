@@ -41,7 +41,7 @@
     "trainingInformation": {
       "modelID": "titanic-model",
       "epochs": 20,
-      "roundDuration": 1,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 30,
       "preprocessFunctions": [],
@@ -62,7 +62,8 @@
       ],
       "outputColumns": [
         "Survived"
-      ]
+      ],
+      "scheme": "Federated"
     }
   },
   {
@@ -80,7 +81,7 @@
     "trainingInformation": {
       "modelID": "mnist-model",
       "epochs": 10,
-      "roundDuration": 5,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 30,
       "modelCompileData": {
@@ -95,7 +96,8 @@
       "IMAGE_W": 28,
       "preprocessFunctions": [],
       "LABEL_LIST": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-      "aggregateImagesById": false
+      "aggregateImagesById": false,
+      "scheme": "Decentralized"
     }
   },
   {
@@ -113,7 +115,7 @@
     "trainingInformation": {
       "modelID": "lus-covid-model",
       "epochs": 15,
-      "roundDuration": 5,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 2,
       "modelCompileData": {
@@ -129,7 +131,8 @@
       "LABEL_LIST": ["COVID-Positive", "COVID-Negative"],
       "NUM_CLASSES": 2,
       "dataType": "image",
-      "aggregateImagesById": true
+      "aggregateImagesById": true,
+      "scheme": "Decentralized"
     }
   },
   {
@@ -147,7 +150,7 @@
     "trainingInformation": {
       "modelID": "cifar10-model",
       "epochs": 10,
-      "roundDuration": 5,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 10,
       "modelCompileData": {
@@ -175,7 +178,8 @@
         "horse": 7,
         "ship": 8,
         "truck": 9
-      }
+      },
+      "scheme": "Decentralized"
     }
   },
   {
@@ -193,7 +197,7 @@
     "trainingInformation": {
       "modelID": "simple_face-model",
       "epochs": 50,
-      "roundDuration": 2,
+      "roundDuration": 10,
       "validationSplit": 0.2,
       "batchSize": 10,
       "modelCompileData": {

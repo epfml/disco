@@ -52,11 +52,11 @@ export class DatasetBuilder<Source> {
     if (this.sources.length > 0) {
       // Labels are contained in the given sources
       const config = {
-        features: this.task.trainingInformation.inputColumns,
-        labels: this.task.trainingInformation.outputColumns
+        features: this.task.trainingInformation?.inputColumns,
+        labels: this.task.trainingInformation?.outputColumns
       }
       data = await this.dataLoader.loadAll(this.sources, config)
-    } else if (this.labelledSources.size > 0) {
+    } else {
       // Labels are inferred from the file selection boxes
       const config = {
         labels: Array.from(this.labelledSources.keys())

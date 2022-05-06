@@ -2,7 +2,7 @@ import { Dataset } from '../dataset_builder'
 import { Task } from '../../task'
 
 export interface DataConfig { features?: string[], labels?: string[] }
-export type Data = {
+export interface Data {
   dataset: Dataset
   size: number
 }

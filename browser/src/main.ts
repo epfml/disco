@@ -4,7 +4,7 @@ import App from './components/App.vue'
 import router from './router'
 import Toaster from '@meforma/vue-toaster'
 import { store } from './store/store'
-import { createCustomI18n } from './platforms/i18n'
+import { createCustomI18n } from './locales/i18n'
 import VueApexCharts from 'vue3-apexcharts'
 
 import '@/assets/css/tailwind.css'
@@ -14,7 +14,7 @@ import '@/assets/css/styles.css'
   process.env.NODE_ENV === 'development' &&
   process.env.DEV_TOOLS === 'enabled'
 ) {
-  devtools.connect('http://localhost', 8081);
+  devtools.connect('http://localhost', 8080);
 } */
 // create vue app
 const app = createApp(App)

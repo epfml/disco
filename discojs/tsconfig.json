@@ -4,12 +4,13 @@
     "target": "ES5",
     "lib": ["ES5"],
 
-    // TODO "strict": true,
+    "strict": true,
 
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
     "importHelpers": true,
+    "downlevelIteration": true, // needed by <ES6
 
     "outDir": "dist",
     "declaration": true,
@@ -18,5 +19,7 @@
     "paths": {
       "@/*": ["*"]
     }
-  }
+  },
+  "include": ["src"],
+  "exclude": ["**/*.spec.ts", "**/*.test.ts"]
 }

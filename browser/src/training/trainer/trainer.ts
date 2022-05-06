@@ -79,19 +79,18 @@ export abstract class Trainer {
    * @param trainSize number of samples in the training set
    * @returns
    */
-  private initRoundTracker (trainSize: number) {
-    const batchSize = this.task.trainingInformation.batchSize
+  private initRoundTracker () {
     const roundDuration = this.task.trainingInformation.roundDuration
-    this.roundTracker = new RoundTracker(roundDuration, trainSize, batchSize)
+    this.roundTracker = new RoundTracker(roundDuration)
   }
 
   /**
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>, trainSize: number) {
+  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>) {
     // Init round tracker - requires size info
-    this.initRoundTracker(trainSize)
+    this.initRoundTracker()
 
     // Reset stopTraining setting
     this.resetStopTrainerState()

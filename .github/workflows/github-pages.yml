@@ -5,18 +5,31 @@ on:
     branches: [production]
     types: [completed]
 
+env:
+  node_version: 16
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
         with:
-          ref: "production"
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: |
+            discojs/package-lock.json
+            browser/package-lock.json
+
+      - name: build discojs
+        run: npm ci && npm run build
+        working-directory: discojs
 
       - name: install-and-build
         run: |
-          npm install
+          npm ci
           npm run build
         working-directory: browser
 
@@ -24,4 +37,4 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
-          folder: browser
+          folder: browser/dist
