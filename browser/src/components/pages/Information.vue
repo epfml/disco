@@ -1,10 +1,9 @@
 <template>
-  <base-layout
+  <BaseLayout
     :with-section="true"
-    custom-class="pt-4"
   >
     <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-      <card custom-class="hover:text-primary dark:hover:text-light">
+      <Card custom-class="hover:text-primary dark:hover:text-light">
         <h6
           class="
             text-xl
@@ -20,7 +19,7 @@
         </h6>
         <div class="ml-10">
           <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-            <card
+            <Card
               v-for="card in $tm('information.informationCard')"
               :key="card.title"
               custom-class="hover:text-primary dark:hover:text-light"
@@ -33,9 +32,9 @@
                   }}
                 </ul>
               </div>
-            </card>
+            </Card>
 
-            <card custom-class="hover:text-primary dark:hover:text-light">
+            <Card custom-class="hover:text-primary dark:hover:text-light">
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
                   <b>Technology behind Disco:</b>
@@ -51,14 +50,14 @@
                   >peerjs</a>
                 </ul>
               </div>
-            </card>
+            </Card>
 
             <!--
               To further seperate the text from the UI i18 interpolation can be be used:
               https://kazupon.github.io/vue-i18n/guide/interpolation.html
              -->
 
-            <card custom-class="hover:text-primary dark:hover:text-light">
+            <Card custom-class="hover:text-primary dark:hover:text-light">
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
                   <b>Science behind Disco:</b>
@@ -87,7 +86,7 @@
                   public model, private data approach.
                 </ul>
               </div>
-            </card>
+            </Card>
           </div>
 
           <h6
@@ -107,7 +106,7 @@
             <div
               class="grid grid-cols-2 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-2"
             >
-              <card
+              <Card
                 v-for="card in $tm('information.featuresCard')"
                 :key="card.title"
                 custom-class="hover:text-primary dark:hover:text-light"
@@ -122,7 +121,7 @@
                     }}
                   </ul>
                 </div>
-              </card>
+              </Card>
             </div>
           </div>
 
@@ -143,7 +142,7 @@
             <div
               class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1"
             >
-              <card
+              <Card
                 v-for="card in $tm('information.howToUseCard')"
                 :key="card.title"
                 custom-class="hover:text-primary dark:hover:text-light"
@@ -158,7 +157,7 @@
                     }}
                   </ul>
                 </div>
-              </card>
+              </Card>
             </div>
             <h6
               class="
@@ -201,14 +200,14 @@
             </ul>
           </div>
         </div>
-      </card>
+      </Card>
     </div>
-  </base-layout>
+  </BaseLayout>
 </template>
 
-<script>
-import BaseLayout from '../containers/BaseLayout.vue'
-import Card from '../containers/Card.vue'
+<script lang="ts">
+import BaseLayout from '@/components/containers/BaseLayout.vue'
+import Card from '@/components/containers/Card.vue'
 import { useI18n } from 'vue-i18n'
 import { defineComponent } from 'vue'
 

@@ -1,8 +1,8 @@
 <template>
   <!-- Title's card-->
   <Card>
-    <div class="ml-10 text-xl text-slate-500 dark:text-light">
-      <span class="text-disco-blue dark:text-primary-light">
+    <div class="ml-10 text-xl text-slate-500">
+      <span class="text-disco-blue">
         {{ title }}
         <span
           v-if="titleUnderlined"
