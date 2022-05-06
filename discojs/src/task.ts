@@ -174,7 +174,8 @@ export class TrainingInformation {
     public readonly csvLabels?: boolean,
     public readonly RESIZED_IMAGE_H?: number,
     public readonly RESIZED_IMAGE_W?: number,
-    public readonly LABEL_ASSIGNMENT?: DataExample[]
+    public readonly LABEL_ASSIGNMENT?: DataExample[],
+    public readonly scheme?: string
   ) {}
 }
 

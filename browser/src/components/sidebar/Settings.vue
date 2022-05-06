@@ -4,57 +4,7 @@
       <SettingsIcon />
     </template>
     <template #content>
-      <!-- Platform -->
-      <TippyCard title="Platform">
-        <div class="flex items-center space-x-8">
-          <!-- Decentralized button -->
-          <button
-            :disabled="$store.getters.isDecentralized"
-            :class="buttonClass($store.getters.isDecentralized)"
-            @click="setRequestPlatformChangeTrue"
-          >
-            <span><decentralised-icon /></span>
-            <span>Decentralized</span>
-          </button>
-
-          <!-- Federated button -->
-          <button
-            :disabled="$store.getters.isFederated"
-            :class="buttonClass($store.getters.isFederated)"
-            @click="setRequestPlatformChangeTrue"
-          >
-            <span><FederatedIcon /></span>
-            <span>Federated {{ this }}</span>
-          </button>
-        </div>
-      </TippyCard>
-      <!-- Confirm change platform -->
-      <TippyCard
-        v-if="requestPlatformChange"
-        title="Confirm platform change"
-      >
-        <span class="text-s">
-          Changing the platform will refresh the app, if a model is currently
-          training progess might be lost.
-        </span>
-        <div class="flex items-center justify-center space-x-8">
-          <button
-            :class="buttonClass()"
-            @click="setRequestPlatformChangeFalse"
-          >
-            <span class="text-s"> Cancel </span>
-          </button>
-
-          <button
-            :class="buttonClass()"
-            @click="changePlatform"
-          >
-            <span class="text-s"> Confirm </span>
-          </button>
-        </div>
-      </TippyCard>
       <div
-        v-else
         class="overflow-hidden hover:overflow-y-auto"
       >
         <!-- IndexedDB -->
@@ -163,10 +113,7 @@ import TippyCard from './containers/TippyCard.vue'
 import TippyContainer from './containers/TippyContainer.vue'
 import MoonIcon from '../../assets/svg/MoonIcon.vue'
 import StarIcon from '../../assets/svg/StarIcon.vue'
-import DecentralisedIcon from '../../assets/svg/DecentralisedIcon.vue'
-import FederatedIcon from '../../assets/svg/FederatedIcon.vue'
 import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
-import { Platform } from '../../platforms/platform'
 
 export default {
   name: 'Settings',
@@ -175,14 +122,11 @@ export default {
     TippyContainer,
     MoonIcon,
     StarIcon,
-    DecentralisedIcon,
-    FederatedIcon,
     SettingsIcon
   },
   data: function () {
     return {
-      colors: ['cyan', 'teal', 'green', 'fuchsia', 'blue', 'violet'],
-      requestPlatformChange: false
+      colors: ['cyan', 'teal', 'green', 'fuchsia', 'blue', 'violet']
     }
   },
   methods: {
@@ -202,8 +146,7 @@ export default {
     ...mapMutations([
       'setIndexedDB',
       'setAppTheme',
-      'setActivePage',
-      'setPlatform'
+      'setActivePage'
     ]),
     toggleIndexedDB () {
       this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB)
@@ -250,37 +193,6 @@ export default {
     setDarkTheme () {
       this.setAppTheme(true)
       this.setBrowserTheme(true)
-    },
-    setRequestPlatformChangeTrue () {
-      this.requestPlatformChange = true
-    },
-    setRequestPlatformChangeFalse () {
-      this.requestPlatformChange = false
-    },
-    getDefaultPlatformColor (platform) {
-      return platform === Platform.decentralized ? 'cyan' : 'violet'
-    },
-    getNewPlatform (platform) {
-      return platform === Platform.decentralized
-        ? Platform.federated
-        : Platform.decentralized
-    },
-    changePlatform () {
-      // Get new platform and color
-      const platform = this.getNewPlatform(this.$store.state.platform)
-      const color = this.getDefaultPlatformColor(platform)
-
-      // Set platform and color
-      this.setPlatform(platform)
-      this.setColors(color)
-      this.$i18n.locale = platform
-      window.localStorage.setItem('platform', platform)
-
-      this.setRequestPlatformChangeFalse()
-
-      // TODO
-      // Add logout from server behavior.
-      this.goToHome()
     },
     goToHome () {
       this.$router.push({ path: '/' })

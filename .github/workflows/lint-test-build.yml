@@ -28,6 +28,7 @@ jobs:
       # TODO npx ts-standard
 
   lint-server:
+    needs: build-lib
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -38,12 +39,17 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.server_dir }}/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_dir }}
       - run: npm ci
       - run: npx eslint --max-warnings 0 .
       # TODO npx ts-standard
 
   lint-client:
+    needs: build-lib
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -54,7 +60,11 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.client_dir }}/package-lock.json
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.server_dir }}/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_dir }}
       - run: npm ci
       - run: npx eslint --max-warnings 0 .
       - run: npm run lint

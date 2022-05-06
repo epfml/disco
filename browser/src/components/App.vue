@@ -45,7 +45,6 @@
 import SidebarMain from '@/components/sidebar/Sidebar.vue'
 import TaskList from '@/components/pages/TaskList.vue'
 import Navigation from '@/components/navigation/Navigation.vue'
-import { Platform } from '@/platforms/platform'
 import { loadTasks } from '@/tasks'
 
 import { Task } from 'discojs'
@@ -83,7 +82,7 @@ export default {
     /**
        * Initialize the app to the browser-saved platform.
        */
-    this.initPlatform(this.getPlatform())
+    this.initPlatform()
   },
   async created () {
     const tasks: Task[] = await loadTasks()
@@ -109,7 +108,7 @@ export default {
     })
   },
   methods: {
-    ...mapMutations(['setIndexedDB', 'setAppTheme', 'setPlatform']),
+    ...mapMutations(['setIndexedDB', 'setAppTheme']),
     getBrowserTheme () {
       if (window.localStorage.getItem('dark')) {
         return JSON.parse(window.localStorage.getItem('dark'))
@@ -147,12 +146,8 @@ export default {
         `var(--color-${color}-darker)`
       )
     },
-    getPlatform () {
-      return window.localStorage.getItem('platform') ?? Platform.decentralized
-    },
-    initPlatform (platform) {
-      this.setPlatform(platform)
-      this.$i18n.locale = platform
+    initPlatform () {
+      this.$i18n.locale = 'english'
     }
   }
 }

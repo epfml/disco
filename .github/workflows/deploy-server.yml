@@ -6,6 +6,7 @@ on:
     types: [completed]
 
 env:
+  node_version: 16
   server_url: https://deai-313515.ew.r.appspot.com/
 
 jobs:
@@ -17,6 +18,18 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: |
+            discojs/package-lock.json
+            server/package-lock.json
+
+      - name: build discojs
+        run: npm ci && npm run build
+        working-directory: discojs
+
       - name: authenticate-to-google-cloud
         uses: "google-github-actions/auth@v0"
         with:
@@ -25,7 +38,7 @@ jobs:
       - name: deploy-to-google-cloud
         uses: google-github-actions/deploy-appengine@v0.8.0
         with:
-          working_directory: server
+          working_directory: .
           deliverables: app.yaml
           version: prod
           project_id: ${{ secrets.GCP_PROJECT }}

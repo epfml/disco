@@ -1,7 +1,7 @@
 import * as msgpack from 'msgpack-lite'
 import * as tf from '@tensorflow/tfjs'
 
-import { Client, Task, TrainingInformant, serialization } from 'discojs'
+import { Client, Task, TrainingInformant } from 'discojs'
 
 import { makeID } from '../authentication'
 import * as api from './federated_api'
@@ -53,18 +53,17 @@ export class FederatedClient extends Client {
     }
   }
 
-  private async postWeightsToServer (weights: Weights) {
-    const serializedWeights = (await serialization.serializeWeights(weights))
+  private async postWeightsToServer (weights: Weights): Promise<boolean> {
     const response = await api.postWeights(
       this.task.taskID,
       this.clientID,
-      serializedWeights,
+      weights,
       this.modelUpdateIsBasedOnRoundNumber
     )
     return response.status === 200
   }
 
-  async postMetadata (metadataID, metadata) {
+  async postMetadata (metadataID, metadata): Promise<boolean> {
     const response = api.postMetadata(
       this.task.taskID,
       this.modelUpdateIsBasedOnRoundNumber,
