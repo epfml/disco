@@ -13,7 +13,7 @@
           <p>- Keep data at its source</p>
           <p>- Choose either <span class="italic">decentralized</span> or <span class="italic">federated</span> training</p>
         </div>
-        <div class="text-center py-3">
+        <div class="text-center pt-3">
           <CustomButton @click="goToTaskList()">
             Start Building
           </CustomButton>
@@ -28,7 +28,7 @@
           <p>- Describe the task</p>
           <p>- Specify the desired training and evaluation parameters</p>
         </div>
-        <div class="text-center py-3">
+        <div class="text-center pt-3">
           <CustomButton @click="goToNewTaskCreationForm()">
             Create New Task
           </CustomButton>
