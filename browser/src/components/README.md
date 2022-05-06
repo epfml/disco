@@ -17,7 +17,7 @@ An extensive list can be found below:
     .
     ├── App.vue                  # basic app layout (sidebar, router and state variables)
     ├── Home.vue                 # home page that links TaskList.vue and NewTaskCreationForm.vue
-    ├── Information.vue          # Displays basic information about the platform
+    ├── FindOutMore.vue          # Displays basic information about the platform
     ├── NewTaskCreationForm.vue  # Form that adds a new task to the platform
     ├── NotFound.vue             # Error page that is displayed when a session error occurs
     └── TaskList.vue             # Displays all tasks available in the platform
@@ -33,9 +33,9 @@ Both approaches are described in the following sections.
 
 ### `Simple` directory
 
-The directory defines pre-styled html components such as `Button` or `Footer` (see images below).
+The directory defines pre-styled html components such as `Button`(see image below).
 
-<img width="273" alt="Screenshot 2022-01-04 at 16 06 35" src="https://user-images.githubusercontent.com/43466781/148079430-d333b520-9409-4efa-a754-5069d8bb1847.png"> <img width="1582" alt="Screenshot 2022-01-04 at 16 06 54" src="https://user-images.githubusercontent.com/43466781/148079475-822c3d42-b783-48f8-8e98-4e51f6086dda.png">
+<img width="273" alt="Screenshot 2022-01-04 at 16 06 35" src="https://user-images.githubusercontent.com/43466781/148079430-d333b520-9409-4efa-a754-5069d8bb1847.png">
 
 > **Note**: the naming convention for files in this directory is `CustomXXX.vue` where `XXX` is the feature of the new component. They shall be imported using the `kebab-case` naming version:
 
@@ -59,7 +59,7 @@ The `containers` defined for this particular webapp are described below.
 
 #### Base Layout
 
-**Each root page** shall start its `template` by the `<base-layout>` tag. This `base layout` contains basic style for the main `divs` of the app and already contains the footer of the app.
+**Each root page** shall start its `template` by the `<base-layout>` tag. This `base layout` contains basic style for the main `divs` of the app.
 
 #### Cards
 

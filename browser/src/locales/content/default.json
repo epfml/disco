@@ -46,27 +46,30 @@
         }
       }
     },
-    "information": {
-      "informationTitle": "Information",
+    "findoutmore": {
+      "informationTitle": "Further Information",
+      "images": {
+        "federated": {
+          "title": "What is Federated Learning?",
+          "text": "The key insight is to share weights instead of data, each user trains on his own machine and periodically shares his learned weights with a central server. The server will agreggate all these weights and send them back. We support a variety of modern deep learning architectures running on mobile device."
+        },
+        "decentralised": {
+          "title": "What is Decentralised Learning?",
+          "text": "Following the same principles as in federated learning, but going one step further by removing any central coordinator. It only uses peer2peer communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure."
+        }
+      },
+      
       "informationCard": [
         {
           "title": "Goal:",
           "text": "Disco enables collaborative and privacy-preserving training of machine learning models. Disco is an easy-to-use mobile app & web software, running directly in your browser."
         },
         {
-          "title": "Key Question:",
-          "text": "Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? - or - Can we train a ML model which is equally good as if all data were in one place, but respect privacy?"
-        },
-        {
-          "title": "Federated learning:",
-          "text": "The key insight is to share weights instead of data, each user trains on his own machine and periodically shares his learned weights with a central server. The server will agreggate all these weights and send them back. We support a variety of modern deep learning architectures running on mobile device"
-        },
-        {
-          "title": "Decentralized learning:",
-          "text": "makes this possible, following the same principles as in federated learning, but going one step further by removing any central coordinator. Disco only uses peer2peer communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure. We support a variety of modern deep learning architectures running on mobile devices."
+          "title": "Key Questions:",
+          "text": "Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? Can we train a machine learning model which is equally good as if all data were in one place, but respect privacy?"
         }
       ],
-      "featuresTitle" : "Features",
+      "featuresTitle" : "Why use Disco?",
       "featuresCard": [
         {
           "title": "Supports Deep Learning architectures",
@@ -85,7 +88,7 @@
           "text":"Neural network training is done in a collaborative fashion, through peer to peer communication neural network weights are exchanged between participants, with the goal to train a machine learning model that can achieve better generalisation across different types of data, without ever having had access to the data itself."
         }
       ],
-      "howToUseTitle": "How to use",
+      "howToUseTitle": "How to use Disco?",
       "howToUseCard": [
         {
           "title": "Step 1: Select a task",
@@ -108,7 +111,7 @@
           "text": "- come back any time to reuse your local model and resume training or test it against other data."
         }
       ],
-      "furtherLinksTitle": "Further links"
+      "externalLinksTitle": "External links"
     },
     "training": {
       "trainingFrame": {

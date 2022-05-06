@@ -22,14 +22,15 @@
           tracking-wider
           text-primary-dark
           dark:text-light
+          pointer
         "
           @click="goToHome"
         >
-          {{ 'Disco' }}
+          {{ "Disco" }}
         </a>
       </div>
       <!-- Mini Sidebar content-->
-      <div class="flex flex-col items-center justify-center flex-1 space-y-4">
+      <div class="flex flex-col justify-center flex-1 space-y-2">
         <!-- Go to Home page -->
         <!-- Active classes "bg-primary text-white" -->
         <!-- inActive classes "bg-primary-50 text-primary-lighter" -->
@@ -37,37 +38,38 @@
           hover-text="home"
           @click="goToHome()"
         >
-          <home-icon />
+          Home
+        </SidebarButton>
+        <!-- Go to Find Out More page -->
+        <SidebarButton
+          hover-text="find out more"
+          @click="goToFindOutMore()"
+        >
+          Find Out More
         </SidebarButton>
         <!-- Go to Task List page -->
         <SidebarButton
           hover-text="tasks"
           @click="goToTaskList()"
         >
-          <list-icon />
+          Tasks
         </SidebarButton>
         <!-- Display Model Library panel -->
         <SidebarButton
           hover-text="models"
           @click="openModelLibrary()"
         >
-          <file-icon />
-        </SidebarButton>
-        <!-- Go to Information page -->
-        <SidebarButton
-          hover-text="information"
-          @click="goToInformation()"
-        >
-          <info-icon />
+          Models
         </SidebarButton>
         <!-- Display Settings panel-->
         <SidebarButton
           hover-text="settings"
           @click="openSettingsPanel()"
         >
-          <settings-icon />
+          Settings
         </SidebarButton>
       </div>
+      <div>Disco &copy; 2022</div>
     </nav>
 
     <!-- Menu (RHS) -->
@@ -143,11 +145,6 @@
 import Settings from './Settings.vue'
 import ModelLibrary from './ModelLibrary.vue'
 import tippy from 'tippy.js'
-import HomeIcon from '../../assets/svg/HomeIcon.vue'
-import ListIcon from '../../assets/svg/ListIcon.vue'
-import InfoIcon from '../../assets/svg/InfoIcon.vue'
-import FileIcon from '../../assets/svg/FileIcon.vue'
-import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
 import CrossIcon from '../../assets/svg/CrossIcon.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 
@@ -156,11 +153,6 @@ export default {
   components: {
     Settings,
     ModelLibrary,
-    HomeIcon,
-    FileIcon,
-    InfoIcon,
-    SettingsIcon,
-    ListIcon,
     CrossIcon,
     SidebarButton
   },
@@ -209,8 +201,8 @@ export default {
     goToTaskList () {
       this.$router.push({ path: '/list' })
     },
-    goToInformation () {
-      this.$router.push({ path: '/information' })
+    goToFindOutMore () {
+      this.$router.push({ path: '/findOutMore' })
     }
   }
 

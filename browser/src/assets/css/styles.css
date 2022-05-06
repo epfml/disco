@@ -1,3 +1,7 @@
+.pointer {
+  cursor: pointer;
+}
+
 .tippy-box[data-theme~="custom-dark"] {
   background-color: #6f7174;
   color: white;

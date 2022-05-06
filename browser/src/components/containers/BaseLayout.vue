@@ -22,20 +22,15 @@
         </section>
         <slot v-else />
       </div>
-
-      <!-- Main Page Footer-->
-      <custom-footer />
     </main>
   </div>
 </template>
 
 <script>
-import CustomFooter from '../simple/CustomFooter.vue'
 
 export default {
   name: 'BaseLayout',
   components: {
-    CustomFooter
   },
   props: {
     customClass: { default: '', type: String },

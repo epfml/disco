@@ -2,7 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 // Some page components
 import Home from '../components/pages/Home.vue'
-import Information from '../components/pages/Information.vue'
+import FindOutMore from '../components/pages/FindOutMore.vue'
 import NewTaskCreationForm from '../components/pages/NewTaskCreationForm.vue'
 import NotFound from '../components/pages/NotFound.vue'
 
@@ -18,9 +18,9 @@ const routes = [
     component: NewTaskCreationForm
   },
   {
-    path: '/information',
-    name: 'information',
-    component: Information
+    path: '/findOutMore',
+    name: 'find-out-more',
+    component: FindOutMore
   },
   {
     path: '/:pathMatch(.*)*',
