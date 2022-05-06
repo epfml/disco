@@ -6,20 +6,21 @@
         class="absolute flex align-center items-center align-middle content-center"
         style="width: calc(100% - 2.5rem - 1rem); top: 50%; transform: translate(-50%, -50%)"
       >
-        <div class="w-full bg-gray-200 rounded items-center align-middle align-center flex-1">
+        <div
+          class="w-full transition ease-out duration-500 bg-slate-200 rounded items-center align-middle align-center flex-1"
+        >
           <div
-            class="w-0 bg-green-300 py-1 rounded"
-            style="width: 0%;"
+            class="py-1"
           />
         </div>
       </div>
       <div
         class="transition duration-400 w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
-        :class="isActive ? 'bg-disco-blue' : 'bg-white border-2 border-slate-200'"
+        :class="active ? 'bg-disco-blue' : 'bg-white border-2 border-slate-200'"
       >
         <span
-          class="text-center w-full"
-          :class="isActive ? 'text-white' : 'text-slate-700'"
+          class="text-center w-full animation-ping"
+          :class="active ? 'text-white' : 'text-slate-700'"
         >
           <slot name="icon" />
         </span>
@@ -40,7 +41,7 @@ export default {
       type: String,
       default: ''
     },
-    isActive: {
+    active: {
       type: Boolean,
       default: false
     },

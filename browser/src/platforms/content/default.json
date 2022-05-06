@@ -1,32 +1,5 @@
 {
   "home": {
-      "buildCard": [
-        {
-          "header": {
-            "text": "Build AI with collaborators but",
-            "underlined": "without sharing any data"
-          },
-          "items": [
-            "Exchange <span class='italic'>models</span> not data",
-            "Keep data at its source",
-            "choose either <span class='italic'>decentralised</span> or <span class='italic'>federated</span> training",
-            "Go to settings to change the platform"
-          ]
-        }
-      ],
-      "taskCard": [
-        {
-          "header": {
-            "text": "Create your",
-            "underlined": "own task"
-          },
-          "items": [
-            "Choose a model",
-            "Describe the task",
-            "Specify the desired training and evaluation parameters "
-          ]
-        }
-      ],
       "startBuildingButtonText": "Start building",
       "createTaskButtonText": "Create task",
       "images": {
