@@ -123,7 +123,6 @@ export default {
     disco () {
       return new Disco(
         this.task,
-        this.$store.getters.platform,
         this.$toast,
         this.useIndexedDB
       )
