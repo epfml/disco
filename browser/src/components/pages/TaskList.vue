@@ -9,33 +9,20 @@
       <div
         v-for="task in tasks"
         :key="task.taskID"
+        class="group"
       >
-        <Card>
-          <div>
-            <h6
-              class="
-              text-xl
-              font-medium
-              leading-none
-              tracking-wider
-              group-hover:text-disco-cyan
-            "
+        <TitleCard :title="task.displayInformation.taskTitle">
+          <ul class="text-base ont-semibold text-slate-500 dark:text-light">
+            <span v-html="task.displayInformation.summary" />
+          </ul>
+          <div class="pt-3">
+            <CustomButton
+              @click="goToSelection(task.taskID)"
             >
-              {{ task.displayInformation.taskTitle }}
-            </h6>
+              Join
+            </CustomButton>
           </div>
-          <div class="ml-10">
-            <ul class="text-base ont-semibold text-slate-500 dark:text-light">
-              <span v-html="task.displayInformation.summary" />
-            </ul>
-          </div>
-          <CustomButton
-            class="mt-4"
-            @click="goToSelection(task.taskID)"
-          >
-            Join
-          </CustomButton>
-        </Card>
+        </TitleCard>
       </div>
     </div>
   </BaseLayout>
@@ -44,14 +31,14 @@
 <script lang="ts">
 import BaseLayout from '@/components/containers/BaseLayout.vue'
 import ProgressBar from '@/components/navigation/ProgressBar.vue'
-import Card from '@/components/containers/Card.vue'
+import TitleCard from '@/components/containers/TitleCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
 export default {
   name: 'TaskList',
   components: {
     BaseLayout,
-    Card,
+    TitleCard,
     CustomButton,
     ProgressBar
   },
