@@ -26,5 +26,4 @@ COPY server/ server/
 RUN cd server && npm run build
 
 WORKDIR /server
-ENV NODE_PATH=./dist
 CMD [ "npm", "start" ]
