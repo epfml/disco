@@ -1,6 +1,9 @@
 <template>
   <div class="flex flex-col h-screen overflow-y-auto">
-    <main class="mb-auto" :class="customClass">
+    <main
+      class="mb-auto"
+      :class="customClass"
+    >
       <div>
         <section
           v-if="withSection"
