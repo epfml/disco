@@ -4,7 +4,7 @@
     <div class="flex">
       <!-- Step 1 -->
       <ProgressIcon
-        :is-active="isActive(0)"
+        :active="isActive(0)"
         :lined="false"
       >
         <template #text>
@@ -27,7 +27,7 @@
       </ProgressIcon>
       <!-- Step 2 -->
       <ProgressIcon
-        :is-active="isActive(1)"
+        :active="isActive(1)"
         :lined="true"
       >
         <template #text>
@@ -54,7 +54,7 @@
       </ProgressIcon>
       <!-- Step 3 -->
       <ProgressIcon
-        :is-active="isActive(2)"
+        :active="isActive(2)"
         :lined="true"
       >
         <template #text>
@@ -77,7 +77,7 @@
       </ProgressIcon>
       <!-- Step 4 -->
       <ProgressIcon
-        :is-active="isActive(3)"
+        :active="isActive(3)"
         :lined="true"
       >
         <template #text>
@@ -100,11 +100,11 @@
       </ProgressIcon>
       <!-- Step 5 -->
       <ProgressIcon
-        :is-active="isActive(4)"
+        :active="isActive(4)"
         :lined="true"
       >
         <template #text>
-          Train Your Model
+          Finished / Testing
         </template>
         <template #icon>
           <svg

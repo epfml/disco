@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col h-screen overflow-y-auto m-8">
+  <div class="flex flex-col h-screen overflow-y-auto">
     <main
-      class="mb-auto"
+      class="m-8 mb-auto"
       :class="customClass"
     >
       <div>
@@ -14,7 +14,7 @@
         <slot v-else />
       </div>
     </main>
-    <CustomFooter />
+    <CustomFooter class="mt-8" />
   </div>
 </template>
 

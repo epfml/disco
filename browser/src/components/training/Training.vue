@@ -1,30 +1,31 @@
 <template>
   <div>
     <!-- Train Button -->
-    <div class="flex items-center justify-center p-4">
-      <div v-if="!isTraining">
+    <div
+      v-if="!isTraining"
+      class="grid grid-cols-2 gap-8 py-6"
+    >
+      <div class="text-center">
         <CustomButton
-          :center="true"
           @click="startTraining(false)"
         >
           Train Locally
         </CustomButton>
+      </div>
+      <div class="text-center">
         <CustomButton
-          :center="true"
           @click="startTraining(true)"
         >
           Train {{ $t('platform') }}
         </CustomButton>
       </div>
-      <div v-else>
-        <CustomButton
-          :center="true"
-          color="bg-red-500"
-          @click="stopTraining()"
-        >
-          Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
-        </CustomButton>
-      </div>
+    </div>
+    <div v-else>
+      <CustomButton
+        @click="stopTraining()"
+      >
+        Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
+      </CustomButton>
     </div>
     <!-- Training Board -->
     <div>
@@ -49,8 +50,6 @@
         <div class="flex items-center justify-center p-4">
           <!-- make it gray & un-clickable if indexeddb is turned off -->
           <CustomButton
-            id="train-model-button"
-            :center="true"
             @click="saveModel()"
           >
             Save My model

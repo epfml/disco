@@ -2,54 +2,56 @@
   <BaseLayout>
     <div>
       <ProgressBar :progress="step" />
-      <Step
+      <div class="grid grid-cols-2 gap-8 py-6">
+        <div
+          class="text-right"
+        >
+          <CustomButton
+            @click="prevStep"
+          >
+            Previous
+          </CustomButton>
+        </div>
+        <div
+          class="text-left"
+        >
+          <CustomButton
+            v-if="step <= 3"
+            @click="nextStep"
+          >
+            Next
+          </CustomButton>
+        </div>
+      </div>
+      <Description
         v-show="step === 1"
-        @next-step="nextStep"
-        @prev-step="prevStep"
-      >
-        <Description
-          :id="id"
-          :task="task"
-        />
-      </Step>
-      <Step
+        :id="id"
+        :task="task"
+      />
+      <DatasetInput
         v-show="step === 2"
-        @next-step="nextStep"
-        @prev-step="prevStep"
-      >
-        <DatasetInput
-          :id="id"
-          :task="task"
-          :dataset-builder="datasetBuilder"
-          @add-files="addFiles"
-          @clear-files="clearFiles"
-        />
-      </Step>
-      <Step
+        :id="id"
+        :task="task"
+        :dataset-builder="datasetBuilder"
+        @add-files="addFiles"
+        @clear-files="clearFiles"
+      />
+      <Training
         v-show="step === 3"
-        @next-step="nextStep"
-        @prev-step="prevStep"
-      >
-        <Training
-          :id="id"
-          :task="task"
-          :dataset-builder="datasetBuilder"
-        />
-      </Step>
-      <Step
-        v-show="step === 4"
-        :next="false"
-        @prev-step="prevStep"
-      >
+        :id="id"
+        :task="task"
+        :dataset-builder="datasetBuilder"
+      />
+      <div v-show="step === 4">
         blank
-      </Step>
+      </div>
     </div>
   </BaseLayout>
 </template>
 
 <script lang="ts">
+import CustomButton from '@/components/simple/CustomButton.vue'
 import ProgressBar from './ProgressBar.vue'
-import Step from './Step.vue'
 import Description from '@/components/Description.vue'
 import Training from '@/components/training/Training.vue'
 import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
@@ -66,8 +68,8 @@ export default {
     Description,
     DatasetInput,
     Training,
-    Step,
-    BaseLayout
+    BaseLayout,
+    CustomButton
   },
   props: {
     id: {
