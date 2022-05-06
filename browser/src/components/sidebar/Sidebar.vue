@@ -20,12 +20,10 @@
           text-xl
           font-bold
           tracking-wider
-          text-primary-dark
-          dark:text-light
         "
           @click="goToHome"
         >
-          {{ 'Disco' }}
+          <span class="text-disco-cyan">Dis</span><span class="text-disco-blue">co</span>
         </a>
       </div>
       <!-- Mini Sidebar content-->
