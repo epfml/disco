@@ -114,9 +114,9 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 export default {
-  name: 'FileSelectionFrame',
+  name: 'FileSelection',
   components: {
     // PreviewGallery
   },
@@ -128,6 +128,10 @@ export default {
     preview: {
       type: Boolean,
       default: false
+    },
+    allowed: {
+      type: Boolean,
+      default: true
     }
   },
   data () {
@@ -141,7 +145,7 @@ export default {
       this.nbrSelectedFiles = 0
     },
     submitFiles (e) {
-      this.$emit('input', e.target.files)
+      this.$emit('input', e.current.files)
       this.nbrSelectedFiles += e.target.files.length
     },
     dragFiles (e) {

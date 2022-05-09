@@ -1,61 +1,50 @@
 <template>
-  <base-layout>
-    <progress-bar
+  <BaseLayout>
+    <ProgressBar
+      class="mb-5"
       :blocked="true"
       :blocked-step="0"
     />
-    <div
-      v-for="task in tasks"
-      :key="task.taskID"
-      class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
-    >
-      <card>
-        <div>
-          <h6
-            class="
-              text-xl
-              font-medium
-              leading-none
-              tracking-wider
-              group-hover:text-primary-light
-            "
-          >
-            {{ task.displayInformation.taskTitle }}
-          </h6>
-        </div>
-        <div class="ml-10">
-          <ul class="text-base ont-semibold text-gray-500 dark:text-light">
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-1 xl:grid-cols-1">
+      <div
+        v-for="task in tasks"
+        :key="task.taskID"
+        class="group"
+      >
+        <TitleCard :title="task.displayInformation.taskTitle">
+          <ul class="text-base ont-semibold text-slate-500 dark:text-light py-3">
             <span v-html="task.displayInformation.summary" />
           </ul>
-        </div>
-        <div class="py-2">
-          <span>
-            <custom-button @click="goToSelection(task.taskID)">
+          <div class="pt-2">
+            <CustomButton
+              @click="goToSelection(task.taskID)"
+            >
               Join
-            </custom-button>
-          </span>
-        </div>
-      </card>
+            </CustomButton>
+          </div>
+        </TitleCard>
+      </div>
     </div>
-  </base-layout>
+  </BaseLayout>
 </template>
 
 <script lang="ts">
-import BaseLayout from '../containers/BaseLayout.vue'
-import ProgressBar from '../navigation/ProgressBar.vue'
-import Card from '../containers/Card.vue'
-import CustomButton from '../simple/CustomButton.vue'
+import BaseLayout from '@/components/containers/BaseLayout.vue'
+import ProgressBar from '@/components/navigation/ProgressBar.vue'
+import TitleCard from '@/components/containers/TitleCard.vue'
+import CustomButton from '@/components/simple/CustomButton.vue'
 
 export default {
   name: 'TaskList',
   components: {
     BaseLayout,
-    Card,
+    TitleCard,
     CustomButton,
     ProgressBar
   },
   props: {
     tasks: {
+      // Array<Task>() constructor would be preferable but is forbidden by ESLint
       type: Object,
       default: undefined
     }

@@ -1,11 +1,11 @@
 <template>
-  <icon-card header="My dataset">
+  <IconCard header="My dataset">
     <template #icon>
-      <upload />
+      <Upload />
     </template>
     <template #extra>
       <div v-if="task.trainingInformation.dataType === 'tabular'">
-        <file-selection-frame
+        <FileSelection
           :id="id"
           :preview="preview"
           @input="addFiles($event)"
@@ -19,38 +19,42 @@
             :key="label"
           >
             <span class="text-xl font-semibold"> {{ label }} </span>
-            <file-selection-frame
+            <FileSelection
               :id="id"
               :preview="preview"
+              :allowed="allowed"
               @input="addFiles($event, label)"
               @clear="clearFiles(label)"
+              @fail="fail()"
             />
           </div>
         </div>
         <div v-else>
-          <file-selection-frame
+          <FileSelection
             :id="id"
             :preview="preview"
+            :allowd="allowed"
             @input="addFiles($event)"
             @clear="clearFiles()"
+            @fail="fail()"
           />
         </div>
       </div>
     </template>
-  </icon-card>
+  </IconCard>
 </template>
 
 <script lang="ts">
+import Upload from '@/assets/svg/Upload.vue'
+import IconCard from '@/components/containers/IconCard.vue'
+import FileSelection from './FileSelection.vue'
+
 import { Task, dataset } from 'discojs'
 
-import Upload from '../../assets/svg/Upload.vue'
-import IconCard from '../containers/IconCard.vue'
-import FileSelectionFrame from './FileSelectionFrame.vue'
-
 export default {
-  name: 'DatasetInputFrame',
+  name: 'DatasetInput',
   components: {
-    FileSelectionFrame,
+    FileSelection,
     Upload,
     IconCard
   },
@@ -69,24 +73,20 @@ export default {
     }
   },
   computed: {
-    preview () {
+    preview (): boolean {
       // Preview only for csv (since there is no, "show only first n images").
       return this.task.trainingInformation.dataType === 'tabular'
     },
-    requireLabels () {
+    requireLabels (): boolean {
       return this.task.trainingInformation.LABEL_LIST !== undefined
     }
   },
   methods: {
     addFiles (files: FileList, label?: string) {
-      if (!this.datasetBuilder.isBuilt()) {
-        this.datasetBuilder.addFiles(Array.from(files), label)
-      }
+      this.$emit('add-files', files, label)
     },
     clearFiles (label?: string) {
-      if (!this.datasetBuilder.isBuilt()) {
-        this.datasetBuilder.clearFiles(label)
-      }
+      this.$emit('clear-files', label)
     }
   }
 }

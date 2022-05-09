@@ -1,110 +1,48 @@
 <template>
-  <base-layout custom-class="pt-4">
+  <BaseLayout>
     <!-- Welcoming words -->
-    <custom-header />
-    <!-- Information sections -->
-    <section class="flex-col items-center justify-center p-4 space-y-4">
-      <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-        <div
-          v-for="build in $tm('home.buildCard')"
-          :key="build.header.text"
-        >
-          <title-card
-            :title="build.header.text"
-            :title-underlined="build.header.underlined"
-          >
-            <div
-              v-for="item in build.items"
-              :key="item"
-            >
-              <p v-html="`- ${item}`" />
-            </div>
-          </title-card>
-        </div>
-      </div>
-    </section>
-
+    <Disco class="mx-auto mb-[5%]" />
     <!-- TODO: This section is not algined with the top, not sure why -->
-    <div class="flex flex-row items-start pl-10">
-      <custom-button @click="goToTaskList()">
-        {{ $t('home.startBuildingButtonText') }}
-      </custom-button>
+    <div class="grid grid-cols-2 gap-8 items-stretch">
+      <TitleCard
+        :title="'Build AI with collaborators but'"
+        :title-underlined="'without sharing any data'"
+      >
+        <div class="py-6">
+          <p>- Exchange <span class="italic">models</span> not data</p>
+          <p>- Keep data at its source</p>
+          <p>- Choose either <span class="italic">decentralized</span> or <span class="italic">federated</span> training</p>
+        </div>
+        <div class="text-center pt-3">
+          <CustomButton @click="goToTaskList()">
+            Start Building
+          </CustomButton>
+        </div>
+      </TitleCard>
+      <TitleCard
+        :title="'Create your'"
+        :title-underlined="'own task'"
+      >
+        <div class="py-6">
+          <p>- Choose a model</p>
+          <p>- Describe the task</p>
+          <p>- Specify the desired training and evaluation parameters</p>
+        </div>
+        <div class="text-center pt-3">
+          <CustomButton @click="goToNewTaskCreationForm()">
+            Create New Task
+          </CustomButton>
+        </div>
+      </TitleCard>
     </div>
-    <section class="flex-col items-center justify-center p-4 space-y-4">
-      <!-- Decentralised insight -->
-      <div class="grid gap-8 p-4 sm:grid-cols-2">
-        <div class="flex flex-col items-center mx-auto">
-          <title-card
-            title="Insights: "
-            :title-underlined="$t('home.images.decentralised.title')"
-          >
-            <div class="flex justify-center my-md">
-              <decentralized-image class="sm:w-full md:w-3/5" />
-            </div>
-            <div>
-              <span class="text-primary-dark dark:text-primary-light">{{
-                $t('home.images.decentralised.title')
-              }}</span>
-              {{ $t('home.images.decentralised.text') }}
-            </div>
-          </title-card>
-        </div>
-        <!-- Federated insight -->
-        <div class="flex flex-col items-center mx-auto">
-          <title-card
-            title="Insights: "
-            :title-underlined="$t('home.images.federated.title')"
-          >
-            <div class="flex justify-center my-md">
-              <federated-image class="sm:w-full md:w-3/5" />
-            </div>
-            <div>
-              <span class="text-primary-dark dark:text-primary-light">{{
-                $t('home.images.federated.title')
-              }}</span>
-              {{ $t('home.images.federated.text') }}
-            </div>
-          </title-card>
-        </div>
-      </div>
-    </section>
-
-    <section class="flex-col items-center justify-center p-4 space-y-4">
-      <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-        <div
-          v-for="task in $tm('home.taskCard')"
-          :key="task.header.text"
-        >
-          <title-card
-            :title="task.header.text"
-            :title-underlined="task.header.underlined"
-          >
-            <div
-              v-for="item in task.items"
-              :key="item"
-            >
-              <p v-html="`- ${item}`" />
-            </div>
-          </title-card>
-        </div>
-
-        <div class="pt-4">
-          <custom-button @click="goToNewTaskCreationForm()">
-            {{ $t('home.createTaskButtonText') }}
-          </custom-button>
-        </div>
-      </div>
-    </section>
-  </base-layout>
+  </BaseLayout>
 </template>
 
 <script lang="ts">
-import BaseLayout from '../containers/BaseLayout.vue'
-import TitleCard from '../containers/TitleCard.vue'
-import CustomHeader from '../simple/CustomHeader.vue'
-import CustomButton from '../simple/CustomButton.vue'
-import FederatedImage from '../../assets/svg/FederatedImage.vue'
-import DecentralizedImage from '../../assets/svg/DecentralizedImage.vue'
+import BaseLayout from '@/components/containers/BaseLayout.vue'
+import TitleCard from '@/components/containers/TitleCard.vue'
+import CustomButton from '@/components/simple/CustomButton.vue'
+import Disco from '@/assets/svg/Disco.vue'
 
 export default {
   name: 'HomePage',
@@ -112,9 +50,7 @@ export default {
     BaseLayout,
     TitleCard,
     CustomButton,
-    FederatedImage,
-    DecentralizedImage,
-    CustomHeader
+    Disco
   },
   methods: {
     goToTaskList () {
