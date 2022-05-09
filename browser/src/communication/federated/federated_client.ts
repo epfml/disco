@@ -11,9 +11,9 @@ import { Weights } from '@/types'
  * a specific task.
  */
 export class FederatedClient extends Client {
-  clientID: string;
-  peer: any;
-  modelUpdateIsBasedOnRoundNumber: number;
+  clientID: string
+  peer: any
+  modelUpdateIsBasedOnRoundNumber: number
 
   /**
    * Prepares connection to a centralized server for training a given task.
@@ -63,7 +63,7 @@ export class FederatedClient extends Client {
     return response.status === 200
   }
 
-  async postMetadata (metadataID, metadata): Promise<boolean> {
+  async postMetadata (metadataID: string, metadata: string): Promise<boolean> {
     const response = api.postMetadata(
       this.task.taskID,
       this.modelUpdateIsBasedOnRoundNumber,
@@ -74,7 +74,7 @@ export class FederatedClient extends Client {
     return (await response).status === 200
   }
 
-  async getMetadataMap (metadataID) {
+  async getMetadataMap (metadataID: string) {
     const response = await api.getMetadataMap(
       this.task.taskID,
       this.modelUpdateIsBasedOnRoundNumber,

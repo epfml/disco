@@ -12,15 +12,12 @@ import * as memory from '../../memory'
  * A class that helps build the Trainer and auxiliary classes.
  */
 export class TrainerBuilder {
-  useIndexedDB: boolean
-  task: Task
-  trainingInformant: TrainingInformant
-
-  constructor (useIndexedDB: boolean, task: Task, trainingInformant: TrainingInformant) {
-    this.useIndexedDB = useIndexedDB
-    this.task = task
-    this.trainingInformant = trainingInformant
-  }
+  // eslint-disable-next-line no-useless-constructor
+  constructor (
+    public useIndexedDB: boolean,
+    public readonly task: Task,
+    public readonly trainingInformant: TrainingInformant
+  ) {}
 
   /**
    * Builds a trainer object.
@@ -49,16 +46,12 @@ export class TrainerBuilder {
     }
   }
 
-  private async getModel () {
+  private async getModel (): Promise<tf.LayersModel> {
     const model = await this.getModelFromMemoryOrFetchIt()
     return this.updateModelInformation(model)
   }
 
-  /**
-   *
-   * @returns
-   */
-  private async getModelFromMemoryOrFetchIt () {
+  private async getModelFromMemoryOrFetchIt (): Promise<tf.LayersModel> {
     const modelExistsInMemory = await memory.getWorkingModelMetadata(
       this.task.taskID,
       this.task.trainingInformation.modelID
@@ -73,7 +66,7 @@ export class TrainerBuilder {
     return await getLatestModel(this.task.taskID)
   }
 
-  private updateModelInformation (model: tf.LayersModel) {
+  private updateModelInformation (model: tf.LayersModel): tf.LayersModel {
     // Continue local training from previous epoch checkpoint
     if (model.getUserDefinedMetadata() === undefined) {
       model.setUserDefinedMetadata({ epoch: 0 })

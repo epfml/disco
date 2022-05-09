@@ -9,18 +9,22 @@ import { Trainer } from './trainer'
  * Class whose role is to train a model in a distributed way with a given dataset.
  */
 export class DistributedTrainer extends Trainer {
-  client: Client
   /** DistributedTrainer constructor, accepts same arguments as Trainer and in additional also a client who takes care of communicating weights.
    */
-  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, model: tf.LayersModel, client: Client) {
+  constructor (
+    task: Task,
+    trainingInformant: TrainingInformant,
+    useIndexedDB: boolean,
+    model: tf.LayersModel,
+    public readonly client: Client
+  ) {
     super(task, trainingInformant, useIndexedDB, model)
-    this.client = client
   }
 
   /**
    * Callback called every time a round is over
    */
-  async onRoundEnd (accuracy: number) {
+  async onRoundEnd () {
     await this.client.onRoundEndCommunication(this.model, this.roundTracker.round, this.trainingInformant)
     if (this.useIndexedDB) {
       await memory.updateWorkingModel(

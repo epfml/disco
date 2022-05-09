@@ -15,14 +15,10 @@ import { TrainerLogger, TrainerLog } from './trainer_logger'
  * a round has ended we use the roundTracker object.
  */
 export abstract class Trainer {
-  task: Task;
-  trainingInformant: TrainingInformant;
-  useIndexedDB: boolean;
-  stopTrainingRequested: boolean = false;
-  model: tf.LayersModel;
-  roundTracker: RoundTracker;
-  trainerLogger: TrainerLogger;
-  trainingInformation: TrainingInformation;
+  private stopTrainingRequested: boolean = false
+  public roundTracker: RoundTracker
+  public readonly trainerLogger: TrainerLogger
+  public readonly trainingInformation: TrainingInformation
 
   /**
    * Constructs the training manager.
@@ -30,11 +26,12 @@ export abstract class Trainer {
    * @param {TrainingInformant} trainingInformant the training informant
    * @param {boolean} useIndexedDB use IndexedDB (browser only)
    */
-  constructor (task: Task, trainingInformant: TrainingInformant, useIndexedDB: boolean, model: tf.LayersModel) {
-    this.task = task
-    this.trainingInformant = trainingInformant
-    this.useIndexedDB = useIndexedDB
-    this.model = model
+  constructor (
+    public readonly task: Task,
+    public readonly trainingInformant: TrainingInformant,
+    public useIndexedDB: boolean,
+    protected model: tf.LayersModel
+  ) {
     this.trainerLogger = new TrainerLogger()
     this.trainingInformation = this.task.trainingInformation
   }
@@ -62,24 +59,23 @@ export abstract class Trainer {
    * training.
    * @param {Boolean} useIndexedDB whether or not to use IndexedDB
    */
-  setIndexedDB (useIndexedDB: boolean) {
+  public setIndexedDB (useIndexedDB: boolean): void {
     this.useIndexedDB = useIndexedDB
   }
 
   /**
    * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
    */
-  stopTraining () {
+  public stopTraining (): void {
     this.stopTrainingRequested = true
   }
 
   /**
    * Build a round tracker, this keeps track of what round a training environment is currently on.
    *
-   * @param trainSize number of samples in the training set
    * @returns
    */
-  private initRoundTracker () {
+  private initRoundTracker (): void {
     const roundDuration = this.task.trainingInformation.roundDuration
     this.roundTracker = new RoundTracker(roundDuration)
   }
@@ -88,7 +84,7 @@ export abstract class Trainer {
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>) {
+  public async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>): Promise<void> {
     // Init round tracker - requires size info
     this.initRoundTracker()
 
@@ -120,7 +116,7 @@ export abstract class Trainer {
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
-  private onEpochEnd (epoch: number, logs: tf.Logs) {
+  private onEpochEnd (epoch: number, logs: tf.Logs): void {
     if (!isNaN(logs.acc) && !isNaN(logs.val_acc)) {
       this.trainerLogger.onEpochEnd(epoch, logs)
       this.trainingInformant.updateTrainingAccuracyGraph(this.roundDecimals(logs.acc))
@@ -132,7 +128,7 @@ export abstract class Trainer {
 
   /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
    */
-  private async onBatchEnd (batch: number, logs: tf.Logs) {
+  private async onBatchEnd (batch: number, logs: tf.Logs): Promise<void> {
     this.trainerLogger.onBatchEnd(batch, logs)
     this.roundTracker.updateBatch()
     this.stopTrainModelIfRequested()
@@ -145,7 +141,7 @@ export abstract class Trainer {
   /**
    * reset stop training state
    */
-  private resetStopTrainerState () {
+  private resetStopTrainerState (): void {
     this.model.stopTraining = false
     this.stopTrainingRequested = false
   }
@@ -153,7 +149,7 @@ export abstract class Trainer {
   /**
    * If stop training is requested, do so
    */
-  private stopTrainModelIfRequested () {
+  private stopTrainModelIfRequested (): void {
     if (this.stopTrainingRequested) {
       this.model.stopTraining = true
       this.stopTrainingRequested = false

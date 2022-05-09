@@ -96,7 +96,7 @@ export class Disco {
 
   /**
    * @param data The preprocessed dataset to train on
-   * @param distributed Whether to train in a distributed or local fashion
+   * @param trainingScheme Whether to train in a distributed or local fashion
    */
   async startTraining (data: dataset.Data, trainingScheme: TrainingSchemes): Promise<void> {
     await this.initOrUpdateClient(trainingScheme)
