@@ -1,6 +1,6 @@
 
 <template>
-  <training-frame
+  <TrainingFrame
     :id="id"
     :task="task"
     :data-loader="imageLoader"
@@ -15,14 +15,14 @@
       </div>
     </template> -->
     <template #extra />
-  </training-frame>
+  </TrainingFrame>
 </template>
 
-<script>
-import { Task } from 'discojs'
-
+<script lang="ts">
 import TrainingFrame from './TrainingFrame.vue'
-import { WebImageLoader } from '../../data_loader'
+import { WebImageLoader } from '@/data_loader'
+
+import { Task } from 'discojs'
 
 export default {
   name: 'ImageTrainingFrame',

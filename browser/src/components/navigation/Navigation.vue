@@ -1,33 +1,76 @@
 <template>
-  <base-layout>
+  <BaseLayout>
     <div>
-      <progress-bar :step="progress" />
-      <router-view v-slot="{ Component }">
-        <keep-alive>
-          <component
-            :is="Component"
-            @refresh-step="refreshStep"
-            @next-step="nextStep"
-            @prev-step="prevStep"
-          />
-        </keep-alive>
-      </router-view>
+      <ProgressBar :progress="step" />
+      <div class="grid grid-cols-2 gap-8 py-6">
+        <div
+          class="text-right"
+        >
+          <CustomButton
+            @click="prevStep"
+          >
+            Previous
+          </CustomButton>
+        </div>
+        <div
+          class="text-left"
+        >
+          <CustomButton
+            v-if="step <= 3"
+            @click="nextStep"
+          >
+            Next
+          </CustomButton>
+        </div>
+      </div>
+      <Description
+        v-show="step === 1"
+        :id="id"
+        :task="task"
+      />
+      <DatasetInput
+        v-show="step === 2"
+        :id="id"
+        :task="task"
+        :dataset-builder="datasetBuilder"
+        @add-files="addFiles"
+        @clear-files="clearFiles"
+      />
+      <Training
+        v-show="step === 3"
+        :id="id"
+        :task="task"
+        :dataset-builder="datasetBuilder"
+      />
+      <div v-show="step === 4">
+        blank
+      </div>
     </div>
-  </base-layout>
+  </BaseLayout>
 </template>
 
 <script lang="ts">
-import BaseLayout from '../containers/BaseLayout.vue'
+import CustomButton from '@/components/simple/CustomButton.vue'
 import ProgressBar from './ProgressBar.vue'
+import Description from '@/components/Description.vue'
+import Training from '@/components/training/Training.vue'
+import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
+import BaseLayout from '@/components/containers/BaseLayout.vue'
+import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 
 import { Task } from 'discojs'
-
-const STEPS = ['list', 'description', 'training']
-// const STEPS = ['list', 'description', 'dataset', 'training']
+import { DataLoader, DatasetBuilder } from 'discojs/dist/dataset'
 
 export default {
-  name: 'MainTaskFrame',
-  components: { BaseLayout, ProgressBar },
+  name: 'Navigation',
+  components: {
+    ProgressBar,
+    Description,
+    DatasetInput,
+    Training,
+    BaseLayout,
+    CustomButton
+  },
   props: {
     id: {
       type: String,
@@ -38,39 +81,43 @@ export default {
       default: undefined
     }
   },
-  data (): { step: number, progress: number } {
+  data (): { step: number } {
     return {
-      step: 1,
-      progress: 1
+      step: 1
     }
   },
-  mounted () {
-    console.log(`Mounting MainTaskFrame for ${this.task.displayInformation.taskTitle}`)
-  },
-  // TODO: @s314cy move replace logic to subcomponents which communicate via events
-  activated () {
-    console.log(`Activating MainTaskFrame for ${this.task.displayInformation.taskTitle}`)
-    this.step = this.progress
-    const step = STEPS[this.progress]
-    this.$router.replace({ path: `/${this.task.taskID}/${step}` })
+  computed: {
+    datasetBuilder (): DatasetBuilder<File> {
+      let dataLoader: DataLoader<File>
+      switch (this.task.trainingInformation.dataType) {
+        case 'tabular':
+          dataLoader = new WebTabularLoader(this.task, ',')
+          break
+        case 'image':
+          dataLoader = new WebImageLoader(this.task)
+          break
+        default:
+          throw new Error('not implemented')
+      }
+      return new DatasetBuilder(dataLoader, this.task)
+    }
   },
   methods: {
-    refreshStep (step: number) {
-      if (step >= 1 && step <= 3) {
-        this.step = step
-        this.progress = Math.max(this.progress, step)
-      }
+    addFiles (files: FileList, label?: string) {
+      this.datasetBuilder.addFiles(Array.from(files), label)
+    },
+    clearFiles (label?: string) {
+      this.datasetBuilder.clearFiles(label)
     },
     nextStep () {
-      this.step = Math.min(3, this.step + 1)
-      this.progress = Math.max(this.progress, this.step)
-      const nextStep = STEPS[this.step]
-      this.$router.replace({ path: `/${this.task.taskID}/${nextStep}` })
+      this.step = Math.min(4, this.step + 1)
     },
     prevStep () {
-      this.step = Math.max(1, this.step - 1)
-      const prevStep = STEPS[this.step]
-      this.$router.replace({ path: `${this.task.taskID}/${prevStep}` })
+      if (this.step <= 1) {
+        this.$router.push({ path: '/list' })
+      } else {
+        this.step -= 1
+      }
     }
   }
 }

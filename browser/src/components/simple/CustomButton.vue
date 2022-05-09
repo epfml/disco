@@ -2,23 +2,24 @@
   <button
     :id="id"
     type="button"
-    :class="`${
-      center ? 'ml-3 py-2 px-4' : 'w-1/6'
-    } text-lg border-2 border-transparent ${color} my-2 font-bold uppercase text-white rounded transform transition motion-reduce:transform-none duration-500 hover:scale-110 focus:outline-none`"
+    class="
+    px-4 py-1 min-w-[20%]
+    text-lg font-bold uppercase text-white
+    bg-disco-cyan
+    rounded duration-200
+    hover:bg-white hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan"
     @click="click"
   >
     <slot />
   </button>
 </template>
 
-<script>
+<script lang="ts">
 export default {
   name: 'CustomButton',
   props: {
     click: { default: () => {}, type: Function },
-    center: { default: false, type: Boolean },
-    id: { default: 'button', type: String },
-    color: { default: 'bg-green-500', type: String }
+    id: { default: 'button', type: String }
   }
 }
 </script>

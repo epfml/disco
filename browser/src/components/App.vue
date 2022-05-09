@@ -31,33 +31,35 @@
 
       <!-- Main Page -->
       <div class="overflow-x-hidden flex-grow z-0">
-        <router-view v-slot="{ Component }">
-          <keep-alive>
-            <component :is="Component" />
-          </keep-alive>
-        </router-view>
+        <RouterView v-slot="{ Component }">
+          <KeepAlive>
+            <Component :is="Component" />
+          </KeepAlive>
+        </RouterView>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import SidebarMain from './sidebar/Sidebar.vue'
-import TaskList from './pages/TaskList.vue'
-import MainTaskFrame from './navigation/Navigation.vue'
-import MainDescriptionFrame from './navigation/steps/DescriptionStep.vue'
-import MainTrainingFrame from './navigation/steps/TrainingStep.vue'
-import MainTestingFrame from './navigation/steps/TestingStep.vue'
-import { loadTasks } from '../tasks'
+import SidebarMain from '@/components/sidebar/Sidebar.vue'
+import TaskList from '@/components/pages/TaskList.vue'
+import Navigation from '@/components/navigation/Navigation.vue'
+import { loadTasks } from '@/tasks'
 
 import { Task } from 'discojs'
 import { mapState, mapMutations } from 'vuex'
 import { defineComponent } from 'vue'
 
-export default defineComponent({
+export default {
   name: 'App',
   components: {
     SidebarMain
+  },
+  data () {
+    return {
+      isLoading: false
+    }
   },
   computed: {
     ...mapState(['isDark'])
@@ -83,12 +85,6 @@ export default defineComponent({
     this.initPlatform()
   },
   async created () {
-    // Load tasks and create dynamic routes
-    this.routesComponents = [
-      ['description', MainDescriptionFrame],
-      ['training', MainTrainingFrame],
-      ['testing', MainTestingFrame]
-    ]
     const tasks: Task[] = await loadTasks()
     tasks.forEach((task: Task) => {
       const route = `/${task.taskID}`
@@ -97,13 +93,12 @@ export default defineComponent({
         // So that KeepAlive can differentiate the components
         component: defineComponent({
           key: task.taskID,
-          extends: MainTaskFrame
+          extends: Navigation
         }),
         props: {
           id: task.taskID,
           task: task
-        },
-        children: this.getTaskRoutes(task)
+        }
       })
     })
     this.$router.addRoute({
@@ -114,23 +109,6 @@ export default defineComponent({
   },
   methods: {
     ...mapMutations(['setIndexedDB', 'setAppTheme']),
-    getTaskRoutes (task: Task) {
-      return this.routesComponents.map((m) => {
-        const [route, component] = m
-        return {
-          path: route,
-          // So that KeepAlive can differentiate the components
-          component: defineComponent({
-            key: `${route}:${task.taskID}`,
-            extends: component
-          }),
-          props: {
-            id: task.taskID,
-            task: task
-          }
-        }
-      })
-    },
     getBrowserTheme () {
       if (window.localStorage.getItem('dark')) {
         return JSON.parse(window.localStorage.getItem('dark'))
@@ -172,5 +150,5 @@ export default defineComponent({
       this.$i18n.locale = 'english'
     }
   }
-})
+}
 </script>

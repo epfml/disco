@@ -1,14 +1,14 @@
 <template>
-  <tippy-container title="Settings">
+  <TippyContainer title="Settings">
     <template #icon>
-      <settings-icon />
+      <SettingsIcon />
     </template>
     <template #content>
       <div
         class="overflow-hidden hover:overflow-y-auto"
       >
         <!-- IndexedDB -->
-        <tippy-card title="Model library">
+        <TippyCard title="Model library">
           <span class="text-s">
             Turn on to get storage options for your trained models. This uses
             your browser's own database, namely
@@ -64,16 +64,16 @@
               </div>
             </button>
           </div>
-        </tippy-card>
+        </TippyCard>
         <!-- Theme -->
-        <tippy-card title="Theme mode">
+        <TippyCard title="Theme mode">
           <div class="flex items-center justify-center space-x-8">
             <!-- Light button -->
             <button
               :class="buttonClass((!$store.state.isDark).toString())"
               @click="setLightTheme"
             >
-              <span><star-icon /></span>
+              <span><StarIcon /></span>
               <span>Light</span>
             </button>
 
@@ -82,14 +82,14 @@
               :class="buttonClass(($store.state.isDark).toString())"
               @click="setDarkTheme"
             >
-              <span><moon-icon /></span>
+              <span><MoonIcon /></span>
               <span>Dark</span>
             </button>
           </div>
-        </tippy-card>
+        </TippyCard>
 
         <!-- Colors -->
-        <tippy-card title="Secondary colors">
+        <TippyCard title="Secondary colors">
           <div class="flex justify-center">
             <div
               v-for="color in colors"
@@ -102,10 +102,10 @@
               />
             </div>
           </div>
-        </tippy-card>
+        </TippyCard>
       </div>
     </template>
-  </tippy-container>
+  </TippyContainer>
 </template>
 <script lang="ts">
 import { mapMutations } from 'vuex'
@@ -114,10 +114,9 @@ import TippyContainer from './containers/TippyContainer.vue'
 import MoonIcon from '../../assets/svg/MoonIcon.vue'
 import StarIcon from '../../assets/svg/StarIcon.vue'
 import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
-import { defineComponent } from 'vue'
 
-export default defineComponent({
-  name: 'SettingsSidebar',
+export default {
+  name: 'Settings',
   components: {
     TippyCard,
     TippyContainer,
@@ -196,9 +195,8 @@ export default defineComponent({
       this.setBrowserTheme(true)
     },
     goToHome () {
-      this.setActivePage('home')
-      this.$router.push({ name: 'home' })
+      this.$router.push({ path: '/' })
     }
   }
-})
+}
 </script>

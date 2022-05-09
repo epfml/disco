@@ -1,8 +1,8 @@
 <template>
   <!-- Title's card-->
   <Card>
-    <div class="ml-10 text-xl text-gray-500 dark:text-light">
-      <span class="text-primary-dark dark:text-primary-light">
+    <div class="group m-6 text-xl text-slate-500">
+      <span class="text-disco-blue group-hover:text-disco-cyan">
         {{ title }}
         <span
           v-if="titleUnderlined"
@@ -18,7 +18,7 @@
   </Card>
 </template>
 
-<script>
+<script lang="ts">
 import Card from './Card.vue'
 
 export default {

@@ -11,7 +11,7 @@
       dark:bg-darker dark:border-primary-darker
     "
   >
-    <div>Disco &copy; 2021</div>
+    <div>Disco &copy; 2022</div>
     <div>
       Join us on
       <a
