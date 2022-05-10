@@ -88,7 +88,7 @@ import { Disco } from '@/training/disco'
 import * as memory from '@/memory'
 
 import { mapState } from 'vuex'
-import { dataset, Task } from 'discojs'
+import { dataset, Task, TrainingSchemes } from 'discojs'
 
 export default {
   name: 'Training',
@@ -145,12 +145,16 @@ export default {
     async startTraining (distributedTraining: boolean) {
       this.distributedTraining = distributedTraining
 
+      const trainingScheme = distributedTraining
+        ? TrainingSchemes.FEDERATED
+        : TrainingSchemes.LOCAL
+
       try {
         if (!this.datasetBuilder.isBuilt()) {
           this.dataset = await this.datasetBuilder
             .build()
         }
-        await this.disco.startTraining(this.dataset, distributedTraining)
+        await this.disco.startTraining(this.dataset, trainingScheme)
         this.isTraining = true
       } catch (e) {
         const msg = e instanceof Error ? e.message : e.toString()

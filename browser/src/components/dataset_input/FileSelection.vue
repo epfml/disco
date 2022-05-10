@@ -145,7 +145,7 @@ export default {
       this.nbrSelectedFiles = 0
     },
     submitFiles (e) {
-      this.$emit('input', e.current.files)
+      this.$emit('input', e.target.files)
       this.nbrSelectedFiles += e.target.files.length
     },
     dragFiles (e) {
