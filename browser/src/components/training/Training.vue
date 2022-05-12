@@ -154,16 +154,16 @@ export default {
     async startTraining (distributedTraining: boolean) {
       this.distributedTraining = distributedTraining
 
-      const trainingScheme = distributedTraining
-        ? TrainingSchemes.FEDERATED
-        : TrainingSchemes.LOCAL
-
       try {
         if (!this.datasetBuilder.isBuilt()) {
           this.dataset = await this.datasetBuilder
             .build()
         }
-        await this.disco.startTraining(this.dataset, trainingScheme)
+        if (distributedTraining) {
+          await this.disco.startTaskDefinedTraining(this.dataset)
+        } else {
+          await this.disco.startLocalTraining(this.dataset)
+        }
         this.isTraining = true
       } catch (e) {
         const msg = e instanceof Error ? e.message : e.toString()
