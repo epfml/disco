@@ -1,9 +1,8 @@
 import { List, Map, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
-import tf from '@tensorflow/tfjs'
 
-import { Client, Task, TrainingInformant, aggregation, serialization } from 'discojs'
+import { Client, Task, TrainingInformant, privacy, aggregation, serialization } from 'discojs'
 
 import { Weights } from '@/types'
 
@@ -228,11 +227,12 @@ export class DecentralizedClient extends Client {
     this.server = undefined
   }
 
-  async onRoundEndCommunication (model: tf.LayersModel, epoch: number, trainingInformant: TrainingInformant): Promise<void> {
-    // broadcast our weights
+  async onRoundEndCommunication (currentRoundWeights: Weights, previousRoundWeights: Weights, epoch: number, trainingInformant: TrainingInformant): Promise<Weights> {
+    // Broadcast our weights
+    const noisyWeights = privacy.addDifferentialPrivacy(currentRoundWeights, previousRoundWeights, this.task)
     const msg: PeerMessage = {
       epoch: epoch,
-      weights: await serialization.encodeWeights(model.weights.map((w) => w.read()))
+      weights: await serialization.encodeWeights(noisyWeights)
     }
     const encodedMsg = msgpack.encode(msg)
 
@@ -245,7 +245,7 @@ export class DecentralizedClient extends Client {
         peer.send(encodedMsg)
       })
 
-    // get weights from the others
+    // Get weights from the others
     const getWeights = () =>
       this.weights
         .valueSeq()
@@ -277,16 +277,15 @@ export class DecentralizedClient extends Client {
       .filter((weights) => weights !== undefined)
       .toSet()
 
-    // average weights
+    // Average weights
     trainingInformant.addMessage('Averaging weights')
     trainingInformant.updateNbrUpdatesWithOthers(1)
 
-    const averagedWeights = aggregation.averageWeights(receivedWeights)
-    model.setWeights(averagedWeights)
+    return aggregation.averageWeights(receivedWeights)
   }
 
-  async onTrainEndCommunication (_: tf.LayersModel, trainingInformant: TrainingInformant): Promise<void> {
-    // TODO nothing to do?
+  async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
+    // TODO: enter seeding mode?
     trainingInformant.addMessage('Training finished.')
   }
 }

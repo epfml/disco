@@ -1,14 +1,14 @@
 import * as msgpack from 'msgpack-lite'
-import * as tf from '@tensorflow/tfjs'
 
-import { Client, Task, TrainingInformant } from 'discojs'
+import { Client, Task, TrainingInformant, privacy } from 'discojs'
 
 import { makeID } from '../authentication'
 import * as api from './federated_api'
 import { Weights } from '@/types'
+
 /**
  * Class that deals with communication with the centralized server when training
- * a specific task.
+ * a specific task in the federated setting.
  */
 export class FederatedClient extends Client {
   clientID: string
@@ -17,10 +17,10 @@ export class FederatedClient extends Client {
 
   /**
    * Prepares connection to a centralized server for training a given task.
-   * @param {String} serverURL The URL of the centralized server.
+   * @param {string} serverURL The URL of the centralized server.
    * @param {Task} task The associated task object.
    */
-  constructor (serverURL: string, task: Task) {
+  public constructor (serverURL: string, task: Task) {
     super(serverURL, task)
     this.clientID = ''
     this.modelUpdateIsBasedOnRoundNumber = -1 // The server starts at round 0, in the beginning we are behind
@@ -30,7 +30,7 @@ export class FederatedClient extends Client {
    * Initialize the connection to the server. TODO: In the case of FeAI,
    * should return the current server-side round for the task.
    */
-  async connect (): Promise<void> {
+  public async connect (): Promise<void> {
     /**
      * Create an ID used to connect to the server.
      * The client is now considered as connected and further
@@ -46,7 +46,7 @@ export class FederatedClient extends Client {
   /**
    * Disconnection process when user quits the task.
    */
-  async disconnect (): Promise<void> {
+  public async disconnect (): Promise<void> {
     const response = await api.disconnect(this.task.taskID, this.clientID)
     if (response.status !== 200) {
       throw new Error('bad status on disconnect')
@@ -63,7 +63,7 @@ export class FederatedClient extends Client {
     return response.status === 200
   }
 
-  async postMetadata (metadataID: string, metadata: string): Promise<boolean> {
+  private async postMetadata (metadataID: string, metadata: string): Promise<boolean> {
     const response = api.postMetadata(
       this.task.taskID,
       this.modelUpdateIsBasedOnRoundNumber,
@@ -74,7 +74,7 @@ export class FederatedClient extends Client {
     return (await response).status === 200
   }
 
-  async getMetadataMap (metadataID: string) {
+  public async getMetadataMap (metadataID: string) {
     const response = await api.getMetadataMap(
       this.task.taskID,
       this.modelUpdateIsBasedOnRoundNumber,
@@ -89,7 +89,7 @@ export class FederatedClient extends Client {
     }
   }
 
-  private async getLatestServerRound (): Promise<number> {
+  public async getLatestServerRound (): Promise<number> {
     const response = await api.getRound(this.task.taskID, this.clientID)
 
     if (response.status === 200) {
@@ -99,23 +99,17 @@ export class FederatedClient extends Client {
     return -1
   }
 
-  private async updateLocalModel (model: tf.LayersModel) {
-    // get latest model from the server
-    const weights = await api.getWeights(this.task.taskID, this.clientID)
-    model.setWeights(weights)
-
-    console.log('Updated local model')
-  }
-
-  private async fetchChangesAndUpdateModel (model: tf.LayersModel) {
-    // get server round of latest model
+  public async fetchRoundAndModelChanges (): Promise<Weights> {
+    // Get server round of latest model
     const serverRound = await this.getLatestServerRound()
 
     const localRoundIsOld = this.modelUpdateIsBasedOnRoundNumber < serverRound
     if (localRoundIsOld) {
       this.modelUpdateIsBasedOnRoundNumber = serverRound
-      // update local model from server
-      await this.updateLocalModel(model)
+      // Update local model from server
+      return await api.getWeights(this.task.taskID, this.clientID)
+    } else {
+      return undefined
     }
   }
 
@@ -124,13 +118,19 @@ export class FederatedClient extends Client {
     trainingInformant.updateWithServerStatistics(serverStatistics.data.statistics)
   }
 
-  async onRoundEndCommunication (model: tf.LayersModel, _: number, trainingInformant: TrainingInformant) {
-    await this.postWeightsToServer(model.weights.map((w) => w.read()))
-    await this.fetchChangesAndUpdateModel(model)
+  public async onRoundEndCommunication (
+    previousRoundWeights: Weights,
+    currentRoundWeights: Weights,
+    _: number,
+    trainingInformant: TrainingInformant
+  ): Promise<Weights> {
+    const noisyWeights = privacy.addDifferentialPrivacy(previousRoundWeights, currentRoundWeights, this.task)
+    await this.postWeightsToServer(noisyWeights)
     await this.fetchServerStatisticsAndUpdateInformant(trainingInformant)
+    return await this.fetchRoundAndModelChanges() ?? currentRoundWeights
   }
 
-  async onTrainEndCommunication (_: tf.LayersModel, trainingInformant: TrainingInformant) {
+  public async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant) {
     trainingInformant.addMessage('Training finished.')
   }
 }

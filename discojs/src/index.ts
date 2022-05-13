@@ -1,6 +1,7 @@
 export * as aggregation from './aggregation'
 export * as dataset from './dataset'
 export * as serialization from './serialization'
+export * as privacy from './privacy'
 
 export { AsyncBuffer } from './async_buffer'
 export { AsyncInformant } from './async_informant'

@@ -34,6 +34,7 @@ export class TrainerBuilder {
         this.trainingInformant,
         this.useIndexedDB,
         model,
+        model,
         client
       )
     } else {
