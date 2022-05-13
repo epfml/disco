@@ -4,7 +4,7 @@
     <custom-header />
     <!-- Information sections -->
     <section class="flex-col items-center justify-center p-4 space-y-4">
-      <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
+      <div class="grid grid-cols-1 gap-4 p-4">
         <div
           class="
             group
@@ -24,26 +24,28 @@
           </title-card>
         </div>
 
-        <div class="flex items-center justify-center p-4">
-          <custom-button
-            :center="true"
-            @click="goToPreviousPage()"
-          >
-            Go Back
-          </custom-button>
-          <custom-button
-            :center="true"
-            @click="goToHomePage()"
-          >
-            Home Page
-          </custom-button>
+        <div class="grid grid-cols-2 gap-8 items-center">
+          <div class="text-right">
+            <CustomButton
+              @click="goToPreviousPage()"
+            >
+              Go Back
+            </CustomButton>
+          </div>
+          <div class="text-left">
+            <CustomButton
+              @click="goToHomePage()"
+            >
+              Home Page
+            </CustomButton>
+          </div>
         </div>
       </div>
     </section>
   </base-layout>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from 'vue'
 import BaseLayout from '../containers/BaseLayout.vue'
 import CustomButton from '../simple/CustomButton.vue'
@@ -63,7 +65,7 @@ export default defineComponent({
       this.$router.go(-1)
     },
     goToHomePage () {
-      this.$router.push({ name: 'home' })
+      this.$router.push({ path: '/' })
     }
   }
 })

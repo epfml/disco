@@ -7,14 +7,15 @@
       p-2
       duration-200
       rounded-full
+      text-white
+      bg-disco-blue
+      outline-none
       hover:outline
       hover:outline-2
       hover:outline-disco-blue
       hover:text-disco-blue
       hover:bg-white
-      text-white
-      bg-disco-blue
-      outline-none
+      hover:cursor-pointer
     "
     @click="click()"
   >
@@ -23,7 +24,7 @@
   </a>
 </template>
 
-<script>
+<script lang="ts">
 export default {
   name: 'SidebarButton',
   props: {
@@ -32,7 +33,7 @@ export default {
     customClass: { default: '', type: String }
   },
   methods: {
-    firstLetterUppercase: (str) => {
+    firstLetterUppercase: (str: string) => {
       return !str || str.charAt(0).toUpperCase() + str.slice(1)
     }
   }

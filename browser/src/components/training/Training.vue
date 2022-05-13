@@ -3,7 +3,7 @@
     <!-- Train Button -->
     <div
       v-if="trainingInformant === undefined"
-      class="grid grid-cols-2 gap-8 py-6"
+      class="grid grid-cols-2 gap-8 py-6 items-center"
     >
       <div class="text-center">
         <CustomButton
@@ -16,7 +16,7 @@
         <CustomButton
           @click="startTraining(true)"
         >
-          Train {{ $t('platform') }}
+          Collaborative Training
         </CustomButton>
       </div>
     </div>
@@ -27,6 +27,7 @@
         Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
       </CustomButton>
     </div>
+
     <!-- Training Board -->
     <div>
       <TrainingInformation
