@@ -2,7 +2,7 @@
   <BaseLayout>
     <div>
       <ProgressBar :progress="step" />
-      <div class="grid grid-cols-2 gap-8 py-6">
+      <div class="grid grid-cols-2 gap-8 py-6 items-center">
         <div
           class="text-right"
         >
