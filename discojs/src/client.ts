@@ -6,7 +6,7 @@ import { Weights } from '@/types'
 
 export abstract class Client {
   constructor (
-    public readonly serverURL: string,
+    public readonly url: URL,
     public readonly task: Task
   ) {}
 
@@ -22,9 +22,12 @@ export abstract class Client {
    */
   abstract disconnect (): Promise<void>
 
+  // TODO only works in federated
   async getLatestModel (): Promise<tf.LayersModel> {
-    const url = this.serverURL.concat(`tasks/${this.task.taskID}/new_weights`)
-    return await tf.loadLayersModel(url)
+    const url = new URL('', this.url.href)
+    url.pathname += `/tasks/${this.task.taskID}/new_weights`
+
+    return await tf.loadLayersModel(url.href)
   }
 
   /**

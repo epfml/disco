@@ -2,6 +2,7 @@ import { List, Map, Seq, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
 import isomorphic from 'isomorphic-ws'
+import { URL } from 'url'
 
 import { Client, Task, TrainingInformant, aggregation, serialization, privacy } from '..'
 
@@ -93,18 +94,6 @@ export class DecentralizedClient extends Client {
   private peers = Map<PeerID, SimplePeer.Instance>()
 
   private readonly weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
-
-  constructor (rawServerURL: string, task: Task) {
-    super(rawServerURL, task)
-
-    // TODO do not have a client per task
-    const serverURL = new URL(rawServerURL)
-    serverURL.pathname += `tasks/${task.taskID}`
-
-    if (task.trainingInformation?.threshold !== undefined) {
-      throw new Error('no support for threshold')
-    }
-  }
 
   private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const ws = new isomorphic.WebSocket(url)
@@ -206,8 +195,8 @@ export class DecentralizedClient extends Client {
    * Initialize the connection to the peers and to the other nodes.
    */
   async connect (): Promise<void> {
-    // TODO move to args
-    const serverURL = new URL(this.serverURL)
+    const serverURL = new URL('', this.url.href)
+    serverURL.pathname += `/tasks/${this.task.taskID}`
 
     this.server = await this.connectServer(serverURL)
   }
