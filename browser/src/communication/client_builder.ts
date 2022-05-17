@@ -1,4 +1,4 @@
-import { Client, Task, TrainingSchemes, DecentralizedClient, FederatedClient } from 'discojs'
+import { Client, Task, TrainingSchemes, DecentralizedClient, FederatedClient, LocalClient } from 'discojs'
 
 export function getClient (trainingScheme: TrainingSchemes, task: Task, password?: string): Client {
   switch (trainingScheme) {
@@ -13,5 +13,7 @@ export function getClient (trainingScheme: TrainingSchemes, task: Task, password
         throw new Error('unexpected password for federated client')
       }
       return new FederatedClient(process.env.VUE_APP_FEAI_SERVER, task)
+    case TrainingSchemes.LOCAL:
+      return new LocalClient(task)
   }
 }
