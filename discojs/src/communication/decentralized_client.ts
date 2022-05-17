@@ -94,17 +94,12 @@ export class DecentralizedClient extends Client {
 
   private readonly weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
 
-  constructor (rawServerURL: string, task: Task, password?: string) {
+  constructor (rawServerURL: string, task: Task) {
     super(rawServerURL, task)
 
     // TODO do not have a client per task
     const serverURL = new URL(rawServerURL)
     serverURL.pathname += `tasks/${task.taskID}`
-
-    if (password !== undefined) {
-      // TODO use tweetnacl.secretbox
-      throw new Error('TODO missing authentication support')
-    }
 
     if (task.trainingInformation?.threshold !== undefined) {
       throw new Error('no support for threshold')
