@@ -5,7 +5,7 @@ import { Task } from '../task'
 // does pretty much nothing
 export class LocalClient extends Client {
   constructor (task: Task) {
-    super('local://', task)
+    super(new URL('local://'), task)
   }
 
   async connect (): Promise<void> {}

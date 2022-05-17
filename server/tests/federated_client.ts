@@ -25,24 +25,20 @@ describe('federated client', () => { // the tests container
   })
 
   const getClient = async (task?: Task): Promise<FederatedClient> => {
+    let host: string
     const addr = server?.address()
     if (addr === undefined || addr === null) {
       throw new Error('server not started')
-    }
-
-    let url: string
-    if (typeof addr === 'string') {
-      url = addr
-    } else if (typeof addr === 'object') {
-      if (addr.family === '4') {
-        url = `${addr.address}:${addr.port}`
-      } else {
-        url = `[${addr.address}]:${addr.port}`
-      }
+    } else if (typeof addr === 'string') {
+      host = addr
     } else {
-      throw new Error('unable to get address to server')
+      if (addr.family === '4') {
+        host = `${addr.address}:${addr.port}`
+      } else {
+        host = `[${addr.address}]:${addr.port}`
+      }
     }
-    url = `http://${url}/feai`
+    const url = new URL(`http://${host}/feai`)
 
     const t = task ?? (await getTasks(CONFIG.tasksFile))[0]
     return new FederatedClient(url, t)
