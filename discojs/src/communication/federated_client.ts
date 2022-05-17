@@ -1,7 +1,7 @@
 import * as msgpack from 'msgpack-lite'
 import axios from 'axios'
 
-import { Weights, Client, Task, TrainingInformant, MetadataID, serialization, privacy } from '..'
+import { Weights, Client, TrainingInformant, MetadataID, serialization, privacy } from '..'
 
 import { makeID } from './authentication'
 /**
@@ -9,24 +9,13 @@ import { makeID } from './authentication'
  * a specific task in the federated setting.
  */
 export class FederatedClient extends Client {
-  clientID: string
-  peer: any
-  private round: number
-
-  /**
-   * Prepares connection to a centralized server for training a given task.
-   * @param {String} serverURL The URL of the centralized server.
-   * @param {Task} task The associated task object.
-   */
-  constructor (serverURL: string, task: Task) {
-    super(serverURL, task)
-    this.clientID = ''
-    this.round = -1 // The server starts at round 0, in the beginning we are behind
-  }
+  private readonly clientID = makeID(10)
+  private readonly peer: any
+  private round = -1 // The server starts at round 0, in the beginning we are behind
 
   private urlTo (category: string): string {
     return [
-      this.serverURL,
+      this.url,
       category,
       this.task.taskID,
       this.clientID
@@ -38,13 +27,6 @@ export class FederatedClient extends Client {
    * should return the current server-side round for the task.
    */
   async connect (): Promise<void> {
-    /**
-     * Create an ID used to connect to the server.
-     * The client is now considered as connected and further
-     * API requests may be made.
-     */
-    this.clientID = makeID(10)
-
     await axios.get(this.urlTo('connect'))
   }
 
@@ -69,7 +51,7 @@ export class FederatedClient extends Client {
   async postMetadata (metadataID: string, metadata: string): Promise<void> {
     await axios({
       method: 'post',
-      url: `${this.serverURL}/metadata/${metadataID}/${this.task.taskID}/${this.round}/${this.clientID}`,
+      url: `${this.url.href}/metadata/${metadataID}/${this.task.taskID}/${this.round}/${this.clientID}`,
       data: {
         metadataID: metadata
       }
@@ -77,7 +59,7 @@ export class FederatedClient extends Client {
   }
 
   async getMetadataMap (metadataID: MetadataID): Promise<Map<string, unknown>> {
-    const response = await axios.get(`${this.serverURL}/metadata/${metadataID}/${this.task.taskID}/${this.round}/${this.clientID}`)
+    const response = await axios.get(`${this.url.href}/metadata/${metadataID}/${this.task.taskID}/${this.round}/${this.clientID}`)
 
     const body = await response.data
     return new Map(msgpack.decode(body[metadataID]))
