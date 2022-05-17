@@ -2,7 +2,7 @@
   <div>
     <!-- Train Button -->
     <div
-      v-if="!isTraining"
+      v-if="trainingInformant === undefined"
       class="grid grid-cols-2 gap-8 py-6"
     >
       <div class="text-center">
@@ -30,7 +30,7 @@
     <!-- Training Board -->
     <div>
       <TrainingInformation
-        v-if="trainingInformant"
+        v-if="trainingInformant !== undefined"
         :training-informant="trainingInformant"
       />
     </div>
@@ -82,7 +82,7 @@
 <script lang="ts">
 import { mapState } from 'vuex'
 
-import { dataset, training, EmptyMemory, Task, TrainingSchemes } from 'discojs'
+import { dataset, training, EmptyMemory, Task, TrainingInformant, TrainingSchemes } from 'discojs'
 
 import { IndexedDB } from '@/memory'
 import TrainingInformation from './TrainingInformation.vue'
@@ -116,26 +116,13 @@ export default {
   },
   data () {
     return {
-      isTraining: false,
+      disco: undefined,
       distributedTraining: undefined,
       trainingInformant: undefined,
       memory: new IndexedDB()
     }
   },
   computed: {
-    disco () {
-      const client = getClient(
-        TrainingSchemes.LOCAL, // unused
-        this.task
-      )
-
-      return new training.Disco(
-        this.task,
-        this.$toast,
-        this.memory,
-        client
-      )
-    },
     ...mapState(['useIndexedDB'])
   },
   watch: {
@@ -144,36 +131,50 @@ export default {
     }
   },
 
-  mounted () {
-    // transform trainingInformant into a JS proxy
-    this.trainingInformant = this.disco.trainingInformant
-    this.disco.trainingInformant = this.trainingInformant
-  },
-
   methods: {
     async startTraining (distributedTraining: boolean) {
       this.distributedTraining = distributedTraining
+
+      this.disco = new training.Disco(
+        this.task,
+        this.$toast,
+        this.memory,
+        getClient
+      )
+
+      let scheme
+      if (this.distributedTraining) {
+        if (this.task.trainingInformation?.scheme === 'Federated') {
+          scheme = TrainingSchemes.FEDERATED
+        } else {
+          scheme = TrainingSchemes.DECENTRALIZED
+        }
+      } else {
+        scheme = TrainingSchemes.LOCAL
+      }
+
+      this.trainingInformant = new TrainingInformant(10, this.task.taskID, scheme)
 
       try {
         if (!this.datasetBuilder.isBuilt()) {
           this.dataset = await this.datasetBuilder
             .build()
         }
-        if (distributedTraining) {
-          await this.disco.startTaskDefinedTraining(this.dataset)
-        } else {
-          await this.disco.startLocalTraining(this.dataset)
-        }
-        this.isTraining = true
+
+        await this.disco.startTraining(scheme, this.trainingInformant, this.dataset)
       } catch (e) {
         const msg = e instanceof Error ? e.message : e.toString()
         this.$toast.error(msg)
         setTimeout(this.$toast.clear, 30000)
+
+        // clean generated state
+        this.disco = undefined
+        this.trainingInformant = undefined
       }
     },
     async stopTraining () {
       await this.disco.stopTraining()
-      this.isTraining = false
+      this.trainingInformant = undefined
     },
     async saveModel () {
       if (this.memory !== undefined) {
