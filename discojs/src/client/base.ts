@@ -4,7 +4,7 @@ import { Task } from '@/task'
 import { TrainingInformant } from '@/training_informant'
 import { Weights } from '@/types'
 
-export abstract class Client {
+export abstract class Base {
   constructor (
     public readonly url: URL,
     public readonly task: Task
