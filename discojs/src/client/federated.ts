@@ -2,13 +2,15 @@ import * as msgpack from 'msgpack-lite'
 import axios from 'axios'
 import { v4 as randomUUID } from 'uuid'
 
-import { Weights, Client, TrainingInformant, MetadataID, serialization, privacy } from '..'
+import { privacy, serialization, TrainingInformant, MetadataID, Weights } from '..'
+
+import { Base } from './base'
 
 /**
  * Class that deals with communication with the centralized server when training
  * a specific task in the federated setting.
  */
-export class FederatedClient extends Client {
+export class Federated extends Base {
   private readonly clientID = randomUUID()
   private readonly peer: any
   private round = -1 // The server starts at round 0, in the beginning we are behind

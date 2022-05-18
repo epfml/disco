@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import * as http from 'http'
 
-import { FederatedClient, Task, TrainingInformant, TrainingSchemes } from 'discojs'
+import { client, Task, TrainingInformant, TrainingSchemes } from 'discojs'
 
 import app from '../src/run_server'
 import { CONFIG } from '../src/config'
@@ -24,7 +24,7 @@ describe('federated client', () => { // the tests container
     server?.close()
   })
 
-  const getClient = async (task?: Task): Promise<FederatedClient> => {
+  const getClient = async (task?: Task): Promise<client.Federated> => {
     let host: string
     const addr = server?.address()
     if (addr === undefined || addr === null) {
@@ -41,7 +41,7 @@ describe('federated client', () => { // the tests container
     const url = new URL(`http://${host}/feai`)
 
     const t = task ?? (await getTasks(CONFIG.tasksFile))[0]
-    return new FederatedClient(url, t)
+    return new client.Federated(url, t)
   }
 
   it('connect to valid task', async () => {

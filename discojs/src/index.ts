@@ -4,10 +4,11 @@ export * as serialization from './serialization'
 export * as training from './training'
 export * as privacy from './privacy'
 
+export { Base as Client } from './client'
+export * as client from './client'
+
 export { AsyncBuffer } from './async_buffer'
 export { AsyncInformant } from './async_informant'
-export { Client } from './client'
-export { DecentralizedClient, FederatedClient, LocalClient } from './communication'
 export { Logger, ConsoleLogger } from './logging'
 export { Memory, ModelType, Empty as EmptyMemory } from './memory'
 export { ModelActor } from './model_actor'

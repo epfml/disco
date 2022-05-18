@@ -1,12 +1,12 @@
 import { List, Map, Seq, Set } from 'immutable'
+import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
-import isomorphic from 'isomorphic-ws'
 import { URL } from 'url'
 
-import { Client, Task, TrainingInformant, aggregation, serialization, privacy } from '..'
+import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
 
-import { Weights } from '@/types'
+import { Base } from './base'
 
 interface PeerMessage { epoch: number, weights: serialization.EncodedWeights }
 
@@ -89,7 +89,7 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
-export class DecentralizedClient extends Client {
+export class Decentralized extends Base {
   private server?: isomorphic.WebSocket
   private peers = Map<PeerID, SimplePeer.Instance>()
 
