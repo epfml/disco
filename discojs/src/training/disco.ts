@@ -1,6 +1,6 @@
 import { Memory } from '@/memory'
 import { Map } from 'immutable'
-import { TrainingInformant, Client, Task, Logger, dataset, TrainingSchemes } from '..'
+import { Client, dataset, Logger, Task, TrainingInformant, TrainingSchemes } from '..'
 
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
