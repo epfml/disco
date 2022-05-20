@@ -9,7 +9,7 @@ export abstract class Memory {
   * @param taskID the working model's corresponding task
   * @param modelName the working model's file name
   */
-  abstract getModelMetadata (type: ModelType, taskID: TaskID, modelName: string): Promise<tf.io.ModelArtifactsInfo>
+  abstract getModelMetadata (type: ModelType, taskID: TaskID, modelName: string): Promise<tf.io.ModelArtifactsInfo | undefined>
 
   /**
   * Loads the current working model and returns it as a fresh TFJS object.
