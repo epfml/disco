@@ -24,7 +24,7 @@ export class TrainerBuilder {
    * @returns
    */
   async build (client: Client, distributed: boolean = false): Promise<Trainer> {
-    const model = await this.getModel()
+    const model = await this.getModel(client)
     if (distributed) {
       return new DistributedTrainer(
         this.task,
@@ -44,35 +44,35 @@ export class TrainerBuilder {
     }
   }
 
-  private async getModel (): Promise<tf.LayersModel> {
-    const model = await this.getModelFromMemory()
-    return await this.updateModelInformation(model)
-  }
-
   /**
-   *
+   * If a model exists in memory, laod it, otherwise load model from server
    * @returns
    */
-  private async getModelFromMemory (): Promise<tf.LayersModel> {
+  private async getModel (client: Client): Promise<tf.LayersModel> {
     const modelID = this.task.trainingInformation?.modelID
     if (modelID === undefined) {
       throw new Error('undefined model ID')
     }
+
+    let model: tf.LayersModel
 
     const modelExistsInMemory = await this.memory.getModelMetadata(
       ModelType.WORKING,
       this.task.taskID,
       modelID
     )
+
     if (modelExistsInMemory !== undefined) {
-      return await this.memory.getModel(
+      model = await this.memory.getModel(
         ModelType.WORKING,
         this.task.taskID,
         modelID
       )
+    } else {
+      model = await client.getLatestModel()
     }
 
-    throw new Error('no model in memory')
+    return await this.updateModelInformation(model)
   }
 
   private async updateModelInformation (model: tf.LayersModel): Promise<tf.LayersModel> {
