@@ -15,6 +15,11 @@ async function getTaskDir (taskID: TaskID): Promise<Path> {
   return dir
 }
 
+// Remove model from memory
+function dispose (model: tf.LayersModel): void {
+  model.layers.forEach(l => l.dispose())
+}
+
 async function createTitanicModel (): Promise<void> {
   const model = tf.sequential()
   model.add(
@@ -31,6 +36,7 @@ async function createTitanicModel (): Promise<void> {
 
   const savePath = await getTaskDir('titanic')
   await model.save(CONFIG.savingScheme.concat(savePath))
+  dispose(model)
 }
 
 async function createMnistModel (): Promise<void> {
@@ -57,6 +63,7 @@ async function createMnistModel (): Promise<void> {
 
   const savePath = await getTaskDir('mnist')
   await model.save(CONFIG.savingScheme.concat(savePath))
+  dispose(model)
 }
 
 async function createLUSCovidModel (): Promise<void> {
@@ -69,6 +76,7 @@ async function createLUSCovidModel (): Promise<void> {
 
   const savePath = await getTaskDir('lus_covid')
   await model.save(CONFIG.savingScheme.concat(savePath))
+  dispose(model)
 }
 
 async function createCifar10Model (): Promise<void> {
@@ -87,6 +95,7 @@ async function createCifar10Model (): Promise<void> {
 
   const savePath = await getTaskDir('cifar10')
   await model.save(CONFIG.savingScheme.concat(savePath))
+  dispose(model)
 }
 
 async function createFaceModel (): Promise<void> {
@@ -94,6 +103,7 @@ async function createFaceModel (): Promise<void> {
 
   const savePath = await getTaskDir('simple_face')
   await model.save(CONFIG.savingScheme.concat(savePath))
+  dispose(model)
 }
 
 export default [
