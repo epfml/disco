@@ -1,6 +1,6 @@
 import { List, Repeat, Set } from 'immutable'
 import { TaskID } from '.'
-import { TrainingSchemes } from './training/trainingSchemes'
+import { TrainingSchemes } from './training/training_schemes'
 
 const nbEpochsOnGraphs = 10
 
