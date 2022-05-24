@@ -10,13 +10,18 @@ import { TrainerBuilder } from './trainer/trainer_builder'
  */
 export class Disco {
   private forScheme = Map<TrainingSchemes, [Client, Trainer]>()
+  private readonly trainer: Promise<Trainer>
 
   constructor (
     public readonly task: Task,
     public readonly logger: Logger,
     public readonly memory: Memory,
+    scheme: TrainingSchemes,
+    informant: TrainingInformant,
     private readonly clientBuilder: (scheme: TrainingSchemes, task: Task) => Client
-  ) {}
+  ) {
+    this.trainer = this.getTrainer(scheme, informant)
+  }
 
   private async getTrainer (scheme: TrainingSchemes, informant: TrainingInformant): Promise<Trainer> {
     const cached = this.forScheme.get(scheme)
@@ -43,20 +48,17 @@ export class Disco {
    * @param informant
    * @param data
    */
-  async startTraining (scheme: TrainingSchemes, informant: TrainingInformant, data: dataset.Data): Promise<void> {
+  async startTraining (data: dataset.Data): Promise<void> {
     if (data.size === 0) {
       this.logger.error('Training aborted. No uploaded file given as input.')
       throw new Error('No data in dataset')
     }
 
-    const trainer = await this.getTrainer(scheme, informant)
-
     this.logger.success(
       'Thank you for your contribution. Data preprocessing has started'
     )
 
-    // TODO: dataset.size = null, since we build it with an iterator (issues occurs with ImageLoader) see issue 279
-    void trainer.trainModel(data.dataset)
+    await (await this.trainer).trainModel(data.dataset)
   }
 
   /**

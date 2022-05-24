@@ -162,7 +162,7 @@ export default {
             .build()
         }
 
-        await this.disco.startTraining(scheme, this.trainingInformant, this.dataset)
+        this.disco.startTraining(scheme, this.trainingInformant, this.dataset)
       } catch (e) {
         const msg = e instanceof Error ? e.message : e.toString()
         this.$toast.error(msg)
