@@ -1,11 +1,12 @@
 // import devtools from '@vue/devtools';
 import { createApp } from 'vue'
+import VueApexCharts from 'vue3-apexcharts'
+import Toaster from '@meforma/vue-toaster'
+
 import App from './components/App.vue'
 import router from './router'
-import Toaster from '@meforma/vue-toaster'
 import { store } from './store/store'
 import { createCustomI18n } from './locales/i18n'
-import VueApexCharts from 'vue3-apexcharts'
 
 import '@/assets/css/tailwind.css'
 import '@/assets/css/styles.css'
