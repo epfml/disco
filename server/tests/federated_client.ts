@@ -38,7 +38,7 @@ describe('federated client', () => { // the tests container
         host = `[${addr.address}]:${addr.port}`
       }
     }
-    const url = new URL(`http://${host}/feai`)
+    const url = new URL(`http://${host}`)
 
     const t = task ?? (await getTasks(CONFIG.tasksFile))[0]
     return new client.Federated(url, t)
