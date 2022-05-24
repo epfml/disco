@@ -16,12 +16,31 @@ export class Federated extends Base {
   private round = -1 // The server starts at round 0, in the beginning we are behind
 
   private urlTo (category: string): string {
-    return [
-      this.url,
+    const url = new URL('', this.url)
+
+    url.pathname += [
+      'feai',
       category,
       this.task.taskID,
       this.clientID
     ].join('/')
+
+    return url.href
+  }
+
+  private urlToMetadata (metadataID: string): string {
+    const url = new URL('', this.url)
+
+    url.pathname += [
+      'feai',
+      'metadata',
+      metadataID,
+      this.task.taskID,
+      this.round,
+      this.clientID
+    ].join('/')
+
+    return url.href
   }
 
   /**
@@ -53,7 +72,7 @@ export class Federated extends Base {
   async postMetadata (metadataID: string, metadata: string): Promise<void> {
     await axios({
       method: 'post',
-      url: `${this.url.href}/metadata/${metadataID}/${this.task.taskID}/${this.round}/${this.clientID}`,
+      url: this.urlToMetadata(metadataID),
       data: {
         metadataID: metadata
       }
@@ -61,7 +80,7 @@ export class Federated extends Base {
   }
 
   async getMetadataMap (metadataID: MetadataID): Promise<Map<string, unknown>> {
-    const response = await axios.get(`${this.url.href}/metadata/${metadataID}/${this.task.taskID}/${this.round}/${this.clientID}`)
+    const response = await axios.get(this.urlToMetadata(metadataID))
 
     const body = await response.data
     return new Map(msgpack.decode(body[metadataID]))

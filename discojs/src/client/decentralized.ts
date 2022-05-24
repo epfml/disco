@@ -196,7 +196,7 @@ export class Decentralized extends Base {
    */
   async connect (): Promise<void> {
     const serverURL = new URL('', this.url.href)
-    serverURL.pathname += `/tasks/${this.task.taskID}`
+    serverURL.pathname += `/deai/tasks/${this.task.taskID}`
 
     this.server = await this.connectServer(serverURL)
   }
