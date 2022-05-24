@@ -4,7 +4,7 @@ import * as tf from '@tensorflow/tfjs'
 import * as tfNode from '@tensorflow/tfjs-node'
 import Rand from 'rand-seed'
 
-import app from '../src/run_server'
+import app from '../src/get_server'
 import { getTasks } from '../src/tasks/tasks_io'
 import { dataset, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant, FederatedClient } from 'discojs'
 import { CONFIG } from '../src/config'
@@ -45,13 +45,13 @@ function filesFromFolder (dir: string, folder: string, fractionToKeep: number): 
 }
 
 async function loadData (validSplit = 0.2): Promise<Record<'train' | 'valid', dataset.Data>> {
-  // const dir = './example_training_data/simple_face/'
-  // const youngFolders = ['child']
-  // const oldFolders = ['adult']
+  const dir = './../discojs/example_training_data/simple_face/'
+  const youngFolders = ['child']
+  const oldFolders = ['adult']
 
-  const dir = '../../face_age/'
-  const youngFolders = ['007', '008', '009', '010', '011', '012', '013', '014']
-  const oldFolders = ['021', '022', '023', '024', '025', '026']
+  // const dir = '../../face_age/'
+  // const youngFolders = ['007', '008', '009', '010', '011', '012', '013', '014']
+  // const oldFolders = ['021', '022', '023', '024', '025', '026']
 
   // TODO: we just keep x% of data for faster training, e.g., for each folder, we keep 0.1 fraction of images
   const fractionToKeep = 0.1
@@ -95,9 +95,11 @@ async function runUser (serverURL: string): Promise<void> {
   const memory = new EmptyMemory()
 
   const informant = new TrainingInformant(10, task.taskID, TrainingSchemes.FEDERATED)
-  const disco = new training.Disco(task, logger, memory, () => new FederatedClient(serverURL, task))
+  const disco = new training.Disco(task, logger, memory, TrainingSchemes.FEDERATED, informant, () => new FederatedClient(serverURL, task))
 
-  await disco.startTraining(TrainingSchemes.FEDERATED, informant, data.train)
+  console.log('runUser>>>>')
+  await disco.startTraining(data.train)
+  console.log('runUser<<<<')
 }
 
 async function startServer (): Promise<[http.Server, string]> {
@@ -105,6 +107,7 @@ async function startServer (): Promise<[http.Server, string]> {
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
     server.once('error', reject)
+    server.on('error', console.error)
   })
   const rawAddr = server.address()
 
@@ -137,8 +140,8 @@ async function main (): Promise<void> {
   ])
 
   await new Promise((resolve, reject) => {
-    server.close(reject)
     server.once('close', resolve)
+    server.close(reject)
   })
 }
 
