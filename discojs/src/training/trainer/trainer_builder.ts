@@ -31,6 +31,7 @@ export class TrainerBuilder {
         this.trainingInformant,
         this.memory,
         model,
+        model,
         client
       )
     } else {

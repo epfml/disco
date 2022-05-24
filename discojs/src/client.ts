@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs'
 
 import { Task } from '@/task'
 import { TrainingInformant } from '@/training_informant'
+import { Weights } from '@/types'
 
 export abstract class Client {
   constructor (
@@ -31,14 +32,20 @@ export abstract class Client {
    * onTrainEnd callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  abstract onTrainEndCommunication (model: tf.LayersModel, trainingInformant: TrainingInformant): Promise<void>
+  abstract onTrainEndCommunication (weights: Weights, trainingInformant: TrainingInformant): Promise<void>
 
   /**
    * This function will be called whenever a local round has ended.
    *
-   * @param model
+   * @param updatedWeights
+   * @param staleWeights
    * @param round
    * @param trainingInformant
    */
-  abstract onRoundEndCommunication (model: tf.LayersModel, round: number, trainingInformant: TrainingInformant): Promise<void>
+  abstract onRoundEndCommunication (
+    updatedWeights: Weights,
+    staleWeights: Weights,
+    round: number,
+    trainingInformant: TrainingInformant
+  ): Promise<Weights>
 }

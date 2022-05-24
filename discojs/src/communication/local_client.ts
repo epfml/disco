@@ -1,3 +1,4 @@
+import { Weights } from '@/types'
 import { Client } from '../client'
 import { Task } from '../task'
 
@@ -10,6 +11,6 @@ export class LocalClient extends Client {
   async connect (): Promise<void> {}
   async disconnect (): Promise<void> {}
 
-  async onRoundEndCommunication (): Promise<void> {}
+  async onRoundEndCommunication (_: Weights): Promise<Weights> { return _ }
   async onTrainEndCommunication (): Promise<void> {}
 }

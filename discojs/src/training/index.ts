@@ -1,2 +1,2 @@
 export { Disco } from './disco'
-export { TrainingSchemes } from './trainingSchemes'
+export { TrainingSchemes } from './training_schemes'

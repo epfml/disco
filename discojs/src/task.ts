@@ -175,7 +175,9 @@ export class TrainingInformation {
     public readonly RESIZED_IMAGE_H?: number,
     public readonly RESIZED_IMAGE_W?: number,
     public readonly LABEL_ASSIGNMENT?: DataExample[],
-    public readonly scheme?: string
+    public readonly scheme?: string,
+    public readonly noiseScale?: number,
+    public readonly clippingRadius?: number
   ) {}
 }
 
