@@ -86,7 +86,7 @@ describe('federated client', () => { // the tests container
     await client.connect()
 
     const ti = new TrainingInformant(0, taskID, TrainingSchemes.FEDERATED)
-    await client.fetchServerStatisticsAndUpdateInformant(ti)
+    await client.pullServerStatistics(ti)
 
     expect(ti.currentRound).to.be.greaterThanOrEqual(0) // Since the server you are running might have trained and round > 0
     expect(ti.currentNumberOfParticipants).to.be.greaterThanOrEqual(0)

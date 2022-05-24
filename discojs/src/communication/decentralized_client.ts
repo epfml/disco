@@ -1,10 +1,9 @@
 import { List, Map, Seq, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
-import tf from '@tensorflow/tfjs'
 import isomorphic from 'isomorphic-ws'
 
-import { Client, Task, TrainingInformant, aggregation, serialization } from '..'
+import { Client, Task, TrainingInformant, aggregation, serialization, privacy } from '..'
 
 import { Weights } from '@/types'
 
@@ -157,7 +156,7 @@ export class DecentralizedClient extends Client {
   // if initiator is true, we start the connection on our side
   // see SimplePeer.Options.initiator for more info
   private connectNewPeer (peerID: PeerID, initiator: boolean): SimplePeer.Instance {
-    console.debug('connect new peer with initiator:', initiator)
+    console.debug('connect new peer with initiator: ', initiator)
 
     const peer = new SimplePeer({
       initiator,
@@ -229,11 +228,17 @@ export class DecentralizedClient extends Client {
     this.server = undefined
   }
 
-  async onRoundEndCommunication (model: tf.LayersModel, epoch: number, trainingInformant: TrainingInformant): Promise<void> {
-    // broadcast our weights
+  async onRoundEndCommunication (
+    updatedWeights: Weights,
+    staleWeights: Weights,
+    epoch: number,
+    trainingInformant: TrainingInformant
+  ): Promise<Weights> {
+    const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
+    // Broadcast our weights
     const msg: PeerMessage = {
       epoch: epoch,
-      weights: await serialization.encodeWeights(model.weights.map((w) => w.read()))
+      weights: await serialization.encodeWeights(noisyWeights)
     }
     const encodedMsg = msgpack.encode(msg)
 
@@ -246,7 +251,7 @@ export class DecentralizedClient extends Client {
         peer.send(encodedMsg)
       })
 
-    // get weights from the others
+    // Get weights from the others
     const getWeights = (): Seq.Indexed<Weights | undefined> =>
       this.weights
         .valueSeq()
@@ -278,16 +283,16 @@ export class DecentralizedClient extends Client {
       .filter((weights) => weights !== undefined)
       .toSet() as Set<Weights>
 
-    // average weights
+    // Average weights
     trainingInformant.addMessage('Averaging weights')
     trainingInformant.updateNbrUpdatesWithOthers(1)
 
-    const averagedWeights = aggregation.averageWeights(receivedWeights)
-    model.setWeights(averagedWeights)
+    // Return the new "received" weights
+    return aggregation.averageWeights(receivedWeights)
   }
 
-  async onTrainEndCommunication (_: tf.LayersModel, trainingInformant: TrainingInformant): Promise<void> {
-    // TODO nothing to do?
+  async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
+    // TODO: enter seeding mode?
     trainingInformant.addMessage('Training finished.')
   }
 }
