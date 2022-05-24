@@ -1,7 +1,7 @@
 <template>
   <div
     :class="
-      'group flex-col items-center justify-between p-4 bg-white rounded-md dark:bg-dark dark:bg-darker' +
+      'group flex-col items-center justify-between p-1 bg-white rounded-md' +
         customClass
     "
   >
@@ -9,7 +9,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 export default {
   name: 'CardItem',
   props: {

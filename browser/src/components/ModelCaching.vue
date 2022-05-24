@@ -9,7 +9,7 @@
       <template #extra>
         <!-- Restore Model -->
         <div class="p-4">
-          <div v-if="useIndexedDB && workingModelExists">
+          <div v-if="useIndexedDB && workingModelExists && !isModelCreated">
             <div class="grid grid-cols-4 items-center justify-items-center">
               <div class="col-span-3">
                 <div class="text-sm text-gray-500 dark:text-light">
@@ -140,7 +140,10 @@
             v-else
             class="text-sm text-gray-500 dark:text-light"
           >
-            <p v-if="!useIndexedDB && workingModelExists">
+            <p v-if="useIndexedDB && isModelCreated">
+              A new model has been created, replacing the previous working model.
+            </p>
+            <p v-else-if="!useIndexedDB && workingModelExists">
               FeAI cached the last model you were working on for you. Turn on
               the model library (see settings) to see additional options.
             </p>

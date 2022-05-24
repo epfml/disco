@@ -17,6 +17,10 @@
         <template #icon><Model /></template>
       </IconCard>
     </a>
+    <ModelCaching
+      :id="id"
+      :task="task"
+    />
   </div>
 </template>
 
@@ -24,6 +28,7 @@
 import Tasks from '@/assets/svg/Tasks.vue'
 import Model from '@/assets/svg/Model.vue'
 import IconCard from '@/components/containers/IconCard.vue'
+import ModelCaching from '@/components/ModelCaching.vue'
 
 import { mapState } from 'vuex'
 import { Task } from 'discojs'
@@ -31,6 +36,7 @@ import { Task } from 'discojs'
 export default {
   name: 'Description',
   components: {
+    ModelCaching,
     Tasks,
     Model,
     IconCard

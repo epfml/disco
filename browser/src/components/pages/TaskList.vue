@@ -5,7 +5,7 @@
       :blocked="true"
       :blocked-step="0"
     />
-    <div class="grid grid-cols-1 gap-8 lg:grid-cols-1 xl:grid-cols-1">
+    <div class="grid grid-cols-1 gap-8">
       <div
         v-for="task in tasks"
         :key="task.taskID"
