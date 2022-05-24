@@ -39,8 +39,9 @@ export class Disco {
   }
 
   /**
-   * @param data The preprocessed dataset to train on
-   * @param distributed Whether to train in a distributed or local fashion
+   * @param scheme
+   * @param informant
+   * @param data
    */
   async startTraining (scheme: TrainingSchemes, informant: TrainingInformant, data: dataset.Data): Promise<void> {
     if (data.size === 0) {
@@ -61,7 +62,7 @@ export class Disco {
   /**
    * Stops the training function and disconnects from
    */
-  // TODO should specify scheme
+  // TODO: should specify scheme
   async stopTraining (): Promise<void> {
     await Promise.all(
       this.forScheme.valueSeq().map(async ([client, trainer]) => {

@@ -15,6 +15,7 @@ export class DistributedTrainer extends Trainer {
     trainingInformant: TrainingInformant,
     memory: Memory,
     model: tf.LayersModel,
+    private readonly previousRoundModel: tf.LayersModel,
     private readonly client: Client
   ) {
     super(task, trainingInformant, memory, model)
@@ -24,7 +25,18 @@ export class DistributedTrainer extends Trainer {
    * Callback called every time a round is over
    */
   async onRoundEnd (accuracy: number): Promise<void> {
-    await this.client.onRoundEndCommunication(this.model, this.roundTracker.round, this.trainingInformant)
+    const currentRoundWeights = this.model.weights.map((w) => w.read())
+    const previousRoundWeights = this.previousRoundModel.weights.map((w) => w.read())
+
+    const aggregatedWeights = await this.client.onRoundEndCommunication(
+      currentRoundWeights,
+      previousRoundWeights,
+      this.roundTracker.round,
+      this.trainingInformant
+    )
+
+    this.previousRoundModel.setWeights(currentRoundWeights)
+    this.model.setWeights(aggregatedWeights)
 
     await this.memory.updateWorkingModel(
       this.task.taskID,
@@ -38,7 +50,7 @@ export class DistributedTrainer extends Trainer {
    */
   async onTrainEnd (): Promise<void> {
     await this.client.onTrainEndCommunication(
-      this.model,
+      this.model.weights.map((w) => w.read()),
       this.trainingInformant
     )
   }
