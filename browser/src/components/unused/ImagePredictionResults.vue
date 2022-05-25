@@ -29,15 +29,11 @@
 import FileEarmarkRuledVue from '../../assets/svg/FileEarmarkRuled.vue'
 
 export default {
-  name: 'ImagePredictionResultsFrame',
+  name: 'ImagePredictionResults',
   components: {
     FileEarmarkRuledVue
   },
   props: {
-    id: {
-      type: String,
-      default: ''
-    },
     classes: {
       type: Array,
       default: () => []
