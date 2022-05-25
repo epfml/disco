@@ -38,9 +38,10 @@
         :task="task"
         :dataset-builder="datasetBuilder"
       />
-      <div v-show="step === 4">
-        blank
-      </div>
+      <Finished
+        v-show="step === 4"
+        :task="task"
+      />
     </div>
   </BaseLayout>
 </template>
@@ -49,6 +50,7 @@
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Description from '@/components/Description.vue'
 import Training from '@/components/training/Training.vue'
+import Finished from '@/components/Finished.vue'
 import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
 import BaseLayout from '@/components/containers/BaseLayout.vue'
 import { WebImageLoader, WebTabularLoader } from '@/data_loader'
@@ -62,6 +64,7 @@ export default {
     Description,
     DatasetInput,
     Training,
+    Finished,
     BaseLayout,
     CustomButton
   },
