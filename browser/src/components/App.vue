@@ -31,9 +31,25 @@
 
       <!-- Main Page -->
       <div class="overflow-x-hidden flex-grow z-0">
+        <RouterView
+          v-slot="{ Component }"
+          name="ProgressBar"
+        >
+          <KeepAlive>
+            <Component
+              :is="Component"
+              :progress="step"
+            />
+          </KeepAlive>
+        </RouterView>
         <RouterView v-slot="{ Component }">
           <KeepAlive>
-            <Component :is="Component" />
+            <Component
+              :is="Component"
+              :step="step"
+              @next-step="nextStep"
+              @prev-step="prevStep"
+            />
           </KeepAlive>
         </RouterView>
       </div>
@@ -45,6 +61,7 @@
 import SidebarMain from '@/components/sidebar/Sidebar.vue'
 import TaskList from '@/components/pages/TaskList.vue'
 import Navigation from '@/components/navigation/Navigation.vue'
+import ProgressBar from '@/components/navigation/ProgressBar.vue'
 import { loadTasks } from '@/tasks'
 
 import { Task } from 'discojs'
@@ -56,9 +73,10 @@ export default {
   components: {
     SidebarMain
   },
-  data () {
+  data (): { isLoading: boolean, step: number } {
     return {
-      isLoading: false
+      isLoading: false,
+      step: 0
     }
   },
   computed: {
@@ -91,20 +109,27 @@ export default {
       this.$router.addRoute({
         path: route,
         // So that KeepAlive can differentiate the components
-        component: defineComponent({
-          key: task.taskID,
-          extends: Navigation
-        }),
+        components: {
+          default: defineComponent({
+            key: task.taskID,
+            extends: Navigation
+          }),
+          ProgressBar
+        },
         props: {
-          id: task.taskID,
-          task: task
+          default: {
+            task: task
+          }
         }
       })
     })
     this.$router.addRoute({
       path: '/list',
-      component: TaskList,
-      props: { tasks: tasks }
+      components: {
+        default: TaskList,
+        ProgressBar
+      },
+      props: { default: { tasks: tasks } }
     })
   },
   methods: {
@@ -148,6 +173,12 @@ export default {
     },
     initPlatform () {
       this.$i18n.locale = 'english'
+    },
+    nextStep () {
+      this.step = Math.min(4, this.step + 1)
+    },
+    prevStep () {
+      this.step = Math.max(0, this.step - 1)
     }
   }
 }
