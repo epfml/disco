@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
     "target": "es6",
-
-    //"strict": true,
     "jsx": "preserve",
     "skipLibCheck": true,
     "esModuleInterop": true,
