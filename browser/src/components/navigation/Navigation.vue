@@ -1,7 +1,6 @@
 <template>
   <BaseLayout>
     <div>
-      <ProgressBar :progress="step" />
       <div class="grid grid-cols-2 gap-8 py-6 items-center">
         <div
           class="text-right"
@@ -51,7 +50,6 @@
 
 <script lang="ts">
 import CustomButton from '@/components/simple/CustomButton.vue'
-import ProgressBar from './ProgressBar.vue'
 import Description from '@/components/Description.vue'
 import Training from '@/components/training/Training.vue'
 import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
@@ -64,7 +62,6 @@ import { DataLoader, DatasetBuilder } from 'discojs/dist/dataset'
 export default {
   name: 'Navigation',
   components: {
-    ProgressBar,
     Description,
     DatasetInput,
     Training,
@@ -79,13 +76,13 @@ export default {
     task: {
       validator: isTask,
       default: undefined
+    },
+    step: {
+      type: Number,
+      default: undefined
     }
   },
-  data (): { step: number } {
-    return {
-      step: 1
-    }
-  },
+  emits: ['next-step', 'prev-step'],
   computed: {
     datasetBuilder (): DatasetBuilder<File> {
       let dataLoader: DataLoader<File>
@@ -110,14 +107,13 @@ export default {
       this.datasetBuilder.clearFiles(label)
     },
     nextStep () {
-      this.step = Math.min(4, this.step + 1)
+      this.$emit('next-step')
     },
     prevStep () {
       if (this.step <= 1) {
         this.$router.push({ path: '/list' })
-      } else {
-        this.step -= 1
       }
+      this.$emit('prev-step')
     }
   }
 }

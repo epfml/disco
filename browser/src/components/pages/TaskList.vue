@@ -1,10 +1,5 @@
 <template>
   <BaseLayout>
-    <ProgressBar
-      class="mb-5"
-      :blocked="true"
-      :blocked-step="0"
-    />
     <div class="grid grid-cols-1 gap-8">
       <div
         v-for="task in tasks"
@@ -34,7 +29,6 @@ import { Set } from 'immutable'
 import { isTask } from 'discojs'
 
 import BaseLayout from '@/components/containers/BaseLayout.vue'
-import ProgressBar from '@/components/navigation/ProgressBar.vue'
 import TitleCard from '@/components/containers/TitleCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
@@ -43,8 +37,7 @@ export default {
   components: {
     BaseLayout,
     TitleCard,
-    CustomButton,
-    ProgressBar
+    CustomButton
   },
   props: {
     tasks: {
@@ -52,9 +45,11 @@ export default {
       default: Set()
     }
   },
+  emits: ['next-step'],
   methods: {
     goToSelection (taskID: string) {
       this.$router.push({ path: `/${taskID}` })
+      this.$emit('next-step')
     }
   }
 }

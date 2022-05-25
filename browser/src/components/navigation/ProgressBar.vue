@@ -137,23 +137,11 @@ export default {
     progress: {
       type: Number,
       default: 0
-    },
-    blocked: {
-      type: Boolean,
-      default: false
-    },
-    blockedProgress: {
-      type: Number,
-      default: 0
     }
   },
   methods: {
     isActive (step: number): boolean {
-      if (this.blocked) {
-        return step === this.blockedProgress
-      } else {
-        return step <= this.progress
-      }
+      return step <= this.progress
     }
   }
 }
