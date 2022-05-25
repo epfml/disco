@@ -6,11 +6,11 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
+    "test": "vue-cli-service test:unit tests",
     "build17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service build",
     "lint17": "export NODE_OPTIONS=--openssl-legacy-provider  && vue-cli-service lint",
     "prod": "vue-cli-service serve --mode production",
-    "serve17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha --exit -r ts-node/register --file tests/setup.ts 'tests/**/*.ts'"
+    "serve17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve"
   },
   "dependencies": {
     "@meforma/vue-toaster": "1",
@@ -49,8 +49,7 @@
     "@tensorflow/tfjs-node": "3",
     "@types/chai": "4",
     "@types/d3": "7",
-    "@types/dotenv-flow": "3",
-    "@types/mocha": "9",
+    "@types/mocha": "8",
     "@types/msgpack-lite": "0.1",
     "@typescript-eslint/eslint-plugin": "5",
     "@typescript-eslint/parser": "5",
@@ -58,14 +57,15 @@
     "@vue/cli-plugin-eslint": "5",
     "@vue/cli-plugin-router": "5",
     "@vue/cli-plugin-typescript": "5",
+    "@vue/cli-plugin-unit-mocha": "5",
     "@vue/cli-service": "5",
     "@vue/compiler-sfc": "3",
     "@vue/eslint-config-prettier": "6",
     "@vue/eslint-config-standard": "6",
     "@vue/eslint-config-typescript": "7",
+    "@vue/test-utils": "2",
     "babel-eslint": "10",
     "chai": "4",
-    "dotenv-flow": "3",
     "eslint": "7",
     "eslint-config-standard": "16",
     "eslint-plugin-import": "2",
@@ -106,7 +106,17 @@
           "trailingComma": "es5"
         }
       ]
-    }
+    },
+    "overrides": [
+      {
+        "files": [
+          "tests/**/*.ts"
+        ],
+        "env": {
+          "mocha": true
+        }
+      }
+    ]
   },
   "browserslist": [
     "> 1%",
