@@ -24,12 +24,10 @@
       </div>
       <Description
         v-show="step === 1"
-        :id="id"
         :task="task"
       />
       <DatasetInput
         v-show="step === 2"
-        :id="id"
         :task="task"
         :dataset-builder="datasetBuilder"
         @add-files="addFiles"
@@ -37,7 +35,6 @@
       />
       <Training
         v-show="step === 3"
-        :id="id"
         :task="task"
         :dataset-builder="datasetBuilder"
       />

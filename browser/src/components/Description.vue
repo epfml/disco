@@ -18,7 +18,6 @@
       </IconCard>
     </a>
     <ModelCaching
-      :id="id"
       :task="task"
     />
   </div>

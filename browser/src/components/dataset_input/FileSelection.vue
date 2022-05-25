@@ -121,17 +121,9 @@ export default {
     // PreviewGallery
   },
   props: {
-    id: {
-      type: String,
-      default: ''
-    },
     preview: {
       type: Boolean,
       default: false
-    },
-    allowed: {
-      type: Boolean,
-      default: true
     }
   },
   data () {

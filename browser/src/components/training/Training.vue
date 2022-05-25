@@ -102,10 +102,6 @@ export default {
     Download
   },
   props: {
-    id: {
-      type: String,
-      default: ''
-    },
     task: {
       validator: isTask,
       default: undefined
