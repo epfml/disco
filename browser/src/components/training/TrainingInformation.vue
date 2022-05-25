@@ -191,7 +191,10 @@ export default {
     Contact
   },
   props: {
-    trainingInformant: TrainingInformant
+    trainingInformant: {
+      type: TrainingInformant,
+      default: undefined
+    }
   },
   data () {
     // TODO copied from ImageTestingFrame

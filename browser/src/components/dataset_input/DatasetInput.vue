@@ -6,7 +6,6 @@
     <template #extra>
       <div v-if="task.trainingInformation.dataType === 'tabular'">
         <FileSelection
-          :id="id"
           :preview="preview"
           @input="addFiles($event)"
           @clear="clearFiles()"
@@ -20,7 +19,6 @@
           >
             <span class="text-xl font-semibold"> {{ label }} </span>
             <FileSelection
-              :id="id"
               :preview="preview"
               :allowed="allowed"
               @input="addFiles($event, label)"
@@ -31,7 +29,6 @@
         </div>
         <div v-else>
           <FileSelection
-            :id="id"
             :preview="preview"
             :allowd="allowed"
             @input="addFiles($event)"
@@ -59,10 +56,6 @@ export default {
     IconCard
   },
   props: {
-    id: {
-      type: String,
-      default: ''
-    },
     task: {
       validator: isTask,
       default: undefined
