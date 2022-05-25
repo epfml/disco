@@ -1,6 +1,5 @@
 <template>
-  <TrainingFrame
-    :id="id"
+  <Training
     :task="task"
     :data-loader="tabularLoader"
   >
@@ -115,11 +114,11 @@
         </template>
       </IconCard>
     </template>
-  </TrainingFrame>
+  </Training>
 </template>
 
 <script lang="ts">
-import TrainingFrame from './TrainingFrame.vue'
+import Training from '@/components/training/Training.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import Bezier2 from '@/assets/svg/Bezier2.vue'
 import { WebTabularLoader } from '@/data_loader'
@@ -127,9 +126,9 @@ import { WebTabularLoader } from '@/data_loader'
 import { isTask } from 'discojs'
 
 export default {
-  name: 'TabularTrainingFrame',
+  name: 'TabularTraining',
   components: {
-    TrainingFrame,
+    Training,
     IconCard,
     Bezier2
   },

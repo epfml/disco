@@ -1,6 +1,5 @@
 <template>
-  <testing-frame
-    :id="id"
+  <Testing
     :task="task"
     :helper="helper"
   >
@@ -17,7 +16,7 @@
     <template #extra />
 
     <template #predictionResults>
-      <image-prediction-results-frame
+      <ImagePredictionResults
         v-if="task.testing.gotResults"
         :classes="task.testing.classes"
       />
@@ -75,7 +74,7 @@
               <div class="flex">
                 <span class="p-1">
                   <i>
-                    <picture-background />
+                    <PictureBackground />
                   </i>
                 </span>
 
@@ -98,19 +97,19 @@
         </li>
       </div>
     </template>
-  </testing-frame>
+  </Testing>
 </template>
 
 <script>
-import TestingFrame from './TestingFrame.vue'
-import ImagePredictionResultsFrame from './ImagePredictionResultsFrame.vue'
-import PictureBackground from '../../assets/svg/PictureBackground.vue'
-import Bin from '../../assets/svg/Bin.vue'
+import Testing from './Testing.vue'
+import ImagePredictionResults from './ImagePredictionResults.vue'
+import PictureBackground from '@/assets/svg/PictureBackground.vue'
+import Bin from '@/assets/svg/Bin.vue'
 
 export default {
   components: {
-    TestingFrame,
-    ImagePredictionResultsFrame,
+    Testing,
+    ImagePredictionResults,
     PictureBackground,
     Bin
   },
@@ -168,30 +167,6 @@ export default {
         for (const file of e.target.files) {
           addFile(gallery, file)
         }
-      }
-      /**
-       * Returns the CSS colors graphs should be rendered in
-       */
-      const cssColors = (color) => {
-        return getComputedStyle(document.documentElement).getPropertyValue(
-          color
-        )
-      }
-      /**
-       * Returns the colors depending on user's choice graphs should be rendered in
-       */
-      const getColor = () => {
-        return window.localStorage.getItem('color') ?? 'cyan'
-      }
-      // Initilization of the color's constant
-      // TO DO: add listeners to modify color when changement added
-      // eslint-disable-next-line no-unused-vars
-      const colors = {
-        primary: cssColors(`--color-${getColor()}`),
-        primaryLight: cssColors(`--color-${getColor()}-light`),
-        primaryLighter: cssColors(`--color-${getColor()}-lighter`),
-        primaryDark: cssColors(`--color-${getColor()}-dark`),
-        primaryDarker: cssColors(`--color-${getColor()}-darker`)
       }
     })
   }

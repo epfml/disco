@@ -1,6 +1,5 @@
 <template>
-  <testing-frame
-    :id="id"
+  <Testing
     :task="task"
     :helper="helper"
   >
@@ -42,12 +41,12 @@
     <template #extra>
       <!-- Modification of Header Card -->
 
-      <icon-card
+      <IconCard
         header="Map My Data"
         :description="dataExampleText"
       >
         <template #icon>
-          <bezier-2 />
+          <Bezier2 />
         </template>
         <template #extra>
           <!-- Display all the possible headers -->
@@ -63,7 +62,6 @@
                 <div
                   class="
                     select-none
-                    p-2
                     transition
                     duration-500
                     ease-in-out
@@ -113,29 +111,25 @@
             </ul>
           </div>
         </template>
-      </icon-card>
+      </IconCard>
     </template>
-  </testing-frame>
+  </Testing>
 </template>
 
 <script>
-import TestingFrame from './TestingFrame.vue'
-import IconCard from '../containers/IconCard.vue'
+import Testing from './Testing.vue'
+import IconCard from '../c./Testing.vue.vue'
 import Bezier2 from '../../assets/svg/Bezier2.vue'
 import { Task } from 'discojs'
 
 export default {
-  name: 'TabularTestingFrame',
+  name: 'TabularTesting',
   components: {
     IconCard,
-    TestingFrame,
+    Testing,
     Bezier2
   },
   props: {
-    id: {
-      type: String,
-      default: ''
-    },
     task: {
       type: Task,
       default: undefined
