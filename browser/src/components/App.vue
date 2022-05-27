@@ -58,7 +58,6 @@
 
 <script lang="ts">
 import SidebarMain from '@/components/sidebar/Sidebar.vue'
-import TaskList from '@/components/pages/TaskList.vue'
 import Navigation from '@/components/navigation/Navigation.vue'
 import ProgressBar from '@/components/navigation/ProgressBar.vue'
 import { loadTasks } from '@/tasks'
@@ -116,14 +115,6 @@ export default {
           }
         }
       })
-    })
-    this.$router.addRoute({
-      path: '/list',
-      components: {
-        default: TaskList,
-        ProgressBar
-      },
-      props: { default: { tasks: tasks } }
     })
   },
   methods: {
