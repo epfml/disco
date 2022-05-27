@@ -25,12 +25,12 @@
 
 <script lang="ts">
 import { Set } from 'immutable'
-
-import { isTask } from 'discojs'
+import { Task } from 'discojs'
 
 import BaseLayout from '@/components/containers/BaseLayout.vue'
 import TitleCard from '@/components/containers/TitleCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import { loadTasks } from '@/tasks'
 
 export default {
   name: 'TaskList',
@@ -39,14 +39,20 @@ export default {
     TitleCard,
     CustomButton
   },
-  props: {
-    tasks: {
-      validator: (obj) => Set.isSet(obj) && obj.every(isTask),
-      default: Set()
-    }
+  async beforeRouteEnter (to, from, next) {
+    const tasks: Set<Task> = await loadTasks()
+    next(vm => vm.setTasks(tasks))
   },
   emits: ['next-step'],
+  data () {
+    return {
+      tasks: undefined
+    }
+  },
   methods: {
+    setTasks (tasks: Task[]) {
+      this.tasks = tasks
+    },
     goToSelection (taskID: string) {
       this.$router.push({ path: `/${taskID}` })
       this.$emit('next-step')
