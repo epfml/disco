@@ -23,7 +23,7 @@
         "
           @click="goToHome"
         >
-          <span class="text-disco-cyan">Dis</span><span class="text-disco-blue">co</span>
+          <span class="text-disco-cyan">DIS</span><span class="text-disco-blue">CO</span>
         </a>
       </div>
       <!-- Mini Sidebar content-->
