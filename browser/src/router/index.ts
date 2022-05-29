@@ -6,6 +6,7 @@ import Information from '@/components/pages/Information.vue'
 import NewTaskCreationForm from '@/components/pages/NewTaskCreationForm.vue'
 import TaskList from '@/components/pages/TaskList.vue'
 import ProgressBar from '@/components/navigation/ProgressBar.vue'
+import Navigation from '@/components/navigation/Navigation.vue'
 import NotFound from '@/components/pages/NotFound.vue'
 
 const router = createRouter({
@@ -32,6 +33,17 @@ const router = createRouter({
       components: {
         default: TaskList,
         ProgressBar
+      }
+    },
+    {
+      path: '/:id',
+      components: {
+        default: Navigation,
+        ProgressBar
+      },
+      props: {
+        default: true,
+        NavigationBar: false
       }
     },
     {

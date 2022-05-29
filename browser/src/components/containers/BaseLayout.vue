@@ -1,18 +1,7 @@
 <template>
-  <div class="flex flex-col h-screen overflow-y-auto">
-    <main
-      class="m-8 mb-auto"
-      :class="customClass"
-    >
-      <div>
-        <section
-          v-if="withSection"
-          class="flex-col items-center justify-center p-4 space-y-4"
-        >
-          <slot />
-        </section>
-        <slot v-else />
-      </div>
+  <div class="flex flex-col grow h-screen overflow-y-auto">
+    <main class="m-8 mb-auto">
+      <slot />
     </main>
     <CustomFooter class="mt-8" />
   </div>
@@ -25,11 +14,6 @@ export default {
   name: 'BaseLayout',
   components: {
     CustomFooter
-  },
-  props: {
-    customClass: { default: '', type: String },
-    override: { default: false, type: Boolean },
-    withSection: { default: false, type: Boolean }
   }
 }
 </script>

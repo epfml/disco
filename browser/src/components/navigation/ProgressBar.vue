@@ -4,7 +4,7 @@
     <div class="flex">
       <!-- Step 1 -->
       <ProgressIcon
-        :active="isActive(0)"
+        :active="true"
         :lined="false"
       >
         <template #text>
@@ -126,6 +126,7 @@
 </template>
 
 <script lang="ts">
+import { mapState } from 'vuex'
 import ProgressIcon from './ProgressIcon.vue'
 
 export default {
@@ -133,15 +134,17 @@ export default {
   components: {
     ProgressIcon
   },
-  props: {
-    progress: {
-      type: Number,
-      default: 0
-    }
+  computed: {
+    ...mapState(['steps', 'currentTask'])
   },
   methods: {
     isActive (step: number): boolean {
-      return step <= this.progress
+      const currentStep = this.steps.get(this.currentTask)
+      if (currentStep === undefined || this.$route.path === '/list') {
+        return false
+      } else {
+        return step <= currentStep
+      }
     }
   }
 }
