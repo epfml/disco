@@ -1,5 +1,5 @@
 <template>
-  <BaseLayout>
+  <div>
     <!-- Welcoming words -->
     <Disco class="mx-auto mb-[5%]" />
     <!-- TODO: This section is not algined with the top, not sure why -->
@@ -35,33 +35,27 @@
         </div>
       </TitleCard>
     </div>
-  </BaseLayout>
+  </div>
 </template>
 
 <script lang="ts">
-import BaseLayout from '@/components/containers/BaseLayout.vue'
 import TitleCard from '@/components/containers/TitleCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Disco from '@/assets/svg/Disco.vue'
 
 export default {
-  name: 'HomePage',
+  name: 'Home',
   components: {
-    BaseLayout,
     TitleCard,
     CustomButton,
     Disco
   },
   methods: {
     goToTaskList () {
-      this.$router.push({
-        path: '/list'
-      })
+      this.$router.push({ path: '/list' })
     },
     goToNewTaskCreationForm () {
-      this.$router.push({
-        path: '/create'
-      })
+      this.$router.push({ path: '/create' })
     }
   }
 }

@@ -1,14 +1,16 @@
 <template>
-  <div :class="{ dark: isDark }">
+  <div
+    v-if="!loading"
+    :class="{ dark: isDark }"
+  >
     <!-- Global container for the screen -->
     <div
       class="
         flex
         h-screen
         antialiased
-        text-gray-900
-        bg-gray-100
-        dark:bg-dark dark:text-light
+        text-slate-900
+        bg-slate-100
       "
     >
       <!-- Sidebar -->
@@ -29,97 +31,70 @@
       </aside>
 
       <!-- Main Page -->
-      <div class="overflow-x-hidden flex-grow z-0">
+      <BaseLayout>
         <RouterView
           v-slot="{ Component }"
           name="ProgressBar"
         >
           <KeepAlive>
-            <Component
-              :is="Component"
-              :progress="step"
-            />
+            <Component :is="Component" />
           </KeepAlive>
         </RouterView>
         <RouterView v-slot="{ Component }">
           <KeepAlive>
             <Component
               :is="Component"
-              :step="step"
-              @next-step="nextStep"
-              @prev-step="prevStep"
+              :key="$route.fullPath"
             />
           </KeepAlive>
         </RouterView>
-      </div>
+      </BaseLayout>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import SidebarMain from '@/components/sidebar/Sidebar.vue'
-import Navigation from '@/components/navigation/Navigation.vue'
-import ProgressBar from '@/components/navigation/ProgressBar.vue'
-import { loadTasks } from '@/tasks'
 
-import { Task } from 'discojs'
 import { mapState, mapMutations } from 'vuex'
-import { defineComponent } from 'vue'
+import BaseLayout from './containers/BaseLayout.vue'
 
 export default {
   name: 'App',
   components: {
-    SidebarMain
+    SidebarMain,
+    BaseLayout
   },
-  data (): { isLoading: boolean, step: number } {
+  data (): { loading: boolean } {
     return {
-      isLoading: false,
-      step: 0
+      loading: true
     }
   },
   computed: {
     ...mapState(['isDark'])
   },
-  mounted () {
+  async created (): Promise<void> {
+    await this.$store.dispatch('initTasks')
+    this.loading = false
+  },
+  mounted (): void {
     /**
-       * Use IndexedDB by default if it is available.
-       */
+     * Use IndexedDB by default if it is available.
+     */
     this.setIndexedDB(!!window.indexedDB)
     /**
-       * Initialize the global variable "isDark" to the
-       * browser-saved theme.
-       */
+     * Initialize the global variable "isDark" to the
+     * browser-saved theme.
+     */
     this.setAppTheme(this.getBrowserTheme())
     /**
-       * Initialize the app to the browser-saved platform.
-       */
+     * Initialize the app to the browser-saved platform.
+     */
     this.initPlatform()
-  },
-  async created () {
-    const tasks = await loadTasks()
-    tasks.forEach((task: Task) => {
-      const route = `/${task.taskID}`
-      this.$router.addRoute({
-        path: route,
-        // So that KeepAlive can differentiate the components
-        components: {
-          default: defineComponent({
-            key: task.taskID,
-            extends: Navigation
-          }),
-          ProgressBar
-        },
-        props: {
-          default: {
-            task: task
-          }
-        }
-      })
-    })
   },
   methods: {
     ...mapMutations(['setIndexedDB', 'setAppTheme']),
-    getBrowserTheme () {
+    getBrowserTheme (): boolean {
       if (window.localStorage.getItem('dark')) {
         return JSON.parse(window.localStorage.getItem('dark'))
       }
@@ -128,14 +103,8 @@ export default {
         window.matchMedia('(prefers-color-scheme: dark)').matches
       )
     },
-    initPlatform () {
+    initPlatform (): void {
       this.$i18n.locale = 'english'
-    },
-    nextStep () {
-      this.step = Math.min(4, this.step + 1)
-    },
-    prevStep () {
-      this.step = Math.max(0, this.step - 1)
     }
   }
 }

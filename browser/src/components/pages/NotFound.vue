@@ -1,7 +1,7 @@
 <template>
-  <base-layout custom-class="pt-4">
+  <div>
     <!-- Welcoming words -->
-    <custom-header />
+    <CustomHeader />
     <!-- Information sections -->
     <section class="flex-col items-center justify-center p-4 space-y-4">
       <div class="grid grid-cols-1 gap-4 p-4">
@@ -42,12 +42,11 @@
         </div>
       </div>
     </section>
-  </base-layout>
+  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import BaseLayout from '../containers/BaseLayout.vue'
 import CustomButton from '../simple/CustomButton.vue'
 import CustomHeader from '../simple/CustomHeader.vue'
 import TitleCard from '../containers/TitleCard.vue'
@@ -55,7 +54,6 @@ import TitleCard from '../containers/TitleCard.vue'
 export default defineComponent({
   name: 'NotFound',
   components: {
-    BaseLayout,
     CustomButton,
     CustomHeader,
     TitleCard
