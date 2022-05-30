@@ -18,14 +18,13 @@
         class="
           fixed
           inset-y-0
-          z-10
+          z-20
           flex flex-shrink-0
           bg-white
           border-r
           md:static
           focus:outline-none
         "
-        style="position: sticky"
       >
         <SidebarMain />
       </aside>

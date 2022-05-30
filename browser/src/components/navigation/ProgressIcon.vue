@@ -7,7 +7,7 @@
         style="width: calc(100% - 2.5rem - 1rem); top: 50%; transform: translate(-50%, -50%)"
       >
         <div
-          class="w-full transition ease-out duration-500 bg-slate-200 rounded items-center align-middle align-center flex-1"
+          class="w-full bg-slate-200 rounded items-center align-middle align-center flex-1"
         >
           <div
             class="py-1"
@@ -19,7 +19,7 @@
         :class="active ? 'bg-disco-blue' : 'bg-white border-2 border-slate-200'"
       >
         <span
-          class="text-center w-full animation-ping"
+          class="text-center w-full"
           :class="active ? 'text-white' : 'text-slate-700'"
         >
           <slot name="icon" />
