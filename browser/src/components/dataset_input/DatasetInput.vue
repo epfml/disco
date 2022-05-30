@@ -1,44 +1,51 @@
 <template>
-  <IconCard header="My dataset">
-    <template #icon>
-      <Upload />
-    </template>
-    <template #extra>
-      <div v-if="task.trainingInformation.dataType === 'tabular'">
+  <div class="grid grid-cols-1">
+    <IconCard
+      v-if="task.trainingInformation.dataType === 'tabular'"
+      header="My dataset"
+      class="justify-self-center w-full"
+    >
+      <template #icon>
+        <Upload />
+      </template>
+      <template #extra>
         <FileSelection
           :preview="preview"
           @input="addFiles($event)"
           @clear="clearFiles()"
         />
-      </div>
-      <div v-else-if="task.trainingInformation.dataType === 'image'">
-        <div v-if="requireLabels">
-          <div
-            v-for="label in task.trainingInformation.LABEL_LIST"
-            :key="label"
-          >
-            <span class="text-xl font-semibold"> {{ label }} </span>
+      </template>
+    </IconCard>
+    <div
+      v-else-if="task.trainingInformation.dataType === 'image'"
+      class="grid grid-cols-2"
+    >
+      <div
+        v-if="requireLabels"
+        class="contents"
+      >
+        <IconCard
+          v-for="label in task.trainingInformation.LABEL_LIST"
+          :key="label"
+          :header="`Label: ${label}`"
+        >
+          <template #extra>
             <FileSelection
               :preview="preview"
-              :allowed="allowed"
               @input="addFiles($event, label)"
               @clear="clearFiles(label)"
-              @fail="fail()"
             />
-          </div>
-        </div>
-        <div v-else>
-          <FileSelection
-            :preview="preview"
-            :allowd="allowed"
-            @input="addFiles($event)"
-            @clear="clearFiles()"
-            @fail="fail()"
-          />
-        </div>
+          </template>
+        </IconCard>
       </div>
-    </template>
-  </IconCard>
+      <FileSelection
+        v-else
+        :preview="preview"
+        @input="addFiles($event)"
+        @clear="clearFiles()"
+      />
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
