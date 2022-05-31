@@ -124,7 +124,7 @@ import IconCard from '@/components/containers/IconCard.vue'
 import Bezier2 from '@/assets/svg/Bezier2.vue'
 import { WebTabularLoader } from '@/data_loader'
 
-import { Task } from 'discojs'
+import { isTask } from 'discojs'
 
 export default {
   name: 'TabularTrainingFrame',
@@ -139,7 +139,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      validator: isTask,
       default: undefined
     }
   },

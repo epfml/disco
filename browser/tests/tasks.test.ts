@@ -8,11 +8,11 @@ const nbrTasks = 5
 describe('Load tasks test', () => { // the tests container
   it('load tasks', async () => {
     const tasks = await loadTasks()
-    expect(tasks.length).equal(nbrTasks)
+    expect(tasks.size).equal(nbrTasks)
   })
 
   it('load titanic', async () => {
     const tasks = await loadTasks()
-    assert.strictEqual(tasks[0]?.taskID, 'titanic')
+    expect(tasks.map((t) => t.taskID).toArray()).to.contain('titanic')
   })
 })

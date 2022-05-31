@@ -83,7 +83,7 @@
 <script lang="ts">
 import { mapState } from 'vuex'
 
-import { dataset, training, EmptyMemory, Task, TrainingInformant, TrainingSchemes } from 'discojs'
+import { dataset, training, EmptyMemory, isTask, TrainingInformant, TrainingSchemes } from 'discojs'
 
 import { IndexedDB } from '@/memory'
 import TrainingInformation from './TrainingInformation.vue'
@@ -91,7 +91,7 @@ import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Download from '@/assets/svg/Download.vue'
 
-import { getClient } from '@/communication/client_builder'
+import { getClient } from '@/clients'
 
 export default {
   name: 'Training',
@@ -107,7 +107,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      validator: isTask,
       default: undefined
     },
     datasetBuilder: {
@@ -136,13 +136,6 @@ export default {
     async startTraining (distributedTraining: boolean) {
       this.distributedTraining = distributedTraining
 
-      this.disco = new training.Disco(
-        this.task,
-        this.$toast,
-        this.memory,
-        getClient
-      )
-
       let scheme
       if (this.distributedTraining) {
         if (this.task.trainingInformation?.scheme === 'Federated') {
@@ -156,13 +149,25 @@ export default {
 
       this.trainingInformant = new TrainingInformant(10, this.task.taskID, scheme)
 
+      const client = getClient(scheme, this.task)
+      await client.connect()
+
+      this.disco = new training.Disco(
+        this.task,
+        this.$toast,
+        this.memory,
+        scheme,
+        this.trainingInformant,
+        client
+      )
+
       try {
         if (!this.datasetBuilder.isBuilt()) {
           this.dataset = await this.datasetBuilder
             .build()
         }
 
-        this.disco.startTraining(scheme, this.trainingInformant, this.dataset)
+        this.disco.startTraining(this.dataset)
       } catch (e) {
         const msg = e instanceof Error ? e.message : e.toString()
         this.$toast.error(msg)

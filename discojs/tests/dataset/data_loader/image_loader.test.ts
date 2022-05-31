@@ -4,8 +4,7 @@ import * as tfNode from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import _ from 'lodash'
 
-import { dataset } from '../../../src'
-import { loadTasks } from './tasks'
+import { dataset, tasks } from '../../../src'
 
 export class NodeImageLoader extends dataset.ImageLoader<string> {
   async readImageFrom (source: string): Promise<tfNode.Tensor3D> {
@@ -16,8 +15,7 @@ export class NodeImageLoader extends dataset.ImageLoader<string> {
 describe('image loader test', () => {
   it('load single mnist sample without label', async () => {
     const file = './example_training_data/9-mnist-example.png'
-    const mnist = (await loadTasks())[1]
-    const singletonDataset = await new NodeImageLoader(mnist).load(file)
+    const singletonDataset = await new NodeImageLoader(tasks.mnist.task).load(file)
     const imageContent = tfNode.node.decodeImage(fs.readFileSync(file))
     await Promise.all((await singletonDataset.toArrayForTest()).map(async (entry) => {
       expect(await imageContent.bytes()).eql(await (entry as tf.Tensor).bytes())
@@ -28,8 +26,7 @@ describe('image loader test', () => {
     const dir = './example_training_data/CIFAR10/'
     const files = fs.readdirSync(dir).map((file) => dir.concat(file))
     const imagesContent = files.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
-    const cifar10 = (await loadTasks())[3]
-    const datasetContent = await (await new NodeImageLoader(cifar10).loadAll(files)).dataset.toArray()
+    const datasetContent = await (await new NodeImageLoader(tasks.cifar10.task).loadAll(files)).dataset.toArray()
     expect(datasetContent.length).equal(imagesContent.length)
     expect((datasetContent[0] as tfNode.Tensor3D).shape).eql(imagesContent[0].shape)
   })
@@ -37,8 +34,7 @@ describe('image loader test', () => {
   it('load single cifar10 sample with label', async () => {
     const path = './example_training_data/CIFAR10/0.png'
     const imageContent = tfNode.node.decodeImage(fs.readFileSync(path))
-    const cifar10 = (await loadTasks())[3]
-    const datasetContent = await (await new NodeImageLoader(cifar10).load(path, { labels: ['example'] })).toArray()
+    const datasetContent = await (await new NodeImageLoader(tasks.cifar10.task).load(path, { labels: ['example'] })).toArray()
     expect((datasetContent[0] as any).xs.shape).eql(imageContent.shape)
     expect((datasetContent[0] as any).ys).eql('example')
   })
@@ -50,10 +46,8 @@ describe('image loader test', () => {
     const stringLabels = _.map(labels, (label) => label.toString())
     const oneHotLabels = tfNode.oneHot(labels, 10).arraySync()
 
-    const cifar10 = (await loadTasks())[3]
-
     const imagesContent = files.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
-    const datasetContent = await (await new NodeImageLoader(cifar10).loadAll(files, { labels: stringLabels })).dataset.toArray()
+    const datasetContent = await (await new NodeImageLoader(tasks.cifar10.task).loadAll(files, { labels: stringLabels })).dataset.toArray()
 
     expect(datasetContent.length).equal(imagesContent.length)
     _.forEach(
@@ -76,8 +70,7 @@ describe('image loader test', () => {
     const files = fs.readdirSync(dir).map((file) => dir.concat(file))
     const labels = _.map(_.range(24), (label) => (label % 10).toString())
 
-    const cifar10 = (await loadTasks())[3]
-    await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+    await new NodeImageLoader(tasks.cifar10.task).loadAll(files, { labels: labels })
     // TODO: implement test?
   }).timeout(5 * 60 * 1000)
 })

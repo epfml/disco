@@ -54,14 +54,13 @@ export class TrainerBuilder {
       throw new Error('undefined model ID')
     }
 
-    let model: tf.LayersModel
-
     const modelExistsInMemory = await this.memory.getModelMetadata(
       ModelType.WORKING,
       this.task.taskID,
       modelID
     )
 
+    let model: tf.LayersModel
     if (modelExistsInMemory !== undefined) {
       model = await this.memory.getModel(
         ModelType.WORKING,

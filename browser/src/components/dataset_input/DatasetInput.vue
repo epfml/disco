@@ -49,7 +49,7 @@ import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import FileSelection from './FileSelection.vue'
 
-import { Task, dataset } from 'discojs'
+import { isTask, dataset } from 'discojs'
 
 export default {
   name: 'DatasetInput',
@@ -64,7 +64,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      validator: isTask,
       default: undefined
     },
     datasetBuilder: {

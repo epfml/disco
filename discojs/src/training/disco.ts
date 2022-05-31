@@ -1,53 +1,33 @@
 import { Memory } from '@/memory'
-import { Map } from 'immutable'
 import { Client, dataset, Logger, Task, TrainingInformant, TrainingSchemes } from '..'
 
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
 
-/**
- * Handles the training loop, server communication & provides the user with feedback.
- */
+// Handles the training loop, server communication & provides the user with feedback.
 export class Disco {
-  private forScheme = Map<TrainingSchemes, [Client, Trainer]>()
   private readonly trainer: Promise<Trainer>
 
+  // client need to be connected
   constructor (
     public readonly task: Task,
     public readonly logger: Logger,
     public readonly memory: Memory,
     scheme: TrainingSchemes,
     informant: TrainingInformant,
-    private readonly clientBuilder: (scheme: TrainingSchemes, task: Task) => Client
+    private readonly client: Client
   ) {
-    this.trainer = this.getTrainer(scheme, informant)
-  }
-
-  private async getTrainer (scheme: TrainingSchemes, informant: TrainingInformant): Promise<Trainer> {
-    const cached = this.forScheme.get(scheme)
-    if (cached !== undefined) {
-      return cached[1]
+    if (client.task !== task) {
+      throw new Error('client not setup for given task')
+    }
+    if (informant.taskID !== task.taskID) {
+      throw new Error('informant not setup for given task')
     }
 
-    const client = this.clientBuilder(scheme, this.task)
-    await client.connect()
-
     const trainerBuilder = new TrainerBuilder(this.memory, this.task, informant)
-    const trainer = await trainerBuilder.build(
-      client,
-      scheme !== TrainingSchemes.LOCAL
-    )
-
-    this.forScheme = this.forScheme.set(scheme, [client, trainer])
-
-    return trainer
+    this.trainer = trainerBuilder.build(this.client, scheme !== TrainingSchemes.LOCAL)
   }
 
-  /**
-   * @param scheme
-   * @param informant
-   * @param data
-   */
   async startTraining (data: dataset.Data): Promise<void> {
     if (data.size === 0) {
       this.logger.error('Training aborted. No uploaded file given as input.')
@@ -55,23 +35,16 @@ export class Disco {
     }
 
     this.logger.success(
-      'Thank you for your contribution. Data preprocessing has started'
-    )
+      'Thank you for your contribution. Data preprocessing has started')
 
     await (await this.trainer).trainModel(data.dataset)
   }
 
-  /**
-   * Stops the training function and disconnects from
-   */
-  // TODO: should specify scheme
+  // Stops the training function
+  //
+  // do not disconnect given client
   async stopTraining (): Promise<void> {
-    await Promise.all(
-      this.forScheme.valueSeq().map(async ([client, trainer]) => {
-        await trainer.stopTraining()
-        await client.disconnect()
-      })
-    )
+    await (await this.trainer).stopTraining()
 
     this.logger.success('Training was successfully interrupted.')
   }

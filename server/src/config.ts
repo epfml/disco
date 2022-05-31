@@ -10,6 +10,7 @@ export class Config {
 
     // Directory containing all task definition files.
     public readonly tasksDir: Path,
+
     // JSON file containing all tasks metadata.
     public readonly tasksFile: Path,
     // Directory containing all the generated task models files.

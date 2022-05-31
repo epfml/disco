@@ -1,24 +1,29 @@
 import { expect } from 'chai'
 import * as http from 'http'
 
-import { client, Task, TrainingInformant, TrainingSchemes } from 'discojs'
+import { client, Task, tasks, TrainingInformant, TrainingSchemes } from 'discojs'
 
 import { getApp } from '../src/get_server'
-import { CONFIG } from '../src/config'
-import { getTasks } from '../src/tasks/tasks_io'
 
-const taskID = 'titanic'
+const defaultTask = tasks.titanic.task
 
-describe('federated client', () => { // the tests container
+describe('federated client', function () { // the tests container
+  this.timeout(10_000)
+
   let server: http.Server
 
   before(async () => {
-    const app = await getApp()
-    server = http.createServer(app).listen()
-    await new Promise((resolve, reject) => {
-      server.once('listening', resolve)
-      server.once('error', reject)
-    })
+    try {
+      const app = await getApp()
+      server = http.createServer(app).listen()
+      await new Promise((resolve, reject) => {
+        server.once('listening', resolve)
+        server.once('error', reject)
+      })
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
   })
 
   after(() => {
@@ -41,11 +46,7 @@ describe('federated client', () => { // the tests container
     }
     const url = new URL(`http://${host}`)
 
-    const t = task ?? (await getTasks(CONFIG.tasksFile)).find((t) => t.taskID === taskID)
-    if (t === undefined) {
-      throw new Error(`no task with id: ${taskID}`)
-    }
-
+    const t = task ?? defaultTask
     return new client.Federated(url, t)
   }
 
@@ -61,7 +62,7 @@ describe('federated client', () => { // the tests container
   })
 
   it('Connect to non valid task', async () => {
-    const client = await getClient(new Task('nonValidTask'))
+    const client = await getClient({ taskID: 'nonValidTask' })
 
     try {
       await client.connect()
@@ -86,7 +87,7 @@ describe('federated client', () => { // the tests container
     const client = await getClient()
     await client.connect()
 
-    const ti = new TrainingInformant(0, taskID, TrainingSchemes.FEDERATED)
+    const ti = new TrainingInformant(0, defaultTask.taskID, TrainingSchemes.FEDERATED)
     await client.pullServerStatistics(ti)
 
     expect(ti.currentRound).to.be.greaterThanOrEqual(0) // Since the server you are running might have trained and round > 0
