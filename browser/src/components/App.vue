@@ -85,7 +85,7 @@ export default {
     this.initPlatform()
   },
   async created () {
-    const tasks: Task[] = await loadTasks()
+    const tasks = await loadTasks()
     tasks.forEach((task: Task) => {
       const route = `/${task.taskID}`
       this.$router.addRoute({

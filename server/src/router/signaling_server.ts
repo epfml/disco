@@ -2,7 +2,8 @@ import { Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 import WebSocket from 'ws'
 
-type TaskID = string
+import { TaskID } from 'discojs'
+
 type PeerID = number
 type EncodedSignal = Buffer
 
@@ -51,9 +52,9 @@ export class SignalingServer {
     console.info('peer', peerID, 'joined', taskID)
 
     const msg: OpeningMessage =
-    this.rooms.get(taskID, Map<PeerID, WebSocket>())
-      .keySeq()
-      .toArray()
+      this.rooms.get(taskID, Map<PeerID, WebSocket>())
+        .keySeq()
+        .toArray()
 
     const oldRoom = this.rooms.get(taskID, Map<PeerID, WebSocket>())
     this.rooms = this.rooms.set(taskID, oldRoom.set(peerID, ws))

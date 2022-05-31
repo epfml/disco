@@ -22,7 +22,7 @@
 import TrainingFrame from './TrainingFrame.vue'
 import { WebImageLoader } from '@/data_loader'
 
-import { Task } from 'discojs'
+import { isTask } from 'discojs'
 
 export default {
   name: 'ImageTrainingFrame',
@@ -35,7 +35,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      validator: isTask,
       default: undefined
     }
   },

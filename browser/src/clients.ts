@@ -1,6 +1,6 @@
 import { client, Client, Task, TrainingSchemes } from 'discojs'
 
-import { CONFIG } from '../config'
+import { CONFIG } from './config'
 
 export function getClient (trainingScheme: TrainingSchemes, task: Task): Client {
   switch (trainingScheme) {

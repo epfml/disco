@@ -29,6 +29,10 @@
 </template>
 
 <script lang="ts">
+import { Set } from 'immutable'
+
+import { isTask } from 'discojs'
+
 import BaseLayout from '@/components/containers/BaseLayout.vue'
 import ProgressBar from '@/components/navigation/ProgressBar.vue'
 import TitleCard from '@/components/containers/TitleCard.vue'
@@ -44,9 +48,8 @@ export default {
   },
   props: {
     tasks: {
-      // Array<Task>() constructor would be preferable but is forbidden by ESLint
-      type: Object,
-      default: undefined
+      validator: (obj) => Set.isSet(obj) && obj.every(isTask),
+      default: Set()
     }
   },
   methods: {

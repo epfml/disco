@@ -58,7 +58,7 @@ import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
 import BaseLayout from '@/components/containers/BaseLayout.vue'
 import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 
-import { Task } from 'discojs'
+import { isTask } from 'discojs'
 import { DataLoader, DatasetBuilder } from 'discojs/dist/dataset'
 
 export default {
@@ -77,7 +77,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      validator: isTask,
       default: undefined
     }
   },

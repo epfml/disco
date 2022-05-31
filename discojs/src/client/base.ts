@@ -1,3 +1,4 @@
+import axios from 'axios'
 import * as tf from '@tensorflow/tfjs'
 
 import { Task } from '@/task'
@@ -22,12 +23,20 @@ export abstract class Base {
    */
   abstract disconnect (): Promise<void>
 
-  // TODO only works in federated
   async getLatestModel (): Promise<tf.LayersModel> {
     const url = new URL('', this.url.href)
-    url.pathname += `/tasks/${this.task.taskID}/new_weights`
+    if (!url.pathname.endsWith('/')) {
+      url.pathname += '/'
+    }
+    url.pathname += `tasks/${this.task.taskID}/model.json`
 
-    return await tf.loadLayersModel(url.href)
+    const response = await axios.get(url.href)
+
+    const model = await tf.loadLayersModel({
+      load: () => response.data
+    })
+
+    return model
   }
 
   /**

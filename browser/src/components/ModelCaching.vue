@@ -158,10 +158,10 @@
 <script lang="ts">
 import { mapState } from 'vuex'
 
-import { EmptyMemory, Memory, Task } from 'discojs'
+import { EmptyMemory, Memory, ModelType, isTask, TrainingSchemes } from 'discojs'
 
 import { IndexedDB } from '@/memory'
-import { getLatestModel } from '@/tasks'
+import { getClient } from '@/clients'
 import Clock from '@/assets/svg/Clock.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
@@ -179,7 +179,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      validator: isTask,
       default: undefined
     }
   },
@@ -234,7 +234,8 @@ export default {
        * feature.
        */
       if (this.useIndexedDB) {
-        const workingModelMetadata = await this.memory.getWorkingModelMetadata(
+        const workingModelMetadata = await this.memory.getModelMetadata(
+          ModelType.WORKING,
           this.task.taskID,
           this.task.trainingInformation.modelID
         )
@@ -263,7 +264,8 @@ export default {
      */
     async deleteModel (): Promise<void> {
       this.workingModelExists = false
-      await this.memory.deleteWorkingModel(
+      await this.memory.deleteModel(
+        ModelType.WORKING,
         this.task.taskID,
         this.task.trainingInformation.modelID
       )
@@ -295,13 +297,14 @@ export default {
      * Create a new model and overwite the IndexedDB model with the new model
      */
     async loadFreshModel () {
-      await getLatestModel(this.task.taskID).then((freshModel) => {
-        this.memory.updateWorkingModel(
-          this.task.taskID,
-          this.task.trainingInformation.modelID,
-          freshModel
-        )
-      })
+      // TODO do not force scheme
+      const client = getClient(TrainingSchemes.FEDERATED, this.task)
+
+      this.memory.updateWorkingModel(
+        this.task.taskID,
+        this.task.trainingInformation.modelID,
+        await client.getLatestModel()
+      )
     },
     async proceed () {
       if (this.useIndexedDB && this.shouldCreateFreshModel) {
