@@ -3,7 +3,7 @@ import { agent as request } from 'supertest'
 import { serialization, Weights } from 'discojs'
 
 import * as tf from '@tensorflow/tfjs-node'
-import app from '../../src/run_server'
+import { getApp } from '../../src/get_server'
 
 const platformID = 'feai'
 const clients = {
@@ -42,6 +42,7 @@ function postWeightHeader (
 
 describe(`${platformID} simple connection tests`, () => {
   it('connect and then disconnect to valid task', async () => {
+    const app = await getApp()
     await request(app)
       .get(connectHeader(platformID, task, clients.one))
       .expect(200)
@@ -54,6 +55,7 @@ describe(`${platformID} simple connection tests`, () => {
 
   it('connect to non existing task', async () => {
     // the single test
+    const app = await getApp()
     await request(app)
       .get(connectHeader(platformID, 'fakeTask', clients.one))
       .expect(404)
@@ -62,18 +64,21 @@ describe(`${platformID} simple connection tests`, () => {
 
 describe(`${platformID} weight sharing tests`, () => {
   before(async () => {
+    const app = await getApp()
     await request(app)
       .get(connectHeader(platformID, task, clients.one))
       .expect(200)
   })
 
   after(async () => {
+    const app = await getApp()
     await request(app)
       .get(disconnectHeader(platformID, task, clients.one))
       .expect(200)
   })
 
   it('GET /weights', async () => { // the single test
+    const app = await getApp()
     await request(app)
       .get(`/${platformID}/weights/${task}/${clients.one}`)
       .expect(200)
@@ -84,6 +89,7 @@ describe(`${platformID} weight sharing tests`, () => {
       weights: await serialization.encodeWeights(weights),
       round: newRound
     }
+    const app = await getApp()
     await request(app)
       .post(postWeightHeader(platformID, task, clients.one))
       .send(data)

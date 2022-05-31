@@ -3,7 +3,7 @@ import * as http from 'http'
 
 import { client, Task, TrainingInformant, TrainingSchemes } from 'discojs'
 
-import app from '../src/run_server'
+import { getApp } from '../src/get_server'
 import { CONFIG } from '../src/config'
 import { getTasks } from '../src/tasks/tasks_io'
 
@@ -13,6 +13,7 @@ describe('federated client', () => { // the tests container
   let server: http.Server
 
   before(async () => {
+    const app = await getApp()
     server = http.createServer(app).listen()
     await new Promise((resolve, reject) => {
       server.once('listening', resolve)
@@ -40,7 +41,11 @@ describe('federated client', () => { // the tests container
     }
     const url = new URL(`http://${host}`)
 
-    const t = task ?? (await getTasks(CONFIG.tasksFile))[0]
+    const t = task ?? (await getTasks(CONFIG.tasksFile)).find((t) => t.taskID === taskID)
+    if (t === undefined) {
+      throw new Error(`no task with id: ${taskID}`)
+    }
+
     return new client.Federated(url, t)
   }
 
