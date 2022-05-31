@@ -1,4 +1,6 @@
 import { CONFIG } from './config'
-import app from './get_server'
+import { getApp } from './get_server'
 
-app.listen(CONFIG.serverPort)
+getApp()
+  .then((app) => app.listen(CONFIG.serverPort))
+  .catch(console.error)
