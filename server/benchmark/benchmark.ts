@@ -4,12 +4,10 @@ import * as tf from '@tensorflow/tfjs'
 import * as tfNode from '@tensorflow/tfjs-node'
 import Rand from 'rand-seed'
 
-import app from '../src/get_server'
-import { getTasks } from '../src/tasks/tasks_io'
-import { dataset, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant, FederatedClient } from 'discojs'
-import { CONFIG } from '../src/config'
+import { getApp } from '../src/get_server'
+import { client as clients, dataset, tasks, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant } from 'discojs'
 
-const TASK_INDEX = 4
+const TASK = tasks.simple_face.task
 
 const rand = new Rand('1234')
 
@@ -76,9 +74,8 @@ async function loadData (validSplit = 0.2): Promise<Record<'train' | 'valid', da
   const validFiles = files.slice(Math.round(files.length * (1 - validSplit)))
   const validLabels = labels.slice(Math.round(files.length * (1 - validSplit)))
 
-  const simpleFace = (await getTasks(CONFIG.tasksFile))[TASK_INDEX]
-  const trainDataset = await new NodeImageLoader(simpleFace).loadAll(trainFiles, { labels: trainLabels })
-  const validDataset = await new NodeImageLoader(simpleFace).loadAll(validFiles, { labels: validLabels })
+  const trainDataset = await new NodeImageLoader(TASK).loadAll(trainFiles, { labels: trainLabels })
+  const validDataset = await new NodeImageLoader(TASK).loadAll(validFiles, { labels: validLabels })
 
   return {
     train: trainDataset,
@@ -86,16 +83,16 @@ async function loadData (validSplit = 0.2): Promise<Record<'train' | 'valid', da
   }
 }
 
-async function runUser (serverURL: string): Promise<void> {
-  const tasks = await getTasks(CONFIG.tasksFile)
-  const task = tasks[TASK_INDEX]
+async function runUser (url: URL): Promise<void> {
   const data = await loadData()
 
   const logger = new ConsoleLogger()
   const memory = new EmptyMemory()
 
-  const informant = new TrainingInformant(10, task.taskID, TrainingSchemes.FEDERATED)
-  const disco = new training.Disco(task, logger, memory, TrainingSchemes.FEDERATED, informant, () => new FederatedClient(serverURL, task))
+  const informant = new TrainingInformant(10, TASK.taskID, TrainingSchemes.FEDERATED)
+  const client = new clients.Federated(url, TASK)
+  await client.connect()
+  const disco = new training.Disco(TASK, logger, memory, TrainingSchemes.FEDERATED, informant, client)
 
   console.log('runUser>>>>')
   await disco.startTraining(data.train)
@@ -103,6 +100,7 @@ async function runUser (serverURL: string): Promise<void> {
 }
 
 async function startServer (): Promise<[http.Server, string]> {
+  const app = await getApp()
   const server = http.createServer(app).listen()
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
@@ -132,7 +130,7 @@ async function startServer (): Promise<[http.Server, string]> {
 
 async function main (): Promise<void> {
   const [server, addr] = await startServer()
-  const url = `http://${addr}/feai`
+  const url = new URL('', `http://${addr}`)
 
   await Promise.all([
     runUser(url),

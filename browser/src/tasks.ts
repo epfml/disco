@@ -1,7 +1,7 @@
 import axios from 'axios'
-import * as tf from '@tensorflow/tfjs'
+import { Set } from 'immutable'
 
-import { Task } from 'discojs'
+import { isTask, Task } from 'discojs'
 
 import { CONFIG } from './config'
 
@@ -10,28 +10,16 @@ import { CONFIG } from './config'
  * Should be considered as a regular API call and regrouped accordingly, it does
  * not belong to this file.
  */
-export async function loadTasks (): Promise<Task[]> {
+export async function loadTasks (): Promise<Set<Task>> {
   const url = new URL('', CONFIG.serverUrl.href)
-  url.pathname += 'feai/tasks'
+  url.pathname += 'tasks'
 
   const response = await axios.get(url.href)
   const tasks: unknown = response.data
 
-  if (!Array.isArray(tasks) || !tasks.every(Task.isTask)) {
+  if (!Array.isArray(tasks) || !tasks.every(isTask)) {
     throw new Error('invalid tasks response')
   }
 
-  return tasks
-}
-
-/**
- * TODO: @s314cy
- * Should be considered as a regular API call and regrouped accordingly, it does
- * not belong to this file.
- */
-export async function getLatestModel (taskID: string): Promise<any> {
-  const url = new URL('', CONFIG.serverUrl.href)
-  url.pathname += `feai/tasks/${taskID}/model.json`
-
-  return await tf.loadLayersModel(url.href)
+  return Set(tasks)
 }

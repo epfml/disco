@@ -32,25 +32,18 @@ function disconnectHeader (
   return `/${platformID}/disconnect/${taskID}/${clientID}`
 }
 
-function postWeightHeader (
-  platformID: string,
-  taskID: string,
-  clientID: string
-): string {
-  return `/${platformID}/weights/${taskID}/${clientID}`
-}
+describe(`${platformID} simple connection tests`, function () {
+  this.timeout(10_000)
 
-describe(`${platformID} simple connection tests`, () => {
   it('connect and then disconnect to valid task', async () => {
     const app = await getApp()
+
     await request(app)
       .get(connectHeader(platformID, task, clients.one))
       .expect(200)
-      .then(async () => {
-        await request(app)
-          .get(disconnectHeader(platformID, task, clients.one))
-          .expect(200)
-      })
+    await request(app)
+      .get(disconnectHeader(platformID, task, clients.one))
+      .expect(200)
   })
 
   it('connect to non existing task', async () => {
@@ -62,37 +55,28 @@ describe(`${platformID} simple connection tests`, () => {
   })
 })
 
-describe(`${platformID} weight sharing tests`, () => {
-  before(async () => {
-    const app = await getApp()
-    await request(app)
-      .get(connectHeader(platformID, task, clients.one))
-      .expect(200)
-  })
-
-  after(async () => {
-    const app = await getApp()
-    await request(app)
-      .get(disconnectHeader(platformID, task, clients.one))
-      .expect(200)
-  })
+describe(`${platformID} weight sharing tests`, function () {
+  this.timeout(10_000)
 
   it('GET /weights', async () => { // the single test
-    const app = await getApp()
-    await request(app)
+    await request(await getApp())
       .get(`/${platformID}/weights/${task}/${clients.one}`)
       .expect(200)
   })
 
   it('POST /weights', async () => {
-    const data = {
-      weights: await serialization.encodeWeights(weights),
-      round: newRound
-    }
     const app = await getApp()
+
     await request(app)
-      .post(postWeightHeader(platformID, task, clients.one))
-      .send(data)
+      .get(connectHeader(platformID, task, clients.one))
+      .expect(200)
+
+    await request(app)
+      .post(`/${platformID}/weights/${task}/${clients.one}`)
+      .send({
+        weights: await serialization.weights.encode(weights),
+        round: newRound
+      })
       .expect(200)
   })
 

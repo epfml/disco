@@ -31,7 +31,7 @@ import IconCard from '@/components/containers/IconCard.vue'
 import ModelCaching from '@/components/ModelCaching.vue'
 
 import { mapState } from 'vuex'
-import { Task } from 'discojs'
+import { isTask } from 'discojs'
 
 export default {
   name: 'Description',
@@ -47,7 +47,7 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      validator: isTask,
       default: undefined
     }
   },

@@ -8,8 +8,6 @@ const nbEpochsOnGraphs = 10
  * Class that collects information about the status of the training-loop of the model.
  */
 export class TrainingInformant {
-  taskID: TaskID
-  taskTrainingScheme: string
   // Decentralized Informations
   // number of people with whom I've shared my model
   whoReceivedMyModel = Set()
@@ -43,12 +41,9 @@ export class TrainingInformant {
    */
   constructor (
     private readonly nbrMessagesToShow: number,
-    taskID: string,
-    taskTrainingScheme: TrainingSchemes
+    public readonly taskID: TaskID,
+    public readonly taskTrainingScheme: TrainingSchemes
   ) {
-    this.taskID = taskID
-    this.taskTrainingScheme = taskTrainingScheme
-
     // how many times the model has been averaged with someone's else model
     this.nbrUpdatesWithOthers = 0
 
