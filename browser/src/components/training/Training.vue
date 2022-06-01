@@ -35,48 +35,6 @@
         :training-informant="trainingInformant"
       />
     </div>
-
-    <!-- Save the model button -->
-    <IconCard
-      header="Save the model"
-      description="If you are satisfied with the performance of the model, don't
-            forget to save the model by clicking on the button below. The next
-            time you will load the application, you will be able to use your
-            saved model."
-    >
-      <template #icon>
-        <download />
-      </template>
-      <template #extra>
-        <div class="flex items-center justify-center p-4">
-          <!-- make it gray & un-clickable if indexeddb is turned off -->
-          <CustomButton
-            @click="saveModel()"
-          >
-            Save My model
-          </CustomButton>
-        </div>
-      </template>
-    </IconCard>
-    <!-- Test the model button -->
-    <IconCard
-      header="Test the model"
-      description="Once you have finished training your model it might be a great idea
-            to go test it."
-    >
-      <template #icon>
-        <Download />
-      </template>
-      <template #extra>
-        <!-- Description -->
-        <div class="relative p-4 overflow-x-hidden">
-          <span
-            style="white-space: pre-line"
-            class="text-sm text-gray-500 dark:text-light"
-          />
-        </div>
-      </template>
-    </IconCard>
   </div>
 </template>
 
@@ -87,9 +45,7 @@ import { dataset, training, EmptyMemory, isTask, TrainingInformant, TrainingSche
 
 import { IndexedDB } from '@/memory'
 import TrainingInformation from './TrainingInformation.vue'
-import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
-import Download from '@/assets/svg/Download.vue'
 
 import { getClient } from '@/clients'
 
@@ -97,9 +53,7 @@ export default {
   name: 'Training',
   components: {
     TrainingInformation,
-    IconCard,
-    CustomButton,
-    Download
+    CustomButton
   },
   props: {
     task: {
@@ -177,22 +131,6 @@ export default {
     async stopTraining () {
       await this.disco.stopTraining()
       this.trainingInformant = undefined
-    },
-    async saveModel () {
-      if (this.memory !== undefined) {
-        await this.memory.saveWorkingModel(
-          this.task.taskID,
-          this.task.trainingInformation.modelID
-        )
-        this.$toast.success(
-          `The current ${this.task.displayInformation.taskTitle} model has been saved.`
-        )
-      } else {
-        this.$toast.error(
-          'The model library is currently turned off. See settings for more information'
-        )
-      }
-      setTimeout(this.$toast.clear, 30000)
     }
   }
 }

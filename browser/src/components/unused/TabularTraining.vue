@@ -40,15 +40,15 @@
     </template>
     <template #extra>
       <!-- Modification of Header Card -->
-      <IconCard
-        header="Map My Data"
-        description="If the header of the file that you've uploaded differs from the one shown in example, you can map the expected header to your header format bellow."
-        :with-toggle="true"
-      >
+      <IconCard :with-toggle="true">
+        <template #title>
+          Map my data
+        </template>
         <template #icon>
           <Bezier2 />
         </template>
-        <template #extra>
+        <template #content>
+          If the header of the file that you've uploaded differs from the one shown in example, you can map the expected header to your header format bellow.
           <!-- Display all the possible headers -->
           <div id="mapHeader">
             <ul
@@ -70,7 +70,6 @@
                     hover:-translate-y-2
                     rounded-2xl
                     border-2
-                    p-6
                     hover:shadow-2xl
                     border-primary-dark
                   "

@@ -1,20 +1,18 @@
 <template>
   <div>
     <a id="overview-target">
-      <IconCard
-        header="The task"
-        :description="overviewText"
-      >
+      <IconCard>
+        <template #title>The task</template>
         <template #icon><Tasks /></template>
+        <template #content>{{ overviewText }}</template>
       </IconCard>
     </a>
 
     <a id="limitations-target">
-      <IconCard
-        header="The model"
-        :description="modelText"
-      >
+      <IconCard>
+        <template #title>The model</template>
         <template #icon><Model /></template>
+        <template #content>{{ modelText }}</template>
       </IconCard>
     </a>
     <ModelCaching
