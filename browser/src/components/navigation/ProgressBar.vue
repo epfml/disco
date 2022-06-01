@@ -109,7 +109,7 @@
         :lined="true"
       >
         <template #text>
-          Finished / Testing
+          Finished
         </template>
         <template #icon>
           <svg

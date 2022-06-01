@@ -13,7 +13,8 @@ interface State {
   models: Map<string, any>,
   currentTask: string,
   useIndexedDB: boolean,
-  isDark: boolean
+  isDark: boolean,
+  testingModel: string
 }
 
 export const store = createStore({
@@ -22,9 +23,10 @@ export const store = createStore({
       tasks: new Map(),
       steps: new Map(),
       models: new Map(),
-      currentTask: '',
+      currentTask: undefined,
       useIndexedDB: true,
-      isDark: false
+      isDark: false,
+      testingModel: undefined
     }
   },
   actions: {
@@ -116,6 +118,9 @@ export const store = createStore({
       if (state.tasks.has(taskID)) {
         state.currentTask = taskID
       }
+    },
+    setTestingModel (state: State, path: string): void {
+      state.testingModel = path
     }
   }
 })

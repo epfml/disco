@@ -38,13 +38,15 @@
         </button>
       </div>
     </div>
-    <div
-      v-show="step === 0"
-    >
-      <div class="grid grid-flow-col auto-cols-auto gap-8 mt-8">
+    <div v-show="step === 0">
+      <div
+        v-if="models.size > 0"
+        class="grid grid-cols-3 items-stretch gap-8 mt-8"
+      >
         <div
           v-for="[path, metadata] in models"
           :key="path"
+          class="contents"
         >
           <ButtonCard
             :click="() => selectModel(path, metadata)"
@@ -54,28 +56,60 @@
               {{ taskTitle(metadata.taskID) }}
             </template>
             <template #text>
-              <p>Model: {{ metadata.name }}</p>
-              <p>Date: {{ metadata.date }} at {{ metadata.hours }}</p>
-              <p>Size: {{ metadata.fileSize }} kB</p>
+              <div class="grid grid-cols-4">
+                <div>
+                  <p>Model:</p>
+                  <p>Date:</p>
+                  <p>Size:</p>
+                </div>
+                <div />
+                <div class="col-span-2">
+                  <p>{{ metadata.name.substring(0, 20) }}</p>
+                  <p>{{ metadata.date }} at {{ metadata.hours }}</p>
+                  <p>{{ metadata.fileSize }} kB</p>
+                </div>
+              </div>
             </template>
             <template #button>
-              Test
+              Test model
             </template>
           </ButtonCard>
         </div>
       </div>
+      <div v-else>
+        <IconCard>
+          <template #title>
+            No registerd model
+          </template>
+          <template #content>
+            Please go to the <RouterLink to="/list">
+              training page
+            </RouterLink>.
+          </template>
+        </IconCard>
+      </div>
     </div>
-    <DatasetInput
-      v-if="step === 1"
-      :task="task"
-      :dataset-builder="datasetBuilder"
-    />
+    <div v-if="step >= 1">
+      <DatasetInput
+        v-show="step === 1"
+        :task="task"
+        :dataset-builder="datasetBuilder"
+      />
+      <!-- <Testing
+        v-show="step === 2"
+        :task="task"
+        :dataset-builder="datasetBuilder"
+        :model-path="modelPath"
+      /> -->
+    </div>
   </div>
 </template>
 <script lang="ts">
 import TestingBar from '@/components/testing/TestingBar.vue'
 import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
+// import Testing from '@/components/testing/Testing.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
+import IconCard from '@/components/containers/Card.vue'
 import { IndexedDB } from '@/memory'
 import { WebTabularLoader, WebImageLoader } from '@/data_loader'
 
@@ -88,17 +122,20 @@ export default {
   components: {
     TestingBar,
     DatasetInput,
-    ButtonCard
+    // Testing,
+    ButtonCard,
+    IconCard
   },
-  data (): { task: Task, memory: Memory, step: number } {
+  data (): { task: Task, memory: Memory, step: number, modelPath: string } {
     return {
       task: undefined,
       memory: new IndexedDB(),
-      step: 0
+      step: 0,
+      modelPath: undefined
     }
   },
   computed: {
-    ...mapState(['models', 'tasks']),
+    ...mapState(['models', 'tasks', 'testingModel']),
     showPrev (): boolean {
       return this.step > 0
     },
@@ -123,7 +160,13 @@ export default {
       return new DatasetBuilder(dataLoader, this.task)
     }
   },
-  async mounted () {
+  watch: {
+    testingModel (path: string) {
+      this.step = 0
+      this.selectModel(path, this.models.get(path))
+    }
+  },
+  async mounted (): Promise<void> {
     await this.$store.dispatch('initModels')
   },
   methods: {
@@ -131,18 +174,19 @@ export default {
       const task = this.tasks.get(metadata.taskID)
       if (task !== undefined) {
         this.task = task
+        this.modelPath = path
       } else {
         throw new Error('model\'s task does not exist locally')
       }
       this.step += 1
     },
-    prevStep () {
+    prevStep (): void {
       this.step -= 1
     },
-    nextStep () {
+    nextStep (): void {
       this.step += 1
     },
-    taskTitle (taskID: string) {
+    taskTitle (taskID: string): string {
       const task = this.tasks.get(taskID)
       if (task !== undefined) {
         return task.displayInformation.taskTitle

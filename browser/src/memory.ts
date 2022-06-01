@@ -11,7 +11,7 @@ import path from 'path'
 
 import { Memory, ModelType } from 'discojs'
 
-function pathFor (type: ModelType, taskID: string, modelName: string): string {
+export function pathFor (type: ModelType, taskID: string, modelName: string): string {
   return `indexeddb://${path.join(type, taskID, modelName)}`
 }
 

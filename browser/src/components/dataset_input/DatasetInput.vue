@@ -2,13 +2,15 @@
   <div class="grid grid-cols-1">
     <IconCard
       v-if="task.trainingInformation.dataType === 'tabular'"
-      header="My dataset"
       class="justify-self-center w-full"
     >
+      <template #title>
+        My dataset
+      </template>
       <template #icon>
         <Upload />
       </template>
-      <template #extra>
+      <template #content>
         <FileSelection
           :preview="preview"
           @input="addFiles($event)"
@@ -27,9 +29,11 @@
         <IconCard
           v-for="label in task.trainingInformation.LABEL_LIST"
           :key="label"
-          :header="`Label: ${label}`"
         >
-          <template #extra>
+          <template #title>
+            Label: {{ label }}
+          </template>
+          <template #content>
             <FileSelection
               :preview="preview"
               @input="addFiles($event, label)"

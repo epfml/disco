@@ -25,7 +25,7 @@
           Create your <span class="underline">own task</span>
         </template>
         <template #text>
-          <p>- Choose a model</p>
+          <p>- Provide a model architecture</p>
           <p>- Describe the task</p>
           <p>- Specify the desired training and evaluation parameters</p>
         </template>
@@ -39,8 +39,8 @@
           Test your models
         </template>
         <template #text>
-          <p>- Choose a model</p>
-          <p>- Specifcy a test dataset</p>
+          <p>- Choose a trained model</p>
+          <p>- Provide a test dataset</p>
           <p>- Assess your model's performance</p>
         </template>
         <template #button>
