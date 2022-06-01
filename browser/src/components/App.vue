@@ -16,7 +16,7 @@
       <!-- Sidebar -->
       <aside
         class="
-          fixed
+          sticky
           inset-y-0
           z-20
           flex flex-shrink-0

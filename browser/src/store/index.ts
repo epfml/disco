@@ -2,6 +2,7 @@ import { loadTasks } from '@/tasks'
 
 import { Task } from 'discojs'
 import { ActionContext, createStore } from 'vuex'
+import * as tf from '@tensorflow/tfjs'
 
 const MIN_STEP = 0
 const MAX_STEP = 4
@@ -9,6 +10,7 @@ const MAX_STEP = 4
 interface State {
   tasks: Map<string, Task>,
   steps: Map<string, number>,
+  models: Map<string, any>,
   currentTask: string,
   useIndexedDB: boolean,
   isDark: boolean
@@ -17,8 +19,9 @@ interface State {
 export const store = createStore({
   state (): State {
     return {
-      tasks: new Map<string, Task>(),
-      steps: new Map<string, number>(),
+      tasks: new Map(),
+      steps: new Map(),
+      models: new Map(),
       currentTask: '',
       useIndexedDB: true,
       isDark: false
@@ -28,6 +31,47 @@ export const store = createStore({
     async initTasks (context: ActionContext<State, State>) {
       const tasks = await loadTasks()
       tasks.forEach(task => context.commit('addTask', task))
+    },
+    async initModels (context: ActionContext<State, State>) {
+      const models = await tf.io.listModels()
+      for (const path in models) {
+        // eslint-disable-next-line no-unused-vars
+        const [location, _, directory, task, name] = path.split('/')
+        if (!(location === 'indexeddb:' && directory === 'saved')) {
+          continue
+        }
+
+        const metadata = models[path]
+        const date = new Date(metadata.dateSaved)
+        const zeroPad = (number: number) => String(number).padStart(2, '0')
+        const dateSaved = [
+          date.getDate(),
+          date.getMonth() + 1,
+          date.getFullYear()
+        ]
+          .map(zeroPad)
+          .join('/')
+        const hourSaved = [date.getHours(), date.getMinutes()]
+          .map(zeroPad)
+          .join('h')
+        const size =
+          metadata.modelTopologyBytes +
+          metadata.weightSpecsBytes +
+          metadata.weightDataBytes
+
+        context.commit('addModel',
+          {
+            path: path,
+            metadata: {
+              name: name,
+              taskID: task,
+              modelType: directory,
+              date: dateSaved,
+              hours: hourSaved,
+              fileSize: Math.round(size / 1024)
+            }
+          })
+      }
     }
   },
   mutations: {
@@ -40,6 +84,12 @@ export const store = createStore({
     addTask (state: State, task: Task): void {
       state.tasks.set(task.taskID, task)
       state.steps.set(task.taskID, 0)
+    },
+    addModel (state: State, { path, metadata }: { path: string, metadata: any }): void {
+      state.models.set(path, metadata)
+    },
+    deleteModel (state: State, path: string): void {
+      state.models.delete(path)
     },
     prevStep (state: State, taskID: string): void {
       if (state.steps.has(taskID)) {

@@ -4,6 +4,7 @@
     <div class="flex">
       <!-- Step 1 -->
       <ProgressIcon
+        class="w-1/5"
         :active="true"
         :lined="false"
       >
@@ -27,6 +28,7 @@
       </ProgressIcon>
       <!-- Step 2 -->
       <ProgressIcon
+        class="w-1/5"
         :active="isActive(1)"
         :lined="true"
       >
@@ -54,6 +56,7 @@
       </ProgressIcon>
       <!-- Step 3 -->
       <ProgressIcon
+        class="w-1/5"
         :active="isActive(2)"
         :lined="true"
       >
@@ -77,6 +80,7 @@
       </ProgressIcon>
       <!-- Step 4 -->
       <ProgressIcon
+        class="w-1/5"
         :active="isActive(3)"
         :lined="true"
       >
@@ -100,6 +104,7 @@
       </ProgressIcon>
       <!-- Step 5 -->
       <ProgressIcon
+        class="w-1/5"
         :active="isActive(4)"
         :lined="true"
       >
