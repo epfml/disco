@@ -1,5 +1,5 @@
 <template>
-  <div class="w-1/5">
+  <div>
     <div class="relative mb-4">
       <div
         v-if="lined"

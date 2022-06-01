@@ -14,7 +14,7 @@
         class="text-left"
       >
         <CustomButton
-          v-if="step <= 3"
+          v-show="step <= 3"
           @click="nextStep(id)"
         >
           Next

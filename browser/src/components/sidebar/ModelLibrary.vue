@@ -1,11 +1,11 @@
 <template>
-  <tippy-container title="Model Library">
+  <TippyContainer title="Model Library">
     <template #icon>
-      <stack-icon />
+      <StackIcon />
     </template>
     <template #content>
       <!-- Model list -->
-      <tippy-card title="My model library">
+      <TippyCard title="My model library">
         <span class="text-s">
           <p v-if="useIndexedDB">List of trained models that were saved.</p>
           <p v-else>
@@ -18,16 +18,16 @@
               settings menu</button>.
           </p>
         </span>
-        <div v-if="useIndexedDB">
+        <div
+          v-if="useIndexedDB"
+          class="space-y-4"
+        >
           <div
-            v-for="(item, idx) in modelMap"
-            :key="idx"
-          >
-            <div
-              class="
+            v-for="[path, metadata] in models"
+            :key="path"
+            class="
                 flex
                 items-center
-                grid-cols-3
                 justify-between
                 px-4
                 py-2
@@ -35,62 +35,56 @@
                 transition-colors
                 border
                 rounded-md
-                hover:text-gray-900 hover:border-gray-900
-                dark:border-primary
-                dark:hover:text-primary-100
-                dark:hover:border-primary-light
+                hover:text-slate-900 hover:border-slate-900
                 focus:outline-none
                 focus:ring
-                focus:ring-primary-lighter
+                focus:ring-slate-100
                 focus:ring-offset-2
-                dark:focus:ring-offset-dark dark:focus:ring-primary-dark
               "
+          >
+            <div
+              class="cursor-pointer w-2/3"
+              @click="openTesting(metadata)"
             >
-              <div
-                class="cursor-pointer w-2/3"
-                @click="openTesting(item[1])"
-              >
-                <span>
-                  {{ item[1].modelName.substring(0, 16) }} <br>
-                  <span class="text-xs">
-                    {{ item[1].date }} at {{ item[1].hours }} <br>
-                    {{ item[1].fileSize }} KB
-                  </span>
+              <span>
+                {{ metadata.name.substring(0, 16) }} <br>
+                <span class="text-xs">
+                  {{ metadata.date }} at {{ metadata.hours }} <br>
+                  {{ metadata.fileSize }} kB
                 </span>
-              </div>
-              <div class="w-1/9">
-                <button
-                  :class="buttonClass(isDark)"
-                  @click="deleteModel(item[0])"
-                >
-                  <span><bin2-icon /></span>
-                </button>
-              </div>
-              <div class="w-1/9">
-                <button
-                  :class="buttonClass(isDark)"
-                  @click="downloadModel(item[1])"
-                >
-                  <span><download-2-icon /></span>
-                </button>
-              </div>
-              <div class="w-1/9">
-                <button
-                  :class="buttonClass(isDark)"
-                  @click="loadModel(item[1])"
-                >
-                  <span><load-icon /></span>
-                </button>
-              </div>
+              </span>
+            </div>
+            <div class="w-1/9">
+              <button
+                :class="buttonClass(isDark)"
+                @click="deleteModel(path)"
+              >
+                <span><Bin2Icon /></span>
+              </button>
+            </div>
+            <div class="w-1/9">
+              <button
+                :class="buttonClass(isDark)"
+                @click="downloadModel(metadata)"
+              >
+                <span><Download2Icon /></span>
+              </button>
+            </div>
+            <div class="w-1/9">
+              <button
+                :class="buttonClass(isDark)"
+                @click="loadModel(metadata)"
+              >
+                <span><LoadIcon /></span>
+              </button>
             </div>
           </div>
         </div>
-      </tippy-card>
+      </TippyCard>
     </template>
-  </tippy-container>
+  </TippyContainer>
 </template>
 <script lang="ts">
-import * as tf from '@tensorflow/tfjs'
 import { mapState } from 'vuex'
 
 import { Memory, EmptyMemory } from 'discojs'
@@ -114,93 +108,50 @@ export default {
     TippyContainer
   },
   emits: ['switch-panel'],
-  data () {
-    return {
-      modelMap: new Map()
-    }
-  },
   computed: {
+    ...mapState(['useIndexedDB', 'isDark', 'models']),
+
     memory (): Memory {
       return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
-    },
-    ...mapState(['useIndexedDB', 'isDark'])
+    }
   },
-  mounted () {
-    this.refreshModelLibrary()
+  async mounted () {
+    await this.$store.dispatch('initModels')
   },
   methods: {
-    buttonClass: function (state) {
+    buttonClass: function (state: boolean) {
       return `flex items-center grid-cols-3 justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark ${
         state
           ? 'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100'
           : 'text-gray-500 dark:text-primary-light'
       }`
     },
-    switchToSettings () {
+
+    switchToSettings (): void {
       this.$emit('switch-panel')
     },
-    async refreshModelLibrary () {
-      console.log('Refreshing the model library.')
-      this.modelMap.clear()
-      await tf.io.listModels().then((models) => {
-        for (const savePath in models) {
-          // eslint-disable-next-line no-unused-vars
-          const [location, _, directory, task, name] = savePath.split('/')
-          if (!(location === 'indexeddb:' && directory === 'saved')) {
-            continue
-          }
 
-          const modelMetadata = models[savePath]
-          const date = new Date(modelMetadata.dateSaved)
-          const zeroPad = (number) => String(number).padStart(2, '0')
-          const dateSaved = [
-            date.getDate(),
-            date.getMonth() + 1,
-            date.getFullYear()
-          ]
-            .map(zeroPad)
-            .join('/')
-          const hourSaved = [date.getHours(), date.getMinutes()]
-            .map(zeroPad)
-            .join('h')
-          const size =
-            modelMetadata.modelTopologyBytes +
-            modelMetadata.weightSpecsBytes +
-            modelMetadata.weightDataBytes
-
-          this.modelMap.set(savePath, {
-            modelName: name,
-            taskID: task,
-            modelType: directory,
-            date: dateSaved,
-            hours: hourSaved,
-            fileSize: size / 1000
-          })
-        }
-      })
+    deleteModel (path: string): void {
+      const metadata = this.models.get(path)
+      this.$store.commit('deleteModel', path)
+      this.memory.deleteSavedModel(metadata.taskID, metadata.modelName)
     },
 
-    deleteModel (savePath) {
-      const modelMetadata = this.modelMap.get(savePath)
-      this.modelMap.delete(savePath)
-      this.memory.deleteSavedModel(modelMetadata.taskID, modelMetadata.modelName)
+    openTesting (metadata) {
+      this.$router.push({ name: metadata.taskID.concat('.testing') })
     },
 
-    openTesting (modelMetadata) {
-      this.$router.push({ name: modelMetadata.taskID.concat('.testing') })
+    downloadModel (metadata) {
+      this.memory.downloadSavedModel(metadata.taskID, metadata.modelName)
     },
 
-    downloadModel (modelMetadata) {
-      this.memory.downloadSavedModel(modelMetadata.taskID, modelMetadata.modelName)
-    },
-
-    async loadModel (modelMetadata) {
+    async loadModel (metadata) {
       await this.memory.loadSavedModel(
-        modelMetadata.taskID,
-        modelMetadata.modelName
+        metadata.taskID,
+        metadata.modelName
       )
       this.$toast.success(
-        `Loaded ${modelMetadata.modelName}, ready for next training session.`
+        `Loaded ${metadata.modelName}, ready for next training session.`
       )
     }
   }
