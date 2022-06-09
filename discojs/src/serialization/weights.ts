@@ -3,12 +3,12 @@ import * as msgpack from 'msgpack-lite'
 
 import { Weights } from '@/types'
 
-interface SerializedWeight {
+interface Serialized {
   shape: number[]
   data: Float32Array
 }
 
-function isSerializedWeight (raw: unknown): raw is SerializedWeight {
+function isSerialized (raw: unknown): raw is Serialized {
   if (typeof raw !== 'object' || raw === null) {
     return false
   }
@@ -25,18 +25,18 @@ function isSerializedWeight (raw: unknown): raw is SerializedWeight {
   }
 
   // eslint-disable-next-line
-  const _: SerializedWeight = { shape, data }
+  const _: Serialized = { shape, data }
 
   return true
 }
 
-export type EncodedWeights = number[]
+export type Encoded = number[]
 
-export function isEncodedWeights (raw: unknown): raw is EncodedWeights {
+export function isEncoded (raw: unknown): raw is Encoded {
   return Array.isArray(raw) && raw.every((e) => typeof e === 'number')
 }
 
-export async function encodeWeights (weights: Weights): Promise<EncodedWeights> {
+export async function encode (weights: Weights): Promise<Encoded> {
   const serialized = await Promise.all(weights.map(async (t) => {
     return {
       shape: t.shape,
@@ -47,10 +47,10 @@ export async function encodeWeights (weights: Weights): Promise<EncodedWeights> 
   return [...msgpack.encode(serialized).values()]
 }
 
-export function decodeWeights (encoded: EncodedWeights): Weights {
+export function decode (encoded: Encoded): Weights {
   const raw = msgpack.decode(encoded)
 
-  if (!(Array.isArray(raw) && raw.every(isSerializedWeight))) {
+  if (!(Array.isArray(raw) && raw.every(isSerialized))) {
     throw new Error('expected to decode an array of serialized weights')
   }
 

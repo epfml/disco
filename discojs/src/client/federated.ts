@@ -63,7 +63,7 @@ export class Federated extends Base {
       method: 'post',
       url: this.urlTo('weights'),
       data: {
-        weights: await serialization.encodeWeights(weights),
+        weights: await serialization.weights.encode(weights),
         round: this.round
       }
     })
@@ -100,7 +100,7 @@ export class Federated extends Base {
     // get server round of latest model
     const serverRound = await this.getLatestServerRound()
     const response = await axios.get(this.urlTo('weights'))
-    const serverWeights = serialization.decodeWeights(response.data)
+    const serverWeights = serialization.weights.decode(response.data)
 
     if (this.round < serverRound) {
       // Update the local round to match the server's

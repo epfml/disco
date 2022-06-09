@@ -1,6 +1,7 @@
 import axios from 'axios'
 import * as tf from '@tensorflow/tfjs'
 
+import * as serialization from '../serialization'
 import { Task } from '@/task'
 import { TrainingInformant } from '@/training_informant'
 import { Weights } from '@/types'
@@ -32,11 +33,7 @@ export abstract class Base {
 
     const response = await axios.get(url.href)
 
-    const model = await tf.loadLayersModel({
-      load: () => response.data
-    })
-
-    return model
+    return await serialization.model.decode(response.data)
   }
 
   /**
