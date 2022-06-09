@@ -1,16 +1,16 @@
 import * as tf from '@tensorflow/tfjs'
 import { assert } from 'chai'
 
-import { serialization } from '.'
+import { encode, decode, isEncoded, Encoded } from './weights'
 
-describe('serialization', () => {
+describe('weights', () => {
   it('can encode what it decodes', async () => {
     const raw = [1, 2, 3]
     const weights = raw.map((r) => tf.tensor(r))
 
-    const encoded: serialization.EncodedWeights = await serialization.encodeWeights(weights)
-    assert.isTrue(serialization.isEncodedWeights(encoded))
-    const decoded = serialization.decodeWeights(encoded)
+    const encoded: Encoded = await encode(weights)
+    assert.isTrue(isEncoded(encoded))
+    const decoded = decode(encoded)
 
     assert.sameDeepOrderedMembers(
       Array.from(

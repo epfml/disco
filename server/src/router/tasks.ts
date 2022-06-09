@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express'
 import { Set } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import { isTask, Task } from 'discojs'
+import { serialization, isTask, Task, TaskID } from 'discojs'
 
 import { Config } from '../config'
 import { TasksAndModels } from '../tasks'
@@ -97,21 +97,9 @@ export class Tasks {
       return
     }
 
-    const saved = await new Promise((resolve) => {
-      void taskAndModel[1].save({
-        save: async (artifacts) => {
-          resolve(artifacts)
-          return {
-            modelArtifactsInfo: {
-              dateSaved: new Date(),
-              modelTopologyType: 'JSON'
-            }
-          }
-        }
-      })
-    })
+    const encoded = await serialization.model.encode(taskAndModel[1])
 
-    response.status(200).send(saved)
-    console.log(`${file} download for task ${task} succeeded`)
+    response.status(200).send(encoded)
+    console.log(`${file} download for task ${taskID} succeeded`)
   }
 }
