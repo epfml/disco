@@ -8,7 +8,7 @@ import { aggregation, privacy, serialization, TrainingInformant, Weights } from 
 
 import { Base } from './base'
 
-interface PeerMessage { epoch: number, weights: serialization.EncodedWeights }
+interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
 
 // TODO take it from the server sources
 type PeerID = number
@@ -31,7 +31,7 @@ function isPeerMessage (data: unknown): data is PeerMessage {
 
   if (
     typeof epoch !== 'number' ||
-    !serialization.isEncodedWeights(weights)
+    !serialization.weights.isEncoded(weights)
   ) {
     return false
   }
@@ -171,7 +171,7 @@ export class Decentralized extends Base {
       if (!isPeerMessage(message)) {
         throw new Error(`invalid message received from ${peerID}`)
       }
-      const weights = serialization.decodeWeights(message.weights)
+      const weights = serialization.weights.decode(message.weights)
 
       console.debug('peer', peerID, 'sent weights', weights)
 
@@ -222,7 +222,7 @@ export class Decentralized extends Base {
     // Broadcast our weights
     const msg: PeerMessage = {
       epoch: epoch,
-      weights: await serialization.encodeWeights(noisyWeights)
+      weights: await serialization.weights.encode(noisyWeights)
     }
     const encodedMsg = msgpack.encode(msg)
 

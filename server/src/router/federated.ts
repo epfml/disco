@@ -338,7 +338,7 @@ export class Federated {
     }
 
     const weights = await Promise.all(model.weights.map((e) => e.read()))
-    const serializedWeights = await serialization.encodeWeights(weights)
+    const serializedWeights = await serialization.weights.encode(weights)
 
     response.status(200).send(serializedWeights)
   }
@@ -355,7 +355,7 @@ export class Federated {
     if (!(Array.isArray(rawWeights) && rawWeights.every((e) => typeof e === 'number'))) {
       throw new Error('invalid weights format')
     }
-    const weights = serialization.decodeWeights(rawWeights)
+    const weights = serialization.weights.decode(rawWeights)
 
     const task = request.params.task
     const id = request.params.id
