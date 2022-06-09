@@ -33,7 +33,7 @@ function disconnectHeader (
 }
 
 describe(`${platformID} simple connection tests`, function () {
-  this.timeout(10_000)
+  this.timeout(30_000)
 
   it('connect and then disconnect to valid task', async () => {
     const app = await getApp()

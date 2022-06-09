@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-import { assert, expect } from 'chai'
+import { expect } from 'chai'
 import { loadTasks } from '../src/tasks'
 
 // TODO this is hard coded
