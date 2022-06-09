@@ -16,16 +16,11 @@ function pathFor (type: ModelType, taskID: string, modelName: string): string {
 }
 
 export class IndexedDB extends Memory {
-  async getModelMetadata (type: ModelType, taskID: string, modelName: string): Promise<tf.io.ModelArtifactsInfo> {
+  async getModelMetadata (type: ModelType, taskID: string, modelName: string): Promise<tf.io.ModelArtifactsInfo | undefined> {
     const key = pathFor(type, taskID, modelName)
     const models = await tf.io.listModels()
 
-    const model = models[key]
-    if (model === undefined) {
-      throw new Error('no such model')
-    }
-
-    return model
+    return models[key]
   }
 
   async getModel (type: ModelType, taskID: string, modelName: string): Promise<tf.LayersModel> {
