@@ -23,7 +23,7 @@
             </div>
             <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
               <div class="py-6">
-                <p>- Users update their models upon server's response</p>
+                <p>- Server coordinates secure collaborative learning of model</p>
               </div>
             </ul>
           </div>
@@ -47,7 +47,7 @@
             </div>
             <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
               <div class="py-6">
-                <p>- peer2peer communication</p>
+                <p>- Peer2Peer secure collaborative learning of model</p>
               </div>
             </ul>
           </div>
