@@ -12,6 +12,7 @@ import NotFound from '@/components/pages/NotFound.vue'
 import Features from '@/components/pages/Features.vue'
 import Tutorial from '@/components/pages/Tutorial.vue'
 import Further from '@/components/pages/Further.vue'
+import AboutUs from '@/components/pages/AboutUs.vue'
 
 const router = createRouter({
   history: createWebHashHistory(process.env.BASE_URL),
@@ -45,6 +46,11 @@ const router = createRouter({
       path: '/further',
       name: 'further',
       component: Further
+    },
+    {
+      path: '/aboutus',
+      name: 'aboutus',
+      component: AboutUs
     },
     {
       path: '/list',
