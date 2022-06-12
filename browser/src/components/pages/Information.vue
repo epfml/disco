@@ -16,7 +16,7 @@
               py-6
             "
             >
-              {{ $tm('information.images.federated.title') }}
+              {{ $tm('information.federatedTitle') }}
             </h6>
             <div class="flex justify-center my-md">
               <img :src="federatedImage">
@@ -40,7 +40,7 @@
               py-6
             "
             >
-              {{ $tm('information.images.decentralised.title') }}
+              {{ $tm('information.decentralisedTitle') }}
             </h6>
             <div class="flex justify-center my-md">
               <img :src="decentralisedImage">
