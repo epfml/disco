@@ -9,6 +9,9 @@ import ProgressBar from '@/components/navigation/ProgressBar.vue'
 import Navigation from '@/components/navigation/Navigation.vue'
 import NewTesting from '@/components/testing/NewTesting.vue'
 import NotFound from '@/components/pages/NotFound.vue'
+import Features from '@/components/pages/Features.vue'
+import Tutorial from '@/components/pages/Tutorial.vue'
+import Further from '@/components/pages/Further.vue'
 
 const router = createRouter({
   history: createWebHashHistory(process.env.BASE_URL),
@@ -27,6 +30,21 @@ const router = createRouter({
       path: '/information',
       name: 'information',
       component: Information
+    },
+    {
+      path: '/features',
+      name: 'features',
+      component: Features
+    },
+    {
+      path: '/tutorial',
+      name: 'tutorial',
+      component: Tutorial
+    },
+    {
+      path: '/further',
+      name: 'further',
+      component: Further
     },
     {
       path: '/list',

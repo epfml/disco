@@ -37,7 +37,7 @@
       "createTaskButtonText": "Create task"
     },
     "information": {
-      "informationTitle": "Information",
+      "informationTitle": "Further Information",
       "informationCard": [
         {
           "title": "Goal:",
@@ -49,14 +49,14 @@
         },
         {
           "title": "Federated learning:",
-          "text": "The key insight is to share weights instead of data, each user trains on his own machine and periodically shares his learned weights with a central server. The server will agreggate all these weights and send them back. We support a variety of modern deep learning architectures running on mobile device"
+          "text": "The key insight is to share weights instead of data, each user trains on his own machine and periodically shares his learned weights with a central server. The server will agreggate all these weights and send them back. We support a variety of modern deep learning architectures running on mobile devices."
         },
         {
           "title": "Decentralized learning:",
-          "text": "makes this possible, following the same principles as in federated learning, but going one step further by removing any central coordinator. Disco only uses peer2peer communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure. We support a variety of modern deep learning architectures running on mobile devices."
+          "text": "Following the same principles as in federated learning, but going one step further by removing any central coordinator. Disco only uses peer2peer communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure. We support a variety of modern deep learning architectures running on mobile devices."
         }
       ],
-      "featuresTitle" : "Features",
+      "featuresTitle" : "Why use Disco?",
       "featuresCard": [
         {
           "title": "Supports Deep Learning architectures",
@@ -99,7 +99,7 @@
         }
       ],
       "federatedTitle": "Federated Learning",
-      "decentralisedTitle": "Decentralised Learning"
+      "decentralisedTitle": "Decentralized Learning"
     },
     "training": {
       "trainingFrame": {
