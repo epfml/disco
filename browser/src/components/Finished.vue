@@ -73,7 +73,7 @@ export default {
       this.$router.push({ path: '/testing' })
     },
     async saveModel () {
-      if (this.memory !== undefined) {
+      if (!(this.memory instanceof EmptyMemory)) {
         await this.memory.saveWorkingModel(
           this.task.taskID,
           this.task.trainingInformation.modelID
