@@ -8,7 +8,7 @@
  */
 import path from 'path'
 
-import { tf, Memory, ModelType, Path, ModelInfo, ModelSource } from 'discojs'
+import { tf, Memory, ModelType, Path, ModelInfo, ModelSource } from '@epfml/discojs'
 
 export class IndexedDB extends Memory {
   pathFor (source: ModelSource): Path {

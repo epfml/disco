@@ -2,7 +2,7 @@ import { Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 import WebSocket from 'ws'
 
-import { client, TaskID } from 'discojs'
+import { client, TaskID } from '@epfml/discojs'
 import messages = client.decentralized.messages
 type PeerID = client.decentralized.PeerID
 

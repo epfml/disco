@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express'
 import { Set } from 'immutable'
 
-import { tf, serialization, isTask, Task, TaskID } from 'discojs'
+import { tf, serialization, isTask, Task, TaskID } from '@epfml/discojs'
 
 import { Config } from '../config'
 import { TasksAndModels } from '../tasks'

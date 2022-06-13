@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { Set } from 'immutable'
 
-import { isTask, Task } from 'discojs'
+import { isTask, Task } from '@epfml/discojs'
 
 import { CONFIG } from './config'
 

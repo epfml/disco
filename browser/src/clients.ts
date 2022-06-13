@@ -1,5 +1,4 @@
-import { client, Client, Task, TrainingSchemes } from 'discojs'
-// import {SecureDecentralized} from 'discojs/src/client/secureDecentralizedClient'
+import { client, Client, Task, TrainingSchemes } from '@epfml/discojs'
 
 import { CONFIG } from './config'
 

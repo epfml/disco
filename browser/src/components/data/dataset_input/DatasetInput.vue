@@ -55,7 +55,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 
-import { isTask, dataset } from 'discojs'
+import { isTask, dataset } from '@epfml/discojs'
 
 import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'

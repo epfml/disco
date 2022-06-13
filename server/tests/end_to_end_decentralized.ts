@@ -4,7 +4,7 @@ import { Server } from 'node:http'
 // import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
-import { TrainingInformant, informant, tasks, client, Weights } from 'discojs'
+import { TrainingInformant, informant, tasks, client, Weights } from '@epfml/discojs'
 
 import { getClient, startServer } from './utils'
 // import { expect } from 'chai'
