@@ -48,8 +48,8 @@ const router = createRouter({
       component: Further
     },
     {
-      path: '/aboutus',
-      name: 'aboutus',
+      path: '/about',
+      name: 'about',
       component: AboutUs
     },
     {

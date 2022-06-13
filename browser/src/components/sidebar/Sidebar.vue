@@ -67,7 +67,7 @@
         </SidebarButton>
         <!-- Go to About Us page -->
         <SidebarButton
-          hover-text="about Us"
+          hover-text="about us"
           @click="goToAboutUs()"
         >
           <AboutUsIcon />
@@ -220,7 +220,7 @@ export default {
       this.$router.push({ path: '/information' })
     },
     goToAboutUs () {
-      this.$router.push({ path: '/aboutus' })
+      this.$router.push({ path: '/about' })
     }
   }
 
