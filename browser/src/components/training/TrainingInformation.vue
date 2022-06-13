@@ -29,8 +29,8 @@
             </span>
           </p>
           <!-- Chart -->
-          <div class="relative p-4 w-100% h-100%">
-            <ApexChart
+          <div class="relative p-4 w-full h-full">
+            <apexchart
               width="100%"
               height="200"
               type="area"
@@ -61,8 +61,8 @@
             </span>
           </p>
           <!-- Chart -->
-          <div class="relative p-4 w-100% h-100%">
-            <ApexChart
+          <div class="relative p-4 w-full h-full">
+            <apexchart
               width="100%"
               height="200"
               type="area"
@@ -93,7 +93,7 @@
               <div class="relative overflow-x-hidden">
                 <span
                   style="white-space: pre-line"
-                  class="text-sm text-slate-500 dark:text-light"
+                  class="text-sm text-slate-500"
                 >{{ message }}</span>
               </div>
             </li>
@@ -200,22 +200,6 @@ export default {
     }
   },
   data () {
-    // TODO copied from ImageTestingFrame
-    const getColor = () => {
-      return window.localStorage.getItem('color') ?? 'cyan'
-    }
-
-    const cssColors = (color: string): string => {
-      return getComputedStyle(document.documentElement)
-        .getPropertyValue(color)
-        .trim()
-    }
-
-    const colorPalette = {
-      primary: cssColors(`--color-${getColor()}`),
-      primaryLight: cssColors(`--color-${getColor()}-light`)
-    }
-
     const areaChartOptions = {
       chart: {
         id: 'realtime',
@@ -241,10 +225,10 @@ export default {
       },
       colors: [
         // TODO: Make it so it immediately changes when updated
-        colorPalette.primary
+        '#6096BA'
       ],
       fill: {
-        colors: [colorPalette.primaryLight],
+        colors: ['#E2E8F0'],
         type: 'solid',
         opacity: 0.6
       },
