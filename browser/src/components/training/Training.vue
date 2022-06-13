@@ -20,7 +20,10 @@
         </CustomButton>
       </div>
     </div>
-    <div v-else>
+    <div
+      v-else
+      class="text-center py-6"
+    >
       <CustomButton
         @click="stopTraining()"
       >
