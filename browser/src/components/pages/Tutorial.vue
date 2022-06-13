@@ -1,5 +1,8 @@
 <template>
-  <div>
+  <base-layout
+    :with-section="true"
+    custom-class="pt-4"
+  >
     <!-- Progress Bar -->
     <div class="w-full py-6">
       <div class="flex">
@@ -43,13 +46,13 @@
               <div class="w-full bg-gray-200 rounded items-center align-middle align-center flex-1">
                 <div
                   class="w-0 bg-disco-blue py-1 rounded"
-                  style="width: 0%;"
+                  style="width: 100%;"
                 />
               </div>
             </div>
 
-            <div class="w-10 h-10 mx-auto bg-white border-2 border-gray-200 rounded-full text-lg text-white flex items-center">
-              <span class="text-center text-gray-600 w-full">
+            <div class="w-10 h-10 mx-auto bg-disco-blue rounded-full text-lg text-white flex items-center">
+              <span class="text-center text-white w-full">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="w-full fill-current"
@@ -90,13 +93,13 @@
               <div class="w-full bg-gray-200 rounded items-center align-middle align-center flex-1">
                 <div
                   class="w-0 bg-disco-blue py-1 rounded"
-                  style="width: 0%;"
+                  style="width: 100%;"
                 />
               </div>
             </div>
 
-            <div class="w-10 h-10 mx-auto bg-white border-2 border-gray-200 rounded-full text-lg text-white flex items-center">
-              <span class="text-center text-gray-600 w-full">
+            <div class="w-10 h-10 mx-auto bg-disco-blue rounded-full text-lg text-white flex items-center">
+              <span class="text-center text-white w-full">
                 <svg
                   class="w-full fill-current"
                   xmlns="http://www.w3.org/2000/svg"
@@ -170,13 +173,11 @@
     </div>
 
     <!-- Page Content -->
-    <section class="flex-col items-center justify-center p-4 space-y-4">
+    <!-- How to use Disco? -->
+    <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
       <card custom-class="hover:text-primary dark:hover:text-light">
-        <div class="grid gap-8 p-4 sm:grid-cols-2">
-          <!-- Federated insight -->
-          <div class="flex flex-col items-center mx-auto">
-            <h6
-              class="
+        <h6
+          class="
               text-xl
               font-large
               leading-none
@@ -185,80 +186,72 @@
               px-2
               py-6
             "
+        >
+          {{ $tm('information.howToUseTitle') }}
+        </h6>
+        <div class="ml-10">
+          <div
+            class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1"
+          >
+            <card
+              v-for="card in $tm('information.howToUseCard')"
+              :key="card.title"
+              custom-class="hover:text-primary dark:hover:text-light"
             >
-              {{ $tm('information.federatedTitle') }}
-            </h6>
-            <div class="flex justify-center my-md">
-              <img :src="federatedImage">
-            </div>
-            <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-              <div class="py-6">
-                <p>- Server coordinates secure collaborative learning of model</p>
+              <div class="ml-10">
+                <ul
+                  class="text-lg ont-semibold text-gray-500 dark:text-light"
+                >
+                  <b>{{ card.title }}</b>
+                  {{
+                    card.text
+                  }}
+                </ul>
               </div>
-            </ul>
-          </div>
-          <!-- Decentralised insight -->
-          <div class="flex flex-col items-center mx-auto">
-            <h6
-              class="
-              text-xl
-              font-large
-              leading-none
-              tracking-wider
-              dark:group-hover:text-light
-              px-2
-              py-6
-            "
-            >
-              {{ $tm('information.decentralisedTitle') }}
-            </h6>
-            <div class="flex justify-center my-md">
-              <img :src="decentralisedImage">
-            </div>
-            <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-              <div class="py-6">
-                <p>- Peer2Peer secure collaborative learning of model</p>
-              </div>
-            </ul>
+            </card>
           </div>
         </div>
-        <div
-          class="flex justify-center my-md"
-          style="background:#6096BA"
-        >
-          <ul class="text-lg ont-semibold text-white dark:text-light">
-            <div
-              class="py-6"
-            >
-              <p>- Data stays local, always</p>
-              <p>- Secure and privacy preserving</p>
-              <p>- Collaborative training</p>
-            </div>
-          </ul>
+        <div class="flex items-center justify-center space-x-8">
+          <!-- Light button -->
+          <custom-button
+            :center="true"
+            @click="goToTaskList()"
+          >
+            {{
+              "Explore examples"
+            }}
+          </custom-button>
+          <custom-button
+            :center="true"
+            @click="goToNewTaskCreationForm()"
+          >
+            {{
+              "Create your own task"
+            }}
+          </custom-button>
         </div>
       </card>
-    </section>
-  </div>
+    </div>
+  </base-layout>
 </template>
 
 <script>
-import Card from '@/components/containers/Card.vue'
+import BaseLayout from '../containers/BaseLayout.vue'
+import Card from '../containers/Card.vue'
+import CustomButton from '../simple/CustomButton.vue'
 import { useI18n } from 'vue-i18n'
+import { defineComponent } from 'vue'
 
-export default {
-  name: 'Information',
+export default defineComponent({
+  name: 'Tutorial',
   components: {
-    Card
+    BaseLayout,
+    Card,
+    CustomButton
   },
   setup () {
     const { t, locale } = useI18n()
     return { t, locale }
-  },
-  data () {
-    return {
-      federatedImage: require('../../assets/public/federated_rev3.gif'),
-      decentralisedImage: require('../../assets/public/decentralized_rev2.gif')
-    }
   },
   methods: {
     goToInformation () {
@@ -280,7 +273,17 @@ export default {
       this.$router.push({
         path: '/further'
       })
+    },
+    goToTaskList () {
+      this.$router.push({
+        path: '/list'
+      })
+    },
+    goToNewTaskCreationForm () {
+      this.$router.push({
+        path: '/create'
+      })
     }
   }
-}
+})
 </script>
