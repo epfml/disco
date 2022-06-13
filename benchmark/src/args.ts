@@ -1,7 +1,7 @@
 // eslint-disable-file @typescript-eslint/prefer-ts-expect-error
 
 import {parse} from 'ts-command-line-args'
-import {Task, tasks} from 'discojs'
+import {Task, tasks} from '@epfml/discojs'
 import {Map} from 'immutable'
 
 interface BenchmarkUnsafeArguments {

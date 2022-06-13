@@ -45,7 +45,7 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from 'discojs'
+import { dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { getClient } from '@/clients'

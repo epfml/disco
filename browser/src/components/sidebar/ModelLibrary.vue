@@ -90,7 +90,7 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { Memory, EmptyMemory, Path, ModelType } from 'discojs'
+import { Memory, EmptyMemory, Path, ModelType } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { IndexedDB } from '@/memory'
