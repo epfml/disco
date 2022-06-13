@@ -4,7 +4,8 @@
     <div class="flex">
       <!-- Step 1 -->
       <ProgressIcon
-        :active="isActive(0)"
+        class="w-1/5"
+        :active="true"
         :lined="false"
       >
         <template #text>
@@ -27,6 +28,7 @@
       </ProgressIcon>
       <!-- Step 2 -->
       <ProgressIcon
+        class="w-1/5"
         :active="isActive(1)"
         :lined="true"
       >
@@ -54,6 +56,7 @@
       </ProgressIcon>
       <!-- Step 3 -->
       <ProgressIcon
+        class="w-1/5"
         :active="isActive(2)"
         :lined="true"
       >
@@ -77,6 +80,7 @@
       </ProgressIcon>
       <!-- Step 4 -->
       <ProgressIcon
+        class="w-1/5"
         :active="isActive(3)"
         :lined="true"
       >
@@ -100,11 +104,12 @@
       </ProgressIcon>
       <!-- Step 5 -->
       <ProgressIcon
+        class="w-1/5"
         :active="isActive(4)"
         :lined="true"
       >
         <template #text>
-          Finished / Testing
+          Finished
         </template>
         <template #icon>
           <svg
@@ -126,6 +131,7 @@
 </template>
 
 <script lang="ts">
+import { mapState } from 'vuex'
 import ProgressIcon from './ProgressIcon.vue'
 
 export default {
@@ -133,26 +139,16 @@ export default {
   components: {
     ProgressIcon
   },
-  props: {
-    progress: {
-      type: Number,
-      default: 0
-    },
-    blocked: {
-      type: Boolean,
-      default: false
-    },
-    blockedProgress: {
-      type: Number,
-      default: 0
-    }
+  computed: {
+    ...mapState(['steps', 'currentTask'])
   },
   methods: {
     isActive (step: number): boolean {
-      if (this.blocked) {
-        return step === this.blockedProgress
+      const currentStep = this.steps.get(this.currentTask)
+      if (currentStep === undefined || this.$route.path === '/list') {
+        return false
       } else {
-        return step <= this.progress
+        return step <= currentStep
       }
     }
   }

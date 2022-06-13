@@ -1,4 +1,4 @@
-import { store } from '@/store/store'
+import store from '@/store'
 
 declare module '@vue/runtime-core' {
     // Vuex doesn't provide typings for this.$store property out of the box.

@@ -1,28 +1,25 @@
 /* eslint-disable no-unused-expressions */
 <template>
   <!-- Upload File Card-->
-  <div class="relative">
+  <div>
     <article
       aria-label="File Upload Model"
       class="
-        relative
         h-full
         flex flex-col
-        p-4
+        p-8
         bg-white
         rounded-lg
-        dark:bg-darker
       "
       @drop.prevent
       @dragover.prevent
       @dragenter.prevent
     >
       <!-- scroll area -->
-      <section class="overflow-auto p-8 w-full h-full flex flex-col">
+      <section class="overflow-auto">
         <header
           class="
-            border-dashed border-2 border-gray-500
-            dark:border-primary
+            border-dashed rounded-xl border-2 border-disco-cyan
             flex flex-col
             justify-center
             items-center
@@ -31,37 +28,30 @@
         >
           <p
             class="
-              mb-3
               p-4
               text-lg
+              text-slate-700
               font-semibold
-              dark:text-lightflex
               flex-wrap
               justify-center
             "
           >
             <span>Drag and drop your</span>&nbsp;<span>files or</span>
           </p>
-          <label>
-            <div class="p-4">
-              <span
-                class="
-              mt-2
+          <label class="pb-4">
+            <div
+              class="
               p-2
               rounded-sm
               text-white
-              transition-colors
+              transition
               duration-200
-              bg-primary
-              hover:text-primary hover:bg-primary-100
-              dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark
-              focus:outline-none focus:bg-primary-100
-              dark:focus:bg-primary-dark
-              focus:ring-primary-darker
-            "
-              >
-                Select files
-              </span>
+              bg-disco-cyan
+              hover:text-disco-cyan hover:bg-white
+              hover:outline hover:outline-2 hover:outline-disco-cyan
+              hover:cursor-pointer"
+            >
+              Select files
             </div>
             <input
               type="file"
@@ -82,32 +72,26 @@
         </div> -->
 
         <!-- If no preview of the selected file, display the nbr. of uploaded files -->
-        <div>
-          <div class="pt-4">
-            <h1 class="pt-8 pb-3 font-semibold sm:text-lg dark:text-lightflex">
-              Number of selected files:
-              {{ nbrSelectedFiles }}
-            </h1>
-            <button
-              class="
-                mt-2
+        <div class="pt-8 grid grid-cols-3 items-center mb-2">
+          <span class="font-semibold text-slate-700 sm:text-lg justify-self-start">
+            Number of selected files: <span class="pl-1 text-xl">{{ nbrSelectedFiles }}</span>
+          </span>
+          <button
+            class="
+                justify-self-center
                 p-2
                 rounded-sm
                 text-white
-                transition-colors
+                transition
                 duration-200
-                bg-primary
-                hover:text-primary hover:bg-primary-100
-                dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark
-                focus:outline-none focus:bg-primary-100
-                dark:focus:bg-primary-dark
-                focus:ring-primary-darker
+                bg-disco-cyan
+                hover:text-disco-cyan hover:bg-white
+                hover:outline hover:outline-2 hover:outline-disco-cyan
               "
-              @click="clearFiles"
-            >
-              Clear files
-            </button>
-          </div>
+            @click="clearFiles"
+          >
+            Clear files
+          </button>
         </div>
       </section>
     </article>
@@ -121,17 +105,9 @@ export default {
     // PreviewGallery
   },
   props: {
-    id: {
-      type: String,
-      default: ''
-    },
     preview: {
       type: Boolean,
       default: false
-    },
-    allowed: {
-      type: Boolean,
-      default: true
     }
   },
   data () {

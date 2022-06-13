@@ -34,8 +34,7 @@
                     transition
                     rounded-full
                     outline-none
-                    bg-primary-100
-                    dark:bg-primary-darker
+                    bg-slate-200
                   "
                 />
                 <div
@@ -55,9 +54,9 @@
                     shadow-sm
                   "
                   :class="{
-                    'translate-x-0 bg-white dark:bg-primary-100':
+                    'translate-x-0 bg-slate-300':
                       !$store.state.useIndexedDB,
-                    'translate-x-6 bg-primary-light dark:bg-primary':
+                    'translate-x-6 bg-disco-blue':
                       $store.state.useIndexedDB,
                   }"
                 />
@@ -85,22 +84,6 @@
               <span><MoonIcon /></span>
               <span>Dark</span>
             </button>
-          </div>
-        </TippyCard>
-
-        <!-- Colors -->
-        <TippyCard title="Secondary colors">
-          <div class="flex justify-center">
-            <div
-              v-for="color in colors"
-              :key="color"
-            >
-              <button
-                class="w-10 h-10 rounded-full"
-                :style="`background-color: var(--color-${color})`"
-                @click="setColors(color)"
-              />
-            </div>
           </div>
         </TippyCard>
       </div>
@@ -132,59 +115,26 @@ export default {
   methods: {
     buttonClass: function (
       state = ' ',
-      defaultClass = 'flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark'
+      defaultClass = 'flex items-center justify-center px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-slate-900 hover:border-slate-900 focus:outline-none focus:ring focus:ring-slate-900 focus:ring-offset-2'
     ) {
       return (
         defaultClass +
         (state === undefined
           ? ' '
           : state
-            ? ' border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100'
-            : ' text-gray-500 dark:text-primary-light')
+            ? ' border-slate-900 text-slate-900'
+            : ' text-slate-500')
       )
     },
     ...mapMutations([
       'setIndexedDB',
-      'setAppTheme',
-      'setActivePage'
+      'setAppTheme'
     ]),
     toggleIndexedDB () {
       this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB)
     },
-    setAppColors (color) {
-      const root = document.documentElement
-      root.style.setProperty('--color-primary', `var(--color-${color})`)
-      root.style.setProperty('--color-primary-50', `var(--color-${color}-50)`)
-      root.style.setProperty(
-        '--color-primary-100',
-        `var(--color-${color}-100)`
-      )
-      root.style.setProperty(
-        '--color-primary-light',
-        `var(--color-${color}-light)`
-      )
-      root.style.setProperty(
-        '--color-primary-lighter',
-        `var(--color-${color}-lighter)`
-      )
-      root.style.setProperty(
-        '--color-primary-dark',
-        `var(--color-${color}-dark)`
-      )
-      root.style.setProperty(
-        '--color-primary-darker',
-        `var(--color-${color}-darker)`
-      )
-    },
-    setBrowserColors (color) {
-      window.localStorage.setItem('color', color)
-    },
-    setBrowserTheme (value) {
+    setBrowserTheme (value: string) {
       window.localStorage.setItem('dark', value)
-    },
-    setColors (color) {
-      this.setAppColors(color)
-      this.setBrowserColors(color)
     },
     setLightTheme () {
       this.setAppTheme(false)

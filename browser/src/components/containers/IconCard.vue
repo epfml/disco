@@ -2,7 +2,7 @@
   <!--  Card -->
   <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
     <!-- div class="container mx-width lg h-full"></div-->
-    <div class="col-span-1 bg-white rounded-lg dark:bg-darker">
+    <div class="col-span-1 bg-white rounded-lg">
       <!-- Card header -->
       <div
         class="
@@ -11,11 +11,10 @@
           justify-between
           p-4
           border-b
-          dark:border-primary
         "
       >
-        <h4 class="text-lg font-semibold text-gray-500 dark:text-light">
-          {{ header }}
+        <h4 class="text-lg font-semibold text-slate-500">
+          <slot name="title" />
         </h4>
         <div class="flex items-center">
           <span aria-hidden="true">
@@ -24,43 +23,31 @@
         </div>
       </div>
       <div v-if="showCardContent">
-        <!-- Descrition -->
-        <div
-          v-if="description"
-          class="relative px-4 pt-4 overflow-x-hidden"
-        >
-          <span class="text-sm text-gray-500 dark:text-light">
-            <span v-html="description" />
-          </span>
+        <!-- Description -->
+        <div class="text-sm text-slate-500 p-8">
+          <slot name="content" />
         </div>
-        <!-- Extra -->
-        <slot
-          v-if="hasExtraSlot"
-          name="extra"
-        />
       </div>
       <!-- Hide content -->
-      <div class="pb-4">
-        <div
-          v-if="withToggle"
-          class="relative pt-4 px-4 flex items-center"
+      <div
+        v-if="withToggle"
+        class="relative p-4 flex items-center"
+      >
+        <span
+          aria-hidden="true"
+          @click="hideToggleAction"
         >
-          <span
-            aria-hidden="true"
-            @click="hideToggleAction"
+          <div v-show="showCardContent">
+            <UpArrow />
+          </div>
+          <div
+            v-show="!showCardContent"
+            class="flex flex-row"
           >
-            <div v-if="showCardContent">
-              <up-arrow />
-            </div>
-            <div
-              v-else
-              class="flex flex-row"
-            >
-              <down-arrow />
-              <p class="px-4">Toggle to show {{ header }}</p>
-            </div>
-          </span>
-        </div>
+            <DownArrow />
+            <p class="px-4">Toggle to show</p>
+          </div>
+        </span>
       </div>
     </div>
   </div>
@@ -76,19 +63,12 @@ export default {
     UpArrow
   },
   props: {
-    header: { type: String, default: '' },
-    description: { type: String, default: '' },
     customClass: { default: '', type: String },
     withToggle: { default: false, type: Boolean }
   },
   data () {
     return {
       showCardContent: true
-    }
-  },
-  computed: {
-    hasExtraSlot () {
-      return this.$slots.extra
     }
   },
   mounted () {

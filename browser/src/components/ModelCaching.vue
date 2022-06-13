@@ -4,9 +4,10 @@
     v-if="workingModelExistsOnMount"
     id="load-model"
   >
-    <IconCard header="Join training with a previous model">
+    <IconCard>
+      <template #title>Join training with a previous model</template>
       <template #icon><Clock /></template>
-      <template #extra>
+      <template #content>
         <!-- Restore Model -->
         <div class="p-4">
           <div v-if="useIndexedDB && workingModelExists && !isModelCreated">
@@ -167,7 +168,7 @@ import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
 export default {
-  name: 'DescriptionFrame',
+  name: 'ModelCaching',
   components: {
     IconCard,
     Clock,

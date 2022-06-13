@@ -1,8 +1,7 @@
 <template>
-  <testing-frame
-    :id="id"
+  <Training
     :task="task"
-    :helper="helper"
+    :data-loader="tabularLoader"
   >
     <template #dataExample>
       <!-- Data Point Example -->
@@ -11,7 +10,7 @@
           <thead>
             <tr>
               <th
-                v-for="example in dataExample"
+                v-for="example in task.displayInformation.dataExample"
                 :key="example"
                 class="px-4 py-2 text-emerald-600"
               >
@@ -22,7 +21,7 @@
           <tbody>
             <tr>
               <td
-                v-for="example in dataExample"
+                v-for="example in task.displayInformation.dataExample"
                 :key="example"
                 class="
                   border border-emerald-500
@@ -41,22 +40,22 @@
     </template>
     <template #extra>
       <!-- Modification of Header Card -->
-
-      <icon-card
-        header="Map My Data"
-        :description="dataExampleText"
-      >
-        <template #icon>
-          <bezier-2 />
+      <IconCard :with-toggle="true">
+        <template #title>
+          Map my data
         </template>
-        <template #extra>
+        <template #icon>
+          <Bezier2 />
+        </template>
+        <template #content>
+          If the header of the file that you've uploaded differs from the one shown in example, you can map the expected header to your header format bellow.
           <!-- Display all the possible headers -->
           <div id="mapHeader">
             <ul
               class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-4"
             >
               <li
-                v-for="header in task.getTestingHeaders()"
+                v-for="header in task.headers"
                 :key="header.id"
                 class="border-gray-400"
               >
@@ -71,7 +70,6 @@
                     hover:-translate-y-2
                     rounded-2xl
                     border-2
-                    p-6
                     hover:shadow-2xl
                     border-primary-dark
                   "
@@ -113,22 +111,24 @@
             </ul>
           </div>
         </template>
-      </icon-card>
+      </IconCard>
     </template>
-  </testing-frame>
+  </Training>
 </template>
 
-<script>
-import TestingFrame from './TestingFrame.vue'
-import IconCard from '../containers/IconCard.vue'
-import Bezier2 from '../../assets/svg/Bezier2.vue'
-import { Task } from 'discojs'
+<script lang="ts">
+import Training from '@/components/training/Training.vue'
+import IconCard from '@/components/containers/IconCard.vue'
+import Bezier2 from '@/assets/svg/Bezier2.vue'
+import { WebTabularLoader } from '@/data_loader'
+
+import { isTask } from 'discojs'
 
 export default {
-  name: 'TabularTestingFrame',
+  name: 'TabularTraining',
   components: {
+    Training,
     IconCard,
-    TestingFrame,
     Bezier2
   },
   props: {
@@ -137,16 +137,12 @@ export default {
       default: ''
     },
     task: {
-      type: Task,
+      validator: isTask,
       default: undefined
     }
   },
-  data () {
-    return {
-      dataExample: this.task.displayInformation.dataExample.filter(
-        (item) => item.columnName !== this.task.classColumn
-      )
-    }
+  created () {
+    this.tabularLoader = new WebTabularLoader(this.task, ',')
   }
 }
 </script>

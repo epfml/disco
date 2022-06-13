@@ -1,56 +1,39 @@
 <template>
-  <BaseLayout>
-    <ProgressBar
-      class="mb-5"
-      :blocked="true"
-      :blocked-step="0"
-    />
-    <div class="grid grid-cols-1 gap-8">
-      <div
-        v-for="task in tasks"
-        :key="task.taskID"
-        class="group"
+  <div class="grid grid-cols-1 gap-8 mt-8">
+    <div
+      v-for="[taskID, task] in tasks"
+      :key="taskID"
+    >
+      <ButtonCard
+        :click="() => goToSelection(taskID)"
+        :button-placement="'left'"
       >
-        <TitleCard :title="task.displayInformation.taskTitle">
-          <ul class="text-base ont-semibold text-slate-500 dark:text-light py-3">
-            <span v-html="task.displayInformation.summary" />
-          </ul>
-          <div class="pt-2">
-            <CustomButton
-              @click="goToSelection(task.taskID)"
-            >
-              Join
-            </CustomButton>
-          </div>
-        </TitleCard>
-      </div>
+        <template #title>
+          {{ task.displayInformation.taskTitle }}
+        </template>
+        <template #text>
+          <div v-html="task.displayInformation.summary" />
+        </template>
+        <template #button>
+          Join
+        </template>
+      </ButtonCard>
     </div>
-  </BaseLayout>
+  </div>
 </template>
 
 <script lang="ts">
-import { Set } from 'immutable'
+import ButtonCard from '@/components/containers/ButtonCard.vue'
 
-import { isTask } from 'discojs'
-
-import BaseLayout from '@/components/containers/BaseLayout.vue'
-import ProgressBar from '@/components/navigation/ProgressBar.vue'
-import TitleCard from '@/components/containers/TitleCard.vue'
-import CustomButton from '@/components/simple/CustomButton.vue'
+import { mapState } from 'vuex'
 
 export default {
   name: 'TaskList',
   components: {
-    BaseLayout,
-    TitleCard,
-    CustomButton,
-    ProgressBar
+    ButtonCard
   },
-  props: {
-    tasks: {
-      validator: (obj) => Set.isSet(obj) && obj.every(isTask),
-      default: Set()
-    }
+  computed: {
+    ...mapState(['tasks'])
   },
   methods: {
     goToSelection (taskID: string) {
