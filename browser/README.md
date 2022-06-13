@@ -6,8 +6,8 @@ This folder contains the (Vue3) code for the disco browser
 
 To run the browser locally we need two things:
 
-1. [Server](server/README.md)
-2. [discojs](discojs/README.md)
+1. [Server](../server/README.md)
+2. [discojs](../discojs/README.md)
 
 Please refer to their respective readmes in order to understand what is required before going to the next step.
 
