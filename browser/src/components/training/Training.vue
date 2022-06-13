@@ -16,7 +16,7 @@
         <CustomButton
           @click="startTraining(true)"
         >
-          Collaborative Training
+          Train Collaboratively
         </CustomButton>
       </div>
     </div>
