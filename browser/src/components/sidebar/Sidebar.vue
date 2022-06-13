@@ -65,6 +65,13 @@
         >
           <SettingsIcon />
         </SidebarButton>
+        <!-- Go to About Us page -->
+        <SidebarButton
+          hover-text="about us"
+          @click="goToAboutUs()"
+        >
+          <AboutUsIcon />
+        </SidebarButton>
       </div>
     </nav>
 
@@ -147,6 +154,7 @@ import InfoIcon from '@/assets/svg/InfoIcon.vue'
 import FileIcon from '@/assets/svg/FileIcon.vue'
 import SettingsIcon from '@/assets/svg/SettingsIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
+import AboutUsIcon from '@/assets/svg/AboutUsIcon.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 
 export default {
@@ -160,6 +168,7 @@ export default {
     SettingsIcon,
     ListIcon,
     CrossIcon,
+    AboutUsIcon,
     SidebarButton
   },
   data () {
@@ -209,6 +218,9 @@ export default {
     },
     goToInformation () {
       this.$router.push({ path: '/information' })
+    },
+    goToAboutUs () {
+      this.$router.push({ path: '/about' })
     }
   }
 
