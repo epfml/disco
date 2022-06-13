@@ -13,7 +13,7 @@ If you want to contribute to the development, or run your custom disco instance,
 
 **Decentralized learning:** Building upon the same principles as in federated learning, decentralized learning achieved allows collaboration and data privacy without the need for a central coordinator. Updates are shared purely via [peer2peer](https://peerjs.com/) communication. Disco puts users in control of the entire collaborative training process, without a central point of failure.
 
-Disco supports arbitrary deep learning tasks and model architectures, running on your device currently via [TF.js](https://www.tensorflow.org/js)).
+Disco supports arbitrary deep learning tasks and model architectures, running on your device via [TF.js](https://www.tensorflow.org/js).
 
 **Applications:** Many applications can be enabled by Disco, including for example from the medical domain. In addition to a list of predefined training tasks, Disco allows to simply create new tasks, without any need for coding. Just specify your deep learning model and choose from several existing dataloaders.
 
