@@ -9,31 +9,30 @@
       <template #icon><Clock /></template>
       <template #content>
         <!-- Restore Model -->
-        <div class="p-4">
-          <div v-if="useIndexedDB && workingModelExists && !isModelCreated">
-            <div class="grid grid-cols-4 items-center justify-items-center">
-              <div class="col-span-3">
-                <div class="text-sm text-gray-500 dark:text-light">
-                  FeAI cached the last model you were working on for you. Select
-                  it to start training from it. Otherwise, it will be overridden
-                  the next time you train the
-                  {{ task.displayInformation.taskTitle }} task. This model was
-                  last updated the
-                  <span class="text-primary-dark dark:text-primary-light">
-                    {{ dateSaved }}
-                  </span>
-                  at
-                  <span class="text-primary-dark dark:text-primary-light">
-                    {{ hourSaved }}
-                  </span>
-                </div>
+        <div v-if="useIndexedDB && workingModelExists && !isModelCreated">
+          <div class="grid grid-cols-4 items-center justify-items-center">
+            <div class="col-span-3">
+              <div class="text-sm text-gray-500 dark:text-light">
+                FeAI cached the last model you were working on for you. Select
+                it to start training from it. Otherwise, it will be overridden
+                the next time you train the
+                {{ task.displayInformation.taskTitle }} task. This model was
+                last updated the
+                <span class="text-primary-dark dark:text-primary-light">
+                  {{ dateSaved }}
+                </span>
+                at
+                <span class="text-primary-dark dark:text-primary-light">
+                  {{ hourSaved }}
+                </span>
               </div>
-              <button
-                class="relative focus:outline-none"
-                @click="toggleUseWorkingModel()"
-              >
-                <div
-                  class="
+            </div>
+            <button
+              class="relative focus:outline-none"
+              @click="toggleUseWorkingModel()"
+            >
+              <div
+                class="
                     w-12
                     h-6
                     transition
@@ -42,9 +41,9 @@
                     bg-primary-100
                     dark:bg-primary-darker
                   "
-                />
-                <div
-                  class="
+              />
+              <div
+                class="
                     absolute
                     top-0
                     left-0
@@ -58,18 +57,18 @@
                     rounded-full
                     shadow-sm
                   "
-                  :class="{
-                    'translate-x-0 bg-white dark:bg-primary-100':
-                      !useWorkingModel,
-                    'translate-x-6 bg-primary-light dark:bg-primary':
-                      useWorkingModel,
-                  }"
-                />
-              </button>
-            </div>
-            <div class="flex pt-4 space-x-4 justify-center">
-              <button
-                class="
+                :class="{
+                  'translate-x-0 bg-white dark:bg-primary-100':
+                    !useWorkingModel,
+                  'translate-x-6 bg-primary-light dark:bg-primary':
+                    useWorkingModel,
+                }"
+              />
+            </button>
+          </div>
+          <div class="flex pt-4 space-x-4 justify-center">
+            <button
+              class="
                   flex
                   items-center
                   justify-center
@@ -80,26 +79,18 @@
                   border
                   rounded-md
                   hover:text-gray-900 hover:border-gray-900
-                  dark:border-primary
-                  dark:hover:text-primary-100
-                  dark:hover:border-primary-light
-                  focus:outline-none
-                  focus:ring
-                  focus:ring-primary-lighter
-                  focus:ring-offset-2
-                  dark:focus:ring-offset-dark dark:focus:ring-primary-dark
                 "
-                :class="{
-                  'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-                    !isDark,
-                  'text-gray-500 dark:text-primary-light': isDark,
-                }"
-                @click="saveModel()"
-              >
-                <span>Save Model</span>
-              </button>
-              <button
-                class="
+              :class="{
+                'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
+                  !isDark,
+                'text-gray-500 dark:text-primary-light': isDark,
+              }"
+              @click="saveModel()"
+            >
+              <span>Save Model</span>
+            </button>
+            <button
+              class="
                   flex
                   items-center
                   justify-center
@@ -110,46 +101,37 @@
                   border
                   rounded-md
                   hover:text-gray-900 hover:border-gray-900
-                  dark:border-primary
-                  dark:hover:text-primary-100
-                  dark:hover:border-primary-light
-                  focus:outline-none
-                  focus:ring
-                  focus:ring-primary-lighter
-                  focus:ring-offset-2
-                  dark:focus:ring-offset-dark dark:focus:ring-primary-dark
                 "
-                :class="{
-                  'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-                    !isDark,
-                  'text-gray-500 dark:text-primary-light': isDark,
-                }"
-                @click="deleteModel()"
-              >
-                <span>Delete Model</span>
-              </button>
-            </div>
-            <div class="flex items-center justify-center pt-4">
-              <CustomButton
-                @click="proceed"
-              >
-                Confirm
-              </CustomButton>
-            </div>
+              :class="{
+                'border-gray-900 text-gray-900':
+                  !isDark,
+                'text-gray-500': isDark,
+              }"
+              @click="deleteModel()"
+            >
+              <span>Delete Model</span>
+            </button>
           </div>
-          <div
-            v-else
-            class="text-sm text-gray-500 dark:text-light"
-          >
-            <p v-if="useIndexedDB && isModelCreated">
-              A new model has been created, replacing the previous working model.
-            </p>
-            <p v-else-if="!useIndexedDB && workingModelExists">
-              FeAI cached the last model you were working on for you. Turn on
-              the model library (see settings) to see additional options.
-            </p>
-            <p v-else>The previous working model has been deleted.</p>
+          <div class="flex items-center justify-center pt-4">
+            <CustomButton
+              @click="proceed"
+            >
+              Confirm
+            </CustomButton>
           </div>
+        </div>
+        <div
+          v-else
+          class="text-sm text-gray-500"
+        >
+          <div v-if="useIndexedDB && isModelCreated">
+            A new model has been created, replacing the previous working model.
+          </div>
+          <div v-else-if="!useIndexedDB && workingModelExists">
+            FeAI cached the last model you were working on for you. Turn on
+            the model library (see settings) to see additional options.
+          </div>
+          <div v-else>The previous working model has been deleted.</div>
         </div>
       </template>
     </IconCard>

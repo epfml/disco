@@ -9,6 +9,6 @@ export function getClient (trainingScheme: TrainingSchemes, task: Task): Client 
     case TrainingSchemes.FEDERATED:
       return new client.Federated(CONFIG.serverUrl, task)
     case TrainingSchemes.LOCAL:
-      return new client.Local(task)
+      return new client.Local(CONFIG.serverUrl, task)
   }
 }

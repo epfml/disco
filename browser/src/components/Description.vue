@@ -4,7 +4,9 @@
       <IconCard>
         <template #title>The task</template>
         <template #icon><Tasks /></template>
-        <template #content>{{ overviewText }}</template>
+        <template #content>
+          <div v-html="overviewText" />
+        </template>
       </IconCard>
     </a>
 
@@ -12,7 +14,9 @@
       <IconCard>
         <template #title>The model</template>
         <template #icon><Model /></template>
-        <template #content>{{ modelText }}</template>
+        <template #content>
+          <div v-html="modelText" />
+        </template>
       </IconCard>
     </a>
     <ModelCaching
