@@ -30,7 +30,7 @@
           </p>
           <!-- Chart -->
           <div class="relative p-4 w-100% h-100%">
-            <apexchart
+            <ApexChart
               width="100%"
               height="200"
               type="area"
@@ -62,7 +62,7 @@
           </p>
           <!-- Chart -->
           <div class="relative p-4 w-100% h-100%">
-            <apexchart
+            <ApexChart
               width="100%"
               height="200"
               type="area"
@@ -75,11 +75,14 @@
     </div>
 
     <!-- Communication Console -->
-    <icon-card :header="$t('training.trainingInformationFrame.trainingInformations.trainingConsoleHeader')">
-      <template #icon>
-        <contact />
+    <IconCard>
+      <template #title>
+        {{ $t('training.trainingInformationFrame.trainingInformations.trainingConsoleHeader') }}
       </template>
-      <template #extra>
+      <template #icon>
+        <Contact />
+      </template>
+      <template #content>
         <div id="mapHeader">
           <ul class="grid grid-cols-1 p-4">
             <li
@@ -97,7 +100,7 @@
           </ul>
         </div>
       </template>
-    </icon-card>
+    </IconCard>
 
     <!-- Distributed Training Information -->
     <div
@@ -109,7 +112,7 @@
         :header="$t('training.trainingInformationFrame.trainingInformations.distributed.averaging')"
         :description="String(trainingInformant.nbrUpdatesWithOthers)"
       >
-        <performances />
+        <Performances />
       </IconCardSmall>
 
       <!-- How much time I've been waiting for weights to arrive -->
@@ -146,7 +149,7 @@
         :header="$t('training.trainingInformationFrame.trainingInformations.federated.round')"
         :description="String(trainingInformant.currentRound)"
       >
-        <timer />
+        <Timer />
       </IconCardSmall>
 
       <!-- Current Number of Participants -->
@@ -154,7 +157,7 @@
         :header="$t('training.trainingInformationFrame.trainingInformations.federated.numberParticipants')"
         :description="String(trainingInformant.currentNumberOfParticipants)"
       >
-        <people />
+        <People />
       </IconCardSmall>
 
       <!-- Average Number of Participants -->
@@ -162,7 +165,7 @@
         :header="$t('training.trainingInformationFrame.trainingInformations.federated.averageParticipants')"
         :description="String(trainingInformant.averageNumberOfParticipants)"
       >
-        <people />
+        <People />
       </IconCardSmall>
     </div>
   </div>
@@ -191,7 +194,10 @@ export default {
     Contact
   },
   props: {
-    trainingInformant: TrainingInformant
+    trainingInformant: {
+      type: TrainingInformant,
+      default: undefined
+    }
   },
   data () {
     // TODO copied from ImageTestingFrame

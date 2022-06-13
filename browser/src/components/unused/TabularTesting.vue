@@ -1,8 +1,7 @@
 <template>
-  <TrainingFrame
-    :id="id"
+  <Testing
     :task="task"
-    :data-loader="tabularLoader"
+    :helper="helper"
   >
     <template #dataExample>
       <!-- Data Point Example -->
@@ -11,7 +10,7 @@
           <thead>
             <tr>
               <th
-                v-for="example in task.displayInformation.dataExample"
+                v-for="example in dataExample"
                 :key="example"
                 class="px-4 py-2 text-emerald-600"
               >
@@ -22,7 +21,7 @@
           <tbody>
             <tr>
               <td
-                v-for="example in task.displayInformation.dataExample"
+                v-for="example in dataExample"
                 :key="example"
                 class="
                   border border-emerald-500
@@ -41,10 +40,10 @@
     </template>
     <template #extra>
       <!-- Modification of Header Card -->
+
       <IconCard
         header="Map My Data"
-        description="If the header of the file that you've uploaded differs from the one shown in example, you can map the expected header to your header format bellow."
-        :with-toggle="true"
+        :description="dataExampleText"
       >
         <template #icon>
           <Bezier2 />
@@ -56,14 +55,13 @@
               class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-4"
             >
               <li
-                v-for="header in task.headers"
+                v-for="header in task.getTestingHeaders()"
                 :key="header.id"
                 class="border-gray-400"
               >
                 <div
                   class="
                     select-none
-                    p-2
                     transition
                     duration-500
                     ease-in-out
@@ -115,36 +113,34 @@
         </template>
       </IconCard>
     </template>
-  </TrainingFrame>
+  </Testing>
 </template>
 
-<script lang="ts">
-import TrainingFrame from './TrainingFrame.vue'
-import IconCard from '@/components/containers/IconCard.vue'
-import Bezier2 from '@/assets/svg/Bezier2.vue'
-import { WebTabularLoader } from '@/data_loader'
-
-import { isTask } from 'discojs'
+<script>
+import Testing from './Testing.vue'
+import IconCard from '../c./Testing.vue.vue'
+import Bezier2 from '../../assets/svg/Bezier2.vue'
+import { Task } from 'discojs'
 
 export default {
-  name: 'TabularTrainingFrame',
+  name: 'TabularTesting',
   components: {
-    TrainingFrame,
     IconCard,
+    Testing,
     Bezier2
   },
   props: {
-    id: {
-      type: String,
-      default: ''
-    },
     task: {
-      validator: isTask,
+      type: Task,
       default: undefined
     }
   },
-  created () {
-    this.tabularLoader = new WebTabularLoader(this.task, ',')
+  data () {
+    return {
+      dataExample: this.task.displayInformation.dataExample.filter(
+        (item) => item.columnName !== this.task.classColumn
+      )
+    }
   }
 }
 </script>

@@ -41,13 +41,13 @@
 </template>
 
 <script>
-import IconCard from './containers/IconCard.vue'
-import CheckList from '../assets/svg/CheckList.vue'
-import FileEarmarkRuled from '../assets/svg/FileEarmarkRuled.vue'
+import IconCard from '@/components/containers/IconCard.vue'
+import CheckList from '@/assets/svg/CheckList.vue'
+import FileEarmarkRuled from '@/assets/svg/FileEarmarkRuled.vue'
 import { Task } from 'discojs'
 
 export default {
-  name: 'ModelActorFrame',
+  name: 'ModelActor',
   components: {
     IconCard,
     CheckList,
