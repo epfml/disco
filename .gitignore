@@ -1,7 +1,3 @@
-# External typescript libraries
-node_modules/
-discojs/node_modules/
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -138,7 +134,7 @@ UI/.DS_Store
 
 *.DS_Store
 
-node_modules/
+**/node_modules/
 
 # model files on server
 weights.bin
