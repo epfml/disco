@@ -5,16 +5,17 @@ Disco is easy-to-use mobile & web code. The latest version of Disco is always ru
 
 :rocket: <https://epfml.github.io/disco/> :rocket:
 
-If you want to run disco locally or want to contribute, please go to our [developer section](DEV.md)
+If you want to contribute to the development, or run your custom disco instance, please go to our [developer section](DEV.md)
 
-**Key Question:** Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? - or - Can we train an ML model which is equally good as if all data were in one place, but respect privacy?
+**Key Question:** Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? - or - Can we train an ML model which is equally good as if all data were in one place, but while respecting privacy? Federated and decentralized learning make this possible.
 
-**Federated learning:** The key insight is to share weights instead of data, each user trains on his own machine and periodically shares his learned weights with a central server. The server will agreggate all these weights and send them back.
-We support all modern deep learning architectures running on device (currently via [TF.js](https://www.tensorflow.org/js)).
+**Federated learning:** The key insight is to share weight updates instead of data - each user trains on their own device and periodically shares weight updates with a central server, while keeping data local at all times. The server will agreggate all these weights between participants, and send them back.
 
-**Decentralized learning:** makes this possible, following the same principles as in **federated learning**, but going one step further by removing any central coordinator. Disco only uses [peer2peer](https://peerjs.com/) communication, while keeping your data local at all times. It puts users in control of the entire collaborative training process, without a central point of failure. We support all modern deep learning architectures running on device (currently via [TF.js](https://www.tensorflow.org/js)).
+**Decentralized learning:** Building upon the same principles as in federated learning, decentralized learning achieved allows collaboration and data privacy without the need for a central coordinator. Updates are shared purely via [peer2peer](https://peerjs.com/) communication. Disco puts users in control of the entire collaborative training process, without a central point of failure.
 
-**Applications:** We're investigating many applications which could be enabled by Disco, including from the medical domain. Currently we offer a predefined list of training tasks, but will facilitate creating new tasks for everyone soon. For now if you have a new application in mind, just send us a pull request.
+Disco supports arbitrary deep learning tasks and model architectures, running on your device currently via [TF.js](https://www.tensorflow.org/js)).
+
+**Applications:** Many applications can be enabled by Disco, including for example from the medical domain. In addition to a list of predefined training tasks, Disco allows to simply create new tasks, without any need for coding. Just specify your deep learning model and choose from several existing dataloaders.
 
 **Join us:** We follow an open development process - you're more than welcome to join the conversation on [our slack space](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw), as well as on the issues pages here.
 
@@ -24,14 +25,14 @@ We support all modern deep learning architectures running on device (currently v
 
 ### Tasks
 
-The platform already hosts several **_popular tasks_** such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python).
+The platform already hosts several **_popular example tasks_** such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python).
 
 New tasks can easily be created using [the following form](https://epfml.github.io/disco/#/task-creation-form). To do so, practical information related to the task (e.g. description, features, learning rate, etc.) must be provided. Furthermore, two extra `TensorFlow.js` files need to be provided:
 
 - A model file in `JSON` format. Please refer to the following official documentation pages to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model.
 - A weight file in `.bin` format. These are the initial weights that will be provided to new users upon joining the training of your task. You can either provide a pre-trained model or use a simple random initialisation scheme.
 
-> **Note**: for the moment, `CSV` and `Image` data types are supported by default. If you want to add a completely new data type with its own preprocessing code, currently you are required to copy and change the correspondig code (see [developer guide](https://github.com/epfml/disco/tree/develop/mobile-browser-based-version#readme)) :mega:
+> **Note**: for the moment, `CSV` and `Image` data types are supported by default. If you want to add a completely new data type with its own preprocessing code or dataloader, currently you are required to copy and change the correspondig code (see [developer guide](https://github.com/epfml/disco/tree/develop/mobile-browser-based-version#readme)) :mega:
 
 ### Settings
 
