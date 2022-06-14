@@ -1,10 +1,7 @@
 <template>
   <div>
     <!-- Disco logo -->
-    <img
-      :src="discoWelcome"
-      class="mx-auto"
-    >
+    <Disco class="mx-auto mb-[5%]" />
 
     <!-- Main cards -->
     <div class="grid grid-cols-3 gap-8 items-stretch">
@@ -55,12 +52,15 @@
 </template>
 
 <script lang="ts">
+import Disco from '@/assets/svg/Disco.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
+import { defineComponent } from 'vue'
 
-export default {
+export default defineComponent({
   name: 'Home',
   components: {
-    ButtonCard
+    ButtonCard,
+    Disco
   },
   data () {
     return {
@@ -78,5 +78,5 @@ export default {
       this.$router.push({ path: '/testing' })
     }
   }
-}
+})
 </script>

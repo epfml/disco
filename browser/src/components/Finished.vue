@@ -52,25 +52,22 @@ export default {
       default: undefined
     }
   },
-  data (): { memory: Memory } {
-    return {
-      memory: undefined
-    }
-  },
   computed: {
-    ...mapState(['useIndexedDB'])
-  },
-  watch: {
-    useIndexedDB (newValue: boolean) {
-      this.memory = newValue ? new IndexedDB() : new EmptyMemory()
+    ...mapState(['useIndexedDB', 'models']),
+    memory (): Memory {
+      return this.usedIndexedDB ? new IndexedDB() : new EmptyMemory()
     }
   },
   methods: {
     ...mapMutations(['setTestingModel']),
     testModel () {
-      const path = pathFor(ModelType.WORKING, this.task.taskID, this.task.trainingInformation.modelID)
-      this.setTestingModel(path)
-      this.$router.push({ path: '/testing' })
+      if (this.memory.contains(ModelType.WORKING, this.task.taskID, this.task.trainingInformation.modelID)) {
+        this.setTestingModel(pathFor(ModelType.WORKING, this.task.taskID, this.task.trainingInformation.modelID))
+        this.$router.push({ path: '/testing' })
+      } else {
+        this.$toast.error('Model was not trained!')
+        setTimeout(this.$toast.clear, 30000)
+      }
     },
     async saveModel () {
       if (!(this.memory instanceof EmptyMemory)) {

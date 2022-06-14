@@ -13,7 +13,7 @@ import { Base } from './base'
 export class Federated extends Base {
   private readonly clientID = randomUUID()
   private readonly peer: any
-  private round = -1 // The server starts at round 0, in the beginning we are behind
+  private round = 0
 
   private urlTo (category: string): string {
     const url = new URL('', this.url)

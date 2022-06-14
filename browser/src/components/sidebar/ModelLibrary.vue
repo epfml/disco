@@ -44,7 +44,7 @@
           >
             <div
               class="cursor-pointer w-2/3"
-              @click="openTesting(metadata)"
+              @click="openTesting(path)"
             >
               <span>
                 {{ metadata.name.substring(0, 16) }} <br>
@@ -57,7 +57,7 @@
             <div class="w-1/9">
               <button
                 :class="buttonClass(isDark)"
-                @click="deleteModel(path)"
+                @click="deleteModel(path, metadata)"
               >
                 <span><Bin2Icon /></span>
               </button>
@@ -85,7 +85,7 @@
   </TippyContainer>
 </template>
 <script lang="ts">
-import { mapState } from 'vuex'
+import { mapMutations, mapState } from 'vuex'
 
 import { Memory, EmptyMemory } from 'discojs'
 
@@ -115,10 +115,12 @@ export default {
       return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     }
   },
-  async mounted () {
+  async mounted (): Promise<void> {
     await this.$store.dispatch('initModels')
   },
   methods: {
+    ...mapMutations(['setTestingModel']),
+
     buttonClass: function (state: boolean) {
       return `flex items-center grid-cols-3 justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark ${
         state
@@ -131,14 +133,14 @@ export default {
       this.$emit('switch-panel')
     },
 
-    deleteModel (path: string): void {
-      const metadata = this.models.get(path)
+    deleteModel (path: string, metadata): void {
       this.$store.commit('deleteModel', path)
-      this.memory.deleteSavedModel(metadata.taskID, metadata.modelName)
+      this.memory.deleteModel(metadata.modelType, metadata.taskID, metadata.name)
     },
 
-    openTesting (metadata) {
-      this.$router.push({ name: metadata.taskID.concat('.testing') })
+    openTesting (path: string) {
+      this.setTestingModel(path)
+      this.$router.push({ path: '/testing' })
     },
 
     downloadModel (metadata) {

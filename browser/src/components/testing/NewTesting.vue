@@ -79,12 +79,15 @@
       <div v-else>
         <IconCard>
           <template #title>
-            No registerd model
+            No registered model
           </template>
           <template #content>
-            Please go to the <RouterLink to="/list">
-              training page
-            </RouterLink>.
+            Please go to the <RouterLink
+              class="underline font-bold"
+              to="/list"
+            >
+              training page.
+            </RouterLink>
           </template>
         </IconCard>
       </div>
@@ -109,7 +112,7 @@ import TestingBar from '@/components/testing/TestingBar.vue'
 import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
 // import Testing from '@/components/testing/Testing.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
-import IconCard from '@/components/containers/Card.vue'
+import IconCard from '@/components/containers/IconCard.vue'
 import { IndexedDB } from '@/memory'
 import { WebTabularLoader, WebImageLoader } from '@/data_loader'
 
@@ -162,11 +165,23 @@ export default {
   },
   watch: {
     testingModel (path: string) {
-      this.step = 0
-      this.selectModel(path, this.models.get(path))
+      const metadata = this.models.get(path)
+      if (metadata !== undefined) {
+        this.selectModel(path, metadata)
+      }
     }
   },
   async mounted (): Promise<void> {
+    await this.$store.dispatch('initModels')
+    // can't watch before mount
+    if (this.testingModel !== undefined) {
+      const metadata = this.models.get(this.testingModel)
+      if (metadata !== undefined) {
+        this.selectModel(this.testingModel, metadata)
+      }
+    }
+  },
+  async activated (): Promise<void> {
     await this.$store.dispatch('initModels')
   },
   methods: {
@@ -178,7 +193,7 @@ export default {
       } else {
         throw new Error('model\'s task does not exist locally')
       }
-      this.step += 1
+      this.step = 1
     },
     prevStep (): void {
       this.step -= 1

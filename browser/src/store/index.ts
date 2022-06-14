@@ -1,6 +1,6 @@
 import { loadTasks } from '@/tasks'
 
-import { Task } from 'discojs'
+import { ModelType, Task } from 'discojs'
 import { ActionContext, createStore } from 'vuex'
 import * as tf from '@tensorflow/tfjs'
 
@@ -39,7 +39,7 @@ export const store = createStore({
       for (const path in models) {
         // eslint-disable-next-line no-unused-vars
         const [location, _, directory, task, name] = path.split('/')
-        if (!(location === 'indexeddb:' && directory === 'saved')) {
+        if (location !== 'indexeddb:') {
           continue
         }
 
@@ -67,7 +67,7 @@ export const store = createStore({
             metadata: {
               name: name,
               taskID: task,
-              modelType: directory,
+              modelType: directory === 'working' ? ModelType.WORKING : ModelType.SAVED,
               date: dateSaved,
               hours: hourSaved,
               fileSize: Math.round(size / 1024)
