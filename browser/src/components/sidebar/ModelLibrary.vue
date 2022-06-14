@@ -57,7 +57,7 @@
             <div class="w-1/9">
               <button
                 :class="buttonClass(isDark)"
-                @click="deleteModel(path)"
+                @click="deleteModel(path, metadata)"
               >
                 <span><Bin2Icon /></span>
               </button>
@@ -115,7 +115,7 @@ export default {
       return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     }
   },
-  async mounted () {
+  async mounted (): Promise<void> {
     await this.$store.dispatch('initModels')
   },
   methods: {
@@ -131,10 +131,9 @@ export default {
       this.$emit('switch-panel')
     },
 
-    deleteModel (path: string): void {
-      const metadata = this.models.get(path)
+    deleteModel (path: string, metadata): void {
       this.$store.commit('deleteModel', path)
-      this.memory.deleteSavedModel(metadata.taskID, metadata.modelName)
+      this.memory.deleteModel(metadata.modelType, metadata.taskID, metadata.name)
     },
 
     openTesting (metadata) {

@@ -1,8 +1,5 @@
 <template>
-  <base-layout
-    :with-section="true"
-    custom-class="pt-4"
-  >
+  <div>
     <!-- Progress Bar -->
     <div class="w-full py-6">
       <div class="flex">
@@ -209,11 +206,10 @@
         </div>
       </card>
     </div>
-  </base-layout>
+  </div>
 </template>
 
 <script>
-import BaseLayout from '../containers/BaseLayout.vue'
 import Card from '../containers/Card.vue'
 import { useI18n } from 'vue-i18n'
 import { defineComponent } from 'vue'
@@ -221,7 +217,6 @@ import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'Features',
   components: {
-    BaseLayout,
     Card
   },
   setup () {

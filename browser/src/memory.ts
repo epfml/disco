@@ -23,6 +23,10 @@ export class IndexedDB extends Memory {
     return models[key]
   }
 
+  async contains (type: ModelType, taskID: string, modelName: string): Promise<boolean> {
+    return await this.getModelMetadata(type, taskID, modelName) !== undefined
+  }
+
   async getModel (type: ModelType, taskID: string, modelName: string): Promise<tf.LayersModel> {
     return await tf.loadLayersModel(pathFor(type, taskID, modelName))
   }
