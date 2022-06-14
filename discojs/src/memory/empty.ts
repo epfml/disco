@@ -7,6 +7,10 @@ export class Empty extends Memory {
     return undefined
   }
 
+  async contains (): Promise<boolean> {
+    return false
+  }
+
   async getModel (): Promise<tf.LayersModel> {
     throw new Error('empty')
   }

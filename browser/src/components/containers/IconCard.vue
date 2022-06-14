@@ -53,9 +53,9 @@
   </div>
 </template>
 
-<script type="ts">
-import DownArrow from '../../assets/svg/DownArrow.vue'
-import UpArrow from '../../assets/svg/UpArrow.vue'
+<script lang="ts">
+import DownArrow from '@/assets/svg/DownArrow.vue'
+import UpArrow from '@/assets/svg/UpArrow.vue'
 export default {
   name: 'IconCard',
   components: {
