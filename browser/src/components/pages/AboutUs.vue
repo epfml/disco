@@ -59,8 +59,9 @@
 
 <script lang="ts">
 import Card from '@/components/containers/Card.vue'
-import { useI18n } from 'vue-i18n'
+
 import { defineComponent } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export default defineComponent({
   name: 'AboutUs',
