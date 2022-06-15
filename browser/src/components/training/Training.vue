@@ -42,17 +42,17 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue'
 import { mapState } from 'vuex'
 
 import { dataset, training, EmptyMemory, isTask, TrainingInformant, TrainingSchemes } from 'discojs'
 
+import { getClient } from '@/clients'
 import { IndexedDB } from '@/memory'
-import TrainingInformation from './TrainingInformation.vue'
+import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
-import { getClient } from '@/clients'
-
-export default {
+export default defineComponent({
   name: 'Training',
   components: {
     TrainingInformation,
@@ -89,7 +89,7 @@ export default {
     async startTraining (distributedTraining: boolean) {
       this.distributedTraining = distributedTraining
 
-      let scheme
+      let scheme: TrainingSchemes
       if (this.distributedTraining) {
         if (this.task.trainingInformation?.scheme === 'Federated') {
           scheme = TrainingSchemes.FEDERATED
@@ -136,5 +136,5 @@ export default {
       this.trainingInformant = undefined
     }
   }
-}
+})
 </script>

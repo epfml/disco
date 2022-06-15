@@ -32,6 +32,7 @@
 import { defineComponent } from 'vue'
 
 import CustomButton from '@/components/simple/CustomButton.vue'
+import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'ButtonCard',

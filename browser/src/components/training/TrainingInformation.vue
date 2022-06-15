@@ -19,9 +19,9 @@
             </h4>
           </div>
           <p class="p-4">
-            <span class="text-2xl font-medium text-slate-500">{{
-              currentValidationAccuracy
-            }}</span>
+            <span class="text-2xl font-medium text-slate-500">
+              {{ currentValidationAccuracy }}
+            </span>
             <span class="text-sm font-medium text-slate-500 dark:text-primary">
               {{
                 $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyText')
@@ -51,9 +51,9 @@
             </h4>
           </div>
           <p class="p-4">
-            <span class="text-2xl font-medium text-slate-500 dark:text-light">{{
-              currentTrainingAccuracy
-            }}</span>
+            <span class="text-2xl font-medium text-slate-500 dark:text-light">
+              {{ currentTrainingAccuracy }}
+            </span>
             <span class="text-sm font-medium text-slate-500 dark:text-primary">
               {{
                 $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
@@ -172,6 +172,7 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue'
 import { TrainingInformant } from 'discojs'
 
 import IconCardSmall from '@/components/containers/IconCardSmall.vue'
@@ -182,7 +183,7 @@ import Performances from '@/assets/svg/Performances.vue'
 import Forward from '@/assets/svg/Forward.vue'
 import Contact from '@/assets/svg/Contact.vue'
 
-export default {
+export default defineComponent({
   name: 'TrainingInformation',
   components: {
     IconCardSmall,
@@ -290,25 +291,25 @@ export default {
       ]
     },
     currentTrainingAccuracy () {
-      return this.trainingInformant.currentTrainingAccuracy
+      return this.trainingInformant.trainingAccuracy()
     },
     currentValidationAccuracy () {
-      return this.trainingInformant.currentValidationAccuracy
+      return this.trainingInformant.validationAccuracy()
     },
     trainingAccuracyData () {
       return [
         {
-          data: this.trainingInformant.trainingAccuracyDataSerie.toArray()
+          data: this.trainingInformant.trainingAccuracyData().toArray()
         }
       ]
     },
     validationAccuracyData () {
       return [
         {
-          data: this.trainingInformant.validationAccuracyDataSerie.toArray()
+          data: this.trainingInformant.validationAccuracyData().toArray()
         }
       ]
     }
   }
-}
+})
 </script>

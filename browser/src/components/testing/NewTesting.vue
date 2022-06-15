@@ -98,19 +98,18 @@
         :task="task"
         :dataset-builder="datasetBuilder"
       />
-      <!-- <Testing
+      <Tester
         v-show="step === 2"
         :task="task"
-        :dataset-builder="datasetBuilder"
-        :model-path="modelPath"
-      /> -->
+        :model="model"
+      />
     </div>
   </div>
 </template>
 <script lang="ts">
 import TestingBar from '@/components/testing/TestingBar.vue'
 import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
-// import Testing from '@/components/testing/Testing.vue'
+import Tester from '@/components/testing/Tester.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import { IndexedDB } from '@/memory'
@@ -118,23 +117,26 @@ import { WebTabularLoader, WebImageLoader } from '@/data_loader'
 
 import { Memory, Task } from 'discojs'
 import { DatasetBuilder, DataLoader } from 'discojs/dist/dataset'
-import { mapState } from 'vuex'
 
-export default {
+import { mapState } from 'vuex'
+import { defineComponent } from 'vue'
+import { LayersModel } from '@tensorflow/tfjs'
+
+export default defineComponent({
   name: 'NewTesting',
   components: {
     TestingBar,
+    Tester,
     DatasetInput,
-    // Testing,
     ButtonCard,
     IconCard
   },
-  data (): { task: Task, memory: Memory, step: number, modelPath: string } {
+  data (): { task: Task, memory: Memory, step: number, model: LayersModel } {
     return {
       task: undefined,
       memory: new IndexedDB(),
       step: 0,
-      modelPath: undefined
+      model: undefined
     }
   },
   computed: {
@@ -206,5 +208,5 @@ export default {
       }
     }
   }
-}
+})
 </script>
