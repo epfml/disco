@@ -11,7 +11,7 @@ If you want to contribute to the development, or run your custom disco instance,
 
 **Federated learning:** The key insight is to share weight updates instead of data - each user trains on their own device and periodically shares weight updates with a central server, while keeping data local at all times. The server will agreggate all these weights between participants, and send them back.
 
-**Decentralized learning:** Building upon the same principles as in federated learning, decentralized learning achieved allows collaboration and data privacy without the need for a central coordinator. Updates are shared purely via [peer2peer](https://peerjs.com/) communication. Disco puts users in control of the entire collaborative training process, without a central point of failure.
+**Decentralized learning:** Building upon the same principles as in federated learning, decentralized learning allows collaboration and data privacy without the need for a central coordinator. Updates are shared purely via [peer2peer](https://peerjs.com/) communication. Disco puts users in control of the entire collaborative training process, without a central point of failure.
 
 Disco supports arbitrary deep learning tasks and model architectures, running on your device via [TF.js](https://www.tensorflow.org/js).
 
@@ -32,7 +32,7 @@ New tasks can easily be created using [the following form](https://epfml.github.
 - A model file in `JSON` format. Please refer to the following official documentation pages to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model.
 - A weight file in `.bin` format. These are the initial weights that will be provided to new users upon joining the training of your task. You can either provide a pre-trained model or use a simple random initialisation scheme.
 
-> **Note**: for the moment, `CSV` and `Image` data types are supported by default. If you want to add a completely new data type with its own preprocessing code or dataloader, currently you are required to copy and change the correspondig code (see [developer guide](https://github.com/epfml/disco/tree/develop/mobile-browser-based-version#readme)) :mega:
+> **Note**: for the moment, `CSV` and `Image` data types are supported by default. If you want to add a completely new data type with its own preprocessing code or dataloader, currently you are required to copy and change the correspondig code (see [developer guide](https://github.com/epfml/disco/tree/develop/mobile-browser-based-version#readme))
 
 ### Settings
 
