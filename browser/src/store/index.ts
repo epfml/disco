@@ -15,6 +15,7 @@ interface State {
   useIndexedDB: boolean,
   isDark: boolean,
   testingModel: string
+  testingState: boolean
 }
 
 export const store = createStore({
@@ -26,7 +27,8 @@ export const store = createStore({
       currentTask: undefined,
       useIndexedDB: true,
       isDark: false,
-      testingModel: undefined
+      testingModel: undefined,
+      testingState: false
     }
   },
   actions: {
@@ -125,6 +127,7 @@ export const store = createStore({
     },
     setTestingModel (state: State, path: string): void {
       state.testingModel = path
+      state.testingState = !state.testingState // trigger event-like update
     }
   }
 })

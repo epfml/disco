@@ -49,7 +49,7 @@
           class="contents"
         >
           <ButtonCard
-            :click="() => selectModel(path, metadata)"
+            :click="() => selectModel(metadata)"
             :button-placement="'left'"
           >
             <template #title>
@@ -138,7 +138,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['models', 'tasks', 'testingModel']),
+    ...mapState(['models', 'tasks', 'testingModel', 'testingState']),
     showPrev (): boolean {
       return this.step > 0
     },
@@ -164,36 +164,32 @@ export default {
     }
   },
   watch: {
-    testingModel (path: string) {
-      const metadata = this.models.get(path)
-      if (metadata !== undefined) {
-        this.selectModel(path, metadata)
-      }
+    testingState (_: boolean) {
+      this.selectModel(this.models.get(this.testingModel))
     }
   },
   async mounted (): Promise<void> {
     await this.$store.dispatch('initModels')
     // can't watch before mount
     if (this.testingModel !== undefined) {
-      const metadata = this.models.get(this.testingModel)
-      if (metadata !== undefined) {
-        this.selectModel(this.testingModel, metadata)
-      }
+      this.selectModel(this.models.get(this.testingModel))
     }
   },
   async activated (): Promise<void> {
     await this.$store.dispatch('initModels')
   },
   methods: {
-    selectModel (path: string, metadata: any): void {
-      const task = this.tasks.get(metadata.taskID)
-      if (task !== undefined) {
-        this.task = task
-        this.modelPath = path
-      } else {
-        throw new Error('model\'s task does not exist locally')
+    selectModel (metadata: any): void {
+      if (metadata !== undefined) {
+        const task = this.tasks.get(metadata.taskID)
+        if (task !== undefined) {
+          this.task = task
+          this.model = this.memory.getModel(metadata.modelType, metadata.taskID, metadata.name)
+          this.step = 1
+        } else {
+          throw new Error('model\'s task does not exist locally')
+        }
       }
-      this.step = 1
     },
     prevStep (): void {
       this.step -= 1
