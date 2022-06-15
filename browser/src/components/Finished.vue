@@ -42,9 +42,10 @@ import ButtonCard from '@/components/containers/ButtonCard.vue'
 import { IndexedDB, pathFor } from '@/memory'
 
 import { EmptyMemory, Memory, ModelType, isTask } from 'discojs'
+import { defineComponent } from 'vue'
 import { mapMutations, mapState } from 'vuex'
 
-export default {
+export default defineComponent({
   components: { ButtonCard },
   props: {
     task: {
@@ -61,8 +62,9 @@ export default {
   methods: {
     ...mapMutations(['setTestingModel']),
     testModel () {
-      if (this.memory.contains(ModelType.WORKING, this.task.taskID, this.task.trainingInformation.modelID)) {
-        this.setTestingModel(pathFor(ModelType.WORKING, this.task.taskID, this.task.trainingInformation.modelID))
+      const model = [ModelType.WORKING, this.task.taskID, this.task.trainingInformation.modelID] as const
+      if (this.memory.contains(...model)) {
+        this.setTestingModel(pathFor(...model))
         this.$router.push({ path: '/testing' })
       } else {
         this.$toast.error('Model was not trained!')
@@ -86,5 +88,5 @@ export default {
       setTimeout(this.$toast.clear, 30000)
     }
   }
-}
+})
 </script>
