@@ -3,7 +3,9 @@
     <main class="m-8 mb-auto">
       <slot />
     </main>
-    <CustomFooter class="mt-8" />
+    <div class="mt-8">
+      <CustomFooter />
+    </div>
   </div>
 </template>
 
