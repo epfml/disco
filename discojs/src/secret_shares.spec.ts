@@ -1,6 +1,6 @@
 import { assertTrue, assertEqualSizes } from './testing/assert'
 import { UnitTester } from './testing/unit_tester'
-import * as secret_shares from './secret_shares' 
+import * as secret_shares from './secret_shares'
 import { Weights } from './types'
 
 import * as tf from '@tensorflow/tfjs'
@@ -21,7 +21,7 @@ class TestSecretShares extends UnitTester {
 
     makeAllSharesTest(){
         let secret1: Weights = makeWeights([[1,2,3], [4,5,6]])
-        let client1shares: Array<Weights> = secret_shares.makeAllShares(secret1, 3, 500)
+        let client1shares: Array<Weights> = secret_shares.generateAllShares(secret1, 3, 500)
         // console.log(client1shares[0][0].dataSync())
         // console.log(client1shares[1][0].dataSync())
         // console.log(client1shares[2][0].dataSync())
@@ -42,9 +42,9 @@ class TestSecretShares extends UnitTester {
     // console.log(Array.from(secret_shares.sum(Array(person1, person2, person1))[0].dataSync())) // [4,7,13]
 
 
-         let client1shares: Array<Weights> = secret_shares.shuffleArray(secret_shares.makeAllShares(secret1, 3, 500))
-         let client2shares: Array<Weights> = secret_shares.shuffleArray(secret_shares.makeAllShares(secret2, 3, 500))
-         let client3shares: Array<Weights> = secret_shares.shuffleArray(secret_shares.makeAllShares(secret3, 3, 500))
+         let client1shares: Array<Weights> = secret_shares.shuffleArray(secret_shares.generateAllShares(secret1, 3, 500))
+         let client2shares: Array<Weights> = secret_shares.shuffleArray(secret_shares.generateAllShares(secret2, 3, 500))
+         let client3shares: Array<Weights> = secret_shares.shuffleArray(secret_shares.generateAllShares(secret3, 3, 500))
 
          let final_shares: Array<Array<Weights>> = [[],[],[]] //distributing shares
          for (let i=0; i<3; i++){
