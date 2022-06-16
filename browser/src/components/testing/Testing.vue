@@ -92,7 +92,7 @@
         </IconCard>
       </div>
     </div>
-    <div v-if="step >= 1">
+    <div v-if="task !== undefined">
       <DatasetInput
         v-show="step === 1"
         :task="task"
@@ -101,6 +101,7 @@
       <Tester
         v-show="step === 2"
         :task="task"
+        :dataset-builder="datasetBuilder"
         :model="model"
       />
     </div>
@@ -112,18 +113,17 @@ import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
 import Tester from '@/components/testing/Tester.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
-import { IndexedDB } from '@/memory'
+import { IndexedDB, pathFor } from '@/memory'
 import { WebTabularLoader, WebImageLoader } from '@/data_loader'
 
-import { Memory, Task } from 'discojs'
+import { EmptyMemory, Memory, Task } from 'discojs'
 import { DatasetBuilder, DataLoader } from 'discojs/dist/dataset'
 
 import { mapState } from 'vuex'
 import { defineComponent } from 'vue'
-import { LayersModel } from '@tensorflow/tfjs'
 
 export default defineComponent({
-  name: 'NewTesting',
+  name: 'Testing',
   components: {
     TestingBar,
     Tester,
@@ -131,23 +131,25 @@ export default defineComponent({
     ButtonCard,
     IconCard
   },
-  data (): { task: Task, memory: Memory, step: number, model: LayersModel } {
+  data (): { task: Task, step: number, model: string } {
     return {
       task: undefined,
-      memory: new IndexedDB(),
       step: 0,
       model: undefined
     }
   },
   computed: {
-    ...mapState(['models', 'tasks', 'testingModel', 'testingState']),
+    ...mapState(['useIndexedDB', 'models', 'tasks', 'testingModel', 'testingState']),
     showPrev (): boolean {
       return this.step > 0
     },
     showNext (): boolean {
       return this.step > 0 && this.step < 2
     },
-    datasetBuilder (): DatasetBuilder<File> {
+    memory (): Memory {
+      return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+    },
+    datasetBuilder (): DatasetBuilder<File> | undefined {
       if (this.task === undefined) {
         return undefined
       }
@@ -181,12 +183,12 @@ export default defineComponent({
     await this.$store.dispatch('initModels')
   },
   methods: {
-    selectModel (metadata: any): void {
+    async selectModel (metadata: any): Promise<void> {
       if (metadata !== undefined) {
         const task = this.tasks.get(metadata.taskID)
         if (task !== undefined) {
           this.task = task
-          this.model = this.memory.getModel(metadata.modelType, metadata.taskID, metadata.name)
+          this.model = pathFor(metadata.modelType, metadata.taskID, metadata.name)
           this.step = 1
         } else {
           throw new Error('model\'s task does not exist locally')
