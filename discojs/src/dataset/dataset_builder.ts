@@ -63,7 +63,7 @@ export class DatasetBuilder<Source> {
       }
       data = await this.dataLoader.loadAll(Array.from(this.labelledSources.values()), config)
     }
-    // TODO @s314cy: Support .csv labels for image datasets
+    // TODO @s314cy: Support .csv labels for image datasets (supervised training or testing)
     this.built = true
     return data
   }
