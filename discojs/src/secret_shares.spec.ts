@@ -1,6 +1,6 @@
 import { assertTrue, assertEqualSizes } from './testing/assert'
 import { UnitTester } from './testing/unit_tester'
-import * as secret_shares from './secret_shares'
+import * as secret_shares from './secret_shares' 
 import { Weights } from './types'
 
 import * as tf from '@tensorflow/tfjs'
