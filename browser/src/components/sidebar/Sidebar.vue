@@ -73,7 +73,7 @@
         </SidebarButton>
         <!-- Go to About Us page -->
         <SidebarButton
-          hover-text="about us"
+          hover-text="about"
           @click="goToAboutUs()"
         >
           <AboutUsIcon />

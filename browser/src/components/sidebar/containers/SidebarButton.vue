@@ -1,26 +1,18 @@
 <template>
   <a
     type="a"
-    :data-title="firstLetterUppercase(hoverText)"
+    :data-title="dataTitle"
     data-placement="right"
     class="
       p-2
-      duration-200
-      rounded-full
-      text-white
-      bg-disco-blue
-      outline-none
-      hover:outline
-      hover:outline-2
-      hover:outline-disco-blue
-      hover:text-disco-blue
-      hover:bg-white
-      hover:cursor-pointer
+      text-slate-500
     "
     @click="click()"
   >
     <span class="sr-only">{{ hoverText }}</span>
-    <slot />
+    <div class="hover:cursor-pointer">
+      <slot />
+    </div>
   </a>
 </template>
 
@@ -32,9 +24,9 @@ export default {
     hoverText: { default: '', type: String },
     customClass: { default: '', type: String }
   },
-  methods: {
-    firstLetterUppercase: (str: string) => {
-      return !str || str.charAt(0).toUpperCase() + str.slice(1)
+  computed: {
+    dataTitle (): string {
+      return this.hoverText.charAt(0).toUpperCase() + this.hoverText.slice(1)
     }
   }
 }
