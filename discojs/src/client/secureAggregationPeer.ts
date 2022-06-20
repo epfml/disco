@@ -9,8 +9,6 @@ export class TestClient {
     private ownSharesBuffer: Array<Weights>;
     // Store received shares of other secrets before summing them
     private receivedSharesBuffer: Array<Weights>;
-    //field Size
-    private maxRandNumber: number;
 
     private partialSumsBuffer: Array<Weights>;
 
@@ -20,7 +18,6 @@ export class TestClient {
         this.ownSharesBuffer = [];
         this.receivedSharesBuffer = [];
         this.partialSumsBuffer = [];
-        this.maxRandNumber = Math.random()*1000;
     }
 
     public registerPeer(peer: TestClient): void {
@@ -33,7 +30,7 @@ export class TestClient {
 
     private makeOwnShares(): void {
         //generate all shares
-        this.ownSharesBuffer= secret_shares.generateAllShares(this.secret, this.numPeers(), this.maxRandNumber)
+        this.ownSharesBuffer= secret_shares.generateAllShares(this.secret, this.numPeers(), 1000)
     }
 
     public sendShares() : void {
