@@ -66,7 +66,7 @@ export function generateAllShares(secret: Weights, nParticipants: number, maxRan
     ''
     let shares: Array<Weights>= [];
     for(let i=0; i<nParticipants-1; i++) {
-        shares.push(generateRandomShare(secret, maxRandNumber, RNG_CRYPTO_SECURITY.UNSAFE));
+        shares.push(generateRandomShare(secret, Math.random()*maxRandNumber, RNG_CRYPTO_SECURITY.UNSAFE));
     }
     shares.push(lastShare(shares, secret))
     return shares
@@ -83,15 +83,10 @@ export function generateAllShares(secret: Weights, nParticipants: number, maxRan
              return a
          }
 
-export function reconstructSecret(shares: Array<Weights>): Weights {
-    ''
-    'Regenerate secret from additive shares'
-    ''
-    return sum(shares)
-}
 
 export function generateRandomNumber (maxRandNumber: number, crypto_secure: RNG_CRYPTO_SECURITY): number {
   if (crypto_secure == RNG_CRYPTO_SECURITY.UNSAFE) {
+      //added this math.random times maxRandNumber so adversaries cannot identify range of shares received
     return Math.random() * maxRandNumber
   } else {
     raiseCryptoNotImplemented()

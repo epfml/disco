@@ -16,7 +16,7 @@ type EncodedSignal = Uint8Array
 type ServerOpeningMessage = PeerID[]
 type ServerPeerMessage = [PeerID, EncodedSignal]
 
-function isPeerMessage (data: unknown): data is PeerMessage {
+export function isPeerMessage (data: unknown): data is PeerMessage {
   if (typeof data !== 'object') {
     return false
   }
@@ -90,16 +90,17 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class Decentralized extends Base {
-  private server?: isomorphic.WebSocket
-  private peers = Map<PeerID, SimplePeer.Instance>()
+  protected server?: isomorphic.WebSocket
+  protected peers = Map<PeerID, SimplePeer.Instance>()
 
-  private readonly weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
+  protected readonly weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
 
-  private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
+  protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
     ws.onmessage = (event: isomorphic.MessageEvent) => {
+      // general beh
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
@@ -135,11 +136,29 @@ export class Decentralized extends Base {
     })
   }
 
+ peerOnData(peer: SimplePeer.Instance, peerID: number, data: any){
+      const message = msgpack.decode(data)
+      if (!isPeerMessage(message)) {
+        throw new Error(`invalid message received from ${peerID}`)
+      }
+      const weights = serialization.weights.decode(message.weights)
+
+      console.debug('peer', peerID, 'sent weights', weights)
+
+      if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
+        throw new Error(`weights from ${peerID} already received`)
+      }
+      this.weights.set(peer,
+        this.weights.get(peer, List<Weights>())
+          .set(message.epoch, weights))
+ }
   // connect a new peer
   //
+  // This method also defines all the behavior that happens upon
+  // receiving any communication from a peer.
   // if initiator is true, we start the connection on our side
   // see SimplePeer.Options.initiator for more info
-  private connectNewPeer (peerID: PeerID, initiator: boolean): SimplePeer.Instance {
+  protected connectNewPeer (peerID: PeerID, initiator: boolean): SimplePeer.Instance {
     console.debug('connect new peer with initiator: ', initiator)
 
     const peer = new SimplePeer({
@@ -165,23 +184,24 @@ export class Decentralized extends Base {
       const msg: ServerPeerMessage = [peerID, msgpack.encode(signal)]
       this.server.send(msgpack.encode(msg))
     })
-
-    peer.on('data', (data) => {
-      const message = msgpack.decode(data)
-      if (!isPeerMessage(message)) {
-        throw new Error(`invalid message received from ${peerID}`)
-      }
-      const weights = serialization.weights.decode(message.weights)
-
-      console.debug('peer', peerID, 'sent weights', weights)
-
-      if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
-        throw new Error(`weights from ${peerID} already received`)
-      }
-      this.weights.set(peer,
-        this.weights.get(peer, List<Weights>())
-          .set(message.epoch, weights))
+    peer.on('data', (data: unknown) => {
+      this.peerOnData(peer, peerID, data)
     })
+    //   const message = msgpack.decode(data)
+    //   if (!isPeerMessage(message)) {
+    //     throw new Error(`invalid message received from ${peerID}`)
+    //   }
+    //   const weights = serialization.weights.decode(message.weights)
+    //
+    //   console.debug('peer', peerID, 'sent weights', weights)
+    //
+    //   if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
+    //     throw new Error(`weights from ${peerID} already received`)
+    //   }
+    //   this.weights.set(peer,
+    //     this.weights.get(peer, List<Weights>())
+    //       .set(message.epoch, weights))
+    // })
 
     peer.on('connect', () => console.info('connected to peer', peerID))
 
@@ -212,12 +232,10 @@ export class Decentralized extends Base {
     this.server = undefined
   }
 
-  async onRoundEndCommunication (
-    updatedWeights: Weights,
+  async sendShares(   updatedWeights: Weights,
     staleWeights: Weights,
     epoch: number,
-    trainingInformant: TrainingInformant
-  ): Promise<Weights> {
+    trainingInformant: TrainingInformant): Promise<Weights>{
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     // Broadcast our weights
     const msg: PeerMessage = {
@@ -271,8 +289,21 @@ export class Decentralized extends Base {
     trainingInformant.addMessage('Averaging weights')
     trainingInformant.updateNbrUpdatesWithOthers(1)
 
-    // Return the new "received" weights
+    // Return the new "received" weights, CAN WE CHANGE TO RETURN VOID, NEW UPDATED WEIGHTS SHOULD BE
+    // REFLECTED IN WEIGHTS FIELD
     return aggregation.averageWeights(receivedWeights)
+  }
+
+  async onRoundEndCommunication (
+    updatedWeights: Weights,
+    staleWeights: Weights,
+    epoch: number,
+    trainingInformant: TrainingInformant
+  ): Promise<Weights | undefined> {
+    return(this.sendShares(updatedWeights,
+    staleWeights,
+    epoch,
+    trainingInformant))
   }
 
   async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
