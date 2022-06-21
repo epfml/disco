@@ -30,21 +30,24 @@
               class="text-blue-500 hover:underline"
             >page</a> to learn more about our lab and projects.
             <br><br>
-            The source code of the app can be found on the
+            <i class="fa-brands fa-github" />
+            &emsp; The source code of the app can be found on the
             <a
               href="https://github.com/epfml/disco"
               target="_blank"
               class="text-blue-500 hover:underline"
             >Disco Github</a> page.
             <br>
-            If you want to run Disco locally or want to contribute, please go to the
+            <i class="fa-solid fa-hat-wizard" />
+            &emsp; If you want to run Disco locally or want to contribute, please go to the
             <a
               href="https://github.com/epfml/disco/blob/develop/DEV.md"
               target="_blank"
               class="text-blue-500 hover:underline"
             >Developer section</a>.
-            <br><br>
-            Finally, you can join our
+            <br>
+            <i class="fa-brands fa-slack" />
+            &emsp; Finally, you can join our
             <a
               href="https:/disco-decentralized.slack.com/"
               target="_blank"
