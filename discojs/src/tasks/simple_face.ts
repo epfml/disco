@@ -31,7 +31,8 @@ export const task: Task =
       csvLabels: false,
       IMAGE_H: 200,
       IMAGE_W: 200,
-      LABEL_LIST: ['child', 'adult']
+      LABEL_LIST: ['child', 'adult'],
+      scheme: 'Federated'
     }
   }
 
