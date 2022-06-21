@@ -179,9 +179,10 @@
               class="
               text-xl
               font-large
+              font-bold
               leading-none
               tracking-wider
-              dark:group-hover:text-light
+              text-disco-cyan
               px-2
               py-6
             "
@@ -203,9 +204,10 @@
               class="
               text-xl
               font-large
+              font-bold
               leading-none
               tracking-wider
-              dark:group-hover:text-light
+              text-disco-blue
               px-2
               py-6
             "
@@ -224,7 +226,7 @@
         </div>
         <div
           class="flex justify-center my-md"
-          style="background:#6096BA"
+          style="background:#6096BA; border-radius:35px"
         >
           <ul class="text-lg ont-semibold text-white dark:text-light">
             <div
@@ -256,8 +258,8 @@ export default {
   },
   data () {
     return {
-      federatedImage: require('../../assets/public/federated_rev3.gif'),
-      decentralisedImage: require('../../assets/public/decentralized_rev2.gif')
+      federatedImage: require('../../assets/public/federated_render.gif'),
+      decentralisedImage: require('../../assets/public/decentralized_render.gif')
     }
   },
   methods: {

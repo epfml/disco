@@ -8,8 +8,10 @@
         :click="() => goToSelection(taskID)"
         :button-placement="'left'"
       >
-        <template #title>
-          {{ task.displayInformation.taskTitle }}
+        <template
+          #title
+        >
+          {{ task.displayInformation.taskTitle }} - {{ task.trainingInformation.scheme }}
         </template>
         <template #text>
           <div v-html="task.displayInformation.summary" />
