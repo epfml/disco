@@ -2,23 +2,23 @@
 
 This folder contains the (Vue 3) code for the Disco browser client
 
-## Preliminaries
+## Prerequisites
 
-To run the Disco client locally we need two things:
+Before running the Disco client locally we need to install two things:
 
-1. [Server](../server/README.md)
-2. [discojs](../discojs/README.md)
+1. [discojs](../discojs/README.md)
+2. [server](../server/README.md)
 
-Please refer to their respective readmes in order to understand what is required before going to the next step.
+Please refer to their respective linked readmes in order to understand what is required before going to the next step.
 
-⚠ Once you have the server running, and *built* discojs, you may start the browser.
+⚠ Once you have the server running, and *built* discojs, you may start the browser, as we describe below.
 
 > **⚠ WARNING: discojs**  
 > Since `discojs` is used as a package in the browser (and this in turn is written in TypeScript) it is required that you build `discojs`, `npm install` is not enough.
 
-## Hosting the Disco client
+## Hosting the Disco browser client
 
-### Node and NPM Installation
+### Installation
 
 The app is running under Node.js v16. NPM is a package manager for the JavaScript runtime environment Node.js.
 We recommend using [nvm](https://github.com/nvm-sh/nvm) for installing both Node.js and NPM.
@@ -30,11 +30,13 @@ npm ci
 ```
 
 > **⚠ WARNING: Apple Silicon.**  
-> `TensorFlow.js` in version `3.13.0` currently supports for M1 mac laptops. However, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
+> `TensorFlow.js` since version `3.13.0` and newer do support M1 processors for macs. To do so, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
 
 ```
 node -p "process.arch"
 ```
+
+which should return `arm64`.
 
 ### Running for development
 
@@ -49,7 +51,7 @@ which supports hot-reload. This will start the application locally with two visu
 1. One can access the running app locally, with a `localhost link`
 2. One can access the running app on any device that has access to the network of his machine. To do so, use the `network link`.
 
-Note: As mentioned above, the browser requires the [server](../browser/README.md) to run. Make sure both services run on different ports.
+Note: As mentioned above, the browser requires a running helper [server](../browser/README.md) to function. Make sure both services are running on different ports.
 
 ### Running for production
 
