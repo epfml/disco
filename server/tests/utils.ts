@@ -36,7 +36,6 @@ export async function getClient (server: Server, task: Task): Promise<client.Fed
   return new client.Federated(url, task)
 }
 
-
 export async function getDecClient (server: Server, task: Task): Promise<client.Decentralized> {
   let host: string
   const addr = server?.address()
