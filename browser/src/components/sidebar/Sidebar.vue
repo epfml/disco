@@ -20,10 +20,17 @@
           text-xl
           font-bold
           tracking-wider
+          cursor-pointer
         "
           @click="goToHome"
         >
-          <span class="text-disco-cyan">DIS</span><span class="text-disco-blue">CO</span>
+          <span
+            class="text-disco-cyan"
+            style="font-family: AmpleSoftMedium; font-size: 1.75rem"
+          >DIS</span><span
+            class="text-disco-blue"
+            style="font-family: AmpleSoftMedium; font-size: 1.75rem"
+          >CO</span>
         </a>
       </div>
       <!-- Mini Sidebar content-->
