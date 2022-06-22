@@ -2,7 +2,7 @@
 
 discojs contains the core code of disco.
 
-## Node and NPM installation
+## Installation
 
 The app is running under Node.js v16. NPM is a package manager for the JavaScript runtime environment Node.js.
 We recommend using [nvm](https://github.com/nvm-sh/nvm) for installing both Node.js and NPM.
@@ -14,7 +14,7 @@ npm ci
 ```
 
 > **⚠ WARNING: Apple Silicon.**
-> `TensorFlow.js` in version `3.13.0` currently supports for M1 mac laptops. However, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
+> `TensorFlow.js` since version `3.13.0` and newer do support M1 processors for macs. To do so, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
 
 ```
 node -p "process.arch"
