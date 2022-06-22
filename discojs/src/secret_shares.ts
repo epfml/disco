@@ -1,6 +1,5 @@
 import { Weights } from '@/types'
-import {assertTrue, assertEqualSizes} from '../src/testing/assert'
-
+import { assertEqualSizes } from '../src/testing/assert'
 
 import * as tf from '@tensorflow/tfjs'
 require('@tensorflow/tfjs-node')
@@ -14,79 +13,78 @@ export enum RNG_CRYPTO_SECURITY {
 function raiseCryptoNotImplemented (): void {
   throw new Error('No cryptographically secure random number generation implemented yet!')
 }
-export function addWeights(w1: Weights, w2: Weights): Weights{
-    ""
-    "Return Weights object that is sum of two weights objects"
-    ""
-    assertEqualSizes(w1, w2)
-    let added: Weights = []
-    for(let i=0; i <w1.length; i++){
-        added.push(tf.add(w1[i],w2[i]))
-    }
-    return added
+export function addWeights (w1: Weights, w2: Weights): Weights {
+  ''
+  'Return Weights object that is sum of two weights objects'
+  ''
+  assertEqualSizes(w1, w2)
+  const added: Weights = []
+  for (let i = 0; i < w1.length; i++) {
+    added.push(tf.add(w1[i], w2[i]))
+  }
+  return added
 }
 
-export function subtractWeights(w1: Weights, w2: Weights): Weights{
-    ""
-    "Return Weights object that is difference of two weights objects"
-    ""
-    assertEqualSizes(w1, w2)
-    let sub: Weights = []
-    for(let i=0; i<w1.length; i++){
-        sub.push(tf.sub(w1[0],w2[0]));
-    }
-    return sub
+export function subtractWeights (w1: Weights, w2: Weights): Weights {
+  ''
+  'Return Weights object that is difference of two weights objects'
+  ''
+  assertEqualSizes(w1, w2)
+  const sub: Weights = []
+  for (let i = 0; i < w1.length; i++) {
+    sub.push(tf.sub(w1[0], w2[0]))
+  }
+  return sub
 }
 
-export function sum(summands: Array<Weights>): Weights {
-    ''
-    'Return sum of multiple weight objects in an array, returns weight object of sum'
-    ''
-    let length: number = summands[0].length;
-    const shape = summands[0][0].shape;
-    let summ: Weights= new Array<tf.Tensor>();
-    summ.push(tf.zeros(shape));
-    summands.forEach((element: Weights) => {
-        summ=addWeights(summ, element);
-        });
-    return summ
+export function sum (summands: Weights[]): Weights {
+  ''
+  'Return sum of multiple weight objects in an array, returns weight object of sum'
+  ''
+  // const length: number = summands[0].length
+  const shape = summands[0][0].shape
+  let summ: Weights = new Array<tf.Tensor>()
+  summ.push(tf.zeros(shape))
+  summands.forEach((element: Weights) => {
+    summ = addWeights(summ, element)
+  })
+  return summ
 }
 
-export function lastShare(currentShares: Array<Weights>, secret: Weights): Weights{
-        ""
-    "Return Weights in the remaining share once N-1 shares have been constructed, where N are the amount of participants"
-    ""
-    const last: Weights = subtractWeights(secret, sum(currentShares));
-    return last
+export function lastShare (currentShares: Weights[], secret: Weights): Weights {
+  ''
+  'Return Weights in the remaining share once N-1 shares have been constructed, where N are the amount of participants'
+  ''
+  const last: Weights = subtractWeights(secret, sum(currentShares))
+  return last
 }
 
-export function generateAllShares(secret: Weights, nParticipants: number, maxRandNumber: number):Array<Weights>{
-    ''
-    'Generate N additive shares that aggregate to the secret array'
-    ''
-    let shares: Array<Weights>= [];
-    for(let i=0; i<nParticipants-1; i++) {
-        shares.push(generateRandomShare(secret, Math.random()*maxRandNumber, RNG_CRYPTO_SECURITY.UNSAFE));
-    }
-    shares.push(lastShare(shares, secret))
-    return shares
+export function generateAllShares (secret: Weights, nParticipants: number, maxRandNumber: number): Weights[] {
+  ''
+  'Generate N additive shares that aggregate to the secret array'
+  ''
+  const shares: Weights[] = []
+  for (let i = 0; i < nParticipants - 1; i++) {
+    shares.push(generateRandomShare(secret, Math.random() * maxRandNumber, RNG_CRYPTO_SECURITY.UNSAFE))
+  }
+  shares.push(lastShare(shares, secret))
+  return shares
 }
 
- export function shuffleArray(a: Array<any>): Array<any>{ //https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
-    let j, x, i;
-    for (i = a.length - 1; i > 0; i--) {
-        j = Math.floor(Math.random() * (i + 1));
-        x = a[i];
-        a[i] = a[j];
-        a[j] = x;
-    }
-             return a
-         }
+export function shuffleArray (a: any[]): any[] { // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
+  let j, x, i
+  for (i = a.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1))
+    x = a[i]
+    a[i] = a[j]
+    a[j] = x
+  }
+  return a
+}
 
-
-export function generateRandomNumber (maxRandNumber: number, crypto_secure: RNG_CRYPTO_SECURITY): number {
-  if (crypto_secure == RNG_CRYPTO_SECURITY.UNSAFE) {
-      //added this math.random times maxRandNumber so adversaries cannot identify range of shares received
+export function generateRandomNumber (maxRandNumber: number, cryptoSecure: RNG_CRYPTO_SECURITY): number {
+  if (cryptoSecure === RNG_CRYPTO_SECURITY.UNSAFE) {
+    // added this math.random times maxRandNumber so adversaries cannot identify range of shares received
     return Math.random() * maxRandNumber
   } else {
     raiseCryptoNotImplemented()
@@ -101,7 +99,7 @@ export function generateRandomNumber (maxRandNumber: number, crypto_secure: RNG_
 }
 
 export function generateRandomShare (secret: Weights, maxRandNumber: number, cryptoSecure: RNG_CRYPTO_SECURITY): Weights {
-  if (cryptoSecure == RNG_CRYPTO_SECURITY.STRICT) {
+  if (cryptoSecure === RNG_CRYPTO_SECURITY.STRICT) {
     throw new Error('NOT IMPLEMENTED: generation of a random share (random Weights) with strict cryptographic security.')
   } else {
     const share: Weights = []

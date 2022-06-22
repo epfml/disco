@@ -56,5 +56,5 @@ export abstract class Base {
     staleWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
-  ): Promise<Weights | undefined> //changed from weights to void because we don't want weights autosent at end of round
+  ): Promise<Weights | undefined> // changed from weights to void because we don't want weights autosent at end of round
 }
