@@ -15,6 +15,8 @@ To install the dependencies, run
 npm ci
 ```
 
+This server also requires the [discojs](../discojs/README.md) package. Make sure `discojs` is *built* before proceeding to the next steps.
+
 ### Running the server locally
 
 From this folder, you can run the server on localhost:8080 with `npm run dev`. This runs via the `nodemon` package, so it automatically restarts the process after changes.
