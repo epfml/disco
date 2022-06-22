@@ -6,6 +6,7 @@ import { Task } from 'discojs'
 
 import { TasksAndModels } from '../tasks'
 import { SignalingServer } from './signaling_server'
+import { addDifferentialPrivacy } from '@/../../discojs/dist/privacy'
 
 export class Decentralized {
   private readonly ownRouter: expressWS.Router
@@ -20,7 +21,12 @@ export class Decentralized {
 
     this.ownRouter.get('/', (_, res) => res.send('DeAI server'))
 
-    // delay listener
+    // delay listener because this (object) isn't fully constructed yet. The lambda function inside process.nextTick is executed after the current operation on the JS stack runs to completion and before the event loop is allowed to continue.
+    /* this.onNewTask is registered as a listener to tasksAndModels, which has 2 consequences:
+    - this.onNewTask is executed on all the default tasks (which are already loaded in tasksAndModels)
+    - Every time a new task and model are added to tasksAndModels, this.onNewTask is executed on them.
+    For every task and model, this.onNewTask creates a path /taskID and routes it to this.signalingServer.handle.
+    */
     process.nextTick(() =>
       tasksAndModels.addListener('taskAndModel', (t, m) =>
         this.onNewTask(t, m)))
