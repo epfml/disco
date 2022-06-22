@@ -7,7 +7,13 @@ For federated learning, the helper server receives all weight updates (but never
 
 ### Requirements
 
-The server is running as a single ExpressJS app. It mainly requires [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [PeerServer](https://github.com/peers/peerjs-server) and [Tensorflow](https://www.tensorflow.org/js). All library requirements are included in the `package.json` file.
+The server is running as a single ExpressJS app. It mainly requires [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [PeerServer](https://github.com/peers/peerjs-server) and [Tensorflow](https://www.tensorflow.org/js).
+
+To install the dependencies, run
+
+```
+npm ci
+```
 
 ### Running the server locally
 
