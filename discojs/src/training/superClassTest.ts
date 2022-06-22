@@ -1,14 +1,14 @@
 export class superClass {
-    addingNumbers(){
-        console.log('5')
-    }
+  addingNumbers (): void {
+    console.log('5')
+  }
 }
 
-class child extends superClass{
-    override addingNumbers(){
-        console.log('Worked!')
-    }
+class Child extends superClass {
+  override addingNumbers (): void {
+    console.log('Worked!')
+  }
 }
 
-let example: child = new child()
-example.addingNumbers()
+const Example: Child = new Child()
+Example.addingNumbers()

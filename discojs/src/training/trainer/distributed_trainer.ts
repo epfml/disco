@@ -35,18 +35,18 @@ export class DistributedTrainer extends Trainer {
       this.trainingInformant
     )
 
-
-    if (aggregatedWeights!==undefined) {
+    if (aggregatedWeights !== undefined) {
       this.previousRoundModel.setWeights(currentRoundWeights)
       this.model.setWeights(aggregatedWeights)
 
       await this.memory.updateWorkingModel(
-          this.task.taskID,
-          this.trainingInformation.modelID,
-          this.model
+        this.task.taskID,
+        this.trainingInformation.modelID,
+        this.model
       )
-    }}
-  //if it is undefined, will training continue? we hope yes
+    }
+  }
+  // if it is undefined, will training continue? we hope yes
 
   /**
    * Callback called once training is over
