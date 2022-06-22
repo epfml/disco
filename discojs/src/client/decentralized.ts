@@ -97,6 +97,7 @@ export class Decentralized extends Base {
   protected readonly weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
 
   private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
+    console.log(url);
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
@@ -132,7 +133,10 @@ export class Decentralized extends Base {
     }
 
     return await new Promise((resolve, reject) => {
-      ws.onerror = (err: string) => reject(new Error(`connecting server: ${err}`))
+      ws.onerror = (err: string) => {
+        console.log('DecentralizedClient.connectServer throws:', err)
+        reject(new Error(`connecting server: ${err}`))
+      }
       ws.onopen = () => resolve(ws)
     })
   }
@@ -218,7 +222,7 @@ export class Decentralized extends Base {
    */
   async connect (): Promise<void> {
     const serverURL = new URL('', this.url.href)
-    serverURL.pathname += `/deai/tasks/${this.task.taskID}`
+    serverURL.pathname += `deai/${this.task.taskID}`
 
     this.server = await this.connectServer(serverURL)
   }
