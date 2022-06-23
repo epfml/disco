@@ -4,6 +4,7 @@ import * as secret_shares from './secret_shares'
 import { Weights } from './types'
 
 import * as tf from '@tensorflow/tfjs'
+import { List, Map, Seq, Set } from 'immutable'
 // import { lastShare, RNG_CRYPTO_SECURITY } from './secret_shares'
 require('@tensorflow/tfjs-node')
 
@@ -40,23 +41,28 @@ class TestSecretShares extends UnitTester {
     // console.log(Array.from(secret_shares.subtractWeights(person1, person2)[0].dataSync())) // [-1,-1,-4]
     // console.log(Array.from(secret_shares.sum(Array(person1, person2, person1))[0].dataSync())) // [4,7,13]
 
-    const client1shares: Weights[] = secret_shares.shuffleArray(secret_shares.generateAllShares(secret1, 3, 500))
-    const client2shares: Weights[] = secret_shares.shuffleArray(secret_shares.generateAllShares(secret2, 3, 500))
-    const client3shares: Weights[] = secret_shares.shuffleArray(secret_shares.generateAllShares(secret3, 3, 500))
+    const client1shares: Weights[] = Array.from(secret_shares.generateAllShares(secret1, 3, 500).values())
+    const client2shares: Weights[] = Array.from(secret_shares.generateAllShares(secret2, 3, 500).values())
+    const client3shares: Weights[] = Array.from(secret_shares.generateAllShares(secret3, 3, 500).values())
 
     const finalShares: Weights[][] = [[], [], []] // distributing shares
     for (let i = 0; i < 3; i++) {
       finalShares[i].push(client1shares[i], client2shares[i], client3shares[i])
     }
     //
-    console.log('person1 shares', secret_shares.sum(finalShares[0])[0].dataSync())
-    console.log('person2 shares', secret_shares.sum(finalShares[1])[0].dataSync())
-    console.log('person3 shares', secret_shares.sum(finalShares[2])[0].dataSync())
+    console.log('person1 shares', secret_shares.sum(List(finalShares[0]))[0].dataSync())
+    console.log('person2 shares', secret_shares.sum(List(finalShares[1]))[0].dataSync())
+    console.log('person3 shares', secret_shares.sum(List(finalShares[2]))[0].dataSync())
 
-    const person1sharesFinal: Weights = secret_shares.sum(finalShares[0])
-    const person2sharesFinal: Weights = secret_shares.sum(finalShares[1])
-    const person3sharesFinal: Weights = secret_shares.sum(finalShares[2])
-    console.log('all shares added', secret_shares.sum([person1sharesFinal, person2sharesFinal, person3sharesFinal])[0].dataSync())
+    const person1sharesFinal: Weights = secret_shares.sum(List(finalShares[0]))
+    const person2sharesFinal: Weights = secret_shares.sum(List(finalShares[1]))
+    const person3sharesFinal: Weights = secret_shares.sum(List(finalShares[2]))
+    let allShares = []
+    allShares.push(person1sharesFinal)
+    allShares.push(person2sharesFinal)
+    allShares.push(person3sharesFinal)
+    const allShares2 = List<Weights>(allShares)
+    console.log('all shares added', secret_shares.sum(allShares2)[0].dataSync())
   }
 
   runTests (): string {

@@ -1,5 +1,6 @@
 import { Weights } from '@/types'
 import { assertEqualSizes } from '../src/testing/assert'
+import { List, Map, Seq, Set } from 'immutable'
 
 import * as tf from '@tensorflow/tfjs'
 require('@tensorflow/tfjs-node')
@@ -37,11 +38,11 @@ export function subtractWeights (w1: Weights, w2: Weights): Weights {
   return sub
 }
 
-export function sum (summands: Weights[]): Weights {
+export function sum (setSummands: List<Weights>): Weights {
   ''
   'Return sum of multiple weight objects in an array, returns weight object of sum'
   ''
-  // const length: number = summands[0].length
+  const summands = Array.from(setSummands.values());
   const shape = summands[0][0].shape
   let summ: Weights = new Array<tf.Tensor>()
   summ.push(tf.zeros(shape))
@@ -55,20 +56,24 @@ export function lastShare (currentShares: Weights[], secret: Weights): Weights {
   ''
   'Return Weights in the remaining share once N-1 shares have been constructed, where N are the amount of participants'
   ''
-  const last: Weights = subtractWeights(secret, sum(currentShares))
+  const currentShares2 = List<Weights>(currentShares)
+  const last: Weights = subtractWeights(secret, sum(currentShares2))
   return last
 }
 
-export function generateAllShares (secret: Weights, nParticipants: number, maxRandNumber: number): Weights[] {
+export function generateAllShares (secret: Weights, nParticipants: number, maxRandNumber: number): List<Weights> {
   ''
   'Generate N additive shares that aggregate to the secret array'
   ''
+  console.log('secret', secret)
   const shares: Weights[] = []
   for (let i = 0; i < nParticipants - 1; i++) {
     shares.push(generateRandomShare(secret, Math.random() * maxRandNumber, RNG_CRYPTO_SECURITY.UNSAFE))
   }
+  console.log('shares', shares)
   shares.push(lastShare(shares, secret))
-  return shares
+  const shares2 = List<Weights>(shares)
+  return shares2
 }
 
 export function shuffleArray (a: any[]): any[] { // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
