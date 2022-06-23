@@ -4,7 +4,7 @@ import * as secret_shares from './secret_shares'
 import { Weights } from './types'
 
 import * as tf from '@tensorflow/tfjs'
-import { List, Map, Seq, Set } from 'immutable'
+import { List } from 'immutable'
 // import { lastShare, RNG_CRYPTO_SECURITY } from './secret_shares'
 require('@tensorflow/tfjs-node')
 
@@ -57,7 +57,7 @@ class TestSecretShares extends UnitTester {
     const person1sharesFinal: Weights = secret_shares.sum(List(finalShares[0]))
     const person2sharesFinal: Weights = secret_shares.sum(List(finalShares[1]))
     const person3sharesFinal: Weights = secret_shares.sum(List(finalShares[2]))
-    let allShares = []
+    const allShares = []
     allShares.push(person1sharesFinal)
     allShares.push(person2sharesFinal)
     allShares.push(person3sharesFinal)

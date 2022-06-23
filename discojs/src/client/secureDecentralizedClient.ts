@@ -3,17 +3,16 @@ import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
 import * as secret_shares from 'secret_shares'
-import { v4 as randomUUID } from 'uuid'
+// import { v4 as randomUUID } from 'uuid'
 import * as decentralizedGeneral from './decentralizedGeneral'
-import {DecentralizedGeneral} from './decentralizedGeneral'
+import { DecentralizedGeneral } from './decentralizedGeneral'
 
 import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
-import {URL} from "url";
-
+import { URL } from 'url'
 
 type PeerID = number
 type EncodedSignal = Uint8Array
-type ServerOpeningMessage = PeerID[]
+// type ServerOpeningMessage = PeerID[]
 type ServerPeerMessage = [PeerID, EncodedSignal]
 
 interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
@@ -26,7 +25,6 @@ const minimumReady = 3
 
 // Time to wait for the others in milliseconds.
 const MAX_WAIT_PER_ROUND = 10_000
-
 
 interface PeerReadyMessage { peerId: PeerID, epoch: number}
 function isPeerReadyMessage (data: unknown): data is PeerReadyMessage {
@@ -79,7 +77,7 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
   // private readonly receivedSharesBuffer: Set<Weights> = Set()// same as this.weights  **USE MY own field for this
   private readonly partialSumsBuffer: List<Weights> = List() // set of partial sums received by peers
   private mySum: Weights = []
-  private readonly ID: number = 0 //randomUUID() // NEED TO MAKE THIS DECLARED BY TASK
+  private readonly ID: number = 0 // randomUUID() // NEED TO MAKE THIS DECLARED BY TASK
 
   private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const ws = new isomorphic.WebSocket(url)
@@ -153,36 +151,36 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
     })
 
     peer.on('data', (data) => {
-    const message = msgpack.decode(data)
-    // if message is weights sent from peers
-    if (decentralizedGeneral.isPeerMessage(message)) {
-      const weights = serialization.weights.decode(message.weights)
+      const message = msgpack.decode(data)
+      // if message is weights sent from peers
+      if (decentralizedGeneral.isPeerMessage(message)) {
+        const weights = serialization.weights.decode(message.weights)
 
-      console.debug('peer', peerID, 'sent weights', weights)
-      //
-      if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
-        throw new Error(`weights from ${peerID} already received`)
-      }
-      this.weights.set(peer,
-        this.weights.get(peer, List<Weights>())
-          .set(message.epoch, weights))
-    } else if (isPeerReadyMessage(message)) {
-      for (const elem of this.receivedReadyBuffer) {
-        if (message.peerId === elem.peerId) {
-          throw new Error(`ready message from ${peerID} already received`)
+        console.debug('peer', peerID, 'sent weights', weights)
+        //
+        if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
+          throw new Error(`weights from ${peerID} already received`)
         }
-      }
-      this.receivedReadyBuffer.push(message)
-    } else if (isPeerPartialSumMessage(message)) {
-      for (const elem of this.receivedReadyBuffer) {
-        if (message.peerId === elem.peerId) {
-          throw new Error(`sum message from ${peerID} already received`)
+        this.weights.set(peer,
+          this.weights.get(peer, List<Weights>())
+            .set(message.epoch, weights))
+      } else if (isPeerReadyMessage(message)) {
+        for (const elem of this.receivedReadyBuffer) {
+          if (message.peerId === elem.peerId) {
+            throw new Error(`ready message from ${peerID} already received`)
+          }
         }
+        this.receivedReadyBuffer.push(message)
+      } else if (isPeerPartialSumMessage(message)) {
+        for (const elem of this.receivedReadyBuffer) {
+          if (message.peerId === elem.peerId) {
+            throw new Error(`sum message from ${peerID} already received`)
+          }
+        }
+        this.partialSumsBuffer.push(message.partial)
+      } else {
+        throw new Error(`invalid message received from ${peerID}`)
       }
-      this.partialSumsBuffer.push(message.partial)
-    } else {
-      throw new Error(`invalid message received from ${peerID}`)
-    }
     })
 
     peer.on('connect', () => console.info('connected to peer', peerID))
@@ -236,8 +234,8 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
     for (let i = 0; i < connectedPeers.size; i++) {
       const weights: Weights = weightShares.get(i) ?? []
       const msg: PeerMessage = {
-          epoch: epoch,
-          weights: await serialization.weights.encode(weights)
+        epoch: epoch,
+        weights: await serialization.weights.encode(weights)
       }
       const encodedMsg = msgpack.encode(msg)
       const peerList: number[] = Array.from(connectedPeers.keys())
@@ -262,10 +260,10 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
 
         if (gotAllWeights) {
           const receivedWeights = getWeights().filter((weights) => weights !== undefined).toSet() as Set<Weights>
-              // Average weights
+          // Average weights
           trainingInformant.addMessage('Averaging weights')
           trainingInformant.updateNbrUpdatesWithOthers(1)
-          this.mySum=aggregation.averageWeights(receivedWeights)
+          this.mySum = aggregation.averageWeights(receivedWeights)
           clearInterval(interval)
           resolve()
         }
@@ -311,10 +309,9 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
     // check if buffer is full and send/receive shares
     const timeoutError = new Error('timeout')
     await new Promise<void>((resolve, reject) => {
-      const interval = setInterval(async () => {
+      const interval = setInterval(() => {
         const gotAllReadyMessages = this.receivedReadyBuffer.length >= minimumReady // will want to change to wait x seconds to see if others are ready to connect also
         if (gotAllReadyMessages) {
-          await this.sendShares(updatedWeights, staleWeights, epoch, trainingInformant)
           clearInterval(interval)
           resolve()
         }
@@ -331,7 +328,8 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
     })
 
     // MAKE SURE THIS ONLY EXECUTES AFTER ALL PREVIOUS CODE HAS EXECUTED
-    if (this.partialSumsBuffer.size == minimumReady) {
+    await this.sendShares(updatedWeights, staleWeights, epoch, trainingInformant)
+    if (this.partialSumsBuffer.size === minimumReady) {
       this.sendPartialSums()
       return secret_shares.addWeights(secret_shares.sum(this.partialSumsBuffer), this.mySum)
     }
