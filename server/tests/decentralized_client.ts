@@ -1,9 +1,9 @@
-import { expect } from 'chai'
+// import { expect } from 'chai'
 import * as http from 'http'
 
-import { tasks, TrainingInformant, TrainingSchemes } from 'discojs'
+import { tasks } from 'discojs'
 
-import { getClient, getDecClient, startServer } from './utils'
+import { getDecClient, startServer } from './utils'
 
 const TASK = tasks.titanic.task
 

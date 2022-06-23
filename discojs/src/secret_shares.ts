@@ -1,6 +1,6 @@
 import { Weights } from '@/types'
 import { assertEqualSizes } from '../src/testing/assert'
-import { List, Map, Seq, Set } from 'immutable'
+import { List } from 'immutable'
 
 import * as tf from '@tensorflow/tfjs'
 require('@tensorflow/tfjs-node')
@@ -42,7 +42,7 @@ export function sum (setSummands: List<Weights>): Weights {
   ''
   'Return sum of multiple weight objects in an array, returns weight object of sum'
   ''
-  const summands = Array.from(setSummands.values());
+  const summands = Array.from(setSummands.values())
   const shape = summands[0][0].shape
   let summ: Weights = new Array<tf.Tensor>()
   summ.push(tf.zeros(shape))

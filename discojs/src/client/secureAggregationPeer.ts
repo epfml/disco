@@ -1,5 +1,5 @@
 import * as secret_shares from 'secret_shares'
-import { List, Map, Seq, Set } from 'immutable'
+import { List } from 'immutable'
 import { Weights } from '@/types'
 export class TestClient {
   private readonly secret: Weights
@@ -38,8 +38,8 @@ export class TestClient {
     this.makeOwnShares()
     let counter: number = 0
     for (const peer of this.peers) {
-      peer.receiveShare(this.ownSharesBuffer.get(counter)?? [])
-      counter+=1
+      peer.receiveShare(this.ownSharesBuffer.get(counter) ?? [])
+      counter += 1
     }
   }
 

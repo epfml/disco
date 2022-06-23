@@ -1,10 +1,10 @@
-import { List, Map, Seq, Set } from 'immutable'
+import { List, Map, Set } from 'immutable'
 import isomorphic from 'isomorphic-ws'
-import msgpack from 'msgpack-lite'
+// import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
-import { URL } from 'url'
+// import { URL } from 'url'
 
-import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
+import { serialization, TrainingInformant, Weights } from '..'
 
 import { Base } from './base'
 
@@ -80,10 +80,10 @@ export function isServerPeerMessage (msg: unknown): msg is ServerPeerMessage {
 }
 
 // Time to wait between network checks in milliseconds.
-const TICK = 100
+// const TICK = 100
 
 // Time to wait for the others in milliseconds.
-const MAX_WAIT_PER_ROUND = 10_000
+// const MAX_WAIT_PER_ROUND = 10_000
 
 /**
  * Class that deals with communication with the PeerJS server.
@@ -98,7 +98,7 @@ export abstract class DecentralizedGeneral extends Base {
   /**
    * Disconnection process when user quits the task.
    */
-  async disconnect(): Promise<void> {
+  async disconnect (): Promise<void> {
     this.peers.forEach((peer) => peer.destroy())
     this.peers = Map()
 
@@ -106,14 +106,14 @@ export abstract class DecentralizedGeneral extends Base {
     this.server = undefined
   }
 
-  async onTrainEndCommunication(_: Weights, trainingInformant: TrainingInformant): Promise<void> {
+  async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
     // TODO: enter seeding mode?
     trainingInformant.addMessage('Training finished.')
   }
-  abstract onRoundEndCommunication(
-      updatedWeights: Weights,
-      staleWeights: Weights,
-      epoch: number,
-      trainingInformant: TrainingInformant
+  abstract onRoundEndCommunication (
+    updatedWeights: Weights,
+    staleWeights: Weights,
+    epoch: number,
+    trainingInformant: TrainingInformant
   ): Promise<Weights|undefined >
 }

@@ -8,13 +8,13 @@ import * as decentralizedGeneral from './decentralizedGeneral'
 import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
 
 // import { Base } from './base'
-import {DecentralizedGeneral} from './decentralizedGeneral'
+import { DecentralizedGeneral } from './decentralizedGeneral'
 interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
 
 // TODO take it from the server sources
 type PeerID = number
 type EncodedSignal = Uint8Array
-type ServerOpeningMessage = PeerID[]
+// type ServerOpeningMessage = PeerID[]
 type ServerPeerMessage = [PeerID, EncodedSignal]
 
 // Time to wait between network checks in milliseconds.
@@ -28,7 +28,6 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class Decentralized extends DecentralizedGeneral {
-
   private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
@@ -134,7 +133,6 @@ export class Decentralized extends DecentralizedGeneral {
 
     this.server = await this.connectServer(serverURL)
   }
-
 
   async onRoundEndCommunication (
     updatedWeights: Weights,

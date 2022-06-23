@@ -2,14 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/discojs/src/client/decentralizedGeneral.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralizedGeneral.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralizedGeneral.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/secureAggregationPeer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/secureAggregationPeer.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/discojs/src/client/secureDecentralizedClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/secureDecentralizedClient.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/discojs/src/secret_shares.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/secret_shares.spec.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/discojs/src/secret_shares.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/secret_shares.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/router/decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/router/decentralized.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/tests/decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/tests/decentralized_client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/simulator/simulator-single-notebook/DeAI_pytorch.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/simulator/simulator-single-notebook/DeAI_pytorch.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +53,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1655969321402</updated>
-      <workItem from="1655969326344" duration="6993000" />
+      <workItem from="1655969326344" duration="10414000" />
     </task>
     <servers />
   </component>
