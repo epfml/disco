@@ -1,10 +1,20 @@
 import { List, Map, Seq, Set } from 'immutable'
+import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
 import * as secret_shares from 'secret_shares'
-import * as decentralized from './decentralized'
+import { v4 as randomUUID } from 'uuid'
+import * as decentralizedGeneral from './decentralizedGeneral'
+import {DecentralizedGeneral} from './decentralizedGeneral'
 
 import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
+import {URL} from "url";
+
+
+type PeerID = number
+type EncodedSignal = Uint8Array
+type ServerOpeningMessage = PeerID[]
+type ServerPeerMessage = [PeerID, EncodedSignal]
 
 interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
 
@@ -17,7 +27,6 @@ const minimumReady = 3
 // Time to wait for the others in milliseconds.
 const MAX_WAIT_PER_ROUND = 10_000
 
-type PeerID = number
 
 interface PeerReadyMessage { peerId: PeerID, epoch: number}
 function isPeerReadyMessage (data: unknown): data is PeerReadyMessage {
@@ -65,18 +74,88 @@ function isPeerPartialSumMessage (data: unknown): data is PeerPartialSumMessage 
   return true
 }
 
-export class secureDecentralizedClient extends decentralized.Decentralized {
+export class secureDecentralizedClient extends DecentralizedGeneral {
   private readonly receivedReadyBuffer: PeerReadyMessage[] = []
-  private readonly receivedSharesBuffer: Set<Weights> = Set()// same as this.weights  **USE MY own field for this
-  private readonly partialSumsBuffer: Set<Weights> = Set() // set of partial sums received by peers
-  private readonly myWeights: Weights = []
-  private readonly ID: number = 0 // NEED TO MAKE THIS DECLARED BY TASK
+  // private readonly receivedSharesBuffer: Set<Weights> = Set()// same as this.weights  **USE MY own field for this
+  private readonly partialSumsBuffer: List<Weights> = List() // set of partial sums received by peers
+  private mySum: Weights = []
+  private readonly ID: number = 0 //randomUUID() // NEED TO MAKE THIS DECLARED BY TASK
 
-  // receive data, need to implement receiving partial sums, in connect new peer from decentralized
-  override peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void {
+  private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
+    const ws = new isomorphic.WebSocket(url)
+    ws.binaryType = 'arraybuffer'
+
+    ws.onmessage = (event: isomorphic.MessageEvent) => {
+      if (!(event.data instanceof ArrayBuffer)) {
+        throw new Error('server did not send an ArrayBuffer')
+      }
+      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
+
+      if (decentralizedGeneral.isServerOpeningMessage(msg)) {
+        console.debug('server sent us the list of peer to connect to:', msg)
+        if (this.peers.size !== 0) {
+          throw new Error('server already gave us a list of peers')
+        }
+        this.peers = Map(List(msg)
+          .map((id: PeerID) => [id, this.connectNewPeer(id, true)]))
+      } else if (decentralizedGeneral.isServerPeerMessage(msg)) {
+        const [peerID, encodedSignal] = msg
+        const signal = msgpack.decode(encodedSignal)
+        console.debug('server on behalf of', peerID, 'sent', signal)
+
+        let peer = this.peers.get(peerID)
+        if (peer === undefined) {
+          peer = this.connectNewPeer(peerID, false)
+          this.peers = this.peers.set(peerID, peer)
+        }
+
+        peer.signal(signal)
+      } else {
+        throw new Error('send sent an invalid msg')
+      }
+    }
+
+    return await new Promise((resolve, reject) => {
+      ws.onerror = (err: string) => reject(new Error(`connecting server: ${err}`))
+      ws.onopen = () => resolve(ws)
+    })
+  }
+
+  // connect a new peer
+  //
+  // if initiator is true, we start the connection on our side
+  // see SimplePeer.Options.initiator for more info
+  private connectNewPeer (peerID: PeerID, initiator: boolean): SimplePeer.Instance {
+    console.debug('connect new peer with initiator: ', initiator)
+
+    const peer = new SimplePeer({
+      initiator,
+      config: {
+        iceServers: List(SimplePeer.config.iceServers)
+          /* .push({
+            urls: 'turn:34.77.172.69:3478',
+            credential: 'deai',
+            username: 'deai'
+          }) */
+          .toArray()
+      }
+    })
+
+    peer.on('signal', (signal: unknown) => {
+      console.debug('local', peerID, 'is signaling', signal)
+
+      if (this.server === undefined) {
+        throw new Error('server closed but received a signal')
+      }
+
+      const msg: ServerPeerMessage = [peerID, msgpack.encode(signal)]
+      this.server.send(msgpack.encode(msg))
+    })
+
+    peer.on('data', (data) => {
     const message = msgpack.decode(data)
     // if message is weights sent from peers
-    if (decentralized.isPeerMessage(message)) {
+    if (decentralizedGeneral.isPeerMessage(message)) {
       const weights = serialization.weights.decode(message.weights)
 
       console.debug('peer', peerID, 'sent weights', weights)
@@ -100,10 +179,28 @@ export class secureDecentralizedClient extends decentralized.Decentralized {
           throw new Error(`sum message from ${peerID} already received`)
         }
       }
-      this.partialSumsBuffer.add(message.partial)
+      this.partialSumsBuffer.push(message.partial)
     } else {
       throw new Error(`invalid message received from ${peerID}`)
     }
+    })
+
+    peer.on('connect', () => console.info('connected to peer', peerID))
+
+    // TODO better error handling
+    peer.on('error', (err) => { throw err })
+
+    return peer
+  }
+
+  /**
+   * Initialize the connection to the peers and to the other nodes.
+   */
+  async connect (): Promise<void> {
+    const serverURL = new URL('', this.url.href)
+    serverURL.pathname += `/deai/tasks/${this.task.taskID}`
+
+    this.server = await this.connectServer(serverURL)
   }
 
   // sends message to connected peers that they are ready to share
@@ -125,7 +222,7 @@ export class secureDecentralizedClient extends decentralized.Decentralized {
   }
 
   // send split shares to connected peers
-  override async sendShares (updatedWeights: Weights, // WHY IS THIS ASYNC
+  private async sendShares (updatedWeights: Weights, // WHY IS THIS ASYNC
     staleWeights: Weights,
     epoch: number,
     trainingInformant: TrainingInformant): Promise<void> {
@@ -133,13 +230,14 @@ export class secureDecentralizedClient extends decentralized.Decentralized {
     // NEED TO MAKE SURE THAT WE ARE SELF-CONNECTED AS A PEER
     const connectedPeers: Map<PeerID, SimplePeer.Instance> = this.peers.filter((peer) => peer.connected)
     const noisyWeights: Weights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
-    const weightShares: Weights[] = secret_shares.generateAllShares(noisyWeights, connectedPeers.size, 1000)
+    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, connectedPeers.size, 1000)
 
     // Broadcast our weights to ith peer
     for (let i = 0; i < connectedPeers.size; i++) {
+      const weights: Weights = weightShares.get(i) ?? []
       const msg: PeerMessage = {
-        epoch: epoch,
-        weights: await serialization.weights.encode(weightShares[i])
+          epoch: epoch,
+          weights: await serialization.weights.encode(weights)
       }
       const encodedMsg = msgpack.encode(msg)
       const peerList: number[] = Array.from(connectedPeers.keys())
@@ -163,6 +261,11 @@ export class secureDecentralizedClient extends decentralized.Decentralized {
                     getWeights().every((weights) => weights !== undefined)
 
         if (gotAllWeights) {
+          const receivedWeights = getWeights().filter((weights) => weights !== undefined).toSet() as Set<Weights>
+              // Average weights
+          trainingInformant.addMessage('Averaging weights')
+          trainingInformant.updateNbrUpdatesWithOthers(1)
+          this.mySum=aggregation.averageWeights(receivedWeights)
           clearInterval(interval)
           resolve()
         }
@@ -177,24 +280,15 @@ export class secureDecentralizedClient extends decentralized.Decentralized {
         throw err
       }
     })
-
-    const receivedWeights = getWeights()
-      .filter((weights) => weights !== undefined)
-      .toSet() as Set<Weights>
-
-    // Average weights
-    trainingInformant.addMessage('Averaging weights')
-    trainingInformant.updateNbrUpdatesWithOthers(1)
-    this.partialSumsBuffer.add(aggregation.averageWeights(receivedWeights))
   }
 
-  override sendPartialSums (): void {
+  private sendPartialSums (): void {
     const connectedPeers: Map<PeerID, SimplePeer.Instance> = this.peers.filter((peer) => peer.connected)
     // Broadcast our sum to everyone
     for (const peer of connectedPeers.keys()) {
       const msg: PeerPartialSumMessage = {
         peerId: this.ID,
-        partial: aggregation.averageWeights(this.partialSumsBuffer)
+        partial: this.mySum
       }
       const encodedMsg = msgpack.encode(msg)
       const currentPeer: SimplePeer.Instance | undefined = connectedPeers.get(peer)
@@ -212,14 +306,15 @@ export class secureDecentralizedClient extends decentralized.Decentralized {
     epoch: number,
     trainingInformant: TrainingInformant): Promise<Weights | undefined> {
     // send ready message
-    await this.sendReadyMessage(epoch, trainingInformant)
+    this.sendReadyMessage(epoch, trainingInformant)
 
     // check if buffer is full and send/receive shares
     const timeoutError = new Error('timeout')
     await new Promise<void>((resolve, reject) => {
-      const interval = setInterval(() => {
+      const interval = setInterval(async () => {
         const gotAllReadyMessages = this.receivedReadyBuffer.length >= minimumReady // will want to change to wait x seconds to see if others are ready to connect also
         if (gotAllReadyMessages) {
+          await this.sendShares(updatedWeights, staleWeights, epoch, trainingInformant)
           clearInterval(interval)
           resolve()
         }
@@ -236,13 +331,9 @@ export class secureDecentralizedClient extends decentralized.Decentralized {
     })
 
     // MAKE SURE THIS ONLY EXECUTES AFTER ALL PREVIOUS CODE HAS EXECUTED
-
-    await this.sendShares(updatedWeights, staleWeights, epoch, trainingInformant)
-
-    if (this.partialSumsBuffer.size >= minimumReady) {
+    if (this.partialSumsBuffer.size == minimumReady) {
       this.sendPartialSums()
+      return secret_shares.addWeights(secret_shares.sum(this.partialSumsBuffer), this.mySum)
     }
-
-    return aggregation.averageWeights(this.partialSumsBuffer)
   }
 }
