@@ -1,22 +1,23 @@
 import * as secret_shares from 'secret_shares'
+import { List, Map, Seq, Set } from 'immutable'
 import { Weights } from '@/types'
 export class TestClient {
   private readonly secret: Weights
   // Keep references to your peers
   private readonly peers: TestClient[]
   // Store shares of own secret before sending them out
-  private ownSharesBuffer: Weights[]
+  private ownSharesBuffer: List<Weights>
   // Store received shares of other secrets before summing them
-  private readonly receivedSharesBuffer: Weights[]
+  private readonly receivedSharesBuffer: List<Weights>
 
-  private readonly partialSumsBuffer: Weights[]
+  private readonly partialSumsBuffer: List<Weights>
 
   constructor (secret: Weights) {
     this.secret = secret
     this.peers = []
-    this.ownSharesBuffer = []
-    this.receivedSharesBuffer = []
-    this.partialSumsBuffer = []
+    this.ownSharesBuffer = List()
+    this.receivedSharesBuffer = List()
+    this.partialSumsBuffer = List()
   }
 
   public registerPeer (peer: TestClient): void {
@@ -35,15 +36,17 @@ export class TestClient {
   public sendShares (): void {
     // goes through this.peers and calls peer.receiveShare. elims Share from ownSharesBuffer
     this.makeOwnShares()
+    let counter: number = 0
     for (const peer of this.peers) {
-      peer.receiveShare(this.ownSharesBuffer.splice(0, 1)[0])
+      peer.receiveShare(this.ownSharesBuffer.get(counter)?? [])
+      counter+=1
     }
   }
 
   private receiveShare (share: Weights): void {
     // pushes received share to receivedSharesBuffer
     this.receivedSharesBuffer.push(share)
-    if (this.receivedSharesBuffer.length === this.peers.length) {
+    if (this.receivedSharesBuffer.size === this.peers.length) {
       // if you receive all shares, publish partial sum to all parties
       this.publishPartialSum()
     }
@@ -61,7 +64,7 @@ export class TestClient {
     // pushes given partial to client's partial sum buffer
     this.partialSumsBuffer.push(partialSum)
     // checks if all expected partials have been reported to solve for final sum
-    if (this.partialSumsBuffer.length === this.peers.length) {
+    if (this.partialSumsBuffer.size === this.peers.length) {
       console.log('Reconstruction:', secret_shares.sum(this.partialSumsBuffer))
     }
   }
