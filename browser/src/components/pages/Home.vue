@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Disco logo -->
-    <Disco class="mx-auto mb-[5%]" />
+    <DiscoGIF class="mx-auto mb-[5%]" />
 
     <!-- Main cards -->
     <div class="grid grid-cols-3 gap-8 items-stretch">
@@ -52,20 +52,16 @@
 </template>
 
 <script lang="ts">
-import Disco from '@/assets/svg/Disco.vue'
-import ButtonCard from '@/components/containers/ButtonCard.vue'
 import { defineComponent } from 'vue'
+
+import DiscoGIF from '@/assets/gif/DiscoGIF.vue'
+import ButtonCard from '@/components/containers/ButtonCard.vue'
 
 export default defineComponent({
   name: 'Home',
   components: {
     ButtonCard,
-    Disco
-  },
-  data () {
-    return {
-      discoWelcome: require('../../assets/public/discoWelcome500.gif')
-    }
+    DiscoGIF
   },
   methods: {
     goToTaskList () {
