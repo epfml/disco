@@ -17,8 +17,9 @@
           class="
           p-1
           inline-block
-          text-xl
+          text-2xl
           font-bold
+          font-disco
           tracking-wider
           cursor-pointer
         "
@@ -26,10 +27,8 @@
         >
           <span
             class="text-disco-cyan"
-            style="font-family: AmpleSoftMedium; font-size: 1.75rem"
           >DIS</span><span
             class="text-disco-blue"
-            style="font-family: AmpleSoftMedium; font-size: 1.75rem"
           >CO</span>
         </a>
       </div>

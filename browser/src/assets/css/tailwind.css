@@ -340,7 +340,7 @@ ul {
  */
 
 html {
-  font-family: cairo, sans-serif, 'AmpleSoft'; /* 1 */
+  font-family: cairo, sans-serif; /* 1 */
   line-height: 1.5; /* 2 */
 }
 
