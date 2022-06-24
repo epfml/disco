@@ -8,7 +8,7 @@ export default defineComponent({
   name: 'DiscoGIF',
   computed: {
     discoGIF (): any {
-      return require('../../assets/gif/raw/discoWelcome500.gif')
+      return require('../../assets/gif/raw/disco_middle.gif')
     }
   }
 })

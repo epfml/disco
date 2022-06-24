@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Disco logo -->
-    <DiscoGIF class="mx-auto mb-[5%]" />
+    <DiscoGIF class="mx-auto mb-[10%]" />
 
     <!-- Main cards -->
     <div class="grid grid-cols-3 gap-8 items-stretch">
