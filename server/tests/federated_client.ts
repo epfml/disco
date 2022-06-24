@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import * as http from 'http'
 
-import { tasks, TrainingInformant, TrainingSchemes } from 'discojs'
+import { client as clients, tasks, TrainingInformant, TrainingSchemes } from 'discojs'
 
 import { getClient, startServer } from './utils'
 
@@ -15,18 +15,18 @@ describe('federated client', function () { // the tests container
   after(() => { server?.close() })
 
   it('connect to valid task', async () => {
-    const client = await getClient(server, TASK)
+    const client = await getClient(clients.Federated, server, TASK)
     await client.connect()
   })
 
   it('disconnect from valid task', async () => {
-    const client = await getClient(server, TASK)
+    const client = await getClient(clients.Federated, server, TASK)
     await client.connect()
     await client.disconnect()
   })
 
   it('Connect to non valid task', async () => {
-    const client = await getClient(server, { taskID: 'nonValidTask' })
+    const client = await getClient(clients.Federated, server, { taskID: 'nonValidTask' })
 
     try {
       await client.connect()
@@ -38,7 +38,7 @@ describe('federated client', function () { // the tests container
   })
 
   it('checks that getRound returns a value greater or equal to zero', async () => {
-    const client = await getClient(server, TASK)
+    const client = await getClient(clients.Federated, server, TASK)
     await client.connect()
 
     const round = await client.getLatestServerRound()
@@ -48,7 +48,7 @@ describe('federated client', function () { // the tests container
   })
 
   it('checks that getAsyncWeightInformantStatistics returns a JSON with the expected statistics', async () => {
-    const client = await getClient(server, TASK)
+    const client = await getClient(clients.Federated, server, TASK)
     await client.connect()
 
     const ti = new TrainingInformant(0, TASK.taskID, TrainingSchemes.FEDERATED)
