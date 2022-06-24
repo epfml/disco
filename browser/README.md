@@ -1,55 +1,58 @@
 # Browser
 
-This folder contains the (Vue3) code for the disco browser
+This folder contains the (Vue 3) code for the Disco browser client
 
-## How to run
+## Prerequisites
 
-To run the browser locally we need two things:
+Before running the Disco client locally we need to install two things:
 
-1. [Server](../server/README.md)
-2. [discojs](../discojs/README.md)
+1. [discojs](../discojs/README.md)
+2. [server](../server/README.md)
 
-Please refer to their respective readmes in order to understand what is required before going to the next step.
+Please refer to their respective linked readmes in order to understand what is required before going to the next step.
 
-Once you have the server running, and *built* discojs, you may start the browser.
+⚠ Once you have the server running, and *built* discojs, you may start the browser, as we describe below.
 
 > **⚠ WARNING: discojs**  
-> Since `discojs` is used as a package in the browser (and this in turn is written in TypeScript) it is required that you not build `discojs`, `npm install` is not enough.
+> Since `discojs` is used as a package in the browser (and this in turn is written in TypeScript) it is required that you build `discojs`, `npm install` is not enough.
 
-## Running the browser
+## Hosting the Disco browser client
 
-### Node Installation and NPM installation
+### Installation
 
-The app is running under Node 15.12.0. It can be downloaded from [here](https://nodejs.org/en/download/releases/).
+The app is running under Node.js v16. NPM is a package manager for the JavaScript runtime environment Node.js.
+We recommend using [nvm](https://github.com/nvm-sh/nvm) for installing both Node.js and NPM.
 
-NPM is a package manager for the JavaScript runtime environment Node.js.  
-To start the application (running locally) run the following command.  
-Note: the application is currently developed using [NPM 7.6.3](https://www.npmjs.com/package/npm/v/7.6.3).
+To install the application's dependencies, run the following commands:
 
 ```
-npm install
+npm ci
 ```
-
-This command will install the necessary libraries required to run the application (defined in the `package.json` and `package-lock.json`). The latter command is only required when one is using the app for the first time.
 
 > **⚠ WARNING: Apple Silicon.**  
-> `TensorFlow.js` in version `3.13.0` currently supports for M1 mac laptops. However, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
+> `TensorFlow.js` since version `3.13.0` and newer do support M1 processors for macs. To do so, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
 
 ```
 node -p "process.arch"
 ```
 
-### Compiling and hot-reload for development
+which should return `arm64`.
 
-To launch the application run the following command:
+### Running for development
+
+The Disco client is a Vue app. For development purposes, we recommend running the client in Vue's development mode:
 
 ```
 npm run serve
 ```
 
-This will start the application locally with two visualization options:
+which supports hot-reload. This will start the application locally with two visualization options:
 
 1. One can access the running app locally, with a `localhost link`
 2. One can access the running app on any device that has access to the network of his machine. To do so, use the `network link`.
 
->
+Note: As mentioned above, the browser requires a running helper [server](../browser/README.md) to function. Make sure both services are running on different ports.
+
+### Running for production
+
+TODO
