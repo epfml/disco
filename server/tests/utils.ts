@@ -20,7 +20,11 @@ export async function startServer (): Promise<Server> {
   return server
 }
 
-export async function getClient (server: Server, task: Task): Promise<client.Federated> {
+export async function getClient<T extends client.Base> (
+  Constructor: new (url: URL, t: Task) => T,
+  server: Server,
+  task: Task
+): Promise<T> {
   let host: string
   const addr = server?.address()
   if (addr === undefined || addr === null) {
@@ -36,5 +40,5 @@ export async function getClient (server: Server, task: Task): Promise<client.Fed
   }
   const url = new URL(`http://${host}`)
 
-  return new client.Federated(url, task)
+  return new Constructor(url, task)
 }
