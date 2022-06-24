@@ -4,10 +4,13 @@ import { client, Task } from 'discojs'
 
 import { getApp } from '../src/get_server'
 
+// port to start server on
+const PORT: number | undefined = 5555
+
 export async function startServer (): Promise<Server> {
   const app = await getApp()
 
-  const server = http.createServer(app).listen()
+  const server = http.createServer(app).listen(PORT)
 
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
