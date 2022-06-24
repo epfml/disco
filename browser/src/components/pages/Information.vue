@@ -190,7 +190,7 @@
               {{ $tm('information.federatedTitle') }}
             </h6>
             <div class="flex justify-center my-md">
-              <img :src="federatedImage">
+              <FederatedGIF />
             </div>
             <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
               <div class="py-6">
@@ -215,7 +215,7 @@
               {{ $tm('information.decentralisedTitle') }}
             </h6>
             <div class="flex justify-center my-md">
-              <img :src="decentralisedImage">
+              <DecentralizedGIF />
             </div>
             <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
               <div class="py-6">
@@ -242,24 +242,23 @@
   </div>
 </template>
 
-<script>
-import Card from '@/components/containers/Card.vue'
+<script lang="ts">
 import { useI18n } from 'vue-i18n'
+
+import Card from '@/components/containers/Card.vue'
+import DecentralizedGIF from '@/assets/gif/DecentralizedGIF.vue'
+import FederatedGIF from '@/assets/gif/FederatedGIF.vue'
 
 export default {
   name: 'Information',
   components: {
-    Card
+    Card,
+    DecentralizedGIF,
+    FederatedGIF
   },
   setup () {
     const { t, locale } = useI18n()
     return { t, locale }
-  },
-  data () {
-    return {
-      federatedImage: require('../../assets/gif/federated_render.gif'),
-      decentralisedImage: require('../../assets/gif/decentralized_render.gif')
-    }
   },
   methods: {
     goToInformation () {
