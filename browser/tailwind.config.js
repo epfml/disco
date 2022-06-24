@@ -2,7 +2,8 @@ module.exports = {
   content: ['./public/**/*.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
     fontFamily: {
-      sans: ['cairo', 'sans-serif', 'AmpleSoftMedium']
+      sans: ['cairo', 'sans-serif'],
+      disco: ['AmpleSoftMedium']
     },
     extend: {
       colors: {
