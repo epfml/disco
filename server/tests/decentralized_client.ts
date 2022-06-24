@@ -1,9 +1,9 @@
 // import { expect } from 'chai'
 import * as http from 'http'
 
-import { tasks } from 'discojs'
+import { client as clients, tasks, TrainingInformant, TrainingSchemes } from 'discojs'
 
-import { getDecClient, startServer } from './utils'
+import { getClient, startServer } from './utils'
 
 const TASK = tasks.titanic.task
 
@@ -15,12 +15,12 @@ describe('decentralized client', function () { // the tests container
   after(() => { server?.close() })
 
   it('connect to valid task', async () => {
-    const client = await getDecClient(server, TASK)
+    const client = await getClient(clients.Decentralized, server, TASK)
     await client.connect()
   })
 
   it('disconnect from valid task', async () => {
-    const client = await getDecClient(server, TASK)
+    const client = await getClient(clients.Decentralized, server, TASK)
     await client.connect()
     await client.disconnect()
   })
