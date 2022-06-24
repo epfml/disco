@@ -64,7 +64,7 @@ export default defineComponent({
   },
   data () {
     return {
-      discoWelcome: require('../../assets/public/discoWelcome500.gif')
+      discoWelcome: require('../../assets/gif/discoWelcome500.gif')
     }
   },
   methods: {

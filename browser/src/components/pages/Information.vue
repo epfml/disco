@@ -225,8 +225,7 @@
           </div>
         </div>
         <div
-          class="flex justify-center my-md"
-          style="background:#6096BA; border-radius:35px"
+          class="flex justify-center my-md rounded-3xl bg-disco-cyan"
         >
           <ul class="text-lg ont-semibold text-white dark:text-light">
             <div
@@ -258,8 +257,8 @@ export default {
   },
   data () {
     return {
-      federatedImage: require('../../assets/public/federated_render.gif'),
-      decentralisedImage: require('../../assets/public/decentralized_render.gif')
+      federatedImage: require('../../assets/gif/federated_render.gif'),
+      decentralisedImage: require('../../assets/gif/decentralized_render.gif')
     }
   },
   methods: {
