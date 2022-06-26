@@ -64,10 +64,10 @@
             </button>
           </div>
         </TippyCard>
-        <!-- Theme -->
+        <!-- Theme
         <TippyCard title="Theme mode">
           <div class="flex items-center justify-center space-x-8">
-            <!-- Light button -->
+            Light button
             <button
               :class="buttonClass((!$store.state.isDark).toString())"
               @click="setLightTheme"
@@ -76,7 +76,7 @@
               <span>Light</span>
             </button>
 
-            <!-- Dark button -->
+            Dark button
             <button
               :class="buttonClass(($store.state.isDark).toString())"
               @click="setDarkTheme"
@@ -86,6 +86,7 @@
             </button>
           </div>
         </TippyCard>
+      -->
       </div>
     </template>
   </TippyContainer>
@@ -94,8 +95,8 @@
 import { mapMutations } from 'vuex'
 import TippyCard from './containers/TippyCard.vue'
 import TippyContainer from './containers/TippyContainer.vue'
-import MoonIcon from '../../assets/svg/MoonIcon.vue'
-import StarIcon from '../../assets/svg/StarIcon.vue'
+// import MoonIcon from '../../assets/svg/MoonIcon.vue'
+// import StarIcon from '../../assets/svg/StarIcon.vue'
 import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
 
 export default {
@@ -103,8 +104,8 @@ export default {
   components: {
     TippyCard,
     TippyContainer,
-    MoonIcon,
-    StarIcon,
+    //  MoonIcon,
+    //  StarIcon,
     SettingsIcon
   },
   data: function () {
