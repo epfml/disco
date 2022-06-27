@@ -131,7 +131,8 @@ export class Decentralized extends Base {
     }
 
     return await new Promise((resolve, reject) => {
-      ws.onerror = (err: string) => reject(new Error(`connecting server: ${err}`))
+      ws.onerror = (err: isomorphic.ErrorEvent) =>
+        reject(new Error(`connecting server: ${err.message}`))
       ws.onopen = () => resolve(ws)
     })
   }
