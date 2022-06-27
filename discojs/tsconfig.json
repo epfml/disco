@@ -18,7 +18,8 @@
     "baseUrl": "src",
     "paths": {
       "@/*": ["*"]
-    }
+    },
+    "typeRoots": ["./types"]
   },
   "include": ["src"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts"]
