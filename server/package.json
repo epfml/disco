@@ -21,8 +21,7 @@
     "express-ws": "5",
     "immutable": "4",
     "lodash": "4",
-    "msgpack-lite": "0.1",
-    "ws": "8"
+    "msgpack-lite": "0.1"
   },
   "nodemonConfig": {
     "ignore": [
@@ -40,7 +39,6 @@
     "@types/mocha": "9",
     "@types/msgpack-lite": "0.1",
     "@types/supertest": "2",
-    "@types/ws": "8",
     "@typescript-eslint/eslint-plugin": "4",
     "@typescript-eslint/parser": "4",
     "chai": "4",
