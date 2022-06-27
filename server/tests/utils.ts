@@ -1,4 +1,4 @@
-import http, { Server } from 'node:http'
+import { Server } from 'node:http'
 
 import { client, Task } from 'discojs'
 
@@ -10,7 +10,7 @@ const PORT: number | undefined = 5555
 export async function startServer (): Promise<Server> {
   const app = await getApp()
 
-  const server = http.createServer(app).listen(PORT)
+  const server = app.listen(PORT)
 
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
