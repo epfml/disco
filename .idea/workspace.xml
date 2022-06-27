@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/insecureDecentralizedClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/insecureDecentralizedClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/secureDecentralizedClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/secureDecentralizedClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/testing/assert.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/testing/assert.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/tests/decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/tests/decentralized_client.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -35,10 +36,16 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "/Users/alyssaunell/disco/discojs/dist/client",
     "nodejs_package_manager_path": "npm",
     "ts.external.directory.path": "/Applications/PyCharm.app/Contents/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/discojs/dist/client" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -47,7 +54,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1655969321402</updated>
-      <workItem from="1655969326344" duration="14855000" />
+      <workItem from="1655969326344" duration="18282000" />
     </task>
     <servers />
   </component>
@@ -64,6 +71,18 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/discojs/dist/secret_shares.d.ts</url>
+          <line>6</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/disco$disco.coverage" NAME="disco Coverage Results" MODIFIED="1654677737811" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />

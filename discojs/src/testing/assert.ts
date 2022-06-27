@@ -1,4 +1,4 @@
-import { Weights } from '@/types'
+import { Weights } from '../types'
 // import { generateRandomShare } from '@/secret_shares'
 
 export function assertTrue (condition: boolean): void {
