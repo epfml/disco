@@ -1,21 +1,21 @@
-import { List, Map, Seq, Set } from 'immutable'
-import isomorphic from 'isomorphic-ws'
+import { List, Seq, Set } from 'immutable'
+// import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
-import { URL } from 'url'
-import * as decentralizedGeneral from './decentralizedGeneral'
+// import { URL } from 'url'
+import * as decentralizedGeneral from './dg'
 
 import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
 
 // import { Base } from './base'
-import { DecentralizedGeneral } from './decentralizedGeneral'
+import { DecentralizedGeneral } from './dg'
 interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
 
 // TODO take it from the server sources
-type PeerID = number
-type EncodedSignal = Uint8Array
+// type PeerID = number
+// type EncodedSignal = Uint8Array
 // type ServerOpeningMessage = PeerID[]
-type ServerPeerMessage = [PeerID, EncodedSignal]
+// type ServerPeerMessage = [PeerID, EncodedSignal]
 
 // Time to wait between network checks in milliseconds.
 const TICK = 100
@@ -28,129 +28,21 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class Decentralized extends DecentralizedGeneral {
-  private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
-    const ws = new isomorphic.WebSocket(url)
-    ws.binaryType = 'arraybuffer'
-
-    ws.onmessage = async (event: isomorphic.MessageEvent) => {
-      if (!(event.data instanceof ArrayBuffer)) {
-        throw new Error('server did not send an ArrayBuffer')
-      }
-      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
-
-      if (decentralizedGeneral.isServerOpeningMessage(msg)) {
-        console.debug('server sent us the list of peer to connect to:', msg)
-        if (this.peers.size !== 0) {
-          throw new Error('server already gave us a list of peers')
-        }
-        this.peers = Map(await Promise.all(msg.map(
-          async (id: PeerID) => [id, await this.connectNewPeer(id, true)] as [PeerID, SimplePeer.Instance]
-        )))
-      } else if (decentralizedGeneral.isServerPeerMessage(msg)) {
-        const [peerID, encodedSignal] = msg
-        const signal = msgpack.decode(encodedSignal)
-        console.debug('server on behalf of', peerID, 'sent', signal)
-
-        let peer = this.peers.get(peerID)
-        if (peer === undefined) {
-          peer = await this.connectNewPeer(peerID, false)
-          this.peers = this.peers.set(peerID, peer)
-        }
-
-        peer.signal(signal)
-      } else {
-        throw new Error('send sent an invalid msg')
-      }
+  peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void {
+    const message = msgpack.decode(data)
+    if (!decentralizedGeneral.isPeerMessage(message)) {
+      throw new Error(`invalid message received from ${peerID}`)
     }
+    const weights = serialization.weights.decode(message.weights)
 
-    return await new Promise((resolve, reject) => {
-      ws.onerror = (err: isomorphic.ErrorEvent) =>
-        reject(new Error(`connecting server: ${err.message}`))
-      ws.onopen = () => resolve(ws)
-    })
-  }
+    console.debug('peer', peerID, 'sent weights', weights)
 
-  // connect a new peer
-  //
-  // if initiator is true, we start the connection on our side
-  // see SimplePeer.Options.initiator for more info
-  private async connectNewPeer (peerID: PeerID, initiator: boolean): Promise<SimplePeer.Instance> {
-    console.debug('connect new peer with initiator: ', initiator)
-
-    // only available on node
-    const wrtc = await import('wrtc')
-      .then((m) => m.default)
-      .catch(() => undefined)
-
-    const peer = new SimplePeer({
-      initiator,
-      wrtc,
-      config: {
-        iceServers: List(SimplePeer.config.iceServers)
-          /* .push({
-            urls: 'turn:34.77.172.69:3478',
-            credential: 'deai',
-            username: 'deai'
-          }) */
-          .toArray()
-      }
-    })
-
-    peer.on('signal', (signal: unknown) => {
-      console.debug('local', peerID, 'is signaling', signal)
-
-      if (this.server === undefined) {
-        console.warn('server closed but received a signal')
-        return
-      }
-
-      const msg: ServerPeerMessage = [peerID, msgpack.encode(signal)]
-      this.server.send(msgpack.encode(msg))
-    })
-
-    peer.on('data', (data) => {
-      const message = msgpack.decode(data)
-      if (!decentralizedGeneral.isPeerMessage(message)) {
-        throw new Error(`invalid message received from ${peerID}`)
-      }
-      const weights = serialization.weights.decode(message.weights)
-
-      console.debug('peer', peerID, 'sent weights', weights)
-
-      if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
-        throw new Error(`weights from ${peerID} already received`)
-      }
-      this.weights.set(peer,
-        this.weights.get(peer, List<Weights>())
-          .set(message.epoch, weights))
-    })
-
-    peer.on('connect', () => console.info('connected to peer', peerID))
-
-    // TODO better error handling
-    peer.on('error', (err) => { throw err })
-
-    return peer
-  }
-
-  /**
-   * Initialize the connection to the peers and to the other nodes.
-   */
-  async connect (): Promise<void> {
-    const serverURL = new URL('', this.url.href)
-    switch (this.url.protocol) {
-      case 'http:':
-        serverURL.protocol = 'ws:'
-        break
-      case 'https:':
-        serverURL.protocol = 'wss:'
-        break
-      default:
-        throw new Error(`unknown protocol: ${this.url.protocol}`)
+    if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
+      throw new Error(`weights from ${peerID} already received`)
     }
-    serverURL.pathname += `deai/${this.task.taskID}`
-
-    this.server = await this.connectServer(serverURL)
+    this.weights.set(peer,
+      this.weights.get(peer, List<Weights>())
+        .set(message.epoch, weights))
   }
 
   async onRoundEndCommunication (
