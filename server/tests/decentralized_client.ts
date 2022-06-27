@@ -7,6 +7,7 @@ import { getClient, startServer } from './utils'
 const TASK = tasks.titanic.task
 
 describe('decentralized client', function () { // the tests container
+  console.log('TESTING NOW DCT')
   this.timeout(30_000)
 
   let server: http.Server
@@ -14,12 +15,12 @@ describe('decentralized client', function () { // the tests container
   after(() => { server?.close() })
 
   it('connect to valid task', async () => {
-    const client = await getClient(clients.Decentralized, server, TASK)
+    const client = await getClient(clients.insecureDecentralizedClient, server, TASK)
     await client.connect()
   })
 
   it('disconnect from valid task', async () => {
-    const client = await getClient(clients.Decentralized, server, TASK)
+    const client = await getClient(clients.insecureDecentralizedClient, server, TASK)
     await client.connect()
     await client.disconnect()
   })

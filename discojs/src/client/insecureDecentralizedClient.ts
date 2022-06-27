@@ -27,7 +27,7 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
-export class InsecureDecentralizedClient extends DecentralizedGeneral {
+export class insecureDecentralizedClient extends DecentralizedGeneral {
   peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void {
     const message = msgpack.decode(data)
     if (!decentralizedGeneral.isPeerMessage(message)) {

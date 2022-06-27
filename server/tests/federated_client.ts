@@ -6,7 +6,7 @@ import { client as clients, tasks, TrainingInformant, TrainingSchemes } from 'di
 import { getClient, startServer } from './utils'
 
 const TASK = tasks.titanic.task
-
+console.log('TESTING NOW FCT')
 describe('federated client', function () { // the tests container
   this.timeout(30_000)
 
