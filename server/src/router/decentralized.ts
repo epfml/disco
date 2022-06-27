@@ -36,10 +36,8 @@ export class Decentralized {
     return this.ownRouter
   }
 
-  private onNewTask (task: Task, model: tf.LayersModel): void {
-    console.log('New task created: ', task.taskID)
+  private onNewTask (task: Task, _: tf.LayersModel): void {
     this.ownRouter.ws(`/${task.taskID}`, (ws, _) =>
-      this.signalingServer.handle(task.taskID, ws)
-    )
+      this.signalingServer.handle(task.taskID, ws))
   }
 }
