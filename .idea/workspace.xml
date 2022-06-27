@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/discojs/src/client/insecureDecentralizedClient.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralizedGeneral.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/dg.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/dg.ts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/discojs/src/client/secureDecentralizedClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/secureDecentralizedClient.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -48,7 +49,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1655969321402</updated>
-      <workItem from="1655969326344" duration="13808000" />
+      <workItem from="1655969326344" duration="14422000" />
     </task>
     <servers />
   </component>
