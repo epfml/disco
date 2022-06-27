@@ -167,7 +167,8 @@ export class Decentralized extends Base {
       console.debug('local', peerID, 'is signaling', signal)
 
       if (this.server === undefined) {
-        throw new Error('server closed but received a signal')
+        console.warn('server closed but received a signal')
+        return
       }
 
       const msg: ServerPeerMessage = [peerID, msgpack.encode(signal)]
