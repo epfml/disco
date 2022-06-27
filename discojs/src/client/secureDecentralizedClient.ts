@@ -83,7 +83,7 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
-    ws.onmessage = (event: isomorphic.MessageEvent) => {
+    ws.onmessage = async (event: isomorphic.MessageEvent) => {
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
@@ -94,8 +94,9 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
         if (this.peers.size !== 0) {
           throw new Error('server already gave us a list of peers')
         }
-        this.peers = Map(List(msg)
-          .map((id: PeerID) => [id, this.connectNewPeer(id, true)]))
+        this.peers = Map(await Promise.all(msg.map(
+          async (id: PeerID) => [id, await this.connectNewPeer(id, true)] as [PeerID, SimplePeer.Instance]
+        )))
       } else if (decentralizedGeneral.isServerPeerMessage(msg)) {
         const [peerID, encodedSignal] = msg
         const signal = msgpack.decode(encodedSignal)
@@ -103,7 +104,7 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
 
         let peer = this.peers.get(peerID)
         if (peer === undefined) {
-          peer = this.connectNewPeer(peerID, false)
+          peer = await this.connectNewPeer(peerID, false)
           this.peers = this.peers.set(peerID, peer)
         }
 
@@ -123,11 +124,17 @@ export class secureDecentralizedClient extends DecentralizedGeneral {
   //
   // if initiator is true, we start the connection on our side
   // see SimplePeer.Options.initiator for more info
-  private connectNewPeer (peerID: PeerID, initiator: boolean): SimplePeer.Instance {
+  private async connectNewPeer (peerID: PeerID, initiator: boolean): Promise<SimplePeer.Instance> {
     console.debug('connect new peer with initiator: ', initiator)
+
+    // only available on node
+    const wrtc = await import('wrtc')
+      .then((m) => m.default)
+      .catch(() => undefined)
 
     const peer = new SimplePeer({
       initiator,
+      wrtc,
       config: {
         iceServers: List(SimplePeer.config.iceServers)
           /* .push({
