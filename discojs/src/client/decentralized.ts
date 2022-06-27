@@ -138,7 +138,17 @@ export class Decentralized extends DecentralizedGeneral {
    */
   async connect (): Promise<void> {
     const serverURL = new URL('', this.url.href)
-    serverURL.pathname += `/deai/tasks/${this.task.taskID}`
+    switch (this.url.protocol) {
+      case 'http:':
+        serverURL.protocol = 'ws:'
+        break
+      case 'https:':
+        serverURL.protocol = 'wss:'
+        break
+      default:
+        throw new Error(`unknown protocol: ${this.url.protocol}`)
+    }
+    serverURL.pathname += `deai/${this.task.taskID}`
 
     this.server = await this.connectServer(serverURL)
   }
