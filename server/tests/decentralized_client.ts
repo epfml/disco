@@ -1,7 +1,6 @@
-// import { expect } from 'chai'
 import * as http from 'http'
 
-import { client as clients, tasks, TrainingInformant, TrainingSchemes } from 'discojs'
+import { client as clients, tasks } from 'discojs'
 
 import { getClient, startServer } from './utils'
 
@@ -23,17 +22,5 @@ describe('decentralized client', function () { // the tests container
     const client = await getClient(clients.Decentralized, server, TASK)
     await client.connect()
     await client.disconnect()
-  })
-
-  it('Connect to non valid task', async () => {
-    const client = await getDecClient(server, { taskID: 'nonValidTask' })
-
-    try {
-      await client.connect()
-    } catch {
-      return
-    }
-
-    throw new Error("connect didn't fail")
   })
 })
