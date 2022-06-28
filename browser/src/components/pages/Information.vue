@@ -179,9 +179,10 @@
               class="
               text-xl
               font-large
+              font-bold
               leading-none
               tracking-wider
-              dark:group-hover:text-light
+              text-disco-cyan
               px-2
               py-6
             "
@@ -189,7 +190,7 @@
               {{ $tm('information.federatedTitle') }}
             </h6>
             <div class="flex justify-center my-md">
-              <img :src="federatedImage">
+              <FederatedGIF />
             </div>
             <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
               <div class="py-6">
@@ -203,9 +204,10 @@
               class="
               text-xl
               font-large
+              font-bold
               leading-none
               tracking-wider
-              dark:group-hover:text-light
+              text-disco-blue
               px-2
               py-6
             "
@@ -213,7 +215,7 @@
               {{ $tm('information.decentralisedTitle') }}
             </h6>
             <div class="flex justify-center my-md">
-              <img :src="decentralisedImage">
+              <DecentralizedGIF />
             </div>
             <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
               <div class="py-6">
@@ -223,8 +225,7 @@
           </div>
         </div>
         <div
-          class="flex justify-center my-md"
-          style="background:#6096BA"
+          class="flex justify-center my-md rounded-3xl bg-disco-cyan"
         >
           <ul class="text-lg ont-semibold text-white dark:text-light">
             <div
@@ -241,24 +242,23 @@
   </div>
 </template>
 
-<script>
-import Card from '@/components/containers/Card.vue'
+<script lang="ts">
 import { useI18n } from 'vue-i18n'
+
+import Card from '@/components/containers/Card.vue'
+import DecentralizedGIF from '@/assets/gif/DecentralizedGIF.vue'
+import FederatedGIF from '@/assets/gif/FederatedGIF.vue'
 
 export default {
   name: 'Information',
   components: {
-    Card
+    Card,
+    DecentralizedGIF,
+    FederatedGIF
   },
   setup () {
     const { t, locale } = useI18n()
     return { t, locale }
-  },
-  data () {
-    return {
-      federatedImage: require('../../assets/public/federated_rev3.gif'),
-      decentralisedImage: require('../../assets/public/decentralized_rev2.gif')
-    }
   },
   methods: {
     goToInformation () {

@@ -21,8 +21,19 @@ If you run into any sort of trouble then hopefully you can find an answer in our
 
 Disco is composed of three parts:
 
-1. [browser](browser/README.md)
-2. [server](server/README.md)
-3. [discojs](discojs/README.md)
+1. [discojs](discojs/README.md) The core library for disco.js
+2. [server](server/README.md) The helper server for peering or federated learning, as a node application
+3. [browser](browser/README.md) The client implementation for use in browser. Note that discojs is also usable directly in node.js without a browser, such as for native integration or benchmarking
 
-The parts are self explanatory in their name, except for `discojs`, this contains the core code of Disco
+The three parts should be built in the above order, using the node package manager.
+
+## Quick-start guide
+
+- install node 16 and ensure it is activated on opening any new terminal (e.g. `nvm use 16`)
+- clone this repository
+- `npm ci` within all 3 disco subfolders
+- `cd discojs; rm -rf dist; npm run build`
+- `cd server; npm run dev`, check that the server is indeed running on localhost:8080
+- `cd browser; npm run serve`, check that the browser client is running on localhost:8081
+
+For full details, see the respective readme files linked for the three parts above, that is [discojs](discojs/README.md), [server](server/README.md), and [browser](browser/README.md).
