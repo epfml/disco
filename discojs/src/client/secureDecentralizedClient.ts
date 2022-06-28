@@ -72,7 +72,8 @@ function isPeerPartialSumMessage (data: unknown): data is PeerPartialSumMessage 
   return true
 }
 
-export class SecureDecentralizedClient extends DecentralizedGeneral {
+
+export class SecureDecentralized extends DecentralizedGeneral {
   private readonly receivedReadyBuffer: PeerReadyMessage[] = []
   // private readonly receivedSharesBuffer: Set<Weights> = Set()// same as this.weights  **USE MY own field for this
   private readonly partialSumsBuffer: List<Weights> = List() // set of partial sums received by peers
