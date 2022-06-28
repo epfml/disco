@@ -72,7 +72,6 @@ function isPeerPartialSumMessage (data: unknown): data is PeerPartialSumMessage 
   return true
 }
 
-
 export class SecureDecentralized extends DecentralizedGeneral {
   private readonly receivedReadyBuffer: PeerReadyMessage[] = []
   // private readonly receivedSharesBuffer: Set<Weights> = Set()// same as this.weights  **USE MY own field for this
