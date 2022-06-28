@@ -1,11 +1,16 @@
 import { client, Client, Task, TrainingSchemes } from 'discojs'
+// import {SecureDecentralized} from 'discojs/src/client/secureDecentralizedClient'
 
 import { CONFIG } from './config'
 
 export function getClient (trainingScheme: TrainingSchemes, task: Task): Client {
   switch (trainingScheme) {
     case TrainingSchemes.DECENTRALIZED:
-      return new client.Decentralized(CONFIG.serverUrl, task)
+      if (task.trainingInformation.decentralizedSecure) {
+        return new client.SecureDecentralized(CONFIG.serverUrl, task)
+      } else {
+        return new client.InsecureDecentralized(CONFIG.serverUrl, task)
+      }
     case TrainingSchemes.FEDERATED:
       return new client.Federated(CONFIG.serverUrl, task)
     case TrainingSchemes.LOCAL:

@@ -1,5 +1,5 @@
-import { Weights } from '@/types'
-import { assertEqualSizes } from '../src/testing/assert'
+import { Weights } from './types'
+import { assertEqualSizes } from './testing/assert'
 import { List } from 'immutable'
 
 import * as tf from '@tensorflow/tfjs'

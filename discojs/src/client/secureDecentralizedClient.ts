@@ -2,7 +2,7 @@ import { List, Map, Seq, Set } from 'immutable'
 // import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
-import * as secret_shares from 'secret_shares'
+import * as secret_shares from '../secret_shares'
 // import { v4 as randomUUID } from 'uuid'
 import * as decentralizedGeneral from './dg'
 import { DecentralizedGeneral } from './dg'
@@ -72,7 +72,7 @@ function isPeerPartialSumMessage (data: unknown): data is PeerPartialSumMessage 
   return true
 }
 
-export class secureDecentralizedClient extends DecentralizedGeneral {
+export class SecureDecentralized extends DecentralizedGeneral {
   private readonly receivedReadyBuffer: PeerReadyMessage[] = []
   // private readonly receivedSharesBuffer: Set<Weights> = Set()// same as this.weights  **USE MY own field for this
   private readonly partialSumsBuffer: List<Weights> = List() // set of partial sums received by peers
