@@ -3,7 +3,7 @@ import { assertEqualSizes } from './testing/assert'
 import { List } from 'immutable'
 
 import * as tf from '@tensorflow/tfjs'
-require('@tensorflow/tfjs-node')
+// require('@tensorflow/tfjs-node')
 
 export enum RNG_CRYPTO_SECURITY {
   UNSAFE = 'Cryptographically unsafe random number generation.',
@@ -14,6 +14,7 @@ export enum RNG_CRYPTO_SECURITY {
 function raiseCryptoNotImplemented (): void {
   throw new Error('No cryptographically secure random number generation implemented yet!')
 }
+
 export function addWeights (w1: Weights, w2: Weights): Weights {
   ''
   'Return Weights object that is sum of two weights objects'

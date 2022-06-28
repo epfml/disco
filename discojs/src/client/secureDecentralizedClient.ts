@@ -8,12 +8,8 @@ import * as decentralizedGeneral from './decentralized'
 import { DecentralizedGeneral } from './decentralized'
 
 import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
-// import { URL } from 'url'
 
 type PeerID = number
-// type EncodedSignal = Uint8Array
-// type ServerOpeningMessage = PeerID[]
-// type ServerPeerMessage = [PeerID, EncodedSignal]
 
 interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
 
@@ -140,6 +136,7 @@ export class SecureDecentralized extends DecentralizedGeneral {
     const connectedPeers: Map<PeerID, SimplePeer.Instance> = this.peers.filter((peer) => peer.connected)
     const noisyWeights: Weights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, connectedPeers.size, 1000)
+    // List()
 
     // Broadcast our weights to ith peer
     for (let i = 0; i < connectedPeers.size; i++) {
@@ -242,6 +239,7 @@ export class SecureDecentralized extends DecentralizedGeneral {
     await this.sendShares(updatedWeights, staleWeights, epoch, trainingInformant)
     if (this.partialSumsBuffer.size === minimumReady) {
       this.sendPartialSums()
+      // return []
       return secret_shares.addWeights(secret_shares.sum(this.partialSumsBuffer), this.mySum)
     }
   }
