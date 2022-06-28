@@ -17,13 +17,19 @@
           class="
           p-1
           inline-block
-          text-xl
+          text-2xl
           font-bold
+          font-disco
           tracking-wider
+          cursor-pointer
         "
           @click="goToHome"
         >
-          <span class="text-disco-cyan">DIS</span><span class="text-disco-blue">CO</span>
+          <span
+            class="text-disco-cyan"
+          >DIS</span><span
+            class="text-disco-blue"
+          >CO</span>
         </a>
       </div>
       <!-- Mini Sidebar content-->

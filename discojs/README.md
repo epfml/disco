@@ -2,31 +2,32 @@
 
 discojs contains the core code of disco.
 
-## Node Installation and NPM installation
+## Installation
 
-The app is running under Node 15.12.0. It can be downloaded from [here](https://nodejs.org/en/download/releases/).
+The app is running under Node.js v16. NPM is a package manager for the JavaScript runtime environment Node.js.
+We recommend using [nvm](https://github.com/nvm-sh/nvm) for installing both Node.js and NPM.
 
-NPM is a package manager for the JavaScript runtime environment Node.js.  
-To start the application (running locally) run the following command.  
-Note: the application is currently developed using [NPM 7.6.3](https://www.npmjs.com/package/npm/v/7.6.3).
+To install the application's dependencies, run the following command:
 
 ```
-npm install
+npm ci
 ```
 
-This command will install the necessary libraries required to run the application (defined in the `package.json` and `package-lock.json`). The latter command is only required when one is using the app for the first time.
-
-> **⚠ WARNING: Apple Silicon.**  
-> `TensorFlow.js` in version `3.13.0` currently supports for M1 mac laptops. However, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
+> **⚠ WARNING: Apple Silicon.**
+> `TensorFlow.js` since version `3.13.0` and newer do support M1 processors for macs. To do so, make sure you have an `arm` node executable installed (not `x86`). It can be checked using:
 
 ```
 node -p "process.arch"
 ```
 
+which should return `arm64`.
+
 ## Build
 
-In order to enable the Browser to use the `discojs` package, we must build discojs:
+In order to enable the browser and server modules to use the `discojs` package, we must build discojs:
 
 ```
 npm run build
 ```
+
+This invokes the TypeScript compiler (`tsc`). To recompile from stratch, simply `rm -rf dist/` before running `npm run build` again.

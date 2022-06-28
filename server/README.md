@@ -7,7 +7,15 @@ For federated learning, the helper server receives all weight updates (but never
 
 ### Requirements
 
-The server is running as a single ExpressJS app. It mainly requires [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [PeerServer](https://github.com/peers/peerjs-server) and [Tensorflow](https://www.tensorflow.org/js). All library requirements are included in the `package.json` file.
+The helper server is running as a single ExpressJS app. It mainly requires [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [PeerServer](https://github.com/peers/peerjs-server) and [Tensorflow](https://www.tensorflow.org/js).
+
+To install the dependencies, run
+
+```
+npm ci
+```
+
+This server also requires the [discojs](../discojs/README.md) package. Make sure `discojs` is *built* before proceeding to the next steps, by following the [discojs readme](../discojs/README.md).
 
 ### Running the server locally
 
@@ -62,10 +70,10 @@ Deployment files:
 
 To change the GAE app configuration, you can modify the file `app.yaml`.
 
-To deploy the app on GAE, you can run the following command, where deai-313515 is the current PROJECT-ID:
+To deploy the app on GAE, you can run the following command, where disco-313515 is the current PROJECT-ID:
 
 ```
-gcloud app deploy --project=deai-313515 app.yaml --version prod
+gcloud app deploy --project=disco-313515 app.yaml --version prod
 ```
 
 :exclamation: Important!
@@ -97,7 +105,7 @@ In the `tsconfig` we add the base esm module that we use as well as including th
 
 tl;dr: `tsconfig.json` specifies the general setup for ts (including testing), `tsconfig.prod.json` adds production specific commands to `tsconfig.json`.
 
-## DeAI Helper Server, for decentralized training
+## Disco Helper Server, for decentralized training
 
 ### Components
 
@@ -110,9 +118,9 @@ The PeerServer stores the entire list of connected peers, which the peers need t
 
 #### ML Tasks
 
-The list of ML training tasks available to DeAI clients are provided by this helper server. Their descriptions as well as their deep learning model architectures must be made available to peers, which is achieved via the following routing paths:
+The list of ML training tasks available to disco clients are provided by this helper server. Their descriptions as well as their deep learning model architectures must be made available to peers, which is achieved via the following routing paths:
 
-- `/tasks`: JSON file containing meta-data (including task id) on all available DeAI training tasks
+- `/tasks`: JSON file containing meta-data (including task id) on all available training tasks
 - `/tasks/task_id/{model.json, weights.bin}`: Tensorflow neural network model files for the given task id (model architecture & initialization weights)
 
 Tasks are stored in `tasks.json`. The models are declared in `models.js`.
@@ -124,7 +132,7 @@ Adding a new task server-side can easily be done by following the next steps:
 - add an entry to `tasks.json` with the task's parameters
 - add a `createModel` function to `models.js` with the task's model architecture and export it
 
-## DeAI Helper Server, for federated training
+## Disco Helper Server, for federated training
 
 ### Components
 
@@ -171,9 +179,9 @@ The federated learning server keeps track of connected clients and weights from 
 
 #### ML Tasks
 
-The list of ML training tasks available to DeAI clients are provided by this helper server. Their descriptions as well as their deep learning model architectures must be made available to all clients, which is achieved via the following `GET` request routes.
+The list of ML training tasks available to clients is provided by this helper server. Their descriptions as well as their deep learning model architectures must be made available to all clients, which is achieved via the following `GET` request routes.
 
-- JSON file containing meta-data (including task id) on all available FeAI training tasks
+- JSON file containing meta-data (including task id) on all available training tasks
   ```
   URL: /tasks
   ```

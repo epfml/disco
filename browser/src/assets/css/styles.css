@@ -28,3 +28,9 @@
   width: 0px;
   height: 0px;
 }
+
+@font-face {
+  font-family: AmpleSoftMedium;
+  src: url('../fonts/AmpleSoftMedium.woff2') format('woff2'), 
+    url('../fonts/AmpleSoftMedium.woff') format('woff');
+}
