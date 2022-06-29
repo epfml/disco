@@ -20,7 +20,7 @@
     </IconCard>
     <div
       v-else-if="task.trainingInformation.dataType === 'image'"
-      class="grid grid-cols-2"
+      class="grid grid-cols-1 lg:grid-cols-2"
     >
       <div
         v-if="requireLabels"

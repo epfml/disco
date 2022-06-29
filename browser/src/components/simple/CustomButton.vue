@@ -3,7 +3,7 @@
     :id="id"
     type="button"
     class="
-    px-4 py-1 min-w-[20%]
+    px-4 py-1 min-w-[8rem]
     text-lg font-bold uppercase text-white
     bg-disco-cyan
     rounded duration-200
