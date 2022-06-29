@@ -39,6 +39,5 @@ export async function getClient<T extends client.Base> (
     }
   }
   const url = new URL(`http://${host}`)
-
   return new Constructor(url, task)
 }
