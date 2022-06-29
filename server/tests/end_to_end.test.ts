@@ -4,7 +4,7 @@ import { Server } from 'node:http'
 import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
-import { dataset, ConsoleLogger, training, TrainingSchemes, TrainingInformant, EmptyMemory, tasks } from 'discojs'
+import { dataset, ConsoleLogger, training, TrainingSchemes, TrainingInformant, EmptyMemory, tasks, client } from 'discojs'
 
 import { getClient, startServer } from './utils'
 
@@ -42,8 +42,8 @@ describe('end to end', function () {
 
     const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 
-    const client = await getClient(server, cifar10)
-    await client.connect()
+    const cli= await getClient(client.Federated, server, cifar10)
+    await cli.connect()
 
     const disco = new training.Disco(
       cifar10,
@@ -51,7 +51,7 @@ describe('end to end', function () {
       new EmptyMemory(),
       SCHEME,
       new TrainingInformant(10, cifar10.taskID, SCHEME),
-      client
+      cli
     )
 
     await disco.startTraining(loaded)
@@ -78,8 +78,8 @@ describe('end to end', function () {
       size: 100
     }
 
-    const client = await getClient(server, titanic)
-    await client.connect()
+    const cli = await getClient(client.Federated, server, titanic)
+    await cli.connect()
 
     const disco = new training.Disco(
       titanic,
@@ -87,7 +87,7 @@ describe('end to end', function () {
       new EmptyMemory(),
       SCHEME,
       new TrainingInformant(10, titanic.taskID, SCHEME),
-      client
+      cli
     )
 
     await disco.startTraining(data)
