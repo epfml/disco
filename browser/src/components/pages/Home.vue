@@ -4,9 +4,11 @@
     <DiscoGIF class="mx-auto mb-[10%]" />
 
     <!-- Main cards -->
-    <div class="grid grid-cols-3 gap-8 items-stretch">
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-3 items-stretch">
       <!-- List of tasks -->
-      <ButtonCard :click="goToTaskList">
+      <ButtonCard
+        :click="goToTaskList"
+      >
         <template #title>
           Build AI with collaborators <span class="underline">without sharing any data</span>
         </template>
