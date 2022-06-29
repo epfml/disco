@@ -3,7 +3,7 @@
     <!-- Train Button -->
     <div
       v-if="trainingInformant === undefined"
-      class="grid grid-cols-2 gap-8 py-6 items-center"
+      class="grid grid-cols-1 md:grid-cols-2 gap-8 py-6 items-center"
     >
       <div class="text-center">
         <CustomButton
