@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-1 gap-8 mt-8">
+  <div class="flex flex-col gap-8 mt-8">
     <div
       v-for="[taskID, task] in tasks"
       :key="taskID"
