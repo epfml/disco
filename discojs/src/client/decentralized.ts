@@ -80,12 +80,6 @@ export function isServerPeerMessage (msg: unknown): msg is ServerPeerMessage {
   return true
 }
 
-// Time to wait between network checks in milliseconds.
-// const TICK = 100
-
-// Time to wait for the others in milliseconds.
-// const MAX_WAIT_PER_ROUND = 10_000
-
 /**
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
@@ -133,7 +127,6 @@ export abstract class DecentralizedGeneral extends Base {
 
     return await new Promise((resolve, reject) => {
       ws.onerror = (err: isomorphic.ErrorEvent) =>
-      /* eslint-disable  @typescript-eslint/restrict-template-expressions */
         reject(new Error(`connecting server: ${err.message}`))
       ws.onopen = () => resolve(ws)
     })
