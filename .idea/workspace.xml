@@ -4,7 +4,6 @@
     <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/tests/end_to_end.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/tests/end_to_end.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/tests/router/decentralized.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/tests/router/decentralized.test.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/tests/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/tests/utils.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
