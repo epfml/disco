@@ -41,7 +41,7 @@
     <div v-show="step === 0">
       <div
         v-if="models.size > 0"
-        class="grid grid-cols-3 items-stretch gap-8 mt-8"
+        class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8"
       >
         <div
           v-for="[path, metadata] in models"
@@ -56,18 +56,18 @@
               {{ taskTitle(metadata.taskID) }}
             </template>
             <template #text>
-              <div class="grid grid-cols-4">
-                <div>
-                  <p>Model:</p>
-                  <p>Date:</p>
-                  <p>Size:</p>
-                </div>
-                <div />
-                <div class="col-span-2">
-                  <p>{{ metadata.name.substring(0, 20) }}</p>
-                  <p>{{ metadata.date }} at {{ metadata.hours }}</p>
-                  <p>{{ metadata.fileSize }} kB</p>
-                </div>
+              <div class="grid grid-cols-2 justify-items-between">
+                <p class="contents">
+                  <span>Model:</span>
+                  <span>{{ metadata.name.substring(0, 20) }}</span>
+                </p>
+                <p class="contents">
+                  <span>Date:</span>
+                  <span>{{ metadata.date }} at {{ metadata.hours }}</span>
+                </p>
+                <p class="contents">
+                  <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
+                </p>
               </div>
             </template>
             <template #button>
