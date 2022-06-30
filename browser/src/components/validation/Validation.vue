@@ -17,7 +17,7 @@
           &lt;
         </button>
       </div>
-      <TestingBar
+      <ValidationBar
         :step="step"
         class="w-3/5"
       />
@@ -98,7 +98,7 @@
         :task="task"
         :dataset-builder="datasetBuilder"
       />
-      <Tester
+      <Validator
         v-show="step === 2"
         :task="task"
         :dataset-builder="datasetBuilder"
@@ -108,9 +108,9 @@
   </div>
 </template>
 <script lang="ts">
-import TestingBar from '@/components/testing/TestingBar.vue'
+import ValidationBar from '@/components/validation/ValidationBar.vue'
 import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
-import Tester from '@/components/testing/Tester.vue'
+import Validator from '@/components/validation/Validator.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import { IndexedDB, pathFor } from '@/memory'
@@ -125,8 +125,8 @@ import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'Testing',
   components: {
-    TestingBar,
-    Tester,
+    ValidationBar,
+    Validator,
     DatasetInput,
     ButtonCard,
     IconCard

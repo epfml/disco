@@ -1,1 +1,0 @@
-export { Tester } from './tester'

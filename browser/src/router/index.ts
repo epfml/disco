@@ -7,7 +7,7 @@ import NewTaskCreationForm from '@/components/pages/NewTaskCreationForm.vue'
 import TaskList from '@/components/pages/TaskList.vue'
 import ProgressBar from '@/components/navigation/ProgressBar.vue'
 import Navigation from '@/components/navigation/Navigation.vue'
-import Testing from '@/components/testing/Testing.vue'
+import Validation from '@/components/validation/Validation.vue'
 import NotFound from '@/components/pages/NotFound.vue'
 import Features from '@/components/pages/Features.vue'
 import Tutorial from '@/components/pages/Tutorial.vue'
@@ -63,7 +63,7 @@ const router = createRouter({
     {
       path: '/testing',
       name: 'testing',
-      component: Testing
+      component: Validation
     },
     {
       path: '/:id',

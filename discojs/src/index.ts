@@ -14,7 +14,7 @@ export { Logger, ConsoleLogger } from './logging'
 export { Memory, ModelType, Empty as EmptyMemory } from './memory'
 export { ModelActor } from './model_actor'
 export { Disco, TrainingSchemes } from './training'
-export { Tester } from './testing'
+export { Validator } from './validation'
 
 export { TrainingInformation, DisplayInformation, isTask, Task, isTaskID, TaskID } from './task'
 export { TrainingInformant, GraphInformant } from './informant'
