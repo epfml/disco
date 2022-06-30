@@ -22,7 +22,7 @@
             <span class="text-2xl font-medium text-slate-500">
               {{ currentValidationAccuracy }}
             </span>
-            <span class="text-sm font-medium text-slate-500 dark:text-primary">
+            <span class="text-sm font-medium text-slate-500">
               {{
                 $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyText')
               }}
@@ -34,7 +34,7 @@
               width="100%"
               height="200"
               type="area"
-              :options="areaChartOptions"
+              :options="chartOptions"
               :series="validationAccuracyData"
             />
           </div>
@@ -43,7 +43,7 @@
         <!-- Training Accuracy users chart -->
         <div class="bg-white rounded-md">
           <!-- Card header -->
-          <div class="p-4 border-b dark:border-primary">
+          <div class="p-4 border-b">
             <h4 class="text-lg font-semibold text-slate-500">
               {{
                 $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
@@ -51,10 +51,10 @@
             </h4>
           </div>
           <p class="p-4">
-            <span class="text-2xl font-medium text-slate-500 dark:text-light">
+            <span class="text-2xl font-medium text-slate-500">
               {{ currentTrainingAccuracy }}
             </span>
-            <span class="text-sm font-medium text-slate-500 dark:text-primary">
+            <span class="text-sm font-medium text-slate-500">
               {{
                 $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
               }}
@@ -66,7 +66,7 @@
               width="100%"
               height="200"
               type="area"
-              :options="areaChartOptions"
+              :options="chartOptions"
               :series="trainingAccuracyData"
             />
           </div>
@@ -182,6 +182,7 @@ import People from '@/assets/svg/People.vue'
 import Performances from '@/assets/svg/Performances.vue'
 import Forward from '@/assets/svg/Forward.vue'
 import Contact from '@/assets/svg/Contact.vue'
+import { chartOptions } from '@/charts'
 
 export default defineComponent({
   name: 'TrainingInformation',
@@ -200,84 +201,13 @@ export default defineComponent({
       default: undefined
     }
   },
-  data () {
-    const areaChartOptions = {
-      chart: {
-        id: 'realtime',
-        width: 'auto',
-        height: 'auto',
-        type: 'area',
-        animations: {
-          enabled: true,
-          easing: 'linear',
-          dynamicAnimation: {
-            speed: 1000
-          }
-        },
-        toolbar: {
-          show: false
-        },
-        zoom: {
-          enabled: false
-        }
-      },
-      dataLabels: {
-        enabled: false
-      },
-      colors: [
-        // TODO: Make it so it immediately changes when updated
-        '#6096BA'
-      ],
-      fill: {
-        colors: ['#E2E8F0'],
-        type: 'solid',
-        opacity: 0.6
-      },
-      stroke: {
-        curve: 'smooth'
-      },
-      markers: {
-        size: 0.5
-      },
-      grid: {
-        xaxis: {
-          lines: {
-            show: false
-          }
-        },
-        yaxis: {
-          lines: {
-            show: false
-          }
-        }
-      },
-      yaxis: {
-        max: 100,
-        min: 0,
-        labels: {
-          show: false
-        }
-      },
-      xaxis: {
-        labels: {
-          show: false
-        }
-      },
-      legend: {
-        show: false
-      },
-      tooltip: {
-        enabled: false
-      }
-    }
-
-    return {
-      areaChartOptions,
-      isDecentralizedTrainingScheme: this.trainingInformant.isTaskTrainingSchemeDecentralized()
-    }
-  },
-
   computed: {
+    chartOptions () {
+      return chartOptions
+    },
+    isDecentralizedTrainingScheme () {
+      return this.trainingInformant.isTaskTrainingSchemeDecentralized()
+    },
     displayHeatmap () {
       return this.trainingInformant.displayHeatmap
     },

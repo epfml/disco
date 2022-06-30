@@ -1,19 +1,21 @@
 <template>
-  <a
-    type="a"
-    :data-title="dataTitle"
-    data-placement="right"
+  <div
     class="
       p-2
       text-slate-500
     "
-    @click="click()"
   >
     <span class="sr-only">{{ hoverText }}</span>
-    <div class="hover:cursor-pointer">
+    <a
+      type="a"
+      :data-title="dataTitle"
+      data-placement="right"
+      class="hover:cursor-pointer"
+      @click="click()"
+    >
       <slot />
-    </div>
-  </a>
+    </a>
+  </div>
 </template>
 
 <script lang="ts">
