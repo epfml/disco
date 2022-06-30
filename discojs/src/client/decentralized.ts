@@ -132,7 +132,7 @@ export abstract class DecentralizedGeneral extends Base {
     })
   }
 
-  private async connectNewPeer (peerID: PeerID, initiator: boolean): Promise<SimplePeer.Instance> {
+  async connectNewPeer (peerID: PeerID, initiator: boolean): Promise<SimplePeer.Instance> {
     console.debug('connect new peer with initiator: ', initiator)
 
     // only available on node

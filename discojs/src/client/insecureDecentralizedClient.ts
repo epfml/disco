@@ -11,12 +11,6 @@ import { aggregation, privacy, serialization, TrainingInformant, Weights } from 
 import { DecentralizedGeneral } from './decentralized'
 interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
 
-// TODO take it from the server sources
-// type PeerID = number
-// type EncodedSignal = Uint8Array
-// type ServerOpeningMessage = PeerID[]
-// type ServerPeerMessage = [PeerID, EncodedSignal]
-
 // Time to wait between network checks in milliseconds.
 const TICK = 100
 
@@ -29,6 +23,7 @@ const MAX_WAIT_PER_ROUND = 10_000
  */
 export class InsecureDecentralized extends DecentralizedGeneral {
   peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void {
+    console.log('PEER ON TRIGGERED')
     const message = msgpack.decode(data)
     if (!decentralizedGeneral.isPeerMessage(message)) {
       throw new Error(`invalid message received from ${peerID}`)
@@ -64,7 +59,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
       .forEach((peer, peerID) => {
         trainingInformant.addMessage(`Sending weights to peer ${peerID}`)
         trainingInformant.updateWhoReceivedMyModel(`peer ${peerID}`)
-
+        console.log(`Sending weights to peer ${peerID}`)
         peer.send(encodedMsg)
       })
 
@@ -103,7 +98,6 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     // Average weights
     trainingInformant.addMessage('Averaging weights')
     trainingInformant.updateNbrUpdatesWithOthers(1)
-
     // Return the new "received" weights
     return aggregation.averageWeights(receivedWeights)
   }
