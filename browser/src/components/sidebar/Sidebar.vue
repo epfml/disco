@@ -8,7 +8,6 @@
       px-2
       py-4
       border-r
-      dark:border-primary-darker
     "
     >
       <!-- Brand -->
