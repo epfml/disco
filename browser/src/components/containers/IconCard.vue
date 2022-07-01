@@ -54,9 +54,12 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue'
+
 import DownArrow from '@/assets/svg/DownArrow.vue'
 import UpArrow from '@/assets/svg/UpArrow.vue'
-export default {
+
+export default defineComponent({
   name: 'IconCard',
   components: {
     DownArrow,
@@ -79,5 +82,5 @@ export default {
       this.showCardContent = !this.showCardContent
     }
   }
-}
+})
 </script>
