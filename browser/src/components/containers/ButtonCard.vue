@@ -29,9 +29,11 @@
   </div>
 </template>
 <script lang="ts">
+import { defineComponent } from 'vue'
+
 import CustomButton from '@/components/simple/CustomButton.vue'
 
-export default {
+export default defineComponent({
   name: 'ButtonCard',
   components: {
     CustomButton
@@ -46,5 +48,5 @@ export default {
       default: () => {}
     }
   }
-}
+})
 </script>
