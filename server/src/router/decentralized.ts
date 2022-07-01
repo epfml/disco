@@ -19,7 +19,7 @@ export class Decentralized {
     this.ownRouter = express.Router()
     wsApplier.applyTo(this.ownRouter)
 
-    this.ownRouter.get('/', (_, res) => res.send('DeAI server'))
+    this.ownRouter.get('/', (_, res) => res.send('DeAI server\n'))
 
     // delay listener because this (object) isn't fully constructed yet. The lambda function inside process.nextTick is executed after the current operation on the JS stack runs to completion and before the event loop is allowed to continue.
     /* this.onNewTask is registered as a listener to tasksAndModels, which has 2 consequences:

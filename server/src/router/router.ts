@@ -26,7 +26,7 @@ export class Router {
     wsApplier.applyTo(this.ownRouter)
 
     this.ownRouter.get('/', (_, res, next) => {
-      res.send('Server for DeAI & FeAI')
+      res.send('Server for DeAI & FeAI \n')
       next()
     })
     this.ownRouter.use('/deai', decentralized.router)
