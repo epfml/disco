@@ -31,8 +31,12 @@ export const store = createStore({
   },
   actions: {
     async initTasks (context: ActionContext<State, State>) {
-      const tasks = await loadTasks()
-      tasks.forEach(task => context.commit('addTask', task))
+      try {
+        const tasks = await loadTasks()
+        tasks.forEach(task => context.commit('addTask', task))
+      } catch (e) {
+        console.log('Fetching of tasks failed.')
+      }
     },
     async initModels (context: ActionContext<State, State>) {
       const models = await tf.io.listModels()
