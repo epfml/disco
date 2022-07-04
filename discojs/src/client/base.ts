@@ -3,7 +3,7 @@ import * as tf from '@tensorflow/tfjs'
 
 import * as serialization from '../serialization'
 import { Task } from '@/task'
-import { TrainingInformant } from '@/training_informant'
+import { TrainingInformant } from '@/informant/training_informant'
 import { Weights } from '@/types'
 
 export abstract class Base {

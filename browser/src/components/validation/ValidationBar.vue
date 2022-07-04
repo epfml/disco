@@ -75,7 +75,7 @@
 import ProgressIcon from '@/components/navigation/ProgressIcon.vue'
 
 export default {
-  name: 'TestingBar',
+  name: 'ValidationBar',
   components: {
     ProgressIcon
   },
