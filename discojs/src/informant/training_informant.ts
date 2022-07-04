@@ -1,8 +1,6 @@
-import { List, Repeat, Set } from 'immutable'
-import { TaskID } from '.'
-import { TrainingSchemes } from './training/training_schemes'
-
-const nbEpochsOnGraphs = 10
+import { List, Set } from 'immutable'
+import { TaskID, TrainingSchemes } from '..'
+import { GraphInformant } from '.'
 
 /**
  * Class that collects information about the status of the training-loop of the model.
@@ -16,21 +14,15 @@ export class TrainingInformant {
   nbrWeightRequests: number
   // message feedback from peer-to-peer training
   messages = List()
-  // Federated Informations
+  // federated scheme
   currentRound: number
   currentNumberOfParticipants: number
   totalNumberOfParticipants: number
   averageNumberOfParticipants: number
   // Common Informations
-  validationAccuracyChart: unknown
-  validationAccuracy: number
-  trainingAccuracyChart: unknown
-  trainingAccuracy: number
+  private readonly trainingGraphInformant: GraphInformant
+  private readonly validationGraphInformant: GraphInformant
   displayHeatmap: boolean
-  currentValidationAccuracy: number
-  validationAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList()
-  currentTrainingAccuracy: number
-  trainingAccuracyDataSerie = Repeat(0, nbEpochsOnGraphs).toList()
   weightsIn = 0
   weightsOut = 0
 
@@ -59,20 +51,12 @@ export class TrainingInformant {
     this.totalNumberOfParticipants = 0
     this.averageNumberOfParticipants = 0
 
-    // validation accuracy chart
-    this.validationAccuracyChart = null // new TrainingChart("validationAccuracy_".concat(taskID), "Validation Accuracy")
-    this.validationAccuracy = 0
-
-    // training accuracy chart
-    this.trainingAccuracyChart = null // new TrainingChart("trainingAccuracy_".concat(taskID), "Training Accuracy")
-    this.trainingAccuracy = 0
+    // graph informants
+    this.trainingGraphInformant = new GraphInformant()
+    this.validationGraphInformant = new GraphInformant()
 
     // is the model using Interoperability (default to false)
     this.displayHeatmap = false
-
-    // default values for the validation and training charts
-    this.currentValidationAccuracy = 0
-    this.currentTrainingAccuracy = 0
   }
 
   /**
@@ -130,14 +114,32 @@ export class TrainingInformant {
     this.averageNumberOfParticipants = receivedStatistics.averageNumberOfParticipants
   }
 
+  updateTrainingGraph (accuracy: number): void {
+    this.trainingGraphInformant.updateAccuracy(accuracy)
+  }
+
   /**
    *  Updates the data to be displayed on the validation accuracy graph.
-   * @param {Number} validationAccuracy the current validation accuracy of the model
+   * @param {number} accuracy the current validation accuracy of the model
    */
-  updateValidationAccuracyGraph (validationAccuracy: number): void {
-    this.validationAccuracyDataSerie =
-      this.validationAccuracyDataSerie.shift().push(validationAccuracy)
-    this.currentValidationAccuracy = validationAccuracy
+  updateValidationGraph (accuracy: number): void {
+    this.validationGraphInformant.updateAccuracy(accuracy)
+  }
+
+  trainingAccuracy (): number {
+    return this.trainingGraphInformant.accuracy()
+  }
+
+  validationAccuracy (): number {
+    return this.validationGraphInformant.accuracy()
+  }
+
+  trainingAccuracyData (): List<number> {
+    return this.trainingGraphInformant.data()
+  }
+
+  validationAccuracyData (): List<number> {
+    return this.validationGraphInformant.data()
   }
 
   /**
@@ -154,15 +156,5 @@ export class TrainingInformant {
    */
   isTaskTrainingSchemeFederated (): boolean {
     return this.taskTrainingScheme === TrainingSchemes.FEDERATED
-  }
-
-  /**
-   *  Updates the data to be displayed on the training accuracy graph.
-   * @param {Number} trainingAccuracy the current training accuracy of the model
-   */
-  updateTrainingAccuracyGraph (trainingAccuracy: number): void {
-    this.trainingAccuracyDataSerie =
-      this.trainingAccuracyDataSerie.shift().push(trainingAccuracy)
-    this.currentTrainingAccuracy = trainingAccuracy
   }
 }

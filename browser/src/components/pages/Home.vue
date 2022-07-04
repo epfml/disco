@@ -4,7 +4,7 @@
     <DiscoGIF class="mx-auto mb-[10%]" />
 
     <!-- Main cards -->
-    <div class="grid grid-cols-1 gap-8 md:grid-cols-3 items-stretch">
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-3 items-stretch">
       <!-- List of tasks -->
       <ButtonCard
         :click="goToTaskList"
