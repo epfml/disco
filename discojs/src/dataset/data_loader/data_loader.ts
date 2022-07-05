@@ -1,7 +1,7 @@
 import { Dataset } from '../dataset_builder'
 import { Task } from '../../task'
 
-export interface DataConfig { features?: string[], labels?: string[] }
+export interface DataConfig { features?: string[], labels?: string[], shuffle?: boolean }
 export interface Data {
   dataset: Dataset
   size: number
