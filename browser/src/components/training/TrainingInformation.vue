@@ -75,7 +75,7 @@
     </div>
 
     <!-- Communication Console -->
-    <IconCard>
+    <IconCard v-if="isDistributedTrainingScheme">
       <template #title>
         {{ $t('training.trainingInformationFrame.trainingInformations.trainingConsoleHeader') }}
       </template>
@@ -141,7 +141,7 @@
     </div>
     <!-- Federated Training Information -->
     <div
-      v-else
+      v-else-if="isFederatedTrainingScheme"
       class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4"
     >
       <!-- Current Round -->
@@ -205,8 +205,14 @@ export default defineComponent({
     chartOptions () {
       return chartOptions
     },
-    isDecentralizedTrainingScheme () {
+    isDecentralizedTrainingScheme (): boolean {
       return this.trainingInformant.isTaskTrainingSchemeDecentralized()
+    },
+    isFederatedTrainingScheme (): boolean {
+      return this.trainingInformant.isTaskTrainingSchemeFederated()
+    },
+    isDistributedTrainingScheme (): boolean {
+      return this.isFederatedTrainingScheme || this.isDecentralizedTrainingScheme
     },
     displayHeatmap () {
       return this.trainingInformant.displayHeatmap
