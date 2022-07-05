@@ -23,7 +23,6 @@ const MAX_WAIT_PER_ROUND = 10_000
  */
 export class InsecureDecentralized extends DecentralizedGeneral {
   peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void {
-    console.log('PEER ON TRIGGERED')
     const message = msgpack.decode(data)
     if (!decentralizedGeneral.isPeerMessage(message)) {
       throw new Error(`invalid message received from ${peerID}`)
@@ -46,6 +45,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     epoch: number,
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
+    // send message to server that we ready
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     // Broadcast our weights
     const msg: PeerMessage = {
@@ -54,14 +54,16 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     }
     const encodedMsg = msgpack.encode(msg)
 
+    // wait until receive message of peers from server
     this.peers
       .filter((peer) => peer.connected)
       .forEach((peer, peerID) => {
         trainingInformant.addMessage(`Sending weights to peer ${peerID}`)
         trainingInformant.updateWhoReceivedMyModel(`peer ${peerID}`)
-        console.log(`Sending weights to peer ${peerID}`)
+        console.log('Sending weights to peer', peerID) // never runs?
         peer.send(encodedMsg)
       })
+    // this.weights is empty
 
     // Get weights from the others
     const getWeights = (): Seq.Indexed<Weights | undefined> =>

@@ -76,7 +76,6 @@ export class SignalingServer {
         if (peerToSendTo === undefined) {
           throw new Error('no such peer to send to')
         }
-
         const forwardMsg: PeerMessage = [peerID, peerMessage[1]]
         peerToSendTo.send(msgpack.encode(forwardMsg), { binary: true })
       } catch (e) {
