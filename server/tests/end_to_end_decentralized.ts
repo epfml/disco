@@ -25,51 +25,49 @@ class NodeImageLoader extends dataset.ImageLoader<string> {
   }
 }
 
-class NodeTabularLoader extends dataset.TabularLoader<string> {
-  loadTabularDatasetFrom (source: string, csvConfig: Record<string, unknown>): tf.data.CSVDataset {
-    return tf.data.csv(source, csvConfig)
-  }
-}
+// class NodeTabularLoader extends dataset.TabularLoader<string> {
+//   loadTabularDatasetFrom (source: string, csvConfig: Record<string, unknown>): tf.data.CSVDataset {
+//     return tf.data.csv(source, csvConfig)
+//   }
+// }
 
 describe('end to end', function () {
-        this.timeout(60_000)
+  this.timeout(60_000)
 
-        let server: Server
-        before(async () => {
-            server = await startServer()
-        })
-        after(() => {
-            server?.close()
-        })
+  let server: Server
+  before(async () => {
+    server = await startServer()
+  })
+  after(() => {
+    server?.close()
+  })
 
-        it('runs cifar 10 with two users', async () =>
-            await Promise.all([cifar10user(), cifar10user()]))
+  it('runs cifar 10 with two users', async () =>
+    await Promise.all([cifar10user(), cifar10user()]))
 
-        async function cifar10user(): Promise<void> {
-            const dir = '../discojs/example_training_data/CIFAR10/'
-            const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
-            const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
+  async function cifar10user (): Promise<void> {
+    const dir = '../discojs/example_training_data/CIFAR10/'
+    const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
+    const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
-            const cifar10 = tasks.cifar10.task
+    const cifar10 = tasks.cifar10.task
 
-            const loaded = await new NodeImageLoader(cifar10).loadAll(files, {labels: labels})
+    const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 
-            console.log("Step 1")
-            const cli = await getClient(client.InsecureDecentralized, server, cifar10)
-            await cli.connect()
-            console.log("Step 2")
-            const disco = new training.Disco(
-                cifar10,
-                new ConsoleLogger(),
-                new EmptyMemory(),
-                SCHEME,
-                new TrainingInformant(10, cifar10.taskID, SCHEME),
-                cli
-            )
-            const updated: Weights = makeWeights([1,10,3])
-            await cli.onRoundEndCommunication(updated, updated, 0, new TrainingInformant(10, cifar10.taskID, SCHEME))
-            // await disco.startTraining(loaded)
-            console.log("Step 4")
-        }
-    }
+    const cli = await getClient(client.InsecureDecentralized, server, cifar10)
+    await cli.connect()
+
+    const disco = new training.Disco(
+      cifar10,
+      new ConsoleLogger(),
+      new EmptyMemory(),
+      SCHEME,
+      new TrainingInformant(10, cifar10.taskID, SCHEME),
+      cli
+    )
+    const updated: Weights = makeWeights([1, 10, 3])
+    await cli.onRoundEndCommunication(updated, updated, 0, new TrainingInformant(10, cifar10.taskID, SCHEME))
+    await disco.startTraining(loaded)
+  }
+}
 )
