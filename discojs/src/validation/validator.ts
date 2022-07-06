@@ -31,7 +31,7 @@ export class Validator extends ModelActor {
     }
 
     const labels: string[] | undefined = this.task.trainingInformation?.LABEL_LIST
-    const classes = labels !== undefined ? Math.max(0, labels.length - 1) : 0
+    const classes = labels?.length ?? 1
 
     const model = await this.getModel()
 
@@ -44,18 +44,13 @@ export class Validator extends ModelActor {
         // map probability predictions to nearest class
         const pred = (model.predict(xs, { batchSize: batchSize }) as tf.Tensor)
           .dataSync()
-          .map((p) => Math.round(p * classes))
+          .map((p) => Math.round(p * (classes - 1)))
 
         this.size += xs.shape[0]
 
         hits += List(pred).zip(List(ys))
-          // get difference between one-hot preds and labels
-          .map(([p, y]) => {
-            if (hits === 0) console.log(p, y)
-            return 1 - Math.abs(p - y)
-          })
-          // aggregate and divide by number of classes to account for one-hot encoding
-          .reduce((acc: number, e) => acc + e) / (classes + 1)
+          .map(([p, y]) => 1 - Math.abs(p - y))
+          .reduce((acc: number, e) => acc + e) / classes
 
         const currentAccuracy = hits / this.size
         this.graphInformant.updateAccuracy(currentAccuracy)
