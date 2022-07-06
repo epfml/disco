@@ -5,7 +5,7 @@ import { Task } from '@/task'
 import { Data } from '@/dataset'
 import { Logger } from '@/logging'
 import { List } from 'immutable'
-import { GraphInformant } from '..'
+import { Client, GraphInformant, Memory, ModelSource } from '..'
 
 export class Validator extends ModelActor {
   private readonly graphInformant = new GraphInformant()
@@ -14,9 +14,14 @@ export class Validator extends ModelActor {
   constructor (
     task: Task,
     logger: Logger,
-    private readonly model: tf.LayersModel
+    private readonly memory: Memory,
+    private readonly source?: ModelSource,
+    private readonly client?: Client
   ) {
     super(task, logger)
+    if (source === undefined && client === undefined) {
+      throw new Error('cannot identify model')
+    }
   }
 
   async assess (data: Data): Promise<void> {
@@ -28,6 +33,8 @@ export class Validator extends ModelActor {
     const labels: string[] | undefined = this.task.trainingInformation?.LABEL_LIST
     const classes = labels !== undefined ? Math.max(0, labels.length - 1) : 0
 
+    const model = await this.getModel()
+
     let hits = 0
     await data.dataset.batch(batchSize).forEachAsync((e) => {
       if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
@@ -35,7 +42,7 @@ export class Validator extends ModelActor {
         const ys = (e.ys as tf.Tensor).dataSync()
 
         // map probability predictions to nearest class
-        const pred = (this.model.predict(xs, { batchSize: batchSize }) as tf.Tensor)
+        const pred = (model.predict(xs, { batchSize: batchSize }) as tf.Tensor)
           .dataSync()
           .map((p) => Math.round(p * classes))
 
@@ -58,6 +65,18 @@ export class Validator extends ModelActor {
     })
     this.logger.success(`Obtained validation accuracy of ${this.accuracy()}`)
     this.logger.success(`Visited ${this.visitedSamples()} samples`)
+  }
+
+  async getModel (): Promise<tf.LayersModel> {
+    if (this.source !== undefined && await this.memory.contains(this.source)) {
+      return await this.memory.getModel(this.source)
+    }
+
+    if (this.client !== undefined) {
+      return await this.client.getLatestModel()
+    }
+
+    throw new Error('cannot identify model')
   }
 
   accuracyData (): List<number> {

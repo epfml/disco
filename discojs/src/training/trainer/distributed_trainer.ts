@@ -39,8 +39,7 @@ export class DistributedTrainer extends Trainer {
     this.model.setWeights(aggregatedWeights)
 
     await this.memory.updateWorkingModel(
-      this.task.taskID,
-      this.trainingInformation.modelID,
+      { taskID: this.task.taskID, name: this.trainingInformation.modelID },
       this.model
     )
   }
