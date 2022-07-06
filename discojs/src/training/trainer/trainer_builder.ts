@@ -1,3 +1,4 @@
+import { ModelInfo } from '@/memory'
 import * as tf from '@tensorflow/tfjs'
 
 import { Client, Task, TrainingInformant, Memory, ModelType } from '../..'
@@ -54,19 +55,13 @@ export class TrainerBuilder {
       throw new Error('undefined model ID')
     }
 
-    const modelExistsInMemory = await this.memory.getModelMetadata(
-      ModelType.WORKING,
-      this.task.taskID,
-      modelID
-    )
+    const info: ModelInfo = { type: ModelType.WORKING, taskID: this.task.taskID, name: modelID }
+
+    const modelExistsInMemory = await this.memory.getModelMetadata(info)
 
     let model: tf.LayersModel
     if (modelExistsInMemory !== undefined) {
-      model = await this.memory.getModel(
-        ModelType.WORKING,
-        this.task.taskID,
-        modelID
-      )
+      model = await this.memory.getModel(info)
     } else {
       model = await client.getLatestModel()
     }

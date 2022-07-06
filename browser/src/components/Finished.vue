@@ -39,9 +39,9 @@
 
 <script lang="ts">
 import ButtonCard from '@/components/containers/ButtonCard.vue'
-import { IndexedDB, pathFor } from '@/memory'
+import { IndexedDB } from '@/memory'
 
-import { EmptyMemory, Memory, ModelType, isTask } from 'discojs'
+import { EmptyMemory, Memory, ModelType, isTask, ModelInfo } from 'discojs'
 import { defineComponent } from 'vue'
 import { mapMutations, mapState } from 'vuex'
 
@@ -57,14 +57,20 @@ export default defineComponent({
     ...mapState(['useIndexedDB', 'models']),
     memory (): Memory {
       return this.usedIndexedDB ? new IndexedDB() : new EmptyMemory()
+    },
+    modelInfo (): ModelInfo {
+      return {
+        type: ModelType.WORKING,
+        taskID: this.task.taskID,
+        name: this.task.trainingInformation.modelID
+      }
     }
   },
   methods: {
     ...mapMutations(['setTestingModel']),
     testModel () {
-      const model = [ModelType.WORKING, this.task.taskID, this.task.trainingInformation.modelID] as const
-      if (this.memory.contains(...model)) {
-        this.setTestingModel(pathFor(...model))
+      if (this.memory.contains(this.modelInfo)) {
+        this.setTestingModel(this.modelInfo)
         this.$router.push({ path: '/testing' })
       } else {
         this.$toast.error('Model was not trained!')
@@ -73,10 +79,7 @@ export default defineComponent({
     },
     async saveModel () {
       if (!(this.memory instanceof EmptyMemory)) {
-        await this.memory.saveWorkingModel(
-          this.task.taskID,
-          this.task.trainingInformation.modelID
-        )
+        await this.memory.saveWorkingModel(this.modelInfo)
         this.$toast.success(
           `The current ${this.task.displayInformation.taskTitle} model has been saved.`
         )
