@@ -52,19 +52,14 @@ export class TrainerBuilder {
   private async getModel (client: Client): Promise<tf.LayersModel> {
     const modelID = this.task.trainingInformation?.modelID
     if (modelID === undefined) {
-      throw new Error('undefined model ID')
+      throw new TypeError('model ID is undefined')
     }
 
     const info: ModelInfo = { type: ModelType.WORKING, taskID: this.task.taskID, name: modelID }
 
-    const modelExistsInMemory = await this.memory.getModelMetadata(info)
-
-    let model: tf.LayersModel
-    if (modelExistsInMemory !== undefined) {
-      model = await this.memory.getModel(info)
-    } else {
-      model = await client.getLatestModel()
-    }
+    const model = await (
+      await this.memory.contains(info) ? this.memory.getModel(info) : client.getLatestModel()
+    )
 
     return await this.updateModelInformation(model)
   }
@@ -77,7 +72,7 @@ export class TrainerBuilder {
 
     const info = this.task.trainingInformation
     if (info === undefined) {
-      throw new Error('undefined training information')
+      throw new TypeError('training information is undefined')
     }
 
     model.compile(info.modelCompileData)

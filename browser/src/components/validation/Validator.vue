@@ -48,7 +48,7 @@
   </div>
 </template>
 <script lang="ts">
-import { ConsoleLogger, dataset, EmptyMemory, isTask, Memory, ModelType, Validator } from 'discojs'
+import { ConsoleLogger, dataset, EmptyMemory, isTask, Memory, Validator } from 'discojs'
 import { defineComponent } from 'vue'
 import { mapState } from 'vuex'
 
@@ -108,11 +108,7 @@ export default defineComponent({
       if (this.model === undefined) {
         return undefined
       }
-      // TODO: provide better utilities for models in memory
-      const [type, task, name] = this.model.split('/').splice(2)
-      const modelType = type === 'working' ? ModelType.WORKING : ModelType.SAVED
-      const model = await this.memory.getModel(modelType, task, name)
-      return new Validator(this.task, new ConsoleLogger(), model)
+      return new Validator(this.task, new ConsoleLogger(), this.memory, this.model)
     },
     async assessModel (): Promise<void> {
       if (this.datasetBuilder.size() === 0) {
