@@ -220,4 +220,8 @@ export abstract class DecentralizedGeneral extends Base {
     epoch: number,
     trainingInformant: TrainingInformant
   ): Promise<Weights|undefined >
+
+  public getPeerIDs() : List<PeerID> {
+    return this.peers.keySeq().toList()
+  }
 }

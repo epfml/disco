@@ -5,6 +5,7 @@ import { client as clients, tasks } from 'discojs'
 import { getClient, startServer } from './utils'
 
 const TASK = tasks.titanic.task
+const TASK_MNIST = tasks.mnist.task
 
 describe('decentralized client', function () { // the tests container
   this.timeout(30_000)
@@ -14,7 +15,7 @@ describe('decentralized client', function () { // the tests container
   after(() => { server?.close() })
 
   it('connect to valid task', async () => {
-    const client = await getClient(clients.InsecureDecentralized, server, TASK)
+    const client = await getClient(clients.InsecureDecentralized, server, TASK_MNIST)
     await client.connect()
   })
 
