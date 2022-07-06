@@ -22,7 +22,7 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class InsecureDecentralized extends DecentralizedGeneral {
-  protected readonly receivedWeights = Map<SimplePeer.Instance, List<Weights | undefined>>()
+  private readonly receivedWeights = Map<SimplePeer.Instance, List<Weights | undefined>>()
 
   peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void {
     const message = msgpack.decode(data)
@@ -62,7 +62,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
       .forEach((peer, peerID) => {
         trainingInformant.addMessage(`Sending weights to peer ${peerID}`)
         trainingInformant.updateWhoReceivedMyModel(`peer ${peerID}`)
-        console.log('Sending weights to peer', peerID) // never runs?
+        console.log('Sending weights to peer', peerID)
         peer.send(encodedMsg)
       })
     // this.weights is empty
@@ -99,11 +99,14 @@ export class InsecureDecentralized extends DecentralizedGeneral {
       .filter((weights) => weights !== undefined)
       .toSet() as Set<Weights>
 
+    // Add my own weights (noisied by DP) to the set of weights to average.
+    const finalWeights = weights.add(noisyWeights)
+
     // Average weights
     trainingInformant.addMessage('Averaging weights')
     trainingInformant.updateNbrUpdatesWithOthers(1)
     // Return the new "received" weights
-    return aggregation.averageWeights(weights)
+    return aggregation.averageWeights(finalWeights)
   }
 
   async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
