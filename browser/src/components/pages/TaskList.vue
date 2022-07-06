@@ -1,17 +1,25 @@
 <template>
   <div class="space-y-8 pt-8">
+    <h1 class="font-disco text-3xl text-center text-disco-cyan">
+      Filters
+    </h1>
     <div
       v-show="tasks.size > 0"
-      class="flex flex-row gap-8"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
     >
-      <ToggleButton
+      <div
         v-for="(filter, idx) in filters"
         :key="offset + idx"
-        @click="toggle(filter)"
+        class="text-center"
       >
-        {{ filter.name }}
-      </ToggleButton>
+        <ToggleButton @click="toggle(filter)">
+          {{ filter.name }}
+        </ToggleButton>
+      </div>
     </div>
+    <h1 class="font-disco text-3xl text-center text-disco-cyan">
+      Tasks
+    </h1>
     <div class="flex flex-col gap-8 mt-8">
       <ButtonCard
         v-show="filteredTasks.length === 0 && tasks.size > 0"
@@ -24,9 +32,7 @@
         <template #text>
           Please press the button below to clear selected filters.
         </template>
-        <template
-          #button
-        >
+        <template #button>
           Clear filters
         </template>
       </ButtonCard>
