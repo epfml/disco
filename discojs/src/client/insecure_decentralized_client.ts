@@ -1,4 +1,4 @@
-import { List, Seq, Set } from 'immutable'
+import { List, Seq, Set, Map } from 'immutable'
 // import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
@@ -22,6 +22,8 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class InsecureDecentralized extends DecentralizedGeneral {
+  protected readonly receivedWeights = Map<SimplePeer.Instance, List<Weights | undefined>>()
+
   peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void {
     const message = msgpack.decode(data)
     if (!decentralizedGeneral.isPeerMessage(message)) {
@@ -31,11 +33,11 @@ export class InsecureDecentralized extends DecentralizedGeneral {
 
     console.debug('peer', peerID, 'sent weights', weights)
 
-    if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
+    if (this.receivedWeights.get(peer)?.get(message.epoch) !== undefined) {
       throw new Error(`weights from ${peerID} already received`)
     }
-    this.weights.set(peer,
-      this.weights.get(peer, List<Weights>())
+    this.receivedWeights.set(peer,
+      this.receivedWeights.get(peer, List<Weights>())
         .set(message.epoch, weights))
   }
 
@@ -67,7 +69,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
 
     // Get weights from the others
     const getWeights = (): Seq.Indexed<Weights | undefined> =>
-      this.weights
+      this.receivedWeights
         .valueSeq()
         .map((epochesWeights) => epochesWeights.get(epoch))
 
@@ -93,7 +95,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
       }
     })
 
-    const receivedWeights = getWeights()
+    const weights = getWeights()
       .filter((weights) => weights !== undefined)
       .toSet() as Set<Weights>
 
@@ -101,7 +103,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     trainingInformant.addMessage('Averaging weights')
     trainingInformant.updateNbrUpdatesWithOthers(1)
     // Return the new "received" weights
-    return aggregation.averageWeights(receivedWeights)
+    return aggregation.averageWeights(weights)
   }
 
   async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
