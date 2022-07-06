@@ -1,6 +1,7 @@
 <template>
   <div>
     <div class="flex py-6">
+      <!-- previous button -->
       <div class="text-right w-1/5">
         <button
           v-show="showPrev"
@@ -17,10 +18,12 @@
           &lt;
         </button>
       </div>
+      <!-- navigation bar -->
       <ValidationBar
         :step="step"
         class="w-3/5"
       />
+      <!-- next button -->
       <div class="text-left w-1/5">
         <button
           v-show="showNext"
