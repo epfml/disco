@@ -47,6 +47,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     epoch: number,
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
+    console.log('onRoundEndCommuncation called. Epoch =', epoch)
     // send message to server that we ready
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     // Broadcast our weights
@@ -55,6 +56,23 @@ export class InsecureDecentralized extends DecentralizedGeneral {
       weights: await serialization.weights.encode(noisyWeights)
     }
     const encodedMsg = msgpack.encode(msg)
+
+    for (const [peerID_, peer_] of this.peers) {
+      console.log('Is peer', peerID_, 'connected? ', peer_.connected)
+      if (!peer_.connected) {
+        const connectedPeers = this.peers.filter((peer) => peer.connected)
+        console.log(connectedPeers)
+        console.log(connectedPeers.size)
+        console.log()
+      }
+    }
+
+    if (this.peers.filter((peer) => peer.connected).size === 0) {
+      await new Promise<void>(resolve => setTimeout(resolve, 2 * 1000))
+      for (const [peerID_, peer_] of this.peers) {
+        console.log('Is peer', peerID_, 'connected? ', peer_.connected)
+      }
+    }
 
     // wait until receive message of peers from server
     this.peers
