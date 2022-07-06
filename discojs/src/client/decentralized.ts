@@ -88,8 +88,6 @@ export abstract class DecentralizedGeneral extends Base {
   protected server?: isomorphic.WebSocket
   protected peers = Map<PeerID, SimplePeer.Instance>()
 
-  protected readonly weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
-
   protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
@@ -221,7 +219,7 @@ export abstract class DecentralizedGeneral extends Base {
     trainingInformant: TrainingInformant
   ): Promise<Weights|undefined >
 
-  public getPeerIDs() : List<PeerID> {
+  public getPeerIDs (): List<PeerID> {
     return this.peers.keySeq().toList()
   }
 }
