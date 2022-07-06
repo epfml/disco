@@ -120,7 +120,7 @@ export default defineComponent({
             .build()
         }
 
-        this.disco.startTraining(this.dataset)
+        await this.disco.startTraining(this.dataset)
       } catch (e) {
         const msg = e instanceof Error ? e.message : e.toString()
         this.$toast.error(msg)

@@ -5,6 +5,8 @@ import { Data } from '../dataset'
 import { NodeImageLoader } from '../../tests/dataset/data_loader/image_loader.test'
 import { assert } from 'chai'
 import fs from 'fs'
+import { EmptyMemory } from '..'
+import { Local } from '../client'
 
 describe('validator', () => {
   it('works for simple_face', async () => {
@@ -15,7 +17,12 @@ describe('validator', () => {
 
     const data: Data = await new NodeImageLoader(simple_face.task)
       .loadAll(files.flat(), { labels: files.flatMap((files, index) => Array(files.length).fill(index)) })
-    const validator = new Validator(simple_face.task, new ConsoleLogger(), simple_face.model())
+    const validator = new Validator(
+      simple_face.task,
+      new ConsoleLogger(),
+      new EmptyMemory(),
+      undefined,
+      new Local(new URL('http://localhost:8080'), simple_face.task))
     await validator.assess(data)
 
     assert(
