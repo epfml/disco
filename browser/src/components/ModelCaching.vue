@@ -141,7 +141,7 @@
 <script lang="ts">
 import { mapState } from 'vuex'
 
-import { EmptyMemory, Memory, ModelType, isTask, TrainingSchemes } from 'discojs'
+import { EmptyMemory, Memory, ModelType, isTask, TrainingSchemes, ModelInfo } from 'discojs'
 
 import { IndexedDB } from '@/memory'
 import { getClient } from '@/clients'
@@ -189,6 +189,11 @@ export default {
     },
     memory (): Memory {
       return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+    },
+    modelInfo (): ModelInfo {
+      return {
+        type: ModelType.WORKING, taskID: this.task.taskID, name: this.task.trainingInformation.modelID
+      }
     }
   },
   watch: {
@@ -217,11 +222,7 @@ export default {
        * feature.
        */
       if (this.useIndexedDB) {
-        const workingModelMetadata = await this.memory.getModelMetadata(
-          ModelType.WORKING,
-          this.task.taskID,
-          this.task.trainingInformation.modelID
-        )
+        const workingModelMetadata = await this.memory.getModelMetadata(this.modelInfo)
         if (workingModelMetadata) {
           this.workingModelExistsOnMount = true
           this.workingModelExists = true
@@ -247,11 +248,7 @@ export default {
      */
     async deleteModel (): Promise<void> {
       this.workingModelExists = false
-      await this.memory.deleteModel(
-        ModelType.WORKING,
-        this.task.taskID,
-        this.task.trainingInformation.modelID
-      )
+      await this.memory.deleteModel(this.modelInfo)
       this.$toast.success(
         `Deleted the cached ${this.task.displayInformation.taskTitle} model.`
       )
@@ -261,10 +258,7 @@ export default {
      * Save the current working model to IndexedDB
      */
     async saveModel () {
-      await this.memory.saveWorkingModel(
-        this.task.taskID,
-        this.task.trainingInformation.modelID
-      )
+      await this.memory.saveWorkingModel(this.modelInfo)
       this.$toast.success(
         `Saved the cached ${this.task.displayInformation.taskTitle} model to the model library`
       )
@@ -283,11 +277,7 @@ export default {
       // TODO do not force scheme
       const client = getClient(TrainingSchemes.FEDERATED, this.task)
 
-      this.memory.updateWorkingModel(
-        this.task.taskID,
-        this.task.trainingInformation.modelID,
-        await client.getLatestModel()
-      )
+      this.memory.updateWorkingModel(this.modelInfo, await client.getLatestModel())
     },
     async proceed () {
       if (this.useIndexedDB && this.shouldCreateFreshModel) {

@@ -49,7 +49,7 @@
           class="contents"
         >
           <ButtonCard
-            :click="() => selectModel(metadata)"
+            :click="() => selectModel(path)"
             :button-placement="'left'"
           >
             <template #title>
@@ -113,14 +113,15 @@ import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
 import Validator from '@/components/validation/Validator.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
-import { IndexedDB, pathFor } from '@/memory'
+import { IndexedDB } from '@/memory'
 import { WebTabularLoader, WebImageLoader } from '@/data_loader'
 
-import { EmptyMemory, Memory, Task } from 'discojs'
+import { EmptyMemory, Memory, Path, Task } from 'discojs'
 import { DatasetBuilder, DataLoader } from 'discojs/dist/dataset'
 
 import { mapState } from 'vuex'
 import { defineComponent } from 'vue'
+import { error } from '@/toast'
 
 export default defineComponent({
   name: 'Testing',
@@ -131,11 +132,11 @@ export default defineComponent({
     ButtonCard,
     IconCard
   },
-  data (): { task: Task, step: number, model: string } {
+  data (): { task: Task, step: number, model: Path } {
     return {
       task: undefined,
       step: 0,
-      model: undefined
+      model: ''
     }
   },
   computed: {
@@ -183,16 +184,14 @@ export default defineComponent({
     await this.$store.dispatch('initModels')
   },
   methods: {
-    async selectModel (metadata: any): Promise<void> {
-      if (metadata !== undefined) {
-        const task = this.tasks.get(metadata.taskID)
-        if (task !== undefined) {
-          this.task = task
-          this.model = pathFor(metadata.modelType, metadata.taskID, metadata.name)
-          this.step = 1
-        } else {
-          throw new Error('model\'s task does not exist locally')
-        }
+    async selectModel (path: Path): Promise<void> {
+      const task = this.tasks.get(this.memory.infoFor(path).taskID)
+      if (task !== undefined) {
+        this.task = task
+        this.model = path
+        this.step = 1
+      } else {
+        error(this.$toast, 'Model not found')
       }
     },
     prevStep (): void {
@@ -206,7 +205,7 @@ export default defineComponent({
       if (task !== undefined) {
         return task.displayInformation.taskTitle
       } else {
-        throw new Error('model\'s task does exist locally')
+        error(this.$toast, 'Task not found')
       }
     }
   }

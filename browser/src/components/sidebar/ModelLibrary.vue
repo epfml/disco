@@ -87,7 +87,7 @@
 <script lang="ts">
 import { mapMutations, mapState } from 'vuex'
 
-import { Memory, EmptyMemory } from 'discojs'
+import { Memory, EmptyMemory, Path, ModelType } from 'discojs'
 
 import { IndexedDB } from '../../memory'
 import Bin2Icon from '../../assets/svg/Bin2Icon.vue'
@@ -96,6 +96,7 @@ import LoadIcon from '../../assets/svg/LoadIcon.vue'
 import StackIcon from '../../assets/svg/StackIcon.vue'
 import TippyCard from './containers/TippyCard.vue'
 import TippyContainer from './containers/TippyContainer.vue'
+import { error, success } from '@/toast'
 
 export default {
   name: 'ModelLibrary',
@@ -133,28 +134,39 @@ export default {
       this.$emit('switch-panel')
     },
 
-    deleteModel (path: string, metadata): void {
-      this.$store.commit('deleteModel', path)
-      this.memory.deleteModel(metadata.modelType, metadata.taskID, metadata.name)
+    async deleteModel (path: Path): Promise<void> {
+      try {
+        await this.$store.commit('deleteModel', path)
+        await this.memory.deleteModel(path)
+        success(this.$toast, 'Successfully deleted the model')
+      } catch (e) {
+        error(this.$toast, 'Error')
+        console.log(e.message)
+      }
     },
 
-    openTesting (path: string) {
+    openTesting (path: Path) {
       this.setTestingModel(path)
       this.$router.push({ path: '/testing' })
     },
 
-    downloadModel (metadata) {
-      this.memory.downloadSavedModel(metadata.taskID, metadata.modelName)
+    async downloadModel (path: Path) {
+      await this.memory.downloadModel(path)
     },
 
-    async loadModel (metadata) {
-      await this.memory.loadSavedModel(
-        metadata.taskID,
-        metadata.modelName
-      )
-      this.$toast.success(
-        `Loaded ${metadata.modelName}, ready for next training session.`
-      )
+    async loadModel (path: Path) {
+      const modelInfo = this.memory.infoFor(path)
+      if (modelInfo.type !== ModelType.WORKING) {
+        try {
+          await this.memory.loadSavedModel(path)
+        } catch (e) {
+          console.log(e.message)
+          error(this.$toast, 'Error')
+        }
+        success(this.$toast, `Loaded ${modelInfo.name}, ready for next training session.`)
+      } else {
+        error(this.$toast, 'Model is already loaded')
+      }
     }
   }
 }
