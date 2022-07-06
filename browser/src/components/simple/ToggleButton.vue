@@ -1,6 +1,6 @@
 <template>
   <a
-    class="px-4 py-2 font-bold text-lg rounded-md hover:cursor-pointer"
+    class="px-4 py-2 font-bold text-lg uppercase rounded-md hover:cursor-pointer"
     :class="toggled ?
       'bg-white text-disco-cyan outline outline-2 outline-disco-cyan hover:outline-none hover:bg-disco-cyan hover:text-white'
       :

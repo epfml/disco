@@ -1,13 +1,13 @@
 <template>
   <div class="space-y-6">
     <h1
-      v-if="scheme !== undefined"
+      v-if="scheme !== undefined && displayTitle"
       class="font-disco text-3xl text-center"
     >
       <span class="text-disco-blue">{{ scheme }}</span><span class="text-disco-cyan">&nbsp;Learning</span>
     </h1>
     <!-- Progress Bar -->
-    <div class="w-full py-6">
+    <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
         <!-- Step 1 -->
         <ProgressIcon
@@ -152,6 +152,9 @@ export default {
     scheme (): string | undefined {
       const task = this.tasks.get(this.currentTask)
       return task?.trainingInformation?.scheme
+    },
+    displayTitle (): boolean {
+      return this.$route.fullPath !== '/list'
     }
   },
   methods: {
