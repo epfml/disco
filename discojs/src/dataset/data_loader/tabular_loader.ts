@@ -4,6 +4,9 @@ import { Task } from '../../task'
 import * as tf from '@tensorflow/tfjs'
 import { List, Map, Set } from 'immutable'
 
+// window size from which the dataset shuffling will sample
+const BUFFER_SIZE = 1000
+
 export abstract class TabularLoader<Source> extends DataLoader<Source> {
   private readonly delimiter: string
 
@@ -52,7 +55,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
       delimiter: this.delimiter
     }
 
-    return this.loadTabularDatasetFrom(source, csvConfig).map((t) => {
+    const dataset = this.loadTabularDatasetFrom(source, csvConfig).map((t) => {
       if (typeof t === 'object' && ('xs' in t) && ('ys' in t)) {
         return t
       }
@@ -65,6 +68,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
         ys: Object.values(ys)
       }
     })
+    return config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset
   }
 
   /**
@@ -72,11 +76,14 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
     * dataset.
     */
   async loadAll (sources: Source[], config: DataConfig): Promise<Data> {
-    const datasets = await Promise.all(sources.map(async (source) => await this.load(source, config)))
+    const datasets = await Promise.all(sources.map(async (source) =>
+      await this.load(source, { ...config, shuffle: false })))
     const dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
     return {
-      dataset,
-      size: dataset.size // TODO: needs to be tested
+      dataset: config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset,
+      // dataset.size does not work for csv datasets
+      // https://github.com/tensorflow/tfjs/issues/5845
+      size: 0
     }
   }
 }
