@@ -70,7 +70,7 @@ function isPeerPartialSumMessage (data: unknown): data is PeerPartialSumMessage 
 
 export class SecureDecentralized extends DecentralizedGeneral {
   private readonly receivedReadyBuffer: PeerReadyMessage[] = []
-  // private readonly receivedSharesBuffer: Set<Weights> = Set()// same as this.weights  **USE MY own field for this
+  private readonly receivedSharesBuffer = Map<SimplePeer.Instance, List<Weights | undefined>>()
   private readonly partialSumsBuffer: List<Weights> = List() // set of partial sums received by peers
   private mySum: Weights = []
   private readonly ID: number = 0 // randomUUID() // NEED TO MAKE THIS DECLARED BY TASK
@@ -83,11 +83,11 @@ export class SecureDecentralized extends DecentralizedGeneral {
 
       console.debug('peer', peerID, 'sent weights', weights)
       //
-      if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
+      if (this.receivedSharesBuffer.get(peer)?.get(message.epoch) !== undefined) {
         throw new Error(`weights from ${peerID} already received`)
       }
-      this.weights.set(peer,
-        this.weights.get(peer, List<Weights>())
+      this.receivedSharesBuffer.set(peer,
+        this.receivedSharesBuffer.get(peer, List<Weights>())
           .set(message.epoch, weights))
     } else if (isPeerReadyMessage(message)) {
       for (const elem of this.receivedReadyBuffer) {
@@ -156,7 +156,7 @@ export class SecureDecentralized extends DecentralizedGeneral {
     }
     // Get weights from the others
     const getWeights = (): Seq.Indexed<Weights | undefined> =>
-      this.weights
+      this.receivedSharesBuffer
         .valueSeq()
         .map((epochesWeights) => epochesWeights.get(epoch))
 
