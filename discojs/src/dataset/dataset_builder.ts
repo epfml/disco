@@ -9,7 +9,7 @@ export class DatasetBuilder<Source> {
   private readonly task: Task
   private readonly dataLoader: DataLoader<Source>
   private sources: Source[]
-  private readonly labelledSources: Map<string, Source>
+  private readonly labelledSources: Map<string, Source[]>
   private built: boolean
 
   constructor (dataLoader: DataLoader<Source>, task: Task) {
@@ -27,7 +27,12 @@ export class DatasetBuilder<Source> {
     if (label === undefined) {
       this.sources = this.sources.concat(sources)
     } else {
-      sources.forEach((source) => this.labelledSources.set(label, source))
+      const currentSources = this.labelledSources.get(label)
+      if (currentSources === undefined) {
+        this.labelledSources.set(label, sources)
+      } else {
+        this.labelledSources.set(label, currentSources.concat(sources))
+      }
     }
   }
 
@@ -40,6 +45,18 @@ export class DatasetBuilder<Source> {
     } else {
       this.labelledSources.delete(label)
     }
+  }
+
+  private getLabels (): string[] {
+    // We need to duplicate the labels as we need one for each soure.
+    // Say for label A we have sources [img1, img2, img3], then we
+    // need labels [A, A, A].
+    let labels: string[][] = []
+    Array.from(this.labelledSources.values()).forEach((sources, index) => {
+      const sourcesLabels = Array.from({ length: sources.length }, (_) => index.toString())
+      labels = labels.concat(sourcesLabels)
+    })
+    return labels.flat()
   }
 
   async build (): Promise<Data> {
@@ -59,9 +76,10 @@ export class DatasetBuilder<Source> {
     } else {
       // Labels are inferred from the file selection boxes
       const config = {
-        labels: Array.from(this.labelledSources.keys())
+        labels: this.getLabels()
       }
-      data = await this.dataLoader.loadAll(Array.from(this.labelledSources.values()), config)
+      const sources = Array.from(this.labelledSources.values()).flat()
+      data = await this.dataLoader.loadAll(sources, config)
     }
     // TODO @s314cy: Support .csv labels for image datasets (supervised training or testing)
     this.built = true
