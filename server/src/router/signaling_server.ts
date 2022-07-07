@@ -74,7 +74,7 @@ export class SignalingServer {
 
     console.info('peer', peerID, 'joined', taskID)
 
-    // const msg: connectedPeerIDsMessage
+    // const msg: connectedPeerIDsMessage =
     //   this.rooms.get(taskID, Map<PeerID, WebSocket>())
     //     .keySeq()
     //     .toArray()
