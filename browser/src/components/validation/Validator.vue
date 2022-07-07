@@ -96,7 +96,7 @@ export default defineComponent({
       return this.validator.accuracyData().toArray()
     },
     currentAccuracy (): number {
-      return this.validator.accuracy()
+      return this.validator.accuracy().toFixed(2) * 100
     },
     visitedSamples (): number {
       return this.validator.visitedSamples()
@@ -124,7 +124,7 @@ export default defineComponent({
         await this.validator.assess(dataset)
       } catch (e) {
         error(this.$toast, 'Model testing failed!')
-        console.log(e instanceof Error ? e.message : e)
+        console.error(e instanceof Error ? e.message : e)
       }
     }
   }

@@ -22,31 +22,27 @@
           dark:text-primary-light
         "
       >
-        {{ header }}
+        <slot name="header" />
       </h6>
-      <span class="text-xl font-semibold">{{ description }}</span>
+      <span class="text-xl font-semibold">
+        <slot name="text" />
+      </span>
     </div>
     <div>
       <span>
-        <slot />
+        <slot name="icon" />
       </span>
     </div>
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+
+export default defineComponent({
   name: 'IconCardSmall',
   props: {
-    header: {
-      type: String,
-      default: ''
-    },
-    description: {
-      type: String,
-      default: ''
-    },
     customClass: { default: '', type: String }
   }
-}
+})
 </script>

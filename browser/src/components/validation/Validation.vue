@@ -172,8 +172,10 @@ export default defineComponent({
     }
   },
   watch: {
-    testingState (_: boolean) {
-      this.selectModel(this.models.get(this.testingModel))
+    async testingState (_: boolean) {
+      if (this.testingModel !== undefined) {
+        await this.selectModel(this.models.get(this.testingModel))
+      }
     }
   },
   async mounted (): Promise<void> {
@@ -188,7 +190,7 @@ export default defineComponent({
   },
   methods: {
     async selectModel (path: Path): Promise<void> {
-      const task = this.tasks.get(this.memory.infoFor(path).taskID)
+      const task = this.tasks.get(this.memory.infoFor(path)?.taskID)
       if (task !== undefined) {
         this.task = task
         this.model = path
