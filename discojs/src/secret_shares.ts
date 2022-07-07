@@ -19,6 +19,8 @@ export function addWeights (w1: Weights, w2: Weights): Weights {
   ''
   'Return Weights object that is sum of two weights objects'
   ''
+  console.log('w1 length', w1.length)
+  console.log('w2 length', w2.length)
   assertEqualSizes(w1, w2)
   const added: Weights = []
   for (let i = 0; i < w1.length; i++) {
@@ -39,18 +41,38 @@ export function subtractWeights (w1: Weights, w2: Weights): Weights {
   return sub
 }
 
-export function sum (setSummands: List<Weights>): Weights {
+export function sum (setSummands: List<Weights>): Weights { //need to test
   ''
   'Return sum of multiple weight objects in an array, returns weight object of sum'
   ''
-  const summands = Array.from(setSummands.values())
-  const shape = summands[0][0].shape
-  let summ: Weights = new Array<tf.Tensor>()
-  summ.push(tf.zeros(shape))
-  summands.forEach((element: Weights) => {
-    summ = addWeights(summ, element)
-  })
-  return summ
+  if (setSummands.size<1){
+    return []
+  }
+  let summedWeights: Weights = new Array<tf.Tensor>()
+  let tensors: Weights = new Array<tf.Tensor>() //list of different sized tensors of 0
+  for(let j=0; j<setSummands.get(0).length; j++) {
+    for(let i=0; i<setSummands.size; i++){
+      tensors.push(setSummands.get(i)[j])
+    }
+    summedWeights.push(tf.addN(tensors))
+    tensors = new Array<tf.Tensor>()
+  }
+  return summedWeights
+  //
+  // const summands = Array.from(setSummands.values())
+  // let summ: Weights = new Array<tf.Tensor>()
+  // // let emptyWeights: Weights = new Array<tf.Tensor>() //list of different sized tensors of 0
+  // for(let i=0; i<summands[0].length; i++){ //assuming all weights in summands have same length
+  //     const shape = summands[0][i].shape
+  //     emptyWeights.push(tf.zeros(shape))
+  //   }
+  // for(let i=0; i<summands[0].length; i++){
+  //     summ = addWeights(emptyWeights[j], summands[i][j])
+  //   }
+  // summands.forEach((element: Weights) => {
+  //   summ = addWeights(summ, element)
+  // })
+  // return summ
 }
 
 export function lastShare (currentShares: Weights[], secret: Weights): Weights {
@@ -66,12 +88,10 @@ export function generateAllShares (secret: Weights, nParticipants: number, maxRa
   ''
   'Generate N additive shares that aggregate to the secret array'
   ''
-  console.log('secret', secret)
   const shares: Weights[] = []
   for (let i = 0; i < nParticipants - 1; i++) {
     shares.push(generateRandomShare(secret, Math.random() * maxRandNumber, RNG_CRYPTO_SECURITY.UNSAFE))
   }
-  console.log('shares', shares)
   shares.push(lastShare(shares, secret))
   const shares2 = List<Weights>(shares)
   return shares2
@@ -91,7 +111,7 @@ export function shuffleArray (a: any[]): any[] { // https://stackoverflow.com/qu
 export function generateRandomNumber (maxRandNumber: number, cryptoSecure: RNG_CRYPTO_SECURITY): number {
   if (cryptoSecure === RNG_CRYPTO_SECURITY.UNSAFE) {
     // added this math.random times maxRandNumber so adversaries cannot identify range of shares received
-    return Math.random() * maxRandNumber
+    return Math.random() * maxRandNumber+maxRandNumber/2
   } else {
     raiseCryptoNotImplemented()
     return -1

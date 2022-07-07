@@ -6,7 +6,7 @@ import { Weights } from './types'
 import * as tf from '@tensorflow/tfjs'
 import { List } from 'immutable'
 // import { lastShare, RNG_CRYPTO_SECURITY } from './secret_shares'
-require('@tensorflow/tfjs-node')
+// require('@tensorflow/tfjs-node')
 
 function makeWeights (values: any): Weights {
   const w: Weights = []
