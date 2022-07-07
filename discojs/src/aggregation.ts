@@ -3,6 +3,7 @@ import { Set } from 'immutable'
 import { Weights } from './types'
 
 export function averageWeights (peersWeights: Set<Weights>): Weights {
+  console.log('Aggregating a set of', peersWeights.size, 'weights.')
   const firstWeightSize = peersWeights.first()?.length
   if (firstWeightSize === undefined) {
     throw new Error('no weights to average')
