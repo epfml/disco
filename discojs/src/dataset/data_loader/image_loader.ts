@@ -38,7 +38,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
 
       labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), numberOfClasses).arraySync() as number[]
     }
-    if (config?.shuffle) {
+    if (config?.shuffle === undefined || config?.shuffle) {
       this.shuffle(indices)
     }
     const dataset = tf.data.generator(() => {
