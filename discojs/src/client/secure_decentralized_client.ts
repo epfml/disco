@@ -81,7 +81,7 @@ export class SecureDecentralized extends DecentralizedGeneral {
     if (decentralizedGeneral.isPeerMessage(message)) {
       const weights = serialization.weights.decode(message.weights)
 
-      console.debug('peer', peerID, 'sent weights', weights)
+      // console.debug('peer', peerID, 'sent weights', weights)
       //
       if (this.receivedSharesBuffer.get(peer)?.get(message.epoch) !== undefined) {
         throw new Error(`weights from ${peerID} already received`)
@@ -92,10 +92,13 @@ export class SecureDecentralized extends DecentralizedGeneral {
     } else if (isPeerReadyMessage(message)) {
       for (const elem of this.receivedReadyBuffer) {
         if (message.peerId === elem.peerId) {
-          throw new Error(`ready message from ${peerID} already received`)
+          continue
+          // throw new Error(`ready message from ${peerID} already received`)
+        }
+        else{
+          this.receivedReadyBuffer.push(message)
         }
       }
-      this.receivedReadyBuffer.push(message)
     } else if (isPeerPartialSumMessage(message)) {
       for (const elem of this.receivedReadyBuffer) {
         if (message.peerId === elem.peerId) {
@@ -127,15 +130,15 @@ export class SecureDecentralized extends DecentralizedGeneral {
   }
 
   // send split shares to connected peers
-  private async sendShares (updatedWeights: Weights, // WHY IS THIS ASYNC
+  private async sendShares (updatedWeights: Weights,
     staleWeights: Weights,
     epoch: number,
     trainingInformant: TrainingInformant): Promise<void> {
     // identify peer connections, make weight shares, add differential privacy
     // NEED TO MAKE SURE THAT WE ARE SELF-CONNECTED AS A PEER
-    const connectedPeers: Map<PeerID, SimplePeer.Instance> = this.peers.filter((peer) => peer.connected)
+    const connectedPeers: Map<PeerID, SimplePeer.Instance> = this.peers.filter((peer) => peer.connected) //connected error
     const noisyWeights: Weights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
-    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, connectedPeers.size, 1000)
+    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, this.peers.size, 1000)
     // List()
 
     // Broadcast our weights to ith peer
@@ -234,12 +237,13 @@ export class SecureDecentralized extends DecentralizedGeneral {
         throw err
       }
     })
-
     // MAKE SURE THIS ONLY EXECUTES AFTER ALL PREVIOUS CODE HAS EXECUTED
+    // await new Promise<void>(resolve => setTimeout(resolve, 5*1000))
     await this.sendShares(updatedWeights, staleWeights, epoch, trainingInformant)
     if (this.partialSumsBuffer.size === minimumReady) {
       this.sendPartialSums()
       // return []
+      console.log('before return')
       return secret_shares.addWeights(secret_shares.sum(this.partialSumsBuffer), this.mySum)
     }
   }
