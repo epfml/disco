@@ -1,9 +1,7 @@
 import { List, Map, Seq, Set } from 'immutable'
-// import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
 import * as secret_shares from '../secret_shares'
-// import { v4 as randomUUID } from 'uuid'
 import * as decentralizedGeneral from './decentralized'
 import { DecentralizedGeneral } from './decentralized'
 
@@ -12,6 +10,9 @@ import { aggregation, privacy, serialization, TrainingInformant, Weights } from 
 type PeerID = number
 
 interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
+interface ConnectedPeerIDsMessage {peerIDs: Array<number>}
+interface ClientReadyMessage { peerId: PeerID, epoch: number}
+interface PeerPartialSumMessage { peerId: PeerID, partial: Weights}
 
 // Time to wait between network checks in milliseconds.
 const TICK = 100
@@ -22,8 +23,7 @@ const minimumReady = 3
 // Time to wait for the others in milliseconds.
 const MAX_WAIT_PER_ROUND = 10_000
 
-interface PeerReadyMessage { peerId: PeerID, epoch: number}
-function isPeerReadyMessage (data: unknown): data is PeerReadyMessage {
+function isClientReadyMessage (data: unknown): data is ClientReadyMessage {
   if (typeof data !== 'object') {
     return false
   }
@@ -43,11 +43,32 @@ function isPeerReadyMessage (data: unknown): data is PeerReadyMessage {
     return false
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _: PeerReadyMessage = { peerId, epoch }
+  const _: ClientReadyMessage = { peerId, epoch }
   return true
 }
 
-interface PeerPartialSumMessage { peerId: PeerID, partial: Weights}
+function isConnectedPeerIDsMessage (data: unknown): data is ConnectedPeerIDsMessage {
+  if (typeof data !== 'object') {
+    return false
+  }
+  if (data === null) {
+    return false
+  }
+
+  if (!Set(Object.keys(data)).equals(Set.of('peerIDs'))) {
+    return false
+  }
+  const { peerIDs } = data as Record<'peerIDs', unknown>
+
+  if (!(peerIDs instanceof Array)
+  ) {
+    return false
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _: ConnectedPeerIDsMessage = { peerIDs }
+  return true
+}
+
 function isPeerPartialSumMessage (data: unknown): data is PeerPartialSumMessage {
   if (typeof data !== 'object') {
     return false
@@ -69,64 +90,61 @@ function isPeerPartialSumMessage (data: unknown): data is PeerPartialSumMessage 
 }
 
 export class SecureDecentralized extends DecentralizedGeneral {
-  private readonly receivedReadyBuffer: PeerReadyMessage[] = []
   private readonly receivedSharesBuffer = Map<SimplePeer.Instance, List<Weights | undefined>>()
   private readonly partialSumsBuffer: List<Weights> = List() // set of partial sums received by peers
   private mySum: Weights = []
   private readonly ID: number = 0 // randomUUID() // NEED TO MAKE THIS DECLARED BY TASK
 
   peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void {
+    //can receive weights, partialSums from other peers
+    //can receive list of peers from server
     const message = msgpack.decode(data)
     // if message is weights sent from peers
     if (decentralizedGeneral.isPeerMessage(message)) {
       const weights = serialization.weights.decode(message.weights)
-
-      // console.debug('peer', peerID, 'sent weights', weights)
-      //
       if (this.receivedSharesBuffer.get(peer)?.get(message.epoch) !== undefined) {
         throw new Error(`weights from ${peerID} already received`)
       }
       this.receivedSharesBuffer.set(peer,
         this.receivedSharesBuffer.get(peer, List<Weights>())
           .set(message.epoch, weights))
-    } else if (isPeerReadyMessage(message)) {
-      for (const elem of this.receivedReadyBuffer) {
-        if (message.peerId === elem.peerId) {
-          continue
-          // throw new Error(`ready message from ${peerID} already received`)
-        }
-        else{
-          this.receivedReadyBuffer.push(message)
-        }
-      }
-    } else if (isPeerPartialSumMessage(message)) {
-      for (const elem of this.receivedReadyBuffer) {
-        if (message.peerId === elem.peerId) {
+    }
+    //if message is partial sums sent by peer
+    else if (isPeerPartialSumMessage(message)) {
+      for (const [id, peerInstance] of this.peers) {
+        if (message.peerId === id) {
           throw new Error(`sum message from ${peerID} already received`)
         }
       }
       this.partialSumsBuffer.push(message.partial)
-    } else {
+    } else if( isConnectedPeerIDsMessage(message)){
+      let peerIDList: Array<number> = message.peerIDs
+      for (peerID of peerIDList){
+        let initiator = false
+        if(this.ID<peerID){ //THIS.ID IS NOT WORKING
+          initiator = true
+        }
+        this.connectNewPeer(peerID, initiator)
+      }
+    }
+    else {
       throw new Error(`invalid message received from ${peerID}`)
     }
   }
 
-  // sends message to connected peers that they are ready to share
+  // sends message to server that they are ready to share
   private sendReadyMessage (epoch: number, trainingInformant: TrainingInformant
   ): void {
     // Broadcast our readiness
-    const msg: PeerReadyMessage = {
+    const msg: ClientReadyMessage = {
       peerId: this.ID,
       epoch: epoch
     }
     const encodedMsg = msgpack.encode(msg)
-
-    this.peers
-      .filter((peer) => peer.connected)
-      .forEach((peer, peerID) => {
-        trainingInformant.addMessage(`Sending readiness to peer ${peerID}`)
-        peer.send(encodedMsg)
-      })
+    if (this.server === undefined){
+      throw new Error('server undefined, could not connect peers')
+    }
+    this.server.send(encodedMsg)
   }
 
   // send split shares to connected peers
@@ -135,10 +153,9 @@ export class SecureDecentralized extends DecentralizedGeneral {
     epoch: number,
     trainingInformant: TrainingInformant): Promise<void> {
     // identify peer connections, make weight shares, add differential privacy
-    // NEED TO MAKE SURE THAT WE ARE SELF-CONNECTED AS A PEER
-    const connectedPeers: Map<PeerID, SimplePeer.Instance> = this.peers.filter((peer) => peer.connected) //connected error
+    let connectedPeers: Map<PeerID, SimplePeer.Instance> = this.peers.filter((peer) => peer.connected) // connected error
     const noisyWeights: Weights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
-    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, this.peers.size, 1000)
+    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, connectedPeers.size, 1000)
     // List()
 
     // Broadcast our weights to ith peer
@@ -215,36 +232,10 @@ export class SecureDecentralized extends DecentralizedGeneral {
     epoch: number,
     trainingInformant: TrainingInformant): Promise<Weights | undefined> {
     // send ready message
-    this.sendReadyMessage(epoch, trainingInformant)
-
-    // check if buffer is full and send/receive shares
-    const timeoutError = new Error('timeout')
-    await new Promise<void>((resolve, reject) => {
-      const interval = setInterval(() => {
-        const gotAllReadyMessages = this.receivedReadyBuffer.length >= minimumReady // will want to change to wait x seconds to see if others are ready to connect also
-        if (gotAllReadyMessages) {
-          clearInterval(interval)
-          resolve()
-        }
-      }, TICK)
-
-      setTimeout(() => {
-        clearInterval(interval)
-        reject(timeoutError)
-      }, MAX_WAIT_PER_ROUND)
-    }).catch((err) => {
-      if (err !== timeoutError) {
-        throw err
-      }
-    })
-    // MAKE SURE THIS ONLY EXECUTES AFTER ALL PREVIOUS CODE HAS EXECUTED
-    // await new Promise<void>(resolve => setTimeout(resolve, 5*1000))
+    this.sendReadyMessage(epoch, trainingInformant) //don't continue from here until peers is not empty
     await this.sendShares(updatedWeights, staleWeights, epoch, trainingInformant)
-    if (this.partialSumsBuffer.size === minimumReady) {
-      this.sendPartialSums()
-      // return []
-      console.log('before return')
-      return secret_shares.addWeights(secret_shares.sum(this.partialSumsBuffer), this.mySum)
-    }
+    this.sendPartialSums()
+    this.partialSumsBuffer.push(this.mySum)
+    return secret_shares.sum(this.partialSumsBuffer)
   }
 }
