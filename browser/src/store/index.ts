@@ -1,20 +1,23 @@
 import { loadTasks } from '@/tasks'
 
-import { ModelType, Task } from 'discojs'
+import { ModelType, Path, Task, TaskID } from 'discojs'
 import { ActionContext, createStore } from 'vuex'
 import * as tf from '@tensorflow/tfjs'
 
 const MIN_STEP = 0
 const MAX_STEP = 4
 
+// TODO better typing
+type ModelMetadata = any
+
 interface State {
-  tasks: Map<string, Task>,
-  steps: Map<string, number>,
-  models: Map<string, any>,
-  currentTask: string,
+  tasks: Map<TaskID, Task>,
+  steps: Map<TaskID, number>,
+  models: Map<Path, ModelMetadata>,
+  currentTask: TaskID,
   useIndexedDB: boolean,
   isDark: boolean,
-  testingModel: string
+  testingModel: Path
   testingState: boolean
 }
 
@@ -93,13 +96,13 @@ export const store = createStore({
       state.tasks.set(task.taskID, task)
       state.steps.set(task.taskID, 0)
     },
-    addModel (state: State, { path, metadata }: { path: string, metadata: any }): void {
+    addModel (state: State, { path, metadata }: { path: Path, metadata: ModelMetadata }): void {
       state.models.set(path, metadata)
     },
-    deleteModel (state: State, path: string): void {
+    deleteModel (state: State, path: Path): void {
       state.models.delete(path)
     },
-    prevStep (state: State, taskID: string): void {
+    prevStep (state: State, taskID: TaskID): void {
       if (state.steps.has(taskID)) {
         const step = state.steps.get(taskID)
         if (step !== undefined) {
@@ -107,7 +110,7 @@ export const store = createStore({
         }
       }
     },
-    nextStep (state: State, taskID: string): void {
+    nextStep (state: State, taskID: TaskID): void {
       if (state.steps.has(taskID)) {
         const step = state.steps.get(taskID)
         if (step !== undefined) {
@@ -115,17 +118,17 @@ export const store = createStore({
         }
       }
     },
-    setStep (state: State, { taskID, step }: { taskID: string, step: number }) {
+    setStep (state: State, { taskID, step }: { taskID: TaskID, step: number }) {
       if (step >= MIN_STEP && step <= MAX_STEP && state.steps.has(taskID)) {
         state.steps.set(taskID, step)
       }
     },
-    setCurrentTask (state: State, taskID: string): void {
+    setCurrentTask (state: State, taskID: TaskID): void {
       if (state.tasks.has(taskID)) {
         state.currentTask = taskID
       }
     },
-    setTestingModel (state: State, path: string): void {
+    setTestingModel (state: State, path: Path): void {
       state.testingModel = path
       state.testingState = !state.testingState // trigger event-like update
     }

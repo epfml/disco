@@ -41,10 +41,9 @@ export class Validator extends ModelActor {
         const xs = e.xs as tf.Tensor
         const ys = (e.ys as tf.Tensor).dataSync()
 
-        // map probability predictions to nearest class
         const pred = (model.predict(xs, { batchSize: batchSize }) as tf.Tensor)
           .dataSync()
-          .map((p) => Math.round(p * (classes - 1)))
+          .map(Math.round)
 
         this.size += xs.shape[0]
 

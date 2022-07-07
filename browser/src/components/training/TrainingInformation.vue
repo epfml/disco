@@ -75,7 +75,7 @@
     </div>
 
     <!-- Communication Console -->
-    <IconCard>
+    <IconCard v-if="isDistributedTrainingScheme">
       <template #title>
         {{ $t('training.trainingInformationFrame.trainingInformations.trainingConsoleHeader') }}
       </template>
@@ -102,71 +102,69 @@
       </template>
     </IconCard>
 
-    <!-- Distributed Training Information -->
-    <div
-      v-if="isDecentralizedTrainingScheme"
-      class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4"
-    >
-      <!-- Number of time model updated with someone else's model card -->
-      <IconCardSmall
-        :header="$t('training.trainingInformationFrame.trainingInformations.distributed.averaging')"
-        :description="String(trainingInformant.nbrUpdatesWithOthers)"
-      >
-        <Performances />
+    <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
+      <IconCardSmall>
+        <template #header>
+          Current round
+        </template>
+        <template #text>
+          {{ trainingInformant.currentRound }}
+        </template>
+        <template #icon>
+          <Timer />
+        </template>
+      </IconCardSmall>
+      <IconCardSmall>
+        <template #header>
+          Current # of participants
+        </template>
+        <template #text>
+          {{ trainingInformant.currentNumberOfParticipants }}
+        </template>
+        <template #icon>
+          <People />
+        </template>
+      </IconCardSmall>
+      <IconCardSmall>
+        <template #header>
+          Average # of participants
+        </template>
+        <template #text>
+          {{ trainingInformant.averageNumberOfParticipants }}
+        </template>
+        <template #icon>
+          <People />
+        </template>
       </IconCardSmall>
 
-      <!-- How much time I've been waiting for weights to arrive -->
-      <IconCardSmall
-        :header="$t('training.trainingInformationFrame.trainingInformations.distributed.waitingTime')"
-        :description="`${trainingInformant.waitingTime} sec`"
+      <div
+        v-if="isDecentralizedTrainingScheme"
+        class="contents"
       >
-        <timer />
-      </IconCardSmall>
-
-      <!-- Nbr. of Weight Requests -->
-      <IconCardSmall
-        :header="$t('training.trainingInformationFrame.trainingInformations.distributed.weightRequests')"
-        :description="String(trainingInformant.nbrWeightRequests)"
-      >
-        <forward />
-      </IconCardSmall>
-
-      <!-- Nbr. of people helped -->
-      <IconCardSmall
-        :header="$t('training.trainingInformationFrame.trainingInformations.distributed.peopleHelped')"
-        :description="String(trainingInformant.whoReceivedMyModel.size)"
-      >
-        <people />
-      </IconCardSmall>
-    </div>
+        <IconCardSmall>
+          <template #header>
+            Waiting time
+          </template>
+          <template #text>
+            {{ trainingInformant.waitingTime }} seconds
+          </template>
+          <template #icon>
+            <Timer />
+          </template>
+        </IconCardSmall>
+        <IconCardSmall>
+          <template #header>
+            # of weights requests
+          </template>
+          <template #text>
+            {{ trainingInformant.nbrWeightRequests }}
+          </template>
+          <template #icon>
+            <Forward />
+          </template>
+        </IconCardSmall>
+      </div>
     <!-- Federated Training Information -->
-    <div
-      v-else
-      class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4"
-    >
-      <!-- Current Round -->
-      <IconCardSmall
-        :header="$t('training.trainingInformationFrame.trainingInformations.federated.round')"
-        :description="String(trainingInformant.currentRound)"
-      >
-        <Timer />
-      </IconCardSmall>
-
-      <!-- Current Number of Participants -->
-      <IconCardSmall
-        :header="$t('training.trainingInformationFrame.trainingInformations.federated.numberParticipants')"
-        :description="String(trainingInformant.currentNumberOfParticipants)"
-      >
-        <People />
-      </IconCardSmall>
-
-      <!-- Average Number of Participants -->
-      <IconCardSmall
-        :header="$t('training.trainingInformationFrame.trainingInformations.federated.averageParticipants')"
-        :description="String(trainingInformant.averageNumberOfParticipants)"
-      >
-        <People />
-      </IconCardSmall>
     </div>
   </div>
 </template>
@@ -179,7 +177,6 @@ import IconCardSmall from '@/components/containers/IconCardSmall.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import Timer from '@/assets/svg/Timer.vue'
 import People from '@/assets/svg/People.vue'
-import Performances from '@/assets/svg/Performances.vue'
 import Forward from '@/assets/svg/Forward.vue'
 import Contact from '@/assets/svg/Contact.vue'
 import { chartOptions } from '@/charts'
@@ -191,7 +188,6 @@ export default defineComponent({
     IconCard,
     Timer,
     People,
-    Performances,
     Forward,
     Contact
   },
@@ -205,8 +201,14 @@ export default defineComponent({
     chartOptions () {
       return chartOptions
     },
-    isDecentralizedTrainingScheme () {
+    isDecentralizedTrainingScheme (): boolean {
       return this.trainingInformant.isTaskTrainingSchemeDecentralized()
+    },
+    isFederatedTrainingScheme (): boolean {
+      return this.trainingInformant.isTaskTrainingSchemeFederated()
+    },
+    isDistributedTrainingScheme (): boolean {
+      return this.isFederatedTrainingScheme || this.isDecentralizedTrainingScheme
     },
     displayHeatmap () {
       return this.trainingInformant.displayHeatmap
