@@ -133,7 +133,7 @@
 
       <!-- Nbr. of people helped -->
       <IconCardSmall
-        :header="$t('training.trainingInformationFrame.trainingInformations.distributed.peopleHelped')"
+        header="Current number of participants"
         :description="String(trainingInformant.whoReceivedMyModel.size)"
       >
         <people />
