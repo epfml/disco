@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 // Some page components
-import Home from '@/components/pages/Home.vue'
+import Home from '@/components/home/Home.vue'
 import Information from '@/components/pages/Information.vue'
 import NewTaskCreationForm from '@/components/pages/NewTaskCreationForm.vue'
 import TaskList from '@/components/pages/TaskList.vue'
