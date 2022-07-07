@@ -10,6 +10,7 @@ import { Base } from './base'
 import { URL } from 'url'
 
 interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
+interface PeerReadyMessage {peerID: number, epoch: number}
 
 // TODO take it from the server sources
 type PeerID = number
@@ -58,6 +59,21 @@ export function isServerOpeningMessage (msg: unknown): msg is ServerOpeningMessa
   return true
 }
 
+export function isPeerReadyMessage (msg: unknown): msg is PeerReadyMessage {
+  if (!(msg instanceof Array)) {
+    return false
+  }
+
+  if (!msg.every((elem) => typeof elem === 'number')) {
+    return false
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _: ServerOpeningMessage = msg
+
+  return true
+}
+
 export function isServerPeerMessage (msg: unknown): msg is ServerPeerMessage {
   if (!(msg instanceof Array)) {
     return false
@@ -88,7 +104,6 @@ export abstract class DecentralizedGeneral extends Base {
   protected server?: isomorphic.WebSocket
   protected peers = Map<PeerID, SimplePeer.Instance>()
 
-
   protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
@@ -99,9 +114,9 @@ export abstract class DecentralizedGeneral extends Base {
       }
       const msg: unknown = msgpack.decode(new Uint8Array(event.data))
 
-      if (isServerOpeningMessage(msg)) { //sent by server to client, can replace with message containing peerIds of next round communication
-        //new message contains [a,b], then client a sends to server peerMessage to connect to b
-        //peer.signal(signal)
+      if (isServerOpeningMessage(msg)) { // sent by server to client, can replace with message containing peerIds of next round communication
+        // new message contains [a,b], then client a sends to server peerMessage to connect to b
+        // peer.signal(signal)
         console.debug('server sent us the list of peer to connect to:', msg)
         if (this.peers.size !== 0) {
           throw new Error('server already gave us a list of peers')
@@ -109,8 +124,8 @@ export abstract class DecentralizedGeneral extends Base {
         this.peers = Map(await Promise.all(msg.map(
           async (id: PeerID) => [id, await this.connectNewPeer(id, true)] as [PeerID, SimplePeer.Instance]
         )))
-      } else if (isServerPeerMessage(msg)) { //how to connect two peers in simplePeers
-        const [peerID, encodedSignal] = msg //peerID is initiatro, has sent the signal to server --> client
+      } else if (isServerPeerMessage(msg)) { // how to connect two peers in simplePeers
+        const [peerID, encodedSignal] = msg // peerID is initiatro, has sent the signal to server --> client
         const signal = msgpack.decode(encodedSignal)
         console.debug('server on behalf of', peerID, 'sent', signal)
 
@@ -120,8 +135,9 @@ export abstract class DecentralizedGeneral extends Base {
           this.peers = this.peers.set(peerID, peer)
         }
 
-        peer.signal(signal) //signal from client, initializing peer relation
-      } else {
+        peer.signal(signal) // signal from client, initializing peer relation
+      }
+       else {
         throw new Error('send sent an invalid msg')
       }
     }

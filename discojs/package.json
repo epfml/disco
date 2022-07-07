@@ -34,6 +34,7 @@
     "@types/lodash": "4",
     "@types/mocha": "9",
     "@types/msgpack-lite": "0.1",
+    "@types/node": "^18.0.3",
     "@types/simple-peer": "9",
     "@types/uuid": "8",
     "@types/ws": "8",
