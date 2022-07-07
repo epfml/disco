@@ -61,7 +61,7 @@ export class TrainingInformant {
 
   /**
    * Updates the set of peers who received my model.
-   * @param {String} peerName the peer's name to whom I recently shared my model to.
+   * @param peerName the peer's name to whom I recently shared my model to.
    */
   updateWhoReceivedMyModel (peerName: string): void {
     this.whoReceivedMyModel = this.whoReceivedMyModel.add(peerName)
@@ -69,7 +69,7 @@ export class TrainingInformant {
 
   /**
    * Updates the number of updates I did with other peers.
-   * @param {Number} nbrUpdates the number of updates I did thanks to other peers contribution since the last update of the parameter.
+   * @param nbrUpdates the number of updates I did thanks to other peers contribution since the last update of the parameter.
    */
   updateNbrUpdatesWithOthers (nbrUpdates: number): void {
     this.nbrUpdatesWithOthers += nbrUpdates
@@ -77,7 +77,7 @@ export class TrainingInformant {
 
   /**
    * Updates the time I waited to receive weights.
-   * @param {Number} time
+   * @param time
    */
   updateWaitingTime (time: number): void {
     this.waitingTime += time
@@ -85,7 +85,7 @@ export class TrainingInformant {
 
   /**
    * Updates the number of weights request I received.
-   * @param {Number} nbrRequests the number of weight requests I received since the last update of the parameter.
+   * @param nbrRequests the number of weight requests I received since the last update of the parameter.
    */
   updateNbrWeightsRequests (nbrRequests: number): void {
     this.nbrWeightRequests += nbrRequests
@@ -93,7 +93,7 @@ export class TrainingInformant {
 
   /**
    * Add a new message to the message list.
-   * @param {String} msg a message.
+   * @param msg a message
    */
   addMessage (msg: string): void {
     if (this.messages.size >= this.nbrMessagesToShow) {
@@ -105,7 +105,7 @@ export class TrainingInformant {
   /**
    * Update the server statistics with the JSON received from the server
    * For now it's just the JSON, but we might want to keep it as a dictionnary
-   * @param {any} receivedStatistics statistics received from the server.
+   * @param receivedStatistics statistics received from the server.
    */
   updateWithServerStatistics (receivedStatistics: Record<string, number>): void {
     this.currentRound = receivedStatistics.round
