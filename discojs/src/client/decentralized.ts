@@ -190,6 +190,10 @@ export abstract class DecentralizedGeneral extends Base {
       console.log('Is peer', peerID, 'connected? ', peer.connected, '\n')
     })
 
+    peer.on('close', () => {
+      console.info('\nLocal peer', peerID, 'is closing.\n')
+    })
+
     // TODO better error handling
     peer.on('error', (err) => { throw err })
 
