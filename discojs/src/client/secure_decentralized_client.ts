@@ -23,29 +23,29 @@ const minimumReady = 3
 // Time to wait for the others in milliseconds.
 const MAX_WAIT_PER_ROUND = 10_000
 
-// function isClientReadyMessage (data: unknown): data is ClientReadyMessage {
-//   if (typeof data !== 'object') {
-//     return false
-//   }
-//   if (data === null) {
-//     return false
-//   }
-//
-//   if (!Set(Object.keys(data)).equals(Set.of('peerId', 'epoch'))) {
-//     return false
-//   }
-//   const { peerId, epoch } = data as Record<'peerId' | 'epoch', unknown>
-//
-//   if (
-//     typeof epoch !== 'number' ||
-//       typeof peerId !== 'number'
-//   ) {
-//     return false
-//   }
-//   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-//   const _: ClientReadyMessage = { peerId, epoch }
-//   return true
-// }
+function isClientReadyMessage (data: unknown): data is ClientReadyMessage {
+  if (typeof data !== 'object') {
+    return false
+  }
+  if (data === null) {
+    return false
+  }
+
+  if (!Set(Object.keys(data)).equals(Set.of('peerId', 'epoch'))) {
+    return false
+  }
+  const { peerId, epoch } = data as Record<'peerId' | 'epoch', unknown>
+
+  if (
+    typeof epoch !== 'number' ||
+      typeof peerId !== 'number'
+  ) {
+    return false
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _: ClientReadyMessage = { peerId, epoch }
+  return true
+}
 
 function isConnectedPeerIDsMessage (data: unknown): data is ConnectedPeerIDsMessage {
   if (typeof data !== 'object') {
