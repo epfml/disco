@@ -1,19 +1,14 @@
-import { List, Set } from 'immutable'
+import { List } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
-import SimplePeer from 'simple-peer'
-// import { URL } from 'url'
 
-import { serialization, TrainingInformant, Weights} from '..'
+import { serialization, TrainingInformant, Weights } from '..'
 import * as messages from '../messages'
 
 import { Base } from './base'
 import { URL } from 'url'
 
-// TODO take it from the server sources
 type PeerID = number
-type EncodedSignal = Uint8Array
-
 
 /**
  * Class that deals with communication with the PeerJS server.
@@ -25,8 +20,8 @@ export abstract class DecentralizedGeneral extends Base {
   protected receivedWeights = new Map <PeerID, Weights>()
   protected ID: number = 0
 
-  protected async peerMessageTemp(message: unknown){
-    if (this.server === undefined){
+  protected peerMessageTemp (message: unknown): void {
+    if (this.server === undefined) {
       throw new Error("Undefined Server, can't send message")
     }
     this.server.send(message)
@@ -42,25 +37,23 @@ export abstract class DecentralizedGeneral extends Base {
       }
       const msg = msgpack.decode(new Uint8Array(event.data))
 
-        if (msg.type === messages.messageType.serverClientIDMessage) {
-          this.ID = msg.peerID
-        } else if (msg.type === messages.messageType.serverConnectedClients) { // who to connect to
-          this.peers = msg.peerList
-        } else if (msg.type === messages.messageType.clientWeightsMessageServer) { // weights message
-          const weights = serialization.weights.decode(msg.weights)
-          this.receivedWeights.set(msg.peerID, weights)
-        }
-        else{
-          throw new Error('Message Type Incorrect')
-        }
+      if (msg.type === messages.messageType.serverClientIDMessage) {
+        this.ID = msg.peerID
+      } else if (msg.type === messages.messageType.serverConnectedClients) { // who to connect to
+        this.peers = msg.peerList
+      } else if (msg.type === messages.messageType.clientWeightsMessageServer) { // weights message
+        const weights = serialization.weights.decode(msg.weights)
+        this.receivedWeights.set(msg.peerID, weights)
+      } else {
+        throw new Error('Message Type Incorrect')
+      }
     }
     return await new Promise((resolve, reject) => {
       ws.onerror = (err: isomorphic.ErrorEvent) =>
         reject(new Error(`connecting server: ${err.message}`))
       ws.onopen = () => resolve(ws)
-      })
-    }
-
+    })
+  }
 
   /**
    * Initialize the connection to the peers and to the other nodes.
