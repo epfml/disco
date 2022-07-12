@@ -3,16 +3,10 @@
   <Card>
     <div class="group m-6 text-xl text-slate-500">
       <span class="text-disco-blue group-hover:text-disco-cyan">
-        {{ title }}
-        <span
-          v-if="titleUnderlined"
-          class="underline"
-        >{{
-          titleUnderlined
-        }}</span>
+        <slot name="title" />
       </span>
       <div class="text-base">
-        <slot />
+        <slot name="text" />
       </div>
     </div>
   </Card>
@@ -23,10 +17,6 @@ import Card from './Card.vue'
 
 export default {
   name: 'TitleCard',
-  components: { Card },
-  props: {
-    title: { default: '', type: String },
-    titleUnderlined: { default: '', type: String }
-  }
+  components: { Card }
 }
 </script>
