@@ -68,7 +68,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
         ys: Object.values(ys)
       }
     })
-    return config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset
+    return (config?.shuffle === undefined || config?.shuffle) ? dataset.shuffle(BUFFER_SIZE) : dataset
   }
 
   /**

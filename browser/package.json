@@ -46,7 +46,6 @@
     "yup": "0"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "3",
     "@types/chai": "4",
     "@types/d3": "7",
     "@types/mocha": "8",
