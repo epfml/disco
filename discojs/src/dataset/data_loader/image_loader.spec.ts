@@ -32,7 +32,8 @@ describe('image loader', () => {
 
   it('loads multiple samples without labels', async () => {
     const imagesContent = FILES.CIFAR10.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
-    const datasetContent = await (await new NodeImageLoader(tasks.cifar10.task).loadAll(FILES.CIFAR10))
+    const datasetContent = await (await new NodeImageLoader(tasks.cifar10.task)
+      .loadAll(FILES.CIFAR10, { shuffle: false }))
       .dataset.toArray()
     expect(datasetContent.length).equal(imagesContent.length)
     expect((datasetContent[0] as tfNode.Tensor3D).shape).eql(imagesContent[0].shape)
@@ -53,7 +54,9 @@ describe('image loader', () => {
     const oneHotLabels = tfNode.oneHot(labels, 10).arraySync()
 
     const imagesContent = FILES.CIFAR10.map((file) => tfNode.node.decodeImage(fs.readFileSync(file)))
-    const datasetContent = await (await new NodeImageLoader(tasks.cifar10.task).loadAll(FILES.CIFAR10, { labels: stringLabels })).dataset.toArray()
+    const datasetContent = await (await new NodeImageLoader(tasks.cifar10.task)
+      .loadAll(FILES.CIFAR10, { labels: stringLabels, shuffle: false }))
+      .dataset.toArray()
 
     expect(datasetContent.length).equal(imagesContent.length)
     _.forEach(
@@ -73,7 +76,7 @@ describe('image loader', () => {
 
   it('loads samples in order', async () => {
     const loader = new NodeImageLoader(tasks.cifar10.task)
-    const dataset = await ((await loader.loadAll(FILES.CIFAR10)).dataset).toArray()
+    const dataset = await ((await loader.loadAll(FILES.CIFAR10, { shuffle: false })).dataset).toArray()
 
     List(dataset).zip(List(FILES.CIFAR10))
       .forEach(async ([s, f]) => {
@@ -99,7 +102,7 @@ describe('image loader', () => {
 
   it('shuffles samples', async () => {
     const loader = new NodeImageLoader(tasks.cifar10.task)
-    const dataset = await (await loader.loadAll(FILES.CIFAR10)).dataset.toArray()
+    const dataset = await (await loader.loadAll(FILES.CIFAR10, { shuffle: false })).dataset.toArray()
     const shuffled = await (await loader.loadAll(FILES.CIFAR10, { shuffle: true })).dataset.toArray()
 
     const misses = List(dataset).zip(List(shuffled)).map(([d, s]) =>

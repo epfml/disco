@@ -19,7 +19,8 @@ describe('tabular loader', () => {
       inputFiles,
       {
         features: titanic.trainingInformation?.inputColumns,
-        labels: titanic.trainingInformation?.outputColumns
+        labels: titanic.trainingInformation?.outputColumns,
+        shuffle: false
       }
     )
     const sample = await (await (await loaded).dataset.iterator()).next()
@@ -45,9 +46,12 @@ describe('tabular loader', () => {
       labels: titanic.trainingInformation?.outputColumns,
       shuffle: false
     }
-    const dataset = await (await loader.loadAll(inputFiles, config)).dataset.toArray()
-    config.shuffle = true
-    const shuffled = await (await loader.loadAll(inputFiles, config)).dataset.toArray()
+    const dataset = await (await loader
+      .loadAll(inputFiles, config))
+      .dataset.toArray()
+    const shuffled = await (await loader
+      .loadAll(inputFiles, { ...config, shuffle: true }))
+      .dataset.toArray()
 
     const misses = List(dataset).zip(List(shuffled)).map(([d, s]) =>
       tf.notEqual((d as any).xs, (s as any).xs).any().dataSync()[0]
