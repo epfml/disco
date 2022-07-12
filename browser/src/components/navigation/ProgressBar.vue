@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <h1
       v-if="scheme !== undefined && displayTitle"
-      class="font-disco text-3xl text-center"
+      class="flex flex-wrap font-disco text-3xl justify-center"
     >
       <span class="text-disco-blue">{{ scheme }}</span><span class="text-disco-cyan">&nbsp;Learning</span>
     </h1>

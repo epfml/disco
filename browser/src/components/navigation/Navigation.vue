@@ -1,6 +1,6 @@
 <template>
   <div v-if="!verifyingRoute">
-    <div class="grid grid-cols-2 gap-8 py-6 items-center">
+    <div class="flex flex-wrap place-content-center gap-4 md:gap-8 py-6">
       <div
         class="text-right"
       >
