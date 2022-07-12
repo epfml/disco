@@ -12,7 +12,7 @@ type EncodedSignal = Uint8Array
 export class SignalingServer {
   private readyClients: Map<PeerID, WebSocket> = Map()
   private clientCounter: PeerID = 0
-  private minConnected: number = 2
+  private minConnected: number = 3
 
   handle (taskID: TaskID, ws: WebSocket): void {
     const peerID: PeerID = this.clientCounter++
@@ -26,7 +26,6 @@ export class SignalingServer {
       try {
         const msg = msgpack.decode(data)
         if (msg.type === messages.messageType.clientWeightsMessageServer) {
-          console.log('server has received weights')
           const forwardMsg: messages.clientWeightsMessageServer = {type: messages.messageType.clientWeightsMessageServer, peerID: msg.peerID, weights: msg.weights}
           const encodedMsg: Buffer = msgpack.encode(forwardMsg)
           for(let client of this.readyClients.values()){

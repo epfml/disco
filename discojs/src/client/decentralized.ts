@@ -22,7 +22,7 @@ type EncodedSignal = Uint8Array
 export abstract class DecentralizedGeneral extends Base {
   protected server?: isomorphic.WebSocket
   protected peers = List<PeerID>()
-  protected receivedWeights = new Map <PeerID, List<Weights | undefined>>()
+  protected receivedWeights = new Map <PeerID, Weights>()
   protected ID: number = 0
 
   protected async peerMessageTemp(message: unknown){
@@ -47,7 +47,7 @@ export abstract class DecentralizedGeneral extends Base {
         } else if (msg.type === messages.messageType.serverConnectedClients) { // who to connect to
           this.peers = msg.peerList
         } else if (msg.type === messages.messageType.clientWeightsMessageServer) { // weights message
-          const weights = msgpack.decode(msg.weights)
+          const weights = serialization.weights.decode(msg.weights)
           this.receivedWeights.set(msg.peerID, weights)
         }
         else{

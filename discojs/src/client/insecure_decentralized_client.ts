@@ -15,7 +15,9 @@ const TICK = 100
 // Time to wait for the others in milliseconds.
 const MAX_WAIT_PER_ROUND = 10_000
 
-const minimumPeers = 2
+const minimumPeers = 3
+
+const arbitraryNegativeNumber = -10
 
 /**
  * Class that deals with communication with the PeerJS server.
@@ -42,6 +44,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
     // send message to server that we ready
+    this.peers = List()
     this.sendReadyMessage(round, trainingInformant)
 
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
@@ -49,7 +52,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     // Broadcast our weights
     const msg: messages.clientWeightsMessageServer = {type: messages.messageType.clientWeightsMessageServer, peerID: this.ID, weights: await serialization.weights.encode(noisyWeights)}
     const encodedMsg = msgpack.encode(msg)
-    let peerSize: number = -10
+    let peerSize: number = arbitraryNegativeNumber
 
     const timeoutError = new Error('timeout')
     await new Promise<void>((resolve, reject) => {
@@ -78,14 +81,8 @@ export class InsecureDecentralized extends DecentralizedGeneral {
       }
     })
 
-    // console.log('OUTSIDE weights map size,', this.receivedWeights.get(0))
-    // console.log('MY weights', noisyWeights)
-    const weightsArray = Object.values(this.receivedWeights)
-
-
-    const weightsSet = Set(weightsArray)
-    // Add my own weights (noisied by DP) to the set of weights to average.
-    const finalWeights = weightsSet.add(noisyWeights)
+    const weightsArray = Array.from(this.receivedWeights.values())
+    const finalWeights = Set(weightsArray)
     console.log('finalWeights Size', finalWeights.size)
 
     // Average weights
