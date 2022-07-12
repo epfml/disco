@@ -170,75 +170,64 @@
     </div>
 
     <!-- Page Content -->
-    <section class="flex-col items-center justify-center p-4 space-y-4">
-      <card custom-class="hover:text-primary dark:hover:text-light">
-        <div class="grid gap-8 p-4 sm:grid-cols-2">
-          <!-- Federated insight -->
-          <div class="flex flex-col items-center mx-auto">
-            <h6
-              class="
-              text-xl
-              font-large
-              font-bold
+    <Card class="flex flex-col place-content-center p-6 space-y-6">
+      <p class="flex flex-wrap justify-center text-3xl text-slate-400 mt-2">
+        <span><span class="font-disco text-disco-cyan uppercase">Dis</span><span>-tributed</span>&nbsp;</span>
+        <span><span class="font-disco text-disco-blue uppercase">Co</span><span>-llaborative</span>&nbsp;</span>
+        learning platform
+      </p>
+      <div class="grid gap-8 p-4 sm:grid-cols-2 text-slate-500">
+        <!-- Federated insight -->
+        <div class="flex flex-col items-center">
+          <h6
+            class="
+              text-center
+              text-2xl
               leading-none
               tracking-wider
-              text-disco-cyan
               px-2
               py-6
             "
-            >
-              {{ $tm('information.federatedTitle') }}
-            </h6>
-            <div class="flex justify-center my-md">
-              <FederatedGIF />
-            </div>
-            <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-              <div class="py-6">
-                <p>- Server coordinates secure collaborative learning of model</p>
-              </div>
-            </ul>
-          </div>
-          <!-- Decentralised insight -->
-          <div class="flex flex-col items-center mx-auto">
-            <h6
-              class="
-              text-xl
-              font-large
-              font-bold
+          >
+            Federated Learning
+          </h6>
+          <FederatedGIF class="my-md" />
+          <p class="text-lg py-6">
+            - Server coordinates secure collaborative learning of model
+          </p>
+        </div>
+        <!-- Decentralised insight -->
+        <div class="flex flex-col items-center">
+          <h6
+            class="
+              text-center
+              text-2xl
               leading-none
               tracking-wider
-              text-disco-blue
               px-2
               py-6
             "
-            >
-              {{ $tm('information.decentralisedTitle') }}
-            </h6>
-            <div class="flex justify-center my-md">
-              <DecentralizedGIF />
-            </div>
-            <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-              <div class="py-6">
-                <p>- Peer2Peer secure collaborative learning of model</p>
-              </div>
-            </ul>
+          >
+            Decentralized Learning
+          </h6>
+          <DecentralizedGIF class="my-md" />
+          <p class="text-lg py-6">
+            - Peer2Peer secure collaborative learning of model
+          </p>
+        </div>
+      </div>
+      <div class="flex w-full md:w-1/2 justify-center rounded-3xl bg-disco-cyan">
+        <ul class="text-lg ont-semibold text-white">
+          <div
+            class="py-6"
+          >
+            <p>- Data stays local, always</p>
+            <p>- Secure and privacy preserving</p>
+            <p>- Collaborative training</p>
           </div>
-        </div>
-        <div
-          class="flex justify-center my-md rounded-3xl bg-disco-cyan"
-        >
-          <ul class="text-lg ont-semibold text-white dark:text-light">
-            <div
-              class="py-6"
-            >
-              <p>- Data stays local, always</p>
-              <p>- Secure and privacy preserving</p>
-              <p>- Collaborative training</p>
-            </div>
-          </ul>
-        </div>
-      </card>
-    </section>
+        </ul>
+      </div>
+    </Card>
   </div>
 </template>
 
