@@ -72,13 +72,13 @@ export abstract class Trainer {
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>): Promise<void> {
+  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>, valDataset: tf.data.Dataset<tf.TensorContainer>): Promise<void> {
     this.resetStopTrainerState()
 
     // Assign callbacks and start training
     await this.model.fitDataset(dataset.batch(this.trainingInformation.batchSize), {
       epochs: this.trainingInformation.epochs,
-      validationData: dataset.batch(this.trainingInformation.batchSize),
+      validationData: valDataset.batch(this.trainingInformation.batchSize),
       callbacks: {
         onEpochEnd: (epoch, logs) => this.onEpochEnd(epoch, logs),
         onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs)

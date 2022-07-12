@@ -67,7 +67,7 @@ describe('image loader', () => {
         ) {
           throw new Error('unexpected type')
         }
-        const { xs, ys } = actual as { xs: tf.Tensor, ys: number[] }
+        const { xs, ys } = actual as {xs: tf.Tensor, ys: number[]}
         expect(xs.shape).eql(sample?.shape)
         expect(ys).eql(label)
       }
@@ -109,5 +109,18 @@ describe('image loader', () => {
       tf.notEqual(d as tf.Tensor, s as tf.Tensor).any().dataSync()[0]
     ).reduce((acc: number, e) => acc + e)
     assert(misses > 0)
+  })
+  it('validation split', async () => {
+    const validationSplit = 0.2
+    const imagesContent = FILES.CIFAR10.map((file) => tf.node.decodeImage(fs.readFileSync(file)))
+    const datasetContent = await new NodeImageLoader(tasks.cifar10.task)
+      .loadAll(FILES.CIFAR10, { shuffle: false, validationSplit: validationSplit })
+
+    const trainSize = Math.floor(imagesContent.length * (1 - validationSplit))
+    expect((await datasetContent.train.dataset.toArray()).length).equal(trainSize)
+    if (datasetContent.validation === undefined) {
+      assert(false)
+    }
+    expect((await datasetContent.validation.dataset.toArray()).length).equal(imagesContent.length - trainSize)
   })
 })
