@@ -5,7 +5,7 @@
     </h1>
     <div
       v-show="tasks.size > 0"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+      class="flex flex-wrap gap-8"
     >
       <div
         v-for="(filter, idx) in filters"

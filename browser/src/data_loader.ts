@@ -4,7 +4,8 @@ import { dataset } from 'discojs'
 
 export class WebImageLoader extends dataset.ImageLoader<File> {
   async readImageFrom (source: File): Promise<tf.Tensor3D> {
-    return tf.browser.fromPixels(await createImageBitmap(source))
+    const tensor = tf.browser.fromPixels(await createImageBitmap(source))
+    return tensor.div(tf.scalar(255)) as tf.Tensor3D
   }
 }
 
