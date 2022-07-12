@@ -72,7 +72,7 @@ describe('end to end', function () {
 
 
   it('runs cifar 10 with two decentralized users', async () =>
-      await Promise.all([cifar10user(), cifar10user()]))
+      await Promise.all([cifar10user(), cifar10user(), cifar10user()]))
 
   async function cifar10user(): Promise<void> {
     const dir = '../discojs/example_training_data/CIFAR10/'
