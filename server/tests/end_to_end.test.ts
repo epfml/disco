@@ -19,6 +19,7 @@ class NodeImageLoader extends dataset.ImageLoader<string> {
 
 class NodeTabularLoader extends dataset.TabularLoader<string> {
   loadTabularDatasetFrom (source: string, csvConfig: Record<string, unknown>): tf.data.CSVDataset {
+    console.log('loading!>>', source)
     return tf.data.csv(source, csvConfig)
   }
 }
@@ -40,7 +41,7 @@ describe('end to end', function () {
 
     const cifar10 = tasks.cifar10.task
 
-    const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+    const data = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 
     const client = await getClient(server, cifar10)
     await client.connect()
@@ -54,7 +55,7 @@ describe('end to end', function () {
       client
     )
 
-    await disco.startTraining(loaded)
+    await disco.startTraining(data)
   }
 
   it('runs titanic with two users', async () =>
@@ -63,20 +64,17 @@ describe('end to end', function () {
   async function titanicUser (): Promise<void> {
     const dir = '../discojs/example_training_data/titanic.csv'
 
+    // TODO: can load data, so path is right.
+    // console.log(await tf.data.csv('file://'.concat(dir)).toArray())
     const titanic = tasks.titanic.task
-    const loaded = await (new NodeTabularLoader(titanic, ',').load(
-      'file://'.concat(dir),
+    const data = await (new NodeTabularLoader(titanic, ',').loadAll(
+      ['file://'.concat(dir)],
       {
         features: titanic.trainingInformation?.inputColumns,
-        labels: titanic.trainingInformation?.outputColumns
+        labels: titanic.trainingInformation?.outputColumns,
+        shuffle: false
       }
     ))
-
-    // TODO: loaded.size is null, will be fixed when we move to batches
-    const data = {
-      dataset: loaded,
-      size: 100
-    }
 
     const client = await getClient(server, titanic)
     await client.connect()
