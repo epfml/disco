@@ -23,8 +23,7 @@ const minimumPeers = 2
  */
 export class InsecureDecentralized extends DecentralizedGeneral {
 
-  private sendReadyMessage (round: number, trainingInformant: TrainingInformant
-  ): void {
+  private sendReadyMessage (round: number): void {
     // Broadcast our readiness
     const msg: messages.clientReadyMessage = {type:messages.messageType.clientReadyMessage, round:round}
 
@@ -42,7 +41,7 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
     // send message to server that we ready
-    this.sendReadyMessage(round, trainingInformant)
+    this.sendReadyMessage(round)
 
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
 
