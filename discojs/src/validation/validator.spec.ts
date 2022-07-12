@@ -15,8 +15,8 @@ describe('validator', () => {
       .map((subdir: string) => fs.readdirSync(dir + subdir)
         .map((file: string) => dir + subdir + file))
 
-    const data: Data = await new NodeImageLoader(simple_face.task)
-      .loadAll(files.flat(), { labels: files.flatMap((files, index) => Array(files.length).fill(index)) })
+    const data: Data = (await new NodeImageLoader(simple_face.task)
+      .loadAll(files.flat(), { labels: files.flatMap((files, index) => Array(files.length).fill(index)) })).train
     const validator = new Validator(
       simple_face.task,
       new ConsoleLogger(),
@@ -31,7 +31,7 @@ describe('validator', () => {
     )
     assert(
       validator.accuracy() > 0.3,
-        `expected accuracy greater than 0.3 but got ${validator.accuracy()}`
+      `expected accuracy greater than 0.3 but got ${validator.accuracy()}`
     )
   })
   // TODO: fix titanic model (nan accuracy)
