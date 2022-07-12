@@ -23,7 +23,7 @@ describe('tabular loader', () => {
         shuffle: false
       }
     )
-    const sample = await (await (await loaded).dataset.iterator()).next()
+    const sample = await (await (await loaded).train.dataset.iterator()).next()
     /**
      * Data loaders simply return a dataset object read from input sources.
      * They do NOT apply any transform/conversion, which is left to the
@@ -48,10 +48,10 @@ describe('tabular loader', () => {
     }
     const dataset = await (await loader
       .loadAll(inputFiles, config))
-      .dataset.toArray()
+      .train.dataset.toArray()
     const shuffled = await (await loader
       .loadAll(inputFiles, { ...config, shuffle: true }))
-      .dataset.toArray()
+      .train.dataset.toArray()
 
     const misses = List(dataset).zip(List(shuffled)).map(([d, s]) =>
       tf.notEqual((d as any).xs, (s as any).xs).any().dataSync()[0]
