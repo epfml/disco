@@ -1,4 +1,4 @@
-import { DataLoader, DataConfig, Data } from './data_loader'
+import { DataLoader, DataConfig, DataTuple } from './data_loader'
 import { Dataset } from '../dataset_builder'
 import { Task } from '../../task'
 import * as tf from '@tensorflow/tfjs'
@@ -75,15 +75,19 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
     * Creates the CSV datasets based off the given sources, then fuses them into a single CSV
     * dataset.
     */
-  async loadAll (sources: Source[], config: DataConfig): Promise<Data> {
+  async loadAll (sources: Source[], config: DataConfig): Promise<DataTuple> {
     const datasets = await Promise.all(sources.map(async (source) =>
       await this.load(source, { ...config, shuffle: false })))
     const dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
-    return {
+    const data = {
       dataset: config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset,
       // dataset.size does not work for csv datasets
       // https://github.com/tensorflow/tfjs/issues/5845
       size: 0
+    }
+    // TODO: Implement validation split for tabular data (tricky due to streaming)
+    return {
+      train: data
     }
   }
 }
