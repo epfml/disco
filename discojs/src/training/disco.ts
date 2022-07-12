@@ -29,11 +29,6 @@ export class Disco {
   }
 
   async startTraining (data: dataset.Data): Promise<void> {
-    if (data.size === 0) {
-      this.logger.error('Training aborted. No uploaded file given as input.')
-      throw new Error('No data in dataset')
-    }
-
     this.logger.success(
       'Thank you for your contribution. Data preprocessing has started')
 
