@@ -24,11 +24,16 @@ export class SignalingServer {
       try {
         const msg = msgpack.decode(data)
         if (msg.type === messages.messageType.clientWeightsMessageServer) {
-          const forwardMsg: messages.clientWeightsMessageServer = { type: messages.messageType.clientWeightsMessageServer, peerID: msg.peerID, weights: msg.weights }
+          const forwardMsg: messages.clientWeightsMessageServer = { type: messages.messageType.clientWeightsMessageServer,
+            peerID: msg.peerID, weights: msg.weights, destination: msg.destination }
           const encodedMsg: Buffer = msgpack.encode(forwardMsg)
-          for (const client of this.readyClients.values()) {
-            client.send(encodedMsg)
+          if (this.readyClients.get(msg.destination)===undefined){
+            throw new Error ("Cannot send weights to that peer, it is undefined")
           }
+          this.readyClients.get(msg.destination)?.send(encodedMsg)
+          // for (const client of this.readyClients.values()) {
+          //   client.send(encodedMsg)
+          // }
         } else if (msg.type === messages.messageType.clientReadyMessage) {
           this.readyClients.set(peerID, ws)
           if (this.readyClients.size >= this.minConnected) {
