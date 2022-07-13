@@ -7,9 +7,15 @@
       x-ref="trainingBoard"
       x-show="isTraining"
     >
-      <div class="grid grid-cols-2 p-4 gap-8">
+      <div
+        class="grid p-4 gap-8"
+        :class="hasValidationData ? 'grid-cols-2' : 'grid-cols-1'"
+      >
         <!-- Validation Accuracy users chart -->
-        <div class="bg-white rounded-md">
+        <div
+          v-if="hasValidationData"
+          class="bg-white rounded-md basis-0"
+        >
           <!-- Card header -->
           <div class="p-4 border-b">
             <h4 class="text-lg font-semibold text-slate-500">
@@ -41,7 +47,7 @@
         </div>
 
         <!-- Training Accuracy users chart -->
-        <div class="bg-white rounded-md">
+        <div class="bg-white rounded-md basis-0">
           <!-- Card header -->
           <div class="p-4 border-b">
             <h4 class="text-lg font-semibold text-slate-500">
@@ -195,6 +201,10 @@ export default defineComponent({
     trainingInformant: {
       type: TrainingInformant,
       default: undefined
+    },
+    hasValidationData: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
