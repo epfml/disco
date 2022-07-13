@@ -95,8 +95,8 @@ export default defineComponent({
       }
       return this.validator.accuracyData().toArray()
     },
-    currentAccuracy (): number {
-      return this.validator.accuracy().toFixed(2) * 100
+    currentAccuracy (): string {
+      return (this.validator.accuracy() * 100).toFixed(2)
     },
     visitedSamples (): number {
       return this.validator.visitedSamples()
@@ -118,7 +118,10 @@ export default defineComponent({
       if (this.validator === undefined) {
         return error(this.$toast, 'Model not found')
       }
-      const dataset: dataset.Data = await this.datasetBuilder.build()
+      const dataset: dataset.Data = (await this.datasetBuilder
+        .build({ validationSplit: 0 }))
+        .train
+      console.log(dataset)
       success(this.$toast, 'Model testing started!')
       try {
         await this.validator.assess(dataset)

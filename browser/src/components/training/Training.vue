@@ -49,9 +49,9 @@ import { dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSch
 
 import { getClient } from '@/clients'
 import { IndexedDB } from '@/memory'
+import { error } from '@/toast'
 import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
-import { error } from '@/toast'
 
 export default defineComponent({
   name: 'Training',
@@ -124,8 +124,10 @@ export default defineComponent({
         case TrainingSchemes.DECENTRALIZED:
           this.trainingInformant = new informant.DecentralizedInformant(...args)
           break
+        default:
+          this.trainingInformant = new informant.LocalInformant(...args)
+          break
       }
-      this.trainingInformant = new informant.LocalInformant(...args)
     }
   },
   methods: {
