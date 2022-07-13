@@ -274,8 +274,7 @@ export class Decentralized extends Base {
     return aggregation.averageWeights(receivedWeights)
   }
 
-  async onTrainEndCommunication (_: Weights, trainingInformant: informant.DecentralizedInformant): Promise<void> {
+  async onTrainEndCommunication (): Promise<void> {
     // TODO: enter seeding mode?
-    trainingInformant.addMessage('Training finished.')
   }
 }

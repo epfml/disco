@@ -43,23 +43,46 @@ export abstract class Trainer {
     this.roundTracker = new RoundTracker(trainingInformation.roundDuration)
   }
 
-  //* ***************************************************************
-  //* Functions to be implemented by local and distributed training.
-  //* ***************************************************************
-
   /**
    * Every time a round ends this function will be called
    */
   protected abstract onRoundEnd (accuracy: number): Promise<void>
 
+  /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
+   */
+  protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
+    if (logs === undefined) {
+      return
+    }
+
+    this.roundTracker.updateBatch()
+    this.stopTrainModelIfRequested()
+
+    if (this.roundTracker.roundHasEnded()) {
+      await this.onRoundEnd(logs.acc)
+    }
+  }
+
+  /**
+   * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
+   */
+  protected onEpochEnd (epoch: number, logs?: tf.Logs): void {
+    this.trainerLogger.onEpochEnd(epoch, logs)
+
+    if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
+      this.trainingInformant.updateTrainingGraph(this.roundDecimals(logs.acc))
+      this.trainingInformant.updateValidationGraph(this.roundDecimals(logs.val_acc))
+    } else {
+      this.trainerLogger.error('onEpochEnd: NaN value')
+    }
+  }
+
   /**
    * When the training ends this function will be call
    */
-  protected abstract onTrainEnd (): Promise<void>
-
-  //* ***************************************************************
-  //* Functions to be used by the training manager
-  //* ***************************************************************
+  protected async onTrainEnd (logs?: tf.Logs): Promise<void> {
+    this.trainingInformant.addMessage('Training finished.')
+  }
 
   /**
    * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
@@ -81,7 +104,8 @@ export abstract class Trainer {
       validationData: valDataset.batch(this.trainingInformation.batchSize),
       callbacks: {
         onEpochEnd: (epoch, logs) => this.onEpochEnd(epoch, logs),
-        onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs)
+        onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs),
+        onTrainEnd: async (logs) => await this.onTrainEnd(logs)
       }
     })
   }
@@ -89,43 +113,14 @@ export abstract class Trainer {
   /**
    * Format accuracy
    */
-  private roundDecimals (accuracy: number, decimalsToRound: number = 2): number {
+  protected roundDecimals (accuracy: number, decimalsToRound: number = 2): number {
     return +(accuracy * 100).toFixed(decimalsToRound)
-  }
-
-  /**
-   * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
-   */
-  private onEpochEnd (epoch: number, logs?: tf.Logs): void {
-    this.trainerLogger.onEpochEnd(epoch, logs)
-
-    if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
-      this.trainingInformant.updateTrainingGraph(this.roundDecimals(logs.acc))
-      this.trainingInformant.updateValidationGraph(this.roundDecimals(logs.val_acc))
-    } else {
-      this.trainerLogger.error('onEpochEnd: NaN value')
-    }
-  }
-
-  /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
-   */
-  private async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
-    if (logs === undefined) {
-      return
-    }
-
-    this.roundTracker.updateBatch()
-    this.stopTrainModelIfRequested()
-
-    if (this.roundTracker.roundHasEnded()) {
-      await this.onRoundEnd(logs.acc)
-    }
   }
 
   /**
    * reset stop training state
    */
-  private resetStopTrainerState (): void {
+  protected resetStopTrainerState (): void {
     this.model.stopTraining = false
     this.stopTrainingRequested = false
   }
@@ -133,7 +128,7 @@ export abstract class Trainer {
   /**
    * If stop training is requested, do so
    */
-  private stopTrainModelIfRequested (): void {
+  protected stopTrainModelIfRequested (): void {
     if (this.stopTrainingRequested) {
       this.model.stopTraining = true
       this.stopTrainingRequested = false

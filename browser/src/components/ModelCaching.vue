@@ -16,7 +16,7 @@
                 Disco has cached the last model you were working on for you. Select
                 it to start training from it. Otherwise, it will be overridden
                 the next time you train the
-                {{ task.displayInformation.taskTitle }} task.<br/> This model was
+                {{ task.displayInformation.taskTitle }} task.<br> This model was
                 last updated the
                 <span class="text-primary-dark dark:text-primary-light">
                   {{ dateSaved }}
