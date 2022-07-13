@@ -33,7 +33,10 @@
 
     <!-- Training Board -->
     <div>
-      <TrainingInformation :training-informant="trainingInformant" />
+      <TrainingInformation
+        :training-informant="trainingInformant"
+        :has-validation-data="hasValidationData"
+      />
     </div>
   </div>
 </template>
@@ -106,6 +109,9 @@ export default defineComponent({
       }
       // default scheme
       return TrainingSchemes.LOCAL
+    },
+    hasValidationData (): boolean {
+      return this.task?.trainingInformation?.validationSplit > 0
     }
   },
   watch: {
