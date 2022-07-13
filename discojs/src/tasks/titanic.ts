@@ -45,7 +45,7 @@ export const task: Task = {
     modelID: 'titanic-model',
     epochs: 20,
     roundDuration: 10,
-    validationSplit: 0.2,
+    validationSplit: 0,
     batchSize: 30,
     preprocessFunctions: [],
     modelCompileData: {
