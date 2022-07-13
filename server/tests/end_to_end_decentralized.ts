@@ -4,9 +4,10 @@ import { Server } from 'node:http'
 import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
-import { dataset, ConsoleLogger, training, TrainingSchemes, TrainingInformant, EmptyMemory, tasks, client } from 'discojs'
+import { dataset, ConsoleLogger, training, TrainingSchemes, TrainingInformant, EmptyMemory, tasks, client, Weights } from 'discojs'
 
 import { getClient, startServer } from './utils'
+import { expect } from 'chai'
 
 const SCHEME = TrainingSchemes.DECENTRALIZED
 
@@ -17,13 +18,13 @@ class NodeImageLoader extends dataset.ImageLoader<string> {
   }
 }
 
-// function makeWeights (values: any): Weights {
-//   const w: Weights = []
-//   for (let i = 0; i < 1; i++) {
-//     w.push(tf.tensor(values))
-//   }
-//   return w
-// }
+function makeWeights (values: any): Weights {
+  const w: Weights = []
+  for (let i = 0; i < 1; i++) {
+    w.push(tf.tensor(values))
+  }
+  return w
+}
 
 describe('end to end', function () {
   this.timeout(50_000)
@@ -42,7 +43,7 @@ describe('end to end', function () {
   //       expect(result).to.equal(true)
   //     }
   // )
-
+  //
   // async function titanicUser(): Promise<CLIENT_TYPE> {
   //   const titanic = tasks.titanic.task
   //
@@ -50,7 +51,7 @@ describe('end to end', function () {
   //   await cli.connect()
   //   return cli
   // }
-
+  //
   // async function titanicConnectTest(): Promise<boolean> {
   //   const clients = await Promise.all([titanicUser(), titanicUser()])
   //
@@ -90,27 +91,31 @@ describe('end to end', function () {
     await disco.startTraining(loaded)
   }
 
-  // it('decentralized client test one round', async () =>
-  //     await testWeightSharingInsecure())
-  //
-  //   /*
-  //   makes client to connect to server and share input weights
-  //    */
-  //   async function makeClient(input: number[]): Promise<Weights>{
-  //     const TASK = tasks.cifar10.task
-  //     const clientCurrent: client.InsecureDecentralized = await getClient(client.InsecureDecentralized, server, TASK)
-  //     const weights: Weights = makeWeights(input)
-  //     const trainingInformant1: TrainingInformant = new TrainingInformant(0, '0', TrainingSchemes.DECENTRALIZED)
-  //     clientCurrent.connect()
-  //     return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
-  //   }
-  //
-  //   async function testWeightSharingInsecure(): Promise<Weights> {
-  //     //expected --> [6, 7, 13]
-  //     makeClient([3,3,3])
-  //     makeClient([4,5,6])
-  //     return makeClient([11,13,30])
-  //   }
+  it('decentralized client test one round', async () =>
+      {const result: Weights = await testWeightSharingInsecure()
+        const expected: Weights = makeWeights([6,7,13])
+        tf.print(result[0])}
+      // expect(result).to.equal(expected)}
+  )
+
+    /*
+    makes client to connect to server and share input weights
+     */
+    async function makeClient(input: number[]): Promise<Weights>{
+      const TASK = tasks.cifar10.task
+      const clientCurrent: client.InsecureDecentralized = await getClient(client.InsecureDecentralized, server, TASK)
+      const weights: Weights = makeWeights(input)
+      const trainingInformant1: TrainingInformant = new TrainingInformant(0, '0', TrainingSchemes.DECENTRALIZED)
+      await clientCurrent.connect()
+      return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
+    }
+
+      async function testWeightSharingInsecure(): Promise<Weights> {
+      //expected --> [6, 7, 13]
+      makeClient([3,3,3])
+      makeClient([4,5,6])
+      return makeClient([11,13,30])
+    }
 
 // console.log(testDecentralized())
 //
