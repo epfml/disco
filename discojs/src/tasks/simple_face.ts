@@ -36,14 +36,14 @@ export const task: Task = {
   }
 }
 
-export function model (imageWidth = 200, imageHeight = 200, imageChannels = 3, numOutputClasses = 2): tf.LayersModel {
+export function model (imageHeight = 200, imageWidth = 200, imageChannels = 3, numOutputClasses = 2): tf.LayersModel {
   const model = tf.sequential()
 
   // In the first layer of our convolutional neural network we have
   // to specify the input shape. Then we specify some parameters for
   // the convolution operation that takes place in this layer.
   model.add(tf.layers.conv2d({
-    inputShape: [imageWidth, imageHeight, imageChannels],
+    inputShape: [imageHeight, imageWidth, imageChannels],
     kernelSize: 5,
     filters: 8,
     strides: 1,
@@ -78,15 +78,6 @@ export function model (imageWidth = 200, imageHeight = 200, imageChannels = 3, n
     kernelInitializer: 'varianceScaling',
     activation: 'softmax'
   }))
-
-  // Choose an optimizer, loss function and accuracy metric,
-  // then compile and return the model
-  const optimizer = tf.train.adam()
-  model.compile({
-    optimizer: optimizer,
-    loss: 'categoricalCrossentropy',
-    metrics: ['accuracy']
-  })
 
   return model
 }
