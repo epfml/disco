@@ -28,7 +28,6 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
     // send message to server that we ready
-    this.peers = List<number>()
     this.sendReadyMessage(round)
 
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
@@ -45,13 +44,14 @@ export class InsecureDecentralized extends DecentralizedGeneral {
           if (this.server === undefined) {
             throw new Error('server undefined so we cannot send weights through it')
           }
-          // console.log(typeof(this.peers.get(0)))
-          for (let peerDest of this.peers){
+          //should figure out how to iterate directly through peers
+          for(let peerDest = 0; peerDest<this.peers.size; peerDest++) {
             const msg: messages.clientWeightsMessageServer = { type: messages.messageType.clientWeightsMessageServer, peerID: this.ID,
          weights: weightsToSend, destination: peerDest}
           const encodedMsg = msgpack.encode(msg)
           this.peerMessageTemp(encodedMsg)
           }
+          this.peers = List<number>()
         }
         const gotAllWeights = (this.receivedWeights.size === peerSize)
         if (gotAllWeights) {
@@ -73,9 +73,6 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     const weightsArray = Array.from(this.receivedWeights.values())
     const finalWeights = Set(weightsArray)
 
-    // Average weights
-    trainingInformant.addMessage('Averaging weights')
-    trainingInformant.updateNbrUpdatesWithOthers(1)
     // Return the new "received" weights
     return aggregation.averageWeights(finalWeights)
   }
