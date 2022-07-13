@@ -4,7 +4,7 @@ import { Server } from 'node:http'
 import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
-import { dataset, ConsoleLogger, training, TrainingSchemes, TrainingInformant, EmptyMemory, tasks } from 'discojs'
+import { dataset, ConsoleLogger, training, TrainingSchemes, informant, EmptyMemory, tasks } from 'discojs'
 
 import { getClient, startServer } from './utils'
 
@@ -51,7 +51,7 @@ describe('end to end', function () {
       new ConsoleLogger(),
       new EmptyMemory(),
       SCHEME,
-      new TrainingInformant(10, cifar10.taskID, SCHEME),
+      new informant.DecentralizedInformant(cifar10.taskID, 10),
       client
     )
 
@@ -84,7 +84,7 @@ describe('end to end', function () {
       new ConsoleLogger(),
       new EmptyMemory(),
       SCHEME,
-      new TrainingInformant(10, titanic.taskID, SCHEME),
+      new informant.FederatedInformant(titanic.taskID, 10),
       client
     )
 
