@@ -26,13 +26,14 @@
 </template>
 
 <script lang="ts">
+import { mapState } from 'vuex'
+
+import { isTask } from 'discojs'
+
 import Tasks from '@/assets/svg/Tasks.vue'
 import Model from '@/assets/svg/Model.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import ModelCaching from '@/components/ModelCaching.vue'
-
-import { mapState } from 'vuex'
-import { isTask } from 'discojs'
 
 export default {
   name: 'Description',

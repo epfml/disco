@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { Client, Memory, Task, TrainingInformant } from '@/.'
+import { Client, Memory, Task, TrainingInformant } from '../..'
 
 import { Trainer } from './trainer'
 
