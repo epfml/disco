@@ -2,8 +2,7 @@ import * as msgpack from 'msgpack-lite'
 import axios from 'axios'
 import { v4 as randomUUID } from 'uuid'
 
-import { privacy, serialization, TrainingInformant, MetadataID, Weights } from '..'
-
+import { privacy, serialization, informant, MetadataID, Weights } from '..'
 import { Base } from './base'
 
 /**
@@ -111,16 +110,16 @@ export class Federated extends Base {
     }
   }
 
-  async pullServerStatistics (trainingInformant: TrainingInformant): Promise<void> {
+  async pullServerStatistics (trainingInformant: informant.FederatedInformant): Promise<void> {
     const response = await axios.get(this.urlTo('statistics'))
-    trainingInformant.updateWithServerStatistics(response.data.statistics)
+    trainingInformant.update(response.data.statistics)
   }
 
   async onRoundEndCommunication (
     updatedWeights: Weights,
     staleWeights: Weights,
     _: number,
-    trainingInformant: TrainingInformant
+    trainingInformant: informant.FederatedInformant
   ): Promise<Weights> {
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     await this.postWeightsToServer(noisyWeights)
@@ -131,7 +130,7 @@ export class Federated extends Base {
     return serverWeights ?? staleWeights
   }
 
-  async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
+  async onTrainEndCommunication (_: Weights, trainingInformant: informant.FederatedInformant): Promise<void> {
     trainingInformant.addMessage('Training finished.')
   }
 }
