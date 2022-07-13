@@ -28,14 +28,13 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
     // send message to server that we ready
-    this.peers = List()
+    this.peers = List<number>()
     this.sendReadyMessage(round)
 
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
+    const weightsToSend = await serialization.weights.encode(noisyWeights)
 
     // Broadcast our weights
-    const msg: messages.clientWeightsMessageServer = { type: messages.messageType.clientWeightsMessageServer, peerID: this.ID, weights: await serialization.weights.encode(noisyWeights) }
-    const encodedMsg = msgpack.encode(msg)
     let peerSize: number = arbitraryNegativeNumber
 
     const timeoutError = new Error('timeout')
@@ -46,7 +45,13 @@ export class InsecureDecentralized extends DecentralizedGeneral {
           if (this.server === undefined) {
             throw new Error('server undefined so we cannot send weights through it')
           }
+          // console.log(typeof(this.peers.get(0)))
+          for (let peerDest of this.peers){
+            const msg: messages.clientWeightsMessageServer = { type: messages.messageType.clientWeightsMessageServer, peerID: this.ID,
+         weights: weightsToSend, destination: peerDest}
+          const encodedMsg = msgpack.encode(msg)
           this.peerMessageTemp(encodedMsg)
+          }
         }
         const gotAllWeights = (this.receivedWeights.size === peerSize)
         if (gotAllWeights) {

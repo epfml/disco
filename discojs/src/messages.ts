@@ -14,6 +14,6 @@ export enum messageType {
 
 export interface serverClientIDMessage {type: messageType, peerID: PeerID} // server sends client id to client
 export interface clientReadyMessage {type: messageType, round: number} // client who sent is ready
-export interface clientWeightsMessageServer {type: messageType, peerID: PeerID, weights: weights.Encoded} // client weights
-export interface clientPartialSumsMessageServer {type: messageType, peerID: PeerID, partials: EncodedSignal} // client partial sum
+export interface clientWeightsMessageServer {type: messageType, peerID: PeerID, weights: weights.Encoded, destination: PeerID} // client weights
+export interface clientPartialSumsMessageServer {type: messageType, peerID: PeerID, partials: EncodedSignal, destination: PeerID} // client partial sum
 export interface serverConnectedClients {type: messageType, peerList: List<PeerID>} // server send to client who to connect to

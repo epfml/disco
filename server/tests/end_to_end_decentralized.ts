@@ -65,31 +65,31 @@ describe('end to end', function () {
   //   return (clients[0].getPeerIDs().size === 1 && clients[1].getPeerIDs().size === 1)
   // }
 
-  it('runs cifar 10 with three decentralized users', async () =>
-    await Promise.all([cifar10user(), cifar10user(), cifar10user()]))
-
-  async function cifar10user (): Promise<void> {
-    const dir = '../discojs/example_training_data/CIFAR10/'
-    const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
-    const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
-
-    const cifar10 = tasks.cifar10.task
-
-    const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
-
-    const cli = await getClient(client.InsecureDecentralized, server, cifar10)
-    await cli.connect()
-
-    const disco = new training.Disco(
-      cifar10,
-      new ConsoleLogger(),
-      new EmptyMemory(),
-      SCHEME,
-      new TrainingInformant(10, cifar10.taskID, SCHEME),
-      cli
-    )
-    await disco.startTraining(loaded)
-  }
+  // it('runs cifar 10 with three decentralized users', async () =>
+  //   await Promise.all([cifar10user(), cifar10user(), cifar10user()]))
+  //
+  // async function cifar10user (): Promise<void> {
+  //   const dir = '../discojs/example_training_data/CIFAR10/'
+  //   const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
+  //   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
+  //
+  //   const cifar10 = tasks.cifar10.task
+  //
+  //   const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+  //
+  //   const cli = await getClient(client.InsecureDecentralized, server, cifar10)
+  //   await cli.connect()
+  //
+  //   const disco = new training.Disco(
+  //     cifar10,
+  //     new ConsoleLogger(),
+  //     new EmptyMemory(),
+  //     SCHEME,
+  //     new TrainingInformant(10, cifar10.taskID, SCHEME),
+  //     cli
+  //   )
+  //   await disco.startTraining(loaded)
+  // }
 
   it('decentralized client test one round', async () =>
       {const result: Weights = await testWeightSharingInsecure()

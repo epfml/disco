@@ -21,37 +21,21 @@
 //   private readonly receivedPartialSums: List<Weights> = List() // set of partial sums received by peers
 //   private mySum: Weights = []
 //
-//   // // sends message to server that they are ready to share
-//   // private sendReadyMessage (epoch: number, trainingInformant: TrainingInformant
-//   // ): void {
-//   //   // Broadcast our readiness
-//   //   const msg: ClientReadyMessage = {
-//   //     peerId: this.ID,
-//   //     epoch: epoch
-//   //   }
-//   //   const encodedMsg = msgpack.encode(msg)
-//   //   if (this.server === undefined){
-//   //     throw new Error('server undefined, could not connect peers')
-//   //   }
-//   //   this.server.send(encodedMsg)
-//   // }
-//
 //   // send split shares to connected peers
 //   private async sendShares (updatedWeights: Weights,
 //     staleWeights: Weights,
 //     epoch: number,
 //     trainingInformant: TrainingInformant): Promise<void> {
 //     // identify peer connections, make weight shares, add differential privacy
-//     let connectedPeers: Map<PeerID, SimplePeer.Instance> = this.peers.filter((peer) => peer.connected) // connected error
 //     const noisyWeights: Weights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
-//     const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, connectedPeers.size, 1000)
-//     // List()
+//     const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, this.peers.size, 1000)
 //
 //     // Broadcast our weights to ith peer
-//     for (let i = 0; i < connectedPeers.size; i++) {
+//     for (let i = 0; i < this.peers.size; i++) {
 //       const weights: Weights = weightShares.get(i) ?? []
-//       const msg: PeerMessage = {
-//         epoch: epoch,
+//       const msg: messages.clientWeightsMessageServer = {
+//           type: messages.messageType.clientWeightsMessageServer,
+//         peerID: epoch,
 //         weights: await serialization.weights.encode(weights)
 //       }
 //       const encodedMsg = msgpack.encode(msg)
