@@ -6,12 +6,12 @@ import { RoundTracker } from './round_tracker'
 import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
- * locally or in a distributed way. The Trainer works as follows:
+ * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:
  *
  * 1. Call trainModel(dataset) to start training
- * 2. Once a batch ends, onBatchEnd is triggered, witch will then call onRoundEnd once the round has ended.
+ * 2. Once a batch ends, onBatchEnd is triggered, which will then call onRoundEnd once the round has ended.
  *
- * The onRoundEnd needs to be implemented to specify what actions to do when the round has ended. To know when
+ * The onRoundEnd needs to be implemented to specify what actions to do when the round has ended, such as a communication step with collaborators. To know when
  * a round has ended we use the roundTracker object.
  */
 export abstract class Trainer {
