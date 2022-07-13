@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      class="grid p-4 gap-8"
+      class="grid gap-8"
       :class="hasValidationData ? 'grid-cols-2' : 'grid-cols-1'"
     >
       <!-- Validation Accuracy users chart -->
@@ -72,71 +72,67 @@
       </div>
     </div>
 
-    <div v-if="isDistributedTrainingScheme">
-      <!-- Communication console -->
-      <IconCard>
-        <template #title>
-          {{ $t('training.trainingInformationFrame.trainingInformations.trainingConsoleHeader') }}
+    <!-- Training logs -->
+    <IconCard>
+      <template #title>
+        Training Logs
+      </template>
+      <template #icon>
+        <Contact />
+      </template>
+      <template #content>
+        <div id="mapHeader">
+          <ul class="grid grid-cols-1">
+            <li
+              v-for="(message, index) in trainingInformant.getMessages()"
+              :key="index"
+              class="border-slate-400"
+            >
+              <span
+                style="white-space: pre-line"
+                class="text-sm text-slate-500"
+              >{{ message }}</span>
+            </li>
+          </ul>
+        </div>
+      </template>
+    </IconCard>
+
+    <!-- Fancy training statistics -->
+    <div class="flex flex-wrap justify-center gap-8">
+      <IconCardSmall class="w-72 shrink-0">
+        <template #header>
+          {{ currentRoundText }}
+        </template>
+        <template #text>
+          {{ trainingInformant.round() }}
         </template>
         <template #icon>
-          <Contact />
+          <Timer />
         </template>
-        <template #content>
-          <div id="mapHeader">
-            <ul class="grid grid-cols-1 p-4">
-              <li
-                v-for="(message, index) in trainingInformant.messages"
-                :key="index"
-                class="border-slate-400"
-              >
-                <div class="relative overflow-x-hidden">
-                  <span
-                    style="white-space: pre-line"
-                    class="text-sm text-slate-500"
-                  >{{ message }}</span>
-                </div>
-              </li>
-            </ul>
-          </div>
+      </IconCardSmall>
+      <IconCardSmall class="w-72 shrink-0">
+        <template #header>
+          Current # of participants
         </template>
-      </IconCard>
-
-      <!-- Fancy training statistics -->
-      <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
-        <IconCardSmall>
-          <template #header>
-            Current round
-          </template>
-          <template #text>
-            {{ trainingInformant.round() }}
-          </template>
-          <template #icon>
-            <Timer />
-          </template>
-        </IconCardSmall>
-        <IconCardSmall>
-          <template #header>
-            Current # of participants
-          </template>
-          <template #text>
-            {{ trainingInformant.currentParticipants() }}
-          </template>
-          <template #icon>
-            <People />
-          </template>
-        </IconCardSmall>
-        <IconCardSmall>
-          <template #header>
-            Average # of participants
-          </template>
-          <template #text>
-            {{ trainingInformant.averageParticipants() }}
-          </template>
-          <template #icon>
-            <People />
-          </template>
-        </IconCardSmall>
-      </div>
+        <template #text>
+          {{ trainingInformant.participants() }}
+        </template>
+        <template #icon>
+          <People />
+        </template>
+      </IconCardSmall>
+      <IconCardSmall class="w-72 shrink-0">
+        <template #header>
+          Average # of participants
+        </template>
+        <template #text>
+          {{ trainingInformant.averageParticipants() }}
+        </template>
+        <template #icon>
+          <People />
+        </template>
+      </IconCardSmall>
     </div>
   </div>
 </template>
@@ -176,17 +172,13 @@ export default defineComponent({
     chartOptions () {
       return chartOptions
     },
-    isDecentralizedTrainingScheme (): boolean {
-      return this.trainingInformant.isDecentralized()
-    },
-    isFederatedTrainingScheme (): boolean {
-      return this.trainingInformant.isFederated()
-    },
-    isDistributedTrainingScheme (): boolean {
-      return this.isFederatedTrainingScheme || this.isDecentralizedTrainingScheme
-    },
-    displayHeatmap () {
+    displayHeatmap (): boolean {
       return this.trainingInformant.displayHeatmap
+    },
+    currentRoundText (): string {
+      return this.trainingInformant.isDecentralized() || this.trainingInformant.isFederated()
+        ? 'Current Round'
+        : 'Current Epoch'
     },
     interoperabilityHeatmapData () {
       // TODO: cahnge once the peers exchange actual data of their weights and biases.
@@ -197,20 +189,20 @@ export default defineComponent({
         }
       ]
     },
-    currentTrainingAccuracy () {
+    currentTrainingAccuracy (): number {
       return this.trainingInformant.trainingAccuracy()
     },
-    currentValidationAccuracy () {
+    currentValidationAccuracy (): number {
       return this.trainingInformant.validationAccuracy()
     },
-    trainingAccuracyData () {
+    trainingAccuracyData (): [{ data: number[] }] {
       return [
         {
           data: this.trainingInformant.trainingAccuracyData().toArray()
         }
       ]
     },
-    validationAccuracyData () {
+    validationAccuracyData (): [{ data: number[] }] {
       return [
         {
           data: this.trainingInformant.validationAccuracyData().toArray()

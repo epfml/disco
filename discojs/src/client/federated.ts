@@ -130,7 +130,5 @@ export class Federated extends Base {
     return serverWeights ?? staleWeights
   }
 
-  async onTrainEndCommunication (_: Weights, trainingInformant: informant.FederatedInformant): Promise<void> {
-    trainingInformant.addMessage('Training finished.')
-  }
+  async onTrainEndCommunication (): Promise<void> {}
 }
