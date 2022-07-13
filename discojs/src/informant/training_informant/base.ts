@@ -31,8 +31,8 @@ export abstract class Base {
     this.messages = this.messages.push(msg)
   }
 
-  getMessages (): List<string> {
-    return this.messages
+  getMessages (): string[] {
+    return this.messages.toArray()
   }
 
   round (): number {
@@ -93,9 +93,7 @@ export abstract class Base {
     }
 
     // TODO
-    const requiredFields = Set.of(
-      ''
-    )
+    const requiredFields = Set<string>()
     if (!(requiredFields.every((field) => field in raw))) {
       return false
     }

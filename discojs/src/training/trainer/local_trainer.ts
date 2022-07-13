@@ -1,4 +1,5 @@
 import { Trainer } from './trainer'
+import { Logs } from '@tensorflow/tfjs'
 
 /** Class whose role is to locally train a model with a given dataset.
  */
@@ -13,7 +14,8 @@ export class LocalTrainer extends Trainer {
     )
   }
 
-  async onTrainEnd (): Promise<void> {
-    // nothing to do
+  protected onEpochEnd (epoch: number, logs?: Logs): void {
+    super.onEpochEnd(epoch, logs)
+    this.trainingInformant.update({ currentRound: epoch })
   }
 }

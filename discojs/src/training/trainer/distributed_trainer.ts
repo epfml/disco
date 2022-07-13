@@ -52,5 +52,6 @@ export class DistributedTrainer extends Trainer {
       this.model.weights.map((w) => w.read()),
       this.trainingInformant
     )
+    await super.onTrainEnd()
   }
 }

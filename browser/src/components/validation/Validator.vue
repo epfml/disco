@@ -118,7 +118,8 @@ export default defineComponent({
       if (this.validator === undefined) {
         return error(this.$toast, 'Model not found')
       }
-      const dataset: dataset.Data = await this.datasetBuilder.build()
+      const dataset: dataset.Data = (await this.datasetBuilder.build()).train
+      console.log(dataset)
       success(this.$toast, 'Model testing started!')
       try {
         await this.validator.assess(dataset)
