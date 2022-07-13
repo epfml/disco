@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <h1 class="text-disco-cyan font-disco text-3xl text-center">
-      Testing
+      Test & Validation
     </h1>
     <div class="hidden md:flex mx-auto">
       <ProgressIcon
