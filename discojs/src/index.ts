@@ -11,7 +11,7 @@ export * as client from './client'
 
 export { AsyncBuffer } from './async_buffer'
 export { AsyncInformant } from './async_informant'
-export { Logger, ConsoleLogger } from './logging'
+export { Logger, ConsoleLogger, TrainerLog } from './logging'
 export { Memory, ModelType, ModelInfo, Path, ModelSource, Empty as EmptyMemory } from './memory'
 export { ModelActor } from './model_actor'
 export { Disco, TrainingSchemes } from './training'
