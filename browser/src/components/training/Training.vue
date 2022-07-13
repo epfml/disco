@@ -9,14 +9,14 @@
         <CustomButton
           @click="startTraining(false)"
         >
-          Train Locally
+          Train alone
         </CustomButton>
       </div>
       <div class="text-center">
         <CustomButton
           @click="startTraining(true)"
         >
-          Train Collaboratively
+          Train collaboratively
         </CustomButton>
       </div>
     </div>
