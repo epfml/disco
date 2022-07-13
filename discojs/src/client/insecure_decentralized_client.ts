@@ -20,16 +20,6 @@ const arbitraryNegativeNumber = -10
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class InsecureDecentralized extends DecentralizedGeneral {
-  private sendReadyMessage (round: number): void {
-    // Broadcast our readiness
-    const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round }
-
-    const encodedMsg = msgpack.encode(msg)
-    if (this.server === undefined) {
-      throw new Error('server undefined, could not connect peers')
-    }
-    this.server.send(encodedMsg) // why sending an encoded message?
-  }
 
   async onRoundEndCommunication (
     updatedWeights: Weights,

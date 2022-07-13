@@ -4,15 +4,9 @@
 // import * as secret_shares from '../secret_shares'
 // import * as decentralizedGeneral from './decentralized'
 // import { DecentralizedGeneral } from './decentralized'
+// import * as messages from '../messages'
 //
 // import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
-//
-// type PeerID = number
-//
-// interface PeerMessage { epoch: number, weights: serialization.weights.Encoded }
-// interface ConnectedPeerIDsMessage {peerIDs: Array<number>}
-// interface ClientReadyMessage { peerId: PeerID, epoch: number}
-// interface PeerPartialSumMessage { peerId: PeerID, partial: Weights}
 //
 // // Time to wait between network checks in milliseconds.
 // const TICK = 100
@@ -23,129 +17,24 @@
 // // Time to wait for the others in milliseconds.
 // const MAX_WAIT_PER_ROUND = 10_000
 //
-// function isClientReadyMessage (data: unknown): data is ClientReadyMessage {
-//   if (typeof data !== 'object') {
-//     return false
-//   }
-//   if (data === null) {
-//     return false
-//   }
-//
-//   if (!Set(Object.keys(data)).equals(Set.of('peerId', 'epoch'))) {
-//     return false
-//   }
-//   const { peerId, epoch } = data as Record<'peerId' | 'epoch', unknown>
-//
-//   if (
-//     typeof epoch !== 'number' ||
-//       typeof peerId !== 'number'
-//   ) {
-//     return false
-//   }
-//   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-//   const _: ClientReadyMessage = { peerId, epoch }
-//   return true
-// }
-//
-// function isConnectedPeerIDsMessage (data: unknown): data is ConnectedPeerIDsMessage {
-//   if (typeof data !== 'object') {
-//     return false
-//   }
-//   if (data === null) {
-//     return false
-//   }
-//
-//   if (!Set(Object.keys(data)).equals(Set.of('peerIDs'))) {
-//     return false
-//   }
-//   const { peerIDs } = data as Record<'peerIDs', unknown>
-//
-//   if (!(peerIDs instanceof Array)
-//   ) {
-//     return false
-//   }
-//   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-//   const _: ConnectedPeerIDsMessage = { peerIDs }
-//   return true
-// }
-//
-// function isPeerPartialSumMessage (data: unknown): data is PeerPartialSumMessage {
-//   if (typeof data !== 'object') {
-//     return false
-//   }
-//   if (data === null) {
-//     return false
-//   }
-//
-//   if (!Set(Object.keys(data)).equals(Set.of('peerId', 'partial'))) {
-//     return false
-//   }
-//   const { peerId, partial } = data as Record<'peerId' | 'partial', unknown>
-//
-//   if (typeof partial === 'number' || // this is arbitrary, want to see if praial is not a weights but can't
-//     typeof peerId !== 'number') {
-//     return false
-//   }
-//   return true
-// }
-//
-// export class SecureDecentralized extends DecentralizedGeneral {}
-//   private readonly receivedSharesBuffer = Map<SimplePeer.Instance, List<Weights | undefined>>()
-//   private readonly partialSumsBuffer: List<Weights> = List() // set of partial sums received by peers
+// export class SecureDecentralized extends DecentralizedGeneral {
+//   private readonly receivedPartialSums: List<Weights> = List() // set of partial sums received by peers
 //   private mySum: Weights = []
-//   private readonly ID: number = 0 // randomUUID() // NEED TO MAKE THIS DECLARED BY TASK
 //
-//   peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void {
-//     //can receive weights, partialSums from other peers
-//     //can receive list of peers from server
-//     const message = msgpack.decode(data)
-//     // if message is weights sent from peers
-//     if (decentralizedGeneral.isPeerMessage(message)) {
-//       const weights = serialization.weights.decode(message.weights)
-//       if (this.receivedSharesBuffer.get(peer)?.get(message.epoch) !== undefined) {
-//         throw new Error(`weights from ${peerID} already received`)
-//       }
-//       this.receivedSharesBuffer.set(peer,
-//         this.receivedSharesBuffer.get(peer, List<Weights>())
-//           .set(message.epoch, weights))
-//     }
-//     //if message is partial sums sent by peer
-//     else if (isPeerPartialSumMessage(message)) {
-//       for (const [id, peerInstance] of this.peers) {
-//         if (message.peerId === id) {
-//           throw new Error(`sum message from ${peerID} already received`)
-//         }
-//       }
-//       this.partialSumsBuffer.push(message.partial)
-//     } else if( isConnectedPeerIDsMessage(message)){
-//       let peerIDList: Array<number> = message.peerIDs
-//       for (peerID of peerIDList){
-//         let initiator = false
-//         if(this.ID<peerID){ //THIS.ID IS NOT WORKING
-//           initiator = true
-//         }
-//         this.connectNewPeer(peerID, initiator)
-//       }
-//     }
-//     else {
-//       throw new Error(`invalid message received from ${peerID}`)
-//     }
-//   }
-//
-//   // sends message to server that they are ready to share
-//   private sendReadyMessage (epoch: number, trainingInformant: TrainingInformant
-//   ): void {
-//     // Broadcast our readiness
-//     const msg: ClientReadyMessage = {
-//       peerId: this.ID,
-//       epoch: epoch
-//     }
-//     const encodedMsg = msgpack.encode(msg)
-//     if (this.server === undefined){
-//       throw new Error('server undefined, could not connect peers')
-//     }
-//     this.server.send(encodedMsg)
-//   }
+//   // // sends message to server that they are ready to share
+//   // private sendReadyMessage (epoch: number, trainingInformant: TrainingInformant
+//   // ): void {
+//   //   // Broadcast our readiness
+//   //   const msg: ClientReadyMessage = {
+//   //     peerId: this.ID,
+//   //     epoch: epoch
+//   //   }
+//   //   const encodedMsg = msgpack.encode(msg)
+//   //   if (this.server === undefined){
+//   //     throw new Error('server undefined, could not connect peers')
+//   //   }
+//   //   this.server.send(encodedMsg)
+//   // }
 //
 //   // send split shares to connected peers
 //   private async sendShares (updatedWeights: Weights,
