@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { DataLoader, DataTuple } from './data_loader/data_loader'
+import { DataConfig, DataLoader, DataTuple } from './data_loader/data_loader'
 import { Task } from '@/task'
 
 export type Dataset = tf.data.Dataset<tf.TensorContainer>
@@ -59,7 +59,7 @@ export class DatasetBuilder<Source> {
     return labels.flat()
   }
 
-  async build (): Promise<DataTuple> {
+  async build (config?: DataConfig): Promise<DataTuple> {
     // Require that at leat one source collection is non-empty, but not both
     if ((this.sources.length > 0) === (this.labelledSources.size > 0)) {
       throw new Error('invalid sources')
@@ -68,18 +68,20 @@ export class DatasetBuilder<Source> {
     let dataTuple: DataTuple
     if (this.sources.length > 0) {
       // Labels are contained in the given sources
-      const config = {
+      const defaultConfig = {
         features: this.task.trainingInformation?.inputColumns,
-        labels: this.task.trainingInformation?.outputColumns
+        labels: this.task.trainingInformation?.outputColumns,
+        ...config
       }
-      dataTuple = await this.dataLoader.loadAll(this.sources, config)
+      dataTuple = await this.dataLoader.loadAll(this.sources, defaultConfig)
     } else {
       // Labels are inferred from the file selection boxes
-      const config = {
-        labels: this.getLabels()
+      const defaultConfig = {
+        labels: this.getLabels(),
+        ...config
       }
       const sources = Array.from(this.labelledSources.values()).flat()
-      dataTuple = await this.dataLoader.loadAll(sources, config)
+      dataTuple = await this.dataLoader.loadAll(sources, defaultConfig)
     }
     // TODO @s314cy: Support .csv labels for image datasets (supervised training or testing)
     this.built = true
