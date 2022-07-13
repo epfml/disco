@@ -77,7 +77,6 @@ export class InsecureDecentralized extends DecentralizedGeneral {
 
     const weightsArray = Array.from(this.receivedWeights.values())
     const finalWeights = Set(weightsArray)
-    console.log('finalWeights Size', finalWeights.size)
 
     // Average weights
     trainingInformant.addMessage('Averaging weights')
