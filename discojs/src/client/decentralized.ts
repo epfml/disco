@@ -27,6 +27,17 @@ export abstract class DecentralizedGeneral extends Base {
     this.server.send(message)
   }
 
+    protected sendReadyMessage (round: number): void {
+    // Broadcast our readiness
+    const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round }
+
+    const encodedMsg = msgpack.encode(msg)
+    if (this.server === undefined) {
+      throw new Error('server undefined, could not connect peers')
+    }
+    this.server.send(encodedMsg)
+  }
+
   protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
