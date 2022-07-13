@@ -3,6 +3,7 @@ import { Client, dataset, Logger, Task, TrainingInformant, TrainingSchemes } fro
 
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
+import { TrainerLog } from '../logging/trainer_logger'
 
 // Handles the training loop, server communication & provides the user with feedback.
 export class Disco {
@@ -45,5 +46,9 @@ export class Disco {
     await (await this.trainer).stopTraining()
 
     this.logger.success('Training was successfully interrupted.')
+  }
+
+  async getTrainerLog (): Promise<TrainerLog> {
+    return (await this.trainer).getTrainerLog()
   }
 }
