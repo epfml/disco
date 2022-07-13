@@ -16,10 +16,13 @@ type PeerID = number
  */
 export abstract class DecentralizedGeneral extends Base {
   protected server?: isomorphic.WebSocket
-  protected peers = List<PeerID>()
+  protected peers : List<PeerID> = List()
   protected receivedWeights = new Map <PeerID, Weights>()
   protected ID: number = 0
 
+  /*
+  temporary function to send messages to the server, will be replaced by peer to peer connection later
+   */
   protected peerMessageTemp (message: unknown): void {
     if (this.server === undefined) {
       throw new Error("Undefined Server, can't send message")
