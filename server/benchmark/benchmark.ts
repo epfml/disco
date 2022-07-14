@@ -2,11 +2,32 @@ import fs from 'fs'
 import * as http from 'http'
 import * as tf from '@tensorflow/tfjs'
 import * as tfNode from '@tensorflow/tfjs-node'
+import { Range } from 'immutable'
 
 import { getApp } from '../src/get_server'
-import { client as clients, dataset, tasks, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant } from 'discojs'
+import { client as clients, dataset, tasks, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant, TrainerLog } from 'discojs'
+
+import { args } from './args'
 
 const TASK = tasks.simple_face.task
+
+const NUMBER_OF_USERS = args.numberOfUsers
+
+const infoText = `\nRunning federated benchmark of ${TASK.taskID}\nRunning with ${NUMBER_OF_USERS}\n`
+console.log(infoText)
+
+// Override training information here
+if (TASK.trainingInformation !== undefined) {
+  TASK.trainingInformation.batchSize = 10
+  TASK.trainingInformation.roundDuration = args.roundDuration
+  TASK.trainingInformation.epochs = args.epochs
+}
+
+function saveLog (logs: TrainerLog[]): void {
+  const fileName = `${TASK.taskID}_${NUMBER_OF_USERS}users.csv`
+  const filePath = `./benchmark/results/${fileName}`
+  fs.writeFileSync(filePath, JSON.stringify(logs, null, 2))
+}
 
 class NodeImageLoader extends dataset.ImageLoader<string> {
   async readImageFrom (source: string): Promise<tfNode.Tensor3D> {
@@ -26,7 +47,7 @@ function filesFromFolder (dir: string, folder: string, fractionToKeep: number): 
   return f.slice(0, Math.round(f.length * fractionToKeep)).map(file => dir + folder + '/' + file)
 }
 
-async function loadData (validSplit = 0.2): Promise<dataset.DataTuple> {
+async function loadData (): Promise<dataset.DataTuple> {
   const dir = './../discojs/example_training_data/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']
@@ -53,7 +74,7 @@ async function loadData (validSplit = 0.2): Promise<dataset.DataTuple> {
   return await new NodeImageLoader(TASK).loadAll(files, { labels: labels })
 }
 
-async function runUser (url: URL): Promise<void> {
+async function runUser (url: URL): Promise<TrainerLog> {
   const data = await loadData()
 
   const logger = new ConsoleLogger()
@@ -67,6 +88,7 @@ async function runUser (url: URL): Promise<void> {
   console.log('runUser>>>>')
   await disco.startTraining(data)
   console.log('runUser<<<<')
+  return await disco.getTrainerLog()
 }
 
 async function startServer (): Promise<[http.Server, string]> {
@@ -102,9 +124,13 @@ async function main (): Promise<void> {
   const [server, addr] = await startServer()
   const url = new URL('', `http://${addr}`)
 
-  await Promise.all([
-    runUser(url)
-  ])
+  const logs = await Promise.all(
+    Range(0, NUMBER_OF_USERS).map(async (_) => await runUser(url)).toArray()
+  )
+
+  if (args.save) {
+    saveLog(logs)
+  }
 
   await new Promise((resolve, reject) => {
     server.once('close', resolve)
