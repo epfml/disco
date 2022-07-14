@@ -1,10 +1,10 @@
 import * as tf from '@tensorflow/tfjs'
 import * as tfNode from '@tensorflow/tfjs-node'
 import fs from 'fs'
-import { dataset, Task, TrainerLog } from 'discojs'
+import {dataset, Task} from 'discojs'
 
 class NodeImageLoader extends dataset.ImageLoader<string> {
-  async readImageFrom (source: string): Promise<tfNode.Tensor3D> {
+  async readImageFrom(source: string): Promise<tfNode.Tensor3D> {
     const imageBuffer = fs.readFileSync(source)
     let tensor = tfNode.node.decodeImage(imageBuffer)
     // TODO: If resize needed, e.g. mobilenet
@@ -16,12 +16,12 @@ class NodeImageLoader extends dataset.ImageLoader<string> {
   }
 }
 
-function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
+function filesFromFolder(dir: string, folder: string, fractionToKeep: number): string[] {
   const f = fs.readdirSync(dir + folder)
   return f.slice(0, Math.round(f.length * fractionToKeep)).map(file => dir + folder + '/' + file)
 }
 
-export async function loadData (task: Task): Promise<dataset.DataTuple> {
+export async function loadData(task: Task): Promise<dataset.DataTuple> {
   const dir = './../discojs/example_training_data/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']
@@ -45,10 +45,7 @@ export async function loadData (task: Task): Promise<dataset.DataTuple> {
   const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
   const files = filesPerFolder.flat()
 
-  return await new NodeImageLoader(task).loadAll(files, { labels: labels })
+  return await new NodeImageLoader(task).loadAll(files, {labels: labels})
 }
 
-export function saveLog (logs: TrainerLog[], fileName: string): void {
-  const filePath = `./benchmark/results/${fileName}`
-  fs.writeFileSync(filePath, JSON.stringify(logs, null, 2))
-}
+

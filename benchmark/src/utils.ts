@@ -1,14 +1,16 @@
 
-import { Server } from 'node:http'
+import {Server} from 'node:http'
 
-import { client, Task } from 'discojs'
+import fs from 'fs'
 
-import { getApp } from '../src/get_server'
+import {client, Task, TrainerLog} from 'discojs'
+
+import {getApp} from '../../server/src/get_server'
 
 // port to start server on
 const PORT: number | undefined = 5555
 
-export async function startServer (): Promise<Server> {
+export async function startServer(): Promise<Server> {
   const app = await getApp()
 
   const server = app.listen(PORT)
@@ -21,7 +23,7 @@ export async function startServer (): Promise<Server> {
   return server
 }
 
-export async function getClient<T extends client.Base> (
+export async function getClient<T extends client.Base>(
   Constructor: new (url: URL, t: Task) => T,
   server: Server,
   task: Task
@@ -41,4 +43,9 @@ export async function getClient<T extends client.Base> (
   }
   const url = new URL(`http://${host}`)
   return new Constructor(url, task)
+}
+
+export function saveLog(logs: TrainerLog[], fileName: string): void {
+  const filePath = `./${fileName}`
+  fs.writeFileSync(filePath, JSON.stringify(logs, null, 2))
 }
