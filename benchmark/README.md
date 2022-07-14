@@ -1,6 +1,6 @@
 # CLI benchmark
 
-Welcome to the Disco🔮 CLI benchmark. 
+Welcome to the Disco🔮 command line interface (CLI), which allows you to run any disco task, such as for training, validation and benchmarking 
 
 ## Quick-install guide
 
@@ -14,6 +14,6 @@ Welcome to the Disco🔮 CLI benchmark.
 ## Running the benchmark
 
 - `cd benchmark`
-- `npm run benchmak` to run the benchmark with the default setting, to see the available flags run
+- `npm run benchmark` to run the benchmark with the default setting, to see the available flags run
 - `npm run benchmark -- --help`
 
