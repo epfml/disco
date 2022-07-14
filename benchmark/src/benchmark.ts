@@ -1,10 +1,10 @@
-import { Range } from 'immutable'
-import { Server } from 'node:http'
-import { client, tasks, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant, TrainerLog } from 'discojs'
+import {Range} from 'immutable'
+import {Server} from 'node:http'
+import {client, tasks, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant, TrainerLog} from 'discojs'
 
-import { startServer, getClient } from './utils'
-import { loadData, saveLog } from './data'
-import { args } from './args'
+import {startServer, getClient, saveLog} from './utils'
+import {loadData} from './data'
+import {args} from './args'
 
 const TASK = tasks.simple_face.task
 
@@ -13,16 +13,18 @@ const NUMBER_OF_USERS = args.numberOfUsers
 const infoText = `\nRunning federated benchmark of ${TASK.taskID}`
 console.log(infoText)
 
-console.log({ args })
+console.log({args})
 
-// Override training information here
+// Override training information 
 if (TASK.trainingInformation !== undefined) {
-  TASK.trainingInformation.batchSize = 10
+  TASK.trainingInformation.batchSize = args.batchSize
   TASK.trainingInformation.roundDuration = args.roundDuration
   TASK.trainingInformation.epochs = args.epochs
+  // TASK.trainingInformation.clippingRadius = 10000000
+  // TASK.trainingInformation.noiseScale = 0
 }
 
-async function runUser (server: Server): Promise<TrainerLog> {
+async function runUser(server: Server): Promise<TrainerLog> {
   const data = await loadData(TASK)
 
   const logger = new ConsoleLogger()
@@ -39,7 +41,7 @@ async function runUser (server: Server): Promise<TrainerLog> {
   return await disco.getTrainerLog()
 }
 
-async function main (): Promise<void> {
+async function main(): Promise<void> {
   const server = await startServer()
 
   const logs = await Promise.all(
