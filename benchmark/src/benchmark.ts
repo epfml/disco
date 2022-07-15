@@ -1,31 +1,23 @@
 import {Range} from 'immutable'
 import {Server} from 'node:http'
-import {client, tasks, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant, TrainerLog} from 'discojs'
+import {client, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant, TrainerLog} from 'discojs'
 
 import {startServer, getClient, saveLog} from './utils'
-import {loadData} from './data'
+import {getTaskData} from './data'
 import {args} from './args'
 
-const TASK = tasks.simple_face.task
 
 const NUMBER_OF_USERS = args.numberOfUsers
+let TASK = args.task
 
 const infoText = `\nRunning federated benchmark of ${TASK.taskID}`
 console.log(infoText)
 
 console.log({args})
 
-// Override training information 
-if (TASK.trainingInformation !== undefined) {
-  TASK.trainingInformation.batchSize = args.batchSize
-  TASK.trainingInformation.roundDuration = args.roundDuration
-  TASK.trainingInformation.epochs = args.epochs
-  // TASK.trainingInformation.clippingRadius = 10000000
-  // TASK.trainingInformation.noiseScale = 0
-}
 
 async function runUser(server: Server): Promise<TrainerLog> {
-  const data = await loadData(TASK)
+  const data = await getTaskData(TASK)
 
   const logger = new ConsoleLogger()
   const memory = new EmptyMemory()
