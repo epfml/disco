@@ -49,9 +49,6 @@ async function simplefaceData(task: Task): Promise<dataset.DataTuple> {
   const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
   const files = filesPerFolder.flat()
 
-  console.log({labels})
-  console.log({files})
-
   return await new NodeImageLoader(task).loadAll(files, {labels: labels})
 }
 

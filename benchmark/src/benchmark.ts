@@ -1,6 +1,6 @@
 import {Range} from 'immutable'
 import {Server} from 'node:http'
-import {client, ConsoleLogger, training, TrainingSchemes, EmptyMemory, TrainingInformant, TrainerLog} from 'discojs'
+import {client, ConsoleLogger, training, TrainingSchemes, EmptyMemory, informant, TrainerLog} from 'discojs'
 
 import {startServer, getClient, saveLog} from './utils'
 import {getTaskData} from './data'
@@ -22,10 +22,10 @@ async function runUser(server: Server): Promise<TrainerLog> {
   const logger = new ConsoleLogger()
   const memory = new EmptyMemory()
 
-  const informant = new TrainingInformant(10, TASK.taskID, TrainingSchemes.FEDERATED)
+  const inf = new informant.FederatedInformant(TASK.taskID, 10)
   const cli = await getClient(client.Federated, server, TASK)
   await cli.connect()
-  const disco = new training.Disco(TASK, logger, memory, TrainingSchemes.FEDERATED, informant, cli)
+  const disco = new training.Disco(TASK, logger, memory, TrainingSchemes.FEDERATED, inf, cli)
 
   console.log('runUser>>>>')
   await disco.startTraining(data)
