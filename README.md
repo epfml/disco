@@ -29,6 +29,8 @@ The platform already hosts several popular **_example tasks_** such as [Titanic]
 
 New tasks can easily be created using [the following form](https://epfml.github.io/disco/#/task-creation-form). To do so, practical information related to the task (e.g. description, features, learning rate, etc.) must be provided. Furthermore, two extra `TensorFlow.js` files need to be provided:
 
+If you are a developer, you can find a detailed guide on how to build a custom task [here](./information/TASK.md).
+
 - A model file in `JSON` format. Please refer to the following official documentation pages to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model.
 - A weight file in `.bin` format. These are the initial weights that will be provided to new users upon joining the training of your task. You can either provide a pre-trained model or use a simple random initialisation scheme.
 
