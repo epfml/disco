@@ -7,7 +7,7 @@ to understand how to add your own custom task, we will go over how we added simp
 
 The `Task` class is the first piece of the puzzle, this contains all the crucial information from training to mode.
 
-The task class for simple face can be found in [discojs/src/tasks/simple_face.ts](../discojs/src/tasks/simple_face.ts),
+The task class for simple face can be found in [here](../discojs/src/tasks/simple_face.ts),
 and the contents look as follows. (For brevity we have replaced some lines with ...).
 
 After exporting the Task, you need to also export a function called `model` that returns the layers model. If you use a 
