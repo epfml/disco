@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { Client, Memory, Task, TrainingInformant } from '@/.'
+import { Client, Memory, Task, TrainingInformant } from '../..'
 
 import { Trainer } from './trainer'
 
@@ -52,5 +52,6 @@ export class DistributedTrainer extends Trainer {
       this.model.weights.map((w) => w.read()),
       this.trainingInformant
     )
+    await super.onTrainEnd()
   }
 }

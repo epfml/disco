@@ -9,14 +9,14 @@
         <CustomButton
           @click="startTraining(false)"
         >
-          Train Locally
+          Train alone
         </CustomButton>
       </div>
       <div class="text-center">
         <CustomButton
           @click="startTraining(true)"
         >
-          Train Collaboratively
+          Train collaboratively
         </CustomButton>
       </div>
     </div>
@@ -45,13 +45,13 @@
 import { defineComponent } from 'vue'
 import { mapState } from 'vuex'
 
-import { dataset, EmptyMemory, isTask, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from 'discojs'
+import { dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from 'discojs'
 
 import { getClient } from '@/clients'
 import { IndexedDB } from '@/memory'
+import { error } from '@/toast'
 import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
-import { error } from '@/toast'
 
 export default defineComponent({
   name: 'Training',
@@ -77,7 +77,7 @@ export default defineComponent({
     return {
       distributedTraining: false,
       startedTraining: false,
-      trainingInformant: new TrainingInformant(10, this.task.taskID, TrainingSchemes.LOCAL)
+      trainingInformant: new informant.LocalInformant(this.task.taskID, 10)
     }
   },
   computed: {
@@ -116,7 +116,18 @@ export default defineComponent({
   },
   watch: {
     scheme (newScheme: TrainingSchemes): void {
-      this.trainingInformant = new TrainingInformant(10, this.task.taskID, newScheme)
+      const args = [this.task.taskID, 10] as const
+      switch (newScheme) {
+        case TrainingSchemes.FEDERATED:
+          this.trainingInformant = new informant.FederatedInformant(...args)
+          break
+        case TrainingSchemes.DECENTRALIZED:
+          this.trainingInformant = new informant.DecentralizedInformant(...args)
+          break
+        default:
+          this.trainingInformant = new informant.LocalInformant(...args)
+          break
+      }
     }
   },
   methods: {
@@ -125,8 +136,7 @@ export default defineComponent({
 
       try {
         if (!this.datasetBuilder.isBuilt()) {
-          this.dataset = await this.datasetBuilder
-            .build()
+          this.dataset = await this.datasetBuilder.build()
         }
 
         await this.client.connect()

@@ -7,10 +7,10 @@
       :button-placement="'center'"
     >
       <template #title>
-        Test your model
+        Test & validate your model
       </template>
       <template #text>
-        By clicking the button below, you will be able to assess your model against a chosen dataset of yours.
+        By clicking the button below, you will be able to validate your model against a chosen dataset of yours.
       </template>
       <template #button>
         Test
@@ -23,13 +23,13 @@
     >
       <!-- header -->
       <h4 class="p-4 border-b text-lg font-semibold text-slate-500">
-        Testing Accuracy
+        Test Accuracy
       </h4>
       <!-- stats -->
       <div class="grid grid-cols-2 p-4 font-medium text-slate-500">
         <div class="text-center">
           <span class="text-2xl">{{ currentAccuracy }}</span>
-          <span class="text-sm">% of testing accuracy</span>
+          <span class="text-sm">% of test accuracy</span>
         </div>
         <div class="text-center">
           <span class="text-2xl">{{ visitedSamples }}</span>
@@ -95,8 +95,8 @@ export default defineComponent({
       }
       return this.validator.accuracyData().toArray()
     },
-    currentAccuracy (): number {
-      return this.validator.accuracy().toFixed(2) * 100
+    currentAccuracy (): string {
+      return (this.validator.accuracy() * 100).toFixed(2)
     },
     visitedSamples (): number {
       return this.validator.visitedSamples()
@@ -118,7 +118,10 @@ export default defineComponent({
       if (this.validator === undefined) {
         return error(this.$toast, 'Model not found')
       }
-      const dataset: dataset.Data = await this.datasetBuilder.build()
+      const dataset: dataset.Data = (await this.datasetBuilder
+        .build({ validationSplit: 0 }))
+        .train
+      console.log(dataset)
       success(this.$toast, 'Model testing started!')
       try {
         await this.validator.assess(dataset)

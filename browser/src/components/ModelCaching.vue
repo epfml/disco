@@ -13,10 +13,10 @@
           <div class="grid grid-cols-4 items-center justify-items-center">
             <div class="col-span-3">
               <div class="text-sm text-gray-500 dark:text-light">
-                FeAI cached the last model you were working on for you. Select
+                Disco has cached the last model you were working on for you. Select
                 it to start training from it. Otherwise, it will be overridden
                 the next time you train the
-                {{ task.displayInformation.taskTitle }} task. This model was
+                {{ task.displayInformation.taskTitle }} task.<br> This model was
                 last updated the
                 <span class="text-primary-dark dark:text-primary-light">
                   {{ dateSaved }}
@@ -116,7 +116,7 @@
             <CustomButton
               @click="proceed"
             >
-              Confirm
+              Continue training from this model
             </CustomButton>
           </div>
         </div>

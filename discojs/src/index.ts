@@ -4,6 +4,7 @@ export * as serialization from './serialization'
 export * as tasks from './tasks'
 export * as training from './training'
 export * as privacy from './privacy'
+export { GraphInformant, TrainingInformant, informant } from './informant'
 
 export { Base as Client } from './client'
 export * as client from './client'
@@ -17,5 +18,4 @@ export { Disco, TrainingSchemes } from './training'
 export { Validator } from './validation'
 
 export { TrainingInformation, DisplayInformation, isTask, Task, isTaskID, TaskID } from './task'
-export { TrainingInformant, GraphInformant } from './informant'
 export * from './types'

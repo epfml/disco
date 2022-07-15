@@ -4,7 +4,7 @@ import msgpack from 'msgpack-lite'
 import SimplePeer from 'simple-peer'
 import { URL } from 'url'
 
-import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
+import { aggregation, privacy, serialization, informant, Weights } from '..'
 
 import { Base } from './base'
 
@@ -216,7 +216,7 @@ export class Decentralized extends Base {
     updatedWeights: Weights,
     staleWeights: Weights,
     epoch: number,
-    trainingInformant: TrainingInformant
+    trainingInformant: informant.DecentralizedInformant
   ): Promise<Weights> {
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     // Broadcast our weights
@@ -226,14 +226,14 @@ export class Decentralized extends Base {
     }
     const encodedMsg = msgpack.encode(msg)
 
-    this.peers
-      .filter((peer) => peer.connected)
-      .forEach((peer, peerID) => {
-        trainingInformant.addMessage(`Sending weights to peer ${peerID}`)
-        trainingInformant.updateWhoReceivedMyModel(`peer ${peerID}`)
+    const activePeers = this.peers.filter((peer) => peer.connected)
 
-        peer.send(encodedMsg)
-      })
+    activePeers.forEach((peer, peerID) => {
+      trainingInformant.addMessage(`Sending weights to peer ${peerID}`)
+      peer.send(encodedMsg)
+    })
+
+    trainingInformant.update({ currentNumberOfParticipants: activePeers.size })
 
     // Get weights from the others
     const getWeights = (): Seq.Indexed<Weights | undefined> =>
@@ -269,14 +269,12 @@ export class Decentralized extends Base {
 
     // Average weights
     trainingInformant.addMessage('Averaging weights')
-    trainingInformant.updateNbrUpdatesWithOthers(1)
 
     // Return the new "received" weights
     return aggregation.averageWeights(receivedWeights)
   }
 
-  async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
+  async onTrainEndCommunication (): Promise<void> {
     // TODO: enter seeding mode?
-    trainingInformant.addMessage('Training finished.')
   }
 }

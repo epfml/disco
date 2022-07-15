@@ -1,10 +1,11 @@
 import { Trainer } from './trainer'
+import { Logs } from '@tensorflow/tfjs'
 
-/** Class whose role is to locally train a model with a given dataset.
+/** Class whose role is to locally (alone) train a model on a given dataset, without any collaborators.
  */
 export class LocalTrainer extends Trainer {
   /**
-   * Callback called every time a round is over
+   * Callback called every time a round is over. For local training, a round is typically an epoch
    */
   async onRoundEnd (accuracy: number): Promise<void> {
     await this.memory.updateWorkingModel(
@@ -13,7 +14,8 @@ export class LocalTrainer extends Trainer {
     )
   }
 
-  async onTrainEnd (): Promise<void> {
-    // nothing to do
+  protected onEpochEnd (epoch: number, logs?: Logs): void {
+    super.onEpochEnd(epoch, logs)
+    this.trainingInformant.update({ currentRound: epoch })
   }
 }

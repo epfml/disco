@@ -1,191 +1,153 @@
 <template>
   <div>
     <div
-      x-transition:enter="transition duration-300 ease-in-out"
-      x-transition:enter-start="opacity-0"
-      x-transition:enter-end="opacity-100"
-      x-ref="trainingBoard"
-      x-show="isTraining"
+      class="grid gap-8"
+      :class="hasValidationData ? 'grid-cols-2' : 'grid-cols-1'"
     >
+      <!-- Validation Accuracy users chart -->
       <div
-        class="grid p-4 gap-8"
-        :class="hasValidationData ? 'grid-cols-2' : 'grid-cols-1'"
+        v-if="hasValidationData"
+        class="bg-white rounded-md"
       >
-        <!-- Validation Accuracy users chart -->
-        <div
-          v-if="hasValidationData"
-          class="bg-white rounded-md basis-0"
-        >
-          <!-- Card header -->
-          <div class="p-4 border-b">
-            <h4 class="text-lg font-semibold text-slate-500">
-              {{
-                $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyHeader')
-              }}
-            </h4>
-          </div>
-          <p class="p-4">
-            <span class="text-2xl font-medium text-slate-500">
-              {{ currentValidationAccuracy }}
-            </span>
-            <span class="text-sm font-medium text-slate-500">
-              {{
-                $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyText')
-              }}
-            </span>
-          </p>
-          <!-- Chart -->
-          <div class="relative p-4 w-full h-full">
-            <apexchart
-              width="100%"
-              height="200"
-              type="area"
-              :options="chartOptions"
-              :series="validationAccuracyData"
-            />
-          </div>
+        <!-- Card header -->
+        <div class="p-4 border-b">
+          <h4 class="text-lg font-semibold text-slate-500">
+            {{
+              $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyHeader')
+            }}
+          </h4>
         </div>
+        <p class="p-4">
+          <span class="text-2xl font-medium text-slate-500">
+            {{ currentValidationAccuracy }}
+          </span>
+          <span class="text-sm font-medium text-slate-500">
+            {{
+              $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyText')
+            }}
+          </span>
+        </p>
+        <!-- Chart -->
+        <div class="m-4">
+          <apexchart
+            width="100%"
+            height="200"
+            type="area"
+            :options="chartOptions"
+            :series="validationAccuracyData"
+          />
+        </div>
+      </div>
 
-        <!-- Training Accuracy users chart -->
-        <div class="bg-white rounded-md basis-0">
-          <!-- Card header -->
-          <div class="p-4 border-b">
-            <h4 class="text-lg font-semibold text-slate-500">
-              {{
-                $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
-              }}
-            </h4>
-          </div>
-          <p class="p-4">
-            <span class="text-2xl font-medium text-slate-500">
-              {{ currentTrainingAccuracy }}
-            </span>
-            <span class="text-sm font-medium text-slate-500">
-              {{
-                $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
-              }}
-            </span>
-          </p>
-          <!-- Chart -->
-          <div class="relative p-4 w-full h-full">
-            <apexchart
-              width="100%"
-              height="200"
-              type="area"
-              :options="chartOptions"
-              :series="trainingAccuracyData"
-            />
-          </div>
+      <!-- Training Accuracy users chart -->
+      <div class="bg-white rounded-md">
+        <!-- Card header -->
+        <div class="p-4 border-b">
+          <h4 class="text-lg font-semibold text-slate-500">
+            {{
+              $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
+            }}
+          </h4>
+        </div>
+        <p class="p-4">
+          <span class="text-2xl font-medium text-slate-500">
+            {{ currentTrainingAccuracy }}
+          </span>
+          <span class="text-sm font-medium text-slate-500">
+            {{
+              $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
+            }}
+          </span>
+        </p>
+        <!-- Chart -->
+        <div class="m-4">
+          <apexchart
+            width="100%"
+            height="200"
+            type="area"
+            :options="chartOptions"
+            :series="trainingAccuracyData"
+          />
         </div>
       </div>
     </div>
 
-    <!-- Communication Console -->
-    <IconCard v-if="isDistributedTrainingScheme">
+    <!-- Training logs -->
+    <IconCard>
       <template #title>
-        {{ $t('training.trainingInformationFrame.trainingInformations.trainingConsoleHeader') }}
+        Training Logs
       </template>
       <template #icon>
         <Contact />
       </template>
       <template #content>
         <div id="mapHeader">
-          <ul class="grid grid-cols-1 p-4">
+          <ul class="grid grid-cols-1">
             <li
-              v-for="(message, index) in trainingInformant.messages"
+              v-for="(message, index) in trainingInformant.getMessages()"
               :key="index"
               class="border-slate-400"
             >
-              <div class="relative overflow-x-hidden">
-                <span
-                  style="white-space: pre-line"
-                  class="text-sm text-slate-500"
-                >{{ message }}</span>
-              </div>
+              <span
+                style="white-space: pre-line"
+                class="text-sm text-slate-500"
+              >{{ message }}</span>
             </li>
           </ul>
         </div>
       </template>
     </IconCard>
 
-    <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
-      <IconCardSmall>
+    <!-- Fancy training statistics -->
+    <div class="flex flex-wrap justify-center gap-8">
+      <IconCardSmall class="w-72 shrink-0">
         <template #header>
-          Current round
+          {{ currentRoundText }}
         </template>
         <template #text>
-          {{ trainingInformant.currentRound }}
+          {{ trainingInformant.round() }}
         </template>
         <template #icon>
           <Timer />
         </template>
       </IconCardSmall>
-      <IconCardSmall>
+      <IconCardSmall class="w-72 shrink-0">
         <template #header>
           Current # of participants
         </template>
         <template #text>
-          {{ trainingInformant.currentNumberOfParticipants }}
+          {{ trainingInformant.participants() }}
         </template>
         <template #icon>
           <People />
         </template>
       </IconCardSmall>
-      <IconCardSmall>
+      <IconCardSmall class="w-72 shrink-0">
         <template #header>
           Average # of participants
         </template>
         <template #text>
-          {{ trainingInformant.averageNumberOfParticipants }}
+          {{ trainingInformant.averageParticipants() }}
         </template>
         <template #icon>
           <People />
         </template>
       </IconCardSmall>
-
-      <div
-        v-if="isDecentralizedTrainingScheme"
-        class="contents"
-      >
-        <IconCardSmall>
-          <template #header>
-            Waiting time
-          </template>
-          <template #text>
-            {{ trainingInformant.waitingTime }} seconds
-          </template>
-          <template #icon>
-            <Timer />
-          </template>
-        </IconCardSmall>
-        <IconCardSmall>
-          <template #header>
-            # of weights requests
-          </template>
-          <template #text>
-            {{ trainingInformant.nbrWeightRequests }}
-          </template>
-          <template #icon>
-            <Forward />
-          </template>
-        </IconCardSmall>
-      </div>
-    <!-- Federated Training Information -->
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+
 import { TrainingInformant } from 'discojs'
 
+import { chartOptions } from '@/charts'
 import IconCardSmall from '@/components/containers/IconCardSmall.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import Timer from '@/assets/svg/Timer.vue'
 import People from '@/assets/svg/People.vue'
-import Forward from '@/assets/svg/Forward.vue'
 import Contact from '@/assets/svg/Contact.vue'
-import { chartOptions } from '@/charts'
 
 export default defineComponent({
   name: 'TrainingInformation',
@@ -194,12 +156,11 @@ export default defineComponent({
     IconCard,
     Timer,
     People,
-    Forward,
     Contact
   },
   props: {
     trainingInformant: {
-      type: TrainingInformant,
+      validator: TrainingInformant.isTrainingInformant,
       default: undefined
     },
     hasValidationData: {
@@ -211,17 +172,13 @@ export default defineComponent({
     chartOptions () {
       return chartOptions
     },
-    isDecentralizedTrainingScheme (): boolean {
-      return this.trainingInformant.isTaskTrainingSchemeDecentralized()
-    },
-    isFederatedTrainingScheme (): boolean {
-      return this.trainingInformant.isTaskTrainingSchemeFederated()
-    },
-    isDistributedTrainingScheme (): boolean {
-      return this.isFederatedTrainingScheme || this.isDecentralizedTrainingScheme
-    },
-    displayHeatmap () {
+    displayHeatmap (): boolean {
       return this.trainingInformant.displayHeatmap
+    },
+    currentRoundText (): string {
+      return this.trainingInformant.isDecentralized() || this.trainingInformant.isFederated()
+        ? 'Current Round'
+        : 'Current Epoch'
     },
     interoperabilityHeatmapData () {
       // TODO: cahnge once the peers exchange actual data of their weights and biases.
@@ -232,20 +189,20 @@ export default defineComponent({
         }
       ]
     },
-    currentTrainingAccuracy () {
+    currentTrainingAccuracy (): number {
       return this.trainingInformant.trainingAccuracy()
     },
-    currentValidationAccuracy () {
+    currentValidationAccuracy (): number {
       return this.trainingInformant.validationAccuracy()
     },
-    trainingAccuracyData () {
+    trainingAccuracyData (): [{ data: number[] }] {
       return [
         {
           data: this.trainingInformant.trainingAccuracyData().toArray()
         }
       ]
     },
-    validationAccuracyData () {
+    validationAccuracyData (): [{ data: number[] }] {
       return [
         {
           data: this.trainingInformant.validationAccuracyData().toArray()
