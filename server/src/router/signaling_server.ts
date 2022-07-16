@@ -24,14 +24,18 @@ export class SignalingServer {
       try {
         const msg = msgpack.decode(data)
         if (msg.type === messages.messageType.clientWeightsMessageServer) {
-          const forwardMsg: messages.clientWeightsMessageServer = { type: messages.messageType.clientWeightsMessageServer,
-            peerID: msg.peerID, weights: msg.weights, destination: msg.destination }
+          const forwardMsg: messages.clientWeightsMessageServer = {
+            type: messages.messageType.clientWeightsMessageServer,
+            peerID: msg.peerID,
+            weights: msg.weights,
+            destination: msg.destination
+          }
           const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 
-          //this part can be simplified if we figure out how ot iterate directly through this.peers in the client
+          // this part can be simplified if we figure out how ot iterate directly through this.peers in the client
           const peerIDToSend = this.readyClients.keySeq().get(msg.destination)
-          if (peerIDToSend===undefined){
-            throw new Error ("Cannot send weights to that peer, it is undefined")
+          if (peerIDToSend === undefined) {
+            throw new Error('Cannot send weights to that peer, it is undefined')
           }
           this.readyClients.get(peerIDToSend)?.send(encodedMsg)
           //
@@ -44,6 +48,26 @@ export class SignalingServer {
               peer.send(msgpack.encode(connectedPeerIDs))
             }
           }
+        } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
+          const forwardMsg: messages.clientPartialSumsMessageServer = {
+            type: messages.messageType.clientPartialSumsMessageServer,
+            peerID: msg.peerID,
+            partials: msg.partials,
+            destination: msg.destination
+          }
+          const encodedMsg: Buffer = msgpack.encode(forwardMsg)
+
+          // this part can be simplified if we figure out how ot iterate directly through this.peers in the client
+          const peerIDToSend = this.readyClients.keySeq().get(msg.destination)
+          if (peerIDToSend === undefined) {
+            throw new Error('Cannot send weights to that peer, it is undefined')
+          }
+          const peerSocket = this.readyClients.get(peerIDToSend)
+          if (peerSocket === undefined) {
+            throw new Error('Cannot send weights to that peer, it is undefined')
+          }
+          peerSocket.send(encodedMsg)
+          //
         }
       } catch (e) {
         console.error('when processing WebSocket message', e)

@@ -16,8 +16,10 @@ type PeerID = number
  */
 export abstract class DecentralizedGeneral extends Base {
   protected server?: isomorphic.WebSocket
-  protected peers : List<PeerID> = List()
+  protected peers: List<PeerID> = List()
   protected receivedWeights = new Map <PeerID, Weights>()
+  protected receivedPartialSums: List<Weights> = List()
+  protected mySum: Weights = []
   protected ID: number = 0
 
   /*
@@ -30,7 +32,7 @@ export abstract class DecentralizedGeneral extends Base {
     this.server.send(message)
   }
 
-    protected sendReadyMessage (round: number): void {
+  protected sendReadyMessage (round: number): void {
     // Broadcast our readiness
     const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round }
 
@@ -56,8 +58,14 @@ export abstract class DecentralizedGeneral extends Base {
       } else if (msg.type === messages.messageType.serverConnectedClients) { // who to connect to
         this.peers = msg.peerList
       } else if (msg.type === messages.messageType.clientWeightsMessageServer) { // weights message
+        console.log(this.ID, 'received a weights message from', msg.peerID)
         const weights = serialization.weights.decode(msg.weights)
-        this.receivedWeights.set(msg.peerID, weights)
+        this.receivedWeights = this.receivedWeights.set(msg.peerID, weights)
+        // console.log('my peer ID', this.ID)
+        // console.log('weights received in received weights', tf.print(weights[0]))
+      } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
+        const weights: Weights = serialization.weights.decode(msg.partials)
+        this.receivedPartialSums = this.receivedPartialSums.push(weights)
       } else {
         throw new Error('Message Type Incorrect')
       }
