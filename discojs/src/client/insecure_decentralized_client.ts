@@ -20,7 +20,6 @@ const arbitraryNegativeNumber = -10
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class InsecureDecentralized extends DecentralizedGeneral {
-
   async onRoundEndCommunication (
     updatedWeights: Weights,
     staleWeights: Weights,
@@ -44,12 +43,17 @@ export class InsecureDecentralized extends DecentralizedGeneral {
           if (this.server === undefined) {
             throw new Error('server undefined so we cannot send weights through it')
           }
-          //should figure out how to iterate directly through peers
-          for(let peerDest = 0; peerDest<this.peers.size; peerDest++) {
-            const msg: messages.clientWeightsMessageServer = { type: messages.messageType.clientWeightsMessageServer, peerID: this.ID,
-         weights: weightsToSend, destination: peerDest}
-          const encodedMsg = msgpack.encode(msg)
-          this.peerMessageTemp(encodedMsg)
+          // should figure out how to iterate directly through peers
+          for (let peerDest = 0; peerDest < this.peers.size; peerDest++) {
+          // for(let peerDest of this.peers){
+            const msg: messages.clientWeightsMessageServer = {
+              type: messages.messageType.clientWeightsMessageServer,
+              peerID: this.ID,
+              weights: weightsToSend,
+              destination: peerDest
+            }
+            const encodedMsg = msgpack.encode(msg)
+            this.peerMessageTemp(encodedMsg)
           }
           this.peers = List<number>()
         }

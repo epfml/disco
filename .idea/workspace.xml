@@ -2,10 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/discojs/src/iterableErrorExample.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/index.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/discojs/src/client/insecure_decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/insecure_decentralized_client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/secure_decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/secure_decentralized_client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/messages.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/messages.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/secret_shares.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/secret_shares.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/router/signaling_server.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/router/signaling_server.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/tests/end_to_end_decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/tests/end_to_end_decentralized.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
