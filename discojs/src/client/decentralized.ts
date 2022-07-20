@@ -10,17 +10,61 @@ import { URL } from 'url'
 
 type PeerID = number
 
+// Time to wait between network checks in milliseconds.
+const TICK = 100
+
+// Time to wait for the others in milliseconds.
+const MAX_WAIT_PER_ROUND = 10_000
+
 /**
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export abstract class DecentralizedGeneral extends Base {
   protected server?: isomorphic.WebSocket
+
+  //list of peerIDs who the clinent will send messages to
   protected peers: List<PeerID> = List()
+  //map of peerIDs to the weights that they sent the client
   protected receivedWeights = new Map <PeerID, Weights>()
+  //list of partial sums received by client
   protected receivedPartialSums: List<Weights> = List()
+  //the partial sum calculated by the client
   protected mySum: Weights = []
+  //the ID of the client, set arbitrarily to 0 but gets set an actual value once it cues the signaling server
+  //that it is ready to connect
   protected ID: number = 0
+
+  /*
+function to check if a given boolean condition is true, checks continuously until maxWait time is reached
+ */
+protected pause = async (statement: () => boolean, maxWait: number): Promise<void> => {
+  return await new Promise<void>((resolve, reject) => {
+    const timeWas = new Date().getTime()
+    const wait = setInterval(function () {
+      if (statement()) {
+        console.log('resolved after', new Date().getTime() - timeWas, 'ms')
+        clearInterval(wait)
+        resolve()
+      } else if (new Date().getTime() - timeWas > maxWait) { // Timeout
+        console.log('rejected after', new Date().getTime() - timeWas, 'ms')
+        clearInterval(wait)
+        reject(new Error('timeout'))
+      }
+    }, TICK)
+  })
+}
+
+/*
+checks  if pause function throws a timeout error
+ */
+protected async  resolvePause (func: () => boolean): Promise<void> {
+  try {
+    await this.pause(func, MAX_WAIT_PER_ROUND)
+  } catch {
+    throw new Error('timeout error')
+  }
+}
 
   /*
   temporary function to send messages to the server, will be replaced by peer to peer connection later
@@ -32,6 +76,9 @@ export abstract class DecentralizedGeneral extends Base {
     this.server.send(message)
   }
 
+  /*
+  send message to server that client is ready
+   */
   protected sendReadyMessage (round: number): void {
     // Broadcast our readiness
     const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round }
@@ -43,6 +90,10 @@ export abstract class DecentralizedGeneral extends Base {
     this.server.send(encodedMsg)
   }
 
+  /*
+  creation of the websocket for the server, connection of client to that webSocket,
+  deals with message reception from decentralized client perspective (messages received by client)
+   */
   protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
@@ -53,22 +104,23 @@ export abstract class DecentralizedGeneral extends Base {
       }
       const msg = msgpack.decode(new Uint8Array(event.data))
 
+      //check message type to choose correct action
       if (msg.type === messages.messageType.serverClientIDMessage) {
+        //updated ID
         this.ID = msg.peerID
-      } else if (msg.type === messages.messageType.serverConnectedClients) { // who to connect to
-        console.log('connecting clients now')
+      } else if (msg.type === messages.messageType.serverConnectedClients) {
+        //updated connected peers
         this.peers = msg.peerList
-      } else if (msg.type === messages.messageType.clientWeightsMessageServer) { // weights message
-        console.log(this.ID, 'received a weights message from', msg.peerID)
+      } else if (msg.type === messages.messageType.clientWeightsMessageServer) {
+        //update received weights by one weights reception
         const weights = serialization.weights.decode(msg.weights)
         this.receivedWeights = this.receivedWeights.set(msg.peerID, weights)
-        // console.log('my peer ID', this.ID)
-        // console.log('weights received in received weights', tf.print(weights[0]))
       } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
+        //update received partial sums by one partial sum
         const weights: Weights = serialization.weights.decode(msg.partials)
         this.receivedPartialSums = this.receivedPartialSums.push(weights)
       } else {
-        throw new Error('Message Type Incorrect')
+        throw new Error('Message Type Cannot Be Parsed')
       }
     }
     return await new Promise((resolve, reject) => {
