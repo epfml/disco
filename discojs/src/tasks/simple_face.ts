@@ -6,8 +6,10 @@ export const task: Task = {
   taskID: 'simple_face',
   displayInformation: {
     taskTitle: 'Simple Face',
-    summary: 'Can you detect if the person in a picture is a child or an adult?',
-    overview: 'Simple face is a small subset of face_task from Kaggle',
+    summary: {
+      preview: 'Can you detect if the person in a picture is a child or an adult?',
+      overview: 'Simple face is a small subset of face_task from Kaggle'
+    },
     limitations: 'The training data is limited to small images of size 200x200.',
     tradeoffs: 'Training success strongly depends on label distribution',
     dataFormatInformation: '',

@@ -1,5 +1,6 @@
 import { Set } from 'immutable'
 
+import { Summary, isSummary } from './summary'
 import { DataExample, isDataExample } from './data_example'
 
 export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
@@ -13,7 +14,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   const requiredFields = Set.of(
     'dataExampleText',
     'dataFormatInformation',
-    'overview',
     'summary',
     'taskTitle',
     'tradeoffs'
@@ -27,13 +27,14 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     'headers' |
     'limitations' |
     'model' |
-    'overview' |
     'summary' |
     'taskTitle' |
     'tradeoffs'
+
   if (!requiredFields.isSubset(Object.keys(raw))) {
     return false
   }
+
   const {
     dataExample,
     dataExampleImage,
@@ -42,7 +43,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     headers,
     limitations,
     model,
-    overview,
     summary,
     taskTitle,
     tradeoffs
@@ -51,8 +51,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   if (
     typeof dataExampleText !== 'string' ||
     typeof dataFormatInformation !== 'string' ||
-    typeof overview !== 'string' ||
-    typeof summary !== 'string' ||
     typeof taskTitle !== 'string' ||
     typeof tradeoffs !== 'string' ||
     (model !== undefined && typeof model !== 'string') ||
@@ -61,6 +59,11 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   ) {
     return false
   }
+
+  if (!isSummary(summary)) {
+    return false
+  }
+
   if (
     dataExample !== undefined && !(
       Array.isArray(dataExample) &&
@@ -80,7 +83,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   const _: DisplayInformation = {
     taskTitle,
     summary,
-    overview,
     tradeoffs,
     dataFormatInformation,
     dataExampleText,
@@ -96,8 +98,7 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
 
 export interface DisplayInformation {
   taskTitle: string
-  summary: string
-  overview: string
+  summary: Summary
   tradeoffs: string
   dataFormatInformation: string
   // TODO merge dataExample*
