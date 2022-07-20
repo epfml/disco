@@ -96,7 +96,7 @@
       </div>
     </div>
     <div v-if="task !== undefined">
-      <DatasetInput
+      <Data
         v-show="step === 1"
         :task="task"
         :dataset-builder="datasetBuilder"
@@ -112,7 +112,7 @@
 </template>
 <script lang="ts">
 import ValidationBar from '@/components/validation/ValidationBar.vue'
-import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
+import Data from '@/components/data/Data.vue'
 import Validator from '@/components/validation/Validator.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -131,7 +131,7 @@ export default defineComponent({
   components: {
     ValidationBar,
     Validator,
-    DatasetInput,
+    Data,
     ButtonCard,
     IconCard
   },

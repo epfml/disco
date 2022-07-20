@@ -2,7 +2,7 @@
   <div>
     <a id="overview-target">
       <IconCard>
-        <template #title>The task</template>
+        <template #title>The Task</template>
         <template #icon><Tasks /></template>
         <template #content>
           <div v-html="overviewText" />
@@ -12,7 +12,7 @@
 
     <a id="limitations-target">
       <IconCard>
-        <template #title>The model</template>
+        <template #title>The Model</template>
         <template #icon><Model /></template>
         <template #content>
           <div v-html="modelText" />
