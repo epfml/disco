@@ -15,27 +15,29 @@ const minimumPeers = 3
 // Time to wait for the others in milliseconds.
 const MAX_WAIT_PER_ROUND = 10_000
 
-async function pause (statement: boolean): Promise<void> {
-  const timeoutError = new Error('timeout')
-  await new Promise<void>((resolve, reject) => {
-    const interval = setInterval(() => {
-      if (statement) {
-        clearInterval(interval)
+const pause = async (statement: () => boolean, maxWeight: number): Promise<void> => {
+  return await new Promise<void>((resolve, reject) => {
+    const timeWas = new Date().getTime()
+    const wait = setInterval(function () {
+      if (statement()) {
+        console.log('resolved after', new Date().getTime() - timeWas, 'ms')
+        clearInterval(wait)
         resolve()
+      } else if (new Date().getTime() - timeWas > maxWeight) { // Timeout
+        console.log('rejected after', new Date().getTime() - timeWas, 'ms')
+        clearInterval(wait)
+        reject(new Error('timeout'))
       }
     }, TICK)
-
-    setTimeout(() => {
-      clearInterval(interval)
-      reject(timeoutError)
-    }, MAX_WAIT_PER_ROUND)
-  }).catch((err) => { // doesn't throw error correctly
-    if (err !== timeoutError) {
-      throw err
-    // } else {
-    //   throw new Error('statement untrue in pause function')
-    }
   })
+}
+
+async function resolvePause (func: () => boolean): Promise<void> {
+  try {
+    await pause(func, MAX_WAIT_PER_ROUND)
+  } catch {
+    throw new Error('timeout error')
+  }
 }
 
 export class SecureDecentralized extends DecentralizedGeneral {
@@ -96,18 +98,13 @@ export class SecureDecentralized extends DecentralizedGeneral {
     // send ready message
     this.sendReadyMessage(round)
 
-    // don't continue from here until peers is not empty
-    await pause(this.peers.size >= minimumPeers)
+    await resolvePause(() => this.peers.size >= minimumPeers)
     await this.sendShares(updatedWeights, staleWeights, round, trainingInformant)
 
-    // don't send partial sum until we have all weights
-    await pause(this.receivedWeights.size >= minimumPeers)
-    console.log('received size', this.receivedWeights.size)
+    await resolvePause(() => this.receivedWeights.size >= minimumPeers)
     await this.sendPartialSums()
 
-    await pause(this.receivedPartialSums.size >= minimumPeers)
-    // this.receivedPartialSums.push(this.mySum)
-    console.log('partial sum size,', this.receivedPartialSums.size)
+    await resolvePause(() => this.receivedPartialSums.size >= minimumPeers)
     const setWeights: Set<Weights> = this.receivedPartialSums.toSet()
     return aggregation.averageWeights(setWeights)
   }

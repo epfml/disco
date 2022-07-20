@@ -56,6 +56,7 @@ export abstract class DecentralizedGeneral extends Base {
       if (msg.type === messages.messageType.serverClientIDMessage) {
         this.ID = msg.peerID
       } else if (msg.type === messages.messageType.serverConnectedClients) { // who to connect to
+        console.log('connecting clients now')
         this.peers = msg.peerList
       } else if (msg.type === messages.messageType.clientWeightsMessageServer) { // weights message
         console.log(this.ID, 'received a weights message from', msg.peerID)
