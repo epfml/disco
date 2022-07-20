@@ -4,7 +4,7 @@ import * as secret_shares from '../secret_shares'
 import { DecentralizedGeneral } from './decentralized'
 import * as messages from '../messages'
 
-import { aggregation, serialization, TrainingInformant, Weights } from '..'
+import { aggregation, serialization, TrainingInformant, Weights, privacy } from '..'
 
 // Time to wait between network checks in milliseconds.
 const TICK = 100
@@ -47,8 +47,8 @@ export class SecureDecentralized extends DecentralizedGeneral {
     round: number,
     trainingInformant: TrainingInformant): Promise<void> {
     // identify peer connections, make weight shares, add differential privacy
-    // const noisyWeights: Weights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
-    const weightShares: List<Weights> = await secret_shares.generateAllShares(updatedWeights, this.peers.size, 1000)
+    const noisyWeights: Weights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
+    const weightShares: List<Weights> = await secret_shares.generateAllShares(noisyWeights, this.peers.size, 1000)
 
     // Broadcast our weights to ith peer in the SERVER LIST OF PEERS
     for (let i = 0; i < this.peers.size; i++) {
@@ -60,7 +60,7 @@ export class SecureDecentralized extends DecentralizedGeneral {
         type: messages.messageType.clientWeightsMessageServer,
         peerID: this.ID,
         weights: await serialization.weights.encode(weights),
-        destination: i // this.peers.get(i) ?? -1
+        destination: i
       }
       const encodedMsg = msgpack.encode(msg)
       this.peerMessageTemp(encodedMsg)
@@ -99,12 +99,14 @@ export class SecureDecentralized extends DecentralizedGeneral {
     this.sendReadyMessage(round)
 
     await resolvePause(() => this.peers.size >= minimumPeers)
+    console.log(this.ID, 'finished first resolve')
     await this.sendShares(updatedWeights, staleWeights, round, trainingInformant)
 
     await resolvePause(() => this.receivedWeights.size >= minimumPeers)
     await this.sendPartialSums()
 
     await resolvePause(() => this.receivedPartialSums.size >= minimumPeers)
+    // console.log(this.ID, 'has the following received sum shape', this.receivedPartialSums.get(this.ID)[136])
     const setWeights: Set<Weights> = this.receivedPartialSums.toSet()
     return aggregation.averageWeights(setWeights)
   }

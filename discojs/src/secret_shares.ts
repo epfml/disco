@@ -22,7 +22,7 @@ export function subtractWeights (w1: Weights, w2: Weights): Weights {
   assertEqualSizes(w1, w2)
   const sub: Weights = []
   for (let i = 0; i < w1.length; i++) {
-    sub.push(tf.sub(w1[0], w2[0]))
+    sub.push(tf.sub(w1[i], w2[i]))
   }
   return sub
 }
@@ -63,7 +63,15 @@ export async function generateAllShares (secret: Weights, nParticipants: number,
   ''
   const shares: Weights[] = []
   for (let i = 0; i < nParticipants - 1; i++) {
-    shares.push(generateRandomShare(secret, Math.random() * maxRandNumber + 500, RNG_CRYPTO_SECURITY.UNSAFE))
+    const share: Weights = []
+    for (const t of secret) {
+      share.push(
+        tf.randomUniform(
+          t.shape, -maxRandNumber, maxRandNumber, undefined, generateRandomNumber(maxRandNumber, RNG_CRYPTO_SECURITY.UNSAFE))
+      )
+    }
+    shares.push(share)
+    // shares.push(generateRandomShare(secret, Math.random() * maxRandNumber + 500, RNG_CRYPTO_SECURITY.UNSAFE))
   }
   shares.push(lastShare(shares, secret))
   const shares2 = List<Weights>(shares)
