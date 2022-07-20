@@ -25,7 +25,7 @@
       v-show="step === 1"
       :task="task"
     />
-    <DatasetInput
+    <Data
       v-show="step === 2"
       :task="task"
       :dataset-builder="datasetBuilder"
@@ -53,14 +53,14 @@ import CustomButton from '@/components/simple/CustomButton.vue'
 import Description from '@/components/Description.vue'
 import Training from '@/components/training/Training.vue'
 import Finished from '@/components/Finished.vue'
-import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
+import Data from '@/components/data/Data.vue'
 import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 
 export default defineComponent({
   name: 'Navigation',
   components: {
     Description,
-    DatasetInput,
+    Data,
     Training,
     Finished,
     CustomButton
