@@ -66,7 +66,7 @@ export default {
   computed: {
     ...mapState(['isDark']),
     overviewText (): string {
-      return this.task.displayInformation.overview
+      return Object.values(this.task.displayInformation.summary).join('<br><br>')
     },
     tradeOffsText (): string {
       return this.task.displayInformation.tradeOffsText
