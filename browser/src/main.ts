@@ -11,6 +11,12 @@ import { createCustomI18n } from './locales/i18n'
 import '@/assets/css/tailwind.css'
 import '@/assets/css/styles.css'
 
+import { tf } from 'discojs'
+
+tf.ready()
+  .then(() => console.log(`Loaded ${tf.getBackend()} backend`))
+  .catch(console.error)
+
 /* if (
   process.env.NODE_ENV === 'development' &&
   process.env.DEV_TOOLS === 'enabled'

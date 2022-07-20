@@ -1,6 +1,4 @@
-import * as tf from '@tensorflow/tfjs'
-
-import { dataset } from 'discojs'
+import { tf, dataset } from 'discojs'
 
 export class WebImageLoader extends dataset.ImageLoader<File> {
   async readImageFrom (source: File): Promise<tf.Tensor3D> {
