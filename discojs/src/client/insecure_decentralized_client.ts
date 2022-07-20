@@ -29,51 +29,34 @@ export class InsecureDecentralized extends DecentralizedGeneral {
     // send message to server that we ready
     this.sendReadyMessage(round)
 
+    //prepare weights to send to peers
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     const weightsToSend = await serialization.weights.encode(noisyWeights)
 
-    // Broadcast our weights
+    // Broadcast our weights when peerSize is above threshold (thus why it starts at an arbitrary negative)
     let peerSize: number = arbitraryNegativeNumber
 
-    const timeoutError = new Error('timeout')
-    await new Promise<void>((resolve, reject) => {
-      const interval = setInterval(() => {
-        if (this.peers.size >= minimumPeers) {
-          peerSize = this.peers.size
-          if (this.server === undefined) {
-            throw new Error('server undefined so we cannot send weights through it')
-          }
-          // should figure out how to iterate directly through peers
-          for (let peerDest = 0; peerDest < this.peers.size; peerDest++) {
-          // for(let peerDest of this.peers){
-            const msg: messages.clientWeightsMessageServer = {
-              type: messages.messageType.clientWeightsMessageServer,
-              peerID: this.ID,
-              weights: weightsToSend,
-              destination: peerDest
-            }
-            const encodedMsg = msgpack.encode(msg)
-            this.peerMessageTemp(encodedMsg)
-          }
-          this.peers = List<number>()
-        }
-        const gotAllWeights = (this.receivedWeights.size === peerSize)
-        if (gotAllWeights) {
-          clearInterval(interval)
-          resolve()
-        }
-      }, TICK)
-
-      setTimeout(() => {
-        clearInterval(interval)
-        reject(timeoutError)
-      }, MAX_WAIT_PER_ROUND)
-    }).catch((err) => {
-      if (err !== timeoutError) {
-        throw err
+    //wait for client to receive list of peers
+    await this.resolvePause(() => this.peers.size >= minimumPeers)
+    if (this.server === undefined) {
+      throw new Error('server undefined so we cannot send weights through it')
+    }
+    //create weights message and send to all peers
+    for (let peerDest = 0; peerDest < this.peers.size; peerDest++) {
+      const msg: messages.clientWeightsMessageServer = {
+        type: messages.messageType.clientWeightsMessageServer,
+        peerID: this.ID,
+        weights: weightsToSend,
+        destination: peerDest
       }
-    })
+      const encodedMsg = msgpack.encode(msg)
+      this.peerMessageTemp(encodedMsg)
+    }
+    //reset peers at end of round
+    this.peers = List<number>()
 
+    //wait to receive all weights from peers
+    await this.resolvePause(() => this.receivedWeights.size >= minimumPeers)
     const weightsArray = Array.from(this.receivedWeights.values())
     const finalWeights = Set(weightsArray)
 
