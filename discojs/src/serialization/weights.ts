@@ -1,4 +1,4 @@
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '..'
 import * as msgpack from 'msgpack-lite'
 
 import { Weights } from '@/types'

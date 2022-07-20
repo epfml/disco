@@ -1,10 +1,10 @@
 import { assert, expect } from 'chai'
-import * as tf from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import _ from 'lodash'
 
 import { dataset, tasks } from '../..'
 import { List, Map, Range } from 'immutable'
+import * as tf from '@tensorflow/tfjs-node'
 
 export class NodeImageLoader extends dataset.ImageLoader<string> {
   async readImageFrom (source: string): Promise<tf.Tensor3D> {

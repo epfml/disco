@@ -1,7 +1,6 @@
 import { assert, expect } from 'chai'
-import * as tf from '@tensorflow/tfjs-node'
 
-import { dataset, tasks } from '../..'
+import { tf, dataset, tasks } from '../..'
 import { List } from 'immutable'
 
 export class NodeTabularLoader extends dataset.TabularLoader<string> {

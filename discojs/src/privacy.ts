@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 import { Weights } from '@/types'
 import { Task } from '@/task'
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '.'
 
 /**
  * Add task-parametrized Gaussian noise to and clip the weights update between the previous and current rounds.

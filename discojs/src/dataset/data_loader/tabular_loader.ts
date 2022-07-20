@@ -1,7 +1,7 @@
 import { DataLoader, DataConfig, DataTuple } from './data_loader'
 import { Dataset } from '../dataset_builder'
 import { Task } from '../../task'
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '../..'
 import { List, Map, Set } from 'immutable'
 
 // window size from which the dataset shuffling will sample
