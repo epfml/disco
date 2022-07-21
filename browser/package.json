@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@meforma/vue-toaster": "1",
-    "@tensorflow/tfjs": "3",
     "apexcharts": "3",
     "autoprefixer": "^10",
     "aws-sdk": "2",
