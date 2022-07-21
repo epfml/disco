@@ -10,7 +10,7 @@
       <template #text>
         <p>- Exchange <span class="italic">models</span> not data</p>
         <p>- Keep data at its source</p>
-        <p>- Choose either <span class="italic">decentralized</span> or <span class="italic">federated</span> training</p>
+        <p>- Supports both <span class="italic">decentralized</span> and <span class="italic">federated</span> training</p>
       </template>
       <template #button>
         Get Started
