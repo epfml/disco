@@ -205,17 +205,17 @@
             <card custom-class="hover:text-primary dark:hover:text-light">
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  <b>Technology behind Disco:</b>
-                  The machine learning models are trained on the web app via
+                  <b>Foundation technology:</b>
+                  DISCO uses a public model-private data approach.
+                  The models are trained on the web app via
                   <a
                     class="text-blue-600"
                     href="https://www.tensorflow.org/js"
-                  >TF.js</a>, and for the decentralized platform we use peer2peer
-                  communication using
-                  <a
+                  >TF.js</a>
+                  Decentralized training uses peer2peer communication (<a
                     class="text-blue-600"
                     href="https://peerjs.com/"
-                  >peerjs</a>.
+                  >peerjs</a>).
                 </ul>
               </div>
             </card>
@@ -227,10 +227,9 @@
             <card custom-class="hover:text-primary dark:hover:text-light">
               <div class="ml-10">
                 <ul class="text-lg ont-semibold text-gray-500 dark:text-light">
-                  <b>Science behind Disco:</b>
-                  In this project we aim to build and improve decentralized
-                  versions of current machine learning algorithms, which are at
-                  the same time (i) efficient (<a
+                  <b>Research-focused design:</b>
+                  DISCO aims to enable decentralized training of
+                  machine learning algorithms, which is (i) efficient (<a
                     class="text-blue-600"
                     href="https://github.com/epfml/powergossip"
                   >R1</a>,<a
@@ -239,7 +238,7 @@
                   >R2</a>), (ii) privacy-preserving (<a
                     class="text-blue-600"
                     href="https://arxiv.org/abs/2006.04747"
-                  >R3</a>), (iii) fault-tolerant and dynamic over time (<a
+                  >R3</a>), (iii) fault-tolerant and responsive (<a
                     class="text-blue-600"
                     href="https://arxiv.org/abs/1910.12308"
                   >R4</a>), (iv) robust to malicious actors (<a
@@ -248,9 +247,7 @@
                   >R5</a>,<a
                     class="text-blue-600"
                     href="https://arxiv.org/abs/2006.09365"
-                  >R6</a>), and (iv) support fair incentives and transparency on the
-                  resulting utility of trained ML models. We currently follow a
-                  public model, private data approach.
+                  >R6</a>), while supporting (iv) fair participation, (v) transparency and (vi) interpretability.
                 </ul>
               </div>
             </card>
