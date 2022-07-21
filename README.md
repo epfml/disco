@@ -34,7 +34,7 @@ If you are a developer, you can find a detailed guide on how to build a custom t
 - A model file in `JSON` format. Please refer to the following official documentation pages to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model.
 - A weight file in `.bin` format. These are the initial weights that will be provided to new users upon joining the training of your task. You can either provide a pre-trained model or use a simple random initialisation scheme.
 
-> **Note**: for the moment, `CSV` and `Image` data types are supported by default. If you want to add a completely new data type with its own preprocessing code or dataloader, currently you are required to copy and change the correspondig code (see [developer guide](DEV.md)).
+> **Note**: for the moment, `CSV` and `Image` data types are supported by default. If you want to add a completely new data type with its own preprocessing code or dataloader, currently you are required to copy and change the correspondig code (see [developer guide](https://github.com/epfml/disco/blob/develop/DEV.md)).
 
 ### Settings
 
