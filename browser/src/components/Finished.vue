@@ -9,8 +9,8 @@
         Test the model
       </template>
       <template #text>
-        Once you have finished training your model it might be a great idea
-        to go test it.
+        Check the performance of your DISCOllaboratively trained model 
+        by testing it on new data (that was not used in training).
       </template>
       <template #button>
         Test model
@@ -25,10 +25,8 @@
         Save the model
       </template>
       <template #text>
-        If you are satisfied with the performance of the model, don't
-        forget to save the model by clicking on the button below. The next
-        time you will load the application, you will be able to use your
-        saved model.
+        Saving the model will allow you to access it later 
+        to update training in a new DISCOllaborative.
       </template>
       <template #button>
         Save model
