@@ -1,12 +1,15 @@
 <template>
   <div class="space-y-8 pt-8">
+    <h1 class="text-3xl text-slate-600 text-center">
+      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives
+    </h1>
     <div
       v-show="tasks.size > 0"
       class="flex flex-wrap"
     >
       <IconCard class="grow min-w-60">
         <template #title>
-          Training Scheme
+          Filter by Training Scheme
         </template>
         <template #content>
           <div
@@ -26,7 +29,7 @@
       </IconCard>
       <IconCard class="grow min-w-60">
         <template #title>
-          Data Type
+          Filter by Data Type
         </template>
         <template #content>
           <div
@@ -45,9 +48,6 @@
         </template>
       </IconCard>
     </div>
-    <h1 class="text-3xl text-slate-600 text-center">
-      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives
-    </h1>
     <div class="flex flex-col gap-8 mt-8">
       <ButtonCard
         v-show="filteredTasks.length === 0 && tasks.size > 0"
@@ -115,7 +115,7 @@ import IconCard from '@/components/containers/IconCard.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import CheckBox from '@/components/simple/CheckBox.vue'
 
-class Filter {
+abstract class Filter {
   public active: boolean
 
   constructor (
@@ -126,6 +126,20 @@ class Filter {
   }
 }
 
+class SchemeFilter extends Filter {
+  constructor (name: string) {
+    const apply = (task: Task) => task.trainingInformation.scheme === name
+    super(name, apply)
+  }
+}
+
+class DataFilter extends Filter {
+  constructor (name: string) {
+    const apply = (task: Task) => task.trainingInformation.dataType === name
+    super(name, apply)
+  }
+}
+
 export default defineComponent({
   name: 'TaskList',
   components: {
@@ -133,27 +147,24 @@ export default defineComponent({
     ButtonCard,
     CheckBox
   },
-  data (): { schemeFilters: Filter[], dataFilters: Filter[], offset: number } {
+  data (): { schemeFilters: SchemeFilter[], dataFilters: DataFilter[], offset: number } {
     return {
       schemeFilters: ['Decentralized', 'Federated']
-        .map((scheme: string) =>
-          new Filter(scheme, (task: Task) =>
-            task.trainingInformation.scheme === scheme)),
+        .map((scheme: string) => new SchemeFilter(scheme)),
       dataFilters: ['image', 'tabular']
-        .map((dataType: string) =>
-          new Filter(dataType, (task: Task) =>
-            task.trainingInformation.dataType === dataType)),
+        .map((dataType: string) => new DataFilter(dataType)),
       offset: 0
     }
   },
   computed: {
     ...mapState(['tasks']),
+    filters (): Filter[] {
+      return this.schemeFilters.concat(this.dataFilters)
+    },
     filteredTasks (): Task[] {
       return ([...this.tasks.values()] as Task[])
         .filter((task: Task) =>
-          this.schemeFilters.every((filter: Filter) =>
-            filter.active ? filter.apply(task) : true) &&
-          this.dataFilters.every((filter: Filter) =>
+          this.filters.every((filter: Filter) =>
             filter.active ? filter.apply(task) : true)
         )
     }
@@ -166,8 +177,7 @@ export default defineComponent({
       filter.active = !filter.active
     },
     clearFilters (): void {
-      this.schemeFilters.forEach((filter: Filter) => { filter.active = false })
-      this.dataFilters.forEach((filter: Filter) => { filter.active = false })
+      this.filters.forEach((filter: Filter) => { filter.active = false })
       // little trick to reset the affiliated checkboxes
       this.offset = this.offset === 0 ? this.filters.length : 0
     },
