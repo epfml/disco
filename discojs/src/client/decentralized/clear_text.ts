@@ -39,6 +39,10 @@ export class ClearText extends Base {
 
     // wait to receive all weights from peers
     await this.pauseUntil(() => this.receivedWeights.size >= this.peers.length)
+    trainingInformant.update({
+      currentNumberOfParticipants: this.receivedWeights.size
+    })
+
     return this.receivedWeights
   }
 
