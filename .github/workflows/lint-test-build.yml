@@ -135,6 +135,22 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+  test-lib:
+    needs: [build-lib, build-server-docker, test-server]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.lib_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+      - run: npm ci
+      - run: ./with_server npm run test
+
   test-server:
     needs: build-server
     runs-on: ubuntu-latest
