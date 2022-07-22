@@ -1,24 +1,52 @@
 <template>
   <div class="space-y-8 pt-8">
-    <h1 class="font-disco text-3xl text-center text-disco-cyan">
-      Filters
-    </h1>
     <div
       v-show="tasks.size > 0"
-      class="flex flex-wrap gap-8"
+      class="flex flex-wrap"
     >
-      <div
-        v-for="(filter, idx) in filters"
-        :key="offset + idx"
-        class="text-center"
-      >
-        <ToggleButton @click="toggle(filter)">
-          {{ filter.name }}
-        </ToggleButton>
-      </div>
+      <IconCard class="grow min-w-60">
+        <template #title>
+          Training Scheme
+        </template>
+        <template #content>
+          <div
+            class="flex flex-wrap gap-8"
+          >
+            <div
+              v-for="(filter, idx) in schemeFilters"
+              :key="offset + idx"
+              class="text-center"
+            >
+              <CheckBox @clicked="toggle(filter)">
+                {{ filter.name }}
+              </CheckBox>
+            </div>
+          </div>
+        </template>
+      </IconCard>
+      <IconCard class="grow min-w-60">
+        <template #title>
+          Data Type
+        </template>
+        <template #content>
+          <div
+            class="flex flex-wrap gap-8"
+          >
+            <div
+              v-for="(filter, idx) in dataFilters"
+              :key="offset + idx"
+              class="text-center"
+            >
+              <CheckBox @clicked="toggle(filter)">
+                {{ filter.name }}
+              </CheckBox>
+            </div>
+          </div>
+        </template>
+      </IconCard>
     </div>
-    <h1 class="font-disco text-3xl text-center text-disco-cyan">
-      Tasks
+    <h1 class="text-3xl text-slate-600 text-center">
+      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives
     </h1>
     <div class="flex flex-col gap-8 mt-8">
       <ButtonCard
@@ -83,8 +111,9 @@ import { mapState } from 'vuex'
 
 import { Task } from 'discojs'
 
+import IconCard from '@/components/containers/IconCard.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
-import ToggleButton from '@/components/simple/ToggleButton.vue'
+import CheckBox from '@/components/simple/CheckBox.vue'
 
 class Filter {
   public active: boolean
@@ -100,25 +129,33 @@ class Filter {
 export default defineComponent({
   name: 'TaskList',
   components: {
+    IconCard,
     ButtonCard,
-    ToggleButton
+    CheckBox
   },
-  data (): { filters: Filter[], offset: number } {
+  data (): { schemeFilters: Filter[], dataFilters: Filter[], offset: number } {
     return {
-      filters: ['Decentralized', 'Federated']
+      schemeFilters: ['Decentralized', 'Federated']
         .map((scheme: string) =>
           new Filter(scheme, (task: Task) =>
             task.trainingInformation.scheme === scheme)),
+      dataFilters: ['image', 'tabular']
+        .map((dataType: string) =>
+          new Filter(dataType, (task: Task) =>
+            task.trainingInformation.dataType === dataType)),
       offset: 0
     }
   },
   computed: {
     ...mapState(['tasks']),
     filteredTasks (): Task[] {
-      return (Array.from(this.tasks.values()) as Task[])
+      return ([...this.tasks.values()] as Task[])
         .filter((task: Task) =>
-          this.filters.every((filter: Filter) =>
-            filter.active ? filter.apply(task) : true))
+          this.schemeFilters.every((filter: Filter) =>
+            filter.active ? filter.apply(task) : true) &&
+          this.dataFilters.every((filter: Filter) =>
+            filter.active ? filter.apply(task) : true)
+        )
     }
   },
   methods: {
@@ -129,8 +166,9 @@ export default defineComponent({
       filter.active = !filter.active
     },
     clearFilters (): void {
-      this.filters.forEach((filter: Filter) => { filter.active = false })
-      // little trick to reset filters
+      this.schemeFilters.forEach((filter: Filter) => { filter.active = false })
+      this.dataFilters.forEach((filter: Filter) => { filter.active = false })
+      // little trick to reset the affiliated checkboxes
       this.offset = this.offset === 0 ? this.filters.length : 0
     },
     reloadPage (): void {
