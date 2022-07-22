@@ -76,6 +76,10 @@ sends partial sums to connected peers so final update can be calculated
     await this.sendPartialSums()
     // after all partial sums are received, return list of partial sums to be aggregated
     await this.pauseUntil(() => this.receivedPartialSums.size >= this.peers.length)
+    trainingInformant.update({
+      currentNumberOfParticipants: this.receivedPartialSums.size
+    })
+
     return this.receivedPartialSums
   }
 
