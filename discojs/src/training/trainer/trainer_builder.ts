@@ -1,7 +1,6 @@
 import { ModelInfo } from '@/memory'
-import * as tf from '@tensorflow/tfjs'
 
-import { Client, Task, TrainingInformant, Memory, ModelType } from '../..'
+import { tf, Client, Task, TrainingInformant, Memory, ModelType } from '../..'
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'

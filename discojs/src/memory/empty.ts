@@ -1,4 +1,4 @@
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '..'
 
 import { Memory, ModelInfo, Path } from './base'
 

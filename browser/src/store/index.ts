@@ -1,8 +1,7 @@
 import { loadTasks } from '@/tasks'
 
-import { ModelType, Path, Task, TaskID } from 'discojs'
+import { tf, ModelType, Path, Task, TaskID } from 'discojs'
 import { ActionContext, createStore } from 'vuex'
-import * as tf from '@tensorflow/tfjs'
 
 const MIN_STEP = 0
 const MAX_STEP = 4

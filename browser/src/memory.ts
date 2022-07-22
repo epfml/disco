@@ -6,10 +6,9 @@
  * folder via the model library. The working/ folder is only used by the backend.
  * The working model is loaded from IndexedDB for training (model.fit) only.
  */
-import * as tf from '@tensorflow/tfjs'
 import path from 'path'
 
-import { Memory, ModelType, Path, ModelInfo, ModelSource } from 'discojs'
+import { tf, Memory, ModelType, Path, ModelInfo, ModelSource } from 'discojs'
 
 export class IndexedDB extends Memory {
   pathFor (source: ModelSource): Path {
