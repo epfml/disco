@@ -9,7 +9,7 @@
         Test the model
       </template>
       <template #text>
-        Check the performance of your DISCOllaboratively trained model 
+        Check the performance of your DISCOllaboratively trained model
         by testing it on new data (that was not used in training).
       </template>
       <template #button>
@@ -25,7 +25,7 @@
         Save the model
       </template>
       <template #text>
-        Saving the model will allow you to access it later 
+        Saving the model will allow you to access it later
         to update training in a new DISCOllaborative.
       </template>
       <template #button>
