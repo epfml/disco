@@ -1,6 +1,6 @@
-import * as tf from '@tensorflow/tfjs'
 import { List } from 'immutable'
 
+import { tf } from '..'
 import { ConsoleLogger } from '.'
 
 export class TrainerLog {

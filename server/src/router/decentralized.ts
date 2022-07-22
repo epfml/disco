@@ -1,8 +1,7 @@
 import express from 'express'
 import expressWS from 'express-ws'
-import * as tf from '@tensorflow/tfjs'
 
-import { Task } from 'discojs'
+import { tf, Task } from 'discojs'
 
 import { TasksAndModels } from '../tasks'
 import { SignalingServer } from './signaling_server'

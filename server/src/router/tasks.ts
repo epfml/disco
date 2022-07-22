@@ -1,8 +1,7 @@
 import express, { Request, Response } from 'express'
 import { Set } from 'immutable'
-import * as tf from '@tensorflow/tfjs'
 
-import { serialization, isTask, Task, TaskID } from 'discojs'
+import { tf, serialization, isTask, Task, TaskID } from 'discojs'
 
 import { Config } from '../config'
 import { TasksAndModels } from '../tasks'

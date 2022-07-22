@@ -1,4 +1,4 @@
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '..'
 import msgpack from 'msgpack-lite'
 
 export type Encoded = number[]

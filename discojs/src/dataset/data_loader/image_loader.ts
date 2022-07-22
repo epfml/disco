@@ -1,6 +1,6 @@
-import * as tf from '@tensorflow/tfjs'
 import { Range } from 'immutable'
 
+import { tf } from '../..'
 import { Dataset } from '../dataset_builder'
 import { DataLoader, DataConfig, Data, DataTuple } from './data_loader'
 

@@ -96,11 +96,25 @@
       </div>
     </div>
     <div v-if="task !== undefined">
-      <Data
-        v-show="step === 1"
-        :task="task"
-        :dataset-builder="datasetBuilder"
-      />
+      <!-- 1. CONNECT YOUR DATA -->
+      <div v-show="step === 1">
+        <!-- Information specific to the validation panel -->
+        <IconCard>
+          <template #title>
+            Model Validation
+          </template>
+          <template #content>
+            It is very important that your model is tested against <b class="uppercase">unseen data</b>.
+            As such, please ensure your dataset of choice was not used during the training phase of your model.
+          </template>
+        </IconCard>
+        <!-- Generic dataset information and input -->
+        <Data
+          :task="task"
+          :dataset-builder="datasetBuilder"
+        />
+      </div>
+      <!-- 2. TEST YOUR MODEL -->
       <Validator
         v-show="step === 2"
         :task="task"

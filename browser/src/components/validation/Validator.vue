@@ -121,7 +121,6 @@ export default defineComponent({
       const dataset: dataset.Data = (await this.datasetBuilder
         .build({ validationSplit: 0 }))
         .train
-      console.log(dataset)
       success(this.$toast, 'Model testing started!')
       try {
         await this.validator.assess(dataset)

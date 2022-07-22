@@ -1,11 +1,11 @@
 import {Range} from 'immutable'
 import {Server} from 'node:http'
-import {client, ConsoleLogger, training, TrainingSchemes, EmptyMemory, informant, TrainerLog} from 'discojs'
+import {tf, client, ConsoleLogger, training, TrainingSchemes, EmptyMemory, informant, TrainerLog} from 'discojs'
+import '@tensorflow/tfjs-node'
 
 import {startServer, getClient, saveLog} from './utils'
 import {getTaskData} from './data'
 import {args} from './args'
-
 
 const NUMBER_OF_USERS = args.numberOfUsers
 let TASK = args.task
@@ -34,6 +34,8 @@ async function runUser(server: Server): Promise<TrainerLog> {
 }
 
 async function main(): Promise<void> {
+  await tf.ready()
+  console.log(`Loaded ${tf.getBackend()} backend`)
   const server = await startServer()
 
   const logs = await Promise.all(
