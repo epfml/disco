@@ -1,45 +1,65 @@
-# Disco - Distributed Collaborative Machine Learning
+# **DISCO** - **(DIS)** tributed **(CO)** llaborative Machine Learning
 
-Disco enables collaborative and privacy-preserving training of machine learning models. Disco offers both decentralized and federated learning.
-Disco is easy-to-use mobile & web code. The latest version of Disco is always running on the following link, [directly in your browser](https://epfml.github.io/disco/), for mobile and desktop:
 
-:rocket: <https://epfml.github.io/disco/> :rocket:
 
-If you want to contribute to the development, or run your custom disco instance, please go to our [developer section](DEV.md)
+DISCO uses  federated :star2: and decentralized :sparkles: learning to allow several data owners to collaboratively build machine learning models without sharing any original data.
 
-**Key Question:** Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? - or - Can we train an ML model which is equally good as if all data were in one place, but while respecting privacy? Federated and decentralized learning make this possible.
+- Check out the latest version (web and mobile!) :man_dancing: [HERE](https://epfml.github.io/disco/) :man_dancing:
 
-**Federated learning:** The key insight is to share weight updates instead of data - each user trains on their own device and periodically shares weight updates with a central server, while keeping data local at all times. The server will agreggate all these weights between participants, and send them back.
+___
+:magic_wand: DEVELOPERS: Contribute or customize your own DISCO instance [HERE](DEV.md)
+___
 
-**Decentralized learning:** Building upon the same principles as in federated learning, decentralized learning allows collaboration and data privacy without the need for a central coordinator. Updates are shared purely via [peer2peer](https://peerjs.com/) communication. Disco puts users in control of the entire collaborative training process, without a central point of failure.
+:question: **WHY DISCO?** 
+- To build predictive models across private datasets without compromising data privacy, ownership, sovereignty, or model performance
+- To create an easy-to-use platform that allows non-specialists to participate in collaborative learning
 
-Disco supports arbitrary deep learning tasks and model architectures, running on your device via [TF.js](https://www.tensorflow.org/js).
+___
 
-**Applications:** Many applications can be enabled by Disco, including for example from the medical domain. In addition to a list of predefined training tasks, Disco allows to simply create new tasks, without any need for coding. Just specify your deep learning model and choose from several existing dataloaders.
+:gear: **HOW DISCO WORKS**
+- DISCO has a *public model – private data* approach
+- Models – *not data* – are shared with each user and trained locally
+- Private and secure model updates – *not data* – are communicated to either:
+	- a central server : **FEDERATED** learning ( :star2: )
+	- directly between users : **DECENTRALIZED** learning ( :sparkles: ) i.e. no central coordination
+- Model updates are then aggregated into a trained model
+- See more [HERE](https://epfml.github.io/disco/#/information)
 
-**Join us:** We follow an open development process - you're more than welcome to join the conversation on [our slack space](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw), see the info in our [developer section](DEV.md), as well as on the issues pages here.
+___
+:question: **DISCO TECHNOLOGY** 
+- DISCO supports arbitrary deep learning architectures in [TF.js](https://www.tensorflow.org/js)
+- :sparkles: relies on [peer2peer](https://peerjs.com/) communication
 
-**Science behind Disco:** In this project we aim to build and improve decentralized versions of current machine learning algorithms, which are at the same time (i) efficient ([R1](https://github.com/epfml/powergossip),[R2](https://github.com/epfml/ChocoSGD)), (ii) privacy-preserving ([R3](https://eprint.iacr.org/2017/281.pdf),[R4](https://arxiv.org/abs/2006.04747)), (iii) fault-tolerant and dynamic over time ([R5](https://arxiv.org/abs/1910.12308)), (iv) robust to malicious actors ([R6](https://arxiv.org/abs/2012.10333),[R7](https://arxiv.org/abs/2006.09365)), and (v) support fair incentives and transparency on the resulting utility of trained ML models. We currently follow a public model, private data approach.
+___
 
-## How to use the platform
+:test_tube: **RESEARCH-BASED DESIGN** 
 
-### Tasks
+DISCO aims to enable open-access and easy-use distributed training which is
+- :tornado: efficient ([R1](https://github.com/epfml/powergossip), [R2](https://github.com/epfml/ChocoSGD)) 
+- :lock: privacy-preserving ([R3](https://eprint.iacr.org/2017/281.pdf), [R4](https://arxiv.org/abs/2006.04747))
+- :hammer_and_wrench: fault-tolerant and dynamic over time ([R5](https://arxiv.org/abs/1910.12308))
+- :ninja:: robust to malicious actors and data poisoning ([R6](https://arxiv.org/abs/2012.10333), [R7](https://arxiv.org/abs/2006.09365))
+- :apple: :banana: interpretable in imperfectly interoperable data distributions ([R8](https://arxiv.org/abs/2107.06580))
+- :mirror: personalizable  ([R9](https://arxiv.org/abs/2103.00710))
+- :carrot: fairly incentivizes participation
 
-The platform already hosts several popular **_example tasks_** such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python), both for federated or decentralized cases.
 
-New tasks can easily be created using [the following form](https://epfml.github.io/disco/#/task-creation-form). To do so, practical information related to the task (e.g. description, features, learning rate, etc.) must be provided. Furthermore, two extra `TensorFlow.js` files need to be provided:
+___
 
-If you are a developer, you can find a detailed guide on how to build a custom task [here](./information/TASK.md).
 
-- A model file in `JSON` format. Please refer to the following official documentation pages to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model.
-- A weight file in `.bin` format. These are the initial weights that will be provided to new users upon joining the training of your task. You can either provide a pre-trained model or use a simple random initialisation scheme.
+:checkered_flag: **HOW TO USE DISCO**
+- Start by exploring our example *DISCOllaboratives* in the `Tasks` tab. 
+- The models are based on popular datasets such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python)
+- It is also (SOON!) possible to create a custom task without coding. Just upload the following 2 files:
+	- A `TensorFlow.js` model file in JSON format (useful links to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model)
+	- A weight file in `.bin` format
+		- These are the initial weights provided to new users joining your task (pre-trained or random initialisation) 
+	- You can choose from several existing dataloaders
+	- Then...select your DISCO training scheme (:star2: or :sparkles:) ... connect your data and... :bar_chart:
 
-> **Note**: for the moment, `CSV` and `Image` data types are supported by default. If you want to add a completely new data type with its own preprocessing code or dataloader, currently you are required to copy and change the correspondig code (see [developer guide](https://github.com/epfml/disco/blob/develop/DEV.md)).
+> **Note**: Currently only `CSV` and `Image` data types are supported. Adding new data types, preprocessing code or dataloaders, is accessible in developer mode (see [developer guide](https://github.com/epfml/disco/blob/develop/DEV.md)). Specific instructions on how to build a custom task can be found [HERE](./information/TASK.md)
 
-### Settings
+__
 
-Under the sidebar on the left, you will find a **_settings_** button. We offer multiple personalisation options for the user. For example:
-
-- **Model library**: storage options can be enabled so that your trained models are safely saved in your browser database :floppy_disk:
-
-If you have any questions related to Disco, feel free to raise an issue or join our [slack workspace](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw) :question:
+**JOIN US** 
+- You are welcome on [slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw)
