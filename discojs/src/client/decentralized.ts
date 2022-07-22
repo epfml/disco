@@ -93,9 +93,14 @@ export class Decentralized extends Base {
   private server?: isomorphic.WebSocket
   private peers = Map<PeerID, SimplePeer.Instance>()
 
-  private readonly weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
+  private weights = Map<SimplePeer.Instance, List<Weights | undefined>>()
 
   private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
+    // only available on node
+    const wrtc = await import('wrtc')
+      .then((m) => m.default)
+      .catch(() => undefined)
+
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
@@ -110,17 +115,18 @@ export class Decentralized extends Base {
         if (this.peers.size !== 0) {
           throw new Error('server already gave us a list of peers')
         }
-        this.peers = Map(await Promise.all(msg.map(
-          async (id: PeerID) => [id, await this.connectNewPeer(id, true)] as [PeerID, SimplePeer.Instance]
-        )))
+        this.peers = Map(msg.map((id: PeerID) =>
+          [id, this.connectNewPeer(wrtc, id, true)] as [PeerID, SimplePeer.Instance]
+        ))
       } else if (isServerPeerMessage(msg)) {
         const [peerID, encodedSignal] = msg
         const signal = msgpack.decode(encodedSignal)
-        console.debug('server on behalf of', peerID, 'sent', signal)
+        console.debug('server sent signal on behalf of', peerID)
 
         let peer = this.peers.get(peerID)
         if (peer === undefined) {
-          peer = await this.connectNewPeer(peerID, false)
+          peer = this.connectNewPeer(wrtc, peerID, false)
+          console.debug('new peer', peerID, 'connected')
           this.peers = this.peers.set(peerID, peer)
         }
 
@@ -141,13 +147,14 @@ export class Decentralized extends Base {
   //
   // if initiator is true, we start the connection on our side
   // see SimplePeer.Options.initiator for more info
-  private async connectNewPeer (peerID: PeerID, initiator: boolean): Promise<SimplePeer.Instance> {
-    console.debug('connect new peer with initiator: ', initiator)
-
-    // only available on node
-    const wrtc = await import('wrtc')
-      .then((m) => m.default)
-      .catch(() => undefined)
+  //
+  // wrtc is used only by node
+  private connectNewPeer (
+    wrtc: Record<'RTCPeerConnection' | 'RTCSessionDescription' | 'RTCIceCandidate', unknown> | undefined,
+    peerID: PeerID,
+    initiator: boolean
+  ): SimplePeer.Instance {
+    console.debug('connect new peer', peerID, `with initiator=${initiator.toString()}`)
 
     const peer = new SimplePeer({
       initiator,
@@ -164,7 +171,7 @@ export class Decentralized extends Base {
     })
 
     peer.on('signal', (signal: unknown) => {
-      console.debug('local', peerID, 'is signaling', signal)
+      console.debug('local', peerID, 'is signaling')
 
       if (this.server === undefined) {
         console.warn('server closed but received a signal')
@@ -182,14 +189,15 @@ export class Decentralized extends Base {
       }
       const weights = serialization.weights.decode(message.weights)
 
-      console.debug('peer', peerID, 'sent weights', weights)
+      console.debug('peer', peerID, 'sent weights')
 
       if (this.weights.get(peer)?.get(message.epoch) !== undefined) {
         throw new Error(`weights from ${peerID} already received`)
       }
-      this.weights.set(peer,
-        this.weights.get(peer, List<Weights>())
-          .set(message.epoch, weights))
+      this.weights =
+        this.weights.set(peer,
+          this.weights.get(peer, List<Weights>())
+            .set(message.epoch, weights))
     })
 
     peer.on('connect', () => console.info('connected to peer', peerID))
