@@ -1,12 +1,38 @@
 import * as yup from 'yup'
 /* form generator
          each section should contain :
-            - `fields` (general fields)
-            - `csv`    (fields only relevant for csv tasks)
-            - `image`  (fields only relevant for image tasks)
-            - `other`  (empty rendering which no data type has been chosens)
+            - `fields`  (general fields)
+            - `tabular` (fields only relevant for tabular tasks)
+            - `image`   (fields only relevant for image tasks)
+            - `other`   (empty rendering which no data type has been chosens)
 */
-const sections = [
+
+// TODO better typing
+type FormFieldDefault = string | string[] | boolean
+type FormFieldElements = any
+
+export interface FormField {
+  id: string
+  name: string
+  yup: yup.AnySchema
+  as?: 'input' | 'textarea'
+  type: string
+  options?: string[]
+  default?: FormFieldDefault
+  elements?: FormFieldElements
+  extension?: '.bin' | '.json'
+}
+
+export interface FormSection {
+  title: string
+  id: string
+  fields: FormField[]
+  tabular: FormField[]
+  image: FormField[]
+  other: FormField[]
+}
+
+export const sections: FormSection[] = [
   // *** Section ***
   {
     title: 'General Information',
@@ -26,11 +52,11 @@ const sections = [
         yup: yup.string().required(),
         as: 'input',
         type: 'select',
-        options: ['image', 'csv', 'other'],
+        options: ['image (.png, .jpg)', 'tabular (.csv)', 'other'],
         default: 'eg. : other'
       }
     ],
-    csv: [],
+    tabular: [],
     image: [],
     other: []
   },
@@ -48,8 +74,8 @@ const sections = [
         default: 'eg. : MNIST'
       },
       {
-        id: 'summary',
-        name: 'Summary',
+        id: 'preview',
+        name: 'Preview',
         yup: yup.string().required(),
         as: 'textarea',
         type: 'textarea',
@@ -102,7 +128,7 @@ const sections = [
           'eg. : Below you can find an example of an expected image representing the digit 9.'
       }
     ],
-    csv: [
+    tabular: [
       {
         id: 'dataExample',
         name: 'Data Example',
@@ -237,7 +263,7 @@ const sections = [
         ]
       }
     ],
-    csv: [
+    tabular: [
       {
         id: 'receivedMessagesThreshold',
         name: 'Received Messages Threshold',
@@ -414,7 +440,7 @@ const sections = [
         default: ['accuracy']
       }
     ],
-    csv: [],
+    tabular: [],
     image: [],
     other: []
   },
@@ -438,7 +464,7 @@ const sections = [
       {
         id: 'weightsFile',
         name: 'TensorFlow.js Model Weights in .bin format',
-        up: yup
+        yup: yup
           .object()
           .shape({
             file: yup.mixed().required('File is required')
@@ -449,9 +475,8 @@ const sections = [
         default: 'eg. : weights.bin'
       }
     ],
-    csv: [],
+    tabular: [],
     image: [],
     other: []
   }
 ]
-export default sections
