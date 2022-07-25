@@ -6,17 +6,10 @@ import * as messages from '../messages'
 
 import { aggregation, serialization, TrainingInformant, Weights, privacy } from '..'
 
-// Time to wait between network checks in milliseconds.
-const TICK = 100
-
 // minimum clients we want connected in order to start sharing
 const minimumPeers = 3
 
-// Time to wait for the others in milliseconds.
-const MAX_WAIT_PER_ROUND = 10_000
-
 export class SecureDecentralized extends DecentralizedGeneral {
-
   /*
   generates shares and sends to all connected peers, adds differential privacy
    */
@@ -24,8 +17,7 @@ export class SecureDecentralized extends DecentralizedGeneral {
     staleWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant): Promise<void> {
-
-    //generate weight shares and add differential privacy
+    // generate weight shares and add differential privacy
     const noisyWeights: Weights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     const weightShares: List<Weights> = await secret_shares.generateAllShares(noisyWeights, this.peers.size, 1000)
 
@@ -45,13 +37,14 @@ export class SecureDecentralized extends DecentralizedGeneral {
       this.peerMessageTemp(encodedMsg)
     }
   }
-/*
+
+  /*
 sends partial sums to connected peers so final update can be calculated
  */
   private async sendPartialSums (): Promise<void> {
-    //calculating my personal partial sum from received shares that i will share with peers
+    // calculating my personal partial sum from received shares that i will share with peers
     this.mySum = secret_shares.sum(List(Array.from(this.receivedWeights.values())))
-    //calculate, encode, and send sum
+    // calculate, encode, and send sum
     for (let i = 0; i < this.peers.size; i++) {
       const msg: messages.clientPartialSumsMessageServer = {
         type: messages.messageType.clientPartialSumsMessageServer,
@@ -72,15 +65,15 @@ sends partial sums to connected peers so final update can be calculated
     // send ready message
     this.sendReadyMessage(round)
 
-    //after peers are connected, send shares
+    // after peers are connected, send shares
     await this.resolvePause(() => this.peers.size >= minimumPeers)
     await this.sendShares(updatedWeights, staleWeights, round, trainingInformant)
 
-    //after all weights are received, send partial sum
+    // after all weights are received, send partial sum
     await this.resolvePause(() => this.receivedWeights.size >= minimumPeers)
     await this.sendPartialSums()
 
-    //after all partial sums are received, return final weight update
+    // after all partial sums are received, return final weight update
     await this.resolvePause(() => this.receivedPartialSums.size >= minimumPeers)
     // console.log(this.ID, 'has the following received sum shape', this.receivedPartialSums.get(this.ID)[136])
     const setWeights: Set<Weights> = this.receivedPartialSums.toSet()
