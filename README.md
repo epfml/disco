@@ -58,7 +58,7 @@ ___
 	- You can choose from several existing dataloaders
 	- Then...select your DISCO training scheme (:star2: or :sparkles:) ... connect your data and... :bar_chart:
 
-> **Note**: Currently only `CSV` and `Image` data types are supported. Adding new data types, preprocessing code or dataloaders, is accessible in developer mode (see [developer guide](https://github.com/epfml/disco/blob/develop/DEV.md)). Specific instructions on how to build a custom task can be found [HERE](./information/TASK.md)
+> **Note**: Currently only `CSV` and `Image` data types are supported. Adding new data types, preprocessing code or dataloaders, is accessible in developer mode (see [developer guide](https://github.com/epfml/disco/blob/develop/DEV.md)). Specific instructions on how to build a custom task can be found [HERE](information/TASK.md)
 
 __
 
