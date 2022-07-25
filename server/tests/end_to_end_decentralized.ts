@@ -65,31 +65,31 @@ describe('end to end', function () {
   //   return (clients[0].getPeerIDs().size === 1 && clients[1].getPeerIDs().size === 1)
   // }
 
-  it('runs cifar 10 with three decentralized users', async () =>
-    await Promise.all([cifar10user(), cifar10user(), cifar10user()]))
-
-  async function cifar10user (): Promise<void> {
-    const dir = '../discojs/example_training_data/CIFAR10/'
-    const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
-    const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
-
-    const cifar10 = tasks.cifar10.task
-
-    const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
-
-    const cli = await getClient(client.InsecureDecentralized, server, cifar10)
-    await cli.connect()
-
-    const disco = new training.Disco(
-      cifar10,
-      new ConsoleLogger(),
-      new EmptyMemory(),
-      SCHEME,
-      new TrainingInformant(10, cifar10.taskID, SCHEME),
-      cli
-    )
-    await disco.startTraining(loaded)
-  }
+  // it('runs cifar 10 with three decentralized users', async () =>
+  //   await Promise.all([cifar10user(), cifar10user(), cifar10user()]))
+  //
+  // async function cifar10user (): Promise<void> {
+  //   const dir = '../discojs/example_training_data/CIFAR10/'
+  //   const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
+  //   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
+  //
+  //   const cifar10 = tasks.cifar10.task
+  //
+  //   const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+  //
+  //   const cli = await getClient(client.InsecureDecentralized, server, cifar10)
+  //   await cli.connect()
+  //
+  //   const disco = new training.Disco(
+  //     cifar10,
+  //     new ConsoleLogger(),
+  //     new EmptyMemory(),
+  //     SCHEME,
+  //     new TrainingInformant(10, cifar10.taskID, SCHEME),
+  //     cli
+  //   )
+  //   await disco.startTraining(loaded)
+  // }
 
   it('decentralized client test one round', async () => {
     const result: Weights = await testWeightSharingInsecure()
@@ -113,36 +113,36 @@ describe('end to end', function () {
 
   async function testWeightSharingInsecure (): Promise<Weights> {
     // expected --> [6, 7, 13]
-    await makeClient([3, 3, 3])
-    await makeClient([4, 5, 6])
+    makeClient([3, 3, 3])
+    makeClient([4, 5, 6])
     return await makeClient([11, 13, 30])
   }
 
-  it('runs cifar 10 with three secure decentralized users', async () =>
-    await Promise.all([cifar10userSec(), cifar10userSec(), cifar10userSec()]))
-
-  async function cifar10userSec (): Promise<void> {
-    const dir = '../discojs/example_training_data/CIFAR10/'
-    const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
-    const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
-
-    const cifar10 = tasks.cifar10.task
-
-    const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
-
-    const cli = await getClient(client.SecureDecentralized, server, cifar10)
-    await cli.connect()
-
-    const disco = new training.Disco(
-      cifar10,
-      new ConsoleLogger(),
-      new EmptyMemory(),
-      SCHEME,
-      new TrainingInformant(10, cifar10.taskID, SCHEME),
-      cli
-    )
-    await disco.startTraining(loaded)
-  }
+  // it('runs cifar 10 with three secure decentralized users', async () =>
+  //   await Promise.all([cifar10userSec(), cifar10userSec(), cifar10userSec()]))
+  //
+  // async function cifar10userSec (): Promise<void> {
+  //   const dir = '../discojs/example_training_data/CIFAR10/'
+  //   const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
+  //   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
+  //
+  //   const cifar10 = tasks.cifar10.task
+  //
+  //   const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+  //
+  //   const cli = await getClient(client.SecureDecentralized, server, cifar10)
+  //   await cli.connect()
+  //
+  //   const disco = new training.Disco(
+  //     cifar10,
+  //     new ConsoleLogger(),
+  //     new EmptyMemory(),
+  //     SCHEME,
+  //     new TrainingInformant(10, cifar10.taskID, SCHEME),
+  //     cli
+  //   )
+  //   await disco.startTraining(loaded)
+  // }
 
   it('decentralized client secure test one round', async () => {
     const result: Weights = await testWeightSharingSecure()
@@ -166,8 +166,8 @@ describe('end to end', function () {
 
   async function testWeightSharingSecure (): Promise<Weights> {
     // expected --> [6, 7, 13]
-    await makeClientSecure([3, 3, 3])
-    await makeClientSecure([4, 5, 6])
+    makeClientSecure([3, 3, 3])
+    makeClientSecure([4, 5, 6])
     return await makeClientSecure([11, 13, 30])
   }
 }
