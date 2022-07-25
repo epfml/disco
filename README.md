@@ -1,13 +1,15 @@
-# **DISCO** - **(DIS)** tributed **(CO)** llaborative Machine Learning
+# **DISCO** - _Dis_ tributed _Co_ llaborative Machine Learning
 
 
 
-DISCO uses  federated :star2: and decentralized :sparkles: learning to allow several data owners to collaboratively build machine learning models without sharing any original data.
+DISCO leverages federated :star2: and decentralized :sparkles: learning to allow several data owners to collaboratively build machine learning models without sharing any original data.
 
-- Check out the latest version (web and mobile!) :man_dancing: [HERE](https://epfml.github.io/disco/) :man_dancing:
+The latest version is always running on the following link, [directly in your browser](https://epfml.github.io/disco/), for web and mobile:
+
+ :man_dancing: [https://epfml.github.io/disco/](https://epfml.github.io/disco/) :man_dancing:
 
 ___
-:magic_wand: DEVELOPERS: Contribute or customize your own DISCO instance [HERE](DEV.md)
+:magic_wand: DEVELOPERS: Contribute or customize DISCO [HERE](DEV.md)
 ___
 
 :question: **WHY DISCO?** 
@@ -18,7 +20,6 @@ ___
 
 :gear: **HOW DISCO WORKS**
 - DISCO has a *public model – private data* approach
-- Models – *not data* – are shared with each user and trained locally
 - Private and secure model updates – *not data* – are communicated to either:
 	- a central server : **FEDERATED** learning ( :star2: )
 	- directly between users : **DECENTRALIZED** learning ( :sparkles: ) i.e. no central coordination
@@ -27,7 +28,7 @@ ___
 
 ___
 :question: **DISCO TECHNOLOGY** 
-- DISCO supports arbitrary deep learning architectures in [TF.js](https://www.tensorflow.org/js)
+- DISCO supports arbitrary deep learning tasks and model architectures, via [TF.js](https://www.tensorflow.org/js)
 - :sparkles: relies on [peer2peer](https://peerjs.com/) communication
 
 ___
@@ -49,7 +50,7 @@ ___
 
 :checkered_flag: **HOW TO USE DISCO**
 - Start by exploring our example *DISCOllaboratives* in the `Tasks` tab. 
-- The models are based on popular datasets such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python)
+- The example models are based on popular datasets such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python)
 - It is also (SOON!) possible to create a custom task without coding. Just upload the following 2 files:
 	- A `TensorFlow.js` model file in JSON format (useful links to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model)
 	- A weight file in `.bin` format
