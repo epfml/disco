@@ -3,17 +3,7 @@ import { assertEqualSizes } from './testing/assert'
 import { List } from 'immutable'
 
 import * as tf from '@tensorflow/tfjs'
-// require('@tensorflow/tfjs-node')
-
-export enum RNG_CRYPTO_SECURITY {
-  UNSAFE = 'Cryptographically unsafe random number generation.',
-  BASIC = 'Each tf.Tensor is initialized by tf.randomUniform() using a cryptographically random seed.',
-  STRICT = 'Each value is generated from a cryptographically secure pseudo-random number generator.'
-}
-
-function raiseCryptoNotImplemented (): void {
-  throw new Error('No cryptographically secure random number generation implemented yet!')
-}
+import * as crypto from 'crypto'
 
 export function subtractWeights (w1: Weights, w2: Weights): Weights {
   ''
@@ -67,11 +57,10 @@ export async function generateAllShares (secret: Weights, nParticipants: number,
     for (const t of secret) {
       share.push(
         tf.randomUniform(
-          t.shape, -maxRandNumber, maxRandNumber, undefined, generateRandomNumber(maxRandNumber, RNG_CRYPTO_SECURITY.UNSAFE))
+          t.shape, -maxRandNumber, maxRandNumber, undefined, generateRandomNumber(maxRandNumber))
       )
     }
     shares.push(share)
-    // shares.push(generateRandomShare(secret, Math.random() * maxRandNumber + 500, RNG_CRYPTO_SECURITY.UNSAFE))
   }
   shares.push(lastShare(shares, secret))
   const shares2 = List<Weights>(shares)
@@ -89,33 +78,22 @@ export function shuffleArray (a: any[]): any[] { // https://stackoverflow.com/qu
   return a
 }
 
-export function generateRandomNumber (maxRandNumber: number, cryptoSecure: RNG_CRYPTO_SECURITY): number {
-  if (cryptoSecure === RNG_CRYPTO_SECURITY.UNSAFE) {
-    // added this math.random times maxRandNumber so adversaries cannot identify range of shares received
-    return Math.random() * maxRandNumber + maxRandNumber / 2
-  } else {
-    raiseCryptoNotImplemented()
-    return -1
-    // const array = new Uint32Array(1);
-    // //generate empty array
-    // const intsResult: Uint32Array = crypto.getRandomValues(array)
-    // //fill array with 1 crypotgraphically strong number
-    // return toNumber(intsResult[0])
-    // //index into array to extract number
-  }
+export function generateRandomNumber (maxRandNumber: number): number {
+  const array = new Uint32Array(1)
+  // generate empty array
+  const intsResult: Uint32Array = crypto.webcrypto.getRandomValues(array)
+  // fill array with 1 crypotgraphically strong number
+  return Number(intsResult[0])
+  // index into array to extract number
 }
 
-export function generateRandomShare (secret: Weights, maxRandNumber: number, cryptoSecure: RNG_CRYPTO_SECURITY): Weights {
-  if (cryptoSecure === RNG_CRYPTO_SECURITY.STRICT) {
-    throw new Error('NOT IMPLEMENTED: generation of a random share (random Weights) with strict cryptographic security.')
-  } else {
-    const share: Weights = []
-    for (const t of secret) {
-      share.push(
-        tf.randomUniform(
-          t.shape, -maxRandNumber, maxRandNumber, undefined, generateRandomNumber(maxRandNumber, cryptoSecure))
-      )
-    }
-    return share
+export function generateRandomShare (secret: Weights, maxRandNumber: number): Weights {
+  const share: Weights = []
+  for (const t of secret) {
+    share.push(
+      tf.randomUniform(
+        t.shape, -maxRandNumber, maxRandNumber, undefined, generateRandomNumber(maxRandNumber))
+    )
   }
+  return share
 }

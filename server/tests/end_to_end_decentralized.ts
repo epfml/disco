@@ -7,7 +7,7 @@ import * as tf from '@tensorflow/tfjs-node'
 import { dataset, ConsoleLogger, training, TrainingSchemes, TrainingInformant, EmptyMemory, tasks, client, Weights } from 'discojs'
 
 import { getClient, startServer } from './utils'
-import { expect } from 'chai'
+// import { expect } from 'chai'
 
 const SCHEME = TrainingSchemes.DECENTRALIZED
 
@@ -91,31 +91,32 @@ describe('end to end', function () {
     await disco.startTraining(loaded)
   }
 
-  it('decentralized client test one round', async () =>
-      {const result: Weights = await testWeightSharingInsecure()
-        const expected: Weights = makeWeights([6,7,13])
-        tf.print(result[0])}
-      // expect(result).to.equal(expected)}
+  it('decentralized client test one round', async () => {
+    const result: Weights = await testWeightSharingInsecure()
+    // const expected: Weights = makeWeights([6, 7, 13])
+    tf.print(result[0])
+  }
+    // expect(result).to.equal(expected)}
   )
 
-    /*
+  /*
     makes client to connect to server and share input weights
      */
-    async function makeClient(input: number[]): Promise<Weights>{
-      const TASK = tasks.cifar10.task
-      const clientCurrent: client.InsecureDecentralized = await getClient(client.InsecureDecentralized, server, TASK)
-      const weights: Weights = makeWeights(input)
-      const trainingInformant1: TrainingInformant = new TrainingInformant(0, '0', TrainingSchemes.DECENTRALIZED)
-      await clientCurrent.connect()
-      return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
-    }
+  async function makeClient (input: number[]): Promise<Weights> {
+    const TASK = tasks.cifar10.task
+    const clientCurrent: client.InsecureDecentralized = await getClient(client.InsecureDecentralized, server, TASK)
+    const weights: Weights = makeWeights(input)
+    const trainingInformant1: TrainingInformant = new TrainingInformant(0, '0', TrainingSchemes.DECENTRALIZED)
+    await clientCurrent.connect()
+    return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
+  }
 
-      async function testWeightSharingInsecure(): Promise<Weights> {
-      //expected --> [6, 7, 13]
-      makeClient([3,3,3])
-      makeClient([4,5,6])
-      return makeClient([11,13,30])
-    }
+  async function testWeightSharingInsecure (): Promise<Weights> {
+    // expected --> [6, 7, 13]
+    await makeClient([3, 3, 3])
+    await makeClient([4, 5, 6])
+    return await makeClient([11, 13, 30])
+  }
 
   it('runs cifar 10 with three secure decentralized users', async () =>
     await Promise.all([cifar10userSec(), cifar10userSec(), cifar10userSec()]))
@@ -145,7 +146,7 @@ describe('end to end', function () {
 
   it('decentralized client secure test one round', async () => {
     const result: Weights = await testWeightSharingSecure()
-    const expected: Weights = makeWeights([6, 7, 13])
+    // const expected: Weights = makeWeights([6, 7, 13])
     tf.print(result[0])
   }
     // expect(result).to.equal(expected)}
@@ -165,8 +166,8 @@ describe('end to end', function () {
 
   async function testWeightSharingSecure (): Promise<Weights> {
     // expected --> [6, 7, 13]
-    makeClientSecure([3, 3, 3])
-    makeClientSecure([4, 5, 6])
+    await makeClientSecure([3, 3, 3])
+    await makeClientSecure([4, 5, 6])
     return await makeClientSecure([11, 13, 30])
   }
 }

@@ -23,48 +23,48 @@ const MAX_WAIT_PER_ROUND = 10_000
 export abstract class DecentralizedGeneral extends Base {
   protected server?: isomorphic.WebSocket
 
-  //list of peerIDs who the clinent will send messages to
+  // list of peerIDs who the clinent will send messages to
   protected peers: List<PeerID> = List()
-  //map of peerIDs to the weights that they sent the client
+  // map of peerIDs to the weights that they sent the client
   protected receivedWeights = new Map <PeerID, Weights>()
-  //list of partial sums received by client
+  // list of partial sums received by client
   protected receivedPartialSums: List<Weights> = List()
-  //the partial sum calculated by the client
+  // the partial sum calculated by the client
   protected mySum: Weights = []
-  //the ID of the client, set arbitrarily to 0 but gets set an actual value once it cues the signaling server
-  //that it is ready to connect
+  // the ID of the client, set arbitrarily to 0 but gets set an actual value once it cues the signaling server
+  // that it is ready to connect
   protected ID: number = 0
 
   /*
 function to check if a given boolean condition is true, checks continuously until maxWait time is reached
  */
-protected pause = async (statement: () => boolean, maxWait: number): Promise<void> => {
-  return await new Promise<void>((resolve, reject) => {
-    const timeWas = new Date().getTime()
-    const wait = setInterval(function () {
-      if (statement()) {
-        console.log('resolved after', new Date().getTime() - timeWas, 'ms')
-        clearInterval(wait)
-        resolve()
-      } else if (new Date().getTime() - timeWas > maxWait) { // Timeout
-        console.log('rejected after', new Date().getTime() - timeWas, 'ms')
-        clearInterval(wait)
-        reject(new Error('timeout'))
-      }
-    }, TICK)
-  })
-}
+  protected pause = async (statement: () => boolean, maxWait: number): Promise<void> => {
+    return await new Promise<void>((resolve, reject) => {
+      const timeWas = new Date().getTime()
+      const wait = setInterval(function () {
+        if (statement()) {
+          console.log('resolved after', new Date().getTime() - timeWas, 'ms')
+          clearInterval(wait)
+          resolve()
+        } else if (new Date().getTime() - timeWas > maxWait) { // Timeout
+          console.log('rejected after', new Date().getTime() - timeWas, 'ms')
+          clearInterval(wait)
+          reject(new Error('timeout'))
+        }
+      }, TICK)
+    })
+  }
 
-/*
+  /*
 checks  if pause function throws a timeout error
  */
-protected async  resolvePause (func: () => boolean): Promise<void> {
-  try {
-    await this.pause(func, MAX_WAIT_PER_ROUND)
-  } catch {
-    throw new Error('timeout error')
+  protected async resolvePause (func: () => boolean): Promise<void> {
+    try {
+      await this.pause(func, MAX_WAIT_PER_ROUND)
+    } catch {
+      throw new Error('timeout error')
+    }
   }
-}
 
   /*
   temporary function to send messages to the server, will be replaced by peer to peer connection later
@@ -104,19 +104,19 @@ protected async  resolvePause (func: () => boolean): Promise<void> {
       }
       const msg = msgpack.decode(new Uint8Array(event.data))
 
-      //check message type to choose correct action
+      // check message type to choose correct action
       if (msg.type === messages.messageType.serverClientIDMessage) {
-        //updated ID
+        // updated ID
         this.ID = msg.peerID
       } else if (msg.type === messages.messageType.serverConnectedClients) {
-        //updated connected peers
+        // updated connected peers
         this.peers = msg.peerList
       } else if (msg.type === messages.messageType.clientWeightsMessageServer) {
-        //update received weights by one weights reception
+        // update received weights by one weights reception
         const weights = serialization.weights.decode(msg.weights)
         this.receivedWeights = this.receivedWeights.set(msg.peerID, weights)
       } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
-        //update received partial sums by one partial sum
+        // update received partial sums by one partial sum
         const weights: Weights = serialization.weights.decode(msg.partials)
         this.receivedPartialSums = this.receivedPartialSums.push(weights)
       } else {
