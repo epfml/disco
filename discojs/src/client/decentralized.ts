@@ -38,7 +38,7 @@ export abstract class DecentralizedGeneral extends Base {
   /*
 function to check if a given boolean condition is true, checks continuously until maxWait time is reached
  */
-  protected pause = async (statement: () => boolean, maxWait: number): Promise<void> => {
+  protected async pauseWhile (statement: () => boolean, maxWait: number): Promise<void>  {
     return await new Promise<void>((resolve, reject) => {
       const timeWas = new Date().getTime()
       const wait = setInterval(function () {
@@ -60,7 +60,7 @@ checks  if pause function throws a timeout error
  */
   protected async resolvePause (func: () => boolean): Promise<void> {
     try {
-      await this.pause(func, MAX_WAIT_PER_ROUND)
+      await this.pauseWhile(func, MAX_WAIT_PER_ROUND)
     } catch {
       throw new Error('timeout error')
     }
