@@ -1,4 +1,4 @@
-import { assert, expect } from 'chai'
+import { expect } from 'chai'
 import * as http from 'http'
 import { List } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
