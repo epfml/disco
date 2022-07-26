@@ -10,6 +10,7 @@ export interface TrainingInformation {
   preprocessFunctions: string[]
   modelCompileData: ModelCompileData
   dataType: string
+  decentralizedSecure?: boolean
   receivedMessagesThreshold?: number
   inputColumns?: string[]
   outputColumns?: string[]

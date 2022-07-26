@@ -1,13 +1,16 @@
-import http, { Server } from 'node:http'
+import { Server } from 'node:http'
 
 import { client, Task } from 'discojs'
 
 import { getApp } from '../src/get_server'
 
+// port to start server on
+const PORT: number | undefined = 5555
+
 export async function startServer (): Promise<Server> {
   const app = await getApp()
 
-  const server = http.createServer(app).listen()
+  const server = app.listen(PORT)
 
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
@@ -17,7 +20,11 @@ export async function startServer (): Promise<Server> {
   return server
 }
 
-export async function getClient (server: Server, task: Task): Promise<client.Federated> {
+export async function getClient<T extends client.Base> (
+  Constructor: new (url: URL, t: Task) => T,
+  server: Server,
+  task: Task
+): Promise<T> {
   let host: string
   const addr = server?.address()
   if (addr === undefined || addr === null) {
@@ -32,6 +39,5 @@ export async function getClient (server: Server, task: Task): Promise<client.Fed
     }
   }
   const url = new URL(`http://${host}`)
-
-  return new client.Federated(url, task)
+  return new Constructor(url, task)
 }

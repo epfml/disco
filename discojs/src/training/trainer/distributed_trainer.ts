@@ -43,6 +43,7 @@ export class DistributedTrainer extends Trainer {
       this.model
     )
   }
+  // if it is undefined, will training continue? we hope yes
 
   /**
    * Callback called once training is over

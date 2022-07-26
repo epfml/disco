@@ -1,8 +1,13 @@
 module.exports = {
   publicPath: process.env.NODE_ENV === 'production' ? '/disco/' : '/',
   configureWebpack: {
+    module: { noParse: /wrtc/ },
     resolve: {
-      fallback: { path: require.resolve('path-browserify') }
+      fallback: {
+        crypto: require.resolve('crypto-browserify'),
+        path: require.resolve('path-browserify'),
+        stream: require.resolve('stream-browserify')
+      }
     }
   },
   chainWebpack: (config) => {

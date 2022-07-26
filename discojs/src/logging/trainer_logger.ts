@@ -42,7 +42,7 @@ export class TrainerLogger extends ConsoleLogger {
 
     // console output
     const msg = `Epoch: ${epoch}\nTrain: ${logs?.acc ?? 'undefined'}\nValidation:${logs?.val_acc ?? 'undefined'}\nLoss:${logs?.loss ?? 'undefined'}`
-    this.success(`On epoch end:\n${msg}`)
+    this.success(`On epoch end:\n${msg}\n`)
   }
 
   /**
