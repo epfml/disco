@@ -72,7 +72,6 @@ export async function generateAllShares (secret: Weights, nParticipants: number)
 // }
 
 export function generateRandomNumber (maxRandNumber: number): number {
-
   return crypto.randomInt(maxRandNumber)
 }
 
