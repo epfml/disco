@@ -41,28 +41,23 @@ class TestSecretShares extends UnitTester {
     // console.log(Array.from(secret_shares.subtractWeights(person1, person2)[0].dataSync())) // [-1,-1,-4]
     // console.log(Array.from(secret_shares.sum(Array(person1, person2, person1))[0].dataSync())) // [4,7,13]
 
-    const client1shares: Weights[] = Array.from(secret_shares.generateAllShares(secret1, 3, 500).values())
-    const client2shares: Weights[] = Array.from(secret_shares.generateAllShares(secret2, 3, 500).values())
-    const client3shares: Weights[] = Array.from(secret_shares.generateAllShares(secret3, 3, 500).values())
+    const client1shares: List<Weights> = secret_shares.generateAllShares(secret1, 3)
+    const client2shares: List<Weights> = secret_shares.generateAllShares(secret2, 3)
+    const client3shares: List<Weights> = secret_shares.generateAllShares(secret3, 3)
 
-    const finalShares: Weights[][] = [[], [], []] // distributing shares
-    for (let i = 0; i < 3; i++) {
-      finalShares[i].push(client1shares[i], client2shares[i], client3shares[i])
-    }
-    //
-    console.log('person1 shares', secret_shares.sum(List(finalShares[0]))[0].dataSync())
-    console.log('person2 shares', secret_shares.sum(List(finalShares[1]))[0].dataSync())
-    console.log('person3 shares', secret_shares.sum(List(finalShares[2]))[0].dataSync())
+    const person1shares: List<Weights> = List([client1shares.get(0, []), client2shares.get(0, []), client3shares.get(0, [])])
+    const person2shares: List<Weights> = List([client1shares.get(1, []), client2shares.get(1, []), client3shares.get(1, [])])
+    const person3shares: List<Weights> = List([client1shares.get(2, []), client2shares.get(2, []), client3shares.get(2, [])])
 
-    const person1sharesFinal: Weights = secret_shares.sum(List(finalShares[0]))
-    const person2sharesFinal: Weights = secret_shares.sum(List(finalShares[1]))
-    const person3sharesFinal: Weights = secret_shares.sum(List(finalShares[2]))
-    const allShares = []
-    allShares.push(person1sharesFinal)
-    allShares.push(person2sharesFinal)
-    allShares.push(person3sharesFinal)
-    const allShares2 = List<Weights>(allShares)
-    console.log('all shares added', secret_shares.sum(allShares2)[0].dataSync())
+    const person1partialSum: Weights = secret_shares.sum(person1shares)
+    const person2partialSum: Weights = secret_shares.sum(person2shares)
+    const person3partialSum: Weights = secret_shares.sum(person3shares)
+
+    console.log('person1 partial sum', person1partialSum)
+    // console.log('person2 shares', secret_shares.sum(List(finalShares[1]))[0].dataSync())
+    // console.log('person3 shares', secret_shares.sum(List(finalShares[2]))[0].dataSync())
+
+    console.log('all shares added', secret_shares.sum(List([person1partialSum, person2partialSum, person3partialSum])))
   }
 
   runTests (): string {
