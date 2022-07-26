@@ -60,6 +60,9 @@ sends partial sums to connected peers so final update can be calculated
 
   override async sendAndReceiveWeights (noisyWeights: Weights,
     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>> {
+    //reset fields at beginning of each round
+    this.receivedShares = this.receivedShares.clear()
+    this.receivedPartialSums = this.receivedPartialSums.clear()
     // PHASE 1 COMMUNICATION
     await this.sendShares(noisyWeights, round, trainingInformant)
     // after all weights are received, send partial sum
@@ -84,12 +87,5 @@ sends partial sums to connected peers so final update can be calculated
         }
       else{
       throw new Error('Unexpected Message Type')}
-  }
-
-  override resetFields(): void{
-    this.peers = []
-    this.receivedShares = this.receivedShares.clear()
-    this.receivedPartialSums = this.receivedPartialSums.clear()
-    this.peersLocked = false
   }
 }

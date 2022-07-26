@@ -24,7 +24,6 @@ const MINIMUM_PEERS = 3
  */
 export abstract class DecentralizedBase extends Base {
   protected server?: isomorphic.WebSocket
-
   // list of peerIDs who the client will send messages to
   protected peers: PeerID[] = []
   protected peersLocked: boolean = false
@@ -156,7 +155,8 @@ function to check if a given boolean condition is true, checks continuously unti
       trainingInformant: TrainingInformant
   ): Promise<Weights> {
     // reset peer list at each round of training to make sure client waits for updated peerList from server
-    this.resetField()
+    this.peers = []
+    this.peersLocked = false
 
     this.sendReadyMessage(round)
 
@@ -176,6 +176,4 @@ function to check if a given boolean condition is true, checks continuously unti
                                  round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
 
   abstract clientHandle(msg: any): void
-
-  abstract resetFields(): void
 }
