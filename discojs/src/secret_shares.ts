@@ -47,7 +47,7 @@ export function lastShare (currentShares: Weights[], secret: Weights): Weights {
   return last
 }
 
-export async function generateAllShares (secret: Weights, nParticipants: number): Promise<List<Weights>> {
+export function generateAllShares (secret: Weights, nParticipants: number): List<Weights> {
   ''
   'Generate N additive shares that aggregate to the secret array'
   ''
