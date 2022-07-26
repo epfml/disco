@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { Client, Memory, Task, TrainingInformant } from '@/.'
+import { Client, Memory, Task, TrainingInformant } from '../..'
 
 import { Trainer } from './trainer'
 
@@ -35,16 +35,13 @@ export class DistributedTrainer extends Trainer {
       this.trainingInformant
     )
 
-    if (aggregatedWeights !== undefined) {
-      this.previousRoundModel.setWeights(currentRoundWeights)
-      this.model.setWeights(aggregatedWeights)
+    this.previousRoundModel.setWeights(currentRoundWeights)
+    this.model.setWeights(aggregatedWeights)
 
-      await this.memory.updateWorkingModel(
-        this.task.taskID,
-        this.trainingInformation.modelID,
-        this.model
-      )
-    }
+    await this.memory.updateWorkingModel(
+      { taskID: this.task.taskID, name: this.trainingInformation.modelID },
+      this.model
+    )
   }
   // if it is undefined, will training continue? we hope yes
 
@@ -56,5 +53,6 @@ export class DistributedTrainer extends Trainer {
       this.model.weights.map((w) => w.read()),
       this.trainingInformant
     )
+    await super.onTrainEnd()
   }
 }

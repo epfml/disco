@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 import { Set } from 'immutable'
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '.'
 
 import { averageWeights } from './aggregation'
 

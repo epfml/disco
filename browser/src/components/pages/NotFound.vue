@@ -17,28 +17,30 @@
             dark:bg-darker
           "
         >
-          <title-card title="Page Not Found">
-            <p class="text-base">
+          <TitleCard>
+            <template #title>
+              Page Not Found
+            </template>
+            <template #text>
               The page you asked for does not exist anymore.
-            </p>
-          </title-card>
-        </div>
-
-        <div class="grid grid-cols-2 gap-8 items-center">
-          <div class="text-right">
-            <CustomButton
-              @click="goToPreviousPage()"
-            >
-              Go Back
-            </CustomButton>
-          </div>
-          <div class="text-left">
-            <CustomButton
-              @click="goToHomePage()"
-            >
-              Home Page
-            </CustomButton>
-          </div>
+              <div class="grid grid-cols-2 gap-8 items-center">
+                <div class="text-right">
+                  <CustomButton
+                    @click="goToPreviousPage()"
+                  >
+                    Go Back
+                  </CustomButton>
+                </div>
+                <div class="text-left">
+                  <CustomButton
+                    @click="goToHomePage()"
+                  >
+                    Home Page
+                  </CustomButton>
+                </div>
+              </div>
+            </template>
+          </TitleCard>
         </div>
       </div>
     </section>

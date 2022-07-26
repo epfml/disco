@@ -54,11 +54,12 @@
 
 <script lang="ts">
 import SidebarMain from '@/components/sidebar/Sidebar.vue'
+import { defineComponent } from 'vue'
 
 import { mapState, mapMutations } from 'vuex'
 import BaseLayout from './containers/BaseLayout.vue'
 
-export default {
+export default defineComponent({
   name: 'App',
   components: {
     SidebarMain,
@@ -106,5 +107,5 @@ export default {
       this.$i18n.locale = 'english'
     }
   }
-}
+})
 </script>

@@ -1,8 +1,11 @@
-import { DataLoader, DataConfig, Data } from './data_loader'
+import { DataLoader, DataConfig, DataTuple } from './data_loader'
 import { Dataset } from '../dataset_builder'
 import { Task } from '../../task'
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '../..'
 import { List, Map, Set } from 'immutable'
+
+// window size from which the dataset shuffling will sample
+const BUFFER_SIZE = 1000
 
 export abstract class TabularLoader<Source> extends DataLoader<Source> {
   private readonly delimiter: string
@@ -52,7 +55,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
       delimiter: this.delimiter
     }
 
-    return this.loadTabularDatasetFrom(source, csvConfig).map((t) => {
+    const dataset = this.loadTabularDatasetFrom(source, csvConfig).map((t) => {
       if (typeof t === 'object' && ('xs' in t) && ('ys' in t)) {
         return t
       }
@@ -65,18 +68,26 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
         ys: Object.values(ys)
       }
     })
+    return (config?.shuffle === undefined || config?.shuffle) ? dataset.shuffle(BUFFER_SIZE) : dataset
   }
 
   /**
     * Creates the CSV datasets based off the given sources, then fuses them into a single CSV
     * dataset.
     */
-  async loadAll (sources: Source[], config: DataConfig): Promise<Data> {
-    const datasets = await Promise.all(sources.map(async (source) => await this.load(source, config)))
+  async loadAll (sources: Source[], config: DataConfig): Promise<DataTuple> {
+    const datasets = await Promise.all(sources.map(async (source) =>
+      await this.load(source, { ...config, shuffle: false })))
     const dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
+    const data = {
+      dataset: config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset,
+      // dataset.size does not work for csv datasets
+      // https://github.com/tensorflow/tfjs/issues/5845
+      size: 0
+    }
+    // TODO: Implement validation split for tabular data (tricky due to streaming)
     return {
-      dataset,
-      size: dataset.size // TODO: needs to be tested
+      train: data
     }
   }
 }

@@ -6,12 +6,12 @@ import { RoundTracker } from './round_tracker'
 import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
- * locally or in a distributed way. The Trainer works as follows:
+ * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:
  *
  * 1. Call trainModel(dataset) to start training
- * 2. Once a batch ends, onBatchEnd is triggered, witch will then call onRoundEnd once the round has ended.
+ * 2. Once a batch ends, onBatchEnd is triggered, which will then call onRoundEnd once the round has ended.
  *
- * The onRoundEnd needs to be implemented to specify what actions to do when the round has ended. To know when
+ * The onRoundEnd needs to be implemented to specify what actions to do when the round has ended, such as a communication step with collaborators. To know when
  * a round has ended we use the roundTracker object.
  */
 export abstract class Trainer {
@@ -43,73 +43,14 @@ export abstract class Trainer {
     this.roundTracker = new RoundTracker(trainingInformation.roundDuration)
   }
 
-  //* ***************************************************************
-  //* Functions to be implemented by local and distributed training.
-  //* ***************************************************************
-
   /**
    * Every time a round ends this function will be called
    */
   protected abstract onRoundEnd (accuracy: number): Promise<void>
 
-  /**
-   * When the training ends this function will be call
-   */
-  protected abstract onTrainEnd (): Promise<void>
-
-  //* ***************************************************************
-  //* Functions to be used by the training manager
-  //* ***************************************************************
-
-  /**
-   * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
-   */
-  async stopTraining (): Promise<void> {
-    this.stopTrainingRequested = true
-  }
-
-  /**
-   * Start training the model with the given dataset
-   * @param dataset
-   */
-  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>): Promise<void> {
-    this.resetStopTrainerState()
-
-    // Assign callbacks and start training
-    await this.model.fitDataset(dataset.batch(this.trainingInformation.batchSize), {
-      epochs: this.trainingInformation.epochs,
-      validationData: dataset.batch(this.trainingInformation.batchSize),
-      callbacks: {
-        onEpochEnd: (epoch, logs) => this.onEpochEnd(epoch, logs),
-        onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs)
-      }
-    })
-  }
-
-  /**
-   * Format accuracy
-   */
-  private roundDecimals (accuracy: number, decimalsToRound: number = 2): number {
-    return +(accuracy * 100).toFixed(decimalsToRound)
-  }
-
-  /**
-   * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
-   */
-  private onEpochEnd (epoch: number, logs?: tf.Logs): void {
-    this.trainerLogger.onEpochEnd(epoch, logs)
-
-    if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
-      this.trainingInformant.updateTrainingAccuracyGraph(this.roundDecimals(logs.acc))
-      this.trainingInformant.updateValidationAccuracyGraph(this.roundDecimals(logs.val_acc))
-    } else {
-      this.trainerLogger.error('onEpochEnd: NaN value')
-    }
-  }
-
   /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
    */
-  private async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
+  protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
     if (logs === undefined) {
       return
     }
@@ -123,9 +64,63 @@ export abstract class Trainer {
   }
 
   /**
+   * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
+   */
+  protected onEpochEnd (epoch: number, logs?: tf.Logs): void {
+    this.trainerLogger.onEpochEnd(epoch, logs)
+
+    if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
+      this.trainingInformant.updateTrainingGraph(this.roundDecimals(logs.acc))
+      this.trainingInformant.updateValidationGraph(this.roundDecimals(logs.val_acc))
+    } else {
+      this.trainerLogger.error('onEpochEnd: NaN value')
+    }
+  }
+
+  /**
+   * When the training ends this function will be call
+   */
+  protected async onTrainEnd (logs?: tf.Logs): Promise<void> {
+    this.trainingInformant.addMessage('Training finished.')
+  }
+
+  /**
+   * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
+   */
+  async stopTraining (): Promise<void> {
+    this.stopTrainingRequested = true
+  }
+
+  /**
+   * Start training the model with the given dataset
+   * @param dataset
+   */
+  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>, valDataset: tf.data.Dataset<tf.TensorContainer>): Promise<void> {
+    this.resetStopTrainerState()
+
+    // Assign callbacks and start training
+    await this.model.fitDataset(dataset.batch(this.trainingInformation.batchSize), {
+      epochs: this.trainingInformation.epochs,
+      validationData: valDataset.batch(this.trainingInformation.batchSize),
+      callbacks: {
+        onEpochEnd: (epoch, logs) => this.onEpochEnd(epoch, logs),
+        onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs),
+        onTrainEnd: async (logs) => await this.onTrainEnd(logs)
+      }
+    })
+  }
+
+  /**
+   * Format accuracy
+   */
+  protected roundDecimals (accuracy: number, decimalsToRound: number = 2): number {
+    return +(accuracy * 100).toFixed(decimalsToRound)
+  }
+
+  /**
    * reset stop training state
    */
-  private resetStopTrainerState (): void {
+  protected resetStopTrainerState (): void {
     this.model.stopTraining = false
     this.stopTrainingRequested = false
   }
@@ -133,7 +128,7 @@ export abstract class Trainer {
   /**
    * If stop training is requested, do so
    */
-  private stopTrainModelIfRequested (): void {
+  protected stopTrainModelIfRequested (): void {
     if (this.stopTrainingRequested) {
       this.model.stopTraining = true
       this.stopTrainingRequested = false

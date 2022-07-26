@@ -8,7 +8,6 @@
       px-2
       py-4
       border-r
-      dark:border-primary-darker
     "
     >
       <!-- Brand -->
@@ -73,7 +72,7 @@
         </SidebarButton>
         <!-- Go to About Us page -->
         <SidebarButton
-          hover-text="about us"
+          hover-text="about"
           @click="goToAboutUs()"
         >
           <AboutUsIcon />

@@ -2,7 +2,7 @@
   <div>
     <a id="overview-target">
       <IconCard>
-        <template #title>The task</template>
+        <template #title>The Task</template>
         <template #icon><Tasks /></template>
         <template #content>
           <div v-html="overviewText" />
@@ -12,7 +12,7 @@
 
     <a id="limitations-target">
       <IconCard>
-        <template #title>The model</template>
+        <template #title>The Model</template>
         <template #icon><Model /></template>
         <template #content>
           <div v-html="modelText" />
@@ -26,13 +26,14 @@
 </template>
 
 <script lang="ts">
+import { mapState } from 'vuex'
+
+import { isTask } from 'discojs'
+
 import Tasks from '@/assets/svg/Tasks.vue'
 import Model from '@/assets/svg/Model.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import ModelCaching from '@/components/ModelCaching.vue'
-
-import { mapState } from 'vuex'
-import { isTask } from 'discojs'
 
 export default {
   name: 'Description',
@@ -65,7 +66,7 @@ export default {
   computed: {
     ...mapState(['isDark']),
     overviewText (): string {
-      return this.task.displayInformation.overview
+      return Object.values(this.task.displayInformation.summary).join('<br><br>')
     },
     tradeOffsText (): string {
       return this.task.displayInformation.tradeOffsText

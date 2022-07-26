@@ -1,5 +1,5 @@
 import { assert } from 'chai'
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '..'
 
 import { encode, decode, isEncoded, Encoded } from './model'
 import * as tasks from '../tasks'

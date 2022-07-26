@@ -1,6 +1,6 @@
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '..'
 
-import { Memory } from './base'
+import { Memory, ModelInfo, Path } from './base'
 
 export class Empty extends Memory {
   async getModelMetadata (): Promise<undefined> {
@@ -31,7 +31,15 @@ export class Empty extends Memory {
     // nothing to do
   }
 
-  async downloadSavedModel (): Promise<void> {
+  async downloadModel (): Promise<void> {
+    throw new Error('empty')
+  }
+
+  pathFor (): Path {
+    throw new Error('empty')
+  }
+
+  infoFor (): ModelInfo {
     throw new Error('empty')
   }
 }

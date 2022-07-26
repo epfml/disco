@@ -7,6 +7,9 @@ export class Local extends Base {
   async connect (): Promise<void> {}
   async disconnect (): Promise<void> {}
 
-  async onRoundEndCommunication (_: Weights): Promise<Weights> { return _ }
+  async onRoundEndCommunication (_: Weights): Promise<Weights> {
+    return _
+  }
+
   async onTrainEndCommunication (): Promise<void> {}
 }

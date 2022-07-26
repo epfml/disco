@@ -10,7 +10,10 @@
       hover:-translate-y-1 hover:scale-[101%]
       hover:outline hover:outline-2 hover:outline-disco-cyan"
   >
-    <div class="text-xl text-disco-blue group-hover:text-disco-cyan">
+    <div
+      :class="'text-' + titlePlacement"
+      class="text-xl text-disco-blue group-hover:text-disco-cyan"
+    >
       <slot name="title" />
     </div>
     <div class="text-slate-500">
@@ -29,14 +32,20 @@
   </div>
 </template>
 <script lang="ts">
+import { defineComponent } from 'vue'
+
 import CustomButton from '@/components/simple/CustomButton.vue'
 
-export default {
+export default defineComponent({
   name: 'ButtonCard',
   components: {
     CustomButton
   },
   props: {
+    titlePlacement: {
+      type: String,
+      default: 'left'
+    },
     buttonPlacement: {
       type: String,
       default: 'center'
@@ -46,5 +55,5 @@ export default {
       default: () => {}
     }
   }
-}
+})
 </script>

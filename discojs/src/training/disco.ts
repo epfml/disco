@@ -3,6 +3,7 @@ import { Client, dataset, Logger, Task, TrainingInformant, TrainingSchemes } fro
 
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
+import { TrainerLog } from '../logging/trainer_logger'
 
 // Handles the training loop, server communication & provides the user with feedback.
 export class Disco {
@@ -28,16 +29,14 @@ export class Disco {
     this.trainer = trainerBuilder.build(this.client, scheme !== TrainingSchemes.LOCAL)
   }
 
-  async startTraining (data: dataset.Data): Promise<void> {
-    if (data.size === 0) {
-      this.logger.error('Training aborted. No uploaded file given as input.')
-      throw new Error('No data in dataset')
-    }
-
+  async startTraining (dataTuple: dataset.DataTuple): Promise<void> {
     this.logger.success(
       'Thank you for your contribution. Data preprocessing has started')
 
-    await (await this.trainer).trainModel(data.dataset)
+    // Use train as val dataset if val is undefined
+    const valDataset = dataTuple.validation !== undefined ? dataTuple.validation.dataset : dataTuple.train.dataset
+
+    await (await this.trainer).trainModel(dataTuple.train.dataset, valDataset)
   }
 
   // Stops the training function
@@ -47,5 +46,9 @@ export class Disco {
     await (await this.trainer).stopTraining()
 
     this.logger.success('Training was successfully interrupted.')
+  }
+
+  async getTrainerLog (): Promise<TrainerLog> {
+    return (await this.trainer).getTrainerLog()
   }
 }

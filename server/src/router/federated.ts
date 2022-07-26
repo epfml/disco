@@ -1,9 +1,8 @@
 import express, { Request, Response } from 'express'
 import { List, Map, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
-import * as tf from '@tensorflow/tfjs-node'
 
-import { serialization, aggregation, AsyncInformant, Task, isTaskID, TaskID, AsyncBuffer, Weights } from 'discojs'
+import { tf, serialization, aggregation, AsyncInformant, Task, isTaskID, TaskID, AsyncBuffer, Weights } from 'discojs'
 
 import { Config } from '../config'
 import { TasksAndModels } from '../tasks'

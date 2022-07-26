@@ -1,13 +1,13 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 // Some page components
-import Home from '@/components/pages/Home.vue'
+import Home from '@/components/home/Home.vue'
 import Information from '@/components/pages/Information.vue'
 import NewTaskCreationForm from '@/components/pages/NewTaskCreationForm.vue'
 import TaskList from '@/components/pages/TaskList.vue'
 import ProgressBar from '@/components/navigation/ProgressBar.vue'
 import Navigation from '@/components/navigation/Navigation.vue'
-import NewTesting from '@/components/testing/NewTesting.vue'
+import Validation from '@/components/validation/Validation.vue'
 import NotFound from '@/components/pages/NotFound.vue'
 import Features from '@/components/pages/Features.vue'
 import Tutorial from '@/components/pages/Tutorial.vue'
@@ -63,7 +63,7 @@ const router = createRouter({
     {
       path: '/testing',
       name: 'testing',
-      component: NewTesting
+      component: Validation
     },
     {
       path: '/:id',

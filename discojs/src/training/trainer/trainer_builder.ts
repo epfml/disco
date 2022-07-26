@@ -1,6 +1,6 @@
-import * as tf from '@tensorflow/tfjs'
+import { ModelInfo } from '@/memory'
 
-import { Client, Task, TrainingInformant, Memory, ModelType } from '../..'
+import { tf, Client, Task, TrainingInformant, Memory, ModelType } from '../..'
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
@@ -51,25 +51,14 @@ export class TrainerBuilder {
   private async getModel (client: Client): Promise<tf.LayersModel> {
     const modelID = this.task.trainingInformation?.modelID
     if (modelID === undefined) {
-      throw new Error('undefined model ID')
+      throw new TypeError('model ID is undefined')
     }
 
-    const modelExistsInMemory = await this.memory.getModelMetadata(
-      ModelType.WORKING,
-      this.task.taskID,
-      modelID
+    const info: ModelInfo = { type: ModelType.WORKING, taskID: this.task.taskID, name: modelID }
+
+    const model = await (
+      await this.memory.contains(info) ? this.memory.getModel(info) : client.getLatestModel()
     )
-
-    let model: tf.LayersModel
-    if (modelExistsInMemory !== undefined) {
-      model = await this.memory.getModel(
-        ModelType.WORKING,
-        this.task.taskID,
-        modelID
-      )
-    } else {
-      model = await client.getLatestModel()
-    }
 
     return await this.updateModelInformation(model)
   }
@@ -82,7 +71,7 @@ export class TrainerBuilder {
 
     const info = this.task.trainingInformation
     if (info === undefined) {
-      throw new Error('undefined training information')
+      throw new TypeError('training information is undefined')
     }
 
     model.compile(info.modelCompileData)
