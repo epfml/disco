@@ -3,12 +3,13 @@
   <component name="ChangeListManager">
     <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/insecure_decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/insecure_decentralized_client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/secure_decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/secure_decentralized_client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/messages.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/messages.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/secret_shares.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/secret_shares.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/router/signaling_server.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/router/signaling_server.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralizedBase.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/insecure_decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralizedClearText.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/secure_decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralizedSecAgg.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/training/superClassTest.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/tests/decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/tests/decentralized_client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/tests/end_to_end_decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/tests/end_to_end_decentralized.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,16 +35,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/alyssaunell/disco/discojs/src/client&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Applications/PyCharm.app/Contents/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "/Users/alyssaunell/disco/discojs/src/client",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "/Applications/PyCharm.app/Contents/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external",
+    "ts.rename.search.for.dynamic.occurrences": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/discojs/src/client" />
