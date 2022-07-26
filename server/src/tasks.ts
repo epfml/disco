@@ -1,8 +1,7 @@
 import { Set } from 'immutable'
 import { EventEmitter } from 'node:events'
-import * as tf from '@tensorflow/tfjs'
 
-import { tasks as defaultTasks, Task } from 'discojs'
+import { tasks as defaultTasks, tf, Task } from 'discojs'
 
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks
