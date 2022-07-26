@@ -49,7 +49,7 @@ import { dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSch
 
 import { getClient } from '@/clients'
 import { IndexedDB } from '@/memory'
-import { error } from '@/toast'
+import { toaster } from '@/toast'
 import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
@@ -144,7 +144,7 @@ export default defineComponent({
         await this.disco.startTraining(this.dataset)
         this.startedTraining = false
       } catch (e) {
-        error(this.$toast, e instanceof Error ? e.message : e.toString())
+        toaster.error(e instanceof Error ? e.message : e.toString())
 
         // clean generated state
         this.distributedTraining = false
