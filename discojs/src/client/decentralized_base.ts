@@ -103,9 +103,10 @@ function to check if a given boolean condition is true, checks continuously unti
         this.clientHandle(msg)
       }
     }
+
     return await new Promise((resolve, reject) => {
       ws.onerror = (err: isomorphic.ErrorEvent) =>
-        reject(new Error(`connecting server: ${err.message}`))
+        reject(new Error(`connecting server: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
       ws.onopen = () => resolve(ws)
     })
   }
