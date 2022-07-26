@@ -1,6 +1,6 @@
 export { Base } from './base'
 
-export { DecentralizedClearText } from './decentralizedClearText'
-export { DecentralizedSecAgg } from './decentralizedSecAgg'
+export { DecentralizedClearText } from './decentralized_clear_text'
+export { DecentralizedSecAgg } from './decentralized_sec_agg'
 export { Federated } from './federated'
 export { Local } from './local'

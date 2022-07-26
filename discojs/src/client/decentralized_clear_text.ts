@@ -2,7 +2,7 @@ import { List } from 'immutable'
 import msgpack from 'msgpack-lite'
 
 import { serialization, TrainingInformant, Weights } from '..'
-import { DecentralizedBase } from './decentralizedBase'
+import { DecentralizedBase } from './decentralized_base'
 import * as messages from '../messages'
 
 /**
@@ -10,12 +10,12 @@ import * as messages from '../messages'
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class DecentralizedClearText extends DecentralizedBase {
-    // list of weights received from other clients
+  // list of weights received from other clients
   protected receivedWeights: List<Weights> = List()
 
   override async sendAndReceiveWeights (noisyWeights: Weights,
     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>> {
-    //reset received fields at beginning of each round
+    // reset received fields at beginning of each round
     this.receivedWeights = this.receivedWeights.clear()
     // prepare weights to send to peers
     const weightsToSend = await serialization.weights.encode(noisyWeights)
@@ -40,13 +40,13 @@ export class DecentralizedClearText extends DecentralizedBase {
     return this.receivedWeights
   }
 
-  override clientHandle(msg: any): void{
+  override clientHandle (msg: any): void {
     if (msg.type === messages.messageType.clientWeightsMessageServer) {
-        // update received weights by one weights reception
-        const weights = serialization.weights.decode(msg.weights)
-        this.receivedWeights = this.receivedWeights.push(weights)
-  }
-    else{
-    throw new Error('Unexpected Message Type')}
+      // update received weights by one weights reception
+      const weights = serialization.weights.decode(msg.weights)
+      this.receivedWeights = this.receivedWeights.push(weights)
+    } else {
+      throw new Error('Unexpected Message Type')
+    }
   }
 }

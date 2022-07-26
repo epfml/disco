@@ -1,13 +1,13 @@
 import { List } from 'immutable'
 import msgpack from 'msgpack-lite'
 import * as secret_shares from '../secret_shares'
-import { DecentralizedBase } from './decentralizedBase'
+import { DecentralizedBase } from './decentralized_base'
 import * as messages from '../messages'
 
 import { serialization, TrainingInformant, Weights } from '..'
 
 export class DecentralizedSecAgg extends DecentralizedBase {
-    // list of weights received from other clients
+  // list of weights received from other clients
   private receivedShares: List<Weights> = List()
   // list of partial sums received by client
   private receivedPartialSums: List<Weights> = List()
@@ -60,7 +60,7 @@ sends partial sums to connected peers so final update can be calculated
 
   override async sendAndReceiveWeights (noisyWeights: Weights,
     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>> {
-    //reset fields at beginning of each round
+    // reset fields at beginning of each round
     this.receivedShares = this.receivedShares.clear()
     this.receivedPartialSums = this.receivedPartialSums.clear()
     // PHASE 1 COMMUNICATION
@@ -74,18 +74,17 @@ sends partial sums to connected peers so final update can be calculated
     return this.receivedPartialSums
   }
 
-    override clientHandle(msg: any): void{
-      if (msg.type === messages.messageType.clientSharesMessageServer) {
-          // update received weights by one weights reception
-          const weights = serialization.weights.decode(msg.weights)
-          this.receivedShares = this.receivedShares.push(weights)
-        }
-      else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
-          // update received partial sums by one partial sum
-          const partials: Weights = serialization.weights.decode(msg.partials)
-          this.receivedPartialSums = this.receivedPartialSums.push(partials)
-        }
-      else{
-      throw new Error('Unexpected Message Type')}
+  override clientHandle (msg: any): void {
+    if (msg.type === messages.messageType.clientSharesMessageServer) {
+      // update received weights by one weights reception
+      const weights = serialization.weights.decode(msg.weights)
+      this.receivedShares = this.receivedShares.push(weights)
+    } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
+      // update received partial sums by one partial sum
+      const partials: Weights = serialization.weights.decode(msg.partials)
+      this.receivedPartialSums = this.receivedPartialSums.push(partials)
+    } else {
+      throw new Error('Unexpected Message Type')
+    }
   }
 }
