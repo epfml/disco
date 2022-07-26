@@ -1,8 +1,8 @@
-import { List } from 'immutable'
+import { List, Set} from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 
-import { serialization, TrainingInformant, Weights } from '..'
+import { serialization, TrainingInformant, Weights, aggregation } from '..'
 import * as messages from '../messages'
 
 import { Base } from './base'
@@ -16,6 +16,8 @@ const TICK = 100
 // Time to wait for the others in milliseconds.
 const MAX_WAIT_PER_ROUND = 10_000
 
+const MINIMUM_PEERS = 3
+
 /**
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
@@ -23,10 +25,11 @@ const MAX_WAIT_PER_ROUND = 10_000
 export abstract class DecentralizedGeneral extends Base {
   protected server?: isomorphic.WebSocket
 
-  // list of peerIDs who the clinent will send messages to
-  protected peers: List<PeerID> = List()
-  // map of peerIDs to the weights that they sent the client
-  protected receivedWeights = new Map <PeerID, Weights>()
+  // list of peerIDs who the client will send messages to
+  protected peers: Array<PeerID> = []
+  protected peersLocked : boolean = false
+  // list of weights received from other clients
+  protected receivedWeights: List<Weights> = List()
   // list of partial sums received by client
   protected receivedPartialSums: List<Weights> = List()
   // the partial sum calculated by the client
@@ -38,15 +41,15 @@ export abstract class DecentralizedGeneral extends Base {
   /*
 function to check if a given boolean condition is true, checks continuously until maxWait time is reached
  */
-  protected async pauseWhile (statement: () => boolean, maxWait: number): Promise<void>  {
+  protected async pauseUntil (condition: () => boolean): Promise<void>  {
     return await new Promise<void>((resolve, reject) => {
       const timeWas = new Date().getTime()
       const wait = setInterval(function () {
-        if (statement()) {
+        if (condition()) {
           console.log('resolved after', new Date().getTime() - timeWas, 'ms')
           clearInterval(wait)
           resolve()
-        } else if (new Date().getTime() - timeWas > maxWait) { // Timeout
+        } else if (new Date().getTime() - timeWas > MAX_WAIT_PER_ROUND) { // Timeout
           console.log('rejected after', new Date().getTime() - timeWas, 'ms')
           clearInterval(wait)
           reject(new Error('timeout'))
@@ -56,20 +59,9 @@ function to check if a given boolean condition is true, checks continuously unti
   }
 
   /*
-checks  if pause function throws a timeout error
- */
-  protected async resolvePause (func: () => boolean): Promise<void> {
-    try {
-      await this.pauseWhile(func, MAX_WAIT_PER_ROUND)
-    } catch {
-      throw new Error('timeout error')
-    }
-  }
-
-  /*
-  temporary function to send messages to the server, will be replaced by peer to peer connection later
+  function behavior will change with peer 2 peer, sends message to its destination, currently through server
    */
-  protected peerMessageTemp (message: unknown): void {
+  protected sendMessagetoPeer (message: unknown): void {
     if (this.server === undefined) {
       throw new Error("Undefined Server, can't send message")
     }
@@ -108,17 +100,20 @@ checks  if pause function throws a timeout error
       if (msg.type === messages.messageType.serverClientIDMessage) {
         // updated ID
         this.ID = msg.peerID
-      } else if (msg.type === messages.messageType.serverConnectedClients) {
+      } else if (msg.type === messages.messageType.serverReadyClients) {
         // updated connected peers
-        this.peers = msg.peerList
+        if (!this.peersLocked) {
+          this.peers = msg.peerList
+          this.peersLocked = true
+        }
       } else if (msg.type === messages.messageType.clientWeightsMessageServer) {
         // update received weights by one weights reception
         const weights = serialization.weights.decode(msg.weights)
-        this.receivedWeights = this.receivedWeights.set(msg.peerID, weights)
+        this.receivedWeights = this.receivedWeights.push(weights)
       } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
         // update received partial sums by one partial sum
-        const weights: Weights = serialization.weights.decode(msg.partials)
-        this.receivedPartialSums = this.receivedPartialSums.push(weights)
+        const partials: Weights = serialization.weights.decode(msg.partials)
+        this.receivedPartialSums = this.receivedPartialSums.push(partials)
       } else {
         throw new Error('Message Type Cannot Be Parsed')
       }
@@ -168,14 +163,29 @@ checks  if pause function throws a timeout error
 
   // abstract peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void
 
-  abstract onRoundEndCommunication (
+  async onRoundEndCommunication (
     updatedWeights: Weights,
     staleWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
-  ): Promise<Weights|undefined >
+  ): Promise<Weights> {
+    //reset peer list at each round of training to make sure client waits for updated peerList from server
+    this.peers = []
+    this.receivedWeights = this.receivedWeights.clear()
+    this.receivedPartialSums = this.receivedPartialSums.clear()
+    this.peersLocked = false
 
-  public getPeerIDs (): List<PeerID> {
-    return this.peers.keySeq().toList()
+    this.sendReadyMessage(round)
+
+    // after peers are connected, send shares
+    await this.pauseUntil(() => this.peers.length >= MINIMUM_PEERS)
+
+    //send weights to all ready connected peers
+    const finalWeights: List<Weights> = await this.sendAndReceiveWeights(updatedWeights, staleWeights, round, trainingInformant)
+    const setWeights: Set<Weights> = finalWeights.toSet()
+    return aggregation.averageWeights(setWeights)
   }
+
+  abstract sendAndReceiveWeights(updatedWeights: Weights, staleWeights: Weights,
+                                     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
 }
