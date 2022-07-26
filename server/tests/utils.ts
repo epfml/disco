@@ -1,6 +1,7 @@
 import { Server } from 'node:http'
+import { List } from 'immutable'
 
-import { client, Task } from 'discojs'
+import { client, Task, Weights } from 'discojs'
 
 import { getApp } from '../src/get_server'
 
@@ -41,4 +42,9 @@ export async function getClient<T extends client.Base> (
   const url = new URL(`http://${host}`)
 
   return new Constructor(url, task)
+}
+
+export async function weightsAsArray (weights: Weights): Promise<number[][]> {
+  return await Promise.all(
+    weights.map(async (w) => [...await w.data()]))
 }

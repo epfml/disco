@@ -1,11 +1,10 @@
 import { expect } from 'chai'
 import * as http from 'http'
 import { List } from 'immutable'
-import * as tf from '@tensorflow/tfjs'
 
-import { client as clients, informant, tasks } from 'discojs'
+import { client as clients, informant, tasks, tf } from 'discojs'
 
-import { getClient, startServer } from './utils'
+import { getClient, startServer, weightsAsArray } from './utils'
 
 const TASK = tasks.titanic.task
 
@@ -17,7 +16,7 @@ describe('decentralized client', function () { // the tests container
   after(() => { server?.close() })
 
   it('connect and disconnect from valid task', async () => {
-    const client = await getClient(clients.Decentralized, server, TASK)
+    const client = await getClient(clients.decentralized.Secure, server, TASK)
 
     await client.connect()
     await client.disconnect()
@@ -25,9 +24,9 @@ describe('decentralized client', function () { // the tests container
 
   it('connects to other nodes', async () => {
     const users = List(await Promise.all([
-      getClient(clients.Decentralized, server, TASK),
-      getClient(clients.Decentralized, server, TASK),
-      getClient(clients.Decentralized, server, TASK)
+      getClient(clients.decentralized.Secure, server, TASK),
+      getClient(clients.decentralized.Secure, server, TASK),
+      getClient(clients.decentralized.Secure, server, TASK)
     ]))
 
     try {
@@ -44,13 +43,17 @@ describe('decentralized client', function () { // the tests container
       // wait for others to connect
       await new Promise((resolve) => setTimeout(resolve, 1_000))
 
-      await Promise.all(
+      const averaged = await Promise.all(
         users.zip(wss).zip(tis)
-          .map(async ([[u, ws], ti]) => await u.onRoundEndCommunication(ws, ws, 0, ti))
-          .toArray()
-      )
+          .map(async ([[u, ws], ti]) =>
+            await u.onRoundEndCommunication(ws, ws, 0, ti).then(weightsAsArray))
+          .toArray())
 
-      tis.forEach((ti) => expect(ti.participants()).to.eq(users.size - 1))
+      tis.forEach((ti) => expect(ti.participants()).to.eq(users.size))
+      expect(averaged).to.be.of.length(users.size)
+
+      const firstAveragedWeight = averaged[0]
+      averaged.forEach((ws) => expect(ws).to.deep.eq(firstAveragedWeight))
     } finally {
       await Promise.all(users.map(async (u) => await u.disconnect()))
     }

@@ -76,6 +76,8 @@ sends partial sums to connected peers so final update can be calculated
 
     // after all partial sums are received, return final weight update
     await this.resolvePause(() => this.receivedPartialSums.size >= minimumPeers)
+    trainingInformant.update({ currentNumberOfParticipants: this.receivedPartialSums.size })
+
     // console.log(this.ID, 'has the following received sum shape', this.receivedPartialSums.get(this.ID)[136])
     const setWeights: Set<Weights> = this.receivedPartialSums.toSet()
     return aggregation.averageWeights(setWeights)
