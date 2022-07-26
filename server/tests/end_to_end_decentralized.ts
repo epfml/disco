@@ -171,6 +171,17 @@ describe('end to end', function () {
     makeClientSecure([4, 5, 6])
     return await makeClientSecure([11, 13, 30])
   }
-  /* eslint-enable */
+
+
+      it('decentralized secure client testing timout', async () => {
+    const result: Weights = await testTimeOut()
+    // const expected: Weights = makeWeights([6, 7, 13])
+    tf.print(result[0])
+  })
+
+  async function testTimeOut (): Promise<Weights>{
+    return makeClientSecure([4, 5, 6])
+  }
+    /* eslint-enable */
 }
 )
