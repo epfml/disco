@@ -155,7 +155,9 @@ function to check if a given boolean condition is true, checks continuously unti
       trainingInformant: TrainingInformant
   ): Promise<Weights> {
     // reset peer list at each round of training to make sure client waits for updated peerList from server
-    this.peers = []
+    try{
+      this.peers = []
+
     this.peersLocked = false
 
     this.sendReadyMessage(round)
@@ -169,7 +171,11 @@ function to check if a given boolean condition is true, checks continuously unti
     // send weights to all ready connected peers
     const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)
     const setWeights: Set<Weights> = finalWeights.toSet()
-    return aggregation.averageWeights(setWeights)
+    return aggregation.averageWeights(setWeights)}
+    catch (Error) {
+      console.log('Timeout Error Reported, training will continue')
+      return updatedWeights
+    }
   }
 
   abstract sendAndReceiveWeights(noisyWeights: Weights,
