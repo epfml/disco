@@ -6,74 +6,100 @@
  * folder via the model library. The working/ folder is only used by the backend.
  * The working model is loaded from IndexedDB for training (model.fit) only.
  */
-import * as tf from '@tensorflow/tfjs'
 import path from 'path'
 
-import { Memory, ModelType } from 'discojs'
-
-export function pathFor (type: ModelType, taskID: string, modelName: string): string {
-  return `indexeddb://${path.join(type, taskID, modelName)}`
-}
+import { tf, Memory, ModelType, Path, ModelInfo, ModelSource } from 'discojs'
 
 export class IndexedDB extends Memory {
-  async getModelMetadata (type: ModelType, taskID: string, modelName: string): Promise<tf.io.ModelArtifactsInfo | undefined> {
-    const key = pathFor(type, taskID, modelName)
+  pathFor (source: ModelSource): Path {
+    if (typeof source === 'string') {
+      return source
+    }
+
+    if (source.type === undefined || source.taskID === undefined || source.name === undefined) {
+      throw new TypeError('source incomplete')
+    }
+    return 'indexeddb://' + path.join(source.type, source.taskID, source.name)
+  }
+
+  infoFor (source: ModelSource): ModelInfo {
+    if (typeof source !== 'string') {
+      return source
+    }
+    const [stringType, taskID, name] = source.split('/').splice(2)
+    const type = stringType === 'working' ? ModelType.WORKING : ModelType.SAVED
+    return { type, taskID, name }
+  }
+
+  async getModelMetadata (source: ModelSource): Promise<tf.io.ModelArtifactsInfo | undefined> {
     const models = await tf.io.listModels()
-
-    return models[key]
+    return models[this.pathFor(source)]
   }
 
-  async contains (type: ModelType, taskID: string, modelName: string): Promise<boolean> {
-    return await this.getModelMetadata(type, taskID, modelName) !== undefined
+  async contains (source: ModelSource): Promise<boolean> {
+    return await this.getModelMetadata(source) !== undefined
   }
 
-  async getModel (type: ModelType, taskID: string, modelName: string): Promise<tf.LayersModel> {
-    return await tf.loadLayersModel(pathFor(type, taskID, modelName))
+  async getModel (source: ModelSource): Promise<tf.LayersModel> {
+    return await tf.loadLayersModel(this.pathFor(source))
   }
 
-  async deleteModel (type: ModelType, taskID: string, modelName: string): Promise<void> {
-    await tf.io.removeModel(pathFor(type, taskID, modelName))
+  async deleteModel (source: ModelSource): Promise<void> {
+    await tf.io.removeModel(this.pathFor(source))
   }
 
-  async loadSavedModel (taskID: string, modelName: string): Promise<void> {
+  /**
+   * Creates a working copy of the saved model corresponding to the source.
+   * @param source the source
+   */
+  async loadSavedModel (source: ModelSource): Promise<void> {
+    const src: ModelInfo = this.infoFor(source)
+    if (src.type !== undefined && src.type !== ModelType.SAVED) {
+      throw new TypeError('expected saved model')
+    }
     await tf.io.copyModel(
-      pathFor(ModelType.SAVED, taskID, modelName),
-      pathFor(ModelType.WORKING, taskID, modelName)
+      this.pathFor({ ...src, type: ModelType.SAVED }),
+      this.pathFor({ ...src, type: ModelType.WORKING })
     )
   }
 
   /**
- * Loads a fresh TFJS model object into the current working model in IndexedDB.
- * @param {String} taskID the working model's corresponding task
- * @param {String} modelName the working model's file name
- * @param {Object} model the fresh model
- */
-  async updateWorkingModel (taskID: string, modelName: string, model: tf.LayersModel): Promise<void> {
-    await model.save(pathFor(ModelType.WORKING, taskID, modelName))
+   * Saves the working model to the source.
+   * @param source the destination
+   * @param model the model
+   */
+  async updateWorkingModel (source: ModelSource, model: tf.LayersModel): Promise<void> {
+    const src: ModelInfo = this.infoFor(source)
+    if (src.type !== undefined && src.type !== ModelType.WORKING) {
+      throw new TypeError('expected working model')
+    }
+    await model.save(this.pathFor({ ...src, type: ModelType.WORKING }))
   }
 
   /**
- * Adds the current working model to the model library. This means copying it
- * from indexeddb://working/ to indexeddb://saved/.
- * @param {String} taskID the working model's corresponding task
- * @param {String} modelName the working model's file name
+ * Creates a saved copy of the working model corresponding to the source.
+ * @param source the source
  */
-  async saveWorkingModel (taskID: string, modelName: string): Promise<void> {
+  async saveWorkingModel (source: ModelSource): Promise<void> {
+    const src: ModelInfo = this.infoFor(source)
+    if (src.type !== undefined && src.type !== ModelType.WORKING) {
+      throw new TypeError('expected working model')
+    }
     await tf.io.copyModel(
-      pathFor(ModelType.WORKING, taskID, modelName),
-      pathFor(ModelType.SAVED, taskID, modelName)
+      this.pathFor({ ...src, type: ModelType.WORKING }),
+      this.pathFor({ ...src, type: ModelType.SAVED })
     )
   }
 
   /**
- * Downloads a previously saved model.
- * @param {String} taskID the saved model's corresponding task
- * @param {String} modelName the saved model's file name
+ * Downloads the model corresponding to the source.
+ * @param source the source
  */
-  async downloadSavedModel (taskID: string, modelName: string): Promise<void> {
+  async downloadModel (source: ModelSource): Promise<void> {
+    const src: ModelInfo = this.infoFor(source)
     await tf.io.copyModel(
-      pathFor(ModelType.SAVED, taskID, modelName),
-      `downloads://${taskID}_${modelName}`
+      this.pathFor(source),
+      `downloads://${src.taskID}_${src.name}`
     )
   }
 }

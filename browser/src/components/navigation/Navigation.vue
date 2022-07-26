@@ -1,6 +1,6 @@
 <template>
   <div v-if="!verifyingRoute">
-    <div class="grid grid-cols-2 gap-8 py-6 items-center">
+    <div class="flex flex-wrap place-content-center gap-4 md:gap-8 py-6">
       <div
         class="text-right"
       >
@@ -25,12 +25,10 @@
       v-show="step === 1"
       :task="task"
     />
-    <DatasetInput
+    <Data
       v-show="step === 2"
       :task="task"
       :dataset-builder="datasetBuilder"
-      @add-files="addFiles"
-      @clear-files="clearFiles"
     />
     <Training
       v-show="step === 3"
@@ -45,22 +43,24 @@
 </template>
 
 <script lang="ts">
+import { Task } from 'discojs'
+import { DataLoader, DatasetBuilder } from 'discojs/dist/dataset'
+
+import { defineComponent } from 'vue'
+import { mapMutations, mapState } from 'vuex'
+
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Description from '@/components/Description.vue'
 import Training from '@/components/training/Training.vue'
 import Finished from '@/components/Finished.vue'
-import DatasetInput from '@/components/dataset_input/DatasetInput.vue'
+import Data from '@/components/data/Data.vue'
 import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 
-import { Task } from 'discojs'
-import { DataLoader, DatasetBuilder } from 'discojs/dist/dataset'
-import { mapMutations, mapState } from 'vuex'
-
-export default {
+export default defineComponent({
   name: 'Navigation',
   components: {
     Description,
-    DatasetInput,
+    Data,
     Training,
     Finished,
     CustomButton
@@ -114,12 +114,6 @@ export default {
   },
   methods: {
     ...mapMutations(['nextStep', 'prevStep', 'setStep', 'setCurrentTask']),
-    addFiles (files: FileList, label?: string) {
-      this.datasetBuilder.addFiles(Array.from(files), label)
-    },
-    clearFiles (label?: string) {
-      this.datasetBuilder.clearFiles(label)
-    },
     prevStepOrList () {
       if (this.step === 1) {
         this.$router.push({ path: '/list' })
@@ -128,5 +122,5 @@ export default {
       }
     }
   }
-}
+})
 </script>

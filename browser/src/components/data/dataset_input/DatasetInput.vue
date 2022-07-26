@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-1">
     <IconCard
-      v-if="task.trainingInformation.dataType === 'tabular'"
+      v-if="task.trainingInformation.dataType ==='tabular'"
       class="justify-self-center w-full"
     >
       <template #title>
@@ -20,7 +20,7 @@
     </IconCard>
     <div
       v-else-if="task.trainingInformation.dataType === 'image'"
-      class="grid grid-cols-2"
+      class="grid grid-cols-1 lg:grid-cols-2"
     >
       <div
         v-if="requireLabels"
@@ -53,13 +53,15 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue'
+
+import { isTask, dataset } from 'discojs'
+
 import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import FileSelection from './FileSelection.vue'
 
-import { isTask, dataset } from 'discojs'
-
-export default {
+export default defineComponent({
   name: 'DatasetInput',
   components: {
     FileSelection,
@@ -87,11 +89,11 @@ export default {
   },
   methods: {
     addFiles (files: FileList, label?: string) {
-      this.$emit('add-files', files, label)
+      this.datasetBuilder.addFiles(Array.from(files), label)
     },
     clearFiles (label?: string) {
-      this.$emit('clear-files', label)
+      this.datasetBuilder.clearFiles(label)
     }
   }
-}
+})
 </script>

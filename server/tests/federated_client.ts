@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import * as http from 'http'
 
-import { client as clients, tasks, TrainingInformant, TrainingSchemes } from 'discojs'
+import { client as clients, tasks, informant } from 'discojs'
 
 import { getClient, startServer } from './utils'
 
@@ -51,13 +51,13 @@ describe('federated client', function () { // the tests container
     const client = await getClient(clients.Federated, server, TASK)
     await client.connect()
 
-    const ti = new TrainingInformant(0, TASK.taskID, TrainingSchemes.FEDERATED)
+    const ti = new informant.FederatedInformant(TASK.taskID, 0)
     await client.pullServerStatistics(ti)
 
-    expect(ti.currentRound).to.be.greaterThanOrEqual(0) // Since the server you are running might have trained and round > 0
-    expect(ti.currentNumberOfParticipants).to.be.greaterThanOrEqual(0)
-    expect(ti.totalNumberOfParticipants).to.be.greaterThanOrEqual(0)
-    expect(ti.averageNumberOfParticipants).to.be.greaterThanOrEqual(0)
+    expect(ti.round()).to.be.greaterThanOrEqual(0) // Since the server you are running might have trained and round > 0
+    expect(ti.participants()).to.be.greaterThanOrEqual(0)
+    expect(ti.totalParticipants()).to.be.greaterThanOrEqual(0)
+    expect(ti.averageParticipants()).to.be.greaterThanOrEqual(0)
 
     await client.disconnect()
   })

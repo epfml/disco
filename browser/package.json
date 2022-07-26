@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@meforma/vue-toaster": "1",
-    "@tensorflow/tfjs": "3",
     "apexcharts": "3",
     "autoprefixer": "^10",
     "aws-sdk": "2",
@@ -24,7 +23,6 @@
     "discojs": "file:../discojs",
     "immutable": "4",
     "jshashes": "1",
-    "lodash": "4",
     "mock-aws-s3": "4",
     "msgpack-lite": "0",
     "nock": "13",
@@ -46,7 +44,6 @@
     "yup": "0"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "3",
     "@types/chai": "4",
     "@types/d3": "7",
     "@types/mocha": "8",
