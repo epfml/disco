@@ -1,7 +1,8 @@
 import { loadTasks } from '@/tasks'
 
 import { tf, ModelType, Path, Task, TaskID } from 'discojs'
-import { ActionContext, createStore } from 'vuex'
+import { InjectionKey } from 'vue'
+import { ActionContext, createStore, useStore as baseUseStore, Store } from 'vuex'
 
 const MIN_STEP = 0
 const MAX_STEP = 4
@@ -9,7 +10,7 @@ const MAX_STEP = 4
 // TODO better typing
 type ModelMetadata = any
 
-interface State {
+export interface State {
   tasks: Map<TaskID, Task>,
   steps: Map<TaskID, number>,
   models: Map<Path, ModelMetadata>,
@@ -20,7 +21,10 @@ interface State {
   testingState: boolean
 }
 
-export const store = createStore({
+// eslint-disable-next-line symbol-description
+export const key: InjectionKey<Store<State>> = Symbol()
+
+export const store = createStore<State>({
   state (): State {
     return {
       tasks: new Map(),
@@ -134,4 +138,6 @@ export const store = createStore({
   }
 })
 
-export default store
+export function useStore (): Store<State> {
+  return baseUseStore(key)
+}
