@@ -76,24 +76,13 @@
     </div>
   </div>
 </template>
-<script lang="ts">
+<script setup lang="ts">
+import { defineProps } from 'vue'
+
 import ProgressIcon from '@/components/navigation/ProgressIcon.vue'
 
-export default {
-  name: 'ValidationBar',
-  components: {
-    ProgressIcon
-  },
-  props: {
-    step: {
-      type: Number,
-      default: 0
-    }
-  },
-  methods: {
-    isActive (step: number) {
-      return step <= this.step
-    }
-  }
-}
+interface Props { step: number }
+
+const props = defineProps<Props>()
+const isActive = (step: number): boolean => step <= props.step
 </script>
