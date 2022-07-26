@@ -22,7 +22,7 @@ const MINIMUM_PEERS = 3
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
-export abstract class DecentralizedGeneral extends Base {
+export abstract class DecentralizedBase extends Base {
   protected server?: isomorphic.WebSocket
 
   // list of peerIDs who the client will send messages to

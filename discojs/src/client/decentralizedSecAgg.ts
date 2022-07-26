@@ -1,7 +1,7 @@
 import { List, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 import * as secret_shares from '../secret_shares'
-import { DecentralizedGeneral } from './decentralized'
+import { DecentralizedBase } from './decentralizedBase'
 import * as messages from '../messages'
 
 import { aggregation, serialization, TrainingInformant, Weights, privacy } from '..'
@@ -9,7 +9,7 @@ import { aggregation, serialization, TrainingInformant, Weights, privacy } from 
 // minimum clients we want connected in order to start sharing
 const MINIMUM_PEERS = 3
 
-export class SecureDecentralized extends DecentralizedGeneral {
+export class DecentralizedSecAgg extends DecentralizedBase {
   /*
   generates shares and sends to all ready peers adds differential privacy
    */

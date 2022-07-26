@@ -1,6 +1,6 @@
 export { Base } from './base'
 
-export { InsecureDecentralized } from './insecure_decentralized_client'
-export { SecureDecentralized } from './secure_decentralized_client'
+export { DecentralizedClearText } from './decentralizedClearText'
+export { DecentralizedSecAgg } from './decentralizedSecAgg'
 export { Federated } from './federated'
 export { Local } from './local'
