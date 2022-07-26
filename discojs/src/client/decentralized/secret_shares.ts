@@ -2,7 +2,7 @@ import { Weights } from '../../types'
 import { List } from 'immutable'
 
 import * as tf from '@tensorflow/tfjs'
-import { getRandomValues } from 'node:crypto'
+import { randomBytes } from 'crypto'
 
 // returns weights that is difference of the two given weights
 function subtractWeights (w1: Weights, w2: Weights): Weights {
@@ -72,9 +72,9 @@ export function shuffleArray<T> (a: T[]): T[] {
 }
 
 function generateRandomNumber (maxRandNumber: number): number {
-  const array = new Uint32Array(1)
-  const intsResult = getRandomValues(array)
-  return intsResult[0]
+  // TODO mv to async
+  const buffer = randomBytes(1)
+  return buffer.readInt8()
 }
 
 export function generateRandomShare (secret: Weights, maxRandNumber: number): Weights {

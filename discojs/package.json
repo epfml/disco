@@ -21,6 +21,7 @@
     "isomorphic-ws": "4",
     "lodash": "4",
     "msgpack-lite": "0.1",
+    "randombytes": "^2.1.0",
     "simple-peer": "9",
     "tslib": "2",
     "url": "0.11",
