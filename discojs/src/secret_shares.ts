@@ -47,21 +47,13 @@ export function lastShare (currentShares: Weights[], secret: Weights): Weights {
   return last
 }
 
-export async function generateAllShares (secret: Weights, nParticipants: number, maxRandNumber: number): Promise<List<Weights>> {
+export async function generateAllShares (secret: Weights, nParticipants: number): Promise<List<Weights>> {
   ''
   'Generate N additive shares that aggregate to the secret array'
   ''
   const shares: Weights[] = []
   for (let i = 0; i < nParticipants - 1; i++) {
-    const share: Weights = []
-    for (const t of secret) {
-      share.push(
-        tf.randomUniform(
-          t.shape, -maxRandNumber, maxRandNumber, undefined, generateRandomNumber(maxRandNumber))
-        // should scale maxRandNumber based on max secret tensor value
-      )
-    }
-    shares.push(share)
+    shares.push(generateRandomShare(secret, 1099511627775))
   }
   shares.push(lastShare(shares, secret))
   const sharesFinal = List<Weights>(shares)
@@ -80,12 +72,8 @@ export async function generateAllShares (secret: Weights, nParticipants: number,
 // }
 
 export function generateRandomNumber (maxRandNumber: number): number {
-  const array = new Uint32Array(1)
-  // generate empty array
-  const intsResult: Uint32Array = crypto.webcrypto.getRandomValues(array)
-  // fill array with 1 crypotgraphically strong number
-  return Number(intsResult[0])
-  // index into array to extract number
+
+  return crypto.randomInt(maxRandNumber)
 }
 
 export function generateRandomShare (secret: Weights, maxRandNumber: number): Weights {
