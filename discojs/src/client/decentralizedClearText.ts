@@ -15,6 +15,8 @@ export class DecentralizedClearText extends DecentralizedBase {
 
   override async sendAndReceiveWeights (noisyWeights: Weights,
     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>> {
+    //reset received fields at beginning of each round
+    this.receivedWeights = this.receivedWeights.clear()
     // prepare weights to send to peers
     const weightsToSend = await serialization.weights.encode(noisyWeights)
 
@@ -22,12 +24,12 @@ export class DecentralizedClearText extends DecentralizedBase {
       throw new Error('server undefined so we cannot send weights through it')
     }
     // create weights message and send to all peers
-    for (let peerDest = 0; peerDest < this.peers.length; peerDest++) {
+    for (let i = 0; i < this.peers.length; i++) {
       const msg: messages.clientWeightsMessageServer = {
         type: messages.messageType.clientWeightsMessageServer,
         peerID: this.ID,
         weights: weightsToSend,
-        destination: peerDest
+        destination: this.peers[i]
       }
       const encodedMsg = msgpack.encode(msg)
       this.sendMessagetoPeer(encodedMsg)
@@ -46,11 +48,5 @@ export class DecentralizedClearText extends DecentralizedBase {
   }
     else{
     throw new Error('Unexpected Message Type')}
-  }
-
-  override resetFields(): void{
-    this.peers = []
-    this.receivedWeights = this.receivedWeights.clear()
-    this.peersLocked = false
   }
 }

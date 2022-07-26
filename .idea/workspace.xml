@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralizedBase.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralizedBase.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralizedClearText.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralizedClearText.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralizedSecAgg.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralizedSecAgg.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
