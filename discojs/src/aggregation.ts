@@ -13,7 +13,6 @@ export function averageWeights (peersWeights: Set<Weights>): Weights {
   }
 
   const numberOfPeers = peersWeights.size
-
   const peersAverageWeights = peersWeights.reduce((accum: Weights, weights) => {
     return accum.map((w, i) => w.add(weights[i]))
   }).map((w) => w.div(numberOfPeers))
