@@ -58,7 +58,7 @@ export async function generateAllShares (secret: Weights, nParticipants: number,
       share.push(
         tf.randomUniform(
           t.shape, -maxRandNumber, maxRandNumber, undefined, generateRandomNumber(maxRandNumber))
-          //should scale maxRandNumber based on max secret tensor value
+        // should scale maxRandNumber based on max secret tensor value
       )
     }
     shares.push(share)

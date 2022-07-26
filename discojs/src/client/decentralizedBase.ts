@@ -1,4 +1,4 @@
-import { List, Set} from 'immutable'
+import { List, Set } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 
@@ -26,8 +26,8 @@ export abstract class DecentralizedBase extends Base {
   protected server?: isomorphic.WebSocket
 
   // list of peerIDs who the client will send messages to
-  protected peers: Array<PeerID> = []
-  protected peersLocked : boolean = false
+  protected peers: PeerID[] = []
+  protected peersLocked: boolean = false
   // list of weights received from other clients
   protected receivedWeights: List<Weights> = List()
   // list of partial sums received by client
@@ -41,7 +41,7 @@ export abstract class DecentralizedBase extends Base {
   /*
 function to check if a given boolean condition is true, checks continuously until maxWait time is reached
  */
-  protected async pauseUntil (condition: () => boolean): Promise<void>  {
+  protected async pauseUntil (condition: () => boolean): Promise<void> {
     return await new Promise<void>((resolve, reject) => {
       const timeWas = new Date().getTime()
       const wait = setInterval(function () {
@@ -169,7 +169,7 @@ function to check if a given boolean condition is true, checks continuously unti
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
-    //reset peer list at each round of training to make sure client waits for updated peerList from server
+    // reset peer list at each round of training to make sure client waits for updated peerList from server
     this.peers = []
     this.receivedWeights = this.receivedWeights.clear()
     this.receivedPartialSums = this.receivedPartialSums.clear()
@@ -180,12 +180,12 @@ function to check if a given boolean condition is true, checks continuously unti
     // after peers are connected, send shares
     await this.pauseUntil(() => this.peers.length >= MINIMUM_PEERS)
 
-    //send weights to all ready connected peers
+    // send weights to all ready connected peers
     const finalWeights: List<Weights> = await this.sendAndReceiveWeights(updatedWeights, staleWeights, round, trainingInformant)
     const setWeights: Set<Weights> = finalWeights.toSet()
     return aggregation.averageWeights(setWeights)
   }
 
-  abstract sendAndReceiveWeights(updatedWeights: Weights, staleWeights: Weights,
-                                     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
+  abstract sendAndReceiveWeights (updatedWeights: Weights, staleWeights: Weights,
+    round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
 }
