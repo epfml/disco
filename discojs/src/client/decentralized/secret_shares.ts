@@ -1,41 +1,37 @@
 import { Weights } from '../../types'
-import { assertEqualSizes } from '../../testing/assert'
 import { List } from 'immutable'
 
 import * as tf from '@tensorflow/tfjs'
-import * as crypto from 'crypto'
+import { getRandomValues } from 'node:crypto'
 
-export function subtractWeights (w1: Weights, w2: Weights): Weights {
-  ''
-  'Return Weights object that is difference of two weights objects'
-  ''
-  assertEqualSizes(w1, w2)
+// returns weights that is difference of the two given weights
+function subtractWeights (w1: Weights, w2: Weights): Weights {
+  if (w1.length !== w2.length) {
+    throw new Error('weights are not of the same size')
+  }
+
   const sub: Weights = []
   for (let i = 0; i < w1.length; i++) {
     sub.push(tf.sub(w1[i], w2[i]))
   }
+
   return sub
 }
 
-export function sum (setSummands: List<Weights>): Weights { // need to test
-  ''
-  'Return sum of multiple weight objects in an array, returns weight object of sum'
-  ''
-  if (setSummands.size < 1) {
+// returns sum of given weights
+// TODO need to test
+export function sum (setSummands: List<Weights>): Weights {
+  const firstWeights = setSummands.first()
+  if (firstWeights === undefined) {
     return []
   }
-  const summedWeights: Weights = new Array<tf.Tensor>()
-  let tensors: Weights = new Array<tf.Tensor>() // list of different sized tensors of 0
-  // @ts-expect-error
-  for (let j = 0; j < setSummands.get(0).length; j++) {
-    for (let i = 0; i < setSummands.size; i++) {
-      // @ts-expect-error
-      tensors.push(setSummands.get(i)[j])
-    }
-    summedWeights.push(tf.addN(tensors))
-    tensors = new Array<tf.Tensor>()
-  }
-  return summedWeights
+
+  return setSummands.shift()
+    .reduce(
+      (acc, ws) => acc.zip(List(ws)).map(([a, w]) => a.push(w)),
+      List(firstWeights).map((w) => List.of(w))
+    ).map((ws) => tf.addN(ws.toArray()))
+    .toArray()
 }
 
 export function lastShare (currentShares: Weights[], secret: Weights): Weights {
@@ -78,13 +74,10 @@ export function shuffleArray (a: any[]): any[] { // https://stackoverflow.com/qu
   return a
 }
 
-export function generateRandomNumber (maxRandNumber: number): number {
+function generateRandomNumber (maxRandNumber: number): number {
   const array = new Uint32Array(1)
-  // generate empty array
-  const intsResult: Uint32Array = crypto.webcrypto.getRandomValues(array)
-  // fill array with 1 crypotgraphically strong number
-  return Number(intsResult[0])
-  // index into array to extract number
+  const intsResult = getRandomValues(array)
+  return intsResult[0]
 }
 
 export function generateRandomShare (secret: Weights, maxRandNumber: number): Weights {
