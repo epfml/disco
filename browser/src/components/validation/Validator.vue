@@ -17,10 +17,7 @@
       </template>
     </ButtonCard>
     <!-- display the chart -->
-    <div
-      v-if="validator !== undefined"
-      class="relative p-4 mx-auto lg:w-1/2 h-full bg-white rounded-md"
-    >
+    <div class="p-4 mx-auto lg:w-1/2 h-full bg-white rounded-md">
       <!-- header -->
       <h4 class="p-4 border-b text-lg font-semibold text-slate-500">
         Test Accuracy
@@ -47,88 +44,71 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import { ConsoleLogger, dataset, EmptyMemory, isTask, Memory, Validator } from 'discojs'
-import { defineComponent } from 'vue'
-import { mapState } from 'vuex'
+<script setup lang="ts">
+import { ConsoleLogger, dataset, EmptyMemory, Memory, Path, Task, Validator } from 'discojs'
+import { computed, defineProps, ref } from 'vue'
 
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import { IndexedDB } from '@/memory'
 import { chartOptions } from '@/charts'
-import { success, error } from '@/toast'
+import { toaster } from '@/toast'
+import { useStore } from '@/store'
 
-export default defineComponent({
-  name: 'Validator',
-  components: {
-    ButtonCard
-  },
-  props: {
-    task: {
-      validator: isTask,
-      default: undefined
-    },
-    datasetBuilder: {
-      type: dataset.DatasetBuilder,
-      default: undefined
-    },
-    model: {
-      type: String,
-      default: undefined
-    }
-  },
-  data () {
-    return {
-      validator: undefined
-    }
-  },
-  computed: {
-    ...mapState(['useIndexedDB']),
-    memory (): Memory {
-      return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
-    },
-    chartOptions (): any {
-      return chartOptions
-    },
-    accuracyData (): number[] | undefined {
-      if (this.validator === undefined) {
-        return undefined
-      }
-      return this.validator.accuracyData().toArray()
-    },
-    currentAccuracy (): string {
-      return (this.validator.accuracy() * 100).toFixed(2)
-    },
-    visitedSamples (): number {
-      return this.validator.visitedSamples()
-    }
-  },
-  methods: {
-    // made a method instead of a computed property because of async
-    async getValidator (): Promise<Validator | undefined> {
-      if (this.model === undefined) {
-        return undefined
-      }
-      return new Validator(this.task, new ConsoleLogger(), this.memory, this.model)
-    },
-    async assessModel (): Promise<void> {
-      if (this.datasetBuilder.size() === 0) {
-        return error(this.$toast, 'Missing dataset')
-      }
-      this.validator = await this.getValidator()
-      if (this.validator === undefined) {
-        return error(this.$toast, 'Model not found')
-      }
-      const dataset: dataset.Data = (await this.datasetBuilder
-        .build({ validationSplit: 0 }))
-        .train
-      success(this.$toast, 'Model testing started!')
-      try {
-        await this.validator.assess(dataset)
-      } catch (e) {
-        error(this.$toast, 'Model testing failed!')
-        console.error(e instanceof Error ? e.message : e)
-      }
-    }
-  }
+const store = useStore()
+
+interface Props {
+  task: Task
+  datasetBuilder?: dataset.DatasetBuilder<File>
+  model?: Path
+}
+
+const validator = ref<Validator>(undefined)
+const props = defineProps<Props>()
+
+const useIndexedDB = store.state.useIndexedDB
+
+const memory = computed<Memory>(() => useIndexedDB ? new IndexedDB() : new EmptyMemory())
+const accuracyData = computed<number[]>(() => {
+  const r = validator.value?.accuracyData()
+  return r !== undefined ? r.toArray() : [0]
 })
+const currentAccuracy = computed<string>(() => {
+  const r = validator.value?.accuracy()
+  return r !== undefined ? (r * 100).toFixed(2) : '0'
+})
+const visitedSamples = computed<number>(() => {
+  const r = validator.value?.visitedSamples()
+  return r !== undefined ? r : 0
+})
+
+async function getValidator (): Promise<Validator | undefined> {
+  if (props.model === undefined) {
+    return undefined
+  }
+  return new Validator(props.task, new ConsoleLogger(), memory.value, props.model)
+}
+
+async function assessModel (): Promise<void> {
+  if (props.datasetBuilder?.size() === 0) {
+    return toaster.error('No file was given')
+  }
+
+  const v = await getValidator()
+  if (v !== undefined) {
+    validator.value = v
+  } else {
+    return toaster.error('Model was not found')
+  }
+
+  const testingSet: dataset.Data = (await props.datasetBuilder.build({ validationSplit: 0 })).train
+
+  toaster.success('Model testing started')
+
+  try {
+    await validator.value?.assess(testingSet)
+  } catch (e) {
+    toaster.error(e instanceof Error ? e.message : e.toString())
+  }
+}
+
 </script>
