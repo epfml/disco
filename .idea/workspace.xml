@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/insecure_decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/insecure_decentralized_client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discojs/src/client/secure_decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/secure_decentralized_client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/router/signaling_server.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/router/signaling_server.ts" afterDir="false" />
-    </list>
+    <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -38,7 +33,8 @@
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/alyssaunell/disco/discojs/src/client&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Applications/PyCharm.app/Contents/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external&quot;
+    &quot;ts.external.directory.path&quot;: &quot;/Applications/PyCharm.app/Contents/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external&quot;,
+    &quot;ts.rename.search.for.dynamic.occurrences&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
