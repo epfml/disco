@@ -1,5 +1,4 @@
 import { Server } from 'node:http'
-import { List } from 'immutable'
 
 import { client, Task, Weights } from 'discojs'
 
