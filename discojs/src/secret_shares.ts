@@ -58,25 +58,26 @@ export async function generateAllShares (secret: Weights, nParticipants: number,
       share.push(
         tf.randomUniform(
           t.shape, -maxRandNumber, maxRandNumber, undefined, generateRandomNumber(maxRandNumber))
+          //should scale maxRandNumber based on max secret tensor value
       )
     }
     shares.push(share)
   }
   shares.push(lastShare(shares, secret))
-  const shares2 = List<Weights>(shares)
-  return shares2
+  const sharesFinal = List<Weights>(shares)
+  return sharesFinal
 }
 
-export function shuffleArray (a: any[]): any[] { // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
-  let j, x, i
-  for (i = a.length - 1; i > 0; i--) {
-    j = Math.floor(Math.random() * (i + 1))
-    x = a[i]
-    a[i] = a[j]
-    a[j] = x
-  }
-  return a
-}
+// export function shuffleArray (a: any[]): any[] { // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
+//   let j, x, i
+//   for (i = a.length - 1; i > 0; i--) {
+//     j = Math.floor(Math.random() * (i + 1))
+//     x = a[i]
+//     a[i] = a[j]
+//     a[j] = x
+//   }
+//   return a
+// }
 
 export function generateRandomNumber (maxRandNumber: number): number {
   const array = new Uint32Array(1)
