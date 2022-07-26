@@ -96,7 +96,7 @@ import LoadIcon from '../../assets/svg/LoadIcon.vue'
 import StackIcon from '../../assets/svg/StackIcon.vue'
 import TippyCard from './containers/TippyCard.vue'
 import TippyContainer from './containers/TippyContainer.vue'
-import { error, success } from '@/toast'
+import { toaster } from '@/toast'
 
 export default {
   name: 'ModelLibrary',
@@ -138,10 +138,9 @@ export default {
       try {
         await this.$store.commit('deleteModel', path)
         await this.memory.deleteModel(path)
-        success(this.$toast, 'Successfully deleted the model')
+        toaster.success('Successfully deleted the model')
       } catch (e) {
-        error(this.$toast, 'Error')
-        console.log(e.message)
+        toaster.error(e.message)
       }
     },
 
@@ -161,11 +160,11 @@ export default {
           await this.memory.loadSavedModel(path)
         } catch (e) {
           console.log(e.message)
-          error(this.$toast, 'Error')
+          toaster.error('Error')
         }
-        success(this.$toast, `Loaded ${modelInfo.name}, ready for next training session.`)
+        toaster.success(`Loaded ${modelInfo.name}, ready for next training session.`)
       } else {
-        error(this.$toast, 'Model is already loaded')
+        toaster.error('Model is already loaded')
       }
     }
   }

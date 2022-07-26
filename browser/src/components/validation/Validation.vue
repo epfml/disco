@@ -125,6 +125,12 @@
   </div>
 </template>
 <script lang="ts">
+import { defineComponent } from 'vue'
+import { RouterLink } from 'vue-router'
+import { mapState } from 'vuex'
+
+import { EmptyMemory, Memory, Path, Task, dataset } from 'discojs'
+
 import ValidationBar from '@/components/validation/ValidationBar.vue'
 import Data from '@/components/data/Data.vue'
 import Validator from '@/components/validation/Validator.vue'
@@ -132,13 +138,7 @@ import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import { IndexedDB } from '@/memory'
 import { WebTabularLoader, WebImageLoader } from '@/data_loader'
-
-import { EmptyMemory, Memory, Path, Task } from 'discojs'
-import { DatasetBuilder, DataLoader } from 'discojs/dist/dataset'
-
-import { mapState } from 'vuex'
-import { defineComponent } from 'vue'
-import { error } from '@/toast'
+import { toaster } from '@/toast'
 
 export default defineComponent({
   name: 'Testing',
@@ -147,7 +147,8 @@ export default defineComponent({
     Validator,
     Data,
     ButtonCard,
-    IconCard
+    IconCard,
+    RouterLink
   },
   data (): { task: Task, step: number, model: Path } {
     return {
@@ -167,11 +168,11 @@ export default defineComponent({
     memory (): Memory {
       return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     },
-    datasetBuilder (): DatasetBuilder<File> | undefined {
+    datasetBuilder (): dataset.DatasetBuilder<File> | undefined {
       if (this.task === undefined) {
         return undefined
       }
-      let dataLoader: DataLoader<File>
+      let dataLoader: dataset.DataLoader<File>
       switch (this.task.trainingInformation.dataType) {
         case 'tabular':
           dataLoader = new WebTabularLoader(this.task, ',')
@@ -182,13 +183,13 @@ export default defineComponent({
         default:
           throw new Error('not implemented')
       }
-      return new DatasetBuilder(dataLoader, this.task)
+      return new dataset.DatasetBuilder(dataLoader, this.task)
     }
   },
   watch: {
     async testingState (_: boolean) {
       if (this.testingModel !== undefined) {
-        await this.selectModel(this.models.get(this.testingModel))
+        await this.selectModel(this.testingModel)
       }
     }
   },
@@ -196,7 +197,7 @@ export default defineComponent({
     await this.$store.dispatch('initModels')
     // can't watch before mount
     if (this.testingModel !== undefined) {
-      this.selectModel(this.models.get(this.testingModel))
+      this.selectModel(this.testingModel)
     }
   },
   async activated (): Promise<void> {
@@ -210,7 +211,7 @@ export default defineComponent({
         this.model = path
         this.step = 1
       } else {
-        error(this.$toast, 'Model not found')
+        toaster.error('Model not found')
       }
     },
     prevStep (): void {
@@ -224,7 +225,7 @@ export default defineComponent({
       if (task !== undefined) {
         return task.displayInformation.taskTitle
       } else {
-        error(this.$toast, 'Task not found')
+        toaster.error('Task not found')
       }
     }
   }
