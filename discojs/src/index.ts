@@ -18,8 +18,6 @@ export { Disco, TrainingSchemes } from './training'
 export { Validator } from './validation'
 
 export { TrainingInformation, DisplayInformation, isTask, Task, isTaskID, TaskID } from './task'
-export { TrainingInformant } from './training_informant'
-export { TrainingSchemes } from './training/training_schemes'
 export * as messages from './messages'
 export * from './types'
 
