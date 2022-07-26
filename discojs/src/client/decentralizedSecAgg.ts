@@ -4,18 +4,22 @@ import * as secret_shares from '../secret_shares'
 import { DecentralizedBase } from './decentralizedBase'
 import * as messages from '../messages'
 
-import { serialization, TrainingInformant, Weights, privacy } from '..'
+import { serialization, TrainingInformant, Weights } from '..'
 
 export class DecentralizedSecAgg extends DecentralizedBase {
+    // list of weights received from other clients
+  private receivedShares: List<Weights> = List()
+  // list of partial sums received by client
+  private receivedPartialSums: List<Weights> = List()
+  // the partial sum calculated by the client
+  private mySum: Weights = []
   /*
   generates shares and sends to all ready peers adds differential privacy
    */
-  private async sendShares (updatedWeights: Weights,
-    staleWeights: Weights,
+  private async sendShares (noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant): Promise<void> {
     // generate weight shares and add differential privacy
-    const noisyWeights: Weights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     const weightShares: List<Weights> = await secret_shares.generateAllShares(noisyWeights, this.peers.length, 1000)
 
     // Broadcast our weights to ith peer in the SERVER LIST OF PEERS (seen in signaling_server.ts)
@@ -24,8 +28,8 @@ export class DecentralizedSecAgg extends DecentralizedBase {
       if (weights === undefined) {
         throw new Error('weight shares generated incorrectly')
       }
-      const msg: messages.clientWeightsMessageServer = {
-        type: messages.messageType.clientWeightsMessageServer,
+      const msg: messages.clientSharesMessageServer = {
+        type: messages.messageType.clientSharesMessageServer,
         peerID: this.ID,
         weights: await serialization.weights.encode(weights),
         destination: this.peers[i]
@@ -40,32 +44,52 @@ sends partial sums to connected peers so final update can be calculated
  */
   private async sendPartialSums (): Promise<void> {
     // calculating my personal partial sum from received shares that i will share with peers
-    this.mySum = secret_shares.sum(List(Array.from(this.receivedWeights.values())))
+    this.mySum = secret_shares.sum(List(Array.from(this.receivedShares.values())))
     // calculate, encode, and send sum
     for (let i = 0; i < this.peers.length; i++) {
       const msg: messages.clientPartialSumsMessageServer = {
         type: messages.messageType.clientPartialSumsMessageServer,
         peerID: this.ID,
         partials: await serialization.weights.encode(this.mySum),
-        destination: i
+        destination: this.peers[i]
       }
       const encodedMsg = msgpack.encode(msg)
       this.sendMessagetoPeer(encodedMsg)
     }
   }
 
-  override async sendAndReceiveWeights (updatedWeights: Weights, staleWeights: Weights,
+  override async sendAndReceiveWeights (noisyWeights: Weights,
     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>> {
     // PHASE 1 COMMUNICATION
-    await this.sendShares(updatedWeights, staleWeights, round, trainingInformant)
-
+    await this.sendShares(noisyWeights, round, trainingInformant)
     // after all weights are received, send partial sum
-    await this.pauseUntil(() => this.receivedWeights.size >= this.peers.length)
+    await this.pauseUntil(() => this.receivedShares.size >= this.peers.length)
     // PHASE 2 COMMUNICATION
     await this.sendPartialSums()
-
     // after all partial sums are received, return list of partial sums to be aggregated
     await this.pauseUntil(() => this.receivedPartialSums.size >= this.peers.length)
     return this.receivedPartialSums
+  }
+
+    override clientHandle(msg: any): void{
+      if (msg.type === messages.messageType.clientSharesMessageServer) {
+          // update received weights by one weights reception
+          const weights = serialization.weights.decode(msg.weights)
+          this.receivedShares = this.receivedShares.push(weights)
+        }
+      else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
+          // update received partial sums by one partial sum
+          const partials: Weights = serialization.weights.decode(msg.partials)
+          this.receivedPartialSums = this.receivedPartialSums.push(partials)
+        }
+      else{
+      throw new Error('Unexpected Message Type')}
+  }
+
+  override resetFields(): void{
+    this.peers = []
+    this.receivedShares = this.receivedShares.clear()
+    this.receivedPartialSums = this.receivedPartialSums.clear()
+    this.peersLocked = false
   }
 }
