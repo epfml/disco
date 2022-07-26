@@ -2,7 +2,7 @@ import { List, Set } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 
-import { serialization, TrainingInformant, Weights, aggregation, privacy } from '..'
+import { TrainingInformant, Weights, aggregation, privacy } from '..'
 import * as messages from '../messages'
 
 import { Base } from './base'
@@ -34,7 +34,7 @@ export abstract class DecentralizedBase extends Base {
   /*
 function to check if a given boolean condition is true, checks continuously until maxWait time is reached
  */
-  protected async pauseUntil(condition: () => boolean): Promise<void> {
+  protected async pauseUntil (condition: () => boolean): Promise<void> {
     return await new Promise<void>((resolve, reject) => {
       const timeWas = new Date().getTime()
       const wait = setInterval(function () {
@@ -54,7 +54,7 @@ function to check if a given boolean condition is true, checks continuously unti
   /*
   function behavior will change with peer 2 peer, sends message to its destination, currently through server
    */
-  protected sendMessagetoPeer(message: unknown): void {
+  protected sendMessagetoPeer (message: unknown): void {
     if (this.server === undefined) {
       throw new Error("Undefined Server, can't send message")
     }
@@ -64,9 +64,9 @@ function to check if a given boolean condition is true, checks continuously unti
   /*
   send message to server that client is ready
    */
-  protected sendReadyMessage(round: number): void {
+  protected sendReadyMessage (round: number): void {
     // Broadcast our readiness
-    const msg: messages.clientReadyMessage = {type: messages.messageType.clientReadyMessage, round: round}
+    const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round }
 
     const encodedMsg = msgpack.encode(msg)
     if (this.server === undefined) {
@@ -79,7 +79,7 @@ function to check if a given boolean condition is true, checks continuously unti
   creation of the websocket for the server, connection of client to that webSocket,
   deals with message reception from decentralized client perspective (messages received by client)
    */
-  protected async connectServer(url: URL): Promise<isomorphic.WebSocket> {
+  protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
@@ -105,7 +105,7 @@ function to check if a given boolean condition is true, checks continuously unti
     }
     return await new Promise((resolve, reject) => {
       ws.onerror = (err: isomorphic.ErrorEvent) =>
-          reject(new Error(`connecting server: ${err.message}`))
+        reject(new Error(`connecting server: ${err.message}`))
       ws.onopen = () => resolve(ws)
     })
   }
@@ -113,7 +113,7 @@ function to check if a given boolean condition is true, checks continuously unti
   /**
    * Initialize the connection to the peers and to the other nodes.
    */
-  async connect(): Promise<void> {
+  async connect (): Promise<void> {
     const serverURL = new URL('', this.url.href)
     switch (this.url.protocol) {
       case 'http:':
@@ -133,7 +133,7 @@ function to check if a given boolean condition is true, checks continuously unti
   /**
    * Disconnection process when user quits the task.
    */
-  async disconnect(): Promise<void> {
+  async disconnect (): Promise<void> {
     // this.peers.forEach((peer) => peer.destroy())
     // this.peers = Map()
 
@@ -141,45 +141,45 @@ function to check if a given boolean condition is true, checks continuously unti
     this.server = undefined
   }
 
-  async onTrainEndCommunication(_: Weights, trainingInformant: TrainingInformant): Promise<void> {
+  async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
     // TODO: enter seeding mode?
     trainingInformant.addMessage('Training finished.')
   }
 
   // abstract peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void
 
-  async onRoundEndCommunication(
-      updatedWeights: Weights,
-      staleWeights: Weights,
-      round: number,
-      trainingInformant: TrainingInformant
+  async onRoundEndCommunication (
+    updatedWeights: Weights,
+    staleWeights: Weights,
+    round: number,
+    trainingInformant: TrainingInformant
   ): Promise<Weights> {
     // reset peer list at each round of training to make sure client waits for updated peerList from server
-    try{
+    try {
       this.peers = []
 
-    this.peersLocked = false
+      this.peersLocked = false
 
-    this.sendReadyMessage(round)
+      this.sendReadyMessage(round)
 
-    // after peers are connected, send shares
-    await this.pauseUntil(() => this.peers.length >= MINIMUM_PEERS)
+      // after peers are connected, send shares
+      await this.pauseUntil(() => this.peers.length >= MINIMUM_PEERS)
 
-    // Apply DP
-    const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
+      // Apply DP
+      const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
 
-    // send weights to all ready connected peers
-    const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)
-    const setWeights: Set<Weights> = finalWeights.toSet()
-    return aggregation.averageWeights(setWeights)}
-    catch (Error) {
+      // send weights to all ready connected peers
+      const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)
+      const setWeights: Set<Weights> = finalWeights.toSet()
+      return aggregation.averageWeights(setWeights)
+    } catch (Error) {
       console.log('Timeout Error Reported, training will continue')
       return updatedWeights
     }
   }
 
-  abstract sendAndReceiveWeights(noisyWeights: Weights,
-                                 round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
+  abstract sendAndReceiveWeights (noisyWeights: Weights,
+    round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
 
-  abstract clientHandle(msg: any): void
+  abstract clientHandle (msg: any): void
 }

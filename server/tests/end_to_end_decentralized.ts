@@ -1,22 +1,22 @@
-import fs from 'fs/promises'
-import path from 'node:path'
+// import fs from 'fs/promises'
+// import path from 'node:path'
 import { Server } from 'node:http'
-import { Range } from 'immutable'
+// import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
-import { dataset, ConsoleLogger, training, TrainingSchemes, TrainingInformant, EmptyMemory, tasks, client, Weights } from 'discojs'
+import { TrainingSchemes, TrainingInformant, tasks, client, Weights } from 'discojs'
 
 import { getClient, startServer } from './utils'
 // import { expect } from 'chai'
 
-const SCHEME = TrainingSchemes.DECENTRALIZED
+// const SCHEME = TrainingSchemes.DECENTRALIZED
 
-class NodeImageLoader extends dataset.ImageLoader<string> {
-  async readImageFrom (source: string): Promise<tf.Tensor3D> {
-    const image = await fs.readFile(source)
-    return tf.node.decodeImage(image) as tf.Tensor3D
-  }
-}
+// class NodeImageLoader extends dataset.ImageLoader<string> {
+//   async readImageFrom (source: string): Promise<tf.Tensor3D> {
+//     const image = await fs.readFile(source)
+//     return tf.node.decodeImage(image) as tf.Tensor3D
+//   }
+// }
 
 function makeWeights (values: any): Weights {
   const w: Weights = []

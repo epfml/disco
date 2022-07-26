@@ -40,8 +40,7 @@ export class SignalingServer {
 
           // sends message it received to destination
           this.clients.get(msg.destination)?.send(encodedMsg)
-        }
-        else if (msg.type === messages.messageType.clientSharesMessageServer) {
+        } else if (msg.type === messages.messageType.clientSharesMessageServer) {
           const forwardMsg: messages.clientSharesMessageServer = {
             type: messages.messageType.clientSharesMessageServer,
             peerID: msg.peerID,
@@ -52,8 +51,7 @@ export class SignalingServer {
 
           // sends message it received to destination
           this.clients.get(msg.destination)?.send(encodedMsg)
-        }
-        else if (msg.type === messages.messageType.clientReadyMessage) {
+        } else if (msg.type === messages.messageType.clientReadyMessage) {
           // this.readyClientsBuffer = this.readyClientsBuffer.push(peerID)
           this.readyClientsBuffer.push(peerID)
           // if enough clients are connected, server shares who is connected
