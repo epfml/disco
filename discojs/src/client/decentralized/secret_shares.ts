@@ -34,19 +34,15 @@ export function sum (setSummands: List<Weights>): Weights {
     .toArray()
 }
 
+// returns Weights in the remaining share once N-1 shares have been constructed, where N are the amount of participants
 export function lastShare (currentShares: Weights[], secret: Weights): Weights {
-  ''
-  'Return Weights in the remaining share once N-1 shares have been constructed, where N are the amount of participants'
-  ''
   const currentShares2 = List<Weights>(currentShares)
   const last: Weights = subtractWeights(secret, sum(currentShares2))
   return last
 }
 
-export async function generateAllShares (secret: Weights, nParticipants: number, maxRandNumber: number): Promise<List<Weights>> {
-  ''
-  'Generate N additive shares that aggregate to the secret array'
-  ''
+// Generates N additive shares that aggregate to the secret array
+export function generateAllShares (secret: Weights, nParticipants: number, maxRandNumber: number): List<Weights> {
   const shares: Weights[] = []
   for (let i = 0; i < nParticipants - 1; i++) {
     const share: Weights = []
@@ -63,7 +59,8 @@ export async function generateAllShares (secret: Weights, nParticipants: number,
   return shares2
 }
 
-export function shuffleArray (a: any[]): any[] { // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
+// TODO not crypto secure
+export function shuffleArray<T> (a: T[]): T[] {
   let j, x, i
   for (i = a.length - 1; i > 0; i--) {
     j = Math.floor(Math.random() * (i + 1))
