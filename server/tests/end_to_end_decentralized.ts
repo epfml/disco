@@ -4,7 +4,7 @@ import { Server } from 'node:http'
 // import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
-import { TrainingSchemes, TrainingInformant, tasks, client, Weights } from 'discojs'
+import { TrainingSchemes, TrainingInformant, informant, tasks, client, Weights } from 'discojs'
 
 import { getClient, startServer } from './utils'
 // import { expect } from 'chai'
@@ -106,7 +106,7 @@ describe('end to end', function () {
     const TASK = tasks.cifar10.task
     const clientCurrent: client.DecentralizedClearText = await getClient(client.DecentralizedClearText, server, TASK)
     const weights: Weights = makeWeights(input)
-    const trainingInformant1: TrainingInformant = new TrainingInformant(0, '0', TrainingSchemes.DECENTRALIZED)
+    const trainingInformant1: TrainingInformant = new informant.DecentralizedInformant(0, 0)
     await clientCurrent.connect()
     return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
   }
@@ -160,7 +160,7 @@ describe('end to end', function () {
     const TASK = tasks.cifar10.task
     const clientCurrent: client.DecentralizedSecAgg = await getClient(client.DecentralizedSecAgg, server, TASK)
     const weights: Weights = makeWeights(input)
-    const trainingInformant1: TrainingInformant = new TrainingInformant(0, '0', TrainingSchemes.DECENTRALIZED)
+    const trainingInformant1: TrainingInformant = new informant.DecentralizedInformant(0, 0)
     await clientCurrent.connect()
     return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
   }
