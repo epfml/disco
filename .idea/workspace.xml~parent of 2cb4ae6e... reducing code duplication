@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralized.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/decentralizedGeneral.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/decentralizedGeneral.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/secureAggregationPeer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/secureAggregationPeer.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/client/secureDecentralizedClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/client/secureDecentralizedClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/secret_shares.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/secret_shares.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discojs/src/secret_shares.ts" beforeDir="false" afterPath="$PROJECT_DIR$/discojs/src/secret_shares.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/router/decentralized.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/router/decentralized.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/tests/decentralized_client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server/tests/decentralized_client.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="TypeScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2Ay68UHOafaSgqloUGuJ6XE1hrg" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "/Applications/PyCharm.app/Contents/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="fac645bb-30b4-4420-90f2-b1a2253fc092" name="Changes" comment="" />
+      <created>1655969321402</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1655969321402</updated>
+      <workItem from="1655969326344" duration="10414000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/disco$disco.coverage" NAME="disco Coverage Results" MODIFIED="1654677737811" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+  </component>
+</project>

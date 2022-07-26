@@ -5,7 +5,7 @@
 // import * as tf from '@tensorflow/tfjs-node'
 // import { getApp } from '../../src/get_server'
 //
-// const platformID = 'feai'
+// const platformID = 'deai'
 // const clients = {
 //   one: 'one',
 //   two: 'two'

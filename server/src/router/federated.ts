@@ -79,7 +79,7 @@ export class Federated {
   ) {
     this.ownRouter = express.Router()
 
-    this.ownRouter.get('/', (_, res) => res.send('FeAI server'))
+    this.ownRouter.get('/', (_, res) => res.send('FeAI server\n'))
 
     this.ownRouter.get('/connect/:task/:id', (req, res) => this.connect(req, res))
     this.ownRouter.get('/disconnect/:task/:id', (req, res) => this.disconnect(req, res))
