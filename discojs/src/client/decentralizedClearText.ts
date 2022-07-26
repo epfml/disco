@@ -1,19 +1,17 @@
-import { List, Set} from 'immutable'
+import { List } from 'immutable'
 import msgpack from 'msgpack-lite'
 
-import { aggregation, privacy, serialization, TrainingInformant, Weights } from '..'
+import { privacy, serialization, TrainingInformant, Weights } from '..'
 import { DecentralizedBase } from './decentralizedBase'
 import * as messages from '../messages'
-
-const MINIMUM_PEERS = 3
 
 /**
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export class DecentralizedClearText extends DecentralizedBase {
-    override async sendAndReceiveWeights(updatedWeights: Weights, staleWeights: Weights,
-                                     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>{
+  override async sendAndReceiveWeights (updatedWeights: Weights, staleWeights: Weights,
+    round: number, trainingInformant: TrainingInformant): Promise<List<Weights>> {
     // prepare weights to send to peers
     const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
     const weightsToSend = await serialization.weights.encode(noisyWeights)

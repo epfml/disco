@@ -1,4 +1,4 @@
-import { Map, List } from 'immutable'
+import { Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 import WebSocket from 'ws'
 
@@ -9,7 +9,7 @@ type PeerID = number
 
 export class SignalingServer {
   // maps peerIDs to their respective websockets so peers can be sent messages by their IDs
-  private readyClientsBuffer: Array<PeerID> = []
+  private readyClientsBuffer: PeerID[] = []
   private clients: Map<PeerID, WebSocket> = Map()
   // increments with addition of every client, server keeps track of clients with this and tells them their ID
   private clientCounter: PeerID = 0
@@ -46,7 +46,7 @@ export class SignalingServer {
           // if enough clients are connected, server shares who is connected
           if (this.readyClientsBuffer.length >= this.minConnected) {
             const readyPeerIDs: messages.serverReadyClients = { type: messages.messageType.serverReadyClients, peerList: this.readyClientsBuffer }
-            for (let peerID of this.readyClientsBuffer) {
+            for (const peerID of this.readyClientsBuffer) {
               // send peerIds to everyone in readyClients
               this.clients.get(peerID)?.send(msgpack.encode(readyPeerIDs))
             }

@@ -1,13 +1,10 @@
-import { List, Set } from 'immutable'
+import { List } from 'immutable'
 import msgpack from 'msgpack-lite'
 import * as secret_shares from '../secret_shares'
 import { DecentralizedBase } from './decentralizedBase'
 import * as messages from '../messages'
 
-import { aggregation, serialization, TrainingInformant, Weights, privacy } from '..'
-
-// minimum clients we want connected in order to start sharing
-const MINIMUM_PEERS = 3
+import { serialization, TrainingInformant, Weights, privacy } from '..'
 
 export class DecentralizedSecAgg extends DecentralizedBase {
   /*
@@ -57,15 +54,17 @@ sends partial sums to connected peers so final update can be calculated
     }
   }
 
-  override async sendAndReceiveWeights(updatedWeights: Weights, staleWeights: Weights,
-                                     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>{
+  override async sendAndReceiveWeights (updatedWeights: Weights, staleWeights: Weights,
+    round: number, trainingInformant: TrainingInformant): Promise<List<Weights>> {
+    // PHASE 1 COMMUNICATION
     await this.sendShares(updatedWeights, staleWeights, round, trainingInformant)
 
     // after all weights are received, send partial sum
     await this.pauseUntil(() => this.receivedWeights.size >= this.peers.length)
+    // PHASE 2 COMMUNICATION
     await this.sendPartialSums()
 
-    // after all partial sums are received, return final weight update
+    // after all partial sums are received, return list of partial sums to be aggregated
     await this.pauseUntil(() => this.receivedPartialSums.size >= this.peers.length)
     return this.receivedPartialSums
   }
