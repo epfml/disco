@@ -17,7 +17,7 @@ export class SignalingServer {
   // private readonly minConnected: number = 3
 
   handle (task: Task, ws: WebSocket): void {
-    let minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
+    const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
     const peerID: PeerID = this.clientCounter++
     this.clients = this.clients.set(peerID, ws)
     // send peerID message
