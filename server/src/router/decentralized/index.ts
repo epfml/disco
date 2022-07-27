@@ -1,0 +1,1 @@
+export { Decentralized } from './router'

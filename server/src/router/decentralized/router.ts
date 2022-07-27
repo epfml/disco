@@ -2,7 +2,7 @@ import express from 'express'
 
 import { tf, client, Task, TaskID } from '@epfml/discojs'
 
-import { Server } from './server'
+import { Server } from '../server'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
 
