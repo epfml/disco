@@ -1,3 +1,16 @@
+<script setup lang="ts">
+
+import { defineProps } from 'vue'
+
+const props = defineProps({
+  withContent: {
+    type: Boolean,
+    default: true
+  }
+})
+
+</script>
+
 <template>
   <!--  Card -->
   <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
@@ -10,7 +23,6 @@
           items-center
           justify-between
           p-4
-          border-b
         "
       >
         <h4 class="text-lg font-semibold text-slate-500">
@@ -22,65 +34,13 @@
           </span>
         </div>
       </div>
-      <div v-if="showCardContent">
-        <!-- Description -->
-        <div class="text-sm text-slate-500 p-8">
-          <slot name="content" />
-        </div>
-      </div>
-      <!-- Hide content -->
+      <!-- Description -->
       <div
-        v-if="withToggle"
-        class="relative p-4 flex items-center"
+        v-show="props.withContent"
+        class="text-sm text-slate-500 p-8 border-t"
       >
-        <span
-          aria-hidden="true"
-          @click="hideToggleAction"
-        >
-          <div v-show="showCardContent">
-            <UpArrow />
-          </div>
-          <div
-            v-show="!showCardContent"
-            class="flex flex-row"
-          >
-            <DownArrow />
-            <p class="px-4">Toggle to show</p>
-          </div>
-        </span>
+        <slot name="content" />
       </div>
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-import DownArrow from '@/assets/svg/DownArrow.vue'
-import UpArrow from '@/assets/svg/UpArrow.vue'
-
-export default defineComponent({
-  name: 'IconCard',
-  components: {
-    DownArrow,
-    UpArrow
-  },
-  props: {
-    customClass: { default: '', type: String },
-    withToggle: { default: false, type: Boolean }
-  },
-  data () {
-    return {
-      showCardContent: true
-    }
-  },
-  mounted () {
-    this.showCardContent = !this.withToggle
-  },
-  methods: {
-    hideToggleAction () {
-      this.showCardContent = !this.showCardContent
-    }
-  }
-})
-</script>
