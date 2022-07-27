@@ -6,7 +6,7 @@ import { Base } from './base'
 import * as messages from './messages'
 
 /**
- * Decentralized client that does not utilize secure aggregation
+ * Decentralized client that does not utilize secure aggregation, but sends model updates in clear text
  */
 export class ClearText extends Base {
   // list of weights received from other clients
