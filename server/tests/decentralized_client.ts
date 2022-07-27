@@ -15,12 +15,12 @@ describe('decentralized client', function () { // the tests container
   after(() => { server?.close() })
 
   it('connect to valid task', async () => {
-    const client = await getClient(clients.DecentralizedClearText, server, TASK_MNIST)
+    const client = await getClient(clients.decentralized.ClearText, server, TASK_MNIST)
     await client.connect()
   })
 
   it('disconnect from valid task', async () => {
-    const client = await getClient(clients.DecentralizedClearText, server, TASK)
+    const client = await getClient(clients.decentralized.ClearText, server, TASK)
     await client.connect()
     await client.disconnect()
   })

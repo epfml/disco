@@ -1,12 +1,12 @@
 import { List } from 'immutable'
 import msgpack from 'msgpack-lite'
-import * as secret_shares from '../secret_shares'
-import { DecentralizedBase } from './decentralized_base'
-import * as messages from '../messages'
 
-import { serialization, TrainingInformant, Weights } from '..'
+import { serialization, TrainingInformant, Weights } from '../..'
+import { Base } from './base'
+import * as messages from './messages'
+import * as secret_shares from './secret_shares'
 
-export class DecentralizedSecAgg extends DecentralizedBase {
+export class SecAgg extends Base {
   // list of weights received from other clients
   private receivedShares: List<Weights> = List()
   // list of partial sums received by client
@@ -16,9 +16,11 @@ export class DecentralizedSecAgg extends DecentralizedBase {
   /*
   generates shares and sends to all ready peers adds differential privacy
    */
-  private async sendShares (noisyWeights: Weights,
+  private async sendShares (
+    noisyWeights: Weights,
     round: number,
-    trainingInformant: TrainingInformant): Promise<void> {
+    trainingInformant: TrainingInformant
+  ): Promise<void> {
     // generate weight shares and add differential privacy
     const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, this.peers.length)
 
