@@ -1,12 +1,9 @@
-// import { assertTrue, assertEqualSizes } from './testing/assert'
-import { UnitTester } from './testing/unit_tester'
-import * as secret_shares from './secret_shares'
-import { Weights } from './types'
-
 import * as tf from '@tensorflow/tfjs'
 import { List } from 'immutable'
-// import { lastShare, RNG_CRYPTO_SECURITY } from './secret_shares'
-// require('@tensorflow/tfjs-node')
+
+import { Weights } from '../..'
+import { UnitTester } from '../../testing/unit_tester'
+import * as secret_shares from './secret_shares'
 
 function makeWeights (values: any): Weights {
   const w: Weights = []

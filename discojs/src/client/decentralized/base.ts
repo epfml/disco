@@ -1,15 +1,13 @@
 import { List, Set } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
+import { URL } from 'url'
 import { Task } from '@/task'
 
-import { TrainingInformant, Weights, aggregation, privacy } from '..'
-import * as messages from '../messages'
-
-import { Base } from './base'
-import { URL } from 'url'
-
-type PeerID = number
+import { TrainingInformant, Weights, aggregation, privacy } from '../..'
+import { Base as ClientBase } from '../base'
+import * as messages from './messages'
+import { PeerID } from './types'
 
 // Time to wait between network checks in milliseconds.
 const TICK = 100
@@ -21,7 +19,7 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
-export abstract class DecentralizedBase extends Base {
+export abstract class Base extends ClientBase {
   protected minimumReadyPeers: number
   protected noiseMagnitude: number
   constructor (
