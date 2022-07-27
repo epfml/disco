@@ -1,20 +1,22 @@
-import { Weights } from './types'
-import { assertEqualSizes } from './testing/assert'
 import { List } from 'immutable'
 
 import * as tf from '@tensorflow/tfjs'
 import * as crypto from 'crypto'
 
+import { Weights } from '../..'
+
 export function subtractWeights (w1: Weights, w2: Weights): Weights {
   ''
   'Return Weights object that is difference of two weights objects'
   ''
-  assertEqualSizes(w1, w2)
+  if (w1.length !== w2.length) {
+    throw new Error('weights not of the same lenght')
+  }
+
   const sub: Weights = []
   for (let i = 0; i < w1.length; i++) {
     sub.push(tf.sub(w1[i], w2[i]))
-  }
-  return sub
+  } return sub
 }
 
 export function sum (setSummands: List<Weights>): Weights { // need to test
@@ -53,7 +55,7 @@ export function generateAllShares (secret: Weights, nParticipants: number): List
   ''
   const shares: Weights[] = []
   for (let i = 0; i < nParticipants - 1; i++) {
-    shares.push(generateRandomShare(secret, 1099511627775))
+    shares.push(generateRandomShare(secret, 1099511627775)) // FIXME random value!
   }
   shares.push(lastShare(shares, secret))
   const sharesFinal = List<Weights>(shares)
