@@ -52,8 +52,8 @@ export function generateAllShares (secret: Weights, nParticipants: number): List
   'Generate N additive shares that aggregate to the secret array'
   ''
   const shares: Weights[] = []
-  for (let i = 0; i < nParticipants - 1; i++) {
-    shares.push(generateRandomShare(secret, 1099511627775))
+  for (let i = 0; i < nParticipants - 1; i++) {//1099511627775
+    shares.push(generateRandomShare(secret, 1000000))
   }
   shares.push(lastShare(shares, secret))
   const sharesFinal = List<Weights>(shares)
