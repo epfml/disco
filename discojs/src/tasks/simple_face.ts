@@ -34,8 +34,7 @@ export const task: Task = {
     IMAGE_H: 200,
     IMAGE_W: 200,
     LABEL_LIST: ['child', 'adult'],
-    scheme: 'Federated',
-    minimumReadyPeers: 3
+    scheme: 'Federated'
   }
 }
 

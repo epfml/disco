@@ -35,8 +35,7 @@ export const task: Task = {
     NUM_CLASSES: 2,
     dataType: 'image',
     aggregateImagesById: true,
-    scheme: 'Decentralized',
-    minimumReadyPeers: 3
+    scheme: 'Decentralized'
   }
 }
 
