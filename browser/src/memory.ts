@@ -48,18 +48,10 @@ export class IndexedDB extends Memory {
     await tf.io.removeModel(this.pathFor(source))
   }
 
-  /**
-   * Creates a working copy of the saved model corresponding to the source.
-   * @param source the source
-   */
-  async loadSavedModel (source: ModelSource): Promise<void> {
-    const src: ModelInfo = this.infoFor(source)
-    if (src.type !== undefined && src.type !== ModelType.SAVED) {
-      throw new TypeError('expected saved model')
-    }
+  async loadModel (source: ModelSource): Promise<void> {
     await tf.io.copyModel(
-      this.pathFor({ ...src, type: ModelType.SAVED }),
-      this.pathFor({ ...src, type: ModelType.WORKING })
+      this.pathFor(source),
+      this.pathFor({ ...this.infoFor(source), type: ModelType.WORKING })
     )
   }
 

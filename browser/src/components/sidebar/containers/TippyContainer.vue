@@ -12,14 +12,13 @@
         py-8
         space-y-4
         border-b
-        dark:border-primary-dark
       "
     >
-      <span class="text-gray-500 dark:text-primary">
+      <span class="text-slate-500">
         <slot name="icon" />
       </span>
-      <h2 class="text-xl font-medium text-gray-500 dark:text-light">
-        {{ title }}
+      <h2 class="text-xl font-medium text-slate-500">
+        <slot name="title" />
       </h2>
     </div>
     <!-- Content -->
@@ -28,11 +27,5 @@
     </div>
   </div>
 </template>
-<script>
-export default {
-  name: 'TippyContainer',
-  props: {
-    title: { default: '', type: String }
-  }
-}
-</script>
+
+<script setup lang="ts" />

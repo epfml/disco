@@ -19,7 +19,9 @@
 </template>
 
 <script lang="ts">
-export default {
+import { defineComponent } from 'vue'
+
+export default defineComponent({
   name: 'SidebarButton',
   props: {
     click: { default: () => {}, type: Function },
@@ -31,7 +33,5 @@ export default {
       return this.hoverText.charAt(0).toUpperCase() + this.hoverText.slice(1)
     }
   }
-}
+})
 </script>
-
-<style></style>
