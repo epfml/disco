@@ -5,10 +5,10 @@ import * as crypto from 'crypto'
 
 import { Weights } from '../..'
 
+/*
+Return Weights object that is difference of two weights object
+ */
 export function subtractWeights (w1: Weights, w2: Weights): Weights {
-  ''
-  'Return Weights object that is difference of two weights objects'
-  ''
   if (w1.length !== w2.length) {
     throw new Error('weights not of the same lenght')
   }
@@ -19,10 +19,10 @@ export function subtractWeights (w1: Weights, w2: Weights): Weights {
   } return sub
 }
 
-export function sum (setSummands: List<Weights>): Weights { // need to test
-  ''
-  'Return sum of multiple weight objects in an array, returns weight object of sum'
-  ''
+/*
+Return sum of multiple weight objects in an array, returns weight object of sum
+ */
+export function sum (setSummands: List<Weights>): Weights {
   if (setSummands.size < 1) {
     return []
   }
@@ -40,19 +40,19 @@ export function sum (setSummands: List<Weights>): Weights { // need to test
   return summedWeights
 }
 
+/*
+Return Weights in the remaining share once N-1 shares have been constructed (where N is number of ready clients)
+ */
 export function lastShare (currentShares: Weights[], secret: Weights): Weights {
-  ''
-  'Return Weights in the remaining share once N-1 shares have been constructed, where N are the amount of participants'
-  ''
   const currentShares2 = List<Weights>(currentShares)
   const last: Weights = subtractWeights(secret, sum(currentShares2))
   return last
 }
 
+/*
+Generate N additive shares that aggregate to the secret weights array (where N is number of ready clients)
+ */
 export function generateAllShares (secret: Weights, nParticipants: number, noiseMagnitude: number): List<Weights> {
-  ''
-  'Generate N additive shares that aggregate to the secret array'
-  ''
   const shares: Weights[] = []
   for (let i = 0; i < nParticipants - 1; i++) {
     shares.push(generateRandomShare(secret, noiseMagnitude))
@@ -62,10 +62,16 @@ export function generateAllShares (secret: Weights, nParticipants: number, noise
   return sharesFinal
 }
 
-export function generateRandomNumber (noiseMagnitude: number): number {
-  return crypto.randomInt(noiseMagnitude)
+/*
+generate a cryptographically secure random number with a maximum value of maxShareValue
+ */
+export function generateRandomNumber (maxShareValue: number): number {
+  return crypto.randomInt(maxShareValue)
 }
 
+/*
+generates one share in the same shape as the secret that is populated with randomly generated values
+ */
 export function generateRandomShare (secret: Weights, maxShareValue: number): Weights {
   const share: Weights = []
   for (const t of secret) {

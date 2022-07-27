@@ -6,6 +6,9 @@ import { Base } from './base'
 import * as messages from './messages'
 import * as secret_shares from './secret_shares'
 
+/**
+ * Decentralized client that utilizes secure aggregation so client updates remain private
+ */
 export class SecAgg extends Base {
   // list of weights received from other clients
   private receivedShares: List<Weights> = List()
@@ -64,11 +67,12 @@ sends partial sums to connected peers so final update can be calculated
     // reset fields at beginning of each round
     this.receivedShares = this.receivedShares.clear()
     this.receivedPartialSums = this.receivedPartialSums.clear()
-    // PHASE 1 COMMUNICATION
+
+    // PHASE 1 COMMUNICATION --> send additive shares to ready peers, pause program until shares are received from all peers
     await this.sendShares(noisyWeights, round, trainingInformant)
-    // after all weights are received, send partial sum
     await this.pauseUntil(() => this.receivedShares.size >= this.peers.length)
-    // PHASE 2 COMMUNICATION
+
+    // PHASE 2 COMMUNICATION --> send partial sums to ready peers
     await this.sendPartialSums()
     // after all partial sums are received, return list of partial sums to be aggregated
     await this.pauseUntil(() => this.receivedPartialSums.size >= this.peers.length)
