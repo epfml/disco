@@ -18,13 +18,13 @@ export abstract class Memory {
 
   abstract deleteModel (source: ModelSource): Promise<void>
 
+  abstract loadModel (source: ModelSource): Promise<void>
+
   abstract getModelMetadata (source: ModelSource): Promise<tf.io.ModelArtifactsInfo | undefined>
 
   abstract updateWorkingModel (source: ModelSource, model: tf.LayersModel): Promise<void>
 
   abstract saveWorkingModel (source: ModelSource): Promise<void>
-
-  abstract loadSavedModel (source: ModelSource): Promise<void>
 
   abstract downloadModel (source: ModelSource): Promise<void>
 
