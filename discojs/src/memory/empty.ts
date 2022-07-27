@@ -15,7 +15,7 @@ export class Empty extends Memory {
     throw new Error('empty')
   }
 
-  async loadSavedModel (): Promise<void> {
+  async loadModel (): Promise<void> {
     throw new Error('empty')
   }
 
