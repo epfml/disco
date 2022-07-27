@@ -22,7 +22,7 @@ const MAX_WAIT_PER_ROUND = 10_000
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export abstract class DecentralizedBase extends Base {
-  protected minimumReadyPeers : number
+  protected minimumReadyPeers: number
   constructor (
     public readonly url: URL,
     public readonly task: Task
@@ -30,13 +30,14 @@ export abstract class DecentralizedBase extends Base {
     super(url, task)
     this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
   }
+
   protected server?: isomorphic.WebSocket
   // list of peerIDs who the client will send messages to
   protected peers: PeerID[] = []
   protected peersLocked: boolean = false
   // the ID of the client, set arbitrarily to 0 but gets set an actual value once it cues the signaling server
   // that it is ready to connect
-  protected ID: number = 0;
+  protected ID: number = 0
 
   /*
 function to check if a given boolean condition is true, checks continuously until maxWait time is reached
