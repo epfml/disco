@@ -6,6 +6,12 @@
     >
       <span class="text-disco-blue">{{ scheme }}</span><span class="text-disco-cyan">&nbsp;Learning</span>
     </h1>
+    <h1
+      v-else
+      class="text-3xl text-slate-600 text-center"
+    >
+      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives
+    </h1>
     <!-- Progress Bar -->
     <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
