@@ -1,8 +1,10 @@
 <script setup lang="ts">
+
 import { computed, inject } from 'vue'
 
 import { Task } from 'discojs'
-import IconCard from '@/components/containers/IconCard.vue'
+
+import DropdownCard from '../containers/DropdownCard.vue'
 
 const task = inject<Task>('task')
 
@@ -12,7 +14,7 @@ const exampleImage = computed(() => images(task.displayInformation.dataExampleIm
 </script>
 <template>
   <div>
-    <IconCard>
+    <DropdownCard>
       <template #title>
         Data Format
       </template>
@@ -20,8 +22,8 @@ const exampleImage = computed(() => images(task.displayInformation.dataExampleIm
         It is <span class="font-bold">important</span> to harmonize your data to the expected format as described below.<br><br>
         <span v-html="task.displayInformation.dataFormatInformation" />
       </template>
-    </IconCard>
-    <IconCard>
+    </DropdownCard>
+    <DropdownCard>
       <template #title>
         Example Data
       </template>
@@ -48,6 +50,6 @@ const exampleImage = computed(() => images(task.displayInformation.dataExampleIm
           >
         </div>
       </template>
-    </IconCard>
+    </DropdownCard>
   </div>
 </template>

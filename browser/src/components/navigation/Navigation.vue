@@ -1,8 +1,8 @@
 <template>
   <div v-if="!verifyingRoute">
-    <div class="flex flex-wrap place-content-center gap-4 md:gap-8 py-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 py-6">
       <div
-        class="text-right"
+        class="text-center md:text-right"
       >
         <CustomButton
           @click="prevStepOrList()"
@@ -11,7 +11,7 @@
         </CustomButton>
       </div>
       <div
-        class="text-left"
+        class="text-center md:text-left"
       >
         <CustomButton
           v-show="step <= 3"
@@ -43,18 +43,17 @@
 </template>
 
 <script lang="ts">
-import { Task } from 'discojs'
-import { DataLoader, DatasetBuilder } from 'discojs/dist/dataset'
+import { Task, dataset } from 'discojs'
 
 import { defineComponent } from 'vue'
 import { mapMutations, mapState } from 'vuex'
 
+import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Description from '@/components/Description.vue'
 import Training from '@/components/training/Training.vue'
 import Finished from '@/components/Finished.vue'
 import Data from '@/components/data/Data.vue'
-import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 
 export default defineComponent({
   name: 'Navigation',
@@ -84,8 +83,8 @@ export default defineComponent({
     step (): number {
       return this.steps.get(this.id)
     },
-    datasetBuilder (): DatasetBuilder<File> {
-      let dataLoader: DataLoader<File>
+    datasetBuilder (): dataset.DatasetBuilder<File> {
+      let dataLoader: dataset.DataLoader<File>
       switch (this.task.trainingInformation.dataType) {
         case 'tabular':
           dataLoader = new WebTabularLoader(this.task, ',')
@@ -96,7 +95,7 @@ export default defineComponent({
         default:
           throw new Error('not implemented')
       }
-      return new DatasetBuilder(dataLoader, this.task)
+      return new dataset.DatasetBuilder(dataLoader, this.task)
     }
   },
   created () {
