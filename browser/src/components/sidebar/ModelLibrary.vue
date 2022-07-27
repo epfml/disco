@@ -1,31 +1,38 @@
 <template>
-  <TippyContainer title="Model Library">
+  <TippyContainer>
+    <template #title>
+      Model Library
+    </template>
     <template #icon>
       <StackIcon />
     </template>
     <template #content>
       <!-- Model list -->
-      <TippyCard title="My model library">
-        <span class="text-s">
-          <p v-if="useIndexedDB">List of trained models that were saved.</p>
-          <p v-else>
-            The model library is currently unavailable. You can turn it on in
-            the
-            <button
-              class="text-blue-600"
-              @click="switchToSettings()"
-            >
-              settings menu</button>.
-          </p>
-        </span>
-        <div
-          v-if="useIndexedDB"
-          class="space-y-4"
-        >
+      <TippyCard>
+        <template #title>
+          My Model Library
+        </template>
+        <template #content>
+          <span class="text-s">
+            <p v-if="useIndexedDB">List of trained models that were saved.</p>
+            <p v-else>
+              The model library is currently unavailable. You can turn it on in
+              the
+              <button
+                class="text-blue-600"
+                @click="switchToSettings()"
+              >
+                settings menu</button>.
+            </p>
+          </span>
           <div
-            v-for="[path, metadata] in models"
-            :key="path"
-            class="
+            v-if="useIndexedDB"
+            class="space-y-4"
+          >
+            <div
+              v-for="[path, metadata] in models"
+              :key="path"
+              class="
                 flex
                 items-center
                 justify-between
@@ -41,64 +48,66 @@
                 focus:ring-slate-100
                 focus:ring-offset-2
               "
-          >
-            <div
-              class="cursor-pointer w-2/3"
-              @click="openTesting(path)"
             >
-              <span>
-                {{ metadata.name.substring(0, 16) }} <br>
-                <span class="text-xs">
-                  {{ metadata.date }} at {{ metadata.hours }} <br>
-                  {{ metadata.fileSize }} kB
+              <div
+                class="cursor-pointer w-2/3"
+                @click="openTesting(path)"
+              >
+                <span>
+                  {{ metadata.name.substring(0, 16) }} <br>
+                  <span class="text-xs">
+                    {{ metadata.date }} at {{ metadata.hours }} <br>
+                    {{ metadata.fileSize }} kB
+                  </span>
                 </span>
-              </span>
-            </div>
-            <div class="w-1/9">
-              <button
-                :class="buttonClass(isDark)"
-                @click="deleteModel(path, metadata)"
-              >
-                <span><Bin2Icon /></span>
-              </button>
-            </div>
-            <div class="w-1/9">
-              <button
-                :class="buttonClass(isDark)"
-                @click="downloadModel(metadata)"
-              >
-                <span><Download2Icon /></span>
-              </button>
-            </div>
-            <div class="w-1/9">
-              <button
-                :class="buttonClass(isDark)"
-                @click="loadModel(metadata)"
-              >
-                <span><LoadIcon /></span>
-              </button>
+              </div>
+              <div class="w-1/9">
+                <button
+                  :class="buttonClass(isDark)"
+                  @click="deleteModel(path)"
+                >
+                  <span><Bin2Icon /></span>
+                </button>
+              </div>
+              <div class="w-1/9">
+                <button
+                  :class="buttonClass(isDark)"
+                  @click="downloadModel(path)"
+                >
+                  <span><Download2Icon /></span>
+                </button>
+              </div>
+              <div class="w-1/9">
+                <button
+                  :class="buttonClass(isDark)"
+                  @click="loadModel(path)"
+                >
+                  <span><LoadIcon /></span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </template>
       </TippyCard>
     </template>
   </TippyContainer>
 </template>
 <script lang="ts">
+import { defineComponent } from 'vue'
 import { mapMutations, mapState } from 'vuex'
 
 import { Memory, EmptyMemory, Path, ModelType } from 'discojs'
 
-import { IndexedDB } from '../../memory'
-import Bin2Icon from '../../assets/svg/Bin2Icon.vue'
-import Download2Icon from '../../assets/svg/Download2Icon.vue'
-import LoadIcon from '../../assets/svg/LoadIcon.vue'
-import StackIcon from '../../assets/svg/StackIcon.vue'
-import TippyCard from './containers/TippyCard.vue'
-import TippyContainer from './containers/TippyContainer.vue'
+import { IndexedDB } from '@/memory'
+import Bin2Icon from '@/assets/svg/Bin2Icon.vue'
+import Download2Icon from '@/assets/svg/Download2Icon.vue'
+import LoadIcon from '@/assets/svg/LoadIcon.vue'
+import StackIcon from '@/assets/svg/StackIcon.vue'
+import TippyCard from '@/components/sidebar/containers/TippyCard.vue'
+import TippyContainer from '@/components/sidebar/containers/TippyContainer.vue'
 import { toaster } from '@/toast'
 
-export default {
+export default defineComponent({
   name: 'ModelLibrary',
   components: {
     Bin2Icon,
@@ -154,10 +163,11 @@ export default {
     },
 
     async loadModel (path: Path) {
+      console.log(path)
       const modelInfo = this.memory.infoFor(path)
       if (modelInfo.type !== ModelType.WORKING) {
         try {
-          await this.memory.loadSavedModel(path)
+          await this.memory.loadModel(path)
         } catch (e) {
           console.log(e.message)
           toaster.error('Error')
@@ -168,5 +178,5 @@ export default {
       }
     }
   }
-}
+})
 </script>
