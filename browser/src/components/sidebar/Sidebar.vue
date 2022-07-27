@@ -93,7 +93,7 @@
       >
         <div
           v-show="isMenuOpen"
-          class="transform fixed inset-0 z-10 bg-primary-darker"
+          class="transform fixed inset-0 z-10 bg-slate-500"
           style="opacity: 0.5"
           aria-hidden="true"
           @click="closeMenu()"
@@ -123,7 +123,6 @@
           max-w-xs
           bg-white
           shadow-xl
-          dark:bg-darker dark:text-light
           sm:max-w-md
           focus:outline-none
         "
@@ -150,9 +149,11 @@
   </div>
 </template>
 <script lang="ts">
+import tippy, { Instance, Props, Placement } from 'tippy.js'
+
 import Settings from './Settings.vue'
 import ModelLibrary from './ModelLibrary.vue'
-import tippy from 'tippy.js'
+import SidebarButton from './containers/SidebarButton.vue'
 import HomeIcon from '@/assets/svg/HomeIcon.vue'
 import ListIcon from '@/assets/svg/ListIcon.vue'
 import InfoIcon from '@/assets/svg/InfoIcon.vue'
@@ -160,7 +161,6 @@ import FileIcon from '@/assets/svg/FileIcon.vue'
 import SettingsIcon from '@/assets/svg/SettingsIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
 import AboutUsIcon from '@/assets/svg/AboutUsIcon.vue'
-import SidebarButton from './containers/SidebarButton.vue'
 
 export default {
   name: 'SidebarMain',
@@ -189,10 +189,10 @@ export default {
       theme: 'custom-dark',
       delay: 0,
       duration: 0,
-      content: (reference) => reference.getAttribute('data-title'),
-      onMount (instance) {
+      content: (reference: Element) => reference.getAttribute('data-title'),
+      onMount: (instance: Instance<Props>) => {
         instance.popperInstance.setOptions({
-          placement: instance.reference.getAttribute('data-placement') as any
+          placement: instance.reference.getAttribute('data-placement') as Placement
         })
       }
     })
