@@ -2,10 +2,9 @@ import { Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 import WebSocket from 'ws'
 
-import { TaskID, messages } from 'discojs'
-import * as Buffer from 'buffer'
-
-type PeerID = number
+import { client, TaskID } from 'discojs'
+import messages = client.decentralized.messages
+type PeerID = client.decentralized.PeerID
 
 export class SignalingServer {
   // maps peerIDs to their respective websockets so peers can be sent messages by their IDs
@@ -20,7 +19,10 @@ export class SignalingServer {
     const peerID: PeerID = this.clientCounter++
     this.clients = this.clients.set(peerID, ws)
     // send peerID message
-    const msg: messages.serverClientIDMessage = { type: messages.messageType.serverClientIDMessage, peerID: peerID }
+    const msg: messages.serverClientIDMessage = {
+      type: messages.messageType.serverClientIDMessage,
+      peerID
+    }
     console.info('peer', peerID, 'joined', taskID)
 
     ws.send(msgpack.encode(msg), { binary: true })

@@ -1,7 +1,6 @@
-import { weights } from './serialization'
+import { weights } from '../../serialization'
 
-export type PeerID = number
-export type EncodedSignal = Uint8Array
+import { PeerID } from './types'
 
 export enum messageType {
   // Phase 0 communication (just between server and client)

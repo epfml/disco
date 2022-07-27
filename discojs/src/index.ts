@@ -18,7 +18,6 @@ export { Disco, TrainingSchemes } from './training'
 export { Validator } from './validation'
 
 export { TrainingInformation, DisplayInformation, isTask, Task, isTaskID, TaskID } from './task'
-export * as messages from './messages'
 export * from './types'
 
 export { tf } from './tfjs'
