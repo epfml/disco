@@ -26,7 +26,7 @@ As the name implies, this takes care of training, which is either decentralised 
 
 #### Client
 
-The client takes care of communication, if it is federated then communication is with the server, and if decentralised then between peers.
+The client takes care of communication, if it is federated then communication is with the server, and if decentralised then between peers. [Decentralised communication can be done using secure multi-party update aggregation](./SECAGG.md).
 
 #### Server
 
