@@ -21,14 +21,14 @@ const MAX_WAIT_PER_ROUND = 10_000
  */
 export abstract class Base extends ClientBase {
   protected minimumReadyPeers: number
-  protected noiseMagnitude: number
+  protected maxShareValue: number
   constructor (
     public readonly url: URL,
     public readonly task: Task
   ) {
     super(url, task)
     this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
-    this.noiseMagnitude = this.task.trainingInformation?.noiseMagnitude ?? 50
+    this.maxShareValue = this.task.trainingInformation?.maxShareValue ?? 100
   }
 
   protected server?: isomorphic.WebSocket

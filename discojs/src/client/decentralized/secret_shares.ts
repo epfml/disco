@@ -66,12 +66,12 @@ export function generateRandomNumber (noiseMagnitude: number): number {
   return crypto.randomInt(noiseMagnitude)
 }
 
-export function generateRandomShare (secret: Weights, noiseMagnitude: number): Weights {
+export function generateRandomShare (secret: Weights, maxShareValue: number): Weights {
   const share: Weights = []
   for (const t of secret) {
     share.push(
       tf.randomUniform(
-        t.shape, -noiseMagnitude, noiseMagnitude, undefined, generateRandomNumber(noiseMagnitude))
+        t.shape, -maxShareValue, maxShareValue, undefined, generateRandomNumber(maxShareValue))
     )
   }
   return share
