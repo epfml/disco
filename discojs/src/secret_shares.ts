@@ -47,40 +47,29 @@ export function lastShare (currentShares: Weights[], secret: Weights): Weights {
   return last
 }
 
-export function generateAllShares (secret: Weights, nParticipants: number): List<Weights> {
+export function generateAllShares (secret: Weights, nParticipants: number, noiseMagnitude: number): List<Weights> {
   ''
   'Generate N additive shares that aggregate to the secret array'
   ''
   const shares: Weights[] = []
-  for (let i = 0; i < nParticipants - 1; i++) { // 1099511627775
-    shares.push(generateRandomShare(secret, 1000000))
+  for (let i = 0; i < nParticipants - 1; i++) {
+    shares.push(generateRandomShare(secret, noiseMagnitude))
   }
   shares.push(lastShare(shares, secret))
   const sharesFinal = List<Weights>(shares)
   return sharesFinal
 }
 
-// export function shuffleArray (a: any[]): any[] { // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array
-//   let j, x, i
-//   for (i = a.length - 1; i > 0; i--) {
-//     j = Math.floor(Math.random() * (i + 1))
-//     x = a[i]
-//     a[i] = a[j]
-//     a[j] = x
-//   }
-//   return a
-// }
-
-export function generateRandomNumber (maxRandNumber: number): number {
-  return crypto.randomInt(maxRandNumber)
+export function generateRandomNumber (noiseMagnitude: number): number {
+  return crypto.randomInt(noiseMagnitude)
 }
 
-export function generateRandomShare (secret: Weights, maxRandNumber: number): Weights {
+export function generateRandomShare (secret: Weights, noiseMagnitude: number): Weights {
   const share: Weights = []
   for (const t of secret) {
     share.push(
       tf.randomUniform(
-        t.shape, -maxRandNumber, maxRandNumber, undefined, generateRandomNumber(maxRandNumber))
+        t.shape, -noiseMagnitude, noiseMagnitude, undefined, generateRandomNumber(noiseMagnitude))
     )
   }
   return share

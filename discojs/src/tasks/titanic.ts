@@ -68,8 +68,7 @@ export const task: Task = {
     outputColumns: [
       'Survived'
     ],
-    scheme: 'Federated',
-    minimumReadyPeers: 3
+    scheme: 'Federated'
   }
 }
 

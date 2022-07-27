@@ -166,10 +166,10 @@ describe('end to end', function () {
   }
 /* eslint-disable */
   async function testWeightSharingSecure (): Promise<Weights> {
-    // expected --> [6, 7, 13]
-    makeClientSecure([3, 3, 3])
-    makeClientSecure([4, 5, 6])
-    return await makeClientSecure([11, 13, 30])
+    // expected --> [.002, 7, 27]
+    makeClientSecure([.001, 3, 40])
+    makeClientSecure([.002, 5, 30])
+    return await makeClientSecure([.003, 13, 11])
   }
 
 

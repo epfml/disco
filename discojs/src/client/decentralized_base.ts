@@ -23,12 +23,14 @@ const MAX_WAIT_PER_ROUND = 10_000
  */
 export abstract class DecentralizedBase extends Base {
   protected minimumReadyPeers: number
+  protected noiseMagnitude: number
   constructor (
     public readonly url: URL,
     public readonly task: Task
   ) {
     super(url, task)
     this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
+    this.noiseMagnitude = this.task.trainingInformation?.noiseMagnitude ?? 50
   }
 
   protected server?: isomorphic.WebSocket

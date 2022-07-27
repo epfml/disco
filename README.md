@@ -30,6 +30,7 @@ ___
 :question: **DISCO TECHNOLOGY** 
 - DISCO supports arbitrary deep learning tasks and model architectures, via [TF.js](https://www.tensorflow.org/js)
 - :sparkles: relies on [peer2peer](https://peerjs.com/) communication
+- Learn more about Secure Aggregation for privacy preservation in decentralized training [HERE](discojs/secAggREADME.md)
 
 ___
 
