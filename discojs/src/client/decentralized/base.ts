@@ -16,8 +16,8 @@ const TICK = 100
 const MAX_WAIT_PER_ROUND = 10_000
 
 /**
- * Class that deals with communication with the PeerJS server.
- * Collects the list of receivers currently connected to the PeerJS server.
+ * Abstract class for decentralized clients, executes onRoundEndCommunication as well as connecting
+ * to the signaling server
  */
 export abstract class Base extends ClientBase {
   protected minimumReadyPeers: number
@@ -163,18 +163,19 @@ function to check if a given boolean condition is true, checks continuously unti
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
-    // reset peer list at each round of training to make sure client waits for updated peerList from server
     try {
+      // reset peer list at each round of training to make sure client waits for updated peerList from server
       this.peers = []
 
       this.peersLocked = false
 
+      // centralized phase of communication --> client tells server that they have finished a local round and are ready to aggregate
       this.sendReadyMessage(round)
 
-      // after peers are connected, send shares
+      // wait for peers to be connected before sending any update information
       await this.pauseUntil(() => this.peers.length >= this.minimumReadyPeers)
 
-      // Apply DP
+      // Apply DP to updates that will be sent
       const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
 
       // send weights to all ready connected peers

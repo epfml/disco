@@ -38,9 +38,9 @@ class TestSecretShares extends UnitTester {
     // console.log(Array.from(secret_shares.subtractWeights(person1, person2)[0].dataSync())) // [-1,-1,-4]
     // console.log(Array.from(secret_shares.sum(Array(person1, person2, person1))[0].dataSync())) // [4,7,13]
 
-    const client1shares: List<Weights> = secret_shares.generateAllShares(secret1, 3)
-    const client2shares: List<Weights> = secret_shares.generateAllShares(secret2, 3)
-    const client3shares: List<Weights> = secret_shares.generateAllShares(secret3, 3)
+    const client1shares: List<Weights> = secret_shares.generateAllShares(secret1, 3, 100)
+    const client2shares: List<Weights> = secret_shares.generateAllShares(secret2, 3, 100)
+    const client3shares: List<Weights> = secret_shares.generateAllShares(secret3, 3, 100)
 
     const person1shares: List<Weights> = List([client1shares.get(0, []), client2shares.get(0, []), client3shares.get(0, [])])
     const person2shares: List<Weights> = List([client1shares.get(1, []), client2shares.get(1, []), client3shares.get(1, [])])

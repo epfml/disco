@@ -6,8 +6,7 @@ import { Base } from './base'
 import * as messages from './messages'
 
 /**
- * Class that deals with communication with the PeerJS server.
- * Collects the list of receivers currently connected to the PeerJS server.
+ * Decentralized client that does not utilize secure aggregation
  */
 export class ClearText extends Base {
   // list of weights received from other clients
@@ -26,7 +25,7 @@ export class ClearText extends Base {
     if (this.server === undefined) {
       throw new Error('server undefined so we cannot send weights through it')
     }
-    // create weights message and send to all peers
+    // PHASE 1 COMMUNICATION --> create weights message and send to all peers (only one phase of communication for clear_text)
     for (let i = 0; i < this.peers.length; i++) {
       const msg: messages.clientWeightsMessageServer = {
         type: messages.messageType.clientWeightsMessageServer,
