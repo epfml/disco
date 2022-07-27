@@ -29,24 +29,18 @@
             v-if="useIndexedDB"
             class="space-y-4"
           >
-            <div
+            <button
               v-for="[path, metadata] in models"
               :key="path"
               class="
-                flex
-                items-center
-                justify-between
-                px-4
-                py-2
-                space-x-4
-                transition-colors
-                border
-                rounded-md
-                hover:text-slate-900 hover:border-slate-900
+                flex items-center justify-between
+                px-4 py-2 space-x-4
+                outline outline-1 outline-slate-300 rounded-md
+                transition-colors duration-200
+                text-slate-600
+                hover:text-slate-800 hover:outline-slate-800
                 focus:outline-none
-                focus:ring
-                focus:ring-slate-100
-                focus:ring-offset-2
+                focus:ring-1 focus:ring-slate-800
               "
             >
               <div
@@ -62,30 +56,30 @@
                 </span>
               </div>
               <div class="w-1/9">
-                <button
-                  :class="buttonClass(isDark)"
-                  @click="deleteModel(path)"
+                <ModelButton
+                  event="delete-model"
+                  @delete-model="deleteModel(path)"
                 >
-                  <span><Bin2Icon /></span>
-                </button>
+                  <Bin2Icon />
+                </ModelButton>
               </div>
               <div class="w-1/9">
-                <button
-                  :class="buttonClass(isDark)"
-                  @click="downloadModel(path)"
+                <ModelButton
+                  event="download-model"
+                  @download-model="downloadModel(path)"
                 >
-                  <span><Download2Icon /></span>
-                </button>
+                  <Download2Icon />
+                </ModelButton>
               </div>
               <div class="w-1/9">
-                <button
-                  :class="buttonClass(isDark)"
-                  @click="loadModel(path)"
+                <ModelButton
+                  event="load-model"
+                  @load-model="loadModel(path)"
                 >
-                  <span><LoadIcon /></span>
-                </button>
+                  <LoadIcon />
+                </ModelButton>
               </div>
-            </div>
+            </button>
           </div>
         </template>
       </TippyCard>
@@ -99,13 +93,14 @@ import { mapMutations, mapState } from 'vuex'
 import { Memory, EmptyMemory, Path, ModelType } from 'discojs'
 
 import { IndexedDB } from '@/memory'
+import { toaster } from '@/toast'
+import ModelButton from './simple/ModelButton.vue'
 import Bin2Icon from '@/assets/svg/Bin2Icon.vue'
 import Download2Icon from '@/assets/svg/Download2Icon.vue'
 import LoadIcon from '@/assets/svg/LoadIcon.vue'
 import StackIcon from '@/assets/svg/StackIcon.vue'
 import TippyCard from '@/components/sidebar/containers/TippyCard.vue'
 import TippyContainer from '@/components/sidebar/containers/TippyContainer.vue'
-import { toaster } from '@/toast'
 
 export default defineComponent({
   name: 'ModelLibrary',
@@ -115,11 +110,12 @@ export default defineComponent({
     LoadIcon,
     StackIcon,
     TippyCard,
-    TippyContainer
+    TippyContainer,
+    ModelButton
   },
   emits: ['switch-panel'],
   computed: {
-    ...mapState(['useIndexedDB', 'isDark', 'models']),
+    ...mapState(['useIndexedDB', 'models']),
 
     memory (): Memory {
       return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
@@ -130,14 +126,6 @@ export default defineComponent({
   },
   methods: {
     ...mapMutations(['setTestingModel']),
-
-    buttonClass: function (state: boolean) {
-      return `flex items-center grid-cols-3 justify-between px-4 py-2 space-x-4 transition-colors border rounded-md hover:text-gray-900 hover:border-gray-900 dark:border-primary dark:hover:text-primary-100 dark:hover:border-primary-light focus:outline-none focus:ring focus:ring-primary-lighter focus:ring-offset-2 dark:focus:ring-offset-dark dark:focus:ring-primary-dark ${
-        state
-          ? 'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100'
-          : 'text-gray-500 dark:text-primary-light'
-      }`
-    },
 
     switchToSettings (): void {
       this.$emit('switch-panel')

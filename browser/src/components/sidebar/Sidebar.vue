@@ -131,7 +131,7 @@
           <!-- Close button -->
           <div class="absolute left-0 p-2 transform -translate-x-full">
             <button
-              class="p-2 text-white rounded-md focus:outline-none focus:ring"
+              class="p-2 text-white rounded-md focus:outline-none"
               @click="closeMenu()"
             >
               <CrossIcon />
