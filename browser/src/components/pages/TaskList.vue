@@ -1,8 +1,5 @@
 <template>
   <div class="space-y-8 pt-8">
-    <h1 class="text-3xl text-slate-600 text-center">
-      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives
-    </h1>
     <div
       v-show="tasks.size > 0"
       class="flex flex-wrap"
