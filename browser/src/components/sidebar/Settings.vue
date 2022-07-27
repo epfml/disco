@@ -1,5 +1,8 @@
 <template>
-  <TippyContainer title="Settings">
+  <TippyContainer>
+    <template #title>
+      Settings
+    </template>
     <template #icon>
       <SettingsIcon />
     </template>
@@ -8,27 +11,31 @@
         class="overflow-hidden hover:overflow-y-auto"
       >
         <!-- IndexedDB -->
-        <TippyCard title="Model library">
-          <span class="text-s">
-            Turn on to get storage options for your trained models. This uses
-            your browser's own database, namely
-            <button class="text-blue-600">
-              <a
-                href="https://en.wikipedia.org/wiki/Indexed_Database_API"
-                target="_blank"
-              >
-                IndexedDB</a></button>.<br>
-          </span>
+        <TippyCard>
+          <template #title>
+            Model Library
+          </template>
+          <template #content>
+            <span class="text-s">
+              Turn on to get storage options for your trained models. This uses
+              your browser's own database, namely
+              <button class="text-blue-600">
+                <a
+                  href="https://en.wikipedia.org/wiki/Indexed_Database_API"
+                  target="_blank"
+                >
+                  IndexedDB</a></button>.<br>
+            </span>
 
-          <div class="flex items-center justify-center">
-            <button
-              :class="buttonClass()"
-              @click="toggleIndexedDB()"
-            >
-              <span class="text-s"> Use model library </span>
-              <div class="relative focus:outline-none">
-                <div
-                  class="
+            <div class="flex items-center justify-center">
+              <button
+                :class="buttonClass()"
+                @click="toggleIndexedDB()"
+              >
+                <span class="text-s"> Use model library </span>
+                <div class="relative focus:outline-none">
+                  <div
+                    class="
                     w-12
                     h-6
                     transition
@@ -36,9 +43,9 @@
                     outline-none
                     bg-slate-200
                   "
-                />
-                <div
-                  class="
+                  />
+                  <div
+                    class="
                     absolute
                     top-0
                     left-0
@@ -53,16 +60,17 @@
                     rounded-full
                     shadow-sm
                   "
-                  :class="{
-                    'translate-x-0 bg-slate-300':
-                      !$store.state.useIndexedDB,
-                    'translate-x-6 bg-disco-blue':
-                      $store.state.useIndexedDB,
-                  }"
-                />
-              </div>
-            </button>
-          </div>
+                    :class="{
+                      'translate-x-0 bg-slate-300':
+                        !$store.state.useIndexedDB,
+                      'translate-x-6 bg-disco-blue':
+                        $store.state.useIndexedDB,
+                    }"
+                  />
+                </div>
+              </button>
+            </div>
+          </template>
         </TippyCard>
         <!-- Theme
         <TippyCard title="Theme mode">
@@ -91,21 +99,24 @@
     </template>
   </TippyContainer>
 </template>
+
 <script lang="ts">
+import { defineComponent } from 'vue'
 import { mapMutations } from 'vuex'
+
 import TippyCard from './containers/TippyCard.vue'
 import TippyContainer from './containers/TippyContainer.vue'
 // import MoonIcon from '../../assets/svg/MoonIcon.vue'
 // import StarIcon from '../../assets/svg/StarIcon.vue'
 import SettingsIcon from '../../assets/svg/SettingsIcon.vue'
 
-export default {
+export default defineComponent({
   name: 'Settings',
   components: {
     TippyCard,
     TippyContainer,
-    //  MoonIcon,
-    //  StarIcon,
+    // MoonIcon,
+    // StarIcon,
     SettingsIcon
   },
   data: function () {
@@ -149,5 +160,5 @@ export default {
       this.$router.push({ path: '/' })
     }
   }
-}
+})
 </script>

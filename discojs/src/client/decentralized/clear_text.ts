@@ -1,20 +1,23 @@
 import { List } from 'immutable'
 import msgpack from 'msgpack-lite'
 
-import { serialization, TrainingInformant, Weights } from '..'
-import { DecentralizedBase } from './decentralized_base'
-import * as messages from '../messages'
+import { serialization, TrainingInformant, Weights } from '../..'
+import { Base } from './base'
+import * as messages from './messages'
 
 /**
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
-export class DecentralizedClearText extends DecentralizedBase {
+export class ClearText extends Base {
   // list of weights received from other clients
   protected receivedWeights: List<Weights> = List()
 
-  override async sendAndReceiveWeights (noisyWeights: Weights,
-    round: number, trainingInformant: TrainingInformant): Promise<List<Weights>> {
+  override async sendAndReceiveWeights (
+    noisyWeights: Weights,
+    round: number,
+    trainingInformant: TrainingInformant
+  ): Promise<List<Weights>> {
     // reset received fields at beginning of each round
     this.receivedWeights = this.receivedWeights.clear()
     // prepare weights to send to peers

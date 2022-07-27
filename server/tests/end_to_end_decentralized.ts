@@ -104,7 +104,7 @@ describe('end to end', function () {
      */
   async function makeClient (input: number[]): Promise<Weights> {
     const TASK = tasks.cifar10.task
-    const clientCurrent: client.DecentralizedClearText = await getClient(client.DecentralizedClearText, server, TASK)
+    const clientCurrent = await getClient(client.decentralized.ClearText, server, TASK)
     const weights: Weights = makeWeights(input)
     const trainingInformant1: TrainingInformant = new informant.DecentralizedInformant(0, 0)
     await clientCurrent.connect()
@@ -158,7 +158,7 @@ describe('end to end', function () {
      */
   async function makeClientSecure (input: number[]): Promise<Weights> {
     const TASK = tasks.cifar10.task
-    const clientCurrent: client.DecentralizedSecAgg = await getClient(client.DecentralizedSecAgg, server, TASK)
+    const clientCurrent = await getClient(client.decentralized.SecAgg, server, TASK)
     const weights: Weights = makeWeights(input)
     const trainingInformant1: TrainingInformant = new informant.DecentralizedInformant(0, 0)
     await clientCurrent.connect()
