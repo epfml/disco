@@ -1,6 +1,7 @@
 import { List, Set } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
+import { Task } from '@/task'
 
 import { TrainingInformant, Weights, aggregation, privacy } from '..'
 import * as messages from '../messages'
@@ -16,20 +17,26 @@ const TICK = 100
 // Time to wait for the others in milliseconds.
 const MAX_WAIT_PER_ROUND = 10_000
 
-const MINIMUM_PEERS = 3
-
 /**
  * Class that deals with communication with the PeerJS server.
  * Collects the list of receivers currently connected to the PeerJS server.
  */
 export abstract class DecentralizedBase extends Base {
+  protected minimumReadyPeers : number
+  constructor (
+    public readonly url: URL,
+    public readonly task: Task
+  ) {
+    super(url, task)
+    this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
+  }
   protected server?: isomorphic.WebSocket
   // list of peerIDs who the client will send messages to
   protected peers: PeerID[] = []
   protected peersLocked: boolean = false
   // the ID of the client, set arbitrarily to 0 but gets set an actual value once it cues the signaling server
   // that it is ready to connect
-  protected ID: number = 0
+  protected ID: number = 0;
 
   /*
 function to check if a given boolean condition is true, checks continuously until maxWait time is reached
@@ -164,7 +171,7 @@ function to check if a given boolean condition is true, checks continuously unti
       this.sendReadyMessage(round)
 
       // after peers are connected, send shares
-      await this.pauseUntil(() => this.peers.length >= MINIMUM_PEERS)
+      await this.pauseUntil(() => this.peers.length >= this.minimumReadyPeers)
 
       // Apply DP
       const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)

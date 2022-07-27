@@ -35,7 +35,8 @@ export const task: Task = {
     preprocessFunctions: [],
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
     aggregateImagesById: false,
-    scheme: 'Decentralized'
+    scheme: 'Decentralized',
+    minimumReadyPeers: 3
   }
 }
 

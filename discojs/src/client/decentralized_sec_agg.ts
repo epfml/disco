@@ -21,7 +21,6 @@ export class DecentralizedSecAgg extends DecentralizedBase {
     trainingInformant: TrainingInformant): Promise<void> {
     // generate weight shares and add differential privacy
     const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, this.peers.length)
-
     // Broadcast our weights to ith peer in the SERVER LIST OF PEERS (seen in signaling_server.ts)
     for (let i = 0; i < this.peers.length; i++) {
       const weights = weightShares.get(i)

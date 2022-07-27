@@ -48,7 +48,8 @@ export const task: Task = {
       { columnName: 'ship', columnData: 8 },
       { columnName: 'truck', columnData: 9 }
     ],
-    scheme: 'Decentralized'
+    scheme: 'Decentralized',
+    minimumReadyPeers: 3
   }
 }
 
