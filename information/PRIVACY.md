@@ -1,6 +1,6 @@
 # Privacy protection measures
 
-In federated and decentralised learning, a client's data is never sent to another machine. However, facts can be inferred about a client's data set even when the data set is not shared. For instance, summary statistics or even the existence of a specific datum point can be inferred from sources such as:
+In federated and decentralised learning, a client's data is never sent to another machine. However, some information could be inferred about a client's data set even when the data set is not shared. For instance, summary statistics or even the existence of a specific data point can be inferred from sources such as:
 1. the weights of the public and collaborative model;
 2. the model updates shared by the client.
 
@@ -8,7 +8,7 @@ In federated and decentralised learning, a client's data is never sent to anothe
 
 DisCo protects the clients' data beyond the simple use of federated and decentralised learning, using two different and complementary methods: 
 1. Differential privacy, and
-2. Secure update aggregation.
+2. Secure aggregation of model updates.
 
 ## Differential privacy
 
@@ -16,11 +16,11 @@ Differential privacy methods protect any dataset(s) used in the training of a ma
 
 **TODO**
 
-## Secure update aggregation through MPC
+## Secure aggregation through MPC
 
 Disco protects the clients' data from inference attacks based on the model updates shared by the clients, by ensuring that an individual client's model update is never revealed. This is achieved by secure update aggregation, where multiple clients use secure multiparty computation (MPC) to jointly compute the sum of their model updates without revealing the summands.
 
-In DisCo, we rely on secure aggregation of models / model updates, in each communication round, in order to fully protect the privacy of each model update. 
+In DisCo, we rely on secure aggregation of models / model updates, in each communication round, in order to fully protect the privacy of each user. 
 
 ### Concept: Private data - Public model
 
