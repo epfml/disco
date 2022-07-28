@@ -3,6 +3,7 @@ import { Set } from 'immutable'
 import { tf } from '.'
 
 import { averageWeights } from './aggregation'
+import * as test from '../src/test_utils.spec'
 
 describe('averaging weights', () => {
   it('works for two peers', async () => {
@@ -13,15 +14,18 @@ describe('averaging weights', () => {
 
     const averaged = averageWeights(peersWeights)
 
-    assert.sameDeepOrderedMembers(
-      Array.from(
-        (await Promise.all(
-          averaged.map(async (t) => await t.data<'float32'>()))
-        ).entries()
-      ),
-      Array.from(
-        [2, 3].map((e) => Float32Array.of(e)).entries()
-      )
-    )
+    const expected = test.makeWeights([[2],[3]])
+    console.log('HERE HERE')
+    test.assertWeightsEqual(averaged, expected, 0)
+    // assert.sameDeepOrderedMembers(
+    //   Array.from(
+    //     (await Promise.all(
+    //       averaged.map(async (t) => await t.data<'float32'>()))
+    //     ).entries()
+    //   ),
+    //   Array.from(
+    //     [2, 3].map((e) => Float32Array.of(e)).entries()
+    //   )
+    // )
   })
 })
