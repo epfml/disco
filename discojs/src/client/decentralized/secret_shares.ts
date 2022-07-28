@@ -11,7 +11,7 @@ Return Weights object that is difference of two weights object
  */
 export function subtractWeights (w1: Weights, w2: Weights): Weights {
   if (w1.length !== w2.length) {
-    throw new Error('weights not of the same lenght')
+    throw new Error('weights not of the same length')
   }
 
   const sub: Weights = []

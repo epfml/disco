@@ -5,21 +5,17 @@ import { assert, expect } from 'chai'
 import { Weights, aggregation } from '../..'
 import * as secret_shares from './secret_shares'
 
-function makeWeights (values: any): Weights {
-  const w: Weights = []
-  for (let i = 0; i < 1; i++) {
-    w.push(tf.tensor(values))
-  }
-  return w
-}
+import * as test from '../../../src/test_utils.spec'
+
+const epsilon: number = 100
 
 describe('secret shares test', function () {
   function toyExampleTest (): Weights {
     'shows additive implementation with 3 users'
 
-    const secret1: Weights = makeWeights([[1, 2, 3], [5, 5, 6]]) // secrets
-    const secret2: Weights = makeWeights([[2, 3, 7], [10, 4, 5]])
-    const secret3: Weights = makeWeights([[3, 1, 5], [15, 3, 19]])
+    const secret1: Weights = test.makeWeights([[1, 2, 3], [5, 5, 6]]) // secrets
+    const secret2: Weights = test.makeWeights([[2, 3, 7], [10, 4, 5]])
+    const secret3: Weights = test.makeWeights([[3, 1, 5], [15, 3, 19]])
 
     const client1shares: List<Weights> = secret_shares.generateAllShares(secret1, 3, 100)
     const client2shares: List<Weights> = secret_shares.generateAllShares(secret2, 3, 100)
@@ -41,14 +37,10 @@ describe('secret shares test', function () {
   }
 
   it('testing secret shares accuracy', async () => {
-    const expected: Weights = makeWeights([[2,2,5],[10,4,10]])
+    const expected: Weights = test.makeWeights([[2,2,5],[10,4,10]])
     const result: Weights = toyExampleTest()
-    // assert.isTrue(expected === result) ********
-    console.log('expected')
-    tf.print(expected[0])
 
-    console.log('result')
-    tf.print(result[0])
+    test.assertWeightsEqual(expected, result, epsilon)
   })
 }
 )
