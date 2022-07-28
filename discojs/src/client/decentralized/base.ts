@@ -155,6 +155,10 @@ function to check if a given boolean condition is true, checks continuously unti
     trainingInformant.addMessage('Training finished.')
   }
 
+  protected instanceOfMessageGeneral (msg: unknown): msg is messages.messageGeneral {
+    return typeof msg === 'object' && msg !== null && 'type' in msg
+  }
+
   // abstract peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void
 
   async onRoundEndCommunication (
@@ -191,5 +195,5 @@ function to check if a given boolean condition is true, checks continuously unti
   abstract sendAndReceiveWeights (noisyWeights: Weights,
     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
 
-  abstract clientHandle (msg: any): void
+  abstract clientHandle (msg: unknown): void
 }
