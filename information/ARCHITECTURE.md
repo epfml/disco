@@ -34,21 +34,7 @@ The helper server in the federated case takes care of listening for incoming wei
 
 ## Code Organisation
 
-    .
-    ├── assets       # contains the resources of the app
-    │ ├── css        # css files
-    │ ├── svg        # svg image / icons
-    ├── components   # vue file folder
-    │ ├── XXX.vue    # vue example file
-    ├── core         # core code of the client (training, communication, ...)
-    │ ├── XXX.ts     # ts example file
-    ├── router       # vue-router related folder
-    │ ├── index.ts
-    ├── store        # vuex related folder
-    │ ├── store.ts
-    ├── main.ts      # root file of the app
-    ├── .env.XXX     # environment specific variables
-    └── ...          # rest of the files
+Coming soon.
 
 ### Use of TypeScript (a dialect of JavaScript)
 
