@@ -43,6 +43,7 @@ Return Weights in the remaining share once N-1 shares have been constructed (whe
  */
 export function lastShare (currentShares: Weights[], secret: Weights): Weights {
   const currentShares2 = List<Weights>(currentShares)
+  console.log('here it', sum(currentShares2)[0].dataSync())
   const last: Weights = subtractWeights(secret, sum(currentShares2))
   return last
 }

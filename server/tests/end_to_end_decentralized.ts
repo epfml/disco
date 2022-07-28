@@ -1,10 +1,13 @@
 // import fs from 'fs/promises'
 // import path from 'node:path'
 import { Server } from 'node:http'
+// import { assert, expect } from 'chai'
 // import { Range } from 'immutable'
-import * as tf from '@tensorflow/tfjs-node'
+// import * as tf from '@tensorflow/tfjs-node'
 
 import { TrainingInformant, informant, tasks, client, Weights } from 'discojs'
+
+import * as test from '../../discojs/src/test_utils.spec'
 
 import { getClient, startServer } from './utils'
 // import { expect } from 'chai'
@@ -18,15 +21,8 @@ import { getClient, startServer } from './utils'
 //   }
 // }
 
-function makeWeights (values: any): Weights {
-  const w: Weights = []
-  for (let i = 0; i < 1; i++) {
-    w.push(tf.tensor(values))
-  }
-  return w
-}
-
 describe('end to end', function () {
+  const epsilon: number = 0.001
   this.timeout(50_000)
 
   let server: Server
@@ -93,16 +89,12 @@ describe('end to end', function () {
 
   it('decentralized client test one round of weight aggregation', async () => {
     const resultClear: Weights = await testWeightSharing(false)
-    // const expected: Weights = makeWeights([.002, 7, 27, 11])
-    console.log('clear text')
-    tf.print(resultClear[0])
+    const expected: Weights = test.makeWeights([[0.002, 7, 27, 11]])
+    test.assertWeightsEqual(expected, resultClear, epsilon)
 
     const resultSecure: Weights = await testWeightSharing(true)
-    // const expected: Weights = makeWeights([.002, 7, 27, 11])
-    console.log('Secure Aggregation')
-    tf.print(resultSecure[0])
+    test.assertWeightsEqual(expected, resultSecure, epsilon)
   }
-    // expect(result).to.equal(expected)}
   )
 
   /*
@@ -110,7 +102,7 @@ describe('end to end', function () {
     with other ready peers. The input will vary with model architecture and training data. If secure is true,
     the client will implement secure aggregation. If it is false, it will be a clear text client.
      */
-  async function makeClient (input: number[], secure: boolean): Promise<Weights> {
+  async function makeClient (input: number[][], secure: boolean): Promise<Weights> {
     const TASK = tasks.cifar10.task
     let clientCurrent
     if (secure) {
@@ -118,7 +110,7 @@ describe('end to end', function () {
     } else {
       clientCurrent = await getClient(client.decentralized.ClearText, server, TASK)
     }
-    const weights: Weights = makeWeights(input)
+    const weights: Weights = test.makeWeights(input)
     const trainingInformant1: TrainingInformant = new informant.DecentralizedInformant(0, 0)
     await clientCurrent.connect()
     return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
@@ -130,9 +122,9 @@ describe('end to end', function () {
    */
   async function testWeightSharing (secure: boolean): Promise<Weights> {
     // expected --> [.002, 7, 27, 11]
-    const client1 = makeClient([0.001, 3, 40, 10], secure)
-    const client2 = makeClient([0.002, 5, 30, 11], secure)
-    const client3 = makeClient([0.003, 13, 11, 12], secure)
+    const client1 = makeClient([[0.001, 3, 40, 10]], secure)
+    const client2 = makeClient([[0.002, 5, 30, 11]], secure)
+    const client3 = makeClient([[0.003, 13, 11, 12]], secure)
     const result = await Promise.all([client1, client2, client3])
     return result[0]
   }
@@ -165,12 +157,12 @@ describe('end to end', function () {
 
   it('decentralized secure client testing timout', async () => {
     const result: Weights = await testTimeOut()
-    // const expected: Weights = makeWeights([6, 7, 13])
-    tf.print(result[0])
+    const expected: Weights = test.makeWeights([[4, 5, 6, 7]])
+    test.assertWeightsEqual(expected, result, epsilon)
   })
 
   async function testTimeOut (): Promise<Weights> {
-    return await makeClient([4, 5, 6, 7], true)
+    return await makeClient([[4, 5, 6, 7]], true)
   }
 }
 )
