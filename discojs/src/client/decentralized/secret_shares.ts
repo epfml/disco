@@ -25,13 +25,13 @@ Return sum of multiple weight objects in an array, returns weight object of sum
 export function sum (setSummands: List<Weights>): Weights {
   const summedWeights: Weights = new Array<tf.Tensor>()
   let tensors: Weights = new Array<tf.Tensor>() // list of different sized tensors of 0
-  let shapeOfWeight: Weights = setSummands.get(0) ?? []
+  const shapeOfWeight: Weights = setSummands.get(0) ?? []
   for (let j = 0; j < shapeOfWeight.length; j++) {
-      for (let i = 0; i < setSummands.size; i++) {
-        let modelUpdate: Weights = setSummands.get(i) ?? []
-          tensors.push(modelUpdate[j])
-        }
-      }
+    for (let i = 0; i < setSummands.size; i++) {
+      const modelUpdate: Weights = setSummands.get(i) ?? []
+      tensors.push(modelUpdate[j])
+    }
+  }
   summedWeights.push(tf.addN(tensors))
   tensors = new Array<tf.Tensor>()
   return summedWeights
