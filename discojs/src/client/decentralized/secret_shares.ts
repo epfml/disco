@@ -5,6 +5,7 @@ import * as crypto from 'crypto'
 
 import { Weights } from '../..'
 
+const maxSeed: number = 2 ** 47
 /*
 Return Weights object that is difference of two weights object
  */
@@ -65,7 +66,7 @@ a uniform distribution between (-maxShareValue, maxShareValue).
  */
 export function generateRandomShare (secret: Weights, maxShareValue: number): Weights {
   const share: Weights = []
-  const seed: number = crypto.randomInt(2 ** 47)
+  const seed: number = crypto.randomInt(maxSeed)
   for (const t of secret) {
     share.push(
       tf.randomUniform(

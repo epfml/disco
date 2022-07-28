@@ -52,17 +52,13 @@ export class ClearText extends Base {
   /*
 handles received messages from signaling server
  */
-  override clientHandle (msg: unknown): void {
-    if (this.instanceOfMessageGeneral(msg)) {
-      if (this.instanceOfClientWeightsMessageServer(msg)) {
+  override clientHandle (msg: messages.messageGeneral): void {
+    if (this.instanceOfClientWeightsMessageServer(msg)) {
       // update received weights by one weights reception
-        const weights = serialization.weights.decode(msg.weights)
-        this.receivedWeights = this.receivedWeights.push(weights)
-      } else {
-        throw new Error('Unexpected Message Type')
-      }
+      const weights = serialization.weights.decode(msg.weights)
+      this.receivedWeights = this.receivedWeights.push(weights)
     } else {
-      throw new Error('Unexpected Message Type-- Not a message')
+      throw new Error('Unexpected Message Type')
     }
   }
 }
