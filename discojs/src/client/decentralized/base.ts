@@ -101,7 +101,12 @@ function to check if a given boolean condition is true, checks continuously unti
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
-      const msg = msgpack.decode(new Uint8Array(event.data))
+      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
+
+      if (!messages.isMessage(msg)) {
+        console.error('invalid message received:', msg)
+        return
+      }
 
       // check message type to choose correct action
       if (msg.type === messages.type.serverClientIDMessage) {
