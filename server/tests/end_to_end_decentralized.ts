@@ -154,7 +154,8 @@ describe('end to end', function () {
   )
 
   /*
-    makes client to connect to server and share input weights
+    Makes client object to connect to server. The input array is the weights that the client will share
+    with other ready peers. The input will vary with model architecture and training data.
      */
   async function makeClientSecure (input: number[]): Promise<Weights> {
     const TASK = tasks.cifar10.task
@@ -165,6 +166,9 @@ describe('end to end', function () {
     return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
   }
 /* eslint-disable */
+  /*
+  Creates three clients with different update values and returns the aggregated update value between all three clients
+   */
   async function testWeightSharingSecure (): Promise<Weights> {
     // expected --> [.002, 7, 27]
     makeClientSecure([.001, 3, 40])
