@@ -1,4 +1,3 @@
-import { assert } from 'chai'
 import { Set } from 'immutable'
 import { tf } from '.'
 
@@ -14,18 +13,7 @@ describe('averaging weights', () => {
 
     const averaged = averageWeights(peersWeights)
 
-    const expected = test.makeWeights([[2],[3]])
-    console.log('HERE HERE')
+    const expected = test.makeWeights([[2], [3]])
     test.assertWeightsEqual(averaged, expected, 0)
-    // assert.sameDeepOrderedMembers(
-    //   Array.from(
-    //     (await Promise.all(
-    //       averaged.map(async (t) => await t.data<'float32'>()))
-    //     ).entries()
-    //   ),
-    //   Array.from(
-    //     [2, 3].map((e) => Float32Array.of(e)).entries()
-    //   )
-    // )
   })
 })

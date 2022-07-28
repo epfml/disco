@@ -1,11 +1,11 @@
 // import fs from 'fs/promises'
 // import path from 'node:path'
 import { Server } from 'node:http'
-import { assert, expect } from 'chai'
+// import { assert, expect } from 'chai'
 // import { Range } from 'immutable'
-import * as tf from '@tensorflow/tfjs-node'
+// import * as tf from '@tensorflow/tfjs-node'
 
-import { TrainingInformant, informant, tasks, client, Weights} from 'discojs'
+import { TrainingInformant, informant, tasks, client, Weights } from 'discojs'
 
 import * as test from '../../discojs/src/test_utils.spec'
 
@@ -21,9 +21,8 @@ import { getClient, startServer } from './utils'
 //   }
 // }
 
-
 describe('end to end', function () {
-  const epsilon: number = .001
+  const epsilon: number = 0.001
   this.timeout(50_000)
 
   let server: Server
@@ -90,7 +89,7 @@ describe('end to end', function () {
 
   it('decentralized client test one round of weight aggregation', async () => {
     const resultClear: Weights = await testWeightSharing(false)
-    const expected: Weights = test.makeWeights([[.002, 7, 27, 11]])
+    const expected: Weights = test.makeWeights([[0.002, 7, 27, 11]])
     test.assertWeightsEqual(expected, resultClear, epsilon)
 
     const resultSecure: Weights = await testWeightSharing(true)
@@ -158,7 +157,7 @@ describe('end to end', function () {
 
   it('decentralized secure client testing timout', async () => {
     const result: Weights = await testTimeOut()
-    let expected: Weights = test.makeWeights([[4, 5, 6, 7]])
+    const expected: Weights = test.makeWeights([[4, 5, 6, 7]])
     test.assertWeightsEqual(expected, result, epsilon)
   })
 

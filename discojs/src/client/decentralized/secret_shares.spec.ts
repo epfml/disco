@@ -1,6 +1,5 @@
-import * as tf from '@tensorflow/tfjs'
 import { List, Set } from 'immutable'
-import { assert, expect } from 'chai'
+// import { assert, expect } from 'chai'
 
 import { Weights, aggregation } from '../..'
 import * as secret_shares from './secret_shares'
@@ -29,15 +28,13 @@ describe('secret shares test', function () {
     const person2partialSum: Weights = secret_shares.sum(person2shares)
     const person3partialSum: Weights = secret_shares.sum(person3shares)
 
-    // console.log('person1 partial sum', person1partialSum)
-
     const allPartialSums: List<Weights> = List([person1partialSum, person2partialSum, person3partialSum])
     const setWeights: Set<Weights> = allPartialSums.toSet()
     return aggregation.averageWeights(setWeights)
   }
 
   it('testing secret shares accuracy', async () => {
-    const expected: Weights = test.makeWeights([[2,2,5],[10,4,10]])
+    const expected: Weights = test.makeWeights([[2, 2, 5], [10, 4, 10]])
     const result: Weights = toyExampleTest()
 
     test.assertWeightsEqual(expected, result, epsilon)
