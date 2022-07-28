@@ -56,7 +56,8 @@ The **secure aggregation procedure** consists of two rounds of all-to-all commun
 - At steps 1.3, 2.4, or 3.3, if the client does not receive all expected message(s) by the end of the time frame, the aggregation round is considered to have failed and the algorithm returns the client's own model update (this value is returned to a local routine of the client).
 - Otherwise, it returns the reconstructed sum of the model updates of all clients who participated in the aggregation procedure.
 
-### Trade-off between privacy and accuracy
+### Privacy guarantees and trade-off with accuracy
+
 DisCo secure aggregation guarantees input privacy for a client's model updates. Other users will not be able to reconstruct the client's original model using this method of multiparty communication. 
 
 It is worth noting that due to the current use of floating point arithmetic instead of finite fields, there is a trade-off between good privacy and good accuracy for a given update:
