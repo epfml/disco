@@ -74,34 +74,18 @@ function to check if a given boolean condition is true, checks continuously unti
    */
   protected sendReadyMessage (round: number): void {
     // Broadcast our readiness
-    const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round, peerID: this.ID, task: this.task.taskID }
+    const msg: messages.clientReadyMessage = {
+      type: messages.messageType.clientReadyMessage,
+      round: round,
+      peerID: this.ID,
+      task: this.task.taskID
+    }
 
     const encodedMsg = msgpack.encode(msg)
     if (this.server === undefined) {
       throw new Error('server undefined, could not connect peers')
     }
     this.server.send(encodedMsg)
-  }
-
-  /*
-  checks if message is of type messageGeneral. If it is, the specific message.type can be identified.
-   */
-  private instanceOfMessageGeneral (msg: unknown): msg is messages.messageGeneral {
-    return typeof msg === 'object' && msg !== null && 'type' in msg
-  }
-
-  /*
-  checks if message contains the client's ID number
-   */
-  private instanceOfServerClientIDMessage (msg: messages.messageGeneral): msg is messages.serverClientIDMessage {
-    return msg.type === messages.messageType.serverClientIDMessage
-  }
-
-  /*
-  checks if message contains the list of peerIDs that are ready to share updates
-   */
-  private instanceOfServerReadyClients (msg: messages.messageGeneral): msg is messages.serverReadyClients {
-    return msg.type === messages.messageType.serverReadyClients
   }
 
   /*
@@ -117,24 +101,22 @@ function to check if a given boolean condition is true, checks continuously unti
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
-      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
+      const msg = msgpack.decode(new Uint8Array(event.data))
 
       // check message type to choose correct action
-      if (this.instanceOfMessageGeneral(msg)) {
-        if (this.instanceOfServerClientIDMessage(msg)) {
-          // updated ID
-          this.ID = msg.peerID
-        } else if (this.instanceOfServerReadyClients(msg)) {
-          // updated connected peers
-          if (!this.peersLocked) {
-            this.peers = msg.peerList
-            this.peersLocked = true
-          }
-        } else if (msg.type === messages.messageType.clientConnected) {
-          this.connected = true
-        } else {
-          this.clientHandle(msg)
+      if (msg.type === messages.messageType.serverClientIDMessage) {
+        // updated ID
+        this.ID = msg.peerID
+      } else if (msg.type === messages.messageType.serverReadyClients) {
+        // updated connected peers
+        if (!this.peersLocked) {
+          this.peers = msg.peerList
+          this.peersLocked = true
         }
+      } else if (msg.type === messages.messageType.clientConnected) {
+        this.connected = true
+      } else {
+        this.clientHandle(msg)
       }
     }
 
@@ -216,5 +198,5 @@ function to check if a given boolean condition is true, checks continuously unti
   abstract sendAndReceiveWeights (noisyWeights: Weights,
     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
 
-  abstract clientHandle (msg: messages.messageGeneral): void
+  abstract clientHandle (msg: messages.PeerMessage): void
 }

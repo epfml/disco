@@ -1,31 +1,83 @@
+import { TaskID } from '@/task'
 import { weights } from '../../serialization'
 import { PeerID } from './types'
-import { TaskID } from '../../task'
 
 export enum messageType {
   clientConnected,
-  // Phase 0 communication (just between server and client)
+
   serverClientIDMessage,
   clientReadyMessage,
   serverReadyClients,
-  // Phase 1 communication (between client and peers)
+
   clientWeightsMessageServer,
   clientSharesMessageServer,
-  // Phase 2 communication (between client and peers)
+
   clientPartialSumsMessageServer
 }
 
-// base class for all messages
-export interface messageGeneral{type: messageType}
+export interface clientConnectedMessage {
+  type: messageType.clientConnected
+}
+
+/// Phase 0 communication (just between server and client)
+
 // server sends client id to client
-export interface serverClientIDMessage extends messageGeneral {peerID: PeerID}
-// clients sends to server that they are ready to share updates
-export interface clientReadyMessage extends messageGeneral {round: number, task: TaskID, peerID: PeerID}
-// client sends to server/server sends to client (will be replaced with peer2peer) model updates, from peerID, sending to destination
-export interface clientWeightsMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID}
-// client sends to server/server sends to client (will be replaced with peer2peer) generated shares, from peerID, sending to destination
-export interface clientSharesMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID}
-// client sends to server/server sends to client (will be replaced with peer2peer) partial sums, from peerID, sending to destination
-export interface clientPartialSumsMessageServer extends messageGeneral {peerID: PeerID, partials: weights.Encoded, destination: PeerID}
-// server sends to client an array of peerIDs to connect to
-export interface serverReadyClients extends messageGeneral {peerList: PeerID[]}
+export interface serverClientIDMessage {
+  type: messageType.serverClientIDMessage
+  peerID: PeerID
+}
+
+// client who sent is ready
+export interface clientReadyMessage {
+  type: messageType.clientReadyMessage
+  round: number
+  peerID: PeerID
+  task: TaskID
+}
+
+// server send to client who to connect to
+export interface serverReadyClients {
+  type: messageType.serverReadyClients
+  peerList: PeerID[]
+}
+
+/// Phase 1 communication (between client and peers)
+
+// client weights
+export interface clientWeightsMessageServer {
+  type: messageType.clientWeightsMessageServer
+  peerID: PeerID
+  weights: weights.Encoded
+  destination: PeerID
+}
+
+// client shares
+export interface clientSharesMessageServer {
+  type: messageType.clientSharesMessageServer
+  peerID: PeerID
+  weights: weights.Encoded
+  destination: PeerID
+}
+
+/// Phase 2 communication (between client and peers)
+
+// client partial sum
+export interface clientPartialSumsMessageServer {
+  type: messageType.clientPartialSumsMessageServer
+  peerID: PeerID
+  partials: weights.Encoded
+  destination: PeerID
+}
+
+export type ServerMessage =
+  clientConnectedMessage |
+  serverClientIDMessage |
+  serverReadyClients
+
+export type PeerMessage =
+  clientReadyMessage |
+  clientWeightsMessageServer |
+  clientSharesMessageServer |
+  clientPartialSumsMessageServer
+
+export type Message = ServerMessage | PeerMessage

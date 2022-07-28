@@ -29,7 +29,9 @@ export class Decentralized extends Server {
   }
 
   protected sendConnectedMsg (ws: WebSocket): void {
-    const msg: messages.messageGeneral = { type: messages.messageType.clientConnected }
+    const msg: messages.clientConnectedMessage = {
+      type: messages.messageType.clientConnected
+    }
     ws.send(msgpack.encode(msg))
   }
 
