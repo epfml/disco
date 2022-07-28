@@ -144,34 +144,28 @@
   </div>
 </template>
 
-<script lang="ts">
-import { mapState } from 'vuex'
+<script lang="ts" setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+import { useStore } from '@/store'
 import ProgressIcon from './ProgressIcon.vue'
 
-export default {
-  name: 'ProgressBar',
-  components: {
-    ProgressIcon
-  },
-  computed: {
-    ...mapState(['tasks', 'steps', 'currentTask']),
-    scheme (): string | undefined {
-      const task = this.tasks.get(this.currentTask)
-      return task?.trainingInformation?.scheme
-    },
-    displayTitle (): boolean {
-      return this.$route.fullPath !== '/list'
-    }
-  },
-  methods: {
-    isActive (step: number): boolean {
-      const currentStep = this.steps.get(this.currentTask)
-      if (currentStep === undefined || this.$route.path === '/list') {
-        return false
-      } else {
-        return step <= currentStep
-      }
-    }
+const store = useStore()
+const route = useRoute()
+
+const scheme = computed(() => {
+  const task = store.state.tasks.get(store.state.currentTask)
+  return task?.trainingInformation?.scheme
+})
+const displayTitle = computed(() => route.fullPath !== '/list')
+
+const isActive = (step: number): boolean => {
+  const currentStep = store.state.steps.get(store.state.currentTask)
+  if (currentStep === undefined || route.fullPath === '/list') {
+    return false
+  } else {
+    return step <= currentStep
   }
 }
 </script>

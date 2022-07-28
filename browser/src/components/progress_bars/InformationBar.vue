@@ -28,7 +28,7 @@
             style="cursor:pointer"
             onmouseover="this.style.fontSize='110%'"
             onmouseout="this.style.fontSize='100%'"
-            @click="goToInformation()"
+            @click="router.push('/information')"
           >
             Fundamentals
           </div>
@@ -75,7 +75,7 @@
             style="cursor:pointer"
             onmouseover="this.style.fontSize='110%'"
             onmouseout="this.style.fontSize='100%'"
-            @click="goToFeatures()"
+            @click="router.push('/features')"
           >
             Features
           </div>
@@ -90,13 +90,13 @@
               <div class="w-full bg-gray-200 rounded items-center align-middle align-center flex-1">
                 <div
                   class="w-0 bg-disco-blue py-1 rounded"
-                  style="width: 100%;"
+                  style="width: 0%;"
                 />
               </div>
             </div>
 
-            <div class="w-10 h-10 mx-auto bg-disco-blue rounded-full text-lg text-white flex items-center">
-              <span class="text-center text-white w-full">
+            <div class="w-10 h-10 mx-auto bg-white border-2 border-gray-200 rounded-full text-lg text-white flex items-center">
+              <span class="text-center text-gray-600 w-full">
                 <svg
                   class="w-full fill-current"
                   xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +118,7 @@
             style="cursor:pointer"
             onmouseover="this.style.fontSize='110%'"
             onmouseout="this.style.fontSize='100%'"
-            @click="goToTutorial()"
+            @click="router.push('/tutorial')"
           >
             Tutorial
           </div>
@@ -161,124 +161,18 @@
             style="cursor:pointer"
             onmouseover="this.style.fontSize='110%'"
             onmouseout="this.style.fontSize='100%'"
-            @click="goToFurther()"
+            @click="router.push('/further')"
           >
             Further Information
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Page Content -->
-    <!-- How to use Disco? -->
-    <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-      <card custom-class="hover:text-primary dark:hover:text-light">
-        <h6
-          class="
-              text-xl
-              font-large
-              leading-none
-              tracking-wider
-              dark:group-hover:text-light
-              px-2
-              py-6
-            "
-        >
-          {{ $tm('information.howToUseTitle') }}
-        </h6>
-        <div class="ml-10">
-          <div
-            class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1"
-          >
-            <card
-              v-for="card in $tm('information.howToUseCard')"
-              :key="card.title"
-              custom-class="hover:text-primary dark:hover:text-light"
-            >
-              <div class="ml-10">
-                <ul
-                  class="text-lg ont-semibold text-gray-500 dark:text-light"
-                >
-                  <b>{{ card.title }}</b>
-                  {{
-                    card.text
-                  }}
-                </ul>
-              </div>
-            </card>
-          </div>
-        </div>
-        <div class="flex items-center justify-center space-x-8">
-          <!-- Light button -->
-          <custom-button
-            :center="true"
-            @click="goToTaskList()"
-          >
-            {{
-              "Explore examples"
-            }}
-          </custom-button>
-          <custom-button
-            :center="true"
-            @click="goToNewTaskCreationForm()"
-          >
-            {{
-              "Create your own task"
-            }}
-          </custom-button>
-        </div>
-      </card>
-    </div>
   </div>
 </template>
 
-<script>
-import Card from '@/components/containers/Card.vue'
-import CustomButton from '@/components/simple/CustomButton.vue'
-import { useI18n } from 'vue-i18n'
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
+import { useRouter } from 'vue-router'
 
-export default defineComponent({
-  name: 'Tutorial',
-  components: {
-    Card,
-    CustomButton
-  },
-  setup () {
-    const { t, locale } = useI18n()
-    return { t, locale }
-  },
-  methods: {
-    goToInformation () {
-      this.$router.push({
-        path: '/information'
-      })
-    },
-    goToFeatures () {
-      this.$router.push({
-        path: '/features'
-      })
-    },
-    goToTutorial () {
-      this.$router.push({
-        path: '/tutorial'
-      })
-    },
-    goToFurther () {
-      this.$router.push({
-        path: '/further'
-      })
-    },
-    goToTaskList () {
-      this.$router.push({
-        path: '/list'
-      })
-    },
-    goToNewTaskCreationForm () {
-      this.$router.push({
-        path: '/create'
-      })
-    }
-  }
-})
+const router = useRouter()
 </script>

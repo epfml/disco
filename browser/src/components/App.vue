@@ -53,11 +53,11 @@
 </template>
 
 <script lang="ts">
-import SidebarMain from '@/components/sidebar/Sidebar.vue'
 import { defineComponent } from 'vue'
-
 import { mapState, mapMutations } from 'vuex'
+
 import BaseLayout from './containers/BaseLayout.vue'
+import SidebarMain from '@/components/sidebar/Sidebar.vue'
 
 export default defineComponent({
   name: 'App',
