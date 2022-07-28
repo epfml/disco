@@ -84,6 +84,27 @@ function to check if a given boolean condition is true, checks continuously unti
   }
 
   /*
+  checks if message is of type messageGeneral. If it is, the specific message.type can be identified.
+   */
+  private instanceOfMessageGeneral (msg: unknown): msg is messages.messageGeneral {
+    return typeof msg === 'object' && msg !== null && 'type' in msg
+  }
+
+  /*
+  checks if message contains the client's ID number
+   */
+  private instanceOfServerClientIDMessage (msg: messages.messageGeneral): msg is messages.serverClientIDMessage {
+    return msg.type === messages.messageType.serverClientIDMessage
+  }
+
+  /*
+  checks if message contains the list of peerIDs that are ready to share updates
+   */
+  private instanceOfServerReadyClients (msg: messages.messageGeneral): msg is messages.serverReadyClients {
+    return msg.type === messages.messageType.serverReadyClients
+  }
+
+  /*
   creation of the websocket for the server, connection of client to that webSocket,
   deals with message reception from decentralized client perspective (messages received by client)
    */
@@ -95,20 +116,22 @@ function to check if a given boolean condition is true, checks continuously unti
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
-      const msg = msgpack.decode(new Uint8Array(event.data))
+      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
 
       // check message type to choose correct action
-      if (msg.type === messages.messageType.serverClientIDMessage) {
+      if (this.instanceOfMessageGeneral(msg)) {
+        if (this.instanceOfServerClientIDMessage(msg)) {
         // updated ID
-        this.ID = msg.peerID
-      } else if (msg.type === messages.messageType.serverReadyClients) {
+          this.ID = msg.peerID
+        } else if (this.instanceOfServerReadyClients(msg)) {
         // updated connected peers
-        if (!this.peersLocked) {
-          this.peers = msg.peerList
-          this.peersLocked = true
+          if (!this.peersLocked) {
+            this.peers = msg.peerList
+            this.peersLocked = true
+          }
+        } else {
+          this.clientHandle(msg)
         }
-      } else {
-        this.clientHandle(msg)
       }
     }
 
@@ -155,12 +178,6 @@ function to check if a given boolean condition is true, checks continuously unti
     trainingInformant.addMessage('Training finished.')
   }
 
-  protected instanceOfMessageGeneral (msg: unknown): msg is messages.messageGeneral {
-    return typeof msg === 'object' && msg !== null && 'type' in msg
-  }
-
-  // abstract peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void
-
   async onRoundEndCommunication (
     updatedWeights: Weights,
     staleWeights: Weights,
@@ -195,5 +212,5 @@ function to check if a given boolean condition is true, checks continuously unti
   abstract sendAndReceiveWeights (noisyWeights: Weights,
     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
 
-  abstract clientHandle (msg: unknown): void
+  abstract clientHandle (msg: messages.messageGeneral): void
 }

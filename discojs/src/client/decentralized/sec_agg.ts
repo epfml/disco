@@ -96,21 +96,17 @@ sends partial sums to connected peers so final update can be calculated
   /*
 handles received messages from signaling server
  */
-  override clientHandle (msg: unknown): void {
-    if (this.instanceOfMessageGeneral(msg)) {
-      if (this.instanceOfClientSharesMessageServer(msg)) {
-        // update received weights by one weights reception
-        const weights = serialization.weights.decode(msg.weights)
-        this.receivedShares = this.receivedShares.push(weights)
-      } else if (this.instanceOfClientPartialSumsMessageServer(msg)) {
-        // update received partial sums by one partial sum
-        const partials: Weights = serialization.weights.decode(msg.partials)
-        this.receivedPartialSums = this.receivedPartialSums.push(partials)
-      } else {
-        throw new Error('Unexpected Message Type')
-      }
+  override clientHandle (msg: messages.messageGeneral): void {
+    if (this.instanceOfClientSharesMessageServer(msg)) {
+      // update received weights by one weights reception
+      const weights = serialization.weights.decode(msg.weights)
+      this.receivedShares = this.receivedShares.push(weights)
+    } else if (this.instanceOfClientPartialSumsMessageServer(msg)) {
+      // update received partial sums by one partial sum
+      const partials: Weights = serialization.weights.decode(msg.partials)
+      this.receivedPartialSums = this.receivedPartialSums.push(partials)
     } else {
-      throw new Error('Unexpected Message Type-- not a message')
+      throw new Error('Unexpected Message Type')
     }
   }
 }
