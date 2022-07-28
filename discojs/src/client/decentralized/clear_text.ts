@@ -28,7 +28,7 @@ export class ClearText extends Base {
     // PHASE 1 COMMUNICATION --> create weights message and send to all peers (only one phase of communication for clear_text)
     for (let i = 0; i < this.peers.length; i++) {
       const msg: messages.clientWeightsMessageServer = {
-        type: messages.messageType.clientWeightsMessageServer,
+        type: messages.type.clientWeightsMessageServer,
         peerID: this.ID,
         weights: weightsToSend,
         destination: this.peers[i]
@@ -50,7 +50,7 @@ export class ClearText extends Base {
 handles received messages from signaling server
  */
   override clientHandle (msg: messages.PeerMessage): void {
-    if (msg.type === messages.messageType.clientWeightsMessageServer) {
+    if (msg.type === messages.type.clientWeightsMessageServer) {
       // update received weights by one weights reception
       const weights = serialization.weights.decode(msg.weights)
       this.receivedWeights = this.receivedWeights.push(weights)

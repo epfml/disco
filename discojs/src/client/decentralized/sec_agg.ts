@@ -33,7 +33,7 @@ export class SecAgg extends Base {
         throw new Error('weight shares generated incorrectly')
       }
       const msg: messages.clientSharesMessageServer = {
-        type: messages.messageType.clientSharesMessageServer,
+        type: messages.type.clientSharesMessageServer,
         peerID: this.ID,
         weights: await serialization.weights.encode(weights),
         destination: this.peers[i]
@@ -52,7 +52,7 @@ sends partial sums to connected peers so final update can be calculated
     // calculate, encode, and send sum
     for (let i = 0; i < this.peers.length; i++) {
       const msg: messages.clientPartialSumsMessageServer = {
-        type: messages.messageType.clientPartialSumsMessageServer,
+        type: messages.type.clientPartialSumsMessageServer,
         peerID: this.ID,
         partials: await serialization.weights.encode(this.mySum),
         destination: this.peers[i]
@@ -84,11 +84,11 @@ sends partial sums to connected peers so final update can be calculated
   }
 
   override clientHandle (msg: messages.PeerMessage): void {
-    if (msg.type === messages.messageType.clientSharesMessageServer) {
+    if (msg.type === messages.type.clientSharesMessageServer) {
       // update received weights by one weights reception
       const weights = serialization.weights.decode(msg.weights)
       this.receivedShares = this.receivedShares.push(weights)
-    } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
+    } else if (msg.type === messages.type.clientPartialSumsMessageServer) {
       // update received partial sums by one partial sum
       const partials: Weights = serialization.weights.decode(msg.partials)
       this.receivedPartialSums = this.receivedPartialSums.push(partials)

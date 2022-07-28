@@ -2,7 +2,7 @@ import { TaskID } from '@/task'
 import { weights } from '../../serialization'
 import { PeerID } from './types'
 
-export enum messageType {
+export enum type {
   clientConnected,
 
   serverClientIDMessage,
@@ -16,20 +16,20 @@ export enum messageType {
 }
 
 export interface clientConnectedMessage {
-  type: messageType.clientConnected
+  type: type.clientConnected
 }
 
 /// Phase 0 communication (just between server and client)
 
 // server sends client id to client
 export interface serverClientIDMessage {
-  type: messageType.serverClientIDMessage
+  type: type.serverClientIDMessage
   peerID: PeerID
 }
 
 // client who sent is ready
 export interface clientReadyMessage {
-  type: messageType.clientReadyMessage
+  type: type.clientReadyMessage
   round: number
   peerID: PeerID
   task: TaskID
@@ -37,7 +37,7 @@ export interface clientReadyMessage {
 
 // server send to client who to connect to
 export interface serverReadyClients {
-  type: messageType.serverReadyClients
+  type: type.serverReadyClients
   peerList: PeerID[]
 }
 
@@ -45,7 +45,7 @@ export interface serverReadyClients {
 
 // client weights
 export interface clientWeightsMessageServer {
-  type: messageType.clientWeightsMessageServer
+  type: type.clientWeightsMessageServer
   peerID: PeerID
   weights: weights.Encoded
   destination: PeerID
@@ -53,7 +53,7 @@ export interface clientWeightsMessageServer {
 
 // client shares
 export interface clientSharesMessageServer {
-  type: messageType.clientSharesMessageServer
+  type: type.clientSharesMessageServer
   peerID: PeerID
   weights: weights.Encoded
   destination: PeerID
@@ -63,7 +63,7 @@ export interface clientSharesMessageServer {
 
 // client partial sum
 export interface clientPartialSumsMessageServer {
-  type: messageType.clientPartialSumsMessageServer
+  type: type.clientPartialSumsMessageServer
   peerID: PeerID
   partials: weights.Encoded
   destination: PeerID
