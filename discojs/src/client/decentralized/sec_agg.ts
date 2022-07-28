@@ -79,17 +79,38 @@ sends partial sums to connected peers so final update can be calculated
     return this.receivedPartialSums
   }
 
-  override clientHandle (msg: any): void {
-    if (msg.type === messages.messageType.clientSharesMessageServer) {
-      // update received weights by one weights reception
-      const weights = serialization.weights.decode(msg.weights)
-      this.receivedShares = this.receivedShares.push(weights)
-    } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
-      // update received partial sums by one partial sum
-      const partials: Weights = serialization.weights.decode(msg.partials)
-      this.receivedPartialSums = this.receivedPartialSums.push(partials)
+  /*
+  checks if message contains shares from a peer
+   */
+  private instanceOfClientSharesMessageServer (msg: messages.messageGeneral): msg is messages.clientSharesMessageServer {
+    return msg.type === messages.messageType.clientSharesMessageServer
+  }
+
+  /*
+  checks if message contains partial sums from a peer
+   */
+  private instanceOfClientPartialSumsMessageServer (msg: messages.messageGeneral): msg is messages.clientPartialSumsMessageServer {
+    return msg.type === messages.messageType.clientPartialSumsMessageServer
+  }
+
+  /*
+handles received messages from signaling server
+ */
+  override clientHandle (msg: unknown): void {
+    if (this.instanceOfMessageGeneral(msg)) {
+      if (this.instanceOfClientSharesMessageServer(msg)) {
+        // update received weights by one weights reception
+        const weights = serialization.weights.decode(msg.weights)
+        this.receivedShares = this.receivedShares.push(weights)
+      } else if (this.instanceOfClientPartialSumsMessageServer(msg)) {
+        // update received partial sums by one partial sum
+        const partials: Weights = serialization.weights.decode(msg.partials)
+        this.receivedPartialSums = this.receivedPartialSums.push(partials)
+      } else {
+        throw new Error('Unexpected Message Type')
+      }
     } else {
-      throw new Error('Unexpected Message Type')
+      throw new Error('Unexpected Message Type-- not a message')
     }
   }
 }

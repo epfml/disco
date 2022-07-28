@@ -23,23 +23,17 @@ export function subtractWeights (w1: Weights, w2: Weights): Weights {
 Return sum of multiple weight objects in an array, returns weight object of sum
  */
 export function sum (setSummands: List<Weights>): Weights {
-  if (setSummands.size < 1) {
-    return []
-  }
   const summedWeights: Weights = new Array<tf.Tensor>()
   let tensors: Weights = new Array<tf.Tensor>() // list of different sized tensors of 0
-  if (setSummands.get(0) === undefined) {
-    throw new Error('Cannot sum')
-  }
-  // @ts-expect-error
-  for (let j = 0; j < setSummands.get(0).length; j++) {
-    for (let i = 0; i < setSummands.size; i++) {
-      // @ts-expect-error
-      tensors.push(setSummands.get(i)[j])
-    }
-    summedWeights.push(tf.addN(tensors))
-    tensors = new Array<tf.Tensor>()
-  }
+  let shapeOfWeight: Weights = setSummands.get(0) ?? []
+  for (let j = 0; j < shapeOfWeight.length; j++) {
+      for (let i = 0; i < setSummands.size; i++) {
+        let modelUpdate: Weights = setSummands.get(i) ?? []
+          tensors.push(modelUpdate[j])
+        }
+      }
+  summedWeights.push(tf.addN(tensors))
+  tensors = new Array<tf.Tensor>()
   return summedWeights
 }
 

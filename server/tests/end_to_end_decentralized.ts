@@ -128,14 +128,14 @@ describe('end to end', function () {
   Creates three clients with different update values and returns the aggregated update value between all three clients.
   The clients have model dimension of 4 model updates to share, which can be seen as their input parameter in makeClient().
    */
-  /* eslint-disable */
   async function testWeightSharing (secure: boolean): Promise<Weights> {
     // expected --> [.002, 7, 27, 11]
-    makeClient([0.001, 3, 40, 10], secure)
-    makeClient([0.002, 5, 30, 11], secure)
-    return await makeClient([0.003, 13, 11, 12], secure)
+    const client1 = makeClient([0.001, 3, 40, 10], secure)
+    const client2 = makeClient([0.002, 5, 30, 11], secure)
+    const client3 = makeClient([0.003, 13, 11, 12], secure)
+    const result = await Promise.all([client1, client2, client3])
+    return result[0]
   }
-  /* eslint-enable */
 
   // it('runs cifar 10 with three secure decentralized users', async () =>
   //   await Promise.all([cifar10userSec(), cifar10userSec(), cifar10userSec()]))
