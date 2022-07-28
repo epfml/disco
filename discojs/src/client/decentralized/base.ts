@@ -75,7 +75,7 @@ function to check if a given boolean condition is true, checks continuously unti
   protected sendReadyMessage (round: number): void {
     // Broadcast our readiness
     const msg: messages.clientReadyMessage = {
-      type: messages.messageType.clientReadyMessage,
+      type: messages.type.clientReadyMessage,
       round: round,
       peerID: this.ID,
       task: this.task.taskID
@@ -104,16 +104,16 @@ function to check if a given boolean condition is true, checks continuously unti
       const msg = msgpack.decode(new Uint8Array(event.data))
 
       // check message type to choose correct action
-      if (msg.type === messages.messageType.serverClientIDMessage) {
+      if (msg.type === messages.type.serverClientIDMessage) {
         // updated ID
         this.ID = msg.peerID
-      } else if (msg.type === messages.messageType.serverReadyClients) {
+      } else if (msg.type === messages.type.serverReadyClients) {
         // updated connected peers
         if (!this.peersLocked) {
           this.peers = msg.peerList
           this.peersLocked = true
         }
-      } else if (msg.type === messages.messageType.clientConnected) {
+      } else if (msg.type === messages.type.clientConnected) {
         this.connected = true
       } else {
         this.clientHandle(msg)

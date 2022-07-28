@@ -30,7 +30,7 @@ export class Decentralized extends Server {
 
   protected sendConnectedMsg (ws: WebSocket): void {
     const msg: messages.clientConnectedMessage = {
-      type: messages.messageType.clientConnected
+      type: messages.type.clientConnected
     }
     ws.send(msgpack.encode(msg))
   }
@@ -61,7 +61,7 @@ export class Decentralized extends Server {
     this.clients = this.clients.set(peerID, ws)
     // send peerID message
     const msg: messages.serverClientIDMessage = {
-      type: messages.messageType.serverClientIDMessage,
+      type: messages.type.serverClientIDMessage,
       peerID
     }
     console.info('peer', peerID, 'joined', task.taskID)
@@ -76,9 +76,9 @@ export class Decentralized extends Server {
     ws.on('message', (data: Buffer) => {
       try {
         const msg = msgpack.decode(data)
-        if (msg.type === messages.messageType.clientWeightsMessageServer) {
+        if (msg.type === messages.type.clientWeightsMessageServer) {
           const forwardMsg: messages.clientWeightsMessageServer = {
-            type: messages.messageType.clientWeightsMessageServer,
+            type: messages.type.clientWeightsMessageServer,
             peerID: msg.peerID,
             weights: msg.weights,
             destination: msg.destination
@@ -88,10 +88,10 @@ export class Decentralized extends Server {
           // sends message it received to destination
           this.clients.get(msg.destination)?.send(encodedMsg)
         } else if (
-          msg.type === messages.messageType.clientSharesMessageServer
+          msg.type === messages.type.clientSharesMessageServer
         ) {
           const forwardMsg: messages.clientSharesMessageServer = {
-            type: messages.messageType.clientSharesMessageServer,
+            type: messages.type.clientSharesMessageServer,
             peerID: msg.peerID,
             weights: msg.weights,
             destination: msg.destination
@@ -100,7 +100,7 @@ export class Decentralized extends Server {
 
           // sends message it received to destination
           this.clients.get(msg.destination)?.send(encodedMsg)
-        } else if (msg.type === messages.messageType.clientReadyMessage) {
+        } else if (msg.type === messages.type.clientReadyMessage) {
           const currentClients: Set<PeerID> =
             this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
           const updatedClients: Set<PeerID> = currentClients.add(msg.peerID)
@@ -117,7 +117,7 @@ export class Decentralized extends Server {
               new Set<PeerID>()
             )
             const readyPeerIDs: messages.serverReadyClients = {
-              type: messages.messageType.serverReadyClients,
+              type: messages.type.serverReadyClients,
               peerList: Array.from(currentPeers)
             }
             for (const peerID of currentPeers) {
@@ -126,10 +126,10 @@ export class Decentralized extends Server {
             }
           }
         } else if (
-          msg.type === messages.messageType.clientPartialSumsMessageServer
+          msg.type === messages.type.clientPartialSumsMessageServer
         ) {
           const forwardMsg: messages.clientPartialSumsMessageServer = {
-            type: messages.messageType.clientPartialSumsMessageServer,
+            type: messages.type.clientPartialSumsMessageServer,
             peerID: msg.peerID,
             partials: msg.partials,
             destination: msg.destination
