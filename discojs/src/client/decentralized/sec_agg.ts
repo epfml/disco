@@ -83,29 +83,12 @@ sends partial sums to connected peers so final update can be calculated
     return this.receivedPartialSums
   }
 
-  /*
-  checks if message contains shares from a peer
-   */
-  private instanceOfClientSharesMessageServer (msg: messages.messageGeneral): msg is messages.clientSharesMessageServer {
-    return msg.type === messages.messageType.clientSharesMessageServer
-  }
-
-  /*
-  checks if message contains partial sums from a peer
-   */
-  private instanceOfClientPartialSumsMessageServer (msg: messages.messageGeneral): msg is messages.clientPartialSumsMessageServer {
-    return msg.type === messages.messageType.clientPartialSumsMessageServer
-  }
-
-  /*
-handles received messages from signaling server
- */
-  override clientHandle (msg: messages.messageGeneral): void {
-    if (this.instanceOfClientSharesMessageServer(msg)) {
+  override clientHandle (msg: messages.PeerMessage): void {
+    if (msg.type === messages.messageType.clientSharesMessageServer) {
       // update received weights by one weights reception
       const weights = serialization.weights.decode(msg.weights)
       this.receivedShares = this.receivedShares.push(weights)
-    } else if (this.instanceOfClientPartialSumsMessageServer(msg)) {
+    } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
       // update received partial sums by one partial sum
       const partials: Weights = serialization.weights.decode(msg.partials)
       this.receivedPartialSums = this.receivedPartialSums.push(partials)

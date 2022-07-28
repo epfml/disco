@@ -47,17 +47,10 @@ export class ClearText extends Base {
   }
 
   /*
-  checks if message contains weights from a peer
-   */
-  private instanceOfClientWeightsMessageServer (msg: messages.messageGeneral): msg is messages.clientWeightsMessageServer {
-    return msg.type === messages.messageType.clientWeightsMessageServer
-  }
-
-  /*
 handles received messages from signaling server
  */
-  override clientHandle (msg: messages.messageGeneral): void {
-    if (this.instanceOfClientWeightsMessageServer(msg)) {
+  override clientHandle (msg: messages.PeerMessage): void {
+    if (msg.type === messages.messageType.clientWeightsMessageServer) {
       // update received weights by one weights reception
       const weights = serialization.weights.decode(msg.weights)
       this.receivedWeights = this.receivedWeights.push(weights)
