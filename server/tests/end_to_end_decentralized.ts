@@ -91,31 +91,49 @@ describe('end to end', function () {
   //   await disco.startTraining(loaded)
   // }
 
-  it('decentralized client test one round', async () => {
-    const result: Weights = await testWeightSharingInsecure()
-    // const expected: Weights = makeWeights([6, 7, 13])
-    tf.print(result[0])
+  it('decentralized client test one round of weight aggregation', async () => {
+    const resultClear: Weights = await testWeightSharing(false)
+    // const expected: Weights = makeWeights([.002, 7, 27, 11])
+    console.log('clear text')
+    tf.print(resultClear[0])
+
+    const resultSecure: Weights = await testWeightSharing(true)
+    // const expected: Weights = makeWeights([.002, 7, 27, 11])
+    console.log('Secure Aggregation')
+    tf.print(resultSecure[0])
   }
     // expect(result).to.equal(expected)}
   )
 
   /*
-    makes client to connect to server and share input weights
+    Makes client object to connect to server. The input array is the weights that the client will share
+    with other ready peers. The input will vary with model architecture and training data. If secure is true,
+    the client will implement secure aggregation. If it is false, it will be a clear text client.
      */
-  async function makeClient (input: number[]): Promise<Weights> {
+  async function makeClient (input: number[], secure: boolean): Promise<Weights> {
     const TASK = tasks.cifar10.task
-    const clientCurrent = await getClient(client.decentralized.ClearText, server, TASK)
+    let clientCurrent
+    if (secure) {
+      clientCurrent = await getClient(client.decentralized.SecAgg, server, TASK)
+    } else {
+      clientCurrent = await getClient(client.decentralized.ClearText, server, TASK)
+    }
     const weights: Weights = makeWeights(input)
     const trainingInformant1: TrainingInformant = new informant.DecentralizedInformant(0, 0)
     await clientCurrent.connect()
     return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
   }
-/* eslint-disable */
-  async function testWeightSharingInsecure (): Promise<Weights> {
-    // expected --> [6, 7, 13]
-    makeClient([3, 3, 3])
-    makeClient([4, 5, 6])
-    return await makeClient([11, 13, 30])
+
+  /*
+  Creates three clients with different update values and returns the aggregated update value between all three clients.
+  The clients have model dimension of 4 model updates to share, which can be seen as their input parameter in makeClient().
+   */
+  /* eslint-disable */
+  async function testWeightSharing (secure: boolean): Promise<Weights> {
+    // expected --> [.002, 7, 27, 11]
+    makeClient([0.001, 3, 40, 10], secure)
+    makeClient([0.002, 5, 30, 11], secure)
+    return await makeClient([0.003, 13, 11, 12], secure)
   }
   /* eslint-enable */
 
@@ -145,47 +163,14 @@ describe('end to end', function () {
   //   await disco.startTraining(loaded)
   // }
 
-  it('decentralized client secure test one round', async () => {
-    const result: Weights = await testWeightSharingSecure()
-    // const expected: Weights = makeWeights([6, 7, 13])
-    tf.print(result[0])
-  }
-    // expect(result).to.equal(expected)}
-  )
-
-  /*
-    Makes client object to connect to server. The input array is the weights that the client will share
-    with other ready peers. The input will vary with model architecture and training data.
-     */
-  async function makeClientSecure (input: number[]): Promise<Weights> {
-    const TASK = tasks.cifar10.task
-    const clientCurrent = await getClient(client.decentralized.SecAgg, server, TASK)
-    const weights: Weights = makeWeights(input)
-    const trainingInformant1: TrainingInformant = new informant.DecentralizedInformant(0, 0)
-    await clientCurrent.connect()
-    return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformant1)
-  }
-/* eslint-disable */
-  /*
-  Creates three clients with different update values and returns the aggregated update value between all three clients
-   */
-  async function testWeightSharingSecure (): Promise<Weights> {
-    // expected --> [.002, 7, 27]
-    makeClientSecure([.001, 3, 40])
-    makeClientSecure([.002, 5, 30])
-    return await makeClientSecure([.003, 13, 11])
-  }
-
-
-      it('decentralized secure client testing timout', async () => {
+  it('decentralized secure client testing timout', async () => {
     const result: Weights = await testTimeOut()
     // const expected: Weights = makeWeights([6, 7, 13])
     tf.print(result[0])
   })
 
-  async function testTimeOut (): Promise<Weights>{
-    return makeClientSecure([4, 5, 6])
+  async function testTimeOut (): Promise<Weights> {
+    return await makeClient([4, 5, 6, 7], true)
   }
-    /* eslint-enable */
 }
 )
