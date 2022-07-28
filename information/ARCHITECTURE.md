@@ -34,8 +34,40 @@ The helper server in the federated case takes care of listening for incoming wei
 
 ## Code Organisation
 
-Coming soon.
-
+     .
+     ├── benchmark    # A command line interface (CLI) for node-based Disco that serves as a simulator
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md 
+     ├── browser      # UI based on Vue3 for browser-based use of Disco
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md 
+     ├── discojs      # Core module: data handling, training, and communication across devices.
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md 
+    (├── experiments  # Code that is not a functional part of Disco (extensions, toy experiments, ...)                        )
+    (│  └── ...                                                                                                               )
+     ├── information  # Markdown documentation of the project lives here (except [README](../README.md) and [DEV](../DEV.md))
+     │  └── ... 
+     ├── server       # Helper server for orchestration (and aggregation in federated learning)
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md 
+    (├── simulator    # Jupyter Notebook based simulators used in development                                                 )
+    (│  └── ...                                                                                                               )
+     ├── DEV.md       # Developer guide
+     ├── LICENSE      
+     └── README.md    # Home page
+    
+     
+    
+    
+    
+    
+    
+    
 ### Use of TypeScript (a dialect of JavaScript)
 
 In order to facilitate development with JavaScript (js) we use [TypeScript](https://www.typescriptlang.org/) (ts); this adds an additional layer on top of JavaScript that allows for a deeper integration with your editor which enables you to catch errors faster.
