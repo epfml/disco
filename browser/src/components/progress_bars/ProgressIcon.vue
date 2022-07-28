@@ -34,7 +34,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { defineProps } from 'vue'
 
 interface Props {
@@ -43,5 +42,4 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
 </script>

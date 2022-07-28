@@ -1,159 +1,124 @@
 <template>
-  <div>
-    <!-- Train Button -->
-    <div
-      v-if="!startedTraining"
-      class="grid grid-cols-1 md:grid-cols-2 gap-8 py-6 items-center"
-    >
-      <div class="text-center">
-        <CustomButton
-          @click="startTraining(false)"
-        >
-          Train alone
-        </CustomButton>
-      </div>
-      <div class="text-center">
-        <CustomButton
-          @click="startTraining(true)"
-        >
-          Train collaboratively
-        </CustomButton>
-      </div>
-    </div>
-    <div
-      v-else
-      class="text-center py-6"
-    >
-      <CustomButton
-        @click="stopTraining()"
+  <div v-if="!verifyingRoute">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 py-6">
+      <div
+        class="text-center md:text-right"
       >
-        Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
-      </CustomButton>
+        <CustomButton
+          @click="prevStepOrList()"
+        >
+          Previous
+        </CustomButton>
+      </div>
+      <div
+        class="text-center md:text-left"
+      >
+        <CustomButton
+          v-show="step <= 3"
+          @click="nextStep(id)"
+        >
+          Next
+        </CustomButton>
+      </div>
     </div>
-
-    <!-- Training Board -->
-    <div>
-      <TrainingInformation
-        :training-informant="trainingInformant"
-        :has-validation-data="hasValidationData"
-      />
-    </div>
+    <Description
+      v-show="step === 1"
+      :task="task"
+    />
+    <Data
+      v-show="step === 2"
+      :task="task"
+      :dataset-builder="datasetBuilder"
+    />
+    <Trainer
+      v-show="step === 3"
+      :task="task"
+      :dataset-builder="datasetBuilder"
+    />
+    <Finished
+      v-show="step === 4"
+      :task="task"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { mapState } from 'vuex'
+import { mapMutations, mapState } from 'vuex'
 
-import { dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from 'discojs'
+import { Task, dataset } from 'discojs'
 
-import { getClient } from '@/clients'
-import { IndexedDB } from '@/memory'
-import { toaster } from '@/toast'
-import TrainingInformation from '@/components/training/TrainingInformation.vue'
+import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import Description from '@/components/training/Description.vue'
+import Trainer from '@/components/training/Trainer.vue'
+import Finished from '@/components/training/Finished.vue'
+import Data from '@/components/data/Data.vue'
 
 export default defineComponent({
   name: 'Training',
   components: {
-    TrainingInformation,
+    Description,
+    Data,
+    Trainer,
+    Finished,
     CustomButton
   },
   props: {
-    task: {
-      validator: isTask,
-      default: undefined
-    },
-    datasetBuilder: {
-      type: dataset.DatasetBuilder,
-      default: undefined
+    id: {
+      type: String,
+      default: ''
     }
   },
-  data (): {
-    distributedTraining: boolean,
-    startedTraining: boolean,
-    trainingInformant: TrainingInformant
-    } {
+  data (): { verifyingRoute: boolean } {
     return {
-      distributedTraining: false,
-      startedTraining: false,
-      trainingInformant: new informant.LocalInformant(this.task.taskID, 10)
+      verifyingRoute: true
     }
   },
   computed: {
-    ...mapState(['useIndexedDB']),
-    client (): Client {
-      return getClient(this.scheme, this.task)
+    ...mapState(['tasks', 'steps']),
+    task (): Task {
+      return this.tasks.get(this.id)
     },
-    memory (): Memory {
-      return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+    step (): number {
+      return this.steps.get(this.id)
     },
-    disco (): Disco {
-      return new Disco(
-        this.task,
-        this.$toast,
-        this.memory,
-        this.scheme,
-        this.trainingInformant,
-        this.client
-      )
-    },
-    scheme (): TrainingSchemes {
-      if (this.distributedTraining) {
-        switch (this.task.trainingInformation?.scheme) {
-          case 'Federated':
-            return TrainingSchemes.FEDERATED
-          case 'Decentralized':
-            return TrainingSchemes.DECENTRALIZED
-        }
-      }
-      // default scheme
-      return TrainingSchemes.LOCAL
-    },
-    hasValidationData (): boolean {
-      return this.task?.trainingInformation?.validationSplit > 0
-    }
-  },
-  watch: {
-    scheme (newScheme: TrainingSchemes): void {
-      const args = [this.task.taskID, 10] as const
-      switch (newScheme) {
-        case TrainingSchemes.FEDERATED:
-          this.trainingInformant = new informant.FederatedInformant(...args)
+    datasetBuilder (): dataset.DatasetBuilder<File> {
+      let dataLoader: dataset.DataLoader<File>
+      switch (this.task.trainingInformation.dataType) {
+        case 'tabular':
+          dataLoader = new WebTabularLoader(this.task, ',')
           break
-        case TrainingSchemes.DECENTRALIZED:
-          this.trainingInformant = new informant.DecentralizedInformant(...args)
+        case 'image':
+          dataLoader = new WebImageLoader(this.task)
           break
         default:
-          this.trainingInformant = new informant.LocalInformant(...args)
-          break
+          throw new Error('not implemented')
       }
+      return new dataset.DatasetBuilder(dataLoader, this.task)
     }
   },
+  created () {
+    if (!this.$store.state.tasks.has(this.id)) {
+      this.$router.replace({ name: 'not-found' })
+    } else {
+      this.verifyingRoute = false
+    }
+  },
+  mounted () {
+    this.setStep({ taskID: this.id, step: 1 })
+  },
+  activated () {
+    this.setCurrentTask(this.id)
+  },
   methods: {
-    async startTraining (distributedTraining: boolean) {
-      this.distributedTraining = distributedTraining
-
-      try {
-        if (!this.datasetBuilder.isBuilt()) {
-          this.dataset = await this.datasetBuilder.build()
-        }
-
-        await this.client.connect()
-        this.startedTraining = true
-        await this.disco.startTraining(this.dataset)
-        this.startedTraining = false
-      } catch (e) {
-        toaster.error(e instanceof Error ? e.message : e.toString())
-
-        // clean generated state
-        this.distributedTraining = false
-        this.startedTraining = false
+    ...mapMutations(['nextStep', 'prevStep', 'setStep', 'setCurrentTask']),
+    prevStepOrList () {
+      if (this.step === 1) {
+        this.$router.push({ path: '/list' })
+      } else {
+        this.prevStep(this.id)
       }
-    },
-    async stopTraining () {
-      await this.disco.stopTraining()
-      this.isTraining = false
     }
   }
 })

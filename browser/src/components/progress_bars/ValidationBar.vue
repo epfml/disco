@@ -79,7 +79,7 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
 
-import ProgressIcon from '@/components/navigation/ProgressIcon.vue'
+import ProgressIcon from './ProgressIcon.vue'
 
 interface Props { step: number }
 

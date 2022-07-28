@@ -33,7 +33,7 @@ import { isTask } from 'discojs'
 import Tasks from '@/assets/svg/Tasks.vue'
 import Model from '@/assets/svg/Model.vue'
 import IconCard from '@/components/containers/IconCard.vue'
-import ModelCaching from '@/components/ModelCaching.vue'
+import ModelCaching from '@/components/training/ModelCaching.vue'
 
 export default {
   name: 'Description',

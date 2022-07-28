@@ -15,8 +15,4 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'CustomHeader'
-}
-</script>
+<script lang="ts" setup />
