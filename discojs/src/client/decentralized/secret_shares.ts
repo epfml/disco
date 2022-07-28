@@ -60,21 +60,16 @@ export function generateAllShares (secret: Weights, nParticipants: number, noise
 }
 
 /*
-generate a cryptographically secure random number with a maximum value of maxShareValue
- */
-export function generateRandomNumber (maxShareValue: number): number {
-  return crypto.randomInt(maxShareValue)
-}
-
-/*
-generates one share in the same shape as the secret that is populated with randomly generated values
+generates one share in the same shape as the secret that is populated with values randomly chosend from
+a uniform distribution between (-maxShareValue, maxShareValue).
  */
 export function generateRandomShare (secret: Weights, maxShareValue: number): Weights {
   const share: Weights = []
+  const seed: number = crypto.randomInt(2**47)
   for (const t of secret) {
     share.push(
       tf.randomUniform(
-        t.shape, -maxShareValue, maxShareValue, 'float32', generateRandomNumber(maxShareValue))
+        t.shape, -maxShareValue, maxShareValue, 'float32', seed)
     )
   }
   return share
