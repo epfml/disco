@@ -1,6 +1,6 @@
 # Custom Tasks
 
-DiscoJS currently provides several pre-define popular tasks such as titanic, simple-face and cifar10. In order
+DiscoJS currently provides several pre-defined popular example tasks such as titanic, cifar10, or simple-face. In order
 to understand how to add your own custom task, we will go over how we added simple-face to discojs.
 
 ### Task
