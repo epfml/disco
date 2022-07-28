@@ -13,7 +13,7 @@ export const task: Task = {
     limitations: 'The training data is limited to small images of size 200x200.',
     tradeoffs: 'Training success strongly depends on label distribution',
     dataFormatInformation: '',
-    dataExampleText: 'Bellow you can find an example',
+    dataExampleText: 'Below you find an example',
     dataExampleImage: './simple_face-example.png'
   },
   trainingInformation: {
