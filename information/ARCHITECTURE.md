@@ -26,11 +26,13 @@ As the name implies, this takes care of training, which is either decentralised 
 
 #### Client
 
-The client takes care of communication, if it is federated then communication is with the server, and if decentralised then between peers. [Decentralised communication can be done using secure multi-party update aggregation](./SECAGG.md).
+The client takes care of communication with the server, and in the decentralised case also communication between peers. Decentralised communication is (optionally) done using [secure multi-party update aggregation](./SECAGG.md).
 
 #### Server
 
-The helper server in the federated case takes care of listening for incoming weights, and aggregating them whenever enough have been received. For the decentralised case the helper server only keeps track of the list of available clients, in order to let them know who they can share weights with.
+In the federated case, the helper server listens for incoming weights, and aggregates them whenever enough have been received.
+For the decentralised case, the helper server only plays an orchestrating role:
+It helps new clients connect to existing clients, and keeps track of which clients are ready to share model weights with each other, in order to let them know when enough clients are ready.
 
 ## Code Organisation
 

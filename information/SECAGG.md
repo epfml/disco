@@ -1,16 +1,17 @@
 # Secure Aggregation
 
-### Algorithm description
-Additive secret sharing is a standard form of secure multiparty computation. To read more about this algorithm, see e.g. [HERE](https://www.geeksforgeeks.org/additive-secret-sharing-and-share-proactivization-using-python/?ref=rp). In DisCo, we rely on secure aggregation of model updates, in each communication round, in order to fully protect the privacy of each model update. 
+Additive secret sharing is a standard form of secure multiparty computation. To read more about this algorithm, see e.g. [HERE](https://www.geeksforgeeks.org/additive-secret-sharing-and-share-proactivization-using-python/?ref=rp). In DisCo, we rely on secure aggregation of models / model updates, in each communication round, in order to fully protect the privacy of each model update. 
 
-- Concept: Private data - Public model
+### Concept: Private data - Public model
 
 We guarantee input privacy of each personal update and each client's data. 
-The models resulting from training is considered public, both in the federated and decentralized modes.
+The model resulting from training is considered public, both in the federated and decentralized modes.
 
-- Secure Aggregation
+### Secure Aggregation
 
 Our secure aggregation mechanism is implemented in each communication round, within small aggregation groups of a minimum size, which are formed from clients available to exchange model updates. 
+
+## Algorithm description
 
 The secure aggregation method has four steps:
 1. Each client will send a "ready message" to the signaling server, indicating that they are done with a round of local updates and ready to be connected to other clients in order to aggregate weights. Each client pauses aggregation until they have received a list of peers to connect to.
