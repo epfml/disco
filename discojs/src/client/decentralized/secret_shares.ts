@@ -28,6 +28,9 @@ export function sum (setSummands: List<Weights>): Weights {
   }
   const summedWeights: Weights = new Array<tf.Tensor>()
   let tensors: Weights = new Array<tf.Tensor>() // list of different sized tensors of 0
+  if (setSummands.get(0) === undefined) {
+    throw new Error('Cannot sum')
+  }
   // @ts-expect-error
   for (let j = 0; j < setSummands.get(0).length; j++) {
     for (let i = 0; i < setSummands.size; i++) {
@@ -77,7 +80,7 @@ export function generateRandomShare (secret: Weights, maxShareValue: number): We
   for (const t of secret) {
     share.push(
       tf.randomUniform(
-        t.shape, -maxShareValue, maxShareValue, undefined, generateRandomNumber(maxShareValue))
+        t.shape, -maxShareValue, maxShareValue, 'float32', generateRandomNumber(maxShareValue))
     )
   }
   return share
