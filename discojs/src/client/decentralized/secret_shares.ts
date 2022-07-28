@@ -65,7 +65,7 @@ a uniform distribution between (-maxShareValue, maxShareValue).
  */
 export function generateRandomShare (secret: Weights, maxShareValue: number): Weights {
   const share: Weights = []
-  const seed: number = crypto.randomInt(2**47)
+  const seed: number = crypto.randomInt(2 ** 47)
   for (const t of secret) {
     share.push(
       tf.randomUniform(
