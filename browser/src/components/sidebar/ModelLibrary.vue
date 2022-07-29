@@ -14,7 +14,7 @@
         </template>
         <template #content>
           <span class="text-s">
-            <p v-if="useIndexedDB">List of trained models that were saved.</p>
+            <p v-if="memoryStore.useIndexedDB">List of trained models that were saved.</p>
             <p v-else>
               The model library is currently unavailable. You can turn it on in
               the
@@ -26,11 +26,11 @@
             </p>
           </span>
           <div
-            v-if="useIndexedDB"
+            v-if="memoryStore.useIndexedDB"
             class="space-y-4"
           >
             <button
-              v-for="[path, metadata] in models"
+              v-for="[path, metadata] in memoryStore.models"
               :key="path"
               class="
                 flex items-center justify-between
@@ -88,10 +88,11 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { mapMutations, mapState } from 'vuex'
+import { mapStores } from 'pinia'
 
 import { Memory, EmptyMemory, Path, ModelType } from 'discojs'
 
+import { useMemoryStore } from '@/store/memory'
 import { IndexedDB } from '@/memory'
 import { toaster } from '@/toast'
 import ModelButton from './simple/ModelButton.vue'
@@ -115,18 +116,16 @@ export default defineComponent({
   },
   emits: ['switch-panel'],
   computed: {
-    ...mapState(['useIndexedDB', 'models']),
+    ...mapStores(useMemoryStore),
 
     memory (): Memory {
       return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     }
   },
   async mounted (): Promise<void> {
-    await this.$store.dispatch('initModels')
+    await this.memoryStore.initModels()
   },
   methods: {
-    ...mapMutations(['setTestingModel']),
-
     switchToSettings (): void {
       this.$emit('switch-panel')
     },
@@ -151,7 +150,6 @@ export default defineComponent({
     },
 
     async loadModel (path: Path) {
-      console.log(path)
       const modelInfo = this.memory.infoFor(path)
       if (modelInfo.type !== ModelType.WORKING) {
         try {

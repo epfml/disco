@@ -43,10 +43,11 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { mapState } from 'vuex'
+import { mapStores } from 'pinia'
 
 import { dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from 'discojs'
 
+import { useMemoryStore } from '@/store/memory'
 import { getClient } from '@/clients'
 import { IndexedDB } from '@/memory'
 import { toaster } from '@/toast'
@@ -81,12 +82,12 @@ export default defineComponent({
     }
   },
   computed: {
-    ...mapState(['useIndexedDB']),
+    ...mapStores(useMemoryStore),
     client (): Client {
       return getClient(this.scheme, this.task)
     },
     memory (): Memory {
-      return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+      return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     },
     disco (): Disco {
       return new Disco(
