@@ -142,4 +142,5 @@ model.json
 
 # IDE files
 .metals/
+.idea/
 .vscode/

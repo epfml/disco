@@ -1,44 +1,28 @@
 <template>
   <div>
-    <div class="flex py-6">
-      <!-- previous button -->
-      <div class="text-right w-1/5">
-        <button
+    <!-- navigation bar -->
+    <ValidationBar :step="step" />
+    <!-- previous button -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 py-6">
+      <div
+        class="text-center md:text-right"
+      >
+        <CustomButton
           v-show="showPrev"
-          class="
-            h-10 w-10
-            text-lg font-bold text-white hover:text-disco-blue
-            bg-disco-blue hover:bg-white
-            rounded-full
-            duration-200
-            hover:outline hover:outline-2 hover:outline-disco-blue
-          "
-          @click="prevStep()"
+          @click="prevStep"
         >
-          &lt;
-        </button>
+          Previous
+        </CustomButton>
       </div>
-      <!-- navigation bar -->
-      <ValidationBar
-        :step="step"
-        class="w-3/5"
-      />
-      <!-- next button -->
-      <div class="text-left w-1/5">
-        <button
+      <div
+        class="text-center md:text-left"
+      >
+        <CustomButton
           v-show="showNext"
-          class="
-            h-10 w-10
-            text-lg font-bold text-white hover:text-disco-blue
-            bg-disco-blue hover:bg-white
-            rounded-full
-            duration-200
-            hover:outline hover:outline-2 hover:outline-disco-blue
-          "
-          @click="nextStep()"
+          @click="nextStep"
         >
-          &gt;
-        </button>
+          Next
+        </CustomButton>
       </div>
     </div>
     <div v-show="step === 0">
@@ -131,14 +115,15 @@ import { mapState } from 'vuex'
 
 import { EmptyMemory, Memory, Path, Task, dataset } from 'discojs'
 
+import { IndexedDB } from '@/memory'
+import { toaster } from '@/toast'
+import { WebTabularLoader, WebImageLoader } from '@/data_loader'
+import CustomButton from '@/components/simple/CustomButton.vue'
 import ValidationBar from '@/components/validation/ValidationBar.vue'
 import Data from '@/components/data/Data.vue'
 import Validator from '@/components/validation/Validator.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
-import { IndexedDB } from '@/memory'
-import { WebTabularLoader, WebImageLoader } from '@/data_loader'
-import { toaster } from '@/toast'
 
 export default defineComponent({
   name: 'Testing',
@@ -148,7 +133,8 @@ export default defineComponent({
     Data,
     ButtonCard,
     IconCard,
-    RouterLink
+    RouterLink,
+    CustomButton
   },
   data (): { task: Task, step: number, model: Path } {
     return {

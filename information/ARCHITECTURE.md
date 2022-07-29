@@ -1,57 +1,37 @@
 # Disco - Architecture
 
-## High level architecture
-
-![architecture](architecture.png)
-
-- The UI is a browser built with Vue3
-- Manager (interactions between UI and core)
-- The core of disco is composed of the following modules:
-  - Data
-  - Train
-  - Client
-- Server
-
-### Core
-
-The core of disco is the typescript code that runs data loading, training and communication protocols for weight sharing.
-
-#### Data
-
-The data module takes care of connecting local data, converting it into tensors and preparing it for training (preprocessing).
-
-#### Train
-
-As the name implies, this takes care of training, which is either decentralised or federated mode. For communication of model updates (weight sharing) we use callback functions that are called every n epochs; e.g. if n = 1.5, then every 1.5 epochs the callback is executed, which in brief is the client sharing the model weights.
-
-#### Client
-
-The client takes care of communication with the server, and in the decentralised case also communication between peers. Decentralised communication is (optionally) done using [secure multi-party update aggregation](./SECAGG.md).
-
-#### Server
-
-In the federated case, the helper server listens for incoming weights, and aggregates them whenever enough have been received.
-For the decentralised case, the helper server only plays an orchestrating role:
-It helps new clients connect to existing clients, and keeps track of which clients are ready to share model weights with each other, in order to let them know when enough clients are ready.
-
 ## Code Organisation
 
-    .
-    ├── assets       # contains the resources of the app
-    │ ├── css        # css files
-    │ ├── svg        # svg image / icons
-    ├── components   # vue file folder
-    │ ├── XXX.vue    # vue example file
-    ├── core         # core code of the client (training, communication, ...)
-    │ ├── XXX.ts     # ts example file
-    ├── router       # vue-router related folder
-    │ ├── index.ts
-    ├── store        # vuex related folder
-    │ ├── store.ts
-    ├── main.ts      # root file of the app
-    ├── .env.XXX     # environment specific variables
-    └── ...          # rest of the files
-
+     .
+     ├── README.md    # Home page
+     ├── DEV.md       # Developer guide
+     ├── LICENSE      
+     ├── information  # Markdown documentation of the project lives here (except [README](../README.md) and [DEV](../DEV.md))
+     │  └── ... 
+     ├── discojs      # Core module: data handling, training, and communication across devices.
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md 
+     ├── server       # Helper server for orchestration (and aggregation in federated learning)
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md 
+     ├── browser      # Browser based client and UI based on Vue3
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md 
+     ├── benchmark    # A command line interface (CLI) and node-based client for Disco. No browser needed. Can serve as a simulator or for integration to other usecases
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md 
+    (├── experiments  # Code that is not a functional part of Disco (extensions, toy experiments, ...)                        )
+    (│  └── ...                                                                                                               )
+    (├── simulator    # Jupyter Notebook based simulators used in development                                                 )
+    (│  └── ...                                                                                                               )
+    
+     
+    
+    
 ### Use of TypeScript (a dialect of JavaScript)
 
 In order to facilitate development with JavaScript (js) we use [TypeScript](https://www.typescriptlang.org/) (ts); this adds an additional layer on top of JavaScript that allows for a deeper integration with your editor which enables you to catch errors faster.
