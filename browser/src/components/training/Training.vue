@@ -5,7 +5,7 @@
         class="text-center md:text-right"
       >
         <CustomButton
-          @click="prevStepOrList()"
+          @click="prevStepOrList"
         >
           Previous
         </CustomButton>
@@ -14,40 +14,42 @@
         class="text-center md:text-left"
       >
         <CustomButton
-          v-show="step <= 3"
-          @click="nextStep(id)"
+          v-show="trainingStore.step <= 3"
+          @click="trainingStore.nextStep"
         >
           Next
         </CustomButton>
       </div>
     </div>
     <Description
-      v-show="step === 1"
+      v-show="trainingStore.step === 1"
       :task="task"
     />
     <Data
-      v-show="step === 2"
+      v-show="trainingStore.step === 2"
       :task="task"
       :dataset-builder="datasetBuilder"
     />
     <Trainer
-      v-show="step === 3"
+      v-show="trainingStore.step === 3"
       :task="task"
       :dataset-builder="datasetBuilder"
     />
     <Finished
-      v-show="step === 4"
+      v-show="trainingStore.step === 4"
       :task="task"
     />
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { mapMutations, mapState } from 'vuex'
+<script lang="ts" setup>
+import { computed, onActivated, onMounted, ref, defineProps } from 'vue'
+import { useRouter } from 'vue-router'
 
-import { Task, dataset } from 'discojs'
+import { dataset, TaskID } from 'discojs'
 
+import { useTrainingStore } from '@/store/training'
+import { useTasksStore } from '@/store/tasks'
 import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Description from '@/components/training/Description.vue'
@@ -55,71 +57,48 @@ import Trainer from '@/components/training/Trainer.vue'
 import Finished from '@/components/training/Finished.vue'
 import Data from '@/components/data/Data.vue'
 
-export default defineComponent({
-  name: 'Training',
-  components: {
-    Description,
-    Data,
-    Trainer,
-    Finished,
-    CustomButton
-  },
-  props: {
-    id: {
-      type: String,
-      default: ''
-    }
-  },
-  data (): { verifyingRoute: boolean } {
-    return {
-      verifyingRoute: true
-    }
-  },
-  computed: {
-    ...mapState(['tasks', 'steps']),
-    task (): Task {
-      return this.tasks.get(this.id)
-    },
-    step (): number {
-      return this.steps.get(this.id)
-    },
-    datasetBuilder (): dataset.DatasetBuilder<File> {
-      let dataLoader: dataset.DataLoader<File>
-      switch (this.task.trainingInformation.dataType) {
-        case 'tabular':
-          dataLoader = new WebTabularLoader(this.task, ',')
-          break
-        case 'image':
-          dataLoader = new WebImageLoader(this.task)
-          break
-        default:
-          throw new Error('not implemented')
-      }
-      return new dataset.DatasetBuilder(dataLoader, this.task)
-    }
-  },
-  created () {
-    if (!this.$store.state.tasks.has(this.id)) {
-      this.$router.replace({ name: 'not-found' })
-    } else {
-      this.verifyingRoute = false
-    }
-  },
-  mounted () {
-    this.setStep({ taskID: this.id, step: 1 })
-  },
-  activated () {
-    this.setCurrentTask(this.id)
-  },
-  methods: {
-    ...mapMutations(['nextStep', 'prevStep', 'setStep', 'setCurrentTask']),
-    prevStepOrList () {
-      if (this.step === 1) {
-        this.$router.push({ path: '/list' })
-      } else {
-        this.prevStep(this.id)
-      }
-    }
+const router = useRouter()
+const trainingStore = useTrainingStore()
+const tasksStore = useTasksStore()
+
+interface Props { id: TaskID }
+const props = defineProps<Props>()
+
+const verifyingRoute = ref(true)
+
+if (!tasksStore.tasks.has(props.id)) {
+  router.replace({ name: 'not-found' })
+} else {
+  verifyingRoute.value = false
+}
+
+const task = computed(() => tasksStore.tasks.get(props.id))
+const datasetBuilder = computed(() => {
+  let dataLoader: dataset.DataLoader<File>
+  switch (task.value.trainingInformation.dataType) {
+    case 'tabular':
+      dataLoader = new WebTabularLoader(task.value, ',')
+      break
+    case 'image':
+      dataLoader = new WebImageLoader(task.value)
+      break
+    default:
+      throw new Error('not implemented')
   }
+  return new dataset.DatasetBuilder(dataLoader, task.value)
 })
+
+onMounted(() => {
+  trainingStore.setTask(props.id)
+  trainingStore.setStep(1)
+})
+onActivated(() => { trainingStore.setTask(props.id) })
+
+function prevStepOrList () {
+  if (trainingStore.step === 1) {
+    router.push({ path: '/list' })
+  } else {
+    trainingStore.prevStep()
+  }
+}
 </script>

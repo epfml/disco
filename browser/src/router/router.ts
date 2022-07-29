@@ -82,6 +82,10 @@ export const router = createRouter({
       components: {
         default: Training,
         ProgressBar: TrainingBar
+      },
+      props: {
+        default: true,
+        ProgressBar: false
       }
     },
     {

@@ -29,6 +29,7 @@
     "nock": "13",
     "papaparse": "5",
     "path-browserify": "1",
+    "pinia": "2",
     "postcss": "^8",
     "rand-seed": "1",
     "seedrandom": "3",
@@ -42,7 +43,6 @@
     "vue-i18n": "9",
     "vue-router": "4",
     "vue3-apexcharts": "1",
-    "vuex": "4",
     "yup": "0"
   },
   "devDependencies": {

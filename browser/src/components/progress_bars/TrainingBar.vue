@@ -148,20 +148,22 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { useStore } from '@/store'
+import { useTasksStore } from '@/store/tasks'
+import { useTrainingStore } from '@/store/training'
 import ProgressIcon from './ProgressIcon.vue'
 
-const store = useStore()
 const route = useRoute()
+const tasksStore = useTasksStore()
+const trainingStore = useTrainingStore()
 
 const scheme = computed(() => {
-  const task = store.state.tasks.get(store.state.currentTask)
+  const task = tasksStore.tasks.get(trainingStore.task)
   return task?.trainingInformation?.scheme
 })
 const displayTitle = computed(() => route.fullPath !== '/list')
 
 const isActive = (step: number): boolean => {
-  const currentStep = store.state.steps.get(store.state.currentTask)
+  const currentStep = trainingStore.step
   if (currentStep === undefined || route.fullPath === '/list') {
     return false
   } else {

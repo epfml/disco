@@ -45,16 +45,18 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ConsoleLogger, dataset, EmptyMemory, Memory, Path, Task, Validator } from 'discojs'
 import { computed, defineProps, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 
-import ButtonCard from '@/components/containers/ButtonCard.vue'
+import { ConsoleLogger, dataset, EmptyMemory, Memory, Path, Task, Validator } from 'discojs'
+
 import { IndexedDB } from '@/memory'
 import { chartOptions } from '@/charts'
 import { toaster } from '@/toast'
-import { useStore } from '@/store'
+import ButtonCard from '@/components/containers/ButtonCard.vue'
+import { useMemoryStore } from '@/store/memory'
 
-const store = useStore()
+const { useIndexedDB } = storeToRefs(useMemoryStore())
 
 interface Props {
   task: Task
@@ -64,8 +66,6 @@ interface Props {
 
 const validator = ref<Validator>(undefined)
 const props = defineProps<Props>()
-
-const useIndexedDB = store.state.useIndexedDB
 
 const memory = computed<Memory>(() => useIndexedDB ? new IndexedDB() : new EmptyMemory())
 const accuracyData = computed<number[]>(() => {
