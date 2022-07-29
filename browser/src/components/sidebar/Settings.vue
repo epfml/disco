@@ -62,9 +62,9 @@
                   "
                     :class="{
                       'translate-x-0 bg-slate-300':
-                        !$store.state.useIndexedDB,
+                        !memoryStore.useIndexedDB,
                       'translate-x-6 bg-disco-blue':
-                        $store.state.useIndexedDB,
+                        memoryStore.useIndexedDB,
                     }"
                   />
                 </div>
@@ -102,8 +102,9 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { mapMutations } from 'vuex'
+import { mapStores } from 'pinia'
 
+import { useMemoryStore } from '@/store/memory'
 import TippyCard from './containers/TippyCard.vue'
 import TippyContainer from './containers/TippyContainer.vue'
 // import MoonIcon from '../../assets/svg/MoonIcon.vue'
@@ -124,6 +125,9 @@ export default defineComponent({
       colors: ['cyan', 'teal', 'green', 'fuchsia', 'blue', 'violet']
     }
   },
+  computed: {
+    ...mapStores(useMemoryStore)
+  },
   methods: {
     buttonClass: function (
       state = ' ',
@@ -138,12 +142,8 @@ export default defineComponent({
             : ' text-slate-500')
       )
     },
-    ...mapMutations([
-      'setIndexedDB',
-      'setAppTheme'
-    ]),
     toggleIndexedDB () {
-      this.setIndexedDB(!this.$store.state.useIndexedDB && window.indexedDB)
+      this.setIndexedDB(!this.memoryStore.useIndexedDB && window.indexedDB)
     },
     setBrowserTheme (value: string) {
       window.localStorage.setItem('dark', value)
@@ -155,9 +155,6 @@ export default defineComponent({
     setDarkTheme () {
       this.setAppTheme(true)
       this.setBrowserTheme(true)
-    },
-    goToHome () {
-      this.$router.push({ path: '/' })
     }
   }
 })

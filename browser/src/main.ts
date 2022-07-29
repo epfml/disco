@@ -1,11 +1,10 @@
-// import devtools from '@vue/devtools';
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import VueApexCharts from 'vue3-apexcharts'
 import Toaster from '@meforma/vue-toaster'
 
 import App from '@/components/App.vue'
-import router from '@/router'
-import { store, key } from '@/store'
+import { router } from '@/router'
 import { createCustomI18n } from './locales/i18n'
 
 import '@/assets/css/tailwind.css'
@@ -17,17 +16,12 @@ tf.ready()
   .then(() => console.log(`Loaded ${tf.getBackend()} backend`))
   .catch(console.error)
 
-/* if (
-  process.env.NODE_ENV === 'development' &&
-  process.env.DEV_TOOLS === 'enabled'
-) {
-  devtools.connect('http://localhost', 8080);
-} */
 // create vue app
 const app = createApp(App)
+const pinia = createPinia()
 const i18n = createCustomI18n()
 app
-  .use(store, key)
+  .use(pinia)
   .use(VueApexCharts)
   .use(i18n)
   .use(Toaster, { duration: 5000 })
