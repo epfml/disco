@@ -4,8 +4,6 @@ In federated and decentralised learning, a client's data is never sent to anothe
 1. the weights of the public and collaborative model;
 2. the model updates shared by the client.
 
-**CITATIONS NEEDED**
-
 DisCo protects the clients' data beyond the simple use of federated and decentralised learning, using two different and complementary methods: 
 1. Differential privacy, and
 2. Secure aggregation of model updates.
@@ -14,7 +12,7 @@ DisCo protects the clients' data beyond the simple use of federated and decentra
 
 Differential privacy methods protect any dataset(s) used in the training of a machine learning (ML) model, from inference attacks based on the weights of the resulting ML model.
 
-**TODO**
+The respective parameters `noiseScale` and `clippingRadius` are available in the [task configuration](TASK.md).
 
 ## Secure aggregation through MPC
 
@@ -56,16 +54,16 @@ The **secure aggregation procedure** consists of two rounds of all-to-all commun
 - At steps 1.3, 2.4, or 3.3, if the client does not receive all expected message(s) by the end of the time frame, the aggregation round is considered to have failed and the algorithm returns the client's own model update (this value is returned to a local routine of the client).
 - Otherwise, it returns the reconstructed sum of the model updates of all clients who participated in the aggregation procedure.
 
-### Privacy guarantees and trade-off with accuracy
+### Privacy guarantees and trade-off with quantization accuracy
 
-DisCo secure aggregation guarantees input privacy for a client's model updates. Other users will not be able to reconstruct the client's original model using this method of multiparty communication. 
+DisCo secure aggregation guarantees input privacy for a client's model updates. Other users will not be able to reconstruct a client's individual data or model updates, see e.g. [https://eprint.iacr.org/2017/281.pdf](https://eprint.iacr.org/2017/281.pdf) for more details.
 
-It is worth noting that due to the current use of floating point arithmetic instead of finite fields, there is a trade-off between good privacy and good accuracy for a given update:
-The additive shares generated at step 2 are filled with floating-point values drawn uniformly at random from the interval `[-noiseMagnitude, +noiseMagnitude)`.
-- If `noiseMagnitude` is too small, privacy is lost because larger random numbers better obfuscate the secret. Indeed, for each client A, there is one other client who can construct a (1-e)-confidence-interval of size `noiseMagnitude*2`, where e is also monotonically increasing in `noiseMagnitude`.
-- However, at the same time, as `noiseMagnitude` increases, the reconstruction problem becomes more ill-conditioned (subtraction of very large numbers to obtain a relatively small number). Indeed, given the finite precision of floating point number representations, every order of magnitude increase in `noiseMagnitude` increases the expected reconstruction error by one order of magnitude.
+It is worth noting that due to the current use of floating point arithmetic instead of finite fields implies an effect on the quantization of models. Alternatively quantized integer model weights (with scaling) can be used.
+Currently, the additive shares generated at step 2 are filled with floating-point values drawn uniformly at random from the interval `[-maxShareValue, +maxShareValue)`.
+- If `maxShareValue` is too small, privacy is lost because larger random numbers better obfuscate the secret. Indeed, for each client A, there is one other client who can construct a (1-e)-confidence-interval of size `maxShareValue*2`, where e is also monotonically increasing in `maxShareValue`.
+- However, at the same time, as `maxShareValue` increases, the reconstruction problem becomes more ill-conditioned (subtraction of very large numbers to obtain a relatively small number). Indeed, given the finite precision of floating point number representations, every order of magnitude increase in `maxShareValue` increases the expected reconstruction error by one order of magnitude.
 
-In practice, our current implementation introduces a reconstruction error on the order of `noiseMagnitude*10e-8`. The default value for the `noiseMagnitude` is set to `100`, so the random numbers are drawn uniformly from `[-100, 100)`.
+In practice, our current implementation introduces a reconstruction error on the order of `maxShareValue*10e-8`. The default value for the `maxShareValue` is set to `100`, so the random numbers are drawn uniformly from `[-100, 100)`.
 Values far outside this interval are insufficiently protected, and the aggregated model update is reconstructed with an error on the order of `10e-6`.
 
 ### User Input
@@ -76,8 +74,8 @@ The user can specify the minimum number of clients that must participate in any 
 The value is set to 3 by default and can be changed by modifying `minimumReadyPeers` in each task's trainingInformation. More information on the set-up of a task and task personalization
 can be found [HERE](TASK.md).
 
-`noiseMagnitude`
+`maxShareValue`
 
 The user can change the size of the interval from which random numbers are drawn to fill the additive secret shares.
 This allows the user to control the trade-off between accuracy and privacy.
-Larger values for `noiseMagnitude` provide better privacy protection, while smaller values provide better reconstruction accuracy.
+Larger values for `maxShareValue` provide better privacy protection, while smaller values provide better reconstruction accuracy.
