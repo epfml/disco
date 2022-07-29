@@ -45,14 +45,4 @@
   </footer>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'CustomFooter',
-  props: {
-    hoverText: {
-      type: String,
-      default: ''
-    }
-  }
-}
-</script>
+<script lang="ts" setup />

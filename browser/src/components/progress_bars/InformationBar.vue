@@ -1,28 +1,15 @@
 <template>
-  <div class="space-y-6">
-    <h1
-      v-if="scheme !== undefined && displayTitle"
-      class="flex flex-wrap font-disco text-3xl justify-center"
-    >
-      <span class="text-disco-blue">{{ scheme }}</span><span class="text-disco-cyan">&nbsp;Learning</span>
-    </h1>
-    <h1
-      v-else
-      class="text-3xl text-slate-600 text-center"
-    >
-      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives
-    </h1>
-    <!-- Progress Bar -->
+  <div>
     <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
-        <!-- Step 1 -->
         <ProgressIcon
-          class="w-1/5"
-          :active="true"
+          class="w-1/4"
+          :active="isActive(0)"
           :lined="false"
+          @click="router.push('/information')"
         >
           <template #text>
-            Choose Task
+            Fundamentals
           </template>
           <template #icon>
             <svg
@@ -39,14 +26,14 @@
             </svg>
           </template>
         </ProgressIcon>
-        <!-- Step 2 -->
         <ProgressIcon
-          class="w-1/5"
+          class="w-1/4"
           :active="isActive(1)"
           :lined="true"
+          @click="router.push('/features')"
         >
           <template #text>
-            Task Description
+            Features
           </template>
           <template #icon>
             <svg
@@ -67,14 +54,14 @@
             </svg>
           </template>
         </ProgressIcon>
-        <!-- Step 3 -->
         <ProgressIcon
-          class="w-1/5"
+          class="w-1/4"
           :active="isActive(2)"
           :lined="true"
+          @click="router.push('/tutorial')"
         >
           <template #text>
-            Connect Your Data
+            Tutorial
           </template>
           <template #icon>
             <svg
@@ -91,38 +78,14 @@
             </svg>
           </template>
         </ProgressIcon>
-        <!-- Step 4 -->
         <ProgressIcon
-          class="w-1/5"
+          class="w-1/4"
           :active="isActive(3)"
           :lined="true"
+          @click="router.push('/further')"
         >
           <template #text>
-            Train Your Model
-          </template>
-          <template #icon>
-            <svg
-              class="w-full fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path
-                class="heroicon-ui"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-          </template>
-        </ProgressIcon>
-        <!-- Step 5 -->
-        <ProgressIcon
-          class="w-1/5"
-          :active="isActive(4)"
-          :lined="true"
-        >
-          <template #text>
-            Finished
+            Further
           </template>
           <template #icon>
             <svg
@@ -141,37 +104,54 @@
         </ProgressIcon>
       </div>
     </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 py-6">
+      <div
+        class="text-center md:text-right"
+      >
+        <CustomButton
+          v-show="isActive(1)"
+          @click="prevStep"
+        >
+          Previous
+        </CustomButton>
+      </div>
+      <div
+        class="text-center md:text-left"
+      >
+        <CustomButton
+          v-show="!isActive(3)"
+          @click="nextStep"
+        >
+          Next
+        </CustomButton>
+      </div>
+    </div>
   </div>
 </template>
 
-<script lang="ts">
-import { mapState } from 'vuex'
-import ProgressIcon from './ProgressIcon.vue'
+<script lang="ts" setup>
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
-export default {
-  name: 'ProgressBar',
-  components: {
-    ProgressIcon
-  },
-  computed: {
-    ...mapState(['tasks', 'steps', 'currentTask']),
-    scheme (): string | undefined {
-      const task = this.tasks.get(this.currentTask)
-      return task?.trainingInformation?.scheme
-    },
-    displayTitle (): boolean {
-      return this.$route.fullPath !== '/list'
-    }
-  },
-  methods: {
-    isActive (step: number): boolean {
-      const currentStep = this.steps.get(this.currentTask)
-      if (currentStep === undefined || this.$route.path === '/list') {
-        return false
-      } else {
-        return step <= currentStep
-      }
-    }
-  }
+import { useInformationStore } from '@/store/information'
+import ProgressIcon from './ProgressIcon.vue'
+import CustomButton from '@/components/simple/CustomButton.vue'
+
+const router = useRouter()
+const informationStore = useInformationStore()
+
+const routes = ['information', 'features', 'tutorial', 'further']
+  .map((route) => '/' + route)
+const toRoute = computed(() => routes[informationStore.step])
+
+const isActive = (step: number) => step <= informationStore.step
+const prevStep = () => {
+  informationStore.prevStep()
+  router.push(toRoute.value)
+}
+const nextStep = () => {
+  informationStore.nextStep()
+  router.push(toRoute.value)
 }
 </script>

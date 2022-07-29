@@ -139,7 +139,7 @@
 </template>
 
 <script lang="ts">
-import { mapState } from 'vuex'
+import { mapStores } from 'pinia'
 
 import { EmptyMemory, Memory, ModelType, isTask, TrainingSchemes, ModelInfo } from 'discojs'
 
@@ -148,6 +148,7 @@ import { getClient } from '@/clients'
 import Clock from '@/assets/svg/Clock.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import { useMemoryStore } from '@/store/memory'
 
 export default {
   name: 'ModelCaching',
@@ -177,7 +178,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['useIndexedDB', 'isDark']),
+    ...mapStores(useMemoryStore),
     /**
        * Returns true if a new model needs to be created
        */
@@ -188,7 +189,7 @@ export default {
       )
     },
     memory (): Memory {
-      return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+      return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     },
     modelInfo (): ModelInfo {
       return {
@@ -221,7 +222,7 @@ export default {
        * on loading the description frame, then display the model restoration
        * feature.
        */
-      if (this.useIndexedDB) {
+      if (this.memoryStore.useIndexedDB) {
         const workingModelMetadata = await this.memory.getModelMetadata(this.modelInfo)
         if (workingModelMetadata) {
           this.workingModelExistsOnMount = true
@@ -252,7 +253,6 @@ export default {
       this.$toast.success(
         `Deleted the cached ${this.task.displayInformation.taskTitle} model.`
       )
-      setTimeout(this.$toast.clear, 30000)
     },
     /**
      * Save the current working model to IndexedDB
@@ -262,7 +262,6 @@ export default {
       this.$toast.success(
         `Saved the cached ${this.task.displayInformation.taskTitle} model to the model library`
       )
-      setTimeout(this.$toast.clear, 30000)
     },
     /**
      * Toggle use working model
@@ -280,13 +279,12 @@ export default {
       this.memory.updateWorkingModel(this.modelInfo, await client.getLatestModel())
     },
     async proceed () {
-      if (this.useIndexedDB && this.shouldCreateFreshModel) {
+      if (this.memoryStore.useIndexedDB && this.shouldCreateFreshModel) {
         await this.loadFreshModel()
         this.isModelCreated = true
         this.$toast.success(
           `A new ${this.task.displayInformation.taskTitle} model has been created. You can start training!`
         )
-        setTimeout(this.$toast.clear, 30000)
       }
     }
   }

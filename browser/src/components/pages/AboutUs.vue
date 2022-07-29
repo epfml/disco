@@ -57,25 +57,8 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import Card from '@/components/containers/Card.vue'
 
-import { defineComponent } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-export default defineComponent({
-  name: 'AboutUs',
-  components: {
-    Card
-  },
-  setup () {
-    const { t, locale } = useI18n()
-    return { t, locale }
-  },
-  data () {
-    return {
-      mloLogo: require('../../assets/images/mlologo.png')
-    }
-  }
-})
+const mloLogo = require('../../assets/images/mlologo.png')
 </script>
