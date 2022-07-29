@@ -1,7 +1,5 @@
 <template>
   <div>
-    <!-- navigation bar -->
-    <ValidationBar :step="step" />
     <!-- previous button -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 py-6">
       <div
@@ -25,7 +23,7 @@
         </CustomButton>
       </div>
     </div>
-    <div v-show="step === 0">
+    <div v-show="validationStore.step === 0">
       <div
         v-if="memoryStore.models.size > 0"
         class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8"
@@ -81,7 +79,7 @@
     </div>
     <div v-if="task !== undefined">
       <!-- 1. CONNECT YOUR DATA -->
-      <div v-show="step === 1">
+      <div v-show="validationStore.step === 1">
         <!-- Information specific to the validation panel -->
         <IconCard>
           <template #title>
@@ -100,10 +98,9 @@
       </div>
       <!-- 2. TEST YOUR MODEL -->
       <Validator
-        v-show="step === 2"
+        v-show="validationStore.step === 2"
         :task="task"
         :dataset-builder="datasetBuilder"
-        :model="model"
       />
     </div>
   </div>
@@ -115,23 +112,21 @@ import { mapStores } from 'pinia'
 
 import { EmptyMemory, Memory, Path, Task, dataset } from 'discojs'
 
+import { useMemoryStore } from '@/store/memory'
+import { useTasksStore } from '@/store/tasks'
+import { useValidationStore } from '@/store/validation'
 import { IndexedDB } from '@/memory'
 import { toaster } from '@/toast'
 import { WebTabularLoader, WebImageLoader } from '@/data_loader'
 import CustomButton from '@/components/simple/CustomButton.vue'
-import ValidationBar from '@/components/progress_bars/ValidationBar.vue'
 import Data from '@/components/data/Data.vue'
 import Validator from '@/components/validation/Validator.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
-import { useMemoryStore } from '@/store/memory'
-import { useTasksStore } from '@/store/tasks'
-import { useValidationStore } from '@/store/validation'
 
 export default defineComponent({
   name: 'Testing',
   components: {
-    ValidationBar,
     Validator,
     Data,
     ButtonCard,
@@ -139,20 +134,18 @@ export default defineComponent({
     RouterLink,
     CustomButton
   },
-  data (): { task: Task, step: number, model: Path } {
+  data (): { task: Task } {
     return {
-      task: undefined,
-      step: 0,
-      model: ''
+      task: undefined
     }
   },
   computed: {
     ...mapStores(useMemoryStore, useTasksStore, useValidationStore),
     showPrev (): boolean {
-      return this.step > 0
+      return this.validationStore.step > 0
     },
     showNext (): boolean {
-      return this.step > 0 && this.step < 2
+      return this.validationStore.step > 0 && this.validationStore.step < 2
     },
     memory (): Memory {
       return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
@@ -200,17 +193,17 @@ export default defineComponent({
       const task = this.tasksStore.tasks.get(this.memory.infoFor(path)?.taskID)
       if (task !== undefined) {
         this.task = task
-        this.model = path
-        this.step = 1
+        this.validationStore.model = path
+        this.validationStore.step = 1
       } else {
         toaster.error('Model not found')
       }
     },
     prevStep (): void {
-      this.step -= 1
+      this.validationStore.step--
     },
     nextStep (): void {
-      this.step += 1
+      this.validationStore.step++
     },
     taskTitle (taskID: string): string {
       const task = this.tasksStore.tasks.get(taskID)

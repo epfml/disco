@@ -15,21 +15,21 @@ export const useTrainingStore = defineStore('training', () => {
   }
   function prevStep (): void {
     const step = steps.value.get(task.value)
-    if (step === undefined || step < 1) {
-      throw new Error()
+    if (step === undefined || step <= 0) {
+      throw new Error('step must be positive')
     }
     steps.value = steps.value.set(task.value, step - 1)
   }
   function nextStep (): void {
     const step = steps.value.get(task.value)
     if (step === undefined) {
-      throw new Error()
+      throw new Error('task is not initialized')
     }
     steps.value = steps.value.set(task.value, step + 1)
   }
   function setStep (step: number): void {
     if (step < 1) {
-      throw new Error()
+      throw new Error('navigation to task list must be explicit')
     }
     steps.value = steps.value.set(task.value, step)
   }

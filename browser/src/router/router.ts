@@ -1,11 +1,12 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
+import TrainingBar from '@/components/progress_bars/TrainingBar.vue'
+import InformationBar from '@/components/progress_bars/InformationBar.vue'
+import ValidationBar from '@/components/progress_bars/ValidationBar.vue'
 import Home from '@/components/home/Home.vue'
 import NewTaskCreationForm from '@/components/pages/NewTaskCreationForm.vue'
 import TaskList from '@/components/pages/TaskList.vue'
 import NotFound from '@/components/pages/NotFound.vue'
-import TrainingBar from '@/components/progress_bars/TrainingBar.vue'
-import InformationBar from '@/components/progress_bars/InformationBar.vue'
 import Training from '@/components/training/Training.vue'
 import Validation from '@/components/validation/Validation.vue'
 import Information from '@/components/information/Information.vue'
@@ -75,7 +76,10 @@ export const router = createRouter({
     {
       path: '/testing',
       name: 'testing',
-      component: Validation
+      components: {
+        default: Validation,
+        ProgressBar: ValidationBar
+      }
     },
     {
       path: '/:id',

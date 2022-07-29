@@ -21,6 +21,7 @@
         </CustomButton>
       </div>
     </div>
+
     <Description
       v-show="trainingStore.step === 1"
       :task="task"

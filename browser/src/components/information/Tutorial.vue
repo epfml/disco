@@ -51,9 +51,15 @@
 </template>
 
 <script lang="ts" setup>
+import { onActivated } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { useInformationStore } from '@/store/information'
 import Card from '@/components/containers/Card.vue'
-import CustomButton from '@/components/simple/CustomButton.vue'
+
+// TODO fix i18n types
 
 const router = useRouter()
+const informationStore = useInformationStore()
+onActivated(() => { informationStore.step = 2 })
 </script>
