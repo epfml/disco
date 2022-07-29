@@ -1,15 +1,12 @@
-# CLI benchmark
+# CLI benchmark and node client
 
-Welcome to the Disco🔮 command line interface (CLI). This is a easy to use browserless node based
-engine that can train a model locally or in a distributed fashion (either federated or decentralized).
-Via the CLI you can simulate multiple clients and log training and validation accuracy as well as the 
-loss of each client.
+Welcome to the Disco🔮 command line interface (CLI). This shows how to easily use Disco🔮 even without a browser, as a Node.js client, to join any federated or decentralized learning task. Also, the standalone scripts and CLI here allow to conveniently simulate multiple clients and log metrics such as training and validation accuracy of each client. Integration of Disco🔮 into other js apps can follow the same code principles (no browser needed).
 
 The Disco CLI allows one to benchmark or simply play around with `discojs` in order to see the performance
 of distributed learning. It is possible to pass key arguments such as the number of users, round duration (how 
 frequently the clients communicate with each other), ...
 
-To run cifar10, 4 federated clients for 15 epochs with a round duration of 5, all you have to do is type
+To train cifar10, using 4 federated clients for 15 epochs with a round duration of 5 batches, all you have to do is type
 
 ```
 npm run benchmark -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5

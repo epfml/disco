@@ -2,7 +2,7 @@
   <div>
     <div class="relative mb-4">
       <div
-        v-if="lined"
+        v-if="props.lined"
         class="absolute flex align-center items-center align-middle content-center"
         style="width: calc(100% - 2.5rem - 1rem); top: 50%; transform: translate(-50%, -50%)"
       >
@@ -16,11 +16,11 @@
       </div>
       <div
         class="transition duration-400 w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
-        :class="active ? 'bg-disco-blue' : 'bg-white border-2 border-slate-200'"
+        :class="props.active ? 'bg-disco-blue' : 'bg-white border-2 border-slate-200'"
       >
         <span
           class="text-center w-full"
-          :class="active ? 'text-white' : 'text-slate-700'"
+          :class="props.active ? 'text-white' : 'text-slate-700'"
         >
           <slot name="icon" />
         </span>
@@ -33,22 +33,15 @@
   </div>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'ProgressIcon',
-  props: {
-    text: {
-      type: String,
-      default: ''
-    },
-    active: {
-      type: Boolean,
-      default: false
-    },
-    lined: {
-      type: Boolean,
-      default: false
-    }
-  }
+<script setup lang="ts">
+
+import { defineProps } from 'vue'
+
+interface Props {
+  active: boolean
+  lined: boolean
 }
+
+const props = defineProps<Props>()
+
 </script>
