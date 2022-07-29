@@ -51,10 +51,10 @@ export function lastShare (currentShares: Weights[], secret: Weights): Weights {
 /*
 Generate N additive shares that aggregate to the secret weights array (where N is number of ready clients)
  */
-export function generateAllShares (secret: Weights, nParticipants: number, noiseMagnitude: number): List<Weights> {
+export function generateAllShares (secret: Weights, nParticipants: number, maxShareValue: number): List<Weights> {
   const shares: Weights[] = []
   for (let i = 0; i < nParticipants - 1; i++) {
-    shares.push(generateRandomShare(secret, noiseMagnitude))
+    shares.push(generateRandomShare(secret, maxShareValue))
   }
   shares.push(lastShare(shares, secret))
   const sharesFinal = List<Weights>(shares)
