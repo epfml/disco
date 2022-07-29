@@ -37,3 +37,7 @@ The three parts should be built in the above order, using the node package manag
 - `cd browser; npm run serve`, check that the browser client is running on localhost:8081
 
 For full details, see the respective readme files linked for the three parts above, that is [discojs](discojs/README.md), [server](server/README.md), and [browser](browser/README.md).
+
+## Example
+
+ A full -- self contained -- example of the discojs api running 2 federated users can be found [here](server/example) (a small server is run from the script itself and the data is already available in the repo).
