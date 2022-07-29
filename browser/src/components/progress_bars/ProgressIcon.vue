@@ -15,7 +15,7 @@
         </div>
       </div>
       <div
-        class="transition duration-400 w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center"
+        class="transition duration-400 w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center hover:scale-105 hover:cursor-pointer"
         :class="props.active ? 'bg-disco-blue' : 'bg-white border-2 border-slate-200'"
       >
         <span

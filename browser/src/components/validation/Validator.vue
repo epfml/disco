@@ -44,28 +44,30 @@
     </div>
   </div>
 </template>
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed, defineProps, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
-import { ConsoleLogger, dataset, EmptyMemory, Memory, Path, Task, Validator } from 'discojs'
+import { ConsoleLogger, dataset, EmptyMemory, Memory, Task, Validator } from 'discojs'
 
+import { useMemoryStore } from '@/store/memory'
+import { useValidationStore } from '@/store/validation'
 import { IndexedDB } from '@/memory'
 import { chartOptions } from '@/charts'
 import { toaster } from '@/toast'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
-import { useMemoryStore } from '@/store/memory'
 
 const { useIndexedDB } = storeToRefs(useMemoryStore())
+
+const validationStore = useValidationStore()
 
 interface Props {
   task: Task
   datasetBuilder?: dataset.DatasetBuilder<File>
-  model?: Path
 }
+const props = defineProps<Props>()
 
 const validator = ref<Validator>(undefined)
-const props = defineProps<Props>()
 
 const memory = computed<Memory>(() => useIndexedDB ? new IndexedDB() : new EmptyMemory())
 const accuracyData = computed<number[]>(() => {
@@ -82,10 +84,10 @@ const visitedSamples = computed<number>(() => {
 })
 
 async function getValidator (): Promise<Validator | undefined> {
-  if (props.model === undefined) {
+  if (validationStore.model === undefined) {
     return undefined
   }
-  return new Validator(props.task, new ConsoleLogger(), memory.value, props.model)
+  return new Validator(props.task, new ConsoleLogger(), memory.value, validationStore.model)
 }
 
 async function assessModel (): Promise<void> {

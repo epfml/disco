@@ -20,6 +20,7 @@
           class="w-1/5"
           :active="true"
           :lined="false"
+          @click="handleRoute(0)"
         >
           <template #text>
             Choose Task
@@ -44,6 +45,7 @@
           class="w-1/5"
           :active="isActive(1)"
           :lined="true"
+          @click="handleRoute(1)"
         >
           <template #text>
             Task Description
@@ -72,6 +74,7 @@
           class="w-1/5"
           :active="isActive(2)"
           :lined="true"
+          @click="handleRoute(2)"
         >
           <template #text>
             Connect Your Data
@@ -96,6 +99,7 @@
           class="w-1/5"
           :active="isActive(3)"
           :lined="true"
+          @click="handleRoute(3)"
         >
           <template #text>
             Train Your Model
@@ -120,6 +124,7 @@
           class="w-1/5"
           :active="isActive(4)"
           :lined="true"
+          @click="handleRoute(4)"
         >
           <template #text>
             Finished
@@ -146,12 +151,14 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { useTasksStore } from '@/store/tasks'
 import { useTrainingStore } from '@/store/training'
+import { toaster } from '@/toast'
 import ProgressIcon from './ProgressIcon.vue'
 
+const router = useRouter()
 const route = useRoute()
 const tasksStore = useTasksStore()
 const trainingStore = useTrainingStore()
@@ -168,6 +175,20 @@ const isActive = (step: number): boolean => {
     return false
   } else {
     return step <= currentStep
+  }
+}
+const handleRoute = (step: number): void => {
+  if (route.fullPath === '/list') {
+    if (trainingStore.task !== undefined) {
+      router.push(trainingStore.task)
+      trainingStore.setStep(step)
+    } else {
+      toaster.error('Please select a task first')
+    }
+  } else if (step === 0) {
+    router.push('/list')
+  } else {
+    trainingStore.setStep(step)
   }
 }
 </script>

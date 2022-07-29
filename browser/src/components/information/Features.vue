@@ -40,6 +40,13 @@
 </template>
 
 <script lang="ts" setup>
+import { onActivated } from 'vue'
+
+import { useInformationStore } from '@/store/information'
 import Card from '@/components/containers/Card.vue'
+
 // TODO fix i18n types
+
+const informationStore = useInformationStore()
+onActivated(() => { informationStore.step = 1 })
 </script>

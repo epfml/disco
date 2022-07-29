@@ -8,6 +8,7 @@
         class="w-1/3"
         :lined="false"
         :active="true"
+        @click="handleRoute(0)"
       >
         <template #text>
           Choose Model
@@ -31,6 +32,7 @@
         class="w-1/3"
         :lined="true"
         :active="isActive(1)"
+        @click="handleRoute(1)"
       >
         <template #text>
           Connect Your Data
@@ -54,6 +56,7 @@
         class="w-1/3"
         :lined="true"
         :active="isActive(2)"
+        @click="handleRoute(2)"
       >
         <template #text>
           Test Your Model
@@ -77,12 +80,22 @@
   </div>
 </template>
 <script setup lang="ts">
-import { defineProps } from 'vue'
-
+import { useValidationStore } from '@/store/validation'
+import { useMemoryStore } from '@/store/memory'
+import { toaster } from '@/toast'
 import ProgressIcon from './ProgressIcon.vue'
 
-interface Props { step: number }
+const validationStore = useValidationStore()
+const memoryStore = useMemoryStore()
 
-const props = defineProps<Props>()
-const isActive = (step: number): boolean => step <= props.step
+const isActive = (step: number): boolean => step <= validationStore.step
+const handleRoute = (step: number): void => {
+  if (memoryStore.models.size === 0) {
+    toaster.error('Please train a model beforehand')
+  } else if (validationStore.model === undefined) {
+    toaster.error('Please select a model')
+  } else {
+    validationStore.step = step
+  }
+}
 </script>
