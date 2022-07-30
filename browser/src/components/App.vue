@@ -1,8 +1,5 @@
 <template>
-  <div
-    v-if="!loading"
-    :class="{ dark: isDark }"
-  >
+  <div v-if="!loading">
     <!-- Global container for the screen -->
     <div
       class="
@@ -52,60 +49,51 @@
   </div>
 </template>
 
-<script lang="ts">
-import SidebarMain from '@/components/sidebar/Sidebar.vue'
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
+import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import { mapState, mapMutations } from 'vuex'
+import { useTasksStore } from '@/store/tasks'
+import { useMemoryStore } from '@/store/memory'
 import BaseLayout from './containers/BaseLayout.vue'
+import SidebarMain from '@/components/sidebar/Sidebar.vue'
 
-export default defineComponent({
-  name: 'App',
-  components: {
-    SidebarMain,
-    BaseLayout
-  },
-  data (): { loading: boolean } {
-    return {
-      loading: true
-    }
-  },
-  computed: {
-    ...mapState(['isDark'])
-  },
-  async created (): Promise<void> {
-    await this.$store.dispatch('initTasks')
-    this.loading = false
-  },
-  mounted (): void {
-    /**
+const loading = ref(true)
+
+const tasksStore = useTasksStore()
+const memoryStore = useMemoryStore()
+
+tasksStore.initTasks()
+  .then(() => { loading.value = false })
+  .catch(console.error)
+
+onMounted(() => {
+  /**
      * Use IndexedDB by default if it is available.
      */
-    this.setIndexedDB(!!window.indexedDB)
-    /**
+  memoryStore.setIndexedDB(!!window.indexedDB)
+  /**
      * Initialize the global variable "isDark" to the
      * browser-saved theme.
      */
-    this.setAppTheme(this.getBrowserTheme())
-    /**
+  // setAppTheme(getBrowserTheme())
+  /**
      * Initialize the app to the browser-saved platform.
      */
-    this.initPlatform()
-  },
-  methods: {
-    ...mapMutations(['setIndexedDB', 'setAppTheme']),
-    getBrowserTheme (): boolean {
-      if (window.localStorage.getItem('dark')) {
-        return JSON.parse(window.localStorage.getItem('dark'))
-      }
-      return (
-        !!window.matchMedia &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches
-      )
-    },
-    initPlatform (): void {
-      this.$i18n.locale = 'english'
-    }
-  }
+  initPlatform()
 })
+
+// function getBrowserTheme (): boolean {
+//   if (window.localStorage.getItem('dark')) {
+//     return JSON.parse(window.localStorage.getItem('dark'))
+//   }
+//   return (
+//     !!window.matchMedia &&
+//         window.matchMedia('(prefers-color-scheme: dark)').matches
+//   )
+// }
+
+function initPlatform (): void {
+  useI18n().locale.value = 'english'
+}
 </script>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { computed, inject } from 'vue'
 
 import { Task } from 'discojs'
@@ -9,9 +8,12 @@ import DropdownCard from '../containers/DropdownCard.vue'
 const task = inject<Task>('task')
 
 const images = require.context('../../../../discojs/example_training_data/', false, /.+?\.(jpg|png)$/)
-const exampleImage = computed(() => images(task.displayInformation.dataExampleImage))
-
+const exampleImage = computed(() => {
+  const source = task.displayInformation.dataExampleImage
+  return source !== undefined ? images(source) : ''
+})
 </script>
+
 <template>
   <div>
     <DropdownCard>
