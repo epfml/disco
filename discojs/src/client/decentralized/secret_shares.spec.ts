@@ -1,4 +1,4 @@
-import { List, Set } from 'immutable'
+import { List } from 'immutable'
 // import { assert, expect } from 'chai'
 
 import { Weights, aggregation } from '../..'
@@ -6,15 +6,15 @@ import * as secret_shares from './secret_shares'
 
 import * as test from '../../../src/test_utils.spec'
 
-const epsilon: number = 100
+const epsilon: number = 0.1
 
 describe('secret shares test', function () {
   function toyExampleTest (): Weights {
-    'shows additive implementation with 3 users'
+    'shows additive secret shares implementation with 3 users'
 
-    const secret1: Weights = test.makeWeights([[1, 2, 3], [5, 5, 6]]) // secrets
-    const secret2: Weights = test.makeWeights([[2, 3, 7], [10, 4, 5]])
-    const secret3: Weights = test.makeWeights([[3, 1, 5], [15, 3, 19]])
+    const secret1: Weights = test.makeWeights([[1, 2, 3, -1], [-5, 6]]) // secret weight tensors
+    const secret2: Weights = test.makeWeights([[2, 3, 7, 1], [-10, 5]])
+    const secret3: Weights = test.makeWeights([[3, 1, 5, 3], [-15, 19]])
 
     const client1shares: List<Weights> = secret_shares.generateAllShares(secret1, 3, 100)
     const client2shares: List<Weights> = secret_shares.generateAllShares(secret2, 3, 100)
@@ -29,12 +29,11 @@ describe('secret shares test', function () {
     const person3partialSum: Weights = secret_shares.sum(person3shares)
 
     const allPartialSums: List<Weights> = List([person1partialSum, person2partialSum, person3partialSum])
-    const setWeights: Set<Weights> = allPartialSums.toSet()
-    return aggregation.averageWeights(setWeights)
+    return aggregation.averageWeights(allPartialSums)
   }
 
   it('testing secret shares accuracy', async () => {
-    const expected: Weights = test.makeWeights([[2, 2, 5], [10, 4, 10]])
+    const expected: Weights = test.makeWeights([[2, 2, 5, 1], [-10, 10]])
     const result: Weights = toyExampleTest()
 
     test.assertWeightsEqual(expected, result, epsilon)

@@ -11,7 +11,7 @@ Return Weights object that is difference of two weights object
  */
 export function subtractWeights (w1: Weights, w2: Weights): Weights {
   if (w1.length !== w2.length) {
-    throw new Error('weights not of the same length')
+    throw new Error('Weights not of the same number of tensors')
   }
 
   const sub: Weights = []
@@ -23,18 +23,18 @@ export function subtractWeights (w1: Weights, w2: Weights): Weights {
 /*
 Return sum of multiple weight objects in an array, returns weight object of sum
  */
-export function sum (setSummands: List<Weights>): Weights {
+export function sum (summands: List<Weights>): Weights {
   const summedWeights: Weights = new Array<tf.Tensor>()
   let tensors: Weights = new Array<tf.Tensor>() // list of different sized tensors of 0
-  const shapeOfWeight: Weights = setSummands.get(0) ?? []
-  for (let j = 0; j < shapeOfWeight.length; j++) {
-    for (let i = 0; i < setSummands.size; i++) {
-      const modelUpdate: Weights = setSummands.get(i) ?? []
+  const shapeOfWeights: Weights = summands.get(0) ?? []
+  for (let j = 0; j < shapeOfWeights.length; j++) { // add each tensor separately over the number of summands
+    for (let i = 0; i < summands.size; i++) {
+      const modelUpdate: Weights = summands.get(i) ?? []
       tensors.push(modelUpdate[j])
     }
+    summedWeights.push(tf.addN(tensors))
+    tensors = new Array<tf.Tensor>()
   }
-  summedWeights.push(tf.addN(tensors))
-  tensors = new Array<tf.Tensor>()
   return summedWeights
 }
 
@@ -42,8 +42,11 @@ export function sum (setSummands: List<Weights>): Weights {
 Return Weights in the remaining share once N-1 shares have been constructed (where N is number of ready clients)
  */
 export function lastShare (currentShares: Weights[], secret: Weights): Weights {
+  if (currentShares.length == 0) {
+    throw new Error('Need at least one current share to be able to subtract secret from')
+  }
   const currentShares2 = List<Weights>(currentShares)
-  console.log('here it', sum(currentShares2)[0].dataSync())
+  const shapeOfWeights: Weights = currentShares2.get(0) ?? []
   const last: Weights = subtractWeights(secret, sum(currentShares2))
   return last
 }
