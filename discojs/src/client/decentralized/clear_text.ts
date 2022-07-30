@@ -6,8 +6,7 @@ import { Base } from './base'
 import * as messages from './messages'
 
 /**
- * Class that deals with communication with the PeerJS server.
- * Collects the list of receivers currently connected to the PeerJS server.
+ * Decentralized client that does not utilize secure aggregation, but sends model updates in clear text
  */
 export class ClearText extends Base {
   // list of weights received from other clients
@@ -26,7 +25,7 @@ export class ClearText extends Base {
     if (this.server === undefined) {
       throw new Error('server undefined so we cannot send weights through it')
     }
-    // create weights message and send to all peers
+    // PHASE 1 COMMUNICATION --> create weights message and send to all peers (only one phase of communication for clear_text)
     for (let i = 0; i < this.peers.length; i++) {
       const msg: messages.clientWeightsMessageServer = {
         type: messages.messageType.clientWeightsMessageServer,
@@ -43,8 +42,18 @@ export class ClearText extends Base {
     return this.receivedWeights
   }
 
-  override clientHandle (msg: any): void {
-    if (msg.type === messages.messageType.clientWeightsMessageServer) {
+  /*
+  checks if message contains weights from a peer
+   */
+  private instanceOfClientWeightsMessageServer (msg: messages.messageGeneral): msg is messages.clientWeightsMessageServer {
+    return msg.type === messages.messageType.clientWeightsMessageServer
+  }
+
+  /*
+handles received messages from signaling server
+ */
+  override clientHandle (msg: messages.messageGeneral): void {
+    if (this.instanceOfClientWeightsMessageServer(msg)) {
       // update received weights by one weights reception
       const weights = serialization.weights.decode(msg.weights)
       this.receivedWeights = this.receivedWeights.push(weights)
