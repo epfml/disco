@@ -1,15 +1,15 @@
-import { Set } from 'immutable'
+import { List } from 'immutable'
 
 import { Weights } from './types'
 
-export function averageWeights (peersWeights: Set<Weights>): Weights {
-  console.log('Aggregating a set of', peersWeights.size, 'weights.')
+export function averageWeights (peersWeights: List<Weights>): Weights {
+  console.log('Aggregating a list of', peersWeights.size, 'weight vectors.')
   const firstWeightSize = peersWeights.first()?.length
   if (firstWeightSize === undefined) {
     throw new Error('no weights to average')
   }
   if (!peersWeights.rest().every((ws) => ws.length === firstWeightSize)) {
-    throw new Error('variable weights size')
+    throw new Error('weights dimensions are different for some of the summands')
   }
 
   const numberOfPeers = peersWeights.size
