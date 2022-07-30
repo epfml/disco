@@ -36,12 +36,15 @@
 </template>
 
 <script lang="ts">
-import ButtonCard from '@/components/containers/ButtonCard.vue'
-import { IndexedDB } from '@/memory'
+import { defineComponent } from 'vue'
+import { mapStores } from 'pinia'
 
 import { EmptyMemory, Memory, ModelType, isTask, ModelInfo } from 'discojs'
-import { defineComponent } from 'vue'
-import { mapMutations, mapState } from 'vuex'
+
+import { useMemoryStore } from '@/store/memory'
+import { useValidationStore } from '@/store/validation'
+import { IndexedDB } from '@/memory'
+import ButtonCard from '@/components/containers/ButtonCard.vue'
 
 export default defineComponent({
   components: { ButtonCard },
@@ -52,9 +55,9 @@ export default defineComponent({
     }
   },
   computed: {
-    ...mapState(['useIndexedDB', 'models']),
+    ...mapStores(useMemoryStore, useValidationStore),
     memory (): Memory {
-      return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+      return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     },
     modelInfo (): ModelInfo {
       return {
@@ -65,14 +68,12 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapMutations(['setTestingModel']),
     async testModel () {
       if (await this.memory.contains(this.modelInfo)) {
-        this.setTestingModel(this.memory.pathFor(this.modelInfo))
+        this.validationStore.setModel(this.memory.pathFor(this.modelInfo))
         this.$router.push({ path: '/testing' })
       } else {
         this.$toast.error('Model was not trained!')
-        setTimeout(this.$toast.clear, 30000)
       }
     },
     async saveModel () {
@@ -86,7 +87,6 @@ export default defineComponent({
           'The model library is currently turned off. See settings for more information'
         )
       }
-      setTimeout(this.$toast.clear, 30000)
     }
   }
 })

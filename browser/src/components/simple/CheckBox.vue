@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { defineEmits } from 'vue'
 
 interface Emits {
@@ -8,7 +7,6 @@ interface Emits {
 const emit = defineEmits<Emits>()
 
 const clicked = () => { emit('clicked') }
-
 </script>
 
 <template>
