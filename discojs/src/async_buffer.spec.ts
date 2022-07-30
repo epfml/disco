@@ -14,12 +14,12 @@ async function mockAggregateAndStoreWeights (_weights: number[]): Promise<void> 
 }
 
 describe('AsyncWeightBuffer tests', () => {
-  it('add weight with old time stamp returns false', async () => {
+  it('add weight update with old time stamp returns false', async () => {
     const t0 = -1
     const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     assert.isFalse(await asyncWeightBuffer.add(id, weights[0], t0))
   })
-  it('add weight with recent time stamp returns true', async () => {
+  it('add weight update with recent time stamp returns true', async () => {
     const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     const t0 = Date.now()
     assert.isTrue(await asyncWeightBuffer.add(id, weights[0], t0))
@@ -39,7 +39,7 @@ describe('AsyncWeightBuffer tests', () => {
     assert.isFalse(asyncWeightBuffer.isNotWithinRoundCutoff(-1))
     assert.isTrue(asyncWeightBuffer.isNotWithinRoundCutoff(-2))
   })
-  it('Adding enough weight to buffer lunches aggregator and updates weights', async () => {
+  it('Adding enough updates to buffer launches aggregator and updates weights', async () => {
     const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     const t0 = Date.now()
     await Promise.all(weights.map(async (w) => await asyncWeightBuffer.add(w.toString(), w, t0)))

@@ -1,4 +1,4 @@
-import { List, Set } from 'immutable'
+import { List } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import { URL } from 'url'
@@ -201,8 +201,7 @@ function to check if a given boolean condition is true, checks continuously unti
 
       // send weights to all ready connected peers
       const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)
-      const setWeights: Set<Weights> = finalWeights.toSet()
-      return aggregation.averageWeights(setWeights)
+      return aggregation.averageWeights(finalWeights)
     } catch (Error) {
       console.log('Timeout Error Reported, training will continue')
       return updatedWeights
