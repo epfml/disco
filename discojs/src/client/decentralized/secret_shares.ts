@@ -46,7 +46,6 @@ export function lastShare (currentShares: Weights[], secret: Weights): Weights {
     throw new Error('Need at least one current share to be able to subtract secret from')
   }
   const currentShares2 = List<Weights>(currentShares)
-  const shapeOfWeights: Weights = currentShares2.get(0) ?? []
   const last: Weights = subtractWeights(secret, sum(currentShares2))
   return last
 }

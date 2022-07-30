@@ -7,8 +7,8 @@ import * as test from '../src/test_utils.spec'
 describe('averaging weights', () => {
   it('aggregation of weights works for two peers', async () => {
     const peersWeights = List.of(
-      [tf.tensor([1,-1]), tf.tensor([2])], // TODO: use test_utils or similar to get a weights object directly
-      [tf.tensor([3,-3]), tf.tensor([-4])]
+      [tf.tensor([1, -1]), tf.tensor([2])], // TODO: use test_utils or similar to get a weights object directly
+      [tf.tensor([3, -3]), tf.tensor([-4])]
     )
 
     const averaged = averageWeights(peersWeights)
