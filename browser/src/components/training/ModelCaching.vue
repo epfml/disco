@@ -141,7 +141,7 @@
 <script lang="ts">
 import { mapStores } from 'pinia'
 
-import { EmptyMemory, Memory, ModelType, isTask, TrainingSchemes, ModelInfo } from 'discojs'
+import { EmptyMemory, Memory, ModelType, isTask, TrainingSchemes, ModelInfo } from '@epfml/discojs'
 
 import { IndexedDB } from '@/memory'
 import { getClient } from '@/clients'

@@ -1,3 +1,3 @@
-import { tf } from 'discojs'
+import { tf } from '@epfml/discojs'
 
 export type Weights = tf.Tensor[]

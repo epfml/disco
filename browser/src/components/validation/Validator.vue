@@ -48,7 +48,7 @@
 import { computed, defineProps, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
-import { ConsoleLogger, dataset, EmptyMemory, Memory, Task, Validator } from 'discojs'
+import { ConsoleLogger, dataset, EmptyMemory, Memory, Task, Validator } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'

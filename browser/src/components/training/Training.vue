@@ -47,7 +47,7 @@
 import { computed, onActivated, onMounted, ref, defineProps } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { dataset, TaskID } from 'discojs'
+import { dataset, TaskID } from '@epfml/discojs'
 
 import { useTrainingStore } from '@/store/training'
 import { useTasksStore } from '@/store/tasks'

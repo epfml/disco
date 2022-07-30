@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
 import { Map } from 'immutable'
 
-import { Task, TaskID } from 'discojs'
+import { Task, TaskID } from '@epfml/discojs'
 
 import { loadTasks } from '@/tasks'
 import { useTrainingStore } from './training'

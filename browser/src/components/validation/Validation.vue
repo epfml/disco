@@ -110,7 +110,7 @@ import { defineComponent } from 'vue'
 import { RouterLink } from 'vue-router'
 import { mapStores } from 'pinia'
 
-import { EmptyMemory, Memory, Path, Task, dataset } from 'discojs'
+import { EmptyMemory, Memory, Path, Task, dataset } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
