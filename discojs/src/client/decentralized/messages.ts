@@ -14,9 +14,10 @@ export enum messageType {
   clientPartialSumsMessageServer
 }
 
-export interface serverClientIDMessage {type: messageType, peerID: PeerID} // server sends client id to client
-export interface clientReadyMessage {type: messageType, round: number} // client who sent is ready
-export interface clientWeightsMessageServer {type: messageType, peerID: PeerID, weights: weights.Encoded, destination: PeerID} // client weights
-export interface clientSharesMessageServer {type: messageType, peerID: PeerID, weights: weights.Encoded, destination: PeerID} // client weights
-export interface clientPartialSumsMessageServer {type: messageType, peerID: PeerID, partials: weights.Encoded, destination: PeerID} // client partial sum
-export interface serverReadyClients {type: messageType, peerList: PeerID[]} // server send to client who to connect to
+export interface messageGeneral{type: messageType}
+export interface serverClientIDMessage extends messageGeneral {peerID: PeerID} // server sends client id to client
+export interface clientReadyMessage extends messageGeneral {round: number} // client who sent is ready
+export interface clientWeightsMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID} // client weights
+export interface clientSharesMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID} // client weights
+export interface clientPartialSumsMessageServer extends messageGeneral {peerID: PeerID, partials: weights.Encoded, destination: PeerID} // client partial sum
+export interface serverReadyClients extends messageGeneral {peerList: PeerID[]} // server send to client who to connect to

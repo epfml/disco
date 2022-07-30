@@ -123,18 +123,18 @@ Components can be organized in a parent/child relation. Meaning that one can hav
 
 The application runs the following architecture:
 
-- **The global component** of the app is called `App.vue`. This component implements a mini-side bar that is always displayed to the user. This mini-sidebar allows the user to directly access the available list of tasks available, and change some parameters of the page (color and night mode).
+- **The global component** of the app is called `App.vue`. This component implements a mini-side bar that is always displayed to the user. This mini-sidebar allows the user to directly access the list of available tasks, and change some parameters of the page (color and night mode).
 - **Information Display Components** are components that are displayed on the right side of the mini-side bar. Depending on the user's path choice, a component is displayed. The following components can be displayed:
   - **The task list component** is called `TaskList.vue`. It's the default component used to fill this space. It shows which ML tasks are open for collaborative training.
   - **Task-related Components** are components used to display the interface associated with a particular task. The UI components for an ML task come in a parent-child relation: one global component (called `[taskName]_model.vue`) is used to implement a sidebar that allows the user to navigate through the different components associated with a task. On the right side of this global component, the following components are used to create a task (and note that all of them need to be created for each task):
-    - **Description of the task** under the name `[taskName]\_description.vue. It gives an overview of the task.
-    - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train a model, either collaboratively using p2p communication, or alone by local training. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When a user reaches for the first time the training components, the component is created, and only then the NN model is created and stored in the browser's indexdb database. The training is done in a separated script. To start training, the function named `join_training`is called. This function preprocess the data using the task specific data pre-processing function and then train the model using the shared `train`function.
+    - **Description of the task** under the name `[taskName]\_description.vue`. It gives an overview of the task.
+    - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train a model, either collaboratively using p2p communication, or alone by local training. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When a user reaches for the first time the training components, the component is created, and only then the NN model is created and stored in the browser's indexdb database. The training is done in a separated script. To start training, the function named `join_training`is called. This function applies the task specific pre-processing function to the data and then trains the model using the shared `train` function.
 
 All these are served by the TypeScript file associated to the task.
 
 ### Training Loop
 
-A shared function `training` is called by all components that are training a model. This function is located in the file ./helpers/training.js.  
+A shared function `training` is called by all components that are training a model. This function is located in the file `./helpers/training.js`. 
 The idea is that the training part for all tasks relies on the same ML backend, while the pre-processing of the training data is done in a custom version (at the component level) by each task.  
 The training process works as follows:
 

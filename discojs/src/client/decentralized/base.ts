@@ -2,6 +2,7 @@ import { List, Set } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import { URL } from 'url'
+import { Task } from '@/task'
 
 import { TrainingInformant, Weights, aggregation, privacy } from '../..'
 import { Base as ClientBase } from '../base'
@@ -14,13 +15,22 @@ const TICK = 100
 // Time to wait for the others in milliseconds.
 const MAX_WAIT_PER_ROUND = 10_000
 
-const MINIMUM_PEERS = 3
-
 /**
- * Class that deals with communication with the PeerJS server.
- * Collects the list of receivers currently connected to the PeerJS server.
+ * Abstract class for decentralized clients, executes onRoundEndCommunication as well as connecting
+ * to the signaling server
  */
 export abstract class Base extends ClientBase {
+  protected minimumReadyPeers: number
+  protected maxShareValue: number
+  constructor (
+    public readonly url: URL,
+    public readonly task: Task
+  ) {
+    super(url, task)
+    this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
+    this.maxShareValue = this.task.trainingInformation?.maxShareValue ?? 100
+  }
+
   protected server?: isomorphic.WebSocket
   // list of peerIDs who the client will send messages to
   protected peers: PeerID[] = []
@@ -74,6 +84,27 @@ function to check if a given boolean condition is true, checks continuously unti
   }
 
   /*
+  checks if message is of type messageGeneral. If it is, the specific message.type can be identified.
+   */
+  private instanceOfMessageGeneral (msg: unknown): msg is messages.messageGeneral {
+    return typeof msg === 'object' && msg !== null && 'type' in msg
+  }
+
+  /*
+  checks if message contains the client's ID number
+   */
+  private instanceOfServerClientIDMessage (msg: messages.messageGeneral): msg is messages.serverClientIDMessage {
+    return msg.type === messages.messageType.serverClientIDMessage
+  }
+
+  /*
+  checks if message contains the list of peerIDs that are ready to share updates
+   */
+  private instanceOfServerReadyClients (msg: messages.messageGeneral): msg is messages.serverReadyClients {
+    return msg.type === messages.messageType.serverReadyClients
+  }
+
+  /*
   creation of the websocket for the server, connection of client to that webSocket,
   deals with message reception from decentralized client perspective (messages received by client)
    */
@@ -85,20 +116,22 @@ function to check if a given boolean condition is true, checks continuously unti
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
-      const msg = msgpack.decode(new Uint8Array(event.data))
+      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
 
       // check message type to choose correct action
-      if (msg.type === messages.messageType.serverClientIDMessage) {
+      if (this.instanceOfMessageGeneral(msg)) {
+        if (this.instanceOfServerClientIDMessage(msg)) {
         // updated ID
-        this.ID = msg.peerID
-      } else if (msg.type === messages.messageType.serverReadyClients) {
+          this.ID = msg.peerID
+        } else if (this.instanceOfServerReadyClients(msg)) {
         // updated connected peers
-        if (!this.peersLocked) {
-          this.peers = msg.peerList
-          this.peersLocked = true
+          if (!this.peersLocked) {
+            this.peers = msg.peerList
+            this.peersLocked = true
+          }
+        } else {
+          this.clientHandle(msg)
         }
-      } else {
-        this.clientHandle(msg)
       }
     }
 
@@ -145,26 +178,25 @@ function to check if a given boolean condition is true, checks continuously unti
     trainingInformant.addMessage('Training finished.')
   }
 
-  // abstract peerOnData (peer: SimplePeer.Instance, peerID: number, data: any): void
-
   async onRoundEndCommunication (
     updatedWeights: Weights,
     staleWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
-    // reset peer list at each round of training to make sure client waits for updated peerList from server
     try {
+      // reset peer list at each round of training to make sure client waits for updated peerList from server
       this.peers = []
 
       this.peersLocked = false
 
+      // centralized phase of communication --> client tells server that they have finished a local round and are ready to aggregate
       this.sendReadyMessage(round)
 
-      // after peers are connected, send shares
-      await this.pauseUntil(() => this.peers.length >= MINIMUM_PEERS)
+      // wait for peers to be connected before sending any update information
+      await this.pauseUntil(() => this.peers.length >= this.minimumReadyPeers)
 
-      // Apply DP
+      // Apply DP to updates that will be sent
       const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
 
       // send weights to all ready connected peers
@@ -180,5 +212,5 @@ function to check if a given boolean condition is true, checks continuously unti
   abstract sendAndReceiveWeights (noisyWeights: Weights,
     round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
 
-  abstract clientHandle (msg: any): void
+  abstract clientHandle (msg: messages.messageGeneral): void
 }
