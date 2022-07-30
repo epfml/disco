@@ -206,7 +206,7 @@ export class Federated {
    */
   private async aggregateAndStoreWeights (model: tf.LayersModel, weights: Weights[]): Promise<void> {
   // Get averaged weights
-    const averagedWeights = aggregation.averageWeights(Set(weights))
+    const averagedWeights = aggregation.averageWeights(List(weights))
 
     // Update model
     model.setWeights(averagedWeights)
