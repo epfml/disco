@@ -6,6 +6,9 @@ import { Base } from './base'
 import * as messages from './messages'
 import * as secret_shares from './secret_shares'
 
+/**
+ * Decentralized client that utilizes secure aggregation so client updates remain private
+ */
 export class SecAgg extends Base {
   // list of weights received from other clients
   private receivedShares: List<Weights> = List()
@@ -22,8 +25,7 @@ export class SecAgg extends Base {
     trainingInformant: TrainingInformant
   ): Promise<void> {
     // generate weight shares and add differential privacy
-    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, this.peers.length)
-
+    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, this.peers.length, this.maxShareValue)
     // Broadcast our weights to ith peer in the SERVER LIST OF PEERS (seen in signaling_server.ts)
     for (let i = 0; i < this.peers.length; i++) {
       const weights = weightShares.get(i)
@@ -65,23 +67,41 @@ sends partial sums to connected peers so final update can be calculated
     // reset fields at beginning of each round
     this.receivedShares = this.receivedShares.clear()
     this.receivedPartialSums = this.receivedPartialSums.clear()
-    // PHASE 1 COMMUNICATION
+
+    // PHASE 1 COMMUNICATION --> send additive shares to ready peers, pause program until shares are received from all peers
     await this.sendShares(noisyWeights, round, trainingInformant)
-    // after all weights are received, send partial sum
     await this.pauseUntil(() => this.receivedShares.size >= this.peers.length)
-    // PHASE 2 COMMUNICATION
+
+    // PHASE 2 COMMUNICATION --> send partial sums to ready peers
     await this.sendPartialSums()
     // after all partial sums are received, return list of partial sums to be aggregated
     await this.pauseUntil(() => this.receivedPartialSums.size >= this.peers.length)
     return this.receivedPartialSums
   }
 
-  override clientHandle (msg: any): void {
-    if (msg.type === messages.messageType.clientSharesMessageServer) {
+  /*
+  checks if message contains shares from a peer
+   */
+  private instanceOfClientSharesMessageServer (msg: messages.messageGeneral): msg is messages.clientSharesMessageServer {
+    return msg.type === messages.messageType.clientSharesMessageServer
+  }
+
+  /*
+  checks if message contains partial sums from a peer
+   */
+  private instanceOfClientPartialSumsMessageServer (msg: messages.messageGeneral): msg is messages.clientPartialSumsMessageServer {
+    return msg.type === messages.messageType.clientPartialSumsMessageServer
+  }
+
+  /*
+handles received messages from signaling server
+ */
+  override clientHandle (msg: messages.messageGeneral): void {
+    if (this.instanceOfClientSharesMessageServer(msg)) {
       // update received weights by one weights reception
       const weights = serialization.weights.decode(msg.weights)
       this.receivedShares = this.receivedShares.push(weights)
-    } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
+    } else if (this.instanceOfClientPartialSumsMessageServer(msg)) {
       // update received partial sums by one partial sum
       const partials: Weights = serialization.weights.decode(msg.partials)
       this.receivedPartialSums = this.receivedPartialSums.push(partials)
