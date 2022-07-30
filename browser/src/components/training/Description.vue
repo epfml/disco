@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { isTask } from 'discojs'
+import { isTask } from '@epfml/discojs'
 
 import Tasks from '@/assets/svg/Tasks.vue'
 import Model from '@/assets/svg/Model.vue'

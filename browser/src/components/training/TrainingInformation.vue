@@ -140,7 +140,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 
-import { TrainingInformant } from 'discojs'
+import { TrainingInformant } from '@epfml/discojs'
 
 import { chartOptions } from '@/charts'
 import IconCardSmall from '@/components/containers/IconCardSmall.vue'

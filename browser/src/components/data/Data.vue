@@ -2,7 +2,7 @@
 
 import { defineProps, provide, readonly } from 'vue'
 
-import { Task, dataset } from 'discojs'
+import { Task, dataset } from '@epfml/discojs'
 
 import DatasetInput from '@/components/data/dataset_input/DatasetInput.vue'
 import DataHarmonization from '@/components/data/DataHarmonization.vue'

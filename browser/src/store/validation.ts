@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-import { Path } from 'discojs'
+import { Path } from '@epfml/discojs'
 
 export const useValidationStore = defineStore('validation', () => {
   const state = ref(false)

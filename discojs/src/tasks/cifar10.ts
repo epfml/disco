@@ -23,7 +23,7 @@ export const task: Task = {
     validationSplit: 0.2,
     batchSize: 10,
     modelCompileData: {
-      optimizer: 'adam',
+      optimizer: 'sgd',
       loss: 'categoricalCrossentropy',
       metrics: ['accuracy']
     },

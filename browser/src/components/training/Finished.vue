@@ -39,7 +39,7 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { EmptyMemory, Memory, ModelType, isTask, ModelInfo } from 'discojs'
+import { EmptyMemory, Memory, ModelType, isTask, ModelInfo } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'

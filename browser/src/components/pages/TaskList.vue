@@ -106,7 +106,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { Task } from 'discojs'
+import { Task } from '@epfml/discojs'
 
 import { useTasksStore } from '@/store/tasks'
 import IconCard from '@/components/containers/IconCard.vue'

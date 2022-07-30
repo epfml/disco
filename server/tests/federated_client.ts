@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import * as http from 'http'
 
-import { client as clients, tasks, informant } from 'discojs'
+import { client as clients, tasks, informant } from '@epfml/discojs'
 
 import { getClient, startServer } from './utils'
 

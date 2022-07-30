@@ -1,4 +1,4 @@
-import { tf, dataset } from 'discojs'
+import { tf, dataset } from '@epfml/discojs'
 
 export class WebImageLoader extends dataset.ImageLoader<File> {
   async readImageFrom (source: File): Promise<tf.Tensor3D> {

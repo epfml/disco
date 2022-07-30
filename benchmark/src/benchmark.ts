@@ -1,6 +1,6 @@
 import {Range} from 'immutable'
 import {Server} from 'node:http'
-import {tf, client, ConsoleLogger, training, TrainingSchemes, EmptyMemory, informant, TrainerLog} from 'discojs'
+import {tf, client, ConsoleLogger, training, TrainingSchemes, EmptyMemory, informant, TrainerLog} from '@epfml/discojs'
 import '@tensorflow/tfjs-node'
 
 import {startServer, getClient, saveLog} from './utils'

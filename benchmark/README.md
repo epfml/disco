@@ -50,7 +50,7 @@ We give an example of what this looks like down bellow.
 ```js
 import * as tf from '@tensorflow/tfjs-node'
 import fs from 'fs'
-import {dataset, Task} from 'discojs'
+import {dataset, Task} from '@epfml/discojs'
 
 class NodeImageLoader extends dataset.ImageLoader<string> {
   async readImageFrom(source: string): Promise<tf.Tensor3D> {

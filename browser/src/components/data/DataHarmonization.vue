@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 
-import { Task } from 'discojs'
+import { Task } from '@epfml/discojs'
 
 import DropdownCard from '../containers/DropdownCard.vue'
 
