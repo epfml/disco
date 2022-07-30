@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 import { assert } from 'chai'
 
-import { Weights } from '@/types'
+import { Weights } from './types'
 import * as secret_shares from './client/decentralized/secret_shares'
 
 export function assertWeightsEqual (w1: Weights, w2: Weights, epsilon: number = 0): void {
