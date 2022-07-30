@@ -42,7 +42,7 @@ export function sum (summands: List<Weights>): Weights {
 Return Weights in the remaining share once N-1 shares have been constructed (where N is number of ready clients)
  */
 export function lastShare (currentShares: Weights[], secret: Weights): Weights {
-  if (currentShares.length == 0) {
+  if (currentShares.length === 0) {
     throw new Error('Need at least one current share to be able to subtract secret from')
   }
   const currentShares2 = List<Weights>(currentShares)
