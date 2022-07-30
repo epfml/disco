@@ -64,7 +64,7 @@
       <ButtonCard
         v-show="tasks.size === 0"
         class="mx-auto"
-        :click="reloadPage"
+        :click="() => { router.go(0) }"
       >
         <template #title>
           No task fetched from server
@@ -82,7 +82,7 @@
         :key="task.taskID"
       >
         <ButtonCard
-          :click="() => goToSelection(task.taskID)"
+          :click="() => router.push(`/${task.taskID}`)"
           button-placement="left"
         >
           <template
@@ -102,19 +102,20 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { mapState } from 'vuex'
+<script lang="ts" setup>
+import { computed, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { Task } from 'discojs'
 
+import { useTasksStore } from '@/store/tasks'
 import IconCard from '@/components/containers/IconCard.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import CheckBox from '@/components/simple/CheckBox.vue'
+import { storeToRefs } from 'pinia'
 
 abstract class Filter {
   public active: boolean
-
   constructor (
     public readonly name: string,
     public readonly apply: (task: Task) => boolean
@@ -122,14 +123,12 @@ abstract class Filter {
     this.active = false
   }
 }
-
 class SchemeFilter extends Filter {
   constructor (name: string) {
     const apply = (task: Task) => task.trainingInformation.scheme === name
     super(name, apply)
   }
 }
-
 class DataFilter extends Filter {
   constructor (name: string) {
     const apply = (task: Task) => task.trainingInformation.dataType === name
@@ -137,50 +136,32 @@ class DataFilter extends Filter {
   }
 }
 
-export default defineComponent({
-  name: 'TaskList',
-  components: {
-    IconCard,
-    ButtonCard,
-    CheckBox
-  },
-  data (): { schemeFilters: SchemeFilter[], dataFilters: DataFilter[], offset: number } {
-    return {
-      schemeFilters: ['Decentralized', 'Federated']
-        .map((scheme: string) => new SchemeFilter(scheme)),
-      dataFilters: ['image', 'tabular']
-        .map((dataType: string) => new DataFilter(dataType)),
-      offset: 0
-    }
-  },
-  computed: {
-    ...mapState(['tasks']),
-    filters (): Filter[] {
-      return this.schemeFilters.concat(this.dataFilters)
-    },
-    filteredTasks (): Task[] {
-      return ([...this.tasks.values()] as Task[])
-        .filter((task: Task) =>
-          this.filters.every((filter: Filter) =>
-            filter.active ? filter.apply(task) : true)
-        )
-    }
-  },
-  methods: {
-    goToSelection (taskID: string): void {
-      this.$router.push({ path: `/${taskID}` })
-    },
-    toggle (filter: Filter): void {
-      filter.active = !filter.active
-    },
-    clearFilters (): void {
-      this.filters.forEach((filter: Filter) => { filter.active = false })
-      // little trick to reset the affiliated checkboxes
-      this.offset = this.offset === 0 ? this.filters.length : 0
-    },
-    reloadPage (): void {
-      this.$router.go()
-    }
-  }
+const router = useRouter()
+const { tasks } = storeToRefs(useTasksStore())
+
+const schemeFilters = reactive(['Decentralized', 'Federated']
+  .map((scheme: string) => new SchemeFilter(scheme)))
+const dataFilters = reactive(['image', 'tabular']
+  .map((dataType: string) => new DataFilter(dataType)))
+
+const offset = ref(0)
+
+const filters = computed(() => schemeFilters.concat(dataFilters))
+const filteredTasks = computed(() => {
+  return ([...tasks.value.values()] as Task[])
+    .filter((task: Task) =>
+      filters.value.every((filter: Filter) =>
+        filter.active ? filter.apply(task) : true)
+    )
 })
+
+function toggle (filter: Filter): void {
+  filter.active = !filter.active
+}
+function clearFilters (): void {
+  filters.value.forEach((filter: Filter) => { filter.active = false })
+  // little trick to reset the affiliated checkboxes
+  offset.value = offset.value === 0 ? filters.value.length : 0
+}
+
 </script>

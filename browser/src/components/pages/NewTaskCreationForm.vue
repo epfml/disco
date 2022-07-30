@@ -584,7 +584,6 @@
 <script lang="ts">
 import * as yup from 'yup'
 import { List } from 'immutable'
-import { mapMutations } from 'vuex'
 import {
   Field as VeeField,
   Form as VeeForm,
@@ -623,7 +622,6 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(['addNewTask', 'setActivePage']),
     allFields (section: FormSection): FormField[] {
       return section.fields.concat(section[this.dataType])
     }

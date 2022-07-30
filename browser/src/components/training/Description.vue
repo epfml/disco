@@ -26,16 +26,15 @@
 </template>
 
 <script lang="ts">
-import { mapState } from 'vuex'
-
 import { isTask } from 'discojs'
 
 import Tasks from '@/assets/svg/Tasks.vue'
 import Model from '@/assets/svg/Model.vue'
 import IconCard from '@/components/containers/IconCard.vue'
-import ModelCaching from '@/components/ModelCaching.vue'
+import ModelCaching from '@/components/training/ModelCaching.vue'
+import { defineComponent } from 'vue'
 
-export default {
+export default defineComponent({
   name: 'Description',
   components: {
     ModelCaching,
@@ -64,7 +63,6 @@ export default {
     }
   },
   computed: {
-    ...mapState(['isDark']),
     overviewText (): string {
       return Object.values(this.task.displayInformation.summary).join('<br><br>')
     },
@@ -75,5 +73,5 @@ export default {
       return this.task.displayInformation.model
     }
   }
-}
+})
 </script>
