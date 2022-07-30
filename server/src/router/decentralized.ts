@@ -37,6 +37,6 @@ export class Decentralized {
 
   private onNewTask (task: Task, _: tf.LayersModel): void {
     this.ownRouter.ws(`/${task.taskID}`, (ws, _) =>
-      this.signalingServer.handle(task.taskID, ws))
+      this.signalingServer.handle(task, ws))
   }
 }

@@ -2,7 +2,7 @@ import { Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 import WebSocket from 'ws'
 
-import { client, TaskID } from '@epfml/discojs'
+import { client, Task } from '@epfml/discojs'
 import messages = client.decentralized.messages
 type PeerID = client.decentralized.PeerID
 
@@ -13,9 +13,10 @@ export class SignalingServer {
   // increments with addition of every client, server keeps track of clients with this and tells them their ID
   private clientCounter: PeerID = 0
   // parameter of DisCo, should be set by client
-  private readonly minConnected: number = 3
+  // private readonly minConnected: number = 3
 
-  handle (taskID: TaskID, ws: WebSocket): void {
+  handle (task: Task, ws: WebSocket): void {
+    const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
     const peerID: PeerID = this.clientCounter++
     this.clients = this.clients.set(peerID, ws)
     // send peerID message
@@ -23,7 +24,7 @@ export class SignalingServer {
       type: messages.messageType.serverClientIDMessage,
       peerID
     }
-    console.info('peer', peerID, 'joined', taskID)
+    console.info('peer', peerID, 'joined', task.taskID)
 
     ws.send(msgpack.encode(msg), { binary: true })
 
@@ -57,7 +58,7 @@ export class SignalingServer {
           // this.readyClientsBuffer = this.readyClientsBuffer.push(peerID)
           this.readyClientsBuffer.push(peerID)
           // if enough clients are connected, server shares who is connected
-          if (this.readyClientsBuffer.length >= this.minConnected) {
+          if (this.readyClientsBuffer.length >= minimumReadyPeers) {
             const readyPeerIDs: messages.serverReadyClients = { type: messages.messageType.serverReadyClients, peerList: this.readyClientsBuffer }
             for (const peerID of this.readyClientsBuffer) {
               // send peerIds to everyone in readyClients
