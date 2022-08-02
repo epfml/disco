@@ -24,9 +24,9 @@ describe('secret shares test', function () {
     const person2shares: List<Weights> = List([client1shares.get(1, []), client2shares.get(1, []), client3shares.get(1, [])])
     const person3shares: List<Weights> = List([client1shares.get(2, []), client2shares.get(2, []), client3shares.get(2, [])])
 
-    const person1partialSum: Weights = secret_shares.sum(person1shares)
-    const person2partialSum: Weights = secret_shares.sum(person2shares)
-    const person3partialSum: Weights = secret_shares.sum(person3shares)
+    const person1partialSum: Weights = aggregation.sumWeights(person1shares)
+    const person2partialSum: Weights = aggregation.sumWeights(person2shares)
+    const person3partialSum: Weights = aggregation.sumWeights(person3shares)
 
     const allPartialSums: List<Weights> = List([person1partialSum, person2partialSum, person3partialSum])
     return aggregation.averageWeights(allPartialSums)
