@@ -5,8 +5,10 @@ import { Server } from 'node:http'
 import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
-import { Task, dataset, informant, ConsoleLogger, training, TrainingSchemes,
-  TrainingInformant, EmptyMemory, tasks, client, Weights} from '../../discojs' //'@epfml/discojs'
+import {
+  Task, dataset, informant, ConsoleLogger, training, TrainingSchemes,
+  TrainingInformant, EmptyMemory, tasks, client, Weights
+} from '../../discojs' // '@epfml/discojs'
 import * as test from '../../discojs/src/test_utils.spec'
 
 import { getClient, startServer } from './utils'
@@ -35,7 +37,7 @@ describe('end to end', function () {
   it('runs cifar 10 with three clear text decentralized users', async () =>
     await Promise.all([cifar10User(false), cifar10User(false), cifar10User(false)]))
 
-      it('runs cifar 10 with three secure decentralized users', async () =>
+  it('runs cifar 10 with three secure decentralized users', async () =>
     await Promise.all([cifar10User(true), cifar10User(true), cifar10User(true)]))
 
   async function cifar10User (secure: boolean): Promise<void> {
@@ -48,10 +50,9 @@ describe('end to end', function () {
     const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 
     let cli
-    if(secure){
+    if (secure) {
       cli = await getClient(client.decentralized.SecAgg, server, cifar10)
-    }
-    else{
+    } else {
       cli = await getClient(client.decentralized.ClearText, server, cifar10)
     }
     await cli.connect()

@@ -1,4 +1,4 @@
-import { Path, TaskID } from '../../discojs' //'@epfml/discojs'
+import { Path, TaskID } from '../../discojs' // '@epfml/discojs'
 import path from 'path'
 
 export class Config {

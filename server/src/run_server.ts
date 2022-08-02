@@ -1,6 +1,6 @@
 import { CONFIG } from './config'
 import { getApp } from './get_server'
-import { tf } from '../../discojs' //'@epfml/discojs'
+import { tf } from '../../discojs' // '@epfml/discojs'
 import '@tensorflow/tfjs-node'
 
 tf.ready()
