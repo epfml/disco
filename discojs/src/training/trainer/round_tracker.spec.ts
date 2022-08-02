@@ -20,12 +20,12 @@ describe('RoundTracker test:', () => {
     expect(roundTracker.round).equal(0)
     roundTracker.updateBatch()
     roundTracker.updateBatch()
-    //roundHasEnded() called in trainer.ts for Trainer.onBatchEnd()
+    // roundHasEnded() called in trainer.ts for Trainer.onBatchEnd()
     roundTracker.roundHasEnded()
     expect(roundTracker.round).equal(1)
   })
 
-    it('round ended true when ended', () => {
+  it('round ended true when ended', () => {
     const roundTracker = new RoundTracker(roundDuration)
     roundTracker.updateBatch()
     roundTracker.updateBatch()

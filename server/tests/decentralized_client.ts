@@ -1,6 +1,6 @@
 import * as http from 'http'
 
-import { client as clients, tasks } from '../../discojs' //'@epfml/discojs'
+import { client as clients, tasks } from '../../discojs' // '@epfml/discojs'
 
 import { getClient, startServer } from './utils'
 
