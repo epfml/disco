@@ -30,10 +30,10 @@ export function sum (summands: List<Weights>): Weights {
   for (let j = 0; j < shapeOfWeights.length; j++) { // add each tensor separately over the number of summands
     for (let i = 0; i < summands.size; i++) {
       const modelUpdate: Weights = summands.get(i) ?? []
-      tensors.push(modelUpdate[j])
+      tensors.push(modelUpdate[j]) //create list of jth tensor of all i clients
     }
-    summedWeights.push(tf.addN(tensors))
-    tensors = new Array<tf.Tensor>()
+    summedWeights.push(tf.addN(tensors)) //sum list of i tensors and add to final Weights
+    tensors = new Array<tf.Tensor>() //reset tensor list
   }
   return summedWeights
 }
