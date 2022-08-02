@@ -6,7 +6,6 @@ import * as crypto from 'crypto'
 import { Weights, aggregation } from '../..'
 
 const maxSeed: number = 2 ** 47
-
 /*
 Return Weights in the remaining share once N-1 shares have been constructed (where N is number of ready clients)
  */

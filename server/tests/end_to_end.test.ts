@@ -24,7 +24,7 @@ class NodeTabularLoader extends dataset.TabularLoader<string> {
   }
 }
 
-describe('end to end', function () {
+describe('end to end federated', function () {
   this.timeout(60_000)
 
   let server: Server
