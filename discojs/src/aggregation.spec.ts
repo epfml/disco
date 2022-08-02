@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 import { tf } from '.'
 
-import { averageWeights } from './aggregation'
+import * as aggregation from './aggregation'
 import * as test from '../src/test_utils.spec'
 
 describe('averaging weights', () => {
@@ -11,9 +11,33 @@ describe('averaging weights', () => {
       [tf.tensor([3, -3]), tf.tensor([-4])]
     )
 
-    const averaged = averageWeights(peersWeights)
+    const averaged = aggregation.averageWeights(peersWeights)
 
     const expected = test.makeWeights([[2, -2], [-1]])
     test.assertWeightsEqual(averaged, expected, 0) // TODO: adjust for floating point eps
+  })
+
+  it('test aggregation sum weights', async () => {
+    const peersWeights = List.of(
+      [tf.tensor([3, -4]), tf.tensor([9])], // TODO: use test_utils or similar to get a weights object directly
+      [tf.tensor([2, 13]), tf.tensor([0])]
+    )
+
+    const summed = aggregation.sumWeights(peersWeights)
+
+    const expected = test.makeWeights([[5, 9], [9]])
+    test.assertWeightsEqual(summed, expected, 0) // TODO: adjust for floating point eps
+  })
+
+  it('test aggregation subtract weights', async () => {
+    const peersWeights = List.of(
+      [tf.tensor([3, -4, 5]), tf.tensor([9, 1])], // TODO: use test_utils or similar to get a weights object directly
+      [tf.tensor([2, 13, 4]), tf.tensor([0, 1])]
+    )
+
+    const difference = aggregation.subtractWeights(peersWeights)
+
+    const expected = test.makeWeights([[1, -17, 1], [9, 0]])
+    test.assertWeightsEqual(difference, expected, 0) // TODO: adjust for floating point eps
   })
 })
