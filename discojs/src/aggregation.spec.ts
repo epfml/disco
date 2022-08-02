@@ -17,7 +17,7 @@ describe('averaging weights', () => {
     test.assertWeightsEqual(averaged, expected, 0) // TODO: adjust for floating point eps
   })
 
-    it('test aggregation sum weights', async () => {
+  it('test aggregation sum weights', async () => {
     const peersWeights = List.of(
       [tf.tensor([3, -4]), tf.tensor([9])], // TODO: use test_utils or similar to get a weights object directly
       [tf.tensor([2, 13]), tf.tensor([0])]
@@ -29,10 +29,10 @@ describe('averaging weights', () => {
     test.assertWeightsEqual(summed, expected, 0) // TODO: adjust for floating point eps
   })
 
-      it('test aggregation subtract weights', async () => {
+  it('test aggregation subtract weights', async () => {
     const peersWeights = List.of(
-      [tf.tensor([3, -4, 5]), tf.tensor([9,1])], // TODO: use test_utils or similar to get a weights object directly
-      [tf.tensor([2, 13, 4]), tf.tensor([0,1])]
+      [tf.tensor([3, -4, 5]), tf.tensor([9, 1])], // TODO: use test_utils or similar to get a weights object directly
+      [tf.tensor([2, 13, 4]), tf.tensor([0, 1])]
     )
 
     const difference = aggregation.subtractWeights(peersWeights)
@@ -40,5 +40,4 @@ describe('averaging weights', () => {
     const expected = test.makeWeights([[1, -17, 1], [9, 0]])
     test.assertWeightsEqual(difference, expected, 0) // TODO: adjust for floating point eps
   })
-
 })

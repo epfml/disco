@@ -4,7 +4,7 @@ import * as tf from '@tensorflow/tfjs'
 
 import { Weights } from './types'
 
-function applyArithmeticToWeights (peersWeights: List<Weights>, tfjsArithmeticFunction : (arg1: tf.Tensor, arg2: tf.Tensor) => tf.Tensor ): Weights {
+function applyArithmeticToWeights (peersWeights: List<Weights>, tfjsArithmeticFunction: (arg1: tf.Tensor, arg2: tf.Tensor) => tf.Tensor): Weights {
   console.log('Aggregating a list of', peersWeights.size, 'weight vectors.')
   const firstWeightSize = peersWeights.first()?.length
   if (firstWeightSize === undefined) {
