@@ -6,7 +6,7 @@ import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
 import { Task, dataset, informant, ConsoleLogger, training, TrainingSchemes,
-  TrainingInformant, EmptyMemory, tasks, client, Weights} from '@epfml/discojs'
+  TrainingInformant, EmptyMemory, tasks, client, Weights} from '../../discojs' //'@epfml/discojs'
 import * as test from '../../discojs/src/test_utils.spec'
 
 import { getClient, startServer } from './utils'

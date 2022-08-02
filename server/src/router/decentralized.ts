@@ -1,7 +1,7 @@
 import express from 'express'
 import expressWS from 'express-ws'
 
-import { tf, Task } from '@epfml/discojs'
+import { tf, Task } from '../../../discojs' //'@epfml/discojs'
 
 import { TasksAndModels } from '../tasks'
 import { SignalingServer } from './signaling_server'
