@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 import msgpack from 'msgpack-lite'
 
-import { serialization, TrainingInformant, Weights } from '../..'
+import { serialization, TrainingInformant, Weights, aggregation } from '../..'
 import { Base } from './base'
 import * as messages from './messages'
 import * as secret_shares from './secret_shares'
@@ -48,7 +48,7 @@ sends partial sums to connected peers so final update can be calculated
  */
   private async sendPartialSums (): Promise<void> {
     // calculating my personal partial sum from received shares that i will share with peers
-    this.mySum = secret_shares.sum(List(Array.from(this.receivedShares.values())))
+    this.mySum = aggregation.sumWeights(List(Array.from(this.receivedShares.values())))
     // calculate, encode, and send sum
     for (let i = 0; i < this.peers.length; i++) {
       const msg: messages.clientPartialSumsMessageServer = {

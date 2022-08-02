@@ -1,8 +1,10 @@
 import { List } from 'immutable'
 
+import * as tf from '@tensorflow/tfjs'
+
 import { Weights } from './types'
 
-export function sumWeights (peersWeights: List<Weights>): Weights {
+function applyArithmeticToWeights (peersWeights: List<Weights>, tfjsArithmeticFunction : Function ): Weights {
   console.log('Aggregating a list of', peersWeights.size, 'weight vectors.')
   const firstWeightSize = peersWeights.first()?.length
   if (firstWeightSize === undefined) {
@@ -13,10 +15,18 @@ export function sumWeights (peersWeights: List<Weights>): Weights {
   }
 
   const peersAverageWeights = peersWeights.reduce((accum: Weights, weights) => {
-    return accum.map((w, i) => w.add(weights[i]))
+    return accum.map((w, i) => tfjsArithmeticFunction(w, weights[i]))
   })
 
   return peersAverageWeights
+}
+
+export function sumWeights (peersWeights: List<Weights>): Weights {
+  return applyArithmeticToWeights(peersWeights, tf.add)
+}
+
+export function subtractWeights (peersWeights: List<Weights>): Weights {
+  return applyArithmeticToWeights(peersWeights, tf.sub)
 }
 
 export function averageWeights (peersWeights: List<Weights>): Weights {
