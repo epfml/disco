@@ -39,6 +39,9 @@ export class RoundTracker {
     }
 
     const roundHasEnded = this.batch % this.roundDuration === 0
+    if (roundHasEnded){
+      this.round+=1
+    }
     return roundHasEnded
   }
 }

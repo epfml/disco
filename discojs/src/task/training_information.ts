@@ -10,8 +10,15 @@ export interface TrainingInformation {
   preprocessFunctions: string[]
   modelCompileData: ModelCompileData
   dataType: string
+  //maximum absolute value of a number in a randomly generated share for secure aggregation
+  //default is 100, must be a positive number, check the ~/disco/information/PRIVACY.md file for more information on significance of maxShareValue selection
+  //only relevant if secure aggregation is true (for either federated or decentralized learning)
   maxShareValue?: number
+  //minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
+  //default is 3, range is [3, totalNumberOfPeersParticipating]
+  //only relevant in decentralized setting
   minimumReadyPeers?: number
+  //true if the training scheme is decentralized and requires secure aggregation, false otherwise
   decentralizedSecure?: boolean
   receivedMessagesThreshold?: number
   inputColumns?: string[]
