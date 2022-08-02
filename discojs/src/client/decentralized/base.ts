@@ -185,6 +185,7 @@ function to check if a given boolean condition is true, checks continuously unti
     trainingInformant: TrainingInformant
   ): Promise<Weights> {
     try {
+      console.log('ID:', this.ID, '\nRound:', round)
       // reset peer list at each round of training to make sure client waits for updated peerList from server
       this.peers = []
 
