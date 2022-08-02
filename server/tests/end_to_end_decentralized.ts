@@ -8,7 +8,8 @@ import * as tf from '@tensorflow/tfjs-node'
 import {
   Task, dataset, informant, ConsoleLogger, training, TrainingSchemes,
   TrainingInformant, EmptyMemory, tasks, client, Weights
-} from '../../discojs' // '@epfml/discojs'
+} from '@epfml/discojs'
+
 import * as test from '../../discojs/src/test_utils.spec'
 
 import { getClient, startServer } from './utils'
@@ -22,7 +23,7 @@ class NodeImageLoader extends dataset.ImageLoader<string> {
   }
 }
 
-describe('end to end', function () {
+describe('end to end decentralized', function () {
   const epsilon: number = 0.001
   this.timeout(50_000)
 
