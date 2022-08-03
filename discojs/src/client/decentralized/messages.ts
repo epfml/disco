@@ -1,6 +1,7 @@
 import { weights } from '../../serialization'
-
+// import {Set} from 'immutable'
 import { PeerID } from './types'
+import { TaskID } from '../../task'
 
 export enum messageType {
   // Phase 0 communication (just between server and client)
@@ -16,7 +17,7 @@ export enum messageType {
 
 export interface messageGeneral{type: messageType}
 export interface serverClientIDMessage extends messageGeneral {peerID: PeerID} // server sends client id to client
-export interface clientReadyMessage extends messageGeneral {round: number} // client who sent is ready
+export interface clientReadyMessage extends messageGeneral {round: number, task: TaskID, peerID: PeerID} // client who sent is ready
 export interface clientWeightsMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID} // client weights
 export interface clientSharesMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID} // client weights
 export interface clientPartialSumsMessageServer extends messageGeneral {peerID: PeerID, partials: weights.Encoded, destination: PeerID} // client partial sum
