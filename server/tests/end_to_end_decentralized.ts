@@ -73,8 +73,11 @@ describe('end to end decentralized', function () {
     const resultClear: Weights = await testWeightSharing(false)
     const expected: Weights = test.makeWeights([[0.002, 7, 27, 11]])
     test.assertWeightsEqual(expected, resultClear, epsilon)
+  })
 
+  it('decentralized client test one round of secure weight aggregation', async () => {
     const resultSecure: Weights = await testWeightSharing(true)
+    const expected: Weights = test.makeWeights([[0.002, 7, 27, 11]])
     test.assertWeightsEqual(expected, resultSecure, epsilon)
   }
   )
