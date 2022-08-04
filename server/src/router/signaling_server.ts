@@ -56,10 +56,10 @@ export class SignalingServer {
           // sends message it received to destination
           this.clients.get(msg.destination)?.send(encodedMsg)
         } else if (msg.type === messages.messageType.clientReadyMessage) {
-          //if the readyclients map has the task
+          // if the readyclients map has the task
           if (this.readyClientsBuffer.has(msg.taskID)) {
             const currentClients: PeerID[] = this.readyClientsBuffer.get(msg.taskID) ?? []
-            if (!currentClients.includes(msg.peerID)){
+            if (!currentClients.includes(msg.peerID)) {
               currentClients.push(msg.peerID)
             }
             this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, currentClients)
@@ -68,8 +68,8 @@ export class SignalingServer {
             this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, updatedClients)
           }
           // if enough clients are connected, server shares who is connected
-          const currentPeers = this.readyClientsBuffer.get(msg.taskID)
-          if (currentPeers!.length >= minimumReadyPeers) {
+          const currentPeers: client.decentralized.PeerID[] = this.readyClientsBuffer.get(msg.taskID) ?? []
+          if (currentPeers.length >= minimumReadyPeers) {
             const readyPeerIDs: messages.serverReadyClients = { type: messages.messageType.serverReadyClients, peerList: this.readyClientsBuffer.get(msg.taskID) ?? [] }
             for (const peerID of this.readyClientsBuffer.get(msg.taskID) ?? []) {
               // send peerIds to everyone in readyClients
