@@ -68,7 +68,12 @@ export const task: Task = {
     outputColumns: [
       'Survived'
     ],
-    scheme: 'Federated'
+    scheme: 'Federated',
+    noiseScale: 5*10**-5,
+    clippingRadius: 20,
+    decentralizedSecure: true,
+    minimumReadyPeers: 3,
+    maxShareValue: 100
   }
 }
 
