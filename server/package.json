@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@epfml/discojs": "file:../discojs",
+    "@tensorflow/tfjs-core": "^3.19.0",
     "@tensorflow/tfjs-node": "3",
     "cors": "2",
     "express": "4",
