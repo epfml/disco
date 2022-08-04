@@ -26,6 +26,9 @@ export class SignalingServer {
       peerID
     }
     console.info('peer', peerID, 'joined', task.taskID)
+    if(!this.readyClientsBuffer.has(task.taskID)){
+      this.readyClientsBuffer.set(task.taskID, [])
+    }
 
     ws.send(msgpack.encode(msg), { binary: true })
 
@@ -56,17 +59,11 @@ export class SignalingServer {
           // sends message it received to destination
           this.clients.get(msg.destination)?.send(encodedMsg)
         } else if (msg.type === messages.messageType.clientReadyMessage) {
-          // if the readyclients map has the task
-          if (this.readyClientsBuffer.has(msg.taskID)) {
             const currentClients: PeerID[] = this.readyClientsBuffer.get(msg.taskID) ?? []
             if (!currentClients.includes(msg.peerID)) {
               currentClients.push(msg.peerID)
             }
             this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, currentClients)
-          } else {
-            const updatedClients: PeerID[] = [msg.peerID]
-            this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, updatedClients)
-          }
           // if enough clients are connected, server shares who is connected
           const currentPeers: client.decentralized.PeerID[] = this.readyClientsBuffer.get(msg.taskID) ?? []
           if (currentPeers.length >= minimumReadyPeers) {
