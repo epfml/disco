@@ -49,7 +49,7 @@ export const task: Task = {
       { columnName: 'truck', columnData: 9 }
     ],
     scheme: 'Decentralized',
-    noiseScale: 5*10**-5,
+    noiseScale: undefined,
     clippingRadius: 20,
     decentralizedSecure: true,
     minimumReadyPeers: 3,

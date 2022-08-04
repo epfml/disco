@@ -36,7 +36,7 @@ export const task: Task = {
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
     aggregateImagesById: false,
     scheme: 'Decentralized',
-    noiseScale: 5*10**-5,
+    noiseScale: undefined,
     clippingRadius: 20,
     decentralizedSecure: true,
     minimumReadyPeers: 3,

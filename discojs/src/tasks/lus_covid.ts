@@ -36,7 +36,7 @@ export const task: Task = {
     dataType: 'image',
     aggregateImagesById: true,
     scheme: 'Decentralized',
-    noiseScale: 5*10**-5,
+    noiseScale: undefined,
     clippingRadius: 20,
     decentralizedSecure: true,
     minimumReadyPeers: 3,
