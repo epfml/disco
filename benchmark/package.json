@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@tensorflow/tfjs-node": "3",
-    "discojs": "file:../discojs",
+    "@epfml/discojs": "file:../discojs",
     "immutable": "4"
   },
   "devDependencies": {
