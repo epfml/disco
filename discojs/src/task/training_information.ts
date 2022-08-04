@@ -10,10 +10,10 @@ export interface TrainingInformation {
   preprocessFunctions: string[]
   modelCompileData: ModelCompileData
   dataType: string
-  receivedMessagesThreshold?: number
+  receivedMessagesThreshold?: number // TODO: explain, rename or remove
   inputColumns?: string[]
   outputColumns?: string[]
-  threshold?: number
+  threshold?: number // TODO: explain, rename or remove
   IMAGE_H?: number
   IMAGE_W?: number
   LABEL_LIST?: string[]
@@ -21,22 +21,22 @@ export interface TrainingInformation {
   learningRate?: number
   NUM_CLASSES?: number
   csvLabels?: boolean
-  RESIZED_IMAGE_H?: number
+  RESIZED_IMAGE_H?: number // TODO: regroup image vs csv specific stuff?
   RESIZED_IMAGE_W?: number
   LABEL_ASSIGNMENT?: DataExample[]
   scheme?: string
-  // noiseScale: Affects the variance of the Gaussian noise added to the models / model updates for differential privacy.
+  // noiseScale: Differential Privacy: Affects the variance of the Gaussian noise added to the models / model updates.
   noiseScale?: number
-  // clippingRadius: Relevant for privacy (differential privacy and secure aggregation).
+  // clippingRadius: Differential Privacy: Clipping can be user for both differential privacy and for secure aggregation.
   // Model updates will be scaled down if their norm exceeds clippingRadius.
   clippingRadius?: number
-  // decentralizedSecure: true if the training scheme is decentralized and requires secure aggregation, false otherwise
+  // decentralizedSecure: Secure Aggregation on/off: true for secure aggregation to be user, if the training scheme is decentralized, false otherwise
   decentralizedSecure?: boolean
   // minimumReadyPeers: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
   // default is 3, range is [3, totalNumberOfPeersParticipating]
   // only relevant in decentralized setting
   minimumReadyPeers?: number
-  // maxShareValue: maximum absolute value of a number in a randomly generated share for secure aggregation
+  // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
   // default is 100, must be a positive number, check the ~/disco/information/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
   maxShareValue?: number
