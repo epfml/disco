@@ -44,6 +44,8 @@ export const task: Task = {
     IMAGE_W: 200,
     LABEL_LIST: ['child', 'adult'],
     scheme: 'Federated'
+    // TODO: add SecAgg and DP flags, for clarity. 
+    // TODO: add comments to each setting anovewhich is not self-explanatory
   }
 }
 
