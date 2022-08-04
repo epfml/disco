@@ -64,12 +64,12 @@ export class SignalingServer {
           // if enough clients are connected, server shares who is connected
           const currentPeers: Set<PeerID> = this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
           if (currentPeers.size >= minimumReadyPeers) {
+            this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, new Set<PeerID>())
             const readyPeerIDs: messages.serverReadyClients = { type: messages.messageType.serverReadyClients, peerList: Array.from(currentPeers) }
             for (const peerID of currentPeers) {
               // send peerIds to everyone in readyClients
               this.clients.get(peerID)?.send(msgpack.encode(readyPeerIDs))
             }
-            // this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, new Set<PeerID>())
           }
         } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
           const forwardMsg: messages.clientPartialSumsMessageServer = {
