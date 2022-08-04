@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'node:path'
 import { Server } from 'node:http'
-import { Range } from 'immutable'
+import { Range, List } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
 import {
@@ -69,15 +69,25 @@ describe('end to end decentralized', function () {
   }
 
   it('decentralized client test one round of clear text weight aggregation', async () => {
-    const resultClear: Weights = await testWeightSharing(false)
-    const expected: Weights = test.makeWeights([[0.002, 7, 27, 11]])
-    test.assertWeightsEqual(expected, resultClear, epsilon)
+    const weightResults: List<Weights> = await testWeightSharing(false)
+    const result: Weights | undefined = weightResults.get(0)
+    const expected: Weights | undefined = weightResults.get(1)
+    if ((result != null) && (expected != null)) {
+      test.assertWeightsEqual(result, expected, epsilon)
+    } else {
+      throw new Error('Undefined result')
+    }
   })
 
   it('decentralized client test one round of secure weight aggregation', async () => {
-    const resultSecure: Weights = await testWeightSharing(true)
-    const expected: Weights = test.makeWeights([[0.002, 7, 27, 11]])
-    test.assertWeightsEqual(expected, resultSecure, epsilon)
+    const weightResults: List<Weights> = await testWeightSharing(true)
+    const result: Weights | undefined = weightResults.get(0)
+    const expected: Weights | undefined = weightResults.get(1)
+    if ((result != null) && (expected != null)) {
+      test.assertWeightsEqual(result, expected, epsilon)
+    } else {
+      throw new Error('Undefined result')
+    }
   }
   )
 
@@ -104,13 +114,13 @@ describe('end to end decentralized', function () {
   Creates three clients with different update values and returns the aggregated update value between all three clients.
   The clients have model dimension of 4 model updates to share, which can be seen as their input parameter in makeClient().
    */
-  async function testWeightSharing (secure: boolean): Promise<Weights> {
-    // expected --> [.002, 7, 27, 11]
+  async function testWeightSharing (secure: boolean): Promise<List<Weights>> {
+    const expected: Weights = test.makeWeights([[0.002, 7, 27, 11]])
     const client1 = makeClient([[0.001, 3, 40, 10]], secure)
     const client2 = makeClient([[0.002, 5, 30, 11]], secure)
     const client3 = makeClient([[0.003, 13, 11, 12]], secure)
     const result = await Promise.all([client1, client2, client3])
-    return result[0]
+    return List([result[0], expected])
   }
 
   it('decentralized secure client testing timout', async () => {

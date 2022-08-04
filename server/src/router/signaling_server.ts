@@ -66,7 +66,6 @@ export class SignalingServer {
           if (currentPeers.size >= minimumReadyPeers) {
             const readyPeerIDs: messages.serverReadyClients = { type: messages.messageType.serverReadyClients, peerList: Array.from(currentPeers) }
             for (const peerID of currentPeers) {
-              console.log('in ss', readyPeerIDs)
               // send peerIds to everyone in readyClients
               this.clients.get(peerID)?.send(msgpack.encode(readyPeerIDs))
             }
