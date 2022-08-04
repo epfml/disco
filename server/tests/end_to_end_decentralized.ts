@@ -1,7 +1,6 @@
 import fs from 'fs/promises'
 import path from 'node:path'
 import { Server } from 'node:http'
-// import { assert, expect } from 'chai'
 import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
