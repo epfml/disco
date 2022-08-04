@@ -13,8 +13,6 @@ export class SignalingServer {
   private clients: Map<PeerID, WebSocket> = Map()
   // increments with addition of every client, server keeps track of clients with this and tells them their ID
   private clientCounter: PeerID = 0
-  // parameter of DisCo, should be set by client
-  // private readonly minConnected: number = 3
 
   handle (task: Task, ws: WebSocket): void {
     const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
@@ -26,6 +24,7 @@ export class SignalingServer {
       peerID
     }
     console.info('peer', peerID, 'joined', task.taskID)
+
     if(!this.readyClientsBuffer.has(task.taskID)){
       this.readyClientsBuffer.set(task.taskID, [])
     }
