@@ -10,6 +10,7 @@ interface BenchmarkUnsafeArguments {
   epochs: number
   roundDuration: number
   batchSize: number
+  learningRate: number
   save: boolean
   help?: boolean
 }
@@ -27,7 +28,9 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     // @ts-ignore
     roundDuration: {type: Number, alias: 'r', description: 'Round duration', optional: true},
     // @ts-ignore
-    batchSize: {type: Number, alias: 'b', description: 'Round duration', optional: true},
+    batchSize: {type: Number, alias: 'b', description: 'Batch size', optional: true},
+    // @ts-ignore
+    learningRate: {type: Number, alias: 'l', description: 'Learning rate', optional: true},
     // @ts-ignore
     save: {type: Boolean, alias: 's', description: 'Save logs of benchmark', default: false},
     help: {type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide'}
@@ -59,12 +62,14 @@ const numberOfUsers = unsafeArgs.numberOfUsers === undefined ? 1 : unsafeArgs.nu
 const roundDuration = unsafeArgs.roundDuration === undefined ? 10 : unsafeArgs.roundDuration
 const epochs = unsafeArgs.epochs === undefined ? 10 : unsafeArgs.epochs
 const batchSize = unsafeArgs.batchSize === undefined ? 10 : unsafeArgs.batchSize
+const learningRate = unsafeArgs.learningRate === undefined ? 0.001 : unsafeArgs.learningRate
 
 // Override training information 
 if (task.trainingInformation !== undefined) {
   task.trainingInformation.batchSize = batchSize
   task.trainingInformation.roundDuration = roundDuration
   task.trainingInformation.epochs = epochs
+  task.trainingInformation.learningRate = learningRate
   // For DP
   // TASK.trainingInformation.clippingRadius = 10000000
   // TASK.trainingInformation.noiseScale = 0
