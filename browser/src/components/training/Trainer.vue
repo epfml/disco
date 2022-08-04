@@ -27,7 +27,7 @@
       <CustomButton
         @click="stopTraining()"
       >
-        Stop <span v-if="distributedTraining">Distributed</span><span v-else>Local</span> Training
+        Stop <span v-if="distributedTraining">Collaborative Training</span><span v-else>Training</span>
       </CustomButton>
     </div>
 
