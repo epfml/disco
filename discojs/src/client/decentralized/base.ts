@@ -126,9 +126,7 @@ function to check if a given boolean condition is true, checks continuously unti
         } else if (this.instanceOfServerReadyClients(msg)) {
         // updated connected peers
           if (!this.peersLocked) {
-            console.log(msg)
             this.peers = msg.peerList
-            console.log(this.peers)
             this.peersLocked = true
           }
         } else {
@@ -198,13 +196,11 @@ function to check if a given boolean condition is true, checks continuously unti
       // wait for peers to be connected before sending any update information
       await this.pauseUntil(() => this.peers.length >= this.minimumReadyPeers)
 
-      console.log('step1')
       // Apply DP to updates that will be sent
       const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
 
       // send weights to all ready connected peers
       const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)
-      console.log('step2')
       return aggregation.averageWeights(finalWeights)
     } catch (Error) {
       console.log('Timeout Error Reported, training will continue')
