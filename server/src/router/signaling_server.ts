@@ -9,7 +9,7 @@ type PeerID = client.decentralized.PeerID
 
 export class SignalingServer {
   // maps peerIDs to their respective websockets so peers can be sent messages by their IDs
-  private readyClientsBuffer: Map<TaskID, PeerID[]> = Map()
+  private readyClientsBuffer: Map<TaskID, Set<PeerID>> = Map()
   private clients: Map<PeerID, WebSocket> = Map()
   // increments with addition of every client, server keeps track of clients with this and tells them their ID
   private clientCounter: PeerID = 0
@@ -26,7 +26,7 @@ export class SignalingServer {
     console.info('peer', peerID, 'joined', task.taskID)
 
     if(!this.readyClientsBuffer.has(task.taskID)){
-      this.readyClientsBuffer.set(task.taskID, [])
+      this.readyClientsBuffer.set(task.taskID, new Set<PeerID>())
     }
 
     ws.send(msgpack.encode(msg), { binary: true })
@@ -58,20 +58,19 @@ export class SignalingServer {
           // sends message it received to destination
           this.clients.get(msg.destination)?.send(encodedMsg)
         } else if (msg.type === messages.messageType.clientReadyMessage) {
-            const currentClients: PeerID[] = this.readyClientsBuffer.get(msg.taskID) ?? []
-            if (!currentClients.includes(msg.peerID)) {
-              currentClients.push(msg.peerID)
-            }
-            this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, currentClients)
+            const currentClients: Set<PeerID> = this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
+            const updatedClients: Set<PeerID> = currentClients.add(msg.peerID)
+            this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, updatedClients)
           // if enough clients are connected, server shares who is connected
-          const currentPeers: client.decentralized.PeerID[] = this.readyClientsBuffer.get(msg.taskID) ?? []
-          if (currentPeers.length >= minimumReadyPeers) {
-            const readyPeerIDs: messages.serverReadyClients = { type: messages.messageType.serverReadyClients, peerList: this.readyClientsBuffer.get(msg.taskID) ?? [] }
-            for (const peerID of this.readyClientsBuffer.get(msg.taskID) ?? []) {
+          const currentPeers: Set<PeerID> = this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
+          if (currentPeers.size >= minimumReadyPeers) {
+            const readyPeerIDs: messages.serverReadyClients = { type: messages.messageType.serverReadyClients, peerList: Array.from(currentPeers)}
+            for (const peerID of currentPeers) {
+              console.log('in ss', readyPeerIDs)
               // send peerIds to everyone in readyClients
               this.clients.get(peerID)?.send(msgpack.encode(readyPeerIDs))
             }
-            this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, [])
+            // this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, new Set<PeerID>())
           }
         } else if (msg.type === messages.messageType.clientPartialSumsMessageServer) {
           const forwardMsg: messages.clientPartialSumsMessageServer = {
