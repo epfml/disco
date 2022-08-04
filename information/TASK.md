@@ -13,7 +13,7 @@ Finally, we need to rebuild discojs.
 
 ### Task
 
-The [`Task`](../discojs/src/task/task.ts) class is the first piece of the puzzle, this contains all the crucial information from training to mode.
+The [`Task`](../discojs/src/task/task.ts) interface is the first piece of the puzzle, this contains all the crucial information from training to mode.
 
 The task class for simple face can be found in [here](../discojs/src/tasks/simple_face.ts),
 and the contents look as follows. (For brevity we have replaced some lines with ...).
@@ -37,6 +37,8 @@ export const task: Task = {
   }
 }
 ```
+
+The `Task` interface has three fields: a mandatory `taskID` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/src/task/display_information.ts) and [`TrainingInformation`](../discojs/src/task/training_information.ts).
 
 ### `model` function
 
