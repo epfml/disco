@@ -25,19 +25,21 @@ export interface TrainingInformation {
   RESIZED_IMAGE_W?: number
   LABEL_ASSIGNMENT?: DataExample[]
   scheme?: string
-  // noiseScale: Differential Privacy: Affects the variance of the Gaussian noise added to the models / model updates.
+  // noiseScale: Differential Privacy (DP): Affects the variance of the Gaussian noise added to the models / model updates.
+  // Number or undefined. If undefined, then no noise will be added.
   noiseScale?: number
-  // clippingRadius: Differential Privacy: Clipping can be user for both differential privacy and for secure aggregation.
-  // Model updates will be scaled down if their norm exceeds clippingRadius.
+  // clippingRadius: Privacy (DP and Secure Aggregation):
+  // Number or undefined. If undefined, then no model updates will be clipped. 
+  // If number, then model updates will be scaled down if their norm exceeds clippingRadius.
   clippingRadius?: number
-  // decentralizedSecure: Secure Aggregation on/off: true for secure aggregation to be user, if the training scheme is decentralized, false otherwise
+  // decentralizedSecure: Secure Aggregation on/off:
+  // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
   decentralizedSecure?: boolean
-  // minimumReadyPeers: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
-  // default is 3, range is [3, totalNumberOfPeersParticipating]
-  // only relevant in decentralized setting
-  minimumReadyPeers?: number
   // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
   // default is 100, must be a positive number, check the ~/disco/information/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
   maxShareValue?: number
+  // minimumReadyPeers: Decentralized Learning: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
+  // default is 3, range is [3, totalNumberOfPeersParticipating]
+  minimumReadyPeers?: number
 }
