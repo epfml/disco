@@ -25,7 +25,7 @@ export class SignalingServer {
     }
     console.info('peer', peerID, 'joined', task.taskID)
 
-    if(!this.readyClientsBuffer.has(task.taskID)){
+    if (!this.readyClientsBuffer.has(task.taskID)) {
       this.readyClientsBuffer.set(task.taskID, new Set<PeerID>())
     }
 
@@ -58,13 +58,13 @@ export class SignalingServer {
           // sends message it received to destination
           this.clients.get(msg.destination)?.send(encodedMsg)
         } else if (msg.type === messages.messageType.clientReadyMessage) {
-            const currentClients: Set<PeerID> = this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
-            const updatedClients: Set<PeerID> = currentClients.add(msg.peerID)
-            this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, updatedClients)
+          const currentClients: Set<PeerID> = this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
+          const updatedClients: Set<PeerID> = currentClients.add(msg.peerID)
+          this.readyClientsBuffer = this.readyClientsBuffer.set(msg.taskID, updatedClients)
           // if enough clients are connected, server shares who is connected
           const currentPeers: Set<PeerID> = this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
           if (currentPeers.size >= minimumReadyPeers) {
-            const readyPeerIDs: messages.serverReadyClients = { type: messages.messageType.serverReadyClients, peerList: Array.from(currentPeers)}
+            const readyPeerIDs: messages.serverReadyClients = { type: messages.messageType.serverReadyClients, peerList: Array.from(currentPeers) }
             for (const peerID of currentPeers) {
               console.log('in ss', readyPeerIDs)
               // send peerIds to everyone in readyClients
