@@ -64,7 +64,9 @@ export class Federated extends Base {
       data: {
         weights: await serialization.weights.encode(weights),
         round: this.round
-      }
+      },
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity
     })
   }
 

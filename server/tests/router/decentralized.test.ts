@@ -1,6 +1,6 @@
 // import { agent as request } from 'supertest'
 //
-// import { serialization, Weights } from 'discojs'
+// import { serialization, Weights } from '@epfml/discojs'
 //
 // import * as tf from '@tensorflow/tfjs-node'
 // import { getApp } from '../../src/get_server'

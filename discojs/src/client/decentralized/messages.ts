@@ -1,6 +1,6 @@
 import { weights } from '../../serialization'
-
 import { PeerID } from './types'
+import { TaskID } from '../../task'
 
 export enum messageType {
   // Phase 0 communication (just between server and client)
@@ -14,10 +14,17 @@ export enum messageType {
   clientPartialSumsMessageServer
 }
 
+// base class for all messages
 export interface messageGeneral{type: messageType}
-export interface serverClientIDMessage extends messageGeneral {peerID: PeerID} // server sends client id to client
-export interface clientReadyMessage extends messageGeneral {round: number} // client who sent is ready
-export interface clientWeightsMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID} // client weights
-export interface clientSharesMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID} // client weights
-export interface clientPartialSumsMessageServer extends messageGeneral {peerID: PeerID, partials: weights.Encoded, destination: PeerID} // client partial sum
-export interface serverReadyClients extends messageGeneral {peerList: PeerID[]} // server send to client who to connect to
+// server sends client id to client
+export interface serverClientIDMessage extends messageGeneral {peerID: PeerID}
+// clients sends to server that they are ready to share updates
+export interface clientReadyMessage extends messageGeneral {round: number, task: TaskID, peerID: PeerID}
+// client sends to server/server sends to client (will be replaced with peer2peer) model updates, from peerID, sending to destination
+export interface clientWeightsMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID}
+// client sends to server/server sends to client (will be replaced with peer2peer) generated shares, from peerID, sending to destination
+export interface clientSharesMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID}
+// client sends to server/server sends to client (will be replaced with peer2peer) partial sums, from peerID, sending to destination
+export interface clientPartialSumsMessageServer extends messageGeneral {peerID: PeerID, partials: weights.Encoded, destination: PeerID}
+// server sends to client an array of peerIDs to connect to
+export interface serverReadyClients extends messageGeneral {peerList: PeerID[]}
