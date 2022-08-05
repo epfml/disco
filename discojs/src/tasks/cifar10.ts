@@ -52,48 +52,18 @@ export const task: Task = {
   }
 }
 
-export function model (imageHeight = 32, imageWidth = 32, imageChannels = 3, numOutputClasses = 10): tf.LayersModel {
-  const model = tf.sequential()
+export async function model (): Promise<tf.LayersModel> {
+  const mobilenet = await tf.loadLayersModel(
+    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
+  )
+  const x = mobilenet.getLayer('global_average_pooling2d_1')
+  const predictions = tf.layers
+    .dense({ units: 10, activation: 'softmax', name: 'denseModified' })
+    .apply(x.output) as tf.SymbolicTensor
 
-  // In the first layer of our convolutional neural network we have
-  // to specify the input shape. Then we specify some parameters for
-  // the convolution operation that takes place in this layer.
-  model.add(tf.layers.conv2d({
-    inputShape: [imageHeight, imageWidth, imageChannels],
-    kernelSize: 5,
-    filters: 8,
-    strides: 1,
-    activation: 'relu',
-    kernelInitializer: 'varianceScaling'
-  }))
-
-  // The MaxPooling layer acts as a sort of downsampling using max values
-  // in a region instead of averaging.
-  model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
-
-  // Repeat another conv2d + maxPooling stack.
-  // Note that we have more filters in the convolution.
-  model.add(tf.layers.conv2d({
-    kernelSize: 5,
-    filters: 16,
-    strides: 1,
-    activation: 'relu',
-    kernelInitializer: 'varianceScaling'
-  }))
-  model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
-
-  // Now we flatten the output from the 2D filters into a 1D vector to prepare
-  // it for input into our last layer. This is common practice when feeding
-  // higher dimensional data to a final classification output layer.
-  model.add(tf.layers.flatten())
-
-  // Our last layer is a dense layer which has 10 output units, one for each
-  // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9).
-  model.add(tf.layers.dense({
-    units: numOutputClasses,
-    kernelInitializer: 'varianceScaling',
-    activation: 'softmax'
-  }))
-
-  return model
+  return tf.model({
+    inputs: mobilenet.input,
+    outputs: predictions,
+    name: 'modelModified'
+  })
 }

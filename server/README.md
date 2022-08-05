@@ -70,10 +70,14 @@ Deployment files:
 
 To change the GAE app configuration, you can modify the file `app.yaml`.
 
+> **⚠ WARNING: make sure you allocate enough memory!**
+
+Note that the size of the container can be quite large (e.g 600mb), if the alloted memory is too small then there might be 503 [errors](https://groups.google.com/g/google-appengine/c/BawYguWHq7Q) when deploying that hard tricky to debug.
+
 To deploy the app on GAE, you can run the following command, where disco-313515 is the current PROJECT-ID:
 
 ```
-gcloud app deploy --project=disco-313515 app.yaml --version prod
+gcloud app deploy --project=deai-313515 app.yaml --version prod
 ```
 
 :exclamation: Important!
