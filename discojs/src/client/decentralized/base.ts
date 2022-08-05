@@ -74,7 +74,7 @@ function to check if a given boolean condition is true, checks continuously unti
    */
   protected sendReadyMessage (round: number): void {
     // Broadcast our readiness
-    const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round }
+    const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round, peerID: this.ID, task: this.task.taskID }
 
     const encodedMsg = msgpack.encode(msg)
     if (this.server === undefined) {

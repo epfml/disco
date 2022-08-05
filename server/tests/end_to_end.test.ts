@@ -62,7 +62,7 @@ describe('end to end federated', function () {
     await Promise.all([titanicUser(), titanicUser()]))
 
   async function titanicUser (): Promise<void> {
-    const dir = '../discojs/example_training_data/titanic.csv'
+    const dir = '../discojs/example_training_data/titanic_train.csv'
 
     // TODO: can load data, so path is right.
     // console.log(await tf.data.csv('file://'.concat(dir)).toArray())
