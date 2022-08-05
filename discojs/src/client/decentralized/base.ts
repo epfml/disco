@@ -198,7 +198,6 @@ function to check if a given boolean condition is true, checks continuously unti
 
       // Apply DP to updates that will be sent
       const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
-
       // send weights to all ready connected peers
       const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)
       return aggregation.averageWeights(finalWeights)
