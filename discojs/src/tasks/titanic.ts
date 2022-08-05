@@ -70,7 +70,7 @@ export const task: Task = {
     ],
     scheme: 'Federated', // secure aggregation not yet implemented for FeAI
     noiseScale: undefined,
-    clippingRadius: undefined,
+    clippingRadius: undefined
   }
 }
 

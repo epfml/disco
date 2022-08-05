@@ -36,7 +36,7 @@ export const task: Task = {
     LABEL_LIST: ['child', 'adult'],
     scheme: 'Federated', // secure aggregation not yet implemented for FeAI
     noiseScale: undefined,
-    clippingRadius: undefined,
+    clippingRadius: undefined
   }
 }
 

@@ -29,7 +29,7 @@ export interface TrainingInformation {
   // Number or undefined. If undefined, then no noise will be added.
   noiseScale?: number
   // clippingRadius: Privacy (DP and Secure Aggregation):
-  // Number or undefined. If undefined, then no model updates will be clipped. 
+  // Number or undefined. If undefined, then no model updates will be clipped.
   // If number, then model updates will be scaled down if their norm exceeds clippingRadius.
   clippingRadius?: number
   // decentralizedSecure: Secure Aggregation on/off:
