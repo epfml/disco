@@ -196,7 +196,7 @@ function to check if a given boolean condition is true, checks continuously unti
       // wait for peers to be connected before sending any update information
       await this.pauseUntil(() => this.peers.length >= this.minimumReadyPeers)
 
-      // Apply DP to updates that will be sent
+      // Apply clipping and DP to updates that will be sent
       const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
       // send weights to all ready connected peers
       const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)
