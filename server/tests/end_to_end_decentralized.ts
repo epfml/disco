@@ -92,7 +92,7 @@ describe('end to end decentralized', function () {
     }
     const weights: Weights = test.makeWeights(input)
     const cifar10: Task = tasks.cifar10.task
-    const taskID : TaskID = cifar10.taskID
+    const taskID: TaskID = cifar10.taskID
     const trainingInformantCurrent: TrainingInformant = new informant.DecentralizedInformant(taskID, 0)
     await clientCurrent.connect()
     return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformantCurrent)
