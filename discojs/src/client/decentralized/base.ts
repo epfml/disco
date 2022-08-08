@@ -109,7 +109,8 @@ function to check if a given boolean condition is true, checks continuously unti
   deals with message reception from decentralized client perspective (messages received by client)
    */
   protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
-    const ws = new isomorphic.WebSocket(url)
+    const WS = typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
+    const ws = new WS(url)
     ws.binaryType = 'arraybuffer'
 
     ws.onmessage = async (event: isomorphic.MessageEvent) => {
@@ -121,10 +122,10 @@ function to check if a given boolean condition is true, checks continuously unti
       // check message type to choose correct action
       if (this.instanceOfMessageGeneral(msg)) {
         if (this.instanceOfServerClientIDMessage(msg)) {
-        // updated ID
+          // updated ID
           this.ID = msg.peerID
         } else if (this.instanceOfServerReadyClients(msg)) {
-        // updated connected peers
+          // updated connected peers
           if (!this.peersLocked) {
             this.peers = msg.peerList
             this.peersLocked = true
@@ -159,7 +160,6 @@ function to check if a given boolean condition is true, checks continuously unti
         throw new Error(`unknown protocol: ${this.url.protocol}`)
     }
     serverURL.pathname += `deai/${this.task.taskID}`
-
     this.server = await this.connectServer(serverURL)
   }
 
