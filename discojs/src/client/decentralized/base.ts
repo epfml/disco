@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
-import { URL } from 'url'
+import * as nodeUrl from 'url'
 import { Task } from '@/task'
 
 import { TrainingInformant, Weights, aggregation, privacy } from '../..'
@@ -146,6 +146,7 @@ function to check if a given boolean condition is true, checks continuously unti
    * Initialize the connection to the peers and to the other nodes.
    */
   async connect (): Promise<void> {
+    const URL = typeof window !== 'undefined' ? window.URL : nodeUrl.URL
     const serverURL = new URL('', this.url.href)
     switch (this.url.protocol) {
       case 'http:':
