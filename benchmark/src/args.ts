@@ -81,6 +81,7 @@ interface BenchmarkArguments {
   epochs: number
   roundDuration: number
   batchSize: number
+  learningRate: number
   save: boolean
 }
 
@@ -90,5 +91,6 @@ export const args: BenchmarkArguments = {
   epochs,
   roundDuration,
   batchSize,
+  learningRate,
   save: unsafeArgs.save,
 }
