@@ -26,13 +26,13 @@ function filesFromFolder(dir: string, folder: string, fractionToKeep: number): s
 }
 
 async function simplefaceData(task: Task): Promise<dataset.DataTuple> {
-  const dir = './../discojs/example_training_data/simple_face/'
-  const youngFolders = ['child']
-  const oldFolders = ['adult']
+  // const dir = './../discojs/example_training_data/simple_face/'
+  // const youngFolders = ['child']
+  // const oldFolders = ['adult']
 
-  // const dir = '../../face_age/'
-  // const youngFolders = ['007', '008', '009', '010', '011', '012', '013', '014']
-  // const oldFolders = ['021', '022', '023', '024', '025', '026']
+  const dir = '../../data/face_age/'
+  const youngFolders = ['007', '008', '009', '010', '011', '012', '013', '014']
+  const oldFolders = ['019', '020', '021', '022', '023', '024', '025', '026']
 
   // TODO: we just keep x% of data for faster training, e.g., for each folder, we keep 0.1 fraction of images
   const fractionToKeep = 1
