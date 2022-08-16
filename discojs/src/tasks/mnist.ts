@@ -32,10 +32,13 @@ export const task: Task = {
 
     IMAGE_H: 28,
     IMAGE_W: 28,
-    preprocessFunctions: [],
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
     aggregateImagesById: false,
     scheme: 'Decentralized'
+  },
+  preProcessImage: (tensor: tf.Tensor3D): tf.Tensor3D => {
+    tensor = tensor.div(tf.scalar(255))
+    return tensor
   }
 }
 

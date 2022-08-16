@@ -32,7 +32,6 @@ export const task: Task = {
     csvLabels: true,
     IMAGE_H: 32,
     IMAGE_W: 32,
-    preprocessFunctions: ['resize'],
     RESIZED_IMAGE_H: 224,
     RESIZED_IMAGE_W: 224,
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
@@ -49,6 +48,10 @@ export const task: Task = {
       { columnName: 'truck', columnData: 9 }
     ],
     scheme: 'Decentralized'
+  },
+  preProcessImage: (tensor: tf.Tensor3D): tf.Tensor3D => {
+    tensor = tensor.div(tf.scalar(255))
+    return tensor
   }
 }
 

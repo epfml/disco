@@ -22,7 +22,6 @@ export const task: Task = {
     roundDuration: 1,
     validationSplit: 0.2,
     batchSize: 10,
-    preprocessFunctions: [],
     learningRate: 0.001,
     modelCompileData: {
       optimizer: 'sgd',
@@ -35,6 +34,10 @@ export const task: Task = {
     IMAGE_W: 200,
     LABEL_LIST: ['child', 'adult'],
     scheme: 'Federated'
+  },
+  preProcessImage: (tensor: tf.Tensor3D): tf.Tensor3D => {
+    tensor = tensor.div(tf.scalar(255))
+    return tensor
   }
 }
 

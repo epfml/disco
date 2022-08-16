@@ -49,7 +49,6 @@ export const task: Task = {
     roundDuration: 10,
     validationSplit: 0,
     batchSize: 30,
-    preprocessFunctions: [],
     modelCompileData: {
       optimizer: 'rmsprop',
       loss: 'binaryCrossentropy',
