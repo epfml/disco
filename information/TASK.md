@@ -5,19 +5,12 @@ to understand how to add your own custom task, we will go over how we added simp
 
 ### Task
 
-The `Task` class is the first piece of the puzzle, this contains all the crucial information from training to mode.
+The `Task` class is the first piece of the puzzle, this contains all the crucial information from training to model.
 
-The task class for simple face can be found in [here](../discojs/src/tasks/simple_face.ts),
+The task class for simple face can be found [here](../discojs/src/tasks/simple_face.ts),
 and the contents look as follows. (For brevity we have replaced some lines with ...).
 
-After exporting the Task, you need to also export a function called `model` that returns the layers model. If you use a 
-pre-trained model, you can simply load and return said model in the function via `tf.loadLayersModel(modelPath)`.
-
 ```js
-import * as tf from '@tensorflow/tfjs'
-
-import { Task } from '../task'
-
 export const task: Task = {
   taskID: 'simple_face',
   displayInformation: {
@@ -44,6 +37,13 @@ export const task: Task = {
     IMAGE_W: 200,
     LABEL_LIST: ['child', 'adult'],
     scheme: 'Federated'
+  },
+  preProcessImage: (tensor: tf.Tensor3D): tf.Tensor3D => {
+    // tensor = tf.image.resizeBilinear(tensor, [
+    //   32, 32
+    // ])
+    tensor = tensor.div(tf.scalar(255))
+    return tensor
   }
 }
 
@@ -56,6 +56,53 @@ export function model (): tf.LayersModel {
 
   return model
 ```
+
+#### Preprocessing
+
+In the Task object we can optionally define our own pre-preprocessing. In the example bellow we resize images to 32x32 and normalize the pixel values. Note that pre-preprocessing is currently only supported for images.
+> Preprocessing is done every time an image is read, this will increase the overhead of training since image loading is lazy; for better performance use data that is already preprocessed.
+
+
+```js
+preProcessImage: (tensor: tf.Tensor3D): tf.Tensor3D => {
+    tensor = tf.image.resizeBilinear(tensor, [
+       32, 32
+    ])
+    tensor = tensor.div(tf.scalar(255))
+    return tensor
+  }
+
+```
+
+### Model
+
+The model is built at the end of the file and must be defined as a function called `model` that returns a `tf.LayersModel`.
+
+If we want to define a model programmatically we can do as follows:
+
+```js
+export function model (): tf.LayersModel {
+  // Init model
+  const model = tf.sequential()
+
+  // Add layers
+  model.add(...)
+
+  return model
+
+```
+
+Alternatively we can also load a pre-existing model:
+
+```js
+export async function model (): Promise<tf.LayersModel> {
+  return await tf.loadLayersModel('file:./modelPath/model.json')
+}
+```
+
+the `modelPath` is relative to the root directory of the `server`.
+
+### Making the task visible to the API
 
 After adding the `simple_face.ts` task class, we also need to export it in the `index.ts` file which lives in the same folder.
 
