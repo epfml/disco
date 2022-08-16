@@ -1,5 +1,6 @@
 import { isDisplayInformation, DisplayInformation } from './display_information'
 import { TrainingInformation } from './training_information'
+import * as tf from '@tensorflow/tfjs'
 
 export type TaskID = string
 
@@ -24,7 +25,7 @@ export function isTask (raw: unknown): raw is Task {
     return false
   }
   if (displayInformation !== undefined &&
-      !isDisplayInformation(displayInformation)) {
+    !isDisplayInformation(displayInformation)) {
     return false
   }
 
@@ -35,9 +36,12 @@ export function isTask (raw: unknown): raw is Task {
   return true
 }
 
+export type PreProcessImage = (tensor: tf.Tensor3D) => tf.Tensor3D
+
 export interface Task {
   // TODO rename to ID
   taskID: TaskID
   displayInformation?: DisplayInformation
   trainingInformation?: TrainingInformation
+  preProcessImage?: PreProcessImage
 }

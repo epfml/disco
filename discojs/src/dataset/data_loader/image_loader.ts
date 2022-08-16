@@ -14,13 +14,21 @@ import { DataLoader, DataConfig, Data, DataTuple } from './data_loader'
 export abstract class ImageLoader<Source> extends DataLoader<Source> {
   abstract readImageFrom (source: Source): Promise<tf.Tensor3D>
 
+  private async readImageFromAndPreprocess (source: Source): Promise<tf.Tensor3D> {
+    const tensor = await this.readImageFrom(source)
+    if (this.task.preProcessImage !== undefined) {
+      return this.task.preProcessImage(tensor)
+    }
+    return tensor
+  }
+
   async load (image: Source, config?: DataConfig): Promise<Dataset> {
     let tensorContainer: tf.TensorContainer
     if (config === undefined || config.labels === undefined) {
-      tensorContainer = await this.readImageFrom(image)
+      tensorContainer = await this.readImageFromAndPreprocess(image)
     } else {
       tensorContainer = {
-        xs: await this.readImageFrom(image),
+        xs: await this.readImageFromAndPreprocess(image),
         ys: config.labels[0]
       }
     }
@@ -37,7 +45,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
           if (index === indices.length) {
             return { done: true }
           }
-          const sample = await this.readImageFrom(images[indices[index]])
+          const sample = await this.readImageFromAndPreprocess(images[indices[index]])
           const label = withLabels ? labels[indices[index]] : undefined
           const value = withLabels ? { xs: sample, ys: label } : sample
 

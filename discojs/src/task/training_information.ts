@@ -7,7 +7,6 @@ export interface TrainingInformation {
   roundDuration: number
   validationSplit: number
   batchSize: number
-  preprocessFunctions: string[]
   modelCompileData: ModelCompileData
   dataType: string
   // maximum absolute value of a number in a randomly generated share for secure aggregation
