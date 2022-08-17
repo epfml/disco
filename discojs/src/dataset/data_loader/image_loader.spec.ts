@@ -22,6 +22,8 @@ const FILES = Map(DIRS).map((readFilesFromDir)).toObject()
 describe('image loader', () => {
   it('loads single sample without label', async () => {
     const file = './example_training_data/9-mnist-example.png'
+    // Remove preProcessImage to make sure it laods raw content
+    tasks.mnist.task.preProcessImage = undefined
     const singletonDataset = await new NodeImageLoader(tasks.mnist.task).load(file)
     const imageContent = tf.node.decodeImage(fs.readFileSync(file))
     await Promise.all((await singletonDataset.toArrayForTest()).map(async (entry) => {
