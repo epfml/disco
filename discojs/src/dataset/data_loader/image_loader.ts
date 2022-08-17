@@ -2,7 +2,8 @@ import { Range } from 'immutable'
 
 import { tf } from '../..'
 import { Dataset } from '../dataset_builder'
-import { DataLoader, DataConfig, Data, DataTuple } from './data_loader'
+import { DataLoader, DataConfig } from './data_loader'
+import { Data, ImageData, DataTuple } from '../data'
 
 /**
  * TODO @s314cy:
@@ -10,7 +11,6 @@ import { DataLoader, DataConfig, Data, DataTuple } from './data_loader'
  * 1. Images are given as 1 image/1 file
  * 2. Labels are given as multiple labels/1 file, each label file can contain a different amount of labels
  */
-
 export abstract class ImageLoader<Source> extends DataLoader<Source> {
   abstract readImageFrom (source: Source): Promise<tf.Tensor3D>
 
@@ -28,7 +28,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
   }
 
   private async buildDataset (images: Source[], labels: number[], indices: number[], config?: DataConfig): Promise<Data> {
-    const dataset = tf.data.generator(() => {
+    const dataset: tf.data.Dataset<tf.TensorContainer> = tf.data.generator(() => {
       const withLabels = config?.labels !== undefined
 
       let index = 0
@@ -52,10 +52,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
       return iterator as unknown as Iterator<tf.Tensor> // Lazy
     })
 
-    return {
-      dataset,
-      size: indices.length
-    }
+    return new ImageData(dataset, indices.length, this.task.trainingInformation)
   }
 
   async loadAll (images: Source[], config?: DataConfig): Promise<DataTuple> {

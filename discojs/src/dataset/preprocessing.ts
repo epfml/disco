@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 import { TrainingInformation } from '../task/training_information'
 
-export type PreprocessImage = (image: tf.TensorContainer) => tf.TensorContainer
+type PreprocessImage = (image: tf.TensorContainer) => tf.TensorContainer
 
 export type Preprocessing = ImagePreprocessing
 

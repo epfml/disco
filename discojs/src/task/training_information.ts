@@ -1,5 +1,6 @@
 import { DataExample } from './data_example'
 import { ModelCompileData } from './model_compile_data'
+import { Preprocessing } from '../dataset/preprocessing'
 
 export interface TrainingInformation {
   modelID: string
@@ -7,7 +8,7 @@ export interface TrainingInformation {
   roundDuration: number
   validationSplit: number
   batchSize: number
-  preprocessFunctions: string[]
+  preprocessingFunctions: Preprocessing[]
   modelCompileData: ModelCompileData
   dataType: string
   // maximum absolute value of a number in a randomly generated share for secure aggregation

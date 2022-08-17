@@ -99,9 +99,9 @@ export abstract class Trainer {
     this.resetStopTrainerState()
 
     // Assign callbacks and start training
-    await this.model.fitDataset(dataset.batch(this.trainingInformation.batchSize), {
+    await this.model.fitDataset(dataset, {
       epochs: this.trainingInformation.epochs,
-      validationData: valDataset.batch(this.trainingInformation.batchSize),
+      validationData: valDataset,
       callbacks: {
         onEpochEnd: (epoch, logs) => this.onEpochEnd(epoch, logs),
         onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs),
