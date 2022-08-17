@@ -1,6 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 
 import { Task } from '../task'
+import { ImagePreprocessing } from '../dataset/preprocessing'
 
 export const task: Task = {
   taskID: 'simple_face',
@@ -22,7 +23,7 @@ export const task: Task = {
     roundDuration: 1,
     validationSplit: 0.2,
     batchSize: 10,
-    preprocessFunctions: [],
+    preprocessingFunctions: [ImagePreprocessing.Normalize],
     learningRate: 0.001,
     modelCompileData: {
       optimizer: 'sgd',
