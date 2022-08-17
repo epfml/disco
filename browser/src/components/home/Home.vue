@@ -15,29 +15,15 @@
     />
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
+import { ref } from 'vue'
 
 import DiscoGIF from '@/assets/gif/DiscoGIF.vue'
 import Landing from '@/components/home/Landing.vue'
 import GetStarted from '@/components/home/GetStarted.vue'
 
-export default defineComponent({
-  name: 'Home',
-  components: {
-    DiscoGIF,
-    Landing,
-    GetStarted
-  },
-  data () {
-    return {
-      gotStarted: false
-    }
-  },
-  methods: {
-    getStarted (): void {
-      this.gotStarted = true
-    }
-  }
-})
+const gotStarted = ref(false)
+const getStarted = (): void => {
+  gotStarted.value = true
+}
 </script>
