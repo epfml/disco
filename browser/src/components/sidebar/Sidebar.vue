@@ -5,16 +5,16 @@
       class="
       flex flex-col flex-shrink-0
       h-full
+      sm:px-4
       px-2
       py-4
       border-r
     "
     >
       <!-- Brand -->
-      <div class="flex-shrink-0">
+      <div class="hidden sm:flex flex-shrink-0">
         <a
           class="
-          p-1
           inline-block
           text-2xl
           font-bold
