@@ -1,6 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { DataConfig, DataLoader, DataTuple } from './data_loader/data_loader'
+import { DataConfig, DataLoader } from './data_loader/data_loader'
+import { DataTuple } from './data'
 import { Task } from '@/task'
 
 export type Dataset = tf.data.Dataset<tf.TensorContainer>

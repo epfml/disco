@@ -31,7 +31,7 @@ export const task: Task = {
     threshold: 2,
     IMAGE_H: 100,
     IMAGE_W: 100,
-    preprocessFunctions: [],
+    preprocessingFunctions: [],
     LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
     NUM_CLASSES: 2,
     dataType: 'image',
