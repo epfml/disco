@@ -102,15 +102,6 @@
 <script lang="ts">
 export default {
   name: 'FileSelection',
-  components: {
-    // PreviewGallery
-  },
-  props: {
-    preview: {
-      type: Boolean,
-      default: false
-    }
-  },
   data () {
     return {
       nbrSelectedFiles: 0

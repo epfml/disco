@@ -62,6 +62,7 @@ const router = useRouter()
 const trainingStore = useTrainingStore()
 const tasksStore = useTasksStore()
 
+// task ID given by the route
 interface Props { id: TaskID }
 const props = defineProps<Props>()
 
