@@ -77,26 +77,32 @@
         </template>
       </ButtonCard>
       <div
-        v-for="task in filteredTasks"
-        v-show="filteredTasks.length > 0"
-        :key="task.taskID"
+        id="tasks"
+        class="contents"
       >
-        <ButtonCard
-          :click="() => router.push(`/${task.taskID}`)"
-          button-placement="left"
+        <div
+          v-for="task in filteredTasks"
+          v-show="filteredTasks.length > 0"
+          :id="task.taskID"
+          :key="task.taskID"
         >
-          <template
-            #title
+          <ButtonCard
+            :click="() => router.push(`/${task.taskID}`)"
+            button-placement="left"
           >
-            {{ task.displayInformation.taskTitle }} - {{ task.trainingInformation.scheme }}
-          </template>
-          <template #text>
-            <div v-html="task.displayInformation.summary.preview" />
-          </template>
-          <template #button>
-            Join
-          </template>
-        </ButtonCard>
+            <template
+              #title
+            >
+              {{ task.displayInformation.taskTitle }} - {{ task.trainingInformation.scheme }}
+            </template>
+            <template #text>
+              <div v-html="task.displayInformation.summary.preview" />
+            </template>
+            <template #button>
+              Join
+            </template>
+          </ButtonCard>
+        </div>
       </div>
     </div>
   </div>
