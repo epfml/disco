@@ -26,7 +26,6 @@
     "mock-aws-s3": "4",
     "msgpack-lite": "0",
     "nock": "13",
-    "papaparse": "5",
     "path-browserify": "1",
     "pinia": "2",
     "postcss": "^8",
@@ -45,8 +44,6 @@
     "yup": "0"
   },
   "devDependencies": {
-    "@types/chai": "4",
-    "@types/mocha": "8",
     "@types/msgpack-lite": "0.1",
     "@typescript-eslint/eslint-plugin": "5",
     "@typescript-eslint/parser": "5",
@@ -62,7 +59,6 @@
     "@vue/eslint-config-typescript": "7",
     "@vue/test-utils": "2",
     "babel-eslint": "10",
-    "chai": "4",
     "eslint": "7",
     "eslint-config-standard": "16",
     "eslint-plugin-import": "2",
@@ -70,7 +66,6 @@
     "eslint-plugin-prettier": "3",
     "eslint-plugin-promise": "5",
     "eslint-plugin-vue": "7",
-    "mocha": "9",
     "typescript": "4",
     "vue-cli-plugin-tailwind": "3",
     "vue-loader-v16": "npm:vue-loader@16"
