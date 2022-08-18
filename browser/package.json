@@ -21,6 +21,7 @@
     "axios": "0",
     "core-js": "3",
     "crypto-browserify": "3",
+    "cypress": "10",
     "immutable": "4",
     "jshashes": "1",
     "mock-aws-s3": "4",
@@ -28,7 +29,7 @@
     "nock": "13",
     "path-browserify": "1",
     "pinia": "2",
-    "postcss": "^8",
+    "postcss": "8",
     "rand-seed": "1",
     "seedrandom": "3",
     "simple-peer": "9",
@@ -98,17 +99,7 @@
           "trailingComma": "es5"
         }
       ]
-    },
-    "overrides": [
-      {
-        "files": [
-          "tests/**/*.ts"
-        ],
-        "env": {
-          "mocha": true
-        }
-      }
-    ]
+    }
   },
   "browserslist": [
     "> 1%",
