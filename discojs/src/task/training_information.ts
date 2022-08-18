@@ -24,7 +24,6 @@ export interface TrainingInformation {
   receivedMessagesThreshold?: number
   inputColumns?: string[]
   outputColumns?: string[]
-  threshold?: number
   IMAGE_H?: number
   IMAGE_W?: number
   LABEL_LIST?: string[]

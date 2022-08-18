@@ -27,9 +27,7 @@ export const task: Task = {
       loss: 'categoricalCrossentropy',
       metrics: ['accuracy']
     },
-    threshold: 1,
     dataType: 'image',
-
     IMAGE_H: 28,
     IMAGE_W: 28,
     preprocessingFunctions: [],
