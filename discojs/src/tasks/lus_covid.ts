@@ -28,7 +28,6 @@ export const task: Task = {
       metrics: ['accuracy']
     },
     learningRate: 0.001,
-    threshold: 2,
     IMAGE_H: 100,
     IMAGE_W: 100,
     preprocessingFunctions: [],
