@@ -4,3 +4,5 @@ export * as decentralized from './decentralized'
 
 export { Federated } from './federated'
 export { Local } from './local'
+
+export { getClient } from './getClient'

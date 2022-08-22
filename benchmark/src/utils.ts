@@ -3,7 +3,7 @@ import {Server} from 'node:http'
 
 import fs from 'fs'
 
-import {client, Task, TrainerLog} from '@epfml/discojs'
+import {client, Client, Task, TrainerLog} from '@epfml/discojs'
 
 import {getApp} from '../../server/src/get_server'
 
@@ -23,11 +23,10 @@ export async function startServer(): Promise<Server> {
   return server
 }
 
-export async function getClient<T extends client.Base>(
-  Constructor: new (url: URL, t: Task) => T,
+export async function getClient(
   server: Server,
   task: Task
-): Promise<T> {
+): Promise<Client> {
   let host: string
   const addr = server?.address()
   if (addr === undefined || addr === null) {
@@ -42,7 +41,8 @@ export async function getClient<T extends client.Base>(
     }
   }
   const url = new URL(`http://${host}`)
-  return new Constructor(url, task)
+
+  return client.getClient(url, task)
 }
 
 export function saveLog(logs: TrainerLog[], fileName: string): void {
