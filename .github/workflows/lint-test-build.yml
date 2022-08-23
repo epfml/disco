@@ -190,4 +190,6 @@ jobs:
       - run: npm ci && npm run build
         working-directory: ${{ env.lib_dir }}
       - run: npm ci
-      - run: ./with_server npm run test
+      - uses: cypress-io/github-action@v4
+        with:
+          start: ./with_server npm run dev
