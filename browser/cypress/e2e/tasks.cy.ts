@@ -2,7 +2,7 @@
 import { tasks } from '@epfml/discojs'
 
 // most basic disco tasks
-const TASK_LIST = [
+export const TASK_LIST = [
   tasks.titanic.task,
   tasks.mnist.task,
   tasks.cifar10.task
