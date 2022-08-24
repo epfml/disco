@@ -94,7 +94,6 @@ import { Memory, EmptyMemory, Path, ModelType } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { IndexedDB } from '@/memory'
-import { toaster } from '@/toast'
 import ModelButton from './simple/ModelButton.vue'
 import Bin2Icon from '@/assets/svg/Bin2Icon.vue'
 import Download2Icon from '@/assets/svg/Download2Icon.vue'
@@ -134,9 +133,9 @@ export default defineComponent({
       try {
         await this.$store.commit('deleteModel', path)
         await this.memory.deleteModel(path)
-        toaster.success('Successfully deleted the model')
+        this.$toast.success('Successfully deleted the model')
       } catch (e) {
-        toaster.error(e.message)
+        this.$toast.error(e.message)
       }
     },
 
@@ -156,11 +155,11 @@ export default defineComponent({
           await this.memory.loadModel(path)
         } catch (e) {
           console.log(e.message)
-          toaster.error('Error')
+          this.$toast.error('Error')
         }
-        toaster.success(`Loaded ${modelInfo.name}, ready for next training session.`)
+        this.$toast.success(`Loaded ${modelInfo.name}, ready for next training session.`)
       } else {
-        toaster.error('Model is already loaded')
+        this.$toast.error('Model is already loaded')
       }
     }
   }

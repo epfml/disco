@@ -54,11 +54,11 @@ import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
 import { IndexedDB } from '@/memory'
 import { chartOptions } from '@/charts'
-import { toaster } from '@/toast'
+import { useToaster } from '@/composables/toaster'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 
 const { useIndexedDB } = storeToRefs(useMemoryStore())
-
+const toaster = useToaster()
 const validationStore = useValidationStore()
 
 interface Props {

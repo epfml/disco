@@ -116,7 +116,6 @@ import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
 import { IndexedDB } from '@/memory'
-import { toaster } from '@/toast'
 import { WebTabularLoader, WebImageLoader } from '@/data_loader'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Data from '@/components/data/Data.vue'
@@ -196,7 +195,7 @@ export default defineComponent({
         this.validationStore.model = path
         this.validationStore.step = 1
       } else {
-        toaster.error('Model not found')
+        this.$toast.error('Model not found')
       }
     },
     prevStep (): void {
@@ -210,7 +209,7 @@ export default defineComponent({
       if (task !== undefined) {
         return task.displayInformation.taskTitle
       } else {
-        toaster.error('Task not found')
+        this.$toast.error('Task not found')
       }
     }
   }
