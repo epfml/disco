@@ -2,7 +2,7 @@ import { Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 import WebSocket from 'ws'
 
-import { client, Task, TaskID } from '@epfml/discojs'
+import { client, TaskID, DecentralizedInformation } from '@epfml/discojs'
 
 import messages = client.decentralized.messages
 type PeerID = client.decentralized.PeerID
@@ -14,8 +14,8 @@ export class SignalingServer {
   // increments with addition of every client, server keeps track of clients with this and tells them their ID
   private clientCounter: PeerID = 0
 
-  handle (task: Task, ws: WebSocket): void {
-    const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
+  handle (taskID: string, ws: WebSocket, decentralizedInformation?: DecentralizedInformation): void {
+    const minimumReadyPeers = decentralizedInformation?.minimumReadyPeers ?? 3
     const peerID: PeerID = this.clientCounter++
     this.clients = this.clients.set(peerID, ws)
     // send peerID message
@@ -23,10 +23,10 @@ export class SignalingServer {
       type: messages.messageType.serverClientIDMessage,
       peerID
     }
-    console.info('peer', peerID, 'joined', task.taskID)
+    console.info('peer', peerID, 'joined', taskID)
 
-    if (!this.readyClientsBuffer.has(task.taskID)) {
-      this.readyClientsBuffer.set(task.taskID, new Set<PeerID>())
+    if (!this.readyClientsBuffer.has(taskID)) {
+      this.readyClientsBuffer.set(taskID, new Set<PeerID>())
     }
 
     ws.send(msgpack.encode(msg), { binary: true })

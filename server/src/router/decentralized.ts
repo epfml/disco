@@ -1,7 +1,7 @@
 import express from 'express'
 import expressWS from 'express-ws'
 
-import { tf, Task } from '@epfml/discojs'
+import { tf, Task, TrainingSchemes } from '@epfml/discojs'
 
 import { TasksAndModels } from '../tasks'
 import { SignalingServer } from './signaling_server'
@@ -36,7 +36,8 @@ export class Decentralized {
   }
 
   private onNewTask (task: Task, _: tf.LayersModel): void {
+    const decentralizedInformation = task.clientInformation.scheme === TrainingSchemes.DECENTRALIZED ? task.clientInformation : undefined
     this.ownRouter.ws(`/${task.taskID}`, (ws, _) =>
-      this.signalingServer.handle(task, ws))
+      this.signalingServer.handle(task.taskID, ws, decentralizedInformation))
   }
 }
