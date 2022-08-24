@@ -1,6 +1,6 @@
 import { assert, expect } from 'chai'
 import fs from 'fs'
-import _ from 'lodash'
+// import _ from 'lodash'
 
 import { dataset, tasks } from '../..'
 import { List, Map, Range } from 'immutable'
@@ -48,29 +48,27 @@ describe('image loader', () => {
   })
 
   it('loads multiple samples with labels', async () => {
-    const labels = _.map(_.range(24), (label) => (label % 10))
-    const stringLabels = _.map(labels, (label) => label.toString())
-    const oneHotLabels = tf.oneHot(labels, 10).arraySync()
+    const labels = Range(0, 24).map((label) => (label % 10))
+    const stringLabels = labels.map((label) => label.toString())
+    const oneHotLabels = List(tf.oneHot(labels.toArray(), 10).arraySync() as number[])
 
-    const imagesContent = FILES.CIFAR10.map((file) => tf.node.decodeImage(fs.readFileSync(file)))
-    const datasetContent = await (await new NodeImageLoader(tasks.cifar10.task)
-      .loadAll(FILES.CIFAR10, { labels: stringLabels, shuffle: false }))
-      .train.dataset.toArray()
+    const imagesContent = List(FILES.CIFAR10.map((file) => tf.node.decodeImage(fs.readFileSync(file))))
+    const datasetContent = List(await (await new NodeImageLoader(tasks.cifar10.task)
+      .loadAll(FILES.CIFAR10, { labels: stringLabels.toArray(), shuffle: false }))
+      .train.dataset.toArray())
 
-    expect(datasetContent.length).equal(imagesContent.length)
-    _.forEach(
-      _.zip(datasetContent, imagesContent, oneHotLabels as any), ([actual, sample, label]) => {
-        if (
-          typeof actual !== 'object' ||
-          !('xs' in actual && 'ys' in actual)
-        ) {
-          throw new Error('unexpected type')
-        }
-        const { xs, ys } = actual as {xs: tf.Tensor, ys: number[]}
-        expect(xs.shape).eql(sample?.shape)
-        expect(ys).eql(label)
+    expect(datasetContent.size).equal(imagesContent.size)
+    datasetContent.zip(imagesContent).zip(oneHotLabels).forEach(([[actual, sample], label]) => {
+      if (
+        typeof actual !== 'object' ||
+        !('xs' in actual && 'ys' in actual)
+      ) {
+        throw new Error('unexpected type')
       }
-    )
+      const { xs, ys } = actual as {xs: tf.Tensor, ys: number[]}
+      expect(xs.shape).eql(sample?.shape)
+      expect(ys).eql(label)
+    })
   })
 
   it('loads samples in order', async () => {

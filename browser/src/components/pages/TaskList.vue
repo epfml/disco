@@ -2,9 +2,9 @@
   <div class="space-y-8 pt-8">
     <div
       v-show="tasks.size > 0"
-      class="flex flex-wrap"
+      class="flex flex-wrap gap-8"
     >
-      <IconCard class="grow min-w-60">
+      <IconCard class="grow shrink-0 basis-48">
         <template #title>
           Filter by Training Scheme
         </template>
@@ -24,7 +24,7 @@
           </div>
         </template>
       </IconCard>
-      <IconCard class="grow min-w-60">
+      <IconCard class="grow shrink-0 basis-48">
         <template #title>
           Filter by Data Type
         </template>
@@ -105,6 +105,7 @@
 <script lang="ts" setup>
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 
 import { Task } from '@epfml/discojs'
 
@@ -112,7 +113,6 @@ import { useTasksStore } from '@/store/tasks'
 import IconCard from '@/components/containers/IconCard.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import CheckBox from '@/components/simple/CheckBox.vue'
-import { storeToRefs } from 'pinia'
 
 abstract class Filter {
   public active: boolean

@@ -13,7 +13,8 @@ export const task: Task = {
     model: "We use a simplified* version of the <b>DeepChest model</b>: A deep learning model developed in our lab (<a class='underline' href='https://www.epfl.ch/labs/mlo/igh-intelligent-global-health/'>intelligent Global Health</a>.). On a cohort of 400 Swiss patients suspected of LRTI, the model obtained over 90% area under the ROC curve for this task. <br><br>*Simplified to ensure smooth running on your browser, the performance is minimally affected. Details of the adaptations are below <br>- <b>Removed</b>: positional embedding (i.e. we don’t take the anatomic position into consideration). Rather, the model now does mean pooling over the feature vector of the images for each patient <br>- <b>Replaced</b>: ResNet18 by Mobilenet",
     tradeoffs: 'We are using a simpler version of DeepChest in order to be able to run it on the browser.',
     dataFormatInformation: 'This model takes as input an image dataset. It consists on a set of lung ultrasound images per patient with its corresponding label of covid positive or negative. Moreover, to identify the images per patient you have to follow the follwing naming pattern: "patientId_*.png"',
-    dataExampleText: 'Below you can find an example of an expected lung image for patient 2 named: 2_QAID_1.masked.reshaped.squared.224.png'
+    dataExampleText: 'Below you can find an example of an expected lung image for patient 2 named: 2_QAID_1.masked.reshaped.squared.224.png',
+    dataExampleImage: './2_QAID_1.masked.reshaped.squared.224.png'
   },
   trainingInformation: {
     modelID: 'lus-covid-model',
@@ -27,10 +28,9 @@ export const task: Task = {
       metrics: ['accuracy']
     },
     learningRate: 0.001,
-    threshold: 2,
     IMAGE_H: 100,
     IMAGE_W: 100,
-    preprocessFunctions: [],
+    preprocessingFunctions: [],
     LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
     NUM_CLASSES: 2,
     dataType: 'image',

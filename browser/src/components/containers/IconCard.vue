@@ -13,7 +13,7 @@ const props = defineProps({
 
 <template>
   <!--  Card -->
-  <div class="grid grid-cols-1 p-4 space-y-8 lg:gap-8">
+  <div class="grid grid-cols-1 space-y-8 lg:gap-8">
     <!-- div class="container mx-width lg h-full"></div-->
     <div class="col-span-1 bg-white rounded-lg">
       <!-- Card header -->

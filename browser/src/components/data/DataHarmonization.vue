@@ -15,7 +15,7 @@ const exampleImage = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div class="space-y-4 md:space-y-8">
     <DropdownCard>
       <template #title>
         Data Format

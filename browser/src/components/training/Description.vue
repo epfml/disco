@@ -1,24 +1,28 @@
 <template>
-  <div>
-    <a id="overview-target">
-      <IconCard>
-        <template #title>The Task</template>
-        <template #icon><Tasks /></template>
-        <template #content>
-          <div v-html="overviewText" />
-        </template>
-      </IconCard>
-    </a>
+  <div class="space-y-4 md:space-y-8">
+    <IconCard>
+      <template #title>
+        The Task
+      </template>
+      <template #icon>
+        <Tasks />
+      </template>
+      <template #content>
+        <div v-html="overviewText" />
+      </template>
+    </IconCard>
 
-    <a id="limitations-target">
-      <IconCard>
-        <template #title>The Model</template>
-        <template #icon><Model /></template>
-        <template #content>
-          <div v-html="modelText" />
-        </template>
-      </IconCard>
-    </a>
+    <IconCard>
+      <template #title>
+        The Model
+      </template>
+      <template #icon>
+        <Model />
+      </template>
+      <template #content>
+        <div v-html="modelText" />
+      </template>
+    </IconCard>
     <ModelCaching
       :task="task"
     />

@@ -1,6 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { DataConfig, DataLoader, DataTuple } from './data_loader/data_loader'
+import { DataConfig, DataLoader } from './data_loader/data_loader'
+import { DataTuple } from './data'
 import { Task } from '@/task'
 
 export type Dataset = tf.data.Dataset<tf.TensorContainer>
@@ -22,7 +23,7 @@ export class DatasetBuilder<Source> {
 
   addFiles (sources: Source[], label?: string): void {
     if (this.built) {
-      throw new Error('builder already consumed')
+      this.resetBuiltState()
     }
     if (label === undefined) {
       this.sources = this.sources.concat(sources)
@@ -38,13 +39,19 @@ export class DatasetBuilder<Source> {
 
   clearFiles (label?: string): void {
     if (this.built) {
-      throw new Error('builder already consumed')
+      this.resetBuiltState()
     }
     if (label === undefined) {
       this.sources = []
     } else {
       this.labelledSources.delete(label)
     }
+  }
+
+  // If files are added or removed, then this should be called since the latest
+  // version of the dataset_builder has not yet been built.
+  private resetBuiltState (): void {
+    this.built = false
   }
 
   private getLabels (): string[] {
