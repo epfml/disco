@@ -85,8 +85,8 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
       dataset,
       // dataset.size does not work for csv datasets
       // https://github.com/tensorflow/tfjs/issues/5845
-      undefined,
-      this.task.trainingInformation
+      this.task,
+      undefined
     )
     // TODO: Implement validation split for tabular data (tricky due to streaming)
     return {

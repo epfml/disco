@@ -1,6 +1,8 @@
 import * as tf from '@tensorflow/tfjs'
 
 import { Task } from '../task'
+import { TrainingSchemes } from '../training/training_schemes'
+import { DataType } from '../task/training_information'
 
 export const task: Task = {
   taskID: 'mnist',
@@ -16,6 +18,16 @@ export const task: Task = {
     dataExampleText: 'Below you can find an example of an expected image representing the digit 9.',
     dataExampleImage: './9-mnist-example.png'
   },
+  clientInformation: {
+    scheme: TrainingSchemes.DECENTRALIZED
+  },
+  dataInformation: {
+    type: DataType.IMAGE,
+    IMAGE_H: 28,
+    IMAGE_W: 28,
+    aggregateImagesById: false,
+    preprocessingFunctions: []
+  },
   trainingInformation: {
     modelID: 'mnist-model',
     epochs: 10,
@@ -27,13 +39,7 @@ export const task: Task = {
       loss: 'categoricalCrossentropy',
       metrics: ['accuracy']
     },
-    dataType: 'image',
-    IMAGE_H: 28,
-    IMAGE_W: 28,
-    preprocessingFunctions: [],
-    LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-    aggregateImagesById: false,
-    scheme: 'Decentralized'
+    LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
   }
 }
 

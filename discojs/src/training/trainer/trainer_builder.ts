@@ -5,6 +5,7 @@ import { tf, Client, Task, TrainingInformant, Memory, ModelType } from '../..'
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
 import { Trainer } from './trainer'
+import { TrainingSchemes } from '../training_schemes'
 
 /**
  * A class that helps build the Trainer and auxiliary classes.
@@ -23,8 +24,9 @@ export class TrainerBuilder {
    * @param distributed whether to build a distributed or local trainer
    * @returns
    */
-  async build (client: Client, distributed: boolean = false): Promise<Trainer> {
+  async build (client: Client): Promise<Trainer> {
     const model = await this.getModel(client)
+    const distributed = this.task.clientInformation.scheme !== TrainingSchemes.LOCAL
     if (distributed) {
       return new DistributedTrainer(
         this.task,

@@ -1,5 +1,5 @@
 import { Memory } from '@/memory'
-import { Client, dataset, Logger, Task, TrainingInformant, TrainingSchemes } from '..'
+import { Client, dataset, Logger, Task, TrainingInformant } from '..'
 
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
@@ -14,11 +14,10 @@ export class Disco {
     public readonly task: Task,
     public readonly logger: Logger,
     public readonly memory: Memory,
-    scheme: TrainingSchemes,
     informant: TrainingInformant,
     private readonly client: Client
   ) {
-    if (client.task !== task) {
+    if (client.taskID !== task.taskID) {
       throw new Error('client not setup for given task')
     }
     if (informant.taskID !== task.taskID) {
@@ -26,7 +25,7 @@ export class Disco {
     }
 
     const trainerBuilder = new TrainerBuilder(this.memory, this.task, informant)
-    this.trainer = trainerBuilder.build(this.client, scheme !== TrainingSchemes.LOCAL)
+    this.trainer = trainerBuilder.build(this.client)
   }
 
   async startTraining (dataTuple: dataset.DataTuple): Promise<void> {

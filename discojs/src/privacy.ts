@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 import { Weights } from '@/types'
-import { Task } from '@/task'
 import { tf } from '.'
+import { DifferentialPrivacy } from './task/training_information'
 
 /**
  * Add task-parametrized Gaussian noise to and clip the weights update between the previous and current rounds.
@@ -12,15 +12,16 @@ import { tf } from '.'
  * @param task the task
  * @returns the noised weights for the current round
  */
-export function addDifferentialPrivacy (updatedWeights: Weights, staleWeights: Weights, task: Task): Weights {
-  const noiseScale = task.trainingInformation?.noiseScale
-  const clippingRadius = task.trainingInformation?.clippingRadius
-
+export function addDifferentialPrivacy (updatedWeights: Weights, staleWeights: Weights,
+  differentialPrivacy?: DifferentialPrivacy): Weights {
   const weightsDiff = List(updatedWeights)
     .zip(List(staleWeights))
     .map(([w1, w2]) => w1.add(-w2))
 
   let newWeightsDiff: List<tf.Tensor>
+
+  const clippingRadius = differentialPrivacy?.clippingRadius
+  const noiseScale = differentialPrivacy?.noiseScale
 
   if (clippingRadius !== undefined) {
     // Frobenius norm

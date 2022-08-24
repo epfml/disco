@@ -1,6 +1,8 @@
 import * as tf from '@tensorflow/tfjs'
 
 import { Task } from '..'
+import { TrainingSchemes } from '../training/training_schemes'
+import { DataType } from '../task/training_information'
 
 export const task: Task = {
   taskID: 'titanic',
@@ -43,20 +45,23 @@ export const task: Task = {
       'Pclass'
     ]
   },
+  clientInformation: {
+    scheme: TrainingSchemes.FEDERATED
+  },
+  dataInformation: {
+    type: DataType.TABULAR
+  },
   trainingInformation: {
     modelID: 'titanic-model',
     epochs: 20,
     roundDuration: 10,
     validationSplit: 0,
     batchSize: 30,
-    preprocessingFunctions: [],
     modelCompileData: {
       optimizer: 'rmsprop',
       loss: 'binaryCrossentropy',
       metrics: ['accuracy']
     },
-    receivedMessagesThreshold: 1,
-    dataType: 'tabular',
     inputColumns: [
       'PassengerId',
       'Age',
@@ -67,8 +72,7 @@ export const task: Task = {
     ],
     outputColumns: [
       'Survived'
-    ],
-    scheme: 'Federated'
+    ]
   }
 }
 

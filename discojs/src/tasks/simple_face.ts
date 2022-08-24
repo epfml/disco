@@ -2,6 +2,8 @@ import * as tf from '@tensorflow/tfjs'
 
 import { Task } from '../task'
 import { ImagePreprocessing } from '../dataset/preprocessing'
+import { TrainingSchemes } from '../training/training_schemes'
+import { DataType } from '../task/training_information'
 
 export const task: Task = {
   taskID: 'simple_face',
@@ -17,25 +19,29 @@ export const task: Task = {
     dataExampleText: 'Below you find an example',
     dataExampleImage: './simple_face-example.png'
   },
+  clientInformation: {
+    scheme: TrainingSchemes.FEDERATED
+  },
+  dataInformation: {
+    type: DataType.IMAGE,
+    csvLabels: false,
+    IMAGE_H: 200,
+    IMAGE_W: 200,
+    preprocessingFunctions: [ImagePreprocessing.Normalize]
+  },
   trainingInformation: {
     modelID: 'simple_face-model',
     epochs: 50,
     roundDuration: 1,
     validationSplit: 0.2,
     batchSize: 10,
-    preprocessingFunctions: [ImagePreprocessing.Normalize],
     learningRate: 0.001,
     modelCompileData: {
       optimizer: 'sgd',
       loss: 'categoricalCrossentropy',
       metrics: ['accuracy']
     },
-    dataType: 'image',
-    csvLabels: false,
-    IMAGE_H: 200,
-    IMAGE_W: 200,
-    LABEL_LIST: ['child', 'adult'],
-    scheme: 'Federated'
+    LABEL_LIST: ['child', 'adult']
   }
 }
 

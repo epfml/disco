@@ -7,20 +7,16 @@ import { Task } from '../task/task'
 import { Base } from './base'
 
 export function getClient (serverUrl: URL, task: Task): Base {
-  if (task.trainingInformation !== undefined) {
-    switch (task.trainingInformation.schemeInformation.scheme) {
-      case TrainingSchemes.DECENTRALIZED:
-        if (task.trainingInformation.schemeInformation.decentralizedSecure) {
-          return new SecAgg(serverUrl, task.taskID, task.trainingInformation.schemeInformation, task.trainingInformation?.differentialPrivacy)
-        } else {
-          return new ClearText(serverUrl, task.taskID, task.trainingInformation.schemeInformation, task.trainingInformation.differentialPrivacy)
-        }
-      case TrainingSchemes.FEDERATED:
-        return new Federated(serverUrl, task.taskID, task.trainingInformation.differentialPrivacy)
-      case TrainingSchemes.LOCAL:
-        return new Local(serverUrl, task.taskID)
-    }
-  } else {
-    return new Local(serverUrl, task.taskID)
+  switch (task.clientInformation.scheme) {
+    case TrainingSchemes.DECENTRALIZED:
+      if (task.clientInformation.decentralizedSecure) {
+        return new SecAgg(serverUrl, task.taskID, task.clientInformation, task.clientInformation.differentialPrivacy)
+      } else {
+        return new ClearText(serverUrl, task.taskID, task.clientInformation, task.clientInformation.differentialPrivacy)
+      }
+    case TrainingSchemes.FEDERATED:
+      return new Federated(serverUrl, task.taskID, task.clientInformation.differentialPrivacy)
+    case TrainingSchemes.LOCAL:
+      return new Local(serverUrl, task.taskID)
   }
 }

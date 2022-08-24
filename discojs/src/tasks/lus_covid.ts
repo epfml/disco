@@ -1,6 +1,8 @@
 import * as tf from '@tensorflow/tfjs'
 
 import { Task } from '../task'
+import { TrainingSchemes } from '../training/training_schemes'
+import { DataType } from '../task/training_information'
 
 export const task: Task = {
   taskID: 'lus_covid',
@@ -16,6 +18,17 @@ export const task: Task = {
     dataExampleText: 'Below you can find an example of an expected lung image for patient 2 named: 2_QAID_1.masked.reshaped.squared.224.png',
     dataExampleImage: './2_QAID_1.masked.reshaped.squared.224.png'
   },
+  clientInformation: {
+    scheme: TrainingSchemes.DECENTRALIZED
+  },
+  dataInformation: {
+    type: DataType.IMAGE,
+    IMAGE_H: 100,
+    IMAGE_W: 100,
+    NUM_CLASSES: 2,
+    aggregateImagesById: true,
+    preprocessingFunctions: []
+  },
   trainingInformation: {
     modelID: 'lus-covid-model',
     epochs: 15,
@@ -28,14 +41,7 @@ export const task: Task = {
       metrics: ['accuracy']
     },
     learningRate: 0.001,
-    IMAGE_H: 100,
-    IMAGE_W: 100,
-    preprocessingFunctions: [],
-    LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
-    NUM_CLASSES: 2,
-    dataType: 'image',
-    aggregateImagesById: true,
-    scheme: 'Decentralized'
+    LABEL_LIST: ['COVID-Positive', 'COVID-Negative']
   }
 }
 

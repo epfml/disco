@@ -22,7 +22,7 @@ describe('validator', () => {
       new ConsoleLogger(),
       new EmptyMemory(),
       undefined,
-      new Local(new URL('http://localhost:8080'), simple_face.task))
+      new Local(new URL('http://localhost:8080'), simple_face.task.taskID))
     await validator.assess(data)
     const size = data.size !== undefined ? data.size : -1
     if (size === -1) {

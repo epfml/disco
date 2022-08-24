@@ -1,9 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
-import { TrainingInformation } from '../task/training_information'
+import { ImageInformation } from '../task/training_information'
 
 type PreprocessImage = (image: tf.TensorContainer) => tf.TensorContainer
-
-export type Preprocessing = ImagePreprocessing
 
 export interface ImageTensorContainer extends tf.TensorContainerObject {
   xs: tf.Tensor3D | tf.Tensor4D
@@ -15,7 +13,7 @@ export enum ImagePreprocessing {
   Resize = 'resize'
 }
 
-export function getPreprocessImage (info: TrainingInformation): PreprocessImage {
+export function getPreprocessImage (info: ImageInformation): PreprocessImage {
   const preprocessImage: PreprocessImage = (tensorContainer: tf.TensorContainer): tf.TensorContainer => {
     // TODO unsafe cast, tfjs does not provide the right interface
     let { xs, ys } = tensorContainer as ImageTensorContainer

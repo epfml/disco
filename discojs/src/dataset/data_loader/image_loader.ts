@@ -52,7 +52,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
       return iterator as unknown as Iterator<tf.Tensor> // Lazy
     })
 
-    return new ImageData(dataset, indices.length, this.task.trainingInformation)
+    return new ImageData(dataset, this.task, indices.length)
   }
 
   async loadAll (images: Source[], config?: DataConfig): Promise<DataTuple> {

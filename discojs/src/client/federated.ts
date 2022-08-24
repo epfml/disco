@@ -4,12 +4,21 @@ import { v4 as randomUUID } from 'uuid'
 
 import { privacy, serialization, informant, MetadataID, Weights } from '..'
 import { Base } from './base'
+import { DifferentialPrivacy } from '../task/training_information'
 
 /**
  * Class that deals with communication with the centralized server when training
  * a specific task in the federated setting.
  */
 export class Federated extends Base {
+  constructor (
+    public readonly url: URL,
+    public readonly taskID: string,
+    private readonly differentialPrivacy?: DifferentialPrivacy
+  ) {
+    super(url, taskID)
+  }
+
   private readonly clientID = randomUUID()
   private readonly peer: any
   private round = 0
@@ -20,7 +29,7 @@ export class Federated extends Base {
     url.pathname += [
       'feai',
       category,
-      this.task.taskID,
+      this.taskID,
       this.clientID
     ].join('/')
 
@@ -34,7 +43,7 @@ export class Federated extends Base {
       'feai',
       'metadata',
       metadataID,
-      this.task.taskID,
+      this.taskID,
       this.round,
       this.clientID
     ].join('/')
@@ -123,7 +132,7 @@ export class Federated extends Base {
     _: number,
     trainingInformant: informant.FederatedInformant
   ): Promise<Weights> {
-    const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
+    const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.differentialPrivacy)
     await this.postWeightsToServer(noisyWeights)
 
     await this.pullServerStatistics(trainingInformant)

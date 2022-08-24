@@ -1,6 +1,8 @@
 import * as tf from '@tensorflow/tfjs'
 
 import { Task } from '../task'
+import { TrainingSchemes } from '../training/training_schemes'
+import { DataType } from '../task/training_information'
 
 export const task: Task = {
   taskID: 'cifar10',
@@ -16,25 +18,16 @@ export const task: Task = {
     dataExampleText: 'Below you can find 10 random examples from each of the 10 classes in the dataset.',
     dataExampleImage: './cifar10-example.png'
   },
-  trainingInformation: {
-    modelID: 'cifar10-model',
-    epochs: 10,
-    roundDuration: 10,
-    validationSplit: 0.2,
-    batchSize: 10,
-    modelCompileData: {
-      optimizer: 'sgd',
-      loss: 'categoricalCrossentropy',
-      metrics: ['accuracy']
-    },
-    dataType: 'image',
+  clientInformation: {
+    scheme: TrainingSchemes.DECENTRALIZED
+  },
+  dataInformation: {
+    type: DataType.IMAGE,
     csvLabels: true,
     IMAGE_H: 32,
     IMAGE_W: 32,
-    preprocessingFunctions: [],
     RESIZED_IMAGE_H: 224,
     RESIZED_IMAGE_W: 224,
-    LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
     LABEL_ASSIGNMENT: [
       { columnName: 'airplane', columnData: 0 },
       { columnName: 'automobile', columnData: 1 },
@@ -47,7 +40,20 @@ export const task: Task = {
       { columnName: 'ship', columnData: 8 },
       { columnName: 'truck', columnData: 9 }
     ],
-    scheme: 'Decentralized'
+    preprocessingFunctions: []
+  },
+  trainingInformation: {
+    modelID: 'cifar10-model',
+    epochs: 10,
+    roundDuration: 10,
+    validationSplit: 0.2,
+    batchSize: 10,
+    modelCompileData: {
+      optimizer: 'sgd',
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy']
+    },
+    LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
   }
 }
 

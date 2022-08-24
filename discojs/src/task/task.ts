@@ -1,5 +1,5 @@
 import { isDisplayInformation, DisplayInformation } from './display_information'
-import { TrainingInformation } from './training_information'
+import { TrainingInformation, ClientInformation, DataInformation } from './training_information'
 
 export type TaskID = string
 
@@ -7,6 +7,7 @@ export function isTaskID (obj: unknown): obj is TaskID {
   return typeof obj === 'string'
 }
 
+// TODO: CAN DELETE?
 export function isTask (raw: unknown): raw is Task {
   if (typeof raw !== 'object') {
     return false
@@ -24,13 +25,13 @@ export function isTask (raw: unknown): raw is Task {
     return false
   }
   if (displayInformation !== undefined &&
-      !isDisplayInformation(displayInformation)) {
+    !isDisplayInformation(displayInformation)) {
     return false
   }
 
   // TODO check for TrainingInformation
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _: Task = { taskID, displayInformation }
+  // const _: Task = { taskID, displayInformation }
 
   return true
 }
@@ -38,6 +39,8 @@ export function isTask (raw: unknown): raw is Task {
 export interface Task {
   // TODO rename to ID
   taskID: TaskID
-  displayInformation?: DisplayInformation
-  trainingInformation?: TrainingInformation
+  displayInformation: DisplayInformation
+  trainingInformation: TrainingInformation
+  clientInformation: ClientInformation
+  dataInformation: DataInformation
 }

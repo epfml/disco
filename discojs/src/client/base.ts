@@ -2,14 +2,13 @@ import axios from 'axios'
 import * as tf from '@tensorflow/tfjs'
 
 import * as serialization from '../serialization'
-import { Task } from '@/task'
 import { TrainingInformant } from '@/informant'
 import { Weights } from '@/types'
 
 export abstract class Base {
   constructor (
     public readonly url: URL,
-    public readonly task: Task
+    public readonly taskID: string
   ) {}
 
   /**
@@ -29,7 +28,7 @@ export abstract class Base {
     if (!url.pathname.endsWith('/')) {
       url.pathname += '/'
     }
-    url.pathname += `tasks/${this.task.taskID}/model.json`
+    url.pathname += `tasks/${this.taskID}/model.json`
 
     const response = await axios.get(url.href)
 

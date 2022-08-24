@@ -2,7 +2,7 @@ import { List } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import * as nodeUrl from 'url'
-import { Task } from '@/task'
+import { DifferentialPrivacy, DecentralizedInformation } from '../../task/training_information'
 
 import { TrainingInformant, Weights, aggregation, privacy } from '../..'
 import { Base as ClientBase } from '../base'
@@ -24,11 +24,13 @@ export abstract class Base extends ClientBase {
   protected maxShareValue: number
   constructor (
     public readonly url: URL,
-    public readonly task: Task
+    public readonly taskID: string,
+    decentralizedInformation: DecentralizedInformation,
+    private readonly differentialPrivacy?: DifferentialPrivacy
   ) {
-    super(url, task)
-    this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
-    this.maxShareValue = this.task.trainingInformation?.maxShareValue ?? 100
+    super(url, taskID)
+    this.minimumReadyPeers = decentralizedInformation?.minimumReadyPeers ?? 3
+    this.maxShareValue = decentralizedInformation?.maxShareValue ?? 100
   }
 
   protected server?: isomorphic.WebSocket
@@ -74,7 +76,7 @@ function to check if a given boolean condition is true, checks continuously unti
    */
   protected sendReadyMessage (round: number): void {
     // Broadcast our readiness
-    const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round, peerID: this.ID, task: this.task.taskID }
+    const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round, peerID: this.ID, task: this.taskID }
 
     const encodedMsg = msgpack.encode(msg)
     if (this.server === undefined) {
@@ -159,7 +161,7 @@ function to check if a given boolean condition is true, checks continuously unti
       default:
         throw new Error(`unknown protocol: ${this.url.protocol}`)
     }
-    serverURL.pathname += `deai/${this.task.taskID}`
+    serverURL.pathname += `deai/${this.taskID}`
     this.server = await this.connectServer(serverURL)
   }
 
@@ -198,7 +200,7 @@ function to check if a given boolean condition is true, checks continuously unti
       await this.pauseUntil(() => this.peers.length >= this.minimumReadyPeers)
 
       // Apply DP to updates that will be sent
-      const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
+      const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.differentialPrivacy)
 
       // send weights to all ready connected peers
       const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)

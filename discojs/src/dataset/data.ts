@@ -1,6 +1,7 @@
 import { Dataset } from './dataset_builder'
-import { TrainingInformation } from '../task/training_information'
+import { DataType } from '../task/training_information'
 import { getPreprocessImage } from './preprocessing'
+import { Task } from '../task/task'
 
 import * as tf from '@tensorflow/tfjs'
 
@@ -11,13 +12,13 @@ export interface DataTuple {
 
 export abstract class Data {
   readonly dataset: Dataset
+  protected readonly task: Task
   readonly size?: number
-  protected readonly trainingInformation?: TrainingInformation
 
-  constructor (dataset: Dataset, size?: number, trainingInformation?: TrainingInformation) {
+  constructor (dataset: Dataset, task: Task, size?: number) {
     this.dataset = dataset
+    this.task = task
     this.size = size
-    this.trainingInformation = trainingInformation
   }
 
   abstract batch (): Data
@@ -27,28 +28,30 @@ export abstract class Data {
 
 export class ImageData extends Data {
   batch (): Data {
-    const batchSize = this.trainingInformation?.batchSize
-    const newDataset = batchSize === undefined ? this.dataset : this.dataset.batch(batchSize)
+    const batchSize = this.task.trainingInformation.batchSize
+    const newDataset = this.dataset.batch(batchSize)
 
-    return new ImageData(newDataset, this.size, this.trainingInformation)
+    return new ImageData(newDataset, this.task, this.size)
   }
 
   preprocess (): Data {
-    let newDataset = this.dataset
-    if (this.trainingInformation !== undefined) {
-      const preprocessImage = getPreprocessImage(this.trainingInformation)
-      newDataset = newDataset.map((x: tf.TensorContainer) => preprocessImage(x))
+    switch (this.task.dataInformation.type) {
+      case DataType.IMAGE: {
+        const preprocessImage = getPreprocessImage(this.task.dataInformation)
+        const newDataset = this.dataset.map((x: tf.TensorContainer) => preprocessImage(x))
+        return new ImageData(newDataset, this.task, this.size)
+      }
+      case DataType.TABULAR: { return this }
     }
-    return new ImageData(newDataset, this.size, this.trainingInformation)
   }
 }
 
 export class TabularData extends Data {
   batch (): Data {
-    const batchSize = this.trainingInformation?.batchSize
-    const newDataset = batchSize === undefined ? this.dataset : this.dataset.batch(batchSize)
+    const batchSize = this.task.trainingInformation.batchSize
+    const newDataset = this.dataset.batch(batchSize)
 
-    return new TabularData(newDataset, this.size, this.trainingInformation)
+    return new TabularData(newDataset, this.task, this.size)
   }
 
   preprocess (): Data {
