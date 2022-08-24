@@ -84,7 +84,7 @@ export default defineComponent({
   computed: {
     ...mapStores(useMemoryStore),
     client (): Client {
-      return getClient(this.scheme, this.task)
+      return getClient(this.task, this.distributedTraining)
     },
     memory (): Memory {
       return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
@@ -94,38 +94,31 @@ export default defineComponent({
         this.task,
         this.$toast,
         this.memory,
-        this.scheme,
         this.trainingInformant,
         this.client
       )
-    },
-    scheme (): TrainingSchemes {
-      if (this.distributedTraining) {
-        switch (this.task.trainingInformation?.scheme) {
-          case 'Federated':
-            return TrainingSchemes.FEDERATED
-          case 'Decentralized':
-            return TrainingSchemes.DECENTRALIZED
-        }
-      }
-      // default scheme
-      return TrainingSchemes.LOCAL
     },
     hasValidationData (): boolean {
       return this.task?.trainingInformation?.validationSplit > 0
     }
   },
   watch: {
-    scheme (newScheme: TrainingSchemes): void {
+    client (_: Client): void {
       const args = [this.task.taskID, 10] as const
-      switch (newScheme) {
+      if (!this.distributedTraining) {
+        // If there is no distributed training we force the local informant
+        // regardless of config.
+        this.trainingInformant = new informant.LocalInformant(...args)
+        return
+      }
+      switch (this.task.clientInformation.scheme) {
         case TrainingSchemes.FEDERATED:
           this.trainingInformant = new informant.FederatedInformant(...args)
           break
         case TrainingSchemes.DECENTRALIZED:
           this.trainingInformant = new informant.DecentralizedInformant(...args)
           break
-        default:
+        case TrainingSchemes.LOCAL:
           this.trainingInformant = new informant.LocalInformant(...args)
           break
       }

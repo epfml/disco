@@ -141,7 +141,7 @@
 <script lang="ts">
 import { mapStores } from 'pinia'
 
-import { EmptyMemory, Memory, ModelType, isTask, TrainingSchemes, ModelInfo } from '@epfml/discojs'
+import { EmptyMemory, Memory, ModelType, isTask, ModelInfo } from '@epfml/discojs'
 
 import { IndexedDB } from '@/memory'
 import { getClient } from '@/clients'
@@ -274,7 +274,7 @@ export default {
      */
     async loadFreshModel () {
       // TODO do not force scheme
-      const client = getClient(TrainingSchemes.FEDERATED, this.task)
+      const client = getClient(this.task)
 
       this.memory.updateWorkingModel(this.modelInfo, await client.getLatestModel())
     },

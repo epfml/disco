@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineProps } from 'vue'
 
-import { Task } from '@epfml/discojs'
+import { Task, DataType } from '@epfml/discojs'
 
 import DropdownCard from '../containers/DropdownCard.vue'
 
@@ -36,7 +36,7 @@ const exampleImage = computed(() => {
         <span v-html="task.displayInformation.dataExampleText" /><br><br>
         <!-- Tabular data example -->
         <div
-          v-if="task.trainingInformation.dataType === 'tabular'"
+          v-if="task.dataInformation.type === DataType.TABULAR"
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
           <span
@@ -47,7 +47,7 @@ const exampleImage = computed(() => {
           </span>
         </div>
         <!-- Image data example -->
-        <div v-if="task.trainingInformation.dataType === 'image'">
+        <div v-if="task.dataInformation.type === DataType.IMAGE">
           <img
             class="mx-auto"
             :src="exampleImage"

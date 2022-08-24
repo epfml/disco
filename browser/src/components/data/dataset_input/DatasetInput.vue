@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-1">
     <IconCard
-      v-if="task.trainingInformation.dataType ==='tabular'"
+      v-if="task.dataInformation.type === DataType.TABULAR"
       class="justify-self-center w-full"
     >
       <template #title>
@@ -18,7 +18,7 @@
       </template>
     </IconCard>
     <div
-      v-else-if="task.trainingInformation.dataType === 'image'"
+      v-else-if="task.dataInformation.type === DataType.IMAGE"
       class="grid grid-cols-1 lg:grid-cols-2"
     >
       <div
@@ -52,7 +52,7 @@
 <script lang="ts" setup>
 import { computed, defineProps } from 'vue'
 
-import { dataset, Task } from '@epfml/discojs'
+import { dataset, Task, DataType } from '@epfml/discojs'
 
 import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'

@@ -47,7 +47,7 @@
 import { computed, onActivated, onMounted, ref, defineProps } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { dataset, TaskID } from '@epfml/discojs'
+import { DataType, dataset, TaskID } from '@epfml/discojs'
 
 import { useTrainingStore } from '@/store/training'
 import { useTasksStore } from '@/store/tasks'
@@ -77,15 +77,13 @@ if (!tasksStore.tasks.has(props.id)) {
 const task = computed(() => tasksStore.tasks.get(props.id))
 const datasetBuilder = computed(() => {
   let dataLoader: dataset.DataLoader<File>
-  switch (task.value.trainingInformation.dataType) {
-    case 'tabular':
+  switch (task.value.dataInformation.type) {
+    case DataType.TABULAR:
       dataLoader = new WebTabularLoader(task.value, ',')
       break
-    case 'image':
+    case DataType.IMAGE:
       dataLoader = new WebImageLoader(task.value)
       break
-    default:
-      throw new Error('not implemented')
   }
   return new dataset.DatasetBuilder(dataLoader, task.value)
 })
