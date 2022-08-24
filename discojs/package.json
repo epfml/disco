@@ -1,6 +1,6 @@
 {
   "name": "@epfml/discojs",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -19,7 +19,6 @@
     "axios": "0.27",
     "immutable": "4",
     "isomorphic-ws": "4",
-    "lodash": "4",
     "msgpack-lite": "0.1",
     "simple-peer": "9",
     "tslib": "2",

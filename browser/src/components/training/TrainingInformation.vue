@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div class="space-y-4 md:space-y-8">
     <div
-      class="grid gap-8"
-      :class="hasValidationData ? 'grid-cols-2' : 'grid-cols-1'"
+      class="flex flex-col md:grid gap-4 md:gap-8"
+      :class="hasValidationData ? 'md:grid-cols-2' : ''"
     >
       <!-- Validation Accuracy users chart -->
       <div
@@ -99,7 +99,7 @@
     </IconCard>
 
     <!-- Fancy training statistics -->
-    <div class="flex flex-wrap justify-center gap-8">
+    <div class="flex flex-wrap justify-center gap-4 md:gap-8">
       <IconCardSmall class="w-72 shrink-0">
         <template #header>
           {{ currentRoundText }}

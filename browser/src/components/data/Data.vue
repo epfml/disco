@@ -18,7 +18,7 @@ provide('task', readonly(props.task))
 
 </script>
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col space-y-4 md:space-y-8">
     <DataHarmonization />
     <DatasetInput
       :task="props.task"

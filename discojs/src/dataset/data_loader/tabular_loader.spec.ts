@@ -9,7 +9,7 @@ export class NodeTabularLoader extends dataset.TabularLoader<string> {
   }
 }
 
-const inputFiles = ['file://./example_training_data/titanic.csv']
+const inputFiles = ['file://./example_training_data/titanic_train.csv']
 
 describe('tabular loader', () => {
   it('loads a single sample', async () => {

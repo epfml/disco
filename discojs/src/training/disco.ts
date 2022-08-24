@@ -33,10 +33,13 @@ export class Disco {
     this.logger.success(
       'Thank you for your contribution. Data preprocessing has started')
 
+    const trainDataset = dataTuple.train.batch().preprocess()
     // Use train as val dataset if val is undefined
-    const valDataset = dataTuple.validation !== undefined ? dataTuple.validation.dataset : dataTuple.train.dataset
+    const valDataset = dataTuple.validation !== undefined
+      ? dataTuple.validation.batch().preprocess()
+      : trainDataset
 
-    await (await this.trainer).trainModel(dataTuple.train.dataset, valDataset)
+    await (await this.trainer).trainModel(trainDataset.dataset, valDataset.dataset)
   }
 
   // Stops the training function
