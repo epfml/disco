@@ -12,7 +12,6 @@
       </template>
       <template #content>
         <FileSelection
-          :preview="preview"
           @input="addFiles($event)"
           @clear="clearFiles()"
         />
@@ -35,7 +34,6 @@
           </template>
           <template #content>
             <FileSelection
-              :preview="preview"
               @input="addFiles($event, label)"
               @clear="clearFiles(label)"
             />
@@ -44,7 +42,6 @@
       </div>
       <FileSelection
         v-else
-        :preview="preview"
         @input="addFiles($event)"
         @clear="clearFiles()"
       />
@@ -52,48 +49,23 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
+import { computed, defineProps } from 'vue'
 
-import { isTask, dataset } from '@epfml/discojs'
+import { dataset, Task } from '@epfml/discojs'
 
 import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import FileSelection from './FileSelection.vue'
 
-export default defineComponent({
-  name: 'DatasetInput',
-  components: {
-    FileSelection,
-    Upload,
-    IconCard
-  },
-  props: {
-    task: {
-      validator: isTask,
-      default: undefined
-    },
-    datasetBuilder: {
-      type: dataset.DatasetBuilder,
-      default: undefined
-    }
-  },
-  computed: {
-    preview (): boolean {
-      // Preview only for csv (since there is no, "show only first n images").
-      return this.task.trainingInformation.dataType === 'tabular'
-    },
-    requireLabels (): boolean {
-      return this.task.trainingInformation.LABEL_LIST !== undefined
-    }
-  },
-  methods: {
-    addFiles (files: FileList, label?: string) {
-      this.datasetBuilder.addFiles(Array.from(files), label)
-    },
-    clearFiles (label?: string) {
-      this.datasetBuilder.clearFiles(label)
-    }
-  }
-})
+interface Props {
+  task: Task
+  datasetBuilder: dataset.DatasetBuilder<File>
+}
+const props = defineProps<Props>()
+
+const requireLabels = computed(() => props.task.trainingInformation.LABEL_LIST !== undefined)
+
+const addFiles = (files: FileList, label?: string) => props.datasetBuilder.addFiles(Array.from(files), label)
+const clearFiles = (label?: string) => props.datasetBuilder.clearFiles(label)
 </script>
