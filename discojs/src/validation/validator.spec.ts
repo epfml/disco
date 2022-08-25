@@ -36,7 +36,7 @@ describe('validator', () => {
       validator.accuracy() > 0.3,
       `expected accuracy greater than 0.3 but got ${validator.accuracy()}`
     )
-  })
+  }).timeout(10000)
   // TODO: fix titanic model (nan accuracy)
   // it('works for titanic', async () => {
   //   const data: Data = await new NodeTabularLoader(titanic.task, ',')
