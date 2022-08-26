@@ -29,7 +29,7 @@ export class Disco {
     this.trainer = trainerBuilder.build(this.client, scheme !== TrainingSchemes.LOCAL)
   }
 
-  async startTraining (dataTuple: dataset.DataTuple): Promise<void> {
+  async startTraining (dataTuple: dataset.DataSplit): Promise<void> {
     this.logger.success(
       'Thank you for your contribution. Data preprocessing has started')
 

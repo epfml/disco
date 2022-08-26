@@ -3,7 +3,7 @@ import { Range } from 'immutable'
 import { tf } from '../..'
 import { Dataset } from '../dataset_builder'
 import { DataLoader, DataConfig } from './data_loader'
-import { Data, ImageData, DataTuple } from '../data'
+import { Data, ImageData, DataSplit } from '../data'
 
 /**
  * TODO @s314cy:
@@ -55,7 +55,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
     return new ImageData(dataset, indices.length, this.task.trainingInformation)
   }
 
-  async loadAll (images: Source[], config?: DataConfig): Promise<DataTuple> {
+  async loadAll (images: Source[], config?: DataConfig): Promise<DataSplit> {
     let labels: number[] = []
     const indices = Range(0, images.length).toArray()
     if (config?.labels !== undefined) {

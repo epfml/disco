@@ -1,5 +1,5 @@
 import { Dataset } from '../dataset_builder'
-import { DataTuple } from '../data'
+import { DataSplit } from '../data'
 import { Task } from '../../task'
 
 export interface DataConfig {features?: string[], labels?: string[], shuffle?: boolean, validationSplit?: number}
@@ -13,5 +13,5 @@ export abstract class DataLoader<Source> {
 
   abstract load (source: Source, config: DataConfig): Promise<Dataset>
 
-  abstract loadAll (sources: Source[], config: DataConfig): Promise<DataTuple>
+  abstract loadAll (sources: Source[], config: DataConfig): Promise<DataSplit>
 }
