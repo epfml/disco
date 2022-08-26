@@ -1,5 +1,5 @@
 import { DataLoader, DataConfig } from './data_loader'
-import { DataTuple, TabularData } from '../data'
+import { DataSplit, TabularData } from '../data'
 import { Dataset } from '../dataset_builder'
 import { Task } from '../../task'
 import { tf } from '../..'
@@ -76,7 +76,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
     * Creates the CSV datasets based off the given sources, then fuses them into a single CSV
     * dataset.
     */
-  async loadAll (sources: Source[], config: DataConfig): Promise<DataTuple> {
+  async loadAll (sources: Source[], config: DataConfig): Promise<DataSplit> {
     const datasets = await Promise.all(sources.map(async (source) =>
       await this.load(source, { ...config, shuffle: false })))
     let dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))

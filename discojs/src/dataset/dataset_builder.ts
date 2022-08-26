@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 
 import { DataConfig, DataLoader } from './data_loader/data_loader'
-import { DataTuple } from './data'
+import { DataSplit } from './data'
 import { Task } from '@/task'
 
 export type Dataset = tf.data.Dataset<tf.TensorContainer>
@@ -66,13 +66,13 @@ export class DatasetBuilder<Source> {
     return labels.flat()
   }
 
-  async build (config?: DataConfig): Promise<DataTuple> {
+  async build (config?: DataConfig): Promise<DataSplit> {
     // Require that at leat one source collection is non-empty, but not both
     if ((this.sources.length > 0) === (this.labelledSources.size > 0)) {
       throw new Error('invalid sources')
     }
 
-    let dataTuple: DataTuple
+    let dataTuple: DataSplit
     if (this.sources.length > 0) {
       // Labels are contained in the given sources
       const defaultConfig = {
