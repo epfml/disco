@@ -1,44 +1,44 @@
-import { List } from 'immutable'
-import msgpack from 'msgpack-lite'
+import { List, Set } from 'immutable'
+import { PeerID } from './types'
 
 import { serialization, TrainingInformant, Weights } from '../..'
 import { Base } from './base'
 import * as messages from './messages'
+import { pauseUntil } from './utils'
 
 /**
  * Decentralized client that does not utilize secure aggregation, but sends model updates in clear text
  */
 export class ClearText extends Base {
   // list of weights received from other clients
-  protected receivedWeights: List<Weights> = List()
+  private receivedWeights: List<Weights> = List()
 
   override async sendAndReceiveWeights (
+    peers: Set<PeerID>,
     noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<List<Weights>> {
-    // reset received fields at beginning of each round
-    this.receivedWeights = this.receivedWeights.clear()
     // prepare weights to send to peers
     const weightsToSend = await serialization.weights.encode(noisyWeights)
 
-    if (this.server === undefined) {
-      throw new Error('server undefined so we cannot send weights through it')
-    }
     // PHASE 1 COMMUNICATION --> create weights message and send to all peers (only one phase of communication for clear_text)
-    for (let i = 0; i < this.peers.length; i++) {
-      const msg: messages.clientWeightsMessageServer = {
+
+    // reset received fields at beginning of each round
+    this.receivedWeights = List()
+
+    // create weights message and send to all peers
+    peers.forEach((peer) =>
+      this.sendMessagetoPeer({
         type: messages.type.clientWeightsMessageServer,
         peerID: this.ID,
         weights: weightsToSend,
-        destination: this.peers[i]
-      }
-      const encodedMsg = msgpack.encode(msg)
-      this.sendMessagetoPeer(encodedMsg)
-    }
+        destination: peer
+      })
+    )
 
     // wait to receive all weights from peers
-    await this.pauseUntil(() => this.receivedWeights.size >= this.peers.length)
+    await pauseUntil(() => this.receivedWeights.size >= peers.size)
     trainingInformant.update({
       currentNumberOfParticipants: this.receivedWeights.size
     })
