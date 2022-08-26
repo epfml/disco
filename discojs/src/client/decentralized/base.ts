@@ -1,4 +1,4 @@
-import { List } from 'immutable'
+import { List, Set } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import * as nodeUrl from 'url'
@@ -8,71 +8,46 @@ import { TrainingInformant, Weights, aggregation, privacy } from '../..'
 import { Base as ClientBase } from '../base'
 import * as messages from './messages'
 import { PeerID } from './types'
-
-// Time to wait between network checks in milliseconds.
-const TICK = 100
-
-// Time to wait for the others in milliseconds.
-const MAX_WAIT_PER_ROUND = 10_000
+import { pauseUntil } from './utils'
 
 /**
  * Abstract class for decentralized clients, executes onRoundEndCommunication as well as connecting
  * to the signaling server
  */
 export abstract class Base extends ClientBase {
-  protected minimumReadyPeers: number
-  protected maxShareValue: number
+  private readonly minimumReadyPeers: number
+
+  private server?: isomorphic.WebSocket
+
+  // list of peerIDs who the client will send messages to
+  private peers?: PeerID[]
+
+  // the ID of the client, set arbitrarily to 0 but gets set an actual value once it cues the signaling server
+  // that it is ready to connect
+  protected ID: PeerID = 0
+
   constructor (
     public readonly url: URL,
     public readonly task: Task
   ) {
     super(url, task)
     this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
-    this.maxShareValue = this.task.trainingInformation?.maxShareValue ?? 100
   }
 
-  protected server?: isomorphic.WebSocket
-  // list of peerIDs who the client will send messages to
-  protected peers: PeerID[] = []
-  protected peersLocked: boolean = false
-  // the ID of the client, set arbitrarily to 0 but gets set an actual value once it cues the signaling server
-  // that it is ready to connect
-  protected ID: number = 0
-
-  /*
-function to check if a given boolean condition is true, checks continuously until maxWait time is reached
- */
-  protected async pauseUntil (condition: () => boolean): Promise<void> {
-    return await new Promise<void>((resolve, reject) => {
-      const timeWas = new Date().getTime()
-      const wait = setInterval(function () {
-        if (condition()) {
-          console.log('resolved after', new Date().getTime() - timeWas, 'ms')
-          clearInterval(wait)
-          resolve()
-        } else if (new Date().getTime() - timeWas > MAX_WAIT_PER_ROUND) { // Timeout
-          console.log('rejected after', new Date().getTime() - timeWas, 'ms')
-          clearInterval(wait)
-          reject(new Error('timeout'))
-        }
-      }, TICK)
-    })
-  }
-
-  /*
-  function behavior will change with peer 2 peer, sends message to its destination, currently through server
-   */
-  protected sendMessagetoPeer (message: unknown): void {
+  protected sendMessagetoPeer (message: messages.PeerMessage): void {
     if (this.server === undefined) {
       throw new Error("Undefined Server, can't send message")
     }
-    this.server.send(message)
+
+    const encoded = msgpack.encode(message)
+    this.server.send(encoded)
   }
 
-  /*
-  send message to server that client is ready
-   */
-  protected sendReadyMessage (round: number): void {
+  // send message to server that client is ready
+  private async waitForPeers (round: number): Promise<Set<PeerID>> {
+    // clean old round
+    this.peers = undefined
+
     // Broadcast our readiness
     const msg: messages.clientReadyMessage = {
       type: messages.type.clientReadyMessage,
@@ -86,13 +61,18 @@ function to check if a given boolean condition is true, checks continuously unti
       throw new Error('server undefined, could not connect peers')
     }
     this.server.send(encodedMsg)
+
+    // wait for peers to be connected before sending any update information
+    await pauseUntil(() => (this.peers?.length ?? 0) >= this.minimumReadyPeers)
+
+    return Set(this.peers ?? [])
   }
 
   /*
   creation of the websocket for the server, connection of client to that webSocket,
   deals with message reception from decentralized client perspective (messages received by client)
    */
-  protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
+  private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const WS = typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
     const ws: WebSocket = new WS(url)
     ws.binaryType = 'arraybuffer'
@@ -101,8 +81,8 @@ function to check if a given boolean condition is true, checks continuously unti
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
-      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
 
+      const msg = msgpack.decode(new Uint8Array(event.data))
       if (!messages.isMessage(msg)) {
         console.error('invalid message received:', msg)
         return
@@ -114,10 +94,12 @@ function to check if a given boolean condition is true, checks continuously unti
         this.ID = msg.peerID
       } else if (msg.type === messages.type.serverReadyClients) {
         // updated connected peers
-        if (!this.peersLocked) {
-          this.peers = msg.peerList
-          this.peersLocked = true
+        if (this.peers !== undefined) {
+          console.warn('got new peer list from server but it was already received')
+          return
         }
+
+        this.peers = msg.peerList
       } else if (msg.type === messages.type.clientConnected) {
         this.connected = true
       } else {
@@ -151,12 +133,10 @@ function to check if a given boolean condition is true, checks continuously unti
     serverURL.pathname += `deai/${this.task.taskID}`
     this.server = await this.connectServer(serverURL)
 
-    await this.pauseUntil(() => this.connected)
+    await pauseUntil(() => this.connected)
   }
 
-  /**
-   * Disconnection process when user quits the task.
-   */
+  // disconnect from server & peers
   async disconnect (): Promise<void> {
     // this.peers.forEach((peer) => peer.destroy())
     // this.peers = Map()
@@ -179,20 +159,14 @@ function to check if a given boolean condition is true, checks continuously unti
   ): Promise<Weights> {
     try {
       // reset peer list at each round of training to make sure client waits for updated peerList from server
-      this.peers = []
-
-      this.peersLocked = false
+      const peers = await this.waitForPeers(round)
 
       // centralized phase of communication --> client tells server that they have finished a local round and are ready to aggregate
-      this.sendReadyMessage(round)
-
-      // wait for peers to be connected before sending any update information
-      await this.pauseUntil(() => this.peers.length >= this.minimumReadyPeers)
 
       // Apply clipping and DP to updates that will be sent
       const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
       // send weights to all ready connected peers
-      const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)
+      const finalWeights: List<Weights> = await this.sendAndReceiveWeights(peers, noisyWeights, round, trainingInformant)
       return aggregation.averageWeights(finalWeights)
     } catch (Error) {
       console.log('Timeout Error Reported, training will continue')
@@ -200,8 +174,12 @@ function to check if a given boolean condition is true, checks continuously unti
     }
   }
 
-  abstract sendAndReceiveWeights (noisyWeights: Weights,
-    round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
+  abstract sendAndReceiveWeights (
+    peers: Set<PeerID>,
+    noisyWeights: Weights,
+    round: number,
+    trainingInformant: TrainingInformant
+  ): Promise<List<Weights>>
 
   abstract clientHandle (msg: messages.PeerMessage): void
 }

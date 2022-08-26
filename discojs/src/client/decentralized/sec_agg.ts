@@ -1,81 +1,96 @@
-import { List } from 'immutable'
-import msgpack from 'msgpack-lite'
+import { List, Set } from 'immutable'
 
-import { serialization, TrainingInformant, Weights, aggregation } from '../..'
+import { serialization, Task, TrainingInformant, Weights, aggregation } from '../..'
+
 import { Base } from './base'
 import * as messages from './messages'
 import * as secret_shares from './secret_shares'
+import { pauseUntil } from './utils'
+import { PeerID } from './types'
 
 /**
  * Decentralized client that utilizes secure aggregation so client updates remain private
  */
 export class SecAgg extends Base {
+  private readonly maxShareValue: number
+
   // list of weights received from other clients
   private receivedShares: List<Weights> = List()
   // list of partial sums received by client
   private receivedPartialSums: List<Weights> = List()
   // the partial sum calculated by the client
-  private mySum: Weights = []
+
+  constructor (
+    public readonly url: URL,
+    public readonly task: Task
+  ) {
+    super(url, task)
+    this.maxShareValue = this.task.trainingInformation?.maxShareValue ?? 100
+  }
+
   /*
   generates shares and sends to all ready peers adds differential privacy
    */
   private async sendShares (
+    peers: Set<PeerID>,
     noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<void> {
     // generate weight shares and add differential privacy
-    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, this.peers.length, this.maxShareValue)
+    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, peers.size, this.maxShareValue)
+
+    const encodedWeightShares = List(await Promise.all(
+      weightShares.map(async (weights) =>
+        await serialization.weights.encode(weights))))
+
     // Broadcast our weights to ith peer in the SERVER LIST OF PEERS (seen in signaling_server.ts)
-    for (let i = 0; i < this.peers.length; i++) {
-      const weights = weightShares.get(i)
-      if (weights === undefined) {
-        throw new Error('weight shares generated incorrectly')
-      }
-      const msg: messages.clientSharesMessageServer = {
+    peers.toList().zip(encodedWeightShares).forEach(([peer, weights]) =>
+      this.sendMessagetoPeer({
         type: messages.type.clientSharesMessageServer,
         peerID: this.ID,
-        weights: await serialization.weights.encode(weights),
-        destination: this.peers[i]
-      }
-      const encodedMsg = msgpack.encode(msg)
-      this.sendMessagetoPeer(encodedMsg)
-    }
+        weights,
+        destination: peer
+      })
+    )
   }
 
   /*
 sends partial sums to connected peers so final update can be calculated
  */
-  private async sendPartialSums (): Promise<void> {
+  private async sendPartialSums (peers: Set<PeerID>): Promise<void> {
     // calculating my personal partial sum from received shares that i will share with peers
-    this.mySum = aggregation.sumWeights(List(Array.from(this.receivedShares.values())))
+    const mySum = aggregation.sumWeights(List(Array.from(this.receivedShares.values())))
+    const myEncodedSum = await serialization.weights.encode(mySum)
     // calculate, encode, and send sum
-    for (let i = 0; i < this.peers.length; i++) {
-      const msg: messages.clientPartialSumsMessageServer = {
+    peers.forEach((peer) =>
+      this.sendMessagetoPeer({
         type: messages.type.clientPartialSumsMessageServer,
         peerID: this.ID,
-        partials: await serialization.weights.encode(this.mySum),
-        destination: this.peers[i]
-      }
-      const encodedMsg = msgpack.encode(msg)
-      this.sendMessagetoPeer(encodedMsg)
-    }
+        partials: myEncodedSum,
+        destination: peer
+      })
+    )
   }
 
-  override async sendAndReceiveWeights (noisyWeights: Weights,
-    round: number, trainingInformant: TrainingInformant): Promise<List<Weights>> {
+  override async sendAndReceiveWeights (
+    peers: Set<PeerID>,
+    noisyWeights: Weights,
+    round: number,
+    trainingInformant: TrainingInformant
+  ): Promise<List<Weights>> {
     // reset fields at beginning of each round
     this.receivedShares = this.receivedShares.clear()
     this.receivedPartialSums = this.receivedPartialSums.clear()
 
     // PHASE 1 COMMUNICATION --> send additive shares to ready peers, pause program until shares are received from all peers
-    await this.sendShares(noisyWeights, round, trainingInformant)
-    await this.pauseUntil(() => this.receivedShares.size >= this.peers.length)
+    await this.sendShares(peers, noisyWeights, round, trainingInformant)
+    await pauseUntil(() => this.receivedShares.size >= peers.size)
 
     // PHASE 2 COMMUNICATION --> send partial sums to ready peers
-    await this.sendPartialSums()
+    await this.sendPartialSums(peers)
     // after all partial sums are received, return list of partial sums to be aggregated
-    await this.pauseUntil(() => this.receivedPartialSums.size >= this.peers.length)
+    await pauseUntil(() => this.receivedPartialSums.size >= peers.size)
     trainingInformant.update({
       currentNumberOfParticipants: this.receivedPartialSums.size
     })
