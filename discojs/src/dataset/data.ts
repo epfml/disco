@@ -4,7 +4,7 @@ import { getPreprocessImage } from './preprocessing'
 
 import * as tf from '@tensorflow/tfjs'
 
-export interface DataTuple {
+export interface DataSplit {
   train: Data
   validation?: Data
 }
