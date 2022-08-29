@@ -75,45 +75,48 @@ export class Decentralized extends Server {
     // how the server responds to messages
     ws.on('message', (data: Buffer) => {
       try {
-        const msg = msgpack.decode(data)
+        const msg: unknown = msgpack.decode(data)
+        if (!messages.isMessage(msg)) {
+          console.warn('invalid message received:', msg)
+          return
+        }
+
         if (msg.type === messages.type.clientWeightsMessageServer) {
           const forwardMsg: messages.clientWeightsMessageServer = {
             type: messages.type.clientWeightsMessageServer,
-            peerID: msg.peerID,
-            weights: msg.weights,
-            destination: msg.destination
+            peer: peerID,
+            weights: msg.weights
           }
           const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 
           // sends message it received to destination
-          this.clients.get(msg.destination)?.send(encodedMsg)
+          this.clients.get(msg.peer)?.send(encodedMsg)
         } else if (
           msg.type === messages.type.clientSharesMessageServer
         ) {
           const forwardMsg: messages.clientSharesMessageServer = {
             type: messages.type.clientSharesMessageServer,
-            peerID: msg.peerID,
-            weights: msg.weights,
-            destination: msg.destination
+            peer: peerID,
+            weights: msg.weights
           }
           const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 
           // sends message it received to destination
-          this.clients.get(msg.destination)?.send(encodedMsg)
+          this.clients.get(msg.peer)?.send(encodedMsg)
         } else if (msg.type === messages.type.clientReadyMessage) {
           const currentClients: Set<PeerID> =
-            this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
-          const updatedClients: Set<PeerID> = currentClients.add(msg.peerID)
+            this.readyClientsBuffer.get(msg.task) ?? new Set<PeerID>()
+          const updatedClients: Set<PeerID> = currentClients.add(peerID)
           this.readyClientsBuffer = this.readyClientsBuffer.set(
-            msg.taskID,
+            msg.task,
             updatedClients
           )
           // if enough clients are connected, server shares who is connected
           const currentPeers: Set<PeerID> =
-            this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
+            this.readyClientsBuffer.get(msg.task) ?? new Set<PeerID>()
           if (currentPeers.size >= minimumReadyPeers) {
             this.readyClientsBuffer = this.readyClientsBuffer.set(
-              msg.taskID,
+              msg.task,
               new Set<PeerID>()
             )
             const readyPeerIDs: messages.serverReadyClients = {
@@ -130,14 +133,13 @@ export class Decentralized extends Server {
         ) {
           const forwardMsg: messages.clientPartialSumsMessageServer = {
             type: messages.type.clientPartialSumsMessageServer,
-            peerID: msg.peerID,
-            partials: msg.partials,
-            destination: msg.destination
+            peer: peerID,
+            partials: msg.partials
           }
           const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 
           // sends message it received to destination
-          this.clients.get(msg.destination)?.send(encodedMsg)
+          this.clients.get(msg.peer)?.send(encodedMsg)
         }
       } catch (e) {
         console.error('when processing WebSocket message', e)

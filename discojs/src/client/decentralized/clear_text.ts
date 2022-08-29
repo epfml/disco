@@ -31,9 +31,8 @@ export class ClearText extends Base {
     peers.forEach((peer) =>
       this.sendMessagetoPeer({
         type: messages.type.clientWeightsMessageServer,
-        peerID: this.ID,
-        weights: weightsToSend,
-        destination: peer
+        peer: peer,
+        weights: weightsToSend
       })
     )
 

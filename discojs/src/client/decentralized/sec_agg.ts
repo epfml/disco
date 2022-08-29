@@ -48,9 +48,8 @@ export class SecAgg extends Base {
     peers.toList().zip(encodedWeightShares).forEach(([peer, weights]) =>
       this.sendMessagetoPeer({
         type: messages.type.clientSharesMessageServer,
-        peerID: this.ID,
-        weights,
-        destination: peer
+        peer,
+        weights
       })
     )
   }
@@ -66,9 +65,8 @@ sends partial sums to connected peers so final update can be calculated
     peers.forEach((peer) =>
       this.sendMessagetoPeer({
         type: messages.type.clientPartialSumsMessageServer,
-        peerID: this.ID,
-        partials: myEncodedSum,
-        destination: peer
+        peer,
+        partials: myEncodedSum
       })
     )
   }

@@ -32,7 +32,6 @@ export interface serverClientIDMessage {
 export interface clientReadyMessage {
   type: type.clientReadyMessage
   round: number
-  peerID: PeerID
   task: TaskID
 }
 
@@ -47,17 +46,15 @@ export interface serverReadyClients {
 // client weights
 export interface clientWeightsMessageServer {
   type: type.clientWeightsMessageServer
-  peerID: PeerID
+  peer: PeerID
   weights: weights.Encoded
-  destination: PeerID
 }
 
 // client shares
 export interface clientSharesMessageServer {
   type: type.clientSharesMessageServer
-  peerID: PeerID
+  peer: PeerID
   weights: weights.Encoded
-  destination: PeerID
 }
 
 /// Phase 2 communication (between client and peers)
@@ -65,9 +62,8 @@ export interface clientSharesMessageServer {
 // client partial sum
 export interface clientPartialSumsMessageServer {
   type: type.clientPartialSumsMessageServer
-  peerID: PeerID
+  peer: PeerID
   partials: weights.Encoded
-  destination: PeerID
 }
 
 export type ServerMessage =
@@ -122,17 +118,14 @@ export function isPeerMessage (raw: unknown): raw is PeerMessage {
   switch (o.type) {
     case type.clientReadyMessage:
       return 'round' in o && typeof o.round === 'number' &&
-        'task' in o && isTaskID(o.task) &&
-        'peerID' in o && isPeerID(o.peerID)
+        'task' in o && isTaskID(o.task)
     case type.clientWeightsMessageServer:
     case type.clientSharesMessageServer:
-      return 'peerID' in o && isPeerID(o.peerID) &&
-        'weights' in o && weights.isEncoded(o.weights) &&
-        'destination' in o && isPeerID(o.destination)
+      return 'peer' in o && isPeerID(o.peer) &&
+        'weights' in o && weights.isEncoded(o.weights)
     case type.clientPartialSumsMessageServer:
-      return 'peerID' in o && isPeerID(o.peerID) &&
-        'partials' in o && weights.isEncoded(o.partials) &&
-        'destination' in o && isPeerID(o.destination)
+      return 'peer' in o && isPeerID(o.peer) &&
+        'partials' in o && weights.isEncoded(o.partials)
   }
 
   return false
