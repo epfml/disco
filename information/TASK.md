@@ -22,16 +22,17 @@ This ensure that the task is properly exposed and thus the server will also be a
 
 Start by creating a function in `my_new_task.ts` called `model` that returns the `tf.LayersModel`. In this example we programatically 
 define our model.
+
 > Note, it's important to add the `export` tag to the model as well as to the subsequent objects that we define.
 
 ```js
-export function model (): tf.LayersModel {
+export function model (_: string): tf.LayersModel {
   // Init model
   const model = tf.sequential()
 
   // Add layers
   model.add(...)
-
+  
   return model
 
 ```
@@ -40,12 +41,23 @@ Alternatively we can also load a pre-existing model; if we only provide a `model
 loaded. If however in the same path we also include `weights.bin`, then pre-trained weights stored in these files will also be loaded to the model.
 
 ```js
-export async function model (): Promise<tf.LayersModel> {
-  return await tf.loadLayersModel('file:./modelPath/model.json')
+export async function model (modelPath: string): Promise<tf.LayersModel> {
+  return await tf.loadLayersModel(`file://${modelPath}`)
 }
 ```
 
-The `modelPath` is relative to the root directory of the `server`.
+The models are stored in `disco/server/models/`, and it is also in the server side that we let disco know where exactly they are saved. In particular,
+if we look at `server/src/tasks.ts`, it is done as follows for simple face (for our custom task we simply need to set
+our task with the model path).
+
+```js
+const simpleFaceModelPath = path.join(CONFIG.modelsDir, 'mobileNetV2_35_alpha_2_classes', 'model.json')
+
+// TODO, to add a custom model for a task, add the path here
+const MODEL_PATH = Map<string, string>()
+  .set(defaultTasks.simple_face.task.taskID, simpleFaceModelPath)
+
+```
 
 > If you are using a pre-existing model, and the data shape does not match the input of the model, then it is possible
 to use preprocessing functions to resize the data (we also describe how to add custom preprocessing).
