@@ -22,9 +22,8 @@ export abstract class Base extends ClientBase {
   // list of peerIDs who the client will send messages to
   private peers?: PeerID[]
 
-  // the ID of the client, set arbitrarily to 0 but gets set an actual value once it cues the signaling server
-  // that it is ready to connect
-  protected ID: PeerID = 0
+  // ID of the client, got from the server
+  private ID?: PeerID
 
   constructor (
     public readonly url: URL,
@@ -52,7 +51,6 @@ export abstract class Base extends ClientBase {
     const msg: messages.clientReadyMessage = {
       type: messages.type.clientReadyMessage,
       round: round,
-      peerID: this.ID,
       task: this.task.taskID
     }
 
@@ -90,7 +88,11 @@ export abstract class Base extends ClientBase {
 
       // check message type to choose correct action
       if (msg.type === messages.type.serverClientIDMessage) {
-        // updated ID
+        if (this.ID !== undefined) {
+          console.warn('got ID from server but was already received')
+          return
+        }
+
         this.ID = msg.peerID
       } else if (msg.type === messages.type.serverReadyClients) {
         // updated connected peers
