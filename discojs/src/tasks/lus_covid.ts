@@ -39,7 +39,11 @@ export const task: Task = {
   }
 }
 
-export function model (imageHeight = 100, imageWidth = 100, imageChannels = 3, numOutputClasses = 2): tf.LayersModel {
+export function model (_: string = ''): tf.LayersModel {
+  const imageHeight = 100
+  const imageWidth = 100
+  const imageChannels = 3
+  const numOutputClasses = 2
   const model = tf.sequential()
 
   // In the first layer of our convolutional neural network we have

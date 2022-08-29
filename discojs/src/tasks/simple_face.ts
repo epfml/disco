@@ -39,7 +39,10 @@ export const task: Task = {
   }
 }
 
-export async function model (): Promise<tf.LayersModel> {
-  const file = 'file://./../models/mobileNetV2_35_alpha_2_classes/model.json'
-  return await tf.loadLayersModel(file)
+export async function model (modelPath: string): Promise<tf.LayersModel> {
+  // Note file:// is a special token to tell tf that we
+  // are loading from the file system, so it should not
+  // be used with path.join, since this will normalize
+  // the path and thus also the special token.
+  return await tf.loadLayersModel(`file://${modelPath}`)
 }

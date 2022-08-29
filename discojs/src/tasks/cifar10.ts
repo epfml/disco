@@ -51,7 +51,7 @@ export const task: Task = {
   }
 }
 
-export async function model (): Promise<tf.LayersModel> {
+export async function model (_: string = ''): Promise<tf.LayersModel> {
   const mobilenet = await tf.loadLayersModel(
     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
   )
