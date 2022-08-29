@@ -72,7 +72,7 @@ export const task: Task = {
   }
 }
 
-export function model (): tf.LayersModel {
+export function model (_: string = ''): tf.LayersModel {
   const model = tf.sequential()
 
   model.add(
