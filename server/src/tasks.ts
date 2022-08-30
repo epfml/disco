@@ -1,8 +1,16 @@
-import { Set } from 'immutable'
+import { Set, Map } from 'immutable'
 import { EventEmitter } from 'node:events'
 import * as tf from '@tensorflow/tfjs'
+import path from 'path'
 
 import { tasks as defaultTasks, Task } from '@epfml/discojs'
+import { CONFIG } from './config'
+
+const simpleFaceModelPath = path.join(CONFIG.modelsDir, 'mobileNetV2_35_alpha_2_classes', 'model.json')
+
+// TODO, to add a custom model for a task, add the path here
+const MODEL_PATH = Map<string, string>()
+  .set(defaultTasks.simple_face.task.taskID, simpleFaceModelPath)
 
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks
@@ -27,7 +35,7 @@ export class TasksAndModels extends EventEmitter {
 
     const tasks = await Promise.all(Object.values(defaultTasks))
     await Promise.all(tasks.map(async (i) =>
-      ret.addTaskAndModel(i.task, await i.model())))
+      ret.addTaskAndModel(i.task, await i.model(MODEL_PATH.get(i.task.taskID) ?? ''))))
 
     return ret
   }

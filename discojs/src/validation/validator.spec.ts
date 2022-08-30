@@ -24,16 +24,19 @@ describe('validator', () => {
       undefined,
       new Local(new URL('http://localhost:8080'), simple_face.task))
     await validator.assess(data)
-
+    const size = data.size !== undefined ? data.size : -1
+    if (size === -1) {
+      console.log('data.size was undefined')
+    }
     assert(
       validator.visitedSamples() === data.size,
-      `expected ${data.size} visited samples but got ${validator.visitedSamples()}`
+      `expected ${size} visited samples but got ${validator.visitedSamples()}`
     )
     assert(
       validator.accuracy() > 0.3,
       `expected accuracy greater than 0.3 but got ${validator.accuracy()}`
     )
-  })
+  }).timeout(10000)
   // TODO: fix titanic model (nan accuracy)
   // it('works for titanic', async () => {
   //   const data: Data = await new NodeTabularLoader(titanic.task, ',')

@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed, defineProps } from 'vue'
 
 import { Task } from '@epfml/discojs'
 
 import DropdownCard from '../containers/DropdownCard.vue'
 
-const task = inject<Task>('task')
+interface Props {
+  task: Task
+}
+const props = defineProps<Props>()
 
 const images = require.context('../../../../discojs/example_training_data/', false, /.+?\.(jpg|png)$/)
 const exampleImage = computed(() => {
-  const source = task.displayInformation.dataExampleImage
+  const source = props.task.displayInformation.dataExampleImage
   return source !== undefined ? images(source) : ''
 })
 </script>
 
 <template>
-  <div>
+  <div class="space-y-4 md:space-y-8">
     <DropdownCard>
       <template #title>
         Data Format

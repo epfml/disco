@@ -49,7 +49,7 @@ export const task: Task = {
     roundDuration: 10,
     validationSplit: 0,
     batchSize: 30,
-    preprocessFunctions: [],
+    preprocessingFunctions: [],
     modelCompileData: {
       optimizer: 'rmsprop',
       loss: 'binaryCrossentropy',
@@ -74,7 +74,7 @@ export const task: Task = {
   }
 }
 
-export function model (): tf.LayersModel {
+export function model (_: string = ''): tf.LayersModel {
   const model = tf.sequential()
 
   model.add(

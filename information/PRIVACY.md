@@ -1,12 +1,12 @@
 # Privacy protection measures
 
 In federated and decentralised learning, a client's data is never sent to another machine. However, some information could be inferred about a client's data set even when the data set is not shared. For instance, summary statistics or even the existence of a specific data point can be inferred from sources such as:
-1. the weights of the public and collaborative model;
-2. the model updates shared by the client.
+1. the weights of the public and collaborative model ([Carlini et al., 2019](https://www.usenix.org/conference/usenixsecurity19/presentation/carlini));
+2. the model updates shared by the client ([Bonawitz et al., 2017](https://doi.org/10.1145/3133956.3133982)).
 
 DisCo protects the clients' data beyond the simple use of federated and decentralised learning, using two different and complementary methods: 
-1. Differential privacy, and
-2. Secure aggregation of model updates.
+1. Differential privacy ([McMahan et al., 2018](http://arxiv.org/abs/1710.06963) and [Abadi et al., 2016](https://doi.org/10.1145/2976749.2978318)), and
+2. Secure aggregation of model updates ([Bonawitz et al., 2017](https://doi.org/10.1145/3133956.3133982)).
 
 ## Differential privacy
 

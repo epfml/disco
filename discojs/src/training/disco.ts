@@ -29,14 +29,17 @@ export class Disco {
     this.trainer = trainerBuilder.build(this.client, scheme !== TrainingSchemes.LOCAL)
   }
 
-  async startTraining (dataTuple: dataset.DataTuple): Promise<void> {
+  async startTraining (dataTuple: dataset.DataSplit): Promise<void> {
     this.logger.success(
       'Thank you for your contribution. Data preprocessing has started')
 
+    const trainDataset = dataTuple.train.batch().preprocess()
     // Use train as val dataset if val is undefined
-    const valDataset = dataTuple.validation !== undefined ? dataTuple.validation.dataset : dataTuple.train.dataset
+    const valDataset = dataTuple.validation !== undefined
+      ? dataTuple.validation.batch().preprocess()
+      : trainDataset
 
-    await (await this.trainer).trainModel(dataTuple.train.dataset, valDataset)
+    await (await this.trainer).trainModel(trainDataset.dataset, valDataset.dataset)
   }
 
   // Stops the training function
