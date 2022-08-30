@@ -54,7 +54,7 @@ handles received messages from signaling server
       const weights = serialization.weights.decode(msg.weights)
       this.receivedWeights = this.receivedWeights.push(weights)
     } else {
-      throw new Error('Unexpected Message Type')
+      throw new Error(`unexpected message type: ${msg.type}`)
     }
   }
 }

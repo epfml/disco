@@ -82,23 +82,20 @@ export abstract class Base extends ClientBase {
 
       const msg = msgpack.decode(new Uint8Array(event.data))
       if (!messages.isMessage(msg)) {
-        console.error('invalid message received:', msg)
-        return
+        throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
       }
 
       // check message type to choose correct action
       if (msg.type === messages.type.serverClientIDMessage) {
         if (this.ID !== undefined) {
-          console.warn('got ID from server but was already received')
-          return
+          throw new Error('got ID from server but was already received')
         }
 
         this.ID = msg.peerID
       } else if (msg.type === messages.type.serverReadyClients) {
         // updated connected peers
         if (this.peers !== undefined) {
-          console.warn('got new peer list from server but it was already received')
-          return
+          throw new Error('got new peer list from server but it was already received for this round')
         }
 
         this.peers = msg.peerList
@@ -170,8 +167,11 @@ export abstract class Base extends ClientBase {
       // send weights to all ready connected peers
       const finalWeights: List<Weights> = await this.sendAndReceiveWeights(peers, noisyWeights, round, trainingInformant)
       return aggregation.averageWeights(finalWeights)
-    } catch (Error) {
-      console.log('Timeout Error Reported, training will continue')
+    } catch (e) {
+      let msg = `error on round ${round}`
+      if (e instanceof Error) { msg += `: ${e.message}` }
+      console.warn(msg)
+
       return updatedWeights
     }
   }

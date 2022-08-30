@@ -106,7 +106,7 @@ sends partial sums to connected peers so final update can be calculated
       const partials: Weights = serialization.weights.decode(msg.partials)
       this.receivedPartialSums = this.receivedPartialSums.push(partials)
     } else {
-      throw new Error('Unexpected Message Type')
+      throw new Error(`unexpected message type: ${msg.type}`)
     }
   }
 }
