@@ -47,7 +47,12 @@ export const task: Task = {
       { columnName: 'ship', columnData: 8 },
       { columnName: 'truck', columnData: 9 }
     ],
-    scheme: 'Decentralized'
+    scheme: 'Decentralized',
+    noiseScale: undefined,
+    clippingRadius: 20,
+    decentralizedSecure: true,
+    minimumReadyPeers: 3,
+    maxShareValue: 100
   }
 }
 

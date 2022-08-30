@@ -68,7 +68,9 @@ export const task: Task = {
     outputColumns: [
       'Survived'
     ],
-    scheme: 'Federated'
+    scheme: 'Federated', // secure aggregation not yet implemented for FeAI
+    noiseScale: undefined,
+    clippingRadius: undefined
   }
 }
 
