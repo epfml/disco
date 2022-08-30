@@ -32,7 +32,6 @@ export const task: Task = {
     IMAGE_W: 28,
     preprocessingFunctions: [],
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-    aggregateImagesById: false,
     scheme: 'Decentralized',
     noiseScale: undefined,
     clippingRadius: 20,

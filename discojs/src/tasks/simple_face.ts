@@ -31,7 +31,6 @@ export const task: Task = {
       metrics: ['accuracy']
     },
     dataType: 'image',
-    csvLabels: false,
     IMAGE_H: 200,
     IMAGE_W: 200,
     LABEL_LIST: ['child', 'adult'],
