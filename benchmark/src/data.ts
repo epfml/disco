@@ -19,7 +19,7 @@ function filesFromFolder(dir: string, folder: string, fractionToKeep: number): s
   return f.slice(0, Math.round(f.length * fractionToKeep)).map(file => dir + folder + '/' + file)
 }
 
-async function simplefaceData(task: Task): Promise<dataset.DataTuple> {
+async function simplefaceData(task: Task): Promise<dataset.DataSplit> {
   const dir = './../discojs/example_training_data/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']
@@ -46,7 +46,7 @@ async function simplefaceData(task: Task): Promise<dataset.DataTuple> {
   return await new NodeImageLoader(task).loadAll(files, {labels: labels})
 }
 
-async function cifar10Data(cifar10: Task): Promise<dataset.DataTuple> {
+async function cifar10Data(cifar10: Task): Promise<dataset.DataSplit> {
   const dir = '../discojs/example_training_data/CIFAR10/'
   const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
@@ -61,7 +61,7 @@ class NodeTabularLoader extends dataset.TabularLoader<string> {
   }
 }
 
-async function titanicData(titanic: Task): Promise<dataset.DataTuple> {
+async function titanicData(titanic: Task): Promise<dataset.DataSplit> {
 
   const dir = '../discojs/example_training_data/titanic.csv'
 
