@@ -14,7 +14,6 @@ export interface TrainingInformation {
   receivedMessagesThreshold?: number // TODO: explain, rename or remove
   inputColumns?: string[]
   outputColumns?: string[]
-  threshold?: number // TODO: explain, rename or remove
   IMAGE_H?: number
   IMAGE_W?: number
   LABEL_LIST?: string[]
