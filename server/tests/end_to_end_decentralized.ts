@@ -5,7 +5,7 @@ import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
 import {
-  Task, dataset, informant, ConsoleLogger, training, TrainingSchemes,
+  Task, TaskID, dataset, informant, ConsoleLogger, training, TrainingSchemes,
   TrainingInformant, EmptyMemory, tasks, client, Weights
 } from '@epfml/discojs'
 
@@ -91,7 +91,9 @@ describe('end to end decentralized', function () {
       clientCurrent = await getClient(client.decentralized.ClearText, server, TASK)
     }
     const weights: Weights = test.makeWeights(input)
-    const trainingInformantCurrent: TrainingInformant = new informant.DecentralizedInformant(0, 0)
+    const cifar10: Task = tasks.cifar10.task
+    const taskID: TaskID = cifar10.taskID
+    const trainingInformantCurrent: TrainingInformant = new informant.DecentralizedInformant(taskID, 0)
     await clientCurrent.connect()
     return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformantCurrent)
   }

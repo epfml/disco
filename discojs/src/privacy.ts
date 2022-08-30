@@ -18,14 +18,12 @@ export function addDifferentialPrivacy (updatedWeights: Weights, staleWeights: W
 
   const weightsDiff = List(updatedWeights)
     .zip(List(staleWeights))
-    .map(([w1, w2]) => w1.add(-w2))
-
+    .map(([w1, w2]) => w1.sub(w2))
   let newWeightsDiff: List<tf.Tensor>
 
   if (clippingRadius !== undefined) {
     // Frobenius norm
     const norm = Math.sqrt(weightsDiff.map((w) => w.square().sum().dataSync()[0]).reduce((a: number, b) => a + b))
-
     newWeightsDiff = weightsDiff.map((w) => {
       const clipped = w.div(Math.max(1, norm / clippingRadius))
       if (noiseScale !== undefined) {
