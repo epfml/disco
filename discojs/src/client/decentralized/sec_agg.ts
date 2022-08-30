@@ -47,7 +47,7 @@ export class SecAgg extends Base {
     // Broadcast our weights to ith peer in the SERVER LIST OF PEERS (seen in signaling_server.ts)
     peers.toList().zip(encodedWeightShares).forEach(([peer, weights]) =>
       this.sendMessagetoPeer({
-        type: messages.type.clientSharesMessageServer,
+        type: messages.type.Shares,
         peer,
         weights
       })
@@ -64,7 +64,7 @@ sends partial sums to connected peers so final update can be calculated
     // calculate, encode, and send sum
     peers.forEach((peer) =>
       this.sendMessagetoPeer({
-        type: messages.type.clientPartialSumsMessageServer,
+        type: messages.type.PartialSums,
         peer,
         partials: myEncodedSum
       })
@@ -97,16 +97,21 @@ sends partial sums to connected peers so final update can be calculated
   }
 
   override clientHandle (msg: messages.PeerMessage): void {
-    if (msg.type === messages.type.clientSharesMessageServer) {
+    switch (msg.type) {
       // update received weights by one weights reception
-      const weights = serialization.weights.decode(msg.weights)
-      this.receivedShares = this.receivedShares.push(weights)
-    } else if (msg.type === messages.type.clientPartialSumsMessageServer) {
+      case messages.type.Shares: {
+        const weights = serialization.weights.decode(msg.weights)
+        this.receivedShares = this.receivedShares.push(weights)
+        break
+      }
       // update received partial sums by one partial sum
-      const partials: Weights = serialization.weights.decode(msg.partials)
-      this.receivedPartialSums = this.receivedPartialSums.push(partials)
-    } else {
-      throw new Error(`unexpected message type: ${msg.type}`)
+      case messages.type.PartialSums: {
+        const partials: Weights = serialization.weights.decode(msg.partials)
+        this.receivedPartialSums = this.receivedPartialSums.push(partials)
+        break
+      }
+      default:
+        throw new Error(`unexpected message type: ${msg.type}`)
     }
   }
 }

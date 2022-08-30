@@ -60,9 +60,9 @@ export class Decentralized extends Server {
     const peerID: PeerID = this.clientCounter++
     this.clients = this.clients.set(peerID, ws)
     // send peerID message
-    const msg: messages.serverClientIDMessage = {
-      type: messages.type.serverClientIDMessage,
-      peerID
+    const msg: messages.PeerID = {
+      type: messages.type.PeerID,
+      id: peerID
     }
     console.info('peer', peerID, 'joined', task.taskID)
 
@@ -76,73 +76,81 @@ export class Decentralized extends Server {
     ws.on('message', (data: Buffer) => {
       try {
         const msg: unknown = msgpack.decode(data)
-        if (!messages.isMessage(msg)) {
+        if (
+          !messages.isMessageToServer(msg) &&
+          !messages.isPeerMessage(msg)
+        ) {
           console.warn('invalid message received:', msg)
           return
         }
 
-        if (msg.type === messages.type.clientWeightsMessageServer) {
-          const forwardMsg: messages.clientWeightsMessageServer = {
-            type: messages.type.clientWeightsMessageServer,
-            peer: peerID,
-            weights: msg.weights
-          }
-          const encodedMsg: Buffer = msgpack.encode(forwardMsg)
+        switch (msg.type) {
+          case messages.type.Weights: {
+            const forwardMsg: messages.Weights = {
+              type: messages.type.Weights,
+              peer: peerID,
+              weights: msg.weights
+            }
+            const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 
-          // sends message it received to destination
-          this.clients.get(msg.peer)?.send(encodedMsg)
-        } else if (
-          msg.type === messages.type.clientSharesMessageServer
-        ) {
-          const forwardMsg: messages.clientSharesMessageServer = {
-            type: messages.type.clientSharesMessageServer,
-            peer: peerID,
-            weights: msg.weights
+            // sends message it received to destination
+            this.clients.get(msg.peer)?.send(encodedMsg)
+            break
           }
-          const encodedMsg: Buffer = msgpack.encode(forwardMsg)
+          case messages.type.Shares: {
+            const forwardMsg: messages.Shares = {
+              type: messages.type.Shares,
+              peer: peerID,
+              weights: msg.weights
+            }
+            const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 
-          // sends message it received to destination
-          this.clients.get(msg.peer)?.send(encodedMsg)
-        } else if (msg.type === messages.type.clientReadyMessage) {
-          const currentClients: Set<PeerID> =
-            this.readyClientsBuffer.get(msg.task) ?? new Set<PeerID>()
-          const updatedClients: Set<PeerID> = currentClients.add(peerID)
-          this.readyClientsBuffer = this.readyClientsBuffer.set(
-            msg.task,
-            updatedClients
-          )
-          // if enough clients are connected, server shares who is connected
-          const currentPeers: Set<PeerID> =
-            this.readyClientsBuffer.get(msg.task) ?? new Set<PeerID>()
-          if (currentPeers.size >= minimumReadyPeers) {
+            // sends message it received to destination
+            this.clients.get(msg.peer)?.send(encodedMsg)
+            break
+          }
+          case messages.type.PeerIsReady: {
+            const currentClients: Set<PeerID> =
+              this.readyClientsBuffer.get(msg.task) ?? new Set<PeerID>()
+            const updatedClients: Set<PeerID> = currentClients.add(peerID)
             this.readyClientsBuffer = this.readyClientsBuffer.set(
               msg.task,
-              new Set<PeerID>()
+              updatedClients
             )
-            const readyPeerIDs: messages.serverReadyClients = {
-              type: messages.type.serverReadyClients,
-              peerList: Array.from(currentPeers)
+            // if enough clients are connected, server shares who is connected
+            const currentPeers: Set<PeerID> =
+              this.readyClientsBuffer.get(msg.task) ?? new Set<PeerID>()
+            if (currentPeers.size >= minimumReadyPeers) {
+              this.readyClientsBuffer = this.readyClientsBuffer.set(
+                msg.task,
+                new Set<PeerID>()
+              )
+              const readyPeerIDs: messages.PeersForRound = {
+                type: messages.type.PeersForRound,
+                peers: Array.from(currentPeers)
+              }
+              for (const peerID of currentPeers) {
+                // send peerIds to everyone in readyClients
+                this.clients.get(peerID)?.send(msgpack.encode(readyPeerIDs))
+              }
             }
-            for (const peerID of currentPeers) {
-              // send peerIds to everyone in readyClients
-              this.clients.get(peerID)?.send(msgpack.encode(readyPeerIDs))
+            break
+          }
+          case messages.type.PartialSums: {
+            const forwardMsg: messages.PartialSums = {
+              type: messages.type.PartialSums,
+              peer: peerID,
+              partials: msg.partials
             }
-          }
-        } else if (
-          msg.type === messages.type.clientPartialSumsMessageServer
-        ) {
-          const forwardMsg: messages.clientPartialSumsMessageServer = {
-            type: messages.type.clientPartialSumsMessageServer,
-            peer: peerID,
-            partials: msg.partials
-          }
-          const encodedMsg: Buffer = msgpack.encode(forwardMsg)
+            const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 
-          // sends message it received to destination
-          this.clients.get(msg.peer)?.send(encodedMsg)
+            // sends message it received to destination
+            this.clients.get(msg.peer)?.send(encodedMsg)
+            break
+          }
         }
       } catch (e) {
-        console.error('when processing WebSocket message', e)
+        console.error('when processing WebSocket message:', e)
       }
     })
   }

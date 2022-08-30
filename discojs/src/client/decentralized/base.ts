@@ -48,8 +48,8 @@ export abstract class Base extends ClientBase {
     this.peers = undefined
 
     // Broadcast our readiness
-    const msg: messages.clientReadyMessage = {
-      type: messages.type.clientReadyMessage,
+    const msg: messages.PeerIsReady = {
+      type: messages.type.PeerIsReady,
       round: round,
       task: this.task.taskID
     }
@@ -81,28 +81,31 @@ export abstract class Base extends ClientBase {
       }
 
       const msg = msgpack.decode(new Uint8Array(event.data))
-      if (!messages.isMessage(msg)) {
+      if (
+        !messages.isMessageFromServer(msg) &&
+        !messages.isPeerMessage(msg) // TODO rm when fully distributed
+      ) {
         throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
       }
 
-      // check message type to choose correct action
-      if (msg.type === messages.type.serverClientIDMessage) {
-        if (this.ID !== undefined) {
-          throw new Error('got ID from server but was already received')
-        }
-
-        this.ID = msg.peerID
-      } else if (msg.type === messages.type.serverReadyClients) {
-        // updated connected peers
-        if (this.peers !== undefined) {
-          throw new Error('got new peer list from server but it was already received for this round')
-        }
-
-        this.peers = msg.peerList
-      } else if (msg.type === messages.type.clientConnected) {
-        this.connected = true
-      } else {
-        this.clientHandle(msg)
+      switch (msg.type) {
+        case messages.type.PeerID:
+          if (this.ID !== undefined) {
+            throw new Error('got ID from server but was already received')
+          }
+          this.ID = msg.id
+          break
+        case messages.type.PeersForRound:
+          if (this.peers !== undefined) {
+            throw new Error('got new peer list from server but it was already received for this round')
+          }
+          this.peers = msg.peers
+          break
+        case messages.type.clientConnected:
+          this.connected = true
+          break
+        default:
+          this.clientHandle(msg)
       }
     }
 

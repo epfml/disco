@@ -30,7 +30,7 @@ export class ClearText extends Base {
     // create weights message and send to all peers
     peers.forEach((peer) =>
       this.sendMessagetoPeer({
-        type: messages.type.clientWeightsMessageServer,
+        type: messages.type.Weights,
         peer: peer,
         weights: weightsToSend
       })
@@ -49,7 +49,7 @@ export class ClearText extends Base {
 handles received messages from signaling server
  */
   override clientHandle (msg: messages.PeerMessage): void {
-    if (msg.type === messages.type.clientWeightsMessageServer) {
+    if (msg.type === messages.type.Weights) {
       // update received weights by one weights reception
       const weights = serialization.weights.decode(msg.weights)
       this.receivedWeights = this.receivedWeights.push(weights)
