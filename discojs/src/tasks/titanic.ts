@@ -55,7 +55,6 @@ export const task: Task = {
       loss: 'binaryCrossentropy',
       metrics: ['accuracy']
     },
-    receivedMessagesThreshold: 1,
     dataType: 'tabular',
     inputColumns: [
       'PassengerId',
