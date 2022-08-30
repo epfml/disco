@@ -42,26 +42,14 @@
     </ButtonCard>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
+import { useRouter } from 'vue-router'
 
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 
-export default defineComponent({
-  name: 'GetStarted',
-  components: {
-    ButtonCard
-  },
-  methods: {
-    goToTaskList () {
-      this.$router.push({ path: '/list' })
-    },
-    goToNewTaskCreationForm () {
-      this.$router.push({ path: '/create' })
-    },
-    goToModelTesting () {
-      this.$router.push({ path: '/testing' })
-    }
-  }
-})
+const router = useRouter()
+
+const goToTaskList = (): void => { router.push({ path: '/list' }) }
+const goToNewTaskCreationForm = (): void => { router.push({ path: '/create' }) }
+const goToModelTesting = (): void => { router.push({ path: '/testing' }) }
 </script>

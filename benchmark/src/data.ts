@@ -10,12 +10,6 @@ class NodeImageLoader extends dataset.ImageLoader<string> {
   async readImageFrom(source: string): Promise<tf.Tensor3D> {
     const imageBuffer = fs.readFileSync(source)
     let tensor = tf.node.decodeImage(imageBuffer)
-    //Add pre processing here:
-    // e.g: If resize needed uncomment the following
-    // tensor = tf.image.resizeBilinear(tensor, [
-    //   32, 32
-    // ])
-    tensor = tensor.div(tf.scalar(255))
     return tensor as tf.Tensor3D
   }
 }

@@ -27,12 +27,11 @@ export const task: Task = {
       loss: 'categoricalCrossentropy',
       metrics: ['accuracy']
     },
-    threshold: 1,
     dataType: 'image',
     csvLabels: true,
     IMAGE_H: 32,
     IMAGE_W: 32,
-    preprocessFunctions: ['resize'],
+    preprocessingFunctions: [],
     RESIZED_IMAGE_H: 224,
     RESIZED_IMAGE_W: 224,
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
@@ -57,7 +56,7 @@ export const task: Task = {
   }
 }
 
-export async function model (): Promise<tf.LayersModel> {
+export async function model (_: string = ''): Promise<tf.LayersModel> {
   const mobilenet = await tf.loadLayersModel(
     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
   )

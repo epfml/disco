@@ -27,12 +27,10 @@ export const task: Task = {
       loss: 'categoricalCrossentropy',
       metrics: ['accuracy']
     },
-    threshold: 1,
     dataType: 'image',
-
     IMAGE_H: 28,
     IMAGE_W: 28,
-    preprocessFunctions: [],
+    preprocessingFunctions: [],
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
     aggregateImagesById: false,
     scheme: 'Decentralized',
@@ -44,7 +42,7 @@ export const task: Task = {
   }
 }
 
-export function model (): tf.LayersModel {
+export function model (_: string = ''): tf.LayersModel {
   const model = tf.sequential()
 
   model.add(

@@ -18,20 +18,17 @@
     </ButtonCard>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
+import { defineEmits } from 'vue'
 
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 
-export default defineComponent({
-  name: 'Landing',
-  components: {
-    ButtonCard
-  },
-  methods: {
-    getStarted (): void {
-      this.$emit('got-started')
-    }
-  }
-})
+interface Emits {
+  (e: 'got-started'): void
+}
+const emit = defineEmits<Emits>()
+
+const getStarted = (): void => {
+  emit('got-started')
+}
 </script>

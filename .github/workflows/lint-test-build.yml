@@ -174,9 +174,6 @@ jobs:
   test-client:
     needs: [build-client, build-server-docker, test-server]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.client_dir }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -189,5 +186,10 @@ jobs:
             ${{ env.client_dir }}/package-lock.json
       - run: npm ci && npm run build
         working-directory: ${{ env.lib_dir }}
-      - run: npm ci
-      - run: ./with_server npm run test
+      - uses: cypress-io/github-action@v4
+        with:
+          browser: firefox
+          start: npm run dev
+          wait-on: http://localhost:8080/
+          working-directory: ${{ env.client_dir }}
+          config: baseUrl=http://localhost:8080/#/

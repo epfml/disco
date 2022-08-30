@@ -7,7 +7,7 @@
       class="
         h-full
         flex flex-col
-        p-8
+        md:p-8
         bg-white
         rounded-lg
       "
@@ -41,6 +41,7 @@
           <label class="pb-4">
             <div
               class="
+              justify-self-center
               p-2
               rounded-sm
               text-white
@@ -72,10 +73,10 @@
         </div> -->
 
         <!-- If no preview of the selected file, display the nbr. of uploaded files -->
-        <div class="pt-8 grid grid-cols-3 items-center mb-2">
-          <span class="font-semibold text-slate-700 sm:text-lg justify-self-start">
-            Number of selected files: <span class="pl-1 text-xl">{{ nbrSelectedFiles }}</span>
-          </span>
+        <div class="pt-8 flex flex-col md:grid md:grid-cols-3 items-center">
+          <div class="flex justify-center items-center text-center md:text-left font-semibold text-slate-700 sm:text-lg">
+            <span>Number of selected files: <span class="pl-1 text-xl">{{ nbrSelectedFiles }}</span></span>
+          </div>
           <button
             class="
                 justify-self-center
@@ -101,15 +102,6 @@
 <script lang="ts">
 export default {
   name: 'FileSelection',
-  components: {
-    // PreviewGallery
-  },
-  props: {
-    preview: {
-      type: Boolean,
-      default: false
-    }
-  },
   data () {
     return {
       nbrSelectedFiles: 0
