@@ -21,7 +21,7 @@ async function runUser (url: URL): Promise<void> {
   const ti = new informant.FederatedInformant(TASK.taskID, 10)
 
   // Build federated client (add server URL and TASK object specific to training task)
-  const client = new clients.Federated(url, TASK)
+  const client = new clients.federated.Client(url, TASK)
   await client.connect()
 
   // Build disco object, other available training schemes: TrainingSchemes.DECENTRALIZED, TrainingSchemes.LOCAL

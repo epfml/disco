@@ -1,11 +1,26 @@
 import express, { Request, Response } from 'express'
+import expressWS from 'express-ws'
+import WebSocket from 'ws'
+
 import { List, Map, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 
-import { tf, serialization, aggregation, AsyncInformant, Task, isTaskID, TaskID, AsyncBuffer, Weights } from '@epfml/discojs'
+import {
+  client,
+  tf,
+  serialization,
+  aggregation,
+  AsyncInformant,
+  Task,
+  isTaskID,
+  TaskID,
+  AsyncBuffer,
+  Weights,
+} from '@epfml/discojs'
 
 import { Config } from '../config'
 import { TasksAndModels } from '../tasks'
+import { Server } from './server'
 
 const BUFFER_CAPACITY = 2
 
@@ -45,7 +60,9 @@ interface TaskStatus {
   round: number
 }
 
-export class Federated {
+import messages = client.federated.messages
+
+export class Federated extends Server {
   // model weights received from clients for a given task and round.
   private asyncBuffersMap = Map<TaskID, AsyncBuffer<Weights>>()
   // informants for each task.
@@ -54,7 +71,10 @@ export class Federated {
    * Contains metadata used for training by clients for a given task and round.
    * Stored by task ID, round number and client ID.
    */
-  private metadataMap = Map<TaskID, Map<number, Map<string, Map<string, string>>>>()
+  private metadataMap = Map<
+    TaskID,
+    Map<number, Map<string, Map<string, string>>>
+  >()
 
   // Contains all successful requests made to the server.
   // TODO use real log system
@@ -63,7 +83,7 @@ export class Federated {
   // Contains client IDs currently connected to one of the server.
   private clients = Set<string>()
 
-  private models= Map<TaskID, tf.LayersModel>()
+  private models = Map<TaskID, tf.LayersModel>()
 
   /**
    * Maps a task to a status object. Currently provides the round number and
@@ -71,69 +91,123 @@ export class Federated {
    */
   private tasksStatus = Map<TaskID, TaskStatus>()
 
-  private readonly ownRouter: express.Router
-
-  constructor (
-    private readonly config: Config,
-    tasksAndModels: TasksAndModels
-  ) {
-    this.ownRouter = express.Router()
-
-    this.ownRouter.get('/', (_, res) => res.send('FeAI server\n'))
-
-    this.ownRouter.get('/connect/:task/:id', (req, res) => this.connect(req, res))
-    this.ownRouter.get('/disconnect/:task/:id', (req, res) => this.disconnect(req, res))
-
-    this.ownRouter
-      .route('/weights/:task/:id')
-      .get(async (req, res) => await this.getWeightsHandler(req, res))
-      .post(async (req, res) => await this.postWeights(req, res))
-
-    this.ownRouter.get('/round/:task/:id', (req, res, next) => {
-      this.getRound(req, res).catch(next)
-    })
-
-    this.ownRouter.get('/statistics/:task/:id', (req, res, next) => {
-      this.getAsyncWeightInformantStatistics(req, res).catch(next)
-    })
-
-    this.ownRouter
-      .route('/metadata/:metadata/:task/:round/:id')
-      .get((req, res) => this.getMetadataMap(req, res))
-      .post((req, res) => this.postMetadata(req, res))
-
-    this.ownRouter.get('/logs', (req, res) => this.queryLogs(req, res))
-
-    // delay listener
-    process.nextTick(() =>
-      tasksAndModels.addListener('taskAndModel', (t, m) => {
-        this.onNewTask(t, m).catch(console.error)
-      }))
+  protected get description(): string {
+    return 'FeAI Server'
   }
 
-  public get router (): express.Router {
-    return this.ownRouter
+  protected buildRoute(task: Task): string {
+    return `/${task.taskID}/:clientId`
   }
 
-  private async onNewTask (task: Task, model: tf.LayersModel): Promise<void> {
-    this.tasksStatus = this.tasksStatus.set(
-      task.taskID,
-      { isRoundPending: false, round: 0 }
-    )
+  protected initTask(task: Task, model: tf.LayersModel): void {
+    this.tasksStatus = this.tasksStatus.set(task.taskID, {
+      isRoundPending: false,
+      round: 0,
+    })
 
     const buffer = new AsyncBuffer(
       task.taskID,
       BUFFER_CAPACITY,
-      async (weights: Weights[]) => await this.aggregateAndStoreWeights(model, weights)
+      async (weights: Weights[]) =>
+        await this.aggregateAndStoreWeights(model, weights),
     )
     this.asyncBuffersMap = this.asyncBuffersMap.set(task.taskID, buffer)
 
     this.asyncInformantsMap = this.asyncInformantsMap.set(
       task.taskID,
-      new AsyncInformant(buffer)
+      new AsyncInformant(buffer),
     )
 
     this.models = this.models.set(task.taskID, model)
+  }
+
+  protected handle(
+    task: Task,
+    ws: WebSocket,
+    model: tf.LayersModel,
+    req: express.Request,
+  ): void {
+    const clientId = req.params.clientId
+    console.info('client', clientId, 'joined', task.taskID)
+
+    this.clients = this.clients.add(clientId)
+
+    ws.on('message', (data: Buffer) => {
+      const msg = msgpack.decode(data)
+
+      if (msg.type == messages.messageType.postWeightsToServer) {
+        const rawWeights = msg.weights
+        const round = msg.round
+
+        if (
+          !(
+            Array.isArray(rawWeights) &&
+            rawWeights.every((e) => typeof e === 'number')
+          )
+        ) {
+          throw new Error('invalid weights format')
+        }
+
+        const weights = serialization.weights.decode(rawWeights)
+
+        const buffer = this.asyncBuffersMap.get(task.taskID)
+        if (buffer === undefined) {
+          throw new Error(`post weight to unknown task: ${task}`)
+        }
+
+        buffer.add(clientId, weights, round)
+      } else if (msg.type == messages.messageType.pullServerStatistics) {
+        // Get latest round
+        const statistics = this.asyncInformantsMap
+          .get(task.taskID)
+          ?.getAllStatistics()
+
+        const msg: messages.pullServerStatistics = {
+          type: messages.messageType.pullServerStatistics,
+          statistics: statistics!,
+        }
+
+        ws.send(msgpack.encode(msg))
+      } else if (msg.type == messages.messageType.latestServerRound) {
+        const buffer = this.asyncBuffersMap.get(task.taskID)
+        if (buffer === undefined) {
+          throw new Error(`get round of unknown task: ${task}`)
+        }
+
+        // Get latest round
+        const round = buffer.round
+
+        const weights = model.weights.map((e) => e.read())
+        serialization.weights.encode(weights).then((serializedWeights) => {
+          const msg: messages.latestServerRound = {
+            type: messages.messageType.latestServerRound,
+            round: round,
+            weights: serializedWeights,
+          }
+
+          ws.send(msgpack.encode(msg))
+        })
+      }
+    })
+  }
+
+  /**
+   * Save the newly aggregated model to the server's local storage. This
+   * is now the model served to clients for the given task. To save the newly
+   * aggregated weights, here is the (cumbersome) procedure:
+   * 1. create a new TFJS model with the right layers
+   * 2. assign the newly aggregated weights to it
+   * 3. save the model
+   */
+  private async aggregateAndStoreWeights(
+    model: tf.LayersModel,
+    weights: Weights[],
+  ): Promise<void> {
+    // Get averaged weights
+    const averagedWeights = aggregation.averageWeights(List<Weights>(weights))
+
+    // Update model
+    model.setWeights(averagedWeights)
   }
 
   /**
@@ -146,7 +220,7 @@ export class Federated {
    * @param {Request} request received from client
    */
   // TODO use https://expressjs.com/en/guide/error-handling.html
-  private checkRequest (request: Request): number {
+  /* private checkRequest(request: Request): number {
     const round = Number.parseInt(request.params.round)
 
     if (Number.isNaN(round)) {
@@ -156,11 +230,11 @@ export class Federated {
     return this.checkIfHasValidTaskAndId(request)
   }
 
-  private checkIfHasValidTaskAndId (request: Request): number {
+  private checkIfHasValidTaskAndId(request: Request): number {
     const task = request.params.task
     const id = request.params.id
 
-    if (!(this.tasksStatus.has(task))) {
+    if (!this.tasksStatus.has(task)) {
       return 404
     }
     if (!this.clients.contains(id)) {
@@ -168,20 +242,24 @@ export class Federated {
     }
 
     return 200
-  }
+  } */
 
-  private failRequest (response: Response, type: RequestType, code: number): number {
+  /* private failRequest(
+    response: Response,
+    type: RequestType,
+    code: number,
+  ): number {
     console.error(`${type} failed with code ${code}`)
     response.status(code).send()
     return code
-  }
+  } */
 
   /**
    * Appends the given request to the server logs.
    * @param {Request} request received from client
    * @param {String} type of the request
    */
-  private logsAppend (request: Request, type: RequestType): void {
+  /* private logsAppend(request: Request, type: RequestType): void {
     const round = parseRound(request.params.round)
     if (round === undefined) {
       return
@@ -192,25 +270,9 @@ export class Federated {
       task: request.params.task,
       round,
       client: request.params.id,
-      request: type
+      request: type,
     })
-  }
-
-  /**
-   * Save the newly aggregated model to the server's local storage. This
-   * is now the model served to clients for the given task. To save the newly
-   * aggregated weights, here is the (cumbersome) procedure:
-   * 1. create a new TFJS model with the right layers
-   * 2. assign the newly aggregated weights to it
-   * 3. save the model
-   */
-  private async aggregateAndStoreWeights (model: tf.LayersModel, weights: Weights[]): Promise<void> {
-  // Get averaged weights
-    const averagedWeights = aggregation.averageWeights(List<Weights>(weights))
-
-    // Update model
-    model.setWeights(averagedWeights)
-  }
+  } */
 
   /**
    * Request handler called when a client sends a GET request asking for the
@@ -219,15 +281,15 @@ export class Federated {
    * parameter is optional. It requires no prior connection to the server and is thus
    * publicly available data.
    */
-  private queryLogs (request: Request, response: Response): void {
+  /* private queryLogs(request: Request, response: Response): void {
     const task = request.query.task
     const rawRound = request.query.round
     const id = request.query.id
 
     if (
       (task !== undefined && !isTaskID(task)) ||
-    (rawRound !== undefined && typeof rawRound === 'string') ||
-    (id !== undefined && typeof id !== 'string')
+      (rawRound !== undefined && typeof rawRound === 'string') ||
+      (id !== undefined && typeof id !== 'string')
     ) {
       response.status(400)
       return
@@ -243,15 +305,24 @@ export class Federated {
     }
 
     const undef = '[undefined]'
-    console.log('Logs query: task:', task ?? undef, 'round:', round ?? undef, 'id:', id ?? undef)
+    console.log(
+      'Logs query: task:',
+      task ?? undef,
+      'round:',
+      round ?? undef,
+      'id:',
+      id ?? undef,
+    )
 
-    response
-      .status(200)
-      .send(this.logs
+    response.status(200).send(
+      this.logs
         .filter((entry) => (id !== undefined ? entry.client === id : true))
         .filter((entry) => (task !== undefined ? entry.task === task : true))
-        .filter((entry) => (round !== undefined ? entry.round === round : true)))
-  }
+        .filter((entry) =>
+          round !== undefined ? entry.round === round : true,
+        ),
+    )
+  } */
 
   /**
    * Entry point to the server's API. Any client must go through this connection
@@ -260,7 +331,7 @@ export class Federated {
    * @param {Request} request received from client
    * @param {Response} response sent to client
    */
-  private connect (request: Request, response: Response): void {
+  /* private connect(request: Request, response: Response): void {
     const type = RequestType.Connect
 
     const task = request.params.task
@@ -280,7 +351,7 @@ export class Federated {
     this.clients = this.clients.add(id)
     console.log(`Client with ID ${id} connected to the server`)
     response.status(200).send()
-  }
+  } */
 
   /**
    * Request handler called when a client sends a GET request notifying the server
@@ -290,7 +361,7 @@ export class Federated {
    * with very poor and/or sparse contribution to training in terms of performance
    * and/or weights posting frequency.
    */
-  private disconnect (request: Request, response: Response): void {
+  /* private disconnect(request: Request, response: Response): void {
     const type = RequestType.Disconnect
 
     const task = request.params.task
@@ -307,10 +378,10 @@ export class Federated {
 
     console.log(`Client with ID ${id} disconnected from the server`)
     response.status(200).send()
-  }
+  } */
 
   // Checks if the request is valid for post async weights.
-  private checkPostWeights (request: Request, response: Response): number {
+  /* private checkPostWeights(request: Request, response: Response): number {
     const type = RequestType.PostAsyncWeights
 
     const code = this.checkIfHasValidTaskAndId(request)
@@ -320,16 +391,19 @@ export class Federated {
 
     if (
       request.body === undefined ||
-    request.body.round === undefined ||
-    request.body.weights === undefined
+      request.body.round === undefined ||
+      request.body.weights === undefined
     ) {
       return this.failRequest(response, type, 400)
     }
 
     return 200
-  }
+  } */
 
-  private async getWeightsHandler (request: Request, response: Response): Promise<void> {
+  /* private async getWeightsHandler(
+    request: Request,
+    response: Response,
+  ): Promise<void> {
     const task = request.params.task
     const model = this.models.get(task)
     if (model === undefined) {
@@ -340,18 +414,26 @@ export class Federated {
     const serializedWeights = await serialization.weights.encode(weights)
 
     response.status(200).send(serializedWeights)
-  }
+  } */
 
   // Post weights to the async weights holder
-  private async postWeights (request: Request, response: Response): Promise<void> {
+  /* private async postWeights(
+    request: Request,
+    response: Response,
+  ): Promise<void> {
     const codeFromCheckingValidity = this.checkPostWeights(request, response)
     if (codeFromCheckingValidity !== 200) {
-    // request already failed
+      // request already failed
       return
     }
 
     const rawWeights: unknown = request.body.weights
-    if (!(Array.isArray(rawWeights) && rawWeights.every((e) => typeof e === 'number'))) {
+    if (
+      !(
+        Array.isArray(rawWeights) &&
+        rawWeights.every((e) => typeof e === 'number')
+      )
+    ) {
       throw new Error('invalid weights format')
     }
     const weights = serialization.weights.decode(rawWeights)
@@ -365,13 +447,15 @@ export class Federated {
       throw new Error(`post weight to unknown task: ${task}`)
     }
 
-    const codeFromAddingWeight = (await buffer.add(id, weights, round)) ? 200 : 202
+    const codeFromAddingWeight = (await buffer.add(id, weights, round))
+      ? 200
+      : 202
     response.status(codeFromAddingWeight).send()
-  }
+  } */
 
   // Get the current round of the async weights holder
-  private async getRound (request: Request, response: Response): Promise<void> {
-  // Check for errors
+  /* private async getRound(request: Request, response: Response): Promise<void> {
+    // Check for errors
     const type = RequestType.GetAsyncRound
     const code = this.checkIfHasValidTaskAndId(request)
     if (code !== 200) {
@@ -391,11 +475,14 @@ export class Federated {
 
     // Send back latest round
     response.status(200).send({ round: round })
-  }
+  } */
 
   // Get the JSON containing statistics about the async weight buffer
-  private async getAsyncWeightInformantStatistics (request: Request, response: Response): Promise<void> {
-  // Check for errors
+  /* private async getAsyncWeightInformantStatistics(
+    request: Request,
+    response: Response,
+  ): Promise<void> {
+    // Check for errors
     const type = RequestType.GetAsyncRound
     const code = this.checkIfHasValidTaskAndId(request)
     if (code !== 200) {
@@ -412,7 +499,7 @@ export class Federated {
 
     // Send back latest round
     response.status(200).send({ statistics: statistics })
-  }
+  } */
 
   /**
    * Request handler called when a client sends a POST request containing their
@@ -424,7 +511,7 @@ export class Federated {
    * @param {Request} request received from client
    * @param {Response} response sent to client
    */
-  private postMetadata (request: Request, response: Response): void {
+  /* private postMetadata(request: Request, response: Response): void {
     const type = RequestType.PostMetadata
 
     const code = this.checkRequest(request)
@@ -448,10 +535,13 @@ export class Federated {
     if (this.metadataMap.hasIn([task, round, id, metadata])) {
       throw new Error('metadata already set')
     }
-    this.metadataMap = this.metadataMap.setIn([task, round, id, metadata], request.body[metadata])
+    this.metadataMap = this.metadataMap.setIn(
+      [task, round, id, metadata],
+      request.body[metadata],
+    )
 
     response.status(200).send()
-  }
+  } */
 
   /**
    * Request handler called when a client sends a POST request asking the server
@@ -463,7 +553,7 @@ export class Federated {
    * @param {Request} request received from client
    * @param {Response} response sent to client
    */
-  private getMetadataMap (request: Request, response: Response): void {
+  /* private getMetadataMap(request: Request, response: Response): void {
     const type = RequestType.GetMetadata
 
     const code = this.checkRequest(request)
@@ -494,26 +584,27 @@ export class Federated {
      * Find the most recent entry round-wise for the given task (upper bounded
      * by the given round). Allows for sporadic entries in the metadata map.
      */
-    const latestRound = taskMetadata.keySeq().max() ?? round
+  // const latestRound = taskMetadata.keySeq().max() ?? round
 
-    /**
-     * Fetch the required metadata from the general metadata structure stored
-     * server-side and construct the queried metadata's map accordingly. This
-     * essentially creates a "ID -> metadata" single-layer map.
-     */
-    const queriedMetadataMap = Map(
+  /**
+   * Fetch the required metadata from the general metadata structure stored
+   * server-side and construct the queried metadata's map accordingly. This
+   * essentially creates a "ID -> metadata" single-layer map.
+   */
+  /* const queriedMetadataMap = Map(
       taskMetadata
         .get(latestRound, Map<string, Map<string, string>>())
         .filter((entries) => entries.has(metadata))
-        .mapEntries(([id, entries]) => [id, entries.get(metadata)]))
+        .mapEntries(([id, entries]) => [id, entries.get(metadata)]),
+    )
 
     response.status(200).send({
-      metadata: msgpack.encode(Array.from(queriedMetadataMap))
+      metadata: msgpack.encode(Array.from(queriedMetadataMap)),
     })
   }
-}
+} */
 
-function parseRound (raw: unknown): number | undefined {
+  /* function parseRound(raw: unknown): number | undefined {
   if (typeof raw !== 'string') {
     return undefined
   }
@@ -524,4 +615,5 @@ function parseRound (raw: unknown): number | undefined {
   }
 
   return round
+}*/
 }

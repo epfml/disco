@@ -33,7 +33,7 @@ function filesFromFolder (dir: string, folder: string): string[] {
   return f.map(file => dir + folder + '/' + file)
 }
 
-export async function loadData (task: Task): Promise<dataset.DataTuple> {
+export async function loadData (task: Task): Promise<dataset.DataSplit> {
   const dir = './../discojs/example_training_data/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']

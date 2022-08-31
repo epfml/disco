@@ -1,42 +1,121 @@
-import express from 'express'
-import expressWS from 'express-ws'
+import { Map } from 'immutable'
+import msgpack from 'msgpack-lite'
+import WebSocket from 'ws'
 
-import { tf, Task } from '@epfml/discojs'
+import { client, Task, TaskID, tf } from '@epfml/discojs'
 
-import { TasksAndModels } from '../tasks'
-import { SignalingServer } from './signaling_server'
+import messages = client.decentralized.messages
+type PeerID = client.decentralized.PeerID
+
+import { Server } from './server'
 // import { addDifferentialPrivacy } from '@/../../discojs/dist/privacy'
 
-export class Decentralized {
-  private readonly ownRouter: expressWS.Router
-  private readonly signalingServer = new SignalingServer()
+export class Decentralized extends Server {
+  // maps peerIDs to their respective websockets so peers can be sent messages by their IDs
+  private readyClientsBuffer: Map<TaskID, Set<PeerID>> = Map()
+  private clients: Map<PeerID, WebSocket> = Map()
+  // increments with addition of every client, server keeps track of clients with this and tells them their ID
+  private clientCounter: PeerID = 0
 
-  constructor (
-    wsApplier: expressWS.Instance,
-    tasksAndModels: TasksAndModels
-  ) {
-    this.ownRouter = express.Router()
-    wsApplier.applyTo(this.ownRouter)
-
-    this.ownRouter.get('/', (_, res) => res.send('DeAI server\n'))
-
-    // delay listener because this (object) isn't fully constructed yet. The lambda function inside process.nextTick is executed after the current operation on the JS stack runs to completion and before the event loop is allowed to continue.
-    /* this.onNewTask is registered as a listener to tasksAndModels, which has 2 consequences:
-    - this.onNewTask is executed on all the default tasks (which are already loaded in tasksAndModels)
-    - Every time a new task and model are added to tasksAndModels, this.onNewTask is executed on them.
-    For every task and model, this.onNewTask creates a path /taskID and routes it to this.signalingServer.handle.
-    */
-    process.nextTick(() =>
-      tasksAndModels.addListener('taskAndModel', (t, m) =>
-        this.onNewTask(t, m)))
+  protected get description(): string {
+    return 'DeAI Server'
   }
 
-  public get router (): express.Router {
-    return this.ownRouter
+  protected buildRoute(task: Task): string {
+    return `/${task.taskID}`
   }
 
-  private onNewTask (task: Task, _: tf.LayersModel): void {
-    this.ownRouter.ws(`/${task.taskID}`, (ws, _) =>
-      this.signalingServer.handle(task, ws))
+  protected initTask(): void {
+    return
+  }
+
+  protected handle(task: Task, ws: WebSocket): void {
+    const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
+    const peerID: PeerID = this.clientCounter++
+    this.clients = this.clients.set(peerID, ws)
+    // send peerID message
+    const msg: messages.serverClientIDMessage = {
+      type: messages.messageType.serverClientIDMessage,
+      peerID,
+    }
+    console.info('peer', peerID, 'joined', task.taskID)
+
+    if (!this.readyClientsBuffer.has(task.taskID)) {
+      this.readyClientsBuffer.set(task.taskID, new Set<PeerID>())
+    }
+
+    ws.send(msgpack.encode(msg), { binary: true })
+
+    // how the server responds to messages
+    ws.on('message', (data: Buffer) => {
+      try {
+        const msg = msgpack.decode(data)
+        if (msg.type === messages.messageType.clientWeightsMessageServer) {
+          const forwardMsg: messages.clientWeightsMessageServer = {
+            type: messages.messageType.clientWeightsMessageServer,
+            peerID: msg.peerID,
+            weights: msg.weights,
+            destination: msg.destination,
+          }
+          const encodedMsg: Buffer = msgpack.encode(forwardMsg)
+
+          // sends message it received to destination
+          this.clients.get(msg.destination)?.send(encodedMsg)
+        } else if (
+          msg.type === messages.messageType.clientSharesMessageServer
+        ) {
+          const forwardMsg: messages.clientSharesMessageServer = {
+            type: messages.messageType.clientSharesMessageServer,
+            peerID: msg.peerID,
+            weights: msg.weights,
+            destination: msg.destination,
+          }
+          const encodedMsg: Buffer = msgpack.encode(forwardMsg)
+
+          // sends message it received to destination
+          this.clients.get(msg.destination)?.send(encodedMsg)
+        } else if (msg.type === messages.messageType.clientReadyMessage) {
+          const currentClients: Set<PeerID> =
+            this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
+          const updatedClients: Set<PeerID> = currentClients.add(msg.peerID)
+          this.readyClientsBuffer = this.readyClientsBuffer.set(
+            msg.taskID,
+            updatedClients,
+          )
+          // if enough clients are connected, server shares who is connected
+          const currentPeers: Set<PeerID> =
+            this.readyClientsBuffer.get(msg.taskID) ?? new Set<PeerID>()
+          if (currentPeers.size >= minimumReadyPeers) {
+            this.readyClientsBuffer = this.readyClientsBuffer.set(
+              msg.taskID,
+              new Set<PeerID>(),
+            )
+            const readyPeerIDs: messages.serverReadyClients = {
+              type: messages.messageType.serverReadyClients,
+              peerList: Array.from(currentPeers),
+            }
+            for (const peerID of currentPeers) {
+              // send peerIds to everyone in readyClients
+              this.clients.get(peerID)?.send(msgpack.encode(readyPeerIDs))
+            }
+          }
+        } else if (
+          msg.type === messages.messageType.clientPartialSumsMessageServer
+        ) {
+          const forwardMsg: messages.clientPartialSumsMessageServer = {
+            type: messages.messageType.clientPartialSumsMessageServer,
+            peerID: msg.peerID,
+            partials: msg.partials,
+            destination: msg.destination,
+          }
+          const encodedMsg: Buffer = msgpack.encode(forwardMsg)
+
+          // sends message it received to destination
+          this.clients.get(msg.destination)?.send(encodedMsg)
+        }
+      } catch (e) {
+        console.error('when processing WebSocket message', e)
+      }
+    })
   }
 }
