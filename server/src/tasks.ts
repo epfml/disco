@@ -1,6 +1,6 @@
 import { Set, Map } from 'immutable'
 import { EventEmitter } from 'node:events'
-import * as tf from '@tensorflow/tfjs'
+import { tf } from '@epfml/discojs'
 import path from 'path'
 
 import { tasks as defaultTasks, Task } from '@epfml/discojs'
