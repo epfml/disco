@@ -9,6 +9,7 @@ env:
   lib_dir: discojs
   client_dir: browser
   server_dir: server
+  benchmark_dir: benchmark
 
 jobs:
   lint-lib:
@@ -193,3 +194,26 @@ jobs:
           wait-on: http://localhost:8080/
           working-directory: ${{ env.client_dir }}
           config: baseUrl=http://localhost:8080/#/
+
+  test-benchmark:
+    needs: test-server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.benchmark_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.server_dir }}/package-lock.json
+            ${{ env.benchmark_dir }}/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_dir }}
+      - run: npm ci 
+        working-directory: ${{ env.server_dir }}
+      - run: npm ci
+      - run: npm run benchmark -- -t cifar10 -u 1 -e 1
