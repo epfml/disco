@@ -13,6 +13,7 @@ with both to some extent, if not the following references might be useful.
 
 - [JavaScript](https://eloquentjavascript.net)
 - [TypeScript](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [Deep learning](https://www.youtube.com/watch?v=dQw4w9WgXcQ?autoplay=1)
 
 Before we start I want to preface by saying that, by the time you read this the structure of disco will have changed (perhaps 
 as you are reading these words a PR is being merged into the develop branch). I will
