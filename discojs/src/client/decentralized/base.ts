@@ -33,17 +33,20 @@ export abstract class Base extends ClientBase {
     this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
   }
 
-  protected sendMessagetoPeer (message: messages.PeerMessage): void {
+  protected sendMessagetoPeer (msg: messages.PeerMessage): void {
+    console.debug(this.ID, `sends message to peer ${msg.peer}:`, msg)
+
     if (this.server === undefined) {
       throw new Error("Undefined Server, can't send message")
     }
 
-    const encoded = msgpack.encode(message)
-    this.server.send(encoded)
+    this.server.send(msgpack.encode(msg))
   }
 
   // send message to server that client is ready
   private async waitForPeers (round: number): Promise<Set<PeerID>> {
+    console.debug(this.ID, 'is ready for round', round)
+
     // clean old round
     this.peers = undefined
 
@@ -54,16 +57,17 @@ export abstract class Base extends ClientBase {
       task: this.task.taskID
     }
 
-    const encodedMsg = msgpack.encode(msg)
     if (this.server === undefined) {
       throw new Error('server undefined, could not connect peers')
     }
-    this.server.send(encodedMsg)
+    this.server.send(msgpack.encode(msg))
 
     // wait for peers to be connected before sending any update information
     await pauseUntil(() => (this.peers?.length ?? 0) >= this.minimumReadyPeers)
 
-    return Set(this.peers ?? [])
+    const ret = Set(this.peers ?? [])
+    console.debug(this.ID, `got peers for round ${round}:`, ret.toJS())
+    return ret
   }
 
   /*
@@ -75,12 +79,13 @@ export abstract class Base extends ClientBase {
     const ws: WebSocket = new WS(url)
     ws.binaryType = 'arraybuffer'
 
-    ws.onmessage = async (event: isomorphic.MessageEvent) => {
+    ws.onmessage = (event: isomorphic.MessageEvent) => {
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
 
       const msg = msgpack.decode(new Uint8Array(event.data))
+      console.debug(this.ID, 'received message from server:', msg)
       if (
         !messages.isMessageFromServer(msg) &&
         !messages.isPeerMessage(msg) // TODO rm when fully distributed
@@ -94,17 +99,20 @@ export abstract class Base extends ClientBase {
             throw new Error('got ID from server but was already received')
           }
           this.ID = msg.id
+          console.debug(this.ID, 'got own id from server')
           break
         case messages.type.PeersForRound:
           if (this.peers !== undefined) {
             throw new Error('got new peer list from server but it was already received for this round')
           }
           this.peers = msg.peers
+          console.debug(this.ID, 'got peers for round:', msg.peers)
           break
         case messages.type.clientConnected:
           this.connected = true
           break
         default:
+          console.debug(this.ID, 'handles message in subclass')
           this.clientHandle(msg)
       }
     }
@@ -136,6 +144,8 @@ export abstract class Base extends ClientBase {
     this.server = await this.connectServer(serverURL)
 
     await pauseUntil(() => this.connected)
+
+    console.debug(this.ID, 'server connected')
   }
 
   // disconnect from server & peers
@@ -168,12 +178,13 @@ export abstract class Base extends ClientBase {
       // Apply clipping and DP to updates that will be sent
       const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
       // send weights to all ready connected peers
-      const finalWeights: List<Weights> = await this.sendAndReceiveWeights(peers, noisyWeights, round, trainingInformant)
+      const finalWeights = await this.sendAndReceiveWeights(peers, noisyWeights, round, trainingInformant)
+      console.debug(this.ID, 'sent and received weights at round', round)
       return aggregation.averageWeights(finalWeights)
     } catch (e) {
-      let msg = `error on round ${round}`
+      let msg = `errored on round ${round}`
       if (e instanceof Error) { msg += `: ${e.message}` }
-      console.warn(msg)
+      console.warn(this.ID, msg)
 
       return updatedWeights
     }
