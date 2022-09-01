@@ -14,10 +14,12 @@ import { PeerID } from './types'
 export class SecAgg extends Base {
   private readonly maxShareValue: number
 
+  // TODO ensure that only one share or partial sum is sent per peer
+
   // list of weights received from other clients
-  private receivedShares: List<Weights> = List()
+  private receivedShares = List<Weights>()
   // list of partial sums received by client
-  private receivedPartialSums: List<Weights> = List()
+  private receivedPartialSums = List<Weights>()
   // the partial sum calculated by the client
 
   constructor (
@@ -38,14 +40,14 @@ export class SecAgg extends Base {
     trainingInformant: TrainingInformant
   ): Promise<void> {
     // generate weight shares and add differential privacy
-    const weightShares: List<Weights> = secret_shares.generateAllShares(noisyWeights, peers.size, this.maxShareValue)
+    const weightShares = secret_shares.generateAllShares(noisyWeights, peers.size, this.maxShareValue)
 
     const encodedWeightShares = List(await Promise.all(
       weightShares.map(async (weights) =>
         await serialization.weights.encode(weights))))
 
     // Broadcast our weights to ith peer in the SERVER LIST OF PEERS (seen in signaling_server.ts)
-    peers.toList().zip(encodedWeightShares).forEach(([peer, weights]) =>
+    peers.toIndexedSeq().zip(encodedWeightShares).forEach(([peer, weights]) =>
       this.sendMessagetoPeer({
         type: messages.type.Shares,
         peer,
@@ -59,7 +61,7 @@ sends partial sums to connected peers so final update can be calculated
  */
   private async sendPartialSums (peers: Set<PeerID>): Promise<void> {
     // calculating my personal partial sum from received shares that i will share with peers
-    const mySum = aggregation.sumWeights(List(Array.from(this.receivedShares.values())))
+    const mySum = aggregation.sumWeights(this.receivedShares)
     const myEncodedSum = await serialization.weights.encode(mySum)
     // calculate, encode, and send sum
     peers.forEach((peer) =>

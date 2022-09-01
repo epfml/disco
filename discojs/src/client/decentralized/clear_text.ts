@@ -11,7 +11,7 @@ import { pauseUntil } from './utils'
  */
 export class ClearText extends Base {
   // list of weights received from other clients
-  private receivedWeights: List<Weights> = List()
+  private receivedWeights = List<Weights>()
 
   override async sendAndReceiveWeights (
     peers: Set<PeerID>,

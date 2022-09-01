@@ -20,7 +20,7 @@ export abstract class Base extends ClientBase {
   private server?: isomorphic.WebSocket
 
   // list of peerIDs who the client will send messages to
-  private peers?: PeerID[]
+  private peers?: Set<PeerID>
 
   // ID of the client, got from the server
   private ID?: PeerID
@@ -63,7 +63,7 @@ export abstract class Base extends ClientBase {
     this.server.send(msgpack.encode(msg))
 
     // wait for peers to be connected before sending any update information
-    await pauseUntil(() => (this.peers?.length ?? 0) >= this.minimumReadyPeers)
+    await pauseUntil(() => (this.peers?.size ?? 0) >= this.minimumReadyPeers)
 
     const ret = Set(this.peers ?? [])
     console.debug(this.ID, `got peers for round ${round}:`, ret.toJS())
@@ -101,13 +101,16 @@ export abstract class Base extends ClientBase {
           this.ID = msg.id
           console.debug(this.ID, 'got own id from server')
           break
-        case messages.type.PeersForRound:
+        case messages.type.PeersForRound: {
+          const peers = Set(msg.peers)
           if (this.peers !== undefined) {
-            throw new Error('got new peer list from server but it was already received for this round')
+            throw new Error('got new peer list from server but was already received for this round')
           }
-          this.peers = msg.peers
-          console.debug(this.ID, 'got peers for round:', msg.peers)
+          this.peers = peers
+
+          console.debug(this.ID, 'got peers for round:', peers.toJS())
           break
+        }
         case messages.type.clientConnected:
           this.connected = true
           break
