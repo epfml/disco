@@ -123,7 +123,7 @@ export class Decentralized extends Server {
                 .map((id) => {
                   const readyPeerIDs: messages.PeersForRound = {
                     type: messages.type.PeersForRound,
-                    peers: peers.toArray()
+                    peers: peers.delete(id).toArray()
                   }
                   const encoded = msgpack.encode(readyPeerIDs)
                   return [id, encoded] as [PeerID, Buffer]

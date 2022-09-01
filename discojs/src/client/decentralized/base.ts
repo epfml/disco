@@ -34,6 +34,10 @@ export abstract class Base extends ClientBase {
   }
 
   protected sendMessagetoPeer (msg: messages.PeerMessage): void {
+    if (this.ID === msg.peer) {
+      throw new Error('sending message to itself')
+    }
+
     console.debug(this.ID, `sends message to peer ${msg.peer}:`, msg)
 
     if (this.server === undefined) {
@@ -51,11 +55,7 @@ export abstract class Base extends ClientBase {
     this.peers = undefined
 
     // Broadcast our readiness
-    const msg: messages.PeerIsReady = {
-      type: messages.type.PeerIsReady,
-      round: round,
-      task: this.task.taskID
-    }
+    const msg: messages.PeerIsReady = { type: messages.type.PeerIsReady }
 
     if (this.server === undefined) {
       throw new Error('server undefined, could not connect peers')
@@ -63,7 +63,7 @@ export abstract class Base extends ClientBase {
     this.server.send(msgpack.encode(msg))
 
     // wait for peers to be connected before sending any update information
-    await pauseUntil(() => (this.peers?.size ?? 0) >= this.minimumReadyPeers)
+    await pauseUntil(() => (this.peers?.size ?? 0) + 1 >= this.minimumReadyPeers)
 
     const ret = Set(this.peers ?? [])
     console.debug(this.ID, `got peers for round ${round}:`, ret.toJS())
@@ -103,6 +103,10 @@ export abstract class Base extends ClientBase {
           break
         case messages.type.PeersForRound: {
           const peers = Set(msg.peers)
+          if (this.ID !== undefined && peers.has(this.ID)) {
+            throw new Error('received peer list contains our own id')
+          }
+
           if (this.peers !== undefined) {
             throw new Error('got new peer list from server but was already received for this round')
           }

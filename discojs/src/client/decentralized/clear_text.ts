@@ -24,9 +24,6 @@ export class ClearText extends Base {
 
     // PHASE 1 COMMUNICATION --> create weights message and send to all peers (only one phase of communication for clear_text)
 
-    // reset received fields at beginning of each round
-    this.receivedWeights = List()
-
     // create weights message and send to all peers
     peers.forEach((peer) =>
       this.sendMessagetoPeer({
@@ -39,10 +36,13 @@ export class ClearText extends Base {
     // wait to receive all weights from peers
     await pauseUntil(() => this.receivedWeights.size >= peers.size)
     trainingInformant.update({
-      currentNumberOfParticipants: this.receivedWeights.size
+      currentNumberOfParticipants: this.receivedWeights.size + 1
     })
 
-    return this.receivedWeights
+    // add our own weights and reset state
+    const ret = this.receivedWeights.push(noisyWeights)
+    this.receivedWeights = List()
+    return ret
   }
 
   /*

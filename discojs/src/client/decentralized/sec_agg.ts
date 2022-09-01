@@ -40,10 +40,12 @@ export class SecAgg extends Base {
     trainingInformant: TrainingInformant
   ): Promise<void> {
     // generate weight shares and add differential privacy
-    const weightShares = secret_shares.generateAllShares(noisyWeights, peers.size, this.maxShareValue)
+    const weightShares = secret_shares.generateAllShares(noisyWeights, peers.size + 1, this.maxShareValue)
+
+    this.receivedShares = List.of(weightShares.first())
 
     const encodedWeightShares = List(await Promise.all(
-      weightShares.map(async (weights) =>
+      weightShares.rest().map(async (weights) =>
         await serialization.weights.encode(weights))))
 
     // Broadcast our weights to ith peer in the SERVER LIST OF PEERS (seen in signaling_server.ts)
@@ -63,6 +65,9 @@ sends partial sums to connected peers so final update can be calculated
     // calculating my personal partial sum from received shares that i will share with peers
     const mySum = aggregation.sumWeights(this.receivedShares)
     const myEncodedSum = await serialization.weights.encode(mySum)
+
+    this.receivedPartialSums = List.of(mySum)
+
     // calculate, encode, and send sum
     peers.forEach((peer) =>
       this.sendMessagetoPeer({
@@ -79,10 +84,6 @@ sends partial sums to connected peers so final update can be calculated
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<List<Weights>> {
-    // reset fields at beginning of each round
-    this.receivedShares = this.receivedShares.clear()
-    this.receivedPartialSums = this.receivedPartialSums.clear()
-
     // PHASE 1 COMMUNICATION --> send additive shares to ready peers, pause program until shares are received from all peers
     await this.sendShares(peers, noisyWeights, round, trainingInformant)
     await pauseUntil(() => this.receivedShares.size >= peers.size)
