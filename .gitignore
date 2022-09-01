@@ -144,3 +144,9 @@ model.json
 .metals/
 .idea/
 .vscode/
+
+# Yarn files 
+benchmark/yarn.lock
+browser/yarn.lock
+discojs/yarn.lock
+server/yarn.lock
