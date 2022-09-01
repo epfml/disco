@@ -6,7 +6,7 @@ import { Server } from '../server'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ParsedQs } from 'qs'
 
-import { Map } from 'immutable'
+import { Map, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 import WebSocket from 'ws'
 
@@ -67,7 +67,7 @@ export class Decentralized extends Server {
     console.info('peer', peerID, 'joined', task.taskID)
 
     if (!this.readyClientsBuffer.has(task.taskID)) {
-      this.readyClientsBuffer.set(task.taskID, new Set<PeerID>())
+      this.readyClientsBuffer = this.readyClientsBuffer.set(task.taskID, Set())
     }
 
     ws.send(msgpack.encode(msg), { binary: true })
@@ -110,29 +110,33 @@ export class Decentralized extends Server {
             break
           }
           case messages.type.PeerIsReady: {
-            const currentClients: Set<PeerID> =
-              this.readyClientsBuffer.get(msg.task) ?? new Set<PeerID>()
-            const updatedClients: Set<PeerID> = currentClients.add(peerID)
-            this.readyClientsBuffer = this.readyClientsBuffer.set(
-              msg.task,
-              updatedClients
-            )
-            // if enough clients are connected, server shares who is connected
-            const currentPeers: Set<PeerID> =
-              this.readyClientsBuffer.get(msg.task) ?? new Set<PeerID>()
-            if (currentPeers.size >= minimumReadyPeers) {
-              this.readyClientsBuffer = this.readyClientsBuffer.set(
-                msg.task,
-                new Set<PeerID>()
-              )
-              const readyPeerIDs: messages.PeersForRound = {
-                type: messages.type.PeersForRound,
-                peers: Array.from(currentPeers)
-              }
-              for (const peerID of currentPeers) {
-                // send peerIds to everyone in readyClients
-                this.clients.get(peerID)?.send(msgpack.encode(readyPeerIDs))
-              }
+            const peers = this.readyClientsBuffer.get(task.taskID)?.add(peerID)
+            if (peers === undefined) {
+              throw new Error(`task ${task.taskID} doesn't exists in ready buffer`)
+            }
+            this.readyClientsBuffer = this.readyClientsBuffer.set(task.taskID, peers)
+
+            if (peers.size >= minimumReadyPeers) {
+              this.readyClientsBuffer = this.readyClientsBuffer.set(task.taskID, Set())
+
+              peers
+                .map((id) => {
+                  const readyPeerIDs: messages.PeersForRound = {
+                    type: messages.type.PeersForRound,
+                    peers: peers.toArray()
+                  }
+                  const encoded = msgpack.encode(readyPeerIDs)
+                  return [id, encoded] as [PeerID, Buffer]
+                })
+                .map(([id, encoded]) => {
+                  const conn = this.clients.get(id)
+                  if (conn === undefined) {
+                    throw new Error(`peer ${id} marked as ready but not connection to it`)
+                  }
+                  return [conn, encoded] as [WebSocket, Buffer]
+                }).forEach(([conn, encoded]) =>
+                  conn.send(encoded)
+                )
             }
             break
           }
