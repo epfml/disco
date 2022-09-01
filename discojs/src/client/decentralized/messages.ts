@@ -1,4 +1,3 @@
-import { TaskID, isTaskID } from '../../task'
 import { weights } from '../../serialization'
 
 import { isPeerID, PeerID as PeerIDType } from './types'
@@ -31,8 +30,6 @@ export interface PeerID {
 // client who sent is ready
 export interface PeerIsReady {
   type: type.PeerIsReady
-  round: number
-  task: TaskID
 }
 
 // server send to client who to connect to
@@ -116,13 +113,7 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
     return false
   }
 
-  switch (o.type) {
-    case type.PeerIsReady:
-      return 'round' in o && typeof o.round === 'number' &&
-        'task' in o && isTaskID(o.task)
-  }
-
-  return false
+  return o.type === type.PeerIsReady
 }
 
 export function isPeerMessage (o: unknown): o is PeerMessage {
