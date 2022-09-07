@@ -1,3 +1,5 @@
+import { SignalData } from 'simple-peer'
+
 import { weights } from '../../serialization'
 
 import { isPeerID, PeerID as PeerIDType } from './types'
@@ -6,6 +8,8 @@ export enum type {
   clientConnected,
 
   PeerID,
+  SignalForPeer,
+
   PeerIsReady,
   PeersForRound,
 
@@ -25,6 +29,13 @@ export interface clientConnectedMessage {
 export interface PeerID {
   type: type.PeerID
   id: PeerIDType
+}
+
+// WebRTC signal to forward to peer
+export interface SignalForPeer {
+  type: type.SignalForPeer
+  peer: PeerIDType
+  signal: SignalData
 }
 
 // client who sent is ready
@@ -66,9 +77,11 @@ export interface PartialSums {
 export type MessageFromServer =
   clientConnectedMessage |
   PeerID |
+  SignalForPeer |
   PeersForRound
 
 export type MessageToServer =
+  SignalForPeer |
   PeerIsReady
 
 export type PeerMessage =
@@ -101,6 +114,9 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
       return true
     case type.PeerID:
       return 'id' in o && isPeerID(o.id)
+    case type.SignalForPeer:
+      return 'peer' in o && isPeerID(o.peer) &&
+        'signal' in o // TODO check signal content?
     case type.PeersForRound:
       return 'peers' in o && Array.isArray(o.peers) && o.peers.every(isPeerID)
   }
@@ -113,7 +129,15 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
     return false
   }
 
-  return o.type === type.PeerIsReady
+  switch (o.type) {
+    case type.SignalForPeer:
+      return 'peer' in o && isPeerID(o.peer) &&
+        'signal' in o // TODO check signal content?
+    case type.PeerIsReady:
+      return true
+  }
+
+  return false
 }
 
 export function isPeerMessage (o: unknown): o is PeerMessage {

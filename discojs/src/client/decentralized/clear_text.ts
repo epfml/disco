@@ -1,10 +1,11 @@
-import { List, Set } from 'immutable'
-import { PeerID } from './types'
+import { List, Map } from 'immutable'
+import SimplePeer from 'simple-peer'
 
 import { serialization, TrainingInformant, Weights } from '../..'
 import { Base } from './base'
 import * as messages from './messages'
 import { pauseUntil } from './utils'
+import { PeerID } from './types'
 
 /**
  * Decentralized client that does not utilize secure aggregation, but sends model updates in clear text
@@ -14,7 +15,7 @@ export class ClearText extends Base {
   private receivedWeights = List<Weights>()
 
   override async sendAndReceiveWeights (
-    peers: Set<PeerID>,
+    peers: Map<PeerID, SimplePeer.Instance>,
     noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
@@ -25,10 +26,10 @@ export class ClearText extends Base {
     // PHASE 1 COMMUNICATION --> create weights message and send to all peers (only one phase of communication for clear_text)
 
     // create weights message and send to all peers
-    peers.forEach((peer) =>
-      this.sendMessagetoPeer({
+    peers.forEach((peer, id) =>
+      this.sendMessagetoPeer(peer, {
         type: messages.type.Weights,
-        peer: peer,
+        peer: id,
         weights: weightsToSend
       })
     )

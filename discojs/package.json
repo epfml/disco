@@ -41,6 +41,7 @@
     "eslint-config-standard-with-typescript": "21",
     "mocha": "9",
     "ts-node": "10",
-    "typescript": "<4.5.0"
+    "typescript": "<4.5.0",
+    "wrtc": "0.4"
   }
 }
