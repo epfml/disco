@@ -10,11 +10,11 @@ export async function pauseUntil (condition: () => boolean): Promise<void> {
     const timeWas = new Date().getTime()
     const wait = setInterval(function () {
       if (condition()) {
-        console.log('resolved after', new Date().getTime() - timeWas, 'ms')
+        console.debug('resolved after', new Date().getTime() - timeWas, 'ms')
         clearInterval(wait)
         resolve()
       } else if (new Date().getTime() - timeWas > MAX_WAIT_PER_ROUND) { // Timeout
-        console.log('rejected after', new Date().getTime() - timeWas, 'ms')
+        console.debug('rejected after', new Date().getTime() - timeWas, 'ms')
         clearInterval(wait)
         reject(new Error('timeout'))
       }

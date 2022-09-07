@@ -76,37 +76,19 @@ export class Decentralized extends Server {
     ws.on('message', (data: Buffer) => {
       try {
         const msg: unknown = msgpack.decode(data)
-        if (
-          !messages.isMessageToServer(msg) &&
-          !messages.isPeerMessage(msg)
-        ) {
+        if (!messages.isMessageToServer(msg)) {
           console.warn('invalid message received:', msg)
           return
         }
 
         switch (msg.type) {
-          case messages.type.Weights: {
-            const forwardMsg: messages.Weights = {
-              type: messages.type.Weights,
+          case messages.type.SignalForPeer: {
+            const forward: messages.SignalForPeer = {
+              type: messages.type.SignalForPeer,
               peer: peerID,
-              weights: msg.weights
+              signal: msg.signal
             }
-            const encodedMsg: Buffer = msgpack.encode(forwardMsg)
-
-            // sends message it received to destination
-            this.clients.get(msg.peer)?.send(encodedMsg)
-            break
-          }
-          case messages.type.Shares: {
-            const forwardMsg: messages.Shares = {
-              type: messages.type.Shares,
-              peer: peerID,
-              weights: msg.weights
-            }
-            const encodedMsg: Buffer = msgpack.encode(forwardMsg)
-
-            // sends message it received to destination
-            this.clients.get(msg.peer)?.send(encodedMsg)
+            this.clients.get(msg.peer)?.send(msgpack.encode(forward))
             break
           }
           case messages.type.PeerIsReady: {
@@ -138,18 +120,6 @@ export class Decentralized extends Server {
                   conn.send(encoded)
                 )
             }
-            break
-          }
-          case messages.type.PartialSums: {
-            const forwardMsg: messages.PartialSums = {
-              type: messages.type.PartialSums,
-              peer: peerID,
-              partials: msg.partials
-            }
-            const encodedMsg: Buffer = msgpack.encode(forwardMsg)
-
-            // sends message it received to destination
-            this.clients.get(msg.peer)?.send(encodedMsg)
             break
           }
         }

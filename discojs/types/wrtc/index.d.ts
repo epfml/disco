@@ -2,21 +2,9 @@
 
 declare module 'wrtc' {
   const wrtc: {
-    MediaStream: MediaStream
-    MediaStreamTrack: MediaStreamTrack
-    RTCDataChannel: RTCDataChannel
-    RTCDataChannelEvent: RTCDataChannelEvent
-    RTCDtlsTransport: RTCDtlsTransport
-    RTCIceCandidate: RTCIceCandidate
-    RTCIceTransport: RTCIceTransport
-    RTCPeerConnection: RTCPeerConnection
-    RTCPeerConnectionIceEvent: RTCPeerConnectionIceEvent
-    RTCRtpReceiver: RTCRtpReceiver
-    RTCRtpSender: RTCRtpSender
-    RTCRtpTransceiver: RTCRtpTransceiver
-    RTCSessionDescription: RTCSessionDescription
-    getUserMedia: typeof navigator.mediaDevices['getUserMedia']
-    mediaDevices: typeof navigator.mediaDevices
+    RTCPeerConnection: typeof RTCPeerConnection
+    RTCSessionDescription: typeof RTCSessionDescription
+    RTCIceCandidate: typeof RTCIceCandidate
   }
   export type WRTC = typeof wrtc
   export default wrtc

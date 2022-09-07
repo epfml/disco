@@ -1,4 +1,5 @@
-import { List, Set } from 'immutable'
+import { List, Map } from 'immutable'
+import SimplePeer from 'simple-peer'
 
 import { serialization, Task, TrainingInformant, Weights, aggregation } from '../..'
 
@@ -34,7 +35,7 @@ export class SecAgg extends Base {
   generates shares and sends to all ready peers adds differential privacy
    */
   private async sendShares (
-    peers: Set<PeerID>,
+    peers: Map<PeerID, SimplePeer.Instance>,
     noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
@@ -42,61 +43,72 @@ export class SecAgg extends Base {
     // generate weight shares and add differential privacy
     const weightShares = secret_shares.generateAllShares(noisyWeights, peers.size + 1, this.maxShareValue)
 
-    this.receivedShares = List.of(weightShares.first())
+    this.receivedShares = this.receivedShares.push(weightShares.first())
 
     const encodedWeightShares = List(await Promise.all(
       weightShares.rest().map(async (weights) =>
         await serialization.weights.encode(weights))))
 
     // Broadcast our weights to ith peer in the SERVER LIST OF PEERS (seen in signaling_server.ts)
-    peers.toIndexedSeq().zip(encodedWeightShares).forEach(([peer, weights]) =>
-      this.sendMessagetoPeer({
-        type: messages.type.Shares,
-        peer,
-        weights
-      })
-    )
+    peers
+      .entrySeq()
+      .toSeq()
+      .zip(encodedWeightShares)
+      .forEach(([[id, peer], weights]) =>
+        this.sendMessagetoPeer(peer, {
+          type: messages.type.Shares,
+          peer: id,
+          weights
+        })
+      )
   }
 
   /*
 sends partial sums to connected peers so final update can be calculated
  */
-  private async sendPartialSums (peers: Set<PeerID>): Promise<void> {
+  private async sendPartialSums (peers: Map<PeerID, SimplePeer.Instance>): Promise<void> {
+    if (this.receivedShares.size !== peers.size + 1) {
+      throw new Error('received shares count is of unexpected size')
+    }
+
     // calculating my personal partial sum from received shares that i will share with peers
-    const mySum = aggregation.sumWeights(this.receivedShares)
+    const receivedShares = this.receivedShares; this.receivedShares = List()
+    const mySum = aggregation.sumWeights(receivedShares)
     const myEncodedSum = await serialization.weights.encode(mySum)
 
-    this.receivedPartialSums = List.of(mySum)
+    this.receivedPartialSums = this.receivedPartialSums.push(mySum)
 
     // calculate, encode, and send sum
-    peers.forEach((peer) =>
-      this.sendMessagetoPeer({
+    peers.forEach((peer, id) =>
+      this.sendMessagetoPeer(peer, {
         type: messages.type.PartialSums,
-        peer,
+        peer: id,
         partials: myEncodedSum
       })
     )
   }
 
   override async sendAndReceiveWeights (
-    peers: Set<PeerID>,
+    peers: Map<PeerID, SimplePeer.Instance>,
     noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<List<Weights>> {
     // PHASE 1 COMMUNICATION --> send additive shares to ready peers, pause program until shares are received from all peers
     await this.sendShares(peers, noisyWeights, round, trainingInformant)
-    await pauseUntil(() => this.receivedShares.size >= peers.size)
+    await pauseUntil(() => this.receivedShares.size >= peers.size + 1)
 
     // PHASE 2 COMMUNICATION --> send partial sums to ready peers
     await this.sendPartialSums(peers)
     // after all partial sums are received, return list of partial sums to be aggregated
-    await pauseUntil(() => this.receivedPartialSums.size >= peers.size)
+    await pauseUntil(() => this.receivedPartialSums.size >= peers.size + 1)
     trainingInformant.update({
       currentNumberOfParticipants: this.receivedPartialSums.size
     })
 
-    return this.receivedPartialSums
+    const ret = this.receivedPartialSums
+    this.receivedPartialSums = List()
+    return ret
   }
 
   override clientHandle (msg: messages.PeerMessage): void {
