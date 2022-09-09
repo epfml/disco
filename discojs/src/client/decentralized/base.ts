@@ -2,7 +2,6 @@ import { List, Map, Set } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import * as nodeUrl from 'url'
-import SimplePeer from 'simple-peer'
 import { Task } from '@/task'
 
 import { TrainingInformant, Weights, aggregation, privacy } from '../..'
@@ -10,6 +9,7 @@ import { Base as ClientBase } from '../base'
 import * as messages from './messages'
 import { PeerID } from './types'
 import { pauseUntil } from './utils'
+import { Peer } from './peer'
 import { PeerPool } from './peer_pool'
 
 /**
@@ -38,7 +38,7 @@ export abstract class Base extends ClientBase {
   }
 
   // send message to server that client is ready
-  private async waitForPeers (round: number): Promise<Map<PeerID, SimplePeer.Instance>> {
+  private async waitForPeers (round: number): Promise<Map<PeerID, Peer>> {
     console.debug(this.ID, 'is ready for round', round)
 
     // clean old round
@@ -67,7 +67,7 @@ export abstract class Base extends ClientBase {
     return ret
   }
 
-  private onNewPeer (id: PeerID, peer: SimplePeer.Instance): void {
+  private onNewPeer (id: PeerID, peer: Peer): void {
     peer.on('signal', (signal) => {
       console.debug(this.ID, 'generates signal for', id)
       const msg: messages.SignalForPeer = {
@@ -92,7 +92,7 @@ export abstract class Base extends ClientBase {
   }
 
   // TODO inline? have a serialization mod
-  protected sendMessagetoPeer (peer: SimplePeer.Instance, msg: messages.PeerMessage): void {
+  protected sendMessagetoPeer (peer: Peer, msg: messages.PeerMessage): void {
     console.debug(this.ID, 'sends message to peer', msg.peer, msg)
     peer.send(msgpack.encode(msg))
   }
@@ -238,7 +238,7 @@ export abstract class Base extends ClientBase {
   }
 
   abstract sendAndReceiveWeights (
-    peers: Map<PeerID, SimplePeer.Instance>,
+    peers: Map<PeerID, Peer>,
     noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant

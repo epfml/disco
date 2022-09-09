@@ -1,7 +1,7 @@
 import { assert } from 'chai'
 import { Map, Range } from 'immutable'
-import SimplePeer from 'simple-peer'
 
+import { Peer } from './peer'
 import { PeerPool } from './peer_pool'
 import { PeerID } from './types'
 
@@ -25,7 +25,7 @@ describe('peer pool', function () {
   })
 
   async function getAllPeers (pools: Map<PeerID, PeerPool>):
-  Promise<Map<PeerID, Map<PeerID, SimplePeer.Instance>>> {
+  Promise<Map<PeerID, Map<PeerID, Peer>>> {
     const ids = pools.keySeq().toSet()
 
     return Map(await Promise.all(pools
@@ -42,14 +42,14 @@ describe('peer pool', function () {
       )
       .entrySeq()
       .map(async ([id, p]) =>
-        [id, await p] as [PeerID, Map<PeerID, SimplePeer.Instance>]
+        [id, await p] as [PeerID, Map<PeerID, Peer>]
       )
       .toArray()
     ))
   }
 
   async function assertCanSendMessagesToEach (
-    peersSets: Map<PeerID, Map<PeerID, SimplePeer.Instance>>
+    peersSets: Map<PeerID, Map<PeerID, Peer>>
   ): Promise<void> {
     const messages =
       peersSets
@@ -66,7 +66,7 @@ describe('peer pool', function () {
       .entrySeq()
       .forEach(([poolID, peers]) =>
         peers.forEach((peer, id) =>
-          peer.send(`${poolID}->${id}`)))
+          peer.send(Buffer.from(`${poolID}->${id}`))))
 
     const exchanged = (await Promise.all(
       peersSets

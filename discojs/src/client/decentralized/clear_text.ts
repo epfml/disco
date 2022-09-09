@@ -1,9 +1,9 @@
 import { List, Map } from 'immutable'
-import SimplePeer from 'simple-peer'
 
 import { serialization, TrainingInformant, Weights } from '../..'
 import { Base } from './base'
 import * as messages from './messages'
+import { Peer } from './peer'
 import { pauseUntil } from './utils'
 import { PeerID } from './types'
 
@@ -15,7 +15,7 @@ export class ClearText extends Base {
   private receivedWeights = List<Weights>()
 
   override async sendAndReceiveWeights (
-    peers: Map<PeerID, SimplePeer.Instance>,
+    peers: Map<PeerID, Peer>,
     noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant

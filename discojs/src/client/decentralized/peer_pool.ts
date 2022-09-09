@@ -1,13 +1,14 @@
 import { Map, Set } from 'immutable'
-import SimplePeer from 'simple-peer'
+import { SignalData } from 'simple-peer'
 import { WRTC } from 'wrtc'
 
+import { Peer } from './peer'
 import { PeerID } from './types'
 
 // TODO cleanup old peers
 
 export class PeerPool {
-  private peers = Map<PeerID, SimplePeer.Instance>()
+  private peers = Map<PeerID, Peer>()
 
   private constructor (
     private readonly id: PeerID,
@@ -35,7 +36,7 @@ export class PeerPool {
     this.peers = Map()
   }
 
-  signal (peerID: PeerID, signal: SimplePeer.SignalData): void {
+  signal (peerID: PeerID, signal: SignalData): void {
     console.debug(this.id, 'signals for', peerID)
 
     const peer = this.peers.get(peerID)
@@ -49,8 +50,8 @@ export class PeerPool {
   async getPeers (
     peersToConnect: Set<PeerID>,
     // TODO as event?
-    onNewPeer: (id: PeerID, peer: SimplePeer.Instance) => void
-  ): Promise<Map<PeerID, SimplePeer.Instance>> {
+    onNewPeer: (id: PeerID, peer: Peer) => void
+  ): Promise<Map<PeerID, Peer>> {
     if (peersToConnect.contains(this.id)) {
       throw new Error('peers to connect contains our id')
     }
@@ -60,7 +61,7 @@ export class PeerPool {
     const newPeers = Map(peersToConnect
       .filter((id) => !this.peers.has(id))
       .map((id) => [id, id < this.id] as [number, boolean])
-      .map(([id, initiator]) => [id, new SimplePeer({ initiator, wrtc: this.wrtc })]))
+      .map(([id, initiator]) => [id, new Peer({ initiator, wrtc: this.wrtc })]))
 
     console.debug(this.id, 'asked to connect new peers:', newPeers.keySeq().toJS())
 
@@ -83,7 +84,7 @@ export class PeerPool {
               resolve(peer)
             })
           })
-        ] as [PeerID, SimplePeer.Instance]))
+        ] as [PeerID, Peer]))
 
     console.debug(this.id, 'knowns connected peers:', this.peers.keySeq().toJS())
 
