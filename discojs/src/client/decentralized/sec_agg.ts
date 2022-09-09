@@ -1,10 +1,10 @@
 import { List, Map } from 'immutable'
-import SimplePeer from 'simple-peer'
 
 import { serialization, Task, TrainingInformant, Weights, aggregation } from '../..'
 
 import { Base } from './base'
 import * as messages from './messages'
+import { Peer } from './peer'
 import * as secret_shares from './secret_shares'
 import { pauseUntil } from './utils'
 import { PeerID } from './types'
@@ -35,7 +35,7 @@ export class SecAgg extends Base {
   generates shares and sends to all ready peers adds differential privacy
    */
   private async sendShares (
-    peers: Map<PeerID, SimplePeer.Instance>,
+    peers: Map<PeerID, Peer>,
     noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
@@ -66,7 +66,7 @@ export class SecAgg extends Base {
   /*
 sends partial sums to connected peers so final update can be calculated
  */
-  private async sendPartialSums (peers: Map<PeerID, SimplePeer.Instance>): Promise<void> {
+  private async sendPartialSums (peers: Map<PeerID, Peer>): Promise<void> {
     if (this.receivedShares.size !== peers.size + 1) {
       throw new Error('received shares count is of unexpected size')
     }
@@ -89,7 +89,7 @@ sends partial sums to connected peers so final update can be calculated
   }
 
   override async sendAndReceiveWeights (
-    peers: Map<PeerID, SimplePeer.Instance>,
+    peers: Map<PeerID, Peer>,
     noisyWeights: Weights,
     round: number,
     trainingInformant: TrainingInformant
