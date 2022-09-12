@@ -118,7 +118,7 @@ export class Client extends Base {
       default:
         throw new Error(`unknown protocol: ${this.url.protocol}`)
     }
-    serverURL.pathname += `deai/${this.task.taskID}`
+    serverURL.pathname += `feai/${this.task.taskID}/${this.clientID}`
     this.server = await this.connectServer(serverURL)
   }
 
@@ -136,16 +136,6 @@ export class Client extends Base {
       throw new Error('server undefined, could not connect peers')
     }
     this.server.send(encodedMsg)
-  }
-
-  private urlTo (category: string): string {
-    const url = new URL('', this.url)
-
-    url.pathname += ['feai', category, this.task.taskID, this.clientID].join(
-      '/'
-    )
-
-    return url.href
   }
 
   async postWeightsToServer (weights: Weights): Promise<void> {
