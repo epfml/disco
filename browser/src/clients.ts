@@ -11,7 +11,7 @@ export function getClient (trainingScheme: TrainingSchemes, task: Task): Client 
         return new client.decentralized.ClearText(CONFIG.serverUrl, task)
       }
     case TrainingSchemes.FEDERATED:
-      return new client.Federated(CONFIG.serverUrl, task)
+      return new client.federated.Client(CONFIG.serverUrl, task)
     case TrainingSchemes.LOCAL:
       return new client.Local(CONFIG.serverUrl, task)
   }
