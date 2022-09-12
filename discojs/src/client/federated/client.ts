@@ -186,11 +186,9 @@ export class Client extends Base {
     }
     this.sendMessage(msg)
 
-    void this.pauseUntil(() => this.receivedStatistics !== undefined)
+    await this.pauseUntil(() => this.receivedStatistics !== undefined)
 
     trainingInformant.update(this.receivedStatistics ?? {})
-
-    // TODO: Call it in the clientHandle ---> trainingInformant.update(response.data.statistics)
   }
 
   async onRoundEndCommunication (
