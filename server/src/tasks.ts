@@ -1,9 +1,8 @@
 import { Set, Map } from 'immutable'
 import { EventEmitter } from 'node:events'
-import { tf } from '@epfml/discojs'
+import { tf, tasks as defaultTasks, Task } from '@epfml/discojs'
 import path from 'path'
 
-import { tasks as defaultTasks, Task } from '@epfml/discojs'
 import { CONFIG } from './config'
 
 const simpleFaceModelPath = path.join(CONFIG.modelsDir, 'mobileNetV2_35_alpha_2_classes', 'model.json')
