@@ -9,7 +9,7 @@ import { TasksAndModels } from '../tasks'
 export abstract class Server {
   private readonly ownRouter: expressWS.Router
 
-  constructor(wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels) {
+  constructor (wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels) {
     this.ownRouter = express.Router()
     wsApplier.applyTo(this.ownRouter)
 
@@ -23,31 +23,30 @@ export abstract class Server {
         */
     process.nextTick(() =>
       tasksAndModels.addListener('taskAndModel', (t, m) =>
-        this.onNewTask(t, m),
-      ),
+        this.onNewTask(t, m)
+      )
     )
   }
 
-  public get router(): express.Router {
+  public get router (): express.Router {
     return this.ownRouter
   }
 
-  private onNewTask(task: Task, model: tf.LayersModel): void {
-
+  private onNewTask (task: Task, model: tf.LayersModel): void {
     this.initTask(task, model)
 
     this.ownRouter.ws(this.buildRoute(task), (ws, req) =>
-      this.handle(task, ws, model, req),
+      this.handle(task, ws, model, req)
     )
   }
 
-  protected abstract get description(): string
+  protected abstract get description (): string
 
-  protected abstract buildRoute(task: Task): string
+  protected abstract buildRoute (task: Task): string
 
-  protected abstract initTask(task: Task, model: tf.LayersModel): void
+  protected abstract initTask (task: Task, model: tf.LayersModel): void
 
-  protected abstract handle(
+  protected abstract handle (
     task: Task,
     ws: WebSocket,
     model: tf.LayersModel,

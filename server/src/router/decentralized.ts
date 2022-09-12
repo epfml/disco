@@ -2,12 +2,12 @@ import { Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 import WebSocket from 'ws'
 
-import { client, Task, TaskID, tf } from '@epfml/discojs'
+import { Server } from './server'
+import { client, Task, TaskID } from '@epfml/discojs'
 
 import messages = client.decentralized.messages
 type PeerID = client.decentralized.PeerID
 
-import { Server } from './server'
 // import { addDifferentialPrivacy } from '@/../../discojs/dist/privacy'
 
 export class Decentralized extends Server {
@@ -17,26 +17,24 @@ export class Decentralized extends Server {
   // increments with addition of every client, server keeps track of clients with this and tells them their ID
   private clientCounter: PeerID = 0
 
-  protected get description(): string {
+  protected get description (): string {
     return 'DeAI Server'
   }
 
-  protected buildRoute(task: Task): string {
+  protected buildRoute (task: Task): string {
     return `/${task.taskID}`
   }
 
-  protected initTask(): void {
-    return
-  }
+  protected initTask (): void {}
 
-  protected handle(task: Task, ws: WebSocket): void {
+  protected handle (task: Task, ws: WebSocket): void {
     const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
     const peerID: PeerID = this.clientCounter++
     this.clients = this.clients.set(peerID, ws)
     // send peerID message
     const msg: messages.serverClientIDMessage = {
       type: messages.messageType.serverClientIDMessage,
-      peerID,
+      peerID
     }
     console.info('peer', peerID, 'joined', task.taskID)
 
@@ -55,7 +53,7 @@ export class Decentralized extends Server {
             type: messages.messageType.clientWeightsMessageServer,
             peerID: msg.peerID,
             weights: msg.weights,
-            destination: msg.destination,
+            destination: msg.destination
           }
           const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 
@@ -68,7 +66,7 @@ export class Decentralized extends Server {
             type: messages.messageType.clientSharesMessageServer,
             peerID: msg.peerID,
             weights: msg.weights,
-            destination: msg.destination,
+            destination: msg.destination
           }
           const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 
@@ -80,7 +78,7 @@ export class Decentralized extends Server {
           const updatedClients: Set<PeerID> = currentClients.add(msg.peerID)
           this.readyClientsBuffer = this.readyClientsBuffer.set(
             msg.taskID,
-            updatedClients,
+            updatedClients
           )
           // if enough clients are connected, server shares who is connected
           const currentPeers: Set<PeerID> =
@@ -88,11 +86,11 @@ export class Decentralized extends Server {
           if (currentPeers.size >= minimumReadyPeers) {
             this.readyClientsBuffer = this.readyClientsBuffer.set(
               msg.taskID,
-              new Set<PeerID>(),
+              new Set<PeerID>()
             )
             const readyPeerIDs: messages.serverReadyClients = {
               type: messages.messageType.serverReadyClients,
-              peerList: Array.from(currentPeers),
+              peerList: Array.from(currentPeers)
             }
             for (const peerID of currentPeers) {
               // send peerIds to everyone in readyClients
@@ -106,7 +104,7 @@ export class Decentralized extends Server {
             type: messages.messageType.clientPartialSumsMessageServer,
             peerID: msg.peerID,
             partials: msg.partials,
-            destination: msg.destination,
+            destination: msg.destination
           }
           const encodedMsg: Buffer = msgpack.encode(forwardMsg)
 

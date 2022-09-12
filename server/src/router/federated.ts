@@ -1,5 +1,4 @@
-import express, { Request, Response } from 'express'
-import expressWS from 'express-ws'
+import express from 'express'
 import WebSocket from 'ws'
 
 import { List, Map, Set } from 'immutable'
@@ -12,19 +11,17 @@ import {
   aggregation,
   AsyncInformant,
   Task,
-  isTaskID,
   TaskID,
   AsyncBuffer,
-  Weights,
+  Weights
 } from '@epfml/discojs'
 
-import { Config } from '../config'
-import { TasksAndModels } from '../tasks'
 import { Server } from './server'
+import messages = client.federated.messages
 
 const BUFFER_CAPACITY = 2
 
-enum RequestType {
+/* enum RequestType {
   Connect,
   Disconnect,
 
@@ -54,13 +51,12 @@ interface Log {
   // the request type
   request: RequestType
 }
+*/
 
 interface TaskStatus {
   isRoundPending: boolean
   round: number
 }
-
-import messages = client.federated.messages
 
 export class Federated extends Server {
   // model weights received from clients for a given task and round.
@@ -71,14 +67,14 @@ export class Federated extends Server {
    * Contains metadata used for training by clients for a given task and round.
    * Stored by task ID, round number and client ID.
    */
-  private metadataMap = Map<
+  /* private metadataMap = Map<
     TaskID,
     Map<number, Map<string, Map<string, string>>>
-  >()
+  >() */
 
   // Contains all successful requests made to the server.
   // TODO use real log system
-  private logs = List<Log>()
+  // private logs = List<Log>()
 
   // Contains client IDs currently connected to one of the server.
   private clients = Set<string>()
@@ -91,41 +87,41 @@ export class Federated extends Server {
    */
   private tasksStatus = Map<TaskID, TaskStatus>()
 
-  protected get description(): string {
+  protected get description (): string {
     return 'FeAI Server'
   }
 
-  protected buildRoute(task: Task): string {
+  protected buildRoute (task: Task): string {
     return `/${task.taskID}/:clientId`
   }
 
-  protected initTask(task: Task, model: tf.LayersModel): void {
+  protected initTask (task: Task, model: tf.LayersModel): void {
     this.tasksStatus = this.tasksStatus.set(task.taskID, {
       isRoundPending: false,
-      round: 0,
+      round: 0
     })
 
     const buffer = new AsyncBuffer(
       task.taskID,
       BUFFER_CAPACITY,
       async (weights: Weights[]) =>
-        await this.aggregateAndStoreWeights(model, weights),
+        await this.aggregateAndStoreWeights(model, weights)
     )
     this.asyncBuffersMap = this.asyncBuffersMap.set(task.taskID, buffer)
 
     this.asyncInformantsMap = this.asyncInformantsMap.set(
       task.taskID,
-      new AsyncInformant(buffer),
+      new AsyncInformant(buffer)
     )
 
     this.models = this.models.set(task.taskID, model)
   }
 
-  protected handle(
+  protected handle (
     task: Task,
     ws: WebSocket,
     model: tf.LayersModel,
-    req: express.Request,
+    req: express.Request
   ): void {
     const clientId = req.params.clientId
     console.info('client', clientId, 'joined', task.taskID)
@@ -135,7 +131,7 @@ export class Federated extends Server {
     ws.on('message', (data: Buffer) => {
       const msg = msgpack.decode(data)
 
-      if (msg.type == messages.messageType.postWeightsToServer) {
+      if (msg.type === messages.messageType.postWeightsToServer) {
         const rawWeights = msg.weights
         const round = msg.round
 
@@ -152,11 +148,11 @@ export class Federated extends Server {
 
         const buffer = this.asyncBuffersMap.get(task.taskID)
         if (buffer === undefined) {
-          throw new Error(`post weight to unknown task: ${task}`)
+          throw new Error(`post weight to unknown task: ${task.taskID}`)
         }
 
-        buffer.add(clientId, weights, round)
-      } else if (msg.type == messages.messageType.pullServerStatistics) {
+        void buffer.add(clientId, weights, round)
+      } else if (msg.type === messages.messageType.pullServerStatistics) {
         // Get latest round
         const statistics = this.asyncInformantsMap
           .get(task.taskID)
@@ -164,25 +160,25 @@ export class Federated extends Server {
 
         const msg: messages.pullServerStatistics = {
           type: messages.messageType.pullServerStatistics,
-          statistics: statistics!,
+          statistics: statistics ?? {}
         }
 
         ws.send(msgpack.encode(msg))
-      } else if (msg.type == messages.messageType.latestServerRound) {
+      } else if (msg.type === messages.messageType.latestServerRound) {
         const buffer = this.asyncBuffersMap.get(task.taskID)
         if (buffer === undefined) {
-          throw new Error(`get round of unknown task: ${task}`)
+          throw new Error(`get round of unknown task: ${task.taskID}`)
         }
 
         // Get latest round
         const round = buffer.round
 
         const weights = model.weights.map((e) => e.read())
-        serialization.weights.encode(weights).then((serializedWeights) => {
+        void serialization.weights.encode(weights).then((serializedWeights) => {
           const msg: messages.latestServerRound = {
             type: messages.messageType.latestServerRound,
             round: round,
-            weights: serializedWeights,
+            weights: serializedWeights
           }
 
           ws.send(msgpack.encode(msg))
@@ -199,9 +195,9 @@ export class Federated extends Server {
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */
-  private async aggregateAndStoreWeights(
+  private async aggregateAndStoreWeights (
     model: tf.LayersModel,
-    weights: Weights[],
+    weights: Weights[]
   ): Promise<void> {
     // Get averaged weights
     const averagedWeights = aggregation.averageWeights(List<Weights>(weights))
@@ -615,5 +611,5 @@ export class Federated extends Server {
   }
 
   return round
-}*/
+} */
 }

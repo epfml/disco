@@ -1,6 +1,5 @@
 export { Base } from './base'
+export { Local } from './local'
 
 export * as decentralized from './decentralized'
-
-export { Federated } from './federated'
-export { Local } from './local'
+export * as federated from './federated'
