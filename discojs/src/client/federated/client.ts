@@ -46,7 +46,7 @@ export class Client extends Base {
   private instanceOfPullServerStatistical (
     msg: messages.messageGeneral
   ): msg is messages.pullServerStatistics {
-    return msg.type === messages.messageType.latestServerRound
+    return msg.type === messages.messageType.pullServerStatistics
   }
 
   private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
