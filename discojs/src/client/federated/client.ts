@@ -157,7 +157,7 @@ export class Client extends Base {
     this.sendMessage(msg)
   }
 
-  private getLatestServerRound (): void {
+  async getLatestServerRound (): Promise<number | undefined> {
     this.serverRound = undefined
     this.serverWeights = undefined
 
@@ -165,15 +165,17 @@ export class Client extends Base {
       type: messages.messageType.latestServerRound
     }
     this.sendMessage(msg)
-  }
-
-  async pullRoundAndFetchWeights (): Promise<Weights | undefined> {
-    // get server round of latest model
-    this.getLatestServerRound()
 
     await this.pauseUntil(
       () => this.serverRound !== undefined && this.serverWeights !== undefined
     )
+
+    return this.serverRound
+  }
+
+  async pullRoundAndFetchWeights (): Promise<Weights | undefined> {
+    // get server round of latest model
+    await this.getLatestServerRound()
 
     if (this.round < (this.serverRound ?? 0)) {
       // Update the local round to match the server's
