@@ -5,6 +5,11 @@ export interface FormElement {
   default: string
 }
 
+export interface FormDependency {
+  dataType?: string
+  scheme?: string
+}
+
 export interface FormField {
   id: string
   name: string
@@ -14,6 +19,7 @@ export interface FormField {
   options?: string[]
   default?: string | boolean | string[] | boolean[]
   elements?: FormElement[]
+  dependencies?: FormDependency
   extension?: '.bin' | '.json'
 }
 
@@ -21,6 +27,13 @@ export interface FormSection {
   id: string
   title: string
   fields: FormField[]
+}
+
+const otherReq = (req: string) => {
+  return {
+    is: req,
+    then: (schema: yup.AnySchema) => schema.required()
+  }
 }
 
 const generalInformation: FormSection = {
@@ -42,8 +55,8 @@ const generalInformation: FormSection = {
       yup: yup.string().required(),
       as: 'input',
       type: 'select',
-      options: ['image (.png, .jpg)', 'tabular (.csv)'],
-      default: 'image (.png, .jpg)'
+      options: ['Image (.png, .jpg)', 'Tabular (.csv)'],
+      default: 'Image (.png, .jpg)'
     },
     {
       id: 'scheme',
@@ -51,8 +64,8 @@ const generalInformation: FormSection = {
       yup: yup.string().required(),
       as: 'input',
       type: 'select',
-      options: ['decentralized', 'federated'],
-      default: 'decentralized'
+      options: ['Decentralized', 'Federated'],
+      default: 'Decentralized'
     }
   ]
 }
@@ -148,15 +161,21 @@ const displayInformation: FormSection = {
           key: 'columnData',
           default: '1'
         }
-      ]
+      ],
+      dependencies: {
+        dataType: 'tabular'
+      }
     },
     {
       id: 'dataExampleImage',
-      name: 'Data Example Image',
+      name: 'Data Example',
       yup: yup.string(),
       as: 'input',
       type: 'text',
-      default: './9-mnist-example.png'
+      default: './9-mnist-example.png',
+      dependencies: {
+        dataType: 'image'
+      }
     }
   ]
 }
@@ -174,8 +193,8 @@ const trainingInformation: FormSection = {
       default: 'mnist-model'
     },
     {
-      id: 'epoch',
-      name: 'Epoch',
+      id: 'epochs',
+      name: 'Epochs',
       yup: yup.number().integer().positive().required(),
       as: 'input',
       type: 'number',
@@ -239,18 +258,24 @@ const trainingInformation: FormSection = {
     {
       id: 'receivedMessagesThreshold',
       name: 'Received Messages Threshold',
-      yup: yup.number().required(),
+      yup: yup.number().when('scheme', otherReq('decentralized')),
       as: 'input',
       type: 'number',
-      default: '1'
+      default: '1',
+      dependencies: {
+        scheme: 'decentralized'
+      }
     },
     {
       id: 'outputColumn',
       name: 'Output Column',
-      yup: yup.string().required(),
+      yup: yup.string().when('dataType', otherReq('tabular')),
       as: 'input',
       type: 'text',
-      default: 'Survived'
+      default: 'Survived',
+      dependencies: {
+        dataType: 'tabular'
+      }
     },
     {
       id: 'inputColumn',
@@ -258,7 +283,10 @@ const trainingInformation: FormSection = {
       yup: yup.array().of(yup.string()).min(1),
       as: 'input',
       type: 'array',
-      default: 'PassengerID'
+      default: 'PassengerID',
+      dependencies: {
+        dataType: 'tabular'
+      }
     },
     {
       id: 'threshold',
@@ -271,18 +299,24 @@ const trainingInformation: FormSection = {
     {
       id: 'IMAGE_H',
       name: 'Height of Image (pixels)',
-      yup: yup.number().integer().positive().required(),
+      yup: yup.number().integer().positive().when('dataType', otherReq('image')),
       as: 'input',
       type: 'number',
-      default: '28'
+      default: '28',
+      dependencies: {
+        dataType: 'image'
+      }
     },
     {
       id: 'IMAGE_W',
       name: 'Width of Image (pixels)',
-      yup: yup.number().integer().positive().required(),
+      yup: yup.number().integer().positive().when('dataType', otherReq('image')),
       as: 'input',
       type: 'number',
-      default: '28'
+      default: '28',
+      dependencies: {
+        dataType: 'image'
+      }
     },
     {
       id: 'LABEL_LIST',
@@ -291,14 +325,6 @@ const trainingInformation: FormSection = {
       as: 'input',
       type: 'array',
       default: '0'
-    },
-    {
-      id: 'NUM_CLASSES',
-      name: 'Number of classes',
-      yup: yup.number().positive().required(),
-      as: 'input',
-      type: 'number',
-      default: '2'
     },
     {
       id: 'LABEL_ASSIGNMENT',
@@ -395,33 +421,23 @@ const modelCompileData: FormSection = {
   ]
 }
 
-export const modelFiles: FormSection = {
+const modelFiles: FormSection = {
   id: 'modelFiles',
   title: 'Model Files',
   fields: [
     {
       id: 'modelFile',
       name: 'TensorFlow.js Model in JSON format',
-      yup: yup
-        .object()
-        .shape({
-          file: yup.mixed().required('File is required')
-        })
-        .required('File is required'),
       type: 'file',
+      yup: yup.string().required(),
       extension: '.json',
       default: 'model.json'
     },
     {
       id: 'weightsFile',
       name: 'TensorFlow.js Model Weights in .bin format',
-      yup: yup
-        .object()
-        .shape({
-          file: yup.mixed().required('File is required')
-        })
-        .required('File is required'),
       type: 'file',
+      yup: yup.string().required(),
       extension: '.bin',
       default: 'weights.bin'
     }

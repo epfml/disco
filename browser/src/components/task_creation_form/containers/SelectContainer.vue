@@ -21,8 +21,8 @@
     <option
       v-for="option in props.field.options"
       :key="option"
-      :value="option"
-      :selected="value !== undefined && (value as string[]).includes(option)"
+      :value="option.split(' ')[0].toLowerCase()"
+      :selected="value !== undefined && (value as unknown[]).includes(option)"
     >
       {{ option }}
     </option>

@@ -99,28 +99,30 @@
   </div>
 </template>
 
-<script lang="ts">
-export default {
-  name: 'FileSelection',
-  data () {
-    return {
-      nbrSelectedFiles: 0
-    }
-  },
-  methods: {
-    clearFiles () {
-      this.$emit('clear')
-      this.nbrSelectedFiles = 0
-    },
-    submitFiles (e) {
-      this.$emit('input', e.target.files)
-      this.nbrSelectedFiles += e.target.files.length
-    },
-    dragFiles (e) {
-      e.dataTransfer.dropEffect = 'copy'
-      this.$emit('input', e.dataTransfer.files)
-      this.nbrSelectedFiles += e.dataTransfer.files.length
-    }
-  }
+<script lang="ts" setup>
+import { defineEmits, ref } from 'vue'
+
+import { HTMLDragEvent, HTMLInputEvent } from '@/types'
+
+interface Emits {
+  (e: 'input', files: FileList): void
+  (e: 'clear'): void
+}
+const emit = defineEmits<Emits>()
+
+const nbrSelectedFiles = ref(0)
+
+const clearFiles = () => {
+  emit('clear')
+  nbrSelectedFiles.value = 0
+}
+const submitFiles = (e: HTMLInputEvent) => {
+  emit('input', e.target.files)
+  nbrSelectedFiles.value += e.target.files.length
+}
+const dragFiles = (e: HTMLDragEvent) => {
+  e.dataTransfer.dropEffect = 'copy'
+  emit('input', e.dataTransfer.files)
+  nbrSelectedFiles.value += e.dataTransfer.files.length
 }
 </script>

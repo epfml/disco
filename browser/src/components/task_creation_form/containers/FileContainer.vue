@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="h-72">
+    <div class="h-72 my-3">
       <div
         class="
           relative
@@ -25,7 +25,8 @@
                 d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z"
               /></svg><span class="block text-gray-400 font-normal">Drag and drop your file anywhere or</span>
             <span class="block text-gray-400 font-normal">or</span>
-            <span
+            <label
+              :for="`hidden_${props.field.id}`"
               class="
                 block
                 font-normal
@@ -39,17 +40,24 @@
                 hover:text-disco-cyan hover:bg-slate-100
                 focus:outline-none
               "
-            >select file</span>
+            >select file</label>
+            <VeeField
+              :id="props.field.id"
+              v-model="fileName"
+              :name="props.field.id"
+              hidden
+            />
+            <input
+              :id="`hidden_${props.field.id}`"
+              type="file"
+              :accept="props.field.extension"
+              class="h-full w-full"
+              multiple
+              hidden
+              @change="onChange"
+            >
           </div>
         </div>
-
-        <VeeField
-          :id="props.field.id"
-          :type="props.field.type"
-          :name="props.field.id"
-          class="h-full w-full opacity-0"
-          :accept="props.field.extension"
-        />
       </div>
     </div>
     <div
@@ -62,13 +70,29 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps } from 'vue'
+import { defineProps, defineEmits, ref } from 'vue'
 import { Field as VeeField } from 'vee-validate'
 
+import { HTMLInputEvent } from '@/types'
 import { FormField } from '@/task_creation_form'
 
 interface Props {
   field: FormField
 }
 const props = defineProps<Props>()
+
+interface Emits {
+  (e: 'input', files: FileList): void
+}
+const emit = defineEmits<Emits>()
+
+const fileName = ref('')
+
+const onChange = (e: HTMLInputEvent): void => {
+  const files = e.target.files
+  // fill in the vee-field to trigger yup validation
+  fileName.value = (files.length > 0) ? files[0].name : ''
+  console.log(fileName.value)
+  emit('input', files)
+}
 </script>
