@@ -43,8 +43,6 @@ async function main(): Promise<void> {
     Range(0, NUMBER_OF_USERS).map(async (_) => await runUser(server)).toArray()
   )
 
-  console.log('Benchmark terminated')
-
   if (args.save) {
     const fileName = `${TASK.taskID}_${NUMBER_OF_USERS}users.csv`
     saveLog(logs, fileName)

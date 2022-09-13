@@ -1,7 +1,7 @@
+import { MetadataID } from '@/index'
 import { weights } from '../../serialization'
 
 export enum messageType {
-  // Phase 0 communication (just between server and client)
   postWeightsToServer,
   postMetadata,
   getMetadataMap,
@@ -24,4 +24,18 @@ export interface latestServerRound extends messageGeneral {
 }
 export interface pullServerStatistics extends messageGeneral {
   statistics: Record<string, number>
+}
+export interface postMetadata extends messageGeneral {
+  clientId: string
+  taskId: string
+  round: number
+  metadataId: string
+  metadata: string
+}
+export interface getMetadataMap extends messageGeneral {
+  clientId: string
+  taskId: string
+  round: number
+  metadataId: MetadataID
+  metadataMap?: Array<[string, string | undefined]>
 }

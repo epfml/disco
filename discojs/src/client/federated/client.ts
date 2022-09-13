@@ -2,12 +2,7 @@ import * as msgpack from 'msgpack-lite'
 import isomorphic from 'isomorphic-ws'
 import { v4 as randomUUID } from 'uuid'
 
-import {
-  privacy,
-  serialization,
-  informant,
-  Weights
-} from '../..'
+import { privacy, serialization, informant, Weights, MetadataID } from '../..'
 import { Base } from '../base'
 
 import * as messages from './messages'
@@ -27,10 +22,13 @@ export class Client extends Base {
 
   protected server?: isomorphic.WebSocket
 
+  // Attributes used to wait for a response from the server
   private serverRound?: number
   private serverWeights?: Weights
   private receivedStatistics?: Record<string, number>
+  private metadataMap?: Map<string, unknown>
 
+  // Methods to check and return the correct message type
   private instanceOfMessageGeneral (
     msg: unknown
   ): msg is messages.messageGeneral {
@@ -49,6 +47,13 @@ export class Client extends Base {
     return msg.type === messages.messageType.pullServerStatistics
   }
 
+  private instanceOfGetMetadataMap (
+    msg: messages.messageGeneral
+  ): msg is messages.getMetadataMap {
+    return msg.type === messages.messageType.getMetadataMap
+  }
+
+  // It opens a new WebSocket connection and listens to new messages over the channel
   private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const WS =
       typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
@@ -74,6 +79,7 @@ export class Client extends Base {
     })
   }
 
+  // Utility method to wait until a condition is not true
   protected async pauseUntil (condition: () => boolean): Promise<void> {
     return await new Promise<void>((resolve, reject) => {
       const timeWas = new Date().getTime()
@@ -92,12 +98,17 @@ export class Client extends Base {
     })
   }
 
+  // It handles a message once received over the channel
   private clientHandle (msg: messages.messageGeneral): void {
     if (this.instanceOfLatestServerRound(msg)) {
       this.serverRound = msg.round
       this.serverWeights = serialization.weights.decode(msg.weights)
     } else if (this.instanceOfPullServerStatistical(msg)) {
       this.receivedStatistics = msg.statistics
+    } else if (this.instanceOfGetMetadataMap(msg)) {
+      if (msg.metadataMap !== undefined) {
+        this.metadataMap = new Map(msg.metadataMap)
+      }
     }
   }
 
@@ -130,6 +141,7 @@ export class Client extends Base {
     this.server = undefined
   }
 
+  // It sends a message to the server
   private sendMessage (msg: messages.messageGeneral): void {
     const encodedMsg = msgpack.encode(msg)
     if (this.server === undefined) {
@@ -138,6 +150,7 @@ export class Client extends Base {
     this.server.send(encodedMsg)
   }
 
+  // It sends weights to the server
   async postWeightsToServer (weights: Weights): Promise<void> {
     const msg: messages.postWeightsToServer = {
       type: messages.messageType.postWeightsToServer,
@@ -147,6 +160,7 @@ export class Client extends Base {
     this.sendMessage(msg)
   }
 
+  // It retrieves the last server round and weights, but return only the server round
   async getLatestServerRound (): Promise<number | undefined> {
     this.serverRound = undefined
     this.serverWeights = undefined
@@ -163,6 +177,7 @@ export class Client extends Base {
     return this.serverRound
   }
 
+  // It retrieves the last server round and weights, but return only the server weights
   async pullRoundAndFetchWeights (): Promise<Weights | undefined> {
     // get server round of latest model
     await this.getLatestServerRound()
@@ -176,6 +191,7 @@ export class Client extends Base {
     }
   }
 
+  // It pulls statistics from the server
   async pullServerStatistics (
     trainingInformant: informant.FederatedInformant
   ): Promise<void> {
@@ -189,6 +205,41 @@ export class Client extends Base {
     await this.pauseUntil(() => this.receivedStatistics !== undefined)
 
     trainingInformant.update(this.receivedStatistics ?? {})
+  }
+
+  // It posts a new metadata value to the server
+  async postMetadata (metadataID: MetadataID, metadata: string): Promise<void> {
+    const msg: messages.postMetadata = {
+      type: messages.messageType.postMetadata,
+      taskId: this.task.taskID,
+      clientId: this.clientID,
+      round: this.round,
+      metadataId: metadataID,
+      metadata: metadata
+    }
+
+    this.sendMessage(msg)
+  }
+
+  // It gets a metadata map from the server
+  async getMetadataMap (
+    metadataId: MetadataID
+  ): Promise<Map<string, unknown> | undefined> {
+    this.metadataMap = undefined
+
+    const msg: messages.getMetadataMap = {
+      type: messages.messageType.postMetadata,
+      taskId: this.task.taskID,
+      clientId: this.clientID,
+      round: this.round,
+      metadataId: metadataId
+    }
+
+    this.sendMessage(msg)
+
+    await this.pauseUntil(() => this.metadataMap !== undefined)
+
+    return this.metadataMap
   }
 
   async onRoundEndCommunication (
@@ -211,36 +262,4 @@ export class Client extends Base {
   }
 
   async onTrainEndCommunication (): Promise<void> {}
-
-  // private urlToMetadata(metadataID: string): string {
-  //   const url = new URL('', this.url)
-
-  //   url.pathname += [
-  //     'feai',
-  //     'metadata',
-  //     metadataID,
-  //     this.task.taskID,
-  //     this.round,
-  //     this.clientID,
-  //   ].join('/')
-
-  //   return url.href
-  // }
-
-  // async postMetadata(metadataID: string, metadata: string): Promise<void> {
-  //   await axios({
-  //     method: 'post',
-  //     url: this.urlToMetadata(metadataID),
-  //     data: {
-  //       metadataID: metadata,
-  //     },
-  //   })
-  // }
-
-  // async getMetadataMap(metadataID: MetadataID): Promise<Map<string, unknown>> {
-  //   const response = await axios.get(this.urlToMetadata(metadataID))
-
-  //   const body = await response.data
-  //   return new Map(msgpack.decode(body[metadataID]))
-  // }
 }
