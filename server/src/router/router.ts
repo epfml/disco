@@ -19,7 +19,7 @@ export class Router {
     private readonly config: Config
   ) {
     const tasks = new Tasks(this.config, this.tasksAndModels)
-    const federated = new Federated(this.config, this.tasksAndModels)
+    const federated = new Federated(wsApplier, this.tasksAndModels)
     const decentralized = new Decentralized(wsApplier, this.tasksAndModels)
 
     this.ownRouter = express.Router()
