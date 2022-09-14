@@ -2,14 +2,14 @@ import * as msgpack from 'msgpack-lite'
 import axios from 'axios'
 import { v4 as randomUUID } from 'uuid'
 
-import { privacy, serialization, informant, MetadataID, Weights } from '..'
-import { Base } from './base'
+import { privacy, serialization, informant, MetadataID, Weights } from '../..'
+import { Base } from '../base'
 
 /**
  * Class that deals with communication with the centralized server when training
  * a specific task in the federated setting.
  */
-export class Federated extends Base {
+export class Client extends Base {
   private readonly clientID = randomUUID()
   private readonly peer: any
   private round = 0
