@@ -30,6 +30,7 @@ async function runUser(server: Server): Promise<TrainerLog> {
   console.log('runUser>>>>')
   await disco.startTraining(data)
   console.log('runUser<<<<')
+  await cli.disconnect()
   return await disco.getTrainerLog()
 }
 
