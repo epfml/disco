@@ -28,7 +28,7 @@ export class Decentralized extends Server {
     return `/${task.taskID}`
   }
 
-  protected sendConnectedMsg(ws: WebSocket): void {
+  protected sendConnectedMsg (ws: WebSocket): void {
     const msg: messages.messageGeneral = { type: messages.messageType.clientConnected }
     ws.send(msg)
   }

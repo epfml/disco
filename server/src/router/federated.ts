@@ -96,7 +96,7 @@ export class Federated extends Server {
       this.isValidWebSocket(splittedUrl[3]))
   }
 
-  protected sendConnectedMsg(ws: WebSocket): void {
+  protected sendConnectedMsg (ws: WebSocket): void {
     const msg: messages.messageGeneral = { type: messages.messageType.clientConnected }
     ws.send(msg)
   }
