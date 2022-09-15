@@ -28,6 +28,13 @@ export class Decentralized extends Server {
     return `/${task.taskID}`
   }
 
+  public isValidUrl (url: string | undefined): boolean {
+    const splittedUrl = url?.split('/')
+
+    return (splittedUrl !== undefined && splittedUrl.length === 3 && splittedUrl[0] === '' &&
+      this.isValidTask(splittedUrl[1]) && this.isValidWebSocket(splittedUrl[2]))
+  }
+
   protected initTask (task: Task, model: tf.LayersModel): void {}
 
   protected handle (

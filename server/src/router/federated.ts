@@ -88,6 +88,14 @@ export class Federated extends Server {
     return `/${task.taskID}/:clientId`
   }
 
+  public isValidUrl (url: string | undefined): boolean {
+    const splittedUrl = url?.split('/')
+
+    return (splittedUrl !== undefined && splittedUrl.length === 4 && splittedUrl[0] === '' &&
+      this.isValidTask(splittedUrl[1]) && this.isValidClientId(splittedUrl[2]) &&
+      this.isValidWebSocket(splittedUrl[3]))
+  }
+
   protected initTask (task: Task, model: tf.LayersModel): void {
     this.tasksStatus = this.tasksStatus.set(task.taskID, {
       isRoundPending: false,
