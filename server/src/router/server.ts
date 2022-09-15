@@ -9,6 +9,9 @@ import { TasksAndModels } from '../tasks'
 export abstract class Server {
   private readonly ownRouter: expressWS.Router
 
+  private readonly tasks: string[] = new Array<string>()
+  private readonly UUIDRegexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi
+
   constructor (wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels) {
     this.ownRouter = express.Router()
     wsApplier.applyTo(this.ownRouter)
@@ -33,16 +36,39 @@ export abstract class Server {
   }
 
   private onNewTask (task: Task, model: tf.LayersModel): void {
+    this.tasks.push(task.taskID)
     this.initTask(task, model)
 
-    this.ownRouter.ws(this.buildRoute(task), (ws, req) =>
-      this.handle(task, ws, model, req)
-    )
+    this.ownRouter.ws(this.buildRoute(task), (ws, req) => {
+      if (this.isValidUrl(req.url)) {
+        this.sendConnectedMsg(ws)
+        this.handle(task, ws, model, req)
+      } else {
+        ws.terminate()
+        ws.close()
+      }
+    })
   }
+
+  protected isValidTask (taskId: string): boolean {
+    return this.tasks.filter(e => e === taskId).length === 1
+  }
+
+  protected isValidClientId (clientId: string): boolean {
+    return new RegExp(this.UUIDRegexExp).test(clientId)
+  }
+
+  protected isValidWebSocket (urlEnd: string): boolean {
+    return urlEnd === '.websocket'
+  }
+
+  public abstract isValidUrl (url: string | undefined): boolean
 
   protected abstract get description (): string
 
   protected abstract buildRoute (task: Task): string
+
+  protected abstract sendConnectedMsg (ws: WebSocket): void
 
   protected abstract initTask (task: Task, model: tf.LayersModel): void
 
