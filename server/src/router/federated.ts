@@ -98,7 +98,7 @@ export class Federated extends Server {
 
   protected sendConnectedMsg (ws: WebSocket): void {
     const msg: messages.messageGeneral = { type: messages.messageType.clientConnected }
-    ws.send(msg)
+    ws.send(msgpack.encode(msg))
   }
 
   protected initTask (task: Task, model: tf.LayersModel): void {
