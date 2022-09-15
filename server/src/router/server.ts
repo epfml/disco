@@ -44,6 +44,7 @@ export abstract class Server {
         this.sendConnectedMsg(ws)
         this.handle(task, ws, model, req)
       } else {
+        console.log('Connection refused')
         ws.terminate()
         ws.close()
       }
@@ -55,7 +56,7 @@ export abstract class Server {
   }
 
   protected isValidClientId (clientId: string): boolean {
-    return this.UUIDRegexExp.test(clientId)
+    return new RegExp(this.UUIDRegexExp).test(clientId)
   }
 
   protected isValidWebSocket (urlEnd: string): boolean {
