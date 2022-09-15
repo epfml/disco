@@ -44,7 +44,6 @@ export abstract class Server {
         this.sendConnectedMsg(ws)
         this.handle(task, ws, model, req)
       } else {
-        console.log('Connection refused')
         ws.terminate()
         ws.close()
       }

@@ -25,6 +25,16 @@ export class Router {
     this.ownRouter = express.Router()
     wsApplier.applyTo(this.ownRouter)
 
+    process.nextTick(() =>
+      wsApplier.getWss().on('connection', (ws, req) => {
+        if (!federated.isValidUrl(req.url) && !decentralized.isValidUrl(req.url)) {
+          console.log('Connection refused')
+          ws.terminate()
+          ws.close()
+        }
+      })
+    )
+
     this.ownRouter.get('/', (_, res, next) => {
       res.send('Server for DeAI & FeAI \n')
       next()
