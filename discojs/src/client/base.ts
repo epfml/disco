@@ -7,6 +7,8 @@ import { TrainingInformant } from '@/informant'
 import { Weights } from '@/types'
 
 export abstract class Base {
+  protected connected: boolean = false
+
   constructor (
     public readonly url: URL,
     public readonly task: Task

@@ -2,6 +2,7 @@ import { MetadataID } from '@/index'
 import { weights } from '../../serialization'
 
 export enum messageType {
+  clientConnected,
   postWeightsToServer,
   postMetadata,
   getMetadataMap,

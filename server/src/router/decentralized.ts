@@ -28,6 +28,18 @@ export class Decentralized extends Server {
     return `/${task.taskID}`
   }
 
+  protected sendConnectedMsg (ws: WebSocket): void {
+    const msg: messages.messageGeneral = { type: messages.messageType.clientConnected }
+    ws.send(msgpack.encode(msg))
+  }
+
+  public isValidUrl (url: string | undefined): boolean {
+    const splittedUrl = url?.split('/')
+
+    return (splittedUrl !== undefined && splittedUrl.length === 3 && splittedUrl[0] === '' &&
+      this.isValidTask(splittedUrl[1]) && this.isValidWebSocket(splittedUrl[2]))
+  }
+
   protected initTask (task: Task, model: tf.LayersModel): void {}
 
   protected handle (

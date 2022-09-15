@@ -3,6 +3,7 @@ import { PeerID } from './types'
 import { TaskID } from '../../task'
 
 export enum messageType {
+  clientConnected,
   // Phase 0 communication (just between server and client)
   serverClientIDMessage,
   clientReadyMessage,
