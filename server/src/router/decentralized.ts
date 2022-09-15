@@ -30,7 +30,7 @@ export class Decentralized extends Server {
 
   protected sendConnectedMsg (ws: WebSocket): void {
     const msg: messages.messageGeneral = { type: messages.messageType.clientConnected }
-    ws.send(msg)
+    ws.send(msgpack.encode(msg))
   }
 
   public isValidUrl (url: string | undefined): boolean {
