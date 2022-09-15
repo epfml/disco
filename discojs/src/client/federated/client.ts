@@ -73,8 +73,6 @@ export class Client extends Base {
     }
 
     return await new Promise((resolve, reject) => {
-      ws.onclose = () =>
-        reject(new Error('connection closed'))
       ws.onerror = (err: isomorphic.ErrorEvent) =>
         reject(new Error(`connecting server: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
       ws.onopen = () => resolve(ws)
@@ -111,6 +109,8 @@ export class Client extends Base {
       if (msg.metadataMap !== undefined) {
         this.metadataMap = new Map(msg.metadataMap)
       }
+    } else if (msg.type === messages.messageType.clientConnected) {
+      this.connected = true
     }
   }
 
@@ -133,6 +133,8 @@ export class Client extends Base {
     }
     serverURL.pathname += `feai/${this.task.taskID}/${this.clientID}`
     this.server = await this.connectServer(serverURL)
+
+    await this.pauseUntil(() => this.connected)
   }
 
   /**
@@ -141,6 +143,7 @@ export class Client extends Base {
   async disconnect (): Promise<void> {
     this.server?.close()
     this.server = undefined
+    this.connected = false
   }
 
   // It sends a message to the server

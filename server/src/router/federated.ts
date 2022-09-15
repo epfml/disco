@@ -96,6 +96,11 @@ export class Federated extends Server {
       this.isValidWebSocket(splittedUrl[3]))
   }
 
+  protected sendConnectedMsg(ws: WebSocket): void {
+    const msg: messages.messageGeneral = { type: messages.messageType.clientConnected }
+    ws.send(msg)
+  }
+
   protected initTask (task: Task, model: tf.LayersModel): void {
     this.tasksStatus = this.tasksStatus.set(task.taskID, {
       isRoundPending: false,

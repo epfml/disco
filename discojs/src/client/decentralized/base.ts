@@ -110,7 +110,7 @@ function to check if a given boolean condition is true, checks continuously unti
    */
   protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const WS = typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
-    const ws = new WS(url)
+    const ws: WebSocket = new WS(url)
     ws.binaryType = 'arraybuffer'
 
     ws.onmessage = async (event: isomorphic.MessageEvent) => {
@@ -130,6 +130,8 @@ function to check if a given boolean condition is true, checks continuously unti
             this.peers = msg.peerList
             this.peersLocked = true
           }
+        } else if (msg.type === messages.messageType.clientConnected) {
+          this.connected = true
         } else {
           this.clientHandle(msg)
         }
@@ -137,8 +139,6 @@ function to check if a given boolean condition is true, checks continuously unti
     }
 
     return await new Promise((resolve, reject) => {
-      ws.onclose = () =>
-        reject(new Error('connection closed'))
       ws.onerror = (err: isomorphic.ErrorEvent) =>
         reject(new Error(`connecting server: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
       ws.onopen = () => resolve(ws)
@@ -163,6 +163,8 @@ function to check if a given boolean condition is true, checks continuously unti
     }
     serverURL.pathname += `deai/${this.task.taskID}`
     this.server = await this.connectServer(serverURL)
+
+    await this.pauseUntil(() => this.connected)
   }
 
   /**
@@ -174,6 +176,7 @@ function to check if a given boolean condition is true, checks continuously unti
 
     this.server?.close()
     this.server = undefined
+    this.connected = false
   }
 
   async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
