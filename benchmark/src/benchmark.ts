@@ -23,13 +23,14 @@ async function runUser(server: Server): Promise<TrainerLog> {
   const memory = new EmptyMemory()
 
   const inf = new informant.FederatedInformant(TASK.taskID, 10)
-  const cli = await getClient(client.Federated, server, TASK)
+  const cli = await getClient(client.federated.Client, server, TASK)
   await cli.connect()
   const disco = new training.Disco(TASK, logger, memory, TrainingSchemes.FEDERATED, inf, cli)
 
   console.log('runUser>>>>')
   await disco.startTraining(data)
   console.log('runUser<<<<')
+  await cli.disconnect()
   return await disco.getTrainerLog()
 }
 
