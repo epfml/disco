@@ -25,7 +25,7 @@ describe('federated client', function () { // the tests container
     await client.disconnect()
   })
 
-  /* it('Connect to non valid task', async () => {
+  it('Connect to non valid task', async () => {
     const client = await getClient(clients.federated.Client, server, { taskID: 'nonValidTask' })
 
     try {
@@ -35,7 +35,7 @@ describe('federated client', function () { // the tests container
     }
 
     throw new Error("connect didn't fail")
-  }) */
+  })
 
   it('checks that getRound returns a value greater or equal to zero', async () => {
     const client = await getClient(clients.federated.Client, server, TASK)

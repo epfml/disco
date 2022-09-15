@@ -57,7 +57,7 @@ export class Client extends Base {
   private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const WS =
       typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
-    const ws = new WS(url)
+    const ws: WebSocket = new WS(url)
     ws.binaryType = 'arraybuffer'
 
     ws.onmessage = async (event: isomorphic.MessageEvent) => {
@@ -73,6 +73,8 @@ export class Client extends Base {
     }
 
     return await new Promise((resolve, reject) => {
+      ws.onclose = () =>
+        reject(new Error('connection closed'))
       ws.onerror = (err: isomorphic.ErrorEvent) =>
         reject(new Error(`connecting server: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
       ws.onopen = () => resolve(ws)
