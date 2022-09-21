@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express'
 import { Set } from 'immutable'
 
-import { tf, serialization, isTask, Task, TaskID } from '@epfml/discojs'
+import { tf, serialization, Task, TaskID, isTask } from '@epfml/discojs'
 
 import { Config } from '../config'
 import { TasksAndModels } from '../tasks'
@@ -22,23 +22,24 @@ export class Tasks {
     })
 
     this.ownRouter.post('/', (req, res) => {
-      const modelFile = req.body.modelFiles.modelFile
-      const weightsFile = req.body.modelFiles.weightsFile
-      const newTask = req.body
-      if (
-        typeof modelFile !== 'string' ||
-        (weightsFile instanceof Uint8Array) ||
-        !isTask(newTask)
-      ) {
+      const model = req.body.model
+      const newTask = req.body.task
+
+      if (!(
+        model !== undefined &&
+        newTask !== undefined &&
+        isTask(newTask)
+      )) {
         res.status(400)
         return
       }
 
-      // TODO load model from JSON and add it
-      // this.tasksAndModels.addTaskAndModel(newTask, modelFile)
-      console.warn('add model is a stub')
-
-      res.end('Successfully upload')
+      serialization.model.decode(model)
+        .then((model) => {
+          tasksAndModels.addTaskAndModel(newTask, model)
+        })
+        .then(() => res.status(200).end('Successful task upload'))
+        .catch(console.error)
     })
 
     // delay listening
@@ -64,8 +65,8 @@ export class Tasks {
    * tasks metadata stored in the server's tasks.json file. This is used for
    * generating the client's list of tasks. It requires no prior connection to the
    * server and is thus publicly available data.
-   * @param {Request} request received from client
-   * @param {Response} response sent to client
+   * @param request received from client
+   * @param response sent to client
    */
   private async getTasksMetadata (request: Request, response: Response): Promise<void> {
     response
@@ -79,8 +80,8 @@ export class Tasks {
    * architecture file model.json and its layer weights file weights.bin.
    * It requires no prior connection to the server and is thus publicly available
    * data.
-   * @param {Request} request received from client
-   * @param {Response} response sent to client
+   * @param request received from client
+   * @param response sent to client
    */
   private async getLatestModel (taskID: TaskID, request: Request, response: Response): Promise<void> {
     const validModelFiles = Set.of('model.json', 'weights.bin')
