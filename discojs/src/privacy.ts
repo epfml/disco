@@ -2,6 +2,7 @@ import { List } from 'immutable'
 import { Weights } from '@/types'
 import { Task } from '@/task'
 import { tf } from '.'
+import { frobeniusNorm } from './utility'
 
 /**
  * Add task-parametrized Gaussian noise to and clip the weights update between the previous and current rounds.
@@ -23,7 +24,7 @@ export function addDifferentialPrivacy (updatedWeights: Weights, staleWeights: W
 
   if (clippingRadius !== undefined) {
     // Frobenius norm
-    const norm = Math.sqrt(weightsDiff.map((w) => w.square().sum().dataSync()[0]).reduce((a: number, b) => a + b))
+    const norm = frobeniusNorm(weightsDiff)
     newWeightsDiff = weightsDiff.map((w) => {
       const clipped = w.div(Math.max(1, norm / clippingRadius))
       if (noiseScale !== undefined) {
