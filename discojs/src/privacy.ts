@@ -24,7 +24,7 @@ export function addDifferentialPrivacy (updatedWeights: Weights, staleWeights: W
 
   if (clippingRadius !== undefined) {
     // Frobenius norm
-    const norm = frobeniusNorm(weightsDiff)
+    const norm = frobeniusNorm(Array.from(weightsDiff))
     newWeightsDiff = weightsDiff.map((w) => {
       const clipped = w.div(Math.max(1, norm / clippingRadius))
       if (noiseScale !== undefined) {
