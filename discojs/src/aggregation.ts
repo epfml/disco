@@ -34,11 +34,17 @@ export function averageWeights (peersWeights: List<Weights>): Weights {
   return sumWeights(peersWeights).map((w) => w.div(numberOfPeers))
 }
 
+// Implementation of: https://arxiv.org/abs/2012.10333
 export function averageCenteredClipping (peersWeights: List<Weights>, previousWeights: Weights, tau: number): Weights {
-  const subtractedWeights: List<List<tf.Tensor>> = peersWeights.map(weights => List(weights).zip(List(previousWeights)).map(([w1, w2]) => w1.sub(w2)))
-  const norm: List<number> = subtractedWeights.map(weights => Math.sqrt(weights.map((w) => w.square().sum().dataSync()[0]).reduce((a: number, b) => a + b)))
+  // It computes the difference between the current and the previous weights
+  const weightsDiff: List<List<tf.Tensor>> = peersWeights.map(weights => List(weights).zip(List(previousWeights)).map(([w1, w2]) => w1.sub(w2)))
 
-  const centeredMean: List<List<tf.Tensor>> = subtractedWeights.map(weights => weights.map((w, i) => tf.prod(w, Math.min(1, 1 / (norm.get(i) ?? 1)))))
+  // It computes the Frobenius norm of the difference between current and previous weights
+  const norm: List<number> = weightsDiff.map(weights => Math.sqrt(weights.map((w) => w.square().sum().dataSync()[0]).reduce((a: number, b) => a + b)))
 
+  // It computes the centered clipped quantity for each weight, clipping tau/norm(i) at 1.
+  const centeredMean: List<List<tf.Tensor>> = weightsDiff.map(weights => weights.map((w, i) => tf.prod(w, Math.min(1, tau / (norm.get(i) ?? 1)))))
+
+  // It aggregates weights using the centered clipped quantities
   return averageWeights(centeredMean.map(weights => Array.from(weights)))
 }
