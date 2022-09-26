@@ -48,11 +48,11 @@ export interface TrainingInformation {
   // decentralizedSecure: Secure Aggregation on/off:
   // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
   decentralizedSecure?: boolean
-  // byzantineAggregator: Byzantine aggregatore on/off:
-  // Boolean. true to use byzantine aggregation, if the training scheme is federated, false otherwise
-  byzantineAggregator?: boolean
-  // tauPercentile: it indicates the percentile to take when choosing the tau for byzantine-tolerant aggregator:
-  // Number (>0 && <1). It must be a number between 0 and 1 and it is used only if byzantineAggregator is true.
+  // byzantineRobustAggregator: Byzantine robust aggregator on/off:
+  // Boolean. true to use byzantine robust aggregation, if the training scheme is federated, false otherwise
+  byzantineRobustAggregator?: boolean
+  // tauPercentile: it indicates the percentile to take when choosing the tau for byzantine robust aggregator:
+  // Number (>0 && <1). It must be a number between 0 and 1 and it is used only if byzantineRobustAggregator is true.
   tauPercentile?: number
   // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
   // default is 100, must be a positive number, check the ~/disco/information/PRIVACY.md file for more information on significance of maxShareValue selection
