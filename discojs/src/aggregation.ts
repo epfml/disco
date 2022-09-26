@@ -60,7 +60,7 @@ export function averageWeights (peersWeights: List<Weights>): Weights {
 }
 
 // See: https://arxiv.org/abs/2012.10333
-export function averageCenteredClippingWeights (peersWeights: List<Weights>, currentModel: Weights): Weights {
+export function averageCenteredClippingWeights (peersWeights: List<Weights>, currentModel: Weights, tauPercentile: number): Weights {
   // Computing the centered peers weights with respect to the previous model aggragation
   const centeredPeersWeights: List<Weights> = applyArithmeticToWeightsAndModel(peersWeights, currentModel, tf.sub)
 
@@ -68,7 +68,7 @@ export function averageCenteredClippingWeights (peersWeights: List<Weights>, cur
   const normArray: number[] = Array.from(centeredPeersWeights.map(model => frobeniusNorm(model)))
 
   // Computing the parameter tau as third percentile with respect to the norm array
-  const tau: number = computeQuantile(normArray, 0.75)
+  const tau: number = computeQuantile(normArray, tauPercentile)
 
   // Computing the centered clipped peers weights given the norm array and the parameter tau
   const centeredMean: List<Weights> = clipWeights(centeredPeersWeights, normArray, tau)
