@@ -7,12 +7,23 @@
       <template #icon>
         <Tasks />
       </template>
-      <template #content>
+      <template
+        v-if="overviewText !== undefined"
+        #content
+      >
         <div v-html="overviewText" />
+      </template>
+      <template
+        v-else
+        #content
+      >
+        <span class="italic">
+          No task description was provided by the task's author.
+        </span>
       </template>
     </IconCard>
 
-    <IconCard>
+    <IconCard v-if="modelText !== undefined">
       <template #title>
         The Model
       </template>
@@ -30,13 +41,14 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue'
+
 import { isTask } from '@epfml/discojs'
 
 import Tasks from '@/assets/svg/Tasks.vue'
 import Model from '@/assets/svg/Model.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import ModelCaching from '@/components/training/ModelCaching.vue'
-import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'Description',
@@ -67,13 +79,16 @@ export default defineComponent({
     }
   },
   computed: {
-    overviewText (): string {
+    overviewText (): string | undefined {
+      if (this.task.displayInformation.summary === undefined) {
+        return undefined
+      }
       return Object.values(this.task.displayInformation.summary).join('<br><br>')
     },
-    tradeOffsText (): string {
+    tradeOffsText (): string | undefined {
       return this.task.displayInformation.tradeOffsText
     },
-    modelText (): string {
+    modelText (): string | undefined {
       return this.task.displayInformation.model
     }
   }
