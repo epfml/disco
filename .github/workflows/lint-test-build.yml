@@ -211,6 +211,7 @@ jobs:
             ${{ env.lib_dir }}/package-lock.json
             ${{ env.server_dir }}/package-lock.json
             ${{ env.benchmark_dir }}/package-lock.json
+      - run: ./with_server npm run test
       - run: npm ci && npm run build
         working-directory: ${{ env.lib_dir }}
       - run: npm ci 
