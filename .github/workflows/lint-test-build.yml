@@ -216,5 +216,4 @@ jobs:
       - run: npm ci 
         working-directory: ${{ env.server_dir }}
       - run: npm ci
-      - run: ./with_server npm run dev
-      - run: npm run benchmark -- -t cifar10 -u 1 -e 1
+      - run: ./with_server npm run benchmark -- -t cifar10 -u 1 -e 1
