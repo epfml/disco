@@ -1,7 +1,6 @@
-import * as tf from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import fs_promises from 'fs/promises'
-import { dataset, Task } from '.'
+import { tf, dataset, Task } from '.'
 
 import path from 'node:path'
 import { Range } from 'immutable'
