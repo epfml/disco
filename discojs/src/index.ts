@@ -20,4 +20,6 @@ export { Validator } from './validation'
 export { TrainingInformation, DisplayInformation, isTask, Task, isTaskID, TaskID } from './task'
 export * from './types'
 
+export * as exampleData from './exampleData'
+
 export { tf } from './tfjs'

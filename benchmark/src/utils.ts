@@ -1,46 +1,57 @@
-
-import {Server} from 'node:http'
+import net from 'node:net'
+import { AddressInfo } from 'node:net'
 
 import fs from 'fs'
 
-import {client, Task, TrainerLog} from '@epfml/discojs'
-
-import {getApp} from '../../server/src/get_server'
+import { client, Task, TrainerLog } from '@epfml/discojs'
 
 // port to start server on
-const PORT: number | undefined = 5555
+const PORT: number = 8080
 
-export async function startServer(): Promise<Server> {
-  const app = await getApp()
+async function isServerAvailable(
+  host: string,
+  timeout: number = 1000,
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const socket = new net.Socket()
 
-  const server = app.listen(PORT)
+    const onError = () => {
+      socket.destroy()
+      reject()
+    }
 
-  await new Promise((resolve, reject) => {
-    server.once('listening', resolve)
-    server.once('error', reject)
+    socket.setTimeout(timeout)
+    socket.once('error', onError)
+    socket.once('timeout', onError)
+
+    socket.connect(PORT, host, () => {
+      socket.end()
+      resolve()
+    })
   })
+}
 
-  return server
+async function getServerAddress(
+  host: string = '127.0.0.1',
+): Promise<AddressInfo> {
+  return new Promise<AddressInfo>((resolve, reject) => {
+    isServerAvailable(host)
+      .then(() => {
+        resolve({ port: PORT, address: '127.0.0.1', family: 'IPv4' })
+      })
+      .catch(() => {
+        throw new Error('Server not started')
+      })
+  })
 }
 
 export async function getClient<T extends client.Base>(
   Constructor: new (url: URL, t: Task) => T,
-  server: Server,
-  task: Task
+  task: Task,
 ): Promise<T> {
-  let host: string
-  const addr = server?.address()
-  if (addr === undefined || addr === null) {
-    throw new Error('server not started')
-  } else if (typeof addr === 'string') {
-    host = addr
-  } else {
-    if (addr.family === '4') {
-      host = `${addr.address}:${addr.port}`
-    } else {
-      host = `[${addr.address}]:${addr.port}`
-    }
-  }
+  const addr: AddressInfo = await getServerAddress()
+  const host: string = `${addr.address}:${addr.port}`
+
   const url = new URL(`http://${host}`)
   return new Constructor(url, task)
 }
