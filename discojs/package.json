@@ -4,7 +4,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build:browser": "cp src/index.browser.ts src/index.ts && tsc -p tsconfig.browser.json",
+    "build:node": "cp src/index.node.ts src/index.ts && tsc -p tsconfig.node.json",
+    "build": "npm run build:browser && npm run build:node",
     "test": "mocha"
   },
   "repository": {

@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epfml/discojs": "file:../discojs",
+    "@epfml/discojs": "file:../discojs/dist/node",
     "immutable": "4"
   },
   "devDependencies": {

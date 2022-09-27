@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epfml/discojs": "file:../discojs",
+    "@epfml/discojs": "file:../discojs/dist/node",
     "@tensorflow/tfjs-node": "3",
     "cors": "2",
     "express": "4",
