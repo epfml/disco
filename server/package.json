@@ -14,14 +14,14 @@
   "license": "ISC",
   "dependencies": {
     "@epfml/discojs": "file:../discojs",
+    "@koush/wrtc": "0.5",
     "@tensorflow/tfjs-node": "3",
     "cors": "2",
     "express": "4",
     "express-ws": "5",
     "immutable": "4",
     "lodash": "4",
-    "msgpack-lite": "0.1",
-    "wrtc": "0.4"
+    "msgpack-lite": "0.1"
   },
   "nodemonConfig": {
     "ignore": [

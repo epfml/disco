@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 import { List, Range, Set } from 'immutable'
-import wrtc from 'wrtc'
+import wrtc from '@koush/wrtc'
 
 import { Peer } from './peer'
 

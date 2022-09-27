@@ -1,6 +1,6 @@
 // https://github.com/node-webrtc/node-webrtc/issues/605
 
-declare module 'wrtc' {
+declare module '@koush/wrtc' {
   const wrtc: {
     RTCPeerConnection: typeof RTCPeerConnection
     RTCSessionDescription: typeof RTCSessionDescription
