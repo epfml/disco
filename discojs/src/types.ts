@@ -1,4 +1,4 @@
-import { tf } from '.'
+import { tf } from '@/tfjs'
 
 // Filesystem reference
 export type Path = string
