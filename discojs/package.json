@@ -27,6 +27,7 @@
     "ws": "8"
   },
   "devDependencies": {
+    "@koush/wrtc": "0.5",
     "@tensorflow/tfjs-node": "3",
     "@types/chai": "4",
     "@types/lodash": "4",
@@ -41,7 +42,6 @@
     "eslint-config-standard-with-typescript": "21",
     "mocha": "9",
     "ts-node": "10",
-    "typescript": "<4.5.0",
-    "wrtc": "0.4"
+    "typescript": "<4.5.0"
   }
 }

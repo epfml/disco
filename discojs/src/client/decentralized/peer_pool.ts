@@ -1,6 +1,6 @@
 import { Map, Set } from 'immutable'
 import { SignalData } from 'simple-peer'
-import { WRTC } from 'wrtc'
+import { WRTC } from '@koush/wrtc'
 
 import { Peer } from './peer'
 import { PeerID } from './types'
@@ -20,7 +20,7 @@ export class PeerPool {
     let wrtc: WRTC | undefined
     try {
       // resolve relatively to where it is run, not from discojs dir
-      const path = require.resolve('wrtc', { paths: ['.'] })
+      const path = require.resolve('@koush/wrtc', { paths: ['.'] })
       wrtc = await import(path)
     } catch (e) {
       // expected
