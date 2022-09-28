@@ -1,10 +1,7 @@
 import axios from 'axios'
 import * as tf from '@tensorflow/tfjs'
 
-import * as serialization from '../serialization'
-import { Task } from '@/task'
-import { TrainingInformant } from '@/informant'
-import { Weights } from '@/types'
+import { WeightsContainer, Task, TrainingInformant, serialization } from '..'
 
 export abstract class Base {
   protected connected: boolean = false
@@ -43,7 +40,7 @@ export abstract class Base {
    * onTrainEnd callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  abstract onTrainEndCommunication (weights: Weights, trainingInformant: TrainingInformant): Promise<void>
+  abstract onTrainEndCommunication (weights: WeightsContainer, trainingInformant: TrainingInformant): Promise<void>
 
   /**
    * This function will be called whenever a local round has ended.
@@ -54,9 +51,9 @@ export abstract class Base {
    * @param trainingInformant
    */
   abstract onRoundEndCommunication (
-    updatedWeights: Weights,
-    staleWeights: Weights,
+    updatedWeights: WeightsContainer,
+    staleWeights: WeightsContainer,
     round: number,
     trainingInformant: TrainingInformant
-  ): Promise<Weights> // changed from weights to void because we don't want weights autosent at end of round
+  ): Promise<WeightsContainer>
 }

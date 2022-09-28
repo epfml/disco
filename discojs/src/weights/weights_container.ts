@@ -48,6 +48,10 @@ export class WeightsContainer {
     return new this(weights)
   }
 
+  static from (model: tf.LayersModel): WeightsContainer {
+    return new this(model.weights.map((w) => w.read()))
+  }
+
   static add (a: Iterable<TensorLike>, b: Iterable<TensorLike>): WeightsContainer {
     return new this(a).add(new this(b))
   }

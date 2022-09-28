@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { Client, Memory, Task, TrainingInformant } from '../..'
+import { Client, Memory, Task, TrainingInformant, WeightsContainer } from '../..'
 
 import { Trainer } from './trainer'
 
@@ -25,8 +25,8 @@ export class DistributedTrainer extends Trainer {
    * Callback called every time a round is over
    */
   async onRoundEnd (accuracy: number): Promise<void> {
-    const currentRoundWeights = this.model.weights.map((w) => w.read())
-    const previousRoundWeights = this.previousRoundModel.weights.map((w) => w.read())
+    const currentRoundWeights = WeightsContainer.from(this.model)
+    const previousRoundWeights = WeightsContainer.from(this.previousRoundModel)
 
     const aggregatedWeights = await this.client.onRoundEndCommunication(
       currentRoundWeights,
@@ -35,8 +35,8 @@ export class DistributedTrainer extends Trainer {
       this.trainingInformant
     )
 
-    this.previousRoundModel.setWeights(currentRoundWeights)
-    this.model.setWeights(aggregatedWeights)
+    this.previousRoundModel.setWeights(currentRoundWeights.weights)
+    this.model.setWeights(aggregatedWeights.weights)
 
     await this.memory.updateWorkingModel(
       { taskID: this.task.taskID, name: this.trainingInformation.modelID },
@@ -50,7 +50,7 @@ export class DistributedTrainer extends Trainer {
    */
   async onTrainEnd (): Promise<void> {
     await this.client.onTrainEndCommunication(
-      this.model.weights.map((w) => w.read()),
+      WeightsContainer.from(this.model),
       this.trainingInformant
     )
     await super.onTrainEnd()

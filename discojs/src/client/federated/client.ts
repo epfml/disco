@@ -2,7 +2,7 @@ import * as msgpack from 'msgpack-lite'
 import isomorphic from 'isomorphic-ws'
 import { v4 as randomUUID } from 'uuid'
 
-import { privacy, serialization, informant, Weights, MetadataID } from '../..'
+import { privacy, serialization, informant, MetadataID, WeightsContainer } from '../..'
 import { Base } from '../base'
 
 import * as messages from './messages'
@@ -24,7 +24,7 @@ export class Client extends Base {
 
   // Attributes used to wait for a response from the server
   private serverRound?: number
-  private serverWeights?: Weights
+  private serverWeights?: WeightsContainer
   private receivedStatistics?: Record<string, number>
   private metadataMap?: Map<string, unknown>
 
@@ -156,7 +156,7 @@ export class Client extends Base {
   }
 
   // It sends weights to the server
-  async postWeightsToServer (weights: Weights): Promise<void> {
+  async postWeightsToServer (weights: WeightsContainer): Promise<void> {
     const msg: messages.postWeightsToServer = {
       type: messages.messageType.postWeightsToServer,
       weights: await serialization.weights.encode(weights),
@@ -183,7 +183,7 @@ export class Client extends Base {
   }
 
   // It retrieves the last server round and weights, but return only the server weights
-  async pullRoundAndFetchWeights (): Promise<Weights | undefined> {
+  async pullRoundAndFetchWeights (): Promise<WeightsContainer | undefined> {
     // get server round of latest model
     await this.getLatestServerRound()
 
@@ -248,11 +248,11 @@ export class Client extends Base {
   }
 
   async onRoundEndCommunication (
-    updatedWeights: Weights,
-    staleWeights: Weights,
+    updatedWeights: WeightsContainer,
+    staleWeights: WeightsContainer,
     _: number,
     trainingInformant: informant.FederatedInformant
-  ): Promise<Weights> {
+  ): Promise<WeightsContainer> {
     const noisyWeights = privacy.addDifferentialPrivacy(
       updatedWeights,
       staleWeights,

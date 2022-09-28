@@ -1,16 +1,17 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { assert, expect } from 'chai'
 
-import { AsyncBuffer } from './async_buffer'
+import { AsyncBuffer } from '.'
 
 const taskId = 'titanic'
 const id = 'a'
 const bufferCapacity = 3
-const weights = [0, 1, 2]
-const newWeights = [3, 4, 5]
-let mockUpdatedWeights: number[] = []
+const weights = [1, 2, 3]
+const newWeights = [4, 5, 6]
+let mockUpdatedWeights: number[]
 
-async function mockAggregateAndStoreWeights (_weights: number[]): Promise<void> {
-  mockUpdatedWeights = _weights
+const mockAggregateAndStoreWeights = async (_weights: Iterable<number>): Promise<void> => {
+  mockUpdatedWeights = [..._weights]
 }
 
 describe('AsyncWeightBuffer tests', () => {
@@ -24,7 +25,7 @@ describe('AsyncWeightBuffer tests', () => {
     const t0 = Date.now()
     assert.isTrue(await asyncWeightBuffer.add(id, weights[0], t0))
   })
-  it('_bufferIsFull returns false if it is not full', () => {
+  it('bufferIsFull returns false if it is not full', () => {
     const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
     assert.isFalse(asyncWeightBuffer.bufferIsFull())
   })
@@ -44,7 +45,7 @@ describe('AsyncWeightBuffer tests', () => {
     const t0 = Date.now()
     await Promise.all(weights.map(async (w) => await asyncWeightBuffer.add(w.toString(), w, t0)))
     expect(asyncWeightBuffer.buffer.size).equal(0)
-    expect(weights).to.eql(mockUpdatedWeights)
+    expect(weights).eql(mockUpdatedWeights)
     expect(asyncWeightBuffer.round).equal(1)
   })
   it('Testing two full cycles (adding x2 buffer capacity)', async () => {
@@ -52,12 +53,14 @@ describe('AsyncWeightBuffer tests', () => {
     mockUpdatedWeights = []
 
     const t0 = Date.now()
-    await Promise.all(weights.map(async (w) => await asyncWeightBuffer.add(w.toString(), w, t0)))
-    expect(weights).to.eql(mockUpdatedWeights)
+    await Promise.all(weights.map(async (w) =>
+      await asyncWeightBuffer.add(w.toString(), w, t0)))
+    expect(weights).eql(mockUpdatedWeights)
 
     const t1 = Date.now()
-    await Promise.all(newWeights.map(async (w) => await asyncWeightBuffer.add(w.toString(), w, t1)))
-    expect(newWeights).to.eql(mockUpdatedWeights)
+    await Promise.all(newWeights.map(async (w) =>
+      await asyncWeightBuffer.add(w.toString(), w, t1)))
+    expect(newWeights).eql(mockUpdatedWeights)
     expect(asyncWeightBuffer.round).equal(2)
   })
 })

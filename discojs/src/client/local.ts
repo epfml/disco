@@ -1,4 +1,4 @@
-import { Weights } from '../types'
+import { WeightsContainer } from '..'
 
 import { Base } from './base'
 
@@ -7,7 +7,7 @@ export class Local extends Base {
   async connect (): Promise<void> {}
   async disconnect (): Promise<void> {}
 
-  async onRoundEndCommunication (_: Weights): Promise<Weights> {
+  async onRoundEndCommunication (_: WeightsContainer): Promise<WeightsContainer> {
     return _
   }
 
