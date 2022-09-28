@@ -3,6 +3,7 @@ import { tf } from '.'
 
 import * as aggregation from './aggregation'
 import * as test from '../src/test_utils.spec'
+import { assert } from 'chai'
 
 describe('averaging weights', () => {
   it('aggregation of weights works for two peers', async () => {
@@ -39,5 +40,19 @@ describe('averaging weights', () => {
 
     const expected = test.makeWeights([[1, -17, 1], [9, 0]])
     test.assertWeightsEqual(difference, expected, 0) // TODO: adjust for floating point eps
+  })
+
+  it('works even with duplicated values', async () => {
+    const peersWeights = List.of(
+      [tf.tensor([1])], // TODO: use test_utils or similar to get a weights object directly
+      [tf.tensor([1])],
+      [tf.tensor([4])]
+    )
+    assert.strictEqual(peersWeights.size, 3)
+
+    const averaged = aggregation.averageWeights(peersWeights)
+
+    const expected = test.makeWeights([[2]])
+    test.assertWeightsEqual(averaged, expected, 0) // TODO: adjust for floating point eps
   })
 })

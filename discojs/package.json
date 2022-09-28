@@ -27,6 +27,7 @@
     "ws": "8"
   },
   "devDependencies": {
+    "@koush/wrtc": "0.5",
     "@tensorflow/tfjs-node": "3",
     "@types/chai": "4",
     "@types/lodash": "4",
