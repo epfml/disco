@@ -82,9 +82,10 @@
 <script setup lang="ts">
 import { useValidationStore } from '@/store/validation'
 import { useMemoryStore } from '@/store/memory'
-import { toaster } from '@/toast'
+import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
 
+const toaster = useToaster()
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 

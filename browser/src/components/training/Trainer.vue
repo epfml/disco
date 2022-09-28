@@ -50,7 +50,6 @@ import { dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSch
 import { useMemoryStore } from '@/store/memory'
 import { getClient } from '@/clients'
 import { IndexedDB } from '@/memory'
-import { toaster } from '@/toast'
 import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
@@ -145,7 +144,7 @@ export default defineComponent({
         await this.disco.startTraining(this.dataset)
         this.startedTraining = false
       } catch (e) {
-        toaster.error(e instanceof Error ? e.message : e.toString())
+        this.$toast.error(e instanceof Error ? e.message : e.toString())
 
         // clean generated state
         this.distributedTraining = false

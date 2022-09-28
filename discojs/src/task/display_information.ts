@@ -1,5 +1,3 @@
-import { Set } from 'immutable'
-
 import { Summary, isSummary } from './summary'
 import { DataExample, isDataExample } from './data_example'
 
@@ -10,14 +8,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   if (raw === null) {
     return false
   }
-
-  const requiredFields = Set.of(
-    'dataExampleText',
-    'dataFormatInformation',
-    'summary',
-    'taskTitle',
-    'tradeoffs'
-  )
 
   type Fields =
     'dataExample' |
@@ -30,11 +20,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     'summary' |
     'taskTitle' |
     'tradeoffs'
-
-  if (!requiredFields.isSubset(Object.keys(raw))) {
-    return false
-  }
-
   const {
     dataExample,
     dataExampleImage,
@@ -49,10 +34,10 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   } = raw as Record<Fields, unknown | undefined>
 
   if (
-    typeof dataExampleText !== 'string' ||
-    typeof dataFormatInformation !== 'string' ||
     typeof taskTitle !== 'string' ||
-    typeof tradeoffs !== 'string' ||
+    (dataExampleText !== undefined && typeof dataExampleText !== 'string') ||
+    (dataFormatInformation !== undefined && typeof dataFormatInformation !== 'string') ||
+    (tradeoffs !== undefined && typeof tradeoffs !== 'string') ||
     (model !== undefined && typeof model !== 'string') ||
     (dataExampleImage !== undefined && typeof dataExampleImage !== 'string') ||
     (limitations !== undefined && typeof limitations !== 'string')
@@ -60,7 +45,7 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     return false
   }
 
-  if (!isSummary(summary)) {
+  if (summary !== undefined && !isSummary(summary)) {
     return false
   }
 
@@ -97,12 +82,12 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
 }
 
 export interface DisplayInformation {
-  taskTitle: string
-  summary: Summary
-  tradeoffs: string
-  dataFormatInformation: string
-  // TODO merge dataExample*
-  dataExampleText: string
+  taskTitle?: string
+  summary?: Summary
+  tradeoffs?: string
+  dataFormatInformation?: string
+  // TODO merge dataExample
+  dataExampleText?: string
   model?: string
   // TODO no need for undefined
   dataExample?: DataExample[]

@@ -3,7 +3,7 @@ import { computed, defineProps } from 'vue'
 
 import { Task } from '@epfml/discojs'
 
-import DropdownCard from '../containers/DropdownCard.vue'
+import DropdownCard from '@/components/containers/DropdownCard.vue'
 
 interface Props {
   task: Task
@@ -23,12 +23,23 @@ const exampleImage = computed(() => {
       <template #title>
         Data Format
       </template>
-      <template #content>
+      <template
+        v-if="task.displayInformation.dataFormatInformation !== undefined"
+        #content
+      >
         It is <span class="font-bold">important</span> to harmonize your data to the expected format as described below.<br><br>
         <span v-html="task.displayInformation.dataFormatInformation" />
       </template>
+      <template
+        v-else
+        #content
+      >
+        <span class="italic">
+          No format was specified by the task's author.
+        </span>
+      </template>
     </DropdownCard>
-    <DropdownCard>
+    <DropdownCard v-if="task.displayInformation?.dataExampleText !== undefined">
       <template #title>
         Example Data
       </template>

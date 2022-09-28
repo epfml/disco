@@ -19,10 +19,10 @@ export function getPreprocessImage (info: TrainingInformation): PreprocessImage 
   const preprocessImage: PreprocessImage = (tensorContainer: tf.TensorContainer): tf.TensorContainer => {
     // TODO unsafe cast, tfjs does not provide the right interface
     let { xs, ys } = tensorContainer as ImageTensorContainer
-    if (info.preprocessingFunctions.includes(ImagePreprocessing.Normalize)) {
+    if (info.preprocessingFunctions?.includes(ImagePreprocessing.Normalize)) {
       xs = xs.div(tf.scalar(255))
     }
-    if (info.preprocessingFunctions.includes(ImagePreprocessing.Resize) &&
+    if (info.preprocessingFunctions?.includes(ImagePreprocessing.Resize) &&
       info.RESIZED_IMAGE_H !== undefined &&
       info.RESIZED_IMAGE_W !== undefined) {
       xs = tf.image.resizeBilinear(xs, [
