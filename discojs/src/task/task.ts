@@ -1,5 +1,5 @@
 import { isDisplayInformation, DisplayInformation } from './display_information'
-import { TrainingInformation } from './training_information'
+import { isTrainingInformation, TrainingInformation } from './training_information'
 
 export type TaskID = string
 
@@ -15,22 +15,21 @@ export function isTask (raw: unknown): raw is Task {
     return false
   }
 
-  if (!('taskID' in raw)) {
-    return false
-  }
-  const { taskID, displayInformation } = raw as Record<'taskID' | 'displayInformation', unknown | undefined>
+  const { taskID, displayInformation, trainingInformation } = raw as
+    Record<'taskID' | 'displayInformation' | 'trainingInformation', unknown | undefined>
 
   if (typeof taskID !== 'string') {
     return false
   }
-  if (displayInformation !== undefined &&
-      !isDisplayInformation(displayInformation)) {
+  if (!isDisplayInformation(displayInformation)) {
+    return false
+  }
+  if (!isTrainingInformation(trainingInformation)) {
     return false
   }
 
-  // TODO check for TrainingInformation
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _: Task = { taskID, displayInformation }
+  const _: Task = { taskID, displayInformation, trainingInformation }
 
   return true
 }
@@ -38,6 +37,6 @@ export function isTask (raw: unknown): raw is Task {
 export interface Task {
   // TODO rename to ID
   taskID: TaskID
-  displayInformation?: DisplayInformation
-  trainingInformation?: TrainingInformation
+  displayInformation: DisplayInformation
+  trainingInformation: TrainingInformation
 }

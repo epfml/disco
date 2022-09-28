@@ -155,11 +155,12 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { useTasksStore } from '@/store/tasks'
 import { useTrainingStore } from '@/store/training'
-import { toaster } from '@/toast'
+import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
 
 const router = useRouter()
 const route = useRoute()
+const toaster = useToaster()
 const tasksStore = useTasksStore()
 const trainingStore = useTrainingStore()
 

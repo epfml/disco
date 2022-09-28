@@ -26,7 +26,7 @@ describe('federated client', function () { // the tests container
   })
 
   it('Connect to non valid task', async () => {
-    const client = await getClient(clients.federated.Client, server, { taskID: 'nonValidTask' })
+    const client = await getClient(clients.federated.Client, server, { taskID: 'nonValidTask' } as any)
 
     try {
       await client.connect()

@@ -1,5 +1,133 @@
-import { ModelCompileData } from './model_compile_data'
-import { Preprocessing } from '../dataset/preprocessing'
+import { isModelCompileData, ModelCompileData } from './model_compile_data'
+import { Preprocessing } from '@/dataset/preprocessing'
+
+export function isTrainingInformation (raw: unknown): raw is TrainingInformation {
+  if (typeof raw !== 'object') {
+    return false
+  }
+  if (raw === null) {
+    return false
+  }
+
+  type Fields =
+    'dataType' |
+    'scheme' |
+    'epochs' |
+    'roundDuration' |
+    'validationSplit' |
+    'batchSize' |
+    'modelCompileData' |
+    'modelID' |
+    'preprocessingFunctions' |
+    'inputColumns' |
+    'outputColumns' |
+    'IMAGE_H' |
+    'IMAGE_W' |
+    'RESIZED_IMAGE_H' |
+    'RESIZED_IMAGE_W' |
+    'learningRate' |
+    'decentralizedSecure' |
+    'maxShareValue' |
+    'minimumReadyPeers' |
+    'LABEL_LIST' |
+    'noiseScale' |
+    'clippingRadius'
+
+  const {
+    dataType,
+    scheme,
+    epochs,
+    // roundDuration,
+    validationSplit,
+    batchSize,
+    modelCompileData,
+    modelID,
+    preprocessingFunctions,
+    inputColumns,
+    outputColumns,
+    IMAGE_H,
+    IMAGE_W,
+    RESIZED_IMAGE_H,
+    RESIZED_IMAGE_W,
+    learningRate,
+    decentralizedSecure,
+    maxShareValue,
+    minimumReadyPeers,
+    LABEL_LIST,
+    noiseScale,
+    clippingRadius
+  } = raw as Record<Fields, unknown | undefined>
+
+  if (
+    typeof dataType !== 'string' ||
+    typeof modelID !== 'string' ||
+    typeof epochs !== 'number' ||
+    typeof batchSize !== 'number' ||
+    // typeof roundDuration !== 'number' ||
+    typeof validationSplit !== 'number' ||
+    (RESIZED_IMAGE_H !== undefined && typeof RESIZED_IMAGE_H !== 'number') ||
+    (RESIZED_IMAGE_W !== undefined && typeof RESIZED_IMAGE_W !== 'number') ||
+    (noiseScale !== undefined && typeof noiseScale !== 'number') ||
+    (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
+    (learningRate !== undefined && typeof learningRate !== 'number') ||
+    (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
+    (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
+    (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number')
+  ) {
+    return false
+  }
+
+  // interdepences on data type
+  switch (dataType) {
+    case 'image':
+      if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
+        return false
+      }
+      break
+    case 'tabular':
+      if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
+        return false
+      }
+      if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
+        return false
+      }
+      break
+  }
+
+  console.log(1)
+
+  // interdepences on scheme
+  switch (scheme) {
+    case 'decentralized':
+      break
+    case 'federated':
+      break
+    case 'local':
+      break
+  }
+
+  if (!isModelCompileData(modelCompileData)) {
+    return false
+  }
+
+  if (
+    LABEL_LIST !== undefined && !(
+      Array.isArray(LABEL_LIST) && LABEL_LIST.every((e) => typeof e === 'string')
+    )
+  ) {
+    return false
+  }
+
+  if (
+    preprocessingFunctions !== undefined && !(
+      Array.isArray(preprocessingFunctions) && preprocessingFunctions.every((e) => typeof e === 'string')
+    )
+  ) {
+    return false
+  }
+
+  return true
+}
 
 export interface TrainingInformation {
   // modelID: unique ID for the model
@@ -14,7 +142,7 @@ export interface TrainingInformation {
   // batchSize: batch size of training data
   batchSize: number
   // preprocessingFunctions: preprocessing functions such as resize and normalize
-  preprocessingFunctions: Preprocessing[]
+  preprocessingFunctions?: Preprocessing[]
   // modelCompileData: interface of additional training information (optimizer, loss and metrics)
   modelCompileData: ModelCompileData
   // dataType, e.g. image or tabular
@@ -27,17 +155,17 @@ export interface TrainingInformation {
   IMAGE_H?: number
   // IMAGE_W width of image
   IMAGE_W?: number
+  // RESIZED_IMAGE_H: New image width, note that you must add ImagePreprocessing.Resize in the preprocessingFunctions.
+  RESIZED_IMAGE_H?: number
+  // RESIZED_IMAGE_W: New image width, note that you must add ImagePreprocessing.Resize in the preprocessingFunctions.
+  RESIZED_IMAGE_W?: number
   // LABEL_LIST of classes, e.g. if two class of images, one with dogs and one with cats, then we would
   // define ['dogs', 'cats'].
   LABEL_LIST?: string[]
   // learningRate: learning rate for the optimizer
   learningRate?: number
-  // RESIZED_IMAGE_H: New image width, note that you must add ImagePreprocessing.Resize in the preprocessingFunctions.
-  RESIZED_IMAGE_H?: number // TODO: regroup image vs csv specific stuff?
-  // RESIZED_IMAGE_W: New image width, note that you must add ImagePreprocessing.Resize in the preprocessingFunctions.
-  RESIZED_IMAGE_W?: number
   // scheme: Distributed training scheme, i.e. Federated and Decentralized
-  scheme?: string
+  scheme: string
   // noiseScale: Differential Privacy (DP): Affects the variance of the Gaussian noise added to the models / model updates.
   // Number or undefined. If undefined, then no noise will be added.
   noiseScale?: number

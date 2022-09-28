@@ -1,15 +1,9 @@
-import { Set } from 'immutable'
-
 export function isSummary (raw: unknown): raw is Summary {
   if (typeof raw !== 'object') {
     return false
   }
 
   if (raw === null) {
-    return false
-  }
-
-  if (!Set(Object.keys(raw)).equals(Set.of('preview', 'overview'))) {
     return false
   }
 

@@ -96,7 +96,16 @@
               {{ task.displayInformation.taskTitle }} - {{ task.trainingInformation.scheme }}
             </template>
             <template #text>
-              <div v-html="task.displayInformation.summary.preview" />
+              <div
+                v-if="task.displayInformation.summary?.preview !== undefined"
+                v-html="task.displayInformation.summary.preview"
+              />
+              <span
+                v-else
+                class="italic"
+              >
+                No description was provided by the task's author.
+              </span>
             </template>
             <template #button>
               Join
