@@ -5,9 +5,9 @@ describe('averaging weights', () => {
     const actual = aggregation.avg([
       [[1, -1], [2]],
       [[3, -3], [-4]]
-    ]).weights
+    ])
 
-    const expected = WeightsContainer.of([2, -2], [-1]).weights
+    const expected = WeightsContainer.of([2, -2], [-1])
     aggregation.assertWeightsEqual(actual, expected, 0) // TODO: adjust for floating point eps
   })
 
@@ -15,9 +15,9 @@ describe('averaging weights', () => {
     const actual = aggregation.sum([
       [[3, -4], [9]],
       [[2, 13], [0]]
-    ]).weights
+    ])
 
-    const expected = WeightsContainer.of([5, 9], [9]).weights
+    const expected = WeightsContainer.of([5, 9], [9])
     aggregation.assertWeightsEqual(actual, expected, 0) // TODO: adjust for floating point eps
   })
 
@@ -25,9 +25,9 @@ describe('averaging weights', () => {
     const actual = aggregation.diff([
       [[3, -4, 5], [9, 1]],
       [[2, 13, 4], [0, 1]]
-    ]).weights
+    ])
 
-    const expected = WeightsContainer.of([1, -17, 1], [9, 0]).weights
+    const expected = WeightsContainer.of([1, -17, 1], [9, 0])
     aggregation.assertWeightsEqual(actual, expected, 0) // TODO: adjust for floating point eps
   })
 })

@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 import { assert } from 'chai'
 
-import { tf, Weights } from '..'
+import { tf } from '..'
 import { TensorLike, WeightsContainer } from './weights_container'
 
 type WeightsLike = Iterable<TensorLike>
@@ -44,12 +44,11 @@ export function avg (weights: Iterable<WeightsLike | WeightsContainer>): Weights
 }
 
 // TODO: implement equal in WeightsContainer
-export function assertWeightsEqual (w1: Weights, w2: Weights, epsilon: number = 0): void {
-  const differenceBetweenWeights: Weights = WeightsContainer.sub(w1, w2).weights
+export function assertWeightsEqual (w1: WeightsContainer, w2: WeightsContainer, epsilon: number = 0): void {
   // Inefficient because we wait for each layer to completely load before we start loading the next layer
   // when using tf.Tensor.dataSync() in a for loop. Could be made more efficient by using Promise.all().
   // Not worth making more efficient, because this function is only used for testing, where tf.Tensors are small.
-  for (const t of differenceBetweenWeights) {
+  for (const t of w1.sub(w2).weights) {
     assert.strictEqual(
       tf.lessEqual(t.abs(), epsilon).all().dataSync()[0],
       1

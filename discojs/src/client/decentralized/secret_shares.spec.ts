@@ -1,19 +1,17 @@
 import { List } from 'immutable'
 // import { assert, expect } from 'chai'
 
-import { Weights, aggregation } from '../..'
+import { aggregation, WeightsContainer } from '../..'
 import * as secret_shares from './secret_shares'
-
-import * as test from '../../../src/test_utils.spec'
 
 const epsilon: number = 0.1
 
 describe('secret shares test', function () {
   // shows additive secret shares implementation with 3 users
-  function toyExampleTest (): Weights {
-    const secret1 = test.makeWeights([[1, 2, 3, -1], [-5, 6]]) // secret weight tensors
-    const secret2 = test.makeWeights([[2, 3, 7, 1], [-10, 5]])
-    const secret3 = test.makeWeights([[3, 1, 5, 3], [-15, 19]])
+  function toyExampleTest (): WeightsContainer {
+    const secret1 = WeightsContainer.of([1, 2, 3, -1], [-5, 6]) // secret weight tensors
+    const secret2 = WeightsContainer.of([2, 3, 7, 1], [-10, 5])
+    const secret3 = WeightsContainer.of([3, 1, 5, 3], [-15, 19])
 
     const client1shares = secret_shares.generateAllShares(secret1, 3, 100)
     const client2shares = secret_shares.generateAllShares(secret2, 3, 100)
@@ -23,18 +21,18 @@ describe('secret shares test', function () {
     const person2shares = List.of(client1shares.rest().first([]), client2shares.rest().first([]), client3shares.rest().first([]))
     const person3shares = List.of(client1shares.last([]), client2shares.last([]), client3shares.last([]))
 
-    const person1partialSum = aggregation.sumWeights(person1shares)
-    const person2partialSum = aggregation.sumWeights(person2shares)
-    const person3partialSum = aggregation.sumWeights(person3shares)
+    const person1partialSum = aggregation.sum(person1shares)
+    const person2partialSum = aggregation.sum(person2shares)
+    const person3partialSum = aggregation.sum(person3shares)
 
     const allPartialSums = List.of(person1partialSum, person2partialSum, person3partialSum)
-    return aggregation.averageWeights(allPartialSums)
+    return aggregation.avg(allPartialSums)
   }
 
   it('testing secret shares accuracy', async () => {
-    const expected: Weights = test.makeWeights([[2, 2, 5, 1], [-10, 10]])
-    const result: Weights = toyExampleTest()
+    const expected = WeightsContainer.of([2, 2, 5, 1], [-10, 10])
+    const result = toyExampleTest()
 
-    test.assertWeightsEqual(expected, result, epsilon)
+    aggregation.assertWeightsEqual(expected, result, epsilon)
   })
 })
