@@ -1,9 +1,9 @@
 import { expect } from 'chai'
-import * as http from 'http'
 import { List } from 'immutable'
+import * as http from 'http'
 import * as tf from '@tensorflow/tfjs'
 
-import { client as clients, informant, Task, tasks } from '@epfml/discojs'
+import { client as clients, informant, Task, tasks, WeightsContainer } from '@epfml/discojs'
 
 import { getClient, startServer } from './utils'
 
@@ -38,9 +38,9 @@ function test (
         await Promise.all(users.map(async (u) => await u.connect()))
 
         const wss = List.of(
-          [tf.tensor(0)],
-          [tf.tensor(1)],
-          [tf.tensor(2)]
+          WeightsContainer.of(tf.tensor(0)),
+          WeightsContainer.of(tf.tensor(1)),
+          WeightsContainer.of(tf.tensor(2))
         )
 
         const tis = users.map(() => new informant.DecentralizedInformant(TASK.taskID, 0))

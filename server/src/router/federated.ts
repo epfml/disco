@@ -13,7 +13,7 @@ import {
   Task,
   TaskID,
   AsyncBuffer,
-  Weights
+  WeightsContainer
 } from '@epfml/discojs'
 
 import { Server } from './server'
@@ -53,9 +53,9 @@ interface TaskStatus {
 
 export class Federated extends Server {
   // model weights received from clients for a given task and round.
-  private asyncBuffersMap = Map<TaskID, AsyncBuffer<Weights>>()
+  private asyncBuffersMap = Map<TaskID, AsyncBuffer<WeightsContainer>>()
   // informants for each task.
-  private asyncInformantsMap = Map<string, AsyncInformant<Weights>>()
+  private asyncInformantsMap = Map<string, AsyncInformant<WeightsContainer>>()
   /**
    * Contains metadata used for training by clients for a given task and round.
    * Stored by task ID, round number and client ID.
@@ -107,11 +107,11 @@ export class Federated extends Server {
       round: 0
     })
 
-    const buffer = new AsyncBuffer(
+    const buffer = new AsyncBuffer<WeightsContainer>(
       task.taskID,
       BUFFER_CAPACITY,
-      async (weights: Weights[]) =>
-        await this.aggregateAndStoreWeights(model, weights)
+      async (weights: Iterable<WeightsContainer>) =>
+        await this.aggregateAndStoreWeights(model, List(weights))
     )
     this.asyncBuffersMap = this.asyncBuffersMap.set(task.taskID, buffer)
 
@@ -190,7 +190,7 @@ export class Federated extends Server {
 
         this.logsAppend(task.taskID, clientId, RequestType.GetAsyncRound, 0)
 
-        const weights = model.weights.map((e) => e.read())
+        const weights = WeightsContainer.from(model)
         void serialization.weights.encode(weights).then((serializedWeights) => {
           const msg: messages.latestServerRound = {
             type: messages.messageType.latestServerRound,
@@ -269,13 +269,13 @@ export class Federated extends Server {
    */
   private async aggregateAndStoreWeights (
     model: tf.LayersModel,
-    weights: Weights[]
+    weights: List<WeightsContainer>
   ): Promise<void> {
     // Get averaged weights
-    const averagedWeights = aggregation.averageWeights(List(weights))
+    const averagedWeights = aggregation.avg(weights)
 
     // Update model
-    model.setWeights(averagedWeights)
+    model.setWeights(averagedWeights.weights)
   }
 
   /**
