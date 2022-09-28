@@ -1,31 +1,159 @@
-import { weights } from '../../serialization'
-import { PeerID } from './types'
-import { TaskID } from '../../task'
+import { SignalData } from 'simple-peer'
 
-export enum messageType {
+import { weights } from '../../serialization'
+
+import { isPeerID, PeerID as PeerIDType } from './types'
+
+export enum type {
   clientConnected,
-  // Phase 0 communication (just between server and client)
-  serverClientIDMessage,
-  clientReadyMessage,
-  serverReadyClients,
-  // Phase 1 communication (between client and peers)
-  clientWeightsMessageServer,
-  clientSharesMessageServer,
-  // Phase 2 communication (between client and peers)
-  clientPartialSumsMessageServer
+
+  PeerID,
+  SignalForPeer,
+
+  PeerIsReady,
+  PeersForRound,
+
+  Weights,
+  Shares,
+
+  PartialSums
 }
 
-// base class for all messages
-export interface messageGeneral{type: messageType}
+export interface clientConnectedMessage {
+  type: type.clientConnected
+}
+
+/// Phase 0 communication (just between server and client)
+
 // server sends client id to client
-export interface serverClientIDMessage extends messageGeneral {peerID: PeerID}
-// clients sends to server that they are ready to share updates
-export interface clientReadyMessage extends messageGeneral {round: number, task: TaskID, peerID: PeerID}
-// client sends to server/server sends to client (will be replaced with peer2peer) model updates, from peerID, sending to destination
-export interface clientWeightsMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID}
-// client sends to server/server sends to client (will be replaced with peer2peer) generated shares, from peerID, sending to destination
-export interface clientSharesMessageServer extends messageGeneral {peerID: PeerID, weights: weights.Encoded, destination: PeerID}
-// client sends to server/server sends to client (will be replaced with peer2peer) partial sums, from peerID, sending to destination
-export interface clientPartialSumsMessageServer extends messageGeneral {peerID: PeerID, partials: weights.Encoded, destination: PeerID}
-// server sends to client an array of peerIDs to connect to
-export interface serverReadyClients extends messageGeneral {peerList: PeerID[]}
+export interface PeerID {
+  type: type.PeerID
+  id: PeerIDType
+}
+
+// WebRTC signal to forward to peer
+export interface SignalForPeer {
+  type: type.SignalForPeer
+  peer: PeerIDType
+  signal: SignalData
+}
+
+// client who sent is ready
+export interface PeerIsReady {
+  type: type.PeerIsReady
+}
+
+// server send to client who to connect to
+export interface PeersForRound {
+  type: type.PeersForRound
+  peers: PeerIDType[]
+}
+
+/// Phase 1 communication (between client and peers)
+
+// client weights
+export interface Weights {
+  type: type.Weights
+  peer: PeerIDType
+  weights: weights.Encoded
+}
+
+// client shares
+export interface Shares {
+  type: type.Shares
+  peer: PeerIDType
+  weights: weights.Encoded
+}
+
+/// Phase 2 communication (between client and peers)
+
+// client partial sum
+export interface PartialSums {
+  type: type.PartialSums
+  peer: PeerIDType
+  partials: weights.Encoded
+}
+
+export type MessageFromServer =
+  clientConnectedMessage |
+  PeerID |
+  SignalForPeer |
+  PeersForRound
+
+export type MessageToServer =
+  SignalForPeer |
+  PeerIsReady
+
+export type PeerMessage =
+  Weights |
+  Shares |
+  PartialSums
+
+function hasMessageType (raw: unknown): raw is {type: type} & Record<string, unknown> {
+  if (typeof raw !== 'object' || raw === null) {
+    return false
+  }
+
+  const o = raw as Record<string, unknown>
+  if (
+    !('type' in o && typeof o.type === 'number' && o.type in type)
+  ) {
+    return false
+  }
+
+  return true
+}
+
+export function isMessageFromServer (o: unknown): o is MessageFromServer {
+  if (!hasMessageType(o)) {
+    return false
+  }
+
+  switch (o.type) {
+    case type.clientConnected:
+      return true
+    case type.PeerID:
+      return 'id' in o && isPeerID(o.id)
+    case type.SignalForPeer:
+      return 'peer' in o && isPeerID(o.peer) &&
+        'signal' in o // TODO check signal content?
+    case type.PeersForRound:
+      return 'peers' in o && Array.isArray(o.peers) && o.peers.every(isPeerID)
+  }
+
+  return false
+}
+
+export function isMessageToServer (o: unknown): o is MessageToServer {
+  if (!hasMessageType(o)) {
+    return false
+  }
+
+  switch (o.type) {
+    case type.SignalForPeer:
+      return 'peer' in o && isPeerID(o.peer) &&
+        'signal' in o // TODO check signal content?
+    case type.PeerIsReady:
+      return true
+  }
+
+  return false
+}
+
+export function isPeerMessage (o: unknown): o is PeerMessage {
+  if (!hasMessageType(o)) {
+    return false
+  }
+
+  switch (o.type) {
+    case type.Weights:
+    case type.Shares:
+      return 'peer' in o && isPeerID(o.peer) &&
+        'weights' in o && weights.isEncoded(o.weights)
+    case type.PartialSums:
+      return 'peer' in o && isPeerID(o.peer) &&
+        'partials' in o && weights.isEncoded(o.partials)
+  }
+
+  return false
+}

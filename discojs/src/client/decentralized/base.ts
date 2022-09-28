@@ -1,4 +1,4 @@
-import { List } from 'immutable'
+import { List, Map, Set } from 'immutable'
 import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import * as nodeUrl from 'url'
@@ -8,133 +8,155 @@ import { TrainingInformant, Weights, aggregation, privacy } from '../..'
 import { Base as ClientBase } from '../base'
 import * as messages from './messages'
 import { PeerID } from './types'
-
-// Time to wait between network checks in milliseconds.
-const TICK = 100
-
-// Time to wait for the others in milliseconds.
-const MAX_WAIT_PER_ROUND = 10_000
+import { pauseUntil } from './utils'
+import { Peer } from './peer'
+import { PeerPool } from './peer_pool'
 
 /**
  * Abstract class for decentralized clients, executes onRoundEndCommunication as well as connecting
  * to the signaling server
  */
 export abstract class Base extends ClientBase {
-  protected minimumReadyPeers: number
-  protected maxShareValue: number
+  private readonly minimumReadyPeers: number
+
+  private server?: isomorphic.WebSocket
+
+  // list of peerIDs who the client will send messages to
+  private peers?: Set<PeerID>
+
+  // ID of the client, got from the server
+  private ID?: PeerID
+
+  private pool?: Promise<PeerPool>
+
   constructor (
     public readonly url: URL,
     public readonly task: Task
   ) {
     super(url, task)
     this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
-    this.maxShareValue = this.task.trainingInformation?.maxShareValue ?? 100
   }
 
-  protected server?: isomorphic.WebSocket
-  // list of peerIDs who the client will send messages to
-  protected peers: PeerID[] = []
-  protected peersLocked: boolean = false
-  // the ID of the client, set arbitrarily to 0 but gets set an actual value once it cues the signaling server
-  // that it is ready to connect
-  protected ID: number = 0
+  // send message to server that client is ready
+  private async waitForPeers (round: number): Promise<Map<PeerID, Peer>> {
+    console.debug(this.ID, 'is ready for round', round)
 
-  /*
-function to check if a given boolean condition is true, checks continuously until maxWait time is reached
- */
-  protected async pauseUntil (condition: () => boolean): Promise<void> {
-    return await new Promise<void>((resolve, reject) => {
-      const timeWas = new Date().getTime()
-      const wait = setInterval(function () {
-        if (condition()) {
-          console.log('resolved after', new Date().getTime() - timeWas, 'ms')
-          clearInterval(wait)
-          resolve()
-        } else if (new Date().getTime() - timeWas > MAX_WAIT_PER_ROUND) { // Timeout
-          console.log('rejected after', new Date().getTime() - timeWas, 'ms')
-          clearInterval(wait)
-          reject(new Error('timeout'))
-        }
-      }, TICK)
-    })
-  }
+    // clean old round
+    this.peers = undefined
 
-  /*
-  function behavior will change with peer 2 peer, sends message to its destination, currently through server
-   */
-  protected sendMessagetoPeer (message: unknown): void {
-    if (this.server === undefined) {
-      throw new Error("Undefined Server, can't send message")
-    }
-    this.server.send(message)
-  }
-
-  /*
-  send message to server that client is ready
-   */
-  protected sendReadyMessage (round: number): void {
     // Broadcast our readiness
-    const msg: messages.clientReadyMessage = { type: messages.messageType.clientReadyMessage, round: round, peerID: this.ID, task: this.task.taskID }
+    const msg: messages.PeerIsReady = { type: messages.type.PeerIsReady }
 
-    const encodedMsg = msgpack.encode(msg)
     if (this.server === undefined) {
       throw new Error('server undefined, could not connect peers')
     }
-    this.server.send(encodedMsg)
+    this.server.send(msgpack.encode(msg))
+
+    // wait for peers to be connected before sending any update information
+    await pauseUntil(() => (this.peers?.size ?? 0) + 1 >= this.minimumReadyPeers)
+
+    if (this.pool === undefined) {
+      throw new Error('waiting for peers but peer pool is undefined')
+    }
+    const ret = await (await this.pool).getPeers(
+      Set(this.peers ?? []),
+      (id, peer) => this.onNewPeer(id, peer)
+    )
+
+    console.debug(this.ID, `got peers for round ${round}:`, ret.keySeq().toJS())
+    return ret
   }
 
-  /*
-  checks if message is of type messageGeneral. If it is, the specific message.type can be identified.
-   */
-  private instanceOfMessageGeneral (msg: unknown): msg is messages.messageGeneral {
-    return typeof msg === 'object' && msg !== null && 'type' in msg
+  private onNewPeer (id: PeerID, peer: Peer): void {
+    peer.on('signal', (signal) => {
+      console.debug(this.ID, 'generates signal for', id)
+      const msg: messages.SignalForPeer = {
+        type: messages.type.SignalForPeer,
+        peer: id,
+        signal
+      }
+      this.server.send(msgpack.encode(msg))
+    })
+
+    peer.on('data', (data) => {
+      const msg = msgpack.decode(data)
+      if (!messages.isPeerMessage(msg)) {
+        console.warn(this.ID, 'received invalid message from', id, msg)
+        return
+      }
+
+      console.debug(this.ID, 'got message from', id, msg)
+
+      this.clientHandle(msg)
+    })
   }
 
-  /*
-  checks if message contains the client's ID number
-   */
-  private instanceOfServerClientIDMessage (msg: messages.messageGeneral): msg is messages.serverClientIDMessage {
-    return msg.type === messages.messageType.serverClientIDMessage
-  }
-
-  /*
-  checks if message contains the list of peerIDs that are ready to share updates
-   */
-  private instanceOfServerReadyClients (msg: messages.messageGeneral): msg is messages.serverReadyClients {
-    return msg.type === messages.messageType.serverReadyClients
+  // TODO inline? have a serialization mod
+  protected sendMessagetoPeer (peer: Peer, msg: messages.PeerMessage): void {
+    console.debug(this.ID, 'sends message to peer', msg.peer, msg)
+    peer.send(msgpack.encode(msg))
   }
 
   /*
   creation of the websocket for the server, connection of client to that webSocket,
   deals with message reception from decentralized client perspective (messages received by client)
    */
-  protected async connectServer (url: URL): Promise<isomorphic.WebSocket> {
+  private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
     const WS = typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
     const ws: WebSocket = new WS(url)
     ws.binaryType = 'arraybuffer'
 
-    ws.onmessage = async (event: isomorphic.MessageEvent) => {
+    // no async to avoid potentially running server handler concurrently
+    ws.onmessage = (event: isomorphic.MessageEvent) => {
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
-      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
 
-      // check message type to choose correct action
-      if (this.instanceOfMessageGeneral(msg)) {
-        if (this.instanceOfServerClientIDMessage(msg)) {
-          // updated ID
-          this.ID = msg.peerID
-        } else if (this.instanceOfServerReadyClients(msg)) {
-          // updated connected peers
-          if (!this.peersLocked) {
-            this.peers = msg.peerList
-            this.peersLocked = true
+      const msg = msgpack.decode(new Uint8Array(event.data))
+      if (!messages.isMessageFromServer(msg)) {
+        throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
+      }
+
+      switch (msg.type) {
+        case messages.type.PeerID:
+          console.debug(msg.id, 'got own id from server')
+
+          if (this.ID !== undefined) {
+            throw new Error('got ID from server but was already received')
           }
-        } else if (msg.type === messages.messageType.clientConnected) {
-          this.connected = true
-        } else {
-          this.clientHandle(msg)
+          this.ID = msg.id
+          this.pool = PeerPool.init(msg.id)
+
+          break
+        case messages.type.SignalForPeer:
+          console.debug(this.ID, 'got signal from', msg.peer)
+
+          if (this.pool === undefined) {
+            throw new Error('got signal but peer pool is undefined')
+          }
+          void this.pool.then((pool) => pool.signal(msg.peer, msg.signal))
+
+          break
+        case messages.type.PeersForRound: {
+          const peers = Set(msg.peers)
+          if (this.ID !== undefined && peers.has(this.ID)) {
+            throw new Error('received peer list contains our own id')
+          }
+
+          if (this.peers !== undefined) {
+            throw new Error('got new peer list from server but was already received for this round')
+          }
+          this.peers = peers
+
+          console.debug(this.ID, 'got peers for round:', peers.toJS())
+          break
         }
+        case messages.type.clientConnected:
+          this.connected = true
+          break
+        default:
+          // @ts-expect-error all types should be handled
+          throw new Error(`unknown message type: ${msg.type as number}`)
       }
     }
 
@@ -164,15 +186,17 @@ function to check if a given boolean condition is true, checks continuously unti
     serverURL.pathname += `deai/${this.task.taskID}`
     this.server = await this.connectServer(serverURL)
 
-    await this.pauseUntil(() => this.connected)
+    await pauseUntil(() => this.connected)
+
+    console.debug(this.ID, 'server connected')
   }
 
-  /**
-   * Disconnection process when user quits the task.
-   */
+  // disconnect from server & peers
   async disconnect (): Promise<void> {
-    // this.peers.forEach((peer) => peer.destroy())
-    // this.peers = Map()
+    console.debug(this.ID, 'disconnect');
+
+    (await this.pool)?.shutdown()
+    this.pool = undefined
 
     this.server?.close()
     this.server = undefined
@@ -192,29 +216,33 @@ function to check if a given boolean condition is true, checks continuously unti
   ): Promise<Weights> {
     try {
       // reset peer list at each round of training to make sure client waits for updated peerList from server
-      this.peers = []
-
-      this.peersLocked = false
+      const peers = await this.waitForPeers(round)
 
       // centralized phase of communication --> client tells server that they have finished a local round and are ready to aggregate
-      this.sendReadyMessage(round)
-
-      // wait for peers to be connected before sending any update information
-      await this.pauseUntil(() => this.peers.length >= this.minimumReadyPeers)
 
       // Apply clipping and DP to updates that will be sent
       const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
+
       // send weights to all ready connected peers
-      const finalWeights: List<Weights> = await this.sendAndReceiveWeights(noisyWeights, round, trainingInformant)
+      const finalWeights = await this.sendAndReceiveWeights(peers, noisyWeights, round, trainingInformant)
+
+      console.debug(this.ID, 'sent and received', finalWeights.size, 'weights at round', round)
       return aggregation.averageWeights(finalWeights)
-    } catch (Error) {
-      console.log('Timeout Error Reported, training will continue')
+    } catch (e) {
+      let msg = `errored on round ${round}`
+      if (e instanceof Error) { msg += `: ${e.message}` }
+      console.warn(this.ID, msg)
+
       return updatedWeights
     }
   }
 
-  abstract sendAndReceiveWeights (noisyWeights: Weights,
-    round: number, trainingInformant: TrainingInformant): Promise<List<Weights>>
+  abstract sendAndReceiveWeights (
+    peers: Map<PeerID, Peer>,
+    noisyWeights: Weights,
+    round: number,
+    trainingInformant: TrainingInformant
+  ): Promise<List<Weights>>
 
-  abstract clientHandle (msg: messages.messageGeneral): void
+  abstract clientHandle (msg: messages.PeerMessage): void
 }

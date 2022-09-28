@@ -272,7 +272,7 @@ export class Federated extends Server {
     weights: Weights[]
   ): Promise<void> {
     // Get averaged weights
-    const averagedWeights = aggregation.averageWeights(List<Weights>(weights))
+    const averagedWeights = aggregation.averageWeights(List(weights))
 
     // Update model
     model.setWeights(averagedWeights)

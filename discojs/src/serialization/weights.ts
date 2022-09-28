@@ -5,7 +5,7 @@ import { Weights } from '@/types'
 
 interface Serialized {
   shape: number[]
-  data: Float32Array
+  data: number[]
 }
 
 function isSerialized (raw: unknown): raw is Serialized {
@@ -19,13 +19,13 @@ function isSerialized (raw: unknown): raw is Serialized {
 
   if (
     !(Array.isArray(shape) && shape.every((e) => typeof e === 'number')) ||
-    !(data instanceof Float32Array)
+    !(Array.isArray(data) && data.every((e) => typeof e === 'number'))
   ) {
     return false
   }
 
   // eslint-disable-next-line
-  const _: Serialized = { shape, data }
+  const _: Serialized = {shape, data}
 
   return true
 }
@@ -40,7 +40,7 @@ export async function encode (weights: Weights): Promise<Encoded> {
   const serialized = await Promise.all(weights.map(async (t) => {
     return {
       shape: t.shape,
-      data: await t.data<'float32'>()
+      data: [...await t.data<'float32'>()]
     }
   }))
 
