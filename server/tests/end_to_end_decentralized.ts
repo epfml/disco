@@ -5,11 +5,9 @@ import { Range } from 'immutable'
 import * as tf from '@tensorflow/tfjs-node'
 
 import {
-  Task, TaskID, dataset, informant, ConsoleLogger, training, TrainingSchemes,
-  TrainingInformant, EmptyMemory, tasks, client, Weights
+  Task, dataset, informant, ConsoleLogger, training, TrainingSchemes,
+  EmptyMemory, tasks, client, WeightsContainer, aggregation
 } from '@epfml/discojs'
-
-import * as test from '../../discojs/src/test_utils.spec'
 
 import { getClient, startServer } from './utils'
 
@@ -82,18 +80,18 @@ describe('end to end decentralized', function () {
     with other ready peers. The input will vary with model architecture and training data. If secure is true,
     the client will implement secure aggregation. If it is false, it will be a clear text client.
      */
-  async function makeClient (input: number[][], secure: boolean): Promise<Weights> {
+  async function makeClient (input: number[], secure: boolean): Promise<WeightsContainer> {
     const TASK = tasks.cifar10.task
-    let clientCurrent
+    let clientCurrent: client.Base
     if (secure) {
       clientCurrent = await getClient(client.decentralized.SecAgg, server, TASK)
     } else {
       clientCurrent = await getClient(client.decentralized.ClearText, server, TASK)
     }
-    const weights: Weights = test.makeWeights(input)
-    const cifar10: Task = tasks.cifar10.task
-    const taskID: TaskID = cifar10.taskID
-    const trainingInformantCurrent: TrainingInformant = new informant.DecentralizedInformant(taskID, 0)
+    const weights = WeightsContainer.of(input)
+    const cifar10 = tasks.cifar10.task
+    const taskID = cifar10.taskID
+    const trainingInformantCurrent = new informant.DecentralizedInformant(taskID, 0)
     await clientCurrent.connect()
     return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformantCurrent)
   }
@@ -103,22 +101,22 @@ describe('end to end decentralized', function () {
   The clients have model dimension of 4 model updates to share, which can be seen as their input parameter in makeClient().
    */
   async function testWeightSharing (secure: boolean): Promise<void> {
-    const expected: Weights = test.makeWeights([[0.002, 7, 27, 11]])
-    const client1 = makeClient([[0.001, 3, 40, 10]], secure)
-    const client2 = makeClient([[0.002, 5, 30, 11]], secure)
-    const client3 = makeClient([[0.003, 13, 11, 12]], secure)
+    const expected = WeightsContainer.of([0.002, 7, 27, 11])
+    const client1 = makeClient([0.001, 3, 40, 10], secure)
+    const client2 = makeClient([0.002, 5, 30, 11], secure)
+    const client3 = makeClient([0.003, 13, 11, 12], secure)
     const result = await Promise.all([client1, client2, client3])
-    test.assertWeightsEqual(result[0], expected, epsilon)
+    aggregation.assertWeightsEqual(result[0], expected, epsilon)
   }
 
   it('decentralized secure client testing timout', async () => {
-    const result: Weights = await testTimeOut()
-    const expected: Weights = test.makeWeights([[4, 5, 6, 7]])
-    test.assertWeightsEqual(expected, result, epsilon)
+    const result = await testTimeOut()
+    const expected = WeightsContainer.of([4, 5, 6, 7])
+    aggregation.assertWeightsEqual(expected, result, epsilon)
   })
 
-  async function testTimeOut (): Promise<Weights> {
-    return await makeClient([[4, 5, 6, 7]], true)
+  async function testTimeOut (): Promise<WeightsContainer> {
+    return await makeClient([4, 5, 6, 7], true)
   }
 }
 )
