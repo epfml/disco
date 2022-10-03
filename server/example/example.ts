@@ -1,9 +1,9 @@
-import { client as clients, informant, tasks, ConsoleLogger, training, TrainingSchemes, EmptyMemory } from '@epfml/discojs'
+import { node, client as clients, informant, ConsoleLogger, training, TrainingSchemes, EmptyMemory } from '@epfml/discojs-node'
 
 import { loadData } from './data'
 import { startServer } from './start_server'
 
-const TASK = tasks.simple_face.task
+const TASK = node.tasks.simple_face.task
 
 /*  Example of discojs API, we load data, build the appropriate loggers, the disco object
   *  and finally start training.

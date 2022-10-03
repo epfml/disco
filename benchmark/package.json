@@ -9,8 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tensorflow/tfjs-node": "3",
-    "@epfml/discojs": "file:../discojs",
+    "@epfml/discojs-node": "file:../discojs-node",
     "immutable": "4"
   },
   "devDependencies": {

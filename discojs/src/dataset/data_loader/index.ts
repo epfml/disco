@@ -1,3 +1,2 @@
-export { DataConfig, DataLoader } from './data_loader'
-export { ImageLoader } from './image_loader'
-export { TabularLoader } from './tabular_loader'
+export { WebImageLoader } from './image_loader'
+export { WebTabularLoader } from './tabular_loader'

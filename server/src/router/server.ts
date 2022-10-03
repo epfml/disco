@@ -2,7 +2,7 @@ import express from 'express'
 import expressWS from 'express-ws'
 import WebSocket from 'ws'
 
-import { tf, Task } from '@epfml/discojs'
+import { tf, Task } from '@epfml/discojs-node'
 
 import { TasksAndModels } from '../tasks'
 

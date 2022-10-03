@@ -3,7 +3,7 @@ import {Server} from 'node:http'
 
 import fs from 'fs'
 
-import {client, Task, TrainerLog} from '@epfml/discojs'
+import {client, Task, TrainerLog} from '@epfml/discojs-node'
 
 import {getApp} from '../../server/src/get_server'
 
