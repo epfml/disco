@@ -110,13 +110,11 @@ import { defineComponent } from 'vue'
 import { RouterLink } from 'vue-router'
 import { mapStores } from 'pinia'
 
-import { EmptyMemory, Memory, Path, Task, dataset } from '@epfml/discojs'
+import { browser, EmptyMemory, Memory, Path, Task, dataset } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
-import { IndexedDB } from '@/memory'
-import { WebTabularLoader, WebImageLoader } from '@/data_loader'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Data from '@/components/data/Data.vue'
 import Validator from '@/components/validation/Validator.vue'
@@ -147,7 +145,7 @@ export default defineComponent({
       return this.validationStore.step > 0 && this.validationStore.step < 2
     },
     memory (): Memory {
-      return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+      return this.memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory()
     },
     validationState (): boolean {
       return this.validationStore.state
@@ -159,10 +157,10 @@ export default defineComponent({
       let dataLoader: dataset.DataLoader<File>
       switch (this.task.trainingInformation.dataType) {
         case 'tabular':
-          dataLoader = new WebTabularLoader(this.task, ',')
+          dataLoader = new browser.data_loader.WebTabularLoader(this.task, ',')
           break
         case 'image':
-          dataLoader = new WebImageLoader(this.task)
+          dataLoader = new browser.data_loader.WebImageLoader(this.task)
           break
         default:
           throw new Error('not implemented')

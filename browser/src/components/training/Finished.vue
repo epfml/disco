@@ -39,11 +39,10 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { EmptyMemory, Memory, ModelType, isTask, ModelInfo } from '@epfml/discojs'
+import { browser, EmptyMemory, Memory, ModelType, isTask, ModelInfo } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
-import { IndexedDB } from '@/memory'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 
 export default defineComponent({
@@ -57,7 +56,7 @@ export default defineComponent({
   computed: {
     ...mapStores(useMemoryStore, useValidationStore),
     memory (): Memory {
-      return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+      return this.memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory()
     },
     modelInfo (): ModelInfo {
       return {

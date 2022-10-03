@@ -47,11 +47,10 @@
 import { computed, onActivated, onMounted, ref, defineProps } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { dataset, TaskID } from '@epfml/discojs'
+import { browser, dataset, TaskID } from '@epfml/discojs'
 
 import { useTrainingStore } from '@/store/training'
 import { useTasksStore } from '@/store/tasks'
-import { WebImageLoader, WebTabularLoader } from '@/data_loader'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Description from '@/components/training/Description.vue'
 import Trainer from '@/components/training/Trainer.vue'
@@ -79,10 +78,10 @@ const datasetBuilder = computed(() => {
   let dataLoader: dataset.DataLoader<File>
   switch (task.value.trainingInformation.dataType) {
     case 'tabular':
-      dataLoader = new WebTabularLoader(task.value, ',')
+      dataLoader = new browser.data_loader.WebTabularLoader(task.value, ',')
       break
     case 'image':
-      dataLoader = new WebImageLoader(task.value)
+      dataLoader = new browser.data_loader.WebImageLoader(task.value)
       break
     default:
       throw new Error('not implemented')

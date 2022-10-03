@@ -1,8 +1,7 @@
 import fs from 'fs'
-import * as tf from '@tensorflow/tfjs-node'
 import Rand from 'rand-seed'
 
-import { dataset, Task } from '@epfml/discojs'
+import { tf, dataset, Task } from '@epfml/discojs-node'
 
 const rand = new Rand('1234')
 

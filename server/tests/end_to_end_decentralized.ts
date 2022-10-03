@@ -2,23 +2,15 @@ import fs from 'fs/promises'
 import path from 'node:path'
 import { Server } from 'node:http'
 import { Range } from 'immutable'
-import * as tf from '@tensorflow/tfjs-node'
 
 import {
-  Task, dataset, informant, ConsoleLogger, training, TrainingSchemes,
+  node, informant, Task, ConsoleLogger, training, TrainingSchemes,
   EmptyMemory, tasks, client, WeightsContainer, aggregation
-} from '@epfml/discojs'
+} from '@epfml/discojs-node'
 
 import { getClient, startServer } from './utils'
 
 const SCHEME = TrainingSchemes.DECENTRALIZED
-
-class NodeImageLoader extends dataset.ImageLoader<string> {
-  async readImageFrom (source: string): Promise<tf.Tensor3D> {
-    const image = await fs.readFile(source)
-    return tf.node.decodeImage(image) as tf.Tensor3D
-  }
-}
 
 describe('end to end decentralized', function () {
   const epsilon: number = 0.001
@@ -45,7 +37,7 @@ describe('end to end decentralized', function () {
 
     const cifar10: Task = tasks.cifar10.task
 
-    const loaded = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+    const loaded = await new node.data_loader.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 
     let cli
     if (secure) {

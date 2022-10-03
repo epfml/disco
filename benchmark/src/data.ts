@@ -1,7 +1,7 @@
-import * as tf from '@tensorflow/tfjs-node'
+import {tf, dataset, Task} from '@epfml/discojs-node'
+
 import fs from 'fs'
 import fs_promises from 'fs/promises'
-import {dataset, Task} from '@epfml/discojs'
 
 import path from 'node:path'
 import {Range} from 'immutable'

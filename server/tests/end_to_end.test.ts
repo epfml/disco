@@ -2,9 +2,8 @@ import fs from 'fs/promises'
 import path from 'node:path'
 import { Server } from 'node:http'
 import { Range } from 'immutable'
-import * as tf from '@tensorflow/tfjs-node'
 
-import { dataset, ConsoleLogger, training, TrainingSchemes, informant, EmptyMemory, tasks, client as clients } from '@epfml/discojs'
+import { tf, dataset, ConsoleLogger, training, TrainingSchemes, informant, EmptyMemory, tasks, client as clients } from '@epfml/discojs-node'
 
 import { getClient, startServer } from './utils'
 
