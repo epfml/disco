@@ -4,7 +4,7 @@ import msgpack from 'msgpack-lite'
 import * as nodeUrl from 'url'
 import { Task } from '@/task'
 
-import { TrainingInformant, Weights, aggregation, privacy } from '../..'
+import { TrainingInformant, WeightsContainer, privacy, aggregation } from '../..'
 import { Base as ClientBase } from '../base'
 import * as messages from './messages'
 import { PeerID } from './types'
@@ -203,17 +203,17 @@ export abstract class Base extends ClientBase {
     this.connected = false
   }
 
-  async onTrainEndCommunication (_: Weights, trainingInformant: TrainingInformant): Promise<void> {
+  async onTrainEndCommunication (_: WeightsContainer, trainingInformant: TrainingInformant): Promise<void> {
     // TODO: enter seeding mode?
     trainingInformant.addMessage('Training finished.')
   }
 
   async onRoundEndCommunication (
-    updatedWeights: Weights,
-    staleWeights: Weights,
+    updatedWeights: WeightsContainer,
+    staleWeights: WeightsContainer,
     round: number,
     trainingInformant: TrainingInformant
-  ): Promise<Weights> {
+  ): Promise<WeightsContainer> {
     try {
       // reset peer list at each round of training to make sure client waits for updated peerList from server
       const peers = await this.waitForPeers(round)
@@ -227,7 +227,7 @@ export abstract class Base extends ClientBase {
       const finalWeights = await this.sendAndReceiveWeights(peers, noisyWeights, round, trainingInformant)
 
       console.debug(this.ID, 'sent and received', finalWeights.size, 'weights at round', round)
-      return aggregation.averageWeights(finalWeights)
+      return aggregation.avg(finalWeights)
     } catch (e) {
       let msg = `errored on round ${round}`
       if (e instanceof Error) { msg += `: ${e.message}` }
@@ -239,10 +239,10 @@ export abstract class Base extends ClientBase {
 
   abstract sendAndReceiveWeights (
     peers: Map<PeerID, Peer>,
-    noisyWeights: Weights,
+    noisyWeights: WeightsContainer,
     round: number,
     trainingInformant: TrainingInformant
-  ): Promise<List<Weights>>
+  ): Promise<List<WeightsContainer>>
 
   abstract clientHandle (msg: messages.PeerMessage): void
 }

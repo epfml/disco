@@ -62,7 +62,9 @@ export class AsyncInformant<T> {
     return this.averageNumberOfParticipants
   }
 
-  getAllStatistics (): Record<'round' | 'currentNumberOfParticipants' | 'totalNumberOfParticipants' | 'averageNumberOfParticipants', number> {
+  getAllStatistics (): Record<
+  'round' | 'currentNumberOfParticipants' | 'totalNumberOfParticipants' | 'averageNumberOfParticipants', number
+  > {
     return {
       round: this.getCurrentRound(),
       currentNumberOfParticipants: this.getNumberOfParticipants(),

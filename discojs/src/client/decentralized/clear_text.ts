@@ -1,6 +1,6 @@
 import { List, Map } from 'immutable'
 
-import { serialization, TrainingInformant, Weights } from '../..'
+import { serialization, TrainingInformant, WeightsContainer } from '../..'
 import { Base } from './base'
 import * as messages from './messages'
 import { Peer } from './peer'
@@ -12,14 +12,14 @@ import { PeerID } from './types'
  */
 export class ClearText extends Base {
   // list of weights received from other clients
-  private receivedWeights = List<Weights>()
+  private receivedWeights = List<WeightsContainer>()
 
   override async sendAndReceiveWeights (
     peers: Map<PeerID, Peer>,
-    noisyWeights: Weights,
+    noisyWeights: WeightsContainer,
     round: number,
     trainingInformant: TrainingInformant
-  ): Promise<List<Weights>> {
+  ): Promise<List<WeightsContainer>> {
     // prepare weights to send to peers
     const weightsToSend = await serialization.weights.encode(noisyWeights)
 
