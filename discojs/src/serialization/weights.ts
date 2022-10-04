@@ -1,7 +1,6 @@
-import { tf } from '..'
 import * as msgpack from 'msgpack-lite'
 
-import { Weights } from '@/types'
+import { tf, WeightsContainer } from '..'
 
 interface Serialized {
   shape: number[]
@@ -36,10 +35,10 @@ export function isEncoded (raw: unknown): raw is Encoded {
   return Array.isArray(raw) && raw.every((e) => typeof e === 'number')
 }
 
-export async function encode (weights: Weights): Promise<Encoded> {
-  const serialized = await Promise.all(weights.map(async (t) => {
+export async function encode (weights: WeightsContainer): Promise<Encoded> {
+  const serialized: Serialized[] = await Promise.all(weights.weights.map(async (t) => {
     return {
-      shape: t.shape,
+      shape: t.shape as number[],
       data: [...await t.data<'float32'>()]
     }
   }))
@@ -47,12 +46,12 @@ export async function encode (weights: Weights): Promise<Encoded> {
   return [...msgpack.encode(serialized).values()]
 }
 
-export function decode (encoded: Encoded): Weights {
+export function decode (encoded: Encoded): WeightsContainer {
   const raw = msgpack.decode(encoded)
 
   if (!(Array.isArray(raw) && raw.every(isSerialized))) {
     throw new Error('expected to decode an array of serialized weights')
   }
 
-  return raw.map((w) => tf.tensor(w.data, w.shape))
+  return new WeightsContainer(raw.map((w) => tf.tensor(w.data, w.shape)))
 }
