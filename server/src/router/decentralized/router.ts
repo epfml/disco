@@ -27,13 +27,6 @@ export class Decentralized extends Server {
     return `/${task.taskID}`
   }
 
-  protected sendConnectedMsg (ws: WebSocket): void {
-    const msg: messages.clientConnectedMessage = {
-      type: messages.type.clientConnected
-    }
-    ws.send(msgpack.encode(msg))
-  }
-
   public isValidUrl (url: string | undefined): boolean {
     const splittedUrl = url?.split('/')
 
@@ -57,19 +50,6 @@ export class Decentralized extends Server {
   ): void {
     const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
     const peerID: PeerID = this.clientCounter++
-    this.clients = this.clients.set(peerID, ws)
-    // send peerID message
-    const msg: messages.PeerID = {
-      type: messages.type.PeerID,
-      id: peerID
-    }
-    console.info('peer', peerID, 'joined', task.taskID)
-
-    if (!this.readyClientsBuffer.has(task.taskID)) {
-      this.readyClientsBuffer = this.readyClientsBuffer.set(task.taskID, Set())
-    }
-
-    ws.send(msgpack.encode(msg), { binary: true })
 
     // how the server responds to messages
     ws.on('message', (data: Buffer) => {
@@ -81,6 +61,24 @@ export class Decentralized extends Server {
         }
 
         switch (msg.type) {
+          case messages.type.clientConnected: {
+            this.clients = this.clients.set(peerID, ws)
+            // send peerID message
+            const msg: messages.PeerID = {
+              type: messages.type.PeerID,
+              id: peerID
+            }
+            console.info('peer', peerID, 'joined', task.taskID)
+
+            if (!this.readyClientsBuffer.has(task.taskID)) {
+              this.readyClientsBuffer = this.readyClientsBuffer.set(task.taskID, Set())
+            }
+
+            console.info('send PeerId to ', peerID)
+            ws.send(msgpack.encode(msg), { binary: true })
+            break
+          }
+
           case messages.type.SignalForPeer: {
             const forward: messages.SignalForPeer = {
               type: messages.type.SignalForPeer,

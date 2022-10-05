@@ -1,15 +1,15 @@
 import { List, Map, Set } from 'immutable'
-import isomorphic from 'isomorphic-ws'
 import msgpack from 'msgpack-lite'
 import * as nodeUrl from 'url'
 
 import { TrainingInformant, WeightsContainer, privacy, aggregation, Task } from '../..'
 import { Base as ClientBase } from '../base'
 import { PeerID } from './types'
-import { pauseUntil } from './utils'
 import { Peer } from './peer'
 import { PeerPool } from './peer_pool'
 import * as messages from './messages'
+import { EventConnection, WebSocketServer, waitMessage } from './event_connection'
+import { MAX_WAIT_PER_ROUND, timeout } from './utils'
 
 /**
  * Abstract class for decentralized clients, executes onRoundEndCommunication as well as connecting
@@ -18,7 +18,7 @@ import * as messages from './messages'
 export abstract class Base extends ClientBase {
   private readonly minimumReadyPeers: number
 
-  private server?: isomorphic.WebSocket
+  private server?: EventConnection
 
   // list of peerIDs who the client will send messages to
   private peers?: Set<PeerID>
@@ -49,10 +49,26 @@ export abstract class Base extends ClientBase {
     if (this.server === undefined) {
       throw new Error('server undefined, could not connect peers')
     }
-    this.server.send(msgpack.encode(msg))
+    this.server.send(msg)
 
     // wait for peers to be connected before sending any update information
-    await pauseUntil(() => (this.peers?.size ?? 0) + 1 >= this.minimumReadyPeers)
+    const receivedMessage = await Promise.race([waitMessage(this.server, messages.type.PeersForRound), timeout(MAX_WAIT_PER_ROUND)])
+
+    const peers = Set(receivedMessage.peers)
+    if (this.ID !== undefined && peers.has(this.ID)) {
+      throw new Error('received peer list contains our own id')
+    }
+
+    if (this.peers !== undefined) {
+      throw new Error('got new peer list from server but was already received for this round')
+    }
+
+    if (peers.size + 1 < this.minimumReadyPeers) {
+      throw new Error('new peer list do not contain enough ready peers')
+    }
+    this.peers = peers
+
+    console.debug(this.ID, 'got peers for round:', peers.toJS())
 
     if (this.pool === undefined) {
       throw new Error('waiting for peers but peer pool is undefined')
@@ -74,7 +90,7 @@ export abstract class Base extends ClientBase {
         peer: id,
         signal
       }
-      this.server.send(msgpack.encode(msg))
+      this.server?.send(msg)
     })
 
     peer.on('data', (data) => {
@@ -100,70 +116,19 @@ export abstract class Base extends ClientBase {
   creation of the websocket for the server, connection of client to that webSocket,
   deals with message reception from decentralized client perspective (messages received by client)
    */
-  private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
-    const WS = typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
-    const ws: WebSocket = new WS(url)
-    ws.binaryType = 'arraybuffer'
+  private async connectServer (url: URL): Promise<EventConnection> {
+    const server: EventConnection = await WebSocketServer.connect(url)
 
-    // no async to avoid potentially running server handler concurrently
-    ws.onmessage = (event: isomorphic.MessageEvent) => {
-      if (!(event.data instanceof ArrayBuffer)) {
-        throw new Error('server did not send an ArrayBuffer')
+    server.on(messages.type.SignalForPeer, (event) => {
+      console.debug(this.ID, 'got signal from', event.peer)
+
+      if (this.pool === undefined) {
+        throw new Error('got signal but peer pool is undefined')
       }
-
-      const msg = msgpack.decode(new Uint8Array(event.data))
-      if (!messages.isMessageFromServer(msg)) {
-        throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
-      }
-
-      switch (msg.type) {
-        case messages.type.PeerID:
-          console.debug(msg.id, 'got own id from server')
-
-          if (this.ID !== undefined) {
-            throw new Error('got ID from server but was already received')
-          }
-          this.ID = msg.id
-          this.pool = PeerPool.init(msg.id)
-
-          break
-        case messages.type.SignalForPeer:
-          console.debug(this.ID, 'got signal from', msg.peer)
-
-          if (this.pool === undefined) {
-            throw new Error('got signal but peer pool is undefined')
-          }
-          void this.pool.then((pool) => pool.signal(msg.peer, msg.signal))
-
-          break
-        case messages.type.PeersForRound: {
-          const peers = Set(msg.peers)
-          if (this.ID !== undefined && peers.has(this.ID)) {
-            throw new Error('received peer list contains our own id')
-          }
-
-          if (this.peers !== undefined) {
-            throw new Error('got new peer list from server but was already received for this round')
-          }
-          this.peers = peers
-
-          console.debug(this.ID, 'got peers for round:', peers.toJS())
-          break
-        }
-        case messages.type.clientConnected:
-          this.connected = true
-          break
-        default:
-          // @ts-expect-error all types should be handled
-          throw new Error(`unknown message type: ${msg.type as number}`)
-      }
-    }
-
-    return await new Promise((resolve, reject) => {
-      ws.onerror = (err: isomorphic.ErrorEvent) =>
-        reject(new Error(`connecting server: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
-      ws.onopen = () => resolve(ws)
+      void this.pool.then((pool) => pool.signal(event.peer, event.signal))
     })
+
+    return server
   }
 
   /**
@@ -183,11 +148,25 @@ export abstract class Base extends ClientBase {
         throw new Error(`unknown protocol: ${this.url.protocol}`)
     }
     serverURL.pathname += `deai/${this.task.taskID}`
+
     this.server = await this.connectServer(serverURL)
 
-    await pauseUntil(() => this.connected)
+    const msg: messages.clientConnected = {
+      type: messages.type.clientConnected
+    }
+    this.server.send(msg)
 
-    console.debug(this.ID, 'server connected')
+    const peerIdMsg = await waitMessage(this.server, messages.type.PeerID)
+    console.debug(peerIdMsg.id, 'got own id from server')
+
+    if (this.ID !== undefined) {
+      throw new Error('got ID from server but was already received')
+    }
+    this.ID = peerIdMsg.id
+    this.pool = PeerPool.init(peerIdMsg.id)
+    this.connected = true // Is this still needed?
+
+    console.debug(this.ID, 'client connected to server')
   }
 
   // disconnect from server & peers
@@ -197,7 +176,7 @@ export abstract class Base extends ClientBase {
     (await this.pool)?.shutdown()
     this.pool = undefined
 
-    this.server?.close()
+    this.server?.disconnect()
     this.server = undefined
     this.connected = false
   }

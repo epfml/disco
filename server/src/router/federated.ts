@@ -132,6 +132,7 @@ export class Federated extends Server {
     model: tf.LayersModel,
     req: express.Request
   ): void {
+    this.sendConnectedMsg(ws)
     const clientId = req.params.clientId
     console.info('client', clientId, 'joined', task.taskID)
 
