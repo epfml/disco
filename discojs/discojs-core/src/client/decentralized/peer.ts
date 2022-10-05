@@ -1,5 +1,6 @@
 import { List, Map, Range, Seq } from 'immutable'
 import SimplePeer, { SignalData } from 'simple-peer'
+import { PeerID } from './types'
 
 type MessageID = number
 type ChunkID = number
@@ -34,6 +35,7 @@ interface Events {
 //
 // see feross/simple-peer#393 for more info
 export class Peer {
+  public readonly id: PeerID
   private readonly peer: SimplePeer.Instance
   private bufferSize?: number
 
@@ -45,7 +47,8 @@ export class Peer {
     chunks: Map<ChunkID, Buffer>
   }>()
 
-  constructor (opts?: SimplePeer.Options) {
+  constructor (id: PeerID, opts?: SimplePeer.Options) {
+    this.id = id
     this.peer = new SimplePeer(opts)
   }
 
@@ -54,7 +57,6 @@ export class Peer {
 
     const chunks = this.chunk(msg)
     this.sendQueue = this.sendQueue.concat(chunks)
-
     this.flush()
   }
 
@@ -74,7 +76,7 @@ export class Peer {
       return
     }
 
-    console.debug('sending chunk of size', chunk.length)
+    // console.debug('sending chunk of size', chunk.length)
     this.sendQueue = this.sendQueue.shift()
     this.peer.send(chunk)
 
@@ -226,7 +228,7 @@ export class Peer {
         chunks: chunks.set(chunkID, chunk)
       })
 
-      console.debug(`got chunk ${messageID}:${chunkID}/${total ?? 'unknown'} of size ${chunk.length}`)
+      // console.debug(`got chunk ${messageID}:${chunkID}/${total ?? 'unknown'} of size ${chunk.length}`)
 
       const readyMessages = this.receiving
         .filter(({ total, chunks }) => total !== undefined && chunks.size === total)

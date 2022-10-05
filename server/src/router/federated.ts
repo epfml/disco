@@ -18,6 +18,8 @@ import {
 
 import { Server } from './server'
 import messages = client.federated.messages
+import messageTypes = client.messages.type
+import clientConnected = client.messages.type.clientConnected
 
 const BUFFER_CAPACITY = 2
 
@@ -97,7 +99,7 @@ export class Federated extends Server {
   }
 
   protected sendConnectedMsg (ws: WebSocket): void {
-    const msg: messages.messageGeneral = { type: messages.messageType.clientConnected }
+    const msg: messages.messageGeneral = { type: clientConnected }
     ws.send(msgpack.encode(msg))
   }
 
@@ -132,18 +134,18 @@ export class Federated extends Server {
     model: tf.LayersModel,
     req: express.Request
   ): void {
-    this.sendConnectedMsg(ws)
     const clientId = req.params.clientId
-    console.info('client', clientId, 'joined', task.taskID)
-
-    this.clients = this.clients.add(clientId)
-
-    this.logsAppend(task.taskID, clientId, RequestType.Connect, 0)
 
     ws.on('message', (data: Buffer) => {
       const msg = msgpack.decode(data)
+      if (msg.type === clientConnected) {
+        console.info('client', clientId, 'joined', task.taskID)
 
-      if (msg.type === messages.messageType.postWeightsToServer) {
+        this.clients = this.clients.add(clientId)
+
+        this.logsAppend(task.taskID, clientId, RequestType.Connect, 0)
+        this.sendConnectedMsg(ws)
+      } else if (msg.type === messageTypes.postWeightsToServer) {
         const rawWeights = msg.weights
         const round = msg.round
 
@@ -171,19 +173,19 @@ export class Federated extends Server {
         }
 
         void buffer.add(clientId, weights, round)
-      } else if (msg.type === messages.messageType.pullServerStatistics) {
+      } else if (msg.type === messageTypes.pullServerStatistics) {
         // Get latest round
         const statistics = this.asyncInformantsMap
           .get(task.taskID)
           ?.getAllStatistics()
 
         const msg: messages.pullServerStatistics = {
-          type: messages.messageType.pullServerStatistics,
+          type: messageTypes.pullServerStatistics,
           statistics: statistics ?? {}
         }
 
         ws.send(msgpack.encode(msg))
-      } else if (msg.type === messages.messageType.latestServerRound) {
+      } else if (msg.type === messageTypes.latestServerRound) {
         const buffer = this.asyncBuffersMap.get(task.taskID)
         if (buffer === undefined) {
           throw new Error(`get round of unknown task: ${task.taskID}`)
@@ -197,14 +199,14 @@ export class Federated extends Server {
         const weights = WeightsContainer.from(model)
         void serialization.weights.encode(weights).then((serializedWeights) => {
           const msg: messages.latestServerRound = {
-            type: messages.messageType.latestServerRound,
+            type: messageTypes.latestServerRound,
             round: round,
             weights: serializedWeights
           }
 
           ws.send(msgpack.encode(msg))
         })
-      } else if (msg.type === messages.messageType.postMetadata) {
+      } else if (msg.type === messageTypes.postMetadata) {
         const round = msg.round
 
         const metadataId = msg.metadataId
@@ -221,7 +223,7 @@ export class Federated extends Server {
           [task, round, clientId, metadataId],
           metadata
         )
-      } else if (msg.type === messages.messageType.getMetadataMap) {
+      } else if (msg.type === messageTypes.getMetadataMap) {
         const metadataId = msg.metadataId
         const round = Number.parseInt(msg.round, 0)
 
@@ -249,7 +251,7 @@ export class Federated extends Server {
           this.logsAppend(task.taskID, clientId, RequestType.GetMetadata, round)
 
           const msg: messages.getMetadataMap = {
-            type: messages.messageType.getMetadataMap,
+            type: messageTypes.getMetadataMap,
             clientId: clientId,
             taskId: task.taskID,
             metadataId: metadataId,
