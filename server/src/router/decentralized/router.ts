@@ -10,6 +10,7 @@ import { tf, client, Task, TaskID } from '@epfml/discojs-node'
 import { Server } from '../server'
 
 import messages = client.decentralized.messages
+import messageTypes = client.messages.type
 type PeerID = client.decentralized.PeerID
 
 export class Decentralized extends Server {
@@ -61,11 +62,11 @@ export class Decentralized extends Server {
         }
 
         switch (msg.type) {
-          case messages.type.clientConnected: {
+          case messageTypes.clientConnected: {
             this.clients = this.clients.set(peerID, ws)
             // send peerID message
             const msg: messages.PeerID = {
-              type: messages.type.PeerID,
+              type: messageTypes.PeerID,
               id: peerID
             }
             console.info('peer', peerID, 'joined', task.taskID)
@@ -79,16 +80,16 @@ export class Decentralized extends Server {
             break
           }
 
-          case messages.type.SignalForPeer: {
+          case messageTypes.SignalForPeer: {
             const forward: messages.SignalForPeer = {
-              type: messages.type.SignalForPeer,
+              type: messageTypes.SignalForPeer,
               peer: peerID,
               signal: msg.signal
             }
             this.clients.get(msg.peer)?.send(msgpack.encode(forward))
             break
           }
-          case messages.type.PeerIsReady: {
+          case messageTypes.PeerIsReady: {
             const peers = this.readyClientsBuffer.get(task.taskID)?.add(peerID)
             if (peers === undefined) {
               throw new Error(`task ${task.taskID} doesn't exists in ready buffer`)
@@ -101,7 +102,7 @@ export class Decentralized extends Server {
               peers
                 .map((id) => {
                   const readyPeerIDs: messages.PeersForRound = {
-                    type: messages.type.PeersForRound,
+                    type: messageTypes.PeersForRound,
                     peers: peers.delete(id).toArray()
                   }
                   const encoded = msgpack.encode(readyPeerIDs)

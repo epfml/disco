@@ -3,59 +3,79 @@ import { List, Map } from 'immutable'
 import { serialization, TrainingInformant, WeightsContainer } from '../..'
 import { Base } from './base'
 import * as messages from './messages'
-import { Peer } from './peer'
-import { pauseUntil } from './utils'
+import { type } from '../messages'
 import { PeerID } from './types'
+import { PeerConnection, waitMessage } from '../event_connection'
 
 /**
  * Decentralized client that does not utilize secure aggregation, but sends model updates in clear text
  */
 export class ClearText extends Base {
   // list of weights received from other clients
-  private receivedWeights = List<WeightsContainer>()
+  private receivedWeights?: Promise<List<WeightsContainer>>
 
   override async sendAndReceiveWeights (
-    peers: Map<PeerID, Peer>,
+    peers: Map<PeerID, PeerConnection>,
     noisyWeights: WeightsContainer,
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<List<WeightsContainer>> {
-    // prepare weights to send to peers
-    const weightsToSend = await serialization.weights.encode(noisyWeights)
+    if (!this.receivedWeights) {
+      throw new Error('no promise setup for receiving weights')
+    }
 
     // PHASE 1 COMMUNICATION --> create weights message and send to all peers (only one phase of communication for clear_text)
 
-    // create weights message and send to all peers
-    peers.forEach((peer, id) =>
-      this.sendMessagetoPeer(peer, {
-        type: messages.type.Weights,
-        peer: id,
-        weights: weightsToSend
-      })
-    )
+    // send weights asynchronously
+    serialization.weights.encode(noisyWeights).then((encodedWeights) => {
+      // create weights message and send to all peers
+      peers.forEach((peer, id) =>
+        this.sendMessagetoPeer(peer, {
+          type: type.Weights,
+          peer: id,
+          weights: encodedWeights
+        }))
+    }).catch(() => {
+      throw new Error('error while sending weights')
+    })
 
     // wait to receive all weights from peers
-    await pauseUntil(() => this.receivedWeights.size >= peers.size)
+    const weights = await this.receivedWeights
+
     trainingInformant.update({
-      currentNumberOfParticipants: this.receivedWeights.size + 1
+      currentNumberOfParticipants: weights.size + 1
     })
 
     // add our own weights and reset state
-    const ret = this.receivedWeights.push(noisyWeights)
-    this.receivedWeights = List()
+    const ret = weights.push(noisyWeights)
+    this.receivedWeights = undefined
     return ret
   }
 
-  /*
-handles received messages from signaling server
- */
-  override clientHandle (msg: messages.PeerMessage): void {
-    if (msg.type === messages.type.Weights) {
-      // update received weights by one weights reception
-      const weights = serialization.weights.decode(msg.weights)
-      this.receivedWeights = this.receivedWeights.push(weights)
-    } else {
-      throw new Error(`unexpected message type: ${msg.type}`)
+  private async receiveWeights (peers: Map<PeerID, PeerConnection>): Promise<List<WeightsContainer>> {
+    console.debug('beginning of receiveWeights')
+    const waitWeights: Array<Promise<messages.Weights>> = Array.from(peers.values()).map(async peer => {
+      return await waitMessage(peer, type.Weights)
+    })
+
+    let receivedWeights = List<WeightsContainer>()
+    await (await Promise.allSettled(waitWeights)).forEach((message) => {
+      if (message.status === 'fulfilled') {
+        receivedWeights = receivedWeights.push(serialization.weights.decode(message.value.weights))
+      }
+    })
+
+    if (receivedWeights.size < peers.size) {
+      throw new Error('not enough peer weights received')
     }
+
+    return receivedWeights
+  }
+
+  /*
+    handles received messages from signaling server
+ */
+  override clientHandle (peers: Map<PeerID, PeerConnection>): void {
+    this.receivedWeights = this.receiveWeights(peers)
   }
 }
