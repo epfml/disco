@@ -41,7 +41,6 @@ export abstract class Server {
 
     this.ownRouter.ws(this.buildRoute(task), (ws, req) => {
       if (this.isValidUrl(req.url)) {
-        this.sendConnectedMsg(ws)
         this.handle(task, ws, model, req)
       } else {
         ws.terminate()
@@ -67,8 +66,6 @@ export abstract class Server {
   protected abstract get description (): string
 
   protected abstract buildRoute (task: Task): string
-
-  protected abstract sendConnectedMsg (ws: WebSocket): void
 
   protected abstract initTask (task: Task, model: tf.LayersModel): void
 

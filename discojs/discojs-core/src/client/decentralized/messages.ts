@@ -4,6 +4,9 @@ import { weights } from '../../serialization'
 
 import { isPeerID, PeerID as PeerIDType } from './types'
 
+// Retrieve a specific message interface from the type D. i.e. NarrowMessage<messages.type.PeerId> => messages.PeerId type
+export type NarrowMessage<D> = Extract<Message, { type: D }>
+
 export enum type {
   clientConnected,
 
@@ -19,7 +22,7 @@ export enum type {
   PartialSums
 }
 
-export interface clientConnectedMessage {
+export interface clientConnected {
   type: type.clientConnected
 }
 
@@ -74,13 +77,18 @@ export interface PartialSums {
   partials: weights.Encoded
 }
 
+export type Message =
+  MessageFromServer |
+  MessageToServer |
+  PeerMessage
+
 export type MessageFromServer =
-  clientConnectedMessage |
   PeerID |
   SignalForPeer |
   PeersForRound
 
 export type MessageToServer =
+  clientConnected |
   SignalForPeer |
   PeerIsReady
 
@@ -110,8 +118,6 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
   }
 
   switch (o.type) {
-    case type.clientConnected:
-      return true
     case type.PeerID:
       return 'id' in o && isPeerID(o.id)
     case type.SignalForPeer:
@@ -130,6 +136,8 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
   }
 
   switch (o.type) {
+    case type.clientConnected:
+      return true
     case type.SignalForPeer:
       return 'peer' in o && isPeerID(o.peer) &&
         'signal' in o // TODO check signal content?
