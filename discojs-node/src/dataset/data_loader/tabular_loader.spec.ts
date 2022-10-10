@@ -3,7 +3,7 @@ import { List } from 'immutable'
 
 import { tf, tasks, node } from '../..'
 
-const inputFiles = ['file://./example_training_data/titanic_train.csv']
+const inputFiles = ['file://../example_training_data/titanic_train.csv']
 
 describe('tabular loader', () => {
   it('loads a single sample', async () => {
