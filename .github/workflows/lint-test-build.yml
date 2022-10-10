@@ -6,13 +6,16 @@ on:
 
 env:
   node_version: 16
-  lib_dir: discojs
+  lib_dir: discojs-core
+  lib_node_dir: discojs-node
+  lib_browser_dir: discojs
   client_dir: browser
   server_dir: server
   benchmark_dir: benchmark
 
 jobs:
   lint-lib:
+    needs: build-lib
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -24,9 +27,49 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+      - run: npm ci && npm run build:browser
+      - run: npx eslint --max-warnings 0 --ignore-pattern "*.spec.ts" .
+      # TODO npx ts-standard
+
+  lint-node-lib:
+    needs: build-lib
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.lib_node_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_node_dir }}/package-lock.json
+      - run: npm ci && npm run build:node
+        working-directory: ${{ env.lib_dir }}
       - run: npm ci
       - run: npx eslint --max-warnings 0 .
-      # TODO npx ts-standard
+
+  lint-browser-lib:
+    needs: build-lib
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.lib_browser_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_browser_dir }}/package-lock.json
+      - run: npm ci && npm run build:browser
+        working-directory: ${{ env.lib_dir }}
+      - run: npm ci
+      - run: npx eslint --max-warnings 0 .
 
   lint-server:
     needs: build-lib
@@ -42,9 +85,12 @@ jobs:
           cache: npm
           cache-dependency-path: |
             ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_node_dir }}/package-lock.json
             ${{ env.server_dir }}/package-lock.json
-      - run: npm ci && npm run build
+      - run: npm ci && npm run build:node
         working-directory: ${{ env.lib_dir }}
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_node_dir }}
       - run: npm ci
       - run: npx eslint --max-warnings 0 .
       # TODO npx ts-standard
@@ -61,17 +107,14 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
-      - run: npm ci && npm run build
+          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+      - run: npm ci && npm run build:browser
         working-directory: ${{ env.lib_dir }}
       - run: npm ci
       - run: npx eslint --max-warnings 0 .
       - run: npm run lint
 
   build-lib:
-    needs: lint-lib
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -82,12 +125,52 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
+          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  build-node-lib:
+    needs: lint-node-lib
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.lib_node_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_node_dir }}/package-lock.json
+      - run: npm ci && npm run build:node
+        working-directory: ${{ env.lib_dir }}
+      - run: npm ci
+      - run: npm run build
+
+  build-browser-lib:
+    needs: lint-browser-lib
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.lib_browser_dir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_browser_dir }}/package-lock.json
+      - run: npm ci && npm run build:browser
+        working-directory: ${{ env.lib_dir }}
       - run: npm ci
       - run: npm run build
 
   build-server:
-    needs: [lint-server, build-lib]
+    needs: [lint-server, build-node-lib]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -100,9 +183,12 @@ jobs:
           cache: npm
           cache-dependency-path: |
             ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_node_dir }}/package-lock.json
             ${{ env.server_dir }}/package-lock.json
-      - run: npm ci && npm run build
+      - run: npm ci && npm run build:node
         working-directory: ${{ env.lib_dir }}
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_node_dir }}
       - run: npm ci
       - run: npm run build
 
@@ -117,7 +203,7 @@ jobs:
       - run: docker build .
 
   build-client:
-    needs: [lint-client, build-lib]
+    needs: [lint-client, build-browser-lib]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -130,14 +216,17 @@ jobs:
           cache: npm
           cache-dependency-path: |
             ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_browser_dir }}/package-lock.json
             ${{ env.client_dir }}/package-lock.json
-      - run: npm ci && npm run build
+      - run: npm ci && npm run build:browser
         working-directory: ${{ env.lib_dir }}
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_browser_dir }}
       - run: npm ci
       - run: npm run build
 
   test-lib:
-    needs: [build-lib, build-server-docker, test-server]
+    needs: [build-node-lib, build-server-docker, test-server]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -148,7 +237,13 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+          cache-dependency-path: |
+            ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_node_dir }}/package-lock.json
+      - run: npm ci && npm run build:node
+        working-directory: ${{ env.lib_dir }}
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_node_dir }}
       - run: npm ci
       - run: ./with_server npm run test
 
@@ -166,9 +261,12 @@ jobs:
           cache: npm
           cache-dependency-path: |
             ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_node_dir }}/package-lock.json
             ${{ env.server_dir }}/package-lock.json
-      - run: npm ci && npm run build
+      - run: npm ci && npm run build:node
         working-directory: ${{ env.lib_dir }}
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_node_dir }}
       - run: npm ci
       - run: npm run test
 
@@ -183,13 +281,18 @@ jobs:
           cache: npm
           cache-dependency-path: |
             ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_browser_dir }}/package-lock.json
             ${{ env.server_dir }}/package-lock.json
             ${{ env.client_dir }}/package-lock.json
       - run: npm ci && npm run build
         working-directory: ${{ env.lib_dir }}
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_browser_dir }}
+      - run: npm ci
+        working-directory: browser/cypress
       - uses: cypress-io/github-action@v4
         with:
-          browser: firefox
+          browser: chromium
           start: npm run dev
           wait-on: http://localhost:8080/
           working-directory: ${{ env.client_dir }}
@@ -209,10 +312,13 @@ jobs:
           cache: npm
           cache-dependency-path: |
             ${{ env.lib_dir }}/package-lock.json
+            ${{ env.lib_node_dir }}/package-lock.json
             ${{ env.server_dir }}/package-lock.json
             ${{ env.benchmark_dir }}/package-lock.json
-      - run: npm ci && npm run build
+      - run: npm ci && npm run build:node
         working-directory: ${{ env.lib_dir }}
+      - run: npm ci && npm run build
+        working-directory: ${{ env.lib_node_dir }}
       - run: npm ci 
         working-directory: ${{ env.server_dir }}
       - run: npm ci

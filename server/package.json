@@ -13,9 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epfml/discojs": "file:../discojs",
+    "@epfml/discojs-node": "file:../discojs-node",
     "@koush/wrtc": "0.5",
-    "@tensorflow/tfjs-node": "3",
     "cors": "2",
     "express": "4",
     "express-ws": "5",

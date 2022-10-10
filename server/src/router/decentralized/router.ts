@@ -1,14 +1,13 @@
 import express from 'express'
-
-import { tf, client, Task, TaskID } from '@epfml/discojs'
-
-import { Server } from '../server'
-import { ParamsDictionary } from 'express-serve-static-core'
-import { ParsedQs } from 'qs'
-
-import { Map, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 import WebSocket from 'ws'
+import { ParamsDictionary } from 'express-serve-static-core'
+import { ParsedQs } from 'qs'
+import { Map, Set } from 'immutable'
+
+import { tf, client, Task, TaskID } from '@epfml/discojs-node'
+
+import { Server } from '../server'
 
 import messages = client.decentralized.messages
 type PeerID = client.decentralized.PeerID

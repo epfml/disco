@@ -45,11 +45,10 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from '@epfml/discojs'
+import { browser, dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { getClient } from '@/clients'
-import { IndexedDB } from '@/memory'
 import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
@@ -86,7 +85,7 @@ export default defineComponent({
       return getClient(this.scheme, this.task)
     },
     memory (): Memory {
-      return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+      return this.memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory()
     },
     disco (): Disco {
       return new Disco(

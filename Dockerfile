@@ -13,14 +13,20 @@ RUN apt-get upgrade -y \
     && curl --silent --location https://deb.nodesource.com/setup_16.x | bash - \
     && apt install -y nodejs 
 
-COPY discojs/package*.json discojs/
-RUN cd discojs && npm ci
+COPY discojs-core/package*.json discojs-core/
+RUN cd discojs-core && npm ci
+
+COPY discojs-node/package*.json discojs-node/
+RUN cd discojs-node && npm ci
 
 COPY server/package*.json server/
 RUN cd server && npm ci
 
-COPY discojs/ discojs/
-RUN cd discojs && npm run build
+COPY discojs-core/ discojs-core/
+RUN cd discojs-core && npm run build
+
+COPY discojs-node/ discojs-node/
+RUN cd discojs-node && npm run build
 
 COPY server/ server/
 RUN cd server && npm run build

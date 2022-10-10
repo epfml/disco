@@ -1,6 +1,6 @@
 import { Server } from 'node:http'
 
-import { client, Task } from '@epfml/discojs'
+import { client, Task } from '@epfml/discojs-node'
 
 import { getApp } from '../src/get_server'
 

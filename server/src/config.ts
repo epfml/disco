@@ -1,5 +1,6 @@
-import { Path, TaskID } from '@epfml/discojs'
 import path from 'path'
+
+import { Path, TaskID } from '@epfml/discojs-node'
 
 export class Config {
   public readonly serverUrl: URL

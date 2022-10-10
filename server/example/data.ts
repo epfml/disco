@@ -1,8 +1,7 @@
 import fs from 'fs'
-import * as tf from '@tensorflow/tfjs-node'
 import Rand from 'rand-seed'
 
-import { dataset, Task } from '@epfml/discojs'
+import { tf, dataset, Task } from '@epfml/discojs-node'
 
 const rand = new Rand('1234')
 
@@ -34,7 +33,7 @@ function filesFromFolder (dir: string, folder: string): string[] {
 }
 
 export async function loadData (task: Task): Promise<dataset.DataSplit> {
-  const dir = './../discojs/example_training_data/simple_face/'
+  const dir = '../example_training_data/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']
 
