@@ -1,6 +1,6 @@
-# Disco.js Core Module
+# Disco.js Browser Module
 
-`discojs-core` contains the core, platform-agnostic code of Disco.js, used by both `discojs` and `discojs-node`.
+`discojs` contains the browser code of Disco.js, based off and extending `discojs-core`.
 
 ## Installation
 
@@ -11,6 +11,8 @@ To install the project's dependencies, run the following commands:
 
 ```
 cd discojs-core
+npm ci
+cd discojs
 npm ci
 ```
 
@@ -28,6 +30,9 @@ which should return something similar to `arm64`.
 The browser, server and benchmark modules use either the `discojs` or `discojs-node` interface, depending on the runtime environment (browser or Node, respectively). Both interfaces build on top of and extend `discojs-core`, which must always be built first when bringing changes to the codebase:
 
 ```
+cd discojs-core
+npm run build
+cd discojs
 npm run build
 ```
 
@@ -35,6 +40,4 @@ This invokes the TypeScript compiler (`tsc`). To recompile from stratch, simply 
 
 ## Development
 
-This module is not available as a remote package on NPM. It is destined to be used by the two actual packages we offer: `@epfml/discojs` and `@epfml/discojs-node`.
-
-When contributing directly to Disco.js, you should be using the __LOCAL__ `@epfml/{discojs, discojs-node}` package, based off the local files you have and are modifying.
+As the developer of an external project, you should only be interacting with `@epfml/discojs`, never the  (local) `discojs-core`.

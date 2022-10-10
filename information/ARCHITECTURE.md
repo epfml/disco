@@ -8,7 +8,15 @@
      ├── LICENSE      
      ├── information  # Markdown documentation of the project lives here (except [README](../README.md) and [DEV](../DEV.md))
      │  └── ... 
-     ├── discojs      # Core module: data handling, training, and communication across devices.
+     ├── discojs-core # Core module: tasks, model training, model validation and communication across devices
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md
+     ├── discojs      # Browser module: data handling 
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md
+     ├── discojs-node # Node module: data handling
      │  ├── src       
      │  ├── ...       
      │  └── README.md 
@@ -16,18 +24,15 @@
      │  ├── src       
      │  ├── ...       
      │  └── README.md 
-     ├── browser      # Browser based client and UI based on Vue3
+     ├── browser      # Browser-based client and UI built with Vue.js
      │  ├── src       
      │  ├── ...       
      │  └── README.md 
-     ├── benchmark    # A command line interface (CLI) and node-based client for Disco. No browser needed. Can serve as a simulator or for integration to other usecases
+     ├── benchmark    # A command line interface (CLI) and Node-based client for Disco. No browser needed. Can serve as a simulator or for integration to other usecases
      │  ├── src       
      │  ├── ...       
      │  └── README.md 
-    (├── experiments  # Code that is not a functional part of Disco (extensions, toy experiments, ...)                        )
-    (│  └── ...                                                                                                               )
-    (├── simulator    # Jupyter Notebook based simulators used in development                                                 )
-    (│  └── ...                                                                                                               )
+     └── ...
     
      
     

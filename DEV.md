@@ -23,25 +23,33 @@ If you run into any sort of trouble then hopefully you can find an answer in our
 
 ## Structure
 
-Disco is composed of three parts:
+Disco is composed of six parts, among which three compose the Disco.js library:
 
-1. [discojs](discojs/README.md) The core library for disco.js
-2. [server](server/README.md) The helper server for peering or federated learning, as a node application
-3. [browser](browser/README.md) The client implementation for use in browser. Note that discojs is also usable directly in node.js without a browser, such as for native integration or benchmarking
+1. [discojs-core](discojs-core/README.md) The core library for Disco.js, used by both `discojs-node` and `discojs` 
+2. [discojs](discojs/README.md) The Disco.js library for the browser environment, based off and extending `discojs-core` 
+3. [discojs-node](discojs-node/README.md) The Disco.js library for Node.js, based off and extending `discojs-core`
+4. [server](server/README.md) The Node.js server for p2p coordination or federated learning, using  `discojs-node `
+5. [browser](browser/README.md) The client UI for use in browser, using `discojs`
+6. [benchmark](benchmark/README.md) The CLI tool for Disco.js, using `discojs-node`
 
 The three parts should be built in the above order, using the node package manager.
 
 ## Quick-start guide
 
-- install node 16 and ensure it is activated on opening any new terminal (e.g. `nvm use 16`)
-- clone this repository
-- `npm ci` within all 3 disco subfolders
-- `cd discojs; rm -rf dist; npm run build`
-- `cd server; npm run dev`, check that the server is indeed running on localhost:8080
-- `cd browser; npm run dev`, check that the browser client is running on localhost:8081
+We recommend using [nvm](https://github.com/nvm-sh/nvm) (the Node Version Manager)
 
-For full details, see the respective readme files linked for the three parts above, that is [discojs](discojs/README.md), [server](server/README.md), and [browser](browser/README.md).
+1. `git clone git@github.com:epfml/disco.git`
+2. `cd disco`
+3. `nvm use && nvm current`, check that the Node.js version is indeed v16.x.x
+4. `cd discojs-core && npm ci && npm run build`, check that the `dist` directory indeed contains `browser` and `node` compilation files
+5. `cd discojs-node && npm ci && npm run build`
+6. `cd discojs && npm ci && npm run build`
+7. `cd server && npm ci && npm run dev`, check that the server is indeed running on localhost:8080
+8. `cd browser && npm ci && npm run dev`, check that the server is indeed running on localhost:8081
+9. `cd benchmark && npm ci`
+
+For full details, see the respective readme files linked above, that is [discojs-core](discojs-core/README.md), [discojs](discojs/README.md), [discojs-node](discojs-node/README.md), [server](server/README.md), [browser](browser/README.md) and [benchmark](benchmark/README.md).
 
 ## Example
 
- A full -- self contained -- example of the discojs api running 2 federated users can be found [here](server/example). This does not use any browser. A small helper server is run from the script itself and the data is already available in the repo.
+ A full -- self contained -- example of the discojs API running two federated users can be found [here](server/example). This runs on Node.js outside of any browser. A small helper server is run from the script itself and the data is already available in the repo.
