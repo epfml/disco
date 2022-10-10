@@ -14,7 +14,7 @@ import {
   TaskID,
   AsyncBuffer,
   WeightsContainer
-} from '@epfml/discojs'
+} from '@epfml/discojs-node'
 
 import { Server } from './server'
 import messages = client.federated.messages
@@ -263,7 +263,7 @@ export class Federated extends Server {
    * Save the newly aggregated model to the server's local storage. This
    * is now the model served to clients for the given task. To save the newly
    * aggregated weights, here is the (cumbersome) procedure:
-   * 1. create a new TFJS model with the right layers
+   * 1. create a new TF.js model with the right layers
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */

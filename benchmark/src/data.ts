@@ -1,7 +1,7 @@
-import * as tf from '@tensorflow/tfjs-node'
+import {tf, dataset, Task} from '@epfml/discojs-node'
+
 import fs from 'fs'
 import fs_promises from 'fs/promises'
-import {dataset, Task} from '@epfml/discojs'
 
 import path from 'node:path'
 import {Range} from 'immutable'
@@ -20,7 +20,7 @@ function filesFromFolder(dir: string, folder: string, fractionToKeep: number): s
 }
 
 async function simplefaceData(task: Task): Promise<dataset.DataSplit> {
-  const dir = './../discojs/example_training_data/simple_face/'
+  const dir = '../example_training_data/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']
 
@@ -47,7 +47,7 @@ async function simplefaceData(task: Task): Promise<dataset.DataSplit> {
 }
 
 async function cifar10Data(cifar10: Task): Promise<dataset.DataSplit> {
-  const dir = '../discojs/example_training_data/CIFAR10/'
+  const dir = '../example_training_data/CIFAR10/'
   const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
@@ -63,7 +63,7 @@ class NodeTabularLoader extends dataset.TabularLoader<string> {
 
 async function titanicData(titanic: Task): Promise<dataset.DataSplit> {
 
-  const dir = '../discojs/example_training_data/titanic.csv'
+  const dir = '../example_training_data/titanic.csv'
 
   // TODO: can load data, so path is right.
   // console.log(await tf.data.csv('file://'.concat(dir)).toArray())

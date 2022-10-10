@@ -10,7 +10,7 @@ interface Props {
 }
 const props = defineProps<Props>()
 
-const images = require.context('../../../../discojs/example_training_data/', false, /.+?\.(jpg|png)$/)
+const images = require.context('../../../../example_training_data/', false, /.+?\.(jpg|png)$/)
 const exampleImage = computed(() => {
   const source = props.task.displayInformation.dataExampleImage
   return source !== undefined ? images(source) : ''

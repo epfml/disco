@@ -48,11 +48,10 @@
 import { computed, defineProps, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
-import { ConsoleLogger, dataset, EmptyMemory, Memory, Task, Validator } from '@epfml/discojs'
+import { browser, dataset, ConsoleLogger, EmptyMemory, Memory, Task, Validator } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
-import { IndexedDB } from '@/memory'
 import { chartOptions } from '@/charts'
 import { useToaster } from '@/composables/toaster'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
@@ -69,7 +68,7 @@ const props = defineProps<Props>()
 
 const validator = ref<Validator>(undefined)
 
-const memory = computed<Memory>(() => useIndexedDB ? new IndexedDB() : new EmptyMemory())
+const memory = computed<Memory>(() => useIndexedDB ? new browser.IndexedDB() : new EmptyMemory())
 const accuracyData = computed<number[]>(() => {
   const r = validator.value?.accuracyData()
   return r !== undefined ? r.toArray() : [0]

@@ -1,9 +1,8 @@
 import { expect } from 'chai'
 import { List } from 'immutable'
 import * as http from 'http'
-import * as tf from '@tensorflow/tfjs'
 
-import { client as clients, informant, Task, tasks, WeightsContainer } from '@epfml/discojs'
+import { tf, client as clients, informant, Task, tasks, WeightsContainer } from '@epfml/discojs-node'
 
 import { getClient, startServer } from './utils'
 

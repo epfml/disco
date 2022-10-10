@@ -1,11 +1,12 @@
-import { Set, Map } from 'immutable'
+import { Set, Map, merge } from 'immutable'
 import { EventEmitter } from 'node:events'
 import path from 'path'
 
-import { tf, tasks as defaultTasks, Task } from '@epfml/discojs'
+import { tf, node, tasks, Task } from '@epfml/discojs-node'
 import { CONFIG } from './config'
 
 const simpleFaceModelPath = path.join(CONFIG.modelsDir, 'mobileNetV2_35_alpha_2_classes', 'model.json')
+const defaultTasks = merge(tasks, node.tasks) as typeof tasks & typeof node.tasks
 
 // TODO, to add a custom model for a task, add the path here
 const MODEL_PATH = Map<string, string>()

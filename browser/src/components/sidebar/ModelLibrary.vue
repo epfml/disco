@@ -90,10 +90,9 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { Memory, EmptyMemory, Path, ModelType } from '@epfml/discojs'
+import { browser, Memory, EmptyMemory, Path, ModelType } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
-import { IndexedDB } from '@/memory'
 import ModelButton from './simple/ModelButton.vue'
 import Bin2Icon from '@/assets/svg/Bin2Icon.vue'
 import Download2Icon from '@/assets/svg/Download2Icon.vue'
@@ -118,7 +117,7 @@ export default defineComponent({
     ...mapStores(useMemoryStore),
 
     memory (): Memory {
-      return this.useIndexedDB ? new IndexedDB() : new EmptyMemory()
+      return this.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory()
     }
   },
   async mounted (): Promise<void> {

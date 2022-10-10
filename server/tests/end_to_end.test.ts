@@ -2,9 +2,8 @@ import fs from 'fs/promises'
 import path from 'node:path'
 import { Server } from 'node:http'
 import { Range } from 'immutable'
-import * as tf from '@tensorflow/tfjs-node'
 
-import { dataset, ConsoleLogger, training, TrainingSchemes, informant, EmptyMemory, tasks, client as clients } from '@epfml/discojs'
+import { tf, dataset, ConsoleLogger, training, TrainingSchemes, informant, EmptyMemory, tasks, client as clients } from '@epfml/discojs-node'
 
 import { getClient, startServer } from './utils'
 
@@ -35,7 +34,7 @@ describe('end to end federated', function () {
     await Promise.all([cifar10user(), cifar10user()]))
 
   async function cifar10user (): Promise<void> {
-    const dir = '../discojs/example_training_data/CIFAR10/'
+    const dir = '../example_training_data/CIFAR10/'
     const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
     const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
@@ -62,7 +61,7 @@ describe('end to end federated', function () {
     await Promise.all([titanicUser(), titanicUser()]))
 
   async function titanicUser (): Promise<void> {
-    const dir = '../discojs/example_training_data/titanic_train.csv'
+    const dir = '../example_training_data/titanic_train.csv'
 
     // TODO: can load data, so path is right.
     // console.log(await tf.data.csv('file://'.concat(dir)).toArray())

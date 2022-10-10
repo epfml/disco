@@ -1,8 +1,8 @@
 // eslint-disable-file @typescript-eslint/prefer-ts-expect-error
-
 import {parse} from 'ts-command-line-args'
-import {Task, tasks} from '@epfml/discojs'
 import {Map} from 'immutable'
+
+import {tasks, node, Task} from '@epfml/discojs-node'
 
 interface BenchmarkUnsafeArguments {
   task: string
@@ -39,10 +39,10 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 )
 
 const taskID = unsafeArgs.task === undefined ? 'simple_face' : unsafeArgs.task
-let task = tasks.simple_face.task
+let task = node.tasks.simple_face.task
 
 let supportedTasks: Map<string, Task> = Map()
-supportedTasks = supportedTasks.set(tasks.simple_face.task.taskID, tasks.simple_face.task)
+supportedTasks = supportedTasks.set(node.tasks.simple_face.task.taskID, node.tasks.simple_face.task)
 supportedTasks = supportedTasks.set(tasks.titanic.task.taskID, tasks.titanic.task)
 supportedTasks = supportedTasks.set(tasks.cifar10.task.taskID, tasks.cifar10.task)
 
