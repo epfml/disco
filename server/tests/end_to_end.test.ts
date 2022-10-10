@@ -34,7 +34,7 @@ describe('end to end federated', function () {
     await Promise.all([cifar10user(), cifar10user()]))
 
   async function cifar10user (): Promise<void> {
-    const dir = '../discojs/example_training_data/CIFAR10/'
+    const dir = '../example_training_data/CIFAR10/'
     const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
     const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
@@ -61,7 +61,7 @@ describe('end to end federated', function () {
     await Promise.all([titanicUser(), titanicUser()]))
 
   async function titanicUser (): Promise<void> {
-    const dir = '../discojs/example_training_data/titanic_train.csv'
+    const dir = '../example_training_data/titanic_train.csv'
 
     // TODO: can load data, so path is right.
     // console.log(await tf.data.csv('file://'.concat(dir)).toArray())

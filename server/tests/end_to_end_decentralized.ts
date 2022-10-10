@@ -31,7 +31,7 @@ describe('end to end decentralized', function () {
     await Promise.all([cifar10User(true), cifar10User(true), cifar10User(true)]))
 
   async function cifar10User (secure: boolean): Promise<void> {
-    const dir = '../discojs/example_training_data/CIFAR10/'
+    const dir = '../example_training_data/CIFAR10/'
     const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
     const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 

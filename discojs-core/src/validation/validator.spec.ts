@@ -5,7 +5,7 @@ import { node, Validator, ConsoleLogger, EmptyMemory, client, dataset } from '@e
 
 describe('validator', () => {
   it('works for simple_face', async () => {
-    const dir = './example_training_data/simple_face/'
+    const dir = '../example_training_data/simple_face/'
     const files: string[][] = ['child/', 'adult/']
       .map((subdir: string) => fs.readdirSync(dir + subdir)
         .map((file: string) => dir + subdir + file))
