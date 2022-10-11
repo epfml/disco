@@ -93,6 +93,7 @@ import { mapStores } from 'pinia'
 import { browser, Memory, EmptyMemory, Path, ModelType } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
+import { useValidationStore } from '@/store/validation'
 import ModelButton from './simple/ModelButton.vue'
 import Bin2Icon from '@/assets/svg/Bin2Icon.vue'
 import Download2Icon from '@/assets/svg/Download2Icon.vue'
@@ -114,10 +115,10 @@ export default defineComponent({
   },
   emits: ['switch-panel'],
   computed: {
-    ...mapStores(useMemoryStore),
+    ...mapStores(useMemoryStore, useValidationStore),
 
     memory (): Memory {
-      return this.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory()
+      return this.memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory()
     }
   },
   async mounted (): Promise<void> {
@@ -139,7 +140,7 @@ export default defineComponent({
     },
 
     openTesting (path: Path) {
-      this.setTestingModel(path)
+      this.validationStore.setModel(path)
       this.$router.push({ path: '/testing' })
     },
 
