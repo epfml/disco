@@ -37,7 +37,7 @@ This invokes the TypeScript compiler (`tsc`). It will output two compiled versio
 
 ### Using Disco.js
 
-This module is not available as a remote package on NPM. It is destined to be used by the two actual packages we offer on NPM: `@epfml/discojs` and `@epfml/discojs-node`. Thus, you should only interact with it when directly contributing to Disco.js. See the [discojs](../discojs/README.md) and [discojs-node](../discojs-node/README.md) READMEs for more info.
+This module is available as a remote package on NPM as `@epfml/discojs-core`. However, as the developer of an external project, you should not use it directly unless you know what you're doing. It is destined to be used by the two actual packages we offer on NPM: `@epfml/discojs` and `@epfml/discojs-node`. Thus, you should only interact with it when directly contributing to Disco.js. See the [discojs](../discojs/README.md) and [discojs-node](../discojs-node/README.md) READMEs for more info.
 
 ### Contributing
 
