@@ -31,10 +31,16 @@ The browser, server and benchmark modules use either the `discojs` or `discojs-n
 npm run build
 ```
 
-This invokes the TypeScript compiler (`tsc`). To recompile from stratch, simply `rm -rf dist/` before running `npm run build` again.
+This invokes the TypeScript compiler (`tsc`). It will output two compiled versions of  `discojs-core` in `discojs-core/dist/browser/` and `discojs-core/dist/node/`, for the browser and Node environments, respectively. The former is used by `discojs`, whereas the latter is used by `discojs-node`. used by To recompile from stratch, simply `rm -rf dist/` before running `npm run build` again.
 
 ## Development
 
-This module is not available as a remote package on NPM. It is destined to be used by the two actual packages we offer: `@epfml/discojs` and `@epfml/discojs-node`.
+### Using Disco.js
 
-When contributing directly to Disco.js, you should be using the __LOCAL__ `@epfml/{discojs, discojs-node}` package, based off the local files you have and are modifying.
+This module is not available as a remote package on NPM. It is destined to be used by the two actual packages we offer on NPM: `@epfml/discojs` and `@epfml/discojs-node`. Thus, you should only interact with it when directly contributing to Disco.js. See the [discojs](../discojs/README.md) and [discojs-node](../discojs-node/README.md) READMEs for more info.
+
+### Contributing
+
+Contributions to `discojs-core` must only contain platform-agnostic code, i.e. code able to run on either Node or the browser.
+
+Note that, if you end up making calls to the Tensorflow.js API, you must import it from the root index. This is to ensure the right version of TF.js is loaded (depending on the compilation `dist/`), and only once. The only exception occurs in unit tests, which should import TF.js from the (local) `@epfml/discojs-node`, since those run on Node.js.

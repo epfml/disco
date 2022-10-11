@@ -27,7 +27,7 @@ which should return something similar to `arm64`.
 
 ## Build
 
-The browser, server and benchmark modules use either the `discojs` or `discojs-node` interface, depending on the runtime environment (browser or Node, respectively). Both interfaces build on top of and extend `discojs-core`, which must always be built first when bringing changes to the codebase:
+The browser module and its Cypress tests use the `discojs` interface, i.e. they all run in the browser as native JS. This Disco.js browser module is build on top of and extends `discojs-core`, which must always be built first before building `discojs`:
 
 ```
 cd discojs-core
@@ -40,4 +40,16 @@ This invokes the TypeScript compiler (`tsc`). To recompile from stratch, simply 
 
 ## Development
 
-As the developer of an external project, you should only be interacting with `@epfml/discojs`, never the  (local) `discojs-core`.
+### Using Disco.js
+
+As the developer of an external project, you should only be interacting with the `@epfml/discojs` __REMOTE__ package, hosted on the `@epfml` NPM registry. It is installed with `npm i @epfml/discojs`.
+
+### Compilation
+
+When contributing directly to the source code of `discojs`, you will be using the __LOCAL__ `@epfml/discojs-core` package, which is based off the local files you have and are modifying in the `discojs-core` directory. As mentioned earlier, any change to `discojs-core` requires a rebuild of both `discojs-core` and `discojs`, for all changes to be reflected. However, changes brought to `discojs` alone, only require a rebuild of `discojs`.
+
+### Contributing
+
+Contributions to `discojs` must only include browser-specific code. Code common to both the browser and Node must be added to `discojs-core` instead.
+
+Note that, if you end up making calls to the Tensorflow.js API, you must import it from the root index. This is to ensure the WebGL version of TF.js is loaded, and only once. The only exception occurs in unit tests, which should import TF.js from the (local) `@epfml/discojs-node`, since those run on Node.js.
