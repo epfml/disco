@@ -1,6 +1,6 @@
 import { List, Set } from 'immutable'
 
-import { TaskID } from '@/task'
+import { TaskID } from '../../task'
 import { GraphInformant } from '../graph_informant'
 
 export abstract class Base {

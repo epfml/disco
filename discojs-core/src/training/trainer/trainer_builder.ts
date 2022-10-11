@@ -1,6 +1,4 @@
-import { ModelInfo } from '@/memory'
-
-import { tf, Client, Task, TrainingInformant, Memory, ModelType } from '../..'
+import { tf, Client, Task, TrainingInformant, Memory, ModelType, ModelInfo } from '../..'
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'

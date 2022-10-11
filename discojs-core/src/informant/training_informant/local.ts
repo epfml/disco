@@ -1,4 +1,4 @@
-import { TaskID } from '@/task'
+import { TaskID } from '../../task'
 import { Base } from '.'
 
 export class LocalInformant extends Base {

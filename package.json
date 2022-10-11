@@ -1,0 +1,46 @@
+{
+  "name": "@epfml/discojs-dependencies",
+  "private": true,
+  "scripts": {
+    "build": "./build.sh",
+    "test": "./test.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epfml/disco.git"
+  },
+  "bugs": {
+    "url": "https://github.com/epfml/disco/issues"
+  },
+  "homepage": "https://github.com/epfml/disco#readme",
+  "dependencies": {
+    "@epfml/discojs-node": "file:./discojs-node",
+    "@koush/wrtc": "0.5",
+    "@tensorflow/tfjs": "3",
+    "@tensorflow/tfjs-node": "3",
+    "@types/msgpack-lite": "0.1",
+    "axios": "0.27",
+    "immutable": "4",
+    "isomorphic-ws": "4",
+    "msgpack-lite": "0.1",
+    "simple-peer": "9",
+    "tslib": "2",
+    "url": "0.11",
+    "uuid": "8",
+    "ws": "8"
+  },
+  "devDependencies": {
+    "@types/chai": "4",
+    "@types/mocha": "9",
+    "@types/simple-peer": "9",
+    "@types/uuid": "8",
+    "@typescript-eslint/eslint-plugin": "4",
+    "@typescript-eslint/parser": "4",
+    "chai": "4",
+    "eslint": "7",
+    "eslint-config-standard-with-typescript": "21",
+    "mocha": "9",
+    "ts-node": "10",
+    "typescript": "<4.5.0"
+  }
+}

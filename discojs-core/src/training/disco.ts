@@ -1,5 +1,4 @@
-import { Memory } from '@/memory'
-import { Client, dataset, Logger, Task, TrainingInformant, TrainingSchemes } from '..'
+import { Client, dataset, Logger, Task, TrainingInformant, TrainingSchemes, Memory } from '..'
 
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
