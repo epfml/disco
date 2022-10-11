@@ -1,5 +1,5 @@
-import { Logger } from '@/logging/logger'
-import { Task } from '@/task'
+import { Logger } from './logging/logger'
+import { Task } from './task'
 /**
  * Base class for all actors of the system (e.g. trainer, tester, etc.)
  * containing commonly used parameters

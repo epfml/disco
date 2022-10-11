@@ -1,4 +1,4 @@
-import { tf, dataset } from '@epfml/discojs-core'
+import { tf, dataset } from '../..'
 
 export class WebTabularLoader extends dataset.TabularLoader<File> {
   loadTabularDatasetFrom (source: File, csvConfig: Record<string, unknown>): tf.data.CSVDataset {

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    // TODO ES6 disallow server's test
+    "target": "ES5",
+    "lib": ["ES5", "DOM"],
+
+    "strict": true,
+
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "downlevelIteration": true, // needed by <ES6
+
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    "typeRoots": ["./discojs-core/types", "./node_modules/@types"]
+  },
+  "include": []
+}
+  

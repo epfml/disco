@@ -1,4 +1,4 @@
-import { MetadataID } from '@/index'
+import { MetadataID } from '../..'
 import { weights } from '../../serialization'
 
 export enum messageType {

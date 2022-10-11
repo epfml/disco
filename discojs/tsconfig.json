@@ -1,26 +1,15 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    // TODO ES6 disallow server's test
-    "target": "ES5",
-    "lib": ["ES5", "dom"],
-
-    "strict": true,
-
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "downlevelIteration": true, // needed by <ES6
-
-    "outDir": "dist",
-    "declaration": true,
-
+    "outDir": "dist/lib",
     "baseUrl": "src",
     "paths": {
       "@/*": ["*"]
-    },
-    "typeRoots": [ "./node_modules/@types", "./types"]
+    }
   },
+  "references": [
+    { "path": "../discojs-core/tsconfig.browser.json" }
+  ],
   "include": ["src"],
-  "exclude": ["**/*.spec.ts", "**/*.test.ts"]
+  "exclude": ["**/*.spec.ts"]
 }

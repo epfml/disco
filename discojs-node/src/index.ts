@@ -1,3 +1,3 @@
-export * from '@epfml/discojs-core'
+export * from '../../discojs-core/src'
 
 export * as node from './imports'
