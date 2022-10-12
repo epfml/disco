@@ -35,25 +35,27 @@ if you can't get it to run.
 
 > The most common issues with running disco are usually due to using old node versions and setting the appropriate environment on M1 Macs, see [here](./FAQ.md) for more. Note that disco has been not tested on Windows (only Linux and macOS).
 
-### Quick-start - browser
+### Quick-start - Web client
 
-- install node 16 and ensure it is activated on opening any new terminal (e.g. `nvm use 16`)
+- install Node.js 16 and ensure it is activated on opening any new terminal (with NVM: `cd discoj && nvm use` or `nvm use 16`)
 - `git clone git@github.com:epfml/disco.git` (clone this repository)
-- `cd discojs; npm ci; rm -rf dist; npm run build` 
-- `cd server; npm ci; npm run dev`, check that the server is indeed running on localhost:8080
-- `cd browser; npm ci; npm run dev`, check that the browser client is running on localhost:8081
+- `cd discojs-core && npm ci && rm -rf dist && npm run build` 
+- `cd discojs && npm ci && rm -rf dist && npm run build` 
+- `cd server && npm ci && npm run dev`, check that the server is indeed running on localhost:8080
+- `cd browser && npm ci && npm run dev`, check that the browser client is running on localhost:8081
 
 > If you run the server first then you will get an error since the server is expected to run on localhost:8080
 
 More information about the browser can be found [here](../browser/README.md)
 
-### Quick-start - cli
+### Quick-start - CLI
 
-- install node 16 and ensure it is activated on opening any new terminal (e.g. `nvm use 16`)
+- install Node.js 16 and ensure it is activated on opening a new terminal (using NVM: `cd disco && nvm use` or `nvm use 16`)
 - `git clone git@github.com:epfml/disco.git` (clone this repository)
-- `cd discojs; npm ci; rm -rf dist; npm run build` 
-- `cd server; npm ci`
-- `cd benchmark; npm ci; npm run benchmark`
+- `cd discojs-core && npm ci && rm -rf dist && npm run build` 
+- `cd discojs-node && npm ci && rm -rf dist && npm run build`
+- `cd server && npm ci`
+- `cd benchmark && npm ci && npm run benchmark`
 
 More information about the cli can be found [here](../benchmark/README.md)
 
@@ -66,9 +68,20 @@ A bare bones example of disco can be found [here](./../server/example/) with bot
 In this section we will go over how the core logic is structured.
 
      .
-     ├── information  # Markdown documentation of the project 
+     ├── README.md    # Home page
+     ├── DEV.md       # Developer guide
+     ├── LICENSE      
+     ├── information  # Markdown documentation of the project lives here (except [README](../README.md) and [DEV](../DEV.md))
      │  └── ... 
-     ├── discojs      # Core module: data handling, training, and communication across devices.
+     ├── discojs-core # Core module: tasks, model training, model validation and communication across devices
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md
+     ├── discojs      # Browser module: data handling 
+     │  ├── src       
+     │  ├── ...       
+     │  └── README.md
+     ├── discojs-node # Node module: data handling
      │  ├── src       
      │  ├── ...       
      │  └── README.md 
@@ -76,15 +89,15 @@ In this section we will go over how the core logic is structured.
      │  ├── src       
      │  ├── ...       
      │  └── README.md 
-     ├── browser      # Browser based client and UI based on Vue3
+     ├── browser      # Browser-based client and UI built with Vue.js
      │  ├── src       
      │  ├── ...       
      │  └── README.md 
-     ├── benchmark    # A command line interface (CLI) and node-based client for Disco. 
+     ├── benchmark    # A command line interface (CLI) and Node-based client for Disco. No browser needed. Can serve as a simulator or for integration to other usecases
      │  ├── src       
      │  ├── ...       
      │  └── README.md 
-
+     └── ...
 
 The server, browser and benchmark each contain all the relevant code and README.md about their respective roles which are
 self-explanatory in their name.
