@@ -1,4 +1,4 @@
-export { Dataset, DatasetBuilder } from './dataset_builder'
-export { Data, DataSplit } from './data'
-export { ImagePreprocessing } from './preprocessing'
+export { Dataset } from './dataset'
+export { DatasetBuilder } from './dataset_builder'
+export { DataSplit, Data, TabularData, ImageData, ImagePreprocessing } from './data'
 export * from './data_loader'
