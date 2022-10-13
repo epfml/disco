@@ -1,8 +1,8 @@
-import { Dataset } from '../dataset_builder'
+import { Task } from '../..'
+import { Dataset } from '../dataset'
 import { DataSplit } from '../data'
-import { Task } from '../../task'
 
-export interface DataConfig {features?: string[], labels?: string[], shuffle?: boolean, validationSplit?: number}
+export interface DataConfig { features?: string[], labels?: string[], shuffle?: boolean, validationSplit?: number }
 
 export abstract class DataLoader<Source> {
   protected task: Task

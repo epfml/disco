@@ -1,9 +1,9 @@
-import { DataLoader, DataConfig } from './data_loader'
-import { DataSplit, TabularData } from '../data'
-import { Dataset } from '../dataset_builder'
-import { Task } from '../../task'
-import { tf } from '../..'
 import { List, Map, Set } from 'immutable'
+
+import { tf, Task } from '../..'
+import { Dataset } from '../dataset'
+import { TabularData, DataSplit } from '../data'
+import { DataLoader, DataConfig } from '../data_loader'
 
 // window size from which the dataset shuffling will sample
 const BUFFER_SIZE = 1000
@@ -41,7 +41,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
      */
     if (config?.features === undefined) {
       // TODO @s314cy
-      throw new Error('not implemented')
+      throw new Error('Not implemented')
     }
     const columnConfigs = Map(
       Set(config.features).map((feature) => [feature, { required: false, isLabel: false }])
@@ -60,7 +60,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
       if (typeof t === 'object' && ('xs' in t) && ('ys' in t)) {
         return t
       }
-      throw new Error('expected TensorContainerObject')
+      throw new TypeError('Expected TensorContainerObject')
     }).map((t) => {
       // TODO order may not be stable between tensor
       const { xs, ys } = t as Record<string, Record<string, number>>
@@ -81,12 +81,12 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
       await this.load(source, { ...config, shuffle: false })))
     let dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
     dataset = config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset
-    const data = new TabularData(
+    const data = await TabularData.init(
       dataset,
+      this.task,
       // dataset.size does not work for csv datasets
       // https://github.com/tensorflow/tfjs/issues/5845
-      undefined,
-      this.task.trainingInformation
+      undefined
     )
     // TODO: Implement validation split for tabular data (tricky due to streaming)
     return {

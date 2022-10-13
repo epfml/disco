@@ -1,9 +1,9 @@
 import { Range } from 'immutable'
 
 import { tf } from '../..'
-import { Dataset } from '../dataset_builder'
-import { DataLoader, DataConfig } from './data_loader'
+import { Dataset } from '../dataset'
 import { Data, ImageData, DataSplit } from '../data'
+import { DataLoader, DataConfig } from '../data_loader'
 
 /**
  * TODO @s314cy:
@@ -52,7 +52,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
       return iterator as unknown as Iterator<tf.Tensor> // Lazy
     })
 
-    return new ImageData(dataset, indices.length, this.task.trainingInformation)
+    return await ImageData.init(dataset, this.task, indices.length)
   }
 
   async loadAll (images: Source[], config?: DataConfig): Promise<DataSplit> {
