@@ -1,8 +1,6 @@
-import { tf, Task } from '..'
-import { DataConfig, DataLoader } from './data_loader/data_loader'
+import { Task } from '..'
 import { DataSplit } from './data'
-
-export type Dataset = tf.data.Dataset<tf.TensorContainer>
+import { DataConfig, DataLoader } from './data_loader/data_loader'
 
 export class DatasetBuilder<Source> {
   private readonly task: Task
@@ -67,15 +65,15 @@ export class DatasetBuilder<Source> {
   async build (config?: DataConfig): Promise<DataSplit> {
     // Require that at leat one source collection is non-empty, but not both
     if ((this.sources.length > 0) === (this.labelledSources.size > 0)) {
-      throw new Error('invalid sources')
+      throw new Error('Please provide dataset input files')
     }
 
     let dataTuple: DataSplit
     if (this.sources.length > 0) {
       // Labels are contained in the given sources
       const defaultConfig = {
-        features: this.task.trainingInformation?.inputColumns,
-        labels: this.task.trainingInformation?.outputColumns,
+        features: this.task.trainingInformation.inputColumns,
+        labels: this.task.trainingInformation.outputColumns,
         ...config
       }
       dataTuple = await this.dataLoader.loadAll(this.sources, defaultConfig)

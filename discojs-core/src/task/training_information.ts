@@ -1,5 +1,5 @@
+import { Preprocessing } from '../dataset/data/preprocessing'
 import { isModelCompileData, ModelCompileData } from './model_compile_data'
-import { Preprocessing } from '@/dataset/preprocessing'
 
 export function isTrainingInformation (raw: unknown): raw is TrainingInformation {
   if (typeof raw !== 'object') {

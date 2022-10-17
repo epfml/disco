@@ -130,27 +130,36 @@ export default defineComponent({
     }
   },
   methods: {
-    async startTraining (distributedTraining: boolean) {
+    async startTraining (distributedTraining: boolean): Promise<void> {
       this.distributedTraining = distributedTraining
 
-      try {
-        if (!this.datasetBuilder.isBuilt()) {
+      if (!this.datasetBuilder.isBuilt()) {
+        try {
           this.dataset = await this.datasetBuilder.build()
+        } catch (e) {
+          this.$toast.error(e instanceof Error ? e.message : e.toString())
+          console.error(e)
+          this.cleanState()
+          return
         }
+      }
 
+      try {
         await this.client.connect()
         this.startedTraining = true
         await this.disco.startTraining(this.dataset)
         this.startedTraining = false
       } catch (e) {
-        this.$toast.error(e instanceof Error ? e.message : e.toString())
-
-        // clean generated state
-        this.distributedTraining = false
-        this.startedTraining = false
+        this.$toast.error('An error occured during training')
+        console.error(e)
+        this.cleanState()
       }
     },
-    async stopTraining () {
+    cleanState (): void {
+      this.distributedTraining = false
+      this.startedTraining = false
+    },
+    async stopTraining (): Promise<void> {
       await this.disco.stopTraining()
       this.isTraining = false
     }
