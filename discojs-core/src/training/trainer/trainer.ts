@@ -93,7 +93,10 @@ export abstract class Trainer {
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>, valDataset: tf.data.Dataset<tf.TensorContainer>): Promise<void> {
+  async trainModel (
+    dataset: tf.data.Dataset<tf.TensorContainer>,
+    valDataset: tf.data.Dataset<tf.TensorContainer>
+  ): Promise<void> {
     this.resetStopTrainerState()
 
     // Assign callbacks and start training
