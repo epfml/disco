@@ -277,8 +277,8 @@ export class Federated extends Server {
     tauPercentile: number
   ): Promise<void> {
     // Get averaged weights
-    const averagedWeights = byzantineRobustAggregator && tauPercentile > 0 && tauPercentile < 1 
-      ? aggregation.avgClippingWeights(weights, WeightsContainer.from(model), tauPercentile) 
+    const averagedWeights = byzantineRobustAggregator && tauPercentile > 0 && tauPercentile < 1
+      ? aggregation.avgClippingWeights(weights, WeightsContainer.from(model), tauPercentile)
       : aggregation.avg(weights)
 
     // Update model
