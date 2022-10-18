@@ -107,11 +107,14 @@ export class Federated extends Server {
       round: 0
     })
 
+    const isByzantineRobust: boolean = task.trainingInformation?.byzantineRobustAggregator ?? false
+    const tauPercentile: number = task.trainingInformation?.tauPercentile ?? 0
+
     const buffer = new AsyncBuffer<WeightsContainer>(
       task.taskID,
       BUFFER_CAPACITY,
       async (weights: Iterable<WeightsContainer>) =>
-        await this.aggregateAndStoreWeights(model, List(weights))
+        await this.aggregateAndStoreWeights(model, List(weights), isByzantineRobust, tauPercentile)
     )
     this.asyncBuffersMap = this.asyncBuffersMap.set(task.taskID, buffer)
 
@@ -269,10 +272,14 @@ export class Federated extends Server {
    */
   private async aggregateAndStoreWeights (
     model: tf.LayersModel,
-    weights: List<WeightsContainer>
+    weights: List<WeightsContainer>,
+    byzantineRobustAggregator: boolean,
+    tauPercentile: number
   ): Promise<void> {
     // Get averaged weights
-    const averagedWeights = aggregation.avg(weights)
+    const averagedWeights = byzantineRobustAggregator && tauPercentile > 0 && tauPercentile < 1 
+      ? aggregation.avgClippingWeights(weights, WeightsContainer.from(model), tauPercentile) 
+      : aggregation.avg(weights)
 
     // Update model
     model.setWeights(averagedWeights.weights)
