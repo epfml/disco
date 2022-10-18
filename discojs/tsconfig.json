@@ -1,15 +1,12 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist/lib",
+    "outDir": "dist",
     "baseUrl": "src",
     "paths": {
       "@/*": ["*"]
     }
   },
-  "references": [
-    { "path": "../discojs-core/tsconfig.browser.json" }
-  ],
   "include": ["src"],
-  "exclude": ["**/*.spec.ts"]
+  "exclude": ["**/*.spec.ts", "src/core/index.*.ts"]
 }

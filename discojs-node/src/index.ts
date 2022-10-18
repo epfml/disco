@@ -1,3 +1,3 @@
-export * from '../../discojs-core/src'
+export * from './core'
 
 export * as node from './imports'

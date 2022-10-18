@@ -12,11 +12,9 @@
     "importHelpers": true,
     "downlevelIteration": true, // needed by <ES6
 
-    "composite": true,
     "declaration": true,
-    "declarationMap": true,
 
-    "typeRoots": ["./discojs-core/types", "./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types", "./discojs-core/types"]
   },
   "include": []
 }
