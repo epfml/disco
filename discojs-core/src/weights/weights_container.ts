@@ -36,12 +36,20 @@ export class WeightsContainer {
     return new WeightsContainer(this._weights.map(fn))
   }
 
+  mapWithIndex (fn: (t: tf.Tensor, i: number) => tf.Tensor): WeightsContainer {
+    return new WeightsContainer(this._weights.map(fn))
+  }
+
   reduce (fn: (acc: tf.Tensor, t: tf.Tensor) => tf.Tensor): tf.Tensor {
     return this._weights.reduce(fn)
   }
 
   get (index: number): tf.Tensor | undefined {
     return this._weights.get(index)
+  }
+
+  frobeniusNorm (): number {
+    return Math.sqrt(this.map((w) => w.square().sum()).reduce((a, b) => a.add(b)).dataSync()[0])
   }
 
   static of (...weights: TensorLike[]): WeightsContainer {
