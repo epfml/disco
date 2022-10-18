@@ -1,12 +1,9 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist/lib",
+    "outDir": "dist",
     "baseUrl": "src"
   },
-  "references": [
-    { "path": "../discojs-core/tsconfig.node.json" }
-  ],
   "include": ["src"],
-  "exclude": ["**/*.spec.ts"]
+  "exclude": ["**/*.spec.ts", "src/core/index.*.ts"]
 }

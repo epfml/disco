@@ -6,15 +6,20 @@ import { tf, tasks, node } from '../..'
 
 const readFilesFromDir = (dir: string): string[] =>
   fs.readdirSync(dir).map((file: string) => dir + file)
+
 const DIRS = {
   CIFAR10: '../example_training_data/CIFAR10/'
+}
+const LOADERS = {
+  CIFAR10: new node.data_loader.NodeImageLoader(tasks.cifar10.task),
+  MNIST: new node.data_loader.NodeImageLoader(tasks.mnist.task)
 }
 const FILES = Map(DIRS).map((readFilesFromDir)).toObject()
 
 describe('image loader', () => {
   it('loads single sample without label', async () => {
     const file = '../example_training_data/9-mnist-example.png'
-    const singletonDataset = await new node.data_loader.NodeImageLoader(tasks.mnist.task).load(file)
+    const singletonDataset = await LOADERS.MNIST.load(file)
     const imageContent = tf.node.decodeImage(fs.readFileSync(file))
     await Promise.all((await singletonDataset.toArrayForTest()).map(async (entry) => {
       expect(await imageContent.bytes()).eql(await (entry as tf.Tensor).bytes())
@@ -23,7 +28,7 @@ describe('image loader', () => {
 
   it('loads multiple samples without labels', async () => {
     const imagesContent = FILES.CIFAR10.map((file) => tf.node.decodeImage(fs.readFileSync(file)))
-    const datasetContent = await (await new node.data_loader.NodeImageLoader(tasks.cifar10.task)
+    const datasetContent = await (await LOADERS.CIFAR10
       .loadAll(FILES.CIFAR10, { shuffle: false }))
       .train.dataset.toArray()
     expect(datasetContent.length).equal(imagesContent.length)
@@ -33,7 +38,7 @@ describe('image loader', () => {
   it('loads single sample with label', async () => {
     const path = DIRS.CIFAR10 + '0.png'
     const imageContent = tf.node.decodeImage(fs.readFileSync(path))
-    const datasetContent = await (await new node.data_loader.NodeImageLoader(tasks.cifar10.task)
+    const datasetContent = await (await LOADERS.CIFAR10
       .load(path, { labels: ['example'] })).toArray()
     expect((datasetContent[0] as any).xs.shape).eql(imageContent.shape)
     expect((datasetContent[0] as any).ys).eql('example')
@@ -45,16 +50,16 @@ describe('image loader', () => {
     const oneHotLabels = List(tf.oneHot(labels.toArray(), 10).arraySync() as number[])
 
     const imagesContent = List(FILES.CIFAR10.map((file) => tf.node.decodeImage(fs.readFileSync(file))))
-    const datasetContent = List(await (await new node.data_loader.NodeImageLoader(tasks.cifar10.task)
+    const datasetContent = List(await (await LOADERS.CIFAR10
       .loadAll(FILES.CIFAR10, { labels: stringLabels.toArray(), shuffle: false }))
       .train.dataset.toArray())
 
     expect(datasetContent.size).equal(imagesContent.size)
     datasetContent.zip(imagesContent).zip(oneHotLabels).forEach(([[actual, sample], label]) => {
-      if (
-        typeof actual !== 'object' ||
-        !('xs' in actual && 'ys' in actual)
-      ) {
+      if (!(
+        typeof actual === 'object' && actual !== null &&
+        'xs' in actual && 'ys' in actual
+      )) {
         throw new Error('unexpected type')
       }
       const { xs, ys } = actual as {xs: tf.Tensor, ys: number[]}

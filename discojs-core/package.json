@@ -1,10 +1,12 @@
 {
-  "name": "@epfml/discojs-core",
-  "private": true,
-  "scripts": {
-    "test": "cp ../discojs-core/src/index.node.ts ../discojs-core/src/index.ts && mocha"
-  },
-  "repository": {
+    "name": "@epfml/discojs",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+      "test": "mocha"
+    },
+    "repository": {
       "type": "git",
       "url": "git+https://github.com/epfml/disco.git"
     },
@@ -12,4 +14,5 @@
       "url": "https://github.com/epfml/disco/issues"
     },
     "homepage": "https://github.com/epfml/disco#readme"
-}
+  }
+  

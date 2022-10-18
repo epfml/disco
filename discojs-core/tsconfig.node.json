@@ -1,6 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-      "outDir": "../discojs-node/dist/discojs-core"
-  }
-}

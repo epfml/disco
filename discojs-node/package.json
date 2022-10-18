@@ -1,11 +1,11 @@
 {
   "name": "@epfml/discojs-node",
   "version": "1.0.0",
-  "main": "dist/lib/src/index.js",
-  "types": "dist/lib/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "cp ../discojs-core/src/index.node.ts ../discojs-core/src/index.ts && tsc -b",
-    "test": "cp ../discojs-core/src/index.node.ts ../discojs-core/src/index.ts && mocha"
+    "build": "cp ./src/core/index.node.ts ./src/core/index.ts && tsc",
+    "test": "cp ./src/core/index.node.ts ./src/core/index.ts && mocha"
   },
   "repository": {
     "type": "git",
