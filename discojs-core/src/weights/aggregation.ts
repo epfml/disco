@@ -26,7 +26,7 @@ function centerWeights (weights: Iterable<WeightsLike | WeightsContainer>, curre
 }
 
 function clipWeights (modelList: List<WeightsContainer>, normArray: number[], tau: number): List<WeightsContainer> {
-  return modelList.map(weights => weights.mapWithIndex((w, i) => tf.prod(w, Math.min(1, tau / (normArray[i])))))
+  return modelList.map(weights => weights.map((w, i) => tf.prod(w, Math.min(1, tau / (normArray[i])))))
 }
 
 function computeQuantile (array: number[], q: number): number {
