@@ -32,11 +32,9 @@ export class WeightsContainer {
     )
   }
 
-  map (fn: (t: tf.Tensor) => tf.Tensor): WeightsContainer {
-    return new WeightsContainer(this._weights.map(fn))
-  }
-
-  mapWithIndex (fn: (t: tf.Tensor, i: number) => tf.Tensor): WeightsContainer {
+  map (fn: (t: tf.Tensor, i: number) => tf.Tensor): WeightsContainer
+  map (fn: (t: tf.Tensor) => tf.Tensor): WeightsContainer
+  map (fn: ((t: tf.Tensor) => tf.Tensor) | ((t: tf.Tensor, i: number) => tf.Tensor)): WeightsContainer {
     return new WeightsContainer(this._weights.map(fn))
   }
 
