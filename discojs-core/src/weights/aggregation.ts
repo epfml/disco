@@ -21,7 +21,7 @@ function parseWeights (weights: Iterable<WeightsLike | WeightsContainer>): List<
   return r
 }
 
-function centerWeights(weights: Iterable<WeightsLike | WeightsContainer>, currentModel: WeightsContainer): List<WeightsContainer> {
+function centerWeights (weights: Iterable<WeightsLike | WeightsContainer>, currentModel: WeightsContainer): List<WeightsContainer> {
   return parseWeights(weights).map(model => model.mapWith(currentModel, tf.sub))
 }
 

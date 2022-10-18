@@ -48,7 +48,7 @@ export class WeightsContainer {
     return this._weights.get(index)
   }
 
-  frobeniusNorm() {
+  frobeniusNorm (): number {
     return Math.sqrt(this.map((w) => w.square().sum()).reduce((a, b) => a.add(b)).dataSync()[0])
   }
 
