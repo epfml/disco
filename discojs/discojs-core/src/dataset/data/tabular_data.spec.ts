@@ -12,7 +12,7 @@ describe('tabular data checks', () => {
 
   it('throw an error on incorrectly formatted data', async () => {
     try {
-      await loader.loadAll(['../example_training_data/cifar10-labels.csv'], dataConfig)
+      await loader.loadAll(['../../example_training_data/cifar10-labels.csv'], dataConfig)
     } catch (e) {
       expect(e).to.be.an.instanceOf(Error)
       return
@@ -22,6 +22,6 @@ describe('tabular data checks', () => {
   })
 
   it('do nothing on correctly formatted data', async () => {
-    await loader.loadAll(['../example_training_data/titanic_train.csv'], dataConfig)
+    await loader.loadAll(['../../example_training_data/titanic_train.csv'], dataConfig)
   })
 })

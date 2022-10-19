@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: discojs
+        working-directory: discojs/discojs/
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -47,6 +47,7 @@ jobs:
           cache: npm
           cache-dependency-path: discojs/package-lock.json
       - run: npm ci
+        working-directory: discojs/
       - run: npm run build
       - run: npm publish --access public
         env:
@@ -59,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: discojs
+        working-directory: discojs/discojs-node/
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -67,8 +68,9 @@ jobs:
           node-version: ${{ node_version }}
           registry-url: https://registry.npmjs.org
           cache: npm
-          cache-dependency-path: discojs-node/package-lock.json
+          cache-dependency-path: discojs/package-lock.json
       - run: npm ci
+        working-directory: discojs/
       - run: npm run build
       - run: npm publish --access public
         env:
