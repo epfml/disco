@@ -5,7 +5,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "cp ./src/core/index.node.ts ./src/core/index.ts && tsc",
-    "test": "cp ./src/core/index.node.ts ./src/core/index.ts && mocha"
+    "test": "cp ./src/core/index.node.ts ./src/core/index.ts && mocha",
+    "lint": "cp ./src/core/index.node.ts ./src/core/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' --ignore-pattern 'src/core' ."
   },
   "repository": {
     "type": "git",

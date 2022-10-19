@@ -4,10 +4,12 @@ set -o pipefail
 readonly PORT=8080
 
 # prebuild to show progress
-docker build ..
+DIR="$( cd "$( dirname "$0" )" ; pwd -P )"
+
+docker build $DIR
 
 container=$(
-	docker build --quiet .. |
+	docker build --quiet $DIR |
 		xargs docker run --rm --detach --publish $PORT:$PORT
 )
 cleanup() {

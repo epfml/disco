@@ -9,7 +9,7 @@ describe('image data checks', () => {
 
   it('throw an error on incorrectly formatted data', async () => {
     try {
-      await loader.loadAll(['../example_training_data/9-mnist-example.png'], dataConfig)
+      await loader.loadAll(['../../example_training_data/9-mnist-example.png'], dataConfig)
     } catch (e) {
       expect(e).to.be.an.instanceOf(Error)
       return
@@ -19,6 +19,6 @@ describe('image data checks', () => {
   })
 
   it('do nothing on correctly formatted data', async () => {
-    await loader.loadAll(['../example_training_data/simple_face-example.png'], dataConfig)
+    await loader.loadAll(['../../example_training_data/simple_face-example.png'], dataConfig)
   })
 })

@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epfml/discojs-node": "file:../discojs-node",
+    "@epfml/discojs-node": "file:../discojs/discojs-node",
     "@koush/wrtc": "0.5",
     "cors": "2",
     "express": "4",
