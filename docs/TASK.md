@@ -1,23 +1,21 @@
 # Custom Tasks
 
-DiscoJS currently provides several pre-defined popular tasks such as titanic, cifar10, and mnist. In order
-to understand how to add your own custom task, we will go over how we would add a new task called `my_new_task` to discojs.
+Disco.js currently provides several pre-defined popular tasks such as [Titanic](../discojs/discojs-core/src/tasks/titanic.ts), [CIFAR-10](../discojs/discojs-core/src/tasks/cifar10.ts), and [MNIST](../discojs/discojs-core/src/tasks/mnist.ts). In order to understand how to add your own custom task, we will go over how we would add a new task called `my_new_task` to Disco.js.
 
 ## Procedure
 
-In order to add simple-face to discojs, we first need to create and export a new instance of the `Task` class.
+In order to add a new task to Disco.js, we first need to create and export a new instance of the `Task` class, defined [here](../discojs/discojs-core/src/task/task.ts).
 Then, we must also export a function called `model` that specifies a model architecture for the task.
-We have to remember to export the task and the function in the `index.ts` file which lives in the same folder.
-
-Finally, we need to rebuild discojs.
+We have to remember to export the task and the function in the `index.ts` [file which lives in the same folder](../discojs/discojs-core/src/tasks/index.ts).
+Finally, we need to rebuild Disco.js: `cd discojs/ && npm run build`
 
 ### Task
 
 ## Making the task visible to the API
 
-The [`Task`](../discojs/src/task/task.ts) interface is the first piece of the puzzle, this contains all the crucial information from training to mode.
-We start by creating a `my_new_task.ts` file and place it at the same path as the other tasks (currently this is under `discojs/src/tasks/`).
-After this make sure to include its reference in the `discojs/src/tasks/index.ts` file as follows:
+The [`Task`](../discojs/discojs-core/src/task/task.ts) interface is the first piece of the puzzle, this contains all the crucial information from training to mode.
+We start by creating a `my_new_task.ts` file and place it at the same path as the other tasks (currently this is under `discojs/discojs-core/src/tasks/`).
+After this make sure to include its reference in the `discojs/discojs-core/src/tasks/index.ts` file as follows:
 
 ```js
 export * as cifar10 from './cifar10'
@@ -28,6 +26,10 @@ export * as titanic from './titanic'
 ```
 
 This ensure that the task is properly exposed and thus the server will also be able to see and serve it.
+
+> Note that `discojs-core` must only contain platform-agnostic code that works both in the browser and on Node.js.
+> Thus, if your task requires reading some file from your local file system, you need to define the task in `discojs-node` only: `discojs/discojs-node/src/tasks/my_new_task.ts`
+> In a similar fashion, tasks expecting to read from browser memory (such as IndexedDB or local storage) shall be defined in `discojs-web` instead: `discojs/discojs-web/src/tasks/my_new_task.ts`
 
 ## Model
 
@@ -61,7 +63,7 @@ export async function model (modelPath: string): Promise<tf.LayersModel> {
 ```
 
 The models are stored in `disco/server/models/`, and it is also in the server side that we let disco know where exactly they are saved. In particular,
-if we look at `server/src/tasks.ts`, it is done as follows for simple face (for our custom task we simply need to set
+if we look at `server/src/tasks.ts`, it is done as follows for the simple face example task (for our custom task we simply need to set
 our task with the model path).
 
 ```js
@@ -131,7 +133,7 @@ The `Task` interface has three fields: a mandatory `taskID` (of `string` type), 
 
 ### `model` function
 
-After exporting the Task, you need to also export a function called `model` that returns the layers model. If you use a 
+After exporting the task, you need to also export a function called `model` that returns the layers model. If you use a 
 pre-trained model, you can simply load and return said model in the function via `tf.loadLayersModel(modelPath)`.
 
 ```js

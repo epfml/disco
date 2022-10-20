@@ -1,5 +1,6 @@
 import * as http from 'http'
-import { getApp } from '../src/get_server'
+
+import { getApp } from '@epfml/disco-server'
 
 /*  We start a server locally for this self-contained example; in practice the server
   *  would be run elsewhere.

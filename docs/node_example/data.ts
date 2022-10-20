@@ -33,7 +33,7 @@ function filesFromFolder (dir: string, folder: string): string[] {
 }
 
 export async function loadData (task: Task): Promise<dataset.DataSplit> {
-  const dir = '../example_training_data/simple_face/'
+  const dir = '../../example_training_data/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']
 
