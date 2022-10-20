@@ -1,24 +1,23 @@
-# On boarding
+# Onboarding
 
-So you want to contribute to disco? If yes then this guide is for you.
+Note: You will not need this guide if you simply want to add a new machine learning task to Disco. Instead, for that you can directly use task creation form, or our [guide on how to add a custom task](./TASK.md).
+
+If you want to contribute to the development of the Disco library itself? If yes then this present guide is for you.
 
 Disco has grown a lot since its early days, and like with any sizeable code base, getting started is both
 difficult and intimidating: There are a *lot* of files, it's not clear what's important at first, and even where to start 
 is a bit of a puzzle.
 
-The two main technologies behind Disco are TypeScript and Distributed Learning, I will assume that the reader is familiar 
+The two main technologies behind Disco are TypeScript and distributed machine learning, I will assume that the reader is familiar 
 with both to some extent, if not the following references might be useful. 
 
 > Even if you are already familiar with TypeScript or Federated Learning it's always good to go over the relevant knowledge to discover pieces you might have missed the first time; the devil is in the details, and it is the details that maketh the expert.
 
 - [JavaScript](https://eloquentjavascript.net)
 - [TypeScript](https://www.typescriptlang.org/docs/handbook/intro.html)
-- [Deep learning](https://www.youtube.com/watch?v=dQw4w9WgXcQ?autoplay=1)
+- [Federated and Decentralized Learning](https://arxiv.org/pdf/1912.04977)
 
-Before we start I want to preface by saying that, by the time you read this the structure of disco will have changed (perhaps 
-as you are reading these words a PR is being merged into the develop branch). I will
-try to use specific examples but at the same time be general enough with the hope that this will still be useful. If you
-find that certain parts are indeed outdated, then it is *your* responsibility now to update this document in order to keep the fire
+If you find that certain parts of this present guide are indeed outdated, then it is *your* responsibility now to update this document in order to keep the fire
 going. Good luck, and may node be with you.
 
 > Disco is a big project so some things have been omitted, you are encouraged to add missing information!
@@ -35,80 +34,58 @@ if you can't get it to run.
 
 > The most common issues with running disco are usually due to using old node versions and setting the appropriate environment on M1 Macs, see [here](./FAQ.md) for more. Note that disco has been not tested on Windows (only Linux and macOS).
 
-### Quick-start - Web client
+### Quick-start - Web client   (TODO: update)
 
-- install Node.js 16 and ensure it is activated on opening any new terminal (with NVM: `cd discoj && nvm use` or `nvm use 16`)
-- `git clone git@github.com:epfml/disco.git` (clone this repository)
-- `cd discojs-core && npm ci && rm -rf dist && npm run build` 
-- `cd discojs && npm ci && rm -rf dist && npm run build` 
-- `cd server && npm ci && npm run dev`, check that the server is indeed running on localhost:8080
-- `cd browser && npm ci && npm run dev`, check that the browser client is running on localhost:8081
+Running the following commands will set up a Disco server on http://localhost:8080 along a web client served on http://localhost:8081.
 
-> If you run the server first then you will get an error since the server is expected to run on localhost:8080
+```
+git clone git@github.com:epfml/disco.git
+nvm use
+cd discojs && npm ci
+cd discojs-web && npm run build
+cd ../..
+cd server && npm ci && npm run dev
+cd ..
+cd web-client && npm ci && npm run dev
+```
 
-More information about the browser can be found [here](../browser/README.md)
+> If you run the web client first, then you will get an error since the server is expected to run on http://localhost:8080
 
-### Quick-start - CLI
+More information about the web client can be found [here](../web-client/README.md)
 
-- install Node.js 16 and ensure it is activated on opening a new terminal (using NVM: `cd disco && nvm use` or `nvm use 16`)
-- `git clone git@github.com:epfml/disco.git` (clone this repository)
-- `cd discojs-core && npm ci && rm -rf dist && npm run build` 
-- `cd discojs-node && npm ci && rm -rf dist && npm run build`
-- `cd server && npm ci`
-- `cd benchmark && npm ci && npm run benchmark`
+### Quick-start - CLI   (TODO: update)
 
-More information about the cli can be found [here](../benchmark/README.md)
+Running the following commands will run a Disco server and two clients in the federated setting, all from your command line.
 
-### Quick-start - basic example
+```
+git clone git@github.com:epfml/disco.git
+nvm use
+cd discojs && npm ci
+cd discojs-node && npm run build
+cd ../..
+cd server && npm ci
+cd ..
+cd cli && npm ci && npm start
+```
 
-A bare bones example of disco can be found [here](./../server/example/) with both code and documentation.
+More information about the cli can be found [here](../cli/README.md)
+
+### Quick-start - Basic example
+
+A bare bones example of disco can be found [here](./node_example) with both code and documentation.
 
 ## Under the hood
 
 In this section we will go over how the core logic is structured.
 
-     .
-     ├── README.md    # Home page
-     ├── DEV.md       # Developer guide
-     ├── LICENSE      
-     ├── information  # Markdown documentation of the project lives here (except [README](../README.md) and [DEV](../DEV.md))
-     │  └── ... 
-     ├── discojs-core # Core module: tasks, model training, model validation and communication across devices
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md
-     ├── discojs      # Browser module: data handling 
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md
-     ├── discojs-node # Node module: data handling
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md 
-     ├── server       # Helper server for orchestration (and aggregation in federated learning)
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md 
-     ├── browser      # Browser-based client and UI built with Vue.js
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md 
-     ├── benchmark    # A command line interface (CLI) and Node-based client for Disco. No browser needed. Can serve as a simulator or for integration to other usecases
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md 
-     └── ...
+[Code overview structure shown in ARCHITECTURE.md](./ARCHITECTURE.md)
 
-The server, browser and benchmark each contain all the relevant code and README.md about their respective roles which are
+The server, web client and CLI each contain all the relevant code and README.md about their respective roles which are
 self-explanatory in their name.
 
-The main core logic of disco is in `discojs`. In turn, the main object of Discojs is the Disco class, which groups together the different classes that enable distributed learning;
-these classes are the `Trainer` and the `Client`, the latter deals with communication and the former with training. Since different
-types of communication and training is available these classes are abstract and various implementations exist for the different frameworks (e.g. `FederatedClient`
-for federated communication with a central server).
+The main core logic of disco is in `discojs/discojs-core`. In turn, the main object of Disco.js is the Disco class, which groups together the different classes that enable distributed learning; these classes are the `Trainer` and the `Client`, the latter deals with communication and the former with training. Since different types of communication and training is available these classes are abstract and various implementations exist for the different frameworks (e.g. `FederatedClient` for federated communication with a central server).
 
-Once you understand how these two classes work (as well as it's concrete implementations) you will have a good initial grasp of Disco. The rest of the classes mostly 
-deal with building these objects (the [Task](./TASK.md) object specifies all this information), making them work together and so on.
+Once you understand how these two classes work (as well as it's concrete implementations) you will have a good initial grasp of Disco. The rest of the classes mostly  deal with building these objects (the [Task](./TASK.md) object specifies all this information), making them work together and so on.
 
 > In what follows, most code snippets will be incomplete with respect to the actual code in order to focus on the essentials.
 
