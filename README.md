@@ -30,7 +30,7 @@ ___
 :question: **DISCO TECHNOLOGY** 
 - DISCO supports arbitrary deep learning tasks and model architectures, via [TF.js](https://www.tensorflow.org/js)
 - :sparkles: relies on [peer2peer](https://peerjs.com/) communication
-- Learn more about secure aggregation and differential privacy for privacy-respecting training [HERE](information/PRIVACY.md)
+- Learn more about secure aggregation and differential privacy for privacy-respecting training [HERE](docs/PRIVACY.md)
 
 ___
 
@@ -52,7 +52,7 @@ ___
 :checkered_flag: **HOW TO USE DISCO**
 - Start by exploring our example *DISCOllaboratives* in the `Tasks` tab. 
 - The example models are based on popular datasets such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python)
-- It is also (SOON!) possible to create a custom task without coding. Just upload the following 2 files:
+- It is also possible to create a custom task without coding. Just upload the following 2 files:
 	- A `TensorFlow.js` model file in JSON format (useful links to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model)
 	- A weight file in `.bin` format
 		- These are the initial weights provided to new users joining your task (pre-trained or random initialisation) 
