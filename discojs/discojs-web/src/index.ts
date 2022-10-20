@@ -1,3 +1,3 @@
 export * from './core'
 
-export * as browser from './imports'
+export * as web from './imports'
