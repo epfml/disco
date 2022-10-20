@@ -2,17 +2,17 @@ import { Map } from 'immutable'
 import fs from 'fs'
 
 const DISCOJS_CORE = './package.json'
-const DISCOJS = './discojs/package.json'
+const DISCOJS_WEB = './discojs-web/package.json'
 const DISCOJS_NODE = './discojs-node/package.json'
 
 const discojsCore = require(DISCOJS_CORE)
-const discojs = require(DISCOJS)
+const discojsWeb = require(DISCOJS_WEB)
 const discojsNode = require(DISCOJS_NODE)
 
-const jsDeps = Map(discojsCore.dependencies)
+const webDeps = Map(discojsCore.dependencies)
 const nodeDeps = Map(discojsCore.dependencies)
 
-discojs.dependencies = jsDeps
+discojsWeb.dependencies = webDeps
   .delete('@tensorflow/tfjs-node')
   .toObject()
 
@@ -20,5 +20,5 @@ discojsNode.dependencies = nodeDeps
   .delete('@tensorflow/tfjs')
   .toObject()
 
-fs.writeFile(DISCOJS, JSON.stringify(discojs, null, 2), (err) => { console.log(err) })
+fs.writeFile(DISCOJS_WEB, JSON.stringify(discojsWeb, null, 2), (err) => { console.log(err) })
 fs.writeFile(DISCOJS_NODE, JSON.stringify(discojsNode, null, 2), (err) => { console.log(err) })
