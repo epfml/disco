@@ -19,17 +19,17 @@ jobs:
           cache: npm
           cache-dependency-path: |
             discojs/package-lock.json
-            browser/package-lock.json
+            web-client/package-lock.json
 
       - run: npm ci
         working-directory: discojs
       - run: npm run build
-        working-directory: discojs/discojs
+        working-directory: discojs/discojs-web
       - run: npm ci && npm run build
-        working-directory: browser
+        working-directory: web-client
 
       - name: deploy
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
-          folder: browser/dist
+          folder: web-client/dist

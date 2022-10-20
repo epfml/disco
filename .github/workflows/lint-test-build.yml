@@ -8,11 +8,11 @@ env:
   node_version: 16
   lib_dir: discojs/
   lib_core_dir: discojs/discojs-core/
-  lib_browser_dir: discojs/discojs/
+  lib_web_dir: discojs/discojs-web/
   lib_node_dir: discojs/discojs-node/
-  client_dir: browser/
+  client_dir: web-client/
   server_dir: server/
-  benchmark_dir: benchmark/
+  cli_dir: cli/
 
 jobs:
   lint-lib-core:
@@ -48,11 +48,11 @@ jobs:
         working-directory: ${{ env.lib_dir }}
       - run: npm run lint
 
-  lint-lib-browser:
+  lint-lib-web:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ env.lib_browser_dir }}
+        working-directory: ${{ env.lib_web_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -87,8 +87,8 @@ jobs:
       - run: npx eslint --max-warnings 0 .
       # TODO npx ts-standard
 
-  lint-client:
-    needs: build-lib-browser
+  lint-web-client:
+    needs: build-lib-web
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -105,12 +105,12 @@ jobs:
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
-        working-directory: ${{ env.lib_browser_dir }}
+        working-directory: ${{ env.lib_web_dir }}
       - run: npm ci
       - run: npm run lint
 
   build-lib-node:
-    # needs: lint-lib-node
+    needs: lint-lib-node
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -126,12 +126,12 @@ jobs:
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
 
-  build-lib-browser:
-    # needs: lint-lib-browser
+  build-lib-web:
+    needs: lint-lib-web
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ env.lib_browser_dir }}
+        working-directory: ${{ env.lib_web_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -175,8 +175,8 @@ jobs:
           install: true
       - run: docker build .
 
-  build-client:
-    needs: [lint-client, build-lib-browser]
+  build-web-client:
+    needs: [lint-web-client, build-lib-web]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -193,7 +193,7 @@ jobs:
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
-        working-directory: ${{ env.lib_browser_dir }}
+        working-directory: ${{ env.lib_web_dir }}
       - run: npm ci
       - run: npm run build
 
@@ -237,12 +237,12 @@ jobs:
         working-directory: ${{ env.lib_node_dir }}
       - run: ../../with_server npm test
 
-  test-lib-browser:
+  test-lib-web:
     needs: [build-lib-node, build-server-docker, test-server]
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ env.lib_browser_dir }}
+        working-directory: ${{ env.lib_web_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -279,8 +279,8 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  test-client:
-    needs: [build-client, build-server-docker, test-server]
+  test-web-client:
+    needs: [build-web-client, build-server-docker, test-server]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -295,9 +295,9 @@ jobs:
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
-        working-directory: ${{ env.lib_browser_dir }}
+        working-directory: ${{ env.lib_web_dir }}
       - run: npm ci
-        working-directory: browser/cypress
+        working-directory: web-client/cypress
       - uses: cypress-io/github-action@v4
         with:
           browser: chromium
@@ -306,12 +306,12 @@ jobs:
           working-directory: ${{ env.client_dir }}
           config: baseUrl=http://localhost:8080/#/
 
-  test-benchmark:
+  test-cli:
     needs: test-server
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ env.benchmark_dir }}
+        working-directory: ${{ env.cli_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -321,7 +321,7 @@ jobs:
           cache-dependency-path: |
             ${{ env.lib_dir }}/package-lock.json
             ${{ env.server_dir }}/package-lock.json
-            ${{ env.benchmark_dir }}/package-lock.json
+            ${{ env.cli_dir }}/package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
@@ -329,4 +329,4 @@ jobs:
       - run: npm ci
         working-directory: ${{ env.server_dir }}
       - run: npm ci
-      - run: npm run benchmark -- -t cifar10 -u 1 -e 1
+      - run: npm start -- -t cifar10 -u 1 -e 1
