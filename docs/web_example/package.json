@@ -1,0 +1,9 @@
+{
+  "name": "@epfml/disco-web-example",
+  "private": true,
+  "main": "example.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "ISC"
+}

@@ -3,35 +3,16 @@
 ## Code Organisation
 
      .
-     ├── README.md    # Home page
-     ├── DEV.md       # Developer guide
-     ├── LICENSE      
-     ├── information  # Markdown documentation of the project lives here (except [README](../README.md) and [DEV](../DEV.md))
-     │  └── ... 
-     ├── discojs-core # Core module: tasks, model training, model validation and communication across devices
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md
-     ├── discojs      # Browser module: data handling 
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md
-     ├── discojs-node # Node module: data handling
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md 
-     ├── server       # Helper server for orchestration (and aggregation in federated learning)
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md 
-     ├── browser      # Browser-based client and UI built with Vue.js
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md 
-     ├── benchmark    # A command line interface (CLI) and Node-based client for Disco. No browser needed. Can serve as a simulator or for integration to other usecases
-     │  ├── src       
-     │  ├── ...       
-     │  └── README.md 
+     ├── README.md        # Home page
+     ├── DEV.md           # Developer guide
+     ├── docs/            # Markdown documentation of the project lives here (except [README](../README.md) and [DEV](../DEV.md))
+     ├── discojs/         # The Disco.js library
+     │  ├── discojs-core/ # Core module: tasks, model training, model validation and communication across devices
+     |  ├── discojs-web/  # Web module: data handling 
+     |  └── discojs-node/ # Node module: data handling
+     ├── server/          # Helper server for orchestration (and aggregation in federated learning)
+     ├── web-client/      # Web client (browser-based) and UI built with Vue.js
+     ├── cli/             # A command line interface (CLI) and Node-based client for Disco. No browser needed. Can serve as a simulator or for integration to other usecases
      └── ...
     
      
@@ -85,7 +66,7 @@ Since we know the output type is of type number, we can safely call `sum.toPreci
 This brings us to our next comment, if we cast sum as type any, then we would get no compiler error:
 
 ```ts
-var sum = "hello DeAI" as any;
+var sum = "hello Disco" as any;
 sum.toPrecision(2);
 ```
 
@@ -174,4 +155,4 @@ For now a template that shows how to create tasks can be found.
 | [axios](https://axios-http.com/)                      | `HTTP requests` | Axios is a promise-based HTTP Client for node.js and the browser.         |
 | [lodash](https://lodash.com/)                         |  `JS Helpers`   | Functional library for higher order function on list and js objects       |
 | [yup](https://github.com/jquense/yup)                 |     `Form`      | Schema builder for runtime value parsing and validation (forms).          |
-| [peerjs](https://peerjs.com/)                         | `Communication` | P2P communication library for DeAI                                        |
+| [peerjs](https://peerjs.com/)                         | `Communication` | P2P communication library                                        |

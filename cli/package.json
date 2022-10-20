@@ -3,7 +3,7 @@
   "private": true,
   "main": "src/benchmark.ts",
   "scripts": {
-    "benchmark": "ts-node src/benchmark.ts"
+    "start": "ts-node src/benchmark.ts"
   },
   "author": "",
   "license": "ISC",
