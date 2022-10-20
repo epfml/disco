@@ -1,20 +1,25 @@
-# Disco.js Browser Module
+# Disco.js Web Module
 
-`discojs` contains the browser code of Disco.js, based off and extending `discojs-core`.
+`discojs-web` contains the browser-only code of Disco.js, based off and extending `discojs-core`.
 
 ## Installation
 
-The dev tools run on Node.js (v16) and require `npm`, a package manager for the Node.js runtime environment.
+The `discojs-web` project is available as the `@epfml/discojs` NPM package, which can be installed with
+`npm i @epfml/discojs`.
+
+### Development Environment
+
+The dev tools run on Node.js and require `npm`, a package manager for the Node.js runtime environment.
 We recommend using [nvm](https://github.com/nvm-sh/nvm) for installing both Node.js and NPM.
 
-To install the project's dependencies, run the following commands:
+To install the project's dependencies, run:
 
 ```
-cd discojs-core
-npm ci
-cd discojs
+cd ..
 npm ci
 ```
+
+Since the dependencies of `discojs-core`, `discojs-web` and `discojs-node` are the same, they are specified in a top-level `package.json` file, to ease installation and building.
 
 > **⚠ WARNING: Apple Silicon.**
 > `TensorFlow.js` version `3` do support M1 processors for macs. To do so, make sure you have an `arm` Node.js executable installed (not `x86_64`). It can be checked using:
@@ -27,29 +32,22 @@ which should return something similar to `arm64`.
 
 ## Build
 
-The browser module and its Cypress tests use the `discojs` interface, i.e. they all run in the browser as native JS. This Disco.js browser module is build on top of and extends `discojs-core`, which must always be built first before building `discojs`:
+The server and CLI modules, as well as all unit tests (except Cypress) use the `discojs-web` interface, i.e. they all run on Node.js. This Disco.js Node module is build on top of and extends `discojs-core`, whose code is [symlinked](https://en.wikipedia.org/wiki/Symbolic_link) into `discojs-web/src/core`. To build this project:
 
 ```
-cd discojs-core
-npm run build
-cd discojs
 npm run build
 ```
 
-This invokes the TypeScript compiler (`tsc`). To recompile from stratch, simply `rm -rf dist/` before running `npm run build` again.
+This invokes the TypeScript compiler (`tsc`). It will output the compilation files of `discojs-web` in a `dist/` directory. To recompile from stratch, simply `rm -rf dist/` before running `npm run build` again.
 
 ## Development
 
-### Using Disco.js
-
-As the developer of an external project, you should only be interacting with the `@epfml/discojs` __REMOTE__ package, hosted on the `@epfml` NPM registry. It is installed with `npm i @epfml/discojs`.
-
-### Compilation
-
-When contributing directly to the source code of `discojs`, you will be using the __LOCAL__ `@epfml/discojs-core` package, which is based off the local files you have and are modifying in the `discojs-core` directory. As mentioned earlier, any change to `discojs-core` requires a rebuild of both `discojs-core` and `discojs`, for all changes to be reflected. However, changes brought to `discojs` alone, only require a rebuild of `discojs`.
-
 ### Contributing
 
-Contributions to `discojs` must only include browser-specific code. Code common to both the browser and Node must be added to `discojs-core` instead.
+Contributions to `discojs-web` must only include browser-specific code. Code common to both the browser and Node.js must be added to `discojs-core` instead.
 
-Note that, if you end up making calls to the Tensorflow.js API, you must import it from the root index. This is to ensure the WebGL version of TF.js is loaded, and only once. The only exception occurs in unit tests, which should import TF.js from the (local) `@epfml/discojs-node`, since those run on Node.js.
+As a rule of thumb, the `src/core/` directory must never be modified when modifying `discojs-web`, since it is [symlinked](https://en.wikipedia.org/wiki/Symbolic_link) to `discojs-core`.
+
+If you wish to add a new file or submodule to the project, please do so in a similar way as `src/core/` is structured. That is, [adding a new task](../../docs/TASK.md) to `discojs-web` would mean adding a new file to `src/tasks/` and modifying `src/tasks/index.ts` (NOT `src/core/tasks/...`).
+
+Note that, if you end up making calls to the Tensorflow.js API, you must import it from the root index. This is to ensure the Node version of TF.js is loaded, and only once.
