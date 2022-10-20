@@ -1,8 +1,7 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "run_server.js",
+  "name": "@epfml/disco-server",
+  "private": true,
+  "main": "src/run_server.ts",
   "scripts": {
     "dev": "nodemon src/run_server.ts",
     "start": "ts-node src/run_server.ts",
