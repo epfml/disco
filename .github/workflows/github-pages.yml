@@ -12,29 +12,24 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
             discojs/package-lock.json
-            browser/package-lock.json
+            web-client/package-lock.json
 
-      - name: build discojs
-        run: npm ci && npm run build
+      - run: npm ci
         working-directory: discojs
-
-      - name: install-and-build
-        run: |
-          npm ci
-          npm run build
-        working-directory: browser
+      - run: npm run build
+        working-directory: discojs/discojs-web
+      - run: npm ci && npm run build
+        working-directory: web-client
 
       - name: deploy
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
-          folder: browser/dist
+          folder: web-client/dist

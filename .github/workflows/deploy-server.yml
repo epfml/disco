@@ -15,10 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
@@ -26,9 +24,10 @@ jobs:
             discojs/package-lock.json
             server/package-lock.json
 
-      - name: build discojs
-        run: npm ci && npm run build
+      - run: npm ci
         working-directory: discojs
+      - run: npm run build
+        working-directory: discojs/discojs-node
 
       - name: authenticate-to-google-cloud
         uses: "google-github-actions/auth@v0"

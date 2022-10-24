@@ -4,21 +4,73 @@ on:
   release:
     types: [created]
 
+env:
+  node_version: 16
+
 jobs:
-  npm:
+
+  # copy dependencies from
+  # discojs/package.json
+  # to
+  # discojs/discojs-web/package.json
+  # and
+  # discojs/discojs-node/package.json
+  prepare-dependencies:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: discojs
+        working-directory: discojs/
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: ${{ env.node_version }}
+          cache: npm
+          cache-dependency-path: discojs/package-lock.json
+      - run: npm ci
+      - run: npx ts-node publish.ts
+
+  # publish the "@epfml/discojs" package based off the compiled code in
+  # discojs/discojs-web/dist/
+  discojs:
+    needs: prepare-dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: discojs/discojs-web/
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ node_version }}
           registry-url: https://registry.npmjs.org
           cache: npm
           cache-dependency-path: discojs/package-lock.json
       - run: npm ci
+        working-directory: discojs/
+      - run: npm run build
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # publish the "@epfml/discojs-node" package based off the compiled code in
+  # discojs/discojs-node/dist/
+  discojs-node:
+    needs: prepare-dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: discojs/discojs-node/
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ node_version }}
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: discojs/package-lock.json
+      - run: npm ci
+        working-directory: discojs/
       - run: npm run build
       - run: npm publish --access public
         env:
