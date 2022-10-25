@@ -101,7 +101,7 @@ async function assessModel (): Promise<void> {
     return toaster.error('Model was not found')
   }
 
-  const testingSet: dataset.Data = (await props.datasetBuilder.build({ validationSplit: 0 })).train
+  const testingSet: dataset.Data = (await props.datasetBuilder.build()).train
 
   toaster.success('Model testing started')
 
