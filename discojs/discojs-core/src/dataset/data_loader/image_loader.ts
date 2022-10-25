@@ -70,11 +70,11 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
       this.shuffle(indices)
     }
 
-    if (config?.validationSplit === undefined) {
+    if (config?.validationSplit === undefined || config?.validationSplit === 0) {
       const dataset = await this.buildDataset(images, labels, indices, config)
       return {
         train: dataset,
-        validation: dataset
+        validation: undefined
       }
     }
 
