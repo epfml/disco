@@ -9,7 +9,7 @@ import * as tf from '@tensorflow/tfjs-node'
  */ 
 
 
-const model = tf.loadLayersModel('tfjs-backbone-model/model.json')
+const model = tf.loadLayersModel('file://./tfjs-backbone-model/model.json')
 
 console.log(model.summary())
 
