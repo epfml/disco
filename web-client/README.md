@@ -1,4 +1,4 @@
-# Browser
+# Web Client
 
 This folder contains the (Vue 3) code for the Disco browser client
 
