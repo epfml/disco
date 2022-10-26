@@ -4,7 +4,7 @@ import * as http from 'http'
 
 import { tf, client as clients, informant, Task, tasks, WeightsContainer } from '@epfml/discojs-node'
 
-import { getClient, startServer } from './utils'
+import { getClient, startServer } from '../utils'
 
 const TASK = tasks.titanic.task
 

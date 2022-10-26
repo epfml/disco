@@ -13,7 +13,7 @@ export const task: Task = {
     tradeoffs: 'We are using a simpler version of DeepChest in order to be able to run it on the browser.',
     dataFormatInformation: 'This model takes as input an image dataset. It consists on a set of lung ultrasound images per patient with its corresponding label of covid positive or negative. Moreover, to identify the images per patient you have to follow the follwing naming pattern: "patientId_*.png"',
     dataExampleText: 'Below you can find an example of an expected lung image for patient 2 named: 2_QAID_1.masked.reshaped.squared.224.png',
-    dataExampleImage: './2_QAID_1.masked.reshaped.squared.224.png'
+    dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/2_QAID_1.masked.reshaped.squared.224.png'
   },
   trainingInformation: {
     modelID: 'lus-covid-model',

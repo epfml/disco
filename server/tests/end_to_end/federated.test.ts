@@ -3,25 +3,11 @@ import path from 'node:path'
 import { Server } from 'node:http'
 import { Range } from 'immutable'
 
-import { tf, dataset, ConsoleLogger, training, TrainingSchemes, informant, EmptyMemory, tasks, client as clients } from '@epfml/discojs-node'
+import { node, ConsoleLogger, training, TrainingSchemes, informant, EmptyMemory, tasks, client as clients } from '@epfml/discojs-node'
 
-import { getClient, startServer } from './utils'
+import { getClient, startServer } from '../utils'
 
 const SCHEME = TrainingSchemes.FEDERATED
-
-class NodeImageLoader extends dataset.ImageLoader<string> {
-  async readImageFrom (source: string): Promise<tf.Tensor3D> {
-    const image = await fs.readFile(source)
-    return tf.node.decodeImage(image) as tf.Tensor3D
-  }
-}
-
-class NodeTabularLoader extends dataset.TabularLoader<string> {
-  loadTabularDatasetFrom (source: string, csvConfig: Record<string, unknown>): tf.data.CSVDataset {
-    console.log('loading!>>', source)
-    return tf.data.csv(source, csvConfig)
-  }
-}
 
 describe('end to end federated', function () {
   this.timeout(60_000)
@@ -40,7 +26,7 @@ describe('end to end federated', function () {
 
     const cifar10 = tasks.cifar10.task
 
-    const data = await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+    const data = await new node.data_loader.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 
     const client = await getClient(clients.federated.Client, server, cifar10)
     await client.connect()
@@ -61,16 +47,16 @@ describe('end to end federated', function () {
     await Promise.all([titanicUser(), titanicUser()]))
 
   async function titanicUser (): Promise<void> {
-    const dir = '../example_training_data/titanic_train.csv'
+    const files = ['../example_training_data/titanic_train.csv']
 
     // TODO: can load data, so path is right.
     // console.log(await tf.data.csv('file://'.concat(dir)).toArray())
     const titanic = tasks.titanic.task
-    const data = await (new NodeTabularLoader(titanic, ',').loadAll(
-      ['file://'.concat(dir)],
+    const data = await (new node.data_loader.NodeTabularLoader(titanic, ',').loadAll(
+      files,
       {
-        features: titanic.trainingInformation?.inputColumns,
-        labels: titanic.trainingInformation?.outputColumns,
+        features: titanic.trainingInformation.inputColumns,
+        labels: titanic.trainingInformation.outputColumns,
         shuffle: false
       }
     ))

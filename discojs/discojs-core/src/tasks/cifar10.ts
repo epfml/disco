@@ -12,7 +12,7 @@ export const task: Task = {
     tradeoffs: 'Training success strongly depends on label distribution',
     dataFormatInformation: 'Images should be of .png format and of size 32x32. <br> The label file should be .csv, where each row contains a file_name, class.  <br> <br> e.g. if you have images: 0.png (of a frog) and 1.png (of a car) <br> labels.csv contains: (Note that no header is needed)<br> 0.png, frog <br> 1.png, car',
     dataExampleText: 'Below you can find 10 random examples from each of the 10 classes in the dataset.',
-    dataExampleImage: './cifar10-example.png'
+    dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/cifar10-example.png'
   },
   trainingInformation: {
     modelID: 'cifar10-model',

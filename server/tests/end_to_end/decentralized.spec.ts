@@ -8,7 +8,7 @@ import {
   EmptyMemory, tasks, client, WeightsContainer, aggregation
 } from '@epfml/discojs-node'
 
-import { getClient, startServer } from './utils'
+import { getClient, startServer } from '../utils'
 
 const SCHEME = TrainingSchemes.DECENTRALIZED
 
