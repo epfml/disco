@@ -31,16 +31,15 @@ export const task: Task = {
     IMAGE_H: 200,
     IMAGE_W: 200,
     LABEL_LIST: ['child', 'adult'],
-    scheme: 'Federated', // secure aggregation not yet implemented for FeAI
+    scheme: 'Federated', // secure aggregation not yet implemented for federated
     noiseScale: undefined,
     clippingRadius: undefined
   }
 }
 
-export async function model (modelPath: string): Promise<tf.LayersModel> {
-  // Note file:// is a special token to tell TF.js that we
-  // are loading from the file system, so it should not
-  // be used with path.join, since this will normalize
-  // the path and thus also the special token.
-  return await tf.loadLayersModel(`file://${modelPath}`)
+// code executed server-side only
+export async function model (): Promise<tf.LayersModel> {
+  return await tf.loadLayersModel(
+    'https://storage.googleapis.com/deai-313515.appspot.com/models/mobileNetV2_35_alpha_2_classes/model.json'
+  )
 }
