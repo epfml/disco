@@ -41,7 +41,7 @@ export const task: Task = {
   }
 }
 
-export function model (_: string = ''): tf.LayersModel {
+export function model (): tf.LayersModel {
   const imageHeight = 100
   const imageWidth = 100
   const imageChannels = 3
