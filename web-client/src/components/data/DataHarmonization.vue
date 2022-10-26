@@ -13,7 +13,14 @@ const props = defineProps<Props>()
 const images = require.context('../../../../example_training_data/', false, /.+?\.(jpg|png)$/)
 const exampleImage = computed(() => {
   const source = props.task.displayInformation.dataExampleImage
-  return source !== undefined ? images(source) : ''
+  if (source !== undefined) {
+    try {
+      return images(source)
+    } catch (e) {
+      console.error(e instanceof Error ? e.message : e.toString())
+    }
+  }
+  return ''
 })
 </script>
 
