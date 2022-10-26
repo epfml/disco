@@ -1,4 +1,5 @@
 import { tf, Task } from '..'
+import { ImagePreprocessing } from '../dataset'
 
 export const task: Task = {
   taskID: 'lus_covid',
@@ -6,7 +7,7 @@ export const task: Task = {
     taskTitle: 'COVID Lung Ultrasound',
     summary: {
       preview: 'Do you have a dataset of lung ultrasound images on patients <b>suspected of Lower Respiratory Tract infection (LRTI) during the COVID pandemic</b>? <br> Learn how to discriminate between COVID positive and negative patients by joining this task.',
-      overview: "Don’t have a dataset of your own? Download a sample of a few cases <a class='underline' href='https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly'>here</a>."
+      overview: "Don’t have a dataset of your own? Download a sample of a few cases <a class='underline' href='https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly' target='_blank'>here</a>."
     },
     model: "We use a simplified* version of the <b>DeepChest model</b>: A deep learning model developed in our lab (<a class='underline' href='https://www.epfl.ch/labs/mlo/igh-intelligent-global-health/'>intelligent Global Health</a>.). On a cohort of 400 Swiss patients suspected of LRTI, the model obtained over 90% area under the ROC curve for this task. <br><br>*Simplified to ensure smooth running on your browser, the performance is minimally affected. Details of the adaptations are below <br>- <b>Removed</b>: positional embedding (i.e. we don’t take the anatomic position into consideration). Rather, the model now does mean pooling over the feature vector of the images for each patient <br>- <b>Replaced</b>: ResNet18 by Mobilenet",
     tradeoffs: 'We are using a simpler version of DeepChest in order to be able to run it on the browser.',
@@ -26,9 +27,11 @@ export const task: Task = {
       metrics: ['accuracy']
     },
     learningRate: 0.001,
-    IMAGE_H: 100,
-    IMAGE_W: 100,
-    preprocessingFunctions: [],
+    IMAGE_H: 224,
+    IMAGE_W: 224,
+    RESIZED_IMAGE_H: 100,
+    RESIZED_IMAGE_W: 100,
+    preprocessingFunctions: [ImagePreprocessing.Resize],
     LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
     dataType: 'image',
     scheme: 'Decentralized',
@@ -79,8 +82,8 @@ export function model (_: string = ''): tf.LayersModel {
   // higher dimensional data to a final classification output layer.
   model.add(tf.layers.flatten())
 
-  // Our last layer is a dense layer which has 10 output units, one for each
-  // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9).
+  // Our last layer is a dense layer which has 2 output units, one for each
+  // output class.
   model.add(tf.layers.dense({
     units: numOutputClasses,
     kernelInitializer: 'varianceScaling',
