@@ -12,7 +12,7 @@ export const task: Task = {
     tradeoffs: 'Training success strongly depends on label distribution',
     dataFormatInformation: '',
     dataExampleText: 'Below you find an example',
-    dataExampleImage: './simple_face-example.png'
+    dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/simple_face-example.png'
   },
   trainingInformation: {
     modelID: 'simple_face-model',
