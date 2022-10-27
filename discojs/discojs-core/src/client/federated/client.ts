@@ -6,7 +6,7 @@ import { Base } from '../base'
 import * as messages from './messages'
 import { type, clientConnected } from '../messages'
 import * as nodeUrl from 'url'
-import { EventConnection, waitMessage, waitMessageWithTimeout, WebSocketServer } from '../event_connection'
+import { EventConnection, waitMessageWithTimeout, WebSocketServer } from '../event_connection'
 import { MAX_WAIT_PER_ROUND } from '../utils'
 
 /**
@@ -63,7 +63,7 @@ export class Client extends Base {
       type: type.clientConnected
     }
     this.server.send(msg)
-    await waitMessage(this.server, type.clientConnected)
+    await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)
     this.connected = true
   }
 

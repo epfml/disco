@@ -76,7 +76,7 @@ export class Peer {
       return
     }
 
-    // console.debug('sending chunk of size', chunk.length)
+    console.debug('sending chunk of size', chunk.length)
     this.sendQueue = this.sendQueue.shift()
     this.peer.send(chunk)
 
@@ -228,7 +228,7 @@ export class Peer {
         chunks: chunks.set(chunkID, chunk)
       })
 
-      // console.debug(`got chunk ${messageID}:${chunkID}/${total ?? 'unknown'} of size ${chunk.length}`)
+      console.debug(`got chunk ${messageID}:${chunkID}/${total ?? 'unknown'} of size ${chunk.length}`)
 
       const readyMessages = this.receiving
         .filter(({ total, chunks }) => total !== undefined && chunks.size === total)
