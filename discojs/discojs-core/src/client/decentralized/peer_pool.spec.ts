@@ -1,5 +1,8 @@
 import { assert } from 'chai'
 import { Map, Range } from 'immutable'
+import { messages } from '.'
+import { type } from '../messages'
+import { PeerConnection, EventConnection } from '../event_connection'
 
 import { Peer } from './peer'
 import { PeerPool } from './peer_pool'
@@ -24,39 +27,55 @@ describe('peer pool', function () {
     pools.forEach((p) => p.shutdown())
   })
 
+  function mockServer(poolId: number): EventConnection {
+    return {
+      send: (msg: any): void => {
+        const signal: messages.SignalForPeer = msg
+        const otherPool = pools.get(signal.peer)
+        if (otherPool === undefined) {
+          throw new Error(`signal for unknown pool: ${signal.peer}`)
+        }
+        otherPool.signal(poolId, signal.signal)
+      },
+      on: (): void => {},
+      once: (): void => {},
+      disconnect: (): void => {}
+    };
+  }
+
+  function mockWeights(id: PeerID): messages.Weights {
+    return {
+      type: type.Weights,
+      peer: id,
+      weights: [1, 2, 3]
+    }
+  }
+
   async function getAllPeers (pools: Map<PeerID, PeerPool>):
-  Promise<Map<PeerID, Map<PeerID, Peer>>> {
+  Promise<Map<PeerID, Map<PeerID, PeerConnection>>> {
     const ids = pools.keySeq().toSet()
 
     return Map(await Promise.all(pools
       .map(async (pool, poolID) =>
-        await pool.getPeers(ids.remove(poolID), (id, peer) => {
-          peer.on('signal', (signal) => {
-            const otherPool = pools.get(id)
-            if (otherPool === undefined) {
-              throw new Error(`signal for unknown pool: ${id}`)
-            }
-            otherPool.signal(poolID, signal)
-          })
-        })
+        await pool.getPeers(ids.remove(poolID), mockServer(poolID), () => {})
       )
       .entrySeq()
       .map(async ([id, p]) =>
-        [id, await p] as [PeerID, Map<PeerID, Peer>]
+        [id, await p] as [PeerID, Map<PeerID, PeerConnection>]
       )
       .toArray()
     ))
   }
 
   async function assertCanSendMessagesToEach (
-    peersSets: Map<PeerID, Map<PeerID, Peer>>
+    peersSets: Map<PeerID, Map<PeerID, PeerConnection>>
   ): Promise<void> {
     const messages =
       peersSets
         .entrySeq()
         .map(([poolID, peers]) =>
           peers
-            .keySeq().map((id) => `${poolID}->${id}`)
+            .keySeq().map((id) => mockWeights(id))
             .toArray())
         .toArray()
         .flat()
@@ -66,7 +85,7 @@ describe('peer pool', function () {
       .entrySeq()
       .forEach(([poolID, peers]) =>
         peers.forEach((peer, id) =>
-          peer.send(Buffer.from(`${poolID}->${id}`))))
+          peer.send(mockWeights(poolID))))
 
     const exchanged = (await Promise.all(
       peersSets
@@ -75,8 +94,8 @@ describe('peer pool', function () {
           peers
             .valueSeq()
             .map(async (peer) =>
-              await new Promise<string>((resolve) =>
-                peer.on('data', (data) => resolve(data.toString()))
+              await new Promise<messages.Weights>((resolve) =>
+                peer.on(type.Weights, (data) => resolve(data))
               )
             )
             .toArray()
