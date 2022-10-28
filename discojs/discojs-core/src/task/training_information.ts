@@ -80,7 +80,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
   // interdepences on data type
   switch (dataType) {
     case 'image':
-      if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
+      if ((IMAGE_H !== undefined && typeof IMAGE_H !== 'number') || (IMAGE_W !== undefined && typeof IMAGE_W !== 'number')) {
         return false
       }
       break
