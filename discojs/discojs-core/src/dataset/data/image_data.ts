@@ -1,5 +1,5 @@
 import { tf, Task } from '../..'
-import { getPreprocessImage } from './preprocessing'
+import { getPreprocessImage, ImagePreprocessing } from './preprocessing'
 import { Dataset } from '../dataset'
 import { Data } from './data'
 
@@ -13,28 +13,32 @@ export class ImageData extends Data {
     // better error handling. An incorrectly formatted image in the dataset might still
     // cause an error during training, because of the lazy aspect of the dataset; we only
     // verify the first sample.
-    try {
-      const sample = (await dataset.take(1).toArray())[0]
-      // TODO: We suppose the presence of labels
-      // TODO: Typing (discojs-node/src/dataset/data_loader/image_loader.spec.ts)
-      if (!(typeof sample === 'object' && sample !== null)) {
-        throw new Error()
-      }
+    if (!task.trainingInformation.preprocessingFunctions?.includes(ImagePreprocessing.Resize) ||
+      task.trainingInformation.RESIZED_IMAGE_H === undefined ||
+      task.trainingInformation.RESIZED_IMAGE_W === undefined) {
+      try {
+        const sample = (await dataset.take(1).toArray())[0]
+        // TODO: We suppose the presence of labels
+        // TODO: Typing (discojs-node/src/dataset/data_loader/image_loader.spec.ts)
+        if (!(typeof sample === 'object' && sample !== null)) {
+          throw new Error()
+        }
 
-      let shape
-      if ('xs' in sample && 'ys' in sample) {
-        shape = (sample as { xs: tf.Tensor, ys: number[] }).xs.shape
-      } else {
-        shape = (sample as tf.Tensor3D).shape
+        let shape
+        if ('xs' in sample && 'ys' in sample) {
+          shape = (sample as { xs: tf.Tensor, ys: number[] }).xs.shape
+        } else {
+          shape = (sample as tf.Tensor3D).shape
+        }
+        if (!(
+          shape[0] === task.trainingInformation.IMAGE_W &&
+          shape[1] === task.trainingInformation.IMAGE_H
+        )) {
+          throw new Error()
+        }
+      } catch (e) {
+        throw new Error('Data input format is not compatible with the chosen task')
       }
-      if (!(
-        shape[0] === task.trainingInformation.IMAGE_W &&
-        shape[1] === task.trainingInformation.IMAGE_H
-      )) {
-        throw new Error()
-      }
-    } catch (e) {
-      throw new Error('Data input format is not compatible with the chosen task')
     }
 
     return new ImageData(dataset, task, size)
