@@ -3,15 +3,14 @@ import { tf, Task } from '..'
 export const task: Task = {
   taskID: 'geotags',
   displayInformation: {
-    taskTitle: 'GEOTAGS',
+    taskTitle: 'GeoTags',
     summary: {
-      preview: 'In this challenge, we predict the geo-location of a photo given its pixels in terms of cell number of a grid built on top of Switzerland',
+      preview: 'In this challenge, we predict the geo-location of a photo given its pixels in terms of a cell number of a grid built on top of Switzerland',
       overview: 'The geotags dataset is a collection of images with geo-location information used to train a machine learning algorithm to predict the location of a photo given its pixels.'
     },
     limitations: 'The training data is limited to images of size 224x224.',
     tradeoffs: 'Training success strongly depends on label distribution',
-    dataFormatInformation: 'Images should be of .png format and of size 224x224. <br> The label file should be .csv, where each row contains a file_name, class.  The class is the cell number of a the given grid of Switzerland. ',
-    dataExampleText: 'Below you can find 10 random examples from each of the 10 classes in the dataset.'
+    dataFormatInformation: 'Images should be of .png format and of size 224x224. <br> The label file should be .csv, where each row contains a file_name, class.  The class is the cell number of a the given grid of Switzerland. '
   },
   trainingInformation: {
     modelID: 'geotags-model',
@@ -28,7 +27,7 @@ export const task: Task = {
     IMAGE_H: 224,
     IMAGE_W: 224,
     preprocessingFunctions: [],
-    LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', ' 27'], // TO BE CHANGED
+    LABEL_LIST: Array.from(Array(140).keys()).map(String),
     scheme: 'Federated',
     noiseScale: undefined,
     clippingRadius: 20,
