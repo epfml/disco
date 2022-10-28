@@ -1,4 +1,5 @@
 import { tf, Task } from '..'
+import { ImagePreprocessing } from '../dataset/data/preprocessing'
 
 export const task: Task = {
   taskID: 'geotags',
@@ -26,8 +27,10 @@ export const task: Task = {
     dataType: 'image',
     IMAGE_H: 224,
     IMAGE_W: 224,
-    preprocessingFunctions: [],
+    preprocessingFunctions: [ImagePreprocessing.Resize],
     LABEL_LIST: Array.from(Array(140).keys()).map(String),
+    RESIZED_IMAGE_H: 224,
+    RESIZED_IMAGE_W: 224,
     scheme: 'Federated',
     noiseScale: undefined,
     clippingRadius: 20,
