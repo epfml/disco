@@ -1,4 +1,5 @@
 import { tf, Task } from '..'
+import { Range } from 'immutable'
 import { ImagePreprocessing } from '../dataset/data/preprocessing'
 
 export const task: Task = {
@@ -26,7 +27,7 @@ export const task: Task = {
     },
     dataType: 'image',
     preprocessingFunctions: [ImagePreprocessing.Resize],
-    LABEL_LIST: Array.from(Array(140).keys()).map(String),
+    LABEL_LIST: Range(0, 140).map(String).toArray(),
     RESIZED_IMAGE_H: 224,
     RESIZED_IMAGE_W: 224,
     scheme: 'Federated',
