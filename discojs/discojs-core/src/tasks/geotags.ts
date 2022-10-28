@@ -1,4 +1,4 @@
-import { tf, Task } from '../core'
+import { tf, Task } from '..'
 
 export const task: Task = {
   taskID: 'geotags',
@@ -28,8 +28,6 @@ export const task: Task = {
     IMAGE_H: 224,
     IMAGE_W: 224,
     preprocessingFunctions: [],
-    RESIZED_IMAGE_H: 224,
-    RESIZED_IMAGE_W: 224,
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', ' 27'],
     scheme: 'Federated',
     noiseScale: undefined,
@@ -58,9 +56,5 @@ export async function model (_: string = ''): Promise<tf.LayersModel> {
     ]
   })
 
-  await model.save('indexeddb://saved/geotags/model-v1')
-
   return model
 }
-
-void model()
