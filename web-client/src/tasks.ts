@@ -17,8 +17,6 @@ export async function loadTasks (): Promise<Set<Task>> {
   const response = await axios.get(url.href)
   const tasks: unknown = response.data
 
-  console.log(tasks)
-
   if (!Array.isArray(tasks) || !tasks.every(isTask)) {
     throw new Error('invalid tasks response')
   }
