@@ -27,8 +27,6 @@ export const task: Task = {
       metrics: ['accuracy']
     },
     learningRate: 0.001,
-    IMAGE_H: 224,
-    IMAGE_W: 224,
     RESIZED_IMAGE_H: 100,
     RESIZED_IMAGE_W: 100,
     preprocessingFunctions: [ImagePreprocessing.Resize],

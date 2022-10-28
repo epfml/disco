@@ -77,21 +77,24 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     return false
   }
 
-  // interdepences on data type
-  switch (dataType) {
-    case 'image':
-      if ((IMAGE_H !== undefined && typeof IMAGE_H !== 'number') || (IMAGE_W !== undefined && typeof IMAGE_W !== 'number')) {
-        return false
-      }
-      break
-    case 'tabular':
-      if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
-        return false
-      }
-      if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
-        return false
-      }
-      break
+  if (dataType === 'image') {
+    const resizeDefined = (RESIZED_IMAGE_H !== undefined && typeof RESIZED_IMAGE_H !== 'number') || (RESIZED_IMAGE_W !== undefined && typeof RESIZED_IMAGE_W !== 'number')
+    const originalDefined = (IMAGE_H !== undefined && typeof IMAGE_H !== 'number') || (IMAGE_W !== undefined && typeof IMAGE_W !== 'number')
+
+    if (originalDefined) {
+      return !resizeDefined
+    }
+
+    if (resizeDefined) {
+      return !originalDefined
+    }
+  } else if (dataType === 'tabular') {
+    if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
+      return false
+    }
+    if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
+      return false
+    }
   }
 
   console.log(1)
