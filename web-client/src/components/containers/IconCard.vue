@@ -25,7 +25,7 @@ const props = defineProps({
           p-4
         "
       >
-        <h4 class="text-lg font-semibold text-slate-500">
+        <h4 class="text-lg font-semibold text-disco-cyan">
           <slot name="title" />
         </h4>
         <div class="flex items-center">

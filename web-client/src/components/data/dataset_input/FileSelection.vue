@@ -55,8 +55,20 @@
               Select files
             </div>
             <input
+              v-if="isDirectory"
               type="file"
               multiple
+              webkitdirectory
+              directory
+              :accept="acceptFiles.join(',')"
+              class="hidden"
+              @change="submitFiles"
+            >
+            <input
+              v-else
+              type="file"
+              :multiple="isMultiple"
+              :accept="acceptFiles.join(',')"
               class="hidden"
               @change="submitFiles"
             >
@@ -100,7 +112,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineEmits, ref } from 'vue'
+import { defineEmits, ref, defineProps, withDefaults } from 'vue'
 
 import { HTMLDragEvent, HTMLInputEvent } from '@/types'
 
@@ -108,9 +120,22 @@ interface Emits {
   (e: 'input', files: FileList): void
   (e: 'clear'): void
 }
-const emit = defineEmits<Emits>()
 
+interface Props {
+  isDirectory: boolean,
+  acceptFiles: string[],
+  isMultiple: boolean
+}
+const emit = defineEmits<Emits>()
 const nbrSelectedFiles = ref(0)
+
+const props = withDefaults(defineProps<Props>(), {
+  isDirectory: false,
+  isMultiple: true,
+  acceptFiles: () => ['*']
+})
+
+console.log(props.isDirectory)
 
 const clearFiles = () => {
   emit('clear')
