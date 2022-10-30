@@ -26,10 +26,10 @@ export const task: Task = {
       metrics: ['accuracy']
     },
     dataType: 'image',
+    IMAGE_H: 224,
+    IMAGE_W: 224,
     preprocessingFunctions: [ImagePreprocessing.Resize],
     LABEL_LIST: Range(0, 140).map(String).toArray(),
-    RESIZED_IMAGE_H: 224,
-    RESIZED_IMAGE_W: 224,
     scheme: 'Federated',
     noiseScale: undefined,
     clippingRadius: 20,

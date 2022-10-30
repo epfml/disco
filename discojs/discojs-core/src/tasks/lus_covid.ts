@@ -27,8 +27,8 @@ export const task: Task = {
       metrics: ['accuracy']
     },
     learningRate: 0.001,
-    RESIZED_IMAGE_H: 100,
-    RESIZED_IMAGE_W: 100,
+    IMAGE_H: 100,
+    IMAGE_W: 100,
     preprocessingFunctions: [ImagePreprocessing.Resize],
     LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
     dataType: 'image',
