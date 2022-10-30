@@ -23,10 +23,10 @@ export function getPreprocessImage (task: Task): PreprocessImage {
       xs = xs.div(tf.scalar(255))
     }
     if (info.preprocessingFunctions?.includes(ImagePreprocessing.Resize) &&
-      info.RESIZED_IMAGE_H !== undefined &&
-      info.RESIZED_IMAGE_W !== undefined) {
+      info.IMAGE_H !== undefined &&
+      info.IMAGE_W !== undefined) {
       xs = tf.image.resizeBilinear(xs, [
-        info.RESIZED_IMAGE_H, info.RESIZED_IMAGE_W
+        info.IMAGE_H, info.IMAGE_W
       ])
     }
     return {

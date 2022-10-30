@@ -13,9 +13,7 @@ export class ImageData extends Data {
     // better error handling. An incorrectly formatted image in the dataset might still
     // cause an error during training, because of the lazy aspect of the dataset; we only
     // verify the first sample.
-    if (!task.trainingInformation.preprocessingFunctions?.includes(ImagePreprocessing.Resize) ||
-      task.trainingInformation.RESIZED_IMAGE_H === undefined ||
-      task.trainingInformation.RESIZED_IMAGE_W === undefined) {
+    if (!task.trainingInformation.preprocessingFunctions?.includes(ImagePreprocessing.Resize)) {
       try {
         const sample = (await dataset.take(1).toArray())[0]
         // TODO: We suppose the presence of labels

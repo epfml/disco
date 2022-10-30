@@ -23,8 +23,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     'outputColumns' |
     'IMAGE_H' |
     'IMAGE_W' |
-    'RESIZED_IMAGE_H' |
-    'RESIZED_IMAGE_W' |
     'learningRate' |
     'decentralizedSecure' |
     'maxShareValue' |
@@ -47,8 +45,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     outputColumns,
     IMAGE_H,
     IMAGE_W,
-    RESIZED_IMAGE_H,
-    RESIZED_IMAGE_W,
     learningRate,
     decentralizedSecure,
     maxShareValue,
@@ -65,8 +61,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof batchSize !== 'number' ||
     // typeof roundDuration !== 'number' ||
     typeof validationSplit !== 'number' ||
-    (RESIZED_IMAGE_H !== undefined && typeof RESIZED_IMAGE_H !== 'number') ||
-    (RESIZED_IMAGE_W !== undefined && typeof RESIZED_IMAGE_W !== 'number') ||
     (noiseScale !== undefined && typeof noiseScale !== 'number') ||
     (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
     (learningRate !== undefined && typeof learningRate !== 'number') ||
@@ -77,24 +71,21 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     return false
   }
 
-  if (dataType === 'image') {
-    const resizeDefined = (RESIZED_IMAGE_H !== undefined && typeof RESIZED_IMAGE_H !== 'number') || (RESIZED_IMAGE_W !== undefined && typeof RESIZED_IMAGE_W !== 'number')
-    const originalDefined = (IMAGE_H !== undefined && typeof IMAGE_H !== 'number') || (IMAGE_W !== undefined && typeof IMAGE_W !== 'number')
-
-    if (originalDefined) {
-      return !resizeDefined
-    }
-
-    if (resizeDefined) {
-      return !originalDefined
-    }
-  } else if (dataType === 'tabular') {
-    if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
-      return false
-    }
-    if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
-      return false
-    }
+  // interdepences on data type
+  switch (dataType) {
+    case 'image':
+      if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
+        return false
+      }
+      break
+    case 'tabular':
+      if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
+        return false
+      }
+      if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
+        return false
+      }
+      break
   }
 
   console.log(1)
@@ -154,14 +145,10 @@ export interface TrainingInformation {
   inputColumns?: string[]
   // outputColumns: for tabular data, the columns to be predicted by the model
   outputColumns?: string[]
-  // IMAGE_H height of image
+  // IMAGE_H height of image (or RESIZED_IMAGE_H if ImagePreprocessing.Resize in preprocessingFunctions)
   IMAGE_H?: number
-  // IMAGE_W width of image
+  // IMAGE_W width of image (or RESIZED_IMAGE_W if ImagePreprocessing.Resize in preprocessingFunctions)
   IMAGE_W?: number
-  // RESIZED_IMAGE_H: New image width, note that you must add ImagePreprocessing.Resize in the preprocessingFunctions.
-  RESIZED_IMAGE_H?: number
-  // RESIZED_IMAGE_W: New image width, note that you must add ImagePreprocessing.Resize in the preprocessingFunctions.
-  RESIZED_IMAGE_W?: number
   // LABEL_LIST of classes, e.g. if two class of images, one with dogs and one with cats, then we would
   // define ['dogs', 'cats'].
   LABEL_LIST?: string[]
