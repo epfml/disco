@@ -21,7 +21,7 @@
       v-else-if="task.trainingInformation.dataType === 'image'"
     >
       <div class="flex flex-col items-center">
-        <span class="text-disco-cyan mb-2 font-bold">Select by</span>
+        <span class="text-disco-cyan mb-2 font-bold">Labels by</span>
         <div
           class="inline-flex rounded-md mb-5"
           role="group"
@@ -40,7 +40,7 @@
             class="w-40 py-2 uppercase text-lg font-bold rounded-r-md border-2 border-disco-cyan focus:outline-none"
             @click="isBoxView = true"
           >
-            Label
+            Group
           </button>
         </div>
       </div>
@@ -83,12 +83,13 @@
         >
           <IconCard>
             <template #title>
-              Load CSV file containing labels
+              Load the CSV file containing a mapping between images and labels
             </template>
             <template #content>
               <FileSelection
                 :accept-files="['.csv']"
                 :is-multiple="false"
+                :info-text="'The CSV file must contain an header with only two columns (filename, label). The filename must NOT include the file extension.'"
                 @input="readCsv($event)"
                 @clear="clearCsv()"
               />
@@ -112,11 +113,12 @@
             :class="{'opacity-10': cannotUploadFiles}"
           >
             <template #title>
-              Load folder containing all images
+              Load the folder containing all images
             </template>
             <template #content>
               <FileSelection
                 :is-directory="true"
+                :info-text="'Upload a folder containing all images contained in the selected CSV file.'"
                 @input="addFiles($event)"
                 @clear="clearFiles()"
               />
