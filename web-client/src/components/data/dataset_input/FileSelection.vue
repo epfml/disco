@@ -93,6 +93,7 @@
             class="
                 justify-self-center
                 p-2
+                m-2
                 rounded-sm
                 text-white
                 transition

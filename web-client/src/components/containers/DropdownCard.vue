@@ -22,8 +22,12 @@ const toggle = () => { displayed.value = !displayed.value }
           class="focus:outline-none"
           @click="toggle"
         >
-          <UpArrow v-show="displayed" />
-          <DownArrow v-show="!displayed" />
+          <UpArrow
+            v-show="displayed"
+          />
+          <DownArrow
+            v-show="!displayed"
+          />
         </button>
       </div>
     </template>
