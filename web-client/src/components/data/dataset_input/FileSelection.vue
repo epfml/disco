@@ -30,7 +30,7 @@
             class="
               p-4
               text-lg
-              text-slate-700
+              text-disco-blue
               font-semibold
               flex-wrap
               justify-center
@@ -86,7 +86,7 @@
 
         <!-- If no preview of the selected file, display the nbr. of uploaded files -->
         <div class="pt-8 flex flex-col md:grid md:grid-cols-3 items-center">
-          <div class="flex justify-center items-center text-center md:text-left font-semibold text-slate-700 sm:text-lg">
+          <div class="flex justify-center items-center text-center md:text-left font-semibold sm:text-lg text-disco-blue">
             <span>Number of selected files: <span class="pl-1 text-xl">{{ nbrSelectedFiles }}</span></span>
           </div>
           <button
