@@ -132,10 +132,10 @@ interface Emits {
 }
 
 interface Props {
-  isDirectory: boolean,
-  acceptFiles: string[],
-  isMultiple: boolean,
-  infoText: string
+  isDirectory?: boolean,
+  acceptFiles?: string[],
+  isMultiple?: boolean,
+  infoText?: string
 }
 const emit = defineEmits<Emits>()
 const selectedFiles = ref<FileList>()
