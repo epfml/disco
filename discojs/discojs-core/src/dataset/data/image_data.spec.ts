@@ -1,9 +1,9 @@
 import { assert, expect } from 'chai'
 
-import { node } from '@epfml/discojs-node'
+import { tasks, node } from '@epfml/discojs-node'
 
 describe('image data checks', () => {
-  const task = node.tasks.simple_face.task
+  const task = tasks.simple_face.task
   const dataConfig = { labels: ['dummy'] }
   const loader = new node.data_loader.NodeImageLoader(task)
 

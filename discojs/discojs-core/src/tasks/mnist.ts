@@ -12,7 +12,7 @@ export const task: Task = {
     tradeoffs: 'We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.',
     dataFormatInformation: 'This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.',
     dataExampleText: 'Below you can find an example of an expected image representing the digit 9.',
-    dataExampleImage: './9-mnist-example.png'
+    dataExampleImage: 'http://storage.googleapis.com/deai-313515.appspot.com/example_training_data/9-mnist-example.png'
   },
   trainingInformation: {
     modelID: 'mnist-model',
@@ -39,7 +39,7 @@ export const task: Task = {
   }
 }
 
-export function model (_: string = ''): tf.LayersModel {
+export function model (): tf.LayersModel {
   const model = tf.sequential()
 
   model.add(

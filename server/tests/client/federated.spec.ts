@@ -3,7 +3,7 @@ import * as http from 'http'
 
 import { client as clients, tasks, informant } from '@epfml/discojs-node'
 
-import { getClient, startServer } from './utils'
+import { getClient, startServer } from '../utils'
 
 const TASK = tasks.titanic.task
 

@@ -15,6 +15,17 @@ env:
   cli_dir: cli/
 
 jobs:
+  download-training-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: example_training_data
+          key: training_data
+      - run: ./get_training_data
+        working-directory: ./
+
   lint-lib-core:
     runs-on: ubuntu-latest
     defaults:
@@ -198,13 +209,17 @@ jobs:
       - run: npm run build
 
   test-lib-core:
-    needs: [build-lib-node, build-server-docker, test-server]
+    needs: [build-lib-node, build-server-docker, test-server, download-training-data]
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.lib_core_dir }}
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: example_training_data
+          key: training_data
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -218,13 +233,17 @@ jobs:
       - run: ../../with_server npm test
 
   test-lib-node:
-    needs: [build-lib-node, build-server-docker, test-server]
+    needs: [build-lib-node, build-server-docker, test-server, download-training-data]
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.lib_node_dir }}
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: example_training_data
+          key: training_data
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -238,13 +257,17 @@ jobs:
       - run: ../../with_server npm test
 
   test-lib-web:
-    needs: [build-lib-node, build-server-docker, test-server]
+    needs: [build-lib-node, build-server-docker, test-server, download-training-data]
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.lib_web_dir }}
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: example_training_data
+          key: training_data
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -258,13 +281,17 @@ jobs:
       - run: ../../with_server npm test
 
   test-server:
-    needs: build-server
+    needs: [build-server, download-training-data]
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.server_dir }}
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: example_training_data
+          key: training_data
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -280,10 +307,14 @@ jobs:
       - run: npm test
 
   test-web-client:
-    needs: [build-web-client, build-server-docker, test-server]
+    needs: [build-web-client, build-server-docker, test-server, download-training-data]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: example_training_data
+          key: training_data
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -307,13 +338,17 @@ jobs:
           config: baseUrl=http://localhost:8080/#/
 
   test-cli:
-    needs: test-server
+    needs: [test-server, download-training-data]
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ${{ env.cli_dir }}
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: example_training_data
+          key: training_data
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
