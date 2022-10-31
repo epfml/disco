@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "./build.sh",
+    "build-win": ".\\build.bat",
     "test": "./test.sh"
   },
   "repository": {
