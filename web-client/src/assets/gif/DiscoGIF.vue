@@ -1,15 +1,10 @@
 <template>
-  <img :src="discoGIF">
+  <img src="https://storage.googleapis.com/deai-313515.appspot.com/gifs/decentralized_render.gif">
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'DiscoGIF',
-  computed: {
-    discoGIF (): any {
-      return require('../../assets/gif/raw/disco_middle.gif')
-    }
-  }
+  name: 'DiscoGIF'
 })
 </script>
