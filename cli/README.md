@@ -9,13 +9,13 @@ frequently the clients communicate with each other), ...
 To train cifar10, using 4 federated clients for 15 epochs with a round duration of 5 batches, all you have to do is type
 
 ```
-npm run benchmark -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
+npm run start -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
 ```
 
 or also using the shorter alias notation
 
 ```
-npm run benchmark -- -t cifar10 -u 4 -e 15 -r 5
+npm run start -- -t cifar10 -u 4 -e 15 -r 5
 ```
 
 ## Quick-install guide
@@ -24,12 +24,6 @@ npm run benchmark -- -t cifar10 -u 4 -e 15 -r 5
 - clone this repository
 - `npm ci` within `discojs`, `server` and `benchmark`
 - `cd discojs; rm -rf dist; npm run build`
-
-## Running the benchmark
-
-- `cd benchmark`
-- `npm run benchmark` to run the benchmark with the default setting, to see the available flags run
-- `npm run benchmark -- --help`
 
 ## Custom Tasks
 
@@ -125,5 +119,5 @@ supportedTasks = supportedTasks.set(tasks.simple_face.task.taskID, tasks.simple_
 Now you are done and you should be able to run your task as follows
 
 ```
-npm run benchmark -- --task simple_face --numberOfUsers 4 --epochs 15 --roundDuration 5
+npm run start -- --task simple_face --numberOfUsers 4 --epochs 15 --roundDuration 5
 ```
