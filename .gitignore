@@ -140,6 +140,10 @@ node_modules/
 weights.bin
 model.json
 
+# example training data
+example_training_data/
+example_training_data.tar.gz
+
 # IDE files
 .metals/
 .idea/

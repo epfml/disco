@@ -14,6 +14,7 @@
   "dependencies": {
     "@epfml/discojs-node": "file:../discojs/discojs-node",
     "@koush/wrtc": "0.5",
+    "axios": "^1.1.3",
     "cors": "2",
     "express": "4",
     "express-ws": "5",

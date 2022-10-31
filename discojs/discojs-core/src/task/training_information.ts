@@ -88,8 +88,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
       break
   }
 
-  console.log(1)
-
   // interdepences on scheme
   switch (scheme) {
     case 'decentralized':

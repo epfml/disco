@@ -1,7 +1,7 @@
 import { assert } from 'chai'
 import fs from 'fs'
 
-import { node, Validator, ConsoleLogger, EmptyMemory, client, dataset } from '@epfml/discojs-node'
+import { tasks, node, Validator, ConsoleLogger, EmptyMemory, client, dataset } from '@epfml/discojs-node'
 
 describe('validator', () => {
   it('works for simple_face', async () => {
@@ -10,14 +10,14 @@ describe('validator', () => {
       .map((subdir: string) => fs.readdirSync(dir + subdir)
         .map((file: string) => dir + subdir + file))
 
-    const data: dataset.Data = (await new node.data_loader.NodeImageLoader(node.tasks.simple_face.task)
+    const data: dataset.Data = (await new node.data_loader.NodeImageLoader(tasks.simple_face.task)
       .loadAll(files.flat(), { labels: files.flatMap((files, index) => Array(files.length).fill(index)) })).train
     const validator = new Validator(
-      node.tasks.simple_face.task,
+      tasks.simple_face.task,
       new ConsoleLogger(),
       new EmptyMemory(),
       undefined,
-      new client.Local(new URL('http://localhost:8080'), node.tasks.simple_face.task))
+      new client.Local(new URL('http://localhost:8080'), tasks.simple_face.task))
     await validator.assess(data)
     const size = data.size !== undefined ? data.size : -1
     if (size === -1) {
@@ -31,7 +31,7 @@ describe('validator', () => {
       validator.accuracy() > 0.3,
       `expected accuracy greater than 0.3 but got ${validator.accuracy()}`
     )
-  }).timeout(10000)
+  }).timeout(10_000)
   // TODO: fix titanic model (nan accuracy)
   // it('works for titanic', async () => {
   //   const data: Data = await new NodeTabularLoader(titanic.task, ',')

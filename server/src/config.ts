@@ -9,11 +9,6 @@ export class Config {
     // File system saving scheme (URL-like).
     public readonly savingScheme: string,
 
-    // Directory containing all task definition files.
-    public readonly tasksDir: Path,
-
-    // JSON file containing all tasks metadata.
-    public readonly tasksFile: Path,
     // Directory containing all the generated task models files.
     public readonly modelsDir: Path,
 
@@ -45,8 +40,6 @@ const ROOT_DIR = path.join(__filename, '..', '..', '..')
 
 export const CONFIG = new Config(
   'file://',
-  path.join(ROOT_DIR, 'discojs', 'tasks'),
-  path.join(ROOT_DIR, 'discojs', 'tasks', 'tasks.json'),
   path.join(ROOT_DIR, 'server', 'models'),
   8080
 )

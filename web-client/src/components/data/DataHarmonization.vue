@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineProps } from 'vue'
+import { defineProps } from 'vue'
 
 import { Task } from '@epfml/discojs'
 
@@ -9,19 +9,6 @@ interface Props {
   task: Task
 }
 const props = defineProps<Props>()
-
-const images = require.context('../../../../example_training_data/', false, /.+?\.(jpg|png)$/)
-const exampleImage = computed(() => {
-  const source = props.task.displayInformation.dataExampleImage
-  if (source !== undefined) {
-    try {
-      return images(source)
-    } catch (e) {
-      console.error(e instanceof Error ? e.message : e.toString())
-    }
-  }
-  return ''
-})
 </script>
 
 <template>
@@ -31,7 +18,7 @@ const exampleImage = computed(() => {
         Data Format
       </template>
       <template
-        v-if="task.displayInformation.dataFormatInformation !== undefined"
+        v-if="task.displayInformation?.dataFormatInformation !== undefined"
         #content
       >
         It is <span class="font-bold">important</span> to harmonize your data to the expected format as described below.<br><br>
@@ -68,7 +55,7 @@ const exampleImage = computed(() => {
         <div v-if="task.trainingInformation.dataType === 'image'">
           <img
             class="mx-auto"
-            :src="exampleImage"
+            :src="props.task.displayInformation?.dataExampleImage"
             alt="Error! Image not found"
           >
         </div>
