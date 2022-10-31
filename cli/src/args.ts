@@ -39,10 +39,10 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 )
 
 const taskID = unsafeArgs.task === undefined ? 'simple_face' : unsafeArgs.task
-let task = node.tasks.simple_face.task
+let task = tasks.simple_face.task
 
 let supportedTasks: Map<string, Task> = Map()
-supportedTasks = supportedTasks.set(node.tasks.simple_face.task.taskID, node.tasks.simple_face.task)
+supportedTasks = supportedTasks.set(tasks.simple_face.task.taskID, tasks.simple_face.task)
 supportedTasks = supportedTasks.set(tasks.titanic.task.taskID, tasks.titanic.task)
 supportedTasks = supportedTasks.set(tasks.cifar10.task.taskID, tasks.cifar10.task)
 
