@@ -46,7 +46,7 @@
       </div>
 
       <div
-        v-if="isBoxView"
+        v-show="isBoxView"
         class="grid grid-cols-1 lg:grid-cols-2 gap-3"
       >
         <div
@@ -75,7 +75,7 @@
         />
       </div>
       <div
-        v-else
+        v-show="!isBoxView"
         class="grid grid-cols-1 lg:grid-cols-2 gap-3"
       >
         <div
