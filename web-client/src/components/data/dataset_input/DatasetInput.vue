@@ -132,8 +132,9 @@
 
 <script lang="ts" setup>
 import { computed, defineProps, ref } from 'vue'
+import * as d3 from 'd3'
 
-import { dataset, Task, d3 } from '@epfml/discojs'
+import { dataset, Task } from '@epfml/discojs'
 
 import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'
