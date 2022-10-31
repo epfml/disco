@@ -156,10 +156,7 @@ const cannotUploadFiles = computed(
 )
 
 const readCsv = (files: FileList) => {
-  const file = files[0]
-  const fr = new FileReader()
-  fr.onload = () => { csvRows.value = d3.csvParse(fr.result.toString()) }
-  fr.readAsText(file)
+  files[0].text().then(file => { csvRows.value = d3.csvParse(file) })
 }
 
 const addFiles = (files: FileList, label?: string) => {
@@ -179,8 +176,6 @@ const addFiles = (files: FileList, label?: string) => {
   } else {
     props.datasetBuilder.addFiles(filesArray)
   }
-
-  console.log(props.datasetBuilder.size())
 }
 
 const clearCsv = () => {

@@ -140,14 +140,12 @@ interface Props {
 const emit = defineEmits<Emits>()
 const selectedFiles = ref<FileList>()
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   isDirectory: false,
   isMultiple: true,
   acceptFiles: () => ['*'],
   infoText: ''
 })
-
-console.log(props.isDirectory)
 
 const clearFiles = () => {
   emit('clear')
