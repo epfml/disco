@@ -1,22 +1,21 @@
 import { List, Map, Set } from 'immutable'
-import msgpack from 'msgpack-lite'
 import * as nodeUrl from 'url'
 
 import { TrainingInformant, WeightsContainer, privacy, aggregation, Task } from '../..'
 import { Base as ClientBase } from '../base'
 import { PeerID } from './types'
-import { Peer } from './peer'
 import { PeerPool } from './peer_pool'
 import * as messages from './messages'
-import { EventConnection, WebSocketServer, waitMessage } from './event_connection'
-import { MAX_WAIT_PER_ROUND, timeout } from './utils'
+import { type, clientConnected } from '../messages'
+import { EventConnection, WebSocketServer, waitMessage, PeerConnection, waitMessageWithTimeout } from '../event_connection'
+import { MAX_WAIT_PER_ROUND } from '../utils'
 
 /**
  * Abstract class for decentralized clients, executes onRoundEndCommunication as well as connecting
  * to the signaling server
  */
 export abstract class Base extends ClientBase {
-  private readonly minimumReadyPeers: number
+  protected readonly minimumReadyPeers: number
 
   private server?: EventConnection
 
@@ -37,14 +36,14 @@ export abstract class Base extends ClientBase {
   }
 
   // send message to server that client is ready
-  private async waitForPeers (round: number): Promise<Map<PeerID, Peer>> {
+  private async waitForPeers (round: number): Promise<Map<PeerID, PeerConnection>> {
     console.debug(this.ID, 'is ready for round', round)
 
     // clean old round
     this.peers = undefined
 
     // Broadcast our readiness
-    const msg: messages.PeerIsReady = { type: messages.type.PeerIsReady }
+    const msg: messages.PeerIsReady = { type: type.PeerIsReady }
 
     if (this.server === undefined) {
       throw new Error('server undefined, could not connect peers')
@@ -52,7 +51,7 @@ export abstract class Base extends ClientBase {
     this.server.send(msg)
 
     // wait for peers to be connected before sending any update information
-    const receivedMessage = await Promise.race([waitMessage(this.server, messages.type.PeersForRound), timeout(MAX_WAIT_PER_ROUND)])
+    const receivedMessage = await waitMessageWithTimeout(this.server, type.PeersForRound, MAX_WAIT_PER_ROUND)
 
     const peers = Set(receivedMessage.peers)
     if (this.ID !== undefined && peers.has(this.ID)) {
@@ -75,41 +74,18 @@ export abstract class Base extends ClientBase {
     }
     const ret = await (await this.pool).getPeers(
       Set(this.peers ?? []),
-      (id, peer) => this.onNewPeer(id, peer)
+      this.server,
+      (p) => this.clientHandle(p)
     )
 
     console.debug(this.ID, `got peers for round ${round}:`, ret.keySeq().toJS())
     return ret
   }
 
-  private onNewPeer (id: PeerID, peer: Peer): void {
-    peer.on('signal', (signal) => {
-      console.debug(this.ID, 'generates signal for', id)
-      const msg: messages.SignalForPeer = {
-        type: messages.type.SignalForPeer,
-        peer: id,
-        signal
-      }
-      this.server?.send(msg)
-    })
-
-    peer.on('data', (data) => {
-      const msg = msgpack.decode(data)
-      if (!messages.isPeerMessage(msg)) {
-        console.warn(this.ID, 'received invalid message from', id, msg)
-        return
-      }
-
-      console.debug(this.ID, 'got message from', id, msg)
-
-      this.clientHandle(msg)
-    })
-  }
-
   // TODO inline? have a serialization mod
-  protected sendMessagetoPeer (peer: Peer, msg: messages.PeerMessage): void {
+  protected sendMessagetoPeer (peer: PeerConnection, msg: messages.PeerMessage): void {
     console.debug(this.ID, 'sends message to peer', msg.peer, msg)
-    peer.send(msgpack.encode(msg))
+    peer.send(msg)
   }
 
   /*
@@ -117,9 +93,9 @@ export abstract class Base extends ClientBase {
   deals with message reception from decentralized client perspective (messages received by client)
    */
   private async connectServer (url: URL): Promise<EventConnection> {
-    const server: EventConnection = await WebSocketServer.connect(url)
+    const server: EventConnection = await WebSocketServer.connect(url, messages.isMessageFromServer, messages.isMessageToServer)
 
-    server.on(messages.type.SignalForPeer, (event) => {
+    server.on(type.SignalForPeer, (event) => {
       console.debug(this.ID, 'got signal from', event.peer)
 
       if (this.pool === undefined) {
@@ -151,12 +127,12 @@ export abstract class Base extends ClientBase {
 
     this.server = await this.connectServer(serverURL)
 
-    const msg: messages.clientConnected = {
-      type: messages.type.clientConnected
+    const msg: clientConnected = {
+      type: type.clientConnected
     }
     this.server.send(msg)
 
-    const peerIdMsg = await waitMessage(this.server, messages.type.PeerID)
+    const peerIdMsg = await waitMessage(this.server, type.PeerID)
     console.debug(peerIdMsg.id, 'got own id from server')
 
     if (this.ID !== undefined) {
@@ -216,11 +192,11 @@ export abstract class Base extends ClientBase {
   }
 
   abstract sendAndReceiveWeights (
-    peers: Map<PeerID, Peer>,
+    peers: Map<PeerID, PeerConnection>,
     noisyWeights: WeightsContainer,
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<List<WeightsContainer>>
 
-  abstract clientHandle (msg: messages.PeerMessage): void
+  abstract clientHandle (peers: Map<PeerID, PeerConnection>): void
 }

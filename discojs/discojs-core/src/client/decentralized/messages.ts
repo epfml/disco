@@ -4,27 +4,7 @@ import { weights } from '../../serialization'
 
 import { isPeerID, PeerID as PeerIDType } from './types'
 
-// Retrieve a specific message interface from the type D. i.e. NarrowMessage<messages.type.PeerId> => messages.PeerId type
-export type NarrowMessage<D> = Extract<Message, { type: D }>
-
-export enum type {
-  clientConnected,
-
-  PeerID,
-  SignalForPeer,
-
-  PeerIsReady,
-  PeersForRound,
-
-  Weights,
-  Shares,
-
-  PartialSums
-}
-
-export interface clientConnected {
-  type: type.clientConnected
-}
+import { type, clientConnected, hasMessageType } from '../messages'
 
 /// Phase 0 communication (just between server and client)
 
@@ -77,11 +57,6 @@ export interface PartialSums {
   partials: weights.Encoded
 }
 
-export type Message =
-  MessageFromServer |
-  MessageToServer |
-  PeerMessage
-
 export type MessageFromServer =
   PeerID |
   SignalForPeer |
@@ -96,21 +71,6 @@ export type PeerMessage =
   Weights |
   Shares |
   PartialSums
-
-function hasMessageType (raw: unknown): raw is {type: type} & Record<string, unknown> {
-  if (typeof raw !== 'object' || raw === null) {
-    return false
-  }
-
-  const o = raw as Record<string, unknown>
-  if (
-    !('type' in o && typeof o.type === 'number' && o.type in type)
-  ) {
-    return false
-  }
-
-  return true
-}
 
 export function isMessageFromServer (o: unknown): o is MessageFromServer {
   if (!hasMessageType(o)) {

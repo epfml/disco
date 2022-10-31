@@ -1,15 +1,13 @@
-import * as msgpack from 'msgpack-lite'
-import isomorphic from 'isomorphic-ws'
 import { v4 as randomUUID } from 'uuid'
 
 import { privacy, serialization, informant, MetadataID, WeightsContainer } from '../..'
 import { Base } from '../base'
 
 import * as messages from './messages'
+import { type, clientConnected } from '../messages'
 import * as nodeUrl from 'url'
-
-const TICK = 100
-const MAX_WAIT_PER_ROUND = 10_000
+import { EventConnection, waitMessageWithTimeout, WebSocketServer } from '../event_connection'
+import { MAX_WAIT_PER_ROUND } from '../utils'
 
 /**
  * Class that deals with communication with the centralized server when training
@@ -20,7 +18,7 @@ export class Client extends Base {
   private readonly peer: any
   private round = 0
 
-  protected server?: isomorphic.WebSocket
+  protected _server?: EventConnection
 
   // Attributes used to wait for a response from the server
   private serverRound?: number
@@ -28,90 +26,18 @@ export class Client extends Base {
   private receivedStatistics?: Record<string, number>
   private metadataMap?: Map<string, unknown>
 
-  // Methods to check and return the correct message type
-  private instanceOfMessageGeneral (
-    msg: unknown
-  ): msg is messages.messageGeneral {
-    return typeof msg === 'object' && msg !== null && 'type' in msg
-  }
-
-  private instanceOfLatestServerRound (
-    msg: messages.messageGeneral
-  ): msg is messages.latestServerRound {
-    return msg.type === messages.messageType.latestServerRound
-  }
-
-  private instanceOfPullServerStatistical (
-    msg: messages.messageGeneral
-  ): msg is messages.pullServerStatistics {
-    return msg.type === messages.messageType.pullServerStatistics
-  }
-
-  private instanceOfGetMetadataMap (
-    msg: messages.messageGeneral
-  ): msg is messages.getMetadataMap {
-    return msg.type === messages.messageType.getMetadataMap
+  public get server (): EventConnection {
+    if (this._server === undefined) {
+      throw new Error('server undefined, not connected')
+    }
+    return this._server
   }
 
   // It opens a new WebSocket connection and listens to new messages over the channel
-  private async connectServer (url: URL): Promise<isomorphic.WebSocket> {
-    const WS =
-      typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
-    const ws: WebSocket = new WS(url)
-    ws.binaryType = 'arraybuffer'
+  private async connectServer (url: URL): Promise<EventConnection> {
+    const server: EventConnection = await WebSocketServer.connect(url, messages.isMessageFederated, messages.isMessageFederated)
 
-    ws.onmessage = async (event: isomorphic.MessageEvent) => {
-      if (!(event.data instanceof ArrayBuffer)) {
-        throw new Error('server did not send an ArrayBuffer')
-      }
-      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
-
-      // check message type to choose correct action
-      if (this.instanceOfMessageGeneral(msg)) {
-        this.clientHandle(msg)
-      }
-    }
-
-    return await new Promise((resolve, reject) => {
-      ws.onerror = (err: isomorphic.ErrorEvent) =>
-        reject(new Error(`connecting server: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
-      ws.onopen = () => resolve(ws)
-    })
-  }
-
-  // Utility method to wait until a condition is not true
-  protected async pauseUntil (condition: () => boolean): Promise<void> {
-    return await new Promise<void>((resolve, reject) => {
-      const timeWas = new Date().getTime()
-      const wait = setInterval(function () {
-        if (condition()) {
-          console.log('resolved after', new Date().getTime() - timeWas, 'ms')
-          clearInterval(wait)
-          resolve()
-        } else if (new Date().getTime() - timeWas > MAX_WAIT_PER_ROUND) {
-          // Timeout
-          console.log('rejected after', new Date().getTime() - timeWas, 'ms')
-          clearInterval(wait)
-          reject(new Error('timeout'))
-        }
-      }, TICK)
-    })
-  }
-
-  // It handles a message once received over the channel
-  private clientHandle (msg: messages.messageGeneral): void {
-    if (this.instanceOfLatestServerRound(msg)) {
-      this.serverRound = msg.round
-      this.serverWeights = serialization.weights.decode(msg.weights)
-    } else if (this.instanceOfPullServerStatistical(msg)) {
-      this.receivedStatistics = msg.statistics
-    } else if (this.instanceOfGetMetadataMap(msg)) {
-      if (msg.metadataMap !== undefined) {
-        this.metadataMap = new Map(msg.metadataMap)
-      }
-    } else if (msg.type === messages.messageType.clientConnected) {
-      this.connected = true
-    }
+    return server
   }
 
   /**
@@ -132,33 +58,33 @@ export class Client extends Base {
         throw new Error(`unknown protocol: ${this.url.protocol}`)
     }
     serverURL.pathname += `feai/${this.task.taskID}/${this.clientID}`
-    this.server = await this.connectServer(serverURL)
-
-    await this.pauseUntil(() => this.connected)
+    this._server = await this.connectServer(serverURL)
+    const msg: clientConnected = {
+      type: type.clientConnected
+    }
+    this.server.send(msg)
+    await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)
+    this.connected = true
   }
 
   /**
    * Disconnection process when user quits the task.
    */
   async disconnect (): Promise<void> {
-    this.server?.close()
-    this.server = undefined
+    this.server.disconnect()
+    this._server = undefined
     this.connected = false
   }
 
   // It sends a message to the server
-  private sendMessage (msg: messages.messageGeneral): void {
-    const encodedMsg = msgpack.encode(msg)
-    if (this.server === undefined) {
-      throw new Error('server undefined, could not connect peers')
-    }
-    this.server.send(encodedMsg)
+  private sendMessage (msg: messages.MessageFederated): void {
+    this.server?.send(msg)
   }
 
   // It sends weights to the server
   async postWeightsToServer (weights: WeightsContainer): Promise<void> {
     const msg: messages.postWeightsToServer = {
-      type: messages.messageType.postWeightsToServer,
+      type: type.postWeightsToServer,
       weights: await serialization.weights.encode(weights),
       round: this.round
     }
@@ -171,13 +97,14 @@ export class Client extends Base {
     this.serverWeights = undefined
 
     const msg: messages.messageGeneral = {
-      type: messages.messageType.latestServerRound
+      type: type.latestServerRound
     }
     this.sendMessage(msg)
 
-    await this.pauseUntil(
-      () => this.serverRound !== undefined && this.serverWeights !== undefined
-    )
+    const received = await waitMessageWithTimeout(this.server, type.latestServerRound, MAX_WAIT_PER_ROUND)
+
+    this.serverRound = received.round
+    this.serverWeights = serialization.weights.decode(received.weights)
 
     return this.serverRound
   }
@@ -203,11 +130,12 @@ export class Client extends Base {
     this.receivedStatistics = undefined
 
     const msg: messages.messageGeneral = {
-      type: messages.messageType.pullServerStatistics
+      type: type.pullServerStatistics
     }
     this.sendMessage(msg)
 
-    await this.pauseUntil(() => this.receivedStatistics !== undefined)
+    const received = await waitMessageWithTimeout(this.server, type.pullServerStatistics, MAX_WAIT_PER_ROUND)
+    this.receivedStatistics = received.statistics
 
     trainingInformant.update(this.receivedStatistics ?? {})
   }
@@ -215,7 +143,7 @@ export class Client extends Base {
   // It posts a new metadata value to the server
   async postMetadata (metadataID: MetadataID, metadata: string): Promise<void> {
     const msg: messages.postMetadata = {
-      type: messages.messageType.postMetadata,
+      type: type.postMetadata,
       taskId: this.task.taskID,
       clientId: this.clientID,
       round: this.round,
@@ -233,7 +161,7 @@ export class Client extends Base {
     this.metadataMap = undefined
 
     const msg: messages.getMetadataMap = {
-      type: messages.messageType.postMetadata,
+      type: type.getMetadataMap,
       taskId: this.task.taskID,
       clientId: this.clientID,
       round: this.round,
@@ -242,7 +170,10 @@ export class Client extends Base {
 
     this.sendMessage(msg)
 
-    await this.pauseUntil(() => this.metadataMap !== undefined)
+    const received = await waitMessageWithTimeout(this.server, type.getMetadataMap, MAX_WAIT_PER_ROUND)
+    if (received.metadataMap !== undefined) {
+      this.metadataMap = new Map(received.metadataMap)
+    }
 
     return this.metadataMap
   }

@@ -4,11 +4,12 @@ import { WRTC } from '@koush/wrtc'
 
 import { Peer } from './peer'
 import { PeerID } from './types'
+import { PeerConnection, EventConnection } from '../event_connection'
 
 // TODO cleanup old peers
 
 export class PeerPool {
-  private peers = Map<PeerID, Peer>()
+  private peers = Map<PeerID, PeerConnection>()
 
   private constructor (
     private readonly id: PeerID,
@@ -32,7 +33,7 @@ export class PeerPool {
   shutdown (): void {
     console.debug(this.id, 'shutdown their peers')
 
-    this.peers.forEach((peer) => peer.destroy())
+    this.peers.forEach((peer) => peer.disconnect())
     this.peers = Map()
   }
 
@@ -49,9 +50,10 @@ export class PeerPool {
 
   async getPeers (
     peersToConnect: Set<PeerID>,
+    signallingServer: EventConnection,
     // TODO as event?
-    onNewPeer: (id: PeerID, peer: Peer) => void
-  ): Promise<Map<PeerID, Peer>> {
+    clientHandle: (connections: Map<PeerID, PeerConnection>) => void
+  ): Promise<Map<PeerID, PeerConnection>> {
     if (peersToConnect.contains(this.id)) {
       throw new Error('peers to connect contains our id')
     }
@@ -61,30 +63,22 @@ export class PeerPool {
     const newPeers = Map(peersToConnect
       .filter((id) => !this.peers.has(id))
       .map((id) => [id, id < this.id] as [number, boolean])
-      .map(([id, initiator]) => [id, new Peer({ initiator, wrtc: this.wrtc })]))
+      .map(([id, initiator]) => {
+        const p = new Peer(id, { initiator, wrtc: this.wrtc })
+        // onNewPeer(id, p)
+        return [id, p]
+      }))
 
     console.debug(this.id, 'asked to connect new peers:', newPeers.keySeq().toJS())
+    const newPeersConnections = newPeers.map((peer, id) => new PeerConnection(this.id, peer, signallingServer))
 
-    this.peers = this.peers.merge(newPeers)
-    newPeers
-      .forEach((peer, id) => onNewPeer(id, peer))
+    // adding peers to pool before connecting them because they must be set to call signal on them
+    this.peers = this.peers.merge(newPeersConnections)
 
-    // TODO cleanup?
-    newPeers.forEach((peer, id) =>
-      peer.on('close', () => console.warn(this.id, 'peer', id, 'closed connection')))
+    clientHandle(this.peers)
 
     await Promise.all(
-      newPeers
-        .entrySeq()
-        .map(async ([id, peer]) => [
-          id,
-          await new Promise((resolve) => {
-            peer.on('connect', () => {
-              console.debug(this.id, 'connected new peer', id)
-              resolve(peer)
-            })
-          })
-        ] as [PeerID, Peer]))
+      Array.from(newPeersConnections.values()).map(async (connection) => await connection.connect()))
 
     console.debug(this.id, 'knowns connected peers:', this.peers.keySeq().toJS())
 

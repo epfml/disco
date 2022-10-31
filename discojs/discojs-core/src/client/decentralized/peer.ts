@@ -1,5 +1,6 @@
 import { List, Map, Range, Seq } from 'immutable'
 import SimplePeer, { SignalData } from 'simple-peer'
+import { PeerID } from './types'
 
 type MessageID = number
 type ChunkID = number
@@ -34,6 +35,7 @@ interface Events {
 //
 // see feross/simple-peer#393 for more info
 export class Peer {
+  public readonly id: PeerID
   private readonly peer: SimplePeer.Instance
   private bufferSize?: number
 
@@ -45,7 +47,8 @@ export class Peer {
     chunks: Map<ChunkID, Buffer>
   }>()
 
-  constructor (opts?: SimplePeer.Options) {
+  constructor (id: PeerID, opts?: SimplePeer.Options) {
+    this.id = id
     this.peer = new SimplePeer(opts)
   }
 
@@ -54,7 +57,6 @@ export class Peer {
 
     const chunks = this.chunk(msg)
     this.sendQueue = this.sendQueue.concat(chunks)
-
     this.flush()
   }
 
