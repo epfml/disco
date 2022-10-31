@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
         with:
-          path: example_training_data/
+          path: example_training_data
           key: training_data
       - run: ./get_training_data
         working-directory: ./
