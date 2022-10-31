@@ -21,5 +21,4 @@ export { Validator } from './validation'
 export { TrainingInformation, DisplayInformation, isTask, Task, isTaskID, TaskID } from './task'
 export * as tasks from './tasks'
 
-export * as d3 from 'd3'
 export * from './types'
