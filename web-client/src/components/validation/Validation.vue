@@ -81,7 +81,7 @@
       <!-- 1. CONNECT YOUR DATA -->
       <div v-show="validationStore.step === 1">
         <!-- Information specific to the validation panel -->
-        <IconCard>
+        <IconCard class="mb-3">
           <template #title>
             Model Validation
           </template>

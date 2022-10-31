@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-4 md:space-y-8">
-    <IconCard>
+    <IconCard class="mb-3">
       <template #title>
         The Task
       </template>

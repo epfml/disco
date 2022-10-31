@@ -13,9 +13,9 @@ const props = defineProps({
 
 <template>
   <!--  Card -->
-  <div class="grid grid-cols-1 space-y-8 lg:gap-8">
+  <div class="grid grid-cols-1 space-y-8 lg:gap-8 border-disco-cyan rounded-xl border-2">
     <!-- div class="container mx-width lg h-full"></div-->
-    <div class="col-span-1 bg-white rounded-lg">
+    <div class="col-span-1 bg-white rounded-xl">
       <!-- Card header -->
       <div
         class="
@@ -25,7 +25,7 @@ const props = defineProps({
           p-4
         "
       >
-        <h4 class="text-lg font-semibold text-slate-500">
+        <h4 class="text-lg font-semibold text-disco-cyan">
           <slot name="title" />
         </h4>
         <div class="flex items-center">
