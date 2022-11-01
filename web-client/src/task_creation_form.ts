@@ -21,6 +21,7 @@ export interface FormField {
   elements?: FormElement[]
   dependencies?: FormDependency
   extension?: '.bin' | '.json'
+  description?: string
 }
 
 export interface FormSection {
@@ -29,7 +30,7 @@ export interface FormSection {
   fields: FormField[]
 }
 
-const otherReq = (req: string) => {
+const otherReq = (req: any) => {
   return {
     is: req,
     then: (schema: yup.AnySchema) => schema.required()
@@ -426,18 +427,30 @@ const modelFiles: FormSection = {
   title: 'Model Files',
   fields: [
     {
+      id: 'modelURL',
+      name: 'Model URL',
+      description: 'URL endpoint serving the model files. See <a class="text-disco-cyan hover:text-disco-blue" target="_blank" href="https://www.tensorflow.org/js/guide/save_load#https">TF.js docs</a> for more information.',
+      type: 'text',
+      yup: yup
+        .string()
+        .when(['modelFile', 'weightsFile'], otherReq((value: string) => !value)),
+      default: 'https://example.com/model.json'
+    },
+    {
       id: 'modelFile',
-      name: 'TensorFlow.js Model in JSON format',
+      name: 'Model File',
+      description: 'TensorFlow.js Model in JSON format',
       type: 'file',
-      yup: yup.string().required(),
+      yup: yup.string().when('modelURL', otherReq((value: string) => !value)),
       extension: '.json',
       default: 'model.json'
     },
     {
       id: 'weightsFile',
-      name: 'TensorFlow.js Model Weights in .bin format',
+      name: 'Weights Files',
+      description: 'TensorFlow.js Model Weights in .bin format',
       type: 'file',
-      yup: yup.string().required(),
+      yup: yup.string().when('modelURL', otherReq((value: string) => !value)),
       extension: '.bin',
       default: 'weights.bin'
     }

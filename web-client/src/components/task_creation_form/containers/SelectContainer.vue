@@ -7,15 +7,10 @@
     :select="props.field.type === 'select-multiple'"
     :multiple="props.field.type === 'select-multiple'"
     class="
-      bg-transparent
-      border-b
-      m-auto
-      block
-      focus:outline-none focus:border-green-500
-      w-full
-      mb-6
+      bg-gray-100 rounded-md border p-2 mt-1
+      block w-full
       text-gray-700
-      pb-1
+      focus:outline-none focus:border-disco-cyan
     "
   >
     <option

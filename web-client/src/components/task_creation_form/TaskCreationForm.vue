@@ -16,7 +16,7 @@
             {{ section.title }}
           </template>
           <template #content>
-            <div class="space-y-4">
+            <div class="space-y-10">
               <div
                 v-for="field in section.fields"
                 :key="field.id"
@@ -34,7 +34,14 @@
                       pr-4
                     "
                   >
-                    {{ field.name }}
+                    <span
+                      v-if="field.description !== undefined"
+                      v-html="field.description"
+                    />
+                    <span
+                      v-else
+                      v-html="field.name"
+                    />
                   </label>
                   <ErrorMessage
                     class="text-red-600"
@@ -50,6 +57,12 @@
                     v-model="scheme"
                     :field="field"
                   />
+                  <TextContainer
+                    v-else-if="field.id === 'modelURL'"
+                    v-model="modelURL"
+                    :field="field"
+                    :available="modelFiles.size === 0"
+                  />
                   <div v-else>
                     <SelectContainer
                       v-if="['select', 'select-multiple'].includes(field.type)"
@@ -58,6 +71,7 @@
                     <FileContainer
                       v-else-if="field.type === 'file'"
                       :field="field"
+                      :available="!modelURL"
                       @input="handleModelFiles($event, field)"
                     />
                     <ArrayContainer
@@ -152,10 +166,11 @@ const schemaData =
       )
       .values()
   ).toObject()
-const schema = yup.object(schemaData)
+const schema = yup.object().shape(schemaData, [['modelURL', 'weightsFile'], ['modelURL', 'modelFile']])
 
 const dataType = ref('')
 const scheme = ref('')
+const modelURL = ref('')
 const modelFiles = shallowRef(List<File>())
 
 const formatSection = (section: FormSection, rawTask: any): any => {
@@ -213,8 +228,6 @@ const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
   )
     .set('taskID', rawTask.taskID)
     .toObject()
-
-  console.log('Submitted task:', task)
 
   const url = new URL('', CONFIG.serverUrl.href)
   url.pathname += 'tasks'
