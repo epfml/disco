@@ -163,7 +163,7 @@ const readCsv = (files: FileList) => {
 const addFiles = (files: FileList, label?: string) => {
   const filesArray = Array.from(files)
 
-  if (requireLabels) {
+  if (props.task.trainingInformation.dataType === 'image' && requireLabels) {
     if (label) {
       props.datasetBuilder.addFiles(filesArray, label)
     } else {
