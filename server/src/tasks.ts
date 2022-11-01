@@ -41,6 +41,7 @@ export class TasksAndModels extends EventEmitter {
           console.error(e instanceof Error ? e.message : e.toString())
           return
         }
+        fs.mkdirSync(modelPath, { recursive: true })
         await model.save(`file://${modelPath}`)
       }
       ret.addTaskAndModel(i.task, model)
