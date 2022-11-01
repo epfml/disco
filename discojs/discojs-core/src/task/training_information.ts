@@ -23,6 +23,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     'outputColumns' |
     'IMAGE_H' |
     'IMAGE_W' |
+    'modelURL' |
     'learningRate' |
     'decentralizedSecure' |
     'maxShareValue' |
@@ -45,6 +46,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     outputColumns,
     IMAGE_H,
     IMAGE_W,
+    roundDuration,
+    modelURL,
     learningRate,
     decentralizedSecure,
     maxShareValue,
@@ -59,8 +62,9 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof modelID !== 'string' ||
     typeof epochs !== 'number' ||
     typeof batchSize !== 'number' ||
-    // typeof roundDuration !== 'number' ||
+    typeof roundDuration !== 'number' ||
     typeof validationSplit !== 'number' ||
+    (modelURL !== undefined && typeof modelURL !== 'string') ||
     (noiseScale !== undefined && typeof noiseScale !== 'number') ||
     (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
     (learningRate !== undefined && typeof learningRate !== 'number') ||
@@ -147,6 +151,8 @@ export interface TrainingInformation {
   IMAGE_H?: number
   // IMAGE_W width of image (or RESIZED_IMAGE_W if ImagePreprocessing.Resize in preprocessingFunctions)
   IMAGE_W?: number
+  // Model URL to download the base task model from. Useful for pretrained or/and hosted models.
+  modelURL?: string
   // LABEL_LIST of classes, e.g. if two class of images, one with dogs and one with cats, then we would
   // define ['dogs', 'cats'].
   LABEL_LIST?: string[]
