@@ -9,27 +9,29 @@ frequently the clients communicate with each other), ...
 To train cifar10, using 4 federated clients for 15 epochs with a round duration of 5 batches, all you have to do is type
 
 ```
-npm run benchmark -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
+npm start -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
 ```
 
 or also using the shorter alias notation
 
 ```
-npm run benchmark -- -t cifar10 -u 4 -e 15 -r 5
+npm start -- -t cifar10 -u 4 -e 15 -r 5
 ```
 
 ## Quick-install guide
 
 - install node 16 and ensure it is activated on opening any new terminal (e.g. `nvm use 16`)
-- clone this repository
-- `npm ci` within `discojs`, `server` and `benchmark`
-- `cd discojs; rm -rf dist; npm run build`
+- `git clone git@github.com:epfml/disco.git`
+- download the `example_training_data.tar.gz` file and extract it into the root of the repository
+  - simply execute [get_training_data.sh](../get_training_data)
+- `npm ci` within `discojs`, `server` and `cli`
+- `cd discojs/discojs-node && npm run build`
 
-## Running the benchmark
+## Running the CLI
 
-- `cd benchmark`
-- `npm run benchmark` to run the benchmark with the default setting, to see the available flags run
-- `npm run benchmark -- --help`
+- `cd cli`
+- `npm start` to run the benchmark with the default setting, to see the available flags run
+- `npm start -- --help`
 
 ## Custom Tasks
 
@@ -48,9 +50,8 @@ images, but more complex operations can also be added.
 Once we have built this object we can load the dataset by giving as an input the `files: string[]` and `labels: number[]`.
 We give an example of what this looks like down bellow. 
 ```js
-import * as tf from '@tensorflow/tfjs-node'
 import fs from 'fs'
-import {dataset, Task} from '@epfml/discojs'
+import { tf, dataset, Task } from '@epfml/discojs'
 
 class NodeImageLoader extends dataset.ImageLoader<string> {
   async readImageFrom(source: string): Promise<tf.Tensor3D> {
@@ -84,12 +85,12 @@ Example of `files` and `labels` content.
 { labels: [ 0, 0, 0, 1, 1, 1 ] }
 {
   files: [
-    './../discojs/example_training_data/simple_face/child/12.png',
-    './../discojs/example_training_data/simple_face/child/141.png',
-    './../discojs/example_training_data/simple_face/child/143.png',
-    './../discojs/example_training_data/simple_face/adult/9417.png',
-    './../discojs/example_training_data/simple_face/adult/9429.png',
-    './../discojs/example_training_data/simple_face/adult/9462.png'
+    '../example_training_data/simple_face/child/12.png',
+    '../example_training_data/simple_face/child/141.png',
+    '../example_training_data/simple_face/child/143.png',
+    '../example_training_data/simple_face/adult/9417.png',
+    '../example_training_data/simple_face/adult/9429.png',
+    '../example_training_data/simple_face/adult/9462.png'
   ]
 }
 ```
