@@ -131,7 +131,7 @@ export default defineComponent({
 
     async deleteModel (path: Path): Promise<void> {
       try {
-        await this.$store.commit('deleteModel', path)
+        await this.memoryStore.deleteModel(path)
         await this.memory.deleteModel(path)
         this.$toast.success('Successfully deleted the model')
       } catch (e) {
