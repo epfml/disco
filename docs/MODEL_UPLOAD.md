@@ -6,6 +6,8 @@ We distinguish two use cases :
 
 ## I am a developper who wants to define my own task
 
+In this case, your model and task will be uploaded and stored on our DISCO servers.
+
 For more information on the task object instanciation itself, please refer to the TASK.md file in our documentation.
 
  - In ```disco/discojs/discojs-core/src/tasks/``` define your new custom task by instanciating a Task object, and define the async function ```model```. You will need to have your model in the .json + .bin format.
