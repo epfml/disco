@@ -8,7 +8,7 @@
       <template #title>
         Join a <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
           class="font-disco text-disco-cyan"
-        >DISCO</span>llaborative</span> to train an existing model
+        >DISCO</span>llaborative</span> to train a model
       </template>
       <template #button>
         Train
@@ -20,7 +20,7 @@
       title-placement="center"
     >
       <template #title>
-        Validate a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
+        Test &amp; Validate a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
       </template>
       <template #button>
         Test
@@ -32,9 +32,7 @@
       title-placement="center"
     >
       <template #title>
-        Add your own model to be trained in a <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
-          class="font-disco text-disco-cyan"
-        >DISCO</span>llaborative</span>
+        Add your own ML task to be trained in <span class="font-disco text-disco-cyan">DISCO</span>
       </template>
       <template #button>
         Create
