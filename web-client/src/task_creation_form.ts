@@ -37,7 +37,7 @@ const otherReq = (req: any) => {
   }
 }
 
-const generalInformation: FormSection = {
+export const generalInformation: FormSection = {
   id: 'generalInformation',
   title: 'General Information',
   fields: [
@@ -50,7 +50,6 @@ const generalInformation: FormSection = {
       default: 'cifar10'
     },
     {
-
       id: 'dataType',
       name: 'Data Type',
       yup: yup.string().required(),
@@ -70,7 +69,7 @@ const generalInformation: FormSection = {
     }
   ]
 }
-const displayInformation: FormSection = {
+export const displayInformation: FormSection = {
   id: 'displayInformation',
   title: 'Display Information',
   fields: [
@@ -181,7 +180,7 @@ const displayInformation: FormSection = {
   ]
 }
 
-const trainingInformation: FormSection = {
+export const trainingInformation: FormSection = {
   id: 'trainingInformation',
   title: 'Training Information',
   fields: [
@@ -203,7 +202,7 @@ const trainingInformation: FormSection = {
     },
     {
       id: 'validationSplit',
-      name: 'Validation split',
+      name: 'Validation Split',
       yup: yup.number().positive().lessThan(1).required(),
       as: 'input',
       type: 'float',
@@ -211,7 +210,7 @@ const trainingInformation: FormSection = {
     },
     {
       id: 'batchSize',
-      name: 'Batch size',
+      name: 'Batch Size',
       yup: yup.number().integer().positive().required(),
       as: 'input',
       type: 'number',
@@ -268,7 +267,7 @@ const trainingInformation: FormSection = {
       }
     },
     {
-      id: 'outputColumn',
+      id: 'outputColumns',
       name: 'Output Column',
       yup: yup.string().when('dataType', otherReq('tabular')),
       as: 'input',
@@ -279,7 +278,7 @@ const trainingInformation: FormSection = {
       }
     },
     {
-      id: 'inputColumn',
+      id: 'inputColumns',
       name: 'Input Column',
       yup: yup.array().of(yup.string()).min(1),
       as: 'input',
@@ -358,7 +357,7 @@ const trainingInformation: FormSection = {
   ]
 }
 
-const modelCompileData: FormSection = {
+export const modelCompileData: FormSection = {
   id: 'modelCompileData',
   title: 'Model Compile Data',
   fields: [
@@ -422,7 +421,7 @@ const modelCompileData: FormSection = {
   ]
 }
 
-const modelFiles: FormSection = {
+export const modelFiles: FormSection = {
   id: 'modelFiles',
   title: 'Model Files',
   fields: [
