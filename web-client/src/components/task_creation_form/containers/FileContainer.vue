@@ -1,17 +1,15 @@
 <template>
   <div>
-    <div class="h-72 my-3">
+    <div
+      class="h-72 my-3"
+    >
       <div
         class="
-          relative
-          h-full
-          hover:cursor-pointer
-          border-dashed border-2 border-gray-500
-          dark:border-primary
-          flex flex-col
-          justify-center
-          items-center
+          relative h-full
+          border-dashed border-2 border-disco-cyan
+          flex flex-col justify-center items-center
         "
+        :class="available ? 'hover:cursor-pointer' : 'hover:cursor-not-allowed'"
       >
         <div class="absolute">
           <div class="flex flex-col items-center">
@@ -26,33 +24,34 @@
               /></svg><span class="block text-gray-400 font-normal">Drag and drop your file anywhere or</span>
             <span class="block text-gray-400 font-normal">or</span>
             <label
-              :for="`hidden_${props.field.id}`"
+              :for="`hidden_${field.id}`"
               class="
                 block
                 font-normal
-                mt-2
-                p-2
+                mt-2 p-2
                 rounded-sm
                 text-slate-700
                 transition-colors
                 duration-200
-                bg-white
-                hover:text-disco-cyan hover:bg-slate-100
+                bg-slate-100
                 focus:outline-none
               "
+              :class="available ? 'hover:cursor-pointer hover:text-disco-cyan' : 'hover:cursor-not-allowed'"
             >select file</label>
             <VeeField
-              :id="props.field.id"
+              :id="field.id"
               v-model="fileName"
-              :name="props.field.id"
+              :name="field.id"
               hidden
             />
             <input
-              :id="`hidden_${props.field.id}`"
+              :id="`hidden_${field.id}`"
+              :accept="field.extension"
+              :disable="!available"
               type="file"
-              :accept="props.field.extension"
               class="h-full w-full"
               multiple
+              :disabled="!available"
               hidden
               @change="onChange"
             >
@@ -63,7 +62,7 @@
     <div
       class="flex justify-between items-center text-gray-400"
     >
-      <span>Accepted file type: {{ props.field.extension }} only</span>
+      <span>Accepted file type: {{ field.extension }} only</span>
       <span class="flex items-center"><i class="fa fa-lock mr-1" /> secure</span>
     </div>
   </div>
@@ -76,10 +75,16 @@ import { Field as VeeField } from 'vee-validate'
 import { HTMLInputEvent } from '@/types'
 import { FormField } from '@/task_creation_form'
 
-interface Props {
-  field: FormField
-}
-const props = defineProps<Props>()
+const { field, available = true } = defineProps({
+  field: {
+    type: Object as () => FormField,
+    required: true
+  },
+  available: {
+    type: Boolean,
+    default: true
+  }
+})
 
 interface Emits {
   (e: 'input', files: FileList): void
@@ -92,7 +97,6 @@ const onChange = (e: HTMLInputEvent): void => {
   const files = e.target.files
   // fill in the vee-field to trigger yup validation
   fileName.value = (files.length > 0) ? files[0].name : ''
-  console.log(fileName.value)
   emit('input', files)
 }
 </script>

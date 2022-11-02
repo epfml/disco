@@ -1,4 +1,4 @@
-import { tf, dataset, Task } from '..'
+import { dataset, Task } from '..'
 
 export const task: Task = {
   taskID: 'simple_face',
@@ -17,6 +17,7 @@ export const task: Task = {
   trainingInformation: {
     modelID: 'simple_face-model',
     epochs: 50,
+    modelURL: 'https://storage.googleapis.com/deai-313515.appspot.com/models/mobileNetV2_35_alpha_2_classes/model.json',
     roundDuration: 1,
     validationSplit: 0.2,
     batchSize: 10,
@@ -35,11 +36,4 @@ export const task: Task = {
     noiseScale: undefined,
     clippingRadius: undefined
   }
-}
-
-// code executed server-side only
-export async function model (): Promise<tf.LayersModel> {
-  return await tf.loadLayersModel(
-    'https://storage.googleapis.com/deai-313515.appspot.com/models/mobileNetV2_35_alpha_2_classes/model.json'
-  )
 }

@@ -36,7 +36,15 @@ export class TasksAndModels extends EventEmitter {
       } else {
         // otherwise, init the task's model and save it
         try {
-          model = await i.model()
+          const modelURL = i.task.trainingInformation.modelURL
+          if (modelURL !== undefined) {
+            model = await tf.loadLayersModel(modelURL)
+          } else if ('model' in i && typeof i.model === 'function') {
+            model = await i.model()
+          } else {
+            console.warn('could not infer model from provided task object:', i)
+            return
+          }
         } catch (e: any) {
           console.error(e instanceof Error ? e.message : e.toString())
           return

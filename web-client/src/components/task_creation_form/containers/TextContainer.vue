@@ -1,6 +1,7 @@
 <template>
   <CustomField
-    :field="props.field"
+    :field="field"
+    :available="available"
     :rows="rows"
   />
 </template>
@@ -11,10 +12,16 @@ import { computed, defineProps } from 'vue'
 import { FormField } from '@/task_creation_form'
 import CustomField from '@/components/task_creation_form/simple/CustomField.vue'
 
-interface Props {
-  field: FormField
-}
-const props = defineProps<Props>()
+const props = defineProps({
+  field: {
+    type: Object as () => FormField,
+    required: true
+  },
+  available: {
+    type: Boolean,
+    default: true
+  }
+})
 
 const rows = computed(() => props.field.as === 'textarea' ? 6 : undefined)
 </script>
