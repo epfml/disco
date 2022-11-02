@@ -429,7 +429,7 @@ const modelFiles: FormSection = {
     {
       id: 'modelURL',
       name: 'Model URL',
-      description: 'URL endpoint serving the model files. See <a class="text-disco-cyan hover:text-disco-blue" target="_blank" href="https://www.tensorflow.org/js/guide/save_load#https">TF.js docs</a> for more information.',
+      description: 'URL endpoint serving the initial model files. See <a class="text-disco-cyan hover:text-disco-blue" target="_blank" href="https://www.tensorflow.org/js/guide/save_load#https">TF.js docs</a> for more information.',
       type: 'text',
       yup: yup
         .string()
@@ -438,7 +438,7 @@ const modelFiles: FormSection = {
     },
     {
       id: 'modelFile',
-      name: 'Model File',
+      name: 'Alternatively: Model File',
       description: 'TensorFlow.js Model in JSON format',
       type: 'file',
       yup: yup.string().when('modelURL', otherReq((value: string) => !value)),
@@ -447,7 +447,7 @@ const modelFiles: FormSection = {
     },
     {
       id: 'weightsFile',
-      name: 'Weights Files',
+      name: 'Alternatively: Initial Weights File',
       description: 'TensorFlow.js Model Weights in .bin format',
       type: 'file',
       yup: yup.string().when('modelURL', otherReq((value: string) => !value)),
