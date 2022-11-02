@@ -20,7 +20,7 @@
       title-placement="center"
     >
       <template #title>
-        Test &amp; Validate a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
+        Test &amp; validate a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
       </template>
       <template #button>
         Test
