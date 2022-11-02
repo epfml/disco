@@ -9,12 +9,10 @@ env:
   node_version: 16
 
 jobs:
-  build-and-deploy:
+  gh-pages-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-            ref: production
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -29,10 +27,27 @@ jobs:
         working-directory: discojs/discojs-web
       - run: npm ci && npm run build
         working-directory: web-client
-
-      - name: deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          branch: gh-pages
-          folder: web-client/dist
-          single-commit: true
+          path: './web-client/dist'
+          
+  gh-pages-deploy:
+    needs: gh-pages-build
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
