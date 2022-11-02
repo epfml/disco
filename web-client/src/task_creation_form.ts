@@ -439,7 +439,7 @@ const modelFiles: FormSection = {
     {
       id: 'modelFile',
       name: 'Model File',
-      description: 'Alternatively: Tensorflow.js Model File in JSON format',
+      description: 'Alternatively: Tensorflow.js Model in JSON format',
       type: 'file',
       yup: yup.string().when('modelURL', otherReq((value: string) => !value)),
       extension: '.json',
