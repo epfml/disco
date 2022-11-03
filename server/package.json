@@ -1,13 +1,16 @@
 {
   "name": "@epfml/disco-server",
   "private": true,
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "bin": { "disco-server" : "./dist/run_server.js" },
+
   "scripts": {
     "dev": "nodemon src/run_server.ts",
     "start": "ts-node src/run_server.ts",
     "build": "tsc",
     "clean": "tsc --build --clean && rm -r dist || true",
-    "test": "mocha --exit -r ts-node/register 'tests/**/*.ts'"
+    "test": "mocha --exit -r ts-node/register 'tests/**/*.ts'",
+    "lint": "npx eslint --max-warnings 0 ."
   },
   "author": "",
   "license": "ISC",

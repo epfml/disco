@@ -4,7 +4,7 @@ import { Server } from 'node:http'
 import { Range } from 'immutable'
 
 import {
-  node, informant, Task, Disco, tasks, client as clients, WeightsContainer, aggregation
+  node, informant, Task, Disco, client as clients, WeightsContainer, aggregation, defaultTasks
 } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
@@ -34,15 +34,15 @@ describe('end to end decentralized', function () {
     const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
     const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
-    const cifar10: Task = tasks.cifar10.task
+    const cifar10Task: Task = defaultTasks.cifar10.getTask()
 
-    const loaded = await new node.data.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+    const loaded = await new node.data.NodeImageLoader(cifar10Task).loadAll(files, { labels: labels })
 
     const client = secure
-      ? await getClient(clients.decentralized.SecAgg, server, cifar10)
-      : await getClient(clients.decentralized.ClearText, server, cifar10)
+      ? await getClient(clients.decentralized.SecAgg, server, cifar10Task)
+      : await getClient(clients.decentralized.ClearText, server, cifar10Task)
 
-    const disco = new Disco(cifar10, { client })
+    const disco = new Disco(cifar10Task, { client })
     await disco.fit(loaded)
   }
 
@@ -61,12 +61,12 @@ describe('end to end decentralized', function () {
     the client will implement secure aggregation. If it is false, it will be a clear text client.
      */
   async function makeClient (input: number[], secure: boolean): Promise<WeightsContainer> {
-    const cifar10 = tasks.cifar10.task
+    const cifar10Task = defaultTasks.cifar10.getTask()
     const client = secure
-      ? await getClient(clients.decentralized.SecAgg, server, cifar10)
-      : await getClient(clients.decentralized.ClearText, server, cifar10)
+      ? await getClient(clients.decentralized.SecAgg, server, cifar10Task)
+      : await getClient(clients.decentralized.ClearText, server, cifar10Task)
     const weights = WeightsContainer.of(input)
-    const trainingInformantCurrent = new informant.DecentralizedInformant(cifar10, 0)
+    const trainingInformantCurrent = new informant.DecentralizedInformant(cifar10Task, 0)
     await client.connect()
     return await client.onRoundEndCommunication(weights, weights, 0, trainingInformantCurrent)
   }

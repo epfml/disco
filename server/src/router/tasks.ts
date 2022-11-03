@@ -35,8 +35,8 @@ export class Tasks {
       }
 
       serialization.model.decode(model)
-        .then((model) => {
-          tasksAndModels.addTaskAndModel(newTask, model)
+        .then(async (model) => {
+          await tasksAndModels.addTaskAndModel(newTask, model)
         })
         .then(() => res.status(200).end('Successful task upload'))
         .catch(console.error)

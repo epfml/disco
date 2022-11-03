@@ -17,7 +17,7 @@ export { Memory, ModelType, ModelInfo, Path, ModelSource, Empty as EmptyMemory }
 export { Disco, TrainingSchemes } from './training'
 export { Validator } from './validation'
 
-export { TrainingInformation, DisplayInformation, isTask, Task, isTaskID, TaskID } from './task'
-export * as tasks from './tasks'
+export { TrainingInformation, DisplayInformation, isTask, Task, isTaskID, TaskID, TaskProvider, isTaskProvider, Digest, isDigest } from './task'
+export * as defaultTasks from './default-tasks'
 
 export * from './types'

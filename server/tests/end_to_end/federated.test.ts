@@ -3,7 +3,7 @@ import path from 'node:path'
 import { Server } from 'node:http'
 import { Range } from 'immutable'
 
-import { node, Disco, TrainingSchemes, tasks, client as clients } from '@epfml/discojs-node'
+import { node, Disco, TrainingSchemes, client as clients, defaultTasks } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
 
@@ -24,14 +24,14 @@ describe('end to end federated', function () {
     const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
     const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
-    const cifar10 = tasks.cifar10.task
+    const cifar10Task = defaultTasks.cifar10.getTask()
 
-    const data = await new node.data.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+    const data = await new node.data.NodeImageLoader(cifar10Task).loadAll(files, { labels: labels })
 
-    const client = await getClient(clients.federated.Client, server, cifar10)
+    const client = await getClient(clients.federated.Client, server, cifar10Task)
     await client.connect()
 
-    const disco = new Disco(cifar10, { scheme: SCHEME, client })
+    const disco = new Disco(cifar10Task, { scheme: SCHEME, client })
 
     await disco.fit(data)
   }
@@ -44,19 +44,19 @@ describe('end to end federated', function () {
 
     // TODO: can load data, so path is right.
     // console.log(await tf.data.csv('file://'.concat(dir)).toArray())
-    const titanic = tasks.titanic.task
-    const data = await (new node.data.NodeTabularLoader(titanic, ',').loadAll(
+    const titanicTask = defaultTasks.titanic.getTask()
+    const data = await (new node.data.NodeTabularLoader(titanicTask, ',').loadAll(
       files,
       {
-        features: titanic.trainingInformation.inputColumns,
-        labels: titanic.trainingInformation.outputColumns,
+        features: titanicTask.trainingInformation.inputColumns,
+        labels: titanicTask.trainingInformation.outputColumns,
         shuffle: false
       }
     ))
 
-    const client = await getClient(clients.federated.Client, server, titanic)
+    const client = await getClient(clients.federated.Client, server, titanicTask)
 
-    const disco = new Disco(titanic, { scheme: SCHEME, client })
+    const disco = new Disco(titanicTask, { scheme: SCHEME, client })
 
     await disco.fit(data)
   }

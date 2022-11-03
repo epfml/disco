@@ -1,11 +1,11 @@
 /* eslint-disable no-undef */
-import { tasks } from '@epfml/discojs'
+import { defaultTasks } from '@epfml/discojs'
 
 // most basic disco tasks
 export const TASK_LIST = [
-  tasks.titanic.task,
-  tasks.mnist.task,
-  tasks.cifar10.task
+  defaultTasks.titanic.getTask(),
+  defaultTasks.mnist.getTask(),
+  defaultTasks.cifar10.getTask()
 ]
 
 describe('tasks page', () => {

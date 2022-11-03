@@ -2,15 +2,10 @@ import { Server } from 'node:http'
 
 import { client, Task } from '@epfml/discojs-node'
 
-import { getApp } from '../src/get_server'
-
-// port to start server on
-const PORT: number | undefined = 5555
+import { runDefaultServer } from '../src/get_server'
 
 export async function startServer (): Promise<Server> {
-  const app = await getApp()
-
-  const server = app.listen(PORT)
+  const server = await runDefaultServer()
 
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)

@@ -1,3 +1,110 @@
+# Disco Server
+
+## Example Usage
+
+You can quickly try the default server with 
+
+```sh
+npm install -g @epfml/disco-server
+disco-server
+```
+
+This will only load the default disco tasks, and there are currently no way to add new tasks from the server CLI.
+
+Or use this package to make you server and add your own tasks:
+
+```sh
+npm install @epfml/disco-server
+```
+
+Then in your code:
+```js
+import { Disco, tf } from '@epfml/disco-server'
+
+// Define your own task provider (task definition + model)
+let customTask = {
+    getTask() {
+      return {
+        taskID: 'test',
+        displayInformation: {
+          taskTitle: 'Test task'
+        },
+        trainingInformation: {
+          modelID: 'test-model',
+          epochs: 5,
+          roundDuration: 10,
+          validationSplit: 0,
+          batchSize: 30,
+          modelCompileData: {
+            optimizer: 'rmsprop',
+            loss: 'binaryCrossentropy',
+            metrics: ['accuracy']
+          },
+          dataType: 'tabular',
+          inputColumns: [
+            'Age',
+          ],
+          outputColumns: [
+            'Output'
+          ],
+          scheme: 'Federated',
+          noiseScale: undefined,
+          clippingRadius: undefined
+        }
+      }
+    },
+  
+    async getModel () {
+      const model = tf.sequential()
+  
+      model.add(
+        tf.layers.dense({
+          inputShape: [1],
+          units: 124,
+          activation: 'relu',
+          kernelInitializer: 'leCunNormal'
+        })
+      )
+      model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
+      model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }))
+  
+      return model
+    }
+  }
+
+async function runServer() {
+  let disco = new Disco()
+  // Add default tasks provided by the server
+  await disco.addDefaultTasks()
+  // Add your own custom task
+  await disco.addTask(customTask)
+
+  // You can also provide your own task object containing the URL of the model
+  await disco.addTask({
+    ...
+    trainingInformation: {
+        modelID: 'simple_face-model',
+        epochs: 50,
+        modelURL: '<Your model URL>',
+    }
+    ...
+  })
+
+  // Or provide an URL separately
+  await disco.addTask({
+    ...
+  }, new URL('<Your model URL'))
+
+  // You can access the underlying Express Application if needed
+  disco.server.use(yourMiddleware)
+
+  // Start the server
+  disco.serve()
+}
+
+runServer()
+```
+
 ## Servers
 
 ### Helper server for federated and decentralized training
