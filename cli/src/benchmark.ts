@@ -1,39 +1,35 @@
-import {Range} from 'immutable'
-import {Server} from 'node:http'
-import {tf, client, ConsoleLogger, training, TrainingSchemes, EmptyMemory, informant, TrainerLog} from '@epfml/discojs-node'
+import { Range } from 'immutable'
+import { Server } from 'node:http'
+import { tf, client as clients, Disco, TrainingSchemes, TrainerLog } from '@epfml/discojs-node'
 
-import {startServer, getClient, saveLog} from './utils'
-import {getTaskData} from './data'
-import {args} from './args'
+import { startServer, getClient, saveLog } from './utils'
+import { getTaskData } from './data'
+import { args } from './args'
 
 const NUMBER_OF_USERS = args.numberOfUsers
-let TASK = args.task
+const TASK = args.task
 
 const infoText = `\nRunning federated benchmark of ${TASK.taskID}`
 console.log(infoText)
 
-console.log({args})
+console.log({ args })
 
-
-async function runUser(server: Server): Promise<TrainerLog> {
+async function runUser (server: Server): Promise<TrainerLog> {
   const data = await getTaskData(TASK)
 
-  const logger = new ConsoleLogger()
-  const memory = new EmptyMemory()
-
-  const inf = new informant.FederatedInformant(TASK.taskID, 10)
-  const cli = await getClient(client.federated.Client, server, TASK)
-  await cli.connect()
-  const disco = new training.Disco(TASK, logger, memory, TrainingSchemes.FEDERATED, inf, cli)
+  // force the federated scheme
+  const scheme = TrainingSchemes.FEDERATED
+  const client = await getClient(clients.federated.Client, server, TASK)
+  const disco = new Disco(TASK, { scheme, client })
 
   console.log('runUser>>>>')
-  await disco.startTraining(data)
+  await disco.fit(data)
   console.log('runUser<<<<')
-  await cli.disconnect()
-  return await disco.getTrainerLog()
+  await disco.close()
+  return await disco.logs()
 }
 
-async function main(): Promise<void> {
+async function main (): Promise<void> {
   await tf.ready()
   console.log(`Loaded ${tf.getBackend()} backend`)
   const server = await startServer()

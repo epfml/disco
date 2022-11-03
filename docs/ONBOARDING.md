@@ -168,15 +168,15 @@ async onRoundEndCommunication (
 ### Disco
 
 The Disco object is an amalgam of the classes that we just saw along with some other less important helper classes. Once it's built you can
-start the magic by calling `disco.startTraining(data)`!
+start the magic by calling `disco.fit(data)`!
 
 So what happens when we start training? Let us suppose we want to do federated training, this means that the `DistributedTrainer` and `FederatedClient`
-will be in action. To start training the User (this could be the browser or cli for example) calls `disco.startTraining`, then in turn this will
+will be in action. To start training the User (this could be the browser or cli for example) calls `disco.fit`, then in turn this will
 call `disco.trainer.trainModel` and this will start the trainer state which will send weights to the client at each `onRoundEnd`.
 
 ```mermaid
 flowchart LR
-    User-->Disco-->|startTraining|Trainer-->|trainModel|state
+    User-->Disco-->|fit|Trainer-->|trainModel|state
     subgraph state [Trainer state]
     direction BT
     id1{{Training...}}-->|onRoundEnd|id2{{Push and fetch weights}}

@@ -11,14 +11,14 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
 
-import { dataset, Task } from '@epfml/discojs'
+import { data, Task } from '@epfml/discojs'
 
 import DatasetInput from '@/components/data/dataset_input/DatasetInput.vue'
 import DataHarmonization from '@/components/data/DataHarmonization.vue'
 
 interface Props {
   task: Task
-  datasetBuilder: dataset.DatasetBuilder<File>
+  datasetBuilder: data.DatasetBuilder<File>
 }
 const props = defineProps<Props>()
 </script>

@@ -22,26 +22,15 @@ To run the clients with decentralized training or local training, set the traini
 
 ```js
 async function runUser (url: URL): Promise<void> {
-  // Load the data, the dataset must be of type dataset.Data, see discojs import above.
+  // Load the data, the dataset must be of type data.Data, see discojs import above.
   const data = await loadData(TASK)
 
-  // Build a logger
-  const logger = new ConsoleLogger()
-
-  // Build empty memory (if in browser discojs can leverage IndexDB)
-  const memory = new EmptyMemory()
-  // Training information logger
-  const informant = new TrainingInformant(10, TASK.taskID, TrainingSchemes.FEDERATED)
-
-  // Build federated client (add server URL and TASK object specific to training task)
-  const client = new clients.Federated(url, TASK)
-  await client.connect()
-
-  // Build disco object, other available training schemes: TrainingSchemes.DECENTRALIZED, TrainingSchemes.LOCAL
-  const disco = new training.Disco(TASK, logger, memory, TrainingSchemes.FEDERATED, informant, client)
-
   // Start training
-  await disco.startTraining(data)
+  const disco = new Disco(TASK, { url })
+  await disco.fit(data)
+
+  // Stop training and cleanly disconnect from the remote server
+  await disco.close()
 }
 ```
 

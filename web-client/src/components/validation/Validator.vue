@@ -48,7 +48,7 @@
 import { computed, defineProps, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
-import { browser, dataset, ConsoleLogger, EmptyMemory, Memory, Task, Validator } from '@epfml/discojs'
+import { browser, data, ConsoleLogger, EmptyMemory, Memory, Task, Validator } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
@@ -62,7 +62,7 @@ const validationStore = useValidationStore()
 
 interface Props {
   task: Task
-  datasetBuilder?: dataset.DatasetBuilder<File>
+  datasetBuilder?: data.DatasetBuilder<File>
 }
 const props = defineProps<Props>()
 
@@ -101,7 +101,7 @@ async function assessModel (): Promise<void> {
     return toaster.error('Model was not found')
   }
 
-  const testingSet: dataset.Data = (await props.datasetBuilder.build()).train
+  const testingSet: data.Data = (await props.datasetBuilder.build()).train
 
   toaster.success('Model testing started')
 

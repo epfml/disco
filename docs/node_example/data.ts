@@ -1,11 +1,11 @@
 import fs from 'fs'
 import Rand from 'rand-seed'
 
-import { tf, dataset, Task } from '@epfml/discojs-node'
+import { tf, data, Task } from '@epfml/discojs-node'
 
 const rand = new Rand('1234')
 
-class NodeImageLoader extends dataset.ImageLoader<string> {
+class NodeImageLoader extends data.ImageLoader<string> {
   async readImageFrom (source: string): Promise<tf.Tensor3D> {
     const imageBuffer = fs.readFileSync(source)
     let tensor = tf.node.decodeImage(imageBuffer)
@@ -32,7 +32,7 @@ function filesFromFolder (dir: string, folder: string): string[] {
   return f.map(file => dir + folder + '/' + file)
 }
 
-export async function loadData (task: Task): Promise<dataset.DataSplit> {
+export async function loadData (task: Task): Promise<data.DataSplit> {
   const dir = '../../example_training_data/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']

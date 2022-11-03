@@ -8,7 +8,7 @@ describe('tabular data checks', () => {
     features: task.trainingInformation.inputColumns,
     labels: task.trainingInformation.outputColumns
   }
-  const loader = new node.data_loader.NodeTabularLoader(task, ',')
+  const loader = new node.data.NodeTabularLoader(task, ',')
 
   it('throw an error on incorrectly formatted data', async () => {
     try {

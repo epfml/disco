@@ -1,25 +1,24 @@
 import { List } from 'immutable'
 
-import { tf, dataset, ModelActor, Task, Logger, Client, GraphInformant, Memory, ModelSource } from '..'
+import { tf, data, Task, Logger, Client, GraphInformant, Memory, ModelSource } from '..'
 
-export class Validator extends ModelActor {
+export class Validator {
   private readonly graphInformant = new GraphInformant()
   private size = 0
 
   constructor (
-    task: Task,
-    logger: Logger,
+    public readonly task: Task,
+    public readonly logger: Logger,
     private readonly memory: Memory,
     private readonly source?: ModelSource,
     private readonly client?: Client
   ) {
-    super(task, logger)
     if (source === undefined && client === undefined) {
       throw new Error('cannot identify model')
     }
   }
 
-  async assess (data: dataset.Data): Promise<void> {
+  async assess (data: data.Data): Promise<void> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('batch size is undefined')

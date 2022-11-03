@@ -1,4 +1,4 @@
-import { dataset, Task } from '..'
+import { data, Task } from '..'
 
 export const task: Task = {
   taskID: 'simple_face',
@@ -21,7 +21,7 @@ export const task: Task = {
     roundDuration: 1,
     validationSplit: 0.2,
     batchSize: 10,
-    preprocessingFunctions: [dataset.ImagePreprocessing.Normalize],
+    preprocessingFunctions: [data.ImagePreprocessing.Normalize],
     learningRate: 0.001,
     modelCompileData: {
       optimizer: 'sgd',

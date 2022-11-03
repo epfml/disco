@@ -25,7 +25,7 @@
       class="text-center py-6"
     >
       <CustomButton
-        @click="stopTraining()"
+        @click="pauseTraining()"
       >
         Stop <span v-if="distributedTraining">Collaborative Training</span><span v-else>Training</span>
       </CustomButton>
@@ -45,7 +45,7 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { browser, dataset, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from '@epfml/discojs'
+import { browser, data, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { getClient } from '@/clients'
@@ -64,7 +64,7 @@ export default defineComponent({
       default: undefined
     },
     datasetBuilder: {
-      type: dataset.DatasetBuilder,
+      type: data.DatasetBuilder,
       default: undefined
     }
   },
@@ -90,11 +90,13 @@ export default defineComponent({
     disco (): Disco {
       return new Disco(
         this.task,
-        this.$toast,
-        this.memory,
-        this.scheme,
-        this.trainingInformant,
-        this.client
+        {
+          logger: this.$toast,
+          memory: this.memory,
+          scheme: this.scheme,
+          informant: this.trainingInformant,
+          client: this.client
+        }
       )
     },
     scheme (): TrainingSchemes {
@@ -145,9 +147,8 @@ export default defineComponent({
       }
 
       try {
-        await this.client.connect()
         this.startedTraining = true
-        await this.disco.startTraining(this.dataset)
+        await this.disco.fit(this.dataset)
         this.startedTraining = false
       } catch (e) {
         this.$toast.error('An error occured during training')
@@ -159,8 +160,8 @@ export default defineComponent({
       this.distributedTraining = false
       this.startedTraining = false
     },
-    async stopTraining (): Promise<void> {
-      await this.disco.stopTraining()
+    async pauseTraining (): Promise<void> {
+      await this.disco.pause()
       this.isTraining = false
     }
   }

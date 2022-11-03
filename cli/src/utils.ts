@@ -1,16 +1,14 @@
-
-import {Server} from 'node:http'
-
+import { Server } from 'node:http'
 import fs from 'fs'
 
-import {client, Task, TrainerLog} from '@epfml/discojs-node'
+import { client, Task, TrainerLog } from '@epfml/discojs-node'
 
-import {getApp} from '../../server/src/get_server'
+import { getApp } from '../../server/src/get_server'
 
 // port to start server on
 const PORT: number | undefined = 5555
 
-export async function startServer(): Promise<Server> {
+export async function startServer (): Promise<Server> {
   const app = await getApp()
 
   const server = app.listen(PORT)
@@ -23,7 +21,7 @@ export async function startServer(): Promise<Server> {
   return server
 }
 
-export async function getClient<T extends client.Base>(
+export async function getClient<T extends client.Base> (
   Constructor: new (url: URL, t: Task) => T,
   server: Server,
   task: Task
@@ -45,7 +43,7 @@ export async function getClient<T extends client.Base>(
   return new Constructor(url, task)
 }
 
-export function saveLog(logs: TrainerLog[], fileName: string): void {
+export function saveLog (logs: TrainerLog[], fileName: string): void {
   const filePath = `./${fileName}`
   fs.writeFileSync(filePath, JSON.stringify(logs, null, 2))
 }

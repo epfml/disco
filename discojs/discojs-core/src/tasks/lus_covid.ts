@@ -1,5 +1,4 @@
-import { tf, Task } from '..'
-import { ImagePreprocessing } from '../dataset'
+import { tf, data, Task } from '..'
 
 export const task: Task = {
   taskID: 'lus_covid',
@@ -29,7 +28,7 @@ export const task: Task = {
     learningRate: 0.001,
     IMAGE_H: 100,
     IMAGE_W: 100,
-    preprocessingFunctions: [ImagePreprocessing.Resize],
+    preprocessingFunctions: [data.ImagePreprocessing.Resize],
     LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
     dataType: 'image',
     scheme: 'Decentralized',

@@ -110,7 +110,7 @@ import { defineComponent } from 'vue'
 import { RouterLink } from 'vue-router'
 import { mapStores } from 'pinia'
 
-import { browser, EmptyMemory, Memory, Path, Task, dataset } from '@epfml/discojs'
+import { browser, EmptyMemory, Memory, Path, Task, data } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
@@ -150,22 +150,22 @@ export default defineComponent({
     validationState (): boolean {
       return this.validationStore.state
     },
-    datasetBuilder (): dataset.DatasetBuilder<File> | undefined {
+    datasetBuilder (): data.DatasetBuilder<File> | undefined {
       if (this.task === undefined) {
         return undefined
       }
-      let dataLoader: dataset.DataLoader<File>
+      let dataLoader: data.DataLoader<File>
       switch (this.task.trainingInformation.dataType) {
         case 'tabular':
-          dataLoader = new browser.data_loader.WebTabularLoader(this.task, ',')
+          dataLoader = new browser.data.WebTabularLoader(this.task, ',')
           break
         case 'image':
-          dataLoader = new browser.data_loader.WebImageLoader(this.task)
+          dataLoader = new browser.data.WebImageLoader(this.task)
           break
         default:
           throw new Error('not implemented')
       }
-      return new dataset.DatasetBuilder(dataLoader, this.task)
+      return new data.DatasetBuilder(dataLoader, this.task)
     }
   },
   watch: {
