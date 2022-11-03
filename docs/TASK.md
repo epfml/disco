@@ -1,14 +1,18 @@
-# Custom Tasks
+# ML Tasks in Disco
 
-Disco.js currently provides several pre-defined popular tasks such as [Titanic](../discojs/discojs-core/src/tasks/titanic.ts), [CIFAR-10](../discojs/discojs-core/src/tasks/cifar10.ts), and [MNIST](../discojs/discojs-core/src/tasks/mnist.ts). In order to understand how to add your own custom task, we will go over how we would add a new task called `my_new_task` to Disco.js.
+Disco.js currently allows learning of arbitrary machine learning tasks, where tasks can be defined in three possible ways:
 
-## Bringing your model in DisCo.
+1. **Predefined tasks**: As examples, Disco already hosts several pre-defined popular tasks such as [Titanic](../discojs/discojs-core/src/tasks/titanic.ts), [CIFAR-10](../discojs/discojs-core/src/tasks/cifar10.ts), and [MNIST](../discojs/discojs-core/src/tasks/mnist.ts) among others. 
+2. New tasks defined via the [**task creation form**](https://epfml.github.io/disco/#/create), via the Disco web UI, without programming knowledge needed
+3. New **custom tasks**
 
-You must first bring your model to a TensorFlow JS format, consisting of a TensorFlow.js model file in a JSON format, and an optional weight file in .bin format if you are . To do so, you might need to define a new Task for your model.
+
+## Bringing your ML model to Disco
+
+To use an existing model in Disco, we first need to convert the model to a TensorFlow JS format, consisting of a TensorFlow.js model file in a JSON format for the neural network architecture, and an optional weight file in .bin format if you want to start from a particular initialization or a pretrained model.
 
 
-
-## My model is a Pytorch model, I want to have it on DisCo
+### My model is a PyTorch model, I want to bring it to Disco
 
 TensorflowJS provide a [simple conversion API](https://www.tensorflow.org/js/guide/conversion) to bring your PyTorch model to TensorFlowJS. You first need to convert your Pytorch model into a Keras model, which is a file stored as an HDF5 model with an .h5 extension, using the [following Pytorch-to-Keras model conversion tool](https://github.com/gmalivenko/pytorch2keras). To do so,
 ```python
@@ -32,17 +36,17 @@ Note that the following conversion is only possible in cases of models for which
 
 
 
-## Simple use case : Using the user interface directly for your task definition
-I am a user who wants to define my custom task and upload my model to Disco. For this use case, the .bin weight file is mandatory.
- - Through the user interface, click on the *create* button on "Add your own model to be trained in a DISCOllaborative"
+## 2) Simple use case: Using the user interface directly for creating a new task
+I am a user who wants to define my custom task and bring my model to Disco, without doing any programming. For this use case, the `.bin` weight file is mandatory.
+ - Through the Disco user interface, click on the *create* button on "Add your own model to be trained in a DISCOllaborative"
  - Fill in all the relevant information for your task and model
  - Upload the .json + .bin model in the *Model Files* box.
- Your task has been successfully uploaded.
+ Your task has been successfully instantiated.
 
 
-## Procedure
+## 3) Procedure for adding a custom task
 
-In order to add a new task to Disco.js, we first need to create and export a new instance of the `Task` class, defined [here](../discojs/discojs-core/src/task/task.ts).
+In order to add a new custom task to Disco.js, we first need to create and export a new instance of the `Task` class, defined [here](../discojs/discojs-core/src/task/task.ts).
 Then, we must also export a function called `model` that specifies a model architecture for the task.
 We have to remember to export the task and the function in the `index.ts` [file which lives in the same folder](../discojs/discojs-core/src/tasks/index.ts).
 Finally, we need to rebuild Disco.js: `cd discojs/ && npm run build`
@@ -60,7 +64,7 @@ In this case, your model and task will be uploaded and stored on our DISCO serve
 
 
 
-## Making the task visible to the API
+### Making the task visible to the API
 
 The [`Task`](../discojs/discojs-core/src/task/task.ts) interface is the first piece of the puzzle, this contains all the crucial information from training to mode.
 We start by creating a `my_new_task.ts` file and place it at the same path as the other tasks (currently this is under `discojs/discojs-core/src/tasks/`).
@@ -80,7 +84,7 @@ This ensure that the task is properly exposed and thus the server will also be a
 > Thus, if your task requires reading some file from your local file system, you need to define the task in `discojs-node` only: `discojs/discojs-node/src/tasks/my_new_task.ts`
 > In a similar fashion, tasks expecting to read from browser memory (such as IndexedDB or local storage) shall be defined in `discojs-web` instead: `discojs/discojs-web/src/tasks/my_new_task.ts`
 
-## Model
+### Model
 
 Start by creating a function in `my_new_task.ts` called `model` that returns the `tf.LayersModel`. In this example we programatically 
 define our model.
@@ -127,12 +131,12 @@ const MODEL_PATH = Map<string, string>()
 > If you are using a pre-existing model, and the data shape does not match the input of the model, then it is possible
 to use preprocessing functions to resize the data (we also describe how to add custom preprocessing).
 
-## Task
+### Task
 
 The `Task` class contains all the crucial information for training the model (batchSize, learningRate, ...) and also the 
 scheme of distributed learning (federated or decentralized), along with other meta data about the model and data.
 
-> In the appendix (end of this document) you find all possible trainingInformation paramters with a short description. 
+> In the appendix (end of this document) you find all possible [`TrainingInformation`](../discojs/src/task/training_information.ts) paramters with a short description. 
 
 As an example, the task class for `simple-face` can be found [here](../discojs/src/tasks/simple_face.ts), suppose
 our own task is a binary classification for age detection (similar to simple face), then we could write:
@@ -180,7 +184,7 @@ export const task: Task = {
 
 The `Task` interface has three fields: a mandatory `taskID` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/src/task/display_information.ts) and [`TrainingInformation`](../discojs/src/task/training_information.ts).
 
-### `model` function
+#### `model` function
 
 After exporting the task, you need to also export a function called `model` that returns the layers model. If you use a 
 pre-trained model, you can simply load and return said model in the function via `tf.loadLayersModel(modelPath)`.
@@ -196,11 +200,11 @@ export function model (): tf.LayersModel {
   return model
 ```
 
-### Export in `index.ts`
+#### Export in `index.ts`
 
 After adding the `simple_face.ts` task class, we also need to export it in the `index.ts` file which lives in the same folder.
 
-## Preprocessing
+### Preprocessing
 
 In the Task object we can optionally choose to add preprocessing functions. Preprocessing is defined [here](../discojs/src/dataset/preprocess.ts),
 and is currently only implemented for images (e.g. resize, normalize, ...).
@@ -216,7 +220,7 @@ export enum ImagePreprocessing {
 }
 ```
 
-### Rebuild
+#### Rebuild
 
 Then we define our custom function
 
@@ -280,7 +284,7 @@ export const task: Task = {
 
 ## Appendix
 
-The TrainingInformation contains 
+The [`TrainingInformation`](../discojs/src/task/training_information.ts) of a task contains the following customizable parameters
 
 ```js
 export interface TrainingInformation {
