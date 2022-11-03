@@ -7,6 +7,31 @@ Disco.js currently provides several pre-defined popular tasks such as [Titanic](
 You must first bring your model to a TensorFlow JS format, consisting of a TensorFlow.js model file in a JSON format, and an optional weight file in .bin format if you are . To do so, you might need to define a new Task for your model.
 
 
+
+## My model is a Pytorch model, I want to have it on DisCo
+
+TensorflowJS provide a [simple conversion API](https://www.tensorflow.org/js/guide/conversion) to bring your PyTorch model to TensorFlowJS. You first need to convert your Pytorch model into a Keras model, which is a file stored as an HDF5 model with an .h5 extension, using the [following Pytorch-to-Keras model conversion tool](https://github.com/gmalivenko/pytorch2keras). To do so,
+```python
+from pytorch2keras.converter import pytorch_to_keras
+my_pytorch_model = create_my_model()
+keras_model = pytorch_to_keras(my_pytorch_model, dummy_input_of_correct_size, verbose=True)
+keras_model.save("my_model_name.h5")
+```
+Then, given your keras model file, to convert it to a TensorflowJS compatible model :
+```bash
+$ tensorflowjs_converter --input_format=keras my_model_name.h5 /tfjs_model
+```
+
+Side Note : If you already have a Tensorflow saved model, the conversion to tensorflowJS is straightforward with the following command :
+```bash
+$ tensorflowjs_converter --input_format=tf_saved_model my_tensorflow_saved_model /tmp/tfjs_model
+```
+
+Following the tensorflowjs_converter command, you will recover two files : a .json describing your model architecture, and a collection of .bin files describing your model weights, which are ready to be uploaded on DisCo.
+Note that the following conversion is only possible in cases of models for which TensorFlow JS possesses the [corresponding modules](https://js.tensorflow.org/api/latest/).
+
+
+
 ## Simple use case : Using the user interface directly for your task definition
 I am a user who wants to define my custom task and upload my model to Disco. For this use case, the .bin weight file is mandatory.
  - Through the user interface, click on the *create* button on "Add your own model to be trained in a DISCOllaborative"
@@ -32,6 +57,7 @@ For the task creation, we consider the main use case which does not go through t
 **I am a developper who wants to define my own task**
 
 In this case, your model and task will be uploaded and stored on our DISCO servers. You will have to make the task visible to the API. For your custom model, the JSON model architecture is necessary, but the .bin weight file is optional : if you include the weights file, your model will be loaded with the passed weights. If a weights file is not specified, the weights for the model will be initialized randomly.
+
 
 
 ## Making the task visible to the API
@@ -242,7 +268,7 @@ export const task: Task = {
 
 - In ```disco/discojs/discojs-core/src/tasks/``` define your new custom task by instanciating a Task object, and define the async function ```model```. You will need to have your model in the .json + .bin format.
  - In ```disco/discojs/discojs-core/src/tasks/index.ts``` export your newly defined task
- - Run the ```./build.sh``` script from ```disco/discojs/discojs-core```
+ - Run the ```./build.sh``` script from ```discojs/discojs-core```
  - Reinstall cleanly the server by running ```npm ci``` from ```disco/server```
  - Reinstall cleanly the client by running ```npm ci``` from ```disco/web-client```
  - Instantiate a Disco server by running ```npm run dev``` from ```disco/server```
