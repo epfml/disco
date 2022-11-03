@@ -42,6 +42,7 @@
         <div
           v-for="section in [trainingInformation, privacyParameters, modelCompileData]"
           :key="section.id"
+          class="py-4 first:py-0 last:py-0"
         >
           <span class="text-slate-600 font-bold text-left">
             {{ section.title }}
@@ -53,17 +54,21 @@
             <div
               v-if="field.id in task.trainingInformation ||
                 field.id in task.trainingInformation.modelCompileData ||
-                displayField(section, field)"
+                displayField(section, field)
+              "
               class="grid grid-cols-3 gap-4"
             >
               <span>{{ field.name }}</span>
               <div class="col-span-2">
-                <span v-if="['trainingInformation', 'privacyParameters'].includes(section.id)">
-                  {{ prettifyField(field, task.trainingInformation) }}
+                <span>
+                  {{
+                    prettifyField(
+                      field,
+                      task.trainingInformation.modelCompileData,
+                      section.id === 'modelCompileData'
+                    )
+                  }}
                 </span>
-                <div v-else-if="section.id === 'modelCompileData'">
-                  <span>{{ prettifyField(field, task.trainingInformation.modelCompileData, true) }}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -101,7 +106,7 @@ const overviewText = computed(() => {
   return Object.values(props.task.displayInformation.summary).join('<br><br>')
 })
 
-const prettifyField = (field: FormField, from: any, camelCase: boolean = false): string => {
+const prettifyField = (field: FormField, from: any, camelCase: boolean): string => {
   const obj = from[field.id]
   const strCase = camelCase ? camelToTitleCase : titleCase
   switch (typeof obj) {

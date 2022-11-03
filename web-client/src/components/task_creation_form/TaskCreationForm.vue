@@ -21,7 +21,17 @@
                 v-for="field in section.fields"
                 :key="field.id"
               >
-                <div v-if="isFieldVisible(field, dataType, scheme)">
+                <div
+                  v-if="isFieldVisible(
+                    field,
+                    {
+                      dataType,
+                      scheme,
+                      decentralizedSecure,
+                      byzantineRobustAggregator
+                    }
+                  )"
+                >
                   <label
                     :for="field.id"
                     class="
@@ -56,6 +66,16 @@
                     v-else-if="field.id === 'scheme'"
                     v-model="scheme"
                     :field="field"
+                  />
+                  <CheckboxContainer
+                    v-else-if="field.id === 'decentralizedSecure'"
+                    :field="field"
+                    @clicked="setDecentralizedSecure($event)"
+                  />
+                  <CheckboxContainer
+                    v-else-if="field.id === 'byzantineRobustAggregator'"
+                    :field="field"
+                    @clicked="setByzantineRobustAggregator($event)"
                   />
                   <TextContainer
                     v-else-if="field.id === 'modelURL'"
@@ -139,7 +159,7 @@ import { Form as VeeForm, ErrorMessage } from 'vee-validate'
 
 import { serialization, tf } from '@epfml/discojs'
 
-import { sections, FormField, FormSection } from '@/task_creation_form'
+import { sections, modelCompileData, privacyParameters, FormField, FormSection } from '@/task_creation_form'
 import { useToaster } from '@/composables/toaster'
 import { CONFIG } from '@/config'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -162,16 +182,21 @@ const schemaData =
   Map(
     List(Object.values(sections))
       .flatMap((section) => List(section.fields)
-        .map((field) => [field.id, field.yup.label(field.name)] as [string, yup.AnySchema])
-      )
+        .map((field) =>
+          [field.id, field.yup.label(field.name)] as [string, yup.AnySchema]))
       .values()
   ).toObject()
 const schema = yup.object().shape(schemaData, [['modelURL', 'weightsFile'], ['modelURL', 'modelFile']])
 
 const dataType = ref('')
 const scheme = ref('')
+const decentralizedSecure = ref(false)
+const byzantineRobustAggregator = ref(false)
 const modelURL = ref('')
 const modelFiles = shallowRef(List<File>())
+
+const setDecentralizedSecure = (v: boolean) => { decentralizedSecure.value = v }
+const setByzantineRobustAggregator = (v: boolean) => { byzantineRobustAggregator.value = v }
 
 const formatSection = (section: FormSection, rawTask: any): any => {
   let fields = List(section.fields)
@@ -195,10 +220,17 @@ const formatSection = (section: FormSection, rawTask: any): any => {
     fields = fields
       .push(
         formatSection(
-          List(sections).filter((section) => section.id === 'modelCompileData').first(),
+          modelCompileData,
           rawTask
         )
       )
+      .push(
+        formatSection(
+          privacyParameters,
+          rawTask
+        )
+      )
+      // basically generalInformation, with the exception of taskID
       .push([
         'scheme',
         rawTask.scheme
@@ -220,7 +252,9 @@ const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
   toaster.success('Form validation succeeded! Uploading...')
 
   // format the flat form entries to a nested task object
-  const specialSections = ['generalInformation', 'modelCompileData', 'modelFiles']
+  const specialSections = [
+    'generalInformation', 'modelCompileData', 'privacyParamters', 'modelFiles'
+  ]
   const task = Map(
     List(sections)
       .filter((section) => !specialSections.includes(section.id))
@@ -255,16 +289,18 @@ const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
     })
 }
 
-const isFieldVisible = (field: FormField, dataType: string, scheme: string): boolean => {
+const isFieldVisible = (
+  field: FormField,
+  dependencies: Record<string, unknown>
+): boolean => {
   if (field.dependencies === undefined) {
     return true
   }
-  if ('dataType' in field.dependencies && field.dependencies.dataType === dataType) {
-    return true
+  for (const key of Object.keys(dependencies)) {
+    if (key in field.dependencies && field.dependencies[key] !== dependencies[key]) {
+      return false
+    }
   }
-  if ('scheme' in field.dependencies && field.dependencies.scheme === scheme) {
-    return true
-  }
-  return false
+  return true
 }
 </script>
