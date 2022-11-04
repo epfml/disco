@@ -11,6 +11,8 @@ nvm use
 cd discojs && npm ci
 cd discojs-node && npm run build
 cd ../..
+cd server && npm ci
+cd ..
 cd example && npm ci && npm start
 ```
 
