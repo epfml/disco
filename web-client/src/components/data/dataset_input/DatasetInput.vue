@@ -134,7 +134,7 @@
 import { computed, defineProps, ref } from 'vue'
 import * as d3 from 'd3'
 
-import { dataset, Task } from '@epfml/discojs'
+import { data, Task } from '@epfml/discojs'
 
 import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -142,7 +142,7 @@ import FileSelection from './FileSelection.vue'
 
 interface Props {
   task: Task
-  datasetBuilder: dataset.DatasetBuilder<File>
+  datasetBuilder: data.DatasetBuilder<File>
 }
 const props = defineProps<Props>()
 const csvRows = ref<{filename: string, label: string}[]>()

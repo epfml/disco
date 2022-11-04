@@ -51,7 +51,7 @@ describe('federated client', function () { // the tests container
     const client = await getClient(clients.federated.Client, server, TASK)
     await client.connect()
 
-    const ti = new informant.FederatedInformant(TASK.taskID, 0)
+    const ti = new informant.FederatedInformant(TASK, 0)
     await client.pullServerStatistics(ti)
 
     expect(ti.round()).to.be.greaterThanOrEqual(0) // Since the server you are running might have trained and round > 0

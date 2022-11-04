@@ -1,9 +1,9 @@
-import { TaskID } from '../../task'
+import { Task } from '../../task'
 import { Base } from '.'
 
 export class LocalInformant extends Base {
-  constructor (taskID: TaskID, nbrMessagesToShow: number) {
-    super(taskID, nbrMessagesToShow)
+  constructor (task: Task, nbrMessagesToShow?: number) {
+    super(task, nbrMessagesToShow)
 
     this.currentNumberOfParticipants = 1
     this.averageNumberOfParticipants = 1

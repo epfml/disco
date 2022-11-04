@@ -1,6 +1,6 @@
 import { List, Set } from 'immutable'
 
-import { TaskID } from '../../task'
+import { Task } from '../../task'
 import { GraphInformant } from '../graph_informant'
 
 export abstract class Base {
@@ -18,8 +18,8 @@ export abstract class Base {
   protected averageNumberOfParticipants = 0
 
   constructor (
-    public readonly taskID: TaskID,
-    private readonly nbrMessagesToShow: number
+    public readonly task: Task,
+    private readonly nbrMessagesToShow: number = 10
   ) {}
 
   abstract update (statistics: Record<string, number>): void

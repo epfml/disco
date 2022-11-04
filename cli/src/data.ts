@@ -1,25 +1,25 @@
-import {tf, dataset, Task} from '@epfml/discojs-node'
+import { tf, data, Task } from '@epfml/discojs-node'
 
 import fs from 'fs'
 import fs_promises from 'fs/promises'
 
 import path from 'node:path'
-import {Range} from 'immutable'
+import { Range } from 'immutable'
 
-class NodeImageLoader extends dataset.ImageLoader<string> {
-  async readImageFrom(source: string): Promise<tf.Tensor3D> {
+class NodeImageLoader extends data.ImageLoader<string> {
+  async readImageFrom (source: string): Promise<tf.Tensor3D> {
     const imageBuffer = fs.readFileSync(source)
-    let tensor = tf.node.decodeImage(imageBuffer)
+    const tensor = tf.node.decodeImage(imageBuffer)
     return tensor as tf.Tensor3D
   }
 }
 
-function filesFromFolder(dir: string, folder: string, fractionToKeep: number): string[] {
+function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
   const f = fs.readdirSync(dir + folder)
   return f.slice(0, Math.round(f.length * fractionToKeep)).map(file => dir + folder + '/' + file)
 }
 
-async function simplefaceData(task: Task): Promise<dataset.DataSplit> {
+async function simplefaceData (task: Task): Promise<data.DataSplit> {
   const dir = '../example_training_data/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']
@@ -43,26 +43,25 @@ async function simplefaceData(task: Task): Promise<dataset.DataSplit> {
   const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
   const files = filesPerFolder.flat()
 
-  return await new NodeImageLoader(task).loadAll(files, {labels: labels})
+  return await new NodeImageLoader(task).loadAll(files, { labels: labels })
 }
 
-async function cifar10Data(cifar10: Task): Promise<dataset.DataSplit> {
+async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
   const dir = '../example_training_data/CIFAR10/'
   const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
-  return await new NodeImageLoader(cifar10).loadAll(files, {labels: labels})
+  return await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 }
 
-class NodeTabularLoader extends dataset.TabularLoader<string> {
-  loadTabularDatasetFrom(source: string, csvConfig: Record<string, unknown>): tf.data.CSVDataset {
+class NodeTabularLoader extends data.TabularLoader<string> {
+  loadTabularDatasetFrom (source: string, csvConfig: Record<string, unknown>): tf.data.CSVDataset {
     console.log('loading!>>', source)
     return tf.data.csv(source, csvConfig)
   }
 }
 
-async function titanicData(titanic: Task): Promise<dataset.DataSplit> {
-
+async function titanicData (titanic: Task): Promise<data.DataSplit> {
   const dir = '../example_training_data/titanic.csv'
 
   // TODO: can load data, so path is right.
@@ -77,20 +76,17 @@ async function titanicData(titanic: Task): Promise<dataset.DataSplit> {
   ))
 
   return data
-
 }
 
-export async function getTaskData(task: Task) {
+export async function getTaskData (task: Task): Promise<data.DataSplit> {
   if (task.taskID === 'simple_face') {
-    return simplefaceData(task)
+    return await simplefaceData(task)
   }
   if (task.taskID === 'titanic') {
-    return titanicData(task)
+    return await titanicData(task)
   }
   if (task.taskID === 'cifar10') {
-    return cifar10Data(task)
+    return await cifar10Data(task)
   }
   throw Error(`Data loader for ${task.taskID} not implemented.`)
 }
-
-

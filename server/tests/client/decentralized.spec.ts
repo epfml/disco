@@ -42,7 +42,7 @@ function test (
           WeightsContainer.of(tf.tensor(2))
         )
 
-        const tis = users.map(() => new informant.DecentralizedInformant(TASK.taskID, 0))
+        const tis = users.map(() => new informant.DecentralizedInformant(TASK, 0))
 
         // wait for others to connect
         await new Promise((resolve) => setTimeout(resolve, 1_000))

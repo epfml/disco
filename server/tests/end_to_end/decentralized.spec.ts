@@ -4,13 +4,10 @@ import { Server } from 'node:http'
 import { Range } from 'immutable'
 
 import {
-  node, informant, Task, ConsoleLogger, training, TrainingSchemes,
-  EmptyMemory, tasks, client, WeightsContainer, aggregation
+  node, informant, Task, Disco, tasks, client as clients, WeightsContainer, aggregation
 } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
-
-const SCHEME = TrainingSchemes.DECENTRALIZED
 
 describe('end to end decentralized', function () {
   const epsilon: number = 0.001
@@ -24,11 +21,13 @@ describe('end to end decentralized', function () {
     server?.close()
   })
 
-  it('runs cifar 10 with three clear text decentralized users', async () =>
-    await Promise.all([cifar10User(false), cifar10User(false), cifar10User(false)]))
+  it('runs cifar 10 with three clear text decentralized users', async () => {
+    await Promise.all([cifar10User(false), cifar10User(false), cifar10User(false)])
+  })
 
-  it('runs cifar 10 with three secure decentralized users', async () =>
-    await Promise.all([cifar10User(true), cifar10User(true), cifar10User(true)]))
+  it('runs cifar 10 with three secure decentralized users', async () => {
+    await Promise.all([cifar10User(true), cifar10User(true), cifar10User(true)])
+  })
 
   async function cifar10User (secure: boolean): Promise<void> {
     const dir = '../example_training_data/CIFAR10/'
@@ -37,25 +36,14 @@ describe('end to end decentralized', function () {
 
     const cifar10: Task = tasks.cifar10.task
 
-    const loaded = await new node.data_loader.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+    const loaded = await new node.data.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 
-    let cli
-    if (secure) {
-      cli = await getClient(client.decentralized.SecAgg, server, cifar10)
-    } else {
-      cli = await getClient(client.decentralized.ClearText, server, cifar10)
-    }
-    await cli.connect()
+    const client = secure
+      ? await getClient(clients.decentralized.SecAgg, server, cifar10)
+      : await getClient(clients.decentralized.ClearText, server, cifar10)
 
-    const disco = new training.Disco(
-      cifar10,
-      new ConsoleLogger(),
-      new EmptyMemory(),
-      SCHEME,
-      new informant.DecentralizedInformant(cifar10.taskID, 10),
-      cli
-    )
-    await disco.startTraining(loaded)
+    const disco = new Disco(cifar10, { client })
+    await disco.fit(loaded)
   }
 
   it('decentralized client test one round of clear text weight aggregation', async () => {
@@ -73,19 +61,14 @@ describe('end to end decentralized', function () {
     the client will implement secure aggregation. If it is false, it will be a clear text client.
      */
   async function makeClient (input: number[], secure: boolean): Promise<WeightsContainer> {
-    const TASK = tasks.cifar10.task
-    let clientCurrent: client.Base
-    if (secure) {
-      clientCurrent = await getClient(client.decentralized.SecAgg, server, TASK)
-    } else {
-      clientCurrent = await getClient(client.decentralized.ClearText, server, TASK)
-    }
-    const weights = WeightsContainer.of(input)
     const cifar10 = tasks.cifar10.task
-    const taskID = cifar10.taskID
-    const trainingInformantCurrent = new informant.DecentralizedInformant(taskID, 0)
-    await clientCurrent.connect()
-    return await clientCurrent.onRoundEndCommunication(weights, weights, 0, trainingInformantCurrent)
+    const client = secure
+      ? await getClient(clients.decentralized.SecAgg, server, cifar10)
+      : await getClient(clients.decentralized.ClearText, server, cifar10)
+    const weights = WeightsContainer.of(input)
+    const trainingInformantCurrent = new informant.DecentralizedInformant(cifar10, 0)
+    await client.connect()
+    return await client.onRoundEndCommunication(weights, weights, 0, trainingInformantCurrent)
   }
 
   /*
@@ -110,5 +93,4 @@ describe('end to end decentralized', function () {
   async function testTimeOut (): Promise<WeightsContainer> {
     return await makeClient([4, 5, 6, 7], true)
   }
-}
-)
+})

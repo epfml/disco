@@ -1,6 +1,5 @@
-import { tf, Task } from '..'
+import { tf, data, Task } from '..'
 import { Range } from 'immutable'
-import { ImagePreprocessing } from '../dataset/data/preprocessing'
 
 export const task: Task = {
   taskID: 'geotags',
@@ -28,7 +27,7 @@ export const task: Task = {
     dataType: 'image',
     IMAGE_H: 224,
     IMAGE_W: 224,
-    preprocessingFunctions: [ImagePreprocessing.Resize],
+    preprocessingFunctions: [data.ImagePreprocessing.Resize],
     LABEL_LIST: Range(0, 140).map(String).toArray(),
     scheme: 'Federated',
     noiseScale: undefined,

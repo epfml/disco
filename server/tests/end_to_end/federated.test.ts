@@ -3,7 +3,7 @@ import path from 'node:path'
 import { Server } from 'node:http'
 import { Range } from 'immutable'
 
-import { node, ConsoleLogger, training, TrainingSchemes, informant, EmptyMemory, tasks, client as clients } from '@epfml/discojs-node'
+import { node, Disco, TrainingSchemes, tasks, client as clients } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
 
@@ -26,21 +26,14 @@ describe('end to end federated', function () {
 
     const cifar10 = tasks.cifar10.task
 
-    const data = await new node.data_loader.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+    const data = await new node.data.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 
     const client = await getClient(clients.federated.Client, server, cifar10)
     await client.connect()
 
-    const disco = new training.Disco(
-      cifar10,
-      new ConsoleLogger(),
-      new EmptyMemory(),
-      SCHEME,
-      new informant.DecentralizedInformant(cifar10.taskID, 10),
-      client
-    )
+    const disco = new Disco(cifar10, { scheme: SCHEME, client })
 
-    await disco.startTraining(data)
+    await disco.fit(data)
   }
 
   it('runs titanic with two users', async () =>
@@ -52,7 +45,7 @@ describe('end to end federated', function () {
     // TODO: can load data, so path is right.
     // console.log(await tf.data.csv('file://'.concat(dir)).toArray())
     const titanic = tasks.titanic.task
-    const data = await (new node.data_loader.NodeTabularLoader(titanic, ',').loadAll(
+    const data = await (new node.data.NodeTabularLoader(titanic, ',').loadAll(
       files,
       {
         features: titanic.trainingInformation.inputColumns,
@@ -62,17 +55,9 @@ describe('end to end federated', function () {
     ))
 
     const client = await getClient(clients.federated.Client, server, titanic)
-    await client.connect()
 
-    const disco = new training.Disco(
-      titanic,
-      new ConsoleLogger(),
-      new EmptyMemory(),
-      SCHEME,
-      new informant.FederatedInformant(titanic.taskID, 10),
-      client
-    )
+    const disco = new Disco(titanic, { scheme: SCHEME, client })
 
-    await disco.startTraining(data)
+    await disco.fit(data)
   }
 })

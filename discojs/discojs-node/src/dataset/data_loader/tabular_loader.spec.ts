@@ -8,7 +8,7 @@ const inputFiles = ['../../example_training_data/titanic_train.csv']
 describe('tabular loader', () => {
   it('loads a single sample', async () => {
     const titanic = tasks.titanic.task
-    const loaded = new node.data_loader.NodeTabularLoader(titanic, ',').loadAll(
+    const loaded = new node.data.NodeTabularLoader(titanic, ',').loadAll(
       inputFiles,
       {
         features: titanic.trainingInformation?.inputColumns,
@@ -33,7 +33,7 @@ describe('tabular loader', () => {
 
   it('shuffles samples', async () => {
     const titanic = tasks.titanic.task
-    const loader = new node.data_loader.NodeTabularLoader(titanic, ',')
+    const loader = new node.data.NodeTabularLoader(titanic, ',')
     const config = {
       features: titanic.trainingInformation?.inputColumns,
       labels: titanic.trainingInformation?.outputColumns,

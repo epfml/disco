@@ -5,7 +5,7 @@ import { tasks, node } from '@epfml/discojs-node'
 describe('image data checks', () => {
   const task = tasks.simple_face.task
   const dataConfig = { labels: ['dummy'] }
-  const loader = new node.data_loader.NodeImageLoader(task)
+  const loader = new node.data.NodeImageLoader(task)
 
   it('throw an error on incorrectly formatted data', async () => {
     try {

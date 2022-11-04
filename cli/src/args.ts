@@ -1,8 +1,7 @@
-// eslint-disable-file @typescript-eslint/prefer-ts-expect-error
-import {parse} from 'ts-command-line-args'
-import {Map} from 'immutable'
+import { parse } from 'ts-command-line-args'
+import { Map } from 'immutable'
 
-import {tasks, node, Task} from '@epfml/discojs-node'
+import { tasks, Task } from '@epfml/discojs-node'
 
 interface BenchmarkUnsafeArguments {
   task: string
@@ -18,23 +17,23 @@ const argExample = 'e.g. npm run benchmark -- -u 2 -e 3, runs 2 users for 3 epoc
 
 const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   {
-    // @ts-ignore
-    task: {type: String, alias: 't', description: 'Task', optional: true},
-    // @ts-ignore
-    numberOfUsers: {type: Number, alias: 'u', description: 'Number of users', optional: true},
-    // @ts-ignore
-    epochs: {type: Number, alias: 'e', description: 'Number of epochs', optional: true},
-    // @ts-ignore
-    roundDuration: {type: Number, alias: 'r', description: 'Round duration', optional: true},
-    // @ts-ignore
-    batchSize: {type: Number, alias: 'b', description: 'Round duration', optional: true},
-    // @ts-ignore
-    save: {type: Boolean, alias: 's', description: 'Save logs of benchmark', default: false},
-    help: {type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide'}
+    // @ts-expect-error
+    task: { type: String, alias: 't', description: 'Task', optional: true },
+    // @ts-expect-error
+    numberOfUsers: { type: Number, alias: 'u', description: 'Number of users', optional: true },
+    // @ts-expect-error
+    epochs: { type: Number, alias: 'e', description: 'Number of epochs', optional: true },
+    // @ts-expect-error
+    roundDuration: { type: Number, alias: 'r', description: 'Round duration', optional: true },
+    // @ts-expect-error
+    batchSize: { type: Number, alias: 'b', description: 'Round duration', optional: true },
+    // @ts-expect-error
+    save: { type: Boolean, alias: 's', description: 'Save logs of benchmark', default: false },
+    help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide' }
   },
   {
     helpArg: 'help',
-    headerContentSections: [{header: 'Disco benchmark', content: 'npm run benchmark -- [Options]\n' + argExample}]
+    headerContentSections: [{ header: 'Disco benchmark', content: 'npm run benchmark -- [Options]\n' + argExample }]
   }
 )
 
@@ -60,7 +59,7 @@ const roundDuration = unsafeArgs.roundDuration === undefined ? 10 : unsafeArgs.r
 const epochs = unsafeArgs.epochs === undefined ? 10 : unsafeArgs.epochs
 const batchSize = unsafeArgs.batchSize === undefined ? 10 : unsafeArgs.batchSize
 
-// Override training information 
+// Override training information
 if (task.trainingInformation !== undefined) {
   task.trainingInformation.batchSize = batchSize
   task.trainingInformation.roundDuration = roundDuration
@@ -85,5 +84,5 @@ export const args: BenchmarkArguments = {
   epochs,
   roundDuration,
   batchSize,
-  save: unsafeArgs.save,
+  save: unsafeArgs.save
 }
