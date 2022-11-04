@@ -21,9 +21,9 @@ ___
 :gear: **HOW DISCO WORKS**
 - DISCO has a *public model – private data* approach
 - Private and secure model updates – *not data* – are communicated to either:
-	- a central server : **FEDERATED** learning ( :star2: )
-	- directly between users : **DECENTRALIZED** learning ( :sparkles: ) i.e. no central coordination
-- Model updates are then aggregated into a trained model
+	- a central server : **federated** learning ( :star2: )
+	- directly between users : **decentralized** learning ( :sparkles: ) i.e. no central coordination
+- Model updates are then securely aggregated into a trained model
 - See more [HERE](https://epfml.github.io/disco/#/information)
 
 ___
@@ -40,7 +40,7 @@ DISCO aims to enable open-access and easy-use distributed training which is
 - :tornado: efficient ([R1](https://github.com/epfml/powergossip), [R2](https://github.com/epfml/ChocoSGD)) 
 - :lock: privacy-preserving ([R3](https://eprint.iacr.org/2017/281.pdf), [R4](https://arxiv.org/abs/2006.04747))
 - :hammer_and_wrench: fault-tolerant and dynamic over time ([R5](https://arxiv.org/abs/1910.12308))
-- :ninja:: robust to malicious actors and data poisoning ([R6](https://arxiv.org/abs/2012.10333), [R7](https://arxiv.org/abs/2006.09365))
+- :ninja: robust to malicious actors and data poisoning ([R6](https://arxiv.org/abs/2012.10333), [R7](https://arxiv.org/abs/2006.09365))
 - :apple: :banana: interpretable in imperfectly interoperable data distributions ([R8](https://arxiv.org/abs/2107.06580))
 - :mirror: personalizable  ([R9](https://arxiv.org/abs/2103.00710))
 - :carrot: fairly incentivizes participation
