@@ -8,6 +8,8 @@ export interface FormElement {
 export interface FormDependency {
   dataType?: string
   scheme?: string
+  byzantineRobustAggregator?: boolean
+  decentralizedSecure?: boolean
 }
 
 export interface FormField {
@@ -37,7 +39,7 @@ const otherReq = (req: any) => {
   }
 }
 
-const generalInformation: FormSection = {
+export const generalInformation: FormSection = {
   id: 'generalInformation',
   title: 'General Information',
   fields: [
@@ -50,7 +52,6 @@ const generalInformation: FormSection = {
       default: 'cifar10'
     },
     {
-
       id: 'dataType',
       name: 'Data Type',
       yup: yup.string().required(),
@@ -70,13 +71,13 @@ const generalInformation: FormSection = {
     }
   ]
 }
-const displayInformation: FormSection = {
+export const displayInformation: FormSection = {
   id: 'displayInformation',
-  title: 'Display Information',
+  title: 'Task & Model Description',
   fields: [
     {
       id: 'taskTitle',
-      name: 'Title',
+      name: 'Task Title',
       yup: yup.string().required(),
       as: 'input',
       type: 'text',
@@ -84,7 +85,7 @@ const displayInformation: FormSection = {
     },
     {
       id: 'preview',
-      name: 'Preview',
+      name: 'Task Preview',
       yup: yup.string(),
       as: 'textarea',
       type: 'text',
@@ -93,7 +94,7 @@ const displayInformation: FormSection = {
     },
     {
       id: 'overview',
-      name: 'Overview',
+      name: 'Task Overview',
       yup: yup.string(),
       as: 'textarea',
       type: 'text',
@@ -111,7 +112,7 @@ const displayInformation: FormSection = {
     },
     {
       id: 'tradeoffs',
-      name: 'Tradeoffs',
+      name: 'Model Tradeoffs',
       yup: yup.string(),
       as: 'textarea',
       type: 'text',
@@ -129,7 +130,8 @@ const displayInformation: FormSection = {
     },
     {
       id: 'dataExampleText',
-      name: 'Data Example Text',
+      name: 'Data Example Description',
+      description: 'Data Example: Description',
       yup: yup.string(),
       as: 'input',
       type: 'text',
@@ -139,6 +141,7 @@ const displayInformation: FormSection = {
     {
       id: 'dataExample',
       name: 'Data Example',
+      description: 'Data Example: CSV header and row',
       yup: yup
         .array()
         .of(
@@ -170,10 +173,11 @@ const displayInformation: FormSection = {
     {
       id: 'dataExampleImage',
       name: 'Data Example',
+      description: 'Data Example: Image (.jpg, .png)',
       yup: yup.string(),
       as: 'input',
       type: 'text',
-      default: './9-mnist-example.png',
+      default: 'https://example.com/your/example/image.jpg',
       dependencies: {
         dataType: 'image'
       }
@@ -181,9 +185,9 @@ const displayInformation: FormSection = {
   ]
 }
 
-const trainingInformation: FormSection = {
+export const trainingInformation: FormSection = {
   id: 'trainingInformation',
-  title: 'Training Information',
+  title: 'Training Parameters',
   fields: [
     {
       id: 'modelID',
@@ -203,7 +207,7 @@ const trainingInformation: FormSection = {
     },
     {
       id: 'validationSplit',
-      name: 'Validation split',
+      name: 'Validation Split',
       yup: yup.number().positive().lessThan(1).required(),
       as: 'input',
       type: 'float',
@@ -211,7 +215,7 @@ const trainingInformation: FormSection = {
     },
     {
       id: 'batchSize',
-      name: 'Batch size',
+      name: 'Batch Size',
       yup: yup.number().integer().positive().required(),
       as: 'input',
       type: 'number',
@@ -224,6 +228,21 @@ const trainingInformation: FormSection = {
       as: 'input',
       type: 'float',
       default: '0.05'
+    },
+    {
+      id: 'minimumReadyPeers',
+      name: 'Minimum # of Peers',
+      description: 'Minimum # of Ready Peers before Aggregation',
+      yup: yup
+        .number()
+        .integer()
+        .positive(),
+      as: 'input',
+      type: 'number',
+      default: '3',
+      dependencies: {
+        scheme: 'Decentralized'
+      }
     },
     {
       id: 'modelTrainData',
@@ -257,18 +276,7 @@ const trainingInformation: FormSection = {
       ]
     },
     {
-      id: 'receivedMessagesThreshold',
-      name: 'Received Messages Threshold',
-      yup: yup.number().when('scheme', otherReq('decentralized')),
-      as: 'input',
-      type: 'number',
-      default: '1',
-      dependencies: {
-        scheme: 'decentralized'
-      }
-    },
-    {
-      id: 'outputColumn',
+      id: 'outputColumns',
       name: 'Output Column',
       yup: yup.string().when('dataType', otherReq('tabular')),
       as: 'input',
@@ -279,7 +287,7 @@ const trainingInformation: FormSection = {
       }
     },
     {
-      id: 'inputColumn',
+      id: 'inputColumns',
       name: 'Input Column',
       yup: yup.array().of(yup.string()).min(1),
       as: 'input',
@@ -288,14 +296,6 @@ const trainingInformation: FormSection = {
       dependencies: {
         dataType: 'tabular'
       }
-    },
-    {
-      id: 'threshold',
-      name: 'Threshold',
-      yup: yup.number().integer().positive().required(),
-      as: 'input',
-      type: 'number',
-      default: '1'
     },
     {
       id: 'IMAGE_H',
@@ -326,41 +326,13 @@ const trainingInformation: FormSection = {
       as: 'input',
       type: 'array',
       default: '0'
-    },
-    {
-      id: 'LABEL_ASSIGNMENT',
-      name: 'List of labels',
-      yup: yup
-        .array()
-        .of(
-          yup
-            .object()
-            .shape({
-              stringLabel: yup.string().required().label('Label (string)'),
-              intLabel: yup.string().required().label('Label (int)')
-            })
-            .required()
-        )
-        .strict(),
-      as: 'input',
-      type: 'arrayObject',
-      elements: [
-        {
-          key: 'stringLabel',
-          default: 'airplane'
-        },
-        {
-          key: 'intLabel',
-          default: '1'
-        }
-      ]
     }
   ]
 }
 
-const modelCompileData: FormSection = {
+export const modelCompileData: FormSection = {
   id: 'modelCompileData',
-  title: 'Model Compile Data',
+  title: 'Model Compilation Parameters',
   fields: [
     {
       id: 'optimizer',
@@ -422,7 +394,76 @@ const modelCompileData: FormSection = {
   ]
 }
 
-const modelFiles: FormSection = {
+export const privacyParameters: FormSection = {
+  id: 'privacyParameters',
+  title: 'Privacy Parameters',
+  fields: [
+    {
+      id: 'noiseScale',
+      name: 'Noise Scale',
+      description: 'Differential Privacy: Noise Scale',
+      yup: yup.number().positive(),
+      as: 'input',
+      type: 'number'
+    },
+    {
+      id: 'clippingRadius',
+      name: 'Differential Privacy: Clipping Radius',
+      yup: yup.number().positive(),
+      as: 'input',
+      type: 'number'
+    },
+    {
+      id: 'decentralizedSecure',
+      name: 'Secure Aggregation',
+      yup: yup.string(),
+      as: 'input',
+      type: 'checkbox',
+      dependencies: {
+        scheme: 'decentralized'
+      }
+    },
+    {
+      id: 'maxShareValue',
+      name: 'Maximum Share Value',
+      description: 'Maximum Value of Shares used in Secure Aggregation',
+      yup: yup.number().integer().positive(),
+      as: 'input',
+      type: 'number',
+      default: '100',
+      dependencies: {
+        decentralizedSecure: true
+      }
+    },
+    {
+      id: 'byzantineRobustAggregator',
+      name: 'Byzantine-Robust Aggregation',
+      yup: yup.string(),
+      as: 'input',
+      type: 'checkbox',
+      dependencies: {
+        scheme: 'federated'
+      }
+    },
+    {
+      id: 'tauPercentile',
+      name: 'Tau Percentile',
+      description: 'Percentile of Trusted Users for Byzantine-Robust Aggregation',
+      yup: yup
+        .number()
+        .positive()
+        .lessThan(1)
+        .when('byzantineRobustAggregator', otherReq((value: string) => !!value)),
+      as: 'input',
+      type: 'number',
+      dependencies: {
+        byzantineRobustAggregator: true
+      }
+    }
+  ]
+}
+
+export const modelFiles: FormSection = {
   id: 'modelFiles',
   title: 'Model Files',
   fields: [
@@ -433,7 +474,7 @@ const modelFiles: FormSection = {
       type: 'text',
       yup: yup
         .string()
-        .when(['modelFile', 'weightsFile'], otherReq((value: string) => !value)),
+        .when(['modelFile', 'weightsFile'], otherReq((v: string) => !v)),
       default: 'https://example.com/model.json'
     },
     {
@@ -441,7 +482,7 @@ const modelFiles: FormSection = {
       name: 'Model File',
       description: 'Alternatively: Tensorflow.js Model in JSON format',
       type: 'file',
-      yup: yup.string().when('modelURL', otherReq((value: string) => !value)),
+      yup: yup.string().when('modelURL', otherReq((v: string) => !v)),
       extension: '.json',
       default: 'model.json'
     },
@@ -450,7 +491,7 @@ const modelFiles: FormSection = {
       name: 'Weights File',
       description: 'Alternatively: Initial Tensorflow.js Model Weights in .bin format',
       type: 'file',
-      yup: yup.string().when('modelURL', otherReq((value: string) => !value)),
+      yup: yup.string().when('modelURL', otherReq((v: string) => !v)),
       extension: '.bin',
       default: 'weights.bin'
     }
@@ -462,6 +503,7 @@ export const sections: FormSection[] = [
   displayInformation,
   trainingInformation,
   modelCompileData,
+  privacyParameters,
   modelFiles
 ]
 

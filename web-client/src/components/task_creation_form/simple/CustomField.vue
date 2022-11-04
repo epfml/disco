@@ -27,10 +27,6 @@ const props = defineProps({
     type: Object as () => FormField,
     required: true
   },
-  value: {
-    type: Boolean,
-    default: undefined
-  },
   rows: {
     type: Number,
     default: undefined

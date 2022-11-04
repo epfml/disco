@@ -1,12 +1,13 @@
 <template>
   <!-- Card to load a model-->
-  <a
-    v-if="workingModelExistsOnMount"
-    id="load-model"
-  >
+  <div v-if="workingModelExistsOnMount">
     <IconCard>
-      <template #title>Join training with a previous model</template>
-      <template #icon><Clock /></template>
+      <template #title>
+        Join training with a previous model
+      </template>
+      <template #icon>
+        <Clock />
+      </template>
       <template #content>
         <!-- Restore Model -->
         <div v-if="memoryStore.useIndexedDB && workingModelExists && !isModelCreated">
@@ -78,12 +79,8 @@
                   transition-colors
                   border
                   rounded-md
-                  hover:text-gray-900 hover:border-gray-900
+                  text-gray-900 border-gray-900
                 "
-              :class="{
-                'border-gray-900 text-gray-900 dark:border-primary-light dark:text-primary-100':
-                  !isDark,
-              }"
               @click="saveModel()"
             >
               <span>Save Model</span>
@@ -99,13 +96,8 @@
                   transition-colors
                   border
                   rounded-md
-                  hover:text-gray-900 hover:border-gray-900
+                  text-gray-900 border-gray-900
                 "
-              :class="{
-                'border-gray-900 text-gray-900':
-                  !isDark,
-                'text-gray-500': isDark,
-              }"
               @click="deleteModel()"
             >
               <span>Delete Model</span>
@@ -130,11 +122,13 @@
             FeAI cached the last model you were working on for you. Turn on
             the model library (see settings) to see additional options.
           </div>
-          <div v-else>The previous working model has been deleted.</div>
+          <div v-else>
+            The previous working model has been deleted.
+          </div>
         </div>
       </template>
     </IconCard>
-  </a>
+  </div>
 </template>
 
 <script lang="ts">
@@ -156,10 +150,6 @@ export default {
     CustomButton
   },
   props: {
-    id: {
-      type: String,
-      default: ''
-    },
     task: {
       validator: isTask,
       default: undefined
