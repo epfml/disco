@@ -28,11 +28,11 @@ jobs:
       - run: npx ts-node publish.ts
       # publish @epfml/discojs
       - run: npm publish --access public
-        working-diretory: discojs/discojs-web
+        working-directory: discojs/discojs-web
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       # publish @epfml/discojs-node
       - run: npm publish --access public
-        working-diretory: discojs/discojs-node
+        working-directory: discojs/discojs-node
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
