@@ -73,11 +73,11 @@ export const generalInformation: FormSection = {
 }
 export const displayInformation: FormSection = {
   id: 'displayInformation',
-  title: 'Display Information',
+  title: 'Task & Model Description',
   fields: [
     {
       id: 'taskTitle',
-      name: 'Title',
+      name: 'Task Title',
       yup: yup.string().required(),
       as: 'input',
       type: 'text',
@@ -85,7 +85,7 @@ export const displayInformation: FormSection = {
     },
     {
       id: 'preview',
-      name: 'Preview',
+      name: 'Task Preview',
       yup: yup.string(),
       as: 'textarea',
       type: 'text',
@@ -94,7 +94,7 @@ export const displayInformation: FormSection = {
     },
     {
       id: 'overview',
-      name: 'Overview',
+      name: 'Task Overview',
       yup: yup.string(),
       as: 'textarea',
       type: 'text',
@@ -112,7 +112,7 @@ export const displayInformation: FormSection = {
     },
     {
       id: 'tradeoffs',
-      name: 'Tradeoffs',
+      name: 'Model Tradeoffs',
       yup: yup.string(),
       as: 'textarea',
       type: 'text',
@@ -187,7 +187,7 @@ export const displayInformation: FormSection = {
 
 export const trainingInformation: FormSection = {
   id: 'trainingInformation',
-  title: 'Training Information',
+  title: 'Training Parameters',
   fields: [
     {
       id: 'modelID',
@@ -332,7 +332,7 @@ export const trainingInformation: FormSection = {
 
 export const modelCompileData: FormSection = {
   id: 'modelCompileData',
-  title: 'Model Compile Data',
+  title: 'Model Compilation Parameters',
   fields: [
     {
       id: 'optimizer',
