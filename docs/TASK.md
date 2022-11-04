@@ -9,30 +9,32 @@ Disco.js currently allows learning of arbitrary machine learning tasks, where ta
 
 ## Bringing your ML model to Disco
 
-To use an existing model in Disco, we first need to convert the model to a TensorFlow JS format, consisting of a TensorFlow.js model file in a JSON format for the neural network architecture, and an optional weight file in .bin format if you want to start from a particular initialization or a pretrained model.
+To use an existing model in Disco, we first need to convert the model to a TensorFlowJS format, consisting of a TensorFlowJS model file in a JSON format for the neural network architecture, and an optional weight file in .bin format if you want to start from a particular initialization or a pretrained model.
 
 
 ### My model is a PyTorch model, I want to bring it to Disco
 
-TensorflowJS provide a [simple conversion API](https://www.tensorflow.org/js/guide/conversion) to bring your PyTorch model to TensorFlowJS. You first need to convert your Pytorch model into a Keras model, which is a file stored as an HDF5 model with an .h5 extension, using the [following Pytorch-to-Keras model conversion tool](https://github.com/gmalivenko/pytorch2keras). To do so,
+TensorFlowJS provide a [simple conversion API](https://www.tensorflow.org/js/guide/conversion) to bring your PyTorch model to TensorFlowJS. You first need to convert your Pytorch model into a Keras model, which is a file stored as an HDF5 model with an .h5 extension, using the [following Pytorch-to-Keras model conversion tool](https://github.com/gmalivenko/pytorch2keras). To do so,
 ```python
 from pytorch2keras.converter import pytorch_to_keras
 my_pytorch_model = create_my_model()
 keras_model = pytorch_to_keras(my_pytorch_model, dummy_input_of_correct_size, verbose=True)
 keras_model.save("my_model_name.h5")
 ```
-Then, given your keras model file, to convert it to a TensorflowJS compatible model :
+Then, given your keras model file, to convert it to a TensorFlowJS model:
 ```bash
 $ tensorflowjs_converter --input_format=keras my_model_name.h5 /tfjs_model
 ```
 
-Side Note : If you already have a Tensorflow saved model, the conversion to tensorflowJS is straightforward with the following command :
+Side Note : If you already have a TensorFlow saved model, the conversion to TensorFlowJS is straightforward with the following command :
 ```bash
 $ tensorflowjs_converter --input_format=tf_saved_model my_tensorflow_saved_model /tmp/tfjs_model
 ```
 
-Following the tensorflowjs_converter command, you will recover two files : a .json describing your model architecture, and a collection of .bin files describing your model weights, which are ready to be uploaded on DisCo.
-Note that the following conversion is only possible in cases of models for which TensorFlow JS possesses the [corresponding modules](https://js.tensorflow.org/api/latest/).
+Make sure to convert to TF.js [LayersModel](https://www.tensorflow.org/js/guide/models_and_layers) (not GraphModel, as the latter are inferene only, so can not be trained).
+
+Following the `tensorflowjs_converter` command, you will recover two files : a .json describing your model architecture, and a collection of .bin files describing your model weights, which are ready to be uploaded on DisCo.
+Note that the following conversion is only possible in cases of models for which TensorFlowJS possesses the [corresponding modules](https://js.tensorflow.org/api/latest/).
 
 
 
