@@ -56,13 +56,12 @@ export class TasksAndModels extends EventEmitter {
         await model.save(`file://${modelPath}`)
 
         if (modelURL !== undefined && digest !== undefined) {
-          let weightsFiles: string | string[]
           try {
             const hash = createHash(digest.algorithm)
             const modelConfigRaw = fs.readFileSync(`${modelPath}/model.json`)
 
             const modelConfig = JSON.parse(modelConfigRaw.toString())
-            weightsFiles = modelConfig.weightsManifest[0].paths
+            const weightsFiles = modelConfig.weightsManifest[0].paths
             if (!(
               Array.isArray(weightsFiles) &&
               typeof weightsFiles[0] === 'string'
