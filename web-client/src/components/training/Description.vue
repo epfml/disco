@@ -58,15 +58,21 @@
               "
               class="grid grid-cols-3 gap-4"
             >
-              <span>{{ field.name }}</span>
+              <span>{{ field.description ?? field.name }}</span>
               <div class="col-span-2">
                 <span>
                   {{
-                    prettifyField(
-                      field,
-                      task.trainingInformation.modelCompileData,
-                      section.id === 'modelCompileData'
-                    )
+                    section.id === 'modelCompileData' ?
+                      prettifyField(
+                        field,
+                        task.trainingInformation.modelCompileData,
+                        true
+                      ) :
+                      prettifyField(
+                        field,
+                        task.trainingInformation,
+                        false
+                      )
                   }}
                 </span>
               </div>

@@ -372,7 +372,8 @@ export const modelCompileData: FormSection = {
     },
     {
       id: 'metrics',
-      name: 'Metrics (multiple can be selected)',
+      name: 'Metrics',
+      description: 'Metrics (multiple can be selected)',
       yup: yup.array().of(yup.string()).min(1).required(),
       type: 'select-multiple',
       options: [
@@ -408,7 +409,8 @@ export const privacyParameters: FormSection = {
     },
     {
       id: 'clippingRadius',
-      name: 'Differential Privacy: Clipping Radius',
+      name: 'Clipping Radius',
+      description: 'Differential Privacy: Clipping Radius',
       yup: yup.number().positive(),
       as: 'input',
       type: 'number'
