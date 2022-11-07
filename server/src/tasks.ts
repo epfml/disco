@@ -68,7 +68,7 @@ export class TasksAndModels extends EventEmitter {
             )) {
               throw new Error()
             }
-            weightsFiles.forEach((file) => {
+            weightsFiles.forEach((file: string) => {
               const data = fs.readFileSync(`${modelPath}/${file}`)
               hash.update(data)
             })
