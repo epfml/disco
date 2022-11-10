@@ -1,18 +1,35 @@
 import { assert, expect } from 'chai'
 import { List } from 'immutable'
 
-import { tf, tasks, node } from '@epfml/discojs-node'
+import { tf, node, Task } from '../../..'
 
 const inputFiles = ['../../example_training_data/titanic_train.csv']
 
+const titanicMock: Task = {
+  taskID: 'titanic',
+  displayInformation: {},
+  trainingInformation: {
+    inputColumns: [
+      'PassengerId',
+      'Age',
+      'SibSp',
+      'Parch',
+      'Fare',
+      'Pclass'
+    ],
+    outputColumns: [
+      'Survived'
+    ]
+  }
+} as unknown as Task
+
 describe('tabular loader', () => {
   it('loads a single sample', async () => {
-    const titanic = tasks.titanic.task
-    const loaded = new node.data.NodeTabularLoader(titanic, ',').loadAll(
+    const loaded = new node.data.NodeTabularLoader(titanicMock, ',').loadAll(
       inputFiles,
       {
-        features: titanic.trainingInformation?.inputColumns,
-        labels: titanic.trainingInformation?.outputColumns,
+        features: titanicMock.trainingInformation?.inputColumns,
+        labels: titanicMock.trainingInformation?.outputColumns,
         shuffle: false
       }
     )
@@ -32,7 +49,7 @@ describe('tabular loader', () => {
   })
 
   it('shuffles samples', async () => {
-    const titanic = tasks.titanic.task
+    const titanic = titanicMock
     const loader = new node.data.NodeTabularLoader(titanic, ',')
     const config = {
       features: titanic.trainingInformation?.inputColumns,

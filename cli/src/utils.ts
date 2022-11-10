@@ -3,15 +3,13 @@ import fs from 'fs'
 
 import { client, Task, TrainerLog } from '@epfml/discojs-node'
 
-import { getApp } from '../../server/src/get_server'
+import { runDefaultServer } from '../../server/src/get_server'
 
 // port to start server on
 const PORT: number | undefined = 5555
 
 export async function startServer (): Promise<Server> {
-  const app = await getApp()
-
-  const server = app.listen(PORT)
+  const server = await runDefaultServer(PORT)
 
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)

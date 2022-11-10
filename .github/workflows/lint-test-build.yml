@@ -94,7 +94,7 @@ jobs:
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
         working-directory: ${{ env.lib_node_dir }}
-      - run: npm ci
+      - run: npm ci && npm link ../discojs/discojs-node
       - run: npx eslint --max-warnings 0 .
       # TODO npx ts-standard
 
@@ -173,7 +173,7 @@ jobs:
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
         working-directory: ${{ env.lib_node_dir }}
-      - run: npm ci
+      - run: npm ci && npm link ../discojs/discojs-node
       - run: npm run build
 
   build-server-docker:
@@ -303,7 +303,7 @@ jobs:
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
         working-directory: ${{ env.lib_node_dir }}
-      - run: npm ci
+      - run: npm ci && npm link ../discojs/discojs-node
       - run: npm test
 
   test-web-client:

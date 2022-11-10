@@ -1,11 +1,11 @@
 import { expect } from 'chai'
 import * as http from 'http'
 
-import { client as clients, tasks, informant } from '@epfml/discojs-node'
+import { client as clients, informant, defaultTasks } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
 
-const TASK = tasks.titanic.task
+const TASK = defaultTasks.titanic.getTask()
 
 describe('federated client', function () { // the tests container
   this.timeout(30_000)

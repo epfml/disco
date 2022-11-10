@@ -1,15 +1,21 @@
 import { assert, expect } from 'chai'
 
-import { tasks, node } from '@epfml/discojs-node'
+import { ImageData } from './image_data'
+import { tf, Task } from '../..'
 
 describe('image data checks', () => {
-  const task = tasks.simple_face.task
-  const dataConfig = { labels: ['dummy'] }
-  const loader = new node.data.NodeImageLoader(task)
+  const simplefaceMock: Task = {
+    taskID: 'simpleface',
+    displayInformation: {},
+    trainingInformation: {
+      IMAGE_H: 200,
+      IMAGE_W: 200
+    }
+  } as unknown as Task
 
   it('throw an error on incorrectly formatted data', async () => {
     try {
-      await loader.loadAll(['../../example_training_data/9-mnist-example.png'], dataConfig)
+      await ImageData.init(tf.data.array([tf.zeros([150, 150, 3]), tf.zeros([150, 150, 3])]), simplefaceMock, 3)
     } catch (e) {
       expect(e).to.be.an.instanceOf(Error)
       return
@@ -19,6 +25,6 @@ describe('image data checks', () => {
   })
 
   it('do nothing on correctly formatted data', async () => {
-    await loader.loadAll(['../../example_training_data/simple_face-example.png'], dataConfig)
+    await ImageData.init(tf.data.array([tf.zeros([200, 200, 3]), tf.zeros([200, 200, 3])]), simplefaceMock, 3)
   })
 })

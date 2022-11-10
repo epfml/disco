@@ -1,6 +1,5 @@
-import { CONFIG } from './config'
-import { getApp } from './get_server'
+#!/usr/bin/env node
 
-getApp()
-  .then((app) => app.listen(CONFIG.serverPort))
-  .catch(console.error)
+import { runDefaultServer } from './get_server'
+
+void runDefaultServer()

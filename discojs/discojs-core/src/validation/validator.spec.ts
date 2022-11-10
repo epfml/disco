@@ -1,7 +1,20 @@
 import { assert } from 'chai'
 import fs from 'fs'
 
-import { tasks, node, Validator, ConsoleLogger, EmptyMemory, client, data } from '@epfml/discojs-node'
+import { Task, node, Validator, ConsoleLogger, EmptyMemory, client, data } from '@epfml/discojs-node'
+
+const simplefaceMock = {
+  taskID: 'simple_face',
+  displayInformation: {},
+  trainingInformation: {
+    modelID: 'simple_face-model',
+    batchSize: 1,
+    dataType: 'image',
+    IMAGE_H: 200,
+    IMAGE_W: 200,
+    LABEL_LIST: ['child', 'adult']
+  }
+} as unknown as Task
 
 describe('validator', () => {
   it('works for simple_face', async () => {
@@ -10,14 +23,14 @@ describe('validator', () => {
       .map((subdir: string) => fs.readdirSync(dir + subdir)
         .map((file: string) => dir + subdir + file))
 
-    const data: data.Data = (await new node.data.NodeImageLoader(tasks.simple_face.task)
+    const data: data.Data = (await new node.data.NodeImageLoader(simplefaceMock)
       .loadAll(files.flat(), { labels: files.flatMap((files, index) => Array(files.length).fill(index)) })).train
     const validator = new Validator(
-      tasks.simple_face.task,
+      simplefaceMock,
       new ConsoleLogger(),
       new EmptyMemory(),
       undefined,
-      new client.Local(new URL('http://localhost:8080'), tasks.simple_face.task))
+      new client.Local(new URL('http://localhost:8080'), simplefaceMock))
     await validator.assess(data)
     const size = data.size !== undefined ? data.size : -1
     if (size === -1) {
