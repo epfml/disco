@@ -25,7 +25,7 @@ COPY discojs/discojs-node/ discojs/discojs-node/
 RUN cd discojs/discojs-node/ && npm run build
 
 COPY server/package*.json server/
-RUN cd server/ && npm ci
+RUN cd server/ && npm ci && npm link ../discojs/discojs-node
 
 COPY server/ server/
 RUN cd server/ && npm run build

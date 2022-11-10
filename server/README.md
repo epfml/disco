@@ -116,10 +116,14 @@ For federated learning, the helper server receives all weight updates (but never
 
 The helper server is running as a single ExpressJS app. It mainly requires [Node](https://nodejs.org/en/), [Express](https://expressjs.com/), [PeerServer](https://github.com/peers/peerjs-server) and [Tensorflow](https://www.tensorflow.org/js).
 
+
+If you need to develop while making change to the discojs lib, you will need to link the local package. (So that you are not using a fixed remote version of Disco)
+
 To install the dependencies, run
 
 ```
 npm ci
+npm link ../discojs/discojs-node # If you need local lib for development
 ```
 
 This server also requires the [discojs](../discojs/README.md) package. Make sure `discojs` is *built* before proceeding to the next steps, by following the [discojs readme](../discojs/README.md).
