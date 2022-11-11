@@ -152,12 +152,11 @@
 
 <script lang="ts" setup>
 import * as yup from 'yup'
-import axios from 'axios'
 import { ref, shallowRef } from 'vue'
 import { List, Map } from 'immutable'
 import { Form as VeeForm, ErrorMessage } from 'vee-validate'
 
-import { serialization, tf } from '@epfml/discojs'
+import { tf, Task, pushTask } from '@epfml/discojs'
 
 import { sections, modelCompileData, privacyParameters, FormField, FormSection } from '@/task_creation_form'
 import { useToaster } from '@/composables/toaster'
@@ -261,10 +260,7 @@ const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
       .map((section) => formatSection(section, rawTask))
   )
     .set('taskID', rawTask.taskID)
-    .toObject()
-
-  const url = new URL('', CONFIG.serverUrl.href)
-  url.pathname += 'tasks'
+    .toObject() as unknown as Task
 
   let model: tf.LayersModel
   try {
@@ -275,18 +271,15 @@ const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
     return
   }
 
-  console.log(model)
-
-  axios
-    .post(url.href, { task, model: await serialization.model.encode(model) })
-    .then(() => {
-      toaster.success('Task successfully submitted')
-      resetForm()
-    })
-    .catch((error) => {
-      toaster.error('An error occured server-side')
-      console.error(error)
-    })
+  try {
+    await pushTask(CONFIG.serverUrl, task, model)
+  } catch (e) {
+    toaster.error('An error occured server-side')
+    console.error(e instanceof Error ? e.message : e.toString())
+    return
+  }
+  toaster.success('Task successfully submitted')
+  resetForm()
 }
 
 const isFieldVisible = (
