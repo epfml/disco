@@ -1,18 +1,9 @@
 import fs from 'fs'
 import Rand from 'rand-seed'
 
-import { tf, data, Task } from '@epfml/discojs-node'
+import { node, data, Task } from '@epfml/discojs-node'
 
 const rand = new Rand('1234')
-
-class NodeImageLoader extends data.ImageLoader<string> {
-  async readImageFrom (source: string): Promise<tf.Tensor3D> {
-    const imageBuffer = fs.readFileSync(source)
-    let tensor = tf.node.decodeImage(imageBuffer)
-    tensor = tensor.div(tf.scalar(255))
-    return tensor as tf.Tensor3D
-  }
-}
 
 function shuffle<T, U> (array: T[], arrayTwo: U[]): void {
   for (let i = array.length - 1; i > 0; i--) {
@@ -52,5 +43,5 @@ export async function loadData (task: Task): Promise<data.DataSplit> {
 
   shuffle(files, labels)
 
-  return await new NodeImageLoader(task).loadAll(files, { labels: labels })
+  return await new node.data.NodeImageLoader(task).loadAll(files, { labels: labels })
 }
