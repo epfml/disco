@@ -57,7 +57,7 @@ jobs:
           node-version: ${{ env.node_version }}
           registry-url: https://registry.npmjs.org
           cache: npm
-          cache-dependency-path: ${{ env.server }}/package-lock.json
+          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
 
       # build dist
       - run: npm ci
