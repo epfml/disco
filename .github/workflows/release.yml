@@ -2,7 +2,7 @@ name: release
 
 on:
   release:
-    types: [created]
+    types: [released]
 
 env:
   node_version: 16
