@@ -1,7 +1,7 @@
 import { List } from 'immutable'
-// import { assert, expect } from 'chai'
+import { assert } from 'chai'
 
-import { aggregation, WeightsContainer } from '../..'
+import { tf, aggregation, WeightsContainer } from '../..'
 import * as secret_shares from './secret_shares'
 
 const epsilon: number = 0.1
@@ -33,6 +33,19 @@ describe('secret shares test', function () {
     const expected = WeightsContainer.of([2, 2, 5, 1], [-10, 10])
     const result = toyExampleTest()
 
-    aggregation.assertWeightsEqual(expected, result, epsilon)
+    assertWeightsEqual(expected, result, epsilon)
   })
 })
+
+// TODO: implement equal in WeightsContainer
+export function assertWeightsEqual (w1: WeightsContainer, w2: WeightsContainer, epsilon: number = 0): void {
+  // Inefficient because we wait for each layer to completely load before we start loading the next layer
+  // when using tf.Tensor.dataSync() in a for loop. Could be made more efficient by using Promise.all().
+  // Not worth making more efficient, because this function is only used for testing, where tf.Tensors are small.
+  for (const t of w1.sub(w2).weights) {
+    assert.strictEqual(
+      tf.lessEqual(t.abs(), epsilon).all().dataSync()[0],
+      1
+    )
+  }
+}

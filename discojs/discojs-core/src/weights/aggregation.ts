@@ -1,5 +1,4 @@
 import { List } from 'immutable'
-import { assert } from 'chai'
 
 import { tf } from '..'
 import { TensorLike, WeightsContainer } from './weights_container'
@@ -79,17 +78,4 @@ export function avgClippingWeights (peersWeights: Iterable<WeightsLike | Weights
 
   // Aggregating all centered clipped peers weights
   return avg(centeredMean)
-}
-
-// TODO: implement equal in WeightsContainer
-export function assertWeightsEqual (w1: WeightsContainer, w2: WeightsContainer, epsilon: number = 0): void {
-  // Inefficient because we wait for each layer to completely load before we start loading the next layer
-  // when using tf.Tensor.dataSync() in a for loop. Could be made more efficient by using Promise.all().
-  // Not worth making more efficient, because this function is only used for testing, where tf.Tensors are small.
-  for (const t of w1.sub(w2).weights) {
-    assert.strictEqual(
-      tf.lessEqual(t.abs(), epsilon).all().dataSync()[0],
-      1
-    )
-  }
 }
