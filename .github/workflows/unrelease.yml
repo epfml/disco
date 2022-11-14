@@ -1,5 +1,9 @@
 name: unrelease
 
+on:
+  push:
+    branches: non-existing-branch
+
 env:
   node_version: 16
 
