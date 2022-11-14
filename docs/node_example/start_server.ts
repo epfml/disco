@@ -1,21 +1,20 @@
-import * as http from 'http'
+import http from 'node:http'
 
-import { getApp } from '@epfml/disco-server'
+import { Disco } from '@epfml/disco-server'
 
-/*  We start a server locally for this self-contained example; in practice the server
-  *  would be run elsewhere.
-  */
-export async function startServer (): Promise<[http.Server, string]> {
-  const app = await getApp()
-  const server = http.createServer(app).listen()
+export async function startServer (): Promise<[http.Server, URL]> {
+  const disco = new Disco()
+  await disco.addDefaultTasks()
+
+  const server = disco.serve(8000)
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
     server.once('error', reject)
     server.on('error', console.error)
   })
-  const rawAddr = server.address()
 
   let addr: string
+  const rawAddr = server.address()
   if (rawAddr === null) {
     throw new Error('unable to get server address')
   } else if (typeof rawAddr === 'string') {
@@ -30,5 +29,5 @@ export async function startServer (): Promise<[http.Server, string]> {
     throw new Error('unable to get address to server')
   }
 
-  return [server, addr]
+  return [server, new URL('', `http://${addr}`)]
 }

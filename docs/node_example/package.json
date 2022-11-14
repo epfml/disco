@@ -11,7 +11,8 @@
   "dependencies": {
     "@epfml/disco-server": "file:../../server",
     "@epfml/discojs-node": "file:../../discojs/discojs-node",
-    "rand-seed": "1"
+    "rand-seed": "1",
+    "tslib": "2"
   },
   "devDependencies": {
     "ts-node": "10"
