@@ -1,8 +1,6 @@
 name: unrelease
 
-on:
-  push:
-    branches: non-existing-branch
+on: workflow_dispatch
 
 env:
   node_version: 16
