@@ -12,7 +12,7 @@ env:
 
 jobs:
 
-  push-tag-and-npm-publish:
+  publish-and-tag:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -54,14 +54,13 @@ jobs:
         run: npx ts-node publish.ts
         working-directory: server
 
-      - name: Create version commit and tag
+      - name: Create version branch
         run: |
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'bot@users.noreply.github.com'
-          git commit -am "v${{ inputs.version }}"
-          git tag -a "v${{ inputs.version }}" -m "disco: v${{ inputs.version }}"
-          git push
-          git push --tags
+          git switch -c branch-v${{ inputs.version }}
+          git commit -am "publish v${{ inputs.version }}"
+          git push -u origin branch-v${{ inputs.version }}
 
       - name: Write dependencies for @epfml/discojs and @epfml/discojs-node
         run: npx ts-node publish.ts
@@ -84,3 +83,14 @@ jobs:
         working-directory: server
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create version commit and tag
+        run: |
+          npm i @epfml/discojs-node
+          git switch branch-v${{ inputs.version }}
+          git add package-lock.json
+          git commit -m "v${{ inputs.version }}"
+          git tag -a "v${{ inputs.version }}" -m "disco: v${{ inputs.version }}"
+          git push
+          git push origin v${{ inputs.version }}
+        working-directory: server
