@@ -59,27 +59,28 @@ jobs:
           git config --global user.name 'GitHub Action Bot'
           git config --global user.email 'bot@users.noreply.github.com'
           git commit -am "v${{ inputs.version }}"
-          git tag -a "v${{ inputs.version }}" -m "disco: v${{ inputs.version }}}"
-          git tag
+          git tag -a "v${{ inputs.version }}" -m "disco: v${{ inputs.version }}"
+          git push
+          git push --tags
 
       - name: Write dependencies for @epfml/discojs and @epfml/discojs-node
         run: npx ts-node publish.ts
         working-directory: discojs
 
       - name: Publish @epfml/discojs
-        run: npm publish --dry-run
+        run: npm publish --access public
         working-directory: discojs/discojs-web
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @epfml/discojs-node
-        run: npm publish --dry-run
+        run: npm publish --access public
         working-directory: discojs/discojs-node
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @epfml/disco-server
-        run: npm publish --dry-run
+        run: npm publish --access public
         working-directory: server
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
