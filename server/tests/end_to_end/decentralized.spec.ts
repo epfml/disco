@@ -4,10 +4,11 @@ import { Server } from 'node:http'
 import { Range } from 'immutable'
 
 import {
-  node, informant, Task, Disco, client as clients, WeightsContainer, aggregation, defaultTasks
+  node, informant, Task, Disco, client as clients, WeightsContainer, defaultTasks
 } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
+import { assertWeightsEqual } from '../../../discojs/discojs-core/src/weights/aggregation.spec'
 
 describe('end to end decentralized', function () {
   const epsilon: number = 0.001
@@ -81,13 +82,13 @@ describe('end to end decentralized', function () {
     const client2 = makeClient([0.002, 5, 30, 11], secure)
     const client3 = makeClient([0.003, 13, 11, 12], secure)
     const result = await Promise.all([client1, client2, client3])
-    aggregation.assertWeightsEqual(result[0], expected, epsilon)
+    assertWeightsEqual(result[0], expected, epsilon)
   }
 
   it('decentralized secure client testing timout', async () => {
     const result = await testTimeOut()
     const expected = WeightsContainer.of([4, 5, 6, 7])
-    aggregation.assertWeightsEqual(expected, result, epsilon)
+    assertWeightsEqual(expected, result, epsilon)
   })
 
   async function testTimeOut (): Promise<WeightsContainer> {
