@@ -30,10 +30,11 @@ export const useMemoryStore = defineStore('memory', () => {
     const models = await tf.io.listModels()
     for (const path in models) {
       // eslint-disable-next-line no-unused-vars
-      const [location, _, directory, task, name] = path.split('/')
+      const [location, _, directory, task, fullName] = path.split('/')
       if (location !== 'indexeddb:') {
         continue
       }
+      const [name, version] = fullName.split('@')
 
       const metadata = models[path]
       const date = new Date(metadata.dateSaved)
@@ -59,7 +60,8 @@ export const useMemoryStore = defineStore('memory', () => {
         type: directory === 'working' ? ModelType.WORKING : ModelType.SAVED,
         date: dateSaved,
         hours: hourSaved,
-        fileSize: Math.round(size / 1024)
+        fileSize: Math.round(size / 1024),
+        version: version !== undefined ? Number(version) : 0
       })
     }
   }
