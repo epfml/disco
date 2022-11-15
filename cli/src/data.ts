@@ -1,18 +1,9 @@
-import { tf, data, Task } from '@epfml/discojs-node'
-
-import fs from 'fs'
-import fs_promises from 'fs/promises'
-
-import path from 'node:path'
 import { Range } from 'immutable'
+import fs from 'node:fs'
+import fs_promises from 'fs/promises'
+import path from 'node:path'
 
-class NodeImageLoader extends data.ImageLoader<string> {
-  async readImageFrom (source: string): Promise<tf.Tensor3D> {
-    const imageBuffer = fs.readFileSync(source)
-    const tensor = tf.node.decodeImage(imageBuffer)
-    return tensor as tf.Tensor3D
-  }
-}
+import { tf, node, data, Task } from '@epfml/discojs-node'
 
 function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
   const f = fs.readdirSync(dir + folder)
@@ -43,7 +34,7 @@ async function simplefaceData (task: Task): Promise<data.DataSplit> {
   const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
   const files = filesPerFolder.flat()
 
-  return await new NodeImageLoader(task).loadAll(files, { labels: labels })
+  return await new node.data.NodeImageLoader(task).loadAll(files, { labels: labels })
 }
 
 async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
@@ -51,7 +42,7 @@ async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
   const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
-  return await new NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+  return await new node.data.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
 }
 
 class NodeTabularLoader extends data.TabularLoader<string> {
