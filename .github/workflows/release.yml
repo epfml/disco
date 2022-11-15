@@ -1,21 +1,19 @@
-name: release
+name: publish
 
 on:
-  release:
-    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
 
 env:
   node_version: 16
-  discojs_dir: discojs
-  server_dir: server
 
 jobs:
 
-  discojs-release:
+  push-tag-and-npm-publish:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.discojs_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -23,47 +21,65 @@ jobs:
           node-version: ${{ env.node_version }}
           registry-url: https://registry.npmjs.org
           cache: npm
-          cache-dependency-path: ${{ env.discojs_dir }}/package-lock.json
+          cache-dependency-path: |
+            discojs/package-lock.json
+            server/package-lock.json
 
-      # build dists
-      - run: npm ci
-      - run: npm run build
+      - name: Build @epfml/discojs and @epfml/discojs-node
+        run: |
+          npm ci
+          npm run build
+        working-directory: discojs
 
-      # copy dependencies from discojs to discojs/discojs-node and discojs/discojs-web
-      - run: npx ts-node publish.ts
+      - name: Build @epfml/disco-server
+        run: |
+          npm ci
+          npm link ../discojs/discojs-node
+          npm run build
+        working-directory: server
 
-      # publish dist to @epfml/discojs
-      - run: npm publish --access public
-        working-directory: ${{ env.discojs_dir }}/discojs-web
+      - name: Bump the @epfml/discojs version
+        run: npm version ${{ inputs.version }}
+        working-directory: discojs/discojs-web
+
+      - name: Bump the @epfml/discojs-node version
+        run: npm version ${{ inputs.version }}
+        working-directory: discojs/discojs-node
+
+      - name: Bump the @epfml/disco-server version
+        run: npm version ${{ inputs.version }}
+        working-directory: server
+
+      - name: Bump @epfml/disco-server dependency to @epfml/discojs-node
+        run: npx ts-node publish.ts
+        working-directory: server
+
+      - name: Create version commit and tag
+        run: |
+          git config --global user.name 'GitHub Action Bot'
+          git config --global user.email 'bot@users.noreply.github.com'
+          git commit -am "v${{ inputs.version }}"
+          git tag -a "v${{ inputs.version }}" -m "disco: v${{ inputs.version }}}"
+          git tag
+
+      - name: Write dependencies for @epfml/discojs and @epfml/discojs-node
+        run: npx ts-node publish.ts
+        working-directory: discojs
+
+      - name: Publish @epfml/discojs
+        run: npm publish --dry-run
+        working-directory: discojs/discojs-web
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # publish dist to @epfml/discojs-node
-      - run: npm publish --access public
-        working-directory: ${{ env.discojs_dir }}/discojs-node
+      - name: Publish @epfml/discojs-node
+        run: npm publish --dry-run
+        working-directory: discojs/discojs-node
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  server-release:
-    runs-on: ubuntu-latest
-    needs: discojs-release
-    defaults:
-      run:
-        working-directory: ${{ env.server_dir }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.node_version }}
-          registry-url: https://registry.npmjs.org
-          cache: npm
-          cache-dependency-path: ${{ env.server_dir }}/package-lock.json
-
-      # build dist
-      - run: npm ci
-      - run: npm run build
-
-      # publish dist to @epfml/disco-server
-      - run: npm publish --access public
+      - name: Publish @epfml/disco-server
+        run: npm publish --dry-run
+        working-directory: server
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,6 +1,6 @@
 {
   "name": "@epfml/disco-server",
-  "version": "2.1.0",
+  "version": "2.0.0",
   "main": "dist/index.js",
   "bin": {
     "disco-server": "./dist/run_server.js"
@@ -16,7 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epfml/discojs-node": "^2.1.0",
+    "@epfml/discojs-node": "^2.0.0",
     "@koush/wrtc": "0.5",
     "cors": "2",
     "express": "4",

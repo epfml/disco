@@ -20,5 +20,5 @@ discojsNode.dependencies = nodeDeps
   .delete('@tensorflow/tfjs')
   .toObject()
 
-fs.writeFile(DISCOJS_WEB, JSON.stringify(discojsWeb, null, 2), (err) => { console.log(err) })
-fs.writeFile(DISCOJS_NODE, JSON.stringify(discojsNode, null, 2), (err) => { console.log(err) })
+fs.writeFile(DISCOJS_WEB, JSON.stringify(discojsWeb, null, 2) + '\n', console.error)
+fs.writeFile(DISCOJS_NODE, JSON.stringify(discojsNode, null, 2) + '\n', console.error)
