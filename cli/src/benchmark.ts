@@ -1,8 +1,8 @@
 import { Range } from 'immutable'
-import { Server } from 'node:http'
-import { tf, client as clients, Disco, TrainingSchemes, TrainerLog } from '@epfml/discojs-node'
 
-import { startServer, getClient, saveLog } from './utils'
+import { Disco, TrainingSchemes, TrainerLog, data, Task } from '@epfml/discojs-node'
+
+import { startServer, saveLog } from './utils'
 import { getTaskData } from './data'
 import { args } from './args'
 
@@ -14,13 +14,10 @@ console.log(infoText)
 
 console.log({ args })
 
-async function runUser (server: Server): Promise<TrainerLog> {
-  const data = await getTaskData(TASK)
-
+async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<TrainerLog> {
   // force the federated scheme
   const scheme = TrainingSchemes.FEDERATED
-  const client = await getClient(clients.federated.Client, server, TASK)
-  const disco = new Disco(TASK, { scheme, client })
+  const disco = new Disco(task, { scheme, url })
 
   console.log('runUser>>>>')
   await disco.fit(data)
@@ -30,12 +27,12 @@ async function runUser (server: Server): Promise<TrainerLog> {
 }
 
 async function main (): Promise<void> {
-  await tf.ready()
-  console.log(`Loaded ${tf.getBackend()} backend`)
-  const server = await startServer()
+  const [server, serverUrl] = await startServer()
+
+  const data = await getTaskData(TASK)
 
   const logs = await Promise.all(
-    Range(0, NUMBER_OF_USERS).map(async (_) => await runUser(server)).toArray()
+    Range(0, NUMBER_OF_USERS).map(async (_) => await runUser(TASK, serverUrl, data)).toArray()
   )
 
   if (args.save) {
