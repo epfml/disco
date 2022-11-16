@@ -23,8 +23,12 @@ export class Empty extends Memory {
     // nothing to do
   }
 
-  async saveWorkingModel (): Promise<void> {
-    // nothing to do
+  async saveWorkingModel (): Promise<undefined> {
+    return undefined
+  }
+
+  async saveModel (): Promise<undefined> {
+    return undefined
   }
 
   async deleteModel (): Promise<void> {
@@ -41,5 +45,9 @@ export class Empty extends Memory {
 
   infoFor (): ModelInfo {
     throw new Error('empty')
+  }
+
+  async duplicateSource (): Promise<undefined> {
+    return undefined
   }
 }

@@ -9,6 +9,7 @@ export type Path = string
 
 export interface ModelInfo {
   type?: ModelType
+  version?: number
   taskID: TaskID
   name: string
 }
@@ -26,7 +27,9 @@ export abstract class Memory {
 
   abstract updateWorkingModel (source: ModelSource, model: tf.LayersModel): Promise<void>
 
-  abstract saveWorkingModel (source: ModelSource): Promise<void>
+  abstract saveWorkingModel (source: ModelSource): Promise<Path | undefined>
+
+  abstract saveModel (source: ModelSource, model: tf.LayersModel): Promise<Path | undefined>
 
   abstract downloadModel (source: ModelSource): Promise<void>
 
@@ -35,4 +38,6 @@ export abstract class Memory {
   abstract pathFor (source: ModelSource): Path | undefined
 
   abstract infoFor (source: ModelSource): ModelInfo | undefined
+
+  abstract duplicateSource (source: ModelSource): Promise<ModelInfo | undefined>
 }
