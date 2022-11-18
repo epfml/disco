@@ -48,7 +48,10 @@
                 @click="openTesting(path)"
               >
                 <span>
-                  {{ metadata.name.substring(0, 16) }} <br>
+                  {{ metadata.name.slice(0, 16) }}
+                  <span v-if="metadata.version !== undefined && metadata.version !== 0">
+                    ({{ metadata.version }})
+                  </span><br>
                   <span class="text-xs">
                     {{ metadata.date }} at {{ metadata.hours }} <br>
                     {{ metadata.fileSize }} kB
@@ -153,6 +156,7 @@ export default defineComponent({
       if (modelInfo.type !== ModelType.WORKING) {
         try {
           await this.memory.loadModel(path)
+          await this.memoryStore.initModels()
         } catch (e) {
           console.log(e.message)
           this.$toast.error('Error')

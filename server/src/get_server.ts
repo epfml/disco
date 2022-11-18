@@ -44,20 +44,21 @@ export class Disco {
     app.use('/', baseRouter.router)
 
     const server = app.listen(port ?? CONFIG.serverPort, () => {
-      console.log(`listening on port ${CONFIG.serverPort}`)
+      console.log(`Disco Server listening on ${CONFIG.serverUrl.href}`)
     })
 
-    console.info('Disco server initially loaded these tasks:')
+    console.info('Disco Server initially loaded the tasks below\n')
     console.table(
       Array.from(this.tasksAndModels.tasksAndModels).map(t => {
         return {
-          'Task id': t[0].taskID,
+          ID: t[0].taskID,
           Title: t[0].displayInformation.taskTitle,
-          'Data type': t[0].trainingInformation.dataType,
-          Epochs: t[0].trainingInformation.epochs
+          'Data Type': t[0].trainingInformation.dataType,
+          Scheme: t[0].trainingInformation.scheme
         }
       })
     )
+    console.log()
 
     return server
   }

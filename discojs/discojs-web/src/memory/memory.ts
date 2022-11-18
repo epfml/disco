@@ -6,6 +6,7 @@
  * folder via the model library. The working/ folder is only used by the backend.
  * The working model is loaded from IndexedDB for training (model.fit) only.
  */
+import { Map } from 'immutable'
 import path from 'path'
 
 import { tf, Memory, ModelType, Path, ModelInfo, ModelSource } from '..'
@@ -19,16 +20,25 @@ export class IndexedDB extends Memory {
     if (source.type === undefined || source.taskID === undefined || source.name === undefined) {
       throw new TypeError('source incomplete')
     }
-    return 'indexeddb://' + path.join(source.type, source.taskID, source.name)
+
+    const version = (source.version === undefined || source.version === 0)
+      ? ''
+      : source.version
+
+    return `indexeddb://${path.join(source.type, source.taskID, source.name)}@${version}`
   }
 
   infoFor (source: ModelSource): ModelInfo {
     if (typeof source !== 'string') {
       return source
     }
-    const [stringType, taskID, name] = source.split('/').splice(2)
+    const [stringType, taskID, fullName] = source.split('/').splice(2)
+
     const type = stringType === 'working' ? ModelType.WORKING : ModelType.SAVED
-    return { type, taskID, name }
+
+    const [name, versionSuffix] = fullName.split('@')
+    const version = versionSuffix === undefined ? 0 : Number(versionSuffix)
+    return { type, taskID, name, version }
   }
 
   async getModelMetadata (source: ModelSource): Promise<tf.io.ModelArtifactsInfo | undefined> {
@@ -49,9 +59,14 @@ export class IndexedDB extends Memory {
   }
 
   async loadModel (source: ModelSource): Promise<void> {
+    const src = this.infoFor(source)
+    if (src.type === ModelType.WORKING) {
+      // Model is already loaded
+      return
+    }
     await tf.io.copyModel(
-      this.pathFor(source),
-      this.pathFor({ ...this.infoFor(source), type: ModelType.WORKING })
+      this.pathFor(src),
+      this.pathFor({ ...src, type: ModelType.WORKING, version: 0 })
     )
   }
 
@@ -63,24 +78,37 @@ export class IndexedDB extends Memory {
   async updateWorkingModel (source: ModelSource, model: tf.LayersModel): Promise<void> {
     const src: ModelInfo = this.infoFor(source)
     if (src.type !== undefined && src.type !== ModelType.WORKING) {
-      throw new TypeError('expected working model')
+      throw new Error('expected working model')
     }
-    await model.save(this.pathFor({ ...src, type: ModelType.WORKING }))
+    // Enforce version 0 to always keep a single working model at a time
+    await model.save(this.pathFor({ ...src, type: ModelType.WORKING, version: 0 }))
   }
 
   /**
  * Creates a saved copy of the working model corresponding to the source.
  * @param source the source
  */
-  async saveWorkingModel (source: ModelSource): Promise<void> {
+  async saveWorkingModel (source: ModelSource): Promise<Path> {
     const src: ModelInfo = this.infoFor(source)
     if (src.type !== undefined && src.type !== ModelType.WORKING) {
-      throw new TypeError('expected working model')
+      throw new Error('expected working model')
     }
+    const dst = this.pathFor(await this.duplicateSource({ ...src, type: ModelType.SAVED }))
     await tf.io.copyModel(
       this.pathFor({ ...src, type: ModelType.WORKING }),
-      this.pathFor({ ...src, type: ModelType.SAVED })
+      dst
     )
+    return dst
+  }
+
+  async saveModel (source: ModelSource, model: tf.LayersModel): Promise<Path> {
+    const src: ModelInfo = this.infoFor(source)
+    if (src.type !== undefined && src.type !== ModelType.SAVED) {
+      throw new Error('expected saved model')
+    }
+    const dst = this.pathFor(await this.duplicateSource({ ...src, type: ModelType.SAVED }))
+    await model.save(dst)
+    return dst
   }
 
   /**
@@ -93,5 +121,41 @@ export class IndexedDB extends Memory {
       this.pathFor(source),
       `downloads://${src.taskID}_${src.name}`
     )
+  }
+
+  async latestDuplicate (source: ModelSource): Promise<number | undefined> {
+    if (typeof source !== 'string') {
+      source = this.pathFor({ ...source, version: 0 })
+    }
+
+    // perform a single memory read
+    const paths = Map(await tf.io.listModels())
+
+    if (!paths.has(source)) {
+      return undefined
+    }
+
+    const latest = Map(paths)
+      .keySeq()
+      .toList()
+      .map((p) => this.infoFor(p).version)
+      .max()
+
+    if (latest === undefined) {
+      return 0
+    }
+
+    return latest
+  }
+
+  async duplicateSource (source: ModelSource): Promise<ModelInfo> {
+    const latestDuplicate = await this.latestDuplicate(source)
+    source = this.infoFor(source)
+
+    if (latestDuplicate === undefined) {
+      return source
+    }
+
+    return { ...source, version: latestDuplicate + 1 }
   }
 }
