@@ -5,6 +5,11 @@ import { tf, data, Task, Logger, Client, GraphInformant, Memory, ModelSource, Fe
 export class Validator {
   private readonly graphInformant = new GraphInformant()
   private size = 0
+  private hits = 0
+  private classes = 1
+  private preds = List<number>()
+  private labels = List<number>()
+  private _confusionMatrix: number[][] | undefined
 
   constructor (
     public readonly task: Task,
@@ -26,7 +31,7 @@ export class Validator {
     }
   }
 
-  async assess (data: data.Data): Promise<Array<{groundTruth: number, pred: number, features: Features}>> {
+  async assess (data: data.Data, useConfusionMatrix?: boolean): Promise<Array<{groundTruth: number, pred: number, features: Features}>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('batch size is undefined')
@@ -61,16 +66,34 @@ export class Validator {
 
         hits += List(pred).zip(List(ys)).filter(([p, y]) => p === y).size
 
-        const currentAccuracy = hits / this.size
+        // TODO: Confusion Matrix stats
+
+        const currentAccuracy = this.hits / this.size
         this.graphInformant.updateAccuracy(currentAccuracy)
       } else {
-        throw new TypeError('missing feature/label in dataset')
+        throw new Error('missing feature/label in dataset')
       }
     })
-    this.logger.success(`Obtained validation accuracy of ${this.accuracy()}`)
-    this.logger.success(`Visited ${this.visitedSamples()} samples`)
+    this.logger.success(`Obtained validation accuracy of ${this.accuracy}`)
+    this.logger.success(`Visited ${this.visitedSamples} samples`)
 
-    return List(groundTruth).zip(List(predictions)).zip(List(features)).map(([[gt, p], f]) => ({ groundTruth: gt, pred: p, features: f })).toArray()
+    if (useConfusionMatrix) {
+      try {
+        this._confusionMatrix = tf.math.confusionMatrix(
+          this.labels.toArray(),
+          this.preds.toArray(),
+          this.classes
+        ).arraySync()
+      } catch (e: any) {
+        console.error(e instanceof Error ? e.message : e.toString())
+        throw new Error('Failed to compute the confusion matrix')
+      }
+    }
+
+    return List(groundTruth)
+      .zip(List(predictions), List(features))
+      .map(([gt, p, f]) => ({ groundTruth: gt, pred: p, features: f }))
+      .toArray()
   }
 
   async predict (data: data.Data): Promise<number[]> {
@@ -99,15 +122,19 @@ export class Validator {
     throw new Error('cannot identify model')
   }
 
-  accuracyData (): List<number> {
+  get accuracyData (): List<number> {
     return this.graphInformant.data()
   }
 
-  accuracy (): number {
+  get accuracy (): number {
     return this.graphInformant.accuracy()
   }
 
-  visitedSamples (): number {
+  get visitedSamples (): number {
     return this.size
+  }
+
+  get confusionMatrix (): number[][] | undefined {
+    return this._confusionMatrix
   }
 }
