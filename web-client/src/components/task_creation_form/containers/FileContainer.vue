@@ -24,7 +24,7 @@
               /></svg><span class="block text-gray-400 font-normal">Drag and drop your file anywhere or</span>
             <span class="block text-gray-400 font-normal">or</span>
             <label
-              :for="`hidden_${field.id}`"
+              :for="`hidden_${props.field.id}`"
               class="
                 block
                 font-normal
@@ -36,22 +36,22 @@
                 bg-slate-100
                 focus:outline-none
               "
-              :class="available ? 'hover:cursor-pointer hover:text-disco-cyan' : 'hover:cursor-not-allowed'"
+              :class="props.available ? 'hover:cursor-pointer hover:text-disco-cyan' : 'hover:cursor-not-allowed'"
             >select file</label>
             <VeeField
-              :id="field.id"
+              :id="props.field.id"
               v-model="fileName"
-              :name="field.id"
+              :name="props.field.id"
               hidden
             />
             <input
               :id="`hidden_${field.id}`"
-              :accept="field.extension"
-              :disable="!available"
+              :accept="props.field.extension"
+              :disable="!props.available"
               type="file"
               class="h-full w-full"
               multiple
-              :disabled="!available"
+              :disabled="!props.available"
               hidden
               @change="onChange"
             >
@@ -62,7 +62,7 @@
     <div
       class="flex justify-between items-center text-gray-400"
     >
-      <span>Accepted file type: {{ field.extension }} only</span>
+      <span>Accepted file type: {{ props.field.extension }} only</span>
       <span class="flex items-center"><i class="fa fa-lock mr-1" /> secure</span>
     </div>
   </div>
@@ -75,7 +75,7 @@ import { Field as VeeField } from 'vee-validate'
 import { HTMLInputEvent } from '@/types'
 import { FormField } from '@/task_creation_form'
 
-const { field, available = true } = defineProps({
+const props = defineProps({
   field: {
     type: Object as () => FormField,
     required: true

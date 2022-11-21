@@ -1,0 +1,11 @@
+{
+    "name": "disco-workspace",
+    "workspaces": [
+      "discojs",
+      "discojs/discojs-web",
+      "discojs/discojs-node",
+      "cli",
+      "web-client",
+      "server"
+    ]
+  }

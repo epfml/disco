@@ -153,7 +153,7 @@ const requireLabels = computed(
 )
 
 const cannotUploadFiles = computed(
-  () => requireLabels && !csvRows.value
+  () => requireLabels.value && !csvRows.value
 )
 
 const readCsv = (files: FileList) => {

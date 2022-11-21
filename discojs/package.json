@@ -27,7 +27,7 @@
     "tslib": "2",
     "url": "0.11",
     "uuid": "8",
-    "ws": "8"
+    "ws": "7"
   },
   "devDependencies": {
     "@epfml/discojs-node": "file:./discojs-node",
