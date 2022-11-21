@@ -42,9 +42,10 @@
                   class="contents"
                 >
                   <ButtonCard
-                    :click="() => selectModel(path)"
                     :button-placement="'left'"
                     class="shadow shadow-disco-cyan"
+                    @action="() => selectModel(path, false)"
+                    @alt-action="() => selectModel(path, true)"
                   >
                     <template #title>
                       {{ taskTitle(metadata.taskID) }}
@@ -74,6 +75,9 @@
                     </template>
                     <template #button>
                       Test model
+                    </template>
+                    <template #altButton>
+                      Inference model
                     </template>
                   </ButtonCard>
                 </div>
@@ -163,10 +167,18 @@
         <Data
           :task="currentTask"
           :dataset-builder="datasetBuilder"
+          :is-inference="validationStore.isInference"
         />
       </div>
       <!-- 2. TEST YOUR MODEL -->
+      <Predictor
+        v-if="validationStore.isInference"
+        v-show="validationStore.step === 2"
+        :task="currentTask"
+        :dataset-builder="datasetBuilder"
+      />
       <Validator
+        v-else
         v-show="validationStore.step === 2"
         :task="currentTask"
         :dataset-builder="datasetBuilder"
@@ -190,6 +202,7 @@ import { useToaster } from '@/composables/toaster'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Data from '@/components/data/Data.vue'
 import Validator from '@/components/validation/Validator.vue'
+import Predictor from '@/components/validation/Predictor.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 
@@ -231,7 +244,7 @@ const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
 
 watch(stateRef, () => {
   if (validationStore.model !== undefined) {
-    selectModel(validationStore.model)
+    selectModel(validationStore.model, false)
   }
 })
 watch(stepRef, async (v) => {
@@ -244,7 +257,7 @@ onMounted(async () => {
   await memoryStore.initModels()
   // can't watch before mount
   if (validationStore.model !== undefined) {
-    selectModel(validationStore.model)
+    selectModel(validationStore.model, false)
   }
 })
 onActivated(async () => {
@@ -262,12 +275,13 @@ const downloadModel = async (task: Task): Promise<void> => {
   await memory.value.saveModel(source, model)
   await memoryStore.initModels()
 }
-const selectModel = (path: Path): void => {
+const selectModel = (path: Path, isInference: boolean): void => {
   const selectedTask = tasksStore.tasks.get(memory.value.infoFor(path)?.taskID)
   if (selectedTask !== undefined) {
     currentTask.value = selectedTask
     validationStore.model = path
     validationStore.step = 1
+    validationStore.isInference = isInference
   } else {
     toaster.error('Model not found')
   }

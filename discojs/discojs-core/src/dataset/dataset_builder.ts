@@ -5,16 +5,20 @@ import { DataConfig, DataLoader } from './data_loader/data_loader'
 export class DatasetBuilder<Source> {
   private readonly task: Task
   private readonly dataLoader: DataLoader<Source>
-  private sources: Source[]
+  private _sources: Source[]
   private readonly labelledSources: Map<string, Source[]>
   private built: boolean
 
   constructor (dataLoader: DataLoader<Source>, task: Task) {
     this.dataLoader = dataLoader
     this.task = task
-    this.sources = []
+    this._sources = []
     this.labelledSources = new Map()
     this.built = false
+  }
+
+  get sources (): Source[] {
+    return this._sources
   }
 
   addFiles (sources: Source[], label?: string): void {
@@ -22,7 +26,7 @@ export class DatasetBuilder<Source> {
       this.resetBuiltState()
     }
     if (label === undefined) {
-      this.sources = this.sources.concat(sources)
+      this._sources = this._sources.concat(sources)
     } else {
       const currentSources = this.labelledSources.get(label)
       if (currentSources === undefined) {
@@ -38,7 +42,7 @@ export class DatasetBuilder<Source> {
       this.resetBuiltState()
     }
     if (label === undefined) {
-      this.sources = []
+      this._sources = []
     } else {
       this.labelledSources.delete(label)
     }
@@ -64,19 +68,30 @@ export class DatasetBuilder<Source> {
 
   async build (config?: DataConfig): Promise<DataSplit> {
     // Require that at leat one source collection is non-empty, but not both
-    if ((this.sources.length > 0) === (this.labelledSources.size > 0)) {
+    if ((this._sources.length > 0) === (this.labelledSources.size > 0)) {
       throw new Error('Please provide dataset input files')
     }
 
     let dataTuple: DataSplit
-    if (this.sources.length > 0) {
-      // Labels are contained in the given sources
-      const defaultConfig = {
-        features: this.task.trainingInformation.inputColumns,
-        labels: this.task.trainingInformation.outputColumns,
-        ...config
+    if (this._sources.length > 0) {
+      let defaultConfig: DataConfig = {}
+
+      if (config?.inference) {
+        // Inferring model, no labels needed
+        defaultConfig = {
+          shuffle: false,
+          ...config
+        }
+      } else {
+        // Labels are contained in the given sources
+        defaultConfig = {
+          features: this.task.trainingInformation.inputColumns,
+          labels: this.task.trainingInformation.outputColumns,
+          ...config
+        }
       }
-      dataTuple = await this.dataLoader.loadAll(this.sources, defaultConfig)
+
+      dataTuple = await this.dataLoader.loadAll(this._sources, defaultConfig)
     } else {
       // Labels are inferred from the file selection boxes
       const defaultConfig = {
@@ -96,6 +111,6 @@ export class DatasetBuilder<Source> {
   }
 
   size (): number {
-    return Math.max(this.sources.length, this.labelledSources.size)
+    return Math.max(this._sources.length, this.labelledSources.size)
   }
 }

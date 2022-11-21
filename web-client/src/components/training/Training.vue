@@ -30,6 +30,7 @@
       v-show="trainingStore.step === 2"
       :task="task"
       :dataset-builder="datasetBuilder"
+      :is-inference="false"
     />
     <Trainer
       v-show="trainingStore.step === 3"
