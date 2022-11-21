@@ -3,8 +3,8 @@
     <!-- test the model -->
     <ButtonCard
       class="mx-auto mt-10 lg:w-1/2"
-      :click="assessModel"
       :button-placement="'center'"
+      @action="assessModel()"
     >
       <template #title>
         Test & validate your model

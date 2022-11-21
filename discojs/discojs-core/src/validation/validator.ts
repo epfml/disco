@@ -55,6 +55,20 @@ export class Validator {
     this.logger.success(`Visited ${this.visitedSamples()} samples`)
   }
 
+  async predict (data: data.Data): Promise<number[]> {
+    const batchSize = this.task.trainingInformation?.batchSize
+    if (batchSize === undefined) {
+      throw new TypeError('batch size is undefined')
+    }
+
+    const model = await this.getModel()
+    const predictions: number[] = []
+
+    await data.dataset.batch(batchSize).forEachAsync(e => predictions.push(...Array.from((model.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor).argMax(1).dataSync())))
+
+    return predictions
+  }
+
   async getModel (): Promise<tf.LayersModel> {
     if (this.source !== undefined && await this.memory.contains(this.source)) {
       return await this.memory.getModel(this.source)
