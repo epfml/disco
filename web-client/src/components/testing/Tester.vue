@@ -161,6 +161,76 @@
         </div>
       </div>
     </div>
+    <div
+      v-if="validator?.confusionMatrix !== undefined"
+      class="flex flex-col space-y-8"
+    >
+      <IconCard
+        class="w-full lg:w-3/5 mx-auto"
+      >
+        <template #title>
+          Confusion Matrix ({{ numberOfClasses }}x{{ numberOfClasses }})
+        </template>
+        <template #content>
+          <table class="auto border-collapse w-full">
+            <thead>
+              <tr>
+                <td />
+                <td
+                  v-for="(_, i) in validator.confusionMatrix"
+                  :key="i"
+                  class="
+                      text-center text-disco-cyan text-lg font-normal
+                      p-3 border-l-2 border-disco-cyan
+                    "
+                >
+                  {{ task.trainingInformation.LABEL_LIST[i] }}
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(row, i) in validator.confusionMatrix"
+                :key="i"
+              >
+                <th class="text-center text-disco-cyan text-lg font-normal border-t-2 border-disco-cyan">
+                  {{ task.trainingInformation.LABEL_LIST[i] }}
+                </th>
+                <td
+                  v-for="(predictions, j) in row"
+                  :key="j"
+                  class="text-center text-lg p-3 border-l-2 border-t-2 border-disco-cyan"
+                >
+                  {{ predictions }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
+      </IconCard>
+      <IconCard
+        v-if="numberOfClasses === 2"
+        class="w-full lg:w-3/5 mx-auto"
+      >
+        <template #title>
+          Evaluation Metrics
+        </template>
+        <template #content>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <h3 class="font-bold">
+                Sensitivity
+              </h3><span>{{ validator.confusionMatrix[0] }}</span>
+            </div>
+            <div>
+              <h3 class="font-bold">
+                Specificity
+              </h3><span>{{ validator.confusionMatrix[1] }}</span>
+            </div>
+          </div>
+        </template>
+      </IconCard>
+    </div>
   </div>
 </template>
 <script lang="ts" setup>
@@ -209,20 +279,24 @@ const dataWithPred = ref<DataWithPrediction[]>(null)
 const validator = ref<Validator>(undefined)
 const mapModalUrl = ref<string>(null)
 
-const isImageTaskType = computed<boolean>(() => props.task.trainingInformation.dataType === 'image')
-const isPolygonMapVisualization = computed<boolean>(() => props.task.displayInformation.labelDisplay.labelType === LabelTypeEnum.POLYGON_MAP)
+const numberOfClasses = computed<number>(() =>
+  props.task.trainingInformation.LABEL_LIST?.length ?? 2)
+const isImageTaskType = computed<boolean>(() =>
+  props.task.trainingInformation.dataType === 'image')
+const isPolygonMapVisualization = computed<boolean>(() =>
+  props.task.displayInformation.labelDisplay.labelType === LabelTypeEnum.POLYGON_MAP)
 
 const memory = computed<Memory>(() => useIndexedDB ? new browser.IndexedDB() : new EmptyMemory())
 const accuracyData = computed<number[]>(() => {
-  const r = validator.value?.accuracyData()
+  const r = validator.value?.accuracyData
   return r !== undefined ? r.toArray() : [0]
 })
 const currentAccuracy = computed<string>(() => {
-  const r = validator.value?.accuracy()
+  const r = validator.value?.accuracy
   return r !== undefined ? (r * 100).toFixed(2) : '0'
 })
 const visitedSamples = computed<number>(() => {
-  const r = validator.value?.visitedSamples()
+  const r = validator.value?.visitedSamples
   return r !== undefined ? r : 0
 })
 
