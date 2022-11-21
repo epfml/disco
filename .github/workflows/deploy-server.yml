@@ -23,13 +23,11 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            discojs/package-lock.json
-            server/package-lock.json
+            package-lock.json
 
       - run: npm ci
-        working-directory: discojs
-      - run: npm run build
-        working-directory: discojs/discojs-node
+
+      - run: npm -w discojs/discojs-node run build
 
       - name: authenticate-to-google-cloud
         uses: "google-github-actions/auth@v0"

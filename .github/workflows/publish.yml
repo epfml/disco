@@ -22,37 +22,19 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: npm
           cache-dependency-path: |
-            discojs/package-lock.json
-            server/package-lock.json
+            package-lock.json
 
-      - name: Build @epfml/discojs and @epfml/discojs-node
-        run: |
-          npm ci
-          npm run build
-        working-directory: discojs
-
-      - name: Build @epfml/disco-server
-        run: |
-          npm ci
-          npm link ../discojs/discojs-node
-          npm run build
-        working-directory: server
-
-      - name: Bump the @epfml/discojs version
-        run: npm version ${{ inputs.version }}
+      - name: Bump the lib and server version
+        run: npm -w @epfml/discojs-node -w @epfml/discojs -w @epfml/disco-server version ${{ inputs.version }}
         working-directory: discojs/discojs-web
 
-      - name: Bump the @epfml/discojs-node version
-        run: npm version ${{ inputs.version }}
-        working-directory: discojs/discojs-node
+      - name: Bump lib dependencies in server
+        run: npm -w @epfml/disco-server install @epfml/discojs-node@^${{ inputs.version }} --save
 
-      - name: Bump the @epfml/disco-server version
-        run: npm version ${{ inputs.version }}
-        working-directory: server
-
-      - name: Bump @epfml/disco-server dependency to @epfml/discojs-node
-        run: npx ts-node publish.ts
-        working-directory: server
+      - name: Build @epfml/discojs, @epfml/discojs-node and @epfml/discojs-server
+        run: |
+          npm ci
+          npm -w discojs -w server run build
 
       - name: Create version branch
         run: |

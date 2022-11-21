@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run lint
@@ -54,7 +54,7 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run lint
@@ -70,7 +70,7 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run lint
@@ -88,13 +88,12 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
+            package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
         working-directory: ${{ env.lib_node_dir }}
-      - run: npm ci && npm link ../discojs/discojs-node
+      - run: npm ci
       - run: npx eslint --max-warnings 0 .
       # TODO npx ts-standard
 
@@ -111,8 +110,7 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.client_dir }}/package-lock.json
+            package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
@@ -132,7 +130,7 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
@@ -149,7 +147,7 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
@@ -167,13 +165,12 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
+            package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
         working-directory: ${{ env.lib_node_dir }}
-      - run: npm ci && npm link ../discojs/discojs-node
+      - run: npm ci
       - run: npm run build
 
   build-server-docker:
@@ -225,7 +222,7 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
+            package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
@@ -249,7 +246,7 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
+            package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
@@ -273,7 +270,7 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
+            package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
@@ -297,8 +294,7 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
+            package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
@@ -320,9 +316,7 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
-            ${{ env.client_dir }}/package-lock.json
+            package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
@@ -354,9 +348,7 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
-            ${{ env.cli_dir }}/package-lock.json
+            package-lock.json
       - run: npm ci
         working-directory: ${{ env.lib_dir }}
       - run: npm run build
