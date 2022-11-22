@@ -20,10 +20,10 @@
       @action="goToModelTesting()"
     >
       <template #title>
-        Test &amp; validate a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
+        Test &amp; validate or predict using a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
       </template>
       <template #button>
-        Test
+        Test / Predict
       </template>
     </ButtonCard>
     <!-- Task creation -->

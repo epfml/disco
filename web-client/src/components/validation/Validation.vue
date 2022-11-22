@@ -77,7 +77,7 @@
                       Test model
                     </template>
                     <template #altButton>
-                      Inference model
+                      Predict using model
                     </template>
                   </ButtonCard>
                 </div>
@@ -167,21 +167,15 @@
         <Data
           :task="currentTask"
           :dataset-builder="datasetBuilder"
-          :is-inference="validationStore.isInference"
+          :is-only-prediction="validationStore.isOnlyPrediction"
         />
       </div>
       <!-- 2. TEST YOUR MODEL -->
-      <Predictor
-        v-if="validationStore.isInference"
-        v-show="validationStore.step === 2"
-        :task="currentTask"
-        :dataset-builder="datasetBuilder"
-      />
       <Validator
-        v-else
         v-show="validationStore.step === 2"
         :task="currentTask"
         :dataset-builder="datasetBuilder"
+        :ground-truth="!validationStore.isOnlyPrediction"
       />
     </div>
   </div>
@@ -202,7 +196,6 @@ import { useToaster } from '@/composables/toaster'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Data from '@/components/data/Data.vue'
 import Validator from '@/components/validation/Validator.vue'
-import Predictor from '@/components/validation/Predictor.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 
@@ -275,13 +268,13 @@ const downloadModel = async (task: Task): Promise<void> => {
   await memory.value.saveModel(source, model)
   await memoryStore.initModels()
 }
-const selectModel = (path: Path, isInference: boolean): void => {
+const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
   const selectedTask = tasksStore.tasks.get(memory.value.infoFor(path)?.taskID)
   if (selectedTask !== undefined) {
     currentTask.value = selectedTask
     validationStore.model = path
     validationStore.step = 1
-    validationStore.isInference = isInference
+    validationStore.isOnlyPrediction = isOnlyPrediction
   } else {
     toaster.error('Model not found')
   }

@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-1">
     <IconCard
-      v-if="task.trainingInformation.dataType === 'tabular' || isInference"
+      v-if="task.trainingInformation.dataType === 'tabular' || isOnlyPrediction"
       class="justify-self-center w-full"
     >
       <template #title>
@@ -143,7 +143,7 @@ import FileSelection from './FileSelection.vue'
 interface Props {
   task: Task
   datasetBuilder: data.DatasetBuilder<File>
-  isInference: Boolean
+  isOnlyPrediction: Boolean
 }
 const props = defineProps<Props>()
 const csvRows = ref<{filename: string, label: string}[]>()
@@ -164,7 +164,7 @@ const readCsv = (files: FileList) => {
 const addFiles = (files: FileList, label?: string) => {
   const filesArray = Array.from(files)
 
-  if (props.task.trainingInformation.dataType === 'image' && requireLabels && !props.isInference) {
+  if (props.task.trainingInformation.dataType === 'image' && requireLabels && !props.isOnlyPrediction) {
     if (label) {
       props.datasetBuilder.addFiles(filesArray, label)
     } else {
