@@ -16,11 +16,8 @@ export const geotags: TaskProvider = {
         tradeoffs: 'Training success strongly depends on label distribution',
         dataFormatInformation: 'Images should be of .png format and of size 224x224. <br> The label file should be .csv, where each row contains a file_name, class.  The class is the cell number of a the given grid of Switzerland. ',
         labelDisplay: {
-          labelType: LabelTypeEnum.GPS,
-          gpsData: {
-            apiKey: 'AIzaSyAXi_YcF9Wbabz-uF5FYkHfO8FnRj9Xvkc',
-            mappingUrl: 'https://storage.googleapis.com/epfl-disco-models/geotags/v2/grid.json'
-          }
+          labelType: LabelTypeEnum.POLYGON_MAP,
+          mapBaseUrl: 'https://disco-polygon.web.app/'
         }
       },
       trainingInformation: {
