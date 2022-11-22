@@ -1,103 +1,152 @@
 <template>
-  <div class="space-y-8">
-    <!-- assess the model -->
-    <ButtonCard
-      v-if="groundTruth"
-      class="mx-auto mt-10 lg:w-1/2"
-      :button-placement="'center'"
-      @action="assessModel()"
-    >
-      <template #title>
-        Test & validate your model
-      </template>
-      <template #text>
-        By clicking the button below, you will be able to validate your model against a chosen dataset of yours.
-        Below, once you assessed the model, you can compare the ground truth and the predicted values
-      </template>
-      <template #button>
-        Test
-      </template>
-    </ButtonCard>
-    <!--only predict using the model -->
-    <ButtonCard
-      v-else
-      class="mx-auto mt-10 lg:w-1/2"
-      :button-placement="'center'"
-      @action="predictUsingModel()"
-    >
-      <template #title>
-        Predic using model
-      </template>
-      <template #text>
-        By clicking the button below, you will be able to predict using the selected model with chosen dataset of yours.
-      </template>
-      <template #button>
-        Predict
-      </template>
-    </ButtonCard>
-
-    <!-- display the chart -->
-    <div
-      v-if="groundTruth"
-      class="p-4 mx-auto lg:w-1/2 h-full bg-white rounded-md"
-    >
-      <!-- header -->
-      <h4 class="p-4 border-b text-lg font-semibold text-slate-500">
-        Test Accuracy
-      </h4>
-      <!-- stats -->
-      <div class="grid grid-cols-2 p-4 font-medium text-slate-500">
-        <div class="text-center">
-          <span class="text-2xl">{{ currentAccuracy }}</span>
-          <span class="text-sm">% of test accuracy</span>
-        </div>
-        <div class="text-center">
-          <span class="text-2xl">{{ visitedSamples }}</span>
-          <span class="text-sm">&nbsp;samples visited</span>
-        </div>
-      </div>
-      <!-- chart -->
-      <apexchart
-        width="100%"
-        height="200"
-        type="area"
-        :options="chartOptions"
-        :series="[{ data: accuracyData }]"
-      />
-    </div>
-
-    <div
-      v-if="task.trainingInformation.dataType === 'image'"
-      class="grid grid-cols-6 gap-6"
-    >
-      <ImageCard
-        v-for="(value, key) in imagesWithPreds"
-        :key="key"
-        :image-url="value.url"
-        :action-url="isGpsVisualization ? getStaticMapUrl(value.prediction) : ''"
+  <div>
+    <div class="space-y-8">
+      <!-- assess the model -->
+      <ButtonCard
+        v-if="groundTruth"
+        class="mx-auto mt-10 lg:w-1/2"
+        :button-placement="'center'"
+        @action="assessModel()"
       >
         <template #title>
-          <p :class="value.groundTruth && value.prediction !== value.groundTruth ? 'text-red-700' : 'text-disco-blue'">
-            Prediction: <span class="font-bold">{{ value.prediction }}</span>
-          </p>
+          Test & validate your model
         </template>
-        <template #subtitle>
-          <p
-            v-if="value.groundTruth && value.groundTruth !== value.prediction"
-            class="text-disco-blue"
-          >
-            Ground truth: <span class="font-bold">{{ value.groundTruth }}</span>
-          </p>
+        <template #text>
+          By clicking the button below, you will be able to validate your model against a chosen dataset of yours.
+          Below, once you assessed the model, you can compare the ground truth and the predicted values
         </template>
-      </imagecard>
+        <template #button>
+          Test
+        </template>
+      </ButtonCard>
+      <!--only predict using the model -->
+      <ButtonCard
+        v-else
+        class="mx-auto mt-10 lg:w-1/2"
+        :button-placement="'center'"
+        @action="predictUsingModel()"
+      >
+        <template #title>
+          Predic using model
+        </template>
+        <template #text>
+          By clicking the button below, you will be able to predict using the selected model with chosen dataset of yours.
+        </template>
+        <template #button>
+          Predict
+        </template>
+      </ButtonCard>
+
+      <!-- display the chart -->
+      <div
+        v-if="groundTruth"
+        class="p-4 mx-auto lg:w-1/2 h-full bg-white rounded-md"
+      >
+        <!-- header -->
+        <h4 class="p-4 border-b text-lg font-semibold text-slate-500">
+          Test Accuracy
+        </h4>
+        <!-- stats -->
+        <div class="grid grid-cols-2 p-4 font-medium text-slate-500">
+          <div class="text-center">
+            <span class="text-2xl">{{ currentAccuracy }}</span>
+            <span class="text-sm">% of test accuracy</span>
+          </div>
+          <div class="text-center">
+            <span class="text-2xl">{{ visitedSamples }}</span>
+            <span class="text-sm">&nbsp;samples visited</span>
+          </div>
+        </div>
+        <!-- chart -->
+        <apexchart
+          width="100%"
+          height="200"
+          type="area"
+          :options="chartOptions"
+          :series="[{ data: accuracyData }]"
+        />
+      </div>
+
+      <div
+        v-if="task.trainingInformation.dataType === 'image'"
+        class="grid grid-cols-6 gap-6"
+      >
+        <ImageCard
+          v-for="(value, key) in imagesWithPreds"
+          :key="key"
+          :image-url="value.url"
+          :show-button="isPolygonMapVisualization"
+          @click="openMapModal(value.prediction, value.groundTruth)"
+        >
+          <template #title>
+            <p :class="value.groundTruth && value.prediction !== value.groundTruth ? 'text-red-700' : 'text-disco-blue'">
+              Prediction: <span class="font-bold">{{ value.prediction }}</span>
+            </p>
+          </template>
+          <template #subtitle>
+            <p
+              v-if="value.groundTruth && value.groundTruth !== value.prediction"
+              class="text-disco-blue"
+            >
+              Ground truth: <span class="font-bold">{{ value.groundTruth }}</span>
+            </p>
+          </template>
+        </imagecard>
+      </div>
+    </div>
+    <!-- Main modal -->
+    <div
+      tabindex="-1"
+      aria-hidden="true"
+      :class="{'hidden': !mapModalUrl}"
+      class="overflow-y-auto overflow-x-hidden absolute top-0 right-0 left-0 z-40 w-full md:inset-0 md:h-full bg-black/60 backdrop-blur-sm"
+    >
+      <div
+        class="relative z-50 w-full max-w-4xl h-full md:h-auto top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      >
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+          <!-- Modal header -->
+          <div class="flex justify-between items-start p-4 rounded-t border-b dark:border-gray-600">
+            <h3 class="text-xl font-semibold text-disco-blue dark:text-white">
+              Map Visualizer
+            </h3>
+            <button
+              type="button"
+              class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+              @click="mapModalUrl = null"
+            >
+              <svg
+                aria-hidden="true"
+                class="w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              ><path
+                fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              /></svg>
+              <span class="sr-only">Close modal</span>
+            </button>
+          </div>
+          <!-- Modal body -->
+          <div>
+            <iframe
+              class="h-128 w-full rounded-b-lg"
+              :src="mapModalUrl"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
-import { computed, defineProps, ref, onMounted } from 'vue'
+import { computed, defineProps, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
-import { browser, data, ConsoleLogger, EmptyMemory, Memory, Task, Validator, getGpsMappingObject, getMapUrl, LabelTypeEnum } from '@epfml/discojs'
+import { browser, data, ConsoleLogger, EmptyMemory, Memory, Task, Validator, LabelTypeEnum } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
@@ -121,8 +170,9 @@ const props = defineProps<Props>()
 const validator = ref<Validator>(undefined)
 
 const imagesWithPreds = ref<{url: string, prediction: number, groundTruth?: number}[]>([])
-const isGpsVisualization = computed<boolean>(() => props.task.displayInformation.labelDisplay.labelType === LabelTypeEnum.GPS)
-let gpsMapping: {[key: string]: string} = {}
+const isPolygonMapVisualization = computed<boolean>(() => props.task.displayInformation.labelDisplay.labelType === LabelTypeEnum.POLYGON_MAP)
+
+const mapModalUrl = ref<string>(null)
 
 const memory = computed<Memory>(() => useIndexedDB ? new browser.IndexedDB() : new EmptyMemory())
 const accuracyData = computed<number[]>(() => {
@@ -136,12 +186,6 @@ const currentAccuracy = computed<string>(() => {
 const visitedSamples = computed<number>(() => {
   const r = validator.value?.visitedSamples()
   return r !== undefined ? r : 0
-})
-
-onMounted(async () => {
-  if (isGpsVisualization) {
-    gpsMapping = await getGpsMappingObject(props.task.displayInformation.labelDisplay.gpsData.mappingUrl)
-  }
 })
 
 async function getValidator (): Promise<Validator | undefined> {
@@ -199,8 +243,18 @@ async function assessModel (): Promise<void> {
   }
 }
 
-function getStaticMapUrl (gridLabel: number): string {
-  return getMapUrl(props.task.displayInformation.labelDisplay.gpsData.apiKey, gpsMapping[gridLabel])
+function openMapModal (prediction: number, groundTruth?: number) {
+  const baseUrl = props.task.displayInformation.labelDisplay.mapBaseUrl
+  if (isPolygonMapVisualization && baseUrl) {
+    const correctColor = '274C78'
+    const errorColor = 'FF0000'
+
+    if (groundTruth && groundTruth !== prediction) {
+      mapModalUrl.value = `${baseUrl}?cellIds=${prediction},${groundTruth}&colors=${errorColor},${correctColor}`
+    } else {
+      mapModalUrl.value = `${baseUrl}?cellIds=${prediction}&colors=${correctColor}`
+    }
+  }
 }
 
 </script>
