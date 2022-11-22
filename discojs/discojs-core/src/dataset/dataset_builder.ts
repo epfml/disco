@@ -18,7 +18,7 @@ export class DatasetBuilder<Source> {
   }
 
   get sources (): Source[] {
-    return this._sources
+    return this._sources.length > 0 ? this._sources : Array.from(this.labelledSources.values()).flat()
   }
 
   addFiles (sources: Source[], label?: string): void {
@@ -87,6 +87,7 @@ export class DatasetBuilder<Source> {
         defaultConfig = {
           features: this.task.trainingInformation.inputColumns,
           labels: this.task.trainingInformation.outputColumns,
+          shuffle: false,
           ...config
         }
       }
@@ -96,6 +97,7 @@ export class DatasetBuilder<Source> {
       // Labels are inferred from the file selection boxes
       const defaultConfig = {
         labels: this.getLabels(),
+        shuffle: false,
         ...config
       }
       const sources = Array.from(this.labelledSources.values()).flat()
