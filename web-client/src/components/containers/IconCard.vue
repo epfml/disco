@@ -1,19 +1,6 @@
-<script setup lang="ts">
-
-import { defineProps } from 'vue'
-
-const props = defineProps({
-  withContent: {
-    type: Boolean,
-    default: true
-  }
-})
-
-</script>
-
 <template>
   <!--  Card -->
-  <div class="grid grid-cols-1 space-y-8 lg:gap-8 border-disco-cyan rounded-xl border-2">
+  <div class="grid grid-cols-1 space-y-8 lg:gap-8rounded-xl group/super">
     <!-- div class="container mx-width lg h-full"></div-->
     <div class="col-span-1 bg-white rounded-xl">
       <!-- Card header -->
@@ -22,11 +9,16 @@ const props = defineProps({
           flex
           items-center
           justify-between
-          p-4
+          p-4 md:p-6
         "
       >
-        <h4 class="text-lg font-semibold text-disco-cyan">
-          <slot name="title" />
+        <h4
+          class="flex w-full text-xl text-disco-blue group-hover/super:text-disco-cyan"
+          :class="`justify-${titlePlacement} text-${titlePlacement}`"
+        >
+          <div>
+            <slot name="title" />
+          </div>
         </h4>
         <div class="flex items-center">
           <span aria-hidden="true">
@@ -36,7 +28,7 @@ const props = defineProps({
       </div>
       <!-- Description -->
       <div
-        v-show="props.withContent"
+        v-show="withContent"
         class="text-sm text-slate-500 p-8 border-t"
       >
         <slot name="content" />
@@ -44,3 +36,18 @@ const props = defineProps({
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+
+import { defineProps, withDefaults } from 'vue'
+
+interface Props {
+  withContent?: boolean
+  titlePlacement?: 'left' | 'center' | 'right'
+}
+withDefaults(defineProps<Props>(), {
+  withContent: true,
+  titlePlacement: 'left'
+})
+
+</script>

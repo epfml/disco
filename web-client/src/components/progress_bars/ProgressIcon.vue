@@ -20,14 +20,14 @@
       >
         <span
           class="text-center w-full"
-          :class="props.active ? 'text-white' : 'text-slate-700'"
+          :class="props.active ? 'text-white' : 'text-slate-500'"
         >
           <slot name="icon" />
         </span>
       </div>
     </div>
     <!-- Text -->
-    <div class="text-xs text-center md:text-base">
+    <div class="text-xs text-center md:text-base text-slate-700">
       <slot name="text" />
     </div>
   </div>

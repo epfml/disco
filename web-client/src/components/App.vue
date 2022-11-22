@@ -51,6 +51,7 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
+import { RouterView } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import { useTasksStore } from '@/store/tasks'

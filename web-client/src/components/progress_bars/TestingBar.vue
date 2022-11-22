@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-8 mb-8 md:mb-16">
     <h1 class="text-disco-cyan font-disco text-3xl text-center">
       Evaluation
     </h1>
@@ -77,19 +77,50 @@
         </template>
       </ProgressIcon>
     </div>
+    <div
+      v-show="showPrev || showNext"
+      class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8"
+    >
+      <div class="text-center md:text-right">
+        <CustomButton
+          v-show="showPrev"
+          @click="prevStep"
+        >
+          Previous
+        </CustomButton>
+      </div>
+      <div class="text-center md:text-left">
+        <CustomButton
+          v-show="showNext"
+          @click="nextStep"
+        >
+          Next
+        </CustomButton>
+      </div>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import { useValidationStore } from '@/store/validation'
 import { useMemoryStore } from '@/store/memory'
 import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
+import CustomButton from '@/components/simple/CustomButton.vue'
 
 const toaster = useToaster()
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 
+const showPrev = computed<boolean>(() =>
+  validationStore.step > 0)
+
+const showNext = computed<boolean>(() =>
+  validationStore.step > 0 && validationStore.step < 2)
+
 const isActive = (step: number): boolean => step <= validationStore.step
+
 const handleRoute = (step: number): void => {
   if (memoryStore.models.size === 0) {
     toaster.error('Please train a model beforehand')
@@ -99,4 +130,8 @@ const handleRoute = (step: number): void => {
     validationStore.step = step
   }
 }
+
+const prevStep = (): void => { validationStore.step-- }
+
+const nextStep = (): void => { validationStore.step++ }
 </script>

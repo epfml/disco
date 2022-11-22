@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div class="hidden md:inline-block w-full py-6">
+  <div class="space-y-4 md:space-y-8 my-8 md:my-16">
+    <div class="hidden md:inline-block w-full">
       <div class="flex">
         <ProgressIcon
           class="w-1/4"

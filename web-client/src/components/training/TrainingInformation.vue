@@ -5,19 +5,16 @@
       :class="hasValidationData ? 'md:grid-cols-2' : ''"
     >
       <!-- Validation Accuracy users chart -->
-      <div
+      <IconCard
         v-if="hasValidationData"
-        class="bg-white rounded-md"
       >
         <!-- Card header -->
-        <div class="p-4 border-b">
-          <h4 class="text-lg font-semibold text-slate-500">
-            {{
-              $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyHeader')
-            }}
-          </h4>
-        </div>
-        <p class="p-4">
+        <template #title>
+          {{
+            $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyHeader')
+          }}
+        </template>
+        <template #content>
           <span class="text-2xl font-medium text-slate-500">
             {{ currentValidationAccuracy }}
           </span>
@@ -26,9 +23,7 @@
               $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyText')
             }}
           </span>
-        </p>
-        <!-- Chart -->
-        <div class="m-4">
+          <!-- Chart -->
           <apexchart
             width="100%"
             height="200"
@@ -36,20 +31,18 @@
             :options="chartOptions"
             :series="validationAccuracyData"
           />
-        </div>
-      </div>
+        </template>
+      </IconCard>
 
       <!-- Training Accuracy users chart -->
-      <div class="bg-white rounded-md">
+      <IconCard>
         <!-- Card header -->
-        <div class="p-4 border-b">
-          <h4 class="text-lg font-semibold text-slate-500">
-            {{
-              $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
-            }}
-          </h4>
-        </div>
-        <p class="p-4">
+        <template #title>
+          {{
+            $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
+          }}
+        </template>
+        <template #content>
           <span class="text-2xl font-medium text-slate-500">
             {{ currentTrainingAccuracy }}
           </span>
@@ -58,9 +51,7 @@
               $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
             }}
           </span>
-        </p>
-        <!-- Chart -->
-        <div class="m-4">
+          <!-- Chart -->
           <apexchart
             width="100%"
             height="200"
@@ -68,8 +59,8 @@
             :options="chartOptions"
             :series="trainingAccuracyData"
           />
-        </div>
-      </div>
+        </template>
+      </IconCard>
     </div>
 
     <!-- Training logs -->

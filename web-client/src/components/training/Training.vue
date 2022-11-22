@@ -1,27 +1,5 @@
 <template>
   <div v-if="!verifyingRoute">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 py-6">
-      <div
-        class="text-center md:text-right"
-      >
-        <CustomButton
-          @click="prevStepOrList"
-        >
-          Previous
-        </CustomButton>
-      </div>
-      <div
-        class="text-center md:text-left"
-      >
-        <CustomButton
-          v-show="trainingStore.step <= 3"
-          @click="trainingStore.nextStep"
-        >
-          Next
-        </CustomButton>
-      </div>
-    </div>
-
     <Description
       v-show="trainingStore.step === 1"
       :task="task"
@@ -45,14 +23,13 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onActivated, onMounted, ref, defineProps } from 'vue'
+import { computed, onMounted, ref, defineProps } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { browser, data, TaskID } from '@epfml/discojs'
 
 import { useTrainingStore } from '@/store/training'
 import { useTasksStore } from '@/store/tasks'
-import CustomButton from '@/components/simple/CustomButton.vue'
 import Description from '@/components/training/Description.vue'
 import Trainer from '@/components/training/Trainer.vue'
 import Finished from '@/components/training/Finished.vue'
@@ -94,13 +71,4 @@ onMounted(() => {
   trainingStore.setTask(props.id)
   trainingStore.setStep(1)
 })
-onActivated(() => { trainingStore.setTask(props.id) })
-
-function prevStepOrList () {
-  if (trainingStore.step === 1) {
-    router.push({ path: '/list' })
-  } else {
-    trainingStore.prevStep()
-  }
-}
 </script>

@@ -1,36 +1,39 @@
 <template>
-  <div>
+  <div class="space-y-4 md:space-y-8">
     <!-- Train Button -->
-    <div
-      v-if="!startedTraining"
-      class="grid grid-cols-1 md:grid-cols-2 gap-8 py-6 items-center"
-    >
-      <div class="text-center">
-        <CustomButton
-          @click="startTraining(false)"
-        >
-          Train alone
-        </CustomButton>
-      </div>
-      <div class="text-center">
-        <CustomButton
-          @click="startTraining(true)"
-        >
-          Train collaboratively
-        </CustomButton>
-      </div>
-    </div>
-    <div
-      v-else
-      class="text-center py-6"
-    >
-      <CustomButton
-        @click="pauseTraining()"
+    <div class="flex justify-center">
+      <IconCard
+        title-placement="center"
+        class="w-3/5"
       >
-        Stop <span v-if="distributedTraining">Collaborative Training</span><span v-else>Training</span>
-      </CustomButton>
+        <template #title>
+          Control the Training Flow
+        </template>
+        <template
+          v-if="!startedTraining"
+          #content
+        >
+          <div class="grid grid-cols-2 gap-8">
+            <CustomButton @click="startTraining(false)">
+              Train alone
+            </CustomButton>
+            <CustomButton @click="startTraining(true)">
+              Train collaboratively
+            </CustomButton>
+          </div>
+        </template>
+        <template
+          v-else
+          #content
+        >
+          <div class="flex justify-center">
+            <CustomButton @click="pauseTraining()">
+              Stop <span v-if="distributedTraining">Collaborative Training</span><span v-else>Training</span>
+            </CustomButton>
+          </div>
+        </template>
+      </IconCard>
     </div>
-
     <!-- Training Board -->
     <div>
       <TrainingInformation
@@ -51,12 +54,14 @@ import { useMemoryStore } from '@/store/memory'
 import { getClient } from '@/clients'
 import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import IconCard from '@/components/containers/IconCard.vue'
 
 export default defineComponent({
   name: 'Trainer',
   components: {
     TrainingInformation,
-    CustomButton
+    CustomButton,
+    IconCard
   },
   props: {
     task: {
@@ -162,7 +167,7 @@ export default defineComponent({
     },
     async pauseTraining (): Promise<void> {
       await this.disco.pause()
-      this.isTraining = false
+      this.startedTraining = false
     }
   }
 })
