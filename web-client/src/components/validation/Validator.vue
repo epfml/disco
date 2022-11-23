@@ -260,8 +260,6 @@ async function assessModel (): Promise<void> {
   try {
     const assessmentResults = await validator.value?.assess(testingSet)
 
-    console.log(isImageTaskType)
-
     if (isImageTaskType.value) {
       dataWithPred.value = List(props.datasetBuilder.sources).zip(List(assessmentResults)).map(([source, prediction]) =>
         ({ data: URL.createObjectURL(source), prediction: prediction.pred, groundTruth: prediction.groundTruth })).toArray()
