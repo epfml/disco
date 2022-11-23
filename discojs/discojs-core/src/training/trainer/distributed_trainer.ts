@@ -1,4 +1,4 @@
-import { tf, Client, Memory, Task, TrainingInformant, WeightsContainer } from '../..'
+import { tf, Client, Memory, Task, TrainingInformant, TrainingFunction, WeightsContainer } from '../..'
 
 import { Trainer } from './trainer'
 
@@ -14,9 +14,10 @@ export class DistributedTrainer extends Trainer {
     memory: Memory,
     model: tf.LayersModel,
     private readonly previousRoundModel: tf.LayersModel,
-    private readonly client: Client
+    private readonly client: Client,
+    trainModelFunction?: TrainingFunction
   ) {
-    super(task, trainingInformant, memory, model)
+    super(task, trainingInformant, memory, model, trainModelFunction)
   }
 
   /**

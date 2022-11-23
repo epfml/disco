@@ -28,35 +28,32 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
   }
 
   private async buildDataset (images: Source[], labels: number[], indices: number[], config?: DataConfig): Promise<Data> {
-    const dataset: tf.data.Dataset<tf.TensorContainer> = tf.data.generator(() => {
+    // Can't use arrow function for generator and need access to 'this'
+    // eslint-disable-next-line
+    const self = this
+    async function * dataGenerator (): AsyncGenerator<tf.TensorContainer> {
       const withLabels = config?.labels !== undefined
 
       let index = 0
-      const iterator = {
-        next: async () => {
-          if (index === indices.length) {
-            return { done: true }
-          }
-          const sample = await this.readImageFrom(images[indices[index]])
-          const label = withLabels ? labels[indices[index]] : undefined
-          const value = withLabels ? { xs: sample, ys: label } : sample
+      while (index < indices.length) {
+        const sample = await self.readImageFrom(images[indices[index]])
+        const label = withLabels ? labels[indices[index]] : undefined
+        const value = withLabels ? { xs: sample, ys: label } : sample
 
-          index++
-
-          return {
-            value,
-            done: false
-          }
-        }
+        index++
+        yield value
       }
-      return iterator as unknown as Iterator<tf.Tensor> // Lazy
-    })
+    }
+
+    // @ts-expect-error: For some reasons typescript refuses async generator but tensorflow do work with them
+    const dataset: tf.data.Dataset<tf.TensorContainer> = tf.data.generator(dataGenerator)
 
     return await ImageData.init(dataset, this.task, indices.length)
   }
 
   async loadAll (images: Source[], config?: DataConfig): Promise<DataSplit> {
     let labels: number[] = []
+
     const indices = Range(0, images.length).toArray()
     if (config?.labels !== undefined) {
       const numberOfClasses = this.task.trainingInformation?.LABEL_LIST?.length
