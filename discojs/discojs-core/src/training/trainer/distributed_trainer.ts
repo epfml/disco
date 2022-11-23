@@ -1,6 +1,6 @@
 import { tf, Client, Memory, Task, TrainingInformant, WeightsContainer } from '../..'
 
-import { Trainer } from './trainer'
+import { Trainer, TrainingFunction } from './trainer'
 
 /**
  * Class whose role is to train a model in a distributed way with a given dataset.
@@ -14,9 +14,10 @@ export class DistributedTrainer extends Trainer {
     memory: Memory,
     model: tf.LayersModel,
     private readonly previousRoundModel: tf.LayersModel,
-    private readonly client: Client
+    private readonly client: Client,
+    trainModelFunction?: TrainingFunction
   ) {
-    super(task, trainingInformant, memory, model)
+    super(task, trainingInformant, memory, model, trainModelFunction)
   }
 
   /**

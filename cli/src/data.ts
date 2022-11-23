@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import fs_promises from 'fs/promises'
 import path from 'node:path'
 
-import { tf, node, data, Task } from '@epfml/discojs-node'
+import { tf, node, data, Task, ConsoleLogger } from '@epfml/discojs-node'
 
 function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
   const f = fs.readdirSync(dir + folder)
@@ -69,6 +69,28 @@ async function titanicData (titanic: Task): Promise<data.DataSplit> {
   return data
 }
 
+async function omniglotData (prototypical: Task): Promise<data.DataSplit> {
+  const dir = '../example_training_data/omniglot/images_background/'
+  const files = await getFiles(dir)
+
+  const labels = files.map((file) => path.dirname(file).replace(path.resolve(dir) + path.sep, '').replace(new RegExp(path.sep, 'g'), '_'))
+
+  const labelEncoding = labels.filter((v,i,a)=>a.indexOf(v)==i).reduce((map, elem, index) => map.set(elem, index), new Map())
+  // console.log(uniqueLabels)
+  return await new node.data.NodeImageLoader(prototypical).loadAll(files,
+     { labels: labels.map((label) => labelEncoding.get(label)),
+       shuffle: true })
+}
+
+async function getFiles(dir: string): Promise<string[]> {
+  const dirents: fs.Dirent[] = await fs_promises.readdir(dir, { withFileTypes: true })
+  const files: (string[])[] = await Promise.all(dirents.map((dirent) => {
+    const res: string = path.resolve(dir, dirent.name)
+    return dirent.isDirectory() ? getFiles(res) : [res]
+  }))
+  return files.flat()
+}
+
 export async function getTaskData (task: Task): Promise<data.DataSplit> {
   if (task.taskID === 'simple_face') {
     return await simplefaceData(task)
@@ -78,6 +100,9 @@ export async function getTaskData (task: Task): Promise<data.DataSplit> {
   }
   if (task.taskID === 'cifar10') {
     return await cifar10Data(task)
+  }
+  if (task.taskID === 'prototypical') {
+    return await omniglotData(task)
   }
   throw Error(`Data loader for ${task.taskID} not implemented.`)
 }

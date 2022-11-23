@@ -2,7 +2,7 @@ import { tf, Client, Task, TrainingInformant, Memory, ModelType, ModelInfo } fro
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
-import { Trainer } from './trainer'
+import { Trainer, TrainingFunction } from './trainer'
 
 /**
  * A class that helps build the Trainer and auxiliary classes.
@@ -11,7 +11,8 @@ export class TrainerBuilder {
   constructor (
     private readonly memory: Memory,
     private readonly task: Task,
-    private readonly trainingInformant: TrainingInformant
+    private readonly trainingInformant: TrainingInformant,
+    private readonly trainingFunction?: TrainingFunction
   ) {}
 
   /**
@@ -30,14 +31,16 @@ export class TrainerBuilder {
         this.memory,
         model,
         model,
-        client
+        client,
+        this.trainingFunction
       )
     } else {
       return new LocalTrainer(
         this.task,
         this.trainingInformant,
         this.memory,
-        model
+        model,
+        this.trainingFunction
       )
     }
   }

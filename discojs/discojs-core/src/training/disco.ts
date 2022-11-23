@@ -8,7 +8,7 @@ import {
   Memory, EmptyMemory,
   ConsoleLogger
 } from '..'
-import { Trainer } from './trainer/trainer'
+import { Trainer, TrainingFunction } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
 import { TrainerLog } from '../logging/trainer_logger'
 
@@ -19,6 +19,7 @@ interface DiscoOptions {
   informant?: TrainingInformant
   logger?: Logger
   memory?: Memory
+  customTrainingFunction?: TrainingFunction
 }
 
 // Handles the training loop, server communication & provides the user with feedback.
@@ -87,7 +88,7 @@ export class Disco {
     this.memory = options.memory
     this.logger = options.logger
 
-    const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
+    const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant, options.customTrainingFunction)
     this.trainer = trainerBuilder.build(this.client, options.scheme !== TrainingSchemes.LOCAL)
   }
 

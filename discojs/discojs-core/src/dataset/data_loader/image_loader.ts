@@ -28,41 +28,41 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
   }
 
   private async buildDataset (images: Source[], labels: number[], indices: number[], config?: DataConfig): Promise<Data> {
-    const dataset: tf.data.Dataset<tf.TensorContainer> = tf.data.generator(() => {
+    // No arrow function with generators
+    let self = this
+    async function* dataGenerator() {
       const withLabels = config?.labels !== undefined
+      console.log('indices', indices)
 
-      let index = 0
-      const iterator = {
-        next: async () => {
-          if (index === indices.length) {
-            return { done: true }
-          }
-          const sample = await this.readImageFrom(images[indices[index]])
-          const label = withLabels ? labels[indices[index]] : undefined
-          const value = withLabels ? { xs: sample, ys: label } : sample
+      let index = 0;
+      while (index < indices.length) {
+        const sample = await self.readImageFrom(images[indices[index]])
+        const label = withLabels ? labels[indices[index]] : undefined
+        const value = withLabels ? { xs: sample, ys: label } : sample
 
-          index++
-
-          return {
-            value,
-            done: false
-          }
-        }
+        index++;
+        yield value;
       }
-      return iterator as unknown as Iterator<tf.Tensor> // Lazy
-    })
+   }
+
+    // @ts-ignore For some reasons typescript refuses async generator but tensorflow do work with them
+    const dataset: tf.data.Dataset<tf.TensorContainer> = tf.data.generator(dataGenerator)
 
     return await ImageData.init(dataset, this.task, indices.length)
   }
 
   async loadAll (images: Source[], config?: DataConfig): Promise<DataSplit> {
     let labels: number[] = []
+    console.log('loadAll')
+
     const indices = Range(0, images.length).toArray()
     if (config?.labels !== undefined) {
-      const numberOfClasses = this.task.trainingInformation?.LABEL_LIST?.length
-      if (numberOfClasses === undefined) {
-        throw new Error('wanted labels but none found in task')
-      }
+
+      const numberOfClasses = 964
+      // const numberOfClasses = this.task.trainingInformation?.LABEL_LIST?.length
+      // if (numberOfClasses === undefined) {
+      //   throw new Error('wanted labels but none found in task')
+      // }
 
       labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), numberOfClasses).arraySync() as number[]
     }
@@ -84,6 +84,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
     const valIndices = indices.slice(trainSize)
 
     const trainDataset = await this.buildDataset(images, labels, trainIndices, config)
+    console.log('train dataset', trainDataset.dataset.batch(3))
     const valDataset = await this.buildDataset(images, labels, valIndices, config)
 
     return {

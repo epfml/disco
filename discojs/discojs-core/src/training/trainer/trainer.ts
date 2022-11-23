@@ -19,6 +19,8 @@ export abstract class Trainer {
   private stopTrainingRequested = false
   private readonly trainerLogger: TrainerLogger
 
+  private readonly trainModelFunction: TrainingFunction
+
   /**
    * Constructs the training manager.
    * @param task the trained task
@@ -28,7 +30,8 @@ export abstract class Trainer {
     public readonly task: Task,
     public readonly trainingInformant: TrainingInformant,
     public readonly memory: Memory,
-    public readonly model: tf.LayersModel
+    public readonly model: tf.LayersModel,
+    trainModelFunction?: TrainingFunction
   ) {
     this.trainerLogger = new TrainerLogger()
 
@@ -39,6 +42,23 @@ export abstract class Trainer {
     this.trainingInformation = trainingInformation
 
     this.roundTracker = new RoundTracker(trainingInformation.roundDuration)
+
+    this.trainModelFunction = trainModelFunction ?? Trainer.defaultTraining
+  }
+
+  /**
+   * Default training method used when none specified. Simply use the tensorflow fitDataset method.
+   */
+  public static defaultTraining: TrainingFunction = async (model, trainingInformation, dataset, valDataset, onEpochEnd, onBatchEnd, onTrainEnd) => {
+    await model.fitDataset(dataset, {
+      epochs: trainingInformation.epochs,
+      validationData: valDataset,
+      callbacks: {
+        onEpochEnd: (epoch, logs) => onEpochEnd(epoch, logs),
+        onBatchEnd: (epoch, logs) => onBatchEnd(epoch, logs),
+        onTrainEnd: (logs) => onTrainEnd(logs)
+      }
+    })
   }
 
   /**
@@ -99,16 +119,13 @@ export abstract class Trainer {
   ): Promise<void> {
     this.resetStopTrainerState()
 
-    // Assign callbacks and start training
-    await this.model.fitDataset(dataset, {
-      epochs: this.trainingInformation.epochs,
-      validationData: valDataset,
-      callbacks: {
-        onEpochEnd: (epoch, logs) => this.onEpochEnd(epoch, logs),
-        onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs),
-        onTrainEnd: async (logs) => await this.onTrainEnd(logs)
-      }
-    })
+    await this.trainModelFunction(this.model, 
+      this.trainingInformation, 
+      dataset, 
+      valDataset, 
+      (e, l) => this.onEpochEnd(e, l), 
+      async (e, l) => await this.onBatchEnd(e, l), 
+      async (l) => await this.onTrainEnd(l))
   }
 
   /**
@@ -139,4 +156,14 @@ export abstract class Trainer {
   getTrainerLog (): TrainerLog {
     return this.trainerLogger.log
   }
+}
+
+export interface TrainingFunction {
+  (model: tf.LayersModel,
+    trainingInformation: TrainingInformation, 
+    dataset: tf.data.Dataset<tf.TensorContainer>, 
+    valDataset: tf.data.Dataset<tf.TensorContainer>, 
+    onEpochEnd: (epoch: number, logs?: tf.Logs) => void, 
+    onBatchEnd: (epoch: number, logs?: tf.Logs) => void, 
+    onTrainEnd: (logs?: tf.Logs) => void): Promise<void>
 }

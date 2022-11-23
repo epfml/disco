@@ -1,7 +1,7 @@
 import { parse } from 'ts-command-line-args'
 import { Map } from 'immutable'
 
-import { defaultTasks, Task } from '@epfml/discojs-node'
+import { ConsoleLogger, defaultTasks, Task } from '@epfml/discojs-node'
 
 interface BenchmarkUnsafeArguments {
   task: string
@@ -44,7 +44,9 @@ let supportedTasks: Map<string, Task> = Map()
 supportedTasks = supportedTasks.set(defaultTasks.simpleFace.getTask().taskID, defaultTasks.simpleFace.getTask())
 supportedTasks = supportedTasks.set(defaultTasks.titanic.getTask().taskID, defaultTasks.titanic.getTask())
 supportedTasks = supportedTasks.set(defaultTasks.cifar10.getTask().taskID, defaultTasks.cifar10.getTask())
+supportedTasks = supportedTasks.set(defaultTasks.prototypical.getTask().taskID, defaultTasks.prototypical.getTask())
 
+console.log("test")
 const task_ = supportedTasks.get(taskID)
 
 if (task_ !== undefined) {
