@@ -232,7 +232,7 @@ async function predictUsingModel (): Promise<void> {
 
   const predictions = await validator.value?.predict(testingSet)
 
-  if (isImageTaskType) {
+  if (isImageTaskType.value) {
     dataWithPred.value = List(props.datasetBuilder.sources).zip(List(predictions)).map(([source, prediction]) =>
       ({ data: URL.createObjectURL(source), prediction: prediction.pred })).toArray()
   } else {

@@ -79,6 +79,7 @@ export class DatasetBuilder<Source> {
       if (config?.inference) {
         // Inferring model, no labels needed
         defaultConfig = {
+          features: this.task.trainingInformation.inputColumns,
           shuffle: false,
           ...config
         }
