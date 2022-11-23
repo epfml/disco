@@ -23,12 +23,6 @@
   border-right-color: #26323d;
 }
 
-/* width */
-::-webkit-scrollbar {
-  width: 0px;
-  height: 0px;
-}
-
 @font-face {
   font-family: AmpleSoftMedium;
   src: url('../fonts/AmpleSoftMedium.woff2') format('woff2'), 
