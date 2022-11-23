@@ -57,17 +57,18 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
     }
 
     const dataset = this.loadTabularDatasetFrom(source, csvConfig).map((t) => {
-      if (typeof t === 'object' && ('xs' in t) && ('ys' in t)) {
-        return t
+      if (typeof t === 'object') {
+        if (('xs' in t) && ('ys' in t)) {
+          const { xs, ys } = t as Record<string, Record<string, number>>
+          return {
+            xs: Object.values(xs),
+            ys: Object.values(ys)
+          }
+        } else {
+          return Object.values(t)
+        }
       }
       throw new TypeError('Expected TensorContainerObject')
-    }).map((t) => {
-      // TODO order may not be stable between tensor
-      const { xs, ys } = t as Record<string, Record<string, number>>
-      return {
-        xs: Object.values(xs),
-        ys: Object.values(ys)
-      }
     })
     return (config?.shuffle === undefined || config?.shuffle) ? dataset.shuffle(BUFFER_SIZE) : dataset
   }
