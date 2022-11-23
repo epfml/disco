@@ -68,13 +68,13 @@
       </div>
 
       <div
-        v-if="task.trainingInformation.dataType === 'image'"
+        v-if="isImageTaskType && dataWithPred"
         class="grid grid-cols-6 gap-6"
       >
         <ImageCard
-          v-for="(value, key) in imagesWithPreds"
+          v-for="(value, key) in dataWithPred"
           :key="key"
-          :image-url="value.url"
+          :image-url="(value.data as string)"
           :show-button="isPolygonMapVisualization"
           @click="openMapModal(value.prediction, value.groundTruth)"
         >
@@ -92,6 +92,15 @@
             </p>
           </template>
         </imagecard>
+      </div>
+      <div
+        v-else-if="!isImageTaskType && dataWithPred"
+        class="mx-auto lg:w-1/2 h-full bg-white rounded-md max-h-128 overflow-scroll"
+      >
+        <TableLayout
+          :columns="featuresNames"
+          :rows="dataWithPred.map(pred => pred.data)"
+        />
       </div>
     </div>
     <!-- Main modal -->
@@ -154,6 +163,7 @@ import { chartOptions } from '@/charts'
 import { useToaster } from '@/composables/toaster'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import ImageCard from '@/components/containers/ImageCard.vue'
+import TableLayout from '@/components/containers/TableLayout.vue'
 import { List } from 'immutable'
 
 const { useIndexedDB } = storeToRefs(useMemoryStore())
@@ -165,14 +175,23 @@ interface Props {
   datasetBuilder?: data.DatasetBuilder<File>
   groundTruth: Boolean
 }
+
 const props = defineProps<Props>()
 
+interface DataWithPrediction {
+  data: string | number[]
+  prediction?: number
+  groundTruth?: number
+}
+
+const featuresNames = ref<String[]>(null)
+const dataWithPred = ref<DataWithPrediction[]>(null)
+
 const validator = ref<Validator>(undefined)
-
-const imagesWithPreds = ref<{url: string, prediction: number, groundTruth?: number}[]>([])
-const isPolygonMapVisualization = computed<boolean>(() => props.task.displayInformation.labelDisplay.labelType === LabelTypeEnum.POLYGON_MAP)
-
 const mapModalUrl = ref<string>(null)
+
+const isImageTaskType = computed<boolean>(() => props.task.trainingInformation.dataType === 'image')
+const isPolygonMapVisualization = computed<boolean>(() => props.task.displayInformation.labelDisplay.labelType === LabelTypeEnum.POLYGON_MAP)
 
 const memory = computed<Memory>(() => useIndexedDB ? new browser.IndexedDB() : new EmptyMemory())
 const accuracyData = computed<number[]>(() => {
@@ -213,8 +232,13 @@ async function predictUsingModel (): Promise<void> {
 
   const predictions = await validator.value?.predict(testingSet)
 
-  List(props.datasetBuilder.sources).zip(List(predictions)).forEach(([source, prediction]) =>
-    imagesWithPreds.value.push({ url: URL.createObjectURL(source), prediction: prediction }))
+  if (isImageTaskType) {
+    dataWithPred.value = List(props.datasetBuilder.sources).zip(List(predictions)).map(([source, prediction]) =>
+      ({ data: URL.createObjectURL(source), prediction: prediction.pred })).toArray()
+  } else {
+    featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
+    dataWithPred.value = predictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
+  }
 }
 
 async function assessModel (): Promise<void> {
@@ -234,10 +258,17 @@ async function assessModel (): Promise<void> {
   toaster.success('Model testing started')
 
   try {
-    const assessmentResults: {groundTruth: number, pred:number}[] = await validator.value?.assess(testingSet)
+    const assessmentResults = await validator.value?.assess(testingSet)
 
-    List(props.datasetBuilder.sources).zip(List(assessmentResults)).forEach(([source, prediction]) =>
-      imagesWithPreds.value.push({ url: URL.createObjectURL(source), prediction: prediction.pred, groundTruth: prediction.groundTruth }))
+    console.log(isImageTaskType)
+
+    if (isImageTaskType.value) {
+      dataWithPred.value = List(props.datasetBuilder.sources).zip(List(assessmentResults)).map(([source, prediction]) =>
+        ({ data: URL.createObjectURL(source), prediction: prediction.pred, groundTruth: prediction.groundTruth })).toArray()
+    } else {
+      featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns, 'Target_' + props.task.trainingInformation.outputColumns]
+      dataWithPred.value = assessmentResults.map(pred => ({ data: [...(pred.features as number[]), pred.pred, pred.groundTruth] }))
+    }
   } catch (e) {
     toaster.error(e instanceof Error ? e.message : e.toString())
   }
