@@ -43,7 +43,6 @@ export class Validator {
         const currentFeatures = xs.arraySync()
 
         if (Array.isArray(currentFeatures)) {
-          console.log('OK')
           features = [...features, ...currentFeatures]
         } else {
           throw new TypeError('features array is not correct')
@@ -83,7 +82,6 @@ export class Validator {
       const currentFeatures = (e as tf.Tensor).arraySync()
 
       if (Array.isArray(currentFeatures)) {
-        console.log('OK')
         features = [...features, ...currentFeatures]
       } else {
         throw new TypeError('features array is not correct')
