@@ -95,7 +95,7 @@
       </div>
       <div
         v-else-if="!isImageTaskType && dataWithPred"
-        class="mx-auto lg:w-1/2 h-full bg-white rounded-md max-h-128 overflow-scroll"
+        class="mx-auto lg:w-1/2 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
           :columns="featuresNames"
