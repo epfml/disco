@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { tf, Client, Task, TrainingInformant, TrainingFunction, Memory, ModelType, ModelInfo, WeightsContainer } from '../..'
+=======
+import { tf, Client, Task, TrainingInformant, Memory, TrainingFunction, ModelType, ModelInfo, WeightsContainer } from '../..'
+>>>>>>> 4420c12 (adds generic training functions for trainer)
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
