@@ -167,9 +167,9 @@
       </IconCard>
       <KeepAlive>
         <component
-          :is="currentComponent"
-          v-if="validationStore.step >= 1 && validationStore.step <= 2"
-          :key="validationStore.model"
+          :is="currentComponent[0]"
+          v-if="currentComponent !== undefined"
+          :key="validationStore.model + currentComponent[1]"
           :task="currentTask"
           :dataset-builder="datasetBuilder"
           :ground-truth="!validationStore.isOnlyPrediction"
@@ -202,12 +202,12 @@ const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
 
-const currentComponent = computed<Component | undefined>(() => {
-  switch (validationStore.step) {
+const currentComponent = computed<[Component, string] | undefined>(() => {
+  switch (stepRef.value) {
     case 1:
-      return Data
+      return [Data, 'data']
     case 2:
-      return Tester
+      return [Tester, 'tester']
     default:
       return undefined
   }
