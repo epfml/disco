@@ -1,4 +1,4 @@
-# **DISCO** - _Dis_ tributed _Co_ llaborative Machine Learning
+# **DISCO** - _Dis_&#8203;tributed _Co_&#8203;llaborative Machine Learning
 
 
 
@@ -13,7 +13,7 @@ ___
 ___
 
 :question: **WHY DISCO?** 
-- To build predictive models across private datasets without compromising data privacy, ownership, sovereignty, or model performance
+- To build deep learning models across private datasets without compromising data privacy, ownership, sovereignty, or model performance
 - To create an easy-to-use platform that allows non-specialists to participate in collaborative learning
 
 ___
@@ -59,7 +59,7 @@ ___
 	- You can choose from several existing dataloaders
 	- Then...select your DISCO training scheme (:star2: or :sparkles:) ... connect your data and... :bar_chart:
 
-> **Note**: Currently only `CSV` and `Image` data types are supported. Adding new data types, preprocessing code or dataloaders, is accessible in developer mode (see [developer guide](https://github.com/epfml/disco/blob/develop/DEV.md)). Specific instructions on how to build a custom task can be found [HERE](information/TASK.md)
+> **Note**: Currently only `CSV` and `Image` data types are supported. Adding new data types, preprocessing code or dataloaders, is accessible in developer mode (see [developer guide](https://github.com/epfml/disco/blob/develop/DEV.md)). Specific instructions on how to build a custom task can be found [HERE](docs/TASK.md)
 
 __
 
