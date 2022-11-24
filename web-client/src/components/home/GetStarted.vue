@@ -20,10 +20,10 @@
       @action="goToModelTesting()"
     >
       <template #title>
-        Test &amp; validate or predict using a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
+        Test your <span class="font-disco text-disco-cyan">DISCO</span>-trained model
       </template>
       <template #button>
-        Test / Predict
+        Test
       </template>
     </ButtonCard>
     <!-- Task creation -->
@@ -49,5 +49,5 @@ const router = useRouter()
 
 const goToTaskList = (): void => { router.push({ path: '/list' }) }
 const goToNewTaskCreationForm = (): void => { router.push({ path: '/create' }) }
-const goToModelTesting = (): void => { router.push({ path: '/testing' }) }
+const goToModelTesting = (): void => { router.push({ path: '/validating' }) }
 </script>
