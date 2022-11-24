@@ -74,8 +74,8 @@ export const router = createRouter({
       }
     },
     {
-      path: '/validating',
-      name: 'validating',
+      path: '/evaluate',
+      name: 'evaluate',
       components: {
         default: Testing,
         ProgressBar: TestingBar
