@@ -67,40 +67,52 @@
         />
       </div>
 
-      <div
-        v-if="isImageTaskType && dataWithPred"
-        class="grid grid-cols-6 gap-6"
-      >
-        <ImageCard
-          v-for="(value, key) in dataWithPred"
-          :key="key"
-          :image-url="(value.data as string)"
-          :show-button="isPolygonMapVisualization"
-          @click="openMapModal(value.prediction, value.groundTruth)"
+      <div v-if="dataWithPred">
+        <div class="mx-auto lg:w-1/2 text-center pb-8">
+          <CustomButton @click="saveCsv()">
+            Download as CSV
+          </CustomButton>
+          <a
+            id="downloadLink"
+            class="hidden"
+          />
+        </div>
+
+        <div
+          v-if="isImageTaskType"
+          class="grid grid-cols-6 gap-6"
         >
-          <template #title>
-            <p :class="value.groundTruth && value.prediction !== value.groundTruth ? 'text-red-700' : 'text-disco-blue'">
-              Prediction: <span class="font-bold">{{ value.prediction }}</span>
-            </p>
-          </template>
-          <template #subtitle>
-            <p
-              v-if="value.groundTruth && value.groundTruth !== value.prediction"
-              class="text-disco-blue"
-            >
-              Ground truth: <span class="font-bold">{{ value.groundTruth }}</span>
-            </p>
-          </template>
-        </imagecard>
-      </div>
-      <div
-        v-else-if="!isImageTaskType && dataWithPred"
-        class="mx-auto lg:w-1/2 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
-      >
-        <TableLayout
-          :columns="featuresNames"
-          :rows="dataWithPred.map(pred => pred.data)"
-        />
+          <ImageCard
+            v-for="(value, key) in dataWithPred"
+            :key="key"
+            :image-url="(value.data as ImageWithUrl).url"
+            :show-button="isPolygonMapVisualization"
+            @click="openMapModal(value.prediction, value.groundTruth)"
+          >
+            <template #title>
+              <p :class="value.groundTruth && value.prediction !== value.groundTruth ? 'text-red-700' : 'text-disco-blue'">
+                Prediction: <span class="font-bold">{{ value.prediction }}</span>
+              </p>
+            </template>
+            <template #subtitle>
+              <p
+                v-if="value.groundTruth && value.groundTruth !== value.prediction"
+                class="text-disco-blue"
+              >
+                Ground truth: <span class="font-bold">{{ value.groundTruth }}</span>
+              </p>
+            </template>
+          </imagecard>
+        </div>
+        <div
+          v-else
+          class="mx-auto lg:w-1/2 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        >
+          <TableLayout
+            :columns="featuresNames"
+            :rows="dataWithPred.map(pred => pred.data)"
+          />
+        </div>
       </div>
     </div>
     <!-- Main modal -->
@@ -162,9 +174,11 @@ import { useValidationStore } from '@/store/validation'
 import { chartOptions } from '@/charts'
 import { useToaster } from '@/composables/toaster'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
+import CustomButton from '@/components/simple/CustomButton.vue'
 import ImageCard from '@/components/containers/ImageCard.vue'
 import TableLayout from '@/components/containers/TableLayout.vue'
 import { List } from 'immutable'
+import * as d3 from 'd3'
 
 const { useIndexedDB } = storeToRefs(useMemoryStore())
 const toaster = useToaster()
@@ -178,8 +192,13 @@ interface Props {
 
 const props = defineProps<Props>()
 
+interface ImageWithUrl {
+  name: string,
+  url: string
+}
+
 interface DataWithPrediction {
-  data: string | number[]
+  data: ImageWithUrl | number[]
   prediction?: number
   groundTruth?: number
 }
@@ -234,7 +253,7 @@ async function predictUsingModel (): Promise<void> {
 
   if (isImageTaskType.value) {
     dataWithPred.value = List(props.datasetBuilder.sources).zip(List(predictions)).map(([source, prediction]) =>
-      ({ data: URL.createObjectURL(source), prediction: prediction.pred })).toArray()
+      ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred })).toArray()
   } else {
     featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
     dataWithPred.value = predictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
@@ -262,7 +281,7 @@ async function assessModel (): Promise<void> {
 
     if (isImageTaskType.value) {
       dataWithPred.value = List(props.datasetBuilder.sources).zip(List(assessmentResults)).map(([source, prediction]) =>
-        ({ data: URL.createObjectURL(source), prediction: prediction.pred, groundTruth: prediction.groundTruth })).toArray()
+        ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred, groundTruth: prediction.groundTruth })).toArray()
     } else {
       featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns, 'Target_' + props.task.trainingInformation.outputColumns]
       dataWithPred.value = assessmentResults.map(pred => ({ data: [...(pred.features as number[]), pred.pred, pred.groundTruth] }))
@@ -284,6 +303,29 @@ function openMapModal (prediction: number, groundTruth?: number) {
       mapModalUrl.value = `${baseUrl}?cellIds=${prediction}&colors=${correctColor}`
     }
   }
+}
+
+function saveCsv () {
+  let csvData: string
+
+  if (isImageTaskType) {
+    if (props.groundTruth) {
+      const rows = dataWithPred.value.map(el => [(el.data as ImageWithUrl).name, String(el.prediction), String(el.groundTruth)])
+      csvData = d3.csvFormatRows([['Filename', 'Prediction', 'Ground Truth'], ...rows])
+      console.log(csvData)
+    } else {
+      const rows = dataWithPred.value.map(el => [(el.data as ImageWithUrl).name, String(el.prediction)])
+      csvData = d3.csvFormatRows([['Filename', 'Prediction'], ...rows])
+    }
+  } else {
+    csvData = d3.csvFormatRows([(Object.values(featuresNames.value) as string[]), ...dataWithPred.value.map(el => Object.values(el.data).map(String))])
+  }
+
+  const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
+  const downloadLink = document.getElementById('downloadLink')
+  downloadLink.setAttribute('href', URL.createObjectURL(blob))
+  downloadLink.setAttribute('download', `predictions_${props.task.taskID}_${Date.now()}.csv`)
+  downloadLink.click()
 }
 
 </script>

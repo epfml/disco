@@ -152,31 +152,43 @@
     </div>
     <div v-if="currentTask !== undefined">
       <!-- 1. CONNECT YOUR DATA -->
-      <div v-show="validationStore.step === 1">
-        <!-- Information specific to the validation panel -->
-        <IconCard class="mb-3">
-          <template #title>
-            Model Validation
-          </template>
-          <template #content>
-            It is very important that your model is tested against <b class="uppercase">unseen data</b>.
-            As such, please ensure your dataset of choice was not used during the training phase of your model.
-          </template>
-        </IconCard>
-        <!-- Generic dataset information and input -->
-        <Data
+      <KeepAlive>
+        <div
+          v-show="validationStore.step === 1"
+        >
+          <!-- Information specific to the validation panel -->
+          <IconCard
+            v-if="!validationStore.isOnlyPrediction"
+            class="mb-3"
+          >
+            <template #title>
+              Model Validation
+            </template>
+            <template #content>
+              It is very important that your model is tested against <b class="uppercase">unseen data</b>.
+              As such, please ensure your dataset of choice was not used during the training phase of your model.
+            </template>
+          </IconCard>
+          <!-- Generic dataset information and input -->
+          <Data
+            :key="validationStore.model"
+            :task="currentTask"
+            :dataset-builder="datasetBuilder"
+            :is-only-prediction="validationStore.isOnlyPrediction"
+          />
+        </div>
+      </KeepAlive>
+
+      <!-- 2. TEST YOUR MODEL -->
+      <KeepAlive>
+        <Tester
+          v-show="validationStore.step === 2"
+          :key="validationStore.model"
           :task="currentTask"
           :dataset-builder="datasetBuilder"
-          :is-only-prediction="validationStore.isOnlyPrediction"
+          :ground-truth="!validationStore.isOnlyPrediction"
         />
-      </div>
-      <!-- 2. TEST YOUR MODEL -->
-      <Validator
-        v-show="validationStore.step === 2"
-        :task="currentTask"
-        :dataset-builder="datasetBuilder"
-        :ground-truth="!validationStore.isOnlyPrediction"
-      />
+      </KeepAlive>
     </div>
   </div>
 </template>
@@ -195,7 +207,7 @@ import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import Data from '@/components/data/Data.vue'
-import Validator from '@/components/validation/Validator.vue'
+import Tester from '@/components/testing/Tester.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 
