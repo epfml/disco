@@ -151,49 +151,36 @@
       </div>
     </div>
     <div v-if="currentTask !== undefined">
-      <!-- 1. CONNECT YOUR DATA -->
+      <!-- Information specific to the validation panel -->
+      <IconCard
+        v-if="!validationStore.isOnlyPrediction"
+        v-show="validationStore.step === 1"
+        class="mb-4 md:mb-8"
+      >
+        <template #title>
+          Model Validation
+        </template>
+        <template #content>
+          It is very important that your model is tested against <b class="uppercase">unseen data</b>.
+          As such, please ensure your dataset of choice was not used during the training phase of your model.
+        </template>
+      </IconCard>
       <KeepAlive>
-        <div
-          v-show="validationStore.step === 1"
-        >
-          <!-- Information specific to the validation panel -->
-          <IconCard
-            v-if="!validationStore.isOnlyPrediction"
-            class="mb-3"
-          >
-            <template #title>
-              Model Validation
-            </template>
-            <template #content>
-              It is very important that your model is tested against <b class="uppercase">unseen data</b>.
-              As such, please ensure your dataset of choice was not used during the training phase of your model.
-            </template>
-          </IconCard>
-          <!-- Generic dataset information and input -->
-          <Data
-            :key="validationStore.model"
-            :task="currentTask"
-            :dataset-builder="datasetBuilder"
-            :is-only-prediction="validationStore.isOnlyPrediction"
-          />
-        </div>
-      </KeepAlive>
-
-      <!-- 2. TEST YOUR MODEL -->
-      <KeepAlive>
-        <Tester
-          v-show="validationStore.step === 2"
+        <component
+          :is="currentComponent"
+          v-if="validationStore.step >= 1 && validationStore.step <= 2"
           :key="validationStore.model"
           :task="currentTask"
           :dataset-builder="datasetBuilder"
           :ground-truth="!validationStore.isOnlyPrediction"
+          :is-only-prediction="validationStore.isOnlyPrediction"
         />
       </KeepAlive>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
-import { watch, computed, shallowRef, onActivated, onMounted } from 'vue'
+import { watch, computed, shallowRef, onActivated, onMounted, Component } from 'vue'
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { List } from 'immutable'
@@ -214,6 +201,17 @@ import IconCard from '@/components/containers/IconCard.vue'
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
+
+const currentComponent = computed<Component | undefined>(() => {
+  switch (validationStore.step) {
+    case 1:
+      return Data
+    case 2:
+      return Tester
+    default:
+      return undefined
+  }
+})
 
 const { step: stepRef, state: stateRef } = storeToRefs(validationStore)
 
