@@ -27,6 +27,7 @@ export interface latestServerRound {
   type: type.latestServerRound
   weights: weights.Encoded
   round: number
+  isValidated: boolean
 }
 export interface pullServerStatistics {
   type: type.pullServerStatistics

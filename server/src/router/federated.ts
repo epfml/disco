@@ -209,8 +209,9 @@ export class Federated extends Server {
           throw new Error(`get round of unknown task: ${task.taskID}`)
         }
 
-        // check if client is eligible
-        this.conditionValidator.validate(clientId)
+        // check if client is eligible based on the set of validation rules 
+        const isValidated = this.conditionValidator.validate(clientId)
+        //if not, stop the client from further improving its model and return early
 
         // Get latest round
         const round = buffer.round
@@ -222,7 +223,8 @@ export class Federated extends Server {
           const msg: messages.latestServerRound = {
             type: messageTypes.latestServerRound,
             round: round,
-            weights: serializedWeights
+            weights: serializedWeights,
+            isValidated,
           }
 
           ws.send(msgpack.encode(msg))
