@@ -210,6 +210,8 @@ export class Client extends Base {
 
     await this.pullServerStatistics(trainingInformant)
 
+    // DUMMY CHANGE
+
     const serverWeights = await this.pullRoundAndFetchWeights()
     return serverWeights ?? staleWeights
   }
