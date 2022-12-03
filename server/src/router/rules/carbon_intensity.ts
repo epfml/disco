@@ -2,10 +2,14 @@ import { SustainabilityMetrics } from '@/../../discojs/discojs-core/src/client/f
 import { ValidatorRule } from '../condition_validator'
 
 
-export class LatencyRule implements ValidatorRule {
+export class CarbonIntensityRule implements ValidatorRule {
     public validateRule(clientId: string, features: Map<string, SustainabilityMetrics>): boolean {
-        if (features.size < 10) {
+        let curFeatures = features.get(clientId);
+        if (curFeatures === undefined || features.size < 10) {
             return true
+        } else if (curFeatures.carbonIntensity > 300) {
+            // failsafe
+            return false
         }
 
         return [...new Map([...features.entries()].sort(

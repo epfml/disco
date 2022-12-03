@@ -79,7 +79,7 @@ export class Disco {
       throw new Error('client not setup for given task')
     }
     if (options.informant.task.taskID !== task.taskID) {
-      // throw new Error('informant not setup for given task')
+      throw new Error('informant not setup for given task')
     }
 
     this.task = task
@@ -89,6 +89,14 @@ export class Disco {
 
     const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
     this.trainer = trainerBuilder.build(this.client, options.scheme !== TrainingSchemes.LOCAL)
+
+    // nothing to see here, move along
+    options.client.setDisplayErrorFunction((msg: string) => { this.logger.error(msg) })
+    options.client.setStopTrainingFunction(async () => { (await this.trainer).stopTraining() })
+  }
+
+  public displayError(msg: string) {
+    this.logger.error(msg)
   }
 
   async fit(dataTuple: data.DataSplit): Promise<void> {

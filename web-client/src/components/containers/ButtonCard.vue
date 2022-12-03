@@ -20,13 +20,18 @@
       <slot name="text" />
     </div>
     <div
-      :class="'text-' + buttonPlacement"
-      class="mt-auto"
+      :class="isAltAction ? 'flex justify-between mt-auto' : ('mt-auto text-'+buttonPlacement)"
     >
       <CustomButton
-        @click="click"
+        @click="$emit('action')"
       >
         <slot name="button" />
+      </CustomButton>
+      <CustomButton
+        v-if="isAltAction"
+        @click="$emit('altAction')"
+      >
+        <slot name="altButton" />
       </CustomButton>
     </div>
   </div>
@@ -49,10 +54,11 @@ export default defineComponent({
     buttonPlacement: {
       type: String,
       default: 'center'
-    },
-    click: {
-      type: Function,
-      default: () => {}
+    }
+  },
+  computed: {
+    isAltAction () {
+      return !!this.$slots.altButton
     }
   }
 })

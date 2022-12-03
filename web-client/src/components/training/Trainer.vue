@@ -76,7 +76,7 @@ export default defineComponent({
     return {
       distributedTraining: false,
       startedTraining: false,
-      trainingInformant: new informant.LocalInformant(this.task.taskID, 10)
+      trainingInformant: new informant.LocalInformant(this.task, 10)
     }
   },
   computed: {
@@ -117,7 +117,7 @@ export default defineComponent({
   },
   watch: {
     scheme (newScheme: TrainingSchemes): void {
-      const args = [this.task.taskID, 10] as const
+      const args = [this.task, 10] as const
       switch (newScheme) {
         case TrainingSchemes.FEDERATED:
           this.trainingInformant = new informant.FederatedInformant(...args)

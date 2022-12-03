@@ -49,7 +49,7 @@
       <ButtonCard
         v-show="filteredTasks.length === 0 && tasks.size > 0"
         class="mx-auto"
-        :click="clearFilters"
+        @action="clearFilters()"
       >
         <template #title>
           No task corresponds to the selected filters
@@ -64,7 +64,7 @@
       <ButtonCard
         v-show="tasks.size === 0"
         class="mx-auto"
-        :click="() => { router.go(0) }"
+        @action="() => { router.go(0) }"
       >
         <template #title>
           No task fetched from server
@@ -87,8 +87,8 @@
           :key="task.taskID"
         >
           <ButtonCard
-            :click="() => router.push(`/${task.taskID}`)"
             button-placement="left"
+            @action="() => router.push(`/${task.taskID}`)"
           >
             <template
               #title
