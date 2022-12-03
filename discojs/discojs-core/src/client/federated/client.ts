@@ -28,7 +28,8 @@ export class Client extends Base {
   private metadataMap?: Map<string, unknown>
 
   private sustainabilityMetrics: SustainabilityMetrics = {
-    latency: 0
+    latency: 0,
+    carbonIntensity: 0,
   }
 
   public get server(): EventConnection {
@@ -88,9 +89,24 @@ export class Client extends Base {
     this.server?.send(msg)
   }
 
+  private retrieveCarbonIntensity(): number {
+    // do not overload API server
+    //curl 'https://api.co2signal.com/v1/latest?countryCode={this.countryCode}' -H "auth-token: $API_TOKEN"
+    let dummy_data = { "status": "ok", "countryCode": "CH", "data": { "datetime": "2022-12-03T17:00:00.000Z", "carbonIntensity": 202, "fossilFuelPercentage": 19.28 }, "units": { "carbonIntensity": "gCO2eq/kWh" } }
+
+    if (dummy_data.status != "ok") {
+      return -1
+    }
+
+    return dummy_data.data.carbonIntensity
+  }
+
   // It sends weights to the server
   async postWeightsToServer(weights: WeightsContainer): Promise<void> {
     // kpj: client sends weights to server
+
+    this.sustainabilityMetrics.carbonIntensity = this.retrieveCarbonIntensity()
+
     const msg: messages.postWeightsToServer = {
       type: type.postWeightsToServer,
       weights: await serialization.weights.encode(weights),

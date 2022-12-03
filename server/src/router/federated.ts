@@ -26,6 +26,7 @@ import messageTypes = client.messages.type
 import clientConnected = client.messages.type.clientConnected
 import { TasksAndModels } from '@/tasks'
 import { LatencyRule } from './rules/latency'
+import { CarbonIntensityRule } from './rules/carbon_intensity'
 
 const BUFFER_CAPACITY = 2
 
@@ -93,6 +94,7 @@ export class Federated extends Server {
   constructor(wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels) {
     super(wsApplier, tasksAndModels)
     this.conditionValidator.addRule(new LatencyRule())
+    this.conditionValidator.addRule(new CarbonIntensityRule())
   }
 
   protected get description(): string {
