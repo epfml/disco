@@ -3,6 +3,8 @@ import { weights } from '../../serialization'
 
 import { type, hasMessageType } from '../messages'
 
+import { SustainabilityMetrics } from './sustainability_metrics'
+
 export type MessageFederated =
   postWeightsToServer |
   latestServerRound |
@@ -19,6 +21,7 @@ export interface postWeightsToServer {
   type: type.postWeightsToServer
   weights: weights.Encoded
   round: number
+  sustainabilityMetrics: SustainabilityMetrics
 }
 export interface latestServerRound {
   type: type.latestServerRound
@@ -46,7 +49,7 @@ export interface getMetadataMap {
   metadataMap?: Array<[string, string | undefined]>
 }
 
-export function isMessageFederated (o: unknown): o is MessageFederated {
+export function isMessageFederated(o: unknown): o is MessageFederated {
   if (!hasMessageType(o)) {
     return false
   }

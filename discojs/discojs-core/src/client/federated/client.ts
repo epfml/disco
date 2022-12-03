@@ -8,6 +8,7 @@ import { type, clientConnected } from '../messages'
 import * as nodeUrl from 'url'
 import { EventConnection, waitMessageWithTimeout, WebSocketServer } from '../event_connection'
 import { MAX_WAIT_PER_ROUND } from '../utils'
+import { SustainabilityMetrics } from "./sustainability_metrics"
 
 /**
  * Class that deals with communication with the centralized server when training
@@ -26,7 +27,11 @@ export class Client extends Base {
   private receivedStatistics?: Record<string, number>
   private metadataMap?: Map<string, unknown>
 
-  public get server (): EventConnection {
+  private sustainabilityMetrics: SustainabilityMetrics = {
+    latency: 0
+  }
+
+  public get server(): EventConnection {
     if (this._server === undefined) {
       throw new Error('server undefined, not connected')
     }
@@ -34,7 +39,7 @@ export class Client extends Base {
   }
 
   // It opens a new WebSocket connection and listens to new messages over the channel
-  private async connectServer (url: URL): Promise<EventConnection> {
+  private async connectServer(url: URL): Promise<EventConnection> {
     const server: EventConnection = await WebSocketServer.connect(url, messages.isMessageFederated, messages.isMessageFederated)
 
     return server
@@ -44,7 +49,7 @@ export class Client extends Base {
    * Initialize the connection to the server. TODO: In the case of FeAI,
    * should return the current server-side round for the task.
    */
-  async connect (): Promise<void> {
+  async connect(): Promise<void> {
     const URL = typeof window !== 'undefined' ? window.URL : nodeUrl.URL
     const serverURL = new URL('', this.url.href)
     switch (this.url.protocol) {
@@ -65,34 +70,38 @@ export class Client extends Base {
     this.server.send(msg)
     await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)
     this.connected = true
+
+    console.log("foo")
   }
 
   /**
    * Disconnection process when user quits the task.
    */
-  async disconnect (): Promise<void> {
+  async disconnect(): Promise<void> {
     this.server.disconnect()
     this._server = undefined
     this.connected = false
   }
 
   // It sends a message to the server
-  private sendMessage (msg: messages.MessageFederated): void {
+  private sendMessage(msg: messages.MessageFederated): void {
     this.server?.send(msg)
   }
 
   // It sends weights to the server
-  async postWeightsToServer (weights: WeightsContainer): Promise<void> {
+  async postWeightsToServer(weights: WeightsContainer): Promise<void> {
+    // kpj: client sends weights to server
     const msg: messages.postWeightsToServer = {
       type: type.postWeightsToServer,
       weights: await serialization.weights.encode(weights),
-      round: this.round
+      round: this.round,
+      sustainabilityMetrics: this.sustainabilityMetrics,
     }
     this.sendMessage(msg)
   }
 
   // It retrieves the last server round and weights, but return only the server round
-  async getLatestServerRound (): Promise<number | undefined> {
+  async getLatestServerRound(): Promise<number | undefined> {
     this.serverRound = undefined
     this.serverWeights = undefined
 
@@ -110,7 +119,7 @@ export class Client extends Base {
   }
 
   // It retrieves the last server round and weights, but return only the server weights
-  async pullRoundAndFetchWeights (): Promise<WeightsContainer | undefined> {
+  async pullRoundAndFetchWeights(): Promise<WeightsContainer | undefined> {
     // get server round of latest model
     await this.getLatestServerRound()
 
@@ -124,7 +133,7 @@ export class Client extends Base {
   }
 
   // It pulls statistics from the server
-  async pullServerStatistics (
+  async pullServerStatistics(
     trainingInformant: informant.FederatedInformant
   ): Promise<void> {
     this.receivedStatistics = undefined
@@ -141,7 +150,7 @@ export class Client extends Base {
   }
 
   // It posts a new metadata value to the server
-  async postMetadata (metadataID: MetadataID, metadata: string): Promise<void> {
+  async postMetadata(metadataID: MetadataID, metadata: string): Promise<void> {
     const msg: messages.postMetadata = {
       type: type.postMetadata,
       taskId: this.task.taskID,
@@ -155,7 +164,7 @@ export class Client extends Base {
   }
 
   // It gets a metadata map from the server
-  async getMetadataMap (
+  async getMetadataMap(
     metadataId: MetadataID
   ): Promise<Map<string, unknown> | undefined> {
     this.metadataMap = undefined
@@ -178,7 +187,7 @@ export class Client extends Base {
     return this.metadataMap
   }
 
-  async onRoundEndCommunication (
+  async onRoundEndCommunication(
     updatedWeights: WeightsContainer,
     staleWeights: WeightsContainer,
     _: number,
@@ -197,5 +206,5 @@ export class Client extends Base {
     return serverWeights ?? staleWeights
   }
 
-  async onTrainEndCommunication (): Promise<void> {}
+  async onTrainEndCommunication(): Promise<void> { }
 }

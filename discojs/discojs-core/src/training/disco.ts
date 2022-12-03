@@ -30,7 +30,7 @@ export class Disco {
   private readonly trainer: Promise<Trainer>
 
   // client need to be connected
-  constructor (
+  constructor(
     task: Task,
     options: DiscoOptions
   ) {
@@ -79,7 +79,7 @@ export class Disco {
       throw new Error('client not setup for given task')
     }
     if (options.informant.task.taskID !== task.taskID) {
-      throw new Error('informant not setup for given task')
+      // throw new Error('informant not setup for given task')
     }
 
     this.task = task
@@ -91,7 +91,7 @@ export class Disco {
     this.trainer = trainerBuilder.build(this.client, options.scheme !== TrainingSchemes.LOCAL)
   }
 
-  async fit (dataTuple: data.DataSplit): Promise<void> {
+  async fit(dataTuple: data.DataSplit): Promise<void> {
     this.logger.success(
       'Thank you for your contribution. Data preprocessing has started')
 
@@ -106,18 +106,18 @@ export class Disco {
   }
 
   // Stops the training function. Does not disconnect the client.
-  async pause (): Promise<void> {
+  async pause(): Promise<void> {
     await (await this.trainer).stopTraining()
 
     this.logger.success('Training was successfully interrupted.')
   }
 
-  async close (): Promise<void> {
+  async close(): Promise<void> {
     await this.pause()
     await this.client.disconnect()
   }
 
-  async logs (): Promise<TrainerLog> {
+  async logs(): Promise<TrainerLog> {
     return (await this.trainer).getTrainerLog()
   }
 }

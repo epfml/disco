@@ -1,4 +1,5 @@
 import express from 'express'
+import expressWS from 'express-ws'
 import WebSocket from 'ws'
 
 import { List, Map, Set } from 'immutable'
@@ -16,10 +17,15 @@ import {
   WeightsContainer
 } from '@epfml/discojs-node'
 
+import { SustainabilityMetrics } from '../../../discojs/discojs-core/src/client/federated/sustainability_metrics'
+import { ConditionValidator } from './condition_validator'
+
 import { Server } from './server'
 import messages = client.federated.messages
 import messageTypes = client.messages.type
 import clientConnected = client.messages.type.clientConnected
+import { TasksAndModels } from '@/tasks'
+import { LatencyRule } from './rules/latency'
 
 const BUFFER_CAPACITY = 2
 
@@ -63,8 +69,8 @@ export class Federated extends Server {
    * Stored by task ID, round number and client ID.
    */
   private metadataMap = Map<
-  TaskID,
-  Map<number, Map<string, Map<string, string>>>
+    TaskID,
+    Map<number, Map<string, Map<string, string>>>
   >()
 
   // Contains all successful requests made to the server.
@@ -74,6 +80,8 @@ export class Federated extends Server {
   // Contains client IDs currently connected to one of the server.
   private clients = Set<string>()
 
+  private conditionValidator = new ConditionValidator()
+
   private models = Map<TaskID, tf.LayersModel>()
 
   /**
@@ -82,15 +90,20 @@ export class Federated extends Server {
    */
   private tasksStatus = Map<TaskID, TaskStatus>()
 
-  protected get description (): string {
+  constructor(wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels) {
+    super(wsApplier, tasksAndModels)
+    this.conditionValidator.addRule(new LatencyRule())
+  }
+
+  protected get description(): string {
     return 'FeAI Server'
   }
 
-  protected buildRoute (task: Task): string {
+  protected buildRoute(task: Task): string {
     return `/${task.taskID}/:clientId`
   }
 
-  public isValidUrl (url: string | undefined): boolean {
+  public isValidUrl(url: string | undefined): boolean {
     const splittedUrl = url?.split('/')
 
     return (splittedUrl !== undefined && splittedUrl.length === 4 && splittedUrl[0] === '' &&
@@ -98,12 +111,12 @@ export class Federated extends Server {
       this.isValidWebSocket(splittedUrl[3]))
   }
 
-  protected sendConnectedMsg (ws: WebSocket): void {
+  protected sendConnectedMsg(ws: WebSocket): void {
     const msg: messages.messageGeneral = { type: clientConnected }
     ws.send(msgpack.encode(msg))
   }
 
-  protected initTask (task: Task, model: tf.LayersModel): void {
+  protected initTask(task: Task, model: tf.LayersModel): void {
     this.tasksStatus = this.tasksStatus.set(task.taskID, {
       isRoundPending: false,
       round: 0
@@ -128,7 +141,7 @@ export class Federated extends Server {
     this.models = this.models.set(task.taskID, model)
   }
 
-  protected handle (
+  protected handle(
     task: Task,
     ws: WebSocket,
     model: tf.LayersModel,
@@ -146,8 +159,11 @@ export class Federated extends Server {
         this.logsAppend(task.taskID, clientId, RequestType.Connect, 0)
         this.sendConnectedMsg(ws)
       } else if (msg.type === messageTypes.postWeightsToServer) {
+        // kpj: server receives weights sent by server
         const rawWeights = msg.weights
         const round = msg.round
+
+        this.conditionValidator.updateSustainabilityMetrics(clientId, msg.sustainabilityMetrics)
 
         this.logsAppend(
           task.taskID,
@@ -190,6 +206,9 @@ export class Federated extends Server {
         if (buffer === undefined) {
           throw new Error(`get round of unknown task: ${task.taskID}`)
         }
+
+        // check if client is eligible
+        this.conditionValidator.validate(clientId)
 
         // Get latest round
         const round = buffer.round
@@ -273,7 +292,7 @@ export class Federated extends Server {
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */
-  private async aggregateAndStoreWeights (
+  private async aggregateAndStoreWeights(
     model: tf.LayersModel,
     weights: List<WeightsContainer>,
     byzantineRobustAggregator: boolean,
@@ -293,7 +312,7 @@ export class Federated extends Server {
    * @param {Request} request received from client
    * @param {String} type of the request
    */
-  private logsAppend (
+  private logsAppend(
     taskId: TaskID,
     clientId: string,
     type: RequestType,
