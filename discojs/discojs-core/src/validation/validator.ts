@@ -31,7 +31,7 @@ export class Validator {
     const predictions: number[] = []
 
     let hits = 0
-    await data.dataset.batch(batchSize).forEachAsync((e) => {
+    await data.preprocess().dataset.batch(batchSize).forEachAsync((e) => {
       if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
         const xs = e.xs as tf.Tensor
         const ys = (e.ys as tf.Tensor).argMax(1).dataSync()
@@ -78,7 +78,7 @@ export class Validator {
     let features: Array<number | number[] | number[][] | number[][][] | number[][][][] | number[][][][][]> = []
     const predictions: number[] = []
 
-    await data.dataset.batch(batchSize).forEachAsync(e => {
+    await data.preprocess().dataset.batch(batchSize).forEachAsync(e => {
       const currentFeatures = (e as tf.Tensor).arraySync()
 
       if (Array.isArray(currentFeatures)) {
