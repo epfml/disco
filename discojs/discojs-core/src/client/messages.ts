@@ -25,9 +25,21 @@ export enum type {
   pullServerStatistics,
 }
 
+export interface Geolocation {
+  readonly coords: {
+    readonly accuracy: number;
+    readonly altitude: number | null;
+    readonly altitudeAccuracy: number | null;
+    readonly heading: number | null;
+    readonly latitude: number;
+    readonly longitude: number;
+    readonly speed: number | null;
+  };
+  readonly timestamp: number;
+}
 export interface clientConnected {
   type: type.clientConnected
-  geolocation: GeolocationPosition
+  geolocation: Geolocation
 }
 
 export type Message =
@@ -39,7 +51,7 @@ export type Message =
 // Retrieve a specific message interface from the type D. i.e. NarrowMessage<messages.type.PeerId> => messages.PeerId type
 export type NarrowMessage<D> = Extract<Message, { type: D }>
 
-export function hasMessageType (raw: unknown): raw is {type: type} & Record<string, unknown> {
+export function hasMessageType(raw: unknown): raw is { type: type } & Record<string, unknown> {
   if (typeof raw !== 'object' || raw === null) {
     return false
   }

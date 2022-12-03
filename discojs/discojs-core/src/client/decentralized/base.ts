@@ -27,7 +27,7 @@ export abstract class Base extends ClientBase {
 
   private pool?: Promise<PeerPool>
 
-  constructor (
+  constructor(
     public readonly url: URL,
     public readonly task: Task
   ) {
@@ -36,7 +36,7 @@ export abstract class Base extends ClientBase {
   }
 
   // send message to server that client is ready
-  private async waitForPeers (round: number): Promise<Map<PeerID, PeerConnection>> {
+  private async waitForPeers(round: number): Promise<Map<PeerID, PeerConnection>> {
     console.debug(this.ID, 'is ready for round', round)
 
     // clean old round
@@ -83,7 +83,7 @@ export abstract class Base extends ClientBase {
   }
 
   // TODO inline? have a serialization mod
-  protected sendMessagetoPeer (peer: PeerConnection, msg: messages.PeerMessage): void {
+  protected sendMessagetoPeer(peer: PeerConnection, msg: messages.PeerMessage): void {
     console.debug(this.ID, 'sends message to peer', msg.peer, msg)
     peer.send(msg)
   }
@@ -92,7 +92,7 @@ export abstract class Base extends ClientBase {
   creation of the websocket for the server, connection of client to that webSocket,
   deals with message reception from decentralized client perspective (messages received by client)
    */
-  private async connectServer (url: URL): Promise<EventConnection> {
+  private async connectServer(url: URL): Promise<EventConnection> {
     const server: EventConnection = await WebSocketServer.connect(url, messages.isMessageFromServer, messages.isMessageToServer)
 
     server.on(type.SignalForPeer, (event) => {
@@ -110,7 +110,7 @@ export abstract class Base extends ClientBase {
   /**
    * Initialize the connection to the peers and to the other nodes.
    */
-  async connect (): Promise<void> {
+  async connect(): Promise<void> {
     const URL = typeof window !== 'undefined' ? window.URL : nodeUrl.URL
     const serverURL = new URL('', this.url.href)
     switch (this.url.protocol) {
@@ -129,7 +129,18 @@ export abstract class Base extends ClientBase {
 
     const msg: clientConnected = {
       type: type.clientConnected,
-      geolocation: new GeolocationPosition()
+      geolocation: {
+        coords: {
+          accuracy: 0,
+          altitude: 0,
+          altitudeAccuracy: 0,
+          heading: 0,
+          latitude: 0,
+          longitude: 0,
+          speed: 0,
+        },
+        timestamp: 0
+      },
     }
     this.server.send(msg)
 
@@ -147,7 +158,7 @@ export abstract class Base extends ClientBase {
   }
 
   // disconnect from server & peers
-  async disconnect (): Promise<void> {
+  async disconnect(): Promise<void> {
     console.debug(this.ID, 'disconnect');
 
     (await this.pool)?.shutdown()
@@ -158,12 +169,12 @@ export abstract class Base extends ClientBase {
     this.connected = false
   }
 
-  async onTrainEndCommunication (_: WeightsContainer, trainingInformant: TrainingInformant): Promise<void> {
+  async onTrainEndCommunication(_: WeightsContainer, trainingInformant: TrainingInformant): Promise<void> {
     // TODO: enter seeding mode?
     trainingInformant.addMessage('Training finished.')
   }
 
-  async onRoundEndCommunication (
+  async onRoundEndCommunication(
     updatedWeights: WeightsContainer,
     staleWeights: WeightsContainer,
     round: number,
@@ -192,12 +203,12 @@ export abstract class Base extends ClientBase {
     }
   }
 
-  abstract sendAndReceiveWeights (
+  abstract sendAndReceiveWeights(
     peers: Map<PeerID, PeerConnection>,
     noisyWeights: WeightsContainer,
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<List<WeightsContainer>>
 
-  abstract clientHandle (peers: Map<PeerID, PeerConnection>): void
+  abstract clientHandle(peers: Map<PeerID, PeerConnection>): void
 }

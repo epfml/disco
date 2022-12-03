@@ -222,7 +222,6 @@ export class Federated extends Server {
             weights: serializedWeights
           }
 
-
           // FIXME: 
           // if (this.skipClients.has(clientId)) msg.weights = null;
           //   ws.send(msgpack.encode(msg))

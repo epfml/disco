@@ -62,7 +62,18 @@ export class Client extends Base {
 
     const msg: clientConnected = {
       type: type.clientConnected,
-      geolocation: new GeolocationPosition()
+      geolocation: {
+        coords: {
+          accuracy: 0,
+          altitude: 0,
+          altitudeAccuracy: 0,
+          heading: 0,
+          latitude: 0,
+          longitude: 0,
+          speed: 0,
+        },
+        timestamp: 0
+      },
     }
     this.server.send(msg)
     await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)
