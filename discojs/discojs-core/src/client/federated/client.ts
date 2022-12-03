@@ -88,9 +88,25 @@ export class Client extends Base {
   }
 
   private retrieveCarbonIntensity(): number {
+    // don't try this at home (for demo)
+    let cc: string = (window as any).country_code
+    if (cc === undefined) {
+      cc = "CH"
+    }
     // do not overload API server
     //curl 'https://api.co2signal.com/v1/latest?countryCode={this.countryCode}' -H "auth-token: $API_TOKEN"
-    let dummy_data = { "status": "ok", "countryCode": "CH", "data": { "datetime": "2022-12-03T17:00:00.000Z", "carbonIntensity": 202, "fossilFuelPercentage": 19.28 }, "units": { "carbonIntensity": "gCO2eq/kWh" } }
+    let dummy_data = {
+      "status": "ok",
+      "countryCode": cc,
+      "data": {
+        "datetime": "2022-12-03T17:00:00.000Z",
+        "carbonIntensity": cc == "CH" ? 290 : 310,
+        "fossilFuelPercentage": 19.28
+      },
+      "units": {
+        "carbonIntensity": "gCO2eq/kWh"
+      }
+    }
 
     if (dummy_data.status != "ok") {
       return -1
