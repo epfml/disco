@@ -49,6 +49,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
           }
         }
       }
+
       return iterator as unknown as Iterator<tf.Tensor> // Lazy
     })
 

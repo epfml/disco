@@ -11,6 +11,9 @@ module.exports = {
           cyan: '#6096BA',
           blue: '#274C78'
         }
+      },
+      spacing: {
+        128: '32rem'
       }
     }
   },
