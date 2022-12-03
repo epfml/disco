@@ -5,7 +5,7 @@ import { ValidatorRule } from '../condition_validator'
 export class CarbonIntensityRule implements ValidatorRule {
     public validateRule(clientId: string, features: Map<string, SustainabilityMetrics>): boolean {
         let curFeatures = features.get(clientId);
-        if (curFeatures === undefined || features.size < 10) {
+        if (curFeatures === undefined) {
             return true
         } else if (curFeatures.carbonIntensity > 300) {
             // failsafe

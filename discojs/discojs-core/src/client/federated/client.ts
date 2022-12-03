@@ -141,8 +141,8 @@ export class Client extends Base {
     this.sendMessage(msg)
 
     const received = await waitMessageWithTimeout(this.server, type.latestServerRound, MAX_WAIT_PER_ROUND)
-    if (!received.isValidated){
-      this.displayError("Your node is meeting the minimum requirement to keep improving the model")
+    if (!received.isValidated) {
+      this.displayError("Your node is not meeting the minimum requirement to keep improving the model")
       this.stopTraining()
     }
     this.serverRound = received.round
