@@ -27,6 +27,7 @@ export enum type {
 
 export interface clientConnected {
   type: type.clientConnected
+  geolocation: GeolocationPosition
 }
 
 export type Message =

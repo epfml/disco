@@ -63,8 +63,8 @@ export class Federated extends Server {
    * Stored by task ID, round number and client ID.
    */
   private metadataMap = Map<
-  TaskID,
-  Map<number, Map<string, Map<string, string>>>
+    TaskID,
+    Map<number, Map<string, Map<string, string>>>
   >()
 
   // Contains all successful requests made to the server.
@@ -74,6 +74,10 @@ export class Federated extends Server {
   // Contains client IDs currently connected to one of the server.
   private clients = Set<string>()
 
+  // private geolocations = Map<string, GeolocationPosition>()
+
+  private skipClients = Set<string>()
+
   private models = Map<TaskID, tf.LayersModel>()
 
   /**
@@ -82,15 +86,15 @@ export class Federated extends Server {
    */
   private tasksStatus = Map<TaskID, TaskStatus>()
 
-  protected get description (): string {
+  protected get description(): string {
     return 'FeAI Server'
   }
 
-  protected buildRoute (task: Task): string {
+  protected buildRoute(task: Task): string {
     return `/${task.taskID}/:clientId`
   }
 
-  public isValidUrl (url: string | undefined): boolean {
+  public isValidUrl(url: string | undefined): boolean {
     const splittedUrl = url?.split('/')
 
     return (splittedUrl !== undefined && splittedUrl.length === 4 && splittedUrl[0] === '' &&
@@ -98,12 +102,12 @@ export class Federated extends Server {
       this.isValidWebSocket(splittedUrl[3]))
   }
 
-  protected sendConnectedMsg (ws: WebSocket): void {
+  protected sendConnectedMsg(ws: WebSocket): void {
     const msg: messages.messageGeneral = { type: clientConnected }
     ws.send(msgpack.encode(msg))
   }
 
-  protected initTask (task: Task, model: tf.LayersModel): void {
+  protected initTask(task: Task, model: tf.LayersModel): void {
     this.tasksStatus = this.tasksStatus.set(task.taskID, {
       isRoundPending: false,
       round: 0
@@ -128,7 +132,12 @@ export class Federated extends Server {
     this.models = this.models.set(task.taskID, model)
   }
 
-  protected handle (
+  protected evaluateClientProbability(clientID: string): boolean {
+    return true
+    // FIXME:
+  }
+
+  protected handle(
     task: Task,
     ws: WebSocket,
     model: tf.LayersModel,
@@ -141,7 +150,11 @@ export class Federated extends Server {
       if (msg.type === clientConnected) {
         console.info('client', clientId, 'joined', task.taskID)
 
-        this.clients = this.clients.add(clientId)
+        if (msg.geolocation) {
+          this.clients = this.clients.add(clientId)
+          // FIXME:
+          // this.geolocations = this.geolocations.set(clientId, msg.geolocation)
+        }
 
         this.logsAppend(task.taskID, clientId, RequestType.Connect, 0)
         this.sendConnectedMsg(ws)
@@ -172,7 +185,12 @@ export class Federated extends Server {
           throw new Error(`post weight to unknown task: ${task.taskID}`)
         }
 
-        void buffer.add(clientId, weights, round)
+        if (this.evaluateClientProbability(clientId)) {
+          this.skipClients.delete(clientId)
+          void buffer.add(clientId, weights, round)
+        } else {
+          this.skipClients.add(clientId)
+        }
       } else if (msg.type === messageTypes.pullServerStatistics) {
         // Get latest round
         const statistics = this.asyncInformantsMap
@@ -204,6 +222,11 @@ export class Federated extends Server {
             weights: serializedWeights
           }
 
+
+          // FIXME: 
+          // if (this.skipClients.has(clientId)) msg.weights = null;
+          //   ws.send(msgpack.encode(msg))
+          // })
           ws.send(msgpack.encode(msg))
         })
       } else if (msg.type === messageTypes.postMetadata) {
@@ -273,7 +296,7 @@ export class Federated extends Server {
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */
-  private async aggregateAndStoreWeights (
+  private async aggregateAndStoreWeights(
     model: tf.LayersModel,
     weights: List<WeightsContainer>,
     byzantineRobustAggregator: boolean,
@@ -293,7 +316,7 @@ export class Federated extends Server {
    * @param {Request} request received from client
    * @param {String} type of the request
    */
-  private logsAppend (
+  private logsAppend(
     taskId: TaskID,
     clientId: string,
     type: RequestType,

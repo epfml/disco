@@ -7,7 +7,7 @@ import * as messages from './messages'
 import { type, clientConnected } from '../messages'
 import * as nodeUrl from 'url'
 import { EventConnection, waitMessageWithTimeout, WebSocketServer } from '../event_connection'
-import { MAX_WAIT_PER_ROUND } from '../utils'
+import { MAX_WAIT_PER_ROUND, timeout } from '../utils'
 
 /**
  * Class that deals with communication with the centralized server when training
@@ -59,8 +59,10 @@ export class Client extends Base {
     }
     serverURL.pathname += `feai/${this.task.taskID}/${this.clientID}`
     this._server = await this.connectServer(serverURL)
+
     const msg: clientConnected = {
-      type: type.clientConnected
+      type: type.clientConnected,
+      geolocation: new GeolocationPosition()
     }
     this.server.send(msg)
     await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)
@@ -113,6 +115,10 @@ export class Client extends Base {
   async pullRoundAndFetchWeights (): Promise<WeightsContainer | undefined> {
     // get server round of latest model
     await this.getLatestServerRound()
+
+    if (!this.serverWeights){
+      // TODO: sleep
+    }
 
     if (this.round < (this.serverRound ?? 0)) {
       // Update the local round to match the server's

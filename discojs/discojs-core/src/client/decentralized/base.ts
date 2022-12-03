@@ -128,7 +128,8 @@ export abstract class Base extends ClientBase {
     this.server = await this.connectServer(serverURL)
 
     const msg: clientConnected = {
-      type: type.clientConnected
+      type: type.clientConnected,
+      geolocation: new GeolocationPosition()
     }
     this.server.send(msg)
 
