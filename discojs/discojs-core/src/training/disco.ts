@@ -46,10 +46,10 @@ export class Disco {
       }
       switch (options.scheme) {
         case TrainingSchemes.FEDERATED:
-          options.client = new clients.federated.Client(options.url, task, this.displayError)
+          options.client = new clients.federated.Client(options.url, task)
           break
         case TrainingSchemes.DECENTRALIZED:
-          options.client = new clients.federated.Client(options.url, task, this.displayError)
+          options.client = new clients.federated.Client(options.url, task)
           break
         default:
           options.client = new clients.Local(options.url, task)
@@ -89,6 +89,10 @@ export class Disco {
 
     const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
     this.trainer = trainerBuilder.build(this.client, options.scheme !== TrainingSchemes.LOCAL)
+
+    // nothing to see here, move along
+    options.client.setDisplayErrorFunction((msg: string) => { this.logger.error(msg) })
+    options.client.setStopTrainingFunction(async () => { (await this.trainer).stopTraining() })
   }
 
   public displayError(msg: string) {

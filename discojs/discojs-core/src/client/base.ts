@@ -4,12 +4,21 @@ import { tf, WeightsContainer, Task, TrainingInformant, serialization } from '..
 
 export abstract class Base {
   protected connected: boolean = false
+  public displayError: any
+  public stopTraining: any
 
   constructor(
     public readonly url: URL,
     public readonly task: Task,
-    public displayError: any = undefined,
   ) { }
+
+  public setDisplayErrorFunction(func: any) {
+    this.displayError = func
+  }
+
+  public setStopTrainingFunction(func: any) {
+    this.stopTraining = func
+  }
 
   /**
    * Handles the connection process from the client to any sort of
