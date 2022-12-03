@@ -78,6 +78,8 @@ export class Federated extends Server {
 
   private skipClients = Set<string>()
 
+  private clientCarbon = Map<string, number>()
+
   private models = Map<TaskID, tf.LayersModel>()
 
   /**
@@ -161,7 +163,11 @@ export class Federated extends Server {
       } else if (msg.type === messageTypes.postWeightsToServer) {
         const rawWeights = msg.weights
         const round = msg.round
-
+        const carbon = msg.carbon
+        const acc = msg.val_acc
+        console.log('%f', carbon)
+        console.log('%f', acc)
+        this.clientCarbon.set(clientId, carbon)
         this.logsAppend(
           task.taskID,
           clientId,
