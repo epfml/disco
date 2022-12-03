@@ -71,8 +71,6 @@ export class Client extends Base {
     this.server.send(msg)
     await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)
     this.connected = true
-
-    console.log("foo")
   }
 
   /**
