@@ -8,6 +8,8 @@ export class LatencyRule implements ValidatorRule {
             return true
         }
 
-        return false
+        return [...new Map([...features.entries()].sort(
+            (a, b) => b[1].latency - a[1].latency
+        )).keys()].slice(0, 10).includes(clientId)
     }
 }
