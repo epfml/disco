@@ -79,7 +79,7 @@ export class Disco {
       throw new Error('client not setup for given task')
     }
     if (options.informant.task.taskID !== task.taskID) {
-      // throw new Error('informant not setup for given task')
+      throw new Error('informant not setup for given task')
     }
 
     this.task = task
