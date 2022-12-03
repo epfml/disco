@@ -48,13 +48,11 @@ I am a user who wants to define my custom task and bring my model to Disco, with
 
 ## 3) Procedure for adding a custom task
 
-In order to add a new custom task to Disco.js, we first need to create and export a new instance of the `Task` class, defined [here](../discojs/discojs-core/src/task/task.ts).
-Then, we must also export a function called `model` that specifies a model architecture for the task.
-We have to remember to export the task and the function in the `index.ts` [file which lives in the same folder](../discojs/discojs-core/src/tasks/index.ts).
-Finally, we need to rebuild Disco.js: `cd discojs/ && npm run build`
+In order to add a new custom task to Disco.js, we need to have defined a `TaskProvider` which need to implement two methods:
+   * `getTask` which returns a `Task` as defined [here](../discojs/discojs-core/src/task/task.ts), the `Task` contains all the crucial information from training to the mode
+   * `getModel` which returns a `Promise<tf.LayersModel>` specifying a model architecture for the task
 
-
-
+You can find examples of `TaskProvider` currently used in our Disco server in `discojs/discojs-core/src/default_tasks/`. These tasks are all loaded by our server by default.
 
 ### Task
 
@@ -62,42 +60,71 @@ For the task creation, we consider the main use case which does not go through t
 
 **I am a developper who wants to define my own task**
 
-In this case, your model and task will be uploaded and stored on our DISCO servers. You will have to make the task visible to the API. For your custom model, the JSON model architecture is necessary, but the .bin weight file is optional : if you include the weights file, your model will be loaded with the passed weights. If a weights file is not specified, the weights for the model will be initialized randomly.
+If you want to add a new task to our production DISCO server you have two possibilities:
+  * using the user interface as described above
+  * exporting your own `TaskProvider` from `discojs/discojs-core/src/default_tasks/`  and adding a new default task by contributing to the code.
 
-
-
-### Making the task visible to the API
-
-The [`Task`](../discojs/discojs-core/src/task/task.ts) interface is the first piece of the puzzle, this contains all the crucial information from training to mode.
-We start by creating a `my_new_task.ts` file and place it at the same path as the other tasks (currently this is under `discojs/discojs-core/src/tasks/`).
-After this make sure to include its reference in the `discojs/discojs-core/src/tasks/index.ts` file as follows:
+To export a new task in the code, make sure to export the `TaskProvider` in the `discojs/discojs-core/src/default_tasks/index.ts` file as follows:
 
 ```js
-export * as cifar10 from './cifar10'
-export * as lus_covid from './lus_covid'
-export * as mnist from './mnist'
-export * as my_new_task from './my_new_task' // <---- including our new custom task!
-export * as titanic from './titanic'
+export { cifar10 } from './cifar10'
+export { lusCovid } from './lus_covid'
+export { mnist } from './mnist'
+export { titanic } from './titanic'
+export { simpleFace } from './simple_face'
+export { myNewTask } as my_new_task from './my_new_task' // <---- including our new custom task!
+export { geotags } from './geotags'
 ```
 
-This ensure that the task is properly exposed and thus the server will also be able to see and serve it.
-
 > Note that `discojs-core` must only contain platform-agnostic code that works both in the browser and on Node.js.
-> Thus, if your task requires reading some file from your local file system, you need to define the task in `discojs-node` only: `discojs/discojs-node/src/tasks/my_new_task.ts`
-> In a similar fashion, tasks expecting to read from browser memory (such as IndexedDB or local storage) shall be defined in `discojs-web` instead: `discojs/discojs-web/src/tasks/my_new_task.ts`
+> Thus, if your task requires reading some file from your local file system, you need to define the task in `discojs-node` only: `discojs/discojs-node/src/default_tasks/my_new_task.ts`
+> In a similar fashion, tasks expecting to read from browser memory (such as IndexedDB or local storage) shall be defined in `discojs-web` instead: `discojs/discojs-web/src/default_tasks/my_new_task.ts`
+
+If you run the server yourself, you can use the two methods above but the prefered way is to **directly provide the task to the server before startup**. You can do this with the NPM [disco-server](https://www.npmjs.com/package/@epfml/disco-server) package without altering the code or recompiling it.
+
+```js
+import { Disco, tf } from '@epfml/disco-server'
+
+// Define your own task provider (task definition + model)
+const customTask: TaskProvider = {
+    getTask(): Task {
+      return {
+        // Your task definition
+      }
+    },
+  
+    async getModel(): Promise<tf.LayersModel> {
+      const model = tf.sequential()
+      // Configure your model architechture
+      return model
+    }
+  }
+
+async function runServer() {
+  const disco = new Disco()
+  // Add your own custom task
+  await disco.addTask(customTask)
+  // Start the server
+  disco.serve()
+}
+
+runServer()
+```
+
+For more information, read the [server documentation](../server/README.md).
+
+For your custom model, the JSON model architecture is necessary, but the .bin weight file is optional : if you include the weights file, your model will be loaded with the passed weights. If a weights file is not specified, the weights for the model will be initialized randomly.
+
+For more detail about how to define a `Task` and a `tf.LayersModel` for your own `TaskProvider`, continue reading.
+
 
 ### Model
 
-Start by creating a function in `my_new_task.ts` called `model` that returns the `tf.LayersModel`. In this example we programatically 
-define our model.
-
-After exporting the Task, you need to also export a function called `model` that returns the layers model. If you use a 
+The interface let you load your model however you want, as long as you return a `tf.LayersModel` at the end. If you use a 
 pre-trained model, you can simply load and return said model in the function via `tf.loadLayersModel(modelPath)`.
 
-> Note, it's important to add the `export` tag to the model as well as to the subsequent objects that we define.
-
 ```js
-export function model (_: string): tf.LayersModel {
+async function getModel (_: string): Promise<tf.LayersModel> {
   // Init model
   const model = tf.sequential()
 
@@ -105,30 +132,18 @@ export function model (_: string): tf.LayersModel {
   model.add(...)
   
   return model
-
 ```
 
 Alternatively we can also load a pre-existing model; if we only provide a `model.json` file, then only the architecture of the model will be 
 loaded. If however in the same path we also include `weights.bin`, then pre-trained weights stored in these files will also be loaded to the model.
 
 ```js
-export async function model (modelPath: string): Promise<tf.LayersModel> {
+async function getModel (modelPath: string): Promise<tf.LayersModel> {
   return await tf.loadLayersModel(`file://${modelPath}`)
 }
 ```
 
-The models are stored in `disco/server/models/`, and it is also in the server side that we let disco know where exactly they are saved. In particular,
-if we look at `server/src/tasks.ts`, it is done as follows for the simple face example task (for our custom task we simply need to set
-our task with the model path).
-
-```js
-const simpleFaceModelPath = path.join(CONFIG.modelsDir, 'mobileNetV2_35_alpha_2_classes', 'model.json')
-
-// TODO, to add a custom model for a task, add the path here
-const MODEL_PATH = Map<string, string>()
-  .set(defaultTasks.simple_face.task.taskID, simpleFaceModelPath)
-
-```
+At runtime, the models are stored in `disco/server/models/`, and it is also in the server side that we let disco know where exactly they are saved. In particular,
 
 > If you are using a pre-existing model, and the data shape does not match the input of the model, then it is possible
 to use preprocessing functions to resize the data (we also describe how to add custom preprocessing).
@@ -138,80 +153,69 @@ to use preprocessing functions to resize the data (we also describe how to add c
 The `Task` class contains all the crucial information for training the model (batchSize, learningRate, ...) and also the 
 scheme of distributed learning (federated or decentralized), along with other meta data about the model and data.
 
-> In the appendix (end of this document) you find all possible [`TrainingInformation`](../discojs/src/task/training_information.ts) paramters with a short description. 
+> In the appendix (end of this document) you find all possible [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts) parameters with a short description. 
 
-As an example, the task class for `simple-face` can be found [here](../discojs/src/tasks/simple_face.ts), suppose
+As an example, the task class for `simple-face` can be found [here](../discojs/discojs-core/src/default_tasks/simple_face.ts), suppose
 our own task is a binary classification for age detection (similar to simple face), then we could write:
+
 
 ```js
 import { ImagePreprocessing } from '../dataset/preprocessing'
 
-export const task: Task = {
-  taskID: 'my_new_task',
-  displayInformation: {
-    taskTitle: 'My new task',
-    summary: 'Can you detect if the person in a picture is a child or an adult?',
-    ...
+export const customTask: TaskProvider = {
+  getTask (): Task {
+    return {
+      taskID: 'my_new_task',
+      displayInformation: {
+        taskTitle: 'My new task',
+        summary: 'Can you detect if the person in a picture is a child or an adult?',
+        ...
+      },
+      trainingInformation: {
+        modelID: 'simple_face-model',
+        epochs: 50,
+        roundDuration: 1,
+        validationSplit: 0.2,
+        batchSize: 10,
+        preprocessFunctions: [],
+        learningRate: 0.001,
+        modelCompileData: {
+          optimizer: 'sgd',
+          loss: 'categoricalCrossentropy',
+          metrics: ['accuracy']
+        },
+        modelID: 'my_new_task-model',
+        epochs: 50,
+        roundDuration: 1,
+        validationSplit: 0.2,
+        batchSize: 10,
+        preprocessingFunctions: [ImagePreprocessing.Normalize],
+        learningRate: 0.001,
+        modelCompileData: {
+          optimizer: 'sgd',
+          loss: 'categoricalCrossentropy',
+          metrics: ['accuracy']
+        },
+        dataType: 'image',
+        ...
+      }
+    }
   },
-  trainingInformation: {
-    modelID: 'simple_face-model',
-    epochs: 50,
-    roundDuration: 1,
-    validationSplit: 0.2,
-    batchSize: 10,
-    preprocessFunctions: [],
-    learningRate: 0.001,
-    modelCompileData: {
-      optimizer: 'sgd',
-      loss: 'categoricalCrossentropy',
-      metrics: ['accuracy']
-    },
-    modelID: 'my_new_task-model',
-    epochs: 50,
-    roundDuration: 1,
-    validationSplit: 0.2,
-    batchSize: 10,
-    preprocessingFunctions: [ImagePreprocessing.Normalize],
-    learningRate: 0.001,
-    modelCompileData: {
-      optimizer: 'sgd',
-      loss: 'categoricalCrossentropy',
-      metrics: ['accuracy']
-    },
-    dataType: 'image',
-    ...
+
+  async getModel (): Promise<tf.LayersModel> {
+    throw new Error('Not implemented')
   }
 }
 ```
 
-The `Task` interface has three fields: a mandatory `taskID` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/src/task/display_information.ts) and [`TrainingInformation`](../discojs/src/task/training_information.ts).
-
-#### `model` function
-
-After exporting the task, you need to also export a function called `model` that returns the layers model. If you use a 
-pre-trained model, you can simply load and return said model in the function via `tf.loadLayersModel(modelPath)`.
-
-```js
-export function model (): tf.LayersModel {
-  // Init model
-  const model = tf.sequential()
-
-  // Add layers
-  model.add(...)
-
-  return model
-```
-
-#### Export in `index.ts`
-
-After adding the `simple_face.ts` task class, we also need to export it in the `index.ts` file which lives in the same folder.
+The `Task` interface has three fields: a mandatory `taskID` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/discojs-core/src/task/display_information.ts) and [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts).
 
 ### Preprocessing
 
-In the Task object we can optionally choose to add preprocessing functions. Preprocessing is defined [here](../discojs/src/dataset/preprocess.ts),
+In the Task object we can optionally choose to add preprocessing functions. Preprocessing is defined [here](../discojs/discojs-core/src/dataset/data/preprocessing.ts),
 and is currently only implemented for images (e.g. resize, normalize, ...).
 
-Suppose we want our custom preprocessing that divides each pixel value by 2. In the [preprocessing](../discojs/src/dataset/preprocess.ts) file, 
+Suppose we want our custom preprocessing that divides each pixel value by 2. In the [preprocessing](../discojs/discojs-core/src/dataset/data/preprocessing.ts) file, 
 first we add the enum of our custom function:
 
 ```js
@@ -272,16 +276,17 @@ export const task: Task = {
 
 ## Summary 
 
-- In ```disco/discojs/discojs-core/src/tasks/``` define your new custom task by instanciating a Task object, and define the async function ```model```. You will need to have your model in the .json + .bin format.
- - In ```disco/discojs/discojs-core/src/tasks/index.ts``` export your newly defined task
+- In ```disco/discojs/discojs-core/src/default_tasks/``` define your new custom task by implementing the `TaskProvider` interface. You will need to have your model in the .json + .bin format.
+ - In ```disco/discojs/discojs-core/src/default_tasks/index.ts``` export your newly defined task
  - Run the ```./build.sh``` script from ```discojs/discojs-core```
  - Reinstall cleanly the server by running ```npm ci``` from ```disco/server```
  - Reinstall cleanly the client by running ```npm ci``` from ```disco/web-client```
  - Instantiate a Disco server by running ```npm run dev``` from ```disco/server```
  - Instanciate a Disco client by running ```npm run dev``` from ```disco/web-client```
- Your task has been successfully uploaded.
 
+Your task has been successfully uploaded.
 
+**Or** just use the NPM `disco-server` package and add your own custom `TaskProvider` directly to the server.
 
 
 ## Appendix
