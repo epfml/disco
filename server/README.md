@@ -4,7 +4,7 @@ This project contains the helper server providing the APIs used by the decentral
 
 ## Example Usage
 
-You can quickly try the default server with 
+You can quickly try the default server with
 
 ```sh
 npm i -g @epfml/disco-server
@@ -55,10 +55,10 @@ const customTask = {
         }
       }
     },
-  
+
     async getModel () {
       const model = tf.sequential()
-  
+
       model.add(
         tf.layers.dense({
           inputShape: [1],
@@ -69,7 +69,7 @@ const customTask = {
       )
       model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
       model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }))
-  
+
       return model
     }
   }
@@ -145,10 +145,10 @@ All endpoints listed below are implemented as messages on a WebSocket, mounted o
 Message | From | To | Body | Action
 -|-|-|-|-
 `clientConnected` | Client | Server | — | Connect client `clientID` to task `taskID`
-`SignalForPeer` | Client | Server | 
-`PeerIsReady` | Client | Server | 
-`PeerID` | Server | Client | 
-`PeersForRound` | Server | Client | 
+`SignalForPeer` | Client | Server |
+`PeerIsReady` | Client | Server |
+`PeerID` | Server | Client |
+`PeersForRound` | Server | Client |
 
 For completeness, note that the Disco clients send the following messages to each other in a peer-to-peer fashion, i.e. without any intervention from the server.
 
@@ -202,7 +202,7 @@ This builds the docker image, and then run it:
 sudo docker run -p 8080:8080 disco-server:latest
 ```
 
-> **⚠ WARNING: Using VPN while running docker**  
+> **⚠ WARNING: Using VPN while running docker**
 > If you are running a, VPN docker might not properly work, e.g. `http://localhost:8080/` will result in `page not found`.
 
 ### Deploying the Server to the Cloud
@@ -257,3 +257,11 @@ In the docker container we specify the environment and what dependencies to inst
 2. npm run start
 
 The first line compiles the ts code into js, and the second one then runs the compiled code.
+
+## Extra special dev notes
+
+```bash
+$ (cd discojs && ./build.sh)
+$ (cd server && npm ci && npm link ../discojs/discojs-node && npm run dev)
+$ (cd web-client && npm ci && npm link ../discojs/discojs-node && npm run dev)
+```

@@ -1,5 +1,6 @@
 import { Summary, isSummary } from './summary'
 import { DataExample, isDataExample } from './data_example'
+import { LabelType } from './label_type'
 
 export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   if (typeof raw !== 'object') {
@@ -95,4 +96,5 @@ export interface DisplayInformation {
   headers?: string[]
   dataExampleImage?: string
   limitations?: string
+  labelDisplay?: LabelType
 }

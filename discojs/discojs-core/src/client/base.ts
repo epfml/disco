@@ -4,25 +4,35 @@ import { tf, WeightsContainer, Task, TrainingInformant, serialization } from '..
 
 export abstract class Base {
   protected connected: boolean = false
+  public displayError: any
+  public stopTraining: any
 
-  constructor (
+  constructor(
     public readonly url: URL,
-    public readonly task: Task
-  ) {}
+    public readonly task: Task,
+  ) { }
+
+  public setDisplayErrorFunction(func: any) {
+    this.displayError = func
+  }
+
+  public setStopTrainingFunction(func: any) {
+    this.stopTraining = func
+  }
 
   /**
    * Handles the connection process from the client to any sort of
    * centralized server.
    */
-  abstract connect (): Promise<void>
+  abstract connect(): Promise<void>
 
   /**
    * Handles the disconnection process of the client from any sort
    * of centralized server.
    */
-  abstract disconnect (): Promise<void>
+  abstract disconnect(): Promise<void>
 
-  async getLatestModel (): Promise<tf.LayersModel> {
+  async getLatestModel(): Promise<tf.LayersModel> {
     const url = new URL('', this.url.href)
     if (!url.pathname.endsWith('/')) {
       url.pathname += '/'
@@ -39,7 +49,7 @@ export abstract class Base {
    * onTrainEnd callback when training a TFJS model object. See the
    * training manager for more details.
    */
-  abstract onTrainEndCommunication (weights: WeightsContainer, trainingInformant: TrainingInformant): Promise<void>
+  abstract onTrainEndCommunication(weights: WeightsContainer, trainingInformant: TrainingInformant): Promise<void>
 
   /**
    * This function will be called whenever a local round has ended.
@@ -49,7 +59,7 @@ export abstract class Base {
    * @param round
    * @param trainingInformant
    */
-  abstract onRoundEndCommunication (
+  abstract onRoundEndCommunication(
     updatedWeights: WeightsContainer,
     staleWeights: WeightsContainer,
     round: number,

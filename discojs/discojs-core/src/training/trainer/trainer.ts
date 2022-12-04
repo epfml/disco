@@ -24,7 +24,7 @@ export abstract class Trainer {
    * @param task the trained task
    * @param trainingInformant the training informant
    */
-  constructor (
+  constructor(
     public readonly task: Task,
     public readonly trainingInformant: TrainingInformant,
     public readonly memory: Memory,
@@ -44,11 +44,11 @@ export abstract class Trainer {
   /**
    * Every time a round ends this function will be called
    */
-  protected abstract onRoundEnd (accuracy: number): Promise<void>
+  protected abstract onRoundEnd(accuracy: number): Promise<void>
 
   /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
    */
-  protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
+  protected async onBatchEnd(_: number, logs?: tf.Logs): Promise<void> {
     if (logs === undefined) {
       return
     }
@@ -64,7 +64,7 @@ export abstract class Trainer {
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
-  protected onEpochEnd (epoch: number, logs?: tf.Logs): void {
+  protected onEpochEnd(epoch: number, logs?: tf.Logs): void {
     this.trainerLogger.onEpochEnd(epoch, logs)
 
     if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
@@ -78,14 +78,14 @@ export abstract class Trainer {
   /**
    * When the training ends this function will be call
    */
-  protected async onTrainEnd (logs?: tf.Logs): Promise<void> {
+  protected async onTrainEnd(logs?: tf.Logs): Promise<void> {
     this.trainingInformant.addMessage('Training finished.')
   }
 
   /**
    * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
    */
-  async stopTraining (): Promise<void> {
+  async stopTraining(): Promise<void> {
     this.stopTrainingRequested = true
   }
 
@@ -93,7 +93,7 @@ export abstract class Trainer {
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (
+  async trainModel(
     dataset: tf.data.Dataset<tf.TensorContainer>,
     valDataset: tf.data.Dataset<tf.TensorContainer>
   ): Promise<void> {
@@ -101,6 +101,7 @@ export abstract class Trainer {
 
     // Assign callbacks and start training
     await this.model.fitDataset(dataset, {
+      // kpj: client starts training model
       epochs: this.trainingInformation.epochs,
       validationData: valDataset,
       callbacks: {
@@ -114,14 +115,14 @@ export abstract class Trainer {
   /**
    * Format accuracy
    */
-  protected roundDecimals (accuracy: number, decimalsToRound: number = 2): number {
+  protected roundDecimals(accuracy: number, decimalsToRound: number = 2): number {
     return +(accuracy * 100).toFixed(decimalsToRound)
   }
 
   /**
    * reset stop training state
    */
-  protected resetStopTrainerState (): void {
+  protected resetStopTrainerState(): void {
     this.model.stopTraining = false
     this.stopTrainingRequested = false
   }
@@ -129,14 +130,14 @@ export abstract class Trainer {
   /**
    * If stop training is requested, do so
    */
-  protected stopTrainModelIfRequested (): void {
+  protected stopTrainModelIfRequested(): void {
     if (this.stopTrainingRequested) {
       this.model.stopTraining = true
       this.stopTrainingRequested = false
     }
   }
 
-  getTrainerLog (): TrainerLog {
+  getTrainerLog(): TrainerLog {
     return this.trainerLogger.log
   }
 }
