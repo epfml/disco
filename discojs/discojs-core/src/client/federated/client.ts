@@ -60,7 +60,19 @@ export class Client extends Base {
     serverURL.pathname += `feai/${this.task.taskID}/${this.clientID}`
     this._server = await this.connectServer(serverURL)
     const msg: clientConnected = {
-      type: type.clientConnected
+      type: type.clientConnected,
+      geolocation: {
+        coords: {
+          accuracy: 0,
+          altitude: 0,
+          altitudeAccuracy: 0,
+          heading: 0,
+          latitude: (Math.random() - 0.5) * 180,
+          longitude: (Math.random() - 0.5) * 360,
+          speed: 0
+        },
+        timestamp: 0
+      },
     }
     this.server.send(msg)
     await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)
