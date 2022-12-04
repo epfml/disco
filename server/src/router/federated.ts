@@ -13,7 +13,8 @@ import {
   Task,
   TaskID,
   AsyncBuffer,
-  WeightsContainer
+  WeightsContainer,
+  Client
 } from '@epfml/discojs-node'
 
 import { Server } from './server'
@@ -74,14 +75,10 @@ export class Federated extends Server {
   // Contains client IDs currently connected to one of the server.
   private clients = Set<string>()
 
-  // private geolocations = Map<string, GeolocationPosition>()
-
   private clientAccuracies = Map<string, number>()
-
   private skipClients = Set<string>()
-
   private clientCarbon = Map<string, number>()
-
+  private clientScores = Map<string, number>()
   private models = Map<TaskID, tf.LayersModel>()
 
   /**
@@ -136,9 +133,24 @@ export class Federated extends Server {
     this.models = this.models.set(task.taskID, model)
   }
 
-  protected evaluateClientProbability(clientID: string): boolean {
-    return true
-    // FIXME:
+  protected updateSkipClients() {
+    this.clients.forEach((item) => {
+      var new_val = Math.exp( -(this.clientCarbon.get(item) || 0.001 / (1 + (this.clientAccuracies.get(item) || 0)) ) )  
+      this.clientScores = this.clientScores.set(item, new_val)
+    })
+
+    const sum = Math.max(Array.from(this.clientScores.values()).reduce((a,b) => a + b), 0.0001)
+    this.clients.forEach((item) => {
+      const new_val = (this.clientScores.get(item) || 0.001)/sum
+      this.clientScores = this.clientScores.set(item, new_val)
+    })
+
+    var nSkipClients = 1 
+    var mapSort1 = [...this.clientScores.entries()].sort((a, b) => a[1] - b[1]).slice(0,nSkipClients).map(v => v[0])
+    this.skipClients = Set(mapSort1)
+    this.asyncBuffersMap.forEach((values, keys) => {
+      values.nSkipClients = nSkipClients
+    })
   }
 
   protected handle(
@@ -152,10 +164,11 @@ export class Federated extends Server {
     ws.on('message', (data: Buffer) => {
       const msg = msgpack.decode(data)
       if (msg.type === clientConnected) {
-        console.info('client', clientId, 'joined', task.taskID)
+        console.info('client', clientId, 'joined', task.taskID, 'carbon' , msg.carbon)
 
         if (msg.geolocation) {
           this.clients = this.clients.add(clientId)
+
           // FIXME:
           // this.geolocations = this.geolocations.set(clientId, msg.geolocation)
         }
@@ -191,13 +204,6 @@ export class Federated extends Server {
         const buffer = this.asyncBuffersMap.get(task.taskID)
         if (buffer === undefined) {
           throw new Error(`post weight to unknown task: ${task.taskID}`)
-        }
-
-        if (this.evaluateClientProbability(clientId)) {
-          this.skipClients.delete(clientId)
-          void buffer.add(clientId, weights, round)
-        } else {
-          this.skipClients.add(clientId)
         }
       } else if (msg.type === messageTypes.pullServerStatistics) {
         // Get latest round
@@ -317,7 +323,7 @@ export class Federated extends Server {
       ? aggregation.avgClippingWeights(weights, WeightsContainer.from(model), tauPercentile)
       : aggregation.avg(weights)
 
-    // Update model
+    this.updateSkipClients()
     model.setWeights(averagedWeights.weights)
   }
 

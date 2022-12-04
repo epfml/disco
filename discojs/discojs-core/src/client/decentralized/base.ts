@@ -127,6 +127,7 @@ export abstract class Base extends ClientBase {
 
     this.server = await this.connectServer(serverURL)
 
+    var c = Math.random()
     const msg: clientConnected = {
       type: type.clientConnected,
       geolocation: {
@@ -141,6 +142,7 @@ export abstract class Base extends ClientBase {
         },
         timestamp: 0
       },
+      carbon: c
     }
     this.server.send(msg)
 

@@ -60,6 +60,7 @@ export class Client extends Base {
     serverURL.pathname += `feai/${this.task.taskID}/${this.clientID}`
     this._server = await this.connectServer(serverURL)
 
+    var c = Math.random() 
     const msg: clientConnected = {
       type: type.clientConnected,
       geolocation: {
@@ -74,6 +75,7 @@ export class Client extends Base {
         },
         timestamp: 0
       },
+      carbon: c 
     }
     this.server.send(msg)
     await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)

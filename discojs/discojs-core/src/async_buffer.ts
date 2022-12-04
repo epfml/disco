@@ -22,6 +22,7 @@ import { TaskID, AsyncInformant } from '.'
 export class AsyncBuffer<T> {
   buffer: Map<string, T>
   round: number
+  nSkipClients: number
   private observer: AsyncInformant<T> | undefined
 
   constructor (
@@ -32,6 +33,7 @@ export class AsyncBuffer<T> {
   ) {
     this.buffer = Map()
     this.round = 0
+    this.nSkipClients = 0
   }
 
   registerObserver (observer: AsyncInformant<T>): void {
@@ -40,7 +42,7 @@ export class AsyncBuffer<T> {
 
   // TODO do not test private
   bufferIsFull (): boolean {
-    return this.buffer.size >= this.bufferCapacity
+    return this.buffer.size >= this.bufferCapacity - this.nSkipClients
   }
 
   private async updateWeightsIfBufferIsFull (): Promise<void> {

@@ -23,6 +23,7 @@ export enum type {
   latestServerRound,
   pullRoundAndFetchWeights,
   pullServerStatistics,
+  carbon
 }
 
 export interface Geolocation {
@@ -39,7 +40,8 @@ export interface Geolocation {
 }
 export interface clientConnected {
   type: type.clientConnected
-  geolocation: Geolocation
+  geolocation: Geolocation,
+  carbon: number
 }
 
 export type Message =
