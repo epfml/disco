@@ -11,6 +11,7 @@
     "build": "tsc",
     "clean": "tsc --build --clean && rm -r dist || true",
     "test": "mocha --exit -r ts-node/register 'tests/**/*.ts'",
+    "test-single": "mocha --exit -r ts-node/register",
     "lint": "npx eslint --max-warnings 0 ."
   },
   "author": "",
