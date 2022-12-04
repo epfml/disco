@@ -121,8 +121,12 @@ export class Client extends Base {
 
     const received = await waitMessageWithTimeout(this.server, type.latestServerRound, MAX_WAIT_PER_ROUND)
 
-    this.serverRound = received.round
-    this.serverWeights = serialization.weights.decode(received.weights)
+    if (received.round == -1) {
+      this.serverRound = -1
+    } else {
+      this.serverRound = received.round
+      this.serverWeights = serialization.weights.decode(received.weights)
+    }
 
     return this.serverRound
   }
@@ -130,7 +134,10 @@ export class Client extends Base {
   // It retrieves the last server round and weights, but return only the server weights
   async pullRoundAndFetchWeights (): Promise<WeightsContainer | undefined> {
     // get server round of latest model
-    await this.getLatestServerRound()
+    const timer = (ms: number) => new Promise( res => setTimeout(res, ms));
+    while(await this.getLatestServerRound() == -1) {
+      await timer(1000);
+    }
 
     if (!this.serverWeights){
       // TODO: sleep

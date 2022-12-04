@@ -196,7 +196,7 @@ export class Federated extends Server {
           this.skipClients.delete(clientId)
           void buffer.add(clientId, weights, round)
         } else {
-          this.skipClients.add(clientId)
+          this.skipClients = this.skipClients.add(clientId)
         }
       } else if (msg.type === messageTypes.pullServerStatistics) {
         // Get latest round
@@ -221,20 +221,28 @@ export class Federated extends Server {
 
         this.logsAppend(task.taskID, clientId, RequestType.GetAsyncRound, 0)
 
-        const weights = WeightsContainer.from(model)
-        void serialization.weights.encode(weights).then((serializedWeights) => {
+        // if we have to skip the client
+        if (this.skipClients.has(clientId)) {
           const msg: messages.latestServerRound = {
             type: messageTypes.latestServerRound,
-            round: round,
-            weights: serializedWeights
+            round: -1,
+            weights: []
           }
 
-          // FIXME: 
-          // if (this.skipClients.has(clientId)) msg.weights = null;
-          //   ws.send(msgpack.encode(msg))
-          // })
           ws.send(msgpack.encode(msg))
-        })
+        }
+        else {
+          const weights = WeightsContainer.from(model)
+          void serialization.weights.encode(weights).then((serializedWeights) => {
+            const msg: messages.latestServerRound = {
+              type: messageTypes.latestServerRound,
+              round: round,
+              weights: serializedWeights
+            }
+
+            ws.send(msgpack.encode(msg))
+          })
+        }
       } else if (msg.type === messageTypes.postMetadata) {
         const round = msg.round
         const valAcc = msg.validationAccuracy
