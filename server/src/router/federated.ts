@@ -76,6 +76,8 @@ export class Federated extends Server {
 
   // private geolocations = Map<string, GeolocationPosition>()
 
+  private clientAccuracies = Map<string, number>()
+
   private skipClients = Set<string>()
 
   private clientCarbon = Map<string, number>()
@@ -163,11 +165,11 @@ export class Federated extends Server {
       } else if (msg.type === messageTypes.postWeightsToServer) {
         const rawWeights = msg.weights
         const round = msg.round
-        const carbon = msg.carbon
-        const acc = msg.val_acc
-        console.log('%f', carbon)
-        console.log('%f', acc)
-        this.clientCarbon.set(clientId, carbon)
+        const valAcc = msg.validationAccuracy
+
+        // save locallly the validation accuracy
+        console.log('SET CLIENT %s ACC: %f', clientId, valAcc)
+        this.clientAccuracies.set(clientId, valAcc)
         this.logsAppend(
           task.taskID,
           clientId,
@@ -236,6 +238,9 @@ export class Federated extends Server {
         })
       } else if (msg.type === messageTypes.postMetadata) {
         const round = msg.round
+        const valAcc = msg.validationAccuracy
+
+        console.log('client %s: validation acc.: %f', clientId, valAcc)
 
         const metadataId = msg.metadataId
         const metadata = msg.metadata

@@ -95,16 +95,16 @@ export class Client extends Base {
   }
 
   // It sends weights to the server
-  async postWeightsToServer (weights: WeightsContainer, informant: informant.FederatedInformant): Promise<void> {
-    const carbon = 2.0
-    const val_acc = informant.validationAccuracy()
-
+  async postWeightsToServer (
+    weights: WeightsContainer,
+    trainingInformant: informant.FederatedInformant
+  ): Promise<void> {
+    const val_acc = trainingInformant.validationAccuracy()
     const msg: messages.postWeightsToServer = {
       type: type.postWeightsToServer,
       weights: await serialization.weights.encode(weights),
       round: this.round,
-      carbon: carbon,
-      val_acc: val_acc
+      validationAccuracy: val_acc
     }
     this.sendMessage(msg)
   }
@@ -214,6 +214,8 @@ export class Client extends Base {
     await this.postWeightsToServer(noisyWeights, trainingInformant)
 
     await this.pullServerStatistics(trainingInformant)
+
+
 
     const serverWeights = await this.pullRoundAndFetchWeights()
     return serverWeights ?? staleWeights

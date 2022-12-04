@@ -19,8 +19,7 @@ export interface postWeightsToServer {
   type: type.postWeightsToServer
   weights: weights.Encoded
   round: number,
-  carbon: number,
-  val_acc: number
+  validationAccuracy: number
 }
 export interface latestServerRound {
   type: type.latestServerRound
