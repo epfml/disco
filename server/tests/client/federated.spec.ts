@@ -4,7 +4,7 @@ import * as http from 'http'
 import { client as clients, informant, defaultTasks } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
-import { WeightsContainer } from '../../../discojs/discojs-core/src'
+import { WeightsContainer } from '../../../discojs/discojs-node/dist/core/weights/weights_container'
 
 const TASK = defaultTasks.titanic.getTask()
 
