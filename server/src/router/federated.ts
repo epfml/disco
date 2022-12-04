@@ -54,6 +54,19 @@ interface TaskStatus {
   round: number
 }
 
+interface Geolocation {
+  coords: {
+    accuracy: number
+    altitude: number
+    altitudeAccuracy: number
+    heading: number
+    latitude: number
+    longitude: number
+    speed: number
+  },
+  timestamp: number
+}
+
 export class Federated extends Server {
   // model weights received from clients for a given task and round.
   private asyncBuffersMap = Map<TaskID, AsyncBuffer<WeightsContainer>>()
@@ -87,7 +100,22 @@ export class Federated extends Server {
    */
   private tasksStatus = Map<TaskID, TaskStatus>()
 
-  protected get description(): string {
+  private distances = Map<string, number>()
+
+  private serverLocation : Geolocation = {
+    coords: {
+      accuracy: 0,
+      altitude: 0,
+      altitudeAccuracy: 0,
+      heading: 0,
+      latitude: 46.529018,
+      longitude: 6.566070,
+      speed: 0,
+    },
+    timestamp: 0
+  }
+
+  protected get description (): string {
     return 'FeAI Server'
   }
 
@@ -134,8 +162,10 @@ export class Federated extends Server {
   }
 
   protected updateSkipClients() {
+    
     this.clients.forEach((item) => {
-      var new_val = Math.exp( -(this.clientCarbon.get(item) || 0.001 / (1 + (this.clientAccuracies.get(item) || 0)) ) )  
+      var carbs = (this.distances.get(item) || 0.001) + (this.clientCarbon.get(item) || 0.001)
+      var new_val = Math.exp( -( carbs / (1 + (this.clientAccuracies.get(item) || 0))))  
       this.clientScores = this.clientScores.set(item, new_val)
     })
 
@@ -175,6 +205,17 @@ export class Federated extends Server {
 
           // FIXME:
           // this.geolocations = this.geolocations.set(clientId, msg.geolocation)
+        }
+
+        if (msg.geolocation) {
+          const clientLatitude = msg.geolocation.latitude
+          const clientLongitude = msg.geolocation.longitude
+
+          const distance = Math.acos(Math.sin(this.serverLocation.coords.latitude) * Math.sin(clientLatitude) +
+          Math.cos(this.serverLocation.coords.latitude) * Math.cos(clientLatitude) *
+              Math.cos(clientLongitude - this.serverLocation.coords.longitude)) * 6371000
+
+          this.distances = this.distances.set(clientId, distance)
         }
 
         this.logsAppend(task.taskID, clientId, RequestType.Connect, 0)

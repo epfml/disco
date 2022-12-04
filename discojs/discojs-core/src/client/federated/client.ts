@@ -69,13 +69,13 @@ export class Client extends Base {
           altitude: 0,
           altitudeAccuracy: 0,
           heading: 0,
-          latitude: 0,
-          longitude: 0,
-          speed: 0,
+          latitude: (Math.random() - 0.5) * 180,
+          longitude: (Math.random() - 0.5) * 360,
+          speed: 0
         },
         timestamp: 0
       },
-      carbon: c 
+      carbon: c
     }
     this.server.send(msg)
     await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)
