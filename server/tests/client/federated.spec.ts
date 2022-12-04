@@ -63,7 +63,7 @@ describe('federated client', function () { // the tests container
     await client.disconnect()
   })
 
-  it('send validation accuracy', async () => {
+  it('send validation accuracy and negative round test', async () => {
     const client = await getClient(clients.federated.Client, server, TASK)
     await client.connect()
 
@@ -72,5 +72,9 @@ describe('federated client', function () { // the tests container
     const weights = new WeightsContainer(model.getWeights()) //WeightsContainer.of([2, -2], [-1])
     const ti = new informant.FederatedInformant(TASK, 0)
     await client.postWeightsToServer(weights, ti)
+
+    const round = await client.getLatestServerRound()
+
+    // expect(round).to.be.equal(-1)
   })
 })
