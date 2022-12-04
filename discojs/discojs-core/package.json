@@ -2,16 +2,18 @@
     "name": "@epfml/discojs-core",
     "private": true,
     "scripts": {
-      "test": "cp ./src/index.browser.ts ./src/index.ts && mocha",
-      "lint": "cp ./src/index.browser.ts ./src/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' ."
+        "test": "cp ./src/index.browser.ts ./src/index.ts && mocha",
+        "lint": "cp ./src/index.browser.ts ./src/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' ."
     },
     "repository": {
-      "type": "git",
-      "url": "git+https://github.com/epfml/disco.git"
+        "type": "git",
+        "url": "git+https://github.com/epfml/disco.git"
     },
     "bugs": {
-      "url": "https://github.com/epfml/disco/issues"
+        "url": "https://github.com/epfml/disco/issues"
     },
-    "homepage": "https://github.com/epfml/disco#readme"
-  }
-  
+    "homepage": "https://github.com/epfml/disco#readme",
+    "dependencies": {
+        "geolocation": "^0.2.0"
+    }
+}
