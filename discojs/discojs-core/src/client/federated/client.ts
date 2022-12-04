@@ -72,7 +72,7 @@ export class Client extends Base {
           speed: 0
         },
         timestamp: 0
-      },
+      }
     }
     this.server.send(msg)
     await waitMessageWithTimeout(this.server, type.clientConnected, MAX_WAIT_PER_ROUND)
