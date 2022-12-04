@@ -4,6 +4,7 @@ import * as http from 'http'
 import { client as clients, informant, defaultTasks } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
+import { WeightsContainer } from '../../../discojs/discojs-core/src'
 
 const TASK = defaultTasks.titanic.getTask()
 
@@ -60,5 +61,16 @@ describe('federated client', function () { // the tests container
     expect(ti.averageParticipants()).to.be.greaterThanOrEqual(0)
 
     await client.disconnect()
+  })
+
+  it('send validation accuracy', async () => {
+    const client = await getClient(clients.federated.Client, server, TASK)
+    await client.connect()
+
+    const model = await defaultTasks.titanic.getModel()
+
+    const weights = new WeightsContainer(model.getWeights()) //WeightsContainer.of([2, -2], [-1])
+    const ti = new informant.FederatedInformant(TASK, 0)
+    await client.postWeightsToServer(weights, ti)
   })
 })

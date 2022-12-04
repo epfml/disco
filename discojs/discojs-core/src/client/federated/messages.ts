@@ -18,7 +18,8 @@ export interface messageGeneral {
 export interface postWeightsToServer {
   type: type.postWeightsToServer
   weights: weights.Encoded
-  round: number
+  round: number,
+  validationAccuracy: number
 }
 export interface latestServerRound {
   type: type.latestServerRound

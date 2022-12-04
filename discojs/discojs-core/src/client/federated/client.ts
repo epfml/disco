@@ -95,11 +95,16 @@ export class Client extends Base {
   }
 
   // It sends weights to the server
-  async postWeightsToServer (weights: WeightsContainer): Promise<void> {
+  async postWeightsToServer (
+    weights: WeightsContainer,
+    trainingInformant: informant.FederatedInformant
+  ): Promise<void> {
+    const val_acc = trainingInformant.validationAccuracy()
     const msg: messages.postWeightsToServer = {
       type: type.postWeightsToServer,
       weights: await serialization.weights.encode(weights),
-      round: this.round
+      round: this.round,
+      validationAccuracy: val_acc
     }
     this.sendMessage(msg)
   }
@@ -206,11 +211,11 @@ export class Client extends Base {
       staleWeights,
       this.task
     )
-    await this.postWeightsToServer(noisyWeights)
+    await this.postWeightsToServer(noisyWeights, trainingInformant)
 
     await this.pullServerStatistics(trainingInformant)
 
-    // DUMMY CHANGE
+
 
     const serverWeights = await this.pullRoundAndFetchWeights()
     return serverWeights ?? staleWeights
