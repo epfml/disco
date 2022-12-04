@@ -46,6 +46,7 @@ export class AsyncBuffer<T> {
   }
 
   private async updateWeightsIfBufferIsFull (): Promise<void> {
+    console.log('BUFFER SIZE:', this.buffer.size)
     if (this.bufferIsFull()) {
       await this.aggregateAndStoreWeights(this.buffer.values())
 

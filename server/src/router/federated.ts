@@ -145,12 +145,16 @@ export class Federated extends Server {
       this.clientScores = this.clientScores.set(item, new_val)
     })
 
+    console.log('Client scores:', this.clientScores)
+
     var nSkipClients = 1 
     var mapSort1 = [...this.clientScores.entries()].sort((a, b) => a[1] - b[1]).slice(0,nSkipClients).map(v => v[0])
     this.skipClients = Set(mapSort1)
     this.asyncBuffersMap.forEach((values, keys) => {
       values.nSkipClients = nSkipClients
     })
+
+    console.log('Skipped clients:', this.skipClients)
   }
 
   protected handle(
