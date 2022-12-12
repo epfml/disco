@@ -12,7 +12,7 @@ import { assertWeightsEqual } from '../../../discojs/discojs-core/src/weights/ag
 
 describe('end to end decentralized', function () {
   const epsilon: number = 0.001
-  this.timeout(60_000)
+  this.timeout(80_000)
 
   let server: Server
   beforeEach(async () => {

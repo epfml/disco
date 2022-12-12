@@ -14,7 +14,7 @@ function endToEndTest (
   useByzantine: boolean
 ): void {
   describe(`end to end federated ${useByzantine ? 'using byzantine-robust aggregator' : 'using standard aggregator'}`, function () {
-    this.timeout(60_000)
+    this.timeout(80_000)
 
     let server: Server
     before(async () => { server = await startServer() })
