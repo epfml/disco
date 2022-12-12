@@ -1,4 +1,5 @@
 import { Task } from '../..'
+import { getPreprocessTabular } from './preprocessing'
 import { Dataset } from '../dataset'
 import { Data } from './data'
 
@@ -28,7 +29,10 @@ export class TabularData extends Data {
     return new TabularData(newDataset, this.task, this.size)
   }
 
-  preprocess (): Data {
-    return this
+  async preprocess (): Promise<Data> {
+    let newDataset = this.dataset
+    const preprocessTabular = getPreprocessTabular(this.task)
+    newDataset = await preprocessTabular(newDataset)
+    return new TabularData(newDataset, this.task, this.size)
   }
 }

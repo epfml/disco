@@ -17,5 +17,5 @@ export abstract class Data {
 
   abstract batch (): Data
 
-  abstract preprocess (): Data
+  abstract preprocess (): Promise<Data>
 }

@@ -1,4 +1,4 @@
-import { tf, Task, TaskProvider } from '..'
+import { tf, Task, TaskProvider, data } from '..'
 
 export const titanic: TaskProvider = {
   getTask (): Task {
@@ -47,17 +47,16 @@ export const titanic: TaskProvider = {
         modelID: 'titanic-model',
         epochs: 20,
         roundDuration: 10,
-        validationSplit: 0,
+        validationSplit: 0.2,
         batchSize: 30,
-        preprocessingFunctions: [],
+        preprocessingFunctions: [data.TabularPreprocessing.Normalize],
         modelCompileData: {
-          optimizer: 'rmsprop',
+          optimizer: 'sgd',
           loss: 'binaryCrossentropy',
           metrics: ['accuracy']
         },
         dataType: 'tabular',
         inputColumns: [
-          'PassengerId',
           'Age',
           'SibSp',
           'Parch',
@@ -79,7 +78,7 @@ export const titanic: TaskProvider = {
 
     model.add(
       tf.layers.dense({
-        inputShape: [6],
+        inputShape: [5],
         units: 124,
         activation: 'relu',
         kernelInitializer: 'leCunNormal'

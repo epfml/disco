@@ -49,7 +49,7 @@ export class ImageData extends Data {
     return new ImageData(newDataset, this.task, this.size)
   }
 
-  preprocess (): Data {
+  async preprocess (): Promise<Data> {
     let newDataset = this.dataset
     const preprocessImage = getPreprocessImage(this.task)
     newDataset = newDataset.map((x: tf.TensorContainer) => preprocessImage(x))
