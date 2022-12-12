@@ -37,31 +37,25 @@ function endToEndTest (
       const trainSet = files.slice(testSize + ((userId - 1) * trainSize), testSize + (userId * trainSize))
       const trainLabels = labels.slice(testSize + ((userId - 1) * trainSize), testSize + (userId * trainSize))
 
-      console.log(`Train Set for user ${userId}`)
-      console.log(trainSet)
-
-      console.log(`Test Set for user ${userId}`)
-      console.log(testSet)
-
       const cifar10Task = defaultTasks.cifar10.getTask()
 
       const trainData = await new node.data.NodeImageLoader(cifar10Task).loadAll(trainSet, { labels: trainLabels, validationSplit: cifar10Task.trainingInformation.validationSplit })
       const testData = await new node.data.NodeImageLoader(cifar10Task).loadAll(testSet, { labels: testLabels, validationSplit: 0 })
-
-      const client = await getClient(clients.federated.Client, server, cifar10Task)
-      await client.connect()
 
       if (useByzantine) {
         cifar10Task.trainingInformation.byzantineRobustAggregator = true
         cifar10Task.trainingInformation.tauPercentile = 0.75
       }
 
+      const client = await getClient(clients.federated.Client, server, cifar10Task)
+      await client.connect()
+
       const disco = new Disco(cifar10Task, { scheme: SCHEME, client })
 
       await disco.fit(trainData)
 
       const validator = new Validator(disco.task, disco.logger, disco.memory, undefined, client)
-      await validator.assess(testData.train.preprocess())
+      await validator.assess(await testData.train.preprocess())
 
       const accuracy = validator.accuracy()
       console.log(`TEST ACCURACY ---->  ${accuracy}`)
@@ -86,6 +80,11 @@ function endToEndTest (
           shuffle: false
         }
       ))
+
+      if (useByzantine) {
+        titanicTask.trainingInformation.byzantineRobustAggregator = true
+        titanicTask.trainingInformation.tauPercentile = 0.75
+      }
 
       const client = await getClient(clients.federated.Client, server, titanicTask)
 
