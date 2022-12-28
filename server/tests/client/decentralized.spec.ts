@@ -49,7 +49,7 @@ function test (
 
         await Promise.all(
           users.zip(wss).zip(tis)
-            .map(async ([[u, ws], ti]) => await u.onRoundEndCommunication(ws, ws, 0, ti))
+            .map(async ([[u, ws], ti]) => await u.onRoundEndCommunication(ws, ws, ws, 0, ti))
             .toArray()
         )
 
