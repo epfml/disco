@@ -69,7 +69,7 @@ describe('end to end decentralized', function () {
     const weights = WeightsContainer.of(input)
     const trainingInformantCurrent = new informant.DecentralizedInformant(cifar10Task, 0)
     await client.connect()
-    return await client.onRoundEndCommunication(weights, weights, 0, trainingInformantCurrent)
+    return await client.onRoundEndCommunication(weights, weights, weights, 0, trainingInformantCurrent)
   }
 
   /*
