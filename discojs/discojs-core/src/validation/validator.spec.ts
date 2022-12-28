@@ -12,7 +12,12 @@ const simplefaceMock = {
     dataType: 'image',
     IMAGE_H: 200,
     IMAGE_W: 200,
-    LABEL_LIST: ['child', 'adult']
+    LABEL_LIST: ['child', 'adult'],
+    modelCompileData: {
+      optimizer: 'sgd',
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy']
+    }
   }
 } as unknown as Task
 
