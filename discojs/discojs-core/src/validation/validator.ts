@@ -18,32 +18,48 @@ export class Validator {
     }
   }
 
-  async assess (data: data.Data): Promise<void> {
+  private getLabel (ys: tf.Tensor): Float32Array | Int32Array | Uint8Array {
+    if (this.task.trainingInformation.modelCompileData.loss === 'binaryCrossentropy') {
+      return ys.greaterEqual(tf.scalar(0.5)).dataSync()
+    } else {
+      return ys.argMax(1).dataSync()
+    }
+  }
+
+  async assess (data: data.Data): Promise<Array<{groundTruth: number, pred: number, features: number | number[] | number[][] | number[][][] | number[][][][] | number[][][][][]}>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('batch size is undefined')
     }
 
-    const labels: string[] | undefined = this.task.trainingInformation?.LABEL_LIST
-    const classes = labels?.length ?? 1
-
     const model = await this.getModel()
+
+    let features: Array<number | number[] | number[][] | number[][][] | number[][][][] | number[][][][][]> = []
+    const groundTruth: number[] = []
+    const predictions: number[] = []
 
     let hits = 0
     await data.dataset.batch(batchSize).forEachAsync((e) => {
       if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
         const xs = e.xs as tf.Tensor
-        const ys = (e.ys as tf.Tensor).dataSync()
 
-        const pred = (model.predict(xs, { batchSize: batchSize }) as tf.Tensor)
-          .dataSync()
-          .map(Math.round)
+        const ys = this.getLabel(e.ys as tf.Tensor)
+        const pred = this.getLabel(model.predict(xs, { batchSize: batchSize }) as tf.Tensor)
+
+        const currentFeatures = xs.arraySync()
+
+        if (Array.isArray(currentFeatures)) {
+          features = [...features, ...currentFeatures]
+        } else {
+          throw new TypeError('features array is not correct')
+        }
+
+        groundTruth.push(...Array.from(ys))
+        predictions.push(...Array.from(pred))
 
         this.size += xs.shape[0]
 
-        hits += List(pred).zip(List(ys))
-          .map(([p, y]) => 1 - Math.abs(p - y))
-          .reduce((acc: number, e) => acc + e) / classes
+        hits += List(pred).zip(List(ys)).filter(([p, y]) => p === y).size
 
         const currentAccuracy = hits / this.size
         this.graphInformant.updateAccuracy(currentAccuracy)
@@ -53,6 +69,8 @@ export class Validator {
     })
     this.logger.success(`Obtained validation accuracy of ${this.accuracy()}`)
     this.logger.success(`Visited ${this.visitedSamples()} samples`)
+
+    return List(groundTruth).zip(List(predictions)).zip(List(features)).map(([[gt, p], f]) => ({ groundTruth: gt, pred: p, features: f })).toArray()
   }
 
   async getModel (): Promise<tf.LayersModel> {
