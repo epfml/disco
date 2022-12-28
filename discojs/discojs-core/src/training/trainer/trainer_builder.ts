@@ -1,4 +1,4 @@
-import { tf, Client, Task, TrainingInformant, TrainingFunction, Memory, ModelType, ModelInfo } from '../..'
+import { tf, Client, Task, TrainingInformant, TrainingFunction, Memory, ModelType, ModelInfo, WeightsContainer } from '../..'
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
@@ -23,15 +23,15 @@ export class TrainerBuilder {
    * @returns
    */
   async build (client: Client, distributed: boolean = false): Promise<Trainer> {
-    const model = await this.getModel(client)
     if (distributed) {
       return new DistributedTrainer(
         this.task,
         this.trainingInformant,
         this.memory,
-        model,
-        model,
+        await this.getModel(client),
+        await this.getModel(client),
         client,
+        WeightsContainer.of(...(await this.getModel(client)).getWeights().map(weights => tf.zerosLike(weights))),
         this.trainingFunction
       )
     } else {
@@ -39,7 +39,7 @@ export class TrainerBuilder {
         this.task,
         this.trainingInformant,
         this.memory,
-        model,
+        await this.getModel(client),
         this.trainingFunction
       )
     }

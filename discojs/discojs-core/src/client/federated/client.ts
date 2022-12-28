@@ -82,12 +82,20 @@ export class Client extends Base {
   }
 
   // It sends weights to the server
-  async postWeightsToServer (weights: WeightsContainer): Promise<void> {
-    const msg: messages.postWeightsToServer = {
-      type: type.postWeightsToServer,
-      weights: await serialization.weights.encode(weights),
+  async postToServer (weights?: WeightsContainer, momentum?: WeightsContainer): Promise<void> {
+    if (weights === undefined && momentum === undefined) {
+      throw new Error('Invalid data to send to the server')
+    }
+
+    const msg: messages.postToServer = {
+      type: type.postToServer,
+      weights: weights ? await serialization.weights.encode(weights) : undefined,
+      momentum: momentum ? await serialization.weights.encode(momentum) : undefined,
       round: this.round
     }
+
+    console.log(`${this.clientID} sending weights for round ${this.round}`)
+
     this.sendMessage(msg)
   }
 
@@ -102,6 +110,8 @@ export class Client extends Base {
     this.sendMessage(msg)
 
     const received = await waitMessageWithTimeout(this.server, type.latestServerRound, MAX_WAIT_PER_ROUND)
+
+    console.log(`${this.clientID} received round ${received.round}`)
 
     this.serverRound = received.round
     this.serverWeights = serialization.weights.decode(received.weights)
@@ -181,15 +191,25 @@ export class Client extends Base {
   async onRoundEndCommunication (
     updatedWeights: WeightsContainer,
     staleWeights: WeightsContainer,
+    updatedMomentum: WeightsContainer,
     _: number,
     trainingInformant: informant.FederatedInformant
   ): Promise<WeightsContainer> {
-    const noisyWeights = privacy.addDifferentialPrivacy(
-      updatedWeights,
-      staleWeights,
-      this.task
-    )
-    await this.postWeightsToServer(noisyWeights)
+    if (this.task.trainingInformation.byzantineRobustAggregator !== undefined && this.task.trainingInformation.tauPercentile !== undefined) {
+      console.log('Sending momentum to server')
+
+      await this.postToServer(undefined, updatedMomentum)
+    } else {
+      console.log('Sending weights to server')
+
+      const noisyWeights = privacy.addDifferentialPrivacy(
+        updatedWeights,
+        staleWeights,
+        this.task
+      )
+
+      await this.postToServer(noisyWeights, undefined)
+    }
 
     await this.pullServerStatistics(trainingInformant)
 

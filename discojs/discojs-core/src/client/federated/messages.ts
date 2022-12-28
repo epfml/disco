@@ -4,7 +4,7 @@ import { weights } from '../../serialization'
 import { type, hasMessageType } from '../messages'
 
 export type MessageFederated =
-  postWeightsToServer |
+  postToServer |
   latestServerRound |
   pullServerStatistics |
   postMetadata |
@@ -15,9 +15,10 @@ export type MessageFederated =
 export interface messageGeneral {
   type: type
 }
-export interface postWeightsToServer {
-  type: type.postWeightsToServer
-  weights: weights.Encoded
+export interface postToServer {
+  type: type.postToServer
+  weights?: weights.Encoded
+  momentum?: weights.Encoded
   round: number
 }
 export interface latestServerRound {
@@ -54,7 +55,7 @@ export function isMessageFederated (o: unknown): o is MessageFederated {
   switch (o.type) {
     case type.clientConnected:
       return true
-    case type.postWeightsToServer:
+    case type.postToServer:
       return true
     case type.latestServerRound:
       return true

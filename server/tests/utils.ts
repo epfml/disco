@@ -1,11 +1,20 @@
 import { Server } from 'node:http'
 
-import { client, Task } from '@epfml/discojs-node'
+import { client, Task, TaskProvider } from '@epfml/discojs-node'
 
-import { runDefaultServer } from '../src/get_server'
+import { Disco } from '../src/get_server'
 
-export async function startServer (): Promise<Server> {
-  const server = await runDefaultServer()
+export async function startServer (tasks?: TaskProvider[]): Promise<Server> {
+  const disco = new Disco()
+  await disco.addDefaultTasks()
+
+  if (tasks !== undefined) {
+    for (const task of tasks) {
+      await disco.addTask(task)
+    }
+  }
+
+  const server = disco.serve()
 
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)

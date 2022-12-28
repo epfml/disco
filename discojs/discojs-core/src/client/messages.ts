@@ -17,7 +17,7 @@ export enum type {
   PartialSums,
 
   // federated
-  postWeightsToServer,
+  postToServer,
   postMetadata,
   getMetadataMap,
   latestServerRound,
