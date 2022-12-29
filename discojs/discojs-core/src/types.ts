@@ -7,3 +7,5 @@ export type Path = string
 export type Weights = tf.Tensor[]
 
 export type MetadataID = string
+
+export type Features = number | number[] | number[][] | number[][][] | number[][][][] | number[][][][][]

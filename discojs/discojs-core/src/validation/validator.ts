@@ -1,6 +1,6 @@
 import { List } from 'immutable'
 
-import { tf, data, Task, Logger, Client, GraphInformant, Memory, ModelSource } from '..'
+import { tf, data, Task, Logger, Client, GraphInformant, Memory, ModelSource, Features } from '..'
 
 export class Validator {
   private readonly graphInformant = new GraphInformant()
@@ -26,7 +26,7 @@ export class Validator {
     }
   }
 
-  async assess (data: data.Data): Promise<Array<{groundTruth: number, pred: number, features: number | number[] | number[][] | number[][][] | number[][][][] | number[][][][][]}>> {
+  async assess (data: data.Data): Promise<Array<{groundTruth: number, pred: number, features: Features}>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('batch size is undefined')
@@ -34,7 +34,7 @@ export class Validator {
 
     const model = await this.getModel()
 
-    let features: Array<number | number[] | number[][] | number[][][] | number[][][][] | number[][][][][]> = []
+    let features: Features[] = []
     const groundTruth: number[] = []
     const predictions: number[] = []
 
@@ -49,7 +49,7 @@ export class Validator {
         const currentFeatures = xs.arraySync()
 
         if (Array.isArray(currentFeatures)) {
-          features = [...features, ...currentFeatures]
+          features = features.concat(currentFeatures)
         } else {
           throw new TypeError('features array is not correct')
         }
