@@ -61,8 +61,8 @@ For the task creation, we consider the main use case which does not go through t
 **I am a developper who wants to define my own task**
 
 If you want to add a new task to our production DISCO server you have two possibilities:
-  * using the user interface as described above
-  * exporting your own `TaskProvider` from `discojs/discojs-core/src/default_tasks/`  and adding a new default task by contributing to the code.
+  * using the user interface as described above (no coding required)
+  * exporting your own `TaskProvider` from `discojs/discojs-core/src/default_tasks/`  and adding a new default task by contributing to the code. (describing the task in Typescript code)
 
 To export a new task in the code, make sure to export the `TaskProvider` in the `discojs/discojs-core/src/default_tasks/index.ts` file as follows:
 
@@ -72,13 +72,9 @@ export { lusCovid } from './lus_covid'
 export { mnist } from './mnist'
 export { titanic } from './titanic'
 export { simpleFace } from './simple_face'
-export { myNewTask } as my_new_task from './my_new_task' // <---- including our new custom task!
 export { geotags } from './geotags'
+export { myNewTask } as my_new_task from './my_new_task' // <---- including our new custom task!
 ```
-
-> Note that `discojs-core` must only contain platform-agnostic code that works both in the browser and on Node.js.
-> Thus, if your task requires reading some file from your local file system, you need to define the task in `discojs-node` only: `discojs/discojs-node/src/default_tasks/my_new_task.ts`
-> In a similar fashion, tasks expecting to read from browser memory (such as IndexedDB or local storage) shall be defined in `discojs-web` instead: `discojs/discojs-web/src/default_tasks/my_new_task.ts`
 
 If you run the server yourself, you can use the two methods above but the prefered way is to **directly provide the task to the server before startup**. You can do this with the NPM [disco-server](https://www.npmjs.com/package/@epfml/disco-server) package without altering the code or recompiling it.
 
@@ -143,7 +139,21 @@ async function getModel (modelPath: string): Promise<tf.LayersModel> {
 }
 ```
 
-At runtime, the models are stored in `disco/server/models/`, and it is also in the server side that we let disco know where exactly they are saved. In particular,
+> Reminder that the tasks and models definition are used by the server. The server then exposes the initial models to the clients that want to train them locally. So the server need to be able to retrieve the model if it's stored in a remote location.
+> When the training begin, the client retrieves the **initial** model stored on the server. Then depending on the scheme the model **updates** (without training data) are:
+> 
+> * Sent to the server for aggregation (**federated scheme**) 
+>   * At some point the server will update its stored model to benefit future client trainings
+> * Shared between peers for aggregation (no interaction with server) (**decentralized scheme**)
+>   * In this case, the server never have the opportunity to update the initial model as it's kept between peers.
+
+In summary here are the most common ways of loading a model:
+
+* Loading the model from the web (example in [cifar10](../discojs/discojs-core/src/default_tasks/cifar10.ts))
+* Loading the model from the local filesystem (similar to the web with a file path from the server filesystem)
+* Defining the architecture directly in the `TaskProvider` (example in [luscovid](../discojs/discojs-core/src/default_tasks/lus_covid.ts))
+
+At runtime, the models are stored in `disco/server/models/`, and it is also in the server side that we let disco know where exactly they are saved.
 
 > If you are using a pre-existing model, and the data shape does not match the input of the model, then it is possible
 to use preprocessing functions to resize the data (we also describe how to add custom preprocessing).
@@ -172,18 +182,6 @@ export const customTask: TaskProvider = {
         ...
       },
       trainingInformation: {
-        modelID: 'simple_face-model',
-        epochs: 50,
-        roundDuration: 1,
-        validationSplit: 0.2,
-        batchSize: 10,
-        preprocessFunctions: [],
-        learningRate: 0.001,
-        modelCompileData: {
-          optimizer: 'sgd',
-          loss: 'categoricalCrossentropy',
-          metrics: ['accuracy']
-        },
         modelID: 'my_new_task-model',
         epochs: 50,
         roundDuration: 1,
