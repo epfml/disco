@@ -6,3 +6,4 @@ weights_round*.json
 # TODO be more specific
 milestones/
 dist/
+models/
