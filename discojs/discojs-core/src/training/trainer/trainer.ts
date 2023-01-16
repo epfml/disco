@@ -1,4 +1,4 @@
-import { tf, Memory, Task, TrainingInformant, TrainingInformation } from '../..'
+import { tf, Memory, Task, TrainingInformant, TrainingInformation, TrainingFunction, fitModelFunctions } from '../..'
 
 import { RoundTracker } from './round_tracker'
 import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
@@ -19,6 +19,8 @@ export abstract class Trainer {
   private stopTrainingRequested = false
   private readonly trainerLogger: TrainerLogger
 
+  private readonly fitModelFunction: TrainingFunction
+
   /**
    * Constructs the training manager.
    * @param task the trained task
@@ -28,7 +30,8 @@ export abstract class Trainer {
     public readonly task: Task,
     public readonly trainingInformant: TrainingInformant,
     public readonly memory: Memory,
-    public readonly model: tf.LayersModel
+    public readonly model: tf.LayersModel,
+    fitModelFunction?: TrainingFunction
   ) {
     this.trainerLogger = new TrainerLogger()
 
@@ -39,6 +42,7 @@ export abstract class Trainer {
     this.trainingInformation = trainingInformation
 
     this.roundTracker = new RoundTracker(trainingInformation.roundDuration)
+    this.fitModelFunction = fitModelFunction ?? fitModelFunctions.default
   }
 
   /**
@@ -93,22 +97,19 @@ export abstract class Trainer {
    * Start training the model with the given dataset
    * @param dataset
    */
-  async trainModel (
+  async fitModel (
     dataset: tf.data.Dataset<tf.TensorContainer>,
     valDataset: tf.data.Dataset<tf.TensorContainer>
   ): Promise<void> {
     this.resetStopTrainerState()
 
-    // Assign callbacks and start training
-    await this.model.fitDataset(dataset, {
-      epochs: this.trainingInformation.epochs,
-      validationData: valDataset,
-      callbacks: {
-        onEpochEnd: (epoch, logs) => this.onEpochEnd(epoch, logs),
-        onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs),
-        onTrainEnd: async (logs) => await this.onTrainEnd(logs)
-      }
-    })
+    await this.fitModelFunction(this.model,
+      this.trainingInformation,
+      dataset,
+      valDataset,
+      (e, l) => this.onEpochEnd(e, l),
+      async (e, l) => await this.onBatchEnd(e, l),
+      async (l) => await this.onTrainEnd(l))
   }
 
   /**

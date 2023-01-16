@@ -6,7 +6,8 @@ import {
   TrainingInformant, informant as informants,
   TrainingSchemes,
   Memory, EmptyMemory,
-  ConsoleLogger
+  ConsoleLogger,
+  TrainingFunction
 } from '..'
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
@@ -19,6 +20,7 @@ interface DiscoOptions {
   informant?: TrainingInformant
   logger?: Logger
   memory?: Memory
+  customTrainingFunction?: TrainingFunction
 }
 
 // Handles the training loop, server communication & provides the user with feedback.
@@ -87,7 +89,7 @@ export class Disco {
     this.memory = options.memory
     this.logger = options.logger
 
-    const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
+    const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant, options.customTrainingFunction)
     this.trainer = trainerBuilder.build(this.client, options.scheme !== TrainingSchemes.LOCAL)
   }
 
@@ -102,7 +104,7 @@ export class Disco {
       : trainDataset
 
     await this.client.connect()
-    await (await this.trainer).trainModel(trainDataset.dataset, valDataset.dataset)
+    await (await this.trainer).fitModel(trainDataset.dataset, valDataset.dataset)
   }
 
   // Stops the training function. Does not disconnect the client.
