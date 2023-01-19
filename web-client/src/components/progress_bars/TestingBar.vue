@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <h1 class="text-disco-cyan font-disco text-3xl text-center">
-      Test & Validation
+      Evaluation
     </h1>
     <div class="hidden md:flex mx-auto">
       <ProgressIcon
@@ -59,7 +59,7 @@
         @click="handleRoute(2)"
       >
         <template #text>
-          Test Your Model
+          Evaluate Your Model
         </template>
         <template #icon>
           <svg
