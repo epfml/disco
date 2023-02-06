@@ -1,4 +1,4 @@
-import { tf, Task,data, TaskProvider } from '..'
+import { tf, Task, data, TaskProvider } from '..'
 
 export const titanic: TaskProvider = {
   getTask (): Task {
@@ -7,7 +7,7 @@ export const titanic: TaskProvider = {
       displayInformation: {
         taskTitle: 'Sentiment',
         summary: {
-          preview: "We showcase the ease of applying NLP to Disco with a simple sentiment analysis model.",
+          preview: 'We showcase the ease of applying NLP to Disco with a simple sentiment analysis model.',
           overview: ''
         },
         model: 'We use an LSTM. Long short-term memory (LSTM) networks are the type of recurrent neural network capable of learning order dependence in sequence prediction problems',
@@ -50,24 +50,18 @@ export const titanic: TaskProvider = {
   },
 
   async getModel (): Promise<tf.LayersModel> {
-    const maxLength = 64;
-
-    const model = tf.sequential();
+    const maxLength = 64
+    const model = tf.sequential()
     model.add(tf.layers.embedding({
       inputDim: maxLength,
       outputDim: 128,
       inputLength: maxLength
-    }));
+    }))
     model.add(tf.layers.lstm({
       units: 64,
       returnSequences: false
-    }));
-    model.add(tf.layers.dense({units: 5, activation: 'softmax'}));
-    model.name('sentiment')
+    }))
+    model.add(tf.layers.dense({ units: 5, activation: 'softmax' }))
     return model
-
   }
-
 }
-
-
