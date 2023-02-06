@@ -1,6 +1,7 @@
-import { tf, Task, data, TaskProvider } from '..'
+import { tf, Task, TaskProvider } from '..'
+import { TextPreprocessing } from '../dataset/data/preprocessing'
 
-export const titanic: TaskProvider = {
+export const sentiment: TaskProvider = {
   getTask (): Task {
     return {
       taskID: 'sentiment',
@@ -29,7 +30,7 @@ export const titanic: TaskProvider = {
         roundDuration: 10,
         validationSplit: 0,
         batchSize: 30,
-        preprocessingFunctions: [data.TextPreprocessing.Tokenize],
+        preprocessingFunctions: [TextPreprocessing.Tokenize],
         modelCompileData: {
           optimizer: 'adam',
           loss: 'categoricalCrossentropy',
