@@ -272,7 +272,26 @@ export const task: Task = {
 
 > Note that you need to rebuild discojs every time you make changes to it (`cd discojs; rm -rf dist/; npm run build`).
 
-## Summary 
+## NLP Task Usecase
+
+Here we show that bringing NLP tasks to DISCO is straightforward. We illustrate this through a simple sentiment analysis task : given a sentence, we predict one out of five categorical labels corresponding to the sentence sentiment.
+
+### Data Description
+
+- 0 if the sentence is negative
+- 1 if the sentence is somewhat negative
+- 2 if the sentence is neutral
+- 3 if the sentence is somewhat positive
+- 4 if the sentence is positive
+
+The dataset is a public dataset on movie reviews from [this kaggle dataset](https://https://www.kaggle.com/competitions/sentiment-analysis-on-movie-reviews/data?select=train.tsv.zip), which is first converted to a CSV, then the data is preprocessed by removing partial or incomplete sentences. The training dataset results into a csv with two columns : the sentences, and labels (sentiments) ranging from 0 to 4.
+
+### Tokenization
+
+In order to handle text and use it, we need to tokenize the sentences in order to obtain numerical values. We define a new preprocessing function in ```discojs-core/src/data/preprocessing``` called ```getPreprocessText``` which handles text tokenization. This function has to be called as a preprocessing function in the task definition. The vocabulary consists of all words present in the dataset. Tokenization is performed by converting each word to its numerical index in the vocabulary.
+
+
+## Summary
 
 - In ```disco/discojs/discojs-core/src/default_tasks/``` define your new custom task by implementing the `TaskProvider` interface. You will need to have your model in the .json + .bin format.
  - In ```disco/discojs/discojs-core/src/default_tasks/index.ts``` export your newly defined task
