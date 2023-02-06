@@ -1,6 +1,7 @@
-import { Task } from '../..'
+import { tf, Task } from '../..'
 import { Dataset } from '../dataset'
 import { Data } from './data'
+import { getPreprocessText } from './preprocessing'
 
 export class TabularData extends Data {
   static async init (
@@ -29,6 +30,9 @@ export class TabularData extends Data {
   }
 
   preprocess (): Data {
-    return this
+    let newDataset = this.dataset
+    const preprocessText = getPreprocessText(this.task)/*  */
+    newDataset = newDataset.map((x: tf.TensorContainer) => preprocessText(x))
+    return new TabularData(newDataset, this.task, this.size)
   }
 }
