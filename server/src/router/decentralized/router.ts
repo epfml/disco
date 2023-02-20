@@ -1,13 +1,13 @@
-import express from 'express'
+import type express from 'express'
 import msgpack from 'msgpack-lite'
-import WebSocket from 'ws'
-import { ParamsDictionary } from 'express-serve-static-core'
-import { ParsedQs } from 'qs'
+import type WebSocket from 'ws'
+import { type ParamsDictionary } from 'express-serve-static-core'
+import { type ParsedQs } from 'qs'
 import { Map, Set } from 'immutable'
 
-import { tf, client, Task, TaskID } from '@epfml/discojs-node'
+import { type tf, client, type Task, type TaskID } from '@epfml/discojs-node'
 
-import { Server } from '../server'
+import { Server } from '../server.js'
 
 import messages = client.decentralized.messages
 import messageTypes = client.messages.type
@@ -20,9 +20,7 @@ export class Decentralized extends Server {
   // increments with addition of every client, server keeps track of clients with this and tells them their ID
   private clientCounter: PeerID = 0
 
-  protected get description (): string {
-    return 'DeAI Server'
-  }
+  protected readonly description = 'DeAI Server'
 
   protected buildRoute (task: Task): string {
     return `/${task.taskID}`
@@ -39,7 +37,7 @@ export class Decentralized extends Server {
 
   protected handle (
     task: Task,
-    ws: import('ws'),
+    ws: WebSocket,
     model: tf.LayersModel,
     req: express.Request<
     ParamsDictionary,
@@ -114,8 +112,7 @@ export class Decentralized extends Server {
                     throw new Error(`peer ${id} marked as ready but not connection to it`)
                   }
                   return [conn, encoded] as [WebSocket, Buffer]
-                }).forEach(([conn, encoded]) =>
-                  conn.send(encoded)
+                }).forEach(([conn, encoded]) => { conn.send(encoded) }
                 )
             }
             break

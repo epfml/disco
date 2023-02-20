@@ -36,6 +36,23 @@ jobs:
         with:
           credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
 
+      - name: Generate production env file
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          envkey_DB_URL: ${{ secrets.DB_URL }}
+          file_name: .env-for-app-yaml
+          fail_on_empty: false
+
+      # Until maybe this is merged: https://github.com/google-github-actions/deploy-appengine/pull/294
+      - name: prepare app.yaml
+        uses: mshick/fast-envsubst@v1
+        with:
+          env-file: .env-for-app-yaml
+          in-file: app.yaml.template
+          out-file: app.yaml
+
+
       - name: deploy-to-google-cloud
         uses: google-github-actions/deploy-appengine@v0.8.0
         with:

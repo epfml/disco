@@ -1,9 +1,9 @@
 import { Set } from 'immutable'
 import { EventEmitter } from 'node:events'
 import { createHash } from 'node:crypto'
-import fs from 'node:fs'
+import * as fs from 'node:fs'
 
-import { tf, Task, Path, Digest, isTaskProvider, TaskProvider, defaultTasks } from '@epfml/discojs-node'
+import { tf, type Task, type Path, type Digest, isTaskProvider, type TaskProvider, defaultTasks } from '@epfml/discojs-node'
 
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks

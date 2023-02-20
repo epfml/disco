@@ -1,29 +1,46 @@
 {
   "name": "@epfml/disco-server",
   "version": "2.1.1",
-  "main": "dist/index.js",
+  "exports": "./dist/index.js",
+  "type": "module",
   "bin": {
     "disco-server": "./dist/run_server.js"
   },
+  "engines": {
+    "node": ">=14.16"
+  },
   "scripts": {
     "dev": "nodemon src/run_server.ts",
-    "start": "ts-node src/run_server.ts",
+    "start": "ts-node --esm src/run_server.ts",
     "build": "tsc",
     "clean": "tsc --build --clean && rm -r dist || true",
-    "test": "mocha --exit -r ts-node/register 'tests/**/*.ts'",
-    "lint": "npx eslint --max-warnings 0 ."
+    "test": "NODE_OPTIONS=\"--loader ts-node/esm\" mocha --exit -r ts-node/register 'tests/**/*.ts'",
+    "lint": "npx eslint --max-warnings 0 .",
+    "migrate": "npx mikro-orm-esm migration:up",
+    "migrate:clean": "npx mikro-orm-esm migration:fresh"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@epfml/discojs-node": "^2.1.1",
     "@koush/wrtc": "0.5",
+    "@mikro-orm/core": "^5.6.7",
+    "@mikro-orm/migrations": "^5.6.7",
+    "@mikro-orm/postgresql": "^5.6.7",
+    "@types/uuid": "^9.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
     "cors": "2",
+    "csv-parse": "^5.3.5",
+    "dotenv": "^16.0.3",
     "express": "4",
+    "express-async-handler": "^1.2.0",
     "express-ws": "5",
+    "got": "^12.5.3",
     "immutable": "4",
     "lodash": "4",
-    "msgpack-lite": "0.1"
+    "msgpack-lite": "0.1",
+    "uuid": "^9.0.0"
   },
   "nodemonConfig": {
     "ignore": [
@@ -31,30 +48,31 @@
       "models/*"
     ],
     "execMap": {
-      "ts": "node --inspect=0.0.0.0:9229 --nolazy -r ts-node/register"
+      "ts": "node --inspect=0.0.0.0:9229 --nolazy --loader ts-node/esm -r ts-node/register"
     }
   },
   "devDependencies": {
+    "@mikro-orm/cli": "^5.6.7",
     "@types/chai": "4",
     "@types/cors": "2",
     "@types/express-ws": "3",
     "@types/mocha": "9",
     "@types/msgpack-lite": "0.1",
     "@types/supertest": "2",
-    "@typescript-eslint/eslint-plugin": "4",
-    "@typescript-eslint/parser": "4",
+    "@typescript-eslint/eslint-plugin": "5.52",
+    "@typescript-eslint/parser": "5.52",
     "chai": "4",
-    "eslint": "7",
-    "eslint-config-standard-with-typescript": "21",
+    "eslint": "8",
+    "eslint-config-standard-with-typescript": "33",
     "eslint-plugin-import": "2",
     "eslint-plugin-node": "11",
-    "eslint-plugin-promise": "5",
+    "eslint-plugin-promise": "6",
     "mocha": "9",
     "nodemon": "2",
     "supertest": "6",
     "ts-node": "10",
     "ts-node-register": "1",
-    "typescript": "<4.5.0"
+    "typescript": "4.9"
   },
   "repository": {
     "type": "git",
@@ -63,5 +81,12 @@
   "bugs": {
     "url": "https://github.com/epfml/disco/issues"
   },
-  "homepage": "https://github.com/epfml/disco#readme"
+  "homepage": "https://github.com/epfml/disco#readme",
+  "mikro-orm": {
+    "useTsNode": true,
+    "configPaths": [
+      "./src/database/mikro-orm.config.ts",
+      "./dist/database/mikro-orm.config.js"
+    ]
+  }
 }

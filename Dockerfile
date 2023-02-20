@@ -2,7 +2,7 @@
 
 FROM ubuntu:20.04
 
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 
 RUN apt-get upgrade -y \
     && apt-get update -y \
@@ -14,7 +14,10 @@ RUN apt-get upgrade -y \
     && apt install -y nodejs 
 
 COPY discojs/package*.json discojs/
-RUN cd discojs/ && npm ci
+# production flag disabled else devDependencies are ignored (no tsc available)
+# Ideally this image should be update to not depend on dev dependencies
+RUN cd discojs/ && npm ci --production=false
+RUN cd discojs/ && npx tsc -h
 
 COPY discojs/tsconfig.base.json discojs/
 
@@ -24,10 +27,9 @@ COPY discojs/discojs-core/src/ discojs/discojs-core/src/
 COPY discojs/discojs-node/ discojs/discojs-node/
 RUN cd discojs/discojs-node/ && npm run build
 
-COPY server/package*.json server/
-RUN cd server/ && npm ci && npm link ../discojs/discojs-node
-
 COPY server/ server/
+RUN cd server/ && npm ci --production=false && ls -la node_modules && npm link --production=false ../discojs/discojs-node
+
 RUN cd server/ && npm run build
 
 WORKDIR /server

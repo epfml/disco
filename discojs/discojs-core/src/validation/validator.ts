@@ -26,7 +26,7 @@ export class Validator {
     }
   }
 
-  async assess (data: data.Data): Promise<Array<{groundTruth: number, pred: number, features: Features}>> {
+  async assess (data: data.Data): Promise<Array<{ groundTruth: number, pred: number, features: Features }>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('batch size is undefined')
@@ -44,7 +44,7 @@ export class Validator {
         const xs = e.xs as tf.Tensor
 
         const ys = this.getLabel(e.ys as tf.Tensor)
-        const pred = this.getLabel(model.predict(xs, { batchSize: batchSize }) as tf.Tensor)
+        const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
 
         const currentFeatures = xs.arraySync()
 
@@ -70,7 +70,7 @@ export class Validator {
     this.logger.success(`Obtained validation accuracy of ${this.accuracy()}`)
     this.logger.success(`Visited ${this.visitedSamples()} samples`)
 
-    return List(groundTruth).zip(List(predictions)).zip(List(features)).map(([[gt, p], f]) => ({ groundTruth: gt, pred: p, features: f })).toArray()
+    return List(groundTruth).zip(List(predictions)).zip(List(features)).map(([[gt, p], f]) => ({ groundTruth: gt, pred: p, features: f })).toArray() as Array<{ groundTruth: number, pred: number, features: Features }>
   }
 
   async predict (data: data.Data): Promise<number[]> {
@@ -82,7 +82,7 @@ export class Validator {
     const model = await this.getModel()
     const predictions: number[] = []
 
-    await data.dataset.batch(batchSize).forEachAsync(e => predictions.push(...Array.from((model.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor).argMax(1).dataSync())))
+    await data.dataset.batch(batchSize).forEachAsync(e => predictions.push(...Array.from((model.predict(e as tf.Tensor, { batchSize }) as tf.Tensor).argMax(1).dataSync())))
 
     return predictions
   }

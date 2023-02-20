@@ -27,7 +27,7 @@ export class WeightsContainer {
   mapWith (other: WeightsContainer, fn: (a: tf.Tensor, b: tf.Tensor) => tf.Tensor): WeightsContainer {
     return new WeightsContainer(
       this._weights
-        .zip(other._weights)
+        .zip<tf.Tensor<tf.Rank>>(other._weights)
         .map(([w1, w2]) => fn(w1, w2))
     )
   }

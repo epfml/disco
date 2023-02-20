@@ -65,9 +65,9 @@ export class PeerConnection implements EventConnection {
       this.eventEmitter.emit(msg.type.toString(), msg)
     })
 
-    this.peer.on('close', () => console.warn('peer', this.peer.id, 'closed connection'))
+    this.peer.on('close', () => { console.warn('peer', this.peer.id, 'closed connection') })
 
-    return await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       this.peer.on('connect', () => {
         console.debug('connected new peer', this.peer.id)
         resolve()
@@ -133,9 +133,8 @@ export class WebSocketServer implements EventConnection {
     }
 
     return await new Promise((resolve, reject) => {
-      ws.onerror = (err: isomorphic.ErrorEvent) =>
-        reject(new Error(`connecting server: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
-      ws.onopen = () => resolve(server)
+      ws.onerror = (err: isomorphic.ErrorEvent) => { reject(new Error(`connecting server: ${err.message}`)) } // eslint-disable-line @typescript-eslint/restrict-template-expressions
+      ws.onopen = () => { resolve(server) }
     })
   }
 

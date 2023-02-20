@@ -72,7 +72,7 @@ export class Peer {
 
     const remainingBufferSize = this.bufferSize - this.peer.bufferSize
     if (chunk.length > remainingBufferSize) {
-      setTimeout(() => this.flush(), TICK)
+      setTimeout(() => { this.flush() }, TICK)
       return
     }
 
@@ -242,7 +242,7 @@ export class Peer {
           console.debug(this.peer.address().port, 'recved message of size', message.length)
 
           // TODO debug
-          // @ts-expect-error
+          // @ts-expect-error message type
           listener(message)
         })
     })

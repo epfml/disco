@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  
+  disco-db: # Server database
+    image: postgres:15.1
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: disco
+      POSTGRES_USER: disco
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:

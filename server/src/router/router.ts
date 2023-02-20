@@ -1,12 +1,13 @@
-import express from 'express'
-import expressWS from 'express-ws'
+import express, { type NextFunction, type Request, type Response } from 'express'
+import type expressWS from 'express-ws'
 
-import { Config } from '../config'
-import { TasksAndModels } from '../tasks'
+import { type Config } from '../config.js'
+import { type TasksAndModels } from '../tasks.js'
 
-import { Federated } from './federated'
-import { Decentralized } from './decentralized'
-import { Tasks } from './tasks'
+import { Federated } from './federated.js'
+import { Decentralized } from './decentralized/index.js'
+import { Tasks } from './tasks.js'
+import { DatasetController } from './controllers/dataset.controller.js'
 
 export class Router {
   // TODO choose between federated and/or decentralized
@@ -42,6 +43,13 @@ export class Router {
     this.ownRouter.use('/deai', decentralized.router)
     this.ownRouter.use('/feai', federated.router)
     this.ownRouter.use('/tasks', tasks.router)
+    this.ownRouter.use('/dataset/', DatasetController)
+
+    // Custom JSON error handler
+    this.ownRouter.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+      console.error(err.stack)
+      res.status(500).json({ error: err.message })
+    })
   }
 
   get router (): express.Router {

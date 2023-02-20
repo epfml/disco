@@ -1,6 +1,7 @@
-import path from 'path'
+import * as path from 'node:path'
 
-import { Path, TaskID } from '@epfml/discojs-node'
+import { type Path, type TaskID } from '@epfml/discojs-node'
+import * as url from 'url'
 
 export class Config {
   public readonly serverUrl: URL
@@ -36,7 +37,7 @@ export class Config {
   }
 }
 
-const ROOT_DIR = path.join(__filename, '..', '..', '..')
+const ROOT_DIR = path.join(url.fileURLToPath(import.meta.url), '..', '..', '..')
 
 export const CONFIG = new Config(
   'file://',

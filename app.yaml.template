@@ -11,3 +11,7 @@ resources:
   cpu: 2
   memory_gb: 4
   disk_size_gb: 20
+# These env vars must be replace with secrets at deploy time
+env_variables:
+  DB_PASSWORD: ${DB_PASSWORD}
+  DB_URL: ${DB_URL}

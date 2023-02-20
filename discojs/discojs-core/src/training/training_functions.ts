@@ -26,9 +26,9 @@ const defaultTraining: TrainingFunction = async (model, trainingInformation, dat
     epochs: trainingInformation.epochs,
     validationData: valDataset,
     callbacks: {
-      onEpochEnd: onEpochEnd,
-      onBatchEnd: onBatchEnd,
-      onTrainEnd: onTrainEnd
+      onEpochEnd,
+      onBatchEnd,
+      onTrainEnd
     }
   })
 }

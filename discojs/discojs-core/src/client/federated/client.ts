@@ -148,7 +148,7 @@ export class Client extends Base {
       clientId: this.clientID,
       round: this.round,
       metadataId: metadataID,
-      metadata: metadata
+      metadata
     }
 
     this.sendMessage(msg)
@@ -165,7 +165,7 @@ export class Client extends Base {
       taskId: this.task.taskID,
       clientId: this.clientID,
       round: this.round,
-      metadataId: metadataId
+      metadataId
     }
 
     this.sendMessage(msg)

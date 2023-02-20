@@ -1,9 +1,9 @@
 import { expect } from 'chai'
-import * as http from 'http'
+import type * as http from 'http'
 
 import { client as clients, informant, defaultTasks } from '@epfml/discojs-node'
 
-import { getClient, startServer } from '../utils'
+import { getClient, startServer } from '../utils.js'
 
 const TASK = defaultTasks.titanic.getTask()
 

@@ -107,9 +107,9 @@ export abstract class Trainer {
       this.trainingInformation,
       dataset,
       valDataset,
-      (e, l) => this.onEpochEnd(e, l),
-      async (e, l) => await this.onBatchEnd(e, l),
-      async (l) => await this.onTrainEnd(l))
+      (e, l) => { this.onEpochEnd(e, l) },
+      async (e, l) => { await this.onBatchEnd(e, l) },
+      async (l) => { await this.onTrainEnd(l) })
   }
 
   /**

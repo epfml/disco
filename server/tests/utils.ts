@@ -1,11 +1,11 @@
-import { Server } from 'node:http'
+import { type Server } from 'node:http'
 
-import { client, Task } from '@epfml/discojs-node'
+import { type client, type Task } from '@epfml/discojs-node'
 
-import { runDefaultServer } from '../src/get_server'
+import { runDefaultServer } from '../src/get_server.js'
 
 export async function startServer (): Promise<Server> {
-  const server = await runDefaultServer()
+  const server = await runDefaultServer(undefined, false)
 
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)

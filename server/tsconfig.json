@@ -1,13 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES5",
-    "lib": ["ES5"],
+    "target": "ES2021",
+    "lib": ["ES2021"],
 
     "strict": true,
 
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
+    "module": "node16",
+    "moduleResolution": "node16",
     "downlevelIteration": true,
 
     "declaration": true,
@@ -22,4 +26,4 @@
     }
   },
   "include": ["src"]
-}
+  }
