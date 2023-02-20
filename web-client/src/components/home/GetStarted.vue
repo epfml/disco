@@ -38,6 +38,18 @@
         Create
       </template>
     </ButtonCard>
+    <!-- Contributing data -->
+    <ButtonCard
+      title-placement="center"
+      @action="goToContribute()"
+    >
+      <template #title>
+        Explore <span class="font-disco text-disco-cyan">DISCO</span> available datasets and add your own
+      </template>
+      <template #button>
+        Contribute
+      </template>
+    </ButtonCard>
   </div>
 </template>
 <script lang="ts" setup>
@@ -50,4 +62,5 @@ const router = useRouter()
 const goToTaskList = (): void => { router.push({ path: '/list' }) }
 const goToNewTaskCreationForm = (): void => { router.push({ path: '/create' }) }
 const goToModelTesting = (): void => { router.push({ path: '/evaluate' }) }
+const goToContribute = (): void => { router.push({ path: '/contribute' }) }
 </script>

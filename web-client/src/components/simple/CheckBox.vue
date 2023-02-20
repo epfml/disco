@@ -7,6 +7,7 @@
       class="group appearance-none h-5 w-5 focus:outline-none transition duration-200 border-2 border-disco-cyan rounded-xl cursor-pointer align-top bg-contain bg-no-repeat bg-center float-left checked:bg-disco-cyan"
       type="checkbox"
       :value="_value"
+      :checked="_value !== false"
       @click="clicked"
     >
     <div class="capitalize">

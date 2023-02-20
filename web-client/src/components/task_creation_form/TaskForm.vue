@@ -158,7 +158,7 @@ import { Form as VeeForm, ErrorMessage } from 'vee-validate'
 
 import { tf, Task, pushTask } from '@epfml/discojs'
 
-import { sections, modelCompileData, privacyParameters, FormField, FormSection } from '@/task_creation_form'
+import { sections, modelCompileData, privacyParameters, FormField, FormSection } from '@/creation_form'
 import { useToaster } from '@/composables/toaster'
 import { CONFIG } from '@/config'
 import IconCard from '@/components/containers/IconCard.vue'
