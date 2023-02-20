@@ -1,7 +1,7 @@
 import { parse } from 'ts-command-line-args'
 import { Map } from 'immutable'
 
-import { defaultTasks, Task } from '@epfml/discojs-node'
+import { defaultTasks, type Task } from '@epfml/discojs-node'
 
 interface BenchmarkUnsafeArguments {
   task: string

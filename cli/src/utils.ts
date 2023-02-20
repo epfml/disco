@@ -1,14 +1,14 @@
-import http from 'node:http'
+import type http from 'node:http'
 import fs from 'node:fs'
 
-import { TrainerLog } from '@epfml/discojs-node'
+import { type TrainerLog } from '@epfml/discojs-node'
 import { Disco } from '@epfml/disco-server'
 
 export async function startServer (): Promise<[http.Server, URL]> {
   const disco = new Disco()
   await disco.addDefaultTasks()
 
-  const server = disco.serve(8000)
+  const server = await disco.serve(8000, false)
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
     server.once('error', reject)
