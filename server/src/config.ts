@@ -5,6 +5,7 @@ import * as url from 'url'
 
 export class Config {
   public readonly serverUrl: URL
+  public readonly useDatabase: boolean
 
   constructor (
     // File system saving scheme (URL-like).
@@ -19,6 +20,7 @@ export class Config {
     const url = new URL('http://localhost')
     url.port = `${serverPort}`
     this.serverUrl = url
+    this.useDatabase = process.env.USE_DATABASE?.toLowerCase() === 'true' ?? true
   }
 
   // Directory for the given task

@@ -10,7 +10,7 @@ docker build $DIR
 
 container=$(
 	docker build --quiet $DIR |
-		xargs docker run --rm --detach --publish $PORT:$PORT
+		xargs docker run -e USE_DATABASE=false --rm --detach --publish $PORT:$PORT
 )
 cleanup() {
 	docker stop $container >/dev/null
@@ -18,7 +18,7 @@ cleanup() {
 trap cleanup EXIT
 
 COUNTER=0
-TIMEOUT=1200 # 2 min timeout 10 units == 1 sec
+TIMEOUT=3000 # 2 min timeout 10 units == 1 sec
 
 while ! curl --silent http://localhost:$PORT >/dev/null
 do

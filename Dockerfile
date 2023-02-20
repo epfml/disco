@@ -3,6 +3,7 @@
 FROM ubuntu:20.04
 
 ENV NODE_ENV=production
+ENV USE_DATABASE=true
 
 RUN apt-get upgrade -y \
     && apt-get update -y \
@@ -28,7 +29,7 @@ COPY discojs/discojs-node/ discojs/discojs-node/
 RUN cd discojs/discojs-node/ && npm run build
 
 COPY server/ server/
-RUN cd server/ && npm ci --production=false && ls -la node_modules && npm link --production=false ../discojs/discojs-node
+RUN cd server/ && npm ci --production=false && npm link --production=false ../discojs/discojs-node
 
 RUN cd server/ && npm run build
 

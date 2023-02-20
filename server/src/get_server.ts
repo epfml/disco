@@ -76,8 +76,8 @@ export class Disco {
   }
 }
 
-export async function runDefaultServer (port?: number, initDb: boolean = true): Promise<http.Server> {
+export async function runDefaultServer (port?: number, initDb?: boolean): Promise<http.Server> {
   const disco = new Disco()
   await disco.addDefaultTasks()
-  return await disco.serve(port, initDb)
+  return await disco.serve(port, initDb ?? CONFIG.useDatabase)
 }
