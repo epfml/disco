@@ -35,7 +35,7 @@ export const geotags: TaskProvider = {
         IMAGE_H: 224,
         IMAGE_W: 224,
         preprocessingFunctions: [data.ImagePreprocessing.Resize],
-        LABEL_LIST: Range(0, 140).map(String).toArray(),
+        LABEL_LIST: Range(0, 127).map(String).toArray(),
         scheme: 'Federated',
         noiseScale: undefined,
         clippingRadius: 20,
@@ -48,7 +48,7 @@ export const geotags: TaskProvider = {
 
   async getModel (): Promise<tf.LayersModel> {
     const pretrainedModel = await tf.loadLayersModel(
-      'https://storage.googleapis.com/epfl-disco-models/geotags/v2/model.json'
+      'https://storage.googleapis.com/epfl-disco-models/geotags/v5/model.json'
     )
 
     const numLayers = pretrainedModel.layers.length
