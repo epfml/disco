@@ -14,31 +14,10 @@ To use an existing model in Disco, we first need to convert the model to a Tenso
 
 ### My model is a PyTorch model, I want to bring it to Disco
 
-TensorFlowJS provide a [simple conversion API](https://www.tensorflow.org/js/guide/conversion) to bring your PyTorch model to TensorFlowJS. You first need to convert your Pytorch model into a Keras model, which is a file stored as an HDF5 model with an .h5 extension, using the [following Pytorch-to-Keras model conversion tool](https://github.com/gmalivenko/pytorch2keras). To do so,
-```python
-from pytorch2keras.converter import pytorch_to_keras
-my_pytorch_model = create_my_model()
-keras_model = pytorch_to_keras(my_pytorch_model, dummy_input_of_correct_size, verbose=True)
-keras_model.save("my_model_name.h5")
-```
-Then, given your keras model file, to convert it to a TensorFlowJS model:
-```bash
-$ tensorflowjs_converter --input_format=keras my_model_name.h5 /tfjs_model
-```
-
-Side Note : If you already have a TensorFlow saved model, the conversion to TensorFlowJS is straightforward with the following command :
-```bash
-$ tensorflowjs_converter --input_format=tf_saved_model my_tensorflow_saved_model /tmp/tfjs_model
-```
-
-Make sure to convert to TF.js [LayersModel](https://www.tensorflow.org/js/guide/models_and_layers) (not GraphModel, as the latter are inferene only, so can not be trained).
-
-Following the `tensorflowjs_converter` command, you will recover two files : a .json describing your model architecture, and a collection of .bin files describing your model weights, which are ready to be uploaded on DisCo.
-Note that the following conversion is only possible in cases of models for which TensorFlowJS possesses the [corresponding modules](https://js.tensorflow.org/api/latest/).
 
 
 
-## 2) Simple use case: Using the user interface directly for creating a new task
+## 1) Simple use case: Using the user interface directly for creating a new task
 I am a user who wants to define my custom task and bring my model to Disco, without doing any programming. For this use case, the `.bin` weight file is mandatory.
  - Through the Disco user interface, click on the *create* button on "Add your own model to be trained in a DISCOllaborative"
  - Fill in all the relevant information for your task and model
@@ -46,7 +25,7 @@ I am a user who wants to define my custom task and bring my model to Disco, with
  Your task has been successfully instantiated.
 
 
-## 3) Procedure for adding a custom task
+## 2) Procedure for adding a custom task
 
 In order to add a new custom task to Disco.js, we need to have defined a `TaskProvider` which need to implement two methods:
    * `getTask` which returns a `Task` as defined [here](../discojs/discojs-core/src/task/task.ts), the `Task` contains all the crucial information from training to the mode
