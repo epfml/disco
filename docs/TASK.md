@@ -9,11 +9,7 @@ Disco.js currently allows learning of arbitrary machine learning tasks, where ta
 
 ## Bringing your ML model to Disco
 
-To use an existing model in Disco, we first need to convert the model to a TensorFlowJS format, consisting of a TensorFlowJS model file in a JSON format for the neural network architecture, and an optional weight file in .bin format if you want to start from a particular initialization or a pretrained model.
-
-
-### My model is a PyTorch model, I want to bring it to Disco
-
+To use an existing model in Disco, we first need to convert the model to a TensorFlowJS format, consisting of a TensorFlowJS model file in a JSON format for the neural network architecture, and an optional weight file in .bin format if you want to start from a particular initialization or a pretrained model. If your model is from another framework than TensorflowJS, like Pytorch or Tensorflow/Keras, but you still want to bring it to DisCo, please refer to [this problem in the FAQ](/FAQ.md).
 
 
 
