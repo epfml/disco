@@ -8,7 +8,7 @@ export async function startServer (): Promise<[http.Server, URL]> {
   const disco = new Disco()
   await disco.addDefaultTasks()
 
-  const server = await disco.serve(8000, false)
+  const server = await disco.serve(8000)
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
     server.once('error', reject)
