@@ -43,7 +43,9 @@ export class Router {
     this.ownRouter.use('/deai', decentralized.router)
     this.ownRouter.use('/feai', federated.router)
     this.ownRouter.use('/tasks', tasks.router)
-    this.ownRouter.use('/dataset/', DatasetController)
+    if (config.useDatabase) {
+      this.ownRouter.use('/dataset/', DatasetController)
+    }
 
     // Custom JSON error handler
     this.ownRouter.use((err: Error, req: Request, res: Response, next: NextFunction) => {

@@ -20,7 +20,7 @@ export class Config {
     const url = new URL('http://localhost')
     url.port = `${serverPort}`
     this.serverUrl = url
-    this.useDatabase = process.env.USE_DATABASE?.toLowerCase() === 'true' ?? true
+    this.useDatabase = process.env.USE_DATABASE?.toLowerCase() === 'true' ?? false
   }
 
   // Directory for the given task

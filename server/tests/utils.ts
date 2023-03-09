@@ -5,7 +5,7 @@ import { type client, type Task } from '@epfml/discojs-node'
 import { runDefaultServer } from '../src/get_server.js'
 
 export async function startServer (): Promise<Server> {
-  const server = await runDefaultServer(undefined, false)
+  const server = await runDefaultServer(undefined)
 
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)

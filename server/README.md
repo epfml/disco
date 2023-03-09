@@ -178,8 +178,8 @@ The server uses a PostgreSQL database and you can manually run the migrations wi
 
 ### Running the server locally
 
-You will need to start a PostgreSQL database, an easy way is to use the `docker-compose.yml` file by just running `docker-compose --env-file .env.dev up`.
-From this folder, you can run the server on localhost:8080 with `npm run dev`. This runs via the `nodemon` package, so it automatically restarts the process after changes.
+If you want to use the database related features, you will need to start a PostgreSQL database, an easy way is to use the `docker-compose.yml` file by just running `docker-compose --env-file .env.dev up`.
+From this folder, you can run the server on localhost:8080 with `npm run dev` (or `npm run dev:withDb`). This runs via the `nodemon` package, so it automatically restarts the process after changes.
 
 ### Testing the server locally
 

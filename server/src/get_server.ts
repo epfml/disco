@@ -33,11 +33,7 @@ export class Disco {
     await this.tasksAndModels.addTaskAndModel(task, model)
   }
 
-  async serve (port?: number, initDb: boolean = true): Promise<http.Server> {
-    if (initDb) {
-      await initORM()
-    }
-
+  async serve (port?: number): Promise<http.Server> {
     const wsApplier = expressWS(this.server, undefined, { leaveRouterUntouched: true })
     const app = wsApplier.app
 
@@ -46,7 +42,8 @@ export class Disco {
     app.use(express.json({ limit: '50mb' }))
     app.use(express.urlencoded({ limit: '50mb', extended: false }))
 
-    if (initDb) {
+    if (CONFIG.useDatabase) {
+      await initORM()
       // Fork entity manager for each request (avoids identity map collisions)
       app.use((req, res, next) => {
         RequestContext.create(orm.em, next)
@@ -76,8 +73,8 @@ export class Disco {
   }
 }
 
-export async function runDefaultServer (port?: number, initDb?: boolean): Promise<http.Server> {
+export async function runDefaultServer (port?: number): Promise<http.Server> {
   const disco = new Disco()
   await disco.addDefaultTasks()
-  return await disco.serve(port, initDb ?? CONFIG.useDatabase)
+  return await disco.serve(port)
 }

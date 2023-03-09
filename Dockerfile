@@ -3,7 +3,8 @@
 FROM ubuntu:20.04
 
 ENV NODE_ENV=production
-ENV USE_DATABASE=true
+# We don't use the database in production yet
+ENV USE_DATABASE=false
 
 RUN apt-get upgrade -y \
     && apt-get update -y \

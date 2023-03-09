@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "nodemon src/run_server.ts",
+    "dev:withDb": "USE_DATABASE=true nodemon src/run_server.ts",
     "start": "ts-node --esm src/run_server.ts",
     "build": "tsc",
     "clean": "tsc --build --clean && rm -r dist || true",
