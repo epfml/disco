@@ -1,5 +1,5 @@
 import { MikroORM } from '@mikro-orm/postgresql'
-import { config } from './database/mikro-orm.config.js';
+import { config } from './database/mikro-orm.config.js'
 import type { PostgreSqlDriver } from '@mikro-orm/postgresql'
 
 export let orm: MikroORM
