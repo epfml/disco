@@ -12,13 +12,19 @@ export interface FormDependency {
   decentralizedSecure?: boolean
 }
 
+export interface OptionWithValue {
+  name: string
+  value: string
+}
+
 export interface FormField {
   id: string
   name: string
   yup: yup.AnySchema
   as?: 'input' | 'textarea'
   type: 'text' | 'select' | 'select-multiple' | 'checkbox' | 'number' | 'float' | 'array' | 'arrayObject' | 'file'
-  options?: string[]
+  options?: string[] | OptionWithValue[]
+  value?: string,
   default?: string | boolean | string[] | boolean[]
   elements?: FormElement[]
   dependencies?: FormDependency
@@ -496,6 +502,52 @@ export const modelFiles: FormSection = {
       yup: yup.string().when('modelURL', otherReq((v: string) => !v)),
       extension: '.bin',
       default: 'weights.bin'
+    }
+  ]
+}
+
+export const DatasetInformation: FormSection = {
+  id: 'datasetInformation',
+  title: 'Dataset Information',
+  fields: [
+    {
+      id: 'title',
+      name: 'Title',
+      yup: yup.string().required(),
+      as: 'input',
+      type: 'text'
+    },
+    {
+      id: 'dataType',
+      name: 'Data Type',
+      yup: yup.string().required(),
+      as: 'input',
+      type: 'select',
+      options: [{ name: 'Tabular (.csv)', value: 'TABULAR' }],
+      value: 'TABULAR'
+    },
+    {
+      id: 'description',
+      name: 'Description',
+      yup: yup.string().optional(),
+      as: 'textarea',
+      type: 'text'
+    },
+    {
+      id: 'sourceType',
+      name: 'Source',
+      yup: yup.string().required(),
+      as: 'input',
+      type: 'select',
+      options: [{ name: 'Direct URL', value: 'DIRECT_URL' }, { name: 'Google Drive', value: 'GOOGLE_DRIVE' }],
+      value: 'DIRECT_URL'
+    },
+    {
+      id: 'source',
+      name: 'Source URL',
+      yup: yup.string().url().required(),
+      as: 'input',
+      type: 'text'
     }
   ]
 }

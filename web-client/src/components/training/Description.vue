@@ -92,7 +92,7 @@ import { computed, defineProps } from 'vue'
 
 import { Task } from '@epfml/discojs'
 
-import { trainingInformation, privacyParameters, modelCompileData, FormField, FormSection } from '@/task_creation_form'
+import { trainingInformation, privacyParameters, modelCompileData, FormField, FormSection } from '@/creation_form'
 import ModelCaching from './ModelCaching.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DropdownCard from '@/components/containers/DropdownCard.vue'

@@ -73,7 +73,7 @@ import { defineProps, defineEmits, ref } from 'vue'
 import { Field as VeeField } from 'vee-validate'
 
 import { HTMLInputEvent } from '@/types'
-import { FormField } from '@/task_creation_form'
+import { FormField } from '@/creation_form'
 
 const { field, available = true } = defineProps({
   field: {

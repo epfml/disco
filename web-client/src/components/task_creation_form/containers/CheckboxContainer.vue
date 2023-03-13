@@ -2,14 +2,14 @@
   <div class="flex justify-center">
     <VeeField
       :id="props.field.id"
-      v-model="validationValue"
+      v-model="mutatedValue"
       :name="props.field.id"
       type="text"
-      :value="value"
+      :value="mutatedValue"
       hidden
     />
     <CheckBox
-      :value="value"
+      :value="mutatedValue"
       @clicked="clicked"
     />
   </div>
@@ -19,7 +19,7 @@
 import { defineProps, defineEmits, ref } from 'vue'
 import { Field as VeeField } from 'vee-validate'
 
-import { FormField } from '@/task_creation_form'
+import { FormField } from '@/creation_form'
 import CheckBox from '@/components/simple/CheckBox.vue'
 
 interface Props {
@@ -31,15 +31,13 @@ interface Emits {
   (e: 'clicked', v: boolean): void
 }
 const emit = defineEmits<Emits>()
-
+console.log(props.field.default)
 const value = typeof props.field.default === 'boolean' ? props.field.default : false
 
 const mutatedValue = ref(value)
-const validationValue = ref('')
 
 const clicked = () => {
   mutatedValue.value = !mutatedValue.value
-  validationValue.value = mutatedValue ? 'true' : ''
   emit('clicked', mutatedValue.value)
 }
 </script>

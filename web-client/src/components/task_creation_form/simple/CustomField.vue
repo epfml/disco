@@ -12,6 +12,7 @@
     :as="props.field.as"
     :type="props.field.type"
     :placeholder="props.field.default"
+    :value="props.field.value"
     v-bind="{ ...props, field: undefined }"
   />
 </template>
@@ -20,7 +21,7 @@
 import { defineProps } from 'vue'
 import { Field as VeeField } from 'vee-validate'
 
-import { FormField } from '@/task_creation_form'
+import { FormField } from '@/creation_form'
 
 const props = defineProps({
   field: {

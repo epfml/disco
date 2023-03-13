@@ -126,7 +126,7 @@ import {
   ErrorMessage
 } from 'vee-validate'
 
-import { FormField } from '@/task_creation_form'
+import { FormField } from '@/creation_form'
 
 interface Props {
   field: FormField

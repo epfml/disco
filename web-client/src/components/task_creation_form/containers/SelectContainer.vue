@@ -15,11 +15,11 @@
   >
     <option
       v-for="option in props.field.options"
-      :key="option"
-      :value="option.split(' ')[0].toLowerCase()"
-      :selected="value !== undefined && (value as unknown[]).includes(option)"
+      :key="typeof option === 'string' ? option : option.name"
+      :value="typeof option === 'string' ? option.split(' ')[0].toLowerCase() : option.value"
+      :selected="value !== undefined && (value as unknown[]).includes(typeof option === 'string' ? option.split(' ')[0].toLowerCase() : option.value)"
     >
-      {{ option }}
+      {{ typeof option === 'string' ? option : option.name }}
     </option>
   </VeeField>
 </template>
@@ -28,7 +28,7 @@
 import { defineProps } from 'vue'
 import { Field as VeeField } from 'vee-validate'
 
-import { FormField } from '@/task_creation_form'
+import { FormField } from '@/creation_form'
 
 interface Props {
   field: FormField

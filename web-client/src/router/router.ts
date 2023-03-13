@@ -8,6 +8,9 @@ import TaskCreationForm from '@/components/task_creation_form/TaskCreationForm.v
 import TaskList from '@/components/pages/TaskList.vue'
 import NotFound from '@/components/pages/NotFound.vue'
 import Training from '@/components/training/Training.vue'
+import Contributing from '@/components/contributing/Contributing.vue'
+import Dataset from '@/components/contributing/Dataset.vue'
+import DatasetForm from '@/components/contributing/DatasetForm.vue'
 import Testing from '@/components/testing/Testing.vue'
 import Information from '@/components/information/Information.vue'
 import Features from '@/components/information/Features.vue'
@@ -71,6 +74,29 @@ export const router = createRouter({
       components: {
         default: TaskList,
         ProgressBar: TrainingBar
+      }
+    },
+    {
+      path: '/contribute',
+      name: 'contribute',
+      components: {
+        default: Contributing
+      }
+    },
+    {
+      path: '/contribute/upload',
+      name: 'contribute-upload',
+      components: {
+        default: DatasetForm
+      }
+    },
+    {
+      path: '/contribute/:id',
+      components: {
+        default: Dataset
+      },
+      props: {
+        default: true
       }
     },
     {

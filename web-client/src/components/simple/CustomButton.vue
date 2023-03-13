@@ -6,7 +6,8 @@
     text-lg font-bold uppercase text-white
     bg-disco-cyan
     rounded duration-200
-    hover:bg-white hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan"
+    hover:bg-white hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan
+    disabled:opacity-50"
   >
     <slot />
   </button>
