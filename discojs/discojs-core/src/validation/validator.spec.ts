@@ -8,7 +8,7 @@ const simplefaceMock = {
   displayInformation: {},
   trainingInformation: {
     modelID: 'simple_face-model',
-    batchSize: 1,
+    batchSize: 4,
     dataType: 'image',
     IMAGE_H: 200,
     IMAGE_W: 200,
@@ -27,9 +27,10 @@ describe('validator', () => {
     const files: string[][] = ['child/', 'adult/']
       .map((subdir: string) => fs.readdirSync(dir + subdir)
         .map((file: string) => dir + subdir + file))
+    const labels = files.flatMap((files, index) => Array(files.length).fill(index))
 
     const data: data.Data = (await new node.data.NodeImageLoader(simplefaceMock)
-      .loadAll(files.flat(), { labels: files.flatMap((files, index) => Array(files.length).fill(index)) })).train
+      .loadAll(files.flat(), { labels })).train
     const validator = new Validator(
       simplefaceMock,
       new ConsoleLogger(),
@@ -42,14 +43,16 @@ describe('validator', () => {
       console.log('data.size was undefined')
     }
     assert(
-      validator.visitedSamples() === data.size,
-      `expected ${size} visited samples but got ${validator.visitedSamples()}`
+      validator.visitedSamples === data.size,
+      `expected ${size} visited samples but got ${validator.visitedSamples}`
     )
     assert(
-      validator.accuracy() > 0.3,
-      `expected accuracy greater than 0.3 but got ${validator.accuracy()}`
+      validator.accuracy > 0.3,
+      `expected accuracy greater than 0.3 but got ${validator.accuracy}`
     )
+    console.table(validator.confusionMatrix)
   }).timeout(10_000)
+
   // TODO: fix titanic model (nan accuracy)
   // it('works for titanic', async () => {
   //   const data: Data = await new NodeTabularLoader(titanic.task, ',')

@@ -1,18 +1,17 @@
 <template>
-  <div class="space-y-6">
-    <h1
+  <div class="mb-8 md:mb-16 space-y-4 md:space-y-8">
+    <div
       v-if="scheme !== undefined && displayTitle"
       class="flex flex-wrap font-disco text-3xl justify-center"
     >
       <span class="text-disco-blue">{{ scheme }}</span><span class="text-disco-cyan">&nbsp;Learning</span>
-    </h1>
-    <h1
+    </div>
+    <div
       v-else
-      class="text-3xl text-slate-600 text-center"
+      class="flex flex-wrap text-3xl text-slate-600 justify-center"
     >
       <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives
-    </h1>
-    <!-- Progress Bar -->
+    </div>
     <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
         <!-- Step 1 -->
@@ -20,7 +19,7 @@
           class="w-1/5"
           :active="true"
           :lined="false"
-          @click="handleRoute(0)"
+          @click="toStep(0)"
         >
           <template #text>
             Choose Task
@@ -45,7 +44,7 @@
           class="w-1/5"
           :active="isActive(1)"
           :lined="true"
-          @click="handleRoute(1)"
+          @click="toStep(1)"
         >
           <template #text>
             Task Description
@@ -74,7 +73,7 @@
           class="w-1/5"
           :active="isActive(2)"
           :lined="true"
-          @click="handleRoute(2)"
+          @click="toStep(2)"
         >
           <template #text>
             Connect Your Data
@@ -99,7 +98,7 @@
           class="w-1/5"
           :active="isActive(3)"
           :lined="true"
-          @click="handleRoute(3)"
+          @click="toStep(3)"
         >
           <template #text>
             Train Your Model
@@ -124,7 +123,7 @@
           class="w-1/5"
           :active="isActive(4)"
           :lined="true"
-          @click="handleRoute(4)"
+          @click="toStep(4)"
         >
           <template #text>
             Finished
@@ -145,18 +144,40 @@
           </template>
         </ProgressIcon>
       </div>
+      <div
+        v-show="route.fullPath !== '/list'"
+        class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-8 md:mt-12"
+      >
+        <div class="text-center md:text-right">
+          <CustomButton
+            v-show="trainingStore.step >= 1"
+            @click="prevStepOrList"
+          >
+            Previous
+          </CustomButton>
+        </div>
+        <div class="text-center md:text-left">
+          <CustomButton
+            v-show="trainingStore.step <= 3"
+            @click="nextStep"
+          >
+            Next
+          </CustomButton>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 import { useTasksStore } from '@/store/tasks'
 import { useTrainingStore } from '@/store/training'
 import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
+import CustomButton from '@/components/simple/CustomButton.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -168,6 +189,7 @@ const scheme = computed(() => {
   const task = tasksStore.tasks.get(trainingStore.task)
   return task?.trainingInformation?.scheme
 })
+
 const displayTitle = computed(() => route.fullPath !== '/list')
 
 const isActive = (step: number): boolean => {
@@ -178,11 +200,11 @@ const isActive = (step: number): boolean => {
     return step <= currentStep
   }
 }
-const handleRoute = (step: number): void => {
+
+const toStep = (step: number): void => {
   if (route.fullPath === '/list') {
     if (trainingStore.task !== undefined) {
       router.push(trainingStore.task)
-      trainingStore.setStep(step)
     } else {
       toaster.error('Please select a task first')
     }
@@ -191,5 +213,17 @@ const handleRoute = (step: number): void => {
   } else {
     trainingStore.setStep(step)
   }
+}
+
+const prevStepOrList = (): void => {
+  if (trainingStore.step === 1) {
+    router.push({ path: '/list' })
+  } else {
+    trainingStore.prevStep()
+  }
+}
+
+const nextStep = (): void => {
+  trainingStore.nextStep()
 }
 </script>

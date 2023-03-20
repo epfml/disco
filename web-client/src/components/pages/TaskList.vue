@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8 pt-8">
+  <div class="space-y-8 mt-8 md:mt-16">
     <div
       v-show="tasks.size > 0"
       class="flex flex-wrap gap-8"
@@ -88,7 +88,7 @@
         >
           <ButtonCard
             button-placement="left"
-            @action="() => router.push(`/${task.taskID}`)"
+            @action="() => toTask(task)"
           >
             <template
               #title
@@ -125,6 +125,7 @@ import { storeToRefs } from 'pinia'
 import { Task } from '@epfml/discojs'
 
 import { useTasksStore } from '@/store/tasks'
+import { useTrainingStore } from '@/store/training'
 import IconCard from '@/components/containers/IconCard.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import CheckBox from '@/components/simple/CheckBox.vue'
@@ -144,6 +145,7 @@ class SchemeFilter extends Filter {
     super(name, apply)
   }
 }
+
 class DataFilter extends Filter {
   constructor (name: string) {
     const apply = (task: Task) => task.trainingInformation.dataType === name
@@ -152,16 +154,19 @@ class DataFilter extends Filter {
 }
 
 const router = useRouter()
+const trainingStore = useTrainingStore()
 const { tasks } = storeToRefs(useTasksStore())
 
 const schemeFilters = reactive(['Decentralized', 'Federated']
   .map((scheme: string) => new SchemeFilter(scheme)))
+
 const dataFilters = reactive(['image', 'tabular']
   .map((dataType: string) => new DataFilter(dataType)))
 
 const offset = ref(0)
 
 const filters = computed(() => schemeFilters.concat(dataFilters))
+
 const filteredTasks = computed(() => {
   return ([...tasks.value.values()] as Task[])
     .filter((task: Task) =>
@@ -170,13 +175,19 @@ const filteredTasks = computed(() => {
     )
 })
 
-function toggle (filter: Filter): void {
+const toggle = (filter: Filter): void => {
   filter.active = !filter.active
 }
-function clearFilters (): void {
+
+const clearFilters = (): void => {
   filters.value.forEach((filter: Filter) => { filter.active = false })
   // little trick to reset the affiliated checkboxes
   offset.value = offset.value === 0 ? filters.value.length : 0
+}
+
+const toTask = (task: Task): void => {
+  trainingStore.setTask(task.taskID)
+  router.push(`/${task.taskID}`)
 }
 
 </script>

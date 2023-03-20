@@ -28,8 +28,8 @@ export const useTrainingStore = defineStore('training', () => {
     steps.value = steps.value.set(task.value, step + 1)
   }
   function setStep (step: number): void {
-    if (step < 1) {
-      throw new Error('navigation to task list must be explicit')
+    if (step < 0) {
+      throw new Error('task must be positive')
     }
     steps.value = steps.value.set(task.value, step)
   }

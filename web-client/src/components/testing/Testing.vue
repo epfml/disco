@@ -1,32 +1,9 @@
 <template>
   <div>
-    <!-- previous button -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 py-6">
-      <div
-        class="text-center md:text-right"
-      >
-        <CustomButton
-          v-show="showPrev"
-          @click="prevStep"
-        >
-          Previous
-        </CustomButton>
-      </div>
-      <div
-        class="text-center md:text-left"
-      >
-        <CustomButton
-          v-show="showNext"
-          @click="nextStep"
-        >
-          Next
-        </CustomButton>
-      </div>
-    </div>
     <div v-show="validationStore.step === 0">
       <div class="flex flex-col gap-16">
         <div v-if="memoryStore.models.size > 0">
-          <IconCard>
+          <IconCard title-placement="center">
             <template #title>
               Model Library — <span class="italic">Locally Available and Ready to Test</span>
             </template>
@@ -102,9 +79,9 @@
           </IconCard>
         </div>
         <div v-if="federatedTasks.size > 0">
-          <IconCard>
+          <IconCard title-placement="center">
             <template #title>
-              <span class="font-disco font-normal text-xl">DIS</span>
+              <span class="font-disco font-normal text-xl text-disco-cyan">DIS</span>
               <span class="font-disco font-normal text-xl text-disco-blue">CO</span>
               Model Repository — <span class="italic">Download and Test</span>
             </template>
@@ -119,9 +96,9 @@
                   class="contents"
                 >
                   <ButtonCard
-                    :click="() => downloadModel(task)"
                     :button-placement="'left'"
                     class="shadow shadow-disco-cyan"
+                    @click="() => downloadModel(task)"
                   >
                     <template #title>
                       {{ task.displayInformation.taskTitle }}
@@ -192,7 +169,6 @@ import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
-import CustomButton from '@/components/simple/CustomButton.vue'
 import Data from '@/components/data/Data.vue'
 import Tester from '@/components/testing/Tester.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
@@ -221,12 +197,10 @@ const currentTask = shallowRef<Task | undefined>(undefined)
 
 const federatedTasks = computed<List<Task>>(() =>
   tasksStore.tasks.filter((t) => t.trainingInformation.scheme === 'Federated').toList())
-const showPrev = computed<boolean>(() =>
-  validationStore.step > 0)
-const showNext = computed<boolean>(() =>
-  validationStore.step > 0 && validationStore.step < 2)
+
 const memory = computed<Memory>(() =>
   memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory())
+
 const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
   if (currentTask.value === undefined) {
     return undefined
@@ -289,8 +263,7 @@ const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
     toaster.error('Model not found')
   }
 }
-const prevStep = (): void => { validationStore.step-- }
-const nextStep = (): void => { validationStore.step++ }
+
 const taskTitle = (taskID: string): string => {
   const titled = tasksStore.tasks.get(taskID)
   if (titled !== undefined) {

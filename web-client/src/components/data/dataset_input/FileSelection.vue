@@ -31,29 +31,25 @@
               p-4
               text-lg
               text-disco-blue
-              font-semibold
               flex-wrap
               justify-center
             "
           >
             <span>Drag and drop your</span>&nbsp;<span>file{{ isMultiple ? 's' : '' }} or</span>
           </p>
-          <label class="pb-4">
-            <div
+          <label class="mb-6">
+            <span
               class="
-              justify-self-center
-              p-2
-              rounded-sm
-              text-white
-              transition
-              duration-200
-              bg-disco-cyan
-              hover:text-disco-cyan hover:bg-white
-              hover:outline hover:outline-2 hover:outline-disco-cyan
-              hover:cursor-pointer"
+                  px-4 py-2 min-w-[8rem]
+                  text-lg uppercase text-white
+                  bg-disco-cyan
+                  rounded duration-200
+                  hover:bg-white hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan
+                  hover:cursor-pointer
+                "
             >
               Select file{{ isMultiple ? 's' : '' }}
-            </div>
+            </span>
             <input
               v-if="isDirectory"
               type="file"
@@ -76,10 +72,10 @@
 
         <div
           v-if="infoText"
-          class="pt-2 flex justify-center"
+          class="mt-4 md:mt-8 flex justify-centerz"
         >
-          <p class="text-disco-cyan text-sm">
-            Note: {{ infoText }}
+          <p class="text-slate-500 text-sm">
+            Note: <span><slot name="text" /></span>
           </p>
         </div>
 
@@ -93,28 +89,14 @@
         </div> -->
 
         <!-- If no preview of the selected file, display the nbr. of uploaded files -->
-        <div class="pt-8 flex flex-col md:grid md:grid-cols-3 items-center">
-          <div class="flex justify-center items-center text-center md:text-left font-semibold sm:text-lg text-disco-blue">
+        <div class="pt-8 flex flex-col items-center">
+          <div class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue">
             <span v-if="isMultiple">Number of selected files: <span class="pl-1 text-xl">{{ selectedFiles?.length ?? 0 }}</span></span>
-            <span v-else>Selected file: <span class="pl-1">{{ selectedFiles?.item(0).name ?? 'None' }}</span></span>
+            <span v-else>Selected file: <span class="pl-1">{{ selectedFiles?.item(0).name ?? 'none' }}</span></span>
           </div>
-          <button
-            class="
-                justify-self-center
-                p-2
-                m-2
-                rounded-sm
-                text-white
-                transition
-                duration-200
-                bg-disco-cyan
-                hover:text-disco-cyan hover:bg-white
-                hover:outline hover:outline-2 hover:outline-disco-cyan
-              "
-            @click="clearFiles"
-          >
+          <CustomButton @click="clearFiles">
             Clear file{{ isMultiple ? 's' : '' }}
-          </button>
+          </CustomButton>
         </div>
       </section>
     </article>
@@ -125,6 +107,7 @@
 import { defineEmits, ref, defineProps, withDefaults } from 'vue'
 
 import { HTMLDragEvent, HTMLInputEvent } from '@/types'
+import CustomButton from '@/components/simple/CustomButton.vue'
 
 interface Emits {
   (e: 'input', files: FileList): void
@@ -135,21 +118,21 @@ interface Props {
   isDirectory?: boolean,
   acceptFiles?: string[],
   isMultiple?: boolean,
-  infoText?: string
+  infoText?: boolean
 }
 const emit = defineEmits<Emits>()
-const selectedFiles = ref<FileList>()
+const selectedFiles = ref<FileList | undefined>()
 
 withDefaults(defineProps<Props>(), {
   isDirectory: false,
   isMultiple: true,
   acceptFiles: () => ['*'],
-  infoText: ''
+  infoText: false
 })
 
 const clearFiles = () => {
   emit('clear')
-  selectedFiles.value = null
+  selectedFiles.value = undefined
 }
 const submitFiles = (e: HTMLInputEvent) => {
   emit('input', e.target.files)

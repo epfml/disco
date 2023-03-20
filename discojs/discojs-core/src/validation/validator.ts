@@ -5,6 +5,7 @@ import { tf, data, Task, Logger, Client, GraphInformant, Memory, ModelSource, Fe
 export class Validator {
   private readonly graphInformant = new GraphInformant()
   private size = 0
+  private _confusionMatrix: number[][] | undefined
 
   constructor (
     public readonly task: Task,
@@ -26,7 +27,7 @@ export class Validator {
     }
   }
 
-  async assess (data: data.Data): Promise<Array<{groundTruth: number, pred: number, features: Features}>> {
+  async assess (data: data.Data, useConfusionMatrix?: boolean): Promise<Array<{groundTruth: number, pred: number, features: Features}>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('batch size is undefined')
@@ -61,16 +62,34 @@ export class Validator {
 
         hits += List(pred).zip(List(ys)).filter(([p, y]) => p === y).size
 
+        // TODO: Confusion Matrix stats
+
         const currentAccuracy = hits / this.size
         this.graphInformant.updateAccuracy(currentAccuracy)
       } else {
-        throw new TypeError('missing feature/label in dataset')
+        throw new Error('missing feature/label in dataset')
       }
     })
-    this.logger.success(`Obtained validation accuracy of ${this.accuracy()}`)
-    this.logger.success(`Visited ${this.visitedSamples()} samples`)
+    this.logger.success(`Obtained validation accuracy of ${this.accuracy}`)
+    this.logger.success(`Visited ${this.visitedSamples} samples`)
 
-    return List(groundTruth).zip(List(predictions)).zip(List(features)).map(([[gt, p], f]) => ({ groundTruth: gt, pred: p, features: f })).toArray()
+    if (useConfusionMatrix) {
+      try {
+        this._confusionMatrix = tf.math.confusionMatrix(
+          [],
+          [],
+          0
+        ).arraySync()
+      } catch (e: any) {
+        console.error(e instanceof Error ? e.message : e.toString())
+        throw new Error('Failed to compute the confusion matrix')
+      }
+    }
+
+    return List(groundTruth)
+      .zip(List(predictions), List(features))
+      .map(([gt, p, f]) => ({ groundTruth: gt, pred: p, features: f }))
+      .toArray()
   }
 
   async predict (data: data.Data): Promise<number[]> {
@@ -82,7 +101,10 @@ export class Validator {
     const model = await this.getModel()
     const predictions: number[] = []
 
-    await data.dataset.batch(batchSize).forEachAsync(e => predictions.push(...Array.from((model.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor).argMax(1).dataSync())))
+    await data.dataset
+      .batch(batchSize)
+      .forEachAsync(e =>
+        predictions.push(...(model.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor).argMax(1).arraySync() as number[]))
 
     return predictions
   }
@@ -99,15 +121,19 @@ export class Validator {
     throw new Error('cannot identify model')
   }
 
-  accuracyData (): List<number> {
+  get accuracyData (): List<number> {
     return this.graphInformant.data()
   }
 
-  accuracy (): number {
+  get accuracy (): number {
     return this.graphInformant.accuracy()
   }
 
-  visitedSamples (): number {
+  get visitedSamples (): number {
     return this.size
+  }
+
+  get confusionMatrix (): number[][] | undefined {
+    return this._confusionMatrix
   }
 }

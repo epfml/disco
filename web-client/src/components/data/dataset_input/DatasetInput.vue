@@ -19,35 +19,37 @@
     </IconCard>
     <div
       v-else-if="task.trainingInformation.dataType === 'image'"
+      class="space-y-4 md:space-y-8"
     >
-      <div class="flex flex-col items-center">
-        <span class="text-disco-cyan mb-2 font-bold">Labels by</span>
-        <div
-          class="inline-flex rounded-md mb-5"
-          role="group"
-        >
-          <button
-            type="button"
-            :class="!isBoxView ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
-            class="w-40 py-2 uppercase text-lg font-bold rounded-l-lg border-2 border-disco-cyan focus:outline-none"
-            @click="isBoxView = false"
-          >
-            CSV
-          </button>
-          <button
-            type="button"
-            :class="isBoxView ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
-            class="w-40 py-2 uppercase text-lg font-bold rounded-r-md border-2 border-disco-cyan focus:outline-none"
-            @click="isBoxView = true"
-          >
-            Group
-          </button>
-        </div>
+      <div class="flex justify-center">
+        <IconCard title-placement="center">
+          <template #title>
+            Select labels by
+          </template>
+          <template #content>
+            <div class="inline-flex">
+              <button
+                class="w-40 py-2 uppercase text-lg rounded-l-lg border-2 border-disco-cyan focus:outline-none"
+                :class="!isBoxView ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
+                @click="isBoxView = false"
+              >
+                CSV
+              </button>
+              <button
+                class="w-40 py-2 uppercase text-lg rounded-r-lg border-2 border-disco-cyan focus:outline-none"
+                :class="isBoxView ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
+                @click="isBoxView = true"
+              >
+                Group
+              </button>
+            </div>
+          </template>
+        </IconCard>
       </div>
 
       <div
         v-show="isBoxView"
-        class="grid grid-cols-1 lg:grid-cols-2 gap-3"
+        class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8"
       >
         <div
           v-if="requireLabels"
@@ -58,7 +60,7 @@
             :key="label"
           >
             <template #title>
-              Label: {{ label }}
+              Group label:&nbsp;&nbsp;&nbsp;"{{ label }}"
             </template>
             <template #content>
               <FileSelection
@@ -76,12 +78,10 @@
       </div>
       <div
         v-show="!isBoxView"
-        class="grid grid-cols-1 lg:grid-cols-2 gap-3"
+        class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8"
       >
-        <div
-          v-if="requireLabels"
-        >
-          <IconCard>
+        <div v-if="requireLabels">
+          <IconCard title-placement="center">
             <template #title>
               Load the CSV file containing a mapping between images and labels
             </template>
@@ -89,10 +89,15 @@
               <FileSelection
                 :accept-files="['.csv']"
                 :is-multiple="false"
-                :info-text="'The CSV file must contain an header with only two columns (filename, label). The filename must NOT include the file extension.'"
+                :info-text="true"
                 @input="readCsv($event)"
                 @clear="clearCsv()"
-              />
+              >
+                <template #text>
+                  The CSV file must contain a header with only two columns (file name, label). The file name must NOT include the file
+                  extension.
+                </template>
+              </FileSelection>
             </template>
           </IconCard>
         </div>
@@ -110,6 +115,7 @@
             </div>
           </div>
           <IconCard
+            title-placement="center"
             :class="{'opacity-10': cannotUploadFiles}"
           >
             <template #title>
@@ -118,10 +124,14 @@
             <template #content>
               <FileSelection
                 :is-directory="true"
-                :info-text="'Upload a folder containing all images contained in the selected CSV file.'"
+                :info-text="true"
                 @input="addFiles($event)"
                 @clear="clearFiles()"
-              />
+              >
+                <template #text>
+                  Select a folder containing all images contained in the selected CSV file.
+                </template>
+              </FileSelection>
             </template>
           </IconCard>
         </div>
@@ -146,7 +156,7 @@ interface Props {
   isOnlyPrediction: Boolean
 }
 const props = defineProps<Props>()
-const csvRows = ref<{filename: string, label: string}[]>()
+const csvRows = ref<{ filename: string, label: string }[]>()
 const isBoxView = ref<boolean>(false)
 
 const requireLabels = computed(

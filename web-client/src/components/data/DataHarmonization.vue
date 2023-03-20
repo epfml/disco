@@ -18,11 +18,16 @@ const props = defineProps<Props>()
         Data Format
       </template>
       <template
-        v-if="task.displayInformation?.dataFormatInformation !== undefined"
+        v-if="task.displayInformation.dataFormatInformation !== undefined"
         #content
       >
-        It is <span class="font-bold">important</span> to harmonize your data to the expected format as described below.<br><br>
-        <span v-html="task.displayInformation.dataFormatInformation" />
+        It is <span class="font-bold">important</span> to harmonize your data to the expected format as described below.
+        <div
+          v-if="task.displayInformation.dataFormatInformation !== undefined"
+        >
+          <br>
+          <div v-html="task.displayInformation.dataFormatInformation" />
+        </div>
       </template>
       <template
         v-else
@@ -33,7 +38,7 @@ const props = defineProps<Props>()
         </span>
       </template>
     </DropdownCard>
-    <DropdownCard v-if="task.displayInformation?.dataExampleText !== undefined">
+    <DropdownCard v-if="task.displayInformation.dataExampleText !== undefined">
       <template #title>
         Example Data
       </template>
@@ -55,7 +60,7 @@ const props = defineProps<Props>()
         <div v-if="task.trainingInformation.dataType === 'image'">
           <img
             class="mx-auto"
-            :src="props.task.displayInformation?.dataExampleImage"
+            :src="props.task.displayInformation.dataExampleImage"
             alt="Error! Image not found"
           >
         </div>

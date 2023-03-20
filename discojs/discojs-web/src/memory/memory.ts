@@ -21,9 +21,7 @@ export class IndexedDB extends Memory {
       throw new TypeError('source incomplete')
     }
 
-    const version = (source.version === undefined || source.version === 0)
-      ? ''
-      : source.version
+    const version = source.version ?? 0
 
     return `indexeddb://${path.join(source.type, source.taskID, source.name)}@${version}`
   }
