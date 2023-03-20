@@ -7,5 +7,9 @@
 		"node": true,
 		"es6": true,
 		"mocha": true
-	}
+	},
+	// https://github.com/eslint/eslint/issues/15299#issuecomment-968099681
+	"rules": {
+    	"@typescript-eslint/indent": ["error", 2, { "SwitchCase": 1, "ignoredNodes": ["PropertyDefinition"] }]
+  	}
 }

@@ -1,22 +1,22 @@
-import express from 'express'
-import WebSocket from 'ws'
+import type express from 'express'
+import type WebSocket from 'ws'
 
 import { List, Map, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 
 import {
   client,
-  tf,
+  type tf,
   serialization,
   aggregation,
   AsyncInformant,
-  Task,
-  TaskID,
   AsyncBuffer,
+  type Task,
+  type TaskID,
   WeightsContainer
 } from '@epfml/discojs-node'
 
-import { Server } from './server'
+import { Server } from './server.js'
 import messages = client.federated.messages
 import messageTypes = client.messages.type
 import clientConnected = client.messages.type.clientConnected
@@ -82,9 +82,7 @@ export class Federated extends Server {
    */
   private tasksStatus = Map<TaskID, TaskStatus>()
 
-  protected get description (): string {
-    return 'FeAI Server'
-  }
+  protected readonly description = 'FeAI Server'
 
   protected buildRoute (task: Task): string {
     return `/${task.taskID}/:clientId`
@@ -115,8 +113,7 @@ export class Federated extends Server {
     const buffer = new AsyncBuffer<WeightsContainer>(
       task.taskID,
       BUFFER_CAPACITY,
-      async (weights: Iterable<WeightsContainer>) =>
-        await this.aggregateAndStoreWeights(model, List(weights), isByzantineRobust, tauPercentile)
+      async (weights: Iterable<WeightsContainer>) => { await this.aggregateAndStoreWeights(model, List(weights), isByzantineRobust, tauPercentile) }
     )
     this.asyncBuffersMap = this.asyncBuffersMap.set(task.taskID, buffer)
 
@@ -200,7 +197,7 @@ export class Federated extends Server {
         void serialization.weights.encode(weights).then((serializedWeights) => {
           const msg: messages.latestServerRound = {
             type: messageTypes.latestServerRound,
-            round: round,
+            round,
             weights: serializedWeights
           }
 
@@ -252,10 +249,10 @@ export class Federated extends Server {
 
           const msg: messages.getMetadataMap = {
             type: messageTypes.getMetadataMap,
-            clientId: clientId,
+            clientId,
             taskId: task.taskID,
-            metadataId: metadataId,
-            round: round,
+            metadataId,
+            round,
             metadataMap: Array.from(queriedMetadataMap)
           }
 

@@ -1,10 +1,10 @@
 import { Range } from 'immutable'
 
-import { Disco, TrainingSchemes, TrainerLog, data, Task } from '@epfml/discojs-node'
+import { Disco, TrainingSchemes, type TrainerLog, type data, type Task } from '@epfml/discojs-node'
 
-import { startServer, saveLog } from './utils'
-import { getTaskData } from './data'
-import { args } from './args'
+import { startServer, saveLog } from './utils.js'
+import { getTaskData } from './data.js'
+import { args } from './args.js'
 
 const NUMBER_OF_USERS = args.numberOfUsers
 const TASK = args.task

@@ -7,8 +7,8 @@
 
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
-    "importHelpers": true,
+    "module": "node16",
+    "moduleResolution": "node16",
     "downlevelIteration": true, // needed by <ES6
 
     "declaration": true,

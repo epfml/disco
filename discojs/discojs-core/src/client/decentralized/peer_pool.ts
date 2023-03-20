@@ -33,7 +33,7 @@ export class PeerPool {
   shutdown (): void {
     console.debug(this.id, 'shutdown their peers')
 
-    this.peers.forEach((peer) => peer.disconnect())
+    this.peers.forEach((peer) => { peer.disconnect() })
     this.peers = Map()
   }
 
@@ -78,7 +78,7 @@ export class PeerPool {
     clientHandle(this.peers)
 
     await Promise.all(
-      Array.from(newPeersConnections.values()).map(async (connection) => await connection.connect()))
+      Array.from(newPeersConnections.values()).map(async (connection) => { await connection.connect() }))
 
     console.debug(this.id, 'knowns connected peers:', this.peers.keySeq().toJS())
 

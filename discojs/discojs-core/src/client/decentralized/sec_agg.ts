@@ -48,12 +48,13 @@ export class SecAgg extends Base {
       .entrySeq()
       .toSeq()
       .zip(encodedWeightShares)
-      .forEach(([[id, peer], weights]) =>
+      .forEach(([[id, peer], weights]) => {
         this.sendMessagetoPeer(peer, {
           type: type.Shares,
           peer: id,
           weights
         })
+      }
       )
   }
 
@@ -64,12 +65,13 @@ sends partial sums to connected peers so final update can be calculated
     const myEncodedSum = await serialization.weights.encode(partial)
 
     // calculate, encode, and send sum
-    peers.forEach((peer, id) =>
+    peers.forEach((peer, id) => {
       this.sendMessagetoPeer(peer, {
         type: type.PartialSums,
         peer: id,
         partials: myEncodedSum
       })
+    }
     )
   }
 

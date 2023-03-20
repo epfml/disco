@@ -174,9 +174,12 @@ npm link ../discojs/discojs-node # If you need local lib for development
 
 This server also requires the [@epfml/discojs-node](https://github.com/epfml/disco/tree/develop/discojs/discojs-node/README.md) package. If you wish to develop the server with your own local changes brought to `@epfml/discojs-node`, link (`npm link`) the `discojs/discojs-node` project. Then, make sure `discojs/discojs-node` is *built* before proceeding to the next steps, by following the `@epfml/discojs-node` [README](https://github.com/epfml/disco/tree/develop/discojs/README.md).
 
+The server uses a PostgreSQL database and you can manually run the migrations with `npm run migrate` in order to create the database schema.
+
 ### Running the server locally
 
-From this folder, you can run the server on localhost:8080 with `npm run dev`. This runs via the `nodemon` package, so it automatically restarts the process after changes.
+If you want to use the database related features, you will need to start a PostgreSQL database, an easy way is to use the `docker-compose.yml` file by just running `docker-compose --env-file .env.dev up`.
+From this folder, you can run the server on localhost:8080 with `npm run dev` (or `npm run dev:withDb`). This runs via the `nodemon` package, so it automatically restarts the process after changes.
 
 ### Testing the server locally
 

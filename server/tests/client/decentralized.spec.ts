@@ -1,10 +1,10 @@
 import { expect } from 'chai'
 import { List } from 'immutable'
-import * as http from 'http'
+import type * as http from 'http'
 
-import { tf, client as clients, informant, Task, WeightsContainer, defaultTasks } from '@epfml/discojs-node'
+import { tf, client as clients, informant, type Task, WeightsContainer, defaultTasks } from '@epfml/discojs-node'
 
-import { getClient, startServer } from '../utils'
+import { getClient, startServer } from '../utils.js'
 
 const TASK = defaultTasks.titanic.getTask()
 
@@ -34,7 +34,7 @@ function test (
       ]))
 
       try {
-        await Promise.all(users.map(async (u) => await u.connect()))
+        await Promise.all(users.map(async (u) => { await u.connect() }))
 
         const wss = List.of(
           WeightsContainer.of(tf.tensor(0)),
@@ -49,13 +49,13 @@ function test (
 
         await Promise.all(
           users.zip(wss).zip(tis)
-            .map(async ([[u, ws], ti]) => await u.onRoundEndCommunication(ws, ws, 0, ti))
+            .map(async ([[u, ws], ti]) => await u.onRoundEndCommunication(ws as WeightsContainer, ws as WeightsContainer, 0, ti as informant.Base))
             .toArray()
         )
 
         tis.forEach((ti) => expect(users.size).to.eq(ti.participants()))
       } finally {
-        await Promise.all(users.map(async (u) => await u.disconnect()))
+        await Promise.all(users.map(async (u) => { await u.disconnect() }))
       }
     })
   })

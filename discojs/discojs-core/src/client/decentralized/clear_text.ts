@@ -29,12 +29,13 @@ export class ClearText extends Base {
     // send weights asynchronously
     serialization.weights.encode(noisyWeights).then((encodedWeights) => {
       // create weights message and send to all peers
-      peers.forEach((peer, id) =>
+      peers.forEach((peer, id) => {
         this.sendMessagetoPeer(peer, {
           type: type.Weights,
           peer: id,
           weights: encodedWeights
-        }))
+        })
+      })
     }).catch(() => {
       throw new Error('error while sending weights')
     })
@@ -58,8 +59,10 @@ export class ClearText extends Base {
       return await waitMessage(peer, type.Weights)
     })
 
-    let receivedWeights = List<WeightsContainer>()
-    await (await Promise.allSettled(waitWeights)).forEach((message) => {
+    let receivedWeights: List<WeightsContainer> = List()
+
+    const settled = await Promise.allSettled(waitWeights)
+    settled.forEach((message) => {
       if (message.status === 'fulfilled') {
         receivedWeights = receivedWeights.push(serialization.weights.decode(message.value.weights))
       }

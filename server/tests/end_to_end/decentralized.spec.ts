@@ -1,14 +1,14 @@
 import fs from 'fs/promises'
 import path from 'node:path'
-import { Server } from 'node:http'
+import { type Server } from 'node:http'
 import { Range } from 'immutable'
+import { assert } from 'chai'
 
 import {
-  node, informant, Task, Disco, client as clients, WeightsContainer, defaultTasks
+  tf, node, informant, type Task, Disco, client as clients, WeightsContainer, defaultTasks
 } from '@epfml/discojs-node'
 
-import { getClient, startServer } from '../utils'
-import { assertWeightsEqual } from '../../../discojs/discojs-core/src/weights/aggregation.spec'
+import { getClient, startServer } from '../utils.js'
 
 describe('end to end decentralized', function () {
   const epsilon: number = 0.001
@@ -37,7 +37,7 @@ describe('end to end decentralized', function () {
 
     const cifar10Task: Task = defaultTasks.cifar10.getTask()
 
-    const loaded = await new node.data.NodeImageLoader(cifar10Task).loadAll(files, { labels: labels })
+    const loaded = await new node.data.NodeImageLoader(cifar10Task).loadAll(files, { labels })
 
     const client = secure
       ? await getClient(clients.decentralized.SecAgg, server, cifar10Task)
@@ -95,3 +95,15 @@ describe('end to end decentralized', function () {
     return await makeClient([4, 5, 6, 7], true)
   }
 })
+
+function assertWeightsEqual (w1: WeightsContainer, w2: WeightsContainer, epsilon: number = 0): void {
+  // Inefficient because we wait for each layer to completely load before we start loading the next layer
+  // when using tf.Tensor.dataSync() in a for loop. Could be made more efficient by using Promise.all().
+  // Not worth making more efficient, because this function is only used for testing, where tf.Tensors are small.
+  for (const t of w1.sub(w2).weights) {
+    assert.strictEqual(
+      tf.lessEqual(t.abs(), epsilon).all().dataSync()[0],
+      1
+    )
+  }
+}

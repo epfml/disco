@@ -75,7 +75,7 @@ export abstract class Base extends ClientBase {
     const ret = await (await this.pool).getPeers(
       Set(this.peers ?? []),
       this.server,
-      (p) => this.clientHandle(p)
+      (p) => { this.clientHandle(p) }
     )
 
     console.debug(this.ID, `got peers for round ${round}:`, ret.keySeq().toJS())
@@ -101,7 +101,7 @@ export abstract class Base extends ClientBase {
       if (this.pool === undefined) {
         throw new Error('got signal but peer pool is undefined')
       }
-      void this.pool.then((pool) => pool.signal(event.peer, event.signal))
+      void this.pool.then((pool) => { pool.signal(event.peer, event.signal) })
     })
 
     return server

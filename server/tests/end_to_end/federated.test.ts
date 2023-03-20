@@ -1,11 +1,11 @@
 import fs from 'fs/promises'
 import path from 'node:path'
-import { Server } from 'node:http'
+import { type Server } from 'node:http'
 import { Range } from 'immutable'
 
 import { node, Disco, TrainingSchemes, client as clients, defaultTasks } from '@epfml/discojs-node'
 
-import { getClient, startServer } from '../utils'
+import { getClient, startServer } from '../utils.js'
 
 const SCHEME = TrainingSchemes.FEDERATED
 
@@ -26,7 +26,7 @@ describe('end to end federated', function () {
 
     const cifar10Task = defaultTasks.cifar10.getTask()
 
-    const data = await new node.data.NodeImageLoader(cifar10Task).loadAll(files, { labels: labels })
+    const data = await new node.data.NodeImageLoader(cifar10Task).loadAll(files, { labels })
 
     const client = await getClient(clients.federated.Client, server, cifar10Task)
     await client.connect()
