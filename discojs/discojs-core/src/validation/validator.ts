@@ -5,10 +5,6 @@ import { tf, data, Task, Logger, Client, GraphInformant, Memory, ModelSource, Fe
 export class Validator {
   private readonly graphInformant = new GraphInformant()
   private size = 0
-  private hits = 0
-  private classes = 1
-  private preds = List<number>()
-  private labels = List<number>()
   private _confusionMatrix: number[][] | undefined
 
   constructor (
@@ -68,7 +64,7 @@ export class Validator {
 
         // TODO: Confusion Matrix stats
 
-        const currentAccuracy = this.hits / this.size
+        const currentAccuracy = hits / this.size
         this.graphInformant.updateAccuracy(currentAccuracy)
       } else {
         throw new Error('missing feature/label in dataset')
@@ -80,9 +76,9 @@ export class Validator {
     if (useConfusionMatrix) {
       try {
         this._confusionMatrix = tf.math.confusionMatrix(
-          this.labels.toArray(),
-          this.preds.toArray(),
-          this.classes
+          [],
+          [],
+          0
         ).arraySync()
       } catch (e: any) {
         console.error(e instanceof Error ? e.message : e.toString())
@@ -105,7 +101,10 @@ export class Validator {
     const model = await this.getModel()
     const predictions: number[] = []
 
-    await data.dataset.batch(batchSize).forEachAsync(e => predictions.push(...Array.from((model.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor).argMax(1).dataSync())))
+    await data.dataset
+      .batch(batchSize)
+      .forEachAsync(e =>
+        predictions.push(...(model.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor).argMax(1).arraySync() as number[]))
 
     return predictions
   }
