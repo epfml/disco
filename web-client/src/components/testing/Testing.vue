@@ -51,10 +51,10 @@
                       </div>
                     </template>
                     <template #button>
-                      Test model
+                      Test
                     </template>
                     <template #altButton>
-                      Predict using model
+                      Predict
                     </template>
                   </ButtonCard>
                 </div>
