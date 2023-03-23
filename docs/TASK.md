@@ -21,7 +21,7 @@ Given your keras model file, to convert it to a TensorFlowJS model:
 $ tensorflowjs_converter --input_format=keras my_model_name.h5 /tfjs_model
 ```
 
-Side Note: If you already have a TensorFlow(Python) saved model ([LayersModel](https://www.tensorflow.org/js/guide/models_and_layers)), then the conversion to TensorFlowJS is straightforward with the following command:
+Side Note: If you already have a TensorFlow (Python) saved model ([LayersModel](https://www.tensorflow.org/js/guide/models_and_layers)), then the conversion to TensorFlowJS is straightforward with the following command:
 ```bash
 $ tensorflowjs_converter --input_format=tf_saved_model my_tensorflow_saved_model /tmp/tfjs_model
 ```
