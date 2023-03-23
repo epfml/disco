@@ -75,7 +75,7 @@ function endToEndTest (
       const validator = new Validator(disco.task, disco.logger, disco.memory, undefined, client)
       await validator.assess(await testData.train.preprocess())
 
-      const accuracy = validator.accuracy()
+      const accuracy = validator.accuracy
       console.log(`TEST ACCURACY ---->  ${accuracy}`)
 
       expect(accuracy).to.be.greaterThan(initialAccuracy)
