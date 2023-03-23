@@ -48,7 +48,7 @@ export const geotags: TaskProvider = {
 
   async getModel (): Promise<tf.LayersModel> {
     const pretrainedModel = await tf.loadLayersModel(
-      'https://storage.googleapis.com/epfl-disco-models/geotags/v5/model.json'
+      'https://storage.googleapis.com/deai-313515.appspot.com/models/geotags/model.json'
     )
 
     const numLayers = pretrainedModel.layers.length

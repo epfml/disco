@@ -35,58 +35,59 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { mapStores } from 'pinia'
-
-import { browser, EmptyMemory, Memory, ModelType, isTask, ModelInfo } from '@epfml/discojs'
+<script setup lang="ts">
+import { defineProps, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { browser, EmptyMemory, Memory, ModelType, Task, ModelInfo } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
+import { useToaster } from '@/composables/toaster'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 
-export default defineComponent({
-  components: { ButtonCard },
-  props: {
-    task: {
-      validator: isTask,
-      default: undefined
-    }
-  },
-  computed: {
-    ...mapStores(useMemoryStore, useValidationStore),
-    memory (): Memory {
-      return this.memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory()
-    },
-    modelInfo (): ModelInfo {
-      return {
-        type: ModelType.WORKING,
-        taskID: this.task.taskID,
-        name: this.task.trainingInformation.modelID
-      }
-    }
-  },
-  methods: {
-    async testModel () {
-      if (await this.memory.contains(this.modelInfo)) {
-        this.validationStore.setModel(this.memory.pathFor(this.modelInfo))
-        this.$router.push({ path: '/testing' })
-      } else {
-        this.$toast.error('Model was not trained!')
-      }
-    },
-    async saveModel () {
-      if (!(this.memory instanceof EmptyMemory)) {
-        await this.memory.saveWorkingModel(this.modelInfo)
-        this.$toast.success(
-          `The current ${this.task.displayInformation.taskTitle} model has been saved.`
-        )
-      } else {
-        this.$toast.error(
-          'The model library is currently turned off. See settings for more information'
-        )
-      }
-    }
+interface Props {
+  task?: Task
+}
+
+const memoryStore = useMemoryStore()
+const validationStore = useValidationStore()
+const router = useRouter()
+const toast = useToaster()
+
+const props = defineProps<Props>()
+
+const memory = computed<Memory>(() => memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory())
+const modelInfo = computed<ModelInfo>(() => {
+  return {
+    type: ModelType.WORKING,
+    taskID: props.task.taskID,
+    name: props.task.trainingInformation.modelID
   }
 })
+
+async function testModel () {
+  if (await memory.value.contains(modelInfo.value)) {
+    validationStore.setModel(this.memory.pathFor(this.modelInfo))
+    router.push({ path: '/testing' })
+  } else {
+    toast.error('Model was not trained!')
+  }
+}
+
+async function saveModel () {
+  if (!(memory.value instanceof EmptyMemory)) {
+    if (await memory.value.contains(modelInfo.value)) {
+      await memory.value.saveWorkingModel(modelInfo.value)
+      toast.success(
+        `The current ${props.task.displayInformation.taskTitle} model has been saved.`
+      )
+    } else {
+      toast.error('A model needs to be trained!')
+    }
+  } else {
+    toast.error(
+      'The model library is currently turned off. See settings for more information'
+    )
+  }
+}
 </script>
