@@ -27,3 +27,7 @@ which should output something similar to `arm64`. Then, `npm i @tensorflow/tfjs`
    If you do not have nvm installed, it can be downloaded from [here](https://github.com/coreybutler/nvm-windows).
 
 4. Execute `npm run dev` and you are done!
+
+
+
+
