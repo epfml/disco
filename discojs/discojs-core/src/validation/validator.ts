@@ -40,12 +40,12 @@ export class Validator {
     const predictions: number[] = []
 
     let hits = 0
-    await (await data.preprocess()).dataset.batch(batchSize).forEachAsync((e) => {
+    await data.preprocess().batch().dataset.forEachAsync((e) => {
       if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
         const xs = e.xs as tf.Tensor
 
         const ys = this.getLabel(e.ys as tf.Tensor)
-        const pred = this.getLabel(model.predict(xs, { batchSize: batchSize }) as tf.Tensor)
+        const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
 
         const currentFeatures = xs.arraySync()
 

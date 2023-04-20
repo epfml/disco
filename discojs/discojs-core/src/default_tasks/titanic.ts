@@ -1,4 +1,4 @@
-import { tf, Task, TaskProvider, data } from '..'
+import { tf, Task, TaskProvider } from '..'
 
 export const titanic: TaskProvider = {
   getTask (): Task {
@@ -49,7 +49,7 @@ export const titanic: TaskProvider = {
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 30,
-        preprocessingFunctions: [data.TabularPreprocessing.Normalize],
+        preprocessingFunctions: [],
         modelCompileData: {
           optimizer: 'sgd',
           loss: 'binaryCrossentropy',

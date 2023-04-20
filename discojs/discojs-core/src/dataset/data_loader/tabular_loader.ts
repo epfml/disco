@@ -1,19 +1,16 @@
 import { List, Map, Set } from 'immutable'
 
-import { tf, Task } from '../..'
+import { Task } from '../..'
 import { Dataset } from '../dataset'
-import { TabularData, DataSplit } from '../data'
+import { TabularData, Data, DataSplit } from '../data'
 import { DataLoader, DataConfig } from '../data_loader'
 
-// window size from which the dataset shuffling will sample
+// Window size from which the dataset shuffling will sample
 const BUFFER_SIZE = 1000
 
 export abstract class TabularLoader<Source> extends DataLoader<Source> {
-  private readonly delimiter: string
-
-  constructor (task: Task, delimiter: string) {
+  constructor (task: Task, public readonly delimiter = ',') {
     super(task)
-    this.delimiter = delimiter
   }
 
   /**
@@ -22,7 +19,13 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
    * @param csvConfig Object expected by TF.js to create a CSVDataset.
    * @returns The CSVDataset object built upon the given source.
    */
-  abstract loadTabularDatasetFrom (source: Source, csvConfig: Record<string, unknown>): tf.data.CSVDataset
+  abstract loadDatasetFrom (szource: Source, csvConfig: Record<string, unknown>): Promise<Dataset>
+
+  async createData (dataset: Dataset): Promise<Data> {
+    // dataset.size does not work for csv datasets
+    // https://github.com/tensorflow/tfjs/issues/5845
+    return await TabularData.init(dataset, this.task)
+  }
 
   /**
    * Expects delimiter-separated tabular data made of N columns. The data may be
@@ -56,7 +59,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
       delimiter: this.delimiter
     }
 
-    const dataset = this.loadTabularDatasetFrom(source, csvConfig).map((t) => {
+    const dataset = (await this.loadDatasetFrom(source, csvConfig)).map((t) => {
       if (typeof t === 'object') {
         if (('xs' in t) && ('ys' in t)) {
           const { xs, ys } = t as Record<string, Record<string, number>>
@@ -82,13 +85,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
       await this.load(source, { ...config, shuffle: false })))
     let dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
     dataset = config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset
-    const data = await TabularData.init(
-      dataset,
-      this.task,
-      // dataset.size does not work for csv datasets
-      // https://github.com/tensorflow/tfjs/issues/5845
-      undefined
-    )
+    const data = await this.createData(dataset)
     // TODO: Implement validation split for tabular data (tricky due to streaming)
     return {
       train: data

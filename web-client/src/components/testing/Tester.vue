@@ -386,7 +386,6 @@ function saveCsv () {
     if (props.groundTruth) {
       const rows = dataWithPred.value.map(el => [(el.data as ImageWithUrl).name, String(el.prediction), String(el.groundTruth)])
       csvData = d3.csvFormatRows([['Filename', 'Prediction', 'Ground Truth'], ...rows])
-      console.log(csvData)
     } else {
       const rows = dataWithPred.value.map(el => [(el.data as ImageWithUrl).name, String(el.prediction)])
       csvData = d3.csvFormatRows([['Filename', 'Prediction'], ...rows])

@@ -56,10 +56,13 @@ const datasetBuilder = computed(() => {
   let dataLoader: data.DataLoader<File>
   switch (task.value.trainingInformation.dataType) {
     case 'tabular':
-      dataLoader = new browser.data.WebTabularLoader(task.value, ',')
+      dataLoader = new browser.data.WebTabularLoader(task.value)
       break
     case 'image':
       dataLoader = new browser.data.WebImageLoader(task.value)
+      break
+    case 'text':
+      dataLoader = new browser.data.WebTextLoader(task.value)
       break
     default:
       throw new Error('not implemented')

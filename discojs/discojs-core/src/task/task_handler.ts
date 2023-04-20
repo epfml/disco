@@ -22,10 +22,10 @@ export async function pushTask (
 }
 
 export async function fetchTasks (url: URL): Promise<Map<TaskID, Task>> {
-  const response = await axios.get(url.href + TASK_ENDPOINT)
+  const response = await axios.get(new URL(TASK_ENDPOINT, url).href)
   const tasks: unknown = response.data
 
-  if (!Array.isArray(tasks) || !tasks.every(isTask)) {
+  if (!(Array.isArray(tasks) && tasks.every(isTask))) {
     throw new Error('invalid tasks response')
   }
 

@@ -14,6 +14,10 @@ import { DataLoader, DataConfig } from '../data_loader'
 export abstract class ImageLoader<Source> extends DataLoader<Source> {
   abstract readImageFrom (source: Source): Promise<tf.Tensor3D>
 
+  async createData (dataset: Dataset, size?: number): Promise<Data> {
+    return await ImageData.init(dataset, this.task, size)
+  }
+
   async load (image: Source, config?: DataConfig): Promise<Dataset> {
     let tensorContainer: tf.TensorContainer
     if (config === undefined || config.labels === undefined) {
@@ -48,7 +52,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
     // @ts-expect-error: For some reasons typescript refuses async generator but tensorflow do work with them
     const dataset: tf.data.Dataset<tf.TensorContainer> = tf.data.generator(dataGenerator)
 
-    return await ImageData.init(dataset, this.task, indices.length)
+    return await this.createData(dataset, indices.length)
   }
 
   async loadAll (images: Source[], config?: DataConfig): Promise<DataSplit> {
