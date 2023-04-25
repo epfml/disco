@@ -1,7 +1,7 @@
 import isomorphic from 'isomorphic-ws'
 import { EventEmitter } from 'events'
 import { Peer } from './decentralized/peer'
-import { PeerID } from './decentralized/types'
+import { NodeID } from './types'
 import msgpack from 'msgpack-lite'
 import * as decentralizedMessages from './decentralized/messages'
 import { type, NarrowMessage, Message } from './messages'
@@ -17,36 +17,30 @@ export interface EventConnection {
 
 export async function waitMessage<T extends type> (connection: EventConnection, type: T): Promise<NarrowMessage<T>> {
   return await new Promise((resolve) => {
-    // "once" is important because we can't resolve the same promise multiple time
+    // "once" is important because we can't resolve the same promise multiple times
     connection.once(type, (event) => {
       resolve(event)
     })
   })
 }
 
-export async function waitMessageWithTimeout<T extends type> (connection: EventConnection, type: T, timeoutMs: number): Promise<NarrowMessage<T>> {
+export async function waitMessageWithTimeout<T extends type> (connection: EventConnection, type: T, timeoutMs?: number): Promise<NarrowMessage<T>> {
   return await Promise.race([waitMessage(connection, type), timeout(timeoutMs)])
 }
 
 export class PeerConnection implements EventConnection {
-  private readonly selfId: PeerID
-  private readonly peer: Peer
-  private readonly signallingServer: EventConnection
-  private readonly eventEmitter: EventEmitter = new EventEmitter()
+  private readonly eventEmitter: EventEmitter
 
   constructor (
-    selfId: PeerID,
-    peer: Peer,
-    signallingServer: EventConnection
+    private readonly ownId: NodeID,
+    private readonly peer: Peer,
+    private readonly signallingServer: EventConnection
   ) {
-    this.selfId = selfId
-    this.peer = peer
-    this.signallingServer = signallingServer
+    this.eventEmitter = new EventEmitter()
   }
 
   async connect (): Promise<void> {
     this.peer.on('signal', (signal) => {
-      console.debug(this.selfId, 'generates signal for', this.peer.id)
       const msg: decentralizedMessages.SignalForPeer = {
         type: type.SignalForPeer,
         peer: this.peer.id,
@@ -69,7 +63,6 @@ export class PeerConnection implements EventConnection {
 
     return await new Promise((resolve) => {
       this.peer.on('connect', () => {
-        console.debug('connected new peer', this.peer.id)
         resolve()
       })
     })

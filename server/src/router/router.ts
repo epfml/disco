@@ -4,7 +4,7 @@ import expressWS from 'express-ws'
 import { Config } from '../config'
 import { TasksAndModels } from '../tasks'
 
-import { Federated } from './federated'
+import { Federated } from './federated/server'
 import { Decentralized } from './decentralized'
 import { Tasks } from './tasks'
 

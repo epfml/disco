@@ -1,6 +1,6 @@
 import { List } from 'immutable'
 
-import { tf, data, Task, Logger, Client, GraphInformant, Memory, ModelSource, Features } from '..'
+import { tf, data, Task, Logger, client as clients, GraphInformant, Memory, ModelSource, Features } from '..'
 
 export class Validator {
   private readonly graphInformant = new GraphInformant()
@@ -12,7 +12,7 @@ export class Validator {
     public readonly logger: Logger,
     private readonly memory: Memory,
     private readonly source?: ModelSource,
-    private readonly client?: Client
+    private readonly client?: clients.Client
   ) {
     if (source === undefined && client === undefined) {
       throw new Error('cannot identify model')

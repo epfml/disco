@@ -20,15 +20,15 @@ export class WeightsContainer {
     return this.mapWith(other, tf.add)
   }
 
-  sub (other: WeightsContainer): WeightsContainer {
-    return this.mapWith(other, tf.sub)
+  mul (other: WeightsContainer | number): WeightsContainer {
+    if (typeof other === 'number') {
+      return this.map((w) => tf.mul(w, other))
+    }
+    return this.mapWith(other, tf.mul)
   }
 
-  mul (other: TensorLike): WeightsContainer {
-    return new WeightsContainer(
-      this._weights
-        .map(w => w.mul(other))
-    )
+  sub (other: WeightsContainer): WeightsContainer {
+    return this.mapWith(other, tf.sub)
   }
 
   mapWith (other: WeightsContainer, fn: (a: tf.Tensor, b: tf.Tensor) => tf.Tensor): WeightsContainer {
@@ -55,6 +55,19 @@ export class WeightsContainer {
 
   frobeniusNorm (): number {
     return Math.sqrt(this.map((w) => w.square().sum()).reduce((a, b) => a.add(b)).dataSync()[0])
+  }
+
+  concat (other: WeightsContainer): WeightsContainer {
+    return WeightsContainer.of(
+      ...this.weights,
+      ...other.weights
+    )
+  }
+
+  equals (other: WeightsContainer, margin = 0): boolean {
+    return this._weights
+      .zip(other._weights)
+      .every(([w1, w2]) => w1.sub(w2).abs().lessEqual(margin).all().dataSync()[0] === 1)
   }
 
   static of (...weights: TensorLike[]): WeightsContainer {

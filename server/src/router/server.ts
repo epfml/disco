@@ -61,7 +61,7 @@ export abstract class Server {
     return urlEnd === '.websocket'
   }
 
-  public abstract isValidUrl (url: string | undefined): boolean
+  public abstract isValidUrl (url?: string): boolean
 
   protected abstract get description (): string
 

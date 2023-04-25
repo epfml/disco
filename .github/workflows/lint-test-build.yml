@@ -363,5 +363,5 @@ jobs:
         working-directory: ${{ env.lib_node_dir }}
       - run: npm ci && npm link ../${{ env.lib_node_dir }} && npm run build
         working-directory: ${{ env.server_dir }}
-      - run: npm ci && npm link ../${{ env.server_dir }} && npm link ../${{ env.lib_node_dir }}
+      - run: npm ci && npm link ../${{ env.server_dir }} ../${{ env.lib_node_dir }}
       - run: npm start -- -t cifar10 -u 1 -e 1

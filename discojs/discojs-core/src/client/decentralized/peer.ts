@@ -1,6 +1,7 @@
+import { NodeID } from '../types'
+
 import { List, Map, Range, Seq } from 'immutable'
 import SimplePeer, { SignalData } from 'simple-peer'
-import { PeerID } from './types'
 
 type MessageID = number
 type ChunkID = number
@@ -25,7 +26,7 @@ interface Events {
 //
 // WebRTC implementations have various maximum message size
 // but with huge models, our messages might be bigger.
-// We split messages by chunks and reconstruct theses
+// We split messages by chunks and reconstruct these
 // on the other side.
 //
 // As the WebRTC's DataChannel is not a stream, we need
@@ -35,7 +36,7 @@ interface Events {
 //
 // see feross/simple-peer#393 for more info
 export class Peer {
-  public readonly id: PeerID
+  public readonly id: NodeID
   private readonly peer: SimplePeer.Instance
   private bufferSize?: number
 
@@ -47,14 +48,12 @@ export class Peer {
     chunks: Map<ChunkID, Buffer>
   }>()
 
-  constructor (id: PeerID, opts?: SimplePeer.Options) {
+  constructor (id: NodeID, opts?: SimplePeer.Options) {
     this.id = id
     this.peer = new SimplePeer(opts)
   }
 
   send (msg: Buffer): void {
-    console.debug('sending message of size', msg.length)
-
     const chunks = this.chunk(msg)
     this.sendQueue = this.sendQueue.concat(chunks)
     this.flush()
@@ -76,7 +75,6 @@ export class Peer {
       return
     }
 
-    console.debug('sending chunk of size', chunk.length)
     this.sendQueue = this.sendQueue.shift()
     this.peer.send(chunk)
 
@@ -228,8 +226,6 @@ export class Peer {
         chunks: chunks.set(chunkID, chunk)
       })
 
-      console.debug(`got chunk ${messageID}:${chunkID}/${total ?? 'unknown'} of size ${chunk.length}`)
-
       const readyMessages = this.receiving
         .filter(({ total, chunks }) => total !== undefined && chunks.size === total)
         .sort()
@@ -239,8 +235,6 @@ export class Peer {
 
       readyMessages
         .forEach((message) => {
-          console.debug(this.peer.address().port, 'recved message of size', message.length)
-
           // TODO debug
           // @ts-expect-error
           listener(message)

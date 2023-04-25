@@ -1,5 +1,5 @@
 import {
-  Client, client as clients,
+  client as clients,
   data,
   Logger,
   Task,
@@ -12,9 +12,12 @@ import {
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
 import { TrainerLog } from '../logging/trainer_logger'
+import { Aggregator } from '../aggregator'
+import { MeanAggregator } from '../aggregator/mean'
 
 interface DiscoOptions {
-  client?: Client
+  client?: clients.Client
+  aggregator?: Aggregator
   url?: string | URL
   scheme?: TrainingSchemes
   informant?: TrainingInformant
@@ -28,7 +31,8 @@ export class Disco {
   public readonly task: Task
   public readonly logger: Logger
   public readonly memory: Memory
-  private readonly client: Client
+  private readonly client: clients.Client
+  private readonly aggregator: Aggregator
   private readonly trainer: Promise<Trainer>
 
   // client need to be connected
@@ -39,22 +43,26 @@ export class Disco {
     if (options.scheme === undefined) {
       options.scheme = TrainingSchemes[task.trainingInformation.scheme as keyof typeof TrainingSchemes]
     }
+    if (options.aggregator === undefined) {
+      options.aggregator = new MeanAggregator(task)
+    }
     if (options.client === undefined) {
       if (options.url === undefined) {
         throw new Error('could not determine client from given parameters')
       }
+
       if (typeof options.url === 'string') {
         options.url = new URL(options.url)
       }
       switch (options.scheme) {
         case TrainingSchemes.FEDERATED:
-          options.client = new clients.federated.Client(options.url, task)
+          options.client = new clients.federated.FederatedClient(options.url, task, options.aggregator)
           break
         case TrainingSchemes.DECENTRALIZED:
-          options.client = new clients.federated.Client(options.url, task)
+          options.client = new clients.decentralized.DecentralizedClient(options.url, task, options.aggregator)
           break
         default:
-          options.client = new clients.Local(options.url, task)
+          options.client = new clients.Local(options.url, task, options.aggregator)
           break
       }
     }
@@ -86,11 +94,12 @@ export class Disco {
 
     this.task = task
     this.client = options.client
+    this.aggregator = options.aggregator
     this.memory = options.memory
     this.logger = options.logger
 
     const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant, options.customTrainingFunction)
-    this.trainer = trainerBuilder.build(this.client, options.scheme !== TrainingSchemes.LOCAL)
+    this.trainer = trainerBuilder.build(this.aggregator, this.client, options.scheme !== TrainingSchemes.LOCAL)
   }
 
   async fit (dataTuple: data.DataSplit): Promise<void> {
@@ -104,7 +113,8 @@ export class Disco {
       : trainDataset
 
     await this.client.connect()
-    await (await this.trainer).fitModel(trainDataset.dataset, valDataset.dataset)
+    const trainer = await this.trainer
+    await trainer.fitModel(trainDataset.dataset, valDataset.dataset)
   }
 
   // Stops the training function. Does not disconnect the client.
@@ -120,6 +130,7 @@ export class Disco {
   }
 
   async logs (): Promise<TrainerLog> {
-    return (await this.trainer).getTrainerLog()
+    const trainer = await this.trainer
+    return trainer.getTrainerLog()
   }
 }

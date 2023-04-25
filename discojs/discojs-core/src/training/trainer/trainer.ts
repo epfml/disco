@@ -1,4 +1,4 @@
-import { tf, Memory, Task, TrainingInformant, TrainingInformation, TrainingFunction, fitModelFunctions } from '../..'
+import { tf, Memory, Task, TrainingInformant, TrainingFunction, fitModelFunctions } from '../..'
 
 import { RoundTracker } from './round_tracker'
 import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
@@ -13,7 +13,6 @@ import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
  * a round has ended we use the roundTracker object.
  */
 export abstract class Trainer {
-  public readonly trainingInformation: TrainingInformation
   public readonly roundTracker: RoundTracker
 
   private stopTrainingRequested = false
@@ -34,23 +33,19 @@ export abstract class Trainer {
     fitModelFunction?: TrainingFunction
   ) {
     this.trainerLogger = new TrainerLogger()
-
-    const trainingInformation = task.trainingInformation
-    if (trainingInformation === undefined) {
-      throw new Error('round duration is undefined')
-    }
-    this.trainingInformation = trainingInformation
-
-    this.roundTracker = new RoundTracker(trainingInformation.roundDuration)
+    this.roundTracker = new RoundTracker(task.trainingInformation.roundDuration)
     this.fitModelFunction = fitModelFunction ?? fitModelFunctions.default
   }
+
+  protected abstract onRoundBegin (accuracy: number): Promise<void>
 
   /**
    * Every time a round ends this function will be called
    */
   protected abstract onRoundEnd (accuracy: number): Promise<void>
 
-  /** onBatchEnd callback, when a round ends, we call onRoundEnd (to be implemented for local and distributed instances)
+  /**
+   * Callback executed on every batch end. When a round ends, onRoundEnd is called
    */
   protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
     if (logs === undefined) {
@@ -65,6 +60,18 @@ export abstract class Trainer {
     }
   }
 
+  protected async onBatchBegin (_: number, logs?: tf.Logs): Promise<void> {
+    if (logs === undefined) {
+      return
+    }
+
+    if (this.roundTracker.roundHasBegun()) {
+      await this.onRoundBegin(logs.acc)
+    }
+  }
+
+  protected onEpochBegin (epoch: number, logs?: tf.Logs): void {}
+
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
@@ -77,6 +84,10 @@ export abstract class Trainer {
     } else {
       this.trainerLogger.error('onEpochEnd: NaN value')
     }
+  }
+
+  protected async onTrainBegin (logs?: tf.Logs): Promise<void> {
+    this.trainingInformant.addMessage('Training started.')
   }
 
   /**
@@ -104,11 +115,14 @@ export abstract class Trainer {
     this.resetStopTrainerState()
 
     await this.fitModelFunction(this.model,
-      this.trainingInformation,
+      this.task.trainingInformation,
       dataset,
       valDataset,
+      (e, l) => this.onEpochBegin(e, l),
       (e, l) => this.onEpochEnd(e, l),
+      async (e, l) => await this.onBatchBegin(e, l),
       async (e, l) => await this.onBatchEnd(e, l),
+      async (l) => await this.onTrainBegin(l),
       async (l) => await this.onTrainEnd(l))
   }
 

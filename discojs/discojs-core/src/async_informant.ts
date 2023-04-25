@@ -1,85 +1,64 @@
-import { AsyncBuffer } from './async_buffer'
+import { AggregatorBase } from './aggregator'
 
 export class AsyncInformant<T> {
-  private round = 0
-  private currentNumberOfParticipants = 0
-  private totalNumberOfParticipants = 0
-  private averageNumberOfParticipants = 0
+  private _round = 0
+  private _currentNumberOfParticipants = 0
+  private _totalNumberOfParticipants = 0
+  private _averageNumberOfParticipants = 0
 
   constructor (
-    private readonly asyncBuffer: AsyncBuffer<T>
-  ) {
-    this.asyncBuffer.registerObserver(this)
-  }
-
-  // Update functions
+    private readonly aggregator: AggregatorBase<T>
+  ) {}
 
   update (): void {
-    // DEBUG
-    console.log('Before update')
+    console.debug('before:')
     this.printAllInfos()
-
-    this.updateRound()
-    this.updateNumberOfParticipants()
-
-    // DEBUG
-    console.log('After update')
+    if (this.round === 0 || this.round < this.aggregator.round) {
+      this._round = this.aggregator.round
+      this._currentNumberOfParticipants = this.aggregator.size
+      this._averageNumberOfParticipants = this.totalNumberOfParticipants / this.round
+      this._totalNumberOfParticipants += this.currentNumberOfParticipants
+    } else {
+      this._round = this.aggregator.round
+    }
+    console.debug('after:')
     this.printAllInfos()
-  }
-
-  private updateRound (): void {
-    this.round = this.asyncBuffer.round
-  }
-
-  private updateNumberOfParticipants (): void {
-    this.currentNumberOfParticipants = this.asyncBuffer.buffer.size
-    this.updateTotalNumberOfParticipants(this.currentNumberOfParticipants)
-    this.updateAverageNumberOfParticipants()
-  }
-
-  private updateAverageNumberOfParticipants (): void {
-    this.averageNumberOfParticipants = this.totalNumberOfParticipants / this.round
-  }
-
-  private updateTotalNumberOfParticipants (currentNumberOfParticipants: number): void {
-    this.totalNumberOfParticipants += currentNumberOfParticipants
   }
 
   // Getter functions
-  getCurrentRound (): number {
-    return this.round
+  get round (): number {
+    return this._round
   }
 
-  getNumberOfParticipants (): number {
-    return this.currentNumberOfParticipants
+  get currentNumberOfParticipants (): number {
+    return this._currentNumberOfParticipants
   }
 
-  getTotalNumberOfParticipants (): number {
-    return this.totalNumberOfParticipants
+  get totalNumberOfParticipants (): number {
+    return this._totalNumberOfParticipants
   }
 
-  getAverageNumberOfParticipants (): number {
-    return this.averageNumberOfParticipants
+  get averageNumberOfParticipants (): number {
+    return this._averageNumberOfParticipants
   }
 
   getAllStatistics (): Record<
   'round' | 'currentNumberOfParticipants' | 'totalNumberOfParticipants' | 'averageNumberOfParticipants', number
   > {
     return {
-      round: this.getCurrentRound(),
-      currentNumberOfParticipants: this.getNumberOfParticipants(),
-      totalNumberOfParticipants: this.getTotalNumberOfParticipants(),
-      averageNumberOfParticipants: this.getAverageNumberOfParticipants()
+      round: this.round,
+      currentNumberOfParticipants: this.currentNumberOfParticipants,
+      totalNumberOfParticipants: this.totalNumberOfParticipants,
+      averageNumberOfParticipants: this.averageNumberOfParticipants
     }
   }
 
   // Debug
-
-  printAllInfos (): void {
-    console.log('task : ', this.asyncBuffer.taskID)
-    console.log('round : ', this.getCurrentRound())
-    console.log('participants : ', this.getNumberOfParticipants())
-    console.log('total : ', this.getTotalNumberOfParticipants())
-    console.log('average : ', this.getAverageNumberOfParticipants())
+  public printAllInfos (): void {
+    console.debug('task:', this.aggregator.task.taskID)
+    console.debug('round:', this.round)
+    console.debug('participants:', this.currentNumberOfParticipants)
+    console.debug('total:', this.totalNumberOfParticipants)
+    console.debug('average:', this.averageNumberOfParticipants)
   }
 }

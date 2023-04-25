@@ -1,3 +1,4 @@
+import { AggregatorChoice } from '../aggregator/get'
 import { Preprocessing } from '../dataset/data/preprocessing'
 import { isModelCompileData, ModelCompileData } from './model_compile_data'
 
@@ -30,7 +31,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     'minimumReadyPeers' |
     'LABEL_LIST' |
     'noiseScale' |
-    'clippingRadius'
+    'clippingRadius'|
+    'aggregator'
 
   const {
     dataType,
@@ -54,7 +56,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     minimumReadyPeers,
     LABEL_LIST,
     noiseScale,
-    clippingRadius
+    clippingRadius,
+    aggregator
   } = raw as Record<Fields, unknown | undefined>
 
   if (
@@ -70,7 +73,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     (learningRate !== undefined && typeof learningRate !== 'number') ||
     (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
     (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
-    (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number')
+    (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number') ||
+    (aggregator !== undefined && typeof aggregator !== 'number')
   ) {
     return false
   }
@@ -183,4 +187,7 @@ export interface TrainingInformation {
   // minimumReadyPeers: Decentralized Learning: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
   // default is 3, range is [3, totalNumberOfPeersParticipating]
   minimumReadyPeers?: number
+  // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
+  // default is 'average', other options include for instance 'bandit'
+  aggregator?: AggregatorChoice
 }

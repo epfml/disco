@@ -1,20 +1,11 @@
 import { Server } from 'node:http'
 
-import { client, Task, TaskProvider } from '@epfml/discojs-node'
+import { aggregator, client, Task } from '@epfml/discojs-node'
 
-import { Disco } from '../src/get_server'
+import { runDefaultServer } from '../src/get_server'
 
-export async function startServer (tasks?: TaskProvider[]): Promise<Server> {
-  const disco = new Disco()
-  await disco.addDefaultTasks()
-
-  if (tasks !== undefined) {
-    for (const task of tasks) {
-      await disco.addTask(task)
-    }
-  }
-
-  const server = disco.serve()
+export async function startServer (): Promise<Server> {
+  const server = await runDefaultServer()
 
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
@@ -24,10 +15,11 @@ export async function startServer (tasks?: TaskProvider[]): Promise<Server> {
   return server
 }
 
-export async function getClient<T extends client.Base> (
-  Constructor: new (url: URL, t: Task) => T,
+export async function getClient<T extends client.Client> (
+  Constructor: new (url: URL, t: Task, agg: aggregator.Aggregator) => T,
   server: Server,
-  task: Task
+  task: Task,
+  aggregator: aggregator.Aggregator
 ): Promise<T> {
   let host: string
   const addr = server?.address()
@@ -43,5 +35,5 @@ export async function getClient<T extends client.Base> (
     }
   }
   const url = new URL(`http://${host}`)
-  return new Constructor(url, task)
+  return new Constructor(url, task, aggregator)
 }
