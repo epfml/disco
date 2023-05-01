@@ -12,7 +12,7 @@ function test (
   name: string,
   Client: new (url: URL, t: Task) => clients.Base
 ): void {
-  describe(`decentralized ${name} client`, function () { // the tests container
+  describe(`decentralized ${name} client`, function () {
     this.timeout(30_000)
 
     let server: http.Server

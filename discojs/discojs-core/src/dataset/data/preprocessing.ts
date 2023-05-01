@@ -32,7 +32,8 @@ export function getPreprocessImage (task: Task): PreprocessImage {
     let { xs, ys } = tensorContainer as ImageTensorContainer
     if (info.preprocessingFunctions?.includes(ImagePreprocessing.Normalize)) {
       xs = xs.div(tf.scalar(255))
-    } else if (info.preprocessingFunctions?.includes(ImagePreprocessing.Resize) &&
+    }
+    if (info.preprocessingFunctions?.includes(ImagePreprocessing.Resize) &&
       info.IMAGE_H !== undefined &&
       info.IMAGE_W !== undefined) {
       xs = tf.image.resizeBilinear(xs, [

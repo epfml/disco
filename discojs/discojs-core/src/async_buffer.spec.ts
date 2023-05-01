@@ -17,31 +17,31 @@ const mockAggregateAndStoreWeights = async (_weights: Iterable<number>): Promise
 describe('AsyncWeightBuffer tests', () => {
   it('add weight update with old time stamp returns false', async () => {
     const t0 = -1
-    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     assert.isFalse(await asyncWeightBuffer.add(id, weights[0], t0))
   })
   it('add weight update with recent time stamp returns true', async () => {
-    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     const t0 = Date.now()
     assert.isTrue(await asyncWeightBuffer.add(id, weights[0], t0))
   })
   it('bufferIsFull returns false if it is not full', () => {
-    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     assert.isFalse(asyncWeightBuffer.bufferIsFull())
   })
   it('buffer adding with cutoff = 0', () => {
-    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     assert.isFalse(asyncWeightBuffer.isNotWithinRoundCutoff(0))
     assert.isTrue(asyncWeightBuffer.isNotWithinRoundCutoff(-1))
   })
   it('buffer adding with different cutoff = 1', () => {
-    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 1)
+    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 1, () => {})
     assert.isFalse(asyncWeightBuffer.isNotWithinRoundCutoff(0))
     assert.isFalse(asyncWeightBuffer.isNotWithinRoundCutoff(-1))
     assert.isTrue(asyncWeightBuffer.isNotWithinRoundCutoff(-2))
   })
   it('Adding enough updates to buffer launches aggregator and updates weights', async () => {
-    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     const t0 = Date.now()
     await Promise.all(weights.map(async (w) => await asyncWeightBuffer.add(w.toString(), w, t0)))
     expect(asyncWeightBuffer.buffer.size).equal(0)
@@ -49,7 +49,7 @@ describe('AsyncWeightBuffer tests', () => {
     expect(asyncWeightBuffer.round).equal(1)
   })
   it('Testing two full cycles (adding x2 buffer capacity)', async () => {
-    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const asyncWeightBuffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     mockUpdatedWeights = []
 
     const t0 = Date.now()
