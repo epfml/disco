@@ -11,27 +11,27 @@ const mockAggregateAndStoreWeights = async (): Promise<void> => {}
 
 describe('AsyncInformant tests', () => {
   it('get correct round number', async () => {
-    const buffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const buffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     const informant = new AsyncInformant(buffer)
     expect(informant.getCurrentRound()).to.eql(0)
     await Promise.all(weights.map(async (w) => await buffer.add(w.toString(), w, Date.now())))
     expect(informant.getCurrentRound()).to.eql(1)
   })
   it('get correct number of participants for last round', async () => {
-    const buffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const buffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     const informant = new AsyncInformant(buffer)
     await Promise.all(weights.map(async (w) => await buffer.add(w.toString(), w, Date.now())))
     expect(informant.getNumberOfParticipants()).to.eql(bufferCapacity)
   })
   it('get correct average number of participants', async () => {
-    const buffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const buffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     const informant = new AsyncInformant(buffer)
     await Promise.all(weights.map(async (w) => await buffer.add(w.toString(), w, Date.now())))
     await Promise.all(weights.map(async (w) => await buffer.add(w.toString(), w, Date.now())))
     expect(informant.getAverageNumberOfParticipants()).to.eql(bufferCapacity)
   })
   it('get correct total number of participants', async () => {
-    const buffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights)
+    const buffer = new AsyncBuffer(taskId, bufferCapacity, mockAggregateAndStoreWeights, 0, () => {})
     const informant = new AsyncInformant(buffer)
     await Promise.all(weights.map(async (w) => await buffer.add(w.toString(), w, Date.now())))
     await Promise.all(weights.map(async (w) => await buffer.add(w.toString(), w, Date.now())))

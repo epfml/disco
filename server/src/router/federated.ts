@@ -5,15 +5,8 @@ import { List, Map, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 
 import {
-  client,
-  tf,
-  serialization,
-  aggregation,
-  AsyncInformant,
-  Task,
-  TaskID,
-  AsyncBuffer,
-  WeightsContainer
+  aggregation, AsyncBuffer, AsyncInformant, client, serialization, Task,
+  TaskID, tf, WeightsContainer
 } from '@epfml/discojs-node'
 
 import { Server } from './server'
@@ -21,7 +14,7 @@ import messages = client.federated.messages
 import messageTypes = client.messages.type
 import clientConnected = client.messages.type.clientConnected
 
-const BUFFER_CAPACITY = 2
+const BUFFER_CAPACITY = 3
 
 enum RequestType {
   Connect,
@@ -48,11 +41,6 @@ interface Log {
   request: RequestType
 }
 
-interface TaskStatus {
-  isRoundPending: boolean
-  round: number
-}
-
 export class Federated extends Server {
   // model weights received from clients for a given task and round.
   private asyncBuffersMap = Map<TaskID, AsyncBuffer<WeightsContainer>>()
@@ -76,11 +64,13 @@ export class Federated extends Server {
 
   private models = Map<TaskID, tf.LayersModel>()
 
+  private globalMomentum = Map<TaskID, WeightsContainer>()
+
   /**
    * Maps a task to a status object. Currently provides the round number and
    * round status for each task.
    */
-  private tasksStatus = Map<TaskID, TaskStatus>()
+  private currentTaskClientRound = Map<TaskID, Map<string, number>>()
 
   protected get description (): string {
     return 'FeAI Server'
@@ -104,19 +94,18 @@ export class Federated extends Server {
   }
 
   protected initTask (task: Task, model: tf.LayersModel): void {
-    this.tasksStatus = this.tasksStatus.set(task.taskID, {
-      isRoundPending: false,
-      round: 0
-    })
+    this.currentTaskClientRound = this.currentTaskClientRound.set(task.taskID, Map())
 
-    const isByzantineRobust: boolean = task.trainingInformation?.byzantineRobustAggregator ?? false
-    const tauPercentile: number = task.trainingInformation?.tauPercentile ?? 0
+    const isByzantineRobust: boolean | undefined = task.trainingInformation?.byzantineRobustAggregator
+    const tauPercentile: number | undefined = task.trainingInformation?.tauPercentile
 
     const buffer = new AsyncBuffer<WeightsContainer>(
       task.taskID,
       BUFFER_CAPACITY,
-      async (weights: Iterable<WeightsContainer>) =>
-        await this.aggregateAndStoreWeights(model, List(weights), isByzantineRobust, tauPercentile)
+      async (weightsOrMomentum: Iterable<WeightsContainer>) =>
+        await this.aggregateAndStore(task.taskID, model, List(weightsOrMomentum), isByzantineRobust, tauPercentile),
+      0,
+      (lastRound: number) => this.updateTaskStatus(task.taskID, lastRound)
     )
     this.asyncBuffersMap = this.asyncBuffersMap.set(task.taskID, buffer)
 
@@ -125,7 +114,39 @@ export class Federated extends Server {
       new AsyncInformant(buffer)
     )
 
+    this.globalMomentum = this.globalMomentum.set(task.taskID, WeightsContainer.of(...model.getWeights().map(weights => tf.zerosLike(weights))))
     this.models = this.models.set(task.taskID, model)
+  }
+
+  private updateTaskStatus (taskId: TaskID, lastRound: number): void {
+    this.clients.forEach(client => {
+      const currentTaskRoundMap = this.currentTaskClientRound.get(taskId)
+      if (currentTaskRoundMap != null) {
+        this.currentTaskClientRound = this.currentTaskClientRound.set(taskId, currentTaskRoundMap.set(client, lastRound))
+      }
+    })
+  }
+
+  private async waitForRound (task: Task, clientId: string): Promise<void> {
+    const poll: (resolve: (value: void | PromiseLike<void>) => void, reject: (reason?: any) => void) => void = (resolve, reject) => {
+      const buffer: AsyncBuffer<WeightsContainer> | undefined = this.asyncBuffersMap.get(task.taskID)
+      const clientTaskRound: number | undefined = this.currentTaskClientRound.get(task.taskID)?.get(clientId)
+
+      if (buffer !== undefined && clientTaskRound !== undefined && clientTaskRound === buffer.round - 1) {
+        const currentTaskRoundMap = this.currentTaskClientRound.get(task.taskID)
+        if (currentTaskRoundMap != null) {
+          this.currentTaskClientRound = this.currentTaskClientRound.set(task.taskID, currentTaskRoundMap.set(clientId, buffer.round))
+        }
+
+        resolve()
+      } else if (buffer === undefined || clientTaskRound === undefined) {
+        reject()
+      } else {
+        setTimeout(_ => poll(resolve, reject), 50)
+      }
+    }
+
+    return await new Promise(poll)
   }
 
   protected handle (
@@ -143,11 +164,17 @@ export class Federated extends Server {
 
         this.clients = this.clients.add(clientId)
 
+        const currentTaskRoundMap = this.currentTaskClientRound.get(task.taskID)
+        if (currentTaskRoundMap != null) {
+          this.currentTaskClientRound = this.currentTaskClientRound.set(task.taskID, currentTaskRoundMap.set(clientId, 0))
+        }
+
         this.logsAppend(task.taskID, clientId, RequestType.Connect, 0)
         this.sendConnectedMsg(ws)
-      } else if (msg.type === messageTypes.postWeightsToServer) {
+      } else if (msg.type === messageTypes.postToServer) {
         const rawWeights = msg.weights
         const round = msg.round
+        const rawMomentum = msg.momentum
 
         this.logsAppend(
           task.taskID,
@@ -156,35 +183,38 @@ export class Federated extends Server {
           round
         )
 
-        if (
-          !(
-            Array.isArray(rawWeights) &&
-            rawWeights.every((e) => typeof e === 'number')
-          )
-        ) {
+        if (task.trainingInformation.byzantineRobustAggregator !== undefined && task.trainingInformation.tauPercentile !== undefined &&
+          !(Array.isArray(rawMomentum) && rawMomentum.every((e) => typeof e === 'number'))) {
+          throw new Error('invalid momentum format')
+        }
+
+        if (task.trainingInformation.byzantineRobustAggregator === undefined && task.trainingInformation.tauPercentile === undefined &&
+          !(Array.isArray(rawWeights) && rawWeights.every((e) => typeof e === 'number'))) {
           throw new Error('invalid weights format')
         }
 
-        const weights = serialization.weights.decode(rawWeights)
+        const weightsOrMomentum = rawWeights !== null ? serialization.weights.decode(rawWeights) : serialization.weights.decode(rawMomentum)
 
         const buffer = this.asyncBuffersMap.get(task.taskID)
         if (buffer === undefined) {
           throw new Error(`post weight to unknown task: ${task.taskID}`)
         }
 
-        void buffer.add(clientId, weights, round)
+        void buffer.add(clientId, weightsOrMomentum, round)
       } else if (msg.type === messageTypes.pullServerStatistics) {
-        // Get latest round
-        const statistics = this.asyncInformantsMap
-          .get(task.taskID)
-          ?.getAllStatistics()
+        void this.waitForRound(task, clientId).then(() => {
+          // Get latest round
+          const statistics = this.asyncInformantsMap
+            .get(task.taskID)
+            ?.getAllStatistics()
 
-        const msg: messages.pullServerStatistics = {
-          type: messageTypes.pullServerStatistics,
-          statistics: statistics ?? {}
-        }
+          const msg: messages.pullServerStatistics = {
+            type: messageTypes.pullServerStatistics,
+            statistics: statistics ?? {}
+          }
 
-        ws.send(msgpack.encode(msg))
+          ws.send(msgpack.encode(msg))
+        })
       } else if (msg.type === messageTypes.latestServerRound) {
         const buffer = this.asyncBuffersMap.get(task.taskID)
         if (buffer === undefined) {
@@ -273,16 +303,33 @@ export class Federated extends Server {
    * 2. assign the newly aggregated weights to it
    * 3. save the model
    */
-  private async aggregateAndStoreWeights (
+  private async aggregateAndStore (
+    taskID: TaskID,
     model: tf.LayersModel,
-    weights: List<WeightsContainer>,
-    byzantineRobustAggregator: boolean,
-    tauPercentile: number
+    weightsOrMomentum: List<WeightsContainer>,
+    byzantineRobustAggregator?: boolean,
+    tauPercentile?: number
   ): Promise<void> {
-    // Get averaged weights
-    const averagedWeights = byzantineRobustAggregator && tauPercentile > 0 && tauPercentile < 1
-      ? aggregation.avgClippingWeights(weights, WeightsContainer.from(model), tauPercentile)
-      : aggregation.avg(weights)
+    let averagedWeights: WeightsContainer
+
+    if (byzantineRobustAggregator !== undefined && tauPercentile !== undefined) {
+      console.log('Using Byzantine-Robust Aggregator')
+      const globalMomentum = this.globalMomentum.get(taskID)
+      if (globalMomentum === undefined) {
+        throw new Error('Global momentum is undefined')
+      }
+
+      const averagedMomentum = aggregation.avgClippingWeights(weightsOrMomentum, globalMomentum, tauPercentile)
+      this.globalMomentum = this.globalMomentum.set(taskID, averagedMomentum)
+
+      averagedWeights = WeightsContainer.from(model).add(aggregation.avg(weightsOrMomentum))
+    } else {
+      console.log('Using Standard Aggregator')
+
+      averagedWeights = aggregation.avg(weightsOrMomentum)
+    }
+
+    // console.log(averagedWeights.weights.map(w => w.arraySync()))
 
     // Update model
     model.setWeights(averagedWeights.weights)

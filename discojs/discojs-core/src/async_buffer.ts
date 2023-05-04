@@ -28,7 +28,8 @@ export class AsyncBuffer<T> {
     public readonly taskID: TaskID,
     private readonly bufferCapacity: number,
     private readonly aggregateAndStoreWeights: (weights: Iterable<T>) => Promise<void>,
-    private readonly roundCutoff = 0
+    private readonly roundCutoff = 0,
+    private readonly onRoundEnd: (newRound: number) => void
   ) {
     this.buffer = Map()
     this.round = 0
@@ -46,6 +47,8 @@ export class AsyncBuffer<T> {
   private async updateWeightsIfBufferIsFull (): Promise<void> {
     if (this.bufferIsFull()) {
       await this.aggregateAndStoreWeights(this.buffer.values())
+
+      this.onRoundEnd(this.round)
 
       this.round += 1
       this.observer?.update()

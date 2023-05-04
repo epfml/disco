@@ -52,6 +52,7 @@ export abstract class Base {
   abstract onRoundEndCommunication (
     updatedWeights: WeightsContainer,
     staleWeights: WeightsContainer,
+    updatedMomentum: WeightsContainer,
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<WeightsContainer>

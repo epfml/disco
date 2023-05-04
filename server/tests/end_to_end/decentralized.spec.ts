@@ -11,8 +11,9 @@ import { getClient, startServer } from '../utils'
 import { assertWeightsEqual } from '../../../discojs/discojs-core/src/weights/aggregation.spec'
 
 describe('end to end decentralized', function () {
+  this.timeout(180_000)
+
   const epsilon: number = 0.001
-  this.timeout(50_000)
 
   let server: Server
   beforeEach(async () => {
@@ -60,7 +61,7 @@ describe('end to end decentralized', function () {
     Makes client object to connect to server. The input array is the weights that the client will share
     with other ready peers. The input will vary with model architecture and training data. If secure is true,
     the client will implement secure aggregation. If it is false, it will be a clear text client.
-     */
+  */
   async function makeClient (input: number[], secure: boolean): Promise<WeightsContainer> {
     const cifar10Task = defaultTasks.cifar10.getTask()
     const client = secure
@@ -69,7 +70,7 @@ describe('end to end decentralized', function () {
     const weights = WeightsContainer.of(input)
     const trainingInformantCurrent = new informant.DecentralizedInformant(cifar10Task, 0)
     await client.connect()
-    return await client.onRoundEndCommunication(weights, weights, 0, trainingInformantCurrent)
+    return await client.onRoundEndCommunication(weights, weights, weights, 0, trainingInformantCurrent)
   }
 
   /*

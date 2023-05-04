@@ -1,4 +1,4 @@
-import { tf, Task, TaskProvider } from '..'
+import { tf, Task, data, TaskProvider } from '..'
 
 export const cifar10: TaskProvider = {
   getTask (): Task {
@@ -28,9 +28,9 @@ export const cifar10: TaskProvider = {
           metrics: ['accuracy']
         },
         dataType: 'image',
-        IMAGE_H: 32,
-        IMAGE_W: 32,
-        preprocessingFunctions: [],
+        preprocessingFunctions: [data.ImagePreprocessing.Resize],
+        IMAGE_H: 224,
+        IMAGE_W: 224,
         LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         scheme: 'Decentralized',
         noiseScale: undefined,

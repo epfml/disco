@@ -97,10 +97,10 @@ export class Disco {
     this.logger.success(
       'Thank you for your contribution. Data preprocessing has started')
 
-    const trainDataset = dataTuple.train.batch().preprocess()
+    const trainDataset = (await dataTuple.train.preprocess()).batch()
     // Use train as val dataset if val is undefined
     const valDataset = dataTuple.validation !== undefined
-      ? dataTuple.validation.batch().preprocess()
+      ? (await dataTuple.validation.preprocess()).batch()
       : trainDataset
 
     await this.client.connect()

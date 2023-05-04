@@ -24,6 +24,13 @@ export class WeightsContainer {
     return this.mapWith(other, tf.sub)
   }
 
+  mul (other: TensorLike): WeightsContainer {
+    return new WeightsContainer(
+      this._weights
+        .map(w => w.mul(other))
+    )
+  }
+
   mapWith (other: WeightsContainer, fn: (a: tf.Tensor, b: tf.Tensor) => tf.Tensor): WeightsContainer {
     return new WeightsContainer(
       this._weights

@@ -12,7 +12,7 @@ function test (
   name: string,
   Client: new (url: URL, t: Task) => clients.Base
 ): void {
-  describe(`decentralized ${name} client`, function () { // the tests container
+  describe(`decentralized ${name} client`, function () {
     this.timeout(30_000)
 
     let server: http.Server
@@ -49,7 +49,7 @@ function test (
 
         await Promise.all(
           users.zip(wss).zip(tis)
-            .map(async ([[u, ws], ti]) => await u.onRoundEndCommunication(ws, ws, 0, ti))
+            .map(async ([[u, ws], ti]) => await u.onRoundEndCommunication(ws, ws, ws, 0, ti))
             .toArray()
         )
 

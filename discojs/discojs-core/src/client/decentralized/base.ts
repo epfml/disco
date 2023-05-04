@@ -165,6 +165,7 @@ export abstract class Base extends ClientBase {
   async onRoundEndCommunication (
     updatedWeights: WeightsContainer,
     staleWeights: WeightsContainer,
+    _: WeightsContainer, // TODO: Implement Byzantine-Robust Aggregator in Decentralized setting
     round: number,
     trainingInformant: TrainingInformant
   ): Promise<WeightsContainer> {
