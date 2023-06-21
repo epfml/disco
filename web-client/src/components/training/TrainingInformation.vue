@@ -28,7 +28,7 @@
             width="100%"
             height="200"
             type="area"
-            :options="chartOptions"
+            :options="options"
             :series="validationAccuracyData"
           />
         </template>
@@ -56,7 +56,7 @@
             width="100%"
             height="200"
             type="area"
-            :options="chartOptions"
+            :options="options"
             :series="trainingAccuracyData"
           />
         </template>
@@ -128,8 +128,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { defineProps, computed } from 'vue'
 
 import { TrainingInformant } from '@epfml/discojs'
 
@@ -140,66 +140,23 @@ import Timer from '@/assets/svg/Timer.vue'
 import People from '@/assets/svg/People.vue'
 import Contact from '@/assets/svg/Contact.vue'
 
-export default defineComponent({
-  name: 'TrainingInformation',
-  components: {
-    IconCardSmall,
-    IconCard,
-    Timer,
-    People,
-    Contact
-  },
-  props: {
-    trainingInformant: {
-      validator: TrainingInformant.isTrainingInformant,
-      default: undefined
-    },
-    hasValidationData: {
-      type: Boolean,
-      default: false
-    }
-  },
-  computed: {
-    chartOptions () {
-      return chartOptions
-    },
-    displayHeatmap (): boolean {
-      return this.trainingInformant.displayHeatmap
-    },
-    currentRoundText (): string {
-      return this.trainingInformant.isDecentralized() || this.trainingInformant.isFederated()
-        ? 'Current Round'
-        : 'Current Epoch'
-    },
-    interoperabilityHeatmapData () {
-      // TODO: cahnge once the peers exchange actual data of their weights and biases.
-      return [
-        {
-          name: 'You',
-          data: this.trainingInformant.weightsIn
-        }
-      ]
-    },
-    currentTrainingAccuracy (): number {
-      return this.trainingInformant.trainingAccuracy()
-    },
-    currentValidationAccuracy (): number {
-      return this.trainingInformant.validationAccuracy()
-    },
-    trainingAccuracyData (): [{ data: number[] }] {
-      return [
-        {
-          data: this.trainingInformant.trainingAccuracyData().toArray()
-        }
-      ]
-    },
-    validationAccuracyData (): [{ data: number[] }] {
-      return [
-        {
-          data: this.trainingInformant.validationAccuracyData().toArray()
-        }
-      ]
-    }
-  }
-})
+interface Props {
+  trainingInformant?: TrainingInformant
+  hasValidationData: boolean
+}
+const props = defineProps<Props>()
+
+const options = computed(() => chartOptions)
+const currentRoundText = computed(() =>
+  props.trainingInformant.isDecentralized() || props.trainingInformant.isFederated()
+    ? 'Current Round'
+    : 'Current Epoch')
+const currentTrainingAccuracy = computed(() => props.trainingInformant.trainingAccuracy())
+const currentValidationAccuracy = computed(() => props.trainingInformant.validationAccuracy())
+const trainingAccuracyData = computed(() => [{
+  data: props.trainingInformant.trainingAccuracyData().toArray()
+}])
+const validationAccuracyData = computed(() => [{
+  data: props.trainingInformant.validationAccuracyData().toArray()
+}])
 </script>

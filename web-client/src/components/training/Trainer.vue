@@ -48,9 +48,10 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { browser, data, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, Client } from '@epfml/discojs'
+import { browser, data, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, client as clients } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
+// TODO @s314cy: move to discojs-core/src/client/get.ts
 import { getClient } from '@/clients'
 import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
@@ -86,7 +87,7 @@ export default defineComponent({
   },
   computed: {
     ...mapStores(useMemoryStore),
-    client (): Client {
+    client (): clients.Client {
       return getClient(this.scheme, this.task)
     },
     memory (): Memory {

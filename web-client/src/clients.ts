@@ -1,19 +1,18 @@
-import { client, Client, Task, TrainingSchemes } from '@epfml/discojs'
+import { client as clients, aggregator as aggregators, Task, TrainingSchemes } from '@epfml/discojs'
 
 import { CONFIG } from './config'
 
-export function getClient (trainingScheme: TrainingSchemes, task: Task): Client {
+export function getClient (trainingScheme: TrainingSchemes, task: Task): clients.Client {
+  const aggregator = aggregators.getAggregator(task)
+
   switch (trainingScheme) {
     case TrainingSchemes.DECENTRALIZED:
-      if (task.trainingInformation.decentralizedSecure) {
-        // TODO add sec agg here
-        return new client.decentralized.Base(CONFIG.serverUrl, task)
-      } else {
-        return new client.decentralized.Base(CONFIG.serverUrl, task)
-      }
+      return new clients.decentralized.DecentralizedClient(CONFIG.serverUrl, task, aggregator)
     case TrainingSchemes.FEDERATED:
-      return new client.federated.Client(CONFIG.serverUrl, task)
+      return new clients.federated.FederatedClient(CONFIG.serverUrl, task, aggregator)
     case TrainingSchemes.LOCAL:
-      return new client.Local(CONFIG.serverUrl, task)
+      return new clients.Local(CONFIG.serverUrl, task, aggregator)
+    default:
+      throw new Error('unknown training scheme')
   }
 }
