@@ -26,7 +26,6 @@
     "simple-peer": "9",
     "tslib": "2",
     "url": "0.11",
-    "uuid": "8",
     "ws": "8"
   },
   "devDependencies": {
@@ -34,7 +33,6 @@
     "@types/chai": "4",
     "@types/mocha": "9",
     "@types/simple-peer": "9",
-    "@types/uuid": "8",
     "@typescript-eslint/eslint-plugin": "4",
     "@typescript-eslint/parser": "4",
     "chai": "4",

@@ -1,4 +1,5 @@
-import { tf, Client, Task, TrainingInformant, TrainingFunction, Memory, ModelType, ModelInfo, WeightsContainer } from '../..'
+import { tf, client as clients, Task, TrainingInformant, TrainingFunction, Memory, ModelType, ModelInfo } from '../..'
+import { Aggregator } from '../../aggregator'
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
@@ -22,16 +23,15 @@ export class TrainerBuilder {
    * @param distributed whether to build a distributed or local trainer
    * @returns
    */
-  async build (client: Client, distributed: boolean = false): Promise<Trainer> {
+  async build (aggregator: Aggregator, client: clients.Client, distributed: boolean = false): Promise<Trainer> {
+    const model = await this.getModel(client)
     if (distributed) {
       return new DistributedTrainer(
         this.task,
         this.trainingInformant,
         this.memory,
-        await this.getModel(client),
-        await this.getModel(client),
+        model,
         client,
-        WeightsContainer.of(...(await this.getModel(client)).getWeights().map(weights => tf.zerosLike(weights))),
         this.trainingFunction
       )
     } else {
@@ -39,7 +39,7 @@ export class TrainerBuilder {
         this.task,
         this.trainingInformant,
         this.memory,
-        await this.getModel(client),
+        model,
         this.trainingFunction
       )
     }
@@ -49,7 +49,7 @@ export class TrainerBuilder {
    * If a model exists in memory, laod it, otherwise load model from server
    * @returns
    */
-  private async getModel (client: Client): Promise<tf.LayersModel> {
+  private async getModel (client: clients.Client): Promise<tf.LayersModel> {
     const modelID = this.task.trainingInformation?.modelID
     if (modelID === undefined) {
       throw new TypeError('model ID is undefined')

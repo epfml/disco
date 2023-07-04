@@ -4,21 +4,20 @@ import { messages } from '.'
 import { type } from '../messages'
 import { PeerConnection, EventConnection } from '../event_connection'
 
-import { Peer } from './peer'
 import { PeerPool } from './peer_pool'
-import { PeerID } from './types'
+import { NodeID } from '../types'
 
 describe('peer pool', function () {
   this.timeout(10_000)
 
-  let pools: Map<PeerID, PeerPool>
+  let pools: Map<NodeID, PeerPool>
 
   beforeEach(async () => {
     const count = 3
 
     pools = Map(await Promise.all(
-      Range(1, count + 1).map(async (id) =>
-        [id, await PeerPool.init(id)] as [PeerID, PeerPool]
+      Range(1, count + 1).map(String).map(async (id) =>
+        [id, await PeerPool.init(id)] as [NodeID, PeerPool]
       ).toArray()
     ))
   })
@@ -27,7 +26,7 @@ describe('peer pool', function () {
     pools.forEach((p) => p.shutdown())
   })
 
-  function mockServer(poolId: number): EventConnection {
+  function mockServer (poolId: string): EventConnection {
     return {
       send: (msg: any): void => {
         const signal: messages.SignalForPeer = msg
@@ -40,19 +39,20 @@ describe('peer pool', function () {
       on: (): void => {},
       once: (): void => {},
       disconnect: (): void => {}
-    };
-  }
-
-  function mockWeights(id: PeerID): messages.Weights {
-    return {
-      type: type.Weights,
-      peer: id,
-      weights: [1, 2, 3]
     }
   }
 
-  async function getAllPeers (pools: Map<PeerID, PeerPool>):
-  Promise<Map<PeerID, Map<PeerID, PeerConnection>>> {
+  function mockWeights (id: NodeID): messages.Payload {
+    return {
+      type: type.Payload,
+      peer: id,
+      payload: [1, 2, 3],
+      round: 0
+    }
+  }
+
+  async function getAllPeers (pools: Map<NodeID, PeerPool>):
+  Promise<Map<NodeID, Map<NodeID, PeerConnection>>> {
     const ids = pools.keySeq().toSet()
 
     return Map(await Promise.all(pools
@@ -61,14 +61,14 @@ describe('peer pool', function () {
       )
       .entrySeq()
       .map(async ([id, p]) =>
-        [id, await p] as [PeerID, Map<PeerID, PeerConnection>]
+        [id, await p] as [NodeID, Map<NodeID, PeerConnection>]
       )
       .toArray()
     ))
   }
 
   async function assertCanSendMessagesToEach (
-    peersSets: Map<PeerID, Map<PeerID, PeerConnection>>
+    peersSets: Map<NodeID, Map<NodeID, PeerConnection>>
   ): Promise<void> {
     const messages =
       peersSets
@@ -79,6 +79,7 @@ describe('peer pool', function () {
             .toArray())
         .toArray()
         .flat()
+    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
     messages.sort()
 
     peersSets
@@ -94,14 +95,15 @@ describe('peer pool', function () {
           peers
             .valueSeq()
             .map(async (peer) =>
-              await new Promise<messages.Weights>((resolve) =>
-                peer.on(type.Weights, (data) => resolve(data))
+              await new Promise<messages.Payload>((resolve) =>
+                peer.on(type.Payload, (data) => resolve(data))
               )
             )
             .toArray()
         ))
         .toArray()
     )).flat()
+    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
     exchanged.sort()
 
     assert.deepStrictEqual(exchanged, messages)

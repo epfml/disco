@@ -11,11 +11,10 @@
  * The roundDuration is the length of a round (in batches).
  */
 export class RoundTracker {
-  round: number = 0
-  batch: number = 0
-  roundDuration: number
+  round = 0
+  batch = 0
 
-  constructor (roundDuration: number) {
+  constructor (public readonly roundDuration: number) {
     this.roundDuration = roundDuration
   }
 
@@ -43,5 +42,9 @@ export class RoundTracker {
       this.round += 1
     }
     return roundHasEnded
+  }
+
+  roundHasBegun (): boolean {
+    return this.batch % this.roundDuration === 0
   }
 }

@@ -1,105 +1,90 @@
-import { List, Map, Set } from 'immutable'
+import { Map, Set } from 'immutable'
 import * as nodeUrl from 'url'
 
-import { TrainingInformant, WeightsContainer, privacy, aggregation, Task } from '../..'
-import { Base as ClientBase } from '../base'
-import { PeerID } from './types'
+import { TrainingInformant, WeightsContainer, serialization, Contributions } from '../..'
+import { Client, NodeID } from '..'
+import { type, ClientConnected } from '../messages'
+import { timeout } from '../utils'
+import { EventConnection, WebSocketServer, waitMessage, PeerConnection, waitMessageWithTimeout } from '../event_connection'
 import { PeerPool } from './peer_pool'
 import * as messages from './messages'
-import { type, clientConnected } from '../messages'
-import { EventConnection, WebSocketServer, waitMessage, PeerConnection, waitMessageWithTimeout } from '../event_connection'
-import { MAX_WAIT_PER_ROUND } from '../utils'
 
 /**
  * Abstract class for decentralized clients, executes onRoundEndCommunication as well as connecting
  * to the signaling server
  */
-export abstract class Base extends ClientBase {
-  protected readonly minimumReadyPeers: number
-
-  private server?: EventConnection
-
-  // list of peerIDs who the client will send messages to
-  private peers?: Set<PeerID>
-
-  // ID of the client, got from the server
-  private ID?: PeerID
-
+export class Base extends Client {
+  protected receivedWeights?: Promise<Contributions>
   private pool?: Promise<PeerPool>
+  private connections?: Map<NodeID, PeerConnection>
 
-  constructor (
-    public readonly url: URL,
-    public readonly task: Task
-  ) {
-    super(url, task)
-    this.minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
-  }
-
-  // send message to server that client is ready
-  private async waitForPeers (round: number): Promise<Map<PeerID, PeerConnection>> {
-    console.debug(this.ID, 'is ready for round', round)
-
-    // clean old round
-    this.peers = undefined
+  /**
+   * Send message to server that client is ready
+   */
+  private async waitForPeers (round: number): Promise<Map<NodeID, PeerConnection>> {
+    console.info(`[${this.ownId}] is ready for round`, round)
 
     // Broadcast our readiness
-    const msg: messages.PeerIsReady = { type: type.PeerIsReady }
+    const readyMessage: messages.PeerIsReady = { type: type.PeerIsReady }
 
     if (this.server === undefined) {
       throw new Error('server undefined, could not connect peers')
     }
-    this.server.send(msg)
+    this.server.send(readyMessage)
 
-    // wait for peers to be connected before sending any update information
-    const receivedMessage = await waitMessageWithTimeout(this.server, type.PeersForRound, MAX_WAIT_PER_ROUND)
+    // Wait for peers to be connected before sending any update information
+    try {
+      const receivedMessage = await waitMessageWithTimeout(this.server, type.PeersForRound)
+      if (this.nodes.size > 0) {
+        throw new Error('got new peer list from server but was already received for this round')
+      }
 
-    const peers = Set(receivedMessage.peers)
-    if (this.ID !== undefined && peers.has(this.ID)) {
-      throw new Error('received peer list contains our own id')
+      const peers = Set(receivedMessage.peers)
+      console.info(`[${this.ownId}] received peers for round:`, peers.toJS())
+      if (this.ownId !== undefined && peers.has(this.ownId)) {
+        throw new Error('received peer list contains our own id')
+      }
+
+      this.aggregator.setNodes(peers.add(this.ownId))
+
+      if (this.pool === undefined) {
+        throw new Error('waiting for peers but peer pool is undefined')
+      }
+
+      const pool = await this.pool
+      const connections = await pool.getPeers(
+        peers,
+        this.server,
+        // Init receipt of peers weights
+        (conn) => this.receivePayloads(conn, round)
+      )
+
+      console.info(`[${this.ownId}] received peers for round ${round}:`, connections.keySeq().toJS())
+      return connections
+    } catch (e) {
+      console.error(e)
+      this.aggregator.setNodes(Set(this.ownId))
+      return Map()
     }
-
-    if (this.peers !== undefined) {
-      throw new Error('got new peer list from server but was already received for this round')
-    }
-
-    if (peers.size + 1 < this.minimumReadyPeers) {
-      throw new Error('new peer list do not contain enough ready peers')
-    }
-    this.peers = peers
-
-    console.debug(this.ID, 'got peers for round:', peers.toJS())
-
-    if (this.pool === undefined) {
-      throw new Error('waiting for peers but peer pool is undefined')
-    }
-    const ret = await (await this.pool).getPeers(
-      Set(this.peers ?? []),
-      this.server,
-      (p) => this.clientHandle(p)
-    )
-
-    console.debug(this.ID, `got peers for round ${round}:`, ret.keySeq().toJS())
-    return ret
   }
 
-  // TODO inline? have a serialization mod
   protected sendMessagetoPeer (peer: PeerConnection, msg: messages.PeerMessage): void {
-    console.debug(this.ID, 'sends message to peer', msg.peer, msg)
+    console.info(`[${this.ownId}] send message to peer`, msg.peer, msg)
     peer.send(msg)
   }
 
-  /*
-  creation of the websocket for the server, connection of client to that webSocket,
-  deals with message reception from decentralized client perspective (messages received by client)
+  /**
+   * creation of the websocket for the server, connection of client to that webSocket,
+   * deals with message reception from decentralized client perspective (messages received by client)
    */
   private async connectServer (url: URL): Promise<EventConnection> {
     const server: EventConnection = await WebSocketServer.connect(url, messages.isMessageFromServer, messages.isMessageToServer)
 
     server.on(type.SignalForPeer, (event) => {
-      console.debug(this.ID, 'got signal from', event.peer)
+      console.info(`[${this.ownId}] received signal from`, event.peer)
 
       if (this.pool === undefined) {
-        throw new Error('got signal but peer pool is undefined')
+        throw new Error('received signal but peer pool is undefined')
       }
       void this.pool.then((pool) => pool.signal(event.peer, event.signal))
     })
@@ -107,9 +92,6 @@ export abstract class Base extends ClientBase {
     return server
   }
 
-  /**
-   * Initialize the connection to the peers and to the other nodes.
-   */
   async connect (): Promise<void> {
     const URL = typeof window !== 'undefined' ? window.URL : nodeUrl.URL
     const serverURL = new URL('', this.url.href)
@@ -125,79 +107,125 @@ export abstract class Base extends ClientBase {
     }
     serverURL.pathname += `deai/${this.task.taskID}`
 
-    this.server = await this.connectServer(serverURL)
+    this._server = await this.connectServer(serverURL)
 
-    const msg: clientConnected = {
-      type: type.clientConnected
+    const msg: ClientConnected = {
+      type: type.ClientConnected
     }
     this.server.send(msg)
 
-    const peerIdMsg = await waitMessage(this.server, type.PeerID)
-    console.debug(peerIdMsg.id, 'got own id from server')
+    const peerIdMsg = await waitMessage(this.server, type.AssignNodeID)
+    console.info(`[${peerIdMsg.id}] assigned id generated by server`)
 
-    if (this.ID !== undefined) {
-      throw new Error('got ID from server but was already received')
+    if (this._ownId !== undefined) {
+      throw new Error('received id from server but was already received')
     }
-    this.ID = peerIdMsg.id
+    this._ownId = peerIdMsg.id
     this.pool = PeerPool.init(peerIdMsg.id)
-    this.connected = true // Is this still needed?
-
-    console.debug(this.ID, 'client connected to server')
   }
 
-  // disconnect from server & peers
   async disconnect (): Promise<void> {
-    console.debug(this.ID, 'disconnect');
-
-    (await this.pool)?.shutdown()
+    // Disconnect from peers
+    const pool = await this.pool
+    pool?.shutdown()
     this.pool = undefined
 
+    if (this.connections !== undefined) {
+      const peers = this.connections.keySeq().toSet()
+      this.aggregator.setNodes(this.aggregator.nodes.subtract(peers))
+    }
+
+    // Disconnect from server
     this.server?.disconnect()
-    this.server = undefined
-    this.connected = false
+    this._server = undefined
+    this._ownId = undefined
   }
 
-  async onTrainEndCommunication (_: WeightsContainer, trainingInformant: TrainingInformant): Promise<void> {
-    // TODO: enter seeding mode?
-    trainingInformant.addMessage('Training finished.')
+  async onRoundBeginCommunication (
+    weights: WeightsContainer,
+    round: number,
+    trainingInformant: TrainingInformant
+  ): Promise<void> {
+    // Reset peers list at each round of training to make sure client works with an updated peers
+    // list, maintained by the server. Adds any received weights to the aggregator.
+    this.connections = await this.waitForPeers(round)
+    // Store the promise for the current round's aggregation result.
+    this.aggregationResult = this.aggregator.receiveResult()
   }
 
   async onRoundEndCommunication (
-    updatedWeights: WeightsContainer,
-    staleWeights: WeightsContainer,
-    _: WeightsContainer, // TODO: Implement Byzantine-Robust Aggregator in Decentralized setting
+    weights: WeightsContainer,
     round: number,
     trainingInformant: TrainingInformant
-  ): Promise<WeightsContainer> {
-    try {
-      // reset peer list at each round of training to make sure client waits for updated peerList from server
-      const peers = await this.waitForPeers(round)
+  ): Promise<void> {
+    let result = weights
 
-      // centralized phase of communication --> client tells server that they have finished a local round and are ready to aggregate
+    // Perform the required communication rounds. Each communication round consists in sending our local payload,
+    // followed by an aggregation step triggered by the receipt of other payloads, and handled by the aggregator.
+    // A communication round's payload is the aggregation result of the previous communication round. The first
+    // communication round simply sends our training result, i.e. model weights updates. This scheme allows for
+    // the aggregator to define any complex multi-round aggregation mechanism.
+    for (let r = 0; r < this.aggregator.communicationRounds; r++) {
+      // Generate our payloads for this communication round and send them to all ready connected peers
+      if (this.connections !== undefined) {
+        const payloads = this.aggregator.makePayloads(result)
+        try {
+          await Promise.all(payloads.map(async (payload, id) => {
+            if (id === this.ownId) {
+              this.aggregator.add(this.ownId, payload, round, r)
+            } else {
+              const connection = this.connections?.get(id)
+              if (connection !== undefined) {
+                const encoded = await serialization.weights.encode(payload)
+                this.sendMessagetoPeer(connection, {
+                  type: type.Payload,
+                  peer: id,
+                  round: r,
+                  payload: encoded
+                })
+              }
+            }
+          }))
+        } catch {
+          throw new Error('error while sending weights')
+        }
+      }
 
-      // Apply clipping and DP to updates that will be sent
-      const noisyWeights = privacy.addDifferentialPrivacy(updatedWeights, staleWeights, this.task)
+      if (this.aggregationResult === undefined) {
+        throw new TypeError('aggregation result promise is undefined')
+      }
 
-      // send weights to all ready connected peers
-      const finalWeights = await this.sendAndReceiveWeights(peers, noisyWeights, round, trainingInformant)
+      // Wait for aggregation before proceeding to the next communication round.
+      // The current result will be used as payload for the eventual next communication round.
+      result = await Promise.race([this.aggregationResult, timeout()])
 
-      console.debug(this.ID, 'sent and received', finalWeights.size, 'weights at round', round)
-      return aggregation.avg(finalWeights)
-    } catch (e) {
-      let msg = `errored on round ${round}`
-      if (e instanceof Error) { msg += `: ${e.message}` }
-      console.warn(this.ID, msg)
-
-      return updatedWeights
+      // There is at least one communication round remaining
+      if (r < this.aggregator.communicationRounds - 1) {
+        // Reuse the aggregation result
+        this.aggregationResult = this.aggregator.receiveResult()
+      }
     }
+
+    // Reset the peers list for the next round
+    this.aggregator.resetNodes()
   }
 
-  abstract sendAndReceiveWeights (
-    peers: Map<PeerID, PeerConnection>,
-    noisyWeights: WeightsContainer,
-    round: number,
-    trainingInformant: TrainingInformant
-  ): Promise<List<WeightsContainer>>
+  private receivePayloads (connections: Map<NodeID, PeerConnection>, round: number): void {
+    console.info(`[${this.ownId}] Accepting new contributions for round ${round}`)
+    connections.forEach(async (connection, peerId) => {
+      let receivedPayloads = 0
+      do {
+        try {
+          const message = await waitMessageWithTimeout(connection, type.Payload)
+          const decoded = serialization.weights.decode(message.payload)
 
-  abstract clientHandle (peers: Map<PeerID, PeerConnection>): void
+          if (!this.aggregator.add(peerId, decoded, round, message.round)) {
+            console.warn(`[${this.ownId}] Failed to add contribution from peer ${peerId}`)
+          }
+        } catch (e) {
+          console.warn(e instanceof Error ? e.message : e)
+        }
+      } while (++receivedPayloads < this.aggregator.communicationRounds)
+    })
+  }
 }

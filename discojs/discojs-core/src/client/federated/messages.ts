@@ -1,71 +1,72 @@
-import { MetadataID } from '../..'
+import { client, MetadataKey, MetadataValue } from '../..'
 import { weights } from '../../serialization'
 
 import { type, hasMessageType } from '../messages'
 
 export type MessageFederated =
-  postToServer |
-  latestServerRound |
-  pullServerStatistics |
-  postMetadata |
-  getMetadataMap |
-  messageGeneral
+  SendPayload |
+  ReceiveServerPayload |
+  ReceiveServerStatistics |
+  SendMetadata |
+  ReceiveServerMetadata |
+  MessageBase
 
-// base class for all messages
-export interface messageGeneral {
+// Base class for all messages
+export interface MessageBase {
   type: type
 }
-export interface postToServer {
-  type: type.postToServer
-  weights?: weights.Encoded
-  momentum?: weights.Encoded
+export interface SendPayload {
+  type: type.SendPayload
+  payload: weights.Encoded
   round: number
 }
-export interface latestServerRound {
-  type: type.latestServerRound
-  weights: weights.Encoded
+export interface ReceiveServerPayload {
+  type: type.ReceiveServerPayload
+  payload: weights.Encoded
   round: number
 }
-export interface pullServerStatistics {
-  type: type.pullServerStatistics
+export interface ReceiveServerStatistics {
+  type: type.ReceiveServerStatistics
   statistics: Record<string, number>
 }
-export interface postMetadata {
-  type: type.postMetadata
-  clientId: string
+export interface SendMetadata {
+  type: type.SendMetadata
+  nodeId: string
   taskId: string
   round: number
-  metadataId: string
-  metadata: string
+  key: MetadataKey
+  value: MetadataValue
 }
-export interface getMetadataMap {
-  type: type.getMetadataMap
-  clientId: string
+export interface ReceiveServerMetadata {
+  type: type.ReceiveServerMetadata
+  nodeId: client.NodeID
   taskId: string
   round: number
-  metadataId: MetadataID
-  metadataMap?: Array<[string, string | undefined]>
+  key: MetadataKey
+  metadataMap?: Array<[client.NodeID, MetadataValue | undefined]>
 }
 
-export function isMessageFederated (o: unknown): o is MessageFederated {
-  if (!hasMessageType(o)) {
+export function isMessageFederated (raw: unknown): raw is MessageFederated {
+  if (!hasMessageType(raw)) {
     return false
   }
 
-  switch (o.type) {
-    case type.clientConnected:
+  switch (raw.type) {
+    case type.ClientConnected:
       return true
-    case type.postToServer:
+    case type.SendPayload:
       return true
-    case type.latestServerRound:
+    case type.ReceiveServerPayload:
       return true
-    case type.pullServerStatistics:
+    case type.ReceiveServerStatistics:
       return true
-    case type.postMetadata:
+    case type.SendMetadata:
       return true
-    case type.getMetadataMap:
+    case type.ReceiveServerMetadata:
       return true
+    case type.AssignNodeID:
+      return true
+    default:
+      return false
   }
-
-  return false
 }

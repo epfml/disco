@@ -10,7 +10,7 @@
     "start": "ts-node src/run_server.ts",
     "build": "tsc",
     "clean": "tsc --build --clean && rm -r dist || true",
-    "test": "mocha --exit -r ts-node/register 'tests/**/*.ts'",
+    "test": "mocha",
     "lint": "npx eslint --max-warnings 0 ."
   },
   "author": "",
@@ -23,7 +23,8 @@
     "express-ws": "5",
     "immutable": "4",
     "lodash": "4",
-    "msgpack-lite": "0.1"
+    "msgpack-lite": "0.1",
+    "uuid": "^9.0.0"
   },
   "nodemonConfig": {
     "ignore": [
@@ -41,6 +42,7 @@
     "@types/mocha": "9",
     "@types/msgpack-lite": "0.1",
     "@types/supertest": "2",
+    "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "4",
     "@typescript-eslint/parser": "4",
     "chai": "4",

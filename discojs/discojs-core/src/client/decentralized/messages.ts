@@ -2,22 +2,16 @@ import { SignalData } from 'simple-peer'
 
 import { weights } from '../../serialization'
 
-import { isPeerID, PeerID as PeerIDType } from './types'
+import { isNodeID, NodeID } from '../types'
 
-import { type, clientConnected, hasMessageType } from '../messages'
+import { type, ClientConnected, AssignNodeID, hasMessageType } from '../messages'
 
-/// Phase 0 communication (just between server and client)
+/// Phase 0 communication (between server and peers)
 
-// server sends client id to client
-export interface PeerID {
-  type: type.PeerID
-  id: PeerIDType
-}
-
-// WebRTC signal to forward to peer
+// WebRTC signal to forward to other node
 export interface SignalForPeer {
   type: type.SignalForPeer
-  peer: PeerIDType
+  peer: NodeID
   signal: SignalData
 }
 
@@ -29,48 +23,31 @@ export interface PeerIsReady {
 // server send to client who to connect to
 export interface PeersForRound {
   type: type.PeersForRound
-  peers: PeerIDType[]
+  peers: NodeID[]
 }
 
-/// Phase 1 communication (between client and peers)
+/// Phase 1 communication (between peers)
 
-// client weights
-export interface Weights {
-  type: type.Weights
-  peer: PeerIDType
-  weights: weights.Encoded
+export interface Payload {
+  type: type.Payload
+  peer: NodeID
+  round: number
+  payload: weights.Encoded
 }
 
-// client shares
-export interface Shares {
-  type: type.Shares
-  peer: PeerIDType
-  weights: weights.Encoded
-}
-
-/// Phase 2 communication (between client and peers)
-
-// client partial sum
-export interface PartialSums {
-  type: type.PartialSums
-  peer: PeerIDType
-  partials: weights.Encoded
-}
+/// Phase 2 communication (between peers)
 
 export type MessageFromServer =
-  PeerID |
+  AssignNodeID |
   SignalForPeer |
   PeersForRound
 
 export type MessageToServer =
-  clientConnected |
+  ClientConnected |
   SignalForPeer |
   PeerIsReady
 
-export type PeerMessage =
-  Weights |
-  Shares |
-  PartialSums
+export type PeerMessage = Payload
 
 export function isMessageFromServer (o: unknown): o is MessageFromServer {
   if (!hasMessageType(o)) {
@@ -78,13 +55,13 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
   }
 
   switch (o.type) {
-    case type.PeerID:
-      return 'id' in o && isPeerID(o.id)
+    case type.AssignNodeID:
+      return 'id' in o && isNodeID(o.id)
     case type.SignalForPeer:
-      return 'peer' in o && isPeerID(o.peer) &&
+      return 'peer' in o && isNodeID(o.peer) &&
         'signal' in o // TODO check signal content?
     case type.PeersForRound:
-      return 'peers' in o && Array.isArray(o.peers) && o.peers.every(isPeerID)
+      return 'peers' in o && Array.isArray(o.peers) && o.peers.every(isNodeID)
   }
 
   return false
@@ -96,10 +73,10 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
   }
 
   switch (o.type) {
-    case type.clientConnected:
+    case type.ClientConnected:
       return true
     case type.SignalForPeer:
-      return 'peer' in o && isPeerID(o.peer) &&
+      return 'peer' in o && isNodeID(o.peer) &&
         'signal' in o // TODO check signal content?
     case type.PeerIsReady:
       return true
@@ -114,13 +91,11 @@ export function isPeerMessage (o: unknown): o is PeerMessage {
   }
 
   switch (o.type) {
-    case type.Weights:
-    case type.Shares:
-      return 'peer' in o && isPeerID(o.peer) &&
-        'weights' in o && weights.isEncoded(o.weights)
-    case type.PartialSums:
-      return 'peer' in o && isPeerID(o.peer) &&
-        'partials' in o && weights.isEncoded(o.partials)
+    case type.Payload:
+      return (
+        'peer' in o && isNodeID(o.peer) &&
+        'payload' in o && weights.isEncoded(o.payload)
+      )
   }
 
   return false

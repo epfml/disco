@@ -10,25 +10,35 @@ import { tf, TrainingInformation } from '..'
  * You need to be aware that the model is subject to regular changes in your training functions.
  */
 export type TrainingFunction =
-  (model: tf.LayersModel,
+  (
+    model: tf.LayersModel,
     trainingInformation: TrainingInformation,
     dataset: tf.data.Dataset<tf.TensorContainer>,
     valDataset: tf.data.Dataset<tf.TensorContainer>,
+    onEpochBegin: (epoch: number, logs?: tf.Logs) => void,
     onEpochEnd: (epoch: number, logs?: tf.Logs) => void,
+    onBatchBegin: (epoch: number, logs?: tf.Logs) => Promise<void>,
     onBatchEnd: (epoch: number, logs?: tf.Logs) => Promise<void>,
-    onTrainEnd: (logs?: tf.Logs) => Promise<void>) => Promise<void>
+    onTrainBegin: (logs?: tf.Logs) => Promise<void>,
+    onTrainEnd: (logs?: tf.Logs) => Promise<void>
+  ) => Promise<void>
 
 /**
-* Default training method used when none specified. Simply use the tensorflow fitDataset method.
-*/
-const defaultTraining: TrainingFunction = async (model, trainingInformation, dataset, valDataset, onEpochEnd, onBatchEnd, onTrainEnd) => {
+ * Default training method used when none specified. Simply use the tensorflow fitDataset method.
+ */
+const defaultTraining: TrainingFunction = async (
+  model, trainingInformation, dataset, valDataset, onEpochBegin, onEpochEnd, onBatchBegin, onBatchEnd, onTrainBegin, onTrainEnd
+) => {
   await model.fitDataset(dataset, {
     epochs: trainingInformation.epochs,
     validationData: valDataset,
     callbacks: {
-      onEpochEnd: onEpochEnd,
-      onBatchEnd: onBatchEnd,
-      onTrainEnd: onTrainEnd
+      onEpochBegin,
+      onEpochEnd,
+      onBatchBegin,
+      onBatchEnd,
+      onTrainBegin,
+      onTrainEnd
     }
   })
 }

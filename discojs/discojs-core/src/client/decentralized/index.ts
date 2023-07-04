@@ -1,6 +1,2 @@
-export { ClearText } from './clear_text'
-export { SecAgg } from './sec_agg'
-
+export { Base as DecentralizedClient } from './base'
 export * as messages from './messages'
-
-export { PeerID } from './types'

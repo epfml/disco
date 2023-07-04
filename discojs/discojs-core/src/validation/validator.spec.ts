@@ -1,7 +1,7 @@
 import { assert } from 'chai'
 import fs from 'fs'
 
-import { Task, node, Validator, ConsoleLogger, EmptyMemory, client, data } from '@epfml/discojs-node'
+import { Task, node, Validator, ConsoleLogger, EmptyMemory, client as clients, data, aggregator } from '@epfml/discojs-node'
 
 const simplefaceMock = {
   taskID: 'simple_face',
@@ -31,12 +31,16 @@ describe('validator', () => {
 
     const data: data.Data = (await new node.data.NodeImageLoader(simplefaceMock)
       .loadAll(files.flat(), { labels })).train
+    const buffer = new aggregator.MeanAggregator(simplefaceMock)
+    const client = new clients.Local(new URL('http://localhost:8080'), simplefaceMock, buffer)
+    buffer.setModel(await client.getLatestModel())
     const validator = new Validator(
       simplefaceMock,
       new ConsoleLogger(),
       new EmptyMemory(),
       undefined,
-      new client.Local(new URL('http://localhost:8080'), simplefaceMock))
+      client
+    )
     await validator.assess(data)
     const size = data.size !== undefined ? data.size : -1
     if (size === -1) {

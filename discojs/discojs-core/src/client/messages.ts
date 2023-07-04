@@ -1,32 +1,34 @@
 import * as decentralized from './decentralized/messages'
 import * as federated from './federated/messages'
+import { NodeID } from './types'
 
 export enum type {
-  clientConnected,
+  ClientConnected,
+  AssignNodeID,
 
-  // decentralized
-  PeerID,
+  // Decentralized
   SignalForPeer,
 
   PeerIsReady,
   PeersForRound,
 
-  Weights,
-  Shares,
+  Payload,
 
-  PartialSums,
-
-  // federated
-  postToServer,
-  postMetadata,
-  getMetadataMap,
-  latestServerRound,
-  pullRoundAndFetchWeights,
-  pullServerStatistics,
+  // Federated
+  SendPayload,
+  SendMetadata,
+  ReceiveServerMetadata,
+  ReceiveServerPayload,
+  ReceiveServerStatistics,
 }
 
-export interface clientConnected {
-  type: type.clientConnected
+export interface ClientConnected {
+  type: type.ClientConnected
+}
+
+export interface AssignNodeID {
+  type: type.AssignNodeID
+  id: NodeID
 }
 
 export type Message =
