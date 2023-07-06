@@ -222,7 +222,10 @@ export abstract class Base<T> {
    * The size is bounded by the amount of all active nodes.
    */
   get size (): number {
-    return this.contributions.size
+    return this.contributions
+      .valueSeq()
+      .map((m) => m.size)
+      .reduce((totalSize: number, size) => totalSize + size) ?? 0
   }
 
   /**
