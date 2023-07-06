@@ -3,7 +3,8 @@
     "private": true,
     "scripts": {
       "test": "cp ./src/index.browser.ts ./src/index.ts && mocha",
-      "lint": "cp ./src/index.browser.ts ./src/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' ."
+      "lint": "cp ./src/index.browser.ts ./src/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' .",
+      "docs": "typedoc ./src/index.ts --theme oxide"
     },
     "repository": {
       "type": "git",
