@@ -15,7 +15,7 @@ import { TrainerLog } from '../logging/trainer_logger'
 import { Aggregator } from '../aggregator'
 import { MeanAggregator } from '../aggregator/mean'
 
-interface DiscoOptions {
+export interface DiscoOptions {
   client?: clients.Client
   aggregator?: Aggregator
   url?: string | URL
@@ -26,7 +26,11 @@ interface DiscoOptions {
   customTrainingFunction?: TrainingFunction
 }
 
-// Handles the training loop, server communication & provides the user with feedback.
+/**
+ * Top-level class handling distributed training from a client's perspective. It is meant to be
+ * a convenient object providing a reduced yet complete API that wraps model training,
+ * communication with nodes, logs and model memory.
+ */
 export class Disco {
   public readonly task: Task
   public readonly logger: Logger
@@ -35,7 +39,6 @@ export class Disco {
   private readonly aggregator: Aggregator
   private readonly trainer: Promise<Trainer>
 
-  // client need to be connected
   constructor (
     task: Task,
     options: DiscoOptions
@@ -102,6 +105,10 @@ export class Disco {
     this.trainer = trainerBuilder.build(this.aggregator, this.client, options.scheme !== TrainingSchemes.LOCAL)
   }
 
+  /**
+   * Starts a training instance for the Disco object's task on the provided data tuple.
+   * @param dataTuple The data tuple
+   */
   async fit (dataTuple: data.DataSplit): Promise<void> {
     this.logger.success('Thank you for your contribution. Data preprocessing has started')
 
@@ -113,13 +120,19 @@ export class Disco {
     await trainer.fitModel(trainData.dataset, validationData.dataset)
   }
 
-  // Stops the training function. Does not disconnect the client.
+  /**
+   * Stops the ongoing training instance without disconnecting the client.
+   */
   async pause (): Promise<void> {
-    await (await this.trainer).stopTraining()
+    const trainer = await this.trainer
+    await trainer.stopTraining()
 
     this.logger.success('Training was successfully interrupted.')
   }
 
+  /**
+   * Completely stops the ongoing training instance.
+   */
   async close (): Promise<void> {
     await this.pause()
     await this.client.disconnect()

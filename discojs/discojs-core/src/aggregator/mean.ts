@@ -4,9 +4,14 @@ import { AggregationStep, Base as Aggregator } from './base'
 import { Task, WeightsContainer, aggregation, tf, client } from '..'
 
 /**
- * Aggregator that computes the mean of the weights received from the nodes.
+ * Mean aggregator whose aggregation step consists in computing the mean of the received weights.
  */
 export class MeanAggregator extends Aggregator<WeightsContainer> {
+  /**
+   * The threshold t to fulfill to trigger an aggregation step. It can either be:
+   * - relative: 0 < t <= 1, thus requiring t * |nodes| contributions
+   * - absolute: t > 1, thus requiring t contributions
+   */
   public readonly threshold: number
 
   constructor (
@@ -17,10 +22,13 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
   ) {
     super(task, model, roundCutoff, 1)
 
+    // Default threshold is 100% of node participation
     if (threshold === undefined) {
       this.threshold = 1
+    // Threshold must be positive
     } else if (threshold <= 0) {
       throw new Error('threshold must be positive')
+    // Thresholds greater than 1 are considered absolute instead of relative to the number of nodes
     } else if (threshold > 1 && Math.round(threshold) !== threshold) {
       throw new Error('absolute thresholds must integers')
     } else {
@@ -28,6 +36,10 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
     }
   }
 
+  /**
+   * Checks whether the contributions buffer is full, according to the set threshold.
+   * @returns Whether the contributions buffer is full
+   */
   isFull (): boolean {
     if (this.threshold <= 1) {
       const contribs = this.contributions.get(this.communicationRound)

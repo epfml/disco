@@ -3,6 +3,9 @@ import { Dataset } from '../dataset'
 import { Data } from './data'
 import { TABULAR_PREPROCESSING } from './preprocessing'
 
+/**
+ * Disco data made of tabular (.csv, .tsv, etc.) files.
+ */
 export class TabularData extends Data {
   public readonly availablePreprocessing = TABULAR_PREPROCESSING
 

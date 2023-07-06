@@ -3,6 +3,9 @@ import { Dataset } from '../dataset'
 import { Data } from './data'
 import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing'
 
+/**
+ * Disco data made of image samples (.jpg, .png, etc.).
+ */
 export class ImageData extends Data {
   public readonly availablePreprocessing = IMAGE_PREPROCESSING
 

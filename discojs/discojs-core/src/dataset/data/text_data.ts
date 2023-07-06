@@ -3,6 +3,9 @@ import { Dataset } from '../dataset'
 import { Data } from './data'
 import { TEXT_PREPROCESSING } from './preprocessing'
 
+/**
+ * Disco data made of textual samples.
+ */
 export class TextData extends Data {
   public readonly availablePreprocessing = TEXT_PREPROCESSING
 

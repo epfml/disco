@@ -6,10 +6,11 @@ import { Data, ImageData, DataSplit } from '../data'
 import { DataLoader, DataConfig } from '../data_loader'
 
 /**
- * TODO @s314cy:
+ * Image data loader whose instantiable implementation is delegated by the platform-dependent Disco subprojects, namely,
+ * @epfml/discojs-web and @epfml/discojs-node.
  * Load labels and correctly match them with their respective images, with the following constraints:
- * 1. Images are given as 1 image/1 file
- * 2. Labels are given as multiple labels/1 file, each label file can contain a different amount of labels
+ * 1. Images are given as 1 image/1 file;
+ * 2. Labels are given as multiple labels/1 file, each label file can contain a different amount of labels.
  */
 export abstract class ImageLoader<Source> extends DataLoader<Source> {
   abstract readImageFrom (source: Source): Promise<tf.Tensor3D>

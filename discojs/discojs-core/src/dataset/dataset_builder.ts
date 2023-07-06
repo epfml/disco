@@ -2,24 +2,47 @@ import { Task } from '..'
 import { DataSplit } from './data'
 import { DataConfig, DataLoader } from './data_loader/data_loader'
 
+import { Map } from 'immutable'
+
+/**
+ * Incrementally builds a dataset from the provided file sources. The sources may
+ * either be file blobs or regular file system paths.
+ */
 export class DatasetBuilder<Source> {
+  /**
+   * The buffer of unlabelled file sources.
+   */
   private _sources: Source[]
-  private readonly labelledSources: Map<string, Source[]>
-  private built: boolean
+  /**
+   * The buffer of labelled file sources.
+   */
+  private labelledSources: Map<string, Source[]>
+  /**
+   * Whether a dataset was already produced.
+   */
+  private _built: boolean
 
   constructor (
+    /**
+     * The data loader used to load the data contained in the provided files.
+     */
     private readonly dataLoader: DataLoader<Source>,
+    /**
+     * The task for which the dataset should be built.
+     */
     public readonly task: Task
   ) {
     this._sources = []
-    this.labelledSources = new Map()
-    this.built = false
+    this.labelledSources = Map()
+    this._built = false
   }
 
-  get sources (): Source[] {
-    return this._sources.length > 0 ? this._sources : [...this.labelledSources.values()].flat()
-  }
-
+  /**
+   * Adds the given file sources to the builder's buffer. Sources may be provided a label in the case
+   * of supervised learning.
+   * @param sources The array of file sources
+   * @param label The file sources label
+   */
   addFiles (sources: Source[], label?: string): void {
     if (this.built) {
       this.resetBuiltState()
@@ -29,13 +52,18 @@ export class DatasetBuilder<Source> {
     } else {
       const currentSources = this.labelledSources.get(label)
       if (currentSources === undefined) {
-        this.labelledSources.set(label, sources)
+        this.labelledSources = this.labelledSources.set(label, sources)
       } else {
-        this.labelledSources.set(label, currentSources.concat(sources))
+        this.labelledSources = this.labelledSources.set(label, currentSources.concat(sources))
       }
     }
   }
 
+  /**
+   * Clears the file sources buffers. If a label is provided, only the file sources
+   * corresponding to the given label will be removed.
+   * @param label The file sources label
+   */
   clearFiles (label?: string): void {
     if (this.built) {
       this.resetBuiltState()
@@ -43,14 +71,14 @@ export class DatasetBuilder<Source> {
     if (label === undefined) {
       this._sources = []
     } else {
-      this.labelledSources.delete(label)
+      this.labelledSources = this.labelledSources.delete(label)
     }
   }
 
   // If files are added or removed, then this should be called since the latest
   // version of the dataset_builder has not yet been built.
   private resetBuiltState (): void {
-    this.built = false
+    this._built = false
   }
 
   private getLabels (): string[] {
@@ -58,7 +86,7 @@ export class DatasetBuilder<Source> {
     // Say for label A we have sources [img1, img2, img3], then we
     // need labels [A, A, A].
     let labels: string[][] = []
-    Array.from(this.labelledSources.values()).forEach((sources, index) => {
+    this.labelledSources.valueSeq().forEach((sources, index) => {
       const sourcesLabels = Array.from({ length: sources.length }, (_) => index.toString())
       labels = labels.concat(sourcesLabels)
     })
@@ -97,19 +125,26 @@ export class DatasetBuilder<Source> {
         labels: this.getLabels(),
         shuffle: false
       }
-      const sources = [...this.labelledSources.values()].flat()
-      dataTuple = await this.dataLoader.loadAll(sources, { ...defaultConfig, ...config })
+      const sources = this.labelledSources.valueSeq().toArray().flat()
+      dataTuple = await this.dataLoader.loadAll(sources, defaultConfig)
     }
     // TODO @s314cy: Support .csv labels for image datasets (supervised training or testing)
-    this.built = true
+    this._built = true
     return dataTuple
   }
 
-  isBuilt (): boolean {
-    return this.built
+  /**
+   * Whether the dataset builder has already been consumed to produce a dataset.
+   */
+  get built (): boolean {
+    return this._built
   }
 
-  size (): number {
+  get size (): number {
     return Math.max(this._sources.length, this.labelledSources.size)
+  }
+
+  get sources (): Source[] {
+    return this._sources.length > 0 ? this._sources : this.labelledSources.valueSeq().toArray().flat()
   }
 }

@@ -1,7 +1,7 @@
 import { Map, Set } from 'immutable'
 import * as nodeUrl from 'url'
 
-import { TrainingInformant, WeightsContainer, serialization, Contributions } from '../..'
+import { TrainingInformant, WeightsContainer, serialization } from '../..'
 import { Client, NodeID } from '..'
 import { type, ClientConnected } from '../messages'
 import { timeout } from '../utils'
@@ -10,16 +10,20 @@ import { PeerPool } from './peer_pool'
 import * as messages from './messages'
 
 /**
- * Abstract class for decentralized clients, executes onRoundEndCommunication as well as connecting
- * to the signaling server
+ * Represents a decentralized client in a network of peers. Peers coordinate each other with the
+ * help of the network's server, yet only exchange payloads between each other. Communication
+ * with the server is based off regular WebSockets, whereas peer-to-peer communication uses
+ * WebRTC for Node.js.
  */
 export class Base extends Client {
-  protected receivedWeights?: Promise<Contributions>
+  /**
+   * The pool of peers to communicate with during the current training round.
+   */
   private pool?: Promise<PeerPool>
   private connections?: Map<NodeID, PeerConnection>
 
   /**
-   * Send message to server that client is ready
+   * Send message to server that this client is ready for the next training round.
    */
   private async waitForPeers (round: number): Promise<Map<NodeID, PeerConnection>> {
     console.info(`[${this.ownId}] is ready for round`, round)
@@ -74,8 +78,8 @@ export class Base extends Client {
   }
 
   /**
-   * creation of the websocket for the server, connection of client to that webSocket,
-   * deals with message reception from decentralized client perspective (messages received by client)
+   * Creation of the WebSocket for the server, connection of client to that WebSocket,
+   * deals with message reception from the decentralized client's perspective (messages received by client).
    */
   private async connectServer (url: URL): Promise<EventConnection> {
     const server: EventConnection = await WebSocketServer.connect(url, messages.isMessageFromServer, messages.isMessageToServer)

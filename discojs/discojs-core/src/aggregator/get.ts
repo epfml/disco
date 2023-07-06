@@ -1,5 +1,8 @@
 import { aggregator, Task } from '..'
 
+/**
+ * Enumeration of the available types of aggregator.
+ */
 export enum AggregatorChoice {
   MEAN,
   ROBUST,
@@ -7,6 +10,11 @@ export enum AggregatorChoice {
   BANDIT
 }
 
+/**
+ * Provides the aggregator object adequate to the given task.
+ * @param task The task
+ * @returns The aggregator
+ */
 export function getAggregator (task: Task): aggregator.Aggregator {
   const error = new Error('not implemented')
   switch (task.trainingInformation.aggregator) {
