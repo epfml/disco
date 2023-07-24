@@ -38,7 +38,7 @@ const normalize: PreprocessingFunction = {
   }
 }
 
-export const AVAILABLE_PREPROCESSING = List.of(
+export const AVAILABLE_PREPROCESSING = List([
   resize,
-  normalize
+  normalize]
 ).sortBy((e) => e.type)

@@ -20,12 +20,11 @@
     "@tensorflow/tfjs-node": "4",
     "@types/msgpack-lite": "0.1",
     "axios": "0.27",
-    "gpt3-tokenizer": "^1.1.5",
+    "gpt3-tokenizer": "1",
     "immutable": "4",
     "isomorphic-ws": "4",
     "msgpack-lite": "0.1",
     "simple-peer": "9",
-    "split2": "^4.2.0",
     "tslib": "2",
     "url": "0.11",
     "ws": "8"
@@ -42,6 +41,6 @@
     "eslint-config-standard-with-typescript": "21",
     "mocha": "9",
     "ts-node": "10",
-    "typescript": "<4.5.0"
+    "typescript": "4"
   }
 }

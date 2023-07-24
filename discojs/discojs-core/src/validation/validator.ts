@@ -86,8 +86,8 @@ export class Validator {
       }
     }
 
-    return List(groundTruth)
-      .zip(List(predictions), List(features))
+    return (List(groundTruth)
+      .zip(List(predictions), List(features)) as List<[number, number, Features]>)
       .map(([gt, p, f]) => ({ groundTruth: gt, pred: p, features: f }))
       .toArray()
   }

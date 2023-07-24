@@ -63,7 +63,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
     if (this.communicationRound === 0) {
       const shares = this.generateAllShares(weights)
       // Abitrarily assign our shares to the available nodes
-      return Map(List(this.nodes).zip(shares))
+      return Map(List(this.nodes).zip(shares) as List<[string, WeightsContainer]>)
     } else {
       // Send our partial sum to every other nodes
       return this.nodes.toMap().map(() => weights)

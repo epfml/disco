@@ -103,8 +103,7 @@ export class Disco {
   }
 
   async fit (dataTuple: data.DataSplit): Promise<void> {
-    this.logger.success(
-      'Thank you for your contribution. Data preprocessing has started')
+    this.logger.success('Thank you for your contribution. Data preprocessing has started')
 
     const trainData = dataTuple.train.preprocess().batch()
     const validationData = dataTuple.validation?.preprocess().batch() ?? trainData

@@ -11,7 +11,6 @@ import { getClient, startServer } from '../utils'
 // Mocked aggregators with easy-to-fetch aggregation results
 class MockMeanAggregator extends aggregators.MeanAggregator {
   public outcome?: WeightsContainer
-  public id?: string
 
   aggregate (): void {
     this.log(aggregators.AggregationStep.AGGREGATE)
@@ -90,16 +89,15 @@ describe('end-to-end decentralized', function () {
     aggregator.outcome = inputWeights
 
     await client.connect()
-    aggregator.id = client.ownId
 
     await client.onTrainBeginCommunication(aggregator.outcome, informant)
     // Perform multiple training rounds
     for (let r = 0; r < rounds; r++) {
       await client.onRoundBeginCommunication(aggregator.outcome, aggregator.round, informant)
-      await client.onRoundEndCommunication(aggregator.outcome, aggregator.round, informant)
       await new Promise((resolve) => {
         setTimeout(resolve, 1_000)
       })
+      await client.onRoundEndCommunication(aggregator.outcome, aggregator.round, informant)
     }
     await client.onTrainEndCommunication(aggregator.outcome, informant)
 

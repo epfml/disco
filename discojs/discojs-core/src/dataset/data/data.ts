@@ -45,6 +45,7 @@ export abstract class Data {
     if (
       taskPreprocessing === undefined ||
       taskPreprocessing.length === 0 ||
+      this.availablePreprocessing === undefined ||
       this.availablePreprocessing.size === 0
     ) {
       return (x) => x

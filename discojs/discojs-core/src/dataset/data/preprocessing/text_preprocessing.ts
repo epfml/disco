@@ -64,4 +64,4 @@ const tokenize: PreprocessingFunction = {
 export const AVAILABLE_PREPROCESSING = List.of(
   tokenize,
   padding
-)
+).sortBy((e) => e.type)
