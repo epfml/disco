@@ -7,8 +7,8 @@ import { Map, List, Range } from 'immutable'
 
 /**
  * Aggregator implementing secure multi-party computation for decentralized learning.
- * An aggregation is made of two communication rounds:
- * - first, nodes communicate their random shares to each other;
+ * An aggregation consists of two communication rounds:
+ * - first, nodes communicate their secret shares to each other;
  * - then, they sum their received shares and communicate the result.
  * Finally, nodes are able to average the received partial sums to establish the aggregation result.
  */
