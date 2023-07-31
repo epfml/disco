@@ -1,9 +1,11 @@
 import { tf, Task } from '../..'
-import { getPreprocessImage, ImagePreprocessing } from './preprocessing'
 import { Dataset } from '../dataset'
 import { Data } from './data'
+import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing'
 
 export class ImageData extends Data {
+  public readonly availablePreprocessing = IMAGE_PREPROCESSING
+
   static async init (
     dataset: Dataset,
     task: Task,
@@ -42,17 +44,7 @@ export class ImageData extends Data {
     return new ImageData(dataset, task, size)
   }
 
-  batch (): Data {
-    const batchSize = this.task.trainingInformation.batchSize
-    const newDataset = batchSize === undefined ? this.dataset : this.dataset.batch(batchSize)
-
-    return new ImageData(newDataset, this.task, this.size)
-  }
-
-  async preprocess (): Promise<Data> {
-    let newDataset = this.dataset
-    const preprocessImage = getPreprocessImage(this.task)
-    newDataset = newDataset.map((x: tf.TensorContainer) => preprocessImage(x))
-    return new ImageData(newDataset, this.task, this.size)
+  protected create (dataset: Dataset, task: Task, size: number): ImageData {
+    return new ImageData(dataset, task, size)
   }
 }

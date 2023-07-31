@@ -46,7 +46,7 @@ const props = defineProps<Props>()
         <span v-html="task.displayInformation.dataExampleText" /><br><br>
         <!-- Tabular data example -->
         <div
-          v-if="task.trainingInformation.dataType === 'tabular'"
+          v-if="['tabular', 'text'].includes(task.trainingInformation.dataType)"
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
           <span

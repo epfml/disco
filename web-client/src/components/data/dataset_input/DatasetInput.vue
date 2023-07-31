@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-1">
     <IconCard
-      v-if="task.trainingInformation.dataType === 'tabular' || isOnlyPrediction"
+      v-if="['tabular', 'text'].includes(task.trainingInformation.dataType) || isOnlyPrediction"
       class="justify-self-center w-full"
     >
       <template #title>
@@ -155,7 +155,9 @@ interface Props {
   datasetBuilder: data.DatasetBuilder<File>
   isOnlyPrediction: Boolean
 }
+
 const props = defineProps<Props>()
+
 const csvRows = ref<{ filename: string, label: string }[]>()
 const isBoxView = ref<boolean>(false)
 

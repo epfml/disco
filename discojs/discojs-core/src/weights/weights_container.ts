@@ -35,7 +35,7 @@ export class WeightsContainer {
     return new WeightsContainer(
       this._weights
         .zip(other._weights)
-        .map(([w1, w2]) => fn(w1, w2))
+        .map(([w1, w2]) => fn(w1, w2 as tf.Tensor<tf.Rank>))
     )
   }
 

@@ -3,22 +3,21 @@ import { DataSplit } from './data'
 import { DataConfig, DataLoader } from './data_loader/data_loader'
 
 export class DatasetBuilder<Source> {
-  private readonly task: Task
-  private readonly dataLoader: DataLoader<Source>
   private _sources: Source[]
   private readonly labelledSources: Map<string, Source[]>
   private built: boolean
 
-  constructor (dataLoader: DataLoader<Source>, task: Task) {
-    this.dataLoader = dataLoader
-    this.task = task
+  constructor (
+    private readonly dataLoader: DataLoader<Source>,
+    public readonly task: Task
+  ) {
     this._sources = []
     this.labelledSources = new Map()
     this.built = false
   }
 
   get sources (): Source[] {
-    return this._sources.length > 0 ? this._sources : Array.from(this.labelledSources.values()).flat()
+    return this._sources.length > 0 ? this._sources : [...this.labelledSources.values()].flat()
   }
 
   addFiles (sources: Source[], label?: string): void {
@@ -80,29 +79,26 @@ export class DatasetBuilder<Source> {
         // Inferring model, no labels needed
         defaultConfig = {
           features: this.task.trainingInformation.inputColumns,
-          shuffle: false,
-          ...config
+          shuffle: false
         }
       } else {
         // Labels are contained in the given sources
         defaultConfig = {
           features: this.task.trainingInformation.inputColumns,
           labels: this.task.trainingInformation.outputColumns,
-          shuffle: false,
-          ...config
+          shuffle: false
         }
       }
 
-      dataTuple = await this.dataLoader.loadAll(this._sources, defaultConfig)
+      dataTuple = await this.dataLoader.loadAll(this._sources, { ...defaultConfig, ...config })
     } else {
       // Labels are inferred from the file selection boxes
       const defaultConfig = {
         labels: this.getLabels(),
-        shuffle: false,
-        ...config
+        shuffle: false
       }
-      const sources = Array.from(this.labelledSources.values()).flat()
-      dataTuple = await this.dataLoader.loadAll(sources, defaultConfig)
+      const sources = [...this.labelledSources.values()].flat()
+      dataTuple = await this.dataLoader.loadAll(sources, { ...defaultConfig, ...config })
     }
     // TODO @s314cy: Support .csv labels for image datasets (supervised training or testing)
     this.built = true

@@ -32,7 +32,10 @@ describe('secret shares test', function () {
 
   it('recover secrets from shares', () => {
     const recovered = buildShares().map((shares) => aggregation.sum(shares))
-    assert.isTrue(recovered.zip(secrets).every(([actual, expected]) => actual.equals(expected, epsilon)))
+    assert.isTrue(
+      (recovered.zip(secrets) as List<[WeightsContainer, WeightsContainer]>).every(([actual, expected]) =>
+        actual.equals(expected, epsilon))
+    )
   })
 
   it('derive aggregation result from partial sums', () => {

@@ -1,14 +1,16 @@
 import { Task } from '../..'
-import { getPreprocessTabular } from './preprocessing'
 import { Dataset } from '../dataset'
 import { Data } from './data'
+import { TABULAR_PREPROCESSING } from './preprocessing'
 
 export class TabularData extends Data {
+  public readonly availablePreprocessing = TABULAR_PREPROCESSING
+
   static async init (
     dataset: Dataset,
     task: Task,
     size?: number
-  ): Promise<Data> {
+  ): Promise<TabularData> {
     // Force the check of the data column format (among other things) before proceeding
     // to training, for better error handling. An incorrectly formatted line might still
     // cause an error during training, because of the lazy aspect of the dataset; we only
@@ -22,17 +24,7 @@ export class TabularData extends Data {
     return new TabularData(dataset, task, size)
   }
 
-  batch (): Data {
-    const batchSize = this.task.trainingInformation.batchSize
-    const newDataset = batchSize === undefined ? this.dataset : this.dataset.batch(batchSize)
-
-    return new TabularData(newDataset, this.task, this.size)
-  }
-
-  async preprocess (): Promise<Data> {
-    let newDataset = this.dataset
-    const preprocessTabular = getPreprocessTabular(this.task)
-    newDataset = await preprocessTabular(newDataset)
-    return new TabularData(newDataset, this.task, this.size)
+  protected create (dataset: Dataset, task: Task, size: number): TabularData {
+    return new TabularData(dataset, task, size)
   }
 }

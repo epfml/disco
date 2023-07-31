@@ -103,18 +103,14 @@ export class Disco {
   }
 
   async fit (dataTuple: data.DataSplit): Promise<void> {
-    this.logger.success(
-      'Thank you for your contribution. Data preprocessing has started')
+    this.logger.success('Thank you for your contribution. Data preprocessing has started')
 
-    const trainDataset = (await dataTuple.train.preprocess()).batch()
-    // Use train as val dataset if val is undefined
-    const valDataset = dataTuple.validation !== undefined
-      ? (await dataTuple.validation.preprocess()).batch()
-      : trainDataset
+    const trainData = dataTuple.train.preprocess().batch()
+    const validationData = dataTuple.validation?.preprocess().batch() ?? trainData
 
     await this.client.connect()
     const trainer = await this.trainer
-    await trainer.fitModel(trainDataset.dataset, valDataset.dataset)
+    await trainer.fitModel(trainData.dataset, validationData.dataset)
   }
 
   // Stops the training function. Does not disconnect the client.

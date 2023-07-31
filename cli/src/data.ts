@@ -46,8 +46,8 @@ async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
 }
 
 class NodeTabularLoader extends data.TabularLoader<string> {
-  loadTabularDatasetFrom (source: string, csvConfig: Record<string, unknown>): tf.data.CSVDataset {
-    console.log('loading!>>', source)
+  async loadDatasetFrom (source: string, csvConfig: Record<string, unknown>): Promise<tf.data.CSVDataset> {
+    console.debug('loading!>>', source)
     return tf.data.csv(source, csvConfig)
   }
 }

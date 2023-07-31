@@ -80,20 +80,17 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
   }
 
   // interdepences on data type
-  switch (dataType) {
-    case 'image':
-      if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
-        return false
-      }
-      break
-    case 'tabular':
-      if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
-        return false
-      }
-      if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
-        return false
-      }
-      break
+  if (dataType === 'image') {
+    if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
+      return false
+    }
+  } else if (dataType in ['text', 'tabular']) {
+    if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
+      return false
+    }
+    if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
+      return false
+    }
   }
 
   // interdepences on scheme
@@ -119,9 +116,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
   }
 
   if (
-    preprocessingFunctions !== undefined && !(
-      Array.isArray(preprocessingFunctions) && preprocessingFunctions.every((e) => typeof e === 'string')
-    )
+    preprocessingFunctions !== undefined && !(Array.isArray(preprocessingFunctions))
   ) {
     return false
   }

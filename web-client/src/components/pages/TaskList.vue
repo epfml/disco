@@ -160,7 +160,7 @@ const { tasks } = storeToRefs(useTasksStore())
 const schemeFilters = reactive(['Decentralized', 'Federated']
   .map((scheme: string) => new SchemeFilter(scheme)))
 
-const dataFilters = reactive(['image', 'tabular']
+const dataFilters = reactive(['image', 'tabular', 'text']
   .map((dataType: string) => new DataFilter(dataType)))
 
 const offset = ref(0)

@@ -24,7 +24,7 @@
     "immutable": "4",
     "lodash": "4",
     "msgpack-lite": "0.1",
-    "uuid": "^9.0.0"
+    "uuid": "9"
   },
   "nodemonConfig": {
     "ignore": [
@@ -42,7 +42,7 @@
     "@types/mocha": "9",
     "@types/msgpack-lite": "0.1",
     "@types/supertest": "2",
-    "@types/uuid": "^9.0.1",
+    "@types/uuid": "9",
     "@typescript-eslint/eslint-plugin": "4",
     "@typescript-eslint/parser": "4",
     "chai": "4",
@@ -56,7 +56,7 @@
     "supertest": "6",
     "ts-node": "10",
     "ts-node-register": "1",
-    "typescript": "<4.5.0"
+    "typescript": "4"
   },
   "repository": {
     "type": "git",
