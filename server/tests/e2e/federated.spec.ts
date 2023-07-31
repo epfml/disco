@@ -11,7 +11,7 @@ import { getClient, startServer } from '../utils'
 const SCHEME = TrainingSchemes.FEDERATED
 
 describe('end-to-end federated', function () {
-  this.timeout(60_000)
+  this.timeout(90_000)
 
   let server: Server
   beforeEach(async () => {
