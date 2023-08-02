@@ -1,8 +1,8 @@
 # Custom means that it will use the Dockerfile
-runtime: custom
+runtime: custom 
 
 # Flex environment required for WebSocket support, which is required for PeerJS.
-# env: flex
+env: standard
 
 # Limit resources to one instance, one CPU, very little memory or disk.
 automatic_scaling:
