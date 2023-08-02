@@ -5,9 +5,7 @@ runtime: custom
 env: flex
 
 # Limit resources to one instance, one CPU, very little memory or disk.
-manual_scaling:
-  instances: 1
-resources:
-  cpu: 2
-  memory_gb: 4
-  disk_size_gb: 20
+automatic_scaling:
+  min_instances: 0
+  max_instances: 1
+instance_class: F1
