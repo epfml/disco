@@ -6,7 +6,11 @@ import * as crypto from 'crypto'
 import { Map, List, Range } from 'immutable'
 
 /**
- * Received contributions are the nodes' partial sums. The payloads are our random additive shares.
+ * Aggregator implementing secure multi-party computation for decentralized learning.
+ * An aggregation consists of two communication rounds:
+ * - first, nodes communicate their secret shares to each other;
+ * - then, they sum their received shares and communicate the result.
+ * Finally, nodes are able to average the received partial sums to establish the aggregation result.
  */
 export class SecureAggregator extends Aggregator<WeightsContainer> {
   public static readonly MAX_SEED: number = 2 ** 47
@@ -71,7 +75,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
   }
 
   /**
-   * Generate N additive shares that aggregate to the secret weights array, where N is the number of peers
+   * Generate N additive shares that aggregate to the secret weights array, where N is the number of peers.
    */
   public generateAllShares (secret: WeightsContainer): List<WeightsContainer> {
     if (this.nodes.size === 0) {
@@ -86,16 +90,12 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
   }
 
   /**
-   * Generates one share in the same shape as the secret that is populated with values randomly chosend from
+   * Generates one share in the same shape as the secret that is populated with values randomly chosen from
    * a uniform distribution between (-maxShareValue, maxShareValue).
    */
   public generateRandomShare (secret: WeightsContainer): WeightsContainer {
     const seed = crypto.randomInt(SecureAggregator.MAX_SEED)
     return secret.map((t) =>
       tf.randomUniform(t.shape, -this.maxShareValue, this.maxShareValue, 'float32', seed))
-  }
-
-  get communicationRound (): number {
-    return this._communicationRound
   }
 }

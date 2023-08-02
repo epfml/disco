@@ -8,6 +8,11 @@ import { DataLoader, DataConfig } from '../data_loader'
 // Window size from which the dataset shuffling will sample
 const BUFFER_SIZE = 1000
 
+/**
+ * Tabular data loader whose instantiable implementation is delegated by the platform-dependent Disco subprojects, namely,
+ * @epfml/discojs-web and @epfml/discojs-node. Loads data from files whose entries are line-separated and consist of
+ * character-separated features and label(s). Such files typically have the .csv extension.
+ */
 export abstract class TabularLoader<Source> extends DataLoader<Source> {
   constructor (task: Task, public readonly delimiter = ',') {
     super(task)
@@ -19,7 +24,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
    * @param csvConfig Object expected by TF.js to create a CSVDataset.
    * @returns The CSVDataset object built upon the given source.
    */
-  abstract loadDatasetFrom (szource: Source, csvConfig: Record<string, unknown>): Promise<Dataset>
+  abstract loadDatasetFrom (source: Source, csvConfig: Record<string, unknown>): Promise<Dataset>
 
   async createData (dataset: Dataset): Promise<Data> {
     // dataset.size does not work for csv datasets
@@ -77,9 +82,9 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
   }
 
   /**
-    * Creates the CSV datasets based off the given sources, then fuses them into a single CSV
-    * dataset.
-    */
+   * Creates the CSV datasets based off the given sources, then fuses them into a single CSV
+   * dataset.
+   */
   async loadAll (sources: Source[], config: DataConfig): Promise<DataSplit> {
     const datasets = await Promise.all(sources.map(async (source) =>
       await this.load(source, { ...config, shuffle: false })))

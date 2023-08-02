@@ -41,6 +41,8 @@
     "eslint-config-standard-with-typescript": "21",
     "mocha": "9",
     "ts-node": "10",
+    "typedoc": "0.22",
+    "typedoc-theme-oxide": "0.1",
     "typescript": "4"
   }
 }

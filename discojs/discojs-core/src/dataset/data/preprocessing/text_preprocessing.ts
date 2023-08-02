@@ -4,6 +4,9 @@ import { PreprocessingFunction } from './base'
 import GPT3Tokenizer from 'gpt3-tokenizer'
 import { List } from 'immutable'
 
+/**
+ * Available text preprocessing types.
+ */
 export enum TextPreprocessing {
   Tokenize,
   Padding
@@ -61,6 +64,9 @@ const tokenize: PreprocessingFunction = {
   }
 }
 
+/**
+ * Available text preprocessing functions.
+ */
 export const AVAILABLE_PREPROCESSING = List.of(
   tokenize,
   padding

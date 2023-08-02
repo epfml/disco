@@ -3,6 +3,9 @@ import { PreprocessingFunction } from './base'
 
 import { List } from 'immutable'
 
+/**
+ * Available image preprocessing types.
+ */
 export enum ImagePreprocessing {
   Resize,
   Normalize
@@ -38,6 +41,9 @@ const normalize: PreprocessingFunction = {
   }
 }
 
+/**
+ * Available image preprocessing functions.
+ */
 export const AVAILABLE_PREPROCESSING = List([
   resize,
   normalize]

@@ -10,6 +10,10 @@ export enum AggregationStep {
   AGGREGATE
 }
 
+/**
+ * Main, abstract, aggregator class whose role is to buffer contributions and to produce
+ * a result based off their aggregation, whenever some defined condition is met.
+ */
 export abstract class Base<T> {
   /**
    * Contains the ids of all active nodes, i.e. members of the aggregation group at
@@ -32,44 +36,67 @@ export abstract class Base<T> {
   protected informant?: AsyncInformant<T>
   /**
    * The result promise which, on resolve, will contain the current aggregation result.
+   * This promise should be fetched by any object making use of an aggregator, in order
+   * to await upon aggregation.
    */
   protected result: Promise<T>
   /**
-   * The current aggregation round, used for assessing whether a contribution is recent enough
+   * The current aggregation round, used for assessing whether a node contribution is recent enough
    * or not.
    */
   protected _round = 0
-
+  /**
+   * The current communication round. A single aggregation round is made of possibly multiple
+   * communication rounds. This makes the aggregator free to perform intermediate aggregation
+   * steps based off communication with its nodes. Overall, this allows for more complex
+   * aggregation schemes requiring an exchange of information between nodes before aggregating.
+   */
   protected _communicationRound = 0
 
   constructor (
+    /**
+     * The task for which the aggregator should be created.
+     */
     public readonly task: Task,
+    /**
+     * The TF.js model whose weights are updated on aggregation.
+     */
     protected _model?: tf.LayersModel,
+    /**
+     * The round cut-off for contributions.
+     */
     protected readonly roundCutoff = 0,
+    /**
+     * The number of communication rounds occuring during any given aggregation round.
+     */
     public readonly communicationRounds = 1
   ) {
     this.eventEmitter = new EventEmitter()
     this.contributions = Map()
     this._nodes = Set()
 
+    // Make the initial result promise
     this.result = this.makeResult()
 
+    // On every aggregation, update the object's state to match the current aggregation
+    // and communication rounds.
     this.eventEmitter.on('aggregation', () => {
       this.nextRound()
     })
   }
 
   /**
-   * Adds a node's contribution to the aggregator for a given round.
-   * The contribution will be aggregated during the round's aggregation step.
+   * Adds a node's contribution to the aggregator for the given aggregation and communication rounds.
+   * The contribution will be aggregated during the next aggregation step.
    * @param nodeId The node's id
    * @param contribution The node's contribution
-   * @param round For which round the contribution was made
+   * @param round For which aggregation round the contribution was made
+   * @param communicationRound For which communication round the contribution was made
    */
   abstract add (nodeId: client.NodeID, contribution: T, round: number, communicationRound?: number): boolean
 
   /**
-   * Performs the aggregation step over the received node contributions.
+   * Performs an aggregation step over the received node contributions.
    * Must store the aggregation's result in the aggregator's result promise.
    */
   abstract aggregate (): void
@@ -110,6 +137,10 @@ export abstract class Base<T> {
     }
   }
 
+  /**
+   * Sets the aggregator's TF.js model.
+   * @param model The new TF.js model
+   */
   setModel (model: tf.LayersModel): void {
     this._model = model
   }
@@ -138,6 +169,10 @@ export abstract class Base<T> {
     this._nodes = nodeIds
   }
 
+  /**
+   * Empties the current set of "nodes". Usually called at the end of an aggregation round,
+   * if the set of nodes is meant to change or to be actualized.
+   */
   resetNodes (): void {
     this._nodes = Set()
   }
@@ -163,7 +198,9 @@ export abstract class Base<T> {
   }
 
   /**
-   * Resets the aggregator's step and prepares it for the next aggregation round.
+   * Updates the aggregator's state to proceed to the next communication round.
+   * If all communication rounds were performed, proceeds to the next aggregation round
+   * and empties the collection of stored contributions.
    */
   public nextRound (): void {
     if (++this._communicationRound === this.communicationRounds) {
@@ -184,10 +221,9 @@ export abstract class Base<T> {
   }
 
   /**
-   * The aggregation result can be awaited upon in an asynchronous fashion, to allow
-   * for the receipt of contributions while performing other tasks. This function
-   * gives access to the current aggregation result's promise, which will eventually
-   * resolve and contain the result of the very next aggregation step, at the
+   * Aggregation steps are performed asynchronously, yet can be awaited upon when required.
+   * This function gives access to the current aggregation result's promise, which will
+   * eventually resolve and contain the result of the very next aggregation step, at the
    * time of the function call.
    * @returns The promise containing the aggregation result
    */
@@ -196,7 +232,7 @@ export abstract class Base<T> {
   }
 
   /**
-   * Constructs the payload sent to other nodes as contribution.
+   * Constructs the payloads sent to other nodes as contribution.
    * @param base Object from which the payload is computed
    */
   abstract makePayloads (base: T): Map<client.NodeID, T>
@@ -218,11 +254,14 @@ export abstract class Base<T> {
   }
 
   /**
-   * The aggregator's current size, defined by its amount of contributions.
-   * The size is bounded by the amount of all active nodes.
+   * The aggregator's current size, defined by its number of contributions. The size is bounded by
+   * the amount of all active nodes times the number of communication rounds.
    */
   get size (): number {
-    return this.contributions.size
+    return this.contributions
+      .valueSeq()
+      .map((m) => m.size)
+      .reduce((totalSize: number, size) => totalSize + size) ?? 0
   }
 
   /**
@@ -232,6 +271,9 @@ export abstract class Base<T> {
     return this._model
   }
 
+  /**
+   * The current commnication round.
+   */
   get communicationRound (): number {
     return this._communicationRound
   }

@@ -52,14 +52,28 @@ function reduce (
       fn(w, ws.get(i) as tf.Tensor))))
 }
 
+/**
+ * Sums the given iterable of weights entry-wise.
+ * @param weights The list of weights to sum
+ * @returns The summed weights
+ */
 export function sum (weights: Iterable<WeightsLike | WeightsContainer>): WeightsContainer {
   return reduce(weights, tf.add)
 }
 
+/**
+ * Computes the successive entry-wise difference between the weights of the given iterable.
+ * The operation is not commutative w.r.t. the iterable's ordering.
+ */
 export function diff (weights: Iterable<WeightsLike | WeightsContainer>): WeightsContainer {
   return reduce(weights, tf.sub)
 }
 
+/**
+ * Averages the given iterable of weights entry-wise.
+ * @param weights The list of weights to average
+ * @returns The averaged weights
+ */
 export function avg (weights: Iterable<WeightsLike | WeightsContainer>): WeightsContainer {
   const ws = List(weights)
   return sum(ws).map((w) => w.div(ws.size))

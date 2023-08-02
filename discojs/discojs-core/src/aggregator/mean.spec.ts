@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { assert, expect } from 'chai'
-import { List, Map } from 'immutable'
+import { Map } from 'immutable'
 
 import { aggregator, defaultTasks, client, Task, tf } from '@epfml/discojs-node'
 import { AggregationStep } from './base'
@@ -23,11 +23,7 @@ export class MockMeanAggregator extends aggregator.AggregatorBase<number> {
   }
 
   isFull (): boolean {
-    const contribs = this.contributions.get(0)
-    if (contribs === undefined) {
-      return false
-    }
-    return contribs.size >= this.threshold
+    return this.size >= this.threshold
   }
 
   add (nodeId: client.NodeID, contribution: number, round: number): boolean {
@@ -49,7 +45,7 @@ export class MockMeanAggregator extends aggregator.AggregatorBase<number> {
     if (contribs === undefined) {
       throw new Error()
     }
-    this.emit(List(contribs).reduce((acc: number, e) => acc + e) / contribs.size)
+    this.emit(contribs.reduce((acc: number, e) => acc + e) / contribs.size)
   }
 
   makePayloads (base: number): Map<client.NodeID, number> {

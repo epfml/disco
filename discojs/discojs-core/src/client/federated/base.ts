@@ -91,8 +91,8 @@ export class Base extends Client {
   }
 
   /**
-   * Send a message containing our local weights update to the federated server.
-   * @param weights The weights update to send
+   * Send a message containing our local weight updates to the federated server.
+   * @param weights The weight updates to send
    */
   async sendPayload (payload: WeightsContainer): Promise<void> {
     const msg: messages.SendPayload = {

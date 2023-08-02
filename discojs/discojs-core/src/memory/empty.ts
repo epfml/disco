@@ -2,6 +2,9 @@ import { tf } from '..'
 
 import { Memory, ModelInfo, Path } from './base'
 
+/**
+ * Represents an empty model memory.
+ */
 export class Empty extends Memory {
   async getModelMetadata (): Promise<undefined> {
     return undefined

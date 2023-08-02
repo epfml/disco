@@ -4,6 +4,10 @@ import { PreprocessingFunction } from './preprocessing/base'
 
 import { List } from 'immutable'
 
+/**
+ * Abstract class representing an immutable Disco dataset, including a TF.js dataset,
+ * Disco task and set of preprocessing functions.
+ */
 export abstract class Data {
   public abstract readonly availablePreprocessing: List<PreprocessingFunction>
 
@@ -20,13 +24,23 @@ export abstract class Data {
     throw new Error('abstract')
   }
 
-  // Callable abstract method instead of constructor
+  /**
+   * Callable abstract method instead of constructor.
+   */
   protected abstract create (dataset: Dataset, task: Task, size?: number): Data
 
+  /**
+   * Creates a new Disco data object containing the batched TF.js dataset, according to the
+   * task's parameters.
+   * @returns The batched Disco data
+   */
   batch (): Data {
     return this.create(this.batchedDataset, this.task, this.size)
   }
 
+  /**
+   * The TF.js dataset batched according to the task's parameters.
+   */
   get batchedDataset (): Dataset {
     const batchSize = this.task.trainingInformation.batchSize
     return batchSize === undefined
@@ -34,10 +48,20 @@ export abstract class Data {
       : this.dataset.batch(batchSize)
   }
 
+  /**
+   * Creates a new Disco data object containing the preprocessed TF.js dataset,
+   * according to the defined set of preprocessing functions and the task's parameters.
+   * @returns The preprocessed Disco data
+   */
   preprocess (): Data {
     return this.create(this.preprocessedDataset, this.task, this.size)
   }
 
+  /**
+   * Creates a higher level preprocessing function applying the specified set of preprocessing
+   * functions in a series. The preprocessing functions are chained according to their defined
+   * priority.
+   */
   get preprocessing (): (entry: tf.TensorContainer) => tf.TensorContainer {
     const params = this.task.trainingInformation
     const taskPreprocessing = params.preprocessingFunctions
@@ -66,6 +90,10 @@ export abstract class Data {
     return (x: tf.TensorContainer) => preprocessingChain(x, this.task)
   }
 
+  /**
+   * The TF.js dataset preprocessing according to the set of preprocessing functions and the task's
+   * parameters.
+   */
   get preprocessedDataset (): Dataset {
     return this.dataset.map(this.preprocessing)
   }
