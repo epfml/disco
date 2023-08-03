@@ -2,10 +2,7 @@
 runtime: custom 
 
 # Flex environment required for WebSocket support, which is required for PeerJS.
-env: standard
+env: flex 
 
 # Limit resources to one instance, one CPU, very little memory or disk.
-automatic_scaling:
-  min_instances: 0
-  max_instances: 1
 instance_class: F1
