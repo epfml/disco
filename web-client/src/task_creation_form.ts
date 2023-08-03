@@ -415,7 +415,7 @@ export const privacyParameters: FormSection = {
       yup: yup.number().positive(),
       as: 'input',
       type: 'number',
-      default: '1.0'
+      default: '40.0'
     },
     {
       id: 'decentralizedSecure',
