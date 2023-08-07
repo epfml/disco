@@ -405,7 +405,8 @@ export const privacyParameters: FormSection = {
       description: 'Differential Privacy: Noise Scale',
       yup: yup.number().positive(),
       as: 'input',
-      type: 'number'
+      type: 'number',
+      default: '0.1'
     },
     {
       id: 'clippingRadius',
@@ -413,7 +414,8 @@ export const privacyParameters: FormSection = {
       description: 'Differential Privacy: Clipping Radius',
       yup: yup.number().positive(),
       as: 'input',
-      type: 'number'
+      type: 'number',
+      default: '40.0'
     },
     {
       id: 'decentralizedSecure',
