@@ -20,7 +20,7 @@
     "@tensorflow/tfjs-node": "4",
     "@types/msgpack-lite": "0.1",
     "axios": "0.27",
-    "gpt3-tokenizer": "1",
+    "gpt-tfjs": "0.0.5",
     "immutable": "4",
     "isomorphic-ws": "4",
     "msgpack-lite": "0.1",

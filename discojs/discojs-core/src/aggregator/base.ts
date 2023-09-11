@@ -1,4 +1,5 @@
-import { client, Task, tf, AsyncInformant } from '..'
+import { client, Task, AsyncInformant } from '..'
+import { Model } from '../training/model'
 
 import { EventEmitter } from 'events'
 
@@ -61,7 +62,7 @@ export abstract class Base<T> {
     /**
      * The TF.js model whose weights are updated on aggregation.
      */
-    protected _model?: tf.LayersModel,
+    protected _model?: Model,
     /**
      * The round cut-off for contributions.
      */
@@ -141,7 +142,7 @@ export abstract class Base<T> {
    * Sets the aggregator's TF.js model.
    * @param model The new TF.js model
    */
-  setModel (model: tf.LayersModel): void {
+  setModel (model: Model): void {
     this._model = model
   }
 
@@ -267,7 +268,7 @@ export abstract class Base<T> {
   /**
    * The aggregator's current model.
    */
-  get model (): tf.LayersModel | undefined {
+  get model (): Model | undefined {
     return this._model
   }
 

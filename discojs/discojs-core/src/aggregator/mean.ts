@@ -1,7 +1,8 @@
 import { Map } from 'immutable'
 
 import { AggregationStep, Base as Aggregator } from './base'
-import { Task, WeightsContainer, aggregation, tf, client } from '..'
+import { Task, WeightsContainer, aggregation, client } from '..'
+import { Model } from '../training/model'
 
 /**
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights.
@@ -16,7 +17,7 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
 
   constructor (
     task: Task,
-    model?: tf.LayersModel,
+    model?: Model,
     roundCutoff = 0,
     threshold = 1
   ) {
@@ -67,7 +68,7 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
   aggregate (): void {
     this.log(AggregationStep.AGGREGATE)
     const result = aggregation.avg(this.contributions.get(0)?.values() as Iterable<WeightsContainer>)
-    this.model?.setWeights(result.weights)
+    this.model?.raw.setWeights(result.weights)
     this.emit(result)
   }
 

@@ -1,6 +1,7 @@
-import { tf, Memory, Task, TrainingInformant, TrainingFunction, WeightsContainer, client as clients } from '../..'
+import { tf, Memory, Task, TrainingInformant, WeightsContainer, client as clients } from '../..'
 import { Aggregator } from '../../aggregator'
 import { Trainer } from './trainer'
+import { Model } from '../model'
 
 /**
  * Class whose role is to train a model in a distributed way with a given dataset.
@@ -15,11 +16,10 @@ export class DistributedTrainer extends Trainer {
     task: Task,
     trainingInformant: TrainingInformant,
     memory: Memory,
-    model: tf.LayersModel,
-    private readonly client: clients.Client,
-    trainModelFunction?: TrainingFunction
+    model: Model,
+    private readonly client: clients.Client
   ) {
-    super(task, trainingInformant, memory, model, trainModelFunction)
+    super(task, trainingInformant, memory, model)
     this.aggregator = this.client.aggregator
     this.aggregator.setModel(model)
   }
@@ -48,12 +48,12 @@ export class DistributedTrainer extends Trainer {
     if (this.aggregator.model !== undefined) {
       // The aggregator's own aggregation is async. The trainer updates its model to match the aggregator's
       // after it has completed a round of training.
-      this.model.setWeights(this.aggregator.model.getWeights())
+      this.model.raw.setWeights(this.aggregator.model.raw.getWeights())
     }
 
     await this.memory.updateWorkingModel(
       { taskID: this.task.taskID, name: this.task.trainingInformation.modelID },
-      this.model
+      this.model.raw
     )
   }
 }

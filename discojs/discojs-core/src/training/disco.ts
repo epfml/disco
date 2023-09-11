@@ -107,17 +107,14 @@ export class Disco {
 
   /**
    * Starts a training instance for the Disco object's task on the provided data tuple.
-   * @param dataTuple The data tuple
+   * @param data The data tuple
    */
-  async fit (dataTuple: data.DataSplit): Promise<void> {
+  async fit (data: data.DataSplit): Promise<void> {
     this.logger.success('Thank you for your contribution. Data preprocessing has started')
-
-    const trainData = dataTuple.train.preprocess().batch()
-    const validationData = dataTuple.validation?.preprocess().batch() ?? trainData
 
     await this.client.connect()
     const trainer = await this.trainer
-    await trainer.fitModel(trainData.dataset, validationData.dataset)
+    await trainer.fitModel(data)
   }
 
   /**

@@ -1,6 +1,7 @@
-import { List } from 'immutable'
-
 import { tf, Weights } from '..'
+import { Model } from '../training/model'
+
+import { List } from 'immutable'
 
 export type TensorLike = tf.Tensor | ArrayLike<number>
 
@@ -126,7 +127,8 @@ export class WeightsContainer {
    * @param model The TF.js model
    * @returns The instanciated weights container
    */
-  static from (model: tf.LayersModel): WeightsContainer {
-    return new this(model.weights.map((w) => w.read()))
+  static from (model: Model): WeightsContainer {
+    // TODO: better typing on Model type
+    return new this(model.raw.weights.map((w) => w.read()))
   }
 }

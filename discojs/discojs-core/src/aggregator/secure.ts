@@ -1,5 +1,6 @@
 import { AggregationStep, Base as Aggregator } from './base'
 import { tf, aggregation, Task, WeightsContainer, client } from '..'
+import { Model } from '../training/model'
 
 import * as crypto from 'crypto'
 
@@ -19,7 +20,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
 
   constructor (
     task: Task,
-    model?: tf.LayersModel
+    model?: Model
   ) {
     super(task, model, 0, 2)
 
@@ -35,7 +36,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
     } else if (this.communicationRound === 1) {
       // Average the received partial sums
       const result = aggregation.avg(this.contributions.get(1)?.values() as Iterable<WeightsContainer>)
-      this.model?.setWeights(result.weights)
+      this.model?.raw.setWeights(result.weights)
       this.emit(result)
     } else {
       throw new Error('communication round is out of bounds')

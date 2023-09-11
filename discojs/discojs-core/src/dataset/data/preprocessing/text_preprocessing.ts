@@ -1,7 +1,7 @@
 import { Task, tf } from '../../..'
 import { PreprocessingFunction } from './base'
 
-import GPT3Tokenizer from 'gpt3-tokenizer'
+import { GPTLMHeadModel } from 'gpt-tfjs'
 import { List } from 'immutable'
 
 /**
@@ -22,7 +22,7 @@ interface TokenizedEntry extends tf.TensorContainerObject {
   ys: tf.Tensor1D
 }
 
-const gpt3Tokenizer = new GPT3Tokenizer({ type: 'gpt3' })
+const minGptTokenizer = GPTLMHeadModel.tokenizer
 
 const padding: PreprocessingFunction = {
   type: TextPreprocessing.Padding,
@@ -52,7 +52,7 @@ const tokenize: PreprocessingFunction = {
 
     let tokenized: number[]
     if (tokenizer === undefined) {
-      tokenized = gpt3Tokenizer.encode(xs[0]).bpe
+      tokenized = minGptTokenizer.encode(xs[0]).bpe
     } else {
       throw new Error('tokenizer not implemented')
     }

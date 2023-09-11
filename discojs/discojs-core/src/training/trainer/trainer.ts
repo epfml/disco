@@ -1,7 +1,7 @@
-import { tf, Memory, Task, TrainingInformant, TrainingFunction, fitModelFunctions } from '../..'
-
+import { tf, Memory, Task, TrainingInformant, data } from '../..'
 import { RoundTracker } from './round_tracker'
 import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
+import { Model } from '../model'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:
@@ -18,8 +18,6 @@ export abstract class Trainer {
   private stopTrainingRequested = false
   private readonly trainerLogger: TrainerLogger
 
-  private readonly fitModelFunction: TrainingFunction
-
   /**
    * Constructs the training manager.
    * @param task the trained task
@@ -29,12 +27,10 @@ export abstract class Trainer {
     public readonly task: Task,
     public readonly trainingInformant: TrainingInformant,
     public readonly memory: Memory,
-    public readonly model: tf.LayersModel,
-    fitModelFunction?: TrainingFunction
+    public readonly model: Model
   ) {
     this.trainerLogger = new TrainerLogger()
     this.roundTracker = new RoundTracker(task.trainingInformation.roundDuration)
-    this.fitModelFunction = fitModelFunction ?? fitModelFunctions.default
   }
 
   protected abstract onRoundBegin (accuracy: number): Promise<void>
@@ -47,7 +43,7 @@ export abstract class Trainer {
   /**
    * Callback executed on every batch end. When a round ends, onRoundEnd is called
    */
-  protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
+  public async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
     if (logs === undefined) {
       return
     }
@@ -60,7 +56,7 @@ export abstract class Trainer {
     }
   }
 
-  protected async onBatchBegin (_: number, logs?: tf.Logs): Promise<void> {
+  async onBatchBegin (_: number, logs?: tf.Logs): Promise<void> {
     if (logs === undefined) {
       return
     }
@@ -70,12 +66,12 @@ export abstract class Trainer {
     }
   }
 
-  protected onEpochBegin (epoch: number, logs?: tf.Logs): void {}
+  onEpochBegin (epoch: number, logs?: tf.Logs): void {}
 
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
-  protected onEpochEnd (epoch: number, logs?: tf.Logs): void {
+  onEpochEnd (epoch: number, logs?: tf.Logs): void {
     this.trainerLogger.onEpochEnd(epoch, logs)
 
     if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
@@ -86,14 +82,14 @@ export abstract class Trainer {
     }
   }
 
-  protected async onTrainBegin (logs?: tf.Logs): Promise<void> {
+  async onTrainBegin (logs?: tf.Logs): Promise<void> {
     this.trainingInformant.addMessage('Training started.')
   }
 
   /**
    * When the training ends this function will be call
    */
-  protected async onTrainEnd (logs?: tf.Logs): Promise<void> {
+  async onTrainEnd (logs?: tf.Logs): Promise<void> {
     this.trainingInformant.addMessage('Training finished.')
   }
 
@@ -105,25 +101,18 @@ export abstract class Trainer {
   }
 
   /**
-   * Start training the model with the given dataset
+   * Starts training the model with the given dataset. The exact behavior for model weights updates
+   * is model-dependent and is thus left to the model. The trainer instance is given for the fit function
+   * to be able to access the regular TF.js training hooks, which may include communication in the case of
+   * decentralized & federated learning.
    * @param dataset
    */
   async fitModel (
-    dataset: tf.data.Dataset<tf.TensorContainer>,
-    valDataset: tf.data.Dataset<tf.TensorContainer>
+    data: data.tuple.DataSplit
   ): Promise<void> {
     this.resetStopTrainerState()
 
-    await this.fitModelFunction(this.model,
-      this.task.trainingInformation,
-      dataset,
-      valDataset,
-      (e, l) => this.onEpochBegin(e, l),
-      (e, l) => this.onEpochEnd(e, l),
-      async (e, l) => await this.onBatchBegin(e, l),
-      async (e, l) => await this.onBatchEnd(e, l),
-      async (l) => await this.onTrainBegin(l),
-      async (l) => await this.onTrainEnd(l))
+    await this.model.fit(this, data)
   }
 
   /**
@@ -137,7 +126,7 @@ export abstract class Trainer {
    * reset stop training state
    */
   protected resetStopTrainerState (): void {
-    this.model.stopTraining = false
+    this.model.raw.stopTraining = false
     this.stopTrainingRequested = false
   }
 
@@ -146,7 +135,7 @@ export abstract class Trainer {
    */
   protected stopTrainModelIfRequested (): void {
     if (this.stopTrainingRequested) {
-      this.model.stopTraining = true
+      this.model.raw.stopTraining = true
       this.stopTrainingRequested = false
     }
   }
