@@ -1,10 +1,10 @@
+import { tf, data, Task } from '../..'
 import { Model } from './model'
-import { Task, data } from '../..'
 import { Trainer } from '../trainer/trainer'
 
 import { GPTLMHeadModel } from 'gpt-tfjs'
 
-export class GPTModel extends Model<GPTLMHeadModel> {
+export class GPTModel extends Model {
   constructor (
     task: Task,
     private readonly minGpt: GPTLMHeadModel
@@ -15,7 +15,7 @@ export class GPTModel extends Model<GPTLMHeadModel> {
   async fit (trainer: Trainer, tuple: data.tuple.DataSplit): Promise<void> {
     const { training, validation } = data.tuple.extract(tuple)
 
-    await this.raw.train(training, {
+    await this.minGpt.train(training, {
       epochs: this.task.trainingInformation.epochs,
       verbose: true
     })
@@ -23,7 +23,7 @@ export class GPTModel extends Model<GPTLMHeadModel> {
     // ...
   }
 
-  get raw (): GPTLMHeadModel {
+  toTfjs (): tf.LayersModel {
     return this.minGpt.model
   }
 }

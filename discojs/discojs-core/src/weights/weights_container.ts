@@ -129,6 +129,6 @@ export class WeightsContainer {
    */
   static from (model: Model): WeightsContainer {
     // TODO: better typing on Model type
-    return new this(model.raw.weights.map((w) => w.read()))
+    return new this(model.toTfjs().weights.map((w) => w.read()))
   }
 }

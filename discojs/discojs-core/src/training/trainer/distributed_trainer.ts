@@ -47,12 +47,12 @@ export class DistributedTrainer extends Trainer {
     if (this.aggregator.model !== undefined) {
       // The aggregator's own aggregation is async. The trainer updates its model to match the aggregator's
       // after it has completed a round of training.
-      this.model.raw.setWeights(this.aggregator.model.raw.getWeights())
+      this.model.toTfjs().setWeights(this.aggregator.model.toTfjs().getWeights())
     }
 
     await this.memory.updateWorkingModel(
       { taskID: this.task.taskID, name: this.task.trainingInformation.modelID },
-      this.model.raw
+      this.model.toTfjs()
     )
   }
 }

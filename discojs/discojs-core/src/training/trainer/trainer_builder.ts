@@ -62,7 +62,7 @@ export class TrainerBuilder {
   }
 
   private async updateModelInformation (model: training.model.Model): Promise<training.model.Model> {
-    const m = model.raw
+    const m = model.toTfjs()
     // Continue local training from previous epoch checkpoint
     if (m.getUserDefinedMetadata() === undefined) {
       m.setUserDefinedMetadata({ epoch: 0 })

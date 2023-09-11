@@ -10,7 +10,7 @@ export class LocalTrainer extends Trainer {
     console.log('on round end')
     await this.memory.updateWorkingModel(
       { taskID: this.task.taskID, name: this.task.trainingInformation.modelID },
-      this.model.raw
+      this.model.toTfjs()
     )
   }
 

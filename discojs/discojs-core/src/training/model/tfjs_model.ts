@@ -2,7 +2,7 @@ import { data, tf, Task } from '../..'
 import { Model } from './model'
 import { Trainer } from '../trainer/trainer'
 
-export class TFJSModel extends Model<tf.LayersModel> {
+export class TFJSModel extends Model {
   constructor (
     task: Task,
     private readonly model: tf.LayersModel
@@ -13,7 +13,7 @@ export class TFJSModel extends Model<tf.LayersModel> {
   async fit (trainer: Trainer, tuple: data.tuple.DataSplit): Promise<void> {
     const { training, validation } = data.tuple.extract(tuple)
 
-    await this.raw.fitDataset(training, {
+    await this.model.fitDataset(training, {
       epochs: this.task.trainingInformation.epochs,
       validationData: validation,
       callbacks: {
@@ -27,7 +27,7 @@ export class TFJSModel extends Model<tf.LayersModel> {
     })
   }
 
-  get raw (): tf.LayersModel {
+  toTfjs (): tf.LayersModel {
     return this.model
   }
 }

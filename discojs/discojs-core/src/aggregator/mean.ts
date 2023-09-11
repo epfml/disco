@@ -68,7 +68,7 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
   aggregate (): void {
     this.log(AggregationStep.AGGREGATE)
     const result = aggregation.avg(this.contributions.get(0)?.values() as Iterable<WeightsContainer>)
-    this.model?.raw.setWeights(result.weights)
+    this.model?.toTfjs().setWeights(result.weights)
     this.emit(result)
   }
 

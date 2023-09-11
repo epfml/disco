@@ -126,7 +126,7 @@ export abstract class Trainer {
    * reset stop training state
    */
   protected resetStopTrainerState (): void {
-    this.model.raw.stopTraining = false
+    this.model.toTfjs().stopTraining = false
     this.stopTrainingRequested = false
   }
 
@@ -135,7 +135,7 @@ export abstract class Trainer {
    */
   protected stopTrainModelIfRequested (): void {
     if (this.stopTrainingRequested) {
-      this.model.raw.stopTraining = true
+      this.model.toTfjs().stopTraining = true
       this.stopTrainingRequested = false
     }
   }

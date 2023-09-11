@@ -36,7 +36,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
     } else if (this.communicationRound === 1) {
       // Average the received partial sums
       const result = aggregation.avg(this.contributions.get(1)?.values() as Iterable<WeightsContainer>)
-      this.model?.raw.setWeights(result.weights)
+      this.model?.toTfjs().setWeights(result.weights)
       this.emit(result)
     } else {
       throw new Error('communication round is out of bounds')
