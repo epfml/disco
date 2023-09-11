@@ -13,10 +13,12 @@ export class GPTModel extends Model {
   }
 
   async fit (trainer: Trainer, tuple: data.tuple.DataSplit): Promise<void> {
-    const { training, validation } = data.tuple.extract(tuple)
+    const { training } = data.tuple.extract(tuple)
+    const { epochs, vocabSize } = this.task.trainingInformation
 
     await this.minGpt.train(training, {
-      epochs: this.task.trainingInformation.epochs,
+      epochs,
+      vocabSize,
       verbose: true
     })
 
@@ -24,6 +26,7 @@ export class GPTModel extends Model {
   }
 
   toTfjs (): tf.LayersModel {
+    // TODO: extract the layers model from the gpt object
     return this.minGpt.model
   }
 }

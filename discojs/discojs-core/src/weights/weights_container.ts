@@ -127,8 +127,8 @@ export class WeightsContainer {
    * @param model The TF.js model
    * @returns The instanciated weights container
    */
-  static from (model: Model): WeightsContainer {
-    // TODO: better typing on Model type
-    return new this(model.toTfjs().weights.map((w) => w.read()))
+  static from (model: tf.LayersModel | Model): WeightsContainer {
+    const m = model instanceof tf.LayersModel ? model : model.toTfjs()
+    return new this(m.weights.map((w) => w.read()))
   }
 }

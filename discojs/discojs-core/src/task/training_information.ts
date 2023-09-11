@@ -1,7 +1,6 @@
 import { AggregatorChoice } from '../aggregator/get'
 import { Preprocessing } from '../dataset/data/preprocessing'
 import { isModelCompileData, ModelCompileData } from './model_compile_data'
-import { TrainingMode } from '../training/training_functions'
 
 export function isTrainingInformation (raw: unknown): raw is TrainingInformation {
   if (typeof raw !== 'object') {
@@ -34,7 +33,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     'noiseScale' |
     'clippingRadius'|
     'aggregator' |
-    'trainingMode'
+    'vocabSize'
 
   const {
     dataType,
@@ -60,7 +59,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     noiseScale,
     clippingRadius,
     aggregator,
-    trainingMode
+    vocabSize
   } = raw as Record<Fields, unknown | undefined>
 
   if (
@@ -78,7 +77,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
     (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number') ||
     (aggregator !== undefined && typeof aggregator !== 'number') ||
-    (trainingMode !== undefined && typeof trainingMode !== 'string')
+    (vocabSize !== undefined && typeof vocabSize !== 'string')
   ) {
     return false
   }
@@ -189,5 +188,6 @@ export interface TrainingInformation {
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
   aggregator?: AggregatorChoice
-  trainingMode?: TrainingMode
+  // TODO: for LLMs
+  vocabSize?: number
 }

@@ -9,10 +9,14 @@ export interface DataSplit {
   validation?: Data
 }
 
+/**
+ * Extracts the training and validation sets from a data split object.
+ * The returned datasets are preprocessed and batched.
+ * @param data The data split
+ * @returns A tuple object containing the training and validation datasets
+ */
 export function extract (data: DataSplit): {training: Dataset, validation: Dataset} {
   const training = data.train.preprocess().batch().dataset
-  return {
-    training,
-    validation: data.validation?.preprocess().batch().dataset ?? training
-  }
+  const validation = data.validation?.preprocess().batch().dataset ?? training
+  return { training, validation }
 }

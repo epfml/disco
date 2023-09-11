@@ -2,7 +2,7 @@ import { Task, training } from '..'
 
 export interface TaskProvider {
   getTask: () => Task
-  getModel: () => Promise<training.Model>
+  getModel: () => Promise<training.model.Model>
 }
 
 export function isTaskProvider (obj: any): obj is TaskProvider {
