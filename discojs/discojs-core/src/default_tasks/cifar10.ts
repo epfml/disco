@@ -1,4 +1,4 @@
-import { tf, Task, data, TaskProvider } from '..'
+import { tf, Task, data, TaskProvider, training } from '..'
 
 export const cifar10: TaskProvider = {
   getTask (): Task {
@@ -42,7 +42,7 @@ export const cifar10: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<training.model.Model> {
     const mobilenet = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
     )
@@ -51,10 +51,10 @@ export const cifar10: TaskProvider = {
       .dense({ units: 10, activation: 'softmax', name: 'denseModified' })
       .apply(x.output) as tf.SymbolicTensor
 
-    return tf.model({
+    return new training.model.TFJSModel(this.getTask(), tf.model({
       inputs: mobilenet.input,
       outputs: predictions,
       name: 'modelModified'
-    })
+    }))
   }
 }

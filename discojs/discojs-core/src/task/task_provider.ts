@@ -1,8 +1,8 @@
-import { tf, Task } from '..'
+import { Task, training } from '..'
 
 export interface TaskProvider {
   getTask: () => Task
-  getModel: () => Promise<tf.LayersModel>
+  getModel: () => Promise<training.Model>
 }
 
 export function isTaskProvider (obj: any): obj is TaskProvider {

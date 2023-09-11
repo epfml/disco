@@ -6,8 +6,7 @@ import {
   TrainingInformant, informant as informants,
   TrainingSchemes,
   Memory, EmptyMemory,
-  ConsoleLogger,
-  TrainingFunction
+  ConsoleLogger
 } from '..'
 import { Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
@@ -23,7 +22,6 @@ export interface DiscoOptions {
   informant?: TrainingInformant
   logger?: Logger
   memory?: Memory
-  customTrainingFunction?: TrainingFunction
 }
 
 /**
@@ -101,7 +99,7 @@ export class Disco {
     this.memory = options.memory
     this.logger = options.logger
 
-    const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant, options.customTrainingFunction)
+    const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
     this.trainer = trainerBuilder.build(this.aggregator, this.client, options.scheme !== TrainingSchemes.LOCAL)
   }
 
@@ -109,7 +107,7 @@ export class Disco {
    * Starts a training instance for the Disco object's task on the provided data tuple.
    * @param data The data tuple
    */
-  async fit (data: data.DataSplit): Promise<void> {
+  async fit (data: data.tuple.DataSplit): Promise<void> {
     this.logger.success('Thank you for your contribution. Data preprocessing has started')
 
     await this.client.connect()

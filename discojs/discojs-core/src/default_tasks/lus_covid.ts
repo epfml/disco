@@ -1,4 +1,4 @@
-import { tf, Task, data, TaskProvider } from '..'
+import { tf, data, training, Task, TaskProvider } from '..'
 
 export const lusCovid: TaskProvider = {
   getTask (): Task {
@@ -43,7 +43,7 @@ export const lusCovid: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<training.model.Model> {
     const imageHeight = 100
     const imageWidth = 100
     const imageChannels = 3
@@ -90,6 +90,6 @@ export const lusCovid: TaskProvider = {
       activation: 'softmax'
     }))
 
-    return model
+    return new training.model.TFJSModel(this.getTask(), model)
   }
 }

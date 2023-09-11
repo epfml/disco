@@ -1,4 +1,4 @@
-import { tf, client as clients, Task, TrainingInformant, TrainingFunction, Memory, ModelType, ModelInfo } from '../..'
+import { client as clients, Task, TrainingInformant, Memory, ModelType, ModelInfo, training } from '../..'
 import { Aggregator } from '../../aggregator'
 
 import { DistributedTrainer } from './distributed_trainer'
@@ -12,8 +12,7 @@ export class TrainerBuilder {
   constructor (
     private readonly memory: Memory,
     private readonly task: Task,
-    private readonly trainingInformant: TrainingInformant,
-    private readonly trainingFunction?: TrainingFunction
+    private readonly trainingInformant: TrainingInformant
   ) {}
 
   /**
@@ -31,16 +30,14 @@ export class TrainerBuilder {
         this.trainingInformant,
         this.memory,
         model,
-        client,
-        this.trainingFunction
+        client
       )
     } else {
       return new LocalTrainer(
         this.task,
         this.trainingInformant,
         this.memory,
-        model,
-        this.trainingFunction
+        model
       )
     }
   }
@@ -49,7 +46,7 @@ export class TrainerBuilder {
    * If a model exists in memory, laod it, otherwise load model from server
    * @returns
    */
-  private async getModel (client: clients.Client): Promise<tf.LayersModel> {
+  private async getModel (client: clients.Client): Promise<training.model.Model> {
     const modelID = this.task.trainingInformation?.modelID
     if (modelID === undefined) {
       throw new TypeError('model ID is undefined')
@@ -64,10 +61,11 @@ export class TrainerBuilder {
     return await this.updateModelInformation(model)
   }
 
-  private async updateModelInformation (model: tf.LayersModel): Promise<tf.LayersModel> {
+  private async updateModelInformation (model: training.model.Model): Promise<training.model.Model> {
+    const m = model.raw
     // Continue local training from previous epoch checkpoint
-    if (model.getUserDefinedMetadata() === undefined) {
-      model.setUserDefinedMetadata({ epoch: 0 })
+    if (m.getUserDefinedMetadata() === undefined) {
+      m.setUserDefinedMetadata({ epoch: 0 })
     }
 
     const info = this.task.trainingInformation
@@ -75,13 +73,13 @@ export class TrainerBuilder {
       throw new TypeError('training information is undefined')
     }
 
-    model.compile(info.modelCompileData)
+    m.compile(info.modelCompileData)
 
     if (info.learningRate !== undefined) {
       // TODO: Not the right way to change learningRate and hence we cast to any
       // the right way is to construct the optimiser and pass learningRate via
       // argument.
-      (model.optimizer as any).learningRate = info.learningRate
+      m.optimizer.learningRate = info.learningRate
     }
 
     return model

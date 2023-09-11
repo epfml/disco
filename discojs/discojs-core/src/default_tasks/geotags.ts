@@ -1,4 +1,4 @@
-import { tf, Task, data, TaskProvider } from '..'
+import { tf, data, training, Task, TaskProvider } from '..'
 import { Range } from 'immutable'
 import { LabelTypeEnum } from '../task/label_type'
 
@@ -46,7 +46,7 @@ export const geotags: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<training.model.Model> {
     const pretrainedModel = await tf.loadLayersModel(
       'https://storage.googleapis.com/deai-313515.appspot.com/models/geotags/model.json'
     )
@@ -56,13 +56,13 @@ export const geotags: TaskProvider = {
     pretrainedModel.layers.forEach(layer => { layer.trainable = false })
     pretrainedModel.layers[numLayers - 1].trainable = true
 
-    const model = tf.sequential({
+    const model = new training.model.TFJSModel(this.getTask(), tf.sequential({
       layers: [
         tf.layers.inputLayer({ inputShape: [224, 224, 3] }),
         tf.layers.rescaling({ scale: 1 / 127.5, offset: -1 }), // Rescaling input between -1 and 1
         pretrainedModel
       ]
-    })
+    }))
 
     return model
   }

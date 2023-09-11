@@ -1,5 +1,4 @@
-import type { Task, TaskProvider } from '..'
-import { tf, data } from '..'
+import { tf, data, training, Task, TaskProvider } from '..'
 
 export const skinMnist: TaskProvider = {
   getTask (): Task {
@@ -51,7 +50,7 @@ export const skinMnist: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<training.model.Model> {
     const numClasses = 7
     const size = 28
 
@@ -96,6 +95,6 @@ export const skinMnist: TaskProvider = {
     model.add(tf.layers.dense({ units: 32 }))
     model.add(tf.layers.dense({ units: numClasses, activation: 'softmax' }))
 
-    return model
+    return new training.model.TFJSModel(this.getTask(), model)
   }
 }

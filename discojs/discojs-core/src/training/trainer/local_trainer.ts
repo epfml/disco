@@ -10,11 +10,11 @@ export class LocalTrainer extends Trainer {
     console.log('on round end')
     await this.memory.updateWorkingModel(
       { taskID: this.task.taskID, name: this.task.trainingInformation.modelID },
-      this.model
+      this.model.raw
     )
   }
 
-  protected onEpochEnd (epoch: number, logs?: tf.Logs): void {
+  onEpochEnd (epoch: number, logs?: tf.Logs): void {
     super.onEpochEnd(epoch, logs)
     console.log('on epoch end')
     this.trainingInformant.update({ currentRound: epoch })

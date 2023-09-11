@@ -1,4 +1,4 @@
-import { tf, Task, data, TaskProvider } from '..'
+import { data, training, Task, TaskProvider } from '..'
 
 export const simpleFace: TaskProvider = {
   getTask (): Task {
@@ -41,7 +41,7 @@ export const simpleFace: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<training.model.Model> {
     throw new Error('Not implemented')
   }
 }

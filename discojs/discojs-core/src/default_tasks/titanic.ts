@@ -1,4 +1,4 @@
-import { tf, Task, TaskProvider } from '..'
+import { tf, training, Task, TaskProvider } from '..'
 
 export const titanic: TaskProvider = {
   getTask (): Task {
@@ -73,7 +73,7 @@ export const titanic: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<training.model.Model> {
     const model = tf.sequential()
 
     model.add(
@@ -88,6 +88,6 @@ export const titanic: TaskProvider = {
     model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
     model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }))
 
-    return model
+    return new training.model.TFJSModel(this.getTask(), model)
   }
 }
