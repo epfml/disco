@@ -1,7 +1,6 @@
 import { Task, tf } from '../../..'
 import { PreprocessingFunction } from './base'
 
-import GPT3Tokenizer from 'gpt3-tokenizer'
 import { List } from 'immutable'
 
 /**
@@ -22,7 +21,7 @@ interface TokenizedEntry extends tf.TensorContainerObject {
   ys: tf.Tensor1D
 }
 
-const gpt3Tokenizer = new GPT3Tokenizer({ type: 'gpt3' })
+const gpt3Tokenizer = null as any
 
 const padding: PreprocessingFunction = {
   type: TextPreprocessing.Padding,
