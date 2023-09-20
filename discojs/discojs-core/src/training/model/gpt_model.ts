@@ -2,12 +2,12 @@ import { tf, data, Task } from '../..'
 import { Model } from './model'
 import { Trainer } from '../trainer/trainer'
 
-import { GPTLMHeadModel } from 'gpt-tfjs'
+import { model as GPTModels } from 'gpt-tfjs'
 
 export class GPTModel extends Model {
   constructor (
     task: Task,
-    private readonly minGpt: GPTLMHeadModel
+    private readonly minGpt: GPTModels.GPTLMHeadModel
   ) {
     super(task)
   }
@@ -16,13 +16,14 @@ export class GPTModel extends Model {
     const { training } = data.tuple.extract(tuple)
     const { epochs, vocabSize } = this.task.trainingInformation
 
+    await trainer.onTrainBegin()
     await this.minGpt.train(training, {
       epochs,
       vocabSize,
-      verbose: true
+      verbose: true,
+      callbacks: [trainer.onEpochEnd]
     })
-
-    // ...
+    await trainer.onTrainEnd()
   }
 
   toTfjs (): tf.LayersModel {

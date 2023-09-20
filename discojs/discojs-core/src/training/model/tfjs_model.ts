@@ -2,6 +2,8 @@ import { data, tf, Task } from '../..'
 import { Model } from './model'
 import { Trainer } from '../trainer/trainer'
 
+import { List, Map } from 'immutable'
+
 export class TFJSModel extends Model {
   constructor (
     task: Task,
@@ -16,14 +18,16 @@ export class TFJSModel extends Model {
     await this.model.fitDataset(training, {
       epochs: this.task.trainingInformation.epochs,
       validationData: validation,
-      callbacks: {
-        onTrainBegin: trainer.onTrainBegin,
-        onTrainEnd: trainer.onTrainEnd,
-        onEpochBegin: trainer.onEpochBegin,
-        onEpochEnd: trainer.onEpochEnd,
-        onBatchBegin: trainer.onBatchBegin,
-        onBatchEnd: trainer.onBatchEnd
-      }
+      callbacks: Map(
+        List.of(
+          'onTrainBegin',
+          'onTrainEnd',
+          'onEpochBegin',
+          'onEpochEnd',
+          'onBatchBegin',
+          'onBatchEnd'
+        ).map((callback) => [callback, (trainer as any)[callback]] as [string, () => Promise<void>])
+      ).toObject()
     })
   }
 
