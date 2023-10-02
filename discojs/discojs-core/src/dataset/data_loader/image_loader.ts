@@ -32,7 +32,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
     return tf.data.array([tensorContainer])
   }
 
-  private async buildDataset (images: Source[], labels: number[], indices: number[], config?: DataConfig): Promise<Data> {
+  protected async buildDataset (images: Source[], labels: number[], indices: number[], config?: DataConfig): Promise<Data> {
     // Can't use arrow function for generator and need access to 'this'
     // eslint-disable-next-line
     const self = this
@@ -65,7 +65,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
       if (numberOfClasses === undefined) {
         throw new Error('wanted labels but none found in task')
       }
-
+      
       labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), numberOfClasses).arraySync() as number[]
     }
     if (config?.shuffle === undefined || config?.shuffle) {

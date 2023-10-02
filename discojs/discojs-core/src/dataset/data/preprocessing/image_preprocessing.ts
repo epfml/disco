@@ -8,7 +8,8 @@ import { List } from 'immutable'
  */
 export enum ImagePreprocessing {
   Resize,
-  Normalize
+  Normalize,
+  NormalizeTF
 }
 
 interface ImageEntry extends tf.TensorContainerObject {
@@ -36,6 +37,17 @@ const normalize: PreprocessingFunction = {
     const { xs, ys } = entry as ImageEntry
     return {
       xs: xs.div(tf.scalar(255)),
+      ys
+    }
+  }
+}
+
+const normalizeTF: PreprocessingFunction = {
+  type: ImagePreprocessing.NormalizeTF,
+  apply: (entry: tf.TensorContainer, task: Task): tf.TensorContainer => {
+    const { xs, ys } = entry as ImageEntry
+    return {
+      xs: xs.div(tf.scalar(127.5)).sub(tf.scalar(1.0)),
       ys
     }
   }

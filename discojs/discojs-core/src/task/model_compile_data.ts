@@ -14,7 +14,7 @@ export function isModelCompileData (raw: unknown): raw is ModelCompileData {
 
   if (
     typeof optimizer !== 'string' ||
-    typeof loss !== 'string'
+    (typeof loss !== 'string' && !Array.isArray(loss))
   ) {
     return false
   }
@@ -31,6 +31,6 @@ export function isModelCompileData (raw: unknown): raw is ModelCompileData {
 
 export interface ModelCompileData {
   optimizer: string
-  loss: string
+  loss: string | any[]
   metrics: string[]
 }

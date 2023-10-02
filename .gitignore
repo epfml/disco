@@ -139,6 +139,7 @@ node_modules/
 # model files on server
 weights.bin
 model.json
+*.bin
 
 # example training data
 example_training_data/
