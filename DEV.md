@@ -1,5 +1,5 @@
 <div align="center">
-  <h1><code>Disco</code></h1>
+  <h1><code>DISCO</code></h1>
 
   <p>
     <strong>Distributed collaborative learning</strong>
@@ -13,17 +13,17 @@
 
 </div>
 
-Welcome to the Disco🔮 developer guide. 
+Welcome to the DISCO developer guide. 
 
 If you want to get an in depth guide of how to run things (and why and how they work) you can have a look at our [on boarding](./docs/ONBOARDING.md) document
 
 To quickly get up and running you can find some relevant information here as well as in the [server](./server/README.md) document.
 
-If you run into any sort of trouble then hopefully you can find an answer in our [faq](./docs/FAQ.md); otherwise please create a new issue. If you want to contribute to Disco🔮, then please have a look at our [contributing](./docs/CONTRIBUTING.md) guide; and if you are curious about our architecture you can find information [here](./docs/ARCHITECTURE.md).
+If you run into any sort of trouble then hopefully you can find an answer in our [FAQ](./docs/FAQ.md); otherwise please create a new issue. If you want to contribute to DISCO, then please have a look at our [contributing guide](./docs/CONTRIBUTING.md); and if you are curious about our architecture you can find more information [here](./docs/ARCHITECTURE.md).
 
 ## Quick-start guide
 
-The following command lines will install the required dependencies, build Disco.js and start the Disco server (on localhost:8080) and the Disco web client (on localhost:8081). We recommend using (and assume you are) [nvm](https://github.com/nvm-sh/nvm) (the Node Version Manager).
+The following command lines will install the required dependencies, build disco.js and start the DISCO server (on `localhost:8080`) and the DISCO web client (on `localhost:8081`). We recommend using (and assume you are) [nvm](https://github.com/nvm-sh/nvm) (the Node Version Manager).
 
 
 ```
