@@ -12,7 +12,7 @@
     "serve17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve"
   },
   "dependencies": {
-    "@epfml/discojs": "file:../discojs/discojs-web",
+    "@epfml/discojs": "^2.1.1",
     "@meforma/vue-toaster": "1",
     "@types/d3": "7",
     "apexcharts": "3",

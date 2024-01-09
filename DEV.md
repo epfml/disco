@@ -97,6 +97,8 @@ sh install.sh
   npm ci
   npm link ../discojs/discojs-web
   ```
+  You can verify than the link is effective by checking that `npm ls` lists `@epfml/discojs@x.x.x -> ./../discojs/discojs-web`.
+
   Similarly, we install the server dependencies, and then the `discojs-node` dependency to the local folder rather than the remote npm package [@epfml/disco-node](https://www.npmjs.com/package/@epfml/discojs-node).
   ```
   cd ../server
