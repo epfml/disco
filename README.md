@@ -1,4 +1,4 @@
-# **DISCO** - _Dis_&#8203;tributed _Co_&#8203;llaborative Machine Learning
+# **DISCO** - DIStributed COllaborative Machine Learning
 
 
 
