@@ -1,10 +1,5 @@
 <div align="center">
-  <h1><code>DISCO</code></h1>
-
-  <p>
-    <strong>Distributed collaborative learning</strong>
-  </p>
-
+  <h1>DISCO <code>developer guide</code></h1>
   <p>
     <a href="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml"><img src="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml/badge.svg" alt="build status" /></a>
     <a href="https://github.com/epfml/disco/actions/workflows/deploy-server.yml"><img src="https://github.com/epfml/disco/actions/workflows/deploy-server.yml/badge.svg" alt="build status" /></a>
@@ -15,26 +10,54 @@
 
 Welcome to the DISCO developer guide. 
 
-If you want to get an in depth guide of how to run things (and why and how they work) you can have a look at our [on boarding](./docs/ONBOARDING.md) document
+If you want to get an in depth guide of how to run things (and why and how they work) you can have a look at our [onboarding document](./docs/ONBOARDING.md).
 
-To quickly get up and running you can find some relevant information here as well as in the [server](./server/README.md) document.
+To quickly get up and running you can find some relevant information here as well as in the [server document](./server/README.md).
 
 If you run into any sort of trouble then hopefully you can find an answer in our [FAQ](./docs/FAQ.md); otherwise please create a new issue. If you want to contribute to DISCO, then please have a look at our [contributing guide](./docs/CONTRIBUTING.md); and if you are curious about our architecture you can find more information [here](./docs/ARCHITECTURE.md).
 
 ## Quick-start guide
 
-The following command lines will install the required dependencies, build disco.js and start the DISCO server (on `localhost:8080`) and the DISCO web client (on `localhost:8081`). We recommend using (and assume you are) [nvm](https://github.com/nvm-sh/nvm) (the Node Version Manager).
+The following command lines will install the required dependencies, build disco.js and start the DISCO server (on `localhost:8080`) and the DISCO web client (on `localhost:8081`). 
 
-
+1. We recommend using [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) to handle multiple Node.js versions. Start by installing `nvm` by following [their installation instructions](https://github.com/nvm-sh/nvm).
+After installation, you should be able to run
+```
+nvm -v
+0.39.7 # my nvm version at the time
+```
+2. Install Node.js version 16
+```
+nvm install 16
+```
+You can now choose which Node.js version to use:
+```
+nvm use 16
+```
+Using Node.js v16 should automatically set your [npm](https://docs.npmjs.com/about-npm) (Node Package Manager, different from n**v**m) version to 8:
+```
+npm --version
+8.xx.xx
+```
+`nvm` manages your different Node.js versions while `npm` handles your different Node.js project packages within one version.
+3. Clone the repository
 ```
 git clone git@github.com:epfml/disco.git
 cd disco
-nvm use
-cd discojs && npm ci && npm run build
-cd ..
-cd server && npm ci && npm run dev
-cd ..
-cd web-client && npm ci && npm run dev
+```
+4. 
+```
+cd discojs
+npm ci && npm run build
+```
+5.
+```
+cd ../server # cd back to the root of the repository
+npm ci && npm run dev
+6.
+```
+cd ../web-client
+npm ci && npm run dev
 ```
 
 For full details, see the respective README files, that is [discojs-core](./discojs/discojs-core/README.md), [discojs](./discojs/discojs/README.md), [discojs-node](./discojs/discojs-node/README.md), [server](./server/README.md), [web-client](./web-client/README.md) and [cli](./cli/README.md).
