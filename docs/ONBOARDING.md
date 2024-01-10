@@ -36,28 +36,13 @@ a `server` and a `cli` (e.g., for benchmarking). Depending on what your goal is,
 
 As mentioned in the [developer guide](../DEV.md), there are many ways to use the `discojs` library: from a browser, a CLI, by importing `discojs-node` in your own Node.js scripts and applications, from your own UI implementation, etc. Note that whatever your setting, using `discojs` always requires running a `server` instance. As described in the [`server` README file](../server/REDME.md), the server is in charge of connecting peers to the ML tasks. In order to connect and partake in a distributed training session you first need to find the session and how to join it, the sever exposes an API to that end.
 
-Below you will find instructions and documentation on how to run DISCo in different settings. 
+Below you will find instructions and documentation on how to run DISCO in different settings. 
 
-### Quick-start - Web client   (TODO: update)
+### Using DISCO from the `web-client`
 
-Running the following commands will set up a DISCO server on http://localhost:8080 along a web client served on http://localhost:8081.
+Instructions on how to use the `web-client` can be found in the [developer guide](../DEV.md#installation-guide). More information, for example on how to run the client in developer mode, can be found in the [`web-client` README](../web-client/README.md).
 
-```
-git clone git@github.com:epfml/disco.git
-nvm use
-cd discojs && npm ci
-cd discojs-web && npm run build
-cd ../..
-cd server && npm ci && npm run dev
-cd ..
-cd web-client && npm ci && npm run dev
-```
-
-> If you run the web client first, then you will get an error since the server is expected to run on http://localhost:8080
-
-More information about the web client can be found [here](../web-client/README.md)
-
-### Quick-start - CLI   (TODO: update)
+### Using DISCO from the `cli`
 
 Running the following commands will run a Disco server and two clients in the federated setting, all from your command line.
 
@@ -74,9 +59,9 @@ cd cli && npm ci && npm start
 
 More information about the cli can be found [here](../cli/README.md)
 
-### Quick-start - Basic example
+### Using DISCO from a script - Standalone example
 
-A bare bones example of disco can be found [here](./node_example) with both code and documentation.
+A standalone example of disco can be found [in this folder](./node_example), with code and documentation.
 
 ## Under the hood
 
