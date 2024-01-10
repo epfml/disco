@@ -50,6 +50,11 @@ The CLI is currently not working. Until then, you can find more information in t
 
 A standalone example of disco can be found [in this folder](./node_example), with code and documentation.
 
+> [!TIP]
+> If you are using VSCode, know that you may not be able to open the editor from the repo root level without VSCode raising imports errors. If that is the case, you should start VSCode from inside the module you are working.
+> In practice, that is any folder level that contains a `package.json` such as `server`, `web-client`, etc.
+> For example, if you are working on the CLI, you should start VSCode with the command `code cli` from the root level (or `cd cli`, `code .`)
+
 ## Under the hood
 
 In this section we will go over how the core logic is structured.
