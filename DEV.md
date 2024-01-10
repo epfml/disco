@@ -15,14 +15,14 @@ Here you will have a first overview of the project, how to install and run an in
 
 The DISCO project is composed of multiple parts. At the root level, there are four main folders: `discojs`, `server`, `web-client` and `cli`.
 
-- `discojs` is the main library, containing federated and decentralized learning logic allowing one to train and use machine learning models. The library itself is composed of `disco-node` and `disco-web`, both of them extending the platform-agnostic logic in `disco-core`. In other words, `disco-core` contains most of the implementation but can't be used by itself, while `disco-web` and `disco-node` allow using `disco-core` via different technologies. To some extents, you can think of `disco-core` as an abstract class extended by `disco-web`and `disco-node`.
-    - `disco-node` allows one to use the `discojs` library with Node.js. For example, the `server` and the `cli` rely on `disco-node`. A user can also directly import the `disco-node` package in their Node.js programs.
-    - `disco-web` allows using `discojs` through a browser. The `web-client`, discussed below, relies on `disco-web` to implement a browser UI.
+- `discojs`, or Disco.js, is the JavaScript library that contains federated and decentralized learning logic. The library allows to train and use machine learning models in a distributed fashion. The library itself is composed of the `disco-node` and `disco-web` modules, both of them extending the platform-agnostic code in `disco-core`. In other words, `disco-core` contains most of the implementation but can't be used by itself, while `disco-web` and `disco-node` allow using `disco-core` via different technologies. To some extents, you can think of `disco-core` as an abstract class extended by `disco-web`and `disco-node`.
+    - `disco-node` lets you use Disco.js with Node.js. For example, the `server` and the `cli` rely on `disco-node`. A user can also directly import the `disco-node` package in their Node.js programs.
+    - `disco-web` allows using Disco.js through a browser. The `web-client`, discussed below, relies on `disco-web` to implement a browser UI.
       
   The main difference between the two is how they handle storage: a browser doesn't have access to the file system (for security reasons) while a Node.js application does.
-- `server` contains the server implementation necessary to use the `discojs` library. Indeed, while the federated and decentralized learning logic is implemented in `discojs`, we still need a server to orchestrate users in both paradigms. In decentralized learning, the server exposes an API for users to query the necessary information to train models in a decentralized fashion, such as the list of other peers. Thus, the server never receives training data or model parameters. In federated learning, the server receives model updates but never training data. It keeps track of participants and updates the model weights. A `server` instance is **always** necessary to use DISCO, whether one is using a browser UI, the CLI or directly programming with `disco-node`.
+- `server` contains the server implementation necessary to use Disco.js. Indeed, while the federated and decentralized learning logic is implemented by Disco.js, we still need a server to orchestrate users in both paradigms. In decentralized learning, the server exposes an API for users to query the necessary information to train models in a decentralized fashion, such as the list of other peers. Thus, the server never receives training data or model parameters. In federated learning, the server receives model updates but never training data. It keeps track of participants and updates the model weights. A `server` instance is **always** necessary to use DISCO, whether one is using a browser UI, the CLI or directly programming with `disco-node`.
 - `web-client` implements a browser User Interface. In other words, it implements a website allowing users to use DISCO without coding. Via the browser, a user can create and participate in federated and decentralized training sessions, evaluate models, etc.
-- `cli` contains the Command Line Interface for `discojs`. For example, the CLI allows a user to create and join in training sessions from the command line, benchmark performance by emulating multiple clients, etc.
+- `cli` contains the Command Line Interface for Disco.js. For example, the CLI allows a user to create and join training sessions from the command line, benchmark performance by emulating multiple clients, etc.
 
 Here is a summary diagram:
 
@@ -43,7 +43,7 @@ flowchart LR
 
 ## Installation guide
 
-The following instructions will install the required dependencies, build `discojs` and launch a DISCO server and a web client. If you run into any sort of trouble check our [FAQ](./docs/FAQ.md); otherwise please create a new issue or feel free to ask on [our slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw). 
+The following instructions will install the required dependencies, build Disco.js and launch a DISCO server and a web client. If you run into any sort of trouble check our [FAQ](./docs/FAQ.md); otherwise please create a new issue or feel free to ask on [our slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw). 
 
 1. We recommend using [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) to handle multiple Node.js versions. Start by installing `nvm` by following [their installation instructions](https://github.com/nvm-sh/nvm).
 After installation, you should be able to run
@@ -81,7 +81,7 @@ sh install.sh
   <summary><b>What does <code>install.sh</code> do?</b></summary>
   </br>
   The installation script installs the dependencies required by the different parts of the project, which are described in the Structure section.
-  It first installs the `discojs` library dependencies, notably, tensorflow.js, and anything else required for federated and decentralized learning logic. 
+  It first installs the Disco.js library dependencies, notably, `TensorFlow.js`, and anything else required for federated and decentralized learning logic. 
   The script then builds the library, a step necessary to compile TypeScript into JavaScript.
   
   ```
