@@ -4,21 +4,15 @@ Disco has grown a lot since its early days, and like with any sizeable code base
 difficult and intimidating: There are a *lot* of files, it's not clear what's important at first, and even where to start 
 is a bit of a puzzle.
 
-The two main technologies behind Disco are TypeScript and distributed machine learning, I will assume that the reader is familiar 
-with both to some extent, if not the following references might be useful. 
+The two main technologies behind Disco are TypeScript and distributed machine learning. In the following sections I will assume that you are familiar 
+with both to some extent. If not, the following references might be useful:
 
 - [JavaScript](https://eloquentjavascript.net)
 - [TypeScript](https://www.typescriptlang.org/docs/handbook/intro.html)
 - [Federated and Decentralized Learning](https://arxiv.org/pdf/1912.04977)
 
-> [!NOTE]
-> Even if you are already familiar with TypeScript, federated and decentralized learning it's always good to go over the relevant material for a refresher and maybe learn what you might have missed the first time; the devil is in the details, and it is the details that maketh the expert.
-
-If you find that certain parts of this present guide are indeed outdated, then it is *your* responsibility now to update this document in order to keep the fire
-going. Good luck, and may node be with you.
-
 > [!IMPORTANT]
-> Disco is a big project so some things have been omitted, you are encouraged to add missing information!
+> Disco is a big project and some contentsinformation has probably been omitted or is outdated. It is now *your* responsibility to add missing information or let us know on [slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw)!
 
 ## First steps
 
