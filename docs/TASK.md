@@ -35,14 +35,13 @@ Note that the following conversion is only possible in cases of models for which
 
 
 
-
-
-## 1) Simple use case: Using the user interface directly for creating a new task
+## 1) Using the user interface directly for creating a new task
 I am a user who wants to define my custom task and bring my model to Disco, without doing any programming. In this case, you use our existing supported data modalities and preprocessing (such as tabular, images, text etc). For this use case, an initial `.bin` weight file of your TF.js model is mandatory.
- - Through the Disco user interface, click on the *create* button on "Add your own model to be trained in a DISCOllaborative"
- - Fill in all the relevant information for your task and model
- - Upload the .json + .bin model in the *Model Files* box.
- Your task has been successfully instantiated.
+ * Through the Disco user interface, click on the *create* button on "Add your own model to be trained in a DISCOllaborative"
+ * Fill in all the relevant information for your task and model:
+ 	*   A `TensorFlow.js` model file in JSON format (useful links to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model)
+	* A weight file in `.bin` format. This is the initial weights provided to new users joining your task (pre-trained or random initialisation).
+   
 
 
 ## 2) Procedure for adding a custom task
