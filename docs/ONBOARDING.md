@@ -1,8 +1,8 @@
 # Onboarding
 
-Disco has grown a lot since its early days, and like with any sizeable code base, getting started is both
-difficult and intimidating: There are a *lot* of files, it's not clear what's important at first, and even where to start 
-is a bit of a puzzle.
+Disco has grown a lot since its early days, and like any sizeable code base, getting started is both
+difficult and intimidating: there are a *lot* of files, it's not clear what's important at first, and even where to start 
+is a bit of a puzzle. This document aims at giving you an efficient process to get familiar with DISCO.
 
 The two main technologies behind Disco are TypeScript and distributed machine learning. In the following sections I will assume that you are familiar 
 with both to some extent. If not, the following references might be useful:
@@ -12,7 +12,7 @@ with both to some extent. If not, the following references might be useful:
 - [Federated and Decentralized Learning](https://arxiv.org/pdf/1912.04977)
 
 > [!IMPORTANT]
-> Disco is a big project and some contentsinformation has probably been omitted or is outdated. It is now *your* responsibility to add missing information or let us know on [slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw)!
+> Disco is a big project and some information has probably been omitted or is outdated. It is now *your* responsibility to add missing information or let us know on [slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw)!
 
 ## First steps
 
