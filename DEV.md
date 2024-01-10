@@ -135,8 +135,24 @@ The web-client should be running on `http://localhost:8081`, if not restart the 
 
 ## Further documentation
 
-* For further technical information our [onboarding document](./docs/ONBOARDING.md) gives a deeper introduction to the codebase and the `discojs-core` implementation and the [Architecture guide](./docs/ARCHITECTURE.md) explains more on the use of TypeScript and Vue.js, our frontend framework.
+* For further technical information our [onboarding document](./docs/ONBOARDING.md) gives a deeper introduction to the codebase and the [Architecture guide](./docs/ARCHITECTURE.md) explains more on the use of TypeScript and Vue.js, our frontend framework.
 * If you are planning to contribute to the codebase, have a look at the [contributing guide](./docs/CONTRIBUTING.md).
-* A stand-alone example running two federated users can be found [here](./docs/node_example). The example runs with Node.js outside any browser, using the `@epfml/discojs-node` NPM package and the `server` module. A DISCO server is launched by the script itself and the data is already available in the repo.
-* Finally, see the respective module README files for more precise information on the different parts of the project: [discojs-core](./discojs/discojs-core/README.md), [discojs](./discojs/discojs/README.md), [discojs-node](./discojs/discojs-node/README.md), [server](./server/README.md), [web-client](./web-client/README.md) and [cli](./cli/README.md).
-  
+* A stand-alone example, relying on `discojs-node`, running two federated users can be found [here](./docs/node_example). The example runs with Node.js outside any browser, using the `@epfml/discojs-node` NPM package and the `server` module. A DISCO server is launched by the script itself and the data is already available in the repo.
+* As there are many guides in the project, here is a table of contents referencing all of them:
+  * [DISCO README](./README.md)
+  * [Developer guide](./DEV.md)
+  * [Onboarding guide](./docs/ONBOARDING.md)
+  * [Contributing guide](./docs/CONTRIBUTING.md)
+  * [Architecture and frameworks guide](./docs/ARCHITECTURE.md)
+  * [FAQ](./docs/FAQ.md)
+  * [`discojs` README](./discojs/README.md)
+    * [`discojs-core` README](./discojs/discojs-core/README.md)
+    * [`discojs-node README`](./discojs/discojs-node/README.md)
+    * [`discojs-web README`](./discojs/discojs-web/README.md)
+  * [`server` README](./server/README.md)
+  * [`web-client` README](./web-client/README.md)
+  * [`cli` README](./cli/README.md)
+  * [Example: using `discojs-node` in a script](./docs/node_example/README.md)
+  * [Privacy in DISCO](./docs/PRIVACY.md)
+  * [How to create a DISCO Task](./docs/TASK.md)
+  * [Vue.js in DISCO](./web-client/src/components/README.md)
