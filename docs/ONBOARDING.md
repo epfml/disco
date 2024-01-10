@@ -22,7 +22,7 @@ going. Good luck, and may node be with you.
 
 ## First steps
 
-DISCO this is a complex project composed of a JavaScript library (`discojs`), a front-end (`web-client`),
+DISCO this is a complex project composed of the Disco.js library (`discojs`), a front-end (`web-client`),
 a `server` and a `cli` (e.g., for benchmarking). Depending on what your goal is, you might only use a subset of them, e.g. you won't need an in-depth understanding of the web-client and Vue.js to add a new decentralized learning feature. Instead, you will probably rely on the CLI.
 
 1. If you are going to work, contribute and improve the project, I first recommend you get a good understand of what DISCO does: play around with the [website](https://epfml.github.io/disco/#/), train a model from the pre-defined tasks, or even create your own custom task. Feedback is always appreciated, feel free to let us know on slack/in the github issues/in person if you noticed any issues or thought of an improvement.
@@ -34,7 +34,7 @@ a `server` and a `cli` (e.g., for benchmarking). Depending on what your goal is,
 > [!TIP]
 > The most common issues with running DISCO are usually due to using old Node.js versions and setting the appropriate environment on M1 Macs, see [our FAQ](./FAQ.md) for more troubleshooting. Note that DISCO has been not tested on Windows (only Linux and macOS).
 
-As mentioned in the [developer guide](../DEV.md), there are many ways to use the `discojs` library: from a browser, a CLI, by importing `discojs-node` in your own Node.js scripts and applications, from your own UI implementation, etc. Note that whatever your setting, using `discojs` always requires running a `server` instance. As described in the [`server` README file](../server/REDME.md), the server is in charge of connecting peers to the ML tasks. In order to connect and partake in a distributed training session you first need to find the session and how to join it, the sever exposes an API to that end.
+As mentioned in the [developer guide](../DEV.md), there are many ways to use Disco.js: from a browser, a CLI, by importing `discojs-node` in your own Node.js scripts and applications, from your own UI implementation, etc. Note that whatever your setting, using Disco.js always requires running a `server` instance. As described in the [`server` README file](../server/REDME.md), the server is in charge of connecting peers to the ML tasks. In order to connect and partake in a distributed training session you first need to find the session and how to join it, the sever exposes an API to that end.
 
 Below you will find instructions and documentation on how to run DISCO in different settings. 
 
@@ -44,20 +44,7 @@ Instructions on how to use the `web-client` can be found in the [developer guide
 
 ### Using DISCO from the `cli`
 
-Running the following commands will run a Disco server and two clients in the federated setting, all from your command line.
-
-```
-git clone git@github.com:epfml/disco.git
-nvm use
-cd discojs && npm ci
-cd discojs-node && npm run build
-cd ../..
-cd server && npm ci
-cd ..
-cd cli && npm ci && npm start
-```
-
-More information about the cli can be found [here](../cli/README.md)
+The CLI is currently not working. Until then, you can find more information in the [`cli` README](../cli/README.md).
 
 ### Using DISCO from a script - Standalone example
 
