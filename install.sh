@@ -12,8 +12,11 @@ echo '\n>>> Installing the server dependencies\n'
 cd ../server
 npm ci && npm link ../discojs/discojs-node
 
-cd ..
+echo '\n>>> Installing the CLI dependencies\n'
+cd ../cli
+npm ci
 
+cd ..
 npm install -g ts-node
 
 echo '\n >>> Installation sucessful!\n'
