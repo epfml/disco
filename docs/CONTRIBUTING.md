@@ -20,6 +20,11 @@ The procedure for working on a feature is the following:
 5. Request a review and iterate based on the comments.
 6. Your PR is merged into the `develop` branch.
 
+> [!TIP]
+> If you are using VSCode, know that you may not be able to open the editor from the repo root level without VSCode raising imports errors. If that is the case, you should start VSCode from inside the module you are working.
+> In practice, that is any folder level that contains a `package.json` such as `server`, `web-client`, etc.
+> For example, if you are working on the CLI, you should start VSCode with the command `code cli` from the root level (or `cd cli`, `code .`)
+
 ### Create a new branch to work in
 
 Once you start working on a feature, create a new branch from the `develop` branch, and use the following convention:
