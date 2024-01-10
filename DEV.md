@@ -152,6 +152,7 @@ As there are many guides in the project, here is a table of contents referencing
 * The `docs` folder contains in-depth documention on the project:
 	* [Onboarding guide](./docs/ONBOARDING.md)
 	* [Contributing guide](./docs/CONTRIBUTING.md)
+	* [Disco.js under the hood](./docs/DISCOJS.md)
 	* [Architecture and frameworks guide](./docs/ARCHITECTURE.md)
 	* [FAQ](./docs/FAQ.md)
 	* [Example: using `discojs-node` in a script](./docs/node_example/README.md)
