@@ -1,9 +1,5 @@
 # Onboarding
 
-Note: You will not need this guide if you simply want to add a new machine learning task to Disco. Instead, for that you can directly use task creation form, or our [guide on how to add a custom task](./TASK.md).
-
-If you want to contribute to the development of the Disco library itself? If yes then this present guide is for you.
-
 Disco has grown a lot since its early days, and like with any sizeable code base, getting started is both
 difficult and intimidating: There are a *lot* of files, it's not clear what's important at first, and even where to start 
 is a bit of a puzzle.
@@ -11,32 +7,40 @@ is a bit of a puzzle.
 The two main technologies behind Disco are TypeScript and distributed machine learning, I will assume that the reader is familiar 
 with both to some extent, if not the following references might be useful. 
 
-> Even if you are already familiar with TypeScript or Federated Learning it's always good to go over the relevant knowledge to discover pieces you might have missed the first time; the devil is in the details, and it is the details that maketh the expert.
-
 - [JavaScript](https://eloquentjavascript.net)
 - [TypeScript](https://www.typescriptlang.org/docs/handbook/intro.html)
 - [Federated and Decentralized Learning](https://arxiv.org/pdf/1912.04977)
 
+> [!NOTE]
+> Even if you are already familiar with TypeScript, federated and decentralized learning it's always good to go over the relevant material for a refresher and maybe learn what you might have missed the first time; the devil is in the details, and it is the details that maketh the expert.
+
 If you find that certain parts of this present guide are indeed outdated, then it is *your* responsibility now to update this document in order to keep the fire
 going. Good luck, and may node be with you.
 
+> [!IMPORTANT]
 > Disco is a big project so some things have been omitted, you are encouraged to add missing information!
 
 ## First steps
 
-When learning a new programming language the established first step is *hello world*, which in short is a sanity check to
-make sure things are running. In Disco this is a bit more involved since it is composed of a library (discojs), a front-end (browser),
-a back-end (server) and a cli (benchmark); depending on what your goal is, you might only use a subset of them, e.g. for running 
-simulations with the cli you don't need the browser.
+DISCO this is a complex project composed of a JavaScript library (`discojs`), a front-end (`web-client`),
+a `server` and a `cli` (e.g., for benchmarking). Depending on what your goal is, you might only use a subset of them, e.g. you won't need an in-depth understanding of the web-client and Vue.js to add a new decentralized learning feature. Instead, you will probably rely on the CLI.
 
-To quickly get up and running you can follow any of the following quick start guide; note that each folder has it's README.md with useful information that might be useful
-if you can't get it to run.
+1. If you are going to work, contribute and improve the project, I first recommend you get a good understand of what DISCO does: play around with the [website](https://epfml.github.io/disco/#/), train a model from the pre-defined tasks, or even create your own custom task. Feedback is always appreciated, feel free to let us know on slack/in the github issues/in person if you noticed any issues or thought of an improvement.
 
-> The most common issues with running disco are usually due to using old node versions and setting the appropriate environment on M1 Macs, see [here](./FAQ.md) for more. Note that disco has been not tested on Windows (only Linux and macOS).
+2. Then, get a high-level understanding of the different parts of the projects in the [developer guide](../DEV.md), even if you're planning on working on a subset of the project. If you to know more about a specific part of the project, refer to the table of contents at the end of the guide.
+   
+3. Following the installation instructions from the [developer guide](../DEV.md) to launch a DISCO instance working in your browser.
+
+> [!TIP]
+> The most common issues with running DISCO are usually due to using old Node.js versions and setting the appropriate environment on M1 Macs, see [our FAQ](./FAQ.md) for more troubleshooting. Note that DISCO has been not tested on Windows (only Linux and macOS).
+
+As mentioned in the [developer guide](../DEV.md), there are many ways to use the `discojs` library: from a browser, a CLI, by importing `discojs-node` in your own Node.js scripts and applications, from your own UI implementation, etc. Note that whatever your setting, using `discojs` always requires running a `server` instance. As described in the [`server` README file](../server/REDME.md), the server is in charge of connecting peers to the ML tasks. In order to connect and partake in a distributed training session you first need to find the session and how to join it, the sever exposes an API to that end.
+
+Below you will find instructions and documentation on how to run DISCo in different settings. 
 
 ### Quick-start - Web client   (TODO: update)
 
-Running the following commands will set up a Disco server on http://localhost:8080 along a web client served on http://localhost:8081.
+Running the following commands will set up a DISCO server on http://localhost:8080 along a web client served on http://localhost:8081.
 
 ```
 git clone git@github.com:epfml/disco.git
