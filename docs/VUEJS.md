@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This folder contains all `vue-files` that compose the web application.
+The folder `web-client/src/components/` contains all `vue-files` implementing the web application, i.e., everything you can see and interact with in the web client.
 
 A strong focus was put on software engineering best practices to ease the future development stages. A list of simple guidelines to write good `vue` code is made available in the [Code guidelines section](#code-guidelines).
 
@@ -47,7 +47,7 @@ See [Naming convention section](#naming-conventions) for more information.
 
 ### `Container` directory
 
-The `container` directory holds all `vue` components that fulfil a container function. In other words, most components in this folder make extensive use of the [slot `vue` contruct](https://v3.vuejs.org/guide/component-slots.html)
+The `container` directory holds all `vue` components that fulfil a container function. In other words, most components in this folder make extensive use of the [slot `vue` construct](https://v3.vuejs.org/guide/component-slots.html)
 
 ```html
 <slot name="XXX"></slot>
@@ -70,7 +70,7 @@ The following types are available :
 | Component       | Description                                                            |
 | :-------------- | :--------------------------------------------------------------------- |
 | `Card.vue`      | simple `div` with darker background                                    |
-| `TitleCard.vue` | a `Card` but with a stylised title added as `props`                    |
+| `TitleCard.vue` | a `Card` but with a stylized title added as `props`                    |
 | `IconCard`      | a `Card` having a header section with a title and an icon on the right |
 | `IconCardSmall` | Smaller version of `IconCard` (e.g. used in `TrainingInformant.vue`)   |
 
@@ -109,7 +109,7 @@ and that another `vue` component can use it inside its template using the follow
 
 > **Note**: all `javascript` code inside the `<script></script>` tag shall respect the ES6 standard, in particular the imports statements. See [Helpers folder README](../logic/README.md) for more information.
 
-### Modularisation
+### Modularization
 
 You will find below some resources that should help increase modularity and reduce the amount of code duplication in the platform:
 
