@@ -126,10 +126,10 @@ The server should be listening on `http://localhost:8080/`.
 cd web-client
 npm run dev
 ```
-The web-client should be running on `http://localhost:8081`, if not restart the web client (and first the server if needed).
+The web client should be running on `http://localhost:8081`, if not first restart the server and then the web client.
 
 > [!IMPORTANT]
-> Make sure you first start the server and then the web client to ensure that they are listening to ports 8080 and 8081 respectively.
+> Make sure to first start the server to ensure that it is listening to port 8080.
 
 **You can now access DISCO at http://localhost:8081/**
 
