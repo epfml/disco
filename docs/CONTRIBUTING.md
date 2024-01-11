@@ -1,60 +1,66 @@
 # Disco - How to contribute
 
-## TODO list
-
-To get an overview of who is working on what we use the [project](https://github.com/epfml/disco/projects/7) feature of GitHub as described earlier, this gives us a table with the current TODOs, what is currently being worked on, and what has been finished.
-
-Each note in the the project can be linked to an issue by tagging it, e.g. add #202 in the note content. You cannot assign yourself a note, but you can assign yourself an issue, which is how we can keep track of who is working on what feature.
-
-> **Tip** : When creating a new issue, on the right hand side, under the assignees menu, you can also add a project, if you add the `TODO` project, this will directly create a note in our project with the issue
-
-The project link can be found [here](https://github.com/epfml/disco/projects/7)
-
 ## Contributing code:
 
 The procedure for working on a feature is the following:
-1. Create a new branch to work in.
-2. Write code, comments / docstrings, and tests to implement the feature.
-3. Create a draft PR.
-4. Run the test suites and clean your code.
-5. Request a review and iterate based on the comments.
-6. Your PR is merged into the `develop` branch.
+1. Create a new branch to work in
+2. Write code along with comments and docstrings to implement a feature
+3. Write tests for the feature
+4. Create a draft pull request (PR)
+5. Run the test suites and clean your code
+6. Request a review and jump back back to 2. if needed
+7. Merge the PR
+
+### 1. Creating a new branch
+
+Once you start working on a feature, create a new branch from the `develop` branch, and use the following convention: `IssueNumber-Key-Word-YourName`.
+So for example, if I am working on issue #202, which is related to fixing a train bug I would call this branch: `202-train-bug-nacho`
+
+From your local repository:
+```
+# currently in branch `develop`
+git checkout -b 202-train-bug-nacho
+```
+Once you've committed some changes, push the new branch to the remote (`origin` here):
+```
+git push -u origin 202-train-bug-nacho
+```
+`-u`, short for `--set-upstream`, makes the remote branch (`origin/202-train-bug-nacho`) track your local branch (`202-train-bug-nacho`)
+
+### 2. Coding, comments and docstrings
 
 > [!TIP]
 > If you are using VSCode, know that you may not be able to open the editor from the repo root level without VSCode raising imports errors. If that is the case, you should start VSCode from inside the module you are working.
 > In practice, that is any folder level that contains a `package.json` such as `server`, `web-client`, etc.
 > For example, if you are working on the CLI, you should start VSCode with the command `code cli` from the root level (or `cd cli`, `code .`)
 
-### Create a new branch to work in
+#### Naming conventions
 
-Once you start working on a feature, create a new branch from the `develop` branch, and use the following convention:
+* TypeScript files should be written in snake_case, lowercase words separated by underscores, e.g. `event_connection.ts`
+* Vue.js files should be written in PascalCase (capitalized words including the first), e.g. `DatasetInput.vue`
+* Classes and types should also be written in PascalCase. For example class `AsyncInformant` and type `MetadataValue`
+* Functions and variable anmes should be written in camelCase, starting with a lowercase letter: function `isWithinRoundCutoff` and variable `roundCutoff`
 
-`IssueNumber-Key-Word-YourName`
 
-So for example, if I am working on issue 202, which is related to fixing a train bug I would call this branch:
+#### Docstrings
 
-`202-train-bug-nacho`
+Write docstrings in the [JSDoc](https://jsdoc.app/) style. For reference: [list of JSDoc tags supported in TypeScript](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html).
 
-### Coding, comments and docstrings
-
-* *File names:* lowercase, words separated by underscore (_).
-* *Class and variable names:* CamelCase. Classes / types start with an uppercase letter, variables start with a lowercase letter.
-* *Docstrings:* Write docstrings in the [JSDoc](https://jsdoc.app/) style. For reference: [list of JSDoc tags supported in TypeScript](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html).
-
-### Write tests for your code
+### 3. Writing tests for your code
 
 We use the testing framework [mocha](https://mochajs.org/) and the [chai](https://www.chaijs.com/) assertion library.
 
 To write tests for a code file `<filename>.ts`, create a `<filename>.spec.ts` file. This way, tests will be executed automatically for continuous integration.
 
-### Draft PR
+### 4. Draft PR
 
-Once you have added a minimum number of content to your branch (e.g. you can see a bit where you are going), you can create a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/).
+Once you have added a minimum number of content to your branch (e.g. you can see a bit where you are going), you can create a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/). Create a pull request to merge your branch (e.g., `202-train-bug-nacho`) into the `develop` branch. `develop` should always be functional and up to date with new working features. It is the equivalent of the `main`or `master` branch in DISCO.
 It is important to give a good description to your PR as this makes it easier for other people to go through it.
 
-> **Tip** : [Here](https://github.com/epfml/disco/pull/176) is a good example of a PR.
+> [!TIP]
+> [This PR](https://github.com/epfml/disco/pull/176) is a good example.
 
-### Before requesting a review
+### 5. Before requesting a review
 
 Once you have finished your work on your draft PR, make sure to do the following before turning it into review PR.
 
