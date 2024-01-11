@@ -141,7 +141,7 @@ export default defineComponent({
     async startTraining (distributedTraining: boolean): Promise<void> {
       this.distributedTraining = distributedTraining
 
-      if (!this.datasetBuilder.isBuilt()) {
+      if (!this.datasetBuilder.built) {
         try {
           this.dataset = await this.datasetBuilder.build()
         } catch (e) {
@@ -157,7 +157,7 @@ export default defineComponent({
         await this.disco.fit(this.dataset)
         this.startedTraining = false
       } catch (e) {
-        this.$toast.error('An error occured during training')
+        this.$toast.error('An error occurred during training')
         console.error(e)
         this.cleanState()
       }
