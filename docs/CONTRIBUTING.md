@@ -97,9 +97,17 @@ It is important to give a good description to your PR as this makes it easier fo
 
 Once you have finished your work on your draft PR, make sure to do the following before turning it into review PR.
 
-1. Run both the server and main test suites (descriptions about how to run tests can be found in the README files in GitHub).
-
+1. Run both the server and main test suites as described above.
 2. Make sure you remove debugging comments / console outputs.
+3. Merge (or rebase if you can do it properly) master into your feature branch:
+```
+git checkout develop
+git pull
+git checkout 202-train-bug-nacho
+git merge develop # Solve potential merge conflicts
+git push
+```
+4. Ask for your PR to be reviewed and merge it once it is approved. Delete your feature branch afterwards.
 
 ## FAQ
 
