@@ -110,9 +110,14 @@ sh install.sh
   cd ../cli
   npm ci
   ```
-  Finally, we install `ts-node` globally in order to compile and run TypeScript code in a single command from anywhere.
+  Install `ts-node` globally. `ts-node` lets us compile and run TypeScript code in a single command.
   ```
+  cd ..
   npm install -g ts-node
+  ```
+	Download and extract the sample training datasets. These datasets are used in the automated tests.
+  ```
+	sh get_training_data.sh
   ```
   
 </details>
@@ -128,7 +133,7 @@ npm run dev
 The server should be listening on `http://localhost:8080/`.
 * Secondly, start a web client, which will allow you to use DISCO from your browser. You may have to do so **from another terminal** since the previous one is now used by the server.
 ```
-cd web-client
+cd web-client # from another terminal
 npm run dev
 ```
 The web client should be running on `http://localhost:8081`, if not first restart the server and then the web client.
@@ -141,7 +146,7 @@ The web client should be running on `http://localhost:8081`, if not first restar
 
 ## Further documentation
 
-* Next you may want to read our [onboarding guide](./docs/ONBOARDING.md) which lists the following steps to onbaord DISCO.  Additionally the [Architecture guide](./docs/ARCHITECTURE.md) gives more information on our use of TypeScript and Vue.js, the frontend framework.
+* Next you may want to read our [onboarding guide](./docs/ONBOARDING.md) which lists the following steps to onboard DISCO.  Additionally the [Architecture guide](./docs/ARCHITECTURE.md) gives more information on our use of TypeScript and Vue.js, the frontend framework.
 * If you are only planning to use DISCO in your own scripts, you can find a stand-alone example relying on `discojs-node` [here](./docs/node_example). The example runs with Node.js outside any browser, using the `@epfml/discojs-node` NPM package and the `server` module. A DISCO server is launched by the script itself and the data is already available in the repo.
 
 #### Table of contents
