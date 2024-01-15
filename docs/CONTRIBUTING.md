@@ -30,9 +30,22 @@ git push -u origin 202-train-bug-nacho
 ### 2. Coding, comments and docstrings
 
 > [!TIP]
-> If you are using VSCode, know that you may not be able to open the editor from the repo root level without VSCode raising imports errors. If that is the case, you should start VSCode from inside the module you are working.
-> In practice, that is any folder level that contains a `package.json` such as `server`, `web-client`, etc.
-> For example, if you are working on the CLI, you should start VSCode with the command `code cli` from the root level (or `cd cli`, `code .`)
+> If you are using VSCode, you may not be able to open the editor from the repo root level without VSCode raising import errors. If that is the case, you should start VSCode from inside the module you are working.
+> In practice, this is any folder level that contains a `package.json` such as `server`, `web-client`, etc.
+> For example, if you are working on the CLI, you should start VSCode with the command `code cli` from the root level (or `cd cli` followed by `code .`)
+
+Here are the main commands you may rely on in differents parts of DISCO:
+* After modifying `discojs`, it is currently necessary to rebuild the library for the changes to be effective (no hot reloading):
+```
+cd discojs
+npm run build # rebuilds disco-core, disco-node and disco-web
+```
+* Both `server` and `web-client` work with hot reloading, i.e., once the backends are running, any code modification is automatically taken into account:
+```
+cd server # (or cd web-client)
+npm run dev # you can modify the code while this instance is running
+```
+
 
 #### Naming conventions
 
@@ -46,11 +59,31 @@ git push -u origin 202-train-bug-nacho
 
 Write docstrings in the [JSDoc](https://jsdoc.app/) style. For reference: [list of JSDoc tags supported in TypeScript](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html).
 
-### 3. Writing tests for your code
+### 3. Testing your code
 
 We use the testing framework [mocha](https://mochajs.org/) and the [chai](https://www.chaijs.com/) assertion library.
-
 To write tests for a code file `<filename>.ts`, create a `<filename>.spec.ts` file. This way, tests will be executed automatically for continuous integration.
+Each part of DISCO has a respective test suite:
+* `discojs` needs to have a `server` instance to be tested:
+```
+cd server
+npm run start
+
+# from another terminal if needed
+cd discojs
+sh test.sh
+```
+* Now for `server` make sure no `server` instance is already running. Port 8080 should be free and available.
+```
+cd server
+npm run test
+```
+* Similarly for the `web-client`:
+```
+cd web-client
+npm run test
+```  
+
 
 ### 4. Draft PR
 
