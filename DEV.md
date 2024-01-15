@@ -110,9 +110,14 @@ sh install.sh
   cd ../cli
   npm ci
   ```
-  Finally, we install `ts-node` globally in order to compile and run TypeScript code in a single command from anywhere.
+  Install `ts-node` globally. `ts-node` lets us compile and run TypeScript code in a single command.
   ```
+  cd ..
   npm install -g ts-node
+  ```
+	Download and extract the sample training datasets. These datasets are used in the automated tests.
+  ```
+	sh get_training_data.sh
   ```
   
 </details>
@@ -128,7 +133,7 @@ npm run dev
 The server should be listening on `http://localhost:8080/`.
 * Secondly, start a web client, which will allow you to use DISCO from your browser. You may have to do so **from another terminal** since the previous one is now used by the server.
 ```
-cd web-client
+cd web-client # from another terminal
 npm run dev
 ```
 The web client should be running on `http://localhost:8081`, if not first restart the server and then the web client.
