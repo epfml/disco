@@ -1,30 +1,37 @@
 # `Disco.js` under the hood
 
-This guide goes over how the core logic is structured and the main abstractions of Disco.js, implemented in `discojs/discojs-core`.
+This guide goes over how the core logic is structured and what are the main abstractions of Disco.js, implemented in `discojs/discojs-core`.
 As described in the [developer guide](../DEV.md), `discojs-node` and `discojs-web` are simple wrappers allowing to use `discojs-core` code from different platforms and technology, namely, a browser or Node.js. 
 
-The main logic of Disco.js is in `discojs/discojs-core`. In turn, the main object of Disco.js is the `Disco` class, which groups together the different classes that enable distributed learning; these classes are the `Trainer` and the `Client`, the latter deals with communication and the former with training. Since different types of communication and training is available these classes are abstract and various implementations exist for the different frameworks (e.g. `FederatedClient` for federated communication with a central server).
+The main logic of Disco.js is in `discojs/discojs-core`. In turn, the main object of Disco.js is the `Disco` class, which groups together the different classes that enable distributed learning; these classes are the `Trainer` and the `Client`, the former with training and the latter deals with communication. Since different types of communication and training is available these classes are abstract and various implementations exist for the different frameworks (e.g. `FederatedClient` for federated communication with a central server).
 
-Once you understand how these two classes work (as well as it's concrete implementations) you will have a good initial grasp of Disco. The rest of the classes mostly  deal with building these objects (the [Task](./TASK.md) object specifies all this information), making them work together and so on.
+Once you understand how these two classes work (as well as there concrete implementations) you will have a good grasp of Disco. The rest of the classes mostly deal with building these objects and making them work together.
 
-> In what follows, most code snippets will be incomplete with respect to the actual code in order to focus on the essentials.
+> [!Note]
+> In order to focus on the essentials, most of the following code snippets will be incomplete with respect to the actual code
 
 ### Trainer
 
-The trainer class contains all code relevant for training, its main method is `trainModel` which does as it would 
-suggest, train a model with a given dataset. This class is abstract, and requires the method `onRoundEnd`
-to be implemented which is the where the distributed learning flow starts.
+The `Trainer` class contains all code relevant for training, its main method is `trainModel`, which does exactly what the name suggests: training a model with a given dataset. The `Trainer` class is abstract, and requires a certain number of functions related to distributed learning, called "callbacks", to be implemented.
 
 ```js
-async trainModel (dataset: tf.data.Dataset<tf.TensorContainer>): Promise<void> {
+async fitModel (
+    dataset: tf.data.Dataset<tf.TensorContainer>,
+    valDataset: tf.data.Dataset<tf.TensorContainer>
+  ): Promise<void> {
+    this.resetStopTrainerState()
 
-    // Assign callbacks and start training
-    await this.model.fitDataset(dataset, {
-      callbacks: {
-        onBatchEnd: async (epoch, logs) => await this.onBatchEnd(epoch, logs) // <-- call our own onBatchEnd
-      }
-    })
-}
+    await this.fitModelFunction(this.model,
+      this.task.trainingInformation,
+      dataset,
+      valDataset,
+      (e, l) => this.onEpochBegin(e, l),                                      // <-- all the callbacks
+      (e, l) => this.onEpochEnd(e, l),
+      async (e, l) => await this.onBatchBegin(e, l),
+      async (e, l) => await this.onBatchEnd(e, l),
+      async (l) => await this.onTrainBegin(l),
+      async (l) => await this.onTrainEnd(l))
+  }
 
 protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
       this.roundTracker.updateBatch()                                         // <-- update round
@@ -43,7 +50,7 @@ we use a `roundTracker` to keep track of the of when a new round ends.
 
 > See the appendix for more on rounds.
 
-The distributed trainer class extends the trainer `onRoundEnd` as follows
+The distributed trainer class extends `Trainer`'s `onRoundEnd` as follows
 
 ```js
 async onRoundEnd (accuracy: number): Promise<void> {
