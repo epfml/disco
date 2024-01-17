@@ -3,6 +3,9 @@
 This guide goes over how the core logic is structured and what are the main abstractions of Disco.js, implemented in `discojs/discojs-core`.
 As described in the [developer guide](../DEV.md), `discojs-node` and `discojs-web` are simple wrappers allowing to use `discojs-core` code from different platforms and technology, namely, a browser or Node.js. 
 
+> [!Tip]
+> Some knowledge about distributed learning is necessary to understand Disco.js' implementation. For instance, you can have a look at [this paper](https://arxiv.org/abs/1912.04977), written by the Google researchers that coined the term "Federated Learning", reviewing the advances and open areas of distributed learning at the time of 2019.
+
 The main logic of Disco.js is in `discojs/discojs-core`. In turn, the main object of Disco.js is the `Disco` class, which groups together the different classes that enable distributed learning; these classes are the `Trainer` and the `Client`, the former with training and the latter deals with communication. Since different types of communication and training is available these classes are abstract and various implementations exist for the different frameworks (e.g. `FederatedClient` for federated communication with a central server).
 
 Once you understand how these two classes work (as well as there concrete implementations) you will have a good grasp of Disco. The rest of the classes mostly deal with building these objects and making them work together.
@@ -10,76 +13,91 @@ Once you understand how these two classes work (as well as there concrete implem
 > [!Note]
 > In order to focus on the essentials, most of the following code snippets will be incomplete with respect to the actual code
 
-### Trainer
+### Terminology
 
-The `Trainer` class contains all code relevant for training, its main method is `trainModel`, which does exactly what the name suggests: training a model with a given dataset. The `Trainer` class is abstract, and requires a certain number of functions related to distributed learning, called "callbacks", to be implemented.
+Many terms are used in DISCO and unfortunately they are not always used in the same ways. Here is an attempt to clarifying and present the main terms and concepts as well as how they relate to each other:
+* A `node` is any machine in a network, which can be a server or a client.
+* A `client` or a `user` is a node with local data and performing local model updates. In other words, a client  refers to any node participating in distributed learning that isn't the server. Note that in `discojs`, a client is represented by multiple abstractions, such as the `Client` and the `Trainer`. Therefore, the `Client` class only implements parts of what everything a `client` does in distributed learning and mostly handles communications with the server or other clients.
+* `peer` is synonym to `client` or `user` in decentralized learning, following the peer-to-peer setting.
+* The `server` is the node listening to incoming requests from other nodes. There is a single server in a distributed task.
+* A `task` refers to the training of one model, whether distributed or not. Thus, multiple tasks may happen in parallel.
 
-```js
-async fitModel (
-    dataset: tf.data.Dataset<tf.TensorContainer>,
-    valDataset: tf.data.Dataset<tf.TensorContainer>
-  ): Promise<void> {
-    this.resetStopTrainerState()
+## Trainer
 
-    await this.fitModelFunction(this.model,
-      this.task.trainingInformation,
-      dataset,
-      valDataset,
-      (e, l) => this.onEpochBegin(e, l),                                      // <-- all the callbacks
-      (e, l) => this.onEpochEnd(e, l),
-      async (e, l) => await this.onBatchBegin(e, l),
-      async (e, l) => await this.onBatchEnd(e, l),
-      async (l) => await this.onTrainBegin(l),
-      async (l) => await this.onTrainEnd(l))
-  }
-
-protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
-      this.roundTracker.updateBatch()                                         // <-- update round
-
-    if (this.roundTracker.roundHasEnded()) {
-      await this.onRoundEnd(logs.acc)                                         // <-- call onRoundEnd
-    }
-  }
-
-protected abstract onRoundEnd (accuracy: number): Promise<void>
-```
-
-Note that `onBatchEnd` will be called by the TFJS's model callback, since this method is called every time a batch ends during
-training it is the perfect place for weight sharing. In order to only share weights every x number of batches (i.e. every round),
-we use a `roundTracker` to keep track of the of when a new round ends.
-
-> See the appendix for more on rounds.
-
-The distributed trainer class extends `Trainer`'s `onRoundEnd` as follows
+The `Trainer` class contains all the code relevant for training, its main method is `fitModel`, which trains a model on a given dataset and is a simple wrapper around [TensorFlow.js' method](https://js.tensorflow.org/api/latest/#tf.LayersModel.fitDataset). The `Trainer` class is abstract, and requires a certain number of functions, so-called "callbacks", related to distributed learning to be implemented.
 
 ```js
-async onRoundEnd (accuracy: number): Promise<void> {
-
-    // Post current weights and get back latest weights
-    const aggregatedWeights = await this.client.onRoundEndCommunication(
-      currentRoundWeights,
-      this.roundTracker.round
-    )
-
-    // Update latest weights
-    this.model.setWeights(aggregatedWeights)
-  }
+abstract class Trainer {
+    ...
+    async fitModel (
+        dataset: tf.data.Dataset<tf.TensorContainer>,
+        valDataset: tf.data.Dataset<tf.TensorContainer>
+      ): Promise<void> {
+    
+        await this.fitModelFunction(this.model,
+          this.task.trainingInformation,
+          dataset,
+          valDataset,
+          (e, l) => this.onEpochBegin(e, l),                 // <-- all the callbacks
+          (e, l) => this.onEpochEnd(e, l),
+          async (e, l) => await this.onBatchBegin(e, l),
+          async (e, l) => await this.onBatchEnd(e, l),
+          async (l) => await this.onTrainBegin(l),
+          async (l) => await this.onTrainEnd(l))
+      }
+    
+    protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
+          this.roundTracker.updateBatch()                                         // <-- update the batch count
+    
+        if (this.roundTracker.roundHasEnded()) {
+          await this.onRoundEnd(logs.acc)        // The round ends after a certain number of batches
+        }
+      }
+    
+    // An example of an abstract callback signature
+    protected abstract onRoundEnd (accuracy: number): Promise<void>
+    ...
+}
 ```
+Since `onBatchEnd` is called every time a batch ends during training, it is the perfect place to perform weight sharing, pushing local weights and pulling the new aggregated weights. In order to only share weights every x number of batches (what we call "rounds", explained below), we use a `roundTracker` to keep track of when rounds end. 
 
-> How would you implement the local trainer? You can find the code for the `LocalTrainer.ts` to see if you are correct!
+The `DistributedTrainer` and `LocalTrainer` classes inheriting from `Trainer` implement the actual callbacks and what happens when a round ends. The `LocalTrainer` is class dedicated to training a model on a single node, i.e., centralized training. As such, the `LocalTrainer` simply updates its local model weights at the end of each round. In comparison, `DistributedTrainer` sends an update containing its local weights, and then pulls the new weights resulting from the aggregation of other updates.
 
-In `onRoundEnd` we the `client` which is the class that takes care of communication.
+### Rounds
 
-### Client
+A round is measured in batches, so if we say, "share weights every round" and the `roundDuration` is 5, this means that weights are shared every
+5 batches. The user keeps track of **two** types of rounds: one is local to the trainer, the `roundTracker`,
+and is simply used by the client training loop to know when to call `onRoundEnd`. 
 
-The client is structured similarly to the trainer, here too we have an abstract class that requires the method `onRoundEndCommunication`
-to be implemented; the two implementations for it are the FederatedClient and the DecentralizedClient, we will explain how the 
-FederatedClient works as it is easier to follow.
+The other round can be found in the `FederatedClient`, called the `serverRound`, and is incremented by the server after every model udpate, when weights are aggregated. 
+When a client retrieves a model from the server, it also keeps track of the server round (this happens in the `FederatedClient`). You can think of the `serverRound` as a 
+versioning number for the server model to make sure clients use the latest model weights.
 
-In the Federated client we first push our weights to the server, we then query for new aggregated weights, and return them if they exist;
-if there are no new weights we simply return the current model.
+Here's an example to better undertand how `serverRound` is used. Say we have user A, and a server S. Let us write inside parentheses the current
+rounds, e.g., A(i) and S(k) denote that the `serverRound` of user A is `i` and the server round of the server is `k`. 
 
-> In the actual implementation we need to keep track of both the current and previous weight as we provide Differential Privacy.
+When A pulls a model from S(k), the client will update its own round A(k). After this, A starts to train, it pushes to the server every 
+time a local round ends (the `roundTracker` helps keeping track of when a round ends); note that this does not influence A(k). 
+Once a round ends, A pushes its weights to the server.
+
+There are two cases to consider
+
+1. Server is still at round `k`, the server model has not been updated in the meantime. Thus, the server stores the weights of A(k) in the server buffer for a later update.
+
+2. Server is now at round `l`, s.t. `l > k`, meaning that the server has already aggregated weights into a new model while A was training. In this case, the server rejects A's weights,
+A fetches the new model, and updates its round to A(j) to continue training with the new model.
+
+## Client
+
+The `Client` class mostly handles sending and receiving information to other nodes. `Client` is structured similarly to the `Trainer`, with an abstract class that requires the method `onRoundEndCommunication`
+to be implemented. Currently, the two regular classes implementing `Client` are the `FederatedClient` and the `DecentralizedClient`. For simplicity, we explain here how the 
+`FederatedClient` works as it is easier to follow.
+
+In the federated setting, the client first pushes its weights to the server and waits to receive new aggregated weights, if any.
+If there are no new weights the client continues performing updates with the current model.
+
+> [!Note]
+> In the current implementation, we keep track of both the current and previous weights in order to implement Differential Privacy.
 
 ```js
 async onRoundEndCommunication (
@@ -90,9 +108,25 @@ async onRoundEndCommunication (
     const serverWeights = await this.pullRoundAndFetchWeights() // <--- 2. Fetch new server (aggregated) weights, is undefined if none exist
     return serverWeights ?? weights                             
 }
+async onRoundEndCommunication (
+    weights: WeightsContainer,
+    round: number,
+    trainingInformant: informant.FederatedInformant
+  ): Promise<void> {
+
+    
+    await this.sendPayload(this.aggregator.makePayloads(weights).first()) // Send the local weights to the server
+    
+    await this.receiveResult()      // Fetch the server result or timeout after some time
+                                    // The result is stored in this.serverResult
+
+    if (this.serverResult !== undefined) {
+        this.aggregator.add(Base.SERVER_NODE_ID, this.serverResult, round, 0)
+    }
+  }
 ```
 
-### Disco
+## Disco
 
 The Disco object is an amalgam of the classes that we just saw along with some other less important helper classes. Once it's built you can
 start the magic by calling `disco.fit(data)`!
@@ -142,7 +176,7 @@ flowchart RL
 
 But when are new weights available to be fetched? To understand this we will finish this section with a brief detour of the server.
 
-#### Server
+## Server
 
 Federated learning, at the time of writing works asynchronously; the server has a buffer, which is a map from `userID` to `weights`. The buffer has a certain
 *capacity*, once the size of buffer exceeds this *capacity*, then the server aggregates all the weights in the buffer and increments the round by 1.
@@ -165,31 +199,6 @@ flowchart LR
 ```
 
 ## Appendix
-
-### Rounds
-
-A round is measured in batches, so if we say, "share weights every round" and the roundDuration is 5, this means that every
-5 batches weights are shared. The user keeps track of **two** types of rounds, one is local to the trainer, this is the `roundTracker`
-and is simply used to know when to call `onRoundEnd`; the other round can be found in the `FederatedClient`, this round corresponds 
-to the **server round** of the model last fetched from the server.
-
-The server keeps track of it's own round, and it is incremented every time weights are aggregated. When a client gets a model from
-the server, it also keeps track of the server round (this happens in the `FederatedClient`. So in some sense, this round value is a 
-versioning number for the server model.
-
-To make this a bit more clear let us follow and example, say we have user A, and a Server. Let us denote inside the parenthesis the current
-round of the entity, e.g. A(i), Server(k), means the current round of user A is i and server is k. 
-
-When A pulls a model from Server(k), then the client will update its own round A(k). After this, A starts to train, it pushes to the server every 
-time a local round ends (the `roundTracker` helps keeping track of when a round ends); note that this does not influence A(k). 
-Once a round ends A pushes his weights to the server.
-
-There are two cases to consider
-
-1. Server(k), the server model still has not been updated, this means we accept the weights of A(k) to the server buffer.
-
-2. Server(j), s.t. j > k, this means that the server has aggregated a new model while A was training, in this case we reject A's model, then
-A will fetch the new model, and update his round to A(j) and continue training with the new model.
 
 ### Memory
 
