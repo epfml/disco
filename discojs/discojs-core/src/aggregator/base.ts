@@ -67,7 +67,7 @@ export abstract class Base<T> {
      */
     protected readonly roundCutoff = 0,
     /**
-     * The number of communication rounds occuring during any given aggregation round.
+     * The number of communication rounds occurring during any given aggregation round.
      */
     public readonly communicationRounds = 1
   ) {
