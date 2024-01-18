@@ -32,7 +32,7 @@ Our secure aggregation mechanism is implemented in each communication round, wit
 ### Algorithm description
 
 **Orchestration via client-server communication:**
-1. As described [here](./ARCHITECTURE.md#server), the helper server (signaling server) keeps track of which clients are ready to share model weights with each other, in order to let them know when enough clients are ready.
+1. The helper server (signaling server) keeps track of which clients are ready to share model weights with each other, in order to let them know when enough clients are ready.
 Thus, before the aggregation begins, there is a preliminary communication step between the clients and the server:
    1. Whenever a client finishes a round of local updates, it sends a "ready message" to the server to signal that it is ready to exchange model updates.
    2. Once enough clients are ready, the server sends them the list of clients to aggregate with.
