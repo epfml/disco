@@ -153,7 +153,7 @@ The web client should be running on `http://localhost:8081`, if not first restar
 As there are many guides in the project, here is a table of contents referencing them all:
 * [DISCO README](./README.md)
 * [Developer guide](./DEV.md)
-* The `docs` folder contains in-depth documention on the project:
+* The `docs` folder contains in-depth documentation on the project:
 	* [Onboarding guide](./docs/ONBOARDING.md)
 	* [Contributing guide](./docs/CONTRIBUTING.md)
 	* [Disco.js under the hood](./docs/DISCOJS.md)

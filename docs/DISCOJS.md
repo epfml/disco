@@ -84,11 +84,11 @@ A round is measured in batches, so if we say, "share weights every round" and th
 5 batches. The user keeps track of **two** types of rounds: one is local to the trainer, the `roundTracker`,
 and is simply used by the client training loop to know when to call `onRoundEnd`. 
 
-The other round can be found in the `FederatedClient`, called the `serverRound`, and is incremented by the server after every model udpate, when weights are aggregated. 
+The other round can be found in the `FederatedClient`, called the `serverRound`, and is incremented by the server after every model update, when weights are aggregated. 
 When a client retrieves a model from the server, it also keeps track of the server round (this happens in the `FederatedClient`). You can think of the `serverRound` as a 
 versioning number for the server model to make sure clients use the latest model weights.
 
-Here's an example to better undertand how `serverRound` is used. Say we have user A, and a server S. Let us write inside parentheses the current
+Here's an example to better understand how `serverRound` is used. Say we have user A, and a server S. Let us write inside parentheses the current
 rounds, e.g., A(i) and S(k) denote that the `serverRound` of user A is `i` and the server round of the server is `k`. 
 
 When A pulls a model from S(k), the client will update its own round A(k). Then A starts to train, it pushes to the server every 
@@ -125,11 +125,11 @@ async onRoundEndCommunication (
     }
   }
 ```
-In the federated case, pushing the new weights to the "aggregator" will let the `Trainer` use these weights in the next round without agregating anything. 
+In the federated case, pushing the new weights to the "aggregator" will let the `Trainer` use these weights in the next round without aggregating anything. 
 
 ### Aggregators
 
-The aggregator object is used by every nodes, clients and server. In the federated case, the server leverages an aggregator instance to aggregate the loca weight updates it received into new model weights. In decentralized learning, the `Client` stores its peer's local weight updates into the aggregator which in turn aggreagates the weights when it received enough updates. While the `FederatedClient` relies on an aggregator, it only receives weight updates from the server and the aggregator simply transmits the new weights to the `Trainer`. In fact, the federated client's aggregator works the same as in the decentralized scheme, but aggregates the updates whenever it receives an update. After aggregation, the `Trainer` pulls the aggregator's latest weights into the model.
+The aggregator object is used by every nodes, clients and server. In the federated case, the server leverages an aggregator instance to aggregate the local weight updates it received into new model weights. In decentralized learning, the `Client` stores its peer's local weight updates into the aggregator which in turn aggregates the weights when it received enough updates. While the `FederatedClient` relies on an aggregator, it only receives weight updates from the server and the aggregator simply transmits the new weights to the `Trainer`. In fact, the federated client's aggregator works the same as in the decentralized scheme, but aggregates the updates whenever it receives an update. After aggregation, the `Trainer` pulls the aggregator's latest weights into the model.
 
 There are currently two aggregation strategies. The federated aggregation strategy is to simply average the weight updates, implemented by the `MeanAggregator`. `SecureAggregator` is used in decentralized learning, and implements secure-multi party computation.
 

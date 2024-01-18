@@ -4,7 +4,7 @@
 
 The procedure for working on a feature is the following:
 1. Create a new branch to work in
-2. Write code along with comments and docstrings to implement a feature
+2. Write code along with comments and docstring to implement a feature
 3. Write tests for the feature
 4. Create a draft pull request (PR)
 5. Run the test suites and clean your code
@@ -27,14 +27,14 @@ git push -u origin 202-train-bug-nacho
 ```
 `-u`, short for `--set-upstream`, makes the remote branch (`origin/202-train-bug-nacho`) track your local branch (`202-train-bug-nacho`)
 
-### 2. Coding, comments and docstrings
+### 2. Coding, comments and docstring
 
 > [!TIP]
 > If you are using VSCode, you may not be able to open the editor from the repo root level without VSCode raising import errors. If that is the case, you should start VSCode from inside the module you are working.
 > In practice, this is any folder level that contains a `package.json` such as `server`, `web-client`, etc.
 > For example, if you are working on the CLI, you should start VSCode with the command `code cli` from the root level (or `cd cli` followed by `code .`)
 
-Here are the main commands you may rely on in differents parts of DISCO:
+Here are the main commands you may rely on in different parts of DISCO:
 * After modifying `discojs`, it is currently necessary to rebuild the library for the changes to be effective (no hot reloading):
 ```
 cd discojs
@@ -52,12 +52,12 @@ npm run dev # you can modify the code while this instance is running
 * TypeScript files should be written in snake_case, lowercase words separated by underscores, e.g. `event_connection.ts`
 * Vue.js files should be written in PascalCase (capitalized words including the first), e.g. `DatasetInput.vue`
 * Classes and types should also be written in PascalCase. For example class `AsyncInformant` and type `MetadataValue`
-* Functions and variable anmes should be written in camelCase, starting with a lowercase letter: function `isWithinRoundCutoff` and variable `roundCutoff`
+* Functions and variable names should be written in camelCase, starting with a lowercase letter: function `isWithinRoundCutoff` and variable `roundCutoff`
 
 
-#### Docstrings
+#### Docstring
 
-Write docstrings in the [JSDoc](https://jsdoc.app/) style. For reference: [list of JSDoc tags supported in TypeScript](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html).
+Write docstring in the [JSDoc](https://jsdoc.app/) style. For reference: [list of JSDoc tags supported in TypeScript](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html).
 
 ### 3. Testing your code
 

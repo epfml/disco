@@ -43,7 +43,7 @@ DISCO aims to enable open-access and easy-use distributed training which is
 - :ninja: robust to malicious actors and data poisoning ([R6](https://arxiv.org/abs/2012.10333), [R7](https://arxiv.org/abs/2006.09365))
 - :apple: :banana: interpretable in imperfectly interoperable data distributions ([R8](https://arxiv.org/abs/2107.06580))
 - :mirror: personalizable  ([R9](https://arxiv.org/abs/2103.00710))
-- :carrot: fairly incentivizes participation
+- :carrot: fairly incentivize participation
 
 
 ___
