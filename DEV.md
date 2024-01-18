@@ -146,7 +146,7 @@ The web client should be running on `http://localhost:8081`, if not first restar
 
 ## Further documentation
 
-* Next you may want to read our [onboarding guide](./docs/ONBOARDING.md) which lists the following steps to onboard DISCO.  Additionally the [Architecture guide](./docs/ARCHITECTURE.md) gives more information on our use of TypeScript and Vue.js, the frontend framework.
+* Next you may want to read our [onboarding guide](./docs/ONBOARDING.md) which lists the following steps to onboard DISCO. 
 * If you are only planning to use DISCO in your own scripts, you can find a stand-alone example relying on `discojs-node` [here](./docs/node_example). The example runs with Node.js outside any browser, using the `@epfml/discojs-node` NPM package and the `server` module. A DISCO server is launched by the script itself and the data is already available in the repo.
 
 #### Table of contents
@@ -157,7 +157,6 @@ As there are many guides in the project, here is a table of contents referencing
 	* [Onboarding guide](./docs/ONBOARDING.md)
 	* [Contributing guide](./docs/CONTRIBUTING.md)
 	* [Disco.js under the hood](./docs/DISCOJS.md)
-	* [Architecture and frameworks guide](./docs/ARCHITECTURE.md)
 	* [FAQ](./docs/FAQ.md)
 	* [Example: using `discojs-node` in a script](./docs/node_example/README.md)
 	* [Privacy in DISCO](./docs/PRIVACY.md)
