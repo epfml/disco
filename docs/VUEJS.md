@@ -129,3 +129,22 @@ You will find below some resources that should help increase modularity and redu
 
 1. `slots`: [medium](https://medium.com/js-dojo/magic-of-vue-template-slots-806bcbb64578), [vue docs](https://v3.vuejs.org/guide/component-slots.html)
 2. `v-for` and `data properties`: [vue docs](https://vuejs.org/v2/guide/list.html)
+
+### Mobile devices
+
+Depending on the user's screen width, the left hand sidebar associated to task's components can disappear and be opened using the button located on the top left corner of the user's screen.
+For now a template that shows how to create tasks can be found.
+
+### Main front-end packages
+
+| Name                                                  |     Keyword     | Description                                                               |
+| ----------------------------------------------------- | :-------------: | :------------------------------------------------------------------------ |
+| [vuex](https://vuex.vuejs.org/)                       |     `Store`     | It serves as a centralized store for all the components in an application |
+| [vee-validate](https://vee-validate.logaretm.com/v4/) |     `Form`      | Form Validation for Vue.js                                                |
+| [vue-toaster](https://github.com/MeForma/vue-toaster) | `Notifications` | Toast notification plugin for Vue.js                                      |
+| [tippy](https://atomiks.github.io/tippyjs/)           |     `Menu`      | Pluging to build menu / side bars                                         |
+| [vue-i18n](https://vue-i18n.intlify.dev/)             | `Internation.`  | Internationalization plugin for Vue.js                                    |
+| [vue-router](https://router.vuejs.org/)               |    `Routing`    | Official router plugin for Vue.js                                         |
+| [axios](https://axios-http.com/)                      | `HTTP requests` | Axios is a promise-based HTTP Client for node.js and the browser.         |
+| [lodash](https://lodash.com/)                         |  `JS Helpers`   | Functional library for higher order function on list and js objects       |
+| [yup](https://github.com/jquense/yup)                 |     `Form`      | Schema builder for runtime value parsing and validation (forms).          |
