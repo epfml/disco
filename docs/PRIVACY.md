@@ -4,7 +4,7 @@ In federated and decentralized learning, a client's data is never sent to anothe
 1. the weights of the public and collaborative model ([Carlini et al., 2019](https://www.usenix.org/conference/usenixsecurity19/presentation/carlini));
 2. the model updates shared by the client ([Bonawitz et al., 2017](https://doi.org/10.1145/3133956.3133982)).
 
-In addition to the intrinsic security of federated and decentralized learning, DSICO ensures privacy and security via two different and complementary methods: 
+In addition to the intrinsic security of federated and decentralized learning, DISCO ensures privacy and security via two different and complementary methods: 
 1. Differential privacy ([McMahan et al., 2018](http://arxiv.org/abs/1710.06963) and [Abadi et al., 2016](https://doi.org/10.1145/2976749.2978318)), and
 2. Secure aggregation of model updates ([Bonawitz et al., 2017](https://doi.org/10.1145/3133956.3133982)).
 
@@ -23,7 +23,7 @@ In DISCO, we rely on secure aggregation of models / model updates, in each commu
 ### Concept: Private data - Public model
 
 We guarantee input privacy of each personal update and each client's data. 
-The model resulting from training is considered public, both in the federated and decentralised modes.
+The model resulting from training is considered public, both in the federated and decentralized schemes.
 
 ### Set-up
 
