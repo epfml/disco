@@ -16,9 +16,9 @@ The respective parameters `noiseScale` and `clippingRadius` are available in the
 
 ## Secure aggregation through MPC
 
-Disco protects the clients' data from inference attacks based on the model updates shared by the clients, by ensuring that an individual client's model update is never revealed. This is achieved by secure update aggregation, where multiple clients use secure multiparty computation (MPC) to jointly compute the sum of their model updates without revealing the summands.
+DISCO protects the clients' data from inference attacks based on the model updates shared by the clients, by ensuring that an individual client's model update is never revealed. This is achieved by secure update aggregation, where multiple clients use secure multiparty computation (MPC) to jointly compute the sum of their model updates without revealing the summands.
 
-In DisCo, we rely on secure aggregation of models / model updates, in each communication round, in order to fully protect the privacy of each user. 
+In DISCO, we rely on secure aggregation of models / model updates, in each communication round, in order to fully protect the privacy of each user. 
 
 ### Concept: Private data - Public model
 
@@ -32,7 +32,7 @@ Our secure aggregation mechanism is implemented in each communication round, wit
 ### Algorithm description
 
 **Orchestration via client-server communication:**
-1. As described [here](./ARCHITECTURE.md#server), the helper server (signaling server) keeps track of which clients are ready to share model weights with each other, in order to let them know when enough clients are ready.
+1. The server keeps track of which clients are ready to share model weights with each other, in order to let them know when enough clients are ready.
 Thus, before the aggregation begins, there is a preliminary communication step between the clients and the server:
    1. Whenever a client finishes a round of local updates, it sends a "ready message" to the server to signal that it is ready to exchange model updates.
    2. Once enough clients are ready, the server sends them the list of clients to aggregate with.
@@ -56,7 +56,7 @@ The **secure aggregation procedure** consists of two rounds of all-to-all commun
 
 ### Privacy guarantees and trade-off with quantization accuracy
 
-DisCo secure aggregation guarantees input privacy for a client's model updates. Other users will not be able to reconstruct a client's individual data or model updates, see e.g. [https://eprint.iacr.org/2017/281.pdf](https://eprint.iacr.org/2017/281.pdf) for more details.
+DISCO secure aggregation guarantees input privacy for a client's model updates. Other users will not be able to reconstruct a client's individual data or model updates, see [Bonawitz et al., 2017](https://doi.org/10.1145/3133956.3133982) for more details.
 
 It is worth noting that due to the current use of floating point arithmetic instead of finite fields implies an effect on the quantization of models. Alternatively quantized integer model weights (with scaling) can be used.
 Currently, the additive shares generated at step 2 are filled with floating-point values drawn uniformly at random from the interval `[-maxShareValue, +maxShareValue)`.
