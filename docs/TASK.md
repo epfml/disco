@@ -8,73 +8,49 @@ DISCO currently allows learning of arbitrary machine learning tasks, where tasks
 
 In any case, one user needs to upload the initial model that is going to be trained collaboratively.
 
-### Bringing your ML model to DISCO
+### Uploading ML models
 
-To use an existing model in DISCO, we first need to convert the model to TensorFlowJS format, consisting of a TensorFlowJS model file in a JSON format for the neural network architecture, and an optional weight file in .bin format if you want to start from a particular initialization or a pretrained model. If your model comes from another framework than TensorflowJS, like Pytorch or Tensorflow/Keras, but you still want to bring it to DisCo, we indicate the appropriate procedure as follows.
+Because DISCO works with TensorFlow.js it is therefore necessary to either train a TF.js model directly, or convert the model weights to TF.js. Here are some useful links to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) a TF.js model.
+
+TF.js models consist of:
+* a model file in a JSON format for the neural network architecture
+* an **optional** weight file in .bin format to start from a particular initialization or with pretrained weights.
+
 
 #### Converting models to TensorflowJS
 
-The simplest way to obtain a TF.js model is to first obtain a Python Tensorflow/Keras model, stored as a .h5 file, and then convert it using TensorflowJS's converter tool, which transforms any Tensorflow/Keras model to TensorflowJS. The conversion is only available for modules that have [TF.js equivalents](https://js.tensorflow.org/api/latest/).
+The simplest way to obtain a TF.js model is to first create a Python Tensorflow Keras model, stored as a .h5 file, and then convert it using TensorflowJS's converter tool, which transforms any Tensorflow Keras model to TensorflowJS. The conversion is only available for modules that have [TF.js equivalents](https://js.tensorflow.org/api/latest/).
 ```bash
 tensorflowjs_converter --input_format=keras my_model_name.h5 /tfjs_model
 ```
 Following the `tensorflowjs_converter` command, you recover two files: a .json describing your model architecture, and a collection of .bin files describing your model weights, which are ready to be used by DISCO.
 
-For PyTorch models, we recommend directly recreating the model in Tensorflow/Keras. as most of PyTorch components have their equivalent counterpart in Tensorflow/Keras, and translating model architectures between these two frameworks can be done in a straightforward way.
-
-> [!WARNING]
-> One caveat is that for complex models, pretrained weights can currently not automatically be converted from the Python `.pth` format to the Keras `.h5` format. If you plan to retrain the model from scratch in DISCO, this is no problem. On the other hand if you want to import pretrained Python model weights you currently have to first obtain corresponding Keras weights, from which you can then TF.js weights
-
+For PyTorch models, we recommend directly recreating the model in Tensorflow Keras. as most of PyTorch components have their equivalent counterpart in Tensorflow Keras, and translating model architectures between these two frameworks can be done in a straightforward way. Current conversion libraries between the two frameworks still have compatibility issues for components differing strongly between PyTorch and TensorFlow. Regarding pre-trained weights, `tensorflowjs_converter` can only convert Keras pre-trained models to TF.js, therefore PyTorch pre-trained models are not supported and need to be re-trained as a Keras equivalent.
 
 > [!Note]
-> * There are several libraries that try to perform automatic conversion between frameworks, which we do not recommend. Most of these tools have compatibility issues for models containing components which differ strongly in implementation between the two frameworks.
-> * Make sure to convert to TF.js [LayersModel](https://www.tensorflow.org/js/guide/models_and_layers) (not GraphModel, as the latter are for inference only and can't be trained). If you already have a saved LayersModel, then the conversion can be done directly with:
+> Make sure to convert to TF.js [LayersModel](https://www.tensorflow.org/js/guide/models_and_layers) (not GraphModel, as the latter are for inference only and can't be trained). If you already have a saved LayersModel, then the conversion can be done directly with:
 ```bash
 tensorflowjs_converter --input_format=tf_saved_model my_tensorflow_saved_model /tmp/tfjs_model
 ```
 
-
 ## 1. Predefined tasks
 
-Predefined tasks are example use cases of DISCO where users can upload their respective data and train collaboratively.
+Predefined tasks are example use cases available in the [DISCO website](https://epfml.github.io/disco/#/list) where users can upload their respective data and train collaboratively. For predefined tasks, the initial model to train is already defined and doesn't need to be uploaded.
 
+## 2. Task creation UI
+The [task creation form](https://epfml.github.io/disco/#/create) lets users create a custom task DISCO without programming. In this case, users can choose between the data modalities and preprocessing that are already supported (such as tabular, images, text etc) and upload an initial model.
 
-## 2. Using the user interface directly for creating a new task
-I am a user who wants to define my custom task and bring my model to DISCO, without doing any programming. In this case, you use our existing supported data modalities and preprocessing (such as tabular, images, text etc). For this use case, an initial `.bin` weight file of your TF.js model is mandatory.
- * Through the DISCO user interface, click on the *create* button on "Add your own model to be trained in a DISCOllaborative"
- * Fill in all the relevant information for your task and model:
- 	*   A `TensorFlow.js` model file in JSON format (useful links to [create](https://www.tensorflow.org/js/guide/models_and_layers) and [save](https://www.tensorflow.org/js/guide/save_load) your model)
-	* A weight file in `.bin` format. This is the initial weights provided to new users joining your task (pre-trained or random initialisation).
-   
+ 1. On the [DISCO website](https://epfml.github.io/disco/#), click on `Get Started` and then `Create`.
+ 2. Fill in all the relevant information for the task
+ 3. Upload model files: 1) a TF.js architecture file in JSON format (cf. the *Uploading ML models* section) as well as a weight file (`.bin` format), which is necessary in this case. This is the initial weights provided to new users joining your task (pre-trained or random initialisation).
 
-## 3. Procedure for adding a custom task
-In order to add a completely new custom task to Disco.js using our own code (such as for data loading, preprocessing etc), we need to defined a `TaskProvider` which need to implement two methods:
-   * `getTask` which returns a `Task` as defined [here](../discojs/discojs-core/src/task/task.ts), the `Task` contains all the crucial information from training to the mode
+## 3. Implementing custom tasks
+Programming skills are necessary to add a custom task not supported by the task creation UI. 
+A task is mainly defined by a `TaskProvider` which needs to implement two methods:
+   * `getTask` which returns a `Task` as defined by the [Task interface](../discojs/discojs-core/src/task/task.ts). The `Task` contains all the crucial information from training to the mode
    * `getModel` which returns a `Promise<tf.LayersModel>` specifying a model architecture for the task
 
-You can find examples of `TaskProvider` currently used in our DISCO server in `discojs/discojs-core/src/default_tasks/`. These tasks are all loaded by our server by default.
-
-### Task
-
-For the task creation of new custom tasks, if you can not go through the user interface, we recommend the following guidance:
-
-**I am a developper who wants to define my own custom task**
-
-If you want to add a new task to our production DISCO server you have two possibilities:
-  * using the user interface as described above (no coding required)
-  * exporting your own `TaskProvider` from `discojs/discojs-core/src/default_tasks/`  and adding a new default task by contributing to the code. (describing the task in Typescript code)
-
-To export a new task in the code, make sure to export the `TaskProvider` in the `discojs/discojs-core/src/default_tasks/index.ts` file as follows:
-
-```js
-export { cifar10 } from './cifar10'
-export { lusCovid } from './lus_covid'
-export { mnist } from './mnist'
-export { titanic } from './titanic'
-export { simpleFace } from './simple_face'
-export { geotags } from './geotags'
-export { myNewTask } as my_new_task from './my_new_task' // <---- including our new custom task!
-```
+By creating (and exporting in [ìndex.ts`](https://github.com/epfml/disco/blob/develop/discojs/discojs-core/src/default_tasks/index.ts) a new `TaskProvider` in [`default_tasks`](https://github.com/epfml/disco/tree/develop/discojs/discojs-core/src/default_tasks) it will be loaded automatically by the server.
 
 If you run the server yourself, you can use the two methods above but the prefered way is to **directly provide the task to the server before startup**. You can do this with the NPM [disco-server](https://www.npmjs.com/package/@epfml/disco-server) package without altering the code or recompiling it.
 
