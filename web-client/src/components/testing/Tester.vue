@@ -335,7 +335,7 @@ async function predictUsingModel (): Promise<void> {
 }
 
 async function assessModel (): Promise<void> {
-  if (props.datasetBuilder?.size() === 0) {
+  if (props.datasetBuilder?.size === 0) {
     return toaster.error('No file was given')
   }
 
