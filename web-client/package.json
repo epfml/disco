@@ -58,7 +58,7 @@
     "@vue/compiler-sfc": "3",
     "@vue/eslint-config-prettier": "6",
     "@vue/eslint-config-standard": "6",
-    "@vue/eslint-config-typescript": "8",
+    "@vue/eslint-config-typescript": "7",
     "@vue/test-utils": "2",
     "babel-eslint": "10",
     "eslint": "7",
