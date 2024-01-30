@@ -50,9 +50,13 @@ A task is mainly defined by a `TaskProvider` which needs to implement two method
    * `getTask` which returns a `Task` as defined by the [Task interface](../discojs/discojs-core/src/task/task.ts). The `Task` contains all the crucial information from training to the mode
    * `getModel` which returns a `Promise<tf.LayersModel>` specifying a model architecture for the task
 
-By creating (and exporting in [ìndex.ts`](https://github.com/epfml/disco/blob/develop/discojs/discojs-core/src/default_tasks/index.ts) a new `TaskProvider` in [`default_tasks`](https://github.com/epfml/disco/tree/develop/discojs/discojs-core/src/default_tasks) it will be loaded automatically by the server.
+You can add a new task in two different ways:
+* a) As a new default task, e.g. to make the task available in production
+* b) By using the `disco.addTask` method if you run the server yourself
 
-If you run the server yourself, you can use the two methods above but the prefered way is to **directly provide the task to the server before startup**. You can do this with the NPM [disco-server](https://www.npmjs.com/package/@epfml/disco-server) package without altering the code or recompiling it.
+a) By creating (and exporting in [`index.ts`](https://github.com/epfml/disco/blob/develop/discojs/discojs-core/src/default_tasks/index.ts)) a new `TaskProvider` in [`default_tasks`](https://github.com/epfml/disco/tree/develop/discojs/discojs-core/src/default_tasks) it will be loaded automatically by the server. Adding a new task this way is necessary to add a new task to the production server.
+
+b) If you run the server yourself you directly provide the task to the server without modifying Disco.js. 
 
 ```js
 import { Disco, tf } from '@epfml/disco-server'
@@ -82,19 +86,15 @@ async function runServer() {
 
 runServer()
 ```
-
+For the initial model, the JSON model architecture is necessary, but the .bin weight file is optional. If a weight file is included the model will be loaded with the given weights, otherwise the weights will be initialized randomly.
 For more information, read the [server documentation](../server/README.md).
-
-For your custom model, the JSON model architecture is necessary, but the .bin weight file is optional : if you include the weights file, your model will be loaded with the passed weights. If a weights file is not specified, the weights for the model will be initialized randomly.
 
 For more detail about how to define a `Task` and a `tf.LayersModel` for your own `TaskProvider`, continue reading.
 
-
-
 ### Model
 
-The interface let you load your model however you want, as long as you return a `tf.LayersModel` at the end. If you use a 
-pre-trained model, you can simply load and return said model in the function via `tf.loadLayersModel(modelPath)`.
+The interface lets you load your model however you want, as long as you return a `tf.LayersModel` at the end. If you use a 
+pre-trained model, you can simply load and return the model in the function via `tf.loadLayersModel(modelPath)`.
 
 ```js
 async function getModel (_: string): Promise<tf.LayersModel> {
@@ -285,7 +285,7 @@ export interface TrainingInformation {
   // batchSize: batch size of training data
   batchSize: number
   // preprocessingFunctions: preprocessing functions such as resize and normalize
-  preprocessingFunctions: Preprocessing[]
+  preprocessingFunctions?: Preprocessing[]
   // modelCompileData: interface of additional training information (optimizer, loss and metrics)
   modelCompileData: ModelCompileData
   // dataType, e.g. image or tabular
@@ -294,21 +294,19 @@ export interface TrainingInformation {
   inputColumns?: string[]
   // outputColumns: for tabular data, the columns to be predicted by the model
   outputColumns?: string[]
-  // IMAGE_H height of image
+  // IMAGE_H height of image (or RESIZED_IMAGE_H if ImagePreprocessing.Resize in preprocessingFunctions)
   IMAGE_H?: number
-  // IMAGE_W width of image
+  // IMAGE_W width of image (or RESIZED_IMAGE_W if ImagePreprocessing.Resize in preprocessingFunctions)
   IMAGE_W?: number
+  // Model URL to download the base task model from. Useful for pretrained or/and hosted models.
+  modelURL?: string
   // LABEL_LIST of classes, e.g. if two class of images, one with dogs and one with cats, then we would
   // define ['dogs', 'cats'].
   LABEL_LIST?: string[]
   // learningRate: learning rate for the optimizer
   learningRate?: number
-  // RESIZED_IMAGE_H: New image width, note that you must add ImagePreprocessing.Resize in the preprocessingFunctions.
-  RESIZED_IMAGE_H?: number // TODO: regroup image vs csv specific stuff?
-  // RESIZED_IMAGE_W: New image width, note that you must add ImagePreprocessing.Resize in the preprocessingFunctions.
-  RESIZED_IMAGE_W?: number
   // scheme: Distributed training scheme, i.e. Federated and Decentralized
-  scheme?: string
+  scheme: string
   // noiseScale: Differential Privacy (DP): Affects the variance of the Gaussian noise added to the models / model updates.
   // Number or undefined. If undefined, then no noise will be added.
   noiseScale?: number
@@ -319,6 +317,12 @@ export interface TrainingInformation {
   // decentralizedSecure: Secure Aggregation on/off:
   // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
   decentralizedSecure?: boolean
+  // byzantineRobustAggregator: Byzantine robust aggregator on/off:
+  // Boolean. true to use byzantine robust aggregation, if the training scheme is federated, false otherwise
+  byzantineRobustAggregator?: boolean
+  // tauPercentile: it indicates the percentile to take when choosing the tau for byzantine robust aggregator:
+  // Number (>0 && <1). It must be a number between 0 and 1 and it is used only if byzantineRobustAggregator is true.
+  tauPercentile?: number
   // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
   // default is 100, must be a positive number, check the ~/disco/information/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
@@ -326,5 +330,9 @@ export interface TrainingInformation {
   // minimumReadyPeers: Decentralized Learning: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
   // default is 3, range is [3, totalNumberOfPeersParticipating]
   minimumReadyPeers?: number
+  // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
+  // default is 'average', other options include for instance 'bandit'
+  aggregator?: AggregatorChoice
+}
 }
 ```
