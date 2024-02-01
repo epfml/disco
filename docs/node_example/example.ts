@@ -1,7 +1,5 @@
 import { data, Disco, fetchTasks, Task } from '@epfml/discojs-node'
-
-import { startServer } from './start_server'
-import { loadData } from './data'
+import { loadTitanicData } from './data'
 
 /**
  * Example of discojs API, we load data, build the appropriate loggers, the disco object
@@ -18,24 +16,20 @@ async function runUser (url: URL, task: Task, dataset: data.DataSplit): Promise<
 
 async function main (): Promise<void> {
   
-  const [server, serverUrl] = await startServer()
+  // Start a server instance before running this example
+  const serverUrl = new URL('http://localhost:8080/')
+
   const tasks = await fetchTasks(serverUrl)
   
   // Choose your task to train
-  const task = tasks.get('simple_face') as Task
+  const task = tasks.get('titanic') as Task
 
-  const dataset = await loadData(task)
+  const dataset = await loadTitanicData(task)
 
   // Add more users to the list to simulate more clients
   await Promise.all([
-    runUser(serverUrl, task, dataset),
     runUser(serverUrl, task, dataset)
   ])
-
-  await new Promise((resolve, reject) => {
-    server.once('close', resolve)
-    server.close(reject)
-  })
 }
 
 main().catch(console.error)

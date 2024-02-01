@@ -99,6 +99,9 @@ export class Federated extends Server {
     // Store the result promise somewhere for the server to fetch from, so that it can await
     // the result on client request.
     this.results = this.results.set(aggregator.task.taskID, result)
+    // Set a minimum amount of time to wait in the current round to let clients ask for the latest weights
+    // This is relevant mostly when there are few clients and rounds are almost instantaneous.
+    await new Promise(resolve => setTimeout(resolve, 1000))
     await result
     void this.storeAggregationResult(aggregator)
   }
