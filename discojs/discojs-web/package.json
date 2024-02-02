@@ -4,11 +4,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "cp ./src/core/index.browser.ts ./src/core/index.ts && tsc",
-    "build-win": "copy ..\\discojs-core\\src\\index.node.ts ..\\discojs-core\\src\\index.ts && tsc",
-    "test": "cp ./src/core/index.node.ts ./src/core/index.ts && mocha",
-    "lint": "cp ./src/core/index.browser.ts ./src/core/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' --ignore-pattern 'src/core' .",
-    "docs": "typedoc ./src/imports.ts --theme oxide"
+    "build": "tsc",
+    "test": ": nothing",
+    "lint": "npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' .",
+    "docs": "typedoc ./src/index.ts --theme oxide"
   },
   "repository": {
     "type": "git",
@@ -17,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/epfml/disco/issues"
   },
-  "homepage": "https://github.com/epfml/disco#readme"
+  "homepage": "https://github.com/epfml/disco#readme",
+  "dependencies": {
+    "@epfml/discojs-core": "*"
+  }
 }

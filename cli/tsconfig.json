@@ -14,9 +14,7 @@
     "declaration": true,
 
     "baseUrl": "src",
-    "paths": {
-      "@/*": ["*"]
-    }
+    "outDir":  "dist",
   },
   "include": ["src"]
 }
