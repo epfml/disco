@@ -1,18 +1,49 @@
 {
-    "name": "@epfml/discojs-core",
-    "private": true,
-    "scripts": {
-      "test": "cp ./src/index.browser.ts ./src/index.ts && mocha",
-      "lint": "cp ./src/index.browser.ts ./src/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' .",
-      "docs": "typedoc ./src/index.ts --theme oxide"
-    },
-    "repository": {
-      "type": "git",
-      "url": "git+https://github.com/epfml/disco.git"
-    },
-    "bugs": {
-      "url": "https://github.com/epfml/disco/issues"
-    },
-    "homepage": "https://github.com/epfml/disco#readme"
+  "name": "@epfml/discojs-core",
+  "version": "2.1.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha",
+    "lint": "npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' .",
+    "docs": "typedoc ./src/index.ts --theme oxide"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epfml/disco.git"
+  },
+  "bugs": {
+    "url": "https://github.com/epfml/disco/issues"
+  },
+  "homepage": "https://github.com/epfml/disco#readme",
+  "dependencies": {
+    "@koush/wrtc": "0.5",
+    "@tensorflow/tfjs": "4",
+    "@types/msgpack-lite": "0.1",
+    "axios": "0.27",
+    "gpt3-tokenizer": "1",
+    "immutable": "4",
+    "isomorphic-ws": "4",
+    "msgpack-lite": "0.1",
+    "simple-peer": "9",
+    "tslib": "2",
+    "url": "0.11",
+    "ws": "8"
+  },
+  "devDependencies": {
+    "@types/chai": "4",
+    "@types/mocha": "9",
+    "@types/simple-peer": "9",
+    "@typescript-eslint/eslint-plugin": "4",
+    "@typescript-eslint/parser": "4",
+    "chai": "4",
+    "eslint": "7",
+    "eslint-config-standard-with-typescript": "21",
+    "mocha": "9",
+    "ts-node": "10",
+    "typedoc": "0.22",
+    "typedoc-theme-oxide": "0.1",
+    "typescript": "4"
   }
-  
+}

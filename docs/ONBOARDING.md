@@ -40,18 +40,8 @@ ts-node your_script.ts
 
 * Because TypeScript needs to be transpiled to JavaScript, you need to rebuild the `discojs` folder every time you make any changes to it:
 ``` js
-cd discojs
-npm run build
+npm run build -w ./discojs
 ```
-
-* When cloning the repo, the server and the web-client points to the [@epfml/disco-node](https://www.npmjs.com/package/@epfml/discojs-node) and the [@epfml/disco-web](https://www.npmjs.com/package/@epfml/discojs) packages respectively published on the `npm` remote repository. In a development environment, we want to use the local implementations in the `discojs/discojs-node` and `discojs/discojs-web` folders for changes to take effect immediately. To do so, we need to link the local folders as the actual dependencies:
-```
-cd server 
-npm link ../discojs/discojs-node
-cd ../web-client 
-npm link ../discojs/discojs-web
-```
-You can verify than the links are effective by checking that running `npm ls` from the `server` folder lists `@epfml/discojs@x.x.x -> ./../discojs/discojs-node` in server and `@epfml/discojs@x.x.x -> ./../discojs/discojs-web` in the web-client.
 
 > [!TIP]
 > If you are using VSCode, know that you may not be able to open the editor from the repo root level without VSCode raising imports errors. If that is the case, you should start VSCode from inside the module you are working.

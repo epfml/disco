@@ -2,7 +2,7 @@ import { assert, expect } from 'chai'
 import { List, Map, Range } from 'immutable'
 import fs from 'fs'
 
-import { tf, node, Task } from '../../..'
+import { tf, node, Task } from '../..'
 
 const readFilesFromDir = (dir: string): string[] =>
   fs.readdirSync(dir).map((file: string) => dir + file)

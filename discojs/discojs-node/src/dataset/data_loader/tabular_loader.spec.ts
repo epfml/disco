@@ -1,7 +1,7 @@
 import { assert, expect } from 'chai'
 import { List } from 'immutable'
 
-import { tf, node, Task } from '../../..'
+import { tf, node, Task } from '../..'
 
 const inputFiles = ['../../example_training_data/titanic_train.csv']
 
