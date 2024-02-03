@@ -1,5 +1,18 @@
 {
-  "extends": "../tsconfig.base.json",
-  "include": ["src"],
-  "exclude": ["**/*.spec.ts", "src/core/index.*.ts"]
+    "extends": "../tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": ".",
+        "outDir": "./dist",
+        "paths": {
+            // "@epfml/discojs-core": ["./src"]
+            // TODO: would be nice to make this work:
+            // "@epfml/discojs-models/*": ["./src/training/models/*"]
+            // It works for core only but not when importing core from outside
+            // Also, it would be a clean way to import other stuff as well
+            // e.g. import { Aggregator } from "@epfml/discojs-aggregator"
+        },
+        "typeRoots": ["./node_modules/@types", "./types"]
+    },
+    "include": ["./src/**/*.ts"],
+    "exclude": ["node_modules/**/*", "dist/**/*", "**/*.spec.ts"]
 }

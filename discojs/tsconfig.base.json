@@ -1,21 +1,25 @@
 {
-  "compilerOptions": {
-    // TODO ES6 disallow server's test
-    "target": "ES5",
-    "lib": ["ES5", "DOM"],
-
-    "strict": true,
-
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "downlevelIteration": true, // needed by <ES6
-
-    "declaration": true,
-
-    "typeRoots": ["node_modules/@types", "discojs-core/types"]
-  },
-  "include": []
+    "compilerOptions": {
+        "lib": ["ESNext", "DOM"],
+        "module": "esnext",
+        "target": "esnext",
+        "esModuleInterop": true,
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "importHelpers": true,
+        "allowImportingTsExtensions": true,
+        "noEmit": true,
+        "strict": true,
+        "downlevelIteration": true,
+        "skipLibCheck": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowJs": true,
+        "declaration": true,
+        "emitDeclarationOnly": false,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "incremental": true,
+        "checkJs": false
+    }
 }
-  

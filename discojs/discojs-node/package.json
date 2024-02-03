@@ -1,21 +1,38 @@
 {
-  "name": "@epfml/discojs-node",
-  "version": "2.1.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "cp ./src/core/index.node.ts ./src/core/index.ts && tsc",
-    "build-win": "copy ..\\discojs-core\\src\\index.node.ts ..\\discojs-core\\src\\index.ts && tsc",
-    "test": "cp ./src/core/index.node.ts ./src/core/index.ts && mocha",
-    "lint": "cp ./src/core/index.node.ts ./src/core/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' --ignore-pattern 'src/core' .",
-    "docs": "typedoc ./src/imports.ts --theme oxide"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/epfml/disco.git"
-  },
-  "bugs": {
-    "url": "https://github.com/epfml/disco/issues"
-  },
-  "homepage": "https://github.com/epfml/disco#readme"
+    "name": "@epfml/discojs-node",
+    "version": "2.1.1",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "scripts": {
+        "build": "cp ./src/core/index.node.ts ./src/core/index.ts && tsc",
+        "build-win": "copy ..\\discojs-core\\src\\index.node.ts ..\\discojs-core\\src\\index.ts && tsc",
+        "test": "cp ./src/core/index.node.ts ./src/core/index.ts && mocha",
+        "lint": "cp ./src/core/index.node.ts ./src/core/index.ts && npx eslint --max-warnings 0 --ignore-pattern '*.spec.ts' --ignore-pattern 'src/core' .",
+        "docs": "typedoc ./src/imports.ts --theme oxide"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/epfml/disco.git"
+    },
+    "bugs": {
+        "url": "https://github.com/epfml/disco/issues"
+    },
+    "homepage": "https://github.com/epfml/disco#readme",
+    "devDependencies": {
+        "@types/bun": "^1.0.0",
+        "@types/chai": "^4.3.11",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "^20.10.4",
+        "@types/split2": "^4.2.3",
+        "tslib": "^2.6.2"
+    },
+    "dependencies": {
+        "@tensorflow/tfjs-node": "^4.14.0",
+        "chai": "^4.3.10",
+        "gpt-tokenizer": "^2.1.2",
+        "mocha": "^10.2.0",
+        "split2": "^4.2.0",
+        "ts-node": "^10.9.2"
+    }
 }

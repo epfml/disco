@@ -17,5 +17,18 @@
   "bugs": {
     "url": "https://github.com/epfml/disco/issues"
   },
-  "homepage": "https://github.com/epfml/disco#readme"
+  "homepage": "https://github.com/epfml/disco#readme",
+  "dependencies": {
+    "gpt-tokenizer": "^2.1.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^13.0.2",
+    "@types/bun": "^1.0.1",
+    "@types/node": "^20.11.0",
+    "@types/uuid": "^9.0.7",
+    "immutable": "^5.0.0-beta.4",
+    "mocha": "^10.2.0",
+    "tslib": "^2.6.2"
+  }
 }

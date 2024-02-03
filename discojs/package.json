@@ -1,48 +1,46 @@
 {
-  "name": "@epfml/discojs-dependencies",
-  "private": true,
-  "scripts": {
-    "build": "./build.sh",
-    "build-win": ".\\build.bat",
-    "test": "./test.sh"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/epfml/disco.git"
-  },
-  "bugs": {
-    "url": "https://github.com/epfml/disco/issues"
-  },
-  "homepage": "https://github.com/epfml/disco#readme",
-  "dependencies": {
-    "@koush/wrtc": "0.5",
-    "@tensorflow/tfjs": "4",
-    "@tensorflow/tfjs-node": "4",
-    "@types/msgpack-lite": "0.1",
-    "axios": "0.27",
-    "gpt-tfjs": "0.0.5",
-    "immutable": "4",
-    "isomorphic-ws": "4",
-    "msgpack-lite": "0.1",
-    "simple-peer": "9",
-    "tslib": "2",
-    "url": "0.11",
-    "ws": "8"
-  },
-  "devDependencies": {
-    "@epfml/discojs-node": "file:./discojs-node",
-    "@types/chai": "4",
-    "@types/mocha": "9",
-    "@types/simple-peer": "9",
-    "@typescript-eslint/eslint-plugin": "4",
-    "@typescript-eslint/parser": "4",
-    "chai": "4",
-    "eslint": "7",
-    "eslint-config-standard-with-typescript": "21",
-    "mocha": "9",
-    "ts-node": "10",
-    "typedoc": "0.22",
-    "typedoc-theme-oxide": "0.1",
-    "typescript": "4"
-  }
+    "name": "@epfml/discojs-dependencies",
+    "private": true,
+    "scripts": {
+        "build": "./build.sh",
+        "build-win": ".\\build.bat",
+        "test": "./test.sh"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/epfml/disco.git"
+    },
+    "bugs": {
+        "url": "https://github.com/epfml/disco/issues"
+    },
+    "homepage": "https://github.com/epfml/disco#readme",
+    "dependencies": {
+        "@koush/wrtc": "0.5",
+        "@tensorflow/tfjs": "4",
+        "@tensorflow/tfjs-node": "4",
+        "@types/msgpack-lite": "0.1",
+        "axios": "^1.6.2",
+        "immutable": "4",
+        "isomorphic-ws": "4",
+        "msgpack-lite": "0.1",
+        "simple-peer": "9",
+        "tslib": "2",
+        "url": "0.11",
+        "ws": "8"
+    },
+    "devDependencies": {
+        "@types/chai": "4",
+        "@types/mocha": "9",
+        "@types/simple-peer": "9",
+        "@typescript-eslint/eslint-plugin": "4",
+        "@typescript-eslint/parser": "4",
+        "chai": "4",
+        "eslint": "7",
+        "eslint-config-standard-with-typescript": "21",
+        "mocha": "9",
+        "ts-node": "10",
+        "typedoc": "0.22",
+        "typedoc-theme-oxide": "0.1",
+        "typescript": "4"
+    }
 }

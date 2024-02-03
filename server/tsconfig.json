@@ -1,25 +1,33 @@
 {
-  "compilerOptions": {
-    "target": "ES5",
-    "lib": ["ES5"],
-
-    "strict": true,
-
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "downlevelIteration": true,
-
-    "declaration": true,
-
-    "outDir": "dist",
-
-    "typeRoots": ["node_modules/@types"],
-
-    "baseUrl": "src",
-    "paths": {
-      "@/*": ["*"]
-    }
-  },
-  "include": ["src"]
+    "compilerOptions": {
+        "rootDir": "..",
+        "rootDirs": [".", "../discojs/discojs-node"],
+        "lib": ["ESNext"],
+        "module": "esnext",
+        "target": "esnext",
+        "esModuleInterop": true,
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "outDir": "./dist",
+        "importHelpers": true,
+        "allowImportingTsExtensions": true,
+        "noEmit": true,
+        "strict": true,
+        "downlevelIteration": true,
+        "skipLibCheck": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowJs": true,
+        "declaration": true,
+        "emitDeclarationOnly": false,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "incremental": true,
+        "checkJs": false,
+        "paths": {
+            "@epfml/discojs-node": ["../discojs/discojs-node/src/"]
+        }
+    },
+    "include": ["src/**/*.ts", "../discojs/discojs-node/src/**/*.ts"],
+    "exclude": ["./node_modules/**/*", "./dist/**/*"]
 }
