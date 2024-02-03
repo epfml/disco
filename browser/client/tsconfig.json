@@ -1,0 +1,54 @@
+{
+    "compilerOptions": {
+        "rootDir": "../..",
+        "rootDirs": [
+            ".",
+            "../../discojs/discojs-core",
+            "../../discojs/discojs-web"
+        ],
+        "lib": ["dom", "dom.iterable", "ESNext"],
+        "module": "esnext",
+        "target": "es5",
+        "baseUrl": ".",
+        "esModuleInterop": true,
+        "moduleResolution": "bundler",
+        "moduleDetection": "force",
+        "outDir": "./dist",
+        "importHelpers": true,
+        "allowImportingTsExtensions": true,
+        "noEmit": true,
+        "strict": true,
+        "downlevelIteration": true,
+        "skipLibCheck": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowJs": true,
+        "declaration": true,
+        "emitDeclarationOnly": false,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "incremental": true,
+        "checkJs": false,
+        "jsx": "preserve",
+        "plugins": [
+            {
+                "name": "next"
+            }
+        ],
+        "paths": {
+            "@/*": ["./*"],
+            "@epfml/discojs-core": ["../../discojs/discojs-core/src/"],
+            "@epfml/discojs-web": ["../../discojs/discojs-web/src/"]
+        },
+        "typeRoots": ["node_modules/@types", "../../discojs/discojs-core/types"]
+    },
+    "include": [
+        "next-env.d.ts",
+        "**/*.ts",
+        "**/*.tsx",
+        ".next/types/**/*.ts",
+        "../../discojs/discojs-core/src/**/*.ts",
+        "../../discojs/discojs-web/src/**/*.ts"
+    ],
+    "exclude": ["./node_modules/**/*", "./dist/**/*"]
+}
