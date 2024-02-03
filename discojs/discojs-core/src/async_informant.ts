@@ -1,64 +1,67 @@
 import { AggregatorBase } from './aggregator'
 
 export class AsyncInformant<T> {
-  private _round = 0
-  private _currentNumberOfParticipants = 0
-  private _totalNumberOfParticipants = 0
-  private _averageNumberOfParticipants = 0
+    private _round = 0
+    private _currentNumberOfParticipants = 0
+    private _totalNumberOfParticipants = 0
+    private _averageNumberOfParticipants = 0
 
-  constructor (
-    private readonly aggregator: AggregatorBase<T>
-  ) {}
+    constructor(private readonly aggregator: AggregatorBase<T>) {}
 
-  update (): void {
-    console.debug('before:')
-    this.printAllInfos()
-    if (this.round === 0 || this.round < this.aggregator.round) {
-      this._round = this.aggregator.round
-      this._currentNumberOfParticipants = this.aggregator.size
-      this._averageNumberOfParticipants = this.totalNumberOfParticipants / this.round
-      this._totalNumberOfParticipants += this.currentNumberOfParticipants
-    } else {
-      this._round = this.aggregator.round
+    update(): void {
+        console.debug('before:')
+        this.printAllInfos()
+        if (this.round === 0 || this.round < this.aggregator.round) {
+            this._round = this.aggregator.round
+            this._currentNumberOfParticipants = this.aggregator.size
+            this._averageNumberOfParticipants =
+                this.totalNumberOfParticipants / this.round
+            this._totalNumberOfParticipants += this.currentNumberOfParticipants
+        } else {
+            this._round = this.aggregator.round
+        }
+        console.debug('after:')
+        this.printAllInfos()
     }
-    console.debug('after:')
-    this.printAllInfos()
-  }
 
-  // Getter functions
-  get round (): number {
-    return this._round
-  }
-
-  get currentNumberOfParticipants (): number {
-    return this._currentNumberOfParticipants
-  }
-
-  get totalNumberOfParticipants (): number {
-    return this._totalNumberOfParticipants
-  }
-
-  get averageNumberOfParticipants (): number {
-    return this._averageNumberOfParticipants
-  }
-
-  getAllStatistics (): Record<
-  'round' | 'currentNumberOfParticipants' | 'totalNumberOfParticipants' | 'averageNumberOfParticipants', number
-  > {
-    return {
-      round: this.round,
-      currentNumberOfParticipants: this.currentNumberOfParticipants,
-      totalNumberOfParticipants: this.totalNumberOfParticipants,
-      averageNumberOfParticipants: this.averageNumberOfParticipants
+    // Getter functions
+    get round(): number {
+        return this._round
     }
-  }
 
-  // Debug
-  public printAllInfos (): void {
-    console.debug('task:', this.aggregator.task.taskID)
-    console.debug('round:', this.round)
-    console.debug('participants:', this.currentNumberOfParticipants)
-    console.debug('total:', this.totalNumberOfParticipants)
-    console.debug('average:', this.averageNumberOfParticipants)
-  }
+    get currentNumberOfParticipants(): number {
+        return this._currentNumberOfParticipants
+    }
+
+    get totalNumberOfParticipants(): number {
+        return this._totalNumberOfParticipants
+    }
+
+    get averageNumberOfParticipants(): number {
+        return this._averageNumberOfParticipants
+    }
+
+    getAllStatistics(): Record<
+        | 'round'
+        | 'currentNumberOfParticipants'
+        | 'totalNumberOfParticipants'
+        | 'averageNumberOfParticipants',
+        number
+    > {
+        return {
+            round: this.round,
+            currentNumberOfParticipants: this.currentNumberOfParticipants,
+            totalNumberOfParticipants: this.totalNumberOfParticipants,
+            averageNumberOfParticipants: this.averageNumberOfParticipants,
+        }
+    }
+
+    // Debug
+    public printAllInfos(): void {
+        console.debug('task:', this.aggregator.task.id)
+        console.debug('round:', this.round)
+        console.debug('participants:', this.currentNumberOfParticipants)
+        console.debug('total:', this.totalNumberOfParticipants)
+        console.debug('average:', this.averageNumberOfParticipants)
+    }
 }

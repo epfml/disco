@@ -6,28 +6,27 @@ import { isTask, Task, TaskID } from './task'
 
 const TASK_ENDPOINT = 'tasks'
 
-export async function pushTask (
-  url: URL,
-  task: Task,
-  model: tf.LayersModel
+export async function pushTask(
+    url: URL,
+    task: Task,
+    model: tf.LayersModel
 ): Promise<void> {
-  await axios.post(
-    url.href + TASK_ENDPOINT,
-    {
-      task,
-      model: await serialization.model.encode(model),
-      weights: await serialization.weights.encode(WeightsContainer.from(model))
-    }
-  )
+    await axios.post(url.href + TASK_ENDPOINT, {
+        task,
+        model: await serialization.model.encode(model),
+        weights: await serialization.weights.encode(
+            WeightsContainer.from(model)
+        ),
+    })
 }
 
-export async function fetchTasks (url: URL): Promise<Map<TaskID, Task>> {
-  const response = await axios.get(new URL(TASK_ENDPOINT, url).href)
-  const tasks: unknown = response.data
+export async function fetchTasks(url: URL): Promise<Map<TaskID, Task>> {
+    const response = await axios.get(new URL(TASK_ENDPOINT, url).href)
+    const tasks: unknown = response.data
 
-  if (!(Array.isArray(tasks) && tasks.every(isTask))) {
-    throw new Error('invalid tasks response')
-  }
+    if (!(Array.isArray(tasks) && tasks.every(isTask))) {
+        throw new Error('invalid tasks response')
+    }
 
-  return Map(tasks.map((t) => [t.taskID, t]))
+    return Map(tasks.map((t) => [t.id, t]))
 }

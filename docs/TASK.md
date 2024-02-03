@@ -6,22 +6,22 @@ Disco.js currently allows learning of arbitrary machine learning tasks, where ta
 2. New tasks defined via the [**task creation form**](https://epfml.github.io/disco/#/create), via the Disco web UI, without programming knowledge needed
 3. New **custom tasks**
 
-
 ## Bringing your ML model to Disco
 
 To use an existing model in Disco, we first need to convert the model to TensorFlowJS format, consisting of a TensorFlowJS model file in a JSON format for the neural network architecture, and an optional weight file in .bin format if you want to start from a particular initialization or a pretrained model. If your model comes from another framework than TensorflowJS, like Pytorch or Tensorflow/Keras, but you still want to bring it to DisCo, we indicate the appropriate procedure as follows.
-
 
 ### Importing models or weights from PyTorch to TensorflowJS
 
 The simplest way to obtain a TensorflowJS model is to first obtain a Python Tensorflow/Keras model, stored as a .h5 file, and then convert it using TensorflowJS's converter tool, which transforms any Tensorflow/Keras model to TensorflowJS. One recommended way to obtain a Python Tensorflow/Keras model it to directly develop the model in Keras: most of PyTorch components have their equivalent counterpart in Tensorflow/Keras, and translating model architectures between these two frameworks can be done in a straightforward way. One caveat is that for more complex models, pretrained weights can currently not automatically be converted from the Python `.pth` format to the Keras `.h5` format. If you plan to retrain the model from scratch in Disco, this is no problem. On the other hand if you want to import pretrained Python model weights you currently have to first obtain corresponding Keras weights, from which you can then TF.js weights.
 
 Given your keras model file, to convert it to a TensorFlowJS model:
+
 ```bash
 $ tensorflowjs_converter --input_format=keras my_model_name.h5 /tfjs_model
 ```
 
 Side Note: If you already have a TensorFlow (Python) saved model ([LayersModel](https://www.tensorflow.org/js/guide/models_and_layers)), then the conversion to TensorFlowJS is straightforward with the following command:
+
 ```bash
 $ tensorflowjs_converter --input_format=tf_saved_model my_tensorflow_saved_model /tmp/tfjs_model
 ```
@@ -31,24 +31,23 @@ Make sure to convert to TF.js [LayersModel](https://www.tensorflow.org/js/guide/
 Following the `tensorflowjs_converter` command, you will recover two files : a .json describing your model architecture, and a collection of .bin files describing your model weights, which are ready to be uploaded on DisCo. We describe this procedure in the paragraphs below.
 Note that the following conversion is only possible in cases of models for which TensorFlowJS possesses the [corresponding modules](https://js.tensorflow.org/api/latest/).
 
-*Side Note : There exist several libraries that try to perform automatic conversion between frameworks, which we do not recommend as most of the tools have compatibility issues for models containing components which differ strongly in implementation between the two frameworks.*
-
-
-
-
+_Side Note : There exist several libraries that try to perform automatic conversion between frameworks, which we do not recommend as most of the tools have compatibility issues for models containing components which differ strongly in implementation between the two frameworks._
 
 ## 1) Simple use case: Using the user interface directly for creating a new task
-I am a user who wants to define my custom task and bring my model to Disco, without doing any programming. In this case, you use our existing supported data modalities and preprocessing (such as tabular, images, text etc). For this use case, an initial `.bin` weight file of your TF.js model is mandatory.
- - Through the Disco user interface, click on the *create* button on "Add your own model to be trained in a DISCOllaborative"
- - Fill in all the relevant information for your task and model
- - Upload the .json + .bin model in the *Model Files* box.
- Your task has been successfully instantiated.
 
+I am a user who wants to define my custom task and bring my model to Disco, without doing any programming. In this case, you use our existing supported data modalities and preprocessing (such as tabular, images, text etc). For this use case, an initial `.bin` weight file of your TF.js model is mandatory.
+
+-   Through the Disco user interface, click on the _create_ button on "Add your own model to be trained in a DISCOllaborative"
+-   Fill in all the relevant information for your task and model
+-   Upload the .json + .bin model in the _Model Files_ box.
+    Your task has been successfully instantiated.
 
 ## 2) Procedure for adding a custom task
+
 In order to add a completely new custom task to Disco.js using our own code (such as for data loading, preprocessing etc), we need to defined a `TaskProvider` which need to implement two methods:
-   * `getTask` which returns a `Task` as defined [here](../discojs/discojs-core/src/task/task.ts), the `Task` contains all the crucial information from training to the mode
-   * `getModel` which returns a `Promise<tf.LayersModel>` specifying a model architecture for the task
+
+-   `getTask` which returns a `Task` as defined [here](../discojs/discojs-core/src/task/task.ts), the `Task` contains all the crucial information from training to the mode
+-   `getModel` which returns a `Promise<tf.LayersModel>` specifying a model architecture for the task
 
 You can find examples of `TaskProvider` currently used in our Disco server in `discojs/discojs-core/src/default_tasks/`. These tasks are all loaded by our server by default.
 
@@ -59,8 +58,9 @@ For the task creation of new custom tasks, if you can not go through the user in
 **I am a developper who wants to define my own custom task**
 
 If you want to add a new task to our production DISCO server you have two possibilities:
-  * using the user interface as described above (no coding required)
-  * exporting your own `TaskProvider` from `discojs/discojs-core/src/default_tasks/`  and adding a new default task by contributing to the code. (describing the task in Typescript code)
+
+-   using the user interface as described above (no coding required)
+-   exporting your own `TaskProvider` from `discojs/discojs-core/src/default_tasks/` and adding a new default task by contributing to the code. (describing the task in Typescript code)
 
 To export a new task in the code, make sure to export the `TaskProvider` in the `discojs/discojs-core/src/default_tasks/index.ts` file as follows:
 
@@ -82,24 +82,24 @@ import { Disco, tf } from '@epfml/disco-server'
 // Define your own task provider (task definition + model)
 const customTask: TaskProvider = {
     getTask(): Task {
-      return {
-        // Your task definition
-      }
+        return {
+            // Your task definition
+        }
     },
-  
+
     async getModel(): Promise<tf.LayersModel> {
-      const model = tf.sequential()
-      // Configure your model architechture
-      return model
-    }
-  }
+        const model = tf.sequential()
+        // Configure your model architechture
+        return model
+    },
+}
 
 async function runServer() {
-  const disco = new Disco()
-  // Add your own custom task
-  await disco.addTask(customTask)
-  // Start the server
-  disco.serve()
+    const disco = new Disco()
+    // Add your own custom task
+    await disco.addTask(customTask)
+    // Start the server
+    disco.serve()
 }
 
 runServer()
@@ -111,11 +111,9 @@ For your custom model, the JSON model architecture is necessary, but the .bin we
 
 For more detail about how to define a `Task` and a `tf.LayersModel` for your own `TaskProvider`, continue reading.
 
-
-
 ### Model
 
-The interface let you load your model however you want, as long as you return a `tf.LayersModel` at the end. If you use a 
+The interface let you load your model however you want, as long as you return a `tf.LayersModel` at the end. If you use a
 pre-trained model, you can simply load and return said model in the function via `tf.loadLayersModel(modelPath)`.
 
 ```js
@@ -125,48 +123,47 @@ async function getModel (_: string): Promise<tf.LayersModel> {
 
   // Add layers
   model.add(...)
-  
+
   return model
 ```
 
-Alternatively we can also load a pre-existing model; if we only provide a `model.json` file, then only the architecture of the model will be 
+Alternatively we can also load a pre-existing model; if we only provide a `model.json` file, then only the architecture of the model will be
 loaded. If however in the same path we also include `weights.bin`, then pre-trained weights stored in these files will also be loaded to the model.
 
 ```js
-async function getModel (modelPath: string): Promise<tf.LayersModel> {
-  return await tf.loadLayersModel(`file://${modelPath}`)
+async function getModel(modelPath: string): Promise<tf.LayersModel> {
+    return await tf.loadLayersModel(`file://${modelPath}`)
 }
 ```
 
 > Reminder that the tasks and models definition are used by the server. The server then exposes the initial models to the clients that want to train them locally. So the server need to be able to retrieve the model if it's stored in a remote location.
 > When the training begin, the client retrieves the **initial** model stored on the server. Then depending on the scheme the model **updates** (without training data) are:
-> 
-> * Sent to the server for aggregation (**federated scheme**) 
->   * At some point the server will update its stored model to benefit future client trainings
-> * Shared between peers for aggregation (no interaction with server) (**decentralized scheme**)
->   * In this case, the server never have the opportunity to update the initial model as it's kept between peers.
+>
+> -   Sent to the server for aggregation (**federated scheme**)
+>     -   At some point the server will update its stored model to benefit future client trainings
+> -   Shared between peers for aggregation (no interaction with server) (**decentralized scheme**)
+>     -   In this case, the server never have the opportunity to update the initial model as it's kept between peers.
 
 In summary here are the most common ways of loading a model:
 
-* Loading the model from the web (example in [cifar10](../discojs/discojs-core/src/default_tasks/cifar10.ts))
-* Loading the model from the local filesystem (similar to the web with a file path from the server filesystem)
-* Defining the architecture directly in the `TaskProvider` (example in [luscovid](../discojs/discojs-core/src/default_tasks/lus_covid.ts))
+-   Loading the model from the web (example in [cifar10](../discojs/discojs-core/src/default_tasks/cifar10.ts))
+-   Loading the model from the local filesystem (similar to the web with a file path from the server filesystem)
+-   Defining the architecture directly in the `TaskProvider` (example in [luscovid](../discojs/discojs-core/src/default_tasks/lus_covid.ts))
 
 At runtime, the models are stored in `disco/server/models/`, and it is also in the server side that we let disco know where exactly they are saved.
 
 > If you are using a pre-existing model, and the data shape does not match the input of the model, then it is possible
-to use preprocessing functions to resize the data (we also describe how to add custom preprocessing).
+> to use preprocessing functions to resize the data (we also describe how to add custom preprocessing).
 
 ### Task
 
-The `Task` class contains all the crucial information for training the model (batchSize, learningRate, ...) and also the 
+The `Task` class contains all the crucial information for training the model (batchSize, learningRate, ...) and also the
 scheme of distributed learning (federated or decentralized), along with other meta data about the model and data.
 
-> In the appendix (end of this document) you find all possible [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts) parameters with a short description. 
+> In the appendix (end of this document) you find all possible [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts) parameters with a short description.
 
 As an example, the task class for `simple-face` can be found [here](../discojs/discojs-core/src/default_tasks/simple_face.ts), suppose
 our own task is a binary classification for age detection (similar to simple face), then we could write:
-
 
 ```js
 import { ImagePreprocessing } from '../dataset/preprocessing'
@@ -174,7 +171,7 @@ import { ImagePreprocessing } from '../dataset/preprocessing'
 export const customTask: TaskProvider = {
   getTask (): Task {
     return {
-      taskID: 'my_new_task',
+      id: 'my_new_task',
       displayInformation: {
         taskTitle: 'My new task',
         summary: 'Can you detect if the person in a picture is a child or an adult?',
@@ -205,14 +202,14 @@ export const customTask: TaskProvider = {
 }
 ```
 
-The `Task` interface has three fields: a mandatory `taskID` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/discojs-core/src/task/display_information.ts) and [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts).
+The `Task` interface has three fields: a mandatory `id` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/discojs-core/src/task/display_information.ts) and [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts).
 
 ### Preprocessing
 
 In the Task object we can optionally choose to add preprocessing functions. Preprocessing is defined [here](../discojs/discojs-core/src/dataset/data/preprocessing.ts),
 and is currently only implemented for images (e.g. resize, normalize, ...).
 
-Suppose we want our custom preprocessing that divides each pixel value by 2. In the [preprocessing](../discojs/discojs-core/src/dataset/data/preprocessing.ts) file, 
+Suppose we want our custom preprocessing that divides each pixel value by 2. In the [preprocessing](../discojs/discojs-core/src/dataset/data/preprocessing.ts) file,
 first we add the enum of our custom function:
 
 ```js
@@ -225,14 +222,13 @@ export enum ImagePreprocessing {
 
 If your task requires a preprocessing function to be applied to the data before training, you can specifiy it in the `preprocessingFunctions` field of the `trainingInformation` parameter in the task object. In order to add custom preprocessing function, either extend the `Preprocessing` type and define your preprocessing functions in the [preprocessing](../discojs/discojs-core/src/dataset/data/preprocessing.ts) file. If the preprocessing function is challenging to implement in JS (e.g requires complex audio preprocessing for JS), we recommend implementing in some other language which supports the desired preprocessing (e.g. Python) and feed the preprocessed data to the task.
 
-
 #### Rebuild
 
 Then we define our custom function
 
 ```js
-function custom (image: tf.Tensor3D): tf.Tensor3D {
-return image.div(tf.scalar(2))
+function custom(image: tf.Tensor3D): tf.Tensor3D {
+    return image.div(tf.scalar(2))
 }
 ```
 
@@ -274,20 +270,19 @@ export const task: Task = {
 
 > Note that you need to rebuild discojs every time you make changes to it (`cd discojs; rm -rf dist/; npm run build`).
 
-## Summary 
+## Summary
 
-- In ```disco/discojs/discojs-core/src/default_tasks/``` define your new custom task by implementing the `TaskProvider` interface. You will need to have your model in the .json + .bin format.
- - In ```disco/discojs/discojs-core/src/default_tasks/index.ts``` export your newly defined task
- - Run the ```./build.sh``` script from ```discojs/discojs-core```
- - Reinstall cleanly the server by running ```npm ci``` from ```disco/server```
- - Reinstall cleanly the client by running ```npm ci``` from ```disco/web-client```
- - Instantiate a Disco server by running ```npm run dev``` from ```disco/server```
- - Instanciate a Disco client by running ```npm run dev``` from ```disco/web-client```
+-   In `disco/discojs/discojs-core/src/default_tasks/` define your new custom task by implementing the `TaskProvider` interface. You will need to have your model in the .json + .bin format.
+-   In `disco/discojs/discojs-core/src/default_tasks/index.ts` export your newly defined task
+-   Run the `./build.sh` script from `discojs/discojs-core`
+-   Reinstall cleanly the server by running `npm ci` from `disco/server`
+-   Reinstall cleanly the client by running `npm ci` from `disco/web-client`
+-   Instantiate a Disco server by running `npm run dev` from `disco/server`
+-   Instanciate a Disco client by running `npm run dev` from `disco/web-client`
 
 Your task has been successfully uploaded.
 
 **Or** just use the NPM `disco-server` package and add your own custom `TaskProvider` directly to the server.
-
 
 ## Appendix
 
