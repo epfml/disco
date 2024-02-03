@@ -1,0 +1,28 @@
+{
+    "type": "module",
+    "name": "server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dev": "bun --bun socket.ts",
+        "dev:nodemon": "nodemon --inspect socket.ts",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "express": "^4.18.2",
+        "ws": "^8.14.2"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.0.0",
+        "@types/express": "^4.17.21",
+        "@types/module-alias": "^2.0.4",
+        "@types/ws": "^8.5.10",
+        "module-alias": "^2.2.3",
+        "nodemon": "^3.0.1",
+        "ts-node": "^10.9.1",
+        "tsconfig-paths": "^4.2.0"
+    }
+}
