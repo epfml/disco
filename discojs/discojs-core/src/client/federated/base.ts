@@ -92,41 +92,37 @@ export class Base extends Client {
 
   /**
    * Send a message containing our local weight updates to the federated server.
+   * And waits for the server to reply with the most recent aggregated weights
    * @param weights The weight updates to send
    */
-  async sendPayload (payload: WeightsContainer): Promise<void> {
+  private async sendPayloadAndReceiveResult (payload: WeightsContainer): Promise<WeightsContainer|undefined> {
     const msg: messages.SendPayload = {
       type: type.SendPayload,
       payload: await serialization.weights.encode(payload),
       round: this.aggregator.round
     }
     this.server.send(msg)
+    // It is important than the client immediately awaits the server result or it may miss it
+    return await this.receiveResult()
   }
 
   /**
-   * Fetches the server's result for its current (most recent) round and add it to our aggregator.
+   * Waits for the server's result for its current (most recent) round and add it to our aggregator.
    * Updates the aggregator's round if it's behind the server's.
    */
-  async receiveResult (): Promise<void> {
-    this.serverRound = undefined
-    this.serverResult = undefined
-
-    const msg: messages.MessageBase = {
-      type: type.ReceiveServerPayload
-    }
-    this.server.send(msg)
-
+  async receiveResult (): Promise<WeightsContainer|undefined> {
     try {
       const { payload, round } = await waitMessageWithTimeout(this.server, type.ReceiveServerPayload)
-      this.serverRound = round
+      const serverRound = round
 
       // Store the server result only if it is not stale
       if (this.aggregator.round <= round) {
-        this.serverResult = serialization.weights.decode(payload)
+        const serverResult = serialization.weights.decode(payload)
         // Update the local round to match the server's
-        if (this.aggregator.round < this.serverRound) {
-          this.aggregator.setRound(this.serverRound)
+        if (this.aggregator.round < serverRound) {
+          this.aggregator.setRound(serverRound)
         }
+        return serverResult
       }
     } catch (e) {
       console.error(e)
@@ -226,13 +222,11 @@ export class Base extends Client {
       throw new Error('local aggregation result was not set')
     }
 
-    // Send our contribution to the server
-    await this.sendPayload(this.aggregator.makePayloads(weights).first())
-    // Fetch the server result
-    await this.receiveResult()
+    // Send our local contribution to the server
+    // and receive the most recent weights as an answer to our contribution
+    const serverResult = await this.sendPayloadAndReceiveResult(this.aggregator.makePayloads(weights).first())
 
-    // TODO @s314cy: add communication rounds to federated learning
-    if (this.serverResult !== undefined && this.aggregator.add(Base.SERVER_NODE_ID, this.serverResult, round, 0)) {
+    if (serverResult !== undefined && this.aggregator.add(Base.SERVER_NODE_ID, serverResult, round, 0)) {
       // Regular case: the server sends us its aggregation result which will serve our
       // own aggregation result.
     } else {

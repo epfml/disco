@@ -16,7 +16,7 @@ async function runUser (url: URL, task: Task, dataset: data.DataSplit): Promise<
 
 async function main (): Promise<void> {
   
-  // Start a server instance before running this example
+  // First have a server instance running before running this script
   const serverUrl = new URL('http://localhost:8080/')
 
   const tasks = await fetchTasks(serverUrl)
@@ -28,7 +28,9 @@ async function main (): Promise<void> {
 
   // Add more users to the list to simulate more clients
   await Promise.all([
-    runUser(serverUrl, task, dataset)
+    runUser(serverUrl, task, dataset),
+    runUser(serverUrl, task, dataset),
+    runUser(serverUrl, task, dataset),
   ])
 }
 
