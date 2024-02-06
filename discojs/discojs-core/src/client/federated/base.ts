@@ -20,14 +20,6 @@ export class Base extends Client {
    */
   public static readonly SERVER_NODE_ID = 'federated-server-node-id'
   /**
-   * Most recent server-fetched round.
-   */
-  private serverRound?: number
-  /**
-   * Most recent server-fetched aggregated result.
-   */
-  private serverResult?: WeightsContainer
-  /**
    * Statistics curated by the federated server.
    */
   private receivedStatistics?: Record<string, number>

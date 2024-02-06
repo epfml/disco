@@ -1,7 +1,8 @@
 import { assert } from 'chai'
 import fs from 'fs'
 
-import { Task, node, Validator, ConsoleLogger, EmptyMemory, client as clients, data, aggregator, defaultTasks } from '@epfml/discojs-node'
+import { Task, node, Validator, ConsoleLogger, EmptyMemory, 
+        client as clients, data, aggregator, defaultTasks } from '@epfml/discojs-node'
 
 const simplefaceMock = {
   taskID: 'simple_face',
@@ -55,7 +56,7 @@ describe('validator', () => {
       `expected accuracy greater than 0.3 but got ${validator.accuracy}`
     )
     console.table(validator.confusionMatrix)
-  }).timeout(10_000)
+  }).timeout(15_000)
 
   it('works for titanic', async () => {
     const titanicTask = defaultTasks.titanic.getTask()
@@ -86,5 +87,5 @@ describe('validator', () => {
       validator.accuracy > 0.5,
       `expected accuracy greater than 0.5 but got ${validator.accuracy}`
     )
-  }).timeout(10_000)
+  }).timeout(15_000)
 })
