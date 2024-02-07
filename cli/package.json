@@ -3,9 +3,11 @@
   "private": true,
   "main": "dist/benchmark.ts",
   "scripts": {
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/discojs-node/dist --watch ../server/dist --watch . --exec npm run",
+    "start": "npm run build && node dist/benchmark.js",
     "build": "tsc",
-    "test": ": nothing",
-    "start": "npm run build && node dist/benchmark.js"
+    "lint": "npx eslint --max-warnings 0 .",
+    "test": ": nothing"
   },
   "author": "",
   "license": "ISC",
@@ -23,6 +25,7 @@
     "eslint-plugin-import": "2",
     "eslint-plugin-node": "11",
     "eslint-plugin-promise": "5",
+    "nodemon": "3",
     "ts-command-line-args": "2"
   }
 }

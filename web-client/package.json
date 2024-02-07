@@ -2,14 +2,10 @@
   "name": "@epfml/disco-web-client",
   "private": true,
   "scripts": {
-    "dev": "vue-cli-service serve",
+    "start": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "test": "vue-cli-service test:unit tests",
-    "build17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service build",
-    "lint17": "export NODE_OPTIONS=--openssl-legacy-provider  && vue-cli-service lint",
-    "prod": "vue-cli-service serve --mode production",
-    "serve17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve"
+    "test": "vue-cli-service test:unit tests"
   },
   "dependencies": {
     "@epfml/discojs": "*",
