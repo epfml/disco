@@ -32,7 +32,7 @@ describe('validator', () => {
         .map((file: string) => dir + subdir + file))
     const labels = files.flatMap((files, index) => Array(files.length).fill(index))
 
-    const data: data.Data = (await new node.data.NodeImageLoader(simplefaceMock)
+    const data = (await new node.data.NodeImageLoader(simplefaceMock)
       .loadAll(files.flat(), { labels })).train
     const meanAggregator = new aggregator.MeanAggregator(simplefaceMock)
     const client = new clients.Local(new URL('http://localhost:8080'), simplefaceMock, meanAggregator)
