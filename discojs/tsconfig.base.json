@@ -5,6 +5,7 @@
     "lib": ["ES5", "DOM"],
 
     "strict": true,
+    "noEmitOnError": true,
 
     "esModuleInterop": true,
     "skipLibCheck": true,
