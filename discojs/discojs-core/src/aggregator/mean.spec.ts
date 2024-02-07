@@ -2,7 +2,7 @@
 import { assert, expect } from 'chai'
 import { Map } from 'immutable'
 
-import { aggregator, defaultTasks, client, Task, tf } from '@epfml/discojs-node'
+import { aggregator, defaultTasks, client, Task, tf } from '..'
 import { AggregationStep } from './base'
 
 const task = defaultTasks.titanic.getTask()
