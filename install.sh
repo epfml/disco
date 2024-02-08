@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e # Exit script on error
 DIR="$( cd "$( dirname "$0" )" ; pwd -P )" # Fetch current directory
 
