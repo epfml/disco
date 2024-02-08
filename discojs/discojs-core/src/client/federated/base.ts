@@ -102,7 +102,7 @@ export class Base extends Client {
    * Waits for the server's result for its current (most recent) round and add it to our aggregator.
    * Updates the aggregator's round if it's behind the server's.
    */
-  async receiveResult (): Promise<WeightsContainer|undefined> {
+  private async receiveResult (): Promise<WeightsContainer|undefined> {
     try {
       const { payload, round } = await waitMessageWithTimeout(this.server, type.ReceiveServerPayload)
       const serverRound = round
