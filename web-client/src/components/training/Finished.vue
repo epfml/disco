@@ -52,7 +52,7 @@ interface Props {
 const memoryStore = useMemoryStore()
 const validationStore = useValidationStore()
 const router = useRouter()
-const toast = useToaster()
+const toast = useToaster() // TODO: use this.$toaster
 
 const props = defineProps<Props>()
 
@@ -68,7 +68,7 @@ const modelInfo = computed<ModelInfo>(() => {
 async function testModel () {
   if (await memory.value.contains(modelInfo.value)) {
     validationStore.setModel(this.memory.pathFor(this.modelInfo))
-    router.push({ path: '/testing' })
+    router.push({ path: '/evaluate' })
   } else {
     toast.error('Model was not trained!')
   }

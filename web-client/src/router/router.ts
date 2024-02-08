@@ -15,7 +15,7 @@ import Tutorial from '@/components/information/Tutorial.vue'
 import Further from '@/components/information/Further.vue'
 import AboutUs from '@/components/pages/AboutUs.vue'
 
-export const router = createRouter({
+const router = createRouter({
   history: createWebHashHistory(process.env.BASE_URL),
   routes: [
     {
@@ -96,6 +96,21 @@ export const router = createRouter({
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFound
+    },
+    {
+      path: '/not-found',
+      name: 'not-found',
+      component: NotFound
     }
   ]
 })
+
+// Handle router errors
+router.onError((err) => {
+  // Handle the router error here
+  console.error('Router error:', err)
+  // Add code for reporting or other error handling logic
+  router.push({ path: '/not-found' })
+})
+
+export { router }

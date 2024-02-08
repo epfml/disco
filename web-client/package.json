@@ -2,7 +2,7 @@
   "name": "@epfml/disco-web-client",
   "private": true,
   "scripts": {
-    "dev": "vue-cli-service serve",
+    "dev": "vue-cli-service serve  --port 8081",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "test": "vue-cli-service test:unit tests",
