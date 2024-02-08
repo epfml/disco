@@ -94,7 +94,7 @@ export class PeerConnection implements EventConnection {
 
 export class WebSocketServer implements EventConnection {
   private constructor (
-    private readonly socket: WebSocket,
+    private readonly socket: isomorphic.WebSocket,
     private readonly eventEmitter: EventEmitter,
     private readonly validateReceived?: (msg: any) => boolean,
     private readonly validateSent?: (msg: any) => boolean
@@ -103,8 +103,7 @@ export class WebSocketServer implements EventConnection {
   static async connect (url: URL,
     validateReceived?: (msg: any) => boolean,
     validateSent?: (msg: any) => boolean): Promise<WebSocketServer> {
-    const WS = typeof window !== 'undefined' ? window.WebSocket : isomorphic.WebSocket
-    const ws: WebSocket = new WS(url)
+    const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
     const emitter: EventEmitter = new EventEmitter()
