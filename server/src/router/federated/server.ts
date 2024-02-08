@@ -89,17 +89,23 @@ export class Federated extends Server {
   }
 
   /**
-   * Loop storing aggregation results, every time an aggregation result promise resolves.
-   * This happens once per round.
+   * Loop creating an aggregation result promise at each round.
+   * Because clients contribute to the round asynchronously, a promise is used to let them wait
+   * until the server has aggregated the weights. This loop creates a promise whenever the previous
+   * one resolved and awaits until it resolves. The promise is used in createPromiseForWeights.
    * @param aggregator The aggregation handler
    */
   private async storeAggregationResult (aggregator: aggregators.Aggregator): Promise<void> {
-    // Renew the aggregation result promise.
+    // Create a promise on the future aggregated weights
     const result = aggregator.receiveResult()
-    // Store the result promise somewhere for the server to fetch from, so that it can await
-    // the result on client request.
+    // Store the promise such that it is accessible from other methods
     this.results = this.results.set(aggregator.task.taskID, result)
+    // The promise resolves once the server received enough contributions (through the handle method)
+    // and the aggregator aggregated the weights.
     await result
+    // Update the server round with the aggregator round
+    this.rounds = this.rounds.set(aggregator.task.taskID, aggregator.round)
+    // Create a new promise for the next round
     void this.storeAggregationResult(aggregator)
   }
 
@@ -111,6 +117,85 @@ export class Federated extends Server {
     this.rounds = this.rounds.set(task.taskID, 0)
 
     void this.storeAggregationResult(aggregator)
+  }
+
+  /**
+   * This method is called when a client sends its contribution to the server. The server
+   * first adds the contribution to the aggregator and then replies with the aggregated weights
+   *
+   * @param msg the client message received of type SendPayload which contains the local client's weights
+   * @param task the task for which the client is contributing
+   * @param clientId the clientID of the contribution
+   * @param ws the websocket through which send the aggregated weights
+   */
+  private async addContributionAndSendModel (msg: messages.SendPayload, task: Task,
+    clientId: client.NodeID, ws: WebSocket): Promise<void> {
+    const { payload, round } = msg
+    const aggregator = this.aggregators.get(task.taskID)
+
+    if (!(Array.isArray(payload) &&
+      payload.every((e) => typeof e === 'number'))) {
+      throw new Error('received invalid weights format')
+    }
+    if (aggregator === undefined) {
+      throw new Error(`received weights for unknown task: ${task.taskID}`)
+    }
+
+    // It is important to create a promise for the weights BEFORE adding the contribution
+    // Otherwise the server might go to the next round before sending the
+    // aggregated weights. Once the server has aggregated the weights it will
+    // send the new weights to the client.
+    // Use the void keyword to explicity avoid waiting for the promise to resolve
+    this.createPromiseForWeights(task, aggregator, ws)
+      .catch(console.error)
+
+    const serialized = serialization.weights.decode(payload)
+    // Add the contribution to the aggregator,
+    // which returns False if the contribution is too old
+    if (!aggregator.add(clientId, serialized, round, 0)) {
+      console.info('Dropped contribution from client', clientId, 'for round', round)
+    }
+  }
+
+  /**
+   * This method is called after received a local update.
+   * It puts the client on hold until the server has aggregated the weights
+   * by creating a Promise which will resolve once the server has received
+   * enough contributions. Relying on a promise is useful since clients may
+   * send their contributions at different times and a promise lets the server
+   * wait asynchronously for the results
+   *
+   * @param task the task to which the client is contributing
+   * @param aggregator the server aggregator, in order to access the current round
+   * @param ws the websocket through which send the aggregated weights
+   */
+  private async createPromiseForWeights (
+    task: Task,
+    aggregator: aggregators.Aggregator,
+    ws: WebSocket): Promise<void> {
+    const promisedResult = this.results.get(task.taskID)
+    if (promisedResult === undefined) {
+      throw new Error(`result promise was not set for task ${task.taskID}`)
+    }
+
+    // Wait for aggregation result to resolve with timeout, giving the network a time window
+    // to contribute to the model
+    void Promise.race([promisedResult, client.utils.timeout()])
+      .then((result) =>
+      // Reply with round - 1 because the round number should match the round at which the client sent its weights
+      // After the server aggregated the weights it also incremented the round so the server replies with round - 1
+        [result, aggregator.round - 1] as [WeightsContainer, number])
+      .then(async ([result, round]) =>
+        [await serialization.weights.encode(result), round] as [serialization.weights.Encoded, number])
+      .then(([serialized, round]) => {
+        const msg: messages.ReceiveServerPayload = {
+          type: MessageTypes.ReceiveServerPayload,
+          round,
+          payload: serialized
+        }
+        ws.send(msgpack.encode(msg))
+      })
+      .catch(console.error)
   }
 
   protected handle (
@@ -133,6 +218,8 @@ export class Federated extends Server {
       const msg = msgpack.decode(data)
 
       if (msg.type === MessageTypes.ClientConnected) {
+        this.logsAppend(task.taskID, clientId, MessageTypes.ClientConnected, 0)
+
         let aggregator = this.aggregators.get(task.taskID)
         if (aggregator === undefined) {
           aggregator = new aggregators.MeanAggregator(task)
@@ -140,42 +227,19 @@ export class Federated extends Server {
         }
         console.info('client', clientId, 'joined', task.taskID)
 
-        this.logsAppend(task.taskID, clientId, MessageTypes.ClientConnected, 0)
-
         const msg: AssignNodeID = {
           type: MessageTypes.AssignNodeID,
           id: clientId
         }
         ws.send(msgpack.encode(msg))
       } else if (msg.type === MessageTypes.SendPayload) {
-        const { payload, round } = msg
+        this.logsAppend(task.taskID, clientId, MessageTypes.SendPayload, msg.round)
 
-        const aggregator = this.aggregators.get(task.taskID)
-
-        this.logsAppend(
-          task.taskID,
-          clientId,
-          MessageTypes.SendPayload,
-          msg.round
-        )
-
-        if (!(
-          Array.isArray(payload) &&
-          payload.every((e) => typeof e === 'number')
-        )) {
-          throw new Error('received invalid weights format')
+        if (model === undefined) {
+          throw new Error('aggregator model was not set')
         }
-
-        const serialized = serialization.weights.decode(payload)
-
-        if (aggregator === undefined) {
-          throw new Error(`received weights for unknown task: ${task.taskID}`)
-        }
-
-        // TODO @s314cy: add communication rounds to federated learning
-        if (!aggregator.add(clientId, serialized, round, 0)) {
-          console.info('Dropped contribution from client', clientId, 'for round', round)
-        }
+        this.addContributionAndSendModel(msg, task, clientId, ws)
+          .catch(console.error)
       } else if (msg.type === MessageTypes.ReceiveServerStatistics) {
         const statistics = this.informants
           .get(task.taskID)
@@ -188,37 +252,16 @@ export class Federated extends Server {
 
         ws.send(msgpack.encode(msg))
       } else if (msg.type === MessageTypes.ReceiveServerPayload) {
+        this.logsAppend(task.taskID, clientId, MessageTypes.ReceiveServerPayload, 0)
         const aggregator = this.aggregators.get(task.taskID)
         if (aggregator === undefined) {
           throw new Error(`requesting round of unknown task: ${task.taskID}`)
         }
-
-        this.logsAppend(task.taskID, clientId, MessageTypes.ReceiveServerPayload, 0)
-
         if (model === undefined) {
           throw new Error('aggregator model was not set')
         }
 
-        const promisedResult = this.results.get(task.taskID)
-        if (promisedResult === undefined) {
-          throw new Error(`result promise was not set for task ${task.taskID}`)
-        }
-
-        // Wait for aggregation result with timeout, giving the network a time window
-        // to contribute to the model sent to the requesting client.
-        void Promise.race([promisedResult, client.utils.timeout()])
-          .then((result) =>
-            [result, aggregator.round - 1] as [WeightsContainer, number])
-          .then(async ([result, round]) =>
-            [await serialization.weights.encode(result), round] as [serialization.weights.Encoded, number])
-          .then(([serialized, round]) => {
-            const msg: messages.ReceiveServerPayload = {
-              type: MessageTypes.ReceiveServerPayload,
-              round,
-              payload: serialized
-            }
-            ws.send(msgpack.encode(msg))
-          })
+        this.createPromiseForWeights(task, aggregator, ws)
           .catch(console.error)
       } else if (msg.type === MessageTypes.SendMetadata) {
         const { round, key, value } = msg
