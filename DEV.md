@@ -45,13 +45,13 @@ flowchart LR
 
 The following instructions will install the required dependencies, build Disco.js and launch a DISCO server and a web client. If you run into any sort of trouble check our [FAQ](./docs/FAQ.md); otherwise please create a new issue or feel free to ask on [our slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw). 
 
-1. We recommend using [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) to handle multiple Node.js versions. Start by installing `nvm` by following [their installation instructions](https://github.com/nvm-sh/nvm).
+**1.** We recommend using [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) to handle multiple Node.js versions. Start by installing `nvm` by following [their installation instructions](https://github.com/nvm-sh/nvm).
 After installation, you should be able to run
 ```
 nvm -v
 0.39.7 # my nvm version at the time
 ```
-2. Install Node.js version 16
+**2.** Install Node.js version 16
 ```
 nvm install 16
 ```
@@ -66,64 +66,20 @@ npm --version
 ```
 `nvm` manages your different Node.js versions while `npm` handles your different Node.js project packages within one version.
 
-3. Clone the repository
+**3.** Clone the repository
 ```
 git clone git@github.com:epfml/disco.git
 cd disco
 ```
 
-4. Run the installation script
+**4.** Run the installation script
 ```
 sh install.sh
 ```
+The [Installation Script](#installation-script) Section goes over what <code>install.sh</code> does. If you are planning to contribute to DISCO, it will certainly prove useful to understand what the script does.
 
-<details>
-  <summary><b>What does <code>install.sh</code> do?</b></summary>
-  </br>
-  The installation script installs the dependencies required by the different parts of the project, which are described in the Structure section.
-  It first installs the Disco.js library dependencies, notably, `TensorFlow.js`, and anything else required for federated and decentralized learning logic. 
-  The script then builds the library, a step necessary to compile TypeScript into JavaScript.
-  
-  ```
-  cd discojs
-  npm ci # stands for `clean install`, to ensure than only expected dependencies are being installed.
-  npm run build
-  ```
-  The script then installs dependencies for the web client, which implements a browser UI.
-  By default, the project points to the [@epfml/disco-web](https://www.npmjs.com/package/@epfml/discojs) package published on the `npm` remote repository. In a development environment, we want to use the local web client in the `discojs/web-client` folder. To do so, we need to link the local folder as the actual dependency.
-  
-  ```
-  cd ../web-client
-  npm ci
-  npm link ../discojs/discojs-web
-  ```
-  You can verify than the link is effective by checking that `npm ls` lists `@epfml/discojs@x.x.x -> ./../discojs/discojs-web`.
+**5.** Launch DISCO
 
-  Similarly, we install the server dependencies, and then the `discojs-node` dependency to the local folder rather than the remote npm package [@epfml/disco-node](https://www.npmjs.com/package/@epfml/discojs-node):
-  ```
-  cd ../server
-  npm ci
-  npm link ../discojs/discojs-node
-  ```
-  Install the CLI dependencies:
-  ```
-  cd ../cli
-  npm ci
-  ```
-  Install `ts-node` globally. `ts-node` lets us compile and run TypeScript code in a single command.
-  ```
-  cd ..
-  npm install -g ts-node
-  ```
-	Download and extract the sample training datasets. These datasets are used in the automated tests.
-  ```
-	sh get_training_data.sh
-  ```
-  
-</details>
-
-5. Launch DISCO
-   
 As you may have seen, there are many ways to use DISCO. Here we will run a server and a web client. From there, a user can use DISCO from their browser.
 * First launch a `server` instance, which is used for federated and decentralized learning tasks, e.g. to list peers participating in a decentralized task.
 ```
@@ -170,3 +126,40 @@ As there are many guides in the project, here is a table of contents referencing
 	* [`server` README](./server/README.md)
 	* [`web-client` README](./web-client/README.md)
 	* [`cli` README](./cli/README.md)
+
+## Installation Script
+
+The installation script installs the dependencies required by the different parts of the project, which are described in the [Structure Section](#structure).
+It first installs the Disco.js library dependencies, notably, `TensorFlow.js`, and anything else required for federated and decentralized learning logic. 
+The script then builds the library, a step necessary to compile TypeScript into JavaScript.
+
+```
+cd discojs
+npm ci # stands for `clean install`, to ensure that only expected dependencies are being installed.
+npm run build
+```
+The script then installs dependencies for the web client, which implements a browser UI.
+By default, the project points to the [@epfml/disco-web](https://www.npmjs.com/package/@epfml/discojs) package published on the `npm` remote repository. In a development environment, we want to use the local web client in the `web-client` folder. To do so, we need to link the local folder as the actual dependency.
+
+```
+cd ../web-client
+npm ci
+npm link ../discojs/discojs-web
+```
+You can verify than the link is effective by checking that `npm ls` lists `@epfml/discojs@x.x.x -> ./../discojs/discojs-web`.
+
+Similarly, we install the server dependencies, and then the `discojs-node` dependency to the local folder rather than the remote npm package [@epfml/disco-node](https://www.npmjs.com/package/@epfml/discojs-node):
+```
+cd ../server
+npm ci
+npm link ../discojs/discojs-node
+```
+Install the CLI dependencies:
+```
+cd ../cli
+npm ci
+```
+Download and extract the sample training datasets. These datasets are used in the automated tests.
+```
+./get_training_data.sh
+```

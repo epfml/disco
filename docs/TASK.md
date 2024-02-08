@@ -140,9 +140,9 @@ to use preprocessing functions to resize the data (we also describe how to add c
 The `Task` class contains all the crucial information for training the model (batchSize, learningRate, ...) and also the 
 scheme of distributed learning (federated or decentralized), along with other meta data about the model and data.
 
-> In the appendix (end of this document) you find all possible [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts) parameters with a short description. 
+The [`TrainingInformation` object](../discojs/src/task/training_information.ts) of a task contains all the customizable parameters and their descriptions.
 
-As an example, the task class for `simple-face` can be found [here](../discojs/discojs-core/src/default_tasks/simple_face.ts), suppose
+As an example, the task class for `simple-face` can be found [here](../discojs/discojs-core/src/default_tasks/simple_face.ts). Suppose
 our own task is a binary classification for age detection (similar to simple face), then we could write:
 
 
@@ -250,6 +250,7 @@ export const task: Task = {
 }
 ```
 
+> [!TIP]
 > Note that you need to rebuild discojs every time you make changes to it (`cd discojs; rm -rf dist/; npm run build`).
 
 ## Summary 
@@ -265,74 +266,3 @@ export const task: Task = {
 Your task has been successfully uploaded.
 
 **Or** just use the NPM `disco-server` package and add your own custom `TaskProvider` directly to the server.
-
-
-## Appendix
-
-The [`TrainingInformation`](../discojs/src/task/training_information.ts) of a task contains the following customizable parameters
-
-```js
-export interface TrainingInformation {
-  // modelID: unique ID for the model
-  modelID: string
-  // epochs: number of epochs to run training for
-  epochs: number
-  // roundDuration: number of batches between each weight sharing round, e.g. if 3 then after every
-  // 3 batches we share weights (in the distributed setting).
-  roundDuration: number
-  // validationSplit: fraction of data to keep for validation, note this only works for image data
-  validationSplit: number
-  // batchSize: batch size of training data
-  batchSize: number
-  // preprocessingFunctions: preprocessing functions such as resize and normalize
-  preprocessingFunctions?: Preprocessing[]
-  // modelCompileData: interface of additional training information (optimizer, loss and metrics)
-  modelCompileData: ModelCompileData
-  // dataType, e.g. image or tabular
-  dataType: string
-  // inputColumns: for tabular data, the columns to be chosen as input data for the model
-  inputColumns?: string[]
-  // outputColumns: for tabular data, the columns to be predicted by the model
-  outputColumns?: string[]
-  // IMAGE_H height of image (or RESIZED_IMAGE_H if ImagePreprocessing.Resize in preprocessingFunctions)
-  IMAGE_H?: number
-  // IMAGE_W width of image (or RESIZED_IMAGE_W if ImagePreprocessing.Resize in preprocessingFunctions)
-  IMAGE_W?: number
-  // Model URL to download the base task model from. Useful for pretrained or/and hosted models.
-  modelURL?: string
-  // LABEL_LIST of classes, e.g. if two class of images, one with dogs and one with cats, then we would
-  // define ['dogs', 'cats'].
-  LABEL_LIST?: string[]
-  // learningRate: learning rate for the optimizer
-  learningRate?: number
-  // scheme: Distributed training scheme, i.e. Federated and Decentralized
-  scheme: string
-  // noiseScale: Differential Privacy (DP): Affects the variance of the Gaussian noise added to the models / model updates.
-  // Number or undefined. If undefined, then no noise will be added.
-  noiseScale?: number
-  // clippingRadius: Privacy (DP and Secure Aggregation):
-  // Number or undefined. If undefined, then no model updates will be clipped.
-  // If number, then model updates will be scaled down if their norm exceeds clippingRadius.
-  clippingRadius?: number
-  // decentralizedSecure: Secure Aggregation on/off:
-  // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
-  decentralizedSecure?: boolean
-  // byzantineRobustAggregator: Byzantine robust aggregator on/off:
-  // Boolean. true to use byzantine robust aggregation, if the training scheme is federated, false otherwise
-  byzantineRobustAggregator?: boolean
-  // tauPercentile: it indicates the percentile to take when choosing the tau for byzantine robust aggregator:
-  // Number (>0 && <1). It must be a number between 0 and 1 and it is used only if byzantineRobustAggregator is true.
-  tauPercentile?: number
-  // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
-  // default is 100, must be a positive number, check the ~/disco/information/PRIVACY.md file for more information on significance of maxShareValue selection
-  // only relevant if secure aggregation is true (for either federated or decentralized learning)
-  maxShareValue?: number
-  // minimumReadyPeers: Decentralized Learning: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
-  // default is 3, range is [3, totalNumberOfPeersParticipating]
-  minimumReadyPeers?: number
-  // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
-  // default is 'average', other options include for instance 'bandit'
-  aggregator?: AggregatorChoice
-}
-}
-```
