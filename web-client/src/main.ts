@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import VueApexCharts from 'vue3-apexcharts'
-import Toaster from '@meforma/vue-toaster'
+import { createToaster, Toaster } from '@meforma/vue-toaster'
 
 import App from '@/components/App.vue'
 import { router } from '@/router'
@@ -18,6 +18,22 @@ tf.ready()
 
 // create vue app
 const app = createApp(App)
+
+// Global error handler
+app.config.errorHandler = (err, instance, info) => {
+  if (err instanceof TypeError) {
+    // Implementation bug
+    const toaster = createToaster({ duration: 5000 })
+    toaster.error('Sorry, something went wrong on our side. Please reach out on slack.')
+    console.error(err, instance, info)
+  } else {
+    // Unknown error
+    const toaster = createToaster({ duration: 5000 })
+    toaster.error('Something went wrong. Please try again later or reach out on slack.')
+    console.error(err, instance, info)
+  }
+}
+
 const pinia = createPinia()
 const i18n = createCustomI18n()
 app
