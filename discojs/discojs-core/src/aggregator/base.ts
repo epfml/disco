@@ -272,7 +272,7 @@ export abstract class Base<T> {
   }
 
   /**
-   * The current commnication round.
+   * The current communication round.
    */
   get communicationRound (): number {
     return this._communicationRound

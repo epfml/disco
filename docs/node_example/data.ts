@@ -1,7 +1,7 @@
 import fs from 'fs'
 import Rand from 'rand-seed'
 
-import { node, data, Task } from '@epfml/discojs-node'
+import { node, data, Task, defaultTasks } from '@epfml/discojs-node'
 
 const rand = new Rand('1234')
 
@@ -44,4 +44,15 @@ export async function loadData (task: Task): Promise<data.DataSplit> {
   shuffle(files, labels)
 
   return await new node.data.NodeImageLoader(task).loadAll(files, { labels: labels })
+}
+
+export async function loadTitanicData (task:Task): Promise<data.
+DataSplit> {
+  const files = ['../../example_training_data/titanic_train.csv']
+  const titanicTask = defaultTasks.titanic.getTask()
+  return await new node.data.NodeTabularLoader(task, ',').loadAll(files, {
+    features: titanicTask.trainingInformation.inputColumns,
+    labels: titanicTask.trainingInformation.outputColumns,
+    shuffle: false
+  })
 }
