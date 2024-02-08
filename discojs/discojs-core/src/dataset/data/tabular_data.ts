@@ -21,8 +21,7 @@ export class TabularData extends Data {
     try {
       await dataset.iterator()
     } catch (e) {
-      console.error('Data input format is not compatible with the chosen task.')
-      throw (e)
+      throw new Error('Data input format is not compatible with the chosen task.', { cause: e })
     }
 
     return new TabularData(dataset, task, size)
