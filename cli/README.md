@@ -23,7 +23,7 @@ npm start -- -t cifar10 -u 4 -e 15 -r 5
 - install node 16 and ensure it is activated on opening any new terminal (e.g. `nvm use 16`)
 - `git clone git@github.com:epfml/disco.git`
 - download the `example_training_data.tar.gz` file and extract it into the root of the repository
-  - simply execute [get_training_data.sh](../get_training_data)
+  - simply execute [get_training_data.sh](../get_training_data.sh)
 - `npm ci` within `discojs`, `server` and `cli`
 - `cd discojs/discojs-node && npm run build`
 
