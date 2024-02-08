@@ -40,7 +40,8 @@ export class Validator {
     const predictions: number[] = []
 
     let hits = 0
-    await data.preprocess().batch().dataset.forEachAsync((e) => {
+    await data.preprocess().dataset.batch(batchSize)
+    .forEachAsync((e) => {
       if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
         const xs = e.xs as tf.Tensor
 
@@ -92,21 +93,34 @@ export class Validator {
       .toArray()
   }
 
-  async predict (data: data.Data): Promise<number[]> {
+  async predict (data: data.Data): Promise<Array<{features: Features, pred: number}>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('batch size is undefined')
     }
 
     const model = await this.getModel()
+    let features: Features[] = []
     const predictions: number[] = []
 
-    await data.dataset
-      .batch(batchSize)
-      .forEachAsync(e =>
-        predictions.push(...(model.predict(e as tf.Tensor, { batchSize: batchSize }) as tf.Tensor).argMax(1).arraySync() as number[]))
+    await data.preprocess().dataset.batch(batchSize)
+      .forEachAsync(e => {
+          const xs = e as tf.Tensor
+          const currentFeatures = xs.arraySync()
+          
+          if (Array.isArray(currentFeatures)) {
+            features = features.concat(currentFeatures)
+          } else {
+            throw new TypeError('features array is not correct')
+          }
 
-    return predictions
+          const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
+          predictions.push(...Array.from(pred))
+      })
+
+    return (List(features).zip(List(predictions)) as List<[Features, number]>)
+      .map(([f, p]) => ({ features: f, pred: p }))
+      .toArray()
   }
 
   async getModel (): Promise<tf.LayersModel> {

@@ -27,7 +27,7 @@
         @action="predictUsingModel()"
       >
         <template #title>
-          Predic using model
+          Predict using model
         </template>
         <template #text>
           By clicking the button below, you will be able to predict using the selected model with chosen dataset of yours.
@@ -106,7 +106,7 @@
         </div>
         <div
           v-else
-          class="mx-auto lg:w-1/2 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+          class="mx-auto lg:w h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
         >
           <TableLayout
             :columns="featuresNames"
@@ -246,6 +246,7 @@ import { useToaster } from '@/composables/toaster'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import ImageCard from '@/components/containers/ImageCard.vue'
+import IconCard from '@/components/containers/IconCard.vue'
 import TableLayout from '@/components/containers/TableLayout.vue'
 import { List } from 'immutable'
 import * as d3 from 'd3'
@@ -308,15 +309,15 @@ async function getValidator (): Promise<Validator | undefined> {
 }
 
 async function predictUsingModel (): Promise<void> {
-  if (props.datasetBuilder?.size() === 0) {
-    return toaster.error('No file was given')
+  if (props.datasetBuilder?.size === 0) {
+    return toaster.error('Upload a dataset first')
   }
 
   const v = await getValidator()
   if (v !== undefined) {
     validator.value = v
   } else {
-    return toaster.error('Model was not found')
+    return toaster.error('No model found')
   }
 
   const testingSet: data.Data = (await props.datasetBuilder.build({ inference: true })).train
@@ -336,14 +337,14 @@ async function predictUsingModel (): Promise<void> {
 
 async function assessModel (): Promise<void> {
   if (props.datasetBuilder?.size === 0) {
-    return toaster.error('No file was given')
+    return toaster.error('Upload a dataset first')
   }
 
   const v = await getValidator()
   if (v !== undefined) {
     validator.value = v
   } else {
-    return toaster.error('Model was not found')
+    return toaster.error('No model found')
   }
 
   const testingSet: data.Data = (await props.datasetBuilder.build()).train
@@ -382,7 +383,7 @@ function openMapModal (prediction: number, groundTruth?: number) {
 function saveCsv () {
   let csvData: string
 
-  if (isImageTaskType) {
+  if (isImageTaskType.value) {
     if (props.groundTruth) {
       const rows = dataWithPred.value.map(el => [(el.data as ImageWithUrl).name, String(el.prediction), String(el.groundTruth)])
       csvData = d3.csvFormatRows([['Filename', 'Prediction', 'Ground Truth'], ...rows])
@@ -392,6 +393,7 @@ function saveCsv () {
     }
   } else {
     csvData = d3.csvFormatRows([(Object.values(featuresNames.value) as string[]), ...dataWithPred.value.map(el => Object.values(el.data).map(String))])
+    // csvData = d3.csvFormatRows([(Object.values(featuresNames.value) as string[])])
   }
 
   const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
