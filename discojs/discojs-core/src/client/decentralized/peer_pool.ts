@@ -1,6 +1,5 @@
 import { Map, Set } from 'immutable'
 import { SignalData } from 'simple-peer'
-import { WRTC } from '@koush/wrtc'
 
 import { Peer } from './peer'
 import { NodeID } from '../types'
@@ -11,24 +10,9 @@ import { PeerConnection, EventConnection } from '../event_connection'
 export class PeerPool {
   private peers = Map<NodeID, PeerConnection>()
 
-  private constructor (
-    private readonly id: NodeID,
-    private readonly wrtc?: WRTC
+  constructor (
+    private readonly id: NodeID
   ) {}
-
-  static async init (id: NodeID): Promise<PeerPool> {
-    // needed on node
-    let wrtc: WRTC | undefined
-    try {
-      // resolve relatively to where it is run, not from discojs dir
-      const path = require.resolve('@koush/wrtc', { paths: ['.'] })
-      wrtc = await import(path)
-    } catch (e) {
-      // expected
-    }
-
-    return new PeerPool(id, wrtc)
-  }
 
   shutdown (): void {
     console.info(`[${this.id}] shutdown their peers`)
@@ -62,12 +46,7 @@ export class PeerPool {
 
     const newPeers = Map(peersToConnect
       .filter((id) => !this.peers.has(id))
-      .map((id) => [id, id < this.id] as [NodeID, boolean])
-      .map(([id, initiator]) => {
-        const p = new Peer(id, { initiator, wrtc: this.wrtc })
-        // onNewPeer(id, p)
-        return [id, p]
-      }))
+      .map((id) => [id, new Peer(id, id < this.id)]))
 
     console.info(`[${this.id}] asked to connect new peers:`, newPeers.keySeq().toJS())
     const newPeersConnections = newPeers.map((peer, id) => new PeerConnection(this.id, peer, signallingServer))

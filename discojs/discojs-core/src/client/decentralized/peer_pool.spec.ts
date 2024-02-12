@@ -15,10 +15,8 @@ describe('peer pool', function () {
   beforeEach(async () => {
     const count = 3
 
-    pools = Map(await Promise.all(
-      Range(1, count + 1).map(String).map(async (id) =>
-        [id, await PeerPool.init(id)] as [NodeID, PeerPool]
-      ).toArray()
+    pools = Map(Range(1, count + 1).map(String).map((id) =>
+      [id, new PeerPool(id)]
     ))
   })
 
