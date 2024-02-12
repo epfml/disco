@@ -5,7 +5,7 @@ import { tf, Weights } from '..'
 export type TensorLike = tf.Tensor | ArrayLike<number>
 
 /**
- * Convenient wrapper object reprensenting an immutable list of TF.js tensors.
+ * Convenient wrapper object representing an immutable list of TF.js tensors.
  */
 export class WeightsContainer {
   private readonly _weights: List<tf.Tensor>
@@ -113,18 +113,18 @@ export class WeightsContainer {
   }
 
   /**
-   * Instanciates a new weights container from the given tensors or arrays of numbers.
+   * Instantiates a new weights container from the given tensors or arrays of numbers.
    * @param weights The tensors or number arrays
-   * @returns The instanciated weights container
+   * @returns The instantiated weights container
    */
   static of (...weights: TensorLike[]): WeightsContainer {
     return new this(weights)
   }
 
   /**
-   * Instanciates a new weights container from the given model's weights.
+   * Instantiates a new weights container from the given model's weights.
    * @param model The TF.js model
-   * @returns The instanciated weights container
+   * @returns The instantiated weights container
    */
   static from (model: tf.LayersModel): WeightsContainer {
     return new this(model.weights.map((w) => w.read()))

@@ -8,7 +8,7 @@ To run the example do
 
 ```
 nvm use
-./get_training_data
+./get_training_data.sh
 cd discojs && npm ci
 cd discojs-node && npm run build
 cd ../..

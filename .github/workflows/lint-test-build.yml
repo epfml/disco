@@ -23,7 +23,7 @@ jobs:
         with:
           path: example_training_data
           key: training_data
-      - run: ./get_training_data
+      - run: ./get_training_data.sh
         working-directory: ./
 
   lint-lib-core:
