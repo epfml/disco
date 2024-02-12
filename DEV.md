@@ -74,7 +74,7 @@ cd disco
 
 **4.** Run the installation script
 ```
-sh install.sh
+./install.sh
 ```
 The [Installation Script](#installation-script) Section goes over what <code>install.sh</code> does. If you are planning to contribute to DISCO, it will certainly prove useful to understand what the script does.
 
