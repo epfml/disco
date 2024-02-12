@@ -1,5 +1,4 @@
 import { Map, Set } from 'immutable'
-import * as nodeUrl from 'url'
 
 import { TrainingInformant, WeightsContainer, serialization } from '../..'
 import { Client, NodeID } from '..'
@@ -96,7 +95,6 @@ export class Base extends Client {
   }
 
   async connect (): Promise<void> {
-    const URL = typeof window !== 'undefined' ? window.URL : nodeUrl.URL
     const serverURL = new URL('', this.url.href)
     switch (this.url.protocol) {
       case 'http:':

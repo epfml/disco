@@ -109,7 +109,7 @@ export class WebSocketServer implements EventConnection {
     const emitter: EventEmitter = new EventEmitter()
     const server: WebSocketServer = new WebSocketServer(ws, emitter, validateReceived, validateSent)
 
-    ws.onmessage = (event: isomorphic.MessageEvent) => {
+    ws.onmessage = (event: WebSocket.MessageEvent) => {
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }

@@ -1,5 +1,5 @@
-import { Set } from 'immutable'
 import axios from 'axios'
+import { Set } from 'immutable'
 
 import { tf, Task, TrainingInformant, serialization, WeightsContainer } from '..'
 import { NodeID } from './types'

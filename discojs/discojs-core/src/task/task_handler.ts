@@ -1,5 +1,5 @@
-import { Map } from 'immutable'
 import axios from 'axios'
+import { Map } from 'immutable'
 
 import { serialization, tf, WeightsContainer } from '..'
 import { isTask, Task, TaskID } from './task'
