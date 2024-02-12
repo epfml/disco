@@ -32,19 +32,19 @@ As mentioned in the [developer guide](../DEV.md), there are many ways to use Dis
 
 ### Things to know
 
-As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use on ts-node:
+* As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use on ts-node:
 ```
 npm i -g ts-node # globally to run scripts from anywhere
 ts-node your_script.ts
 ```
 
-Because TypeScript needs to be transpiled to JavaScript, you need to rebuild the `discojs` folder every time you make any changes to it:
+* Because TypeScript needs to be transpiled to JavaScript, you need to rebuild the `discojs` folder every time you make any changes to it:
 ``` js
 cd discojs
 npm run build
 ```
 
-When cloning the repo, the server and the web-client points to the [@epfml/disco-node](https://www.npmjs.com/package/@epfml/discojs-node) and the [@epfml/disco-web](https://www.npmjs.com/package/@epfml/discojs) packages respectively published on the `npm` remote repository. In a development environment, we want to use the local implementations in the `discojs/discojs-node` and `discojs/discojs-web` folders for changes to take effect immediately. To do so, we need to link the local folders as the actual dependencies:
+* When cloning the repo, the server and the web-client points to the [@epfml/disco-node](https://www.npmjs.com/package/@epfml/discojs-node) and the [@epfml/disco-web](https://www.npmjs.com/package/@epfml/discojs) packages respectively published on the `npm` remote repository. In a development environment, we want to use the local implementations in the `discojs/discojs-node` and `discojs/discojs-web` folders for changes to take effect immediately. To do so, we need to link the local folders as the actual dependencies:
 ```
 cd server 
 npm link ../discojs/discojs-node
@@ -58,24 +58,17 @@ You can verify than the links are effective by checking that running `npm ls` fr
 > In practice, that is any folder level that contains a `package.json` such as `server`, `web-client`, etc.
 > For example, if you are working on the CLI, you should start VSCode with the command `code server` from the root level (or `cd server; code .`)
 
-Next you will find instructions and documentation on how to run DISCO in different settings. 
+### How to run DISCO
 
-### Using DISCO from the `web-client`
+* **Using DISCO from the `web-client`**: Instructions on how to use the `web-client` can be found in the [developer guide](../DEV.md#installation-guide). More information, for example on how to run the client in developer mode, can be found in the [`web-client` README](../web-client/README.md).
 
-Instructions on how to use the `web-client` can be found in the [developer guide](../DEV.md#installation-guide). More information, for example on how to run the client in developer mode, can be found in the [`web-client` README](../web-client/README.md).
-
-### Using DISCO from the `cli`
-
-The CLI is currently not working. Until then, you can find more information in the [`cli` README](../cli/README.md).
-
-### Using DISCO from a script - Standalone example
-
-A standalone example of disco can be found [in this folder](./node_example), with code and documentation.
+* **Using DISCO from the `cli`**: The CLI is currently not working. Until then, you can find more information in the [`cli` README](../cli/README.md).
+* **Using DISCO with Node.js only**: A standalone example of a Node.js script using DISCO can be found [in this folder](./node_example), with code and documentation.
 
 ### Next steps
 
 1. If you are planning to contribute to the project you should read the [contributing guide](./CONTRIBUTING.md)
 2. Depending on what you will be working on you may be interested in different documentation. Have a look at the markdown guides in `docs`. Notably:
-   * Understanding [Disco.js inner workings](./DISCOJS.md) is key if you are planning to add a new machine learning feature and work in `discojs`
+   * Understanding [Disco.js inner workings](./DISCOJS.md) is key if you are planning to add a new machine learning feature or work in `discojs`
    * The [Vue.js architecture guide](./VUEJS.md) explains how the browser client is implemented with Vue.js.
-   * Are you going to work on cryptography or privacy? This [document](./PRIVACY.md) explains the measures DISCO takes to ensure privacy and confidentiality.
+   * Regarding cryptography and privacy, this [document](./PRIVACY.md) explains the measures DISCO takes to ensure privacy and confidentiality.
