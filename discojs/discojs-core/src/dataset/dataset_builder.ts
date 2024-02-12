@@ -94,7 +94,7 @@ export class DatasetBuilder<Source> {
   }
 
   async build (config?: DataConfig): Promise<DataSplit> {
-    // Require that at leat one source collection is non-empty, but not both
+    // Require that at least one source collection is non-empty, but not both
     if ((this._sources.length > 0) === (this.labelledSources.size > 0)) {
       throw new Error('Please provide dataset input files')
     }
