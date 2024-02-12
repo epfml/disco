@@ -12,7 +12,7 @@ export class FederatedInformant extends Base {
    * @param receivedStatistics statistics received from the server.
    */
   update (receivedStatistics: Record<string, number>): void {
-    this.currentRound = receivedStatistics.round
+    this.currentRound = receivedStatistics.round + 1
     this.currentNumberOfParticipants = receivedStatistics.currentNumberOfParticipants
     this.totalNumberOfParticipants = receivedStatistics.totalNumberOfParticipants
     this.averageNumberOfParticipants = receivedStatistics.averageNumberOfParticipants

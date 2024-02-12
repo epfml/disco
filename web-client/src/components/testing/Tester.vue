@@ -319,10 +319,22 @@ async function predictUsingModel (): Promise<void> {
   } else {
     return toaster.error('No model found')
   }
+  let testingSet: data.Data
+  try {
+    testingSet = (await props.datasetBuilder.build({ inference: true })).train
+  } catch (e) {
+    console.log(e.message)
+    if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
+      // missing field is specified between two "quotes"
+      const missingFields: String = e.message.split('"')[1].split('"')[0]
+      toaster.error(`The input data is missing the field "${missingFields}"`)
+    } else {
+      toaster.error('Incorrect data format. Please check the expected format at the previous step.')
+    }
+    return
+  }
 
-  const testingSet: data.Data = (await props.datasetBuilder.build({ inference: true })).train
-
-  toaster.success('Model prediction started')
+  toaster.info('Model prediction started')
 
   const predictions = await validator.value?.predict(testingSet)
 
@@ -333,6 +345,7 @@ async function predictUsingModel (): Promise<void> {
     featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
     dataWithPred.value = predictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
   }
+  toaster.success('Model prediction finished successfully!')
 }
 
 async function assessModel (): Promise<void> {
@@ -347,9 +360,22 @@ async function assessModel (): Promise<void> {
     return toaster.error('No model found')
   }
 
-  const testingSet: data.Data = (await props.datasetBuilder.build()).train
+  let testingSet: data.Data
+  try {
+    testingSet = (await props.datasetBuilder.build()).train
+  } catch (e) {
+    console.log(e.message)
+    if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
+      // missing field is specified between two "quotes"
+      const missingFields: String = e.message.split('"')[1].split('"')[0]
+      toaster.error(`The input data is missing the field "${missingFields}"`)
+    } else {
+      toaster.error('Incorrect data format. Please check the expected format at the previous step.')
+    }
+    return
+  }
 
-  toaster.success('Model testing started')
+  toaster.info('Model testing started')
 
   try {
     const assessmentResults = await validator.value?.assess(testingSet)
@@ -364,6 +390,8 @@ async function assessModel (): Promise<void> {
   } catch (e) {
     toaster.error(e instanceof Error ? e.message : e.toString())
   }
+  console.log(accuracyData.value)
+  toaster.success('Model testing finished successfully!')
 }
 
 function openMapModal (prediction: number, groundTruth?: number) {

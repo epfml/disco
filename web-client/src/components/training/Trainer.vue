@@ -145,12 +145,20 @@ export default defineComponent({
         try {
           this.dataset = await this.datasetBuilder.build()
         } catch (e) {
-          this.$toast.error(e instanceof Error ? e.message : e.toString())
-          console.error(e)
+          console.error(e.message)
+          if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
+            // missing field is specified between two "quotes"
+            const missingFields: String = e.message.split('"')[1].split('"')[0]
+            this.$toast.error(`The input data is missing the field "${missingFields}"`)
+          } else {
+            this.$toast.error('Incorrect data format. Please check the expected format at the previous step.')
+          }
           this.cleanState()
           return
         }
       }
+
+      this.$toast.info('Model training started')
 
       try {
         this.startedTraining = true
@@ -161,6 +169,7 @@ export default defineComponent({
         console.error(e)
         this.cleanState()
       }
+      this.$toast.success('Training successfully completed')
     },
     cleanState (): void {
       this.distributedTraining = false
