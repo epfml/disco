@@ -20,6 +20,7 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@epfml/discojs-core": "*",
+    "@koush/wrtc": "0.5",
     "@tensorflow/tfjs-node": "4"
   },
   "devDependencies": {

@@ -6,6 +6,7 @@
     "discojs/discojs-web",
     "server",
     "cli",
-    "web-client"
+    "web-client",
+    "isomorphic-wrtc"
   ]
 }

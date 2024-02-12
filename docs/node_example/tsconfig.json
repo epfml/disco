@@ -13,8 +13,6 @@
     "downlevelIteration": true, // needed by <ES6
 
     "declaration": true,
-
-    "typeRoots": ["node_modules/@types", "../../discojs/discojs-core/types"]
   },
   "include": ["*.ts"],
   "exclude": ["**/*.spec.ts"]

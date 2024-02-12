@@ -1,0 +1,13 @@
+{
+  "name": "isomorphic-wrtc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "node.js",
+  "browser": "browser.js",
+  "types": "types.d.ts",
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "wrtc": "*"
+  }
+}

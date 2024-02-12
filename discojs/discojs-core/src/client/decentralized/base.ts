@@ -19,7 +19,7 @@ export class Base extends Client {
   /**
    * The pool of peers to communicate with during the current training round.
    */
-  private pool?: Promise<PeerPool>
+  private pool?: PeerPool
   private connections?: Map<NodeID, PeerConnection>
 
   /**
@@ -55,8 +55,7 @@ export class Base extends Client {
         throw new Error('waiting for peers but peer pool is undefined')
       }
 
-      const pool = await this.pool
-      const connections = await pool.getPeers(
+      const connections = await this.pool.getPeers(
         peers,
         this.server,
         // Init receipt of peers weights
@@ -90,7 +89,7 @@ export class Base extends Client {
       if (this.pool === undefined) {
         throw new Error('received signal but peer pool is undefined')
       }
-      void this.pool.then((pool) => pool.signal(event.peer, event.signal))
+      this.pool.signal(event.peer, event.signal)
     })
 
     return server
@@ -125,13 +124,12 @@ export class Base extends Client {
       throw new Error('received id from server but was already received')
     }
     this._ownId = peerIdMsg.id
-    this.pool = PeerPool.init(peerIdMsg.id)
+    this.pool = new PeerPool(peerIdMsg.id)
   }
 
   async disconnect (): Promise<void> {
     // Disconnect from peers
-    const pool = await this.pool
-    pool?.shutdown()
+    this.pool?.shutdown()
     this.pool = undefined
 
     if (this.connections !== undefined) {

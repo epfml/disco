@@ -14,8 +14,6 @@
     "downlevelIteration": true, // needed by <ES6
 
     "declaration": true,
-
-    "typeRoots": ["../node_modules/@types", "discojs-core/types"]
   },
   "include": []
 }

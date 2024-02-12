@@ -1,6 +1,7 @@
 import { NodeID } from '../types'
 
 import { List, Map, Range, Seq } from 'immutable'
+import wrtc from 'isomorphic-wrtc'
 import SimplePeer, { SignalData } from 'simple-peer'
 
 type MessageID = number
@@ -48,9 +49,9 @@ export class Peer {
     chunks: Map<ChunkID, Buffer>
   }>()
 
-  constructor (id: NodeID, opts?: SimplePeer.Options) {
+  constructor (id: NodeID, initiator: boolean = false) {
     this.id = id
-    this.peer = new SimplePeer(opts)
+    this.peer = new SimplePeer({ wrtc, initiator })
   }
 
   send (msg: Buffer): void {
@@ -181,6 +182,9 @@ export class Peer {
       return
     }
 
+    // gotta help typescript here
+    const dataListener = listener as Events['data']
+
     this.peer.on('data', (data: unknown) => {
       if (!Buffer.isBuffer(data) || data.length < HEADER_SIZE) {
         throw new Error('received invalid message type')
@@ -236,8 +240,7 @@ export class Peer {
       readyMessages
         .forEach((message) => {
           // TODO debug
-          // @ts-expect-error
-          listener(message)
+          dataListener(message)
         })
     })
   }
