@@ -1,3 +1,4 @@
+#!/bin/sh
 DIR="$( cd "$( dirname "$0" )" ; pwd -P )"
 ARCHIVE="example_training_data.tar.gz"
 

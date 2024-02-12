@@ -1,10 +1,10 @@
 # Privacy protection measures
 
-In federated and decentralised learning, a client's data is never sent to another machine. However, some information could be inferred about a client's data set even when the data set is not shared. For instance, summary statistics or even the existence of a specific data point can be inferred from sources such as:
+In federated and decentralized learning, a client's data is never sent to another machine. However, some information could be inferred about a client's data set even when data isn't shared. For instance, summary statistics or even the existence of a specific data point can be inferred from sources such as:
 1. the weights of the public and collaborative model ([Carlini et al., 2019](https://www.usenix.org/conference/usenixsecurity19/presentation/carlini));
 2. the model updates shared by the client ([Bonawitz et al., 2017](https://doi.org/10.1145/3133956.3133982)).
 
-DisCo protects the clients' data beyond the simple use of federated and decentralised learning, using two different and complementary methods: 
+In addition to the intrinsic security of federated and decentralized learning, DISCO ensures privacy and security via two different and complementary methods: 
 1. Differential privacy ([McMahan et al., 2018](http://arxiv.org/abs/1710.06963) and [Abadi et al., 2016](https://doi.org/10.1145/2976749.2978318)), and
 2. Secure aggregation of model updates ([Bonawitz et al., 2017](https://doi.org/10.1145/3133956.3133982)).
 
@@ -16,14 +16,14 @@ The respective parameters `noiseScale` and `clippingRadius` are available in the
 
 ## Secure aggregation through MPC
 
-Disco protects the clients' data from inference attacks based on the model updates shared by the clients, by ensuring that an individual client's model update is never revealed. This is achieved by secure update aggregation, where multiple clients use secure multiparty computation (MPC) to jointly compute the sum of their model updates without revealing the summands.
+DISCO protects the clients' data from inference attacks based on the model updates shared by the clients, by ensuring that an individual client's model update is never revealed. This is achieved by secure update aggregation, where multiple clients use secure multiparty computation (MPC) to jointly compute the sum of their model updates without revealing the summands.
 
-In DisCo, we rely on secure aggregation of models / model updates, in each communication round, in order to fully protect the privacy of each user. 
+In DISCO, we rely on secure aggregation of models / model updates, in each communication round, in order to fully protect the privacy of each user. 
 
 ### Concept: Private data - Public model
 
 We guarantee input privacy of each personal update and each client's data. 
-The model resulting from training is considered public, both in the federated and decentralised modes.
+The model resulting from training is considered public, both in the federated and decentralized schemes.
 
 ### Set-up
 
@@ -32,7 +32,7 @@ Our secure aggregation mechanism is implemented in each communication round, wit
 ### Algorithm description
 
 **Orchestration via client-server communication:**
-1. As described [here](./ARCHITECTURE.md#server), the helper server (signaling server) keeps track of which clients are ready to share model weights with each other, in order to let them know when enough clients are ready.
+1. The server keeps track of which clients are ready to share model weights with each other, in order to let them know when enough clients are ready.
 Thus, before the aggregation begins, there is a preliminary communication step between the clients and the server:
    1. Whenever a client finishes a round of local updates, it sends a "ready message" to the server to signal that it is ready to exchange model updates.
    2. Once enough clients are ready, the server sends them the list of clients to aggregate with.
@@ -56,7 +56,7 @@ The **secure aggregation procedure** consists of two rounds of all-to-all commun
 
 ### Privacy guarantees and trade-off with quantization accuracy
 
-DisCo secure aggregation guarantees input privacy for a client's model updates. Other users will not be able to reconstruct a client's individual data or model updates, see e.g. [https://eprint.iacr.org/2017/281.pdf](https://eprint.iacr.org/2017/281.pdf) for more details.
+DISCO secure aggregation guarantees input privacy for a client's model updates. Other users will not be able to reconstruct a client's individual data or model updates, see [Bonawitz et al., 2017](https://doi.org/10.1145/3133956.3133982) for more details.
 
 It is worth noting that due to the current use of floating point arithmetic instead of finite fields implies an effect on the quantization of models. Alternatively quantized integer model weights (with scaling) can be used.
 Currently, the additive shares generated at step 2 are filled with floating-point values drawn uniformly at random from the interval `[-maxShareValue, +maxShareValue)`.

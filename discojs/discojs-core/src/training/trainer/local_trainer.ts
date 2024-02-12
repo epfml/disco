@@ -1,7 +1,8 @@
 import { tf } from '../..'
 import { Trainer } from './trainer'
 
-/** Class whose role is to locally (alone) train a model on a given dataset, without any collaborators.
+/** Class whose role is to locally (alone) train a model on a given dataset,
+ * without any collaborators.
  */
 export class LocalTrainer extends Trainer {
   async onRoundBegin (accuracy: number): Promise<void> {}
