@@ -29,7 +29,6 @@
     "msgpack-lite": "0.1",
     "simple-peer": "9",
     "tslib": "2",
-    "url": "0.11",
     "ws": "8"
   },
   "devDependencies": {
