@@ -333,9 +333,9 @@ jobs:
         with:
           browser: chromium
           start: npm run dev
-          wait-on: http://localhost:8080/
+          wait-on: http://localhost:8081/
           working-directory: ${{ env.client_dir }}
-          config: baseUrl=http://localhost:8080/#/
+          config: baseUrl=http://localhost:8081/#/
 
   test-cli:
     needs: [test-server, download-training-data]
