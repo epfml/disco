@@ -1,4 +1,4 @@
-import { tf, TrainingInformation } from '..'
+import { type tf, type TrainingInformation } from '..'
 
 /**
  * The training function is the function that will be called to train the model.

@@ -2,8 +2,8 @@ import { assert } from 'chai'
 import fs from 'fs'
 
 import {
-  Task, node, Validator, ConsoleLogger, EmptyMemory,
-  client as clients, data, aggregator, defaultTasks
+  type Task, node, Validator, ConsoleLogger, EmptyMemory,
+  client as clients, type data, aggregator, defaultTasks
 } from '@epfml/discojs-node'
 
 const simplefaceMock = {
@@ -45,7 +45,7 @@ describe('validator', () => {
       client
     )
     await validator.assess(data)
-    const size = data.size !== undefined ? data.size : -1
+    const size = data.size ?? -1
     if (size === -1) {
       console.log('data.size was undefined')
     }

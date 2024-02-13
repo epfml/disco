@@ -1,4 +1,4 @@
-import { tf } from '..'
+import { type tf } from '..'
 
 /**
  * Convenient type for the common dataset type used in TF.js.

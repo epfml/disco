@@ -1,9 +1,9 @@
-import { Server } from 'node:http'
+import type { Server } from 'node:http'
 import { List } from 'immutable'
 import { assert } from 'chai'
 
 import {
-  aggregator as aggregators, informant as informants, client as clients, Task, WeightsContainer, defaultTasks, aggregation
+  aggregator as aggregators, informant as informants, client as clients, type Task, WeightsContainer, defaultTasks, aggregation
 } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'

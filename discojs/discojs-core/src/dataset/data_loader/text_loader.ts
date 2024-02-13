@@ -1,6 +1,6 @@
 import { TabularLoader } from './tabular_loader'
-import { Dataset } from '../dataset'
-import { TextData, Data } from '../data'
+import { type Dataset } from '../dataset'
+import { TextData, type Data } from '../data'
 
 /**
  * Text data loader whose instantiable implementation is delegated by the platform-dependent Disco subprojects, namely,

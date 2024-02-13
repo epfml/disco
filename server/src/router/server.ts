@@ -1,10 +1,10 @@
 import express from 'express'
-import expressWS from 'express-ws'
-import WebSocket from 'ws'
+import type expressWS from 'express-ws'
+import type WebSocket from 'ws'
 
-import { tf, Task } from '@epfml/discojs-node'
+import { type tf, type Task } from '@epfml/discojs-node'
 
-import { TasksAndModels } from '../tasks'
+import { type TasksAndModels } from '../tasks'
 
 export abstract class Server {
   private readonly ownRouter: expressWS.Router
@@ -24,11 +24,9 @@ export abstract class Server {
         - Every time a new task and model are added to tasksAndModels, this.onNewTask is executed on them.
         For every task and model, this.onNewTask creates a path /taskID and routes it to this.handle.
         */
-    process.nextTick(() =>
-      tasksAndModels.addListener('taskAndModel', (t, m) =>
-        this.onNewTask(t, m)
-      )
-    )
+    process.nextTick(() => {
+      tasksAndModels.on('taskAndModel', (t, m) => { this.onNewTask(t, m) })
+    })
   }
 
   public get router (): express.Router {
@@ -63,7 +61,7 @@ export abstract class Server {
 
   public abstract isValidUrl (url?: string): boolean
 
-  protected abstract get description (): string
+  protected abstract readonly description: string
 
   protected abstract buildRoute (task: Task): string
 

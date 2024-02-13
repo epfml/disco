@@ -1,5 +1,5 @@
-import express from 'express'
-import WebSocket from 'ws'
+import type express from 'express'
+import type WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
 
 import { List, Map } from 'immutable'
@@ -7,15 +7,15 @@ import msgpack from 'msgpack-lite'
 
 import {
   client,
-  tf,
+  type tf,
   serialization,
   AsyncInformant,
-  Task,
-  TaskID,
+  type Task,
+  type TaskID,
   aggregator as aggregators,
-  WeightsContainer,
-  MetadataKey,
-  MetadataValue
+  type WeightsContainer,
+  type MetadataKey,
+  type MetadataValue
 } from '@epfml/discojs-node'
 
 import { Server } from '../server'
@@ -68,9 +68,7 @@ export class Federated extends Server {
 
   private rounds = Map<TaskID, number>()
 
-  protected get description (): string {
-    return 'Disco Federated Server'
-  }
+  protected readonly description = 'Disco Federated Server'
 
   protected buildRoute (task: Task): string {
     return `/${task.taskID}`
@@ -216,6 +214,10 @@ export class Federated extends Server {
 
     ws.on('message', (data: Buffer) => {
       const msg = msgpack.decode(data)
+      if (!client.federated.messages.isMessageFederated(msg)) {
+        console.error('invalid federated message received on WebSocket')
+        return // TODO send back error
+      }
 
       if (msg.type === MessageTypes.ClientConnected) {
         this.logsAppend(task.taskID, clientId, MessageTypes.ClientConnected, 0)
@@ -251,7 +253,7 @@ export class Federated extends Server {
         }
 
         ws.send(msgpack.encode(msg))
-      } else if (msg.type === MessageTypes.ReceiveServerPayload) {
+      } else if (msg.type === MessageTypes.RequestServerStatistics) {
         this.logsAppend(task.taskID, clientId, MessageTypes.ReceiveServerPayload, 0)
         const aggregator = this.aggregators.get(task.taskID)
         if (aggregator === undefined) {
@@ -276,8 +278,7 @@ export class Federated extends Server {
           value
         )
       } else if (msg.type === MessageTypes.ReceiveServerMetadata) {
-        const key = msg.metadataId
-        const round = Number.parseInt(msg.round, 0)
+        const { key, round } = msg
 
         const taskMetadata = this.metadataMap.get(task.taskID)
 
@@ -303,7 +304,7 @@ export class Federated extends Server {
             taskId: task.taskID,
             nodeId: clientId,
             key,
-            round: round,
+            round,
             metadataMap: Array.from(queriedMetadataMap)
           }
 

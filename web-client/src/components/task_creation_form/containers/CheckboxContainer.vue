@@ -39,7 +39,7 @@ const validationValue = ref('')
 
 const clicked = () => {
   mutatedValue.value = !mutatedValue.value
-  validationValue.value = mutatedValue ? 'true' : ''
+  validationValue.value = mutatedValue.value ? 'true' : ''
   emit('clicked', mutatedValue.value)
 }
 </script>

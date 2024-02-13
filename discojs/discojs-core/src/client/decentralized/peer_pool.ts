@@ -1,9 +1,8 @@
-import { Map, Set } from 'immutable'
-import { SignalData } from 'simple-peer'
+import { Map, type Set } from 'immutable'
 
-import { Peer } from './peer'
-import { NodeID } from '../types'
-import { PeerConnection, EventConnection } from '../event_connection'
+import { Peer, type SignalData } from './peer'
+import { type NodeID } from '../types'
+import { PeerConnection, type EventConnection } from '../event_connection'
 
 // TODO cleanup old peers
 
@@ -17,7 +16,7 @@ export class PeerPool {
   shutdown (): void {
     console.info(`[${this.id}] shutdown their peers`)
 
-    this.peers.forEach((peer) => peer.disconnect())
+    this.peers.forEach((peer) => { peer.disconnect() })
     this.peers = Map()
   }
 
@@ -57,7 +56,7 @@ export class PeerPool {
     clientHandle(this.peers)
 
     await Promise.all(
-      Array.from(newPeersConnections.values()).map(async (connection) => await connection.connect()))
+      Array.from(newPeersConnections.values()).map(async (connection) => { await connection.connect() }))
 
     console.info(`[${this.id}] knowns connected peers:`, this.peers.keySeq().toJS())
 

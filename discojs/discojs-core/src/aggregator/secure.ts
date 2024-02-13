@@ -1,5 +1,5 @@
 import { AggregationStep, Base as Aggregator } from './base'
-import { tf, aggregation, Task, WeightsContainer, client } from '..'
+import { tf, aggregation, type Task, type WeightsContainer, type client } from '..'
 
 import * as crypto from 'crypto'
 

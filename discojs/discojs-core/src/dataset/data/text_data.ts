@@ -1,5 +1,5 @@
-import { Task } from '../..'
-import { Dataset } from '../dataset'
+import { type Task } from '../..'
+import { type Dataset } from '../dataset'
 import { Data } from './data'
 import { TEXT_PREPROCESSING } from './preprocessing'
 

@@ -1,5 +1,5 @@
-import { Task, tf } from '../../..'
-import { PreprocessingFunction } from './base'
+import { type Task, tf } from '../../..'
+import { type PreprocessingFunction } from './base'
 
 import { List } from 'immutable'
 

@@ -1,7 +1,7 @@
-import http from 'node:http'
+import type http from 'node:http'
 import fs from 'node:fs'
 
-import { TrainerLog } from '@epfml/discojs-node'
+import { type TrainerLog } from '@epfml/discojs-node'
 import { Disco } from '@epfml/disco-server'
 
 export async function startServer (): Promise<[http.Server, URL]> {

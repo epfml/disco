@@ -1,4 +1,4 @@
-import { tf, Task, TaskProvider } from '..'
+import { tf, type Task, type TaskProvider } from '..'
 
 export const mnist: TaskProvider = {
   getTask (): Task {

@@ -1,5 +1,5 @@
-import { tf, Memory, Task, TrainingInformant, TrainingFunction, WeightsContainer, client as clients } from '../..'
-import { Aggregator } from '../../aggregator'
+import { type tf, type Memory, type Task, type TrainingInformant, type TrainingFunction, WeightsContainer, type client as clients } from '../..'
+import { type Aggregator } from '../../aggregator'
 import { Trainer } from './trainer'
 
 /**

@@ -6,7 +6,7 @@
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --exec npm run",
     "build": "tsc",
-    "lint": "npx eslint --max-warnings 0 .",
+    "lint": "npx eslint --ext ts --max-warnings 0 .",
     "test": "mocha",
     "docs": "typedoc ./src/index.ts --theme oxide"
   },
@@ -35,16 +35,11 @@
     "@types/chai": "4",
     "@types/mocha": "9",
     "@types/simple-peer": "9",
-    "@typescript-eslint/eslint-plugin": "4",
-    "@typescript-eslint/parser": "4",
     "chai": "4",
-    "eslint": "7",
-    "eslint-config-standard-with-typescript": "21",
     "mocha": "9",
     "nodemon": "3",
     "ts-node": "10",
     "typedoc": "0.22",
-    "typedoc-theme-oxide": "0.1",
-    "typescript": "4"
+    "typedoc-theme-oxide": "0.1"
   }
 }

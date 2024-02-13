@@ -9,7 +9,7 @@
 import { Map } from 'immutable'
 import path from 'path'
 
-import { tf, Memory, ModelType, Path, ModelInfo, ModelSource } from '..'
+import { tf, Memory, ModelType, type Path, type ModelInfo, type ModelSource } from '..'
 
 export class IndexedDB extends Memory {
   pathFor (source: ModelSource): Path {

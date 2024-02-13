@@ -1,4 +1,4 @@
-import { List, Repeat } from 'immutable'
+import { type List, Repeat } from 'immutable'
 
 export class GraphInformant {
   public static readonly NB_EPOCHS_ON_GRAPH = 10

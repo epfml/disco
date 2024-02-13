@@ -55,7 +55,7 @@ export const useMemoryStore = defineStore('memory', () => {
         metadata.weightDataBytes
 
       addModel(path, {
-        name: name,
+        name,
         taskID: task,
         type: directory === 'working' ? ModelType.WORKING : ModelType.SAVED,
         date: dateSaved,

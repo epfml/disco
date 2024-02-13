@@ -6,7 +6,7 @@
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs/discojs-node/dist --watch ../server/dist --watch . --exec npm run",
     "start": "npm run build && node dist/benchmark.js",
     "build": "tsc",
-    "lint": "npx eslint --max-warnings 0 .",
+    "lint": "npx eslint --ext ts --max-warnings 0 .",
     "test": ": nothing"
   },
   "author": "",
@@ -18,13 +18,6 @@
     "tslib": "2"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "4",
-    "@typescript-eslint/parser": "4",
-    "eslint": "7",
-    "eslint-config-standard-with-typescript": "21",
-    "eslint-plugin-import": "2",
-    "eslint-plugin-node": "11",
-    "eslint-plugin-promise": "5",
     "nodemon": "3",
     "ts-command-line-args": "2"
   }

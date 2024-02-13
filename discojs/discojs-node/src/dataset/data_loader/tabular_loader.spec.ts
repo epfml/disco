@@ -1,7 +1,7 @@
 import { assert, expect } from 'chai'
 import { List } from 'immutable'
 
-import { tf, node, Task } from '../..'
+import { tf, node, type Task } from '../..'
 
 const inputFiles = ['../../example_training_data/titanic_train.csv']
 
@@ -64,7 +64,7 @@ describe('tabular loader', () => {
       .train.dataset.toArray()
 
     const misses = List(dataset).zip(List(shuffled)).map(([d, s]) =>
-      tf.notEqual((d as any).xs, (s as any).xs).any().dataSync()[0]
+      tf.notEqual((d as any).xs as tf.Tensor, (s as any).xs as tf.Tensor).any().dataSync()[0]
     ).reduce((acc: number, e) => acc + e)
     assert(misses > 0)
   })

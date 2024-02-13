@@ -5,8 +5,8 @@ import expressWS from 'express-ws'
 import { CONFIG } from './config'
 import { Router } from './router'
 import { TasksAndModels } from './tasks'
-import { tf, Task, TaskProvider } from '@epfml/discojs-node'
-import * as http from 'http'
+import { type tf, type Task, type TaskProvider } from '@epfml/discojs-node'
+import type * as http from 'http'
 
 export class Disco {
   private readonly _app: express.Application

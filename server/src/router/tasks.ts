@@ -1,10 +1,10 @@
-import express, { Request, Response } from 'express'
+import express, { type Request, type Response } from 'express'
 import { Set } from 'immutable'
 
-import { tf, serialization, Task, TaskID, isTask } from '@epfml/discojs-node'
+import { type tf, serialization, type Task, type TaskID, isTask } from '@epfml/discojs-node'
 
-import { Config } from '../config'
-import { TasksAndModels } from '../tasks'
+import { type Config } from '../config'
+import { type TasksAndModels } from '../tasks'
 
 export class Tasks {
   private readonly ownRouter: express.Router
@@ -43,9 +43,9 @@ export class Tasks {
     })
 
     // delay listening
-    process.nextTick(() =>
-      tasksAndModels.addListener('taskAndModel', (t, m) =>
-        this.onNewTask(t, m)))
+    process.nextTick(() => {
+      tasksAndModels.on('taskAndModel', (t, m) => { this.onNewTask(t, m) })
+    })
   }
 
   public get router (): express.Router {

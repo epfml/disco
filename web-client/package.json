@@ -43,8 +43,6 @@
   },
   "devDependencies": {
     "@types/msgpack-lite": "0.1",
-    "@typescript-eslint/eslint-plugin": "5",
-    "@typescript-eslint/parser": "5",
     "@vue/cli-plugin-babel": "5",
     "@vue/cli-plugin-eslint": "5",
     "@vue/cli-plugin-router": "5",
@@ -53,50 +51,16 @@
     "@vue/cli-service": "5",
     "@vue/compiler-sfc": "3",
     "@vue/eslint-config-prettier": "6",
-    "@vue/eslint-config-standard": "6",
-    "@vue/eslint-config-typescript": "7",
+    "@vue/eslint-config-typescript": "12",
     "@vue/test-utils": "2",
     "babel-eslint": "10",
-    "eslint": "7",
-    "eslint-config-standard": "16",
-    "eslint-plugin-import": "2",
+    "eslint-config-standard": "17",
     "eslint-plugin-node": "11",
     "eslint-plugin-prettier": "3",
-    "eslint-plugin-promise": "5",
-    "eslint-plugin-vue": "7",
+    "eslint-plugin-vue": "9",
     "typescript": "4",
     "vue-cli-plugin-tailwind": "3",
     "vue-loader-v16": "npm:vue-loader@16"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended",
-      "@vue/prettier",
-      "@vue/typescript",
-      "@vue/standard",
-      "@vue/typescript/recommended"
-    ],
-    "parserOptions": {
-      "parser": "@typescript-eslint/parser",
-      "ecmaVersion": 2020
-    },
-    "rules": {
-      "no-unused-vars": "off",
-      "multi-word-component-names": "off",
-      "vue/multi-word-component-names": "off",
-      "prettier/prettier": [
-        "warn",
-        {
-          "singleQuote": true,
-          "trailingComma": "es5"
-        }
-      ]
-    }
   },
   "browserslist": [
     "> 1%",

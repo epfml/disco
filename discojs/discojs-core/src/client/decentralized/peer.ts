@@ -1,8 +1,8 @@
-import { NodeID } from '../types'
+import { type NodeID } from '../types'
 
 import { List, Map, Range, Seq } from 'immutable'
 import wrtc from 'isomorphic-wrtc'
-import SimplePeer, { SignalData } from 'simple-peer'
+import SimplePeer from 'simple-peer'
 
 type MessageID = number
 type ChunkID = number
@@ -15,6 +15,11 @@ const HEADER_SIZE = 2 + 1
 
 // at which interval to poll
 const TICK = 10
+
+// we can't use the definition in DOM as we're platform independent
+export type SignalData =
+  | { type: 'answer' | 'offer' | 'pranswer' | 'rollback', sdp?: string }
+  | { type: 'transceiverRequest' | 'renegotiate' | 'candidate' }
 
 interface Events {
   'close': () => void
@@ -72,7 +77,7 @@ export class Peer {
 
     const remainingBufferSize = this.bufferSize - this.peer.bufferSize
     if (chunk.length > remainingBufferSize) {
-      setTimeout(() => this.flush(), TICK)
+      setTimeout(() => { this.flush() }, TICK)
       return
     }
 
@@ -150,7 +155,7 @@ export class Peer {
     this.peer.destroy()
   }
 
-  signal (signal: SimplePeer.SignalData): void {
+  signal (signal: SignalData): void {
     // extract max buffer size
     if (signal.type === 'offer' || signal.type === 'answer') {
       if (signal.sdp === undefined) {
@@ -181,7 +186,6 @@ export class Peer {
       this.peer.on(event, listener)
       return
     }
-
     // gotta help typescript here
     const dataListener = listener as Events['data']
 

@@ -1,4 +1,4 @@
-import { Task } from '../../task'
+import { type Task } from '../../task'
 import { Base } from '.'
 
 export class LocalInformant extends Base {

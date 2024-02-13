@@ -1,25 +1,23 @@
-import { Set } from 'immutable'
-import { EventEmitter } from 'node:events'
+import { List, Set } from 'immutable'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 
-import { tf, Task, Path, Digest, isTaskProvider, TaskProvider, defaultTasks } from '@epfml/discojs-node'
+import { tf, type Task, type Path, type Digest, isTaskProvider, type TaskProvider, defaultTasks } from '@epfml/discojs-node'
 
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks
 // TODO save and load from disk
-export class TasksAndModels extends EventEmitter {
+export class TasksAndModels {
+  private listeners = List<(t: Task, m: tf.LayersModel) => void>()
   tasksAndModels = Set<[Task, tf.LayersModel]>()
 
-  constructor () {
-    super({ captureRejections: true })
+  on (_: 'taskAndModel', callback: (t: Task, m: tf.LayersModel) => void): void {
+    this.tasksAndModels.forEach(([t, m]) => { callback(t, m) })
+    this.listeners = this.listeners.push(callback)
+  }
 
-    this.on('newListener', (event, listener) => {
-      if (event !== 'taskAndModel') {
-        throw new Error('unknown event')
-      }
-      this.tasksAndModels.forEach(([t, m]) => listener(t, m))
-    })
+  emit (_: 'taskAndModel', task: Task, model: tf.LayersModel): void {
+    this.listeners.forEach((listener) => { listener(task, model) })
   }
 
   async loadDefaultTasks (): Promise<void> {
@@ -57,9 +55,9 @@ export class TasksAndModels extends EventEmitter {
     if (discoTask.digest !== undefined) {
       try {
         this.checkDigest(discoTask.digest, modelPath)
-      } catch (e: any) {
+      } catch (e) {
         TasksAndModels.removeModelFiles(modelPath)
-        throw new Error(e)
+        throw e
       }
     }
 
@@ -113,7 +111,7 @@ export class TasksAndModels extends EventEmitter {
     }
 
     this.tasksAndModels = this.tasksAndModels.add([discoTask, tfModel])
-    this.emit('taskAndModel', task, model)
+    this.emit('taskAndModel', discoTask, tfModel)
   }
 
   static removeModelFiles (path: Path): void {

@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import fs_promises from 'fs/promises'
 import path from 'node:path'
 
-import { tf, node, data, Task } from '@epfml/discojs-node'
+import { tf, node, data, type Task } from '@epfml/discojs-node'
 
 function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
   const f = fs.readdirSync(dir + folder)
@@ -34,7 +34,7 @@ async function simplefaceData (task: Task): Promise<data.DataSplit> {
   const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
   const files = filesPerFolder.flat()
 
-  return await new node.data.NodeImageLoader(task).loadAll(files, { labels: labels })
+  return await new node.data.NodeImageLoader(task).loadAll(files, { labels })
 }
 
 async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
@@ -42,7 +42,7 @@ async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
   const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
-  return await new node.data.NodeImageLoader(cifar10).loadAll(files, { labels: labels })
+  return await new node.data.NodeImageLoader(cifar10).loadAll(files, { labels })
 }
 
 class NodeTabularLoader extends data.TabularLoader<string> {

@@ -1,12 +1,12 @@
 import { v4 as randomUUID } from 'uuid'
-import express from 'express'
+import type express from 'express'
 import msgpack from 'msgpack-lite'
-import WebSocket from 'ws'
-import { ParamsDictionary } from 'express-serve-static-core'
-import { ParsedQs } from 'qs'
+import type WebSocket from 'ws'
+import { type ParamsDictionary } from 'express-serve-static-core'
+import { type ParsedQs } from 'qs'
 import { Map, Set } from 'immutable'
 
-import { tf, client, Task, TaskID } from '@epfml/discojs-node'
+import { type tf, client, type Task, type TaskID } from '@epfml/discojs-node'
 
 import { Server } from '../server'
 
@@ -24,9 +24,7 @@ export class Decentralized extends Server {
    */
   private connections: Map<client.NodeID, WebSocket> = Map()
 
-  protected get description (): string {
-    return 'Disco Decentralized Server'
-  }
+  protected readonly description = 'Disco Decentralized Server'
 
   protected buildRoute (task: Task): string {
     return `/${task.taskID}`
@@ -48,7 +46,7 @@ export class Decentralized extends Server {
 
   protected handle (
     task: Task,
-    ws: import('ws'),
+    ws: WebSocket,
     model: tf.LayersModel,
     req: express.Request<
     ParamsDictionary,
@@ -130,8 +128,7 @@ export class Decentralized extends Server {
                     throw new Error(`peer ${id} marked as ready but not connection to it`)
                   }
                   return [conn, encoded] as [WebSocket, Buffer]
-                }).forEach(([conn, encoded]) =>
-                  conn.send(encoded)
+                }).forEach(([conn, encoded]) => { conn.send(encoded) }
                 )
             }
             break

@@ -1,6 +1,6 @@
-import { WeightsContainer, tf } from '.'
-import { NodeID } from './client'
-import { Map } from 'immutable'
+import { type WeightsContainer, type tf } from '.'
+import { type NodeID } from './client'
+import { type Map } from 'immutable'
 // Filesystem reference
 export type Path = string
 

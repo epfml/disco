@@ -1,7 +1,7 @@
-import { tf, Task } from '../../..'
-import { ImagePreprocessing } from './image_preprocessing'
-import { TabularPreprocessing } from './tabular_preprocessing'
-import { TextPreprocessing } from './text_preprocessing'
+import { type tf, type Task } from '../../..'
+import { type ImagePreprocessing } from './image_preprocessing'
+import { type TabularPreprocessing } from './tabular_preprocessing'
+import { type TextPreprocessing } from './text_preprocessing'
 
 /**
  * All available preprocessing type enums.

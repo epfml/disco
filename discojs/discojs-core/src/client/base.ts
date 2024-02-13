@@ -1,10 +1,10 @@
 import axios from 'axios'
-import { Set } from 'immutable'
+import { type Set } from 'immutable'
 
-import { tf, Task, TrainingInformant, serialization, WeightsContainer } from '..'
-import { NodeID } from './types'
-import { EventConnection } from './event_connection'
-import { Aggregator } from '../aggregator'
+import { type tf, type Task, type TrainingInformant, serialization, type WeightsContainer } from '..'
+import { type NodeID } from './types'
+import { type EventConnection } from './event_connection'
+import { type Aggregator } from '../aggregator'
 
 /**
  * Main, abstract, class representing a Disco client in a network, which handles

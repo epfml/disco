@@ -1,20 +1,18 @@
-import { client, MetadataKey, MetadataValue } from '../..'
-import { weights } from '../../serialization'
+import { type client, type MetadataKey, type MetadataValue } from '../..'
+import { type weights } from '../../serialization'
 
-import { type, hasMessageType } from '../messages'
+import { type, hasMessageType, type AssignNodeID, type ClientConnected } from '../messages'
 
 export type MessageFederated =
+  ClientConnected |
   SendPayload |
   ReceiveServerPayload |
+  RequestServerStatistics |
   ReceiveServerStatistics |
   SendMetadata |
   ReceiveServerMetadata |
-  MessageBase
+  AssignNodeID
 
-// Base class for all messages
-export interface MessageBase {
-  type: type
-}
 export interface SendPayload {
   type: type.SendPayload
   payload: weights.Encoded
@@ -24,6 +22,9 @@ export interface ReceiveServerPayload {
   type: type.ReceiveServerPayload
   payload: weights.Encoded
   round: number
+}
+export interface RequestServerStatistics {
+  type: type.RequestServerStatistics
 }
 export interface ReceiveServerStatistics {
   type: type.ReceiveServerStatistics
@@ -57,6 +58,8 @@ export function isMessageFederated (raw: unknown): raw is MessageFederated {
     case type.SendPayload:
       return true
     case type.ReceiveServerPayload:
+      return true
+    case type.RequestServerStatistics:
       return true
     case type.ReceiveServerStatistics:
       return true

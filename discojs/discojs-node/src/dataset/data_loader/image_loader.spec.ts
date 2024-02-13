@@ -2,7 +2,7 @@ import { assert, expect } from 'chai'
 import { List, Map, Range } from 'immutable'
 import fs from 'fs'
 
-import { tf, node, Task } from '../..'
+import { tf, node, type Task } from '../..'
 
 const readFilesFromDir = (dir: string): string[] =>
   fs.readdirSync(dir).map((file: string) => dir + file)
@@ -83,7 +83,7 @@ describe('image loader', () => {
       )) {
         throw new Error('unexpected type')
       }
-      const { xs, ys } = actual as {xs: tf.Tensor, ys: number[]}
+      const { xs, ys } = actual as { xs: tf.Tensor, ys: number[] }
       expect(xs.shape).eql(sample?.shape)
       expect(ys).eql(label)
     })
@@ -96,9 +96,7 @@ describe('image loader', () => {
     List(dataset).zip(List(FILES.CIFAR10))
       .forEach(async ([s, f]) => {
         const sample = (await (await loader.load(f)).toArray())[0]
-        if (!tf.equal(s as tf.Tensor, sample as tf.Tensor).all()) {
-          assert(false)
-        }
+        assert.deepEqual((await tf.equal(s as tf.Tensor, sample as tf.Tensor).all().array()), [1])
       })
     assert(true)
   })
@@ -129,7 +127,7 @@ describe('image loader', () => {
     const validationSplit = 0.2
     const imagesContent = FILES.CIFAR10.map((file) => tf.node.decodeImage(fs.readFileSync(file)))
     const datasetContent = await new node.data.NodeImageLoader(cifar10Mock)
-      .loadAll(FILES.CIFAR10, { shuffle: false, validationSplit: validationSplit })
+      .loadAll(FILES.CIFAR10, { shuffle: false, validationSplit })
 
     const trainSize = Math.floor(imagesContent.length * (1 - validationSplit))
     expect((await datasetContent.train.dataset.toArray()).length).equal(trainSize)

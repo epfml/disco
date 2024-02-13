@@ -1,6 +1,6 @@
-import { Task } from '../..'
-import { Dataset } from '../dataset'
-import { Data, DataSplit } from '../data'
+import { type Task } from '../..'
+import { type Dataset } from '../dataset'
+import { type Data, type DataSplit } from '../data'
 
 export interface DataConfig { features?: string[], labels?: string[], shuffle?: boolean, validationSplit?: number, inference?: boolean }
 

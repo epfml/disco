@@ -1,9 +1,9 @@
 import { Range } from 'immutable'
 
 import { tf } from '../..'
-import { Dataset } from '../dataset'
-import { Data, ImageData, DataSplit } from '../data'
-import { DataLoader, DataConfig } from '../data_loader'
+import { type Dataset } from '../dataset'
+import { type Data, ImageData, type DataSplit } from '../data'
+import { DataLoader, type DataConfig } from '../data_loader'
 
 /**
  * Image data loader whose instantiable implementation is delegated by the platform-dependent Disco subprojects, namely,
@@ -21,7 +21,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
 
   async load (image: Source, config?: DataConfig): Promise<Dataset> {
     let tensorContainer: tf.TensorContainer
-    if (config === undefined || config.labels === undefined) {
+    if (config?.labels === undefined) {
       tensorContainer = await this.readImageFrom(image)
     } else {
       tensorContainer = {
