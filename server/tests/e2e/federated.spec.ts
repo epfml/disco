@@ -67,7 +67,7 @@ describe('end-to-end federated', function () {
 
     await disco.fit(data)
     await disco.close()
-    
+
     if (aggregator.model === undefined) {
       throw new Error('model was not set')
     }
