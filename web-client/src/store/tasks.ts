@@ -13,8 +13,8 @@ export const useTasksStore = defineStore('tasks', () => {
   const tasks = shallowRef<Map<TaskID, Task>>(Map())
 
   function addTask (task: Task): void {
-    trainingStore.steps = trainingStore.steps.set(task.taskID, 0)
-    tasks.value = tasks.value.set(task.taskID, task)
+    trainingStore.steps = trainingStore.steps.set(task.id, 0)
+    tasks.value = tasks.value.set(task.id, task)
   }
 
   async function initTasks (): Promise<void> {

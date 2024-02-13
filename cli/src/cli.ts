@@ -10,7 +10,7 @@ import { args } from './args'
 const NUMBER_OF_USERS = args.numberOfUsers
 const TASK = args.task
 
-const infoText = `\nStarted federated training of ${TASK.taskID}`
+const infoText = `\nStarted federated training of ${TASK.id}`
 console.log(infoText)
 
 console.log({ args })
@@ -35,7 +35,7 @@ async function main (): Promise<void> {
   )
 
   if (args.save) {
-    const fileName = `${TASK.taskID}_${NUMBER_OF_USERS}users.csv`
+    const fileName = `${TASK.id}_${NUMBER_OF_USERS}users.csv`
     saveLog(logs, fileName)
   }
   console.log('Shutting down the server...')

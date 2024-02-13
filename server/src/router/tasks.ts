@@ -56,8 +56,8 @@ export class Tasks {
   }
 
   onNewTask (task: Task, model: tf.LayersModel): void {
-    this.ownRouter.get(`/${task.taskID}/:file`, (req, res, next) => {
-      this.getLatestModel(task.taskID, req, res).catch(next)
+    this.ownRouter.get(`/${task.id}/:file`, (req, res, next) => {
+      this.getLatestModel(task.id, req, res).catch(next)
     })
 
     this.tasksAndModels = this.tasksAndModels.add([task, model])
@@ -86,7 +86,7 @@ export class Tasks {
    * @param request received from client
    * @param response sent to client
    */
-  private async getLatestModel (taskID: TaskID, request: Request, response: Response): Promise<void> {
+  private async getLatestModel (id: TaskID, request: Request, response: Response): Promise<void> {
     const validModelFiles = Set.of('model.json', 'weights.bin')
 
     const file = request.params.file
@@ -94,7 +94,7 @@ export class Tasks {
       response.status(404)
       return
     }
-    const taskAndModel = this.tasksAndModels.find(([t, _]) => t.taskID === taskID)
+    const taskAndModel = this.tasksAndModels.find(([t, _]) => t.id === id)
     if (taskAndModel === undefined) {
       response.status(404)
       return
@@ -103,6 +103,6 @@ export class Tasks {
     const encoded = await serialization.model.encode(taskAndModel[1])
 
     response.status(200).send(encoded)
-    console.log(`${file} download for task ${taskID} succeeded`)
+    console.log(`${file} download for task ${id} succeeded`)
   }
 }

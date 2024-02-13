@@ -7,9 +7,21 @@ import type { Task } from '../..'
 
 describe('tabular data checks', () => {
   const titanicMock: Task = {
-    taskID: 'titanic',
+    id: 'titanic',
     displayInformation: {},
     trainingInformation: {
+      modelID: 'titanic',
+      epochs: 1,
+      roundDuration: 1,
+      validationSplit: 0,
+      batchSize: 1,
+      dataType: 'tabular',
+      scheme: 'federated',
+      modelCompileData: {
+        optimizer: 'nothing',
+        loss: 'none',
+        metrics: []
+      },
       inputColumns: [
         'PassengerId',
         'Age',
@@ -22,7 +34,7 @@ describe('tabular data checks', () => {
         'Survived'
       ]
     }
-  } as unknown as Task
+  }
 
   const dataConfig = {
     features: titanicMock.trainingInformation.inputColumns,

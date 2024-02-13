@@ -38,9 +38,9 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 )
 
 let supportedTasks: Map<string, Task> = Map()
-supportedTasks = supportedTasks.set(defaultTasks.simpleFace.getTask().taskID, defaultTasks.simpleFace.getTask())
-supportedTasks = supportedTasks.set(defaultTasks.titanic.getTask().taskID, defaultTasks.titanic.getTask())
-supportedTasks = supportedTasks.set(defaultTasks.cifar10.getTask().taskID, defaultTasks.cifar10.getTask())
+supportedTasks = supportedTasks.set(defaultTasks.simpleFace.getTask().id, defaultTasks.simpleFace.getTask())
+supportedTasks = supportedTasks.set(defaultTasks.titanic.getTask().id, defaultTasks.titanic.getTask())
+supportedTasks = supportedTasks.set(defaultTasks.cifar10.getTask().id, defaultTasks.cifar10.getTask())
 
 const task = supportedTasks.get(unsafeArgs.task)
 if (task === undefined) {

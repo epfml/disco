@@ -31,5 +31,5 @@ export async function fetchTasks (url: URL): Promise<Map<TaskID, Task>> {
     throw new Error('invalid tasks response')
   }
 
-  return Map(tasks.map((t) => [t.taskID, t]))
+  return Map(tasks.map((t) => [t.id, t]))
 }

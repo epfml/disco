@@ -6,7 +6,7 @@ import { data } from '..'
 export const skinMnist: TaskProvider = {
   getTask (): Task {
     return {
-      taskID: 'skin_mnist',
+      id: 'skin_mnist',
       displayInformation: {
         taskTitle: 'Skin disease classification',
         summary: {

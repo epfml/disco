@@ -61,7 +61,7 @@ async function titanicData (titanic: Task): Promise<data.DataSplit> {
 }
 
 export async function getTaskData (task: Task): Promise<data.DataSplit> {
-  switch (task.taskID) {
+  switch (task.id) {
     case 'simple_face':
       return await simplefaceData(task)
     case 'titanic':
@@ -71,6 +71,6 @@ export async function getTaskData (task: Task): Promise<data.DataSplit> {
     case 'YOUR CUSTOM TASK HERE':
       throw new Error('YOUR CUSTOM FUNCTION HERE')
     default:
-      throw new Error(`Data loader for ${task.taskID} not implemented.`)
+      throw new Error(`Data loader for ${task.id} not implemented.`)
   }
 }

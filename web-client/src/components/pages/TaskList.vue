@@ -83,8 +83,8 @@
         <div
           v-for="task in filteredTasks"
           v-show="filteredTasks.length > 0"
-          :id="task.taskID"
-          :key="task.taskID"
+          :id="task.id"
+          :key="task.id"
         >
           <ButtonCard
             button-placement="left"
@@ -168,7 +168,7 @@ const offset = ref(0)
 const filters = computed(() => schemeFilters.concat(dataFilters))
 
 const filteredTasks = computed(() => {
-  return ([...tasks.value.values()] as Task[])
+  return ([...tasks.value.values()])
     .filter((task: Task) =>
       filters.value.every((filter: Filter) =>
         filter.active ? filter.apply(task) : true)
@@ -186,8 +186,8 @@ const clearFilters = (): void => {
 }
 
 const toTask = (task: Task): void => {
-  trainingStore.setTask(task.taskID)
-  router.push(`/${task.taskID}`)
+  trainingStore.setTask(task.id)
+  router.push(`/${task.id}`)
 }
 
 </script>

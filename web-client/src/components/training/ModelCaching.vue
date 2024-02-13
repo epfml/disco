@@ -182,7 +182,7 @@ export default {
     },
     modelInfo (): ModelInfo {
       return {
-        type: ModelType.WORKING, taskID: this.task.taskID, name: this.task.trainingInformation.modelID
+        type: ModelType.WORKING, taskID: this.task.id, name: this.task.trainingInformation.modelID
       }
     }
   },

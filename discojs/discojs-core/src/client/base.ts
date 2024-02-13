@@ -60,7 +60,7 @@ export abstract class Base {
     if (!url.pathname.endsWith('/')) {
       url.pathname += '/'
     }
-    url.pathname += `tasks/${this.task.taskID}/model.json`
+    url.pathname += `tasks/${this.task.id}/model.json`
 
     const response = await axios.get(url.href)
 

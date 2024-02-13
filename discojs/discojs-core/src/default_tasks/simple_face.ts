@@ -6,7 +6,7 @@ import { data } from '..'
 export const simpleFace: TaskProvider = {
   getTask (): Task {
     return {
-      taskID: 'simple_face',
+      id: 'simple_face',
       displayInformation: {
         taskTitle: 'Simple Face',
         summary: {

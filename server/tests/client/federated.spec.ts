@@ -1,6 +1,5 @@
 import type * as http from 'http'
 
-import type { Task } from '@epfml/discojs-core'
 import { aggregator as aggregators, client as clients, informant, defaultTasks } from '@epfml/discojs-core'
 
 import { getClient, startServer } from '../utils'
@@ -24,7 +23,20 @@ describe('federated client', function () {
     const client = await getClient(
       clients.federated.FederatedClient,
       server,
-      { taskID: 'nonValidTask' } as unknown as Task,
+      {
+        id: 'nonValidTask',
+        displayInformation: {},
+        trainingInformation: {
+          modelID: 'irrelevant',
+          epochs: 1,
+          roundDuration: 1,
+          modelCompileData: { loss: 'nan', metrics: [], optimizer: 'no' },
+          validationSplit: 0,
+          batchSize: 1,
+          scheme: 'federated',
+          dataType: 'tabular'
+        }
+      },
       new aggregators.MeanAggregator(TASK)
     )
 

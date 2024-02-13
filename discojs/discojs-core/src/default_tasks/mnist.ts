@@ -5,7 +5,7 @@ import type { Task, TaskProvider } from '..'
 export const mnist: TaskProvider = {
   getTask (): Task {
     return {
-      taskID: 'mnist',
+      id: 'mnist',
       displayInformation: {
         taskTitle: 'MNIST',
         summary: {

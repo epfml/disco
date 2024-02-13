@@ -92,7 +92,7 @@
               <div class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8">
                 <div
                   v-for="task in federatedTasks.toArray()"
-                  :key="task.taskID"
+                  :key="task.id"
                   class="contents"
                 >
                   <ButtonCard
@@ -247,14 +247,14 @@ const downloadModel = async (task: Task): Promise<void> => {
   const model = await client.getLatestModel()
   const source = {
     type: ModelType.SAVED,
-    taskID: task.taskID,
+    taskID: task.id,
     name: task.trainingInformation.modelID
   }
   await memory.value.saveModel(source, model)
   await memoryStore.initModels()
 }
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
-  const selectedTask = tasksStore.tasks.get(memory.value.infoFor(path)?.taskID)
+  const selectedTask = tasksStore.tasks.get(memory.value.infoFor(path)?.id)
   if (selectedTask !== undefined) {
     currentTask.value = selectedTask
     validationStore.model = path

@@ -72,7 +72,7 @@ export class Federated extends Server {
   protected readonly description = 'Disco Federated Server'
 
   protected buildRoute (task: Task): string {
-    return `/${task.taskID}`
+    return `/${task.id}`
   }
 
   public isValidUrl (url: string | undefined): boolean {
@@ -98,12 +98,12 @@ export class Federated extends Server {
     // Create a promise on the future aggregated weights
     const result = aggregator.receiveResult()
     // Store the promise such that it is accessible from other methods
-    this.results = this.results.set(aggregator.task.taskID, result)
+    this.results = this.results.set(aggregator.task.id, result)
     // The promise resolves once the server received enough contributions (through the handle method)
     // and the aggregator aggregated the weights.
     await result
     // Update the server round with the aggregator round
-    this.rounds = this.rounds.set(aggregator.task.taskID, aggregator.round)
+    this.rounds = this.rounds.set(aggregator.task.id, aggregator.round)
     // Create a new promise for the next round
     void this.storeAggregationResult(aggregator)
   }
@@ -111,9 +111,9 @@ export class Federated extends Server {
   protected initTask (task: Task, model: tf.LayersModel): void {
     const aggregator = new aggregators.MeanAggregator(task, model)
 
-    this.aggregators = this.aggregators.set(task.taskID, aggregator)
-    this.informants = this.informants.set(task.taskID, new AsyncInformant(aggregator))
-    this.rounds = this.rounds.set(task.taskID, 0)
+    this.aggregators = this.aggregators.set(task.id, aggregator)
+    this.informants = this.informants.set(task.id, new AsyncInformant(aggregator))
+    this.rounds = this.rounds.set(task.id, 0)
 
     void this.storeAggregationResult(aggregator)
   }
@@ -130,14 +130,14 @@ export class Federated extends Server {
   private async addContributionAndSendModel (msg: messages.SendPayload, task: Task,
     clientId: client.NodeID, ws: WebSocket): Promise<void> {
     const { payload, round } = msg
-    const aggregator = this.aggregators.get(task.taskID)
+    const aggregator = this.aggregators.get(task.id)
 
     if (!(Array.isArray(payload) &&
       payload.every((e) => typeof e === 'number'))) {
       throw new Error('received invalid weights format')
     }
     if (aggregator === undefined) {
-      throw new Error(`received weights for unknown task: ${task.taskID}`)
+      throw new Error(`received weights for unknown task: ${task.id}`)
     }
 
     // It is important to create a promise for the weights BEFORE adding the contribution
@@ -172,9 +172,9 @@ export class Federated extends Server {
     task: Task,
     aggregator: aggregators.Aggregator,
     ws: WebSocket): Promise<void> {
-    const promisedResult = this.results.get(task.taskID)
+    const promisedResult = this.results.get(task.id)
     if (promisedResult === undefined) {
-      throw new Error(`result promise was not set for task ${task.taskID}`)
+      throw new Error(`result promise was not set for task ${task.id}`)
     }
 
     // Wait for aggregation result to resolve with timeout, giving the network a time window
@@ -203,7 +203,7 @@ export class Federated extends Server {
     model: tf.LayersModel,
     req: express.Request
   ): void {
-    const taskAggregator = this.aggregators.get(task.taskID)
+    const taskAggregator = this.aggregators.get(task.id)
     if (taskAggregator === undefined) {
       throw new Error('connecting to a non-existing task')
     }
@@ -221,14 +221,14 @@ export class Federated extends Server {
       }
 
       if (msg.type === MessageTypes.ClientConnected) {
-        this.logsAppend(task.taskID, clientId, MessageTypes.ClientConnected, 0)
+        this.logsAppend(task.id, clientId, MessageTypes.ClientConnected, 0)
 
-        let aggregator = this.aggregators.get(task.taskID)
+        let aggregator = this.aggregators.get(task.id)
         if (aggregator === undefined) {
           aggregator = new aggregators.MeanAggregator(task)
-          this.aggregators = this.aggregators.set(task.taskID, aggregator)
+          this.aggregators = this.aggregators.set(task.id, aggregator)
         }
-        console.info('client', clientId, 'joined', task.taskID)
+        console.info('client', clientId, 'joined', task.id)
 
         const msg: AssignNodeID = {
           type: MessageTypes.AssignNodeID,
@@ -236,7 +236,7 @@ export class Federated extends Server {
         }
         ws.send(msgpack.encode(msg))
       } else if (msg.type === MessageTypes.SendPayload) {
-        this.logsAppend(task.taskID, clientId, MessageTypes.SendPayload, msg.round)
+        this.logsAppend(task.id, clientId, MessageTypes.SendPayload, msg.round)
 
         if (model === undefined) {
           throw new Error('aggregator model was not set')
@@ -245,7 +245,7 @@ export class Federated extends Server {
           .catch(console.error)
       } else if (msg.type === MessageTypes.ReceiveServerStatistics) {
         const statistics = this.informants
-          .get(task.taskID)
+          .get(task.id)
           ?.getAllStatistics()
 
         const msg: messages.ReceiveServerStatistics = {
@@ -255,10 +255,10 @@ export class Federated extends Server {
 
         ws.send(msgpack.encode(msg))
       } else if (msg.type === MessageTypes.RequestServerStatistics) {
-        this.logsAppend(task.taskID, clientId, MessageTypes.ReceiveServerPayload, 0)
-        const aggregator = this.aggregators.get(task.taskID)
+        this.logsAppend(task.id, clientId, MessageTypes.ReceiveServerPayload, 0)
+        const aggregator = this.aggregators.get(task.id)
         if (aggregator === undefined) {
-          throw new Error(`requesting round of unknown task: ${task.taskID}`)
+          throw new Error(`requesting round of unknown task: ${task.id}`)
         }
         if (model === undefined) {
           throw new Error('aggregator model was not set')
@@ -269,9 +269,9 @@ export class Federated extends Server {
       } else if (msg.type === MessageTypes.SendMetadata) {
         const { round, key, value } = msg
 
-        this.logsAppend(task.taskID, clientId, MessageTypes.SendMetadata, round)
+        this.logsAppend(task.id, clientId, MessageTypes.SendMetadata, round)
 
-        if (this.metadataMap.hasIn([task.taskID, round, clientId, key])) {
+        if (this.metadataMap.hasIn([task.id, round, clientId, key])) {
           throw new Error('metadata already set')
         }
         this.metadataMap = this.metadataMap.setIn(
@@ -281,7 +281,7 @@ export class Federated extends Server {
       } else if (msg.type === MessageTypes.ReceiveServerMetadata) {
         const { key, round } = msg
 
-        const taskMetadata = this.metadataMap.get(task.taskID)
+        const taskMetadata = this.metadataMap.get(task.id)
 
         if (!Number.isNaN(round) && round >= 0 && taskMetadata !== undefined) {
           // Find the most recent entry round-wise for the given task (upper bounded
@@ -298,11 +298,11 @@ export class Federated extends Server {
               .mapEntries(([id, entries]) => [id, entries.get(key)])
           )
 
-          this.logsAppend(task.taskID, clientId, MessageTypes.ReceiveServerMetadata, round)
+          this.logsAppend(task.id, clientId, MessageTypes.ReceiveServerMetadata, round)
 
           const msg: messages.ReceiveServerMetadata = {
             type: MessageTypes.ReceiveServerMetadata,
-            taskId: task.taskID,
+            taskId: task.id,
             nodeId: clientId,
             key,
             round,

@@ -423,7 +423,7 @@ function saveCsv () {
   const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
   const downloadLink = document.getElementById('downloadLink')
   downloadLink.setAttribute('href', URL.createObjectURL(blob))
-  downloadLink.setAttribute('download', `predictions_${props.task.taskID}_${Date.now()}.csv`)
+  downloadLink.setAttribute('download', `predictions_${props.task.id}_${Date.now()}.csv`)
   downloadLink.click()
 }
 
