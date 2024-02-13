@@ -35,7 +35,7 @@ export abstract class Base {
     return this.messages.toArray()
   }
 
-  round(): number {
+  round (): number {
     // + 1 because rounds start at 0
     return this.currentRound + 1
   }

@@ -19,7 +19,7 @@ const sanitize: PreprocessingFunction = {
   type: TabularPreprocessing.Sanitize,
   apply: (entry: tf.TensorContainer, task: Task): tf.TensorContainer => {
     // if preprocessing a dataset without labels, then the entry is an array of numbers
-    if (entry instanceof Array ) {
+    if (entry instanceof Array) {
       return entry.map(i => i === undefined ? 0 : i)
     // otherwise it is an object with feature and labels
     } else {
