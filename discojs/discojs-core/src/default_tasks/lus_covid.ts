@@ -6,7 +6,7 @@ import { data } from '..'
 export const lusCovid: TaskProvider = {
   getTask (): Task {
     return {
-      taskID: 'lus_covid',
+      id: 'lus_covid',
       displayInformation: {
         taskTitle: 'COVID Lung Ultrasound',
         summary: {

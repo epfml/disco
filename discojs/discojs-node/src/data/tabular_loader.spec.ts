@@ -9,9 +9,21 @@ import { TabularLoader } from './tabular_loader'
 const inputFiles = ['../../example_training_data/titanic_train.csv']
 
 const titanicMock: Task = {
-  taskID: 'titanic',
+  id: 'titanic',
   displayInformation: {},
   trainingInformation: {
+    modelID: 'titanic',
+    epochs: 1,
+    roundDuration: 1,
+    validationSplit: 0,
+    batchSize: 1,
+    dataType: 'tabular',
+    scheme: 'federated',
+    modelCompileData: {
+      optimizer: 'nothing',
+      loss: 'none',
+      metrics: []
+    },
     inputColumns: [
       'PassengerId',
       'Age',
@@ -24,7 +36,7 @@ const titanicMock: Task = {
       'Survived'
     ]
   }
-} as unknown as Task
+}
 
 describe('tabular loader', () => {
   it('loads a single sample', async () => {

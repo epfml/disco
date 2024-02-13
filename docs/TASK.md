@@ -159,7 +159,7 @@ import { ImagePreprocessing } from '../dataset/preprocessing'
 export const customTask: TaskProvider = {
   getTask (): Task {
     return {
-      taskID: 'my_new_task',
+      id: 'my_new_task',
       displayInformation: {
         taskTitle: 'My new task',
         summary: 'Can you detect if the person in a picture is a child or an adult?',
@@ -190,7 +190,7 @@ export const customTask: TaskProvider = {
 }
 ```
 
-The `Task` interface has three fields: a mandatory `taskID` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/discojs-core/src/task/display_information.ts) and [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts).
+The `Task` interface has three fields: a mandatory `id` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/discojs-core/src/task/display_information.ts) and [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts).
 
 ### Preprocessing
 
@@ -243,7 +243,7 @@ Finally, in our task we need to add our custom preprocessing
 import { ImagePreprocessing } from '../dataset/preprocessing'
 
 export const task: Task = {
-  taskID: 'My_task',
+  id: 'My_task',
   ...
   ...
     trainingInformation: {

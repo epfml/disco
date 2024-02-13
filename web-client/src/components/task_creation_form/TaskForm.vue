@@ -261,7 +261,7 @@ const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
       .filter((section) => !specialSections.includes(section.id))
       .map((section) => formatSection(section, rawTask))
   )
-    .set('taskID', rawTask.taskID)
+    .set('id', rawTask.taskID)
     .toObject() as unknown as Task
 
   let model: tf.LayersModel

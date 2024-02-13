@@ -51,12 +51,12 @@ export class Disco {
 
     console.info('Disco Server initially loaded the tasks below\n')
     console.table(
-      Array.from(this.tasksAndModels.tasksAndModels).map(t => {
+      Array.from(this.tasksAndModels.tasksAndModels).map(([task]) => {
         return {
-          ID: t[0].taskID,
-          Title: t[0].displayInformation.taskTitle,
-          'Data Type': t[0].trainingInformation.dataType,
-          Scheme: t[0].trainingInformation.scheme
+          ID: task.id,
+          Title: task.displayInformation.taskTitle,
+          'Data Type': task.trainingInformation.dataType,
+          Scheme: task.trainingInformation.scheme
         }
       })
     )

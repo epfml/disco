@@ -11,7 +11,7 @@ export class LocalTrainer extends Trainer {
   async onRoundEnd (accuracy: number): Promise<void> {
     console.log('on round end')
     await this.memory.updateWorkingModel(
-      { taskID: this.task.taskID, name: this.task.trainingInformation.modelID },
+      { taskID: this.task.id, name: this.task.trainingInformation.modelID },
       this.model
     )
   }

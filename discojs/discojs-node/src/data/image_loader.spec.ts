@@ -16,24 +16,40 @@ const DIRS = {
 }
 
 const cifar10Mock: Task = {
-  taskID: 'cifar10',
+  id: 'cifar10',
   displayInformation: {},
   trainingInformation: {
+    modelID: 'cifar10',
+    epochs: 1,
+    roundDuration: 1,
+    batchSize: 1,
+    dataType: 'tabular',
+    validationSplit: 0,
+    modelCompileData: { loss: 'nan', metrics: [], optimizer: 'nope' },
+    scheme: 'federated',
     IMAGE_H: 32,
     IMAGE_W: 32,
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
   }
-} as unknown as Task
+}
 
 const mnistMock: Task = {
-  taskID: 'mnist',
+  id: 'mnist',
   displayInformation: {},
   trainingInformation: {
+    modelID: 'mnist',
+    epochs: 1,
+    roundDuration: 1,
+    batchSize: 1,
+    dataType: 'tabular',
+    validationSplit: 0,
+    modelCompileData: { loss: 'nan', metrics: [], optimizer: 'nope' },
+    scheme: 'federated',
     IMAGE_H: 28,
     IMAGE_W: 28,
     LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
   }
-} as unknown as Task
+}
 
 const LOADERS = {
   CIFAR10: new ImageLoader(cifar10Mock),

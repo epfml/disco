@@ -35,7 +35,7 @@ export abstract class Server {
   }
 
   private onNewTask (task: Task, model: tf.LayersModel): void {
-    this.tasks.push(task.taskID)
+    this.tasks.push(task.id)
     this.initTask(task, model)
 
     this.ownRouter.ws(this.buildRoute(task), (ws, req) => {
@@ -48,8 +48,8 @@ export abstract class Server {
     })
   }
 
-  protected isValidTask (taskId: string): boolean {
-    return this.tasks.filter(e => e === taskId).length === 1
+  protected isValidTask (id: string): boolean {
+    return this.tasks.filter(e => e === id).length === 1
   }
 
   protected isValidClientId (clientId: string): boolean {

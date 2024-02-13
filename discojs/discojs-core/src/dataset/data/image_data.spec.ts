@@ -6,7 +6,7 @@ import type { Task } from '../..'
 
 describe('image data checks', () => {
   const simplefaceMock: Task = {
-    taskID: 'simpleface',
+    id: 'simpleface',
     displayInformation: {},
     trainingInformation: {
       IMAGE_H: 200,

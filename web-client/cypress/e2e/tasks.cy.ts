@@ -22,8 +22,8 @@ describe('tasks page', () => {
     cy.visit('list')
     cy.wait('@tasks')
     TASK_LIST.forEach((task) => {
-      cy.get(`div[id="${task.taskID}"]`).find('button').click()
-      cy.url().should('eq', Cypress.config().baseUrl + task.taskID)
+      cy.get(`div[id="${task.id}"]`).find('button').click()
+      cy.url().should('eq', Cypress.config().baseUrl + task.id)
       cy.get('button').contains('previous', { matchCase: false }).click()
       cy.url().should('eq', Cypress.config().baseUrl + 'list')
     })

@@ -55,7 +55,7 @@ export class AsyncInformant<T> {
 
   // Debug
   public printAllInfos (): void {
-    console.debug('task:', this.aggregator.task.taskID)
+    console.debug('task:', this.aggregator.task.id)
     console.debug('round:', this.round)
     console.debug('participants:', this.currentNumberOfParticipants)
     console.debug('total:', this.totalNumberOfParticipants)

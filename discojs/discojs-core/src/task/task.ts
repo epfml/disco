@@ -16,10 +16,10 @@ export function isTask (raw: unknown): raw is Task {
     return false
   }
 
-  const { taskID, digest, displayInformation, trainingInformation } = raw as
-    Record<'taskID' | 'digest' | 'displayInformation' | 'trainingInformation', unknown | undefined>
+  const { id, digest, displayInformation, trainingInformation } = raw as
+    Record<'id' | 'digest' | 'displayInformation' | 'trainingInformation', unknown | undefined>
 
-  if (typeof taskID !== 'string') {
+  if (!isTaskID(id)) {
     return false
   }
   if (digest !== undefined && !isDigest(digest)) {
@@ -33,14 +33,13 @@ export function isTask (raw: unknown): raw is Task {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _: Task = { taskID, displayInformation, trainingInformation }
+  const _: Task = { id, displayInformation, trainingInformation }
 
   return true
 }
 
 export interface Task {
-  // TODO rename to ID
-  taskID: TaskID
+  id: TaskID
   digest?: Digest
   displayInformation: DisplayInformation
   trainingInformation: TrainingInformation

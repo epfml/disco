@@ -29,7 +29,7 @@ export class Decentralized extends Server {
   protected readonly description = 'Disco Decentralized Server'
 
   protected buildRoute (task: Task): string {
-    return `/${task.taskID}`
+    return `/${task.id}`
   }
 
   public isValidUrl (url: string | undefined): boolean {
@@ -84,11 +84,11 @@ export class Decentralized extends Server {
               type: MessageTypes.AssignNodeID,
               id: peerId
             }
-            console.info('Peer', peerId, 'joined', task.taskID)
+            console.info('Peer', peerId, 'joined', task.id)
 
             // Add the new task and its set of nodes
-            if (!this.readyNodes.has(task.taskID)) {
-              this.readyNodes = this.readyNodes.set(task.taskID, Set())
+            if (!this.readyNodes.has(task.id)) {
+              this.readyNodes = this.readyNodes.set(task.id, Set())
             }
 
             ws.send(msgpack.encode(msg), { binary: true })
@@ -106,14 +106,14 @@ export class Decentralized extends Server {
             break
           }
           case MessageTypes.PeerIsReady: {
-            const peers = this.readyNodes.get(task.taskID)?.add(peerId)
+            const peers = this.readyNodes.get(task.id)?.add(peerId)
             if (peers === undefined) {
-              throw new Error(`task ${task.taskID} doesn't exist in ready buffer`)
+              throw new Error(`task ${task.id} doesn't exist in ready buffer`)
             }
-            this.readyNodes = this.readyNodes.set(task.taskID, peers)
+            this.readyNodes = this.readyNodes.set(task.id, peers)
 
             if (peers.size >= minimumReadyPeers) {
-              this.readyNodes = this.readyNodes.set(task.taskID, Set())
+              this.readyNodes = this.readyNodes.set(task.id, Set())
 
               peers
                 .map((id) => {

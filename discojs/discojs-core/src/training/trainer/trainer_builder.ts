@@ -58,7 +58,7 @@ export class TrainerBuilder {
       throw new TypeError('model ID is undefined')
     }
 
-    const info: ModelInfo = { type: ModelType.WORKING, taskID: this.task.taskID, name: modelID }
+    const info: ModelInfo = { type: ModelType.WORKING, taskID: this.task.id, name: modelID }
 
     const model = await (
       await this.memory.contains(info) ? this.memory.getModel(info) : client.getLatestModel()

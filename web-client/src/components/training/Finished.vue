@@ -62,7 +62,7 @@ const memory = computed<Memory>(() => memoryStore.useIndexedDB ? new IndexedDB()
 const modelInfo = computed<ModelInfo>(() => {
   return {
     type: ModelType.WORKING,
-    taskID: props.task.taskID,
+    taskID: props.task.id,
     name: props.task.trainingInformation.modelID
   }
 })

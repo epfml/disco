@@ -10,8 +10,8 @@ export const useTrainingStore = defineStore('training', () => {
 
   const step = computed(() => steps.value.get(task.value))
 
-  function setTask (taskID: TaskID): void {
-    task.value = taskID
+  function setTask (id: TaskID): void {
+    task.value = id
   }
   function prevStep (): void {
     const step = steps.value.get(task.value)

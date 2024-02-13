@@ -5,12 +5,16 @@ import type { Task, data } from '../..'
 import { Validator, ConsoleLogger, EmptyMemory, client as clients, aggregator, defaultTasks } from '../..'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 
-const simplefaceMock = {
-  taskID: 'simple_face',
+const simplefaceMock: Task = {
+  id: 'simple_face',
   displayInformation: {},
   trainingInformation: {
     modelID: 'simple_face-model',
+    epochs: 1,
     batchSize: 4,
+    roundDuration: 1,
+    validationSplit: 0,
+    scheme: 'federated',
     dataType: 'image',
     IMAGE_H: 200,
     IMAGE_W: 200,
@@ -21,7 +25,7 @@ const simplefaceMock = {
       metrics: ['accuracy']
     }
   }
-} as unknown as Task
+}
 
 describe('validator', () => {
   it('simple_face validator', async () => {

@@ -6,7 +6,7 @@ import { data } from '..'
 export const cifar10: TaskProvider = {
   getTask (): Task {
     return {
-      taskID: 'cifar10',
+      id: 'cifar10',
       displayInformation: {
         taskTitle: 'CIFAR10',
         summary: {

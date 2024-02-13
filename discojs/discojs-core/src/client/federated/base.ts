@@ -54,7 +54,7 @@ export class Base extends Client {
         throw new Error(`unknown protocol: ${this.url.protocol}`)
     }
 
-    serverURL.pathname += `feai/${this.task.taskID}`
+    serverURL.pathname += `feai/${this.task.id}`
 
     this._server = await this.connectServer(serverURL)
     this.aggregator.registerNode(Base.SERVER_NODE_ID)
@@ -153,7 +153,7 @@ export class Base extends Client {
   async sendMetadata (key: MetadataKey, value: MetadataValue): Promise<void> {
     const msg: messages.SendMetadata = {
       type: type.SendMetadata,
-      taskId: this.task.taskID,
+      taskId: this.task.id,
       nodeId: this.ownId,
       round: this.aggregator.round,
       key,
@@ -174,7 +174,7 @@ export class Base extends Client {
 
     const msg: messages.ReceiveServerMetadata = {
       type: type.ReceiveServerMetadata,
-      taskId: this.task.taskID,
+      taskId: this.task.id,
       nodeId: this.ownId,
       round: this.aggregator.round,
       key
