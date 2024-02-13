@@ -35,8 +35,9 @@ export abstract class Base {
     return this.messages.toArray()
   }
 
-  round (): number {
-    return this.currentRound
+  round(): number {
+    // + 1 because rounds start at 0
+    return this.currentRound + 1
   }
 
   participants (): number {
