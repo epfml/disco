@@ -4,7 +4,10 @@ import { Server } from 'node:http'
 import { Range } from 'immutable'
 import { assert } from 'chai'
 
-import { WeightsContainer, node, Disco, TrainingSchemes, client as clients, aggregator as aggregators, defaultTasks } from '@epfml/discojs-node'
+import {
+  WeightsContainer, node, Disco, TrainingSchemes, client as clients,
+  aggregator as aggregators, informant, defaultTasks
+} from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
 
@@ -59,14 +62,23 @@ describe('end-to-end federated', function () {
 
     const aggregator = new aggregators.MeanAggregator(titanicTask)
     const client = await getClient(clients.federated.FederatedClient, server, titanicTask, aggregator)
-    const disco = new Disco(titanicTask, { scheme: SCHEME, client, aggregator })
+    const trainingInformant = new informant.FederatedInformant(titanicTask, 10)
+    const disco = new Disco(titanicTask, { scheme: SCHEME, client, aggregator, informant: trainingInformant })
 
     await disco.fit(data)
     await disco.close()
-
+    
     if (aggregator.model === undefined) {
       throw new Error('model was not set')
     }
+    assert(
+      trainingInformant.trainingAccuracy() > 0.6,
+      `expected training accuracy greater than 0.6 but got ${trainingInformant.trainingAccuracy()}`
+    )
+    assert(
+      trainingInformant.validationAccuracy() > 0.6,
+      `expected validation accuracy greater than 0.6 but got ${trainingInformant.validationAccuracy()}`
+    )
     return WeightsContainer.from(aggregator.model)
   }
 
@@ -77,10 +89,6 @@ describe('end-to-end federated', function () {
 
   it('two titanic users reach consensus', async () => {
     const [m1, m2] = await Promise.all([titanicUser(), titanicUser()])
-    assert.isTrue(
-      m1.weights.some((x) => x.isNaN()) ||
-      m2.weights.some((x) => x.isNaN()) ||
-      m1.equals(m2)
-    )
+    assert.isTrue(m1.equals(m2))
   })
 })
