@@ -13,5 +13,5 @@ export const useValidationStore = defineStore('validation', () => {
     model.value = path
     state.value = !state.value
   }
-  return { state, step, model, isOnlyPrediction: isOnlyPrediction, setModel }
+  return { state, step, model, isOnlyPrediction, setModel }
 })

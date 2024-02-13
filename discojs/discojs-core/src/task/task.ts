@@ -1,6 +1,6 @@
-import { isDisplayInformation, DisplayInformation } from './display_information'
-import { isTrainingInformation, TrainingInformation } from './training_information'
-import { isDigest, Digest } from './digest'
+import { isDisplayInformation, type DisplayInformation } from './display_information'
+import { isTrainingInformation, type TrainingInformation } from './training_information'
+import { isDigest, type Digest } from './digest'
 
 export type TaskID = string
 

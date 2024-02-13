@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 
 import { tf } from '..'
-import { TensorLike, WeightsContainer } from './weights_container'
+import { type TensorLike, WeightsContainer } from './weights_container'
 
 type WeightsLike = Iterable<TensorLike>
 
@@ -48,8 +48,7 @@ function reduce (
   fn: (a: tf.Tensor, b: tf.Tensor) => tf.Tensor
 ): WeightsContainer {
   return parseWeights(weights).reduce((acc: WeightsContainer, ws: WeightsContainer) =>
-    new WeightsContainer(acc.weights.map((w, i) =>
-      fn(w, ws.get(i) as tf.Tensor))))
+    acc.mapWith(ws, fn))
 }
 
 /**

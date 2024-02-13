@@ -1,10 +1,10 @@
 import { Map } from 'immutable'
 
-import { serialization, informant, MetadataKey, MetadataValue, WeightsContainer, TrainingInformant } from '../..'
-import { NodeID } from '../types'
+import { serialization, type informant, type MetadataKey, type MetadataValue, type WeightsContainer, type TrainingInformant } from '../..'
+import { type NodeID } from '../types'
 import { Base as Client } from '../base'
-import { type, ClientConnected } from '../messages'
-import { EventConnection, waitMessageWithTimeout, WebSocketServer } from '../event_connection'
+import { type, type ClientConnected } from '../messages'
+import { type EventConnection, waitMessageWithTimeout, WebSocketServer } from '../event_connection'
 import * as messages from './messages'
 
 /**
@@ -85,7 +85,7 @@ export class Base extends Client {
    * And waits for the server to reply with the most recent aggregated weights
    * @param weights The weight updates to send
    */
-  private async sendPayloadAndReceiveResult (payload: WeightsContainer): Promise<WeightsContainer|undefined> {
+  private async sendPayloadAndReceiveResult (payload: WeightsContainer): Promise<WeightsContainer | undefined> {
     const msg: messages.SendPayload = {
       type: type.SendPayload,
       payload: await serialization.weights.encode(payload),
@@ -100,7 +100,7 @@ export class Base extends Client {
    * Waits for the server's result for its current (most recent) round and add it to our aggregator.
    * Updates the aggregator's round if it's behind the server's.
    */
-  private async receiveResult (): Promise<WeightsContainer|undefined> {
+  private async receiveResult (): Promise<WeightsContainer | undefined> {
     try {
       const { payload, round } = await waitMessageWithTimeout(this.server, type.ReceiveServerPayload)
       const serverRound = round
@@ -130,8 +130,8 @@ export class Base extends Client {
   ): Promise<void> {
     this.receivedStatistics = undefined
 
-    const msg: messages.MessageBase = {
-      type: type.ReceiveServerStatistics
+    const msg: messages.RequestServerStatistics = {
+      type: type.RequestServerStatistics
     }
     this.server.send(msg)
 

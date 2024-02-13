@@ -390,7 +390,7 @@ async function assessModel (): Promise<void> {
 
 function openMapModal (prediction: number, groundTruth?: number) {
   const baseUrl = props.task.displayInformation.labelDisplay.mapBaseUrl
-  if (isPolygonMapVisualization && baseUrl) {
+  if (isPolygonMapVisualization.value && baseUrl) {
     const correctColor = '274C78'
     const errorColor = 'FF0000'
 

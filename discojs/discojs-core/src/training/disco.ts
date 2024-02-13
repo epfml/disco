@@ -1,18 +1,18 @@
 import {
   client as clients,
-  data,
-  Logger,
-  Task,
-  TrainingInformant, informant as informants,
+  type data,
+  type Logger,
+  type Task,
+  type TrainingInformant, informant as informants,
   TrainingSchemes,
-  Memory, EmptyMemory,
+  type Memory, EmptyMemory,
   ConsoleLogger,
-  TrainingFunction
+  type TrainingFunction
 } from '..'
-import { Trainer } from './trainer/trainer'
+import { type Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
-import { TrainerLog } from '../logging/trainer_logger'
-import { Aggregator } from '../aggregator'
+import { type TrainerLog } from '../logging/trainer_logger'
+import { type Aggregator } from '../aggregator'
 import { MeanAggregator } from '../aggregator/mean'
 
 export interface DiscoOptions {

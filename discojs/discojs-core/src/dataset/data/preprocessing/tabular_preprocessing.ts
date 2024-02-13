@@ -1,6 +1,6 @@
-import { Task, tf } from '../../..'
+import { type Task, type tf } from '../../..'
 import { List } from 'immutable'
-import { PreprocessingFunction } from './base'
+import { type PreprocessingFunction } from './base'
 
 /**
  * Available tabular preprocessing types.
@@ -20,13 +20,13 @@ const sanitize: PreprocessingFunction = {
   apply: (entry: tf.TensorContainer, task: Task): tf.TensorContainer => {
     // if preprocessing a dataset without labels, then the entry is an array of numbers
     if (Array.isArray(entry)) {
-      return entry.map(i => i === undefined ? 0 : i)
+      return entry.map(i => i ?? 0)
     // otherwise it is an object with feature and labels
     } else {
       const { xs, ys } = entry as TabularEntry
       return {
-        xs: xs.map(i => i === undefined ? 0 : i),
-        ys: ys
+        xs: xs.map(i => i ?? 0),
+        ys
       }
     }
   }

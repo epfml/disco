@@ -1,6 +1,6 @@
-import { AggregatorChoice } from '../aggregator/get'
-import { Preprocessing } from '../dataset/data/preprocessing'
-import { isModelCompileData, ModelCompileData } from './model_compile_data'
+import { type AggregatorChoice } from '../aggregator/get'
+import { type Preprocessing } from '../dataset/data/preprocessing'
+import { isModelCompileData, type ModelCompileData } from './model_compile_data'
 
 export function isTrainingInformation (raw: unknown): raw is TrainingInformation {
   if (typeof raw !== 'object') {
@@ -31,7 +31,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     'minimumReadyPeers' |
     'LABEL_LIST' |
     'noiseScale' |
-    'clippingRadius'|
+    'clippingRadius' |
     'aggregator'
 
   const {

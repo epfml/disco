@@ -2,7 +2,7 @@ import { assert, expect } from 'chai'
 import { Map, Set } from 'immutable'
 
 import { TabularData } from './tabular_data'
-import { tf, Task } from '../..'
+import { tf, type Task } from '../..'
 
 describe('tabular data checks', () => {
   const titanicMock: Task = {

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    // TODO ES6 disallow server's test
+    "target": "ES5",
+    "lib": ["ES5"],
+
+    "strict": true,
+    "noEmit": true,
+
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "downlevelIteration": true, // needed by <ES6
+  },
+  "include": ["**/src", "**/tests"],
+}

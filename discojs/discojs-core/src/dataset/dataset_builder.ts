@@ -1,6 +1,6 @@
-import { Task } from '..'
-import { DataSplit } from './data'
-import { DataConfig, DataLoader } from './data_loader/data_loader'
+import { type Task } from '..'
+import { type DataSplit } from './data'
+import { type DataConfig, type DataLoader } from './data_loader/data_loader'
 
 import { Map } from 'immutable'
 
@@ -103,7 +103,7 @@ export class DatasetBuilder<Source> {
     if (this._sources.length > 0) {
       let defaultConfig: DataConfig = {}
 
-      if (config?.inference) {
+      if (config?.inference === true) {
         // Inferring model, no labels needed
         defaultConfig = {
           features: this.task.trainingInformation.inputColumns,

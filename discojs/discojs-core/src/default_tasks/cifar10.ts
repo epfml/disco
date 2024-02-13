@@ -1,4 +1,4 @@
-import { tf, Task, data, TaskProvider } from '..'
+import { tf, type Task, data, type TaskProvider } from '..'
 
 export const cifar10: TaskProvider = {
   getTask (): Task {

@@ -1,8 +1,8 @@
 import express from 'express'
-import expressWS from 'express-ws'
+import type expressWS from 'express-ws'
 
-import { Config } from '../config'
-import { TasksAndModels } from '../tasks'
+import { type Config } from '../config'
+import { type TasksAndModels } from '../tasks'
 
 import { Federated } from './federated/server'
 import { Decentralized } from './decentralized'

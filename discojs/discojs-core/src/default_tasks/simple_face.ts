@@ -1,4 +1,4 @@
-import { tf, Task, data, TaskProvider } from '..'
+import { type tf, type Task, data, type TaskProvider } from '..'
 
 export const simpleFace: TaskProvider = {
   getTask (): Task {

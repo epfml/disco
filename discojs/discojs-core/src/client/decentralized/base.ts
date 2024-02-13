@@ -1,10 +1,10 @@
 import { Map, Set } from 'immutable'
 
-import { TrainingInformant, WeightsContainer, serialization } from '../..'
-import { Client, NodeID } from '..'
-import { type, ClientConnected } from '../messages'
+import { type TrainingInformant, type WeightsContainer, serialization } from '../..'
+import { Client, type NodeID } from '..'
+import { type, type ClientConnected } from '../messages'
 import { timeout } from '../utils'
-import { EventConnection, WebSocketServer, waitMessage, PeerConnection, waitMessageWithTimeout } from '../event_connection'
+import { type EventConnection, WebSocketServer, waitMessage, type PeerConnection, waitMessageWithTimeout } from '../event_connection'
 import { PeerPool } from './peer_pool'
 import * as messages from './messages'
 
@@ -58,7 +58,7 @@ export class Base extends Client {
         peers,
         this.server,
         // Init receipt of peers weights
-        (conn) => this.receivePayloads(conn, round)
+        (conn) => { this.receivePayloads(conn, round) }
       )
 
       console.info(`[${this.ownId}] received peers for round ${round}:`, connections.keySeq().toJS())

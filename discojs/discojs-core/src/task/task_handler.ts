@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { Map } from 'immutable'
 
-import { serialization, tf, WeightsContainer } from '..'
-import { isTask, Task, TaskID } from './task'
+import { serialization, type tf, WeightsContainer } from '..'
+import { isTask, type Task, type TaskID } from './task'
 
 const TASK_ENDPOINT = 'tasks'
 

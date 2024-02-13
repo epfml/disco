@@ -1,4 +1,4 @@
-import { tf } from '../..'
+import { type tf } from '../..'
 import { Trainer } from './trainer'
 
 /** Class whose role is to locally (alone) train a model on a given dataset,

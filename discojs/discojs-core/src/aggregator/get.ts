@@ -1,4 +1,4 @@
-import { aggregator, Task } from '..'
+import { aggregator, type Task } from '..'
 
 /**
  * Enumeration of the available types of aggregator.

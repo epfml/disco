@@ -1,9 +1,9 @@
 import { List, Map, Set } from 'immutable'
 
-import { Task } from '../..'
-import { Dataset } from '../dataset'
-import { TabularData, Data, DataSplit } from '../data'
-import { DataLoader, DataConfig } from '../data_loader'
+import { type Task } from '../..'
+import { type Dataset } from '../dataset'
+import { TabularData, type Data, type DataSplit } from '../data'
+import { DataLoader, type DataConfig } from '../data_loader'
 
 // Window size from which the dataset shuffling will sample
 const BUFFER_SIZE = 1000
@@ -89,7 +89,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
     const datasets = await Promise.all(sources.map(async (source) =>
       await this.load(source, { ...config, shuffle: false })))
     let dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
-    dataset = config?.shuffle ? dataset.shuffle(BUFFER_SIZE) : dataset
+    dataset = config?.shuffle === true ? dataset.shuffle(BUFFER_SIZE) : dataset
     const data = await this.createData(dataset)
     // TODO: Implement validation split for tabular data (tricky due to streaming)
     return {
