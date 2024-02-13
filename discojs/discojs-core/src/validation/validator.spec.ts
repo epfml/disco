@@ -23,7 +23,7 @@ const simplefaceMock = {
 } as unknown as Task
 
 describe('validator', () => {
-  it('works for simple_face', async () => {
+  it('simple_face validator', async () => {
     const dir = '../../example_training_data/simple_face/'
     const files: string[][] = ['child/', 'adult/']
       .map((subdir: string) => fs.readdirSync(dir + subdir)
@@ -32,9 +32,9 @@ describe('validator', () => {
 
     const data: data.Data = (await new node.data.NodeImageLoader(simplefaceMock)
       .loadAll(files.flat(), { labels })).train
-    const buffer = new aggregator.MeanAggregator(simplefaceMock)
-    const client = new clients.Local(new URL('http://localhost:8080'), simplefaceMock, buffer)
-    buffer.setModel(await client.getLatestModel())
+    const meanAggregator = new aggregator.MeanAggregator(simplefaceMock)
+    const client = new clients.Local(new URL('http://localhost:8080'), simplefaceMock, meanAggregator)
+    meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(
       simplefaceMock,
       new ConsoleLogger(),
@@ -49,16 +49,16 @@ describe('validator', () => {
     }
     assert(
       validator.visitedSamples === data.size,
-      `expected ${size} visited samples but got ${validator.visitedSamples}`
+      `Expected ${size} visited samples but got ${validator.visitedSamples}`
     )
     assert(
       validator.accuracy > 0.3,
-      `expected accuracy greater than 0.3 but got ${validator.accuracy}`
+      `Expected random weight init accuracy greater than 0.3 but got ${validator.accuracy}`
     )
     console.table(validator.confusionMatrix)
   }).timeout(15_000)
 
-  it('works for titanic', async () => {
+  it('titanic validator', async () => {
     const titanicTask = defaultTasks.titanic.getTask()
     const files = ['../../example_training_data/titanic_train.csv']
     const data: data.Data = (await new node.data.NodeTabularLoader(titanicTask, ',').loadAll(files, {
@@ -66,9 +66,9 @@ describe('validator', () => {
         labels: titanicTask.trainingInformation.outputColumns,
         shuffle: false
       })).train
-    const buffer = new aggregator.MeanAggregator(titanicTask)
-    const client = new clients.Local(new URL('http://localhost:8080'), titanicTask, buffer)
-    buffer.setModel(await client.getLatestModel())
+    const meanAggregator = new aggregator.MeanAggregator(titanicTask)
+    const client = new clients.Local(new URL('http://localhost:8080'), titanicTask, meanAggregator)
+    meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(titanicTask, 
                                     new ConsoleLogger(), 
                                     new EmptyMemory(),
@@ -81,11 +81,11 @@ describe('validator', () => {
     await data.dataset.forEachAsync(() => size+=1)
     assert(
       validator.visitedSamples === size,
-      `expected ${size} visited samples but got ${validator.visitedSamples}`
+      `Expected ${size} visited samples but got ${validator.visitedSamples}`
     )
     assert(
-      validator.accuracy > 0.5,
-      `expected accuracy greater than 0.5 but got ${validator.accuracy}`
+      validator.accuracy > 0.3,
+      `Expected random weight init accuracy greater than 0.3 but got ${validator.accuracy}`
     )
   }).timeout(15_000)
 })
