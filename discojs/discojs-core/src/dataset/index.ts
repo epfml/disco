@@ -1,6 +1,6 @@
 export { Dataset } from './dataset'
 export { DatasetBuilder } from './dataset_builder'
-export { ImageLoader, TabularLoader, DataLoader } from './data_loader'
+export { ImageLoader, TabularLoader, DataLoader, TextLoader } from './data_loader'
 export {
   DataSplit, Data, TabularData, ImageData, TextData,
   ImagePreprocessing, TabularPreprocessing, TextPreprocessing,

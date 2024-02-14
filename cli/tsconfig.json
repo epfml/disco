@@ -14,9 +14,8 @@
     "declaration": true,
 
     "baseUrl": "src",
-    "paths": {
-      "@/*": ["*"]
-    }
+    "outDir":  "dist",
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["**/*.spec.ts"]
 }

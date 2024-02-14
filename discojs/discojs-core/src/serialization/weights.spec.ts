@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 
-import { WeightsContainer, serialization } from '@epfml/discojs-node'
+import { WeightsContainer, serialization } from '..'
 
 describe('weights', () => {
   it('can encode what it decodes', async () => {

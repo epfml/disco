@@ -6,34 +6,23 @@
     "disco-server": "./dist/run_server.js"
   },
   "scripts": {
-    "dev": "nodemon src/run_server.ts",
-    "start": "ts-node src/run_server.ts",
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/discojs-node/dist --watch . --exec npm run",
+    "start": "npm run build && node dist/run_server.js",
     "build": "tsc",
-    "clean": "tsc --build --clean && rm -r dist || true",
-    "test": "mocha",
-    "lint": "npx eslint --max-warnings 0 ."
+    "lint": "npx eslint --max-warnings 0 .",
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epfml/discojs-node": "^2.1.1",
+    "@epfml/discojs-node": "*",
     "@koush/wrtc": "0.5",
     "cors": "2",
     "express": "4",
     "express-ws": "5",
     "immutable": "4",
-    "lodash": "4",
     "msgpack-lite": "0.1",
     "uuid": "9"
-  },
-  "nodemonConfig": {
-    "ignore": [
-      "dist/*",
-      "models/*"
-    ],
-    "execMap": {
-      "ts": "node --inspect=0.0.0.0:9229 --nolazy -r ts-node/register"
-    }
   },
   "devDependencies": {
     "@types/chai": "4",
@@ -41,7 +30,6 @@
     "@types/express-ws": "3",
     "@types/mocha": "9",
     "@types/msgpack-lite": "0.1",
-    "@types/supertest": "2",
     "@types/uuid": "9",
     "@typescript-eslint/eslint-plugin": "4",
     "@typescript-eslint/parser": "4",
@@ -52,10 +40,7 @@
     "eslint-plugin-node": "11",
     "eslint-plugin-promise": "5",
     "mocha": "9",
-    "nodemon": "2",
-    "supertest": "6",
-    "ts-node": "10",
-    "ts-node-register": "1",
+    "nodemon": "3",
     "typescript": "4"
   },
   "repository": {

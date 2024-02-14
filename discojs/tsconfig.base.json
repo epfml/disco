@@ -5,6 +5,7 @@
     "lib": ["ES5", "DOM"],
 
     "strict": true,
+    "noEmitOnError": true,
 
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -14,7 +15,7 @@
 
     "declaration": true,
 
-    "typeRoots": ["node_modules/@types", "discojs-core/types"]
+    "typeRoots": ["../node_modules/@types", "discojs-core/types"]
   },
   "include": []
 }

@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 
-import { tf, serialization } from '@epfml/discojs-node'
+import { tf, serialization } from '..'
 
 async function getRawWeights (model: tf.LayersModel): Promise<Array<[number, Float32Array]>> {
   return Array.from(

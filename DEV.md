@@ -1,4 +1,4 @@
-<div align="center">
+    <div align="center">
   <h1>DISCO <code>developer guide</code></h1>
   <p>
     <a href="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml"><img src="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml/badge.svg" alt="build status" /></a>
@@ -8,7 +8,7 @@
 
 </div>
 
-Welcome to the DISCO developer guide. 
+Welcome to the DISCO developer guide.
 Here you will have a first overview of the project, how to install and run an instance of DISCO and links to further documentation.
 
 ## Structure
@@ -39,59 +39,90 @@ flowchart LR
     cli-->|uses|discojs-node;
     custom_node["custom Node.js scripts"]-->|uses|discojs-node;
   end
-``` 
+```
 
 ## Installation guide
 
-The following instructions will install the required dependencies, build Disco.js and launch a DISCO server and a web client. If you run into any sort of trouble check our [FAQ](./docs/FAQ.md); otherwise please create a new issue or feel free to ask on [our slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw). 
+The following instructions will install the required dependencies, build Disco.js and launch a DISCO server and a web client. If you run into any sort of trouble check our [FAQ](./docs/FAQ.md); otherwise please create a new issue or feel free to ask on [our slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw).
 
 **1.** We recommend using [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) to handle multiple Node.js versions. Start by installing `nvm` by following [their installation instructions](https://github.com/nvm-sh/nvm).
 After installation, you should be able to run
+
 ```
 nvm -v
 0.39.7 # my nvm version at the time
 ```
+
 **2.** Install Node.js version 16
+
 ```
 nvm install 16
 ```
+
 You can now choose which Node.js version to use:
+
 ```
 nvm use 16
 ```
+
 Using Node.js v16 should automatically set your [npm](https://docs.npmjs.com/about-npm) (Node Package Manager, different from n**v**m) version to 8:
+
 ```
 npm --version
 8.xx.xx
 ```
+
 `nvm` manages your different Node.js versions while `npm` handles your different Node.js project packages within one version.
 
 **3.** Clone the repository
+
 ```
 git clone git@github.com:epfml/disco.git
 cd disco
 ```
 
-**4.** Run the installation script
-```
-./install.sh
-```
-The [Installation Script](#installation-script) Section goes over what <code>install.sh</code> does. If you are planning to contribute to DISCO, it will certainly prove useful to understand what the script does.
+**4.** Install the dependencies
 
-**5.** Launch DISCO
+```
+npm ci
+```
+
+**5.** Build the projects
+
+Then we need to builds the packages meaning compile TypeScript into JavaScript.
+
+Disco is split in multiple packages, called workspaces in NPM, which are described in the [Structure Section](#structure).
+You can add `--workspaces` (or shorter as `-ws`) to many `npm` commands to act on all packages.
+Or you can select a specific workspace via `--workspace=$name-or-path-to-package` (`-w $name-or-path-to-package`).
+
+```
+npm -ws run build
+```
+
+**6.** Download and extract the sample training datasets. These datasets are used in the automated tests.
+
+```
+./get_training_data.sh
+```
+
+**7.** Launch DISCO
 
 As you may have seen, there are many ways to use DISCO. Here we will run a server and a web client. From there, a user can use DISCO from their browser.
-* First launch a `server` instance, which is used for federated and decentralized learning tasks, e.g. to list peers participating in a decentralized task.
+
+- First launch a `server` instance, which is used for federated and decentralized learning tasks, e.g. to list peers participating in a decentralized task.
+
 ```
-cd server
-npm run dev
+npm -w server start
 ```
+
 The server should be listening on `http://localhost:8080/`.
-* Secondly, start a web client, which will allow you to use DISCO from your browser. You may have to do so **from another terminal** since the previous one is now used by the server.
+
+- Secondly, start a web client, which will allow you to use DISCO from your browser. You will have to do so **from another terminal** since the previous one is now used by the server.
+
 ```
-cd web-client # from another terminal
-npm run dev
+npm -w web-client start # from another terminal
 ```
+
 The web client should be running on `http://localhost:8081`, if not first restart the server and then the web client.
 
 > [!IMPORTANT]
@@ -99,67 +130,31 @@ The web client should be running on `http://localhost:8081`, if not first restar
 
 **You can now access DISCO at http://localhost:8081/**
 
-
 ## Further documentation
 
-* Next you may want to read our [onboarding guide](./docs/ONBOARDING.md) which lists the following steps to onboard DISCO. 
-* If you are only planning to use DISCO in your own scripts, you can find a stand-alone example relying on `discojs-node` [here](./docs/node_example). The example runs with Node.js outside any browser, using the `@epfml/discojs-node` NPM package and the `server` module. A DISCO server is launched by the script itself and the data is already available in the repo.
+- Next you may want to read our [onboarding guide](./docs/ONBOARDING.md) which lists the following steps to onboard DISCO.
+- If you are only planning to use DISCO in your own scripts, you can find a stand-alone example relying on `discojs-node` [here](./docs/node_example). The example runs with Node.js outside any browser, using the `@epfml/discojs-node` NPM package and the `server` module. A DISCO server is launched by the script itself and the data is already available in the repo.
 
 #### Table of contents
+
 As there are many guides in the project, here is a table of contents referencing them all:
-* [DISCO README](./README.md)
-* [Developer guide](./DEV.md)
-* The `docs` folder contains in-depth documentation on the project:
-	* [Onboarding guide](./docs/ONBOARDING.md)
-	* [Contributing guide](./docs/CONTRIBUTING.md)
-	* [Disco.js under the hood](./docs/DISCOJS.md)
-	* [FAQ](./docs/FAQ.md)
-	* [Example: using `discojs-node` in a script](./docs/node_example/README.md)
-	* [Privacy in DISCO](./docs/PRIVACY.md)
-	* [How to create a DISCO Task](./docs/TASK.md)
-	* [Vue.js architecture](./docs/VUEJS.md)
-* Respective `README` files contain installation and packaging instructions relevant to the module
-	* [`discojs` README](./discojs/README.md)
-		* [`discojs-core` README](./discojs/discojs-core/README.md)
-		* [`discojs-node` README](./discojs/discojs-node/README.md)
-		* [`discojs-web` README](./discojs/discojs-web/README.md)
-	* [`server` README](./server/README.md)
-	* [`web-client` README](./web-client/README.md)
-	* [`cli` README](./cli/README.md)
 
-## Installation Script
-
-The installation script installs the dependencies required by the different parts of the project, which are described in the [Structure Section](#structure).
-It first installs the Disco.js library dependencies, notably, `TensorFlow.js`, and anything else required for federated and decentralized learning logic. 
-The script then builds the library, a step necessary to compile TypeScript into JavaScript.
-
-```
-cd discojs
-npm ci # stands for `clean install`, to ensure that only expected dependencies are being installed.
-npm run build
-```
-The script then installs dependencies for the web client, which implements a browser UI.
-By default, the project points to the [@epfml/disco-web](https://www.npmjs.com/package/@epfml/discojs) package published on the `npm` remote repository. In a development environment, we want to use the local web client in the `web-client` folder. To do so, we need to link the local folder as the actual dependency.
-
-```
-cd ../web-client
-npm ci
-npm link ../discojs/discojs-web
-```
-You can verify than the link is effective by checking that `npm ls` lists `@epfml/discojs@x.x.x -> ./../discojs/discojs-web`.
-
-Similarly, we install the server dependencies, and then the `discojs-node` dependency to the local folder rather than the remote npm package [@epfml/disco-node](https://www.npmjs.com/package/@epfml/discojs-node):
-```
-cd ../server
-npm ci
-npm link ../discojs/discojs-node
-```
-Install the CLI dependencies:
-```
-cd ../cli
-npm ci
-```
-Download and extract the sample training datasets. These datasets are used in the automated tests.
-```
-./get_training_data.sh
-```
+- [DISCO README](./README.md)
+- [Developer guide](./DEV.md)
+- The `docs` folder contains in-depth documentation on the project:
+  - [Onboarding guide](./docs/ONBOARDING.md)
+  - [Contributing guide](./docs/CONTRIBUTING.md)
+  - [Disco.js under the hood](./docs/DISCOJS.md)
+  - [FAQ](./docs/FAQ.md)
+  - [Example: using `discojs-node` in a script](./docs/node_example/README.md)
+  - [Privacy in DISCO](./docs/PRIVACY.md)
+  - [How to create a DISCO Task](./docs/TASK.md)
+  - [Vue.js architecture](./docs/VUEJS.md)
+- Respective `README` files contain installation and packaging instructions relevant to the module
+  - [`discojs` README](./discojs/README.md)
+    - [`discojs-core` README](./discojs/discojs-core/README.md)
+    - [`discojs-node` README](./discojs/discojs-node/README.md)
+    - [`discojs-web` README](./discojs/discojs-web/README.md)
+  - [`server` README](./server/README.md)
+  - [`web-client` README](./web-client/README.md)
+  - [`cli` README](./cli/README.md)

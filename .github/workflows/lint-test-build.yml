@@ -6,13 +6,6 @@ on:
 
 env:
   node_version: 16
-  lib_dir: discojs/
-  lib_core_dir: discojs/discojs-core/
-  lib_web_dir: discojs/discojs-web/
-  lib_node_dir: discojs/discojs-node/
-  client_dir: web-client/
-  server_dir: server/
-  cli_dir: cli/
 
 jobs:
   download-training-data:
@@ -27,154 +20,132 @@ jobs:
         working-directory: ./
 
   lint-lib-core:
+    needs: [build-lib-core, build-lib-node]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.lib_core_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run lint
-      # TODO npx ts-standard
+      - run: npm --workspace=./discojs/discojs-{core,node} run build
+      - run: npm --workspace=./discojs/discojs-core run lint
 
   lint-lib-node:
+    needs: build-lib-core
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.lib_node_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run lint
+      - run: npm --workspace=./discojs/discojs-core run build
+      - run: npm --workspace=./discojs/discojs-node run lint
 
   lint-lib-web:
+    needs: build-lib-core
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.lib_web_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run lint
+      - run: npm --workspace=./discojs/discojs-core run build
+      - run: npm --workspace=./discojs/discojs-web run lint
 
   lint-server:
-    needs: build-lib-node
+    needs: [build-lib-core, build-lib-node]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.server_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_node_dir }}
-      - run: npm ci && npm link ../discojs/discojs-node
-      - run: npx eslint --max-warnings 0 .
-      # TODO npx ts-standard
+      - run: npm --workspace=./discojs/discojs-{core,node} run build
+      - run: npm --workspace=./server run lint
+
+  lint-cli:
+    needs: [build-lib-core, build-lib-node, build-server]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
+      - run: npm --workspace=./cli run lint
 
   lint-web-client:
-    needs: build-lib-web
+    needs: [build-lib-core, build-lib-web]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.client_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.client_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_web_dir }}
+      - run: npm --workspace=./discojs/discojs-{core,web} run build
+      - run: npm --workspace=./web-client run lint
+
+  build-lib-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
       - run: npm ci
-      - run: npm run lint
+      - run: npm --workspace=./discojs/discojs-core run build
 
   build-lib-node:
-    needs: lint-lib-node
+    needs: build-lib-core
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.lib_node_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
+      - run: npm --workspace=./discojs/discojs-core run build
+      - run: npm --workspace=./discojs/discojs-node run build
 
   build-lib-web:
-    needs: lint-lib-web
+    needs: build-lib-core
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.lib_web_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: ${{ env.lib_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
+      - run: npm run --workspace=./discojs/discojs-core build
+      - run: npm run --workspace=./discojs/discojs-web build
 
   build-server:
-    needs: [lint-server, build-lib-node]
+    needs: [build-lib-core, build-lib-node]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.server_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_node_dir }}
-      - run: npm ci && npm link ../discojs/discojs-node
-      - run: npm run build
+      - run: npm run --workspace=./discojs/discojs-{core,node} build
+      - run: npm run --workspace=./server build
 
   build-server-docker:
     needs: build-server
@@ -186,34 +157,41 @@ jobs:
           install: true
       - run: docker build .
 
-  build-web-client:
-    needs: [lint-web-client, build-lib-web]
+  build-cli:
+    needs: [build-lib-core, build-lib-node, build-server]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.client_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.client_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_web_dir }}
+      - run: npm run --workspace={./discojs/discojs-{core,node},./server} build
+      - run: npm run --workspace=./cli build
+
+  build-web-client:
+    needs: [build-lib-core, build-lib-web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
       - run: npm ci
-      - run: npm run build
+      - run: npm --workspace=./discojs/discojs-{core,web} run build
+      - run: npm --workspace=./web-client run build
 
   test-lib-core:
-    needs: [build-lib-node, build-server-docker, test-server, download-training-data]
+    needs:
+      [
+        build-lib-core,
+        build-lib-node,
+        build-server-docker,
+        download-training-data,
+      ]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.lib_core_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -224,20 +202,13 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_node_dir }}
-      - run: ../../with_server npm test
+      - run: npm --workspace=./discojs/discojs-{core,node} run build
+      - run: ./with_server npm --workspace=./discojs/discojs-core test
 
   test-lib-node:
-    needs: [build-lib-node, build-server-docker, test-server, download-training-data]
+    needs: [build-lib-core, build-server-docker, download-training-data]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.lib_node_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -248,20 +219,13 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_node_dir }}
-      - run: ../../with_server npm test
+      - run: npm --workspace=./discojs/discojs-core run build
+      - run: ./with_server npm --workspace=./discojs/discojs-node test
 
   test-lib-web:
-    needs: [build-lib-node, build-server-docker, test-server, download-training-data]
+    needs: [build-lib-core, build-server-docker, download-training-data]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.lib_web_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -272,20 +236,13 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_node_dir }}
-      - run: ../../with_server npm test
+      - run: npm --workspace=./discojs/discojs-core run build
+      - run: ./with_server npm --workspace=./discojs/discojs-web test
 
   test-server:
-    needs: [build-server, download-training-data]
+    needs: [build-lib-core, build-lib-node, download-training-data]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.server_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -296,18 +253,12 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_node_dir }}
-      - run: npm ci && npm link ../discojs/discojs-node
-      - run: npm test
+      - run: npm --workspace=./discojs/discojs-{core,node} run build
+      - run: npm --workspace=./server test
 
   test-web-client:
-    needs: [build-web-client, build-server-docker, test-server, download-training-data]
+    needs: [build-lib-core, build-lib-web, download-training-data]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -319,30 +270,21 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
-            ${{ env.client_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_web_dir }}
-      - run: npm ci
-        working-directory: web-client/cypress
-      - uses: cypress-io/github-action@v4
+      - run: npm --workspace=./discojs/discojs-{core,web} run build
+      - uses: cypress-io/github-action@v6
         with:
           browser: chromium
-          start: npm run dev
+          start: npm start
+          install: false
           wait-on: http://localhost:8081/
-          working-directory: ${{ env.client_dir }}
+          working-directory: ./web-client
           config: baseUrl=http://localhost:8081/#/
 
   test-cli:
-    needs: [test-server, download-training-data]
+    needs:
+      [build-lib-core, build-lib-node, build-server, download-training-data]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.cli_dir }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/cache@v3
@@ -353,15 +295,6 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
           cache: npm
-          cache-dependency-path: |
-            ${{ env.lib_dir }}/package-lock.json
-            ${{ env.server_dir }}/package-lock.json
-            ${{ env.cli_dir }}/package-lock.json
       - run: npm ci
-        working-directory: ${{ env.lib_dir }}
-      - run: npm run build
-        working-directory: ${{ env.lib_node_dir }}
-      - run: npm ci && npm link ../${{ env.lib_node_dir }} && npm run build
-        working-directory: ${{ env.server_dir }}
-      - run: npm ci && npm link ../${{ env.server_dir }} ../${{ env.lib_node_dir }}
-      - run: npm start -- -t cifar10 -u 1 -e 1
+      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
+      - run: npm --workspace=./cli start -- -t cifar10 -u 1 -e 1

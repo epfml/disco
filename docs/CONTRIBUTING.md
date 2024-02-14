@@ -37,8 +37,7 @@ git push -u origin 202-train-bug-nacho
 Here are the main commands you may rely on in different parts of DISCO:
 * After modifying `discojs`, it is currently necessary to rebuild the library for the changes to be effective (no hot reloading):
 ```
-cd discojs
-npm run build # rebuilds disco-core, disco-node and disco-web
+npm run build -w ./discojs # rebuilds disco-core, disco-node and disco-web
 ```
 * Both `server` and `web-client` work with hot reloading, i.e., once the backends are running, any code modification is automatically taken into account:
 ```
@@ -67,7 +66,7 @@ Each part of DISCO has a respective test suite:
 * `discojs` needs to have a `server` instance to be tested:
 ```
 cd server
-npm run start
+npm start
 
 # from another terminal if needed
 cd discojs

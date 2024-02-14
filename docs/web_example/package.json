@@ -7,6 +7,6 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@epfml/discojs": "file:../../discojs/discojs-web"
+    "@epfml/discojs": "*"
   }
 }

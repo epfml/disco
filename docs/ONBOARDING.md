@@ -1,10 +1,10 @@
 # Onboarding
 
 Disco has grown a lot since its early days, and like any sizeable code base, getting started is both
-difficult and intimidating: there are a *lot* of files, it's not clear what's important at first, and even where to start 
+difficult and intimidating: there are a _lot_ of files, it's not clear what's important at first, and even where to start
 is a bit of a puzzle. This document aims at giving you an efficient process to get familiar with DISCO.
 
-The two main technologies behind DISCO are TypeScript and distributed machine learning. In the following sections I will assume that you are familiar 
+The two main technologies behind DISCO are TypeScript and distributed machine learning. In the following sections I will assume that you are familiar
 with both to a certain extent. If not, the following references might be useful:
 
 - [JavaScript](https://eloquentjavascript.net)
@@ -12,7 +12,7 @@ with both to a certain extent. If not, the following references might be useful:
 - [Federated and Decentralized Learning](https://arxiv.org/pdf/1912.04977)
 
 > [!IMPORTANT]
-> Disco is a big project and some information has probably been omitted or is outdated. It is now *your* responsibility to add missing information or let us know on [slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw)!
+> Disco is a big project and some information has probably been omitted or is outdated. It is now _your_ responsibility to add missing information or let us know on [slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw)!
 
 ## First steps
 
@@ -22,7 +22,6 @@ a `server` and a `cli` (e.g., for benchmarking). Depending on what your goal is,
 1. If you are going to work, contribute and improve the project, I first recommend you get a good understand of what DISCO does: play around with the [website](https://epfml.github.io/disco/#/), train a model from the pre-defined tasks, or even create your own custom task. Feedback is always appreciated, feel free to let us know on slack/in the github issues/in person if you noticed any issues or thought of an improvement.
 
 2. Then, get a high-level understanding of the different parts of the projects in the [developer guide](../DEV.md), even if you're planning on working on a subset of the project. If you want to know more about a specific part of the project, refer to the table of contents at the end of the DEV guide.
-   
 3. Follow the installation instructions from the [developer guide](../DEV.md) to launch a DISCO instance working in your browser.
 
 > [!TIP]
@@ -39,19 +38,18 @@ ts-node your_script.ts
 ```
 
 * Because TypeScript needs to be transpiled to JavaScript, you need to rebuild the `discojs` folder every time you make any changes to it:
-``` js
-cd discojs
-npm run build
+``` sh
+npm -w ./discojs run build
 ```
 
-* When cloning the repo, the server and the web-client points to the [@epfml/disco-node](https://www.npmjs.com/package/@epfml/discojs-node) and the [@epfml/disco-web](https://www.npmjs.com/package/@epfml/discojs) packages respectively published on the `npm` remote repository. In a development environment, we want to use the local implementations in the `discojs/discojs-node` and `discojs/discojs-web` folders for changes to take effect immediately. To do so, we need to link the local folders as the actual dependencies:
+If you want to automate the building phase, you can use the `watch` script to rebuild a module whenever changes are detected.
+As each of those calls are non-terminating (they're watching indefinitely), you'll need to run each of them in a different terminal.
+
+```sh
+npm -w ./discojs/discojs-core run watch build
+npm -w ./discojs/discojs-node run watch build # another terminal
+npm -w ./discojs/discojs-web run watch build # one more terminal
 ```
-cd server 
-npm link ../discojs/discojs-node
-cd ../web-client 
-npm link ../discojs/discojs-web
-```
-You can verify than the links are effective by checking that running `npm ls` from the `server` folder lists `@epfml/discojs@x.x.x -> ./../discojs/discojs-node` in server and `@epfml/discojs@x.x.x -> ./../discojs/discojs-web` in the web-client.
 
 > [!TIP]
 > If you are using VSCode, know that you may not be able to open the editor from the repo root level without VSCode raising imports errors. If that is the case, you should start VSCode from inside the module you are working.

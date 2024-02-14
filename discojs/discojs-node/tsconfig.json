@@ -1,9 +1,10 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
+    "types": ["node", "mocha"],
     "outDir": "dist",
     "baseUrl": "src"
   },
   "include": ["src"],
-  "exclude": ["**/*.spec.ts", "src/core/index.*.ts"]
+  "exclude": ["**/*.spec.ts"]
 }

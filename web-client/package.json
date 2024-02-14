@@ -5,14 +5,10 @@
     "dev": "vue-cli-service serve  --port 8081",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "test": "vue-cli-service test:unit tests",
-    "build17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service build",
-    "lint17": "export NODE_OPTIONS=--openssl-legacy-provider  && vue-cli-service lint",
-    "prod": "vue-cli-service serve --mode production",
-    "serve17": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve"
+    "test": "vue-cli-service test:unit tests"
   },
   "dependencies": {
-    "@epfml/discojs": "^2.1.1",
+    "@epfml/discojs": "*",
     "@meforma/vue-toaster": "1",
     "@types/d3": "7",
     "apexcharts": "3",
