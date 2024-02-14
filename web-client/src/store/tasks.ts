@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
 import { Map } from 'immutable'
-
+import { useToaster } from '@/composables/toaster'
 import { TaskID, Task, fetchTasks } from '@epfml/discojs'
 
 import { CONFIG } from '@/config'
@@ -22,10 +22,10 @@ export const useTasksStore = defineStore('tasks', () => {
       const tasks = await fetchTasks(CONFIG.serverUrl)
       tasks.forEach(addTask)
     } catch (e) {
-      console.error(
-        'Fetching of tasks failed with error',
-        e instanceof Error ? e.message : e.toString()
-      )
+      console.error('Fetching of tasks failed with error',
+        e instanceof Error ? e.message : e.toString())
+      const toaster = useToaster()
+      toaster.error('The server is unreachable. \n Please try again later or reach out on slack.')
     }
   }
 

@@ -19,10 +19,10 @@
         >
           <TitleCard>
             <template #title>
-              Page Not Found
+              404 - Page Not Found
             </template>
             <template #text>
-              The page you asked for does not exist anymore.
+              The page you're looking for does not exist.
               <div class="grid grid-cols-2 gap-8 items-center">
                 <div class="text-right">
                   <CustomButton

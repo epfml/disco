@@ -1,9 +1,77 @@
 <template>
   <div class="space-y-4 md:space-y-8">
+    <!-- Fancy training statistics -->
+    <div class="flex flex-wrap justify-center gap-4 md:gap-8">
+      <IconCardSmall class="w-72 shrink-0">
+        <template #header>
+          {{ currentRoundText }}
+        </template>
+        <template #text>
+          <!-- rounds normally start at 0 but here have already been incremented
+          to start at 1 in the UI -->
+          {{ trainingInformant.round() }}
+        </template>
+        <template #icon>
+          <Timer />
+        </template>
+      </IconCardSmall>
+      <IconCardSmall class="w-72 shrink-0">
+        <template #header>
+          Current # of participants
+        </template>
+        <template #text>
+          {{ trainingInformant.participants() }}
+        </template>
+        <template #icon>
+          <People />
+        </template>
+      </IconCardSmall>
+      <IconCardSmall class="w-72 shrink-0">
+        <template #header>
+          Average # of participants
+        </template>
+        <template #text>
+          {{ trainingInformant.averageParticipants() }}
+        </template>
+        <template #icon>
+          <People />
+        </template>
+      </IconCardSmall>
+    </div>
+
+    <!-- Training and validation accuracy charts -->
     <div
       class="flex flex-col md:grid gap-4 md:gap-8"
       :class="hasValidationData ? 'md:grid-cols-2' : ''"
     >
+      <!-- Training Accuracy users chart -->
+      <IconCard>
+        <!-- Card header -->
+        <template #title>
+          {{
+            $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
+          }}
+        </template>
+        <template #content>
+          <span class="text-2xl font-medium text-slate-500">
+            {{ currentTrainingAccuracy }}
+          </span>
+          <span class="text-sm font-medium text-slate-500">
+            {{
+              $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
+            }}
+          </span>
+          <!-- Chart -->
+          <apexchart
+            width="100%"
+            height="200"
+            type="area"
+            :options="options"
+            :series="trainingAccuracyData"
+          />
+        </template>
+      </IconCard>
+
       <!-- Validation Accuracy users chart -->
       <IconCard
         v-if="hasValidationData"
@@ -30,34 +98,6 @@
             type="area"
             :options="options"
             :series="validationAccuracyData"
-          />
-        </template>
-      </IconCard>
-
-      <!-- Training Accuracy users chart -->
-      <IconCard>
-        <!-- Card header -->
-        <template #title>
-          {{
-            $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
-          }}
-        </template>
-        <template #content>
-          <span class="text-2xl font-medium text-slate-500">
-            {{ currentTrainingAccuracy }}
-          </span>
-          <span class="text-sm font-medium text-slate-500">
-            {{
-              $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
-            }}
-          </span>
-          <!-- Chart -->
-          <apexchart
-            width="100%"
-            height="200"
-            type="area"
-            :options="options"
-            :series="trainingAccuracyData"
           />
         </template>
       </IconCard>
@@ -88,43 +128,6 @@
         </div>
       </template>
     </IconCard>
-
-    <!-- Fancy training statistics -->
-    <div class="flex flex-wrap justify-center gap-4 md:gap-8">
-      <IconCardSmall class="w-72 shrink-0">
-        <template #header>
-          {{ currentRoundText }}
-        </template>
-        <template #text>
-          {{ trainingInformant.round() }}
-        </template>
-        <template #icon>
-          <Timer />
-        </template>
-      </IconCardSmall>
-      <IconCardSmall class="w-72 shrink-0">
-        <template #header>
-          Current # of participants
-        </template>
-        <template #text>
-          {{ trainingInformant.participants() }}
-        </template>
-        <template #icon>
-          <People />
-        </template>
-      </IconCardSmall>
-      <IconCardSmall class="w-72 shrink-0">
-        <template #header>
-          Average # of participants
-        </template>
-        <template #text>
-          {{ trainingInformant.averageParticipants() }}
-        </template>
-        <template #icon>
-          <People />
-        </template>
-      </IconCardSmall>
-    </div>
   </div>
 </template>
 
@@ -145,7 +148,6 @@ interface Props {
   hasValidationData: boolean
 }
 const props = defineProps<Props>()
-
 const options = computed(() => chartOptions)
 const currentRoundText = computed(() =>
   props.trainingInformant.isDecentralized() || props.trainingInformant.isFederated()

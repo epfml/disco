@@ -277,9 +277,9 @@ jobs:
           browser: chromium
           start: npm start
           install: false
-          wait-on: http://localhost:8080/
+          wait-on: http://localhost:8081/
           working-directory: ./web-client
-          config: baseUrl=http://localhost:8080/#/
+          config: baseUrl=http://localhost:8081/#/
 
   test-cli:
     needs:

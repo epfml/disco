@@ -96,6 +96,8 @@ import { trainingInformation, privacyParameters, modelCompileData, FormField, Fo
 import ModelCaching from './ModelCaching.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DropdownCard from '@/components/containers/DropdownCard.vue'
+import Tasks from '@/assets/svg/Tasks.vue'
+import Model from '@/assets/svg/Model.vue'
 
 interface Props {
   task: Task

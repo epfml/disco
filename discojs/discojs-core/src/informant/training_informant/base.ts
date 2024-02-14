@@ -35,8 +35,12 @@ export abstract class Base {
     return this.messages.toArray()
   }
 
+  /**
+   *
+   * @returns the training round incremented by 1 (to start at 1 rather than 0)
+   */
   round (): number {
-    return this.currentRound
+    return this.currentRound + 1
   }
 
   participants (): number {

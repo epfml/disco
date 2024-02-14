@@ -126,7 +126,7 @@ export class WebSocketServer implements EventConnection {
 
     return await new Promise((resolve, reject) => {
       ws.onerror = (err: isomorphic.ErrorEvent) =>
-        reject(new Error(`connecting server: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
+        reject(new Error(`Server unreachable: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
       ws.onopen = () => resolve(server)
     })
   }

@@ -144,7 +144,7 @@ export default defineComponent({
 
     openTesting (path: Path) {
       this.validationStore.setModel(path)
-      this.$router.push({ path: '/testing' })
+      this.$router.push({ path: '/evaluate' })
     },
 
     async downloadModel (path: Path) {
