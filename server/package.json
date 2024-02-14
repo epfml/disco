@@ -33,7 +33,8 @@
     "@types/uuid": "9",
     "chai": "4",
     "mocha": "9",
-    "nodemon": "3"
+    "nodemon": "3",
+    "ts-node": "10"
   },
   "repository": {
     "type": "git",
