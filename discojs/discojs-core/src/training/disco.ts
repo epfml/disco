@@ -110,10 +110,8 @@ export class Disco {
    * @param dataTuple The data tuple
    */
   async fit (dataTuple: data.DataSplit): Promise<void> {
-
     const trainData = dataTuple.train.preprocess().batch()
     const validationData = dataTuple.validation?.preprocess().batch() ?? trainData
-
     await this.client.connect()
     const trainer = await this.trainer
     await trainer.fitModel(trainData.dataset, validationData.dataset)

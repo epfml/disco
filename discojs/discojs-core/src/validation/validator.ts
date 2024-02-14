@@ -40,14 +40,14 @@ export class Validator {
 
     let hits = 0
     // Get model predictions per batch and flatten the result
-    // Also build the features and groudTruth arrays 
+    // Also build the features and groudTruth arrays
     const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
       .mapAsync(async e => {
         if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
           const xs = e.xs as tf.Tensor
           const ys = this.getLabel(e.ys as tf.Tensor)
           const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
-          
+
           const currentFeatures = await xs.array()
           if (Array.isArray(currentFeatures)) {
             features = features.concat(currentFeatures)
@@ -65,7 +65,7 @@ export class Validator {
           throw new Error('Input data is missing a feature or the label')
         }
       }).toArray()).flat()
-    
+
     this.logger.success(`Obtained validation accuracy of ${this.accuracy}`)
     this.logger.success(`Visited ${this.visitedSamples} samples`)
 
@@ -113,7 +113,7 @@ export class Validator {
         const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
         return Array.from(pred)
       }).toArray()).flat()
-    
+
     return List(features).zip(List(predictions))
       .map(([f, p]) => ({ features: f, pred: p }))
       .toArray()

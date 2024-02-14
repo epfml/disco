@@ -36,7 +36,7 @@ export abstract class Base {
   }
 
   /**
-   * 
+   *
    * @returns the training round incremented by 1 (to start at 1 rather than 0)
    */
   round (): number {
