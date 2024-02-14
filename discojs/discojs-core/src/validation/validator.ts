@@ -15,7 +15,7 @@ export class Validator {
     private readonly client?: clients.Client
   ) {
     if (source === undefined && client === undefined) {
-      throw new Error('cannot identify model')
+      throw new Error('To initialize a Validator, either or both a source and client need to be specified')
     }
   }
 
@@ -30,47 +30,42 @@ export class Validator {
   async assess (data: data.Data, useConfusionMatrix?: boolean): Promise<Array<{groundTruth: number, pred: number, features: Features}>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
-      throw new TypeError('batch size is undefined')
+      throw new TypeError('Batch size is undefined')
     }
 
     const model = await this.getModel()
 
     let features: Features[] = []
     const groundTruth: number[] = []
-    const predictions: number[] = []
 
     let hits = 0
-    await data.preprocess().dataset.batch(batchSize)
-      .forEachAsync((e) => {
+    // Get model predictions per batch and flatten the result
+    // Also build the features and groudTruth arrays 
+    const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
+      .mapAsync(async e => {
         if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
           const xs = e.xs as tf.Tensor
-
           const ys = this.getLabel(e.ys as tf.Tensor)
           const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
-
-          const currentFeatures = xs.arraySync()
-
+          
+          const currentFeatures = await xs.array()
           if (Array.isArray(currentFeatures)) {
             features = features.concat(currentFeatures)
           } else {
-            throw new TypeError('features array is not correct')
+            throw new TypeError('Data format is incorrect')
           }
-
           groundTruth.push(...Array.from(ys))
-          predictions.push(...Array.from(pred))
-
           this.size += xs.shape[0]
-
           hits += List(pred).zip(List(ys)).filter(([p, y]) => p === y).size
-
           // TODO: Confusion Matrix stats
-
           const currentAccuracy = hits / this.size
           this.graphInformant.updateAccuracy(currentAccuracy)
+          return Array.from(pred)
         } else {
-          throw new Error('missing feature/label in dataset')
+          throw new Error('Input data is missing a feature or the label')
         }
-      })
+      }).toArray()).flat()
+    
     this.logger.success(`Obtained validation accuracy of ${this.accuracy}`)
     this.logger.success(`Visited ${this.visitedSamples} samples`)
 
@@ -96,28 +91,29 @@ export class Validator {
   async predict (data: data.Data): Promise<Array<{features: Features, pred: number}>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
-      throw new TypeError('batch size is undefined')
+      throw new TypeError('Batch size is undefined')
     }
 
     const model = await this.getModel()
     let features: Features[] = []
-    const predictions: number[] = []
 
-    await data.preprocess().dataset.batch(batchSize)
-      .forEachAsync(e => {
+    // Get model prediction per batch and flatten the result
+    // Also incrementally build the features array
+    const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
+      .mapAsync(async e => {
         const xs = e as tf.Tensor
-        const currentFeatures = xs.arraySync()
+        const currentFeatures = await xs.array()
 
         if (Array.isArray(currentFeatures)) {
           features = features.concat(currentFeatures)
         } else {
-          throw new TypeError('features array is not correct')
+          throw new TypeError('Data format is incorrect')
         }
 
         const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
-        predictions.push(...Array.from(pred))
-      })
-
+        return Array.from(pred)
+      }).toArray()).flat()
+    
     return List(features).zip(List(predictions))
       .map(([f, p]) => ({ features: f, pred: p }))
       .toArray()
@@ -132,7 +128,7 @@ export class Validator {
       return await this.client.getLatestModel()
     }
 
-    throw new Error('cannot identify model')
+    throw new Error('Could not load the model')
   }
 
   get accuracyData (): List<number> {

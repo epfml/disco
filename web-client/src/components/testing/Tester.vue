@@ -106,7 +106,7 @@
         </div>
         <div
           v-else
-          class="mx-auto lg:w h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+          class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
         >
           <TableLayout
             :columns="featuresNames"
@@ -308,6 +308,17 @@ async function getValidator (): Promise<Validator | undefined> {
   return new Validator(props.task, new ConsoleLogger(), memory.value, validationStore.model)
 }
 
+function handleDatasetBuildError (e: Error) {
+  console.log(e.message)
+  if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
+    // missing field is specified between two "quotes"
+    const missingFields: String = e.message.split('"')[1].split('"')[0]
+    toaster.error(`The input data is missing the field "${missingFields}"`)
+  } else {
+    toaster.error('Incorrect data format. Please check the expected format at the previous step.')
+  }
+}
+
 async function predictUsingModel (): Promise<void> {
   if (props.datasetBuilder?.size === 0) {
     return toaster.error('Upload a dataset first')
@@ -323,19 +334,11 @@ async function predictUsingModel (): Promise<void> {
   try {
     testingSet = (await props.datasetBuilder.build({ inference: true })).train
   } catch (e) {
-    console.log(e.message)
-    if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
-      // missing field is specified between two "quotes"
-      const missingFields: String = e.message.split('"')[1].split('"')[0]
-      toaster.error(`The input data is missing the field "${missingFields}"`)
-    } else {
-      toaster.error('Incorrect data format. Please check the expected format at the previous step.')
-    }
+    handleDatasetBuildError(e)
     return
   }
 
   toaster.info('Model prediction started')
-
   const predictions = await validator.value?.predict(testingSet)
 
   if (isImageTaskType.value) {
@@ -364,19 +367,11 @@ async function assessModel (): Promise<void> {
   try {
     testingSet = (await props.datasetBuilder.build()).train
   } catch (e) {
-    console.log(e.message)
-    if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
-      // missing field is specified between two "quotes"
-      const missingFields: String = e.message.split('"')[1].split('"')[0]
-      toaster.error(`The input data is missing the field "${missingFields}"`)
-    } else {
-      toaster.error('Incorrect data format. Please check the expected format at the previous step.')
-    }
+    handleDatasetBuildError(e)
     return
   }
 
   toaster.info('Model testing started')
-
   try {
     const assessmentResults = await validator.value?.assess(testingSet)
 
@@ -387,11 +382,10 @@ async function assessModel (): Promise<void> {
       featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns, 'Target_' + props.task.trainingInformation.outputColumns]
       dataWithPred.value = assessmentResults.map(pred => ({ data: [...(pred.features as number[]), pred.pred, pred.groundTruth] }))
     }
+    toaster.success('Model testing finished successfully!')
   } catch (e) {
     toaster.error(e instanceof Error ? e.message : e.toString())
   }
-  console.log(accuracyData.value)
-  toaster.success('Model testing finished successfully!')
 }
 
 function openMapModal (prediction: number, groundTruth?: number) {
@@ -420,8 +414,9 @@ function saveCsv () {
       csvData = d3.csvFormatRows([['Filename', 'Prediction'], ...rows])
     }
   } else {
-    csvData = d3.csvFormatRows([(Object.values(featuresNames.value) as string[]), ...dataWithPred.value.map(el => Object.values(el.data).map(String))])
-    // csvData = d3.csvFormatRows([(Object.values(featuresNames.value) as string[])])
+    const featureNames = Object.values(featuresNames.value) as string[]
+    const predictionsWithLabels = dataWithPred.value.map(el => Object.values(el.data).map(String))
+    csvData = d3.csvFormatRows([featureNames, ...predictionsWithLabels])
   }
 
   const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })

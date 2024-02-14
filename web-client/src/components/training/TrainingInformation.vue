@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-4 md:space-y-8">
-
     <!-- Fancy training statistics -->
     <div class="flex flex-wrap justify-center gap-4 md:gap-8">
       <IconCardSmall class="w-72 shrink-0">
@@ -8,6 +7,8 @@
           {{ currentRoundText }}
         </template>
         <template #text>
+          <!-- rounds normally start at 0 but here have already been incremented
+          to start at 1 in the UI -->
           {{ trainingInformant.round() }}
         </template>
         <template #icon>
@@ -43,8 +44,8 @@
       class="flex flex-col md:grid gap-4 md:gap-8"
       :class="hasValidationData ? 'md:grid-cols-2' : ''"
     >
-    <!-- Training Accuracy users chart -->
-    <IconCard>
+      <!-- Training Accuracy users chart -->
+      <IconCard>
         <!-- Card header -->
         <template #title>
           {{
