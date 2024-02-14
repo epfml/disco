@@ -1,6 +1,6 @@
 {
-  "extension": ["ts"],
   "spec": ["tests"],
   "recursive": true,
+  "extension": ["ts"],
   "require": "ts-node/register"
 }
