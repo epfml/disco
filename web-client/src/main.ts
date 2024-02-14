@@ -21,17 +21,15 @@ const app = createApp(App)
 
 // Global error handler
 app.config.errorHandler = (err, instance, info) => {
+  const toaster = createToaster({ duration: 5000 })
   if (err instanceof TypeError) {
     // Implementation bug
-    const toaster = createToaster({ duration: 5000 })
     toaster.error('Sorry, something went wrong on our side. Please reach out on slack.')
-    console.error(err, instance, info)
   } else {
     // Unknown error
-    const toaster = createToaster({ duration: 5000 })
     toaster.error('Something went wrong. Please try again later or reach out on slack.')
-    console.error(err, instance, info)
   }
+  console.error(err, instance, info)
 }
 
 const pinia = createPinia()
