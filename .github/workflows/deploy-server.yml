@@ -6,7 +6,6 @@ on:
     types: [completed]
 
 env:
-  node_version: 16
   server_url: https://deai-313515.ew.r.appspot.com/
 
 jobs:
@@ -20,7 +19,7 @@ jobs:
           ref: production
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: |
             discojs/package-lock.json
