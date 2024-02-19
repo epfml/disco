@@ -1,3 +1,3 @@
 "use strict";
 
-module.exports = require("wrtc");
+module.exports = require("@koush/wrtc");
