@@ -1,11 +1,12 @@
 import isomorphic from 'isomorphic-ws'
-import { EventEmitter } from 'events'
 import type { Peer, SignalData } from './decentralized/peer'
 import { type NodeID } from './types'
 import msgpack from 'msgpack-lite'
 import * as decentralizedMessages from './decentralized/messages'
 import { type, type NarrowMessage, type Message } from './messages'
 import { timeout } from './utils'
+
+import { EventEmitter } from '../utils/event_emitter'
 
 export interface EventConnection {
   on: <K extends type>(type: K, handler: (event: NarrowMessage<K>) => void) => void
@@ -27,15 +28,13 @@ export async function waitMessageWithTimeout<T extends type> (connection: EventC
   return await Promise.race([waitMessage(connection, type), timeout(timeoutMs)])
 }
 
-export class PeerConnection implements EventConnection {
-  private readonly eventEmitter: EventEmitter
-
+export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K> }> implements EventConnection {
   constructor (
     private readonly ownId: NodeID,
     private readonly peer: Peer,
     private readonly signallingServer: EventConnection
   ) {
-    this.eventEmitter = new EventEmitter()
+    super()
   }
 
   async connect (): Promise<void> {
@@ -55,7 +54,7 @@ export class PeerConnection implements EventConnection {
         throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
       }
 
-      this.eventEmitter.emit(msg.type.toString(), msg)
+      this.emit(msg.type, msg)
     })
 
     this.peer.on('close', () => { console.warn('peer', this.peer.id, 'closed connection') })
@@ -67,14 +66,6 @@ export class PeerConnection implements EventConnection {
 
   signal (signal: SignalData): void {
     this.peer.signal(signal)
-  }
-
-  on<K extends type> (type: K, handler: (event: NarrowMessage<K>) => void): void {
-    this.eventEmitter.on(type.toString(), handler)
-  }
-
-  once<K extends type> (type: K, handler: (event: NarrowMessage<K>) => void): void {
-    this.eventEmitter.once(type.toString(), handler)
   }
 
   send <T extends Message> (msg: T): void {
@@ -89,13 +80,12 @@ export class PeerConnection implements EventConnection {
   }
 }
 
-export class WebSocketServer implements EventConnection {
+export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K> }> implements EventConnection {
   private constructor (
     private readonly socket: isomorphic.WebSocket,
-    private readonly eventEmitter: EventEmitter,
     private readonly validateReceived?: (msg: any) => boolean,
     private readonly validateSent?: (msg: any) => boolean
-  ) { }
+  ) { super() }
 
   static async connect (url: URL,
     validateReceived?: (msg: any) => boolean,
@@ -103,8 +93,7 @@ export class WebSocketServer implements EventConnection {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
-    const emitter: EventEmitter = new EventEmitter()
-    const server: WebSocketServer = new WebSocketServer(ws, emitter, validateReceived, validateSent)
+    const server: WebSocketServer = new WebSocketServer(ws, validateReceived, validateSent)
 
     ws.onmessage = (event: isomorphic.MessageEvent) => {
       if (!(event.data instanceof ArrayBuffer)) {
@@ -118,7 +107,7 @@ export class WebSocketServer implements EventConnection {
         throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
       }
 
-      emitter.emit(msg.type.toString() as string, msg)
+      server.emit(msg.type, msg)
     }
 
     return await new Promise((resolve, reject) => {
@@ -131,15 +120,6 @@ export class WebSocketServer implements EventConnection {
 
   disconnect (): void {
     this.socket.close()
-  }
-
-  // Not straigtforward way of making sure the handler take the correct message type as a parameter, for typesafety
-  on<K extends type>(type: K, handler: (event: NarrowMessage<K>) => void): void {
-    this.eventEmitter.on(type.toString(), handler)
-  }
-
-  once<K extends type>(type: K, handler: (event: NarrowMessage<K>) => void): void {
-    this.eventEmitter.once(type.toString(), handler)
   }
 
   send (msg: Message): void {
