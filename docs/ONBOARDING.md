@@ -51,11 +51,6 @@ npm -w ./discojs/discojs-node run watch build # another terminal
 npm -w ./discojs/discojs-web run watch build # one more terminal
 ```
 
-> [!TIP]
-> If you are using VSCode, know that you may not be able to open the editor from the repo root level without VSCode raising imports errors. If that is the case, you should start VSCode from inside the module you are working.
-> In practice, that is any folder level that contains a `package.json` such as `server`, `web-client`, etc.
-> For example, if you are working on the CLI, you should start VSCode with the command `code server` from the root level (or `cd server; code .`)
-
 ### How to run DISCO
 
 * **Using DISCO from the `web-client`**: Instructions on how to use the `web-client` can be found in the [developer guide](../DEV.md#installation-guide). More information, for example on how to run the client in developer mode, can be found in the [`web-client` README](../web-client/README.md).
