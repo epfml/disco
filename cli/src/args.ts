@@ -13,12 +13,12 @@ interface BenchmarkUnsafeArguments {
   help?: boolean
 }
 
-const argExample = 'e.g. npm run benchmark -- -u 2 -e 3, runs 2 users for 3 epochs'
+const argExample = 'e.g. npm start -- -u 2 -e 3 # runs 2 users for 3 epochs'
 
 const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   {
     // @ts-expect-error
-    task: { type: String, alias: 't', description: 'Task', optional: true },
+    task: { type: String, alias: 't', description: 'Task: titanic, simple_face, cifar10', optional: true },
     // @ts-expect-error
     numberOfUsers: { type: Number, alias: 'u', description: 'Number of users', optional: true },
     // @ts-expect-error
@@ -26,14 +26,14 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     // @ts-expect-error
     roundDuration: { type: Number, alias: 'r', description: 'Round duration', optional: true },
     // @ts-expect-error
-    batchSize: { type: Number, alias: 'b', description: 'Round duration', optional: true },
+    batchSize: { type: Number, alias: 'b', description: 'Training batch size', optional: true },
     // @ts-expect-error
     save: { type: Boolean, alias: 's', description: 'Save logs of benchmark', default: false },
     help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide' }
   },
   {
     helpArg: 'help',
-    headerContentSections: [{ header: 'Disco benchmark', content: 'npm run benchmark -- [Options]\n' + argExample }]
+    headerContentSections: [{ header: 'DISCO CLI', content: 'npm start -- [Options]\n' + argExample }]
   }
 )
 

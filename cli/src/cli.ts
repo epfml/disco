@@ -9,7 +9,7 @@ import { args } from './args'
 const NUMBER_OF_USERS = args.numberOfUsers
 const TASK = args.task
 
-const infoText = `\nRunning federated benchmark of ${TASK.taskID}`
+const infoText = `\nStarted federated training of ${TASK.taskID}`
 console.log(infoText)
 
 console.log({ args })
@@ -19,9 +19,7 @@ async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<Tra
   const scheme = TrainingSchemes.FEDERATED
   const disco = new Disco(task, { scheme, url })
 
-  console.log('runUser>>>>')
   await disco.fit(data)
-  console.log('runUser<<<<')
   await disco.close()
   return await disco.logs()
 }
@@ -39,7 +37,7 @@ async function main (): Promise<void> {
     const fileName = `${TASK.taskID}_${NUMBER_OF_USERS}users.csv`
     saveLog(logs, fileName)
   }
-
+  console.log('Shutting down the server...')
   await new Promise((resolve, reject) => {
     server.once('close', resolve)
     server.close(reject)
