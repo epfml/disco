@@ -41,15 +41,11 @@ ts-node your_script.ts
 ``` sh
 npm -w discojs run build
 ```
-
-If you want to automate the building phase, you can use the `watch` script to rebuild a module whenever changes are detected.
-As each of those calls are non-terminating (they're watching indefinitely), you'll need to run each of them in a different terminal.
-
+To automate the building phase, you can use the `watch` command to rebuild a module whenever changes are detected:
 ```sh
-npm -w ./discojs/discojs-core run watch build
-npm -w ./discojs/discojs-node run watch build # another terminal
-npm -w ./discojs/discojs-web run watch build # one more terminal
+npm -w discojs run watch build
 ```
+Building is not necessary for other modules like the `server` the `web-client` or `cli` as long as no change have been made to `discojs`
 
 ### How to run DISCO
 
