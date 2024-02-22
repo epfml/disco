@@ -1,46 +1,29 @@
-# Example
+# How to use DISCO from a script
 
-In `example.ts` we give a brief example of discojs, in it we run two clients training jointly via federated learning. It trains on a few examples of the [face task](https://www.kaggle.com/datasets/frabbisw/facial-age), the samples are already stored in the repo and so it is not necessary to download any additional data.
+This folder gives a brief example of how to use DISCO. Because we are relying on Node.js, we use `discojs-node` (rather than the alternative `discojs-web`). The example script creates two clients jointly training on the Titanic dataset in a federated manner. The example is self-contained and illustrates key uses of `discojs-node`:
+* How to train a federated model on pre-defined tasks
+* How to create multiple clients
+* How to start a server instance from a script
+* How to load and preprocess local data 
 
-The example is self-contained, it runs a Disco server that is usually run externally.
-
-To run the example do
-
+Before running this example, make sure you have followed all the installation instructions described in [DEV.md](https://github.com/epfml/disco/blob/635-update-doc-julien/DEV.md#installation-guide).
+You can run the example as follows:
 ```
-nvm use
-./get_training_data.sh
-cd discojs && npm ci
-cd discojs-node && npm run build
-cd ../..
-cd server && npm ci
-cd ..
-cd example && npm ci && npm start
+cd docs/example
+npm start # compiles TypeScript and runs main.ts
 ```
 
-## Disco.js API
+As you can see in `main.ts` a client is represented by a `Disco` object:
+```js
+const disco = new Disco(task, { url, scheme: TrainingSchemes.FEDERATED })
+await disco.fit(dataset) // Start training on the dataset
+await disco.close()
+```
 
-In `example.ts` (line 100) the following function gives an example of the Disco.js API.
-
-To run the clients with decentralized training or local training, set the training scheme to: `TrainingSchemes.DECENTRALIZED` or `TrainingSchemes.LOCAL`, respectively.
+To simulate more or less users change the number of calls to `runUser`:
 
 ```js
-async function runUser (url: URL): Promise<void> {
-  // Load the data, the dataset must be of type data.Data, see discojs import above.
-  const data = await loadData(TASK)
-
-  // Start training
-  const disco = new Disco(TASK, { url })
-  await disco.fit(data)
-
-  // Stop training and cleanly disconnect from the remote server
-  await disco.close()
-}
-```
-
-To simulate more or less users, simply add more in line 70:
-
-```js
-// Add more users to the list to simulate more clients
+// The Promise creates two clients and waits for their training to complete
 await Promise.all([
   runUser(url),
   runUser(url)
