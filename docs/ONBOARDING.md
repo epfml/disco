@@ -39,7 +39,7 @@ ts-node your_script.ts
 
 * Because TypeScript needs to be transpiled to JavaScript, you need to rebuild the `discojs` folder every time you make any changes to it:
 ``` sh
-npm -w ./discojs run build
+npm -w discojs run build
 ```
 
 If you want to automate the building phase, you can use the `watch` script to rebuild a module whenever changes are detected.
