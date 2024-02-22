@@ -11,10 +11,8 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@epfml/disco-server": "2",
-    "@epfml/discojs-node": "2",
-    "rand-seed": "1",
-    "tslib": "2"
+    "@epfml/disco-server": "*",
+    "@epfml/discojs-node": "*"
   },
   "devDependencies": {
     "ts-node": "10"
