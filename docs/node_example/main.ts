@@ -1,4 +1,4 @@
-import { data, Disco, fetchTasks, Task } from '@epfml/discojs-node'
+import { data, Disco, fetchTasks, Task, TrainingSchemes } from '@epfml/discojs-node'
 import { loadTitanicData } from './data'
 import { startServer } from './server'
 
@@ -7,20 +7,19 @@ import { startServer } from './server'
  * and finally start training.
  */
 async function runUser (url: URL, task: Task, dataset: data.DataSplit): Promise<void> {
-  // Start federated training
-  const disco = new Disco(task, { url })
-  await disco.fit(dataset)
+  // Create Disco object associated with the server url, the training scheme
+  const disco = new Disco(task, { url, scheme: TrainingSchemes.FEDERATED })
+  await disco.fit(dataset) // Start training on the dataset
 
   // Stop training and disconnect from the remote server
   await disco.close()
 }
 
 async function main (): Promise<void> {
-  // First have a server instance running before running this script
+  // Launch a server instance
   const [server, serverUrl] = await startServer()
   // Get all pre-defined tasks
   const tasks = await fetchTasks(serverUrl)
-
   // Choose the task and load local data
   const task = tasks.get('titanic') as Task // Choose the Titanic task to train
   const dataset = await loadTitanicData(task) // Make sure you first ran ./get_training_data
