@@ -53,12 +53,6 @@ export const titanic: TaskProvider = {
         validationSplit: 0.2,
         batchSize: 30,
         preprocessingFunctions: [data.TabularPreprocessing.Sanitize],
-        learningRate: 0.001,
-        modelCompileData: {
-          optimizer: 'sgd',
-          loss: 'binaryCrossentropy',
-          metrics: ['accuracy']
-        },
         dataType: 'tabular',
         inputColumns: [
           'Age',
@@ -91,6 +85,12 @@ export const titanic: TaskProvider = {
     model.add(tf.layers.dense({ units: 64, activation: 'relu' }))
     model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
     model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }))
+
+    model.compile({
+      optimizer: tf.train.sgd(0.001),
+      loss: 'binaryCrossentropy',
+      metrics: ['accuracy']
+    })
 
     return model
   }

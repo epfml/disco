@@ -81,7 +81,7 @@ export class IndexedDB extends Memory {
       throw new Error('expected working model')
     }
     // Enforce version 0 to always keep a single working model at a time
-    await model.save(this.pathFor({ ...src, type: ModelType.WORKING, version: 0 }))
+    await model.save(this.pathFor({ ...src, type: ModelType.WORKING, version: 0 }), { includeOptimizer: true })
   }
 
   /**
@@ -107,7 +107,7 @@ export class IndexedDB extends Memory {
       throw new Error('expected saved model')
     }
     const dst = this.pathFor(await this.duplicateSource({ ...src, type: ModelType.SAVED }))
-    await model.save(dst)
+    await model.save(dst, { includeOptimizer: true })
     return dst
   }
 

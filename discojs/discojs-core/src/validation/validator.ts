@@ -21,8 +21,8 @@ export class Validator {
     }
   }
 
-  private getLabel (ys: tf.Tensor): Float32Array | Int32Array | Uint8Array {
-    if (this.task.trainingInformation.modelCompileData.loss === 'binaryCrossentropy') {
+  private getLabel (ys: tf.Tensor, isBinary: boolean): Float32Array | Int32Array | Uint8Array {
+    if (isBinary) {
       return ys.greaterEqual(tf.scalar(0.5)).dataSync()
     } else {
       return ys.argMax(1).dataSync()
@@ -36,6 +36,7 @@ export class Validator {
     }
 
     const model = await this.getModel()
+    const isBinary = model.loss === 'binaryCrossentropy'
 
     let features: Features[] = []
     const groundTruth: number[] = []
@@ -47,8 +48,8 @@ export class Validator {
       .mapAsync(async e => {
         if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
           const xs = e.xs as tf.Tensor
-          const ys = this.getLabel(e.ys as tf.Tensor)
-          const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
+          const ys = this.getLabel(e.ys as tf.Tensor, isBinary)
+          const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor, isBinary)
 
           const currentFeatures = await xs.array()
           if (Array.isArray(currentFeatures)) {
@@ -97,6 +98,7 @@ export class Validator {
     }
 
     const model = await this.getModel()
+    const isBinary = model.loss === 'binaryCrossentropy'
     let features: Features[] = []
 
     // Get model prediction per batch and flatten the result
@@ -112,7 +114,7 @@ export class Validator {
           throw new TypeError('Data format is incorrect')
         }
 
-        const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor)
+        const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor, isBinary)
         return Array.from(pred)
       }).toArray()).flat()
 

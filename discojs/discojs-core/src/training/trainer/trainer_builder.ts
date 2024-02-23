@@ -64,29 +64,6 @@ export class TrainerBuilder {
       await this.memory.contains(info) ? this.memory.getModel(info) : client.getLatestModel()
     )
 
-    return await this.updateModelInformation(model)
-  }
-
-  private async updateModelInformation (model: tf.LayersModel): Promise<tf.LayersModel> {
-    // Continue local training from previous epoch checkpoint
-    if (model.getUserDefinedMetadata() === undefined) {
-      model.setUserDefinedMetadata({ epoch: 0 })
-    }
-
-    const info = this.task.trainingInformation
-    if (info === undefined) {
-      throw new TypeError('training information is undefined')
-    }
-
-    model.compile(info.modelCompileData)
-
-    if (info.learningRate !== undefined) {
-      // TODO: Not the right way to change learningRate and hence we cast to any
-      // the right way is to construct the optimiser and pass learningRate via
-      // argument.
-      (model.optimizer as any).learningRate = info.learningRate
-    }
-
     return model
   }
 }

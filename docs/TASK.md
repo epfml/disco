@@ -145,7 +145,7 @@ At runtime, the models are stored in `disco/server/models/`, and it is also in t
 
 ### Task
 
-The `Task` class contains all the crucial information for training the model (batchSize, learningRate, ...) and also the
+The `Task` class contains all the crucial information for training the model (batchSize, epochs, ...) and also the
 scheme of distributed learning (federated or decentralized), along with other meta data about the model and data.
 
 The [`TrainingInformation` object](../discojs/src/task/training_information.ts) of a task contains all the customizable parameters and their descriptions.
@@ -172,12 +172,6 @@ export const customTask: TaskProvider = {
         validationSplit: 0.2,
         batchSize: 10,
         preprocessingFunctions: [ImagePreprocessing.Normalize],
-        learningRate: 0.001,
-        modelCompileData: {
-          optimizer: 'sgd',
-          loss: 'categoricalCrossentropy',
-          metrics: ['accuracy']
-        },
         dataType: 'image',
         ...
       }

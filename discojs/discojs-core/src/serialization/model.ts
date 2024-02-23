@@ -1,10 +1,10 @@
 import tf from '@tensorflow/tfjs'
 import msgpack from 'msgpack-lite'
 
-export type Encoded = number[]
+export type Encoded = Uint8Array
 
 export function isEncoded (raw: unknown): raw is Encoded {
-  return Array.isArray(raw) && raw.every((r) => typeof r === 'number')
+  return raw instanceof Uint8Array
 }
 
 export async function encode (model: tf.LayersModel): Promise<Encoded> {
@@ -19,15 +19,15 @@ export async function encode (model: tf.LayersModel): Promise<Encoded> {
           }
         }
       }
-    })
+    }, { includeOptimizer: true })
   })
 
-  return [...msgpack.encode(saved).values()]
+  return msgpack.encode(saved)
 }
 
 export async function decode (encoded: unknown): Promise<tf.LayersModel> {
-  if (!Array.isArray(encoded) || encoded.some((v) => typeof v !== 'number')) {
-    throw new Error('invalid encoded model shape')
+  if (!isEncoded(encoded)) {
+    throw new Error('invalid encoding')
   }
   const raw = msgpack.decode(encoded)
 

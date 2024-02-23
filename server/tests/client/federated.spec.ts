@@ -30,7 +30,6 @@ describe('federated client', function () {
           modelID: 'irrelevant',
           epochs: 1,
           roundDuration: 1,
-          modelCompileData: { loss: 'nan', metrics: [], optimizer: 'no' },
           validationSplit: 0,
           batchSize: 1,
           scheme: 'federated',

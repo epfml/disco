@@ -28,12 +28,6 @@ export const skinMnist: TaskProvider = {
         validationSplit: 0.1,
         batchSize: 32,
         preprocessingFunctions: [data.ImagePreprocessing.Normalize],
-        learningRate: 0.001,
-        modelCompileData: {
-          optimizer: 'adam',
-          loss: 'categoricalCrossentropy',
-          metrics: ['accuracy']
-        },
         dataType: 'image',
         IMAGE_H: 28,
         IMAGE_W: 28,
@@ -97,6 +91,12 @@ export const skinMnist: TaskProvider = {
 
     model.add(tf.layers.dense({ units: 32 }))
     model.add(tf.layers.dense({ units: numClasses, activation: 'softmax' }))
+
+    model.compile({
+      optimizer: tf.train.adam(0.001),
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy']
+    })
 
     return model
   }

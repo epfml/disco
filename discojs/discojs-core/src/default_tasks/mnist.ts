@@ -24,11 +24,6 @@ export const mnist: TaskProvider = {
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 30,
-        modelCompileData: {
-          optimizer: 'rmsprop',
-          loss: 'categoricalCrossentropy',
-          metrics: ['accuracy']
-        },
         dataType: 'image',
         IMAGE_H: 28,
         IMAGE_W: 28,
@@ -66,6 +61,12 @@ export const mnist: TaskProvider = {
     model.add(tf.layers.flatten({}))
     model.add(tf.layers.dense({ units: 64, activation: 'relu' }))
     model.add(tf.layers.dense({ units: 10, activation: 'softmax' }))
+
+    model.compile({
+      optimizer: 'rmsprop',
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy']
+    })
 
     return model
   }

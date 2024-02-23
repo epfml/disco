@@ -41,10 +41,7 @@ export class TasksAndModels {
       // model has already been downloaded
       return await tf.loadLayersModel(`file://${modelPath}/model.json`)
     } else {
-      const modelURL = discoTask.trainingInformation.modelURL
-      if (modelURL !== undefined) {
-        model = await tf.loadLayersModel(modelURL)
-      } else if (isTaskProvider(task)) {
+      if (isTaskProvider(task)) {
         model = await task.getModel()
       } else {
         throw new Error('model not provided in task definition')
@@ -52,7 +49,7 @@ export class TasksAndModels {
     }
 
     fs.mkdirSync(modelPath, { recursive: true })
-    await model.save(`file://${modelPath}`)
+    await model.save(`file://${modelPath}`, { includeOptimizer: true })
 
     // Check digest if provided
     if (discoTask.digest !== undefined) {

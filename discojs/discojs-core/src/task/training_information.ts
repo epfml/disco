@@ -1,6 +1,5 @@
 import { type AggregatorChoice } from '../aggregator/get'
 import { type Preprocessing } from '../dataset/data/preprocessing'
-import { isModelCompileData, type ModelCompileData } from './model_compile_data'
 
 export function isTrainingInformation (raw: unknown): raw is TrainingInformation {
   if (typeof raw !== 'object') {
@@ -17,15 +16,12 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     'roundDuration' |
     'validationSplit' |
     'batchSize' |
-    'modelCompileData' |
     'modelID' |
     'preprocessingFunctions' |
     'inputColumns' |
     'outputColumns' |
     'IMAGE_H' |
     'IMAGE_W' |
-    'modelURL' |
-    'learningRate' |
     'decentralizedSecure' |
     'maxShareValue' |
     'minimumReadyPeers' |
@@ -41,7 +37,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     // roundDuration,
     validationSplit,
     batchSize,
-    modelCompileData,
     modelID,
     preprocessingFunctions,
     inputColumns,
@@ -49,8 +44,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     IMAGE_H,
     IMAGE_W,
     roundDuration,
-    modelURL,
-    learningRate,
     decentralizedSecure,
     maxShareValue,
     minimumReadyPeers,
@@ -67,10 +60,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof batchSize !== 'number' ||
     typeof roundDuration !== 'number' ||
     typeof validationSplit !== 'number' ||
-    (modelURL !== undefined && typeof modelURL !== 'string') ||
     (noiseScale !== undefined && typeof noiseScale !== 'number') ||
     (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
-    (learningRate !== undefined && typeof learningRate !== 'number') ||
     (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
     (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
     (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number') ||
@@ -101,10 +92,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
       break
     case 'local':
       break
-  }
-
-  if (!isModelCompileData(modelCompileData)) {
-    return false
   }
 
   if (
@@ -138,8 +125,6 @@ export interface TrainingInformation {
   batchSize: number
   // preprocessingFunctions: preprocessing functions such as resize and normalize
   preprocessingFunctions?: Preprocessing[]
-  // modelCompileData: interface of additional training information (optimizer, loss and metrics)
-  modelCompileData: ModelCompileData
   // dataType, e.g. image or tabular
   dataType: string
   // inputColumns: for tabular data, the columns to be chosen as input data for the model
@@ -150,13 +135,9 @@ export interface TrainingInformation {
   IMAGE_H?: number
   // IMAGE_W width of image (or RESIZED_IMAGE_W if ImagePreprocessing.Resize in preprocessingFunctions)
   IMAGE_W?: number
-  // Model URL to download the base task model from. Useful for pretrained or/and hosted models.
-  modelURL?: string
   // LABEL_LIST of classes, e.g. if two class of images, one with dogs and one with cats, then we would
   // define ['dogs', 'cats'].
   LABEL_LIST?: string[]
-  // learningRate: learning rate for the optimizer
-  learningRate?: number
   // scheme: Distributed training scheme, i.e. Federated and Decentralized
   scheme: string
   // noiseScale: Differential Privacy (DP): Affects the variance of the Gaussian noise added to the models / model updates.
