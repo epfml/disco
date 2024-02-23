@@ -25,12 +25,6 @@ export const lusCovid: TaskProvider = {
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 2,
-        modelCompileData: {
-          optimizer: 'sgd',
-          loss: 'binaryCrossentropy',
-          metrics: ['accuracy']
-        },
-        learningRate: 0.001,
         IMAGE_H: 100,
         IMAGE_W: 100,
         preprocessingFunctions: [data.ImagePreprocessing.Resize],
@@ -92,6 +86,12 @@ export const lusCovid: TaskProvider = {
       kernelInitializer: 'varianceScaling',
       activation: 'softmax'
     }))
+
+    model.compile({
+      optimizer: tf.train.sgd(0.001),
+      loss: 'binaryCrossentropy',
+      metrics: ['accuracy']
+    })
 
     return model
   }

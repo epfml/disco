@@ -40,7 +40,7 @@
       </template>
       <template #content>
         <div
-          v-for="section in [trainingInformation, privacyParameters, modelCompileData]"
+          v-for="section in [trainingInformation, privacyParameters]"
           :key="section.id"
           class="py-4 first:py-0 last:py-0"
         >
@@ -53,7 +53,6 @@
           >
             <div
               v-if="field.id in task.trainingInformation ||
-                field.id in task.trainingInformation.modelCompileData ||
                 displayField(section, field)
               "
               class="grid grid-cols-3 gap-4"
@@ -61,19 +60,7 @@
               <span>{{ field.description ?? field.name }}</span>
               <div class="col-span-2">
                 <span>
-                  {{
-                    section.id === 'modelCompileData' ?
-                      prettifyField(
-                        field,
-                        task.trainingInformation.modelCompileData,
-                        true
-                      ) :
-                      prettifyField(
-                        field,
-                        task.trainingInformation,
-                        false
-                      )
-                  }}
+                  {{ prettifyField(field, task.trainingInformation, false) }}
                 </span>
               </div>
             </div>
@@ -92,7 +79,7 @@ import { computed, defineProps } from 'vue'
 
 import { Task } from '@epfml/discojs-core'
 
-import { trainingInformation, privacyParameters, modelCompileData, FormField, FormSection } from '@/task_creation_form'
+import { trainingInformation, privacyParameters, FormField, FormSection } from '@/task_creation_form'
 import ModelCaching from './ModelCaching.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DropdownCard from '@/components/containers/DropdownCard.vue'

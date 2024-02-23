@@ -29,11 +29,6 @@ export const geotags: TaskProvider = {
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 10,
-        modelCompileData: {
-          optimizer: 'adam',
-          loss: 'categoricalCrossentropy',
-          metrics: ['accuracy']
-        },
         dataType: 'image',
         IMAGE_H: 224,
         IMAGE_W: 224,
@@ -65,6 +60,12 @@ export const geotags: TaskProvider = {
         tf.layers.rescaling({ scale: 1 / 127.5, offset: -1 }), // Rescaling input between -1 and 1
         pretrainedModel
       ]
+    })
+
+    model.compile({
+      optimizer: 'adam',
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy']
     })
 
     return model

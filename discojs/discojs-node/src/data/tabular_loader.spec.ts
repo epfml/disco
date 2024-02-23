@@ -19,11 +19,6 @@ const titanicMock: Task = {
     batchSize: 1,
     dataType: 'tabular',
     scheme: 'federated',
-    modelCompileData: {
-      optimizer: 'nothing',
-      loss: 'none',
-      metrics: []
-    },
     inputColumns: [
       'PassengerId',
       'Age',

@@ -1,4 +1,4 @@
-import type tf from '@tensorflow/tfjs'
+import tf from '@tensorflow/tfjs'
 
 import type { Task, TaskProvider } from '..'
 import { data } from '..'
@@ -22,17 +22,10 @@ export const simpleFace: TaskProvider = {
       trainingInformation: {
         modelID: 'simple_face-model',
         epochs: 50,
-        modelURL: 'https://storage.googleapis.com/deai-313515.appspot.com/models/mobileNetV2_35_alpha_2_classes/model.json',
         roundDuration: 1,
         validationSplit: 0.2,
         batchSize: 10,
         preprocessingFunctions: [data.ImagePreprocessing.Normalize],
-        learningRate: 0.001,
-        modelCompileData: {
-          optimizer: 'sgd',
-          loss: 'categoricalCrossentropy',
-          metrics: ['accuracy']
-        },
         dataType: 'image',
         IMAGE_H: 200,
         IMAGE_W: 200,
@@ -45,6 +38,16 @@ export const simpleFace: TaskProvider = {
   },
 
   async getModel (): Promise<tf.LayersModel> {
-    throw new Error('Not implemented')
+    const model = await tf.loadLayersModel(
+      'https://storage.googleapis.com/deai-313515.appspot.com/models/mobileNetV2_35_alpha_2_classes/model.json'
+    )
+
+    model.compile({
+      optimizer: tf.train.sgd(0.001),
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy']
+    })
+
+    return model
   }
 }

@@ -222,14 +222,6 @@ export const trainingInformation: FormSection = {
       default: '30'
     },
     {
-      id: 'learningRate',
-      name: 'Learning rate',
-      yup: yup.number().positive().required(),
-      as: 'input',
-      type: 'float',
-      default: '0.05'
-    },
-    {
       id: 'minimumReadyPeers',
       name: 'Minimum # of Peers',
       description: 'Minimum # of Ready Peers before Aggregation',
@@ -326,71 +318,6 @@ export const trainingInformation: FormSection = {
       as: 'input',
       type: 'array',
       default: '0'
-    }
-  ]
-}
-
-export const modelCompileData: FormSection = {
-  id: 'modelCompileData',
-  title: 'Model Compilation Parameters',
-  fields: [
-    {
-      id: 'optimizer',
-      name: 'Optimizer',
-      yup: yup.string().required(),
-      type: 'select',
-      options: [
-        'sgd',
-        'momentum',
-        'adagrad',
-        'adadelta',
-        'adam',
-        'adamax',
-        'rmsprop'
-      ],
-      default: 'rmsprop'
-    },
-    {
-      id: 'loss',
-      name: 'Loss',
-      yup: yup.string().required(),
-      type: 'select',
-      options: [
-        'binaryCrossentropy',
-        'categoricalCrossentropy',
-        'absoluteDifference',
-        'computeWeightedLoss',
-        'cosineDistance',
-        'hingeLoss',
-        'huberLoss',
-        'logLoss',
-        'meanSquaredError',
-        'sigmoidCrossEntropy',
-        'softmaxCrossEntropy'
-      ],
-      default: 'categoricalCrossentropy'
-    },
-    {
-      id: 'metrics',
-      name: 'Metrics',
-      description: 'Metrics (multiple can be selected)',
-      yup: yup.array().of(yup.string()).min(1).required(),
-      type: 'select-multiple',
-      options: [
-        'accuracy',
-        'binaryAccuracy',
-        'binaryCrossentropy',
-        'categoricalAccuracy',
-        'categoricalCrossentropy',
-        'cosineProximity',
-        'meanAbsoluteError',
-        'meanAbsolutePercentageError',
-        'meanSquaredError',
-        'precision',
-        'recall',
-        'sparseCategoricalAccuracy'
-      ],
-      default: ['accuracy']
     }
   ]
 }
@@ -506,7 +433,6 @@ export const sections: FormSection[] = [
   generalInformation,
   displayInformation,
   trainingInformation,
-  modelCompileData,
   privacyParameters,
   modelFiles
 ]

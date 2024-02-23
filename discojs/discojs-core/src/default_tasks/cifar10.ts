@@ -25,11 +25,6 @@ export const cifar10: TaskProvider = {
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 10,
-        modelCompileData: {
-          optimizer: 'sgd',
-          loss: 'categoricalCrossentropy',
-          metrics: ['accuracy']
-        },
         dataType: 'image',
         preprocessingFunctions: [data.ImagePreprocessing.Resize],
         IMAGE_H: 224,
@@ -54,10 +49,18 @@ export const cifar10: TaskProvider = {
       .dense({ units: 10, activation: 'softmax', name: 'denseModified' })
       .apply(x.output) as tf.SymbolicTensor
 
-    return tf.model({
+    const model = tf.model({
       inputs: mobilenet.input,
       outputs: predictions,
       name: 'modelModified'
     })
+
+    model.compile({
+      optimizer: 'sgd',
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy']
+    })
+
+    return model
   }
 }

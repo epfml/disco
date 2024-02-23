@@ -62,9 +62,8 @@ export abstract class Base {
     }
     url.pathname += `tasks/${this.task.id}/model.json`
 
-    const response = await axios.get(url.href)
-
-    return await serialization.model.decode(response.data)
+    const response = await axios.get<ArrayBuffer>(url.href, { responseType: 'arraybuffer' })
+    return await serialization.model.decode(new Uint8Array(response.data))
   }
 
   /**

@@ -160,7 +160,7 @@ import * as tf from '@tensorflow/tfjs'
 
 import { Task, pushTask } from '@epfml/discojs-core'
 
-import { sections, modelCompileData, privacyParameters, FormField, FormSection } from '@/task_creation_form'
+import { sections, privacyParameters, FormField, FormSection } from '@/task_creation_form'
 import { useToaster } from '@/composables/toaster'
 import { CONFIG } from '@/config'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -221,12 +221,6 @@ const formatSection = (section: FormSection, rawTask: any): any => {
     fields = fields
       .push(
         formatSection(
-          modelCompileData,
-          rawTask
-        )
-      )
-      .push(
-        formatSection(
           privacyParameters,
           rawTask
         )
@@ -254,7 +248,7 @@ const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
 
   // format the flat form entries to a nested task object
   const specialSections = [
-    'generalInformation', 'modelCompileData', 'privacyParamters', 'modelFiles'
+    'generalInformation', 'privacyParamters', 'modelFiles'
   ]
   const task = Map(
     List(sections)
