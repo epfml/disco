@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { Server } from 'node:http'
 import { Range } from 'immutable'
