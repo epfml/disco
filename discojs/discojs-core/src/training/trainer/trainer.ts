@@ -1,7 +1,6 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Memory, Task, TrainingInformant, TrainingFunction } from '../..'
-import { fitModelFunctions } from '../..'
+import type { Memory, Task, TrainingInformant } from '../..'
 
 import { RoundTracker } from './round_tracker'
 import type { TrainerLog } from '../../logging/trainer_logger'
@@ -22,8 +21,6 @@ export abstract class Trainer {
   private stopTrainingRequested = false
   private readonly trainerLogger: TrainerLogger
 
-  private readonly fitModelFunction: TrainingFunction
-
   /**
    * Constructs the training manager.
    * @param task the trained task
@@ -33,12 +30,10 @@ export abstract class Trainer {
     public readonly task: Task,
     public readonly trainingInformant: TrainingInformant,
     public readonly memory: Memory,
-    public readonly model: tf.LayersModel,
-    fitModelFunction?: TrainingFunction
+    public readonly model: tf.LayersModel
   ) {
     this.trainerLogger = new TrainerLogger()
     this.roundTracker = new RoundTracker(task.trainingInformation.roundDuration)
-    this.fitModelFunction = fitModelFunction ?? fitModelFunctions.default
   }
 
   protected abstract onRoundBegin (accuracy: number): Promise<void>
@@ -118,16 +113,21 @@ export abstract class Trainer {
   ): Promise<void> {
     this.resetStopTrainerState()
 
-    await this.fitModelFunction(this.model,
-      this.task.trainingInformation,
+    await this.model.fitDataset(
       dataset,
-      valDataset,
-      (e, l) => { this.onEpochBegin(e, l) },
-      (e, l) => { this.onEpochEnd(e, l) },
-      async (e, l) => { await this.onBatchBegin(e, l) },
-      async (e, l) => { await this.onBatchEnd(e, l) },
-      async (l) => { await this.onTrainBegin(l) },
-      async (l) => { await this.onTrainEnd(l) })
+      {
+        epochs: this.task.trainingInformation.epochs,
+        validationData: valDataset,
+        callbacks: {
+          onEpochBegin: (e, l) => { this.onEpochBegin(e, l) },
+          onEpochEnd: (e, l) => { this.onEpochEnd(e, l) },
+          onBatchBegin: async (e, l) => { await this.onBatchBegin(e, l) },
+          onBatchEnd: async (e, l) => { await this.onBatchEnd(e, l) },
+          onTrainBegin: async (l) => { await this.onTrainBegin(l) },
+          onTrainEnd: async (l) => { await this.onTrainEnd(l) }
+        }
+      }
+    )
   }
 
   /**

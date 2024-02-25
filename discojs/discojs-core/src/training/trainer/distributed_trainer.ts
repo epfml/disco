@@ -1,8 +1,9 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Memory, Task, TrainingInformant, TrainingFunction, client as clients } from '../..'
+import type { Memory, Task, TrainingInformant, client as clients } from '../..'
 import { WeightsContainer } from '../..'
 import type { Aggregator } from '../../aggregator'
+
 import { Trainer } from './trainer'
 
 /**
@@ -19,10 +20,9 @@ export class DistributedTrainer extends Trainer {
     trainingInformant: TrainingInformant,
     memory: Memory,
     model: tf.LayersModel,
-    private readonly client: clients.Client,
-    trainModelFunction?: TrainingFunction
+    private readonly client: clients.Client
   ) {
-    super(task, trainingInformant, memory, model, trainModelFunction)
+    super(task, trainingInformant, memory, model)
     this.aggregator = this.client.aggregator
     this.aggregator.setModel(model)
   }

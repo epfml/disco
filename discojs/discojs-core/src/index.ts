@@ -11,7 +11,7 @@ export { WeightsContainer, aggregation } from './weights'
 export { AsyncInformant } from './async_informant'
 export { Logger, ConsoleLogger, TrainerLog } from './logging'
 export { Memory, ModelType, type ModelInfo, type Path, type ModelSource, Empty as EmptyMemory } from './memory'
-export { Disco, TrainingSchemes, type TrainingFunction, fitModelFunctions } from './training'
+export { Disco, TrainingSchemes } from './training'
 export { Validator } from './validation'
 
 export * from './task'
