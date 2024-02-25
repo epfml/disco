@@ -1,6 +1,6 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { client as clients, Task, TrainingInformant, TrainingFunction, ModelInfo, Memory } from '../..'
+import type { client as clients, Task, TrainingInformant, ModelInfo, Memory } from '../..'
 import { ModelType } from '../..'
 import type { Aggregator } from '../../aggregator'
 
@@ -15,8 +15,7 @@ export class TrainerBuilder {
   constructor (
     private readonly memory: Memory,
     private readonly task: Task,
-    private readonly trainingInformant: TrainingInformant,
-    private readonly trainingFunction?: TrainingFunction
+    private readonly trainingInformant: TrainingInformant
   ) {}
 
   /**
@@ -34,16 +33,14 @@ export class TrainerBuilder {
         this.trainingInformant,
         this.memory,
         model,
-        client,
-        this.trainingFunction
+        client
       )
     } else {
       return new LocalTrainer(
         this.task,
         this.trainingInformant,
         this.memory,
-        model,
-        this.trainingFunction
+        model
       )
     }
   }

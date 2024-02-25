@@ -6,8 +6,7 @@ import {
   type TrainingInformant, informant as informants,
   TrainingSchemes,
   type Memory, EmptyMemory,
-  ConsoleLogger,
-  type TrainingFunction
+  ConsoleLogger
 } from '..'
 import { type Trainer } from './trainer/trainer'
 import { TrainerBuilder } from './trainer/trainer_builder'
@@ -23,7 +22,6 @@ export interface DiscoOptions {
   informant?: TrainingInformant
   logger?: Logger
   memory?: Memory
-  customTrainingFunction?: TrainingFunction
 }
 
 /**
@@ -101,7 +99,7 @@ export class Disco {
     this.memory = options.memory
     this.logger = options.logger
 
-    const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant, options.customTrainingFunction)
+    const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
     this.trainer = trainerBuilder.build(this.aggregator, this.client, options.scheme !== TrainingSchemes.LOCAL)
   }
 
