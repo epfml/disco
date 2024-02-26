@@ -14,7 +14,6 @@
     "apexcharts": "3",
     "autoprefixer": "10",
     "aws-sdk": "2",
-    "axios": "0",
     "core-js": "3",
     "crypto-browserify": "3",
     "cypress": "10",

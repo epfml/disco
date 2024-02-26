@@ -31,7 +31,12 @@ export async function getClient<T extends client.Client> (
     if (addr.family === '4') {
       host = `${addr.address}:${addr.port}`
     } else {
-      host = `[${addr.address}]:${addr.port}`
+      let address = `[${addr.address}]`
+      // axios fails on IPv6 addresses, replacing most probable axios#5333
+      if (address === '[::]') {
+        address = 'localhost'
+      }
+      host = `${address}:${addr.port}`
     }
   }
   const url = new URL(`http://${host}`)

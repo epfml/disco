@@ -21,7 +21,7 @@
   "dependencies": {
     "@tensorflow/tfjs": "4",
     "@types/msgpack-lite": "0.1",
-    "axios": "0.27",
+    "axios": "1",
     "gpt3-tokenizer": "1",
     "immutable": "4",
     "isomorphic-wrtc": "1",
