@@ -32,7 +32,7 @@ a `server` and a `cli` (e.g., for benchmarking). Depending on what your goal is,
 > [!TIP]
 > The most common issues with running DISCO are usually due to using old Node.js versions and setting the appropriate environment on M1 Macs, see [our FAQ](./FAQ.md) for more troubleshooting. Note that DISCO has been not tested on Windows (only Linux and macOS).
 
-As mentioned in the [developer guide](../DEV.md), there are many ways to use Disco.js: from a browser, a CLI, by importing `discojs-node` in your own Node.js scripts and applications or from your own UI implementation. Note that whatever your setting, using Disco.js always requires a `server` instance. Some cases like the CLI starts a server instance automatically, but others like the web-client doesn't and require either an existing instance or to have you launch a local server instance. As described in the [`server` README file](../server/REDME.md), the server is in charge of connecting peers to the ML tasks. In order to connect and partake in a distributed training session you first need to find the session and how to join it so the sever exposes an API to that end.
+There are many ways to use Disco.js: from a browser, a CLI, by importing `discojs-node` in your own Node.js scripts and applications or from your own UI implementation. Note that whatever your setting, using Disco.js always requires a `server` instance. Some cases like the CLI starts a server instance automatically, but others like the web-client doesn't and require either an existing instance or to have you launch a local server instance. As described in the [`server` README file](../server/REDME.md), the server is in charge of connecting peers to the ML tasks. In order to connect and partake in a distributed training session you first need to find the session and how to join it so the sever exposes an API to that end.
 
 ## Contributing in practice
 
@@ -181,27 +181,6 @@ git push -u origin 202-train-bug-nacho
 
 ### 2. Coding, comments and docstring
 
-Here are the main commands you may rely on in different parts of DISCO, see more information in [ONBOARDING.md](./ONBOARDING.md):
-
-- After modifying `discojs`, it is currently necessary to rebuild the library for the changes to be effective (no hot reloading):
-
-```
-npm -w discojs run build # rebuilds disco-core, disco-node and disco-web
-```
-
-I recommend using the watch command to re-build the library on every change:
-
-```
-npm -w discojs run watch build
-```
-
-- Both `server` and `web-client` work with hot reloading, i.e., once the backends are running, any code modification is automatically taken into account:
-
-```
-npm -w server run start # you can modify the code while this command is running
-npm -w web-client run start # from another terminal
-```
-
 #### Naming conventions
 
 - TypeScript files should be written in snake_case, lowercase words separated by underscores, e.g. `event_connection.ts`
@@ -215,41 +194,21 @@ Write docstring in the [JSDoc](https://jsdoc.app/) style. For reference: [list o
 
 ### 3. Testing your code
 
-We use the testing framework [mocha](https://mochajs.org/) and the [chai](https://www.chaijs.com/) assertion library.
-To write tests for a code file `<filename>.ts`, create a `<filename>.spec.ts` file. This way, tests will be executed automatically for continuous integration.
-Each part of DISCO has a respective test suite:
-
-- `discojs` needs to have a `server` instance to be tested:
-
-```
-npm -w server run start
-npm -w discojs test # from another terminal
-```
-
-- **However**, to test the `server` make sure no `server` instance is already running. Port 8080 should be free and available.
-
-```
-npm -w server test
-```
-
-- No `server` instance is needed to test the `web-client`:
-
-```
-npm -w web-client test
-```
+Test the newly implemented features locally by following instructions in the [Contributing in practice](#contributing-in-practice) section.
 
 ### 4. Draft PR
 
 Once you have added a minimum number of content to your branch, you can create a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/). Create a pull request to merge your branch (e.g., `202-train-bug-nacho`) into the `develop` branch. `develop` should always be functional and up to date with new working features. It is the equivalent of the `main`or `master` branch in DISCO.
 It is important to give a good description to your PR as this makes it easier for other people to go through it.
 
-> [!TIP] > [This PR](https://github.com/epfml/disco/pull/176) is a good example.
+> [!TIP]
+> [This PR](https://github.com/epfml/disco/pull/176) is a good example.
 
 ### 5. Before requesting a review
 
 Once you have finished your work on your draft PR, make sure to do the following before turning it into review PR.
 
-1. Run both the server and main test suites as described in the [Testing Section](#3-testing-your-code).
+1. Run the adequate test suites (server, web-client, discojs).
 2. Make sure you remove debugging comments / console outputs.
 3. Merge (or rebase if you can do it properly) `develop` into your feature branch:
 
@@ -257,7 +216,8 @@ Once you have finished your work on your draft PR, make sure to do the following
 git checkout develop
 git pull
 git checkout 202-train-bug-nacho
-git merge develop # Solve potential merge conflicts
+git merge develop
+# Solve potential merge conflicts
 git push
 ```
 
@@ -265,7 +225,7 @@ git push
 
 ## Next steps
 
-Depending on what you will be working on you may be interested in different documentation. Have a look at the markdown guides in `docs`. Notably:
+Depending on what you will be working on you may be interested in different documentation. Have a look at the markdown guides in `docs` and the table of content in [DEV.md](../DEV.md). Notably:
 
 - Understanding [Disco.js inner workings](./DISCOJS.md) is key if you are planning to add a new machine learning feature or work in `discojs`
 - The [Vue.js architecture guide](./VUEJS.md) explains how the browser client is implemented with Vue.js.
