@@ -142,7 +142,7 @@ For now a template that shows how to create tasks can be found.
 | [vuex](https://vuex.vuejs.org/)                       |     `Store`     | It serves as a centralized store for all the components in an application |
 | [vee-validate](https://vee-validate.logaretm.com/v4/) |     `Form`      | Form Validation for Vue.js                                                |
 | [vue-toaster](https://github.com/MeForma/vue-toaster) | `Notifications` | Toast notification plugin for Vue.js                                      |
-| [tippy](https://atomiks.github.io/tippyjs/)           |     `Menu`      | Pluging to build menu / side bars                                         |
+| [tippy](https://atomiks.github.io/tippyjs/)           |     `Menu`      | Plugin to build menu / side bars                                          |
 | [vue-i18n](https://vue-i18n.intlify.dev/)             | `Internation.`  | Internationalization plugin for Vue.js                                    |
 | [vue-router](https://router.vuejs.org/)               |    `Routing`    | Official router plugin for Vue.js                                         |
 | [axios](https://axios-http.com/)                      | `HTTP requests` | Axios is a promise-based HTTP Client for node.js and the browser.         |

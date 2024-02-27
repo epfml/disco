@@ -46,7 +46,7 @@ The [task creation form](https://epfml.github.io/disco/#/create) lets users crea
 
 1.  On the [DISCO website](https://epfml.github.io/disco/#), click on `Get Started` and then `Create`.
 2.  Fill in all the relevant information for the task
-3.  Upload model files: 1) a TF.js architecture file in JSON format (cf. the _Uploading ML models_ section) as well as a weight file (`.bin` format), which is necessary in this case. This is the initial weights provided to new users joining your task (pre-trained or random initialisation).
+3.  Upload model files: 1) a TF.js architecture file in JSON format (cf. the _Uploading ML models_ section) as well as a weight file (`.bin` format), which is necessary in this case. This is the initial weights provided to new users joining your task (pre-trained or random initialization).
 
 ## 3. Implementing custom tasks
 
@@ -78,7 +78,7 @@ const customTask: TaskProvider = {
 
   async getModel(): Promise<tf.LayersModel> {
     const model = tf.sequential();
-    // Configure your model architechture
+    // Configure your model architecture
     return model;
   },
 };
@@ -208,7 +208,7 @@ export enum ImagePreprocessing {
 }
 ```
 
-If your task requires a preprocessing function to be applied to the data before training, you can specifiy it in the `preprocessingFunctions` field of the `trainingInformation` parameter in the task object. In order to add custom preprocessing function, either extend the `Preprocessing` type and define your preprocessing functions in the [preprocessing](../discojs/discojs-core/src/dataset/data/preprocessing.ts) file. If the preprocessing function is challenging to implement in JS (e.g requires complex audio preprocessing for JS), we recommend implementing in some other language which supports the desired preprocessing (e.g. Python) and feed the preprocessed data to the task.
+If your task requires a preprocessing function to be applied to the data before training, you can specify it in the `preprocessingFunctions` field of the `trainingInformation` parameter in the task object. In order to add custom preprocessing function, either extend the `Preprocessing` type and define your preprocessing functions in the [preprocessing](../discojs/discojs-core/src/dataset/data/preprocessing.ts) file. If the preprocessing function is challenging to implement in JS (e.g requires complex audio preprocessing for JS), we recommend implementing in some other language which supports the desired preprocessing (e.g. Python) and feed the preprocessed data to the task.
 
 #### Rebuild
 
@@ -267,7 +267,7 @@ export const task: Task = {
 - Reinstall cleanly the server by running `npm ci` from `disco/server`
 - Reinstall cleanly the client by running `npm ci` from `disco/web-client`
 - Instantiate a Disco server by running `npm run dev` from `disco/server`
-- Instanciate a Disco client by running `npm run dev` from `disco/web-client`
+- Instantiate a Disco client by running `npm run dev` from `disco/web-client`
 
 Your task has been successfully uploaded.
 

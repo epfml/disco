@@ -65,7 +65,7 @@ All endpoints listed below are implemented as messages on a WebSocket, mounted o
 
 For completeness, note that the Disco clients send the following messages to each other in a peer-to-peer fashion, i.e. without any intervention from the server.
 
-| Messsage      | Body | Action                                                |
+| Message       | Body | Action                                                |
 | ------------- | ---- | ----------------------------------------------------- |
 | `Weights`     |      | Send model weight updates to the peer                 |
 | `Shares`      |      | Secure Aggregation: Secret shares sent in first round |

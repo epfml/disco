@@ -138,7 +138,7 @@ There are multiple ways to use and interact with DISCO, depending on your object
 
 ### `web-client` and `server`
 
-The last step of the installation instructions describe how to start a web interface along with a helper server. The server is used to provide some predefined machine learning tasks and orchastrate distributed training.
+The last step of the installation instructions describe how to start a web interface along with a helper server. The server is used to provide some predefined machine learning tasks and orchestrate distributed training.
 
 From the root level, launch a `server` instance:
 
@@ -162,7 +162,7 @@ Using `discojs-node` is illustrated in [the `examples` folder](./docs/examples/R
 
 ### `cli`
 
-Training a model with the `cli` on pre-defined tasks is straigtfoward:
+Training a model with the `cli` on pre-defined tasks is straightforward:
 
 ```
 # From the root folder
@@ -175,7 +175,7 @@ Adding CLI support for another task is described in the [CLI README](./cli/READM
 ## Further documentation
 
 - To contribute or modify the codebase have a look at the [contributing guide](./docs/CONTRIBUTING.md) which lists the following steps to onboard DISCO.
-- If you are only planning to use DISCO in your own scripts, you can find a standalone example relying on `discojs-node` in [the `examples` folder](./docs/examples/README.md). The example runs with Node.js outside any browser, with `discojs-node` and a `server` instance. A DISCO server is launched by the script which then loads data and emulates multiple users training a model federately.
+- If you are only planning to use DISCO in your own scripts, you can find a standalone example relying on `discojs-node` in [the `examples` folder](./docs/examples/README.md). The example runs with Node.js outside any browser, with `discojs-node` and a `server` instance. A DISCO server is launched by the script which then loads data and emulates multiple users training a model in a federated manner.
 
 #### Table of contents
 

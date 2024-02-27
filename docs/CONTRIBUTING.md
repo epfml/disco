@@ -1,6 +1,6 @@
 # Contributor guide
 
-This guide complements the [devloper guide](../DEV.md) and gives additional information on the project, how to modify DISCO and how to contribute to the codebase.
+This guide complements the [developer guide](../DEV.md) and gives additional information on the project, how to modify DISCO and how to contribute to the codebase.
 
 ## Onboarding
 
@@ -32,7 +32,7 @@ a `server` and a `cli` (e.g., for benchmarking). Depending on what your goal is,
 > [!TIP]
 > The most common issues with running DISCO are usually due to using old Node.js versions and setting the appropriate environment on M1 Macs, see [our FAQ](./FAQ.md) for more troubleshooting. Note that DISCO has been not tested on Windows (only Linux and macOS).
 
-As mentioned in the [developer guide](../DEV.md), there are many ways to use Disco.js: from a browser, a CLI, by importing `discojs-node` in your own Node.js scripts and applications or from your own UI implementation. Note that whatever your setting, using Disco.js always requires a `server` instance. Some cases like the CLI starts a server instance automatically, but others like the web-client doesn't and require either an existing instance or to have you launch a local server instnace. As described in the [`server` README file](../server/REDME.md), the server is in charge of connecting peers to the ML tasks. In order to connect and partake in a distributed training session you first need to find the session and how to join it so the sever exposes an API to that end.
+As mentioned in the [developer guide](../DEV.md), there are many ways to use Disco.js: from a browser, a CLI, by importing `discojs-node` in your own Node.js scripts and applications or from your own UI implementation. Note that whatever your setting, using Disco.js always requires a `server` instance. Some cases like the CLI starts a server instance automatically, but others like the web-client doesn't and require either an existing instance or to have you launch a local server instance. As described in the [`server` README file](../server/REDME.md), the server is in charge of connecting peers to the ML tasks. In order to connect and partake in a distributed training session you first need to find the session and how to join it so the sever exposes an API to that end.
 
 ## Contributing in practice
 
@@ -90,7 +90,7 @@ App running at:
   - Network: http://192.168.43.231:8081/
 ```
 
-You can acess the client at the Local address from the machine running the web-client and any device on the same network can access the app with the Network address.
+You can access the client at the Local address from the machine running the web-client and any device on the same network can access the app with the Network address.
 
 As said previously, modifying `discojs` isn't effective automatically and requires a build. You may have to restart the `web-client` manually after rebuilding `discojs`. Section [Building `discojs`](#building-discojs) discusses this in more details.
 
@@ -136,13 +136,13 @@ And then start the `discojs` test suite:
 npm -w discojs test
 ```
 
-Simiarly to the server, any file ending with `.spec.ts` will be ran in the test suite. As a convention, we duplicate the name of the TypeScript file we are testing. For example, `async_informant.spec.ts` tests features implemented in `async_informant.ts` and is located in the same folder.
+Similarly to the server, any file ending with `.spec.ts` will be ran in the test suite. As a convention, we duplicate the name of the TypeScript file we are testing. For example, `async_informant.spec.ts` tests features implemented in `async_informant.ts` and is located in the same folder.
 
 ### `discojs-core`, `discojs-node` and `discojs-web`
 
 `discojs-core` contains the core, platform-agnostic code of Disco.js, used by both `discojs-web` and `discojs-node`. As such, contributions to `discojs-core` must only contain code independent of either Node or the browser. As the names subtly suggest, `discojs-node` and `discojs-web` implement features specific to Node.js and browsers respectively, mostly related to memory and data handling as browser don't allow access to the file system.
 
-Note that, if you end up making calls to the Tensorflow.js API, you must import it from the root index. This is to ensure the right version of TF.js is loaded (depending on the compilation `dist/`), and only once. The only exception occurs in unittests, which should import TF.js from the (local) `@epfml/discojs-node`, since those run on Node.js.
+Note that, if you end up making calls to the Tensorflow.js API, you must import it from the root index. This is to ensure the right version of TF.js is loaded (depending on the compilation `dist/`), and only once. The only exception occurs in unit tests, which should import TF.js from the (local) `@epfml/discojs-node`, since those run on Node.js.
 
 Currently, the `discojs-node` project is available as the `@epfml/discojs-node` NPM package, which can be installed with
 `npm i @epfml/discojs-node` while the `discojs-web` project is available as the `@epfml/discojs` (and **not** as `@epfml/discojs-web`) NPM package, which can be installed with `npm i @epfml/discojs`.
