@@ -1,7 +1,7 @@
-import { tf, Memory, Task, TrainingInformant, TrainingFunction, fitModelFunctions } from '../..'
+import { type tf, type Memory, type Task, type TrainingInformant, type TrainingFunction, fitModelFunctions } from '../..'
 
 import { RoundTracker } from './round_tracker'
-import { TrainerLogger, TrainerLog } from '../../logging/trainer_logger'
+import { TrainerLogger, type TrainerLog } from '../../logging/trainer_logger'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:
@@ -118,12 +118,12 @@ export abstract class Trainer {
       this.task.trainingInformation,
       dataset,
       valDataset,
-      (e, l) => this.onEpochBegin(e, l),
-      (e, l) => this.onEpochEnd(e, l),
-      async (e, l) => await this.onBatchBegin(e, l),
-      async (e, l) => await this.onBatchEnd(e, l),
-      async (l) => await this.onTrainBegin(l),
-      async (l) => await this.onTrainEnd(l))
+      (e, l) => { this.onEpochBegin(e, l) },
+      (e, l) => { this.onEpochEnd(e, l) },
+      async (e, l) => { await this.onBatchBegin(e, l) },
+      async (e, l) => { await this.onBatchEnd(e, l) },
+      async (l) => { await this.onTrainBegin(l) },
+      async (l) => { await this.onTrainEnd(l) })
   }
 
   /**

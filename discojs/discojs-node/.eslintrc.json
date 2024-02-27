@@ -1,15 +1,5 @@
 {
-	"extends": "standard-with-typescript",
-	"parserOptions": {
-		"project": "./tsconfig.eslint.json"
-	},
-	"env": {
-		"node": true,
-		"es6": true,
-		"mocha": true
-	},
-	"rules": {
-		// TODO need strict
-		"@typescript-eslint/strict-boolean-expressions": "off"
-	}
+  "env": {
+    "node": true
+  }
 }

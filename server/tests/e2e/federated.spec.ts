@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'node:path'
-import { Server } from 'node:http'
+import type { Server } from 'node:http'
 import { Range } from 'immutable'
 import { assert } from 'chai'
 
@@ -31,7 +31,7 @@ describe('end-to-end federated', function () {
 
     const cifar10Task = defaultTasks.cifar10.getTask()
 
-    const data = await new node.data.NodeImageLoader(cifar10Task).loadAll(files, { labels: labels })
+    const data = await new node.data.NodeImageLoader(cifar10Task).loadAll(files, { labels })
 
     const aggregator = new aggregators.MeanAggregator(cifar10Task)
     const client = await getClient(clients.federated.FederatedClient, server, cifar10Task, aggregator)

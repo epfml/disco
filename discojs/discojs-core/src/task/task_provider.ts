@@ -1,4 +1,4 @@
-import { tf, Task } from '..'
+import { type tf, type Task } from '..'
 
 export interface TaskProvider {
   getTask: () => Task

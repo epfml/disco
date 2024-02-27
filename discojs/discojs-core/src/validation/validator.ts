@@ -1,6 +1,6 @@
 import { List } from 'immutable'
 
-import { tf, data, Task, Logger, client as clients, GraphInformant, Memory, ModelSource, Features } from '..'
+import { tf, type data, type Task, type Logger, type client as clients, GraphInformant, type Memory, type ModelSource, type Features } from '..'
 
 export class Validator {
   private readonly graphInformant = new GraphInformant()
@@ -27,7 +27,7 @@ export class Validator {
     }
   }
 
-  async assess (data: data.Data, useConfusionMatrix?: boolean): Promise<Array<{groundTruth: number, pred: number, features: Features}>> {
+  async assess (data: data.Data, useConfusionMatrix: boolean = false): Promise<Array<{ groundTruth: number, pred: number, features: Features }>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('Batch size is undefined')
@@ -88,7 +88,7 @@ export class Validator {
       .toArray()
   }
 
-  async predict (data: data.Data): Promise<Array<{features: Features, pred: number}>> {
+  async predict (data: data.Data): Promise<Array<{ features: Features, pred: number }>> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('Batch size is undefined')

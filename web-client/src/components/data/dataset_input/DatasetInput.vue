@@ -166,7 +166,7 @@ const requireLabels = computed(
 )
 
 const cannotUploadFiles = computed(
-  () => requireLabels && !csvRows.value
+  () => requireLabels.value && !csvRows.value
 )
 
 const readCsv = (files: FileList) => {
@@ -176,7 +176,7 @@ const readCsv = (files: FileList) => {
 const addFiles = (files: FileList, label?: string) => {
   const filesArray = Array.from(files)
 
-  if (props.task.trainingInformation.dataType === 'image' && requireLabels && !props.isOnlyPrediction) {
+  if (props.task.trainingInformation.dataType === 'image' && requireLabels.value && !props.isOnlyPrediction) {
     if (label) {
       props.datasetBuilder.addFiles(filesArray, label)
     } else {

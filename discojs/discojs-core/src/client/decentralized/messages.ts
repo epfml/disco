@@ -1,10 +1,7 @@
-import { SignalData } from 'simple-peer'
-
 import { weights } from '../../serialization'
-
-import { isNodeID, NodeID } from '../types'
-
-import { type, ClientConnected, AssignNodeID, hasMessageType } from '../messages'
+import { type SignalData } from './peer'
+import { isNodeID, type NodeID } from '../types'
+import { type, type ClientConnected, type AssignNodeID, hasMessageType } from '../messages'
 
 /// Phase 0 communication (between server and peers)
 

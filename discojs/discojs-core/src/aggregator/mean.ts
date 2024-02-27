@@ -1,7 +1,7 @@
-import { Map } from 'immutable'
+import { type Map } from 'immutable'
 
 import { AggregationStep, Base as Aggregator } from './base'
-import { Task, WeightsContainer, aggregation, tf, client } from '..'
+import { type Task, type WeightsContainer, aggregation, type tf, type client } from '..'
 
 /**
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights.

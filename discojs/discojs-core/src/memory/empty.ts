@@ -1,6 +1,6 @@
-import { tf } from '..'
+import { type tf } from '..'
 
-import { Memory, ModelInfo, Path } from './base'
+import { Memory, type ModelInfo, type Path } from './base'
 
 /**
  * Represents an empty model memory.

@@ -1,11 +1,11 @@
 import { assert } from 'chai'
 import { Map, Range } from 'immutable'
-import { messages } from '.'
+import { type messages } from '.'
 import { type } from '../messages'
-import { PeerConnection, EventConnection } from '../event_connection'
+import { type PeerConnection, type EventConnection } from '../event_connection'
 
 import { PeerPool } from './peer_pool'
-import { NodeID } from '../types'
+import { type NodeID } from '../types'
 
 describe('peer pool', function () {
   this.timeout(10_000)
@@ -15,15 +15,13 @@ describe('peer pool', function () {
   beforeEach(async () => {
     const count = 3
 
-    pools = Map(await Promise.all(
-      Range(1, count + 1).map(String).map(async (id) =>
-        [id, await PeerPool.init(id)] as [NodeID, PeerPool]
-      ).toArray()
+    pools = Map(Range(1, count + 1).map(String).map((id) =>
+      [id, new PeerPool(id)]
     ))
   })
 
   afterEach(() => {
-    pools.forEach((p) => p.shutdown())
+    pools.forEach((p) => { p.shutdown() })
   })
 
   function mockServer (poolId: string): EventConnection {
@@ -79,14 +77,11 @@ describe('peer pool', function () {
             .toArray())
         .toArray()
         .flat()
-    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
-    messages.sort()
 
     peersSets
       .entrySeq()
       .forEach(([poolID, peers]) =>
-        peers.forEach((peer, id) =>
-          peer.send(mockWeights(poolID))))
+        peers.forEach((peer, id) => { peer.send(mockWeights(poolID)) }))
 
     const exchanged = (await Promise.all(
       peersSets
@@ -95,18 +90,15 @@ describe('peer pool', function () {
           peers
             .valueSeq()
             .map(async (peer) =>
-              await new Promise<messages.Payload>((resolve) =>
-                peer.on(type.Payload, (data) => resolve(data))
+              await new Promise<messages.Payload>((resolve) => { peer.on(type.Payload, (data) => { resolve(data) }) }
               )
             )
             .toArray()
         ))
         .toArray()
     )).flat()
-    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
-    exchanged.sort()
 
-    assert.deepStrictEqual(exchanged, messages)
+    assert.sameDeepMembers(exchanged, messages)
   }
 
   it('gets peers to connect to', async () => {

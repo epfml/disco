@@ -1,4 +1,4 @@
-import { Data } from './data'
+import { type Data } from './data'
 
 /**
  * Train-validation split of Disco data.

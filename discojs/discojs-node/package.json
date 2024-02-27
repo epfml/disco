@@ -6,7 +6,7 @@
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-core/dist --watch . --exec npm run",
     "build": "tsc",
-    "lint": "npx eslint --max-warnings 0 .",
+    "lint": "npx eslint --ext ts --max-warnings 0 .",
     "test": "mocha",
     "docs": "typedoc ./src/imports.ts --theme oxide"
   },
@@ -20,10 +20,12 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@epfml/discojs-core": "*",
+    "@koush/wrtc": "0.5",
     "@tensorflow/tfjs-node": "4"
   },
   "devDependencies": {
     "@types/node": "20",
-    "nodemon": "3"
+    "nodemon": "3",
+    "ts-node": "10"
   }
 }

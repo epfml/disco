@@ -1,4 +1,4 @@
-import { tf, Task, data, TaskProvider } from '..'
+import { tf, type Task, data, type TaskProvider } from '..'
 import { Range } from 'immutable'
 import { LabelTypeEnum } from '../task/label_type'
 

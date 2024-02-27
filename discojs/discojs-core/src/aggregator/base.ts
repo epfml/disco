@@ -1,13 +1,29 @@
-import { client, Task, tf, AsyncInformant } from '..'
+import { type client, type Task, type tf, type AsyncInformant } from '..'
 
-import { EventEmitter } from 'events'
-
-import { Map, Set } from 'immutable'
+import { List, Map, Set } from 'immutable'
 
 export enum AggregationStep {
   ADD,
   UPDATE,
   AGGREGATE
+}
+
+class AggregationEventEmitter<T> {
+  private listeners = List<[once: boolean, act: (_: T) => void]>()
+
+  on (_: 'aggregation', act: (_: T) => void): void {
+    this.listeners = this.listeners.push([false, act])
+  }
+
+  once (_: 'aggregation', act: (_: T) => void): void {
+    this.listeners = this.listeners.push([true, act])
+  }
+
+  emit (_: 'aggregation', aggregated: T): void {
+    const listeners = this.listeners
+    this.listeners = this.listeners.filterNot(([once, _]) => once)
+    listeners.forEach(([_, act]) => { act(aggregated) })
+  }
 }
 
 /**
@@ -31,7 +47,7 @@ export abstract class Base<T> {
    * Triggers the resolve of the result promise and the preparation for the
    * next aggregation round.
    */
-  private readonly eventEmitter: EventEmitter
+  private readonly eventEmitter: AggregationEventEmitter<T>
 
   protected informant?: AsyncInformant<T>
   /**
@@ -71,7 +87,7 @@ export abstract class Base<T> {
      */
     public readonly communicationRounds = 1
   ) {
-    this.eventEmitter = new EventEmitter()
+    this.eventEmitter = new AggregationEventEmitter()
     this.contributions = Map()
     this._nodes = Set()
 

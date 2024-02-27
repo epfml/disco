@@ -25,7 +25,10 @@ export async function encode (model: tf.LayersModel): Promise<Encoded> {
   return [...msgpack.encode(saved).values()]
 }
 
-export async function decode (encoded: Encoded): Promise<tf.LayersModel> {
+export async function decode (encoded: unknown): Promise<tf.LayersModel> {
+  if (!Array.isArray(encoded) || encoded.some((v) => typeof v !== 'number')) {
+    throw new Error('invalid encoded model shape')
+  }
   const raw = msgpack.decode(encoded)
 
   return await tf.loadLayersModel({

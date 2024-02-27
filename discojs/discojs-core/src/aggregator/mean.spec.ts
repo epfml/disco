@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { assert, expect } from 'chai'
-import { Map } from 'immutable'
+import { type Map } from 'immutable'
 
-import { aggregator, defaultTasks, client, Task, tf } from '..'
+import { aggregator, defaultTasks, type client, type Task, type tf } from '..'
 import { AggregationStep } from './base'
 
 const task = defaultTasks.titanic.getTask()
@@ -109,7 +108,7 @@ describe('mean aggregator tests', () => {
     mockAggregatedWeights = 5
     result = aggregator.receiveResult()
     const t1 = Date.now()
-    newWeights.map(async (w) => aggregator.add(w.toString(), w, t1))
+    newWeights.map((w) => aggregator.add(w.toString(), w, t1))
     expect(await result).eql(mockAggregatedWeights)
     expect(aggregator.round).equal(2)
   })

@@ -1,6 +1,6 @@
-import * as decentralized from './decentralized/messages'
-import * as federated from './federated/messages'
-import { NodeID } from './types'
+import type * as decentralized from './decentralized/messages'
+import type * as federated from './federated/messages'
+import { type NodeID } from './types'
 
 export enum type {
   ClientConnected,
@@ -19,6 +19,7 @@ export enum type {
   SendMetadata,
   ReceiveServerMetadata,
   ReceiveServerPayload,
+  RequestServerStatistics,
   ReceiveServerStatistics,
 }
 
@@ -40,7 +41,7 @@ export type Message =
 // Retrieve a specific message interface from the type D. i.e. NarrowMessage<messages.type.PeerId> => messages.PeerId type
 export type NarrowMessage<D> = Extract<Message, { type: D }>
 
-export function hasMessageType (raw: unknown): raw is {type: type} & Record<string, unknown> {
+export function hasMessageType (raw: unknown): raw is { type: type } & Record<string, unknown> {
   if (typeof raw !== 'object' || raw === null) {
     return false
   }

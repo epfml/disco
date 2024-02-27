@@ -1,11 +1,10 @@
 import isomorphic from 'isomorphic-ws'
 import { EventEmitter } from 'events'
-import { Peer } from './decentralized/peer'
-import { NodeID } from './types'
+import type { Peer, SignalData } from './decentralized/peer'
+import { type NodeID } from './types'
 import msgpack from 'msgpack-lite'
 import * as decentralizedMessages from './decentralized/messages'
-import { type, NarrowMessage, Message } from './messages'
-import { SignalData } from 'simple-peer'
+import { type, type NarrowMessage, type Message } from './messages'
 import { timeout } from './utils'
 
 export interface EventConnection {
@@ -59,12 +58,10 @@ export class PeerConnection implements EventConnection {
       this.eventEmitter.emit(msg.type.toString(), msg)
     })
 
-    this.peer.on('close', () => console.warn('peer', this.peer.id, 'closed connection'))
+    this.peer.on('close', () => { console.warn('peer', this.peer.id, 'closed connection') })
 
-    return await new Promise((resolve) => {
-      this.peer.on('connect', () => {
-        resolve()
-      })
+    await new Promise<void>((resolve) => {
+      this.peer.on('connect', resolve)
     })
   }
 
@@ -117,17 +114,18 @@ export class WebSocketServer implements EventConnection {
       const msg = msgpack.decode(new Uint8Array(event.data))
 
       // Validate message format
-      if (validateReceived && !validateReceived(msg)) {
+      if (validateReceived !== undefined && !validateReceived(msg)) {
         throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
       }
 
-      emitter.emit(msg.type.toString(), msg)
+      emitter.emit(msg.type.toString() as string, msg)
     }
 
     return await new Promise((resolve, reject) => {
-      ws.onerror = (err: isomorphic.ErrorEvent) =>
-        reject(new Error(`Server unreachable: ${err.message}`)) // eslint-disable-line @typescript-eslint/restrict-template-expressions
-      ws.onopen = () => resolve(server)
+      ws.onerror = (err: isomorphic.ErrorEvent) => {
+        reject(new Error(`Server unreachable: ${err.message}`))
+      }
+      ws.onopen = () => { resolve(server) }
     })
   }
 
@@ -145,7 +143,7 @@ export class WebSocketServer implements EventConnection {
   }
 
   send (msg: Message): void {
-    if (this.validateSent && !this.validateSent(msg)) {
+    if (this.validateSent !== undefined && !this.validateSent(msg)) {
       throw new Error(`can't send this type of message: ${JSON.stringify(msg)}`)
     }
 

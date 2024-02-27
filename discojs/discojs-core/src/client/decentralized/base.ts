@@ -1,11 +1,10 @@
 import { Map, Set } from 'immutable'
-import * as nodeUrl from 'url'
 
-import { TrainingInformant, WeightsContainer, serialization } from '../..'
-import { Client, NodeID } from '..'
-import { type, ClientConnected } from '../messages'
+import { type TrainingInformant, type WeightsContainer, serialization } from '../..'
+import { Client, type NodeID } from '..'
+import { type, type ClientConnected } from '../messages'
 import { timeout } from '../utils'
-import { EventConnection, WebSocketServer, waitMessage, PeerConnection, waitMessageWithTimeout } from '../event_connection'
+import { type EventConnection, WebSocketServer, waitMessage, type PeerConnection, waitMessageWithTimeout } from '../event_connection'
 import { PeerPool } from './peer_pool'
 import * as messages from './messages'
 
@@ -19,7 +18,7 @@ export class Base extends Client {
   /**
    * The pool of peers to communicate with during the current training round.
    */
-  private pool?: Promise<PeerPool>
+  private pool?: PeerPool
   private connections?: Map<NodeID, PeerConnection>
 
   /**
@@ -55,12 +54,11 @@ export class Base extends Client {
         throw new Error('waiting for peers but peer pool is undefined')
       }
 
-      const pool = await this.pool
-      const connections = await pool.getPeers(
+      const connections = await this.pool.getPeers(
         peers,
         this.server,
         // Init receipt of peers weights
-        (conn) => this.receivePayloads(conn, round)
+        (conn) => { this.receivePayloads(conn, round) }
       )
 
       console.info(`[${this.ownId}] received peers for round ${round}:`, connections.keySeq().toJS())
@@ -90,14 +88,13 @@ export class Base extends Client {
       if (this.pool === undefined) {
         throw new Error('received signal but peer pool is undefined')
       }
-      void this.pool.then((pool) => pool.signal(event.peer, event.signal))
+      this.pool.signal(event.peer, event.signal)
     })
 
     return server
   }
 
   async connect (): Promise<void> {
-    const URL = typeof window !== 'undefined' ? window.URL : nodeUrl.URL
     const serverURL = new URL('', this.url.href)
     switch (this.url.protocol) {
       case 'http:':
@@ -125,13 +122,12 @@ export class Base extends Client {
       throw new Error('received id from server but was already received')
     }
     this._ownId = peerIdMsg.id
-    this.pool = PeerPool.init(peerIdMsg.id)
+    this.pool = new PeerPool(peerIdMsg.id)
   }
 
   async disconnect (): Promise<void> {
     // Disconnect from peers
-    const pool = await this.pool
-    pool?.shutdown()
+    this.pool?.shutdown()
     this.pool = undefined
 
     if (this.connections !== undefined) {

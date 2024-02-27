@@ -1,9 +1,9 @@
 // only used browser-side
 // TODO: replace IO type
-import * as tf from '@tensorflow/tfjs'
+import type * as tf from '@tensorflow/tfjs'
 
-import { TaskID } from '..'
-import { ModelType } from './model_type'
+import { type TaskID } from '..'
+import { type ModelType } from './model_type'
 
 /**
  * Model path which uniquely identifies a model in memory.

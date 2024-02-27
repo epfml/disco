@@ -1,7 +1,7 @@
 import { Base as Aggregator } from './base'
-import { client, WeightsContainer } from '..'
+import { type client, type WeightsContainer } from '..'
 
-import { Map } from 'immutable'
+import { type Map } from 'immutable'
 
 export type Momentum = WeightsContainer
 

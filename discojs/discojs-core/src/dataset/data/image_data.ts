@@ -1,5 +1,5 @@
-import { tf, Task } from '../..'
-import { Dataset } from '../dataset'
+import { type tf, type Task } from '../..'
+import { type Dataset } from '../dataset'
 import { Data } from './data'
 import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing'
 
@@ -18,7 +18,7 @@ export class ImageData extends Data {
     // better error handling. An incorrectly formatted image in the dataset might still
     // cause an error during training, because of the lazy aspect of the dataset; we only
     // verify the first sample.
-    if (!task.trainingInformation.preprocessingFunctions?.includes(ImagePreprocessing.Resize)) {
+    if (task.trainingInformation.preprocessingFunctions?.includes(ImagePreprocessing.Resize) !== true) {
       try {
         const sample = (await dataset.take(1).toArray())[0]
         // TODO: We suppose the presence of labels
