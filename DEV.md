@@ -154,11 +154,11 @@ Start the web-client:
 npm -w web-client start # from another terminal
 ```
 
-The web client should be running on `http://localhost:8081`. Running the last command should also output a Network address at which devices on the same network can access the UI. You can find more information in the [`web-client` README](../web-client/README.md) as well as the [server README](./server/README.md).
+The web client should be running on `http://localhost:8081`. Running the last command should also output a Network address at which devices on the same network can access the UI. You can find more information in the [Contributing to the `web-client`](./docs/CONTRIBUTING.md#contributing-to-web-client) Section as well as the [server README](./server/README.md).
 
 ### Importing `discojs-node` with Node.js
 
-Using `discojs-node` is illustrated by an example [in this folder](./docs/node_example). Using `discojs-node` implies starting a server (or having access to one), loading local training data and configuring the model training.
+Using `discojs-node` is illustrated in [the `examples` folder](./docs/examples/README.md). Using `discojs-node` implies starting a server (or having access to one), loading local training data and configuring the model training.
 
 ### `cli`
 
@@ -174,8 +174,8 @@ Adding CLI support for another task is described in the [CLI README](./cli/READM
 
 ## Further documentation
 
-- Next you may want to read our [onboarding guide](./docs/ONBOARDING.md) which lists the following steps to onboard DISCO.
-- If you are only planning to use DISCO in your own scripts, you can find a stand-alone example relying on `discojs-node` [here](./docs/node_example). The example runs with Node.js outside any browser, using the `@epfml/discojs-node` NPM package and the `server` module. A DISCO server is launched by the script itself and the data is already available in the repo.
+- To contribute or modify the codebase have a look at the [contributing guide](./docs/CONTRIBUTING.md) which lists the following steps to onboard DISCO.
+- If you are only planning to use DISCO in your own scripts, you can find a standalone example relying on `discojs-node` in [the `examples` folder](./docs/examples/README.md). The example runs with Node.js outside any browser, with `discojs-node` and a `server` instance. A DISCO server is launched by the script which then loads data and emulates multiple users training a model federately.
 
 #### Table of contents
 
@@ -184,19 +184,13 @@ As there are many guides in the project, here is a table of contents referencing
 - [DISCO README](./README.md)
 - [Developer guide](./DEV.md)
 - The `docs` folder contains in-depth documentation on the project:
-  - [Onboarding guide](./docs/ONBOARDING.md)
   - [Contributing guide](./docs/CONTRIBUTING.md)
+  - [Training on your own dataset](./docs/TASK.md)
   - [Disco.js under the hood](./docs/DISCOJS.md)
-  - [FAQ](./docs/FAQ.md)
-  - [Example: using `discojs-node` in a script](./docs/node_example/README.md)
+  - [`examples` folder: using `discojs-node`, adding a custom task](./docs/examples/README.md)
   - [Privacy in DISCO](./docs/PRIVACY.md)
-  - [How to create a DISCO Task](./docs/TASK.md)
-  - [Vue.js architecture](./docs/VUEJS.md)
-- Respective `README` files contain installation and packaging instructions relevant to the module
-  - [`discojs` README](./discojs/README.md)
-    - [`discojs-core` README](./discojs/discojs-core/README.md)
-    - [`discojs-node` README](./discojs/discojs-node/README.md)
-    - [`discojs-web` README](./discojs/discojs-web/README.md)
-  - [`server` README](./server/README.md)
-  - [`web-client` README](./web-client/README.md)
+  - [Vue.js in DISCO](./docs/VUEJS.md)
+  - [FAQ](./docs/FAQ.md)
+- `README` files contain information relevant to their respective module:
+  - [`server` README](./server/README.md), with API and deployment information
   - [`cli` README](./cli/README.md)

@@ -1,0 +1,21 @@
+{
+  "name": "@epfml/disco-node-example",
+  "private": true,
+  "description": "In `training.ts` we give a brief example of discojs, in it we run two clients training jointly via federated learning. It trains  on a few examples of the [face task](https://www.kaggle.com/datasets/frabbisw/facial-age), the samples are already stored in the  repo and so it is not necessary to download any additional data.",
+  "main": "training.ts",
+  "scripts": {
+    "train": "npm run build && node dist/training.js",
+    "custom_task": "npm run build && node dist/custom_task.js",
+    "build": "tsc",
+    "lint": "npx eslint --max-warnings 0 .",
+    "test": ": nothing"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@epfml/disco-server": "*",
+    "@epfml/discojs-node": "*"
+  },
+  "devDependencies": {
+    "ts-node": "10"
+  }
+}
