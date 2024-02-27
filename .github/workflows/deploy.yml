@@ -1,0 +1,50 @@
+name: deploy-server
+on:
+  workflow_run:
+    workflows: [lint-test-build]
+    branches: [main]
+    types: [completed]
+
+env:
+  node_version: 16
+
+jobs:
+  build-webapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace={discojs/discojs-{core,web},web-client} run build
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: web-client/dist
+
+  deploy-pages:
+    needs: build-webapp
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  deploy-server:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      - uses: google-github-actions/deploy-appengine@v0.8.0
+        with:
+          version: prod
+          project_id: ${{ secrets.GCP_PROJECT }}
