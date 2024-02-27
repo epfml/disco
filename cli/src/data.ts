@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import fs_promises from 'fs/promises'
 import path from 'node:path'
 
-import { node, data, type Task } from '@epfml/discojs-node'
+import { node, type data, type Task } from '@epfml/discojs-node'
 
 function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
   const f = fs.readdirSync(dir + folder)
