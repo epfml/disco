@@ -1,0 +1,94 @@
+name: publish-deploy
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: "https://registry.npmjs.org"
+          scope: "@epfml"
+      - run: npm ci
+      - run: npm --workspace=discojs{,-node,-web} version prerelease --preid=p`date +%Y%m%d%H%M%S`
+      - run: npm --workspace=discojs{,-node,-web} run build
+      - run: npm --workspace=discojs{,-node,-web} publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  build-webapp:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace={discojs,discojs-web,webapp} run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: webapp/dist
+  deploy-pages:
+    needs: build-webapp
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  publish-github-container:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/epfml/disco
+      - uses: docker/build-push-action@v5
+        id: build
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-server:
+    needs: [publish-github-container]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          project_id: disco-367212
+          workload_identity_provider: projects/905419434797/locations/global/workloadIdentityPools/github/providers/disco
+      - uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: disco
+          region: europe-west6
+          image: europe-west6-docker.pkg.dev/disco-367212/github/epfml/disco@${{ needs.publish-github-container.outputs.digest }}

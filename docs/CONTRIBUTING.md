@@ -20,10 +20,10 @@ with both to a certain extent. If not, the following references might be useful:
 
 ## First steps
 
-DISCO is a complex project composed of the Disco.js library (`discojs`, `discojs-node` and `discojs-node`), a front-end (`webapp`),
+DISCO is a complex project composed of the Disco.js library (`discojs`, `discojs-node` and `discojs-web`), a front-end (`webapp`),
 a `server` and a `cli` (e.g., for benchmarking). Depending on what your goal is, you might only use a subset of them, e.g. you won't need an in-depth understanding of the webapp and Vue.js to add a new decentralized learning feature. Instead, you will probably rely on the CLI.
 
-1. If you are going to work, contribute and improve the project, I first recommend you get a good understand of what DISCO does: play around with the [website](https://epfml.github.io/disco/#/), train a model from the pre-defined tasks, or even create your own custom task. Feedback is always appreciated, feel free to let us know on slack/in the github issues/in person if you noticed any issues or thought of an improvement.
+1. If you are going to work, contribute and improve the project, I first recommend you get a good understand of what DISCO does: play around with the [website](https://discolab.ai/#/), train a model from the pre-defined tasks, or even create your own custom task. Feedback is always appreciated, feel free to let us know on slack/in the github issues/in person if you noticed any issues or thought of an improvement.
 
 2. Then, get a high-level understanding of the different parts of the projects in the [developer guide](../DEV.md), even if you're planning on working on a subset of the project. If you want to know more about a specific part of the project, refer to the table of contents at the end of the DEV guide.
 

@@ -3,7 +3,7 @@
 DISCO currently allows learning of arbitrary machine learning tasks, where tasks can be defined in three possible ways:
 
 1. **Predefined tasks**: As examples, DISCO already hosts several pre-defined popular tasks such as [Titanic](../discojs/src/tasks/titanic.ts), [CIFAR-10](../discojs/src/tasks/cifar10.ts), and [MNIST](../discojs/src/tasks/mnist.ts) among others.
-2. **Task creation UI**: new tasks can be defined via the [**task creation form**](https://epfml.github.io/disco/#/create)
+2. **Task creation UI**: new tasks can be defined via the [**task creation form**](https://discolab.ai/#/create)
 3. **Implementing custom tasks**: tasks too specific for the UI form need to be implemented in the repository directly.
 
 In any case, one user needs to upload the initial model that is going to be trained collaboratively.
@@ -38,13 +38,13 @@ tensorflowjs_converter --input_format=tf_saved_model my_tensorflow_saved_model /
 
 ## 1. Predefined tasks
 
-Predefined tasks are example use cases available in the [DISCO website](https://epfml.github.io/disco/#/list) where users can upload their respective data and train collaboratively. For predefined tasks, the initial model to train is already defined and doesn't need to be uploaded.
+Predefined tasks are example use cases available in the [DISCO website](https://discolab.ai/#/list) where users can upload their respective data and train collaboratively. For predefined tasks, the initial model to train is already defined and doesn't need to be uploaded.
 
 ## 2. Task creation UI
 
-The [task creation form](https://epfml.github.io/disco/#/create) lets users create a custom task DISCO without programming. In this case, users can choose between the data modalities and preprocessing that are already supported (such as tabular, images, text etc) and upload an initial model.
+The [task creation form](https://discolab.ai/#/create) lets users create a custom task DISCO without programming. In this case, users can choose between the data modalities and preprocessing that are already supported (such as tabular, images, text etc) and upload an initial model.
 
-1.  On the [DISCO website](https://epfml.github.io/disco/#), click on `Get Started` and then `Create`.
+1.  On the [DISCO website](https://discolab.ai/), click on `Get Started` and then `Create`.
 2.  Fill in all the relevant information for the task
 3.  Upload model files: 1) a TF.js architecture file in JSON format (cf. the _Uploading ML models_ section) as well as a weight file (`.bin` format), which is necessary in this case. This is the initial weights provided to new users joining your task (pre-trained or random initialization).
 
