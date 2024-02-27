@@ -36,20 +36,83 @@ As mentioned in the [developer guide](../DEV.md), there are many ways to use Dis
 
 ## Contributing in practice
 
-- As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use on ts-node:
+### Running TypeScript
+
+As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use on ts-node:
 
 ```
 npm i -g ts-node # globally to run scripts from anywhere
 ts-node your_script.ts
 ```
 
-- Because TypeScript needs to be transpiled to JavaScript, you need to rebuild the `discojs` folder every time you make any changes to it:
+### Contributing to `server`
+
+You can start a `server` instance locally with:
+
+```
+npm -w server start
+```
+
+Running the server relies on `nodemon` which watches the module for changes and enables hot-reloading. Therefore, any (saved) code change is automatically taken into account and doesn't require a build. However, note that modifying `discojs` isn't effective automatically and requires a build. You may have to restart the server manually after rebuilding `discojs`. Section [Building `discojs`](#building-discojs) discusses this in more details.
+
+You can test the server with:
+
+```
+npm -w server test
+```
+
+Make sure you are not running a server at the same time as the test suite will launch its own instance. We use [mocha](https://mochajs.org/), [chai](https://www.chaijs.com/) and [supertest](https://github.com/visionmedia/supertest) for testing; respectively they are libraries for unit tests, assertions, and http testing.
+
+Server tests live in the `server/tests/` folder. All files ending with the `.spec.ts` extension written in this folder will be run as tests. Simply write a new `your_own_test.spec.ts` file to include it in the testing pipeline.
+
+### Contributing to `web-client`
+
+If you are planning to contribute to the `web-client`, have a look at [VUEJS.md](./VUEJS.md) to read more on how Vue.js is used in this project.
+
+The `web-client` requires that an server instance is running. You can start a local one as described in the last section with:
+
+```
+npm -w server start # from the root folder
+```
+
+The web-client can now be started with:
+
+```
+npm -w web-client start # from the root folder
+npm start # from the web-client folder
+```
+
+The Vue development mode supports hot-reloading via `nodemon` and the client will automatically restart whenever a change in `web-client` is detected. Starting the Vue client should print something similar to
+
+```
+App running at:
+  - Local:   http://localhost:8081/
+  - Network: http://192.168.43.231:8081/
+```
+
+You can acess the client at the Local address from the machine running the web-client and any device on the same network can access the app with the Network address.
+
+As said previously, modifying `discojs` isn't effective automatically and requires a build. You may have to restart the `web-client` manually after rebuilding `discojs`. Section [Building `discojs`](#building-discojs) discusses this in more details.
+
+You can test the `web-client` with:
+
+```
+npm -w web-client test
+```
+
+### Contributing to `discojs`
+
+If you are brought to modify the `discojs` folder have a look at [DISCOJS.md](./DISCOJS.md) which explains some of the concepts internal to the library.
+
+Because TypeScript needs to be transpiled to JavaScript, you need to rebuild the `discojs` folder for changes to be effective:
 
 ```sh
 npm -w discojs run build
 ```
 
-To automate the building phase, you can use the `watch` command to rebuild a module whenever changes are detected. The watch command currently only works at the level of `discojs-core`, `discojs-node` or `discojs-web` (i.e., running watch over the whole `discojs` folder doesn't work and would only watch `discojs-core`)
+The previous command invokes the TypeScript compiler (`tsc`) which successively compiles `discojs-core`, `discojs-node` and `discojs-web`, creating equivalent JavaScript files in the modules' respective `dist/` directory.
+
+To automate the building phase, you can use the `watch` command to rebuild a module whenever changes are detected. The `watch` command currently only works at the level of `discojs-core`, `discojs-node` or `discojs-web` (i.e., running watch over the whole `discojs` folder doesn't work and would only watch `discojs-core`)
 
 ```sh
 npm -w ./discojs/discojs-core run watch build
@@ -57,7 +120,30 @@ npm -w ./discojs/discojs-node run watch build # another terminal
 npm -w ./discojs/discojs-web run watch build # one more terminal
 ```
 
-Building is not necessary for other modules like the `server` the `web-client` or `cli` as long as no change have been made to `discojs`. However you may need to restart the `server` or the `web-client` after re-building `discojs`.
+Building is not necessary for other modules like the `server` the `web-client` or `cli` as long as no change have been made to `discojs`. However you may need to restart the `server` or the `web-client` after rebuilding `discojs`.
+
+To test `discojs`, first make sure a server instance is running:
+
+```
+npm -w server start
+```
+
+And then start the `discojs` test suite:
+
+```
+npm -w discojs test
+```
+
+Simiarly to the server, any file ending with `.spec.ts` will be ran in the test suite. As a convention, we duplicate the name of the TypeScript file we are testing. For example, `async_informant.spec.ts` tests features implemented in `async_informant.ts` and is located in the same folder.
+
+### `discojs-core`, `discojs-node` and `discojs-web`
+
+`discojs-core` contains the core, platform-agnostic code of Disco.js, used by both `discojs-web` and `discojs-node`. As such, contributions to `discojs-core` must only contain code independent of either Node or the browser. As the names subtly suggest, `discojs-node` and `discojs-web` implement features specific to Node.js and browsers respectively, mostly related to memory and data handling as browser don't allow access to the file system.
+
+Note that, if you end up making calls to the Tensorflow.js API, you must import it from the root index. This is to ensure the right version of TF.js is loaded (depending on the compilation `dist/`), and only once. The only exception occurs in unittests, which should import TF.js from the (local) `@epfml/discojs-node`, since those run on Node.js.
+
+Currently, the `discojs-node` project is available as the `@epfml/discojs-node` NPM package, which can be installed with
+`npm i @epfml/discojs-node` while the `discojs-web` project is available as the `@epfml/discojs` (and **not** as `@epfml/discojs-web`) NPM package, which can be installed with `npm i @epfml/discojs`.
 
 ## Contributing conventions
 

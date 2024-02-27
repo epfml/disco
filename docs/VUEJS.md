@@ -1,4 +1,4 @@
-# `Vue.js`  documentation
+# `Vue.js` documentation
 
 The main front-end framework used by the application is Vue.js, a widely used framework to build single-page UI (See [Reference](https://router.vuejs.org/guide/)).  
 The application is built around Vue.js components. Essentially, components are defined around two parts:
@@ -121,7 +121,7 @@ and that another `vue` component can use it inside its template using the follow
 <xxx-yyy />
 ```
 
-> **Note**: all `javascript` code inside the `<script></script>` tag shall respect the ES6 standard, in particular the imports statements. See [Helpers folder README](../logic/README.md) for more information.
+> **Note**: all `javascript` code inside the `<script></script>` tag shall respect the ES6 standard, in particular the imports statements.
 
 ### Modularization
 
