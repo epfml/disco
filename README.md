@@ -4,9 +4,9 @@
 
 DISCO leverages federated :star2: and decentralized :sparkles: learning to allow several data owners to collaboratively build machine learning models without sharing any original data.
 
-The latest version is always running on the following link, [directly in your browser](https://epfml.github.io/disco/), for web and mobile:
+The latest version is always running on the following link, [directly in your browser](https://discolab.ai/), for web and mobile:
 
- :man_dancing: [https://epfml.github.io/disco/](https://epfml.github.io/disco/) :man_dancing:
+ :man_dancing: [https://discolab.ai/](https://discolab.ai/) :man_dancing:
 
 ___
 :magic_wand: DEVELOPERS: Have a look at our [developer guide](DEV.md)
@@ -24,7 +24,7 @@ ___
 	- a central server : **federated** learning ( :star2: )
 	- directly between users : **decentralized** learning ( :sparkles: ) i.e. no central coordination
 - Model updates are then securely aggregated into a trained model
-- See more [HERE](https://epfml.github.io/disco/#/information)
+- See more [HERE](https://discolab.ai/#/information)
 
 ___
 :question: **DISCO TECHNOLOGY** 
@@ -50,9 +50,9 @@ ___
 
 
 :checkered_flag: **HOW TO USE DISCO**
-- Start by exploring our example *DISCOllaboratives* in the [`Tasks` page](https://epfml.github.io/disco/#/list). 
+- Start by exploring our example *DISCOllaboratives* in the [`Tasks` page](https://discolab.ai/#/list). 
 - The example models are based on popular datasets such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python)
-- It is also possible to create your own task without coding on the [custom training page](https://epfml.github.io/disco/#/create):
+- It is also possible to create your own task without coding on the [custom training page](https://discolab.ai/#/create):
 	- Upload the initial model
 	- You can choose from several existing dataloaders
 	- Choose between federated and decentralized for your DISCO training scheme ... connect your data and... done! :bar_chart:
