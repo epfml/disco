@@ -100,6 +100,8 @@ You can test the `web-client` with:
 npm -w web-client test
 ```
 
+The web-client tests rely on `cypress` and the test suite is located in the `web-client/cypress` folder.
+
 ### Contributing to `discojs`
 
 If you are brought to modify the `discojs` folder have a look at [DISCOJS.md](./DISCOJS.md) which explains some of the concepts internal to the library.
