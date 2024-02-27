@@ -16,10 +16,9 @@ Here you will have a first overview of the project, how to install and run an in
 The DISCO project is composed of multiple parts. At the root level, there are four main folders: `discojs`, `server`, `web-client` and `cli`.
 
 - `discojs`, or Disco.js, is the TypeScript library that contains federated and decentralized learning logic. The library allows to train and use machine learning models in a distributed fashion. The library itself is composed of the `disco-node` and `disco-web` modules, both of them extending the platform-agnostic code in `disco-core`. In other words, `disco-core` contains most of the implementation but can't be used by itself, while `disco-web` and `disco-node` allow using `disco-core` via different architectures. To some extents, you can think of `disco-core` as an abstract class extended by `disco-web`and `disco-node`.
-    - `disco-node` lets you use Disco.js with Node.js. For example, the `server` and the `cli` rely on `disco-node`. A user can also directly import the `disco-node` package in their Node.js programs.
-    - `disco-web` allows using Disco.js through a browser. The `web-client`, discussed below, relies on `disco-web` to implement a browser UI.
-      
-  The main difference between the two is how they handle storage: a browser doesn't have access to the file system (for security reasons) while a Node.js application does.
+  - `disco-node` lets you use Disco.js with Node.js. For example, the `server` and the `cli` rely on `disco-node`. A user can also directly import the `disco-node` package in their Node.js programs.
+  - `disco-web` allows using Disco.js through a browser. The `web-client`, discussed below, relies on `disco-web` to implement a browser UI.
+    The main difference between the two is how they handle storage: a browser doesn't have access to the file system (for security reasons) while a Node.js application does.
 - `server` contains the server implementation necessary to use Disco.js. Indeed, while the federated and decentralized learning logic is implemented by Disco.js, we still need a server to orchestrate users in both paradigms. In decentralized learning, the server exposes an API for users to query the necessary information to train models in a decentralized fashion, such as the list of other peers. Thus, the server never receives training data or model parameters. In federated learning, the server receives model updates but never training data. It keeps track of participants and updates the model weights. A `server` instance is **always** necessary to use DISCO, whether one is using a browser UI, the CLI or directly programming with `disco-node`.
 - `web-client` implements a browser User Interface. In other words, it implements a website allowing users to use DISCO without coding. Via the browser, a user can create and participate in federated and decentralized training sessions, evaluate models, etc.
 - `cli` contains the Command Line Interface for Disco.js. For example, the CLI allows a user to create and join training sessions from the command line, benchmark performance by emulating multiple clients, etc.
@@ -125,10 +124,53 @@ npm -w web-client start # from another terminal
 
 The web client should be running on `http://localhost:8081`, if not first restart the server and then the web client.
 
-> [!IMPORTANT]
-> Make sure to first start the server to ensure that it is listening to port 8080.
-
 **You can now access DISCO at http://localhost:8081/**
+
+## How to use DISCO
+
+There are multiple ways to use and interact with DISCO, depending on your objective:
+
+- A non-technical user that wants to train models in a distributed manner without coding would want to use DISCO through the `web-client`. To do so, starting a local `server` instance is also needed as a backend to the `web-client`. Similarly, a contributor aiming to implement new UI features would certainly want to run the same setup.
+- A technical user may find it more flexible to use DISCO from a Node.js script, which gives users a finer control over the process. The `discojs-node` module is tailored to be used in Node.js scripts and allows to load data, start a server and run distributed machine learning training tasks.
+- Finally, the `cli` (command line interface) can also be used to quickly start distributed model trainings. The `CLI` is more restricting than using `discojs-node` but allows to start training with multiple users in a single command. It is useful for benchmarking for example.
+
+**Training on your own datasets:** DISCO provides pre-defined training tasks, such as CIFAR10, Titanic, etc. The [Tasks document guide](./docs/TASK.md) describes how to add custom tasks from the web-client UI, a `discojs-node` script or how to add support for a new pre-defined task.
+
+### `web-client` and `server`
+
+The last step of the installation instructions describe how to start a web interface along with a helper server. The server is used to provide some predefined machine learning tasks and orchastrate distributed training.
+
+From the root level, launch a `server` instance:
+
+```
+npm -w server start
+```
+
+The server should be listening on `http://localhost:8080/`.
+
+Start the web-client:
+
+```
+npm -w web-client start # from another terminal
+```
+
+The web client should be running on `http://localhost:8081`. Running the last command should also output a Network address at which devices on the same network can access the UI. You can find more information in the [`web-client` README](../web-client/README.md) as well as the [server README](./server/README.md).
+
+### Importing `discojs-node` with Node.js
+
+Using `discojs-node` is illustrated by an example [in this folder](./docs/node_example). Using `discojs-node` implies starting a server (or having access to one), loading local training data and configuring the model training.
+
+### `cli`
+
+Training a model with the `cli` on pre-defined tasks is straigtfoward:
+
+```
+# From the root folder
+npm -w cli start -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
+npm -w cli start -- --help # for all options
+```
+
+Adding CLI support for another task is described in the [CLI README](./cli/README.md).
 
 ## Further documentation
 
