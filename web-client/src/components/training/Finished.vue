@@ -38,7 +38,9 @@
 <script setup lang="ts">
 import { defineProps, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { browser, EmptyMemory, Memory, ModelType, Task, ModelInfo } from '@epfml/discojs'
+
+import { EmptyMemory, Memory, ModelType, Task, ModelInfo } from '@epfml/discojs-core'
+import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
@@ -56,7 +58,7 @@ const toast = useToaster() // TODO: use this.$toaster
 
 const props = defineProps<Props>()
 
-const memory = computed<Memory>(() => memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory())
+const memory = computed<Memory>(() => memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory())
 const modelInfo = computed<ModelInfo>(() => {
   return {
     type: ModelType.WORKING,

@@ -144,7 +144,7 @@
 import { computed, defineProps, ref } from 'vue'
 import * as d3 from 'd3'
 
-import { data, Task } from '@epfml/discojs'
+import { data, Task } from '@epfml/discojs-core'
 
 import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'

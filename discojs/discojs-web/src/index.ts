@@ -1,3 +1,2 @@
-export * from '@epfml/discojs-core'
-
-export * as browser from './imports'
+export * from './data'
+export * from './memory'

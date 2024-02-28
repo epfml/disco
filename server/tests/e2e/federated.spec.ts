@@ -5,9 +5,10 @@ import { Range } from 'immutable'
 import { assert } from 'chai'
 
 import {
-  WeightsContainer, node, Disco, TrainingSchemes, client as clients,
+  WeightsContainer, Disco, TrainingSchemes, client as clients,
   aggregator as aggregators, informant, defaultTasks
-} from '@epfml/discojs-node'
+} from '@epfml/discojs-core'
+import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 
 import { getClient, startServer } from '../utils'
 
@@ -31,7 +32,7 @@ describe('end-to-end federated', function () {
 
     const cifar10Task = defaultTasks.cifar10.getTask()
 
-    const data = await new node.data.NodeImageLoader(cifar10Task).loadAll(files, { labels })
+    const data = await new NodeImageLoader(cifar10Task).loadAll(files, { labels })
 
     const aggregator = new aggregators.MeanAggregator(cifar10Task)
     const client = await getClient(clients.federated.FederatedClient, server, cifar10Task, aggregator)
@@ -51,7 +52,7 @@ describe('end-to-end federated', function () {
 
     const titanicTask = defaultTasks.titanic.getTask()
     titanicTask.trainingInformation.epochs = 5
-    const data = await (new node.data.NodeTabularLoader(titanicTask, ',').loadAll(
+    const data = await (new NodeTabularLoader(titanicTask, ',').loadAll(
       files,
       {
         features: titanicTask.trainingInformation.inputColumns,

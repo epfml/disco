@@ -134,7 +134,8 @@
 <script lang="ts">
 import { mapStores } from 'pinia'
 
-import { browser, EmptyMemory, Memory, ModelType, isTask, TrainingSchemes, ModelInfo } from '@epfml/discojs'
+import { EmptyMemory, Memory, ModelType, isTask, TrainingSchemes, ModelInfo } from '@epfml/discojs-core'
+import { IndexedDB } from '@epfml/discojs'
 
 import { getClient } from '@/clients'
 import Clock from '@/assets/svg/Clock.vue'
@@ -177,7 +178,7 @@ export default {
       )
     },
     memory (): Memory {
-      return this.memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory()
+      return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     },
     modelInfo (): ModelInfo {
       return {

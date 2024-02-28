@@ -26,7 +26,8 @@
 import { computed, onMounted, ref, defineProps } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { browser, data, TaskID } from '@epfml/discojs'
+import { data, TaskID } from '@epfml/discojs-core'
+import { WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs'
 
 import { useTrainingStore } from '@/store/training'
 import { useTasksStore } from '@/store/tasks'
@@ -56,13 +57,13 @@ const datasetBuilder = computed(() => {
   let dataLoader: data.DataLoader<File>
   switch (task.value.trainingInformation.dataType) {
     case 'tabular':
-      dataLoader = new browser.data.WebTabularLoader(task.value)
+      dataLoader = new WebTabularLoader(task.value)
       break
     case 'image':
-      dataLoader = new browser.data.WebImageLoader(task.value)
+      dataLoader = new WebImageLoader(task.value)
       break
     case 'text':
-      dataLoader = new browser.data.WebTextLoader(task.value)
+      dataLoader = new WebTextLoader(task.value)
       break
     default:
       throw new Error('not implemented')

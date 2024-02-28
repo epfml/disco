@@ -1,11 +1,12 @@
 import { assert, expect } from 'chai'
 import { List, Map, Range } from 'immutable'
 import fs from 'fs'
-
 import tf from '@tensorflow/tfjs'
 import { node as tfNode } from '@tensorflow/tfjs-node'
 
-import { node, type Task } from '../..'
+import type { Task } from '@epfml/discojs-core'
+
+import { ImageLoader } from './image_loader'
 
 const readFilesFromDir = (dir: string): string[] =>
   fs.readdirSync(dir).map((file: string) => dir + file)
@@ -35,8 +36,8 @@ const mnistMock: Task = {
 } as unknown as Task
 
 const LOADERS = {
-  CIFAR10: new node.data.NodeImageLoader(cifar10Mock),
-  MNIST: new node.data.NodeImageLoader(mnistMock)
+  CIFAR10: new ImageLoader(cifar10Mock),
+  MNIST: new ImageLoader(mnistMock)
 }
 const FILES = Map(DIRS).map((readFilesFromDir)).toObject()
 
@@ -93,7 +94,7 @@ describe('image loader', () => {
   })
 
   it('loads samples in order', async () => {
-    const loader = new node.data.NodeImageLoader(cifar10Mock)
+    const loader = new ImageLoader(cifar10Mock)
     const dataset = await ((await loader.loadAll(FILES.CIFAR10, { shuffle: false })).train.dataset).toArray()
 
     List(dataset).zip(List(FILES.CIFAR10))
@@ -105,7 +106,7 @@ describe('image loader', () => {
   })
 
   it('shuffles list', async () => {
-    const loader = new node.data.NodeImageLoader(cifar10Mock)
+    const loader = new ImageLoader(cifar10Mock)
     const list = Range(0, 100_000).toArray()
     const shuffled = [...list]
 
@@ -117,7 +118,7 @@ describe('image loader', () => {
   })
 
   it('shuffles samples', async () => {
-    const loader = new node.data.NodeImageLoader(cifar10Mock)
+    const loader = new ImageLoader(cifar10Mock)
     const dataset = await (await loader.loadAll(FILES.CIFAR10, { shuffle: false })).train.dataset.toArray()
     const shuffled = await (await loader.loadAll(FILES.CIFAR10, { shuffle: true })).train.dataset.toArray()
 
@@ -129,7 +130,7 @@ describe('image loader', () => {
   it('validation split', async () => {
     const validationSplit = 0.2
     const imagesContent = FILES.CIFAR10.map((file) => tfNode.decodeImage(fs.readFileSync(file)))
-    const datasetContent = await new node.data.NodeImageLoader(cifar10Mock)
+    const datasetContent = await new ImageLoader(cifar10Mock)
       .loadAll(FILES.CIFAR10, { shuffle: false, validationSplit })
 
     const trainSize = Math.floor(imagesContent.length * (1 - validationSplit))

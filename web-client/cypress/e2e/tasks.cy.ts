@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { defaultTasks } from '@epfml/discojs'
+import { defaultTasks } from '@epfml/discojs-core'
 
 // most basic disco tasks
 export const TASK_LIST = [

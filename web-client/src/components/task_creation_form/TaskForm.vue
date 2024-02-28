@@ -158,7 +158,7 @@ import { Form as VeeForm, ErrorMessage } from 'vee-validate'
 import { List, Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import { Task, pushTask } from '@epfml/discojs'
+import { Task, pushTask } from '@epfml/discojs-core'
 
 import { sections, modelCompileData, privacyParameters, FormField, FormSection } from '@/task_creation_form'
 import { useToaster } from '@/composables/toaster'

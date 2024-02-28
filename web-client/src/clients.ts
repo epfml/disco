@@ -1,4 +1,4 @@
-import { client as clients, aggregator as aggregators, Task, TrainingSchemes } from '@epfml/discojs'
+import { client as clients, aggregator as aggregators, Task, TrainingSchemes } from '@epfml/discojs-core'
 
 import { CONFIG } from './config'
 

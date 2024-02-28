@@ -1,6 +1,7 @@
 import type * as http from 'http'
 
-import { aggregator as aggregators, client as clients, type Task, defaultTasks } from '@epfml/discojs-node'
+import type { Task } from '@epfml/discojs-core'
+import { aggregator as aggregators, client as clients, defaultTasks } from '@epfml/discojs-core'
 
 import { getClient, startServer } from '../utils'
 

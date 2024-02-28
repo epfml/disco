@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
 
-import { data, Task } from '@epfml/discojs'
+import { data, Task } from '@epfml/discojs-core'
 
 import DatasetInput from '@/components/data/dataset_input/DatasetInput.vue'
 import DataHarmonization from '@/components/data/DataHarmonization.vue'

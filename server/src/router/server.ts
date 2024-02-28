@@ -3,7 +3,7 @@ import type expressWS from 'express-ws'
 import type WebSocket from 'ws'
 import type tf from '@tensorflow/tfjs'
 
-import type { Task } from '@epfml/discojs-node'
+import type { Task } from '@epfml/discojs-core'
 
 import type { TasksAndModels } from '../tasks'
 

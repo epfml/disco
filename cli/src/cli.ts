@@ -1,6 +1,7 @@
 import { Range } from 'immutable'
 
-import { Disco, TrainingSchemes, type TrainerLog, type data, type Task } from '@epfml/discojs-node'
+import type { TrainerLog, data, Task } from '@epfml/discojs-core'
+import { Disco, TrainingSchemes } from '@epfml/discojs-core'
 
 import { startServer, saveLog } from './utils'
 import { getTaskData } from './data'
