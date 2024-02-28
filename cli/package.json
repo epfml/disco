@@ -1,10 +1,10 @@
 {
   "name": "@epfml/disco-cli",
   "private": true,
-  "main": "dist/benchmark.ts",
+  "main": "dist/cli.js",
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs/discojs-node/dist --watch ../server/dist --watch . --exec npm run",
-    "start": "npm run build && node dist/benchmark.js",
+    "start": "npm run build && node dist/cli.js",
     "build": "tsc",
     "lint": "npx eslint --ext ts --max-warnings 0 .",
     "test": ": nothing"

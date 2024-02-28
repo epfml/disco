@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    // TODO ES6 disallow server's test
     "target": "ES5",
     "lib": ["ES5"],
 
@@ -17,4 +16,3 @@
   "include": ["*.ts"],
   "exclude": ["**/*.spec.ts"]
 }
-  

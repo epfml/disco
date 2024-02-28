@@ -8,7 +8,6 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "importHelpers": true,
     "downlevelIteration": true, // needed by <ES6
 
     "declaration": true,
@@ -17,5 +16,4 @@
     "outDir":  "dist",
   },
   "include": ["src"],
-  "exclude": ["**/*.spec.ts"]
 }

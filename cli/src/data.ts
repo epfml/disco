@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import fs_promises from 'fs/promises'
 import path from 'node:path'
 
-import { tf, node, data, type Task } from '@epfml/discojs-node'
+import { node, type data, type Task } from '@epfml/discojs-node'
 
 function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
   const f = fs.readdirSync(dir + folder)
@@ -45,19 +45,10 @@ async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
   return await new node.data.NodeImageLoader(cifar10).loadAll(files, { labels })
 }
 
-class NodeTabularLoader extends data.TabularLoader<string> {
-  async loadDatasetFrom (source: string, csvConfig: Record<string, unknown>): Promise<tf.data.CSVDataset> {
-    console.debug('loading!>>', source)
-    return tf.data.csv(source, csvConfig)
-  }
-}
-
 async function titanicData (titanic: Task): Promise<data.DataSplit> {
-  const dir = '../example_training_data/titanic.csv'
+  const dir = '../example_training_data/titanic_train.csv'
 
-  // TODO: can load data, so path is right.
-  // console.log(await tf.data.csv('file://'.concat(dir)).toArray())
-  const data = await (new NodeTabularLoader(titanic, ',').loadAll(
+  const data = await (new node.data.NodeTabularLoader(titanic, ',').loadAll(
     ['file://'.concat(dir)],
     {
       features: titanic.trainingInformation?.inputColumns,
@@ -65,7 +56,6 @@ async function titanicData (titanic: Task): Promise<data.DataSplit> {
       shuffle: false
     }
   ))
-
   return data
 }
 
