@@ -40,6 +40,6 @@ The server handles the pre-defined machine learning tasks and sends them to user
 You can run the custom task example with:
 
 ```
-cd docs/example
+cd docs/examples
 npm run custom_Task # compiles TypeScript and runs custom_task.ts
 ```
