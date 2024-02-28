@@ -131,7 +131,7 @@ The web client should be running on `http://localhost:8081`, if not first restar
 There are multiple ways to use and interact with DISCO, depending on your objective:
 
 - A non-technical user that wants to train models in a distributed manner without coding would want to use DISCO through the `web-client`. To do so, starting a local `server` instance is also needed as a backend to the `web-client`. Similarly, a contributor aiming to implement new UI features would certainly want to run the same setup.
-- A technical user may find it more flexible to use DISCO from a Node.js script, which gives users a finer control over the process. The `discojs-node` module is tailored to be used in Node.js scripts and allows to load data, start a server and run distributed machine learning training tasks.
+- A technical user may find it more flexible to use DISCO from a Node.js script, which gives users a finer control over the process. The `discojs-node` module is tailored to be used in Node.js scripts and allows to load data, helps starting a server and run distributed machine learning training tasks.
 - Finally, the `cli` (command line interface) can also be used to quickly start distributed model trainings. The `CLI` is more restricting than using `discojs-node` but allows to start training with multiple users in a single command. It is useful for benchmarking for example.
 
 **Training on your own datasets:** DISCO provides pre-defined training tasks, such as CIFAR10, Titanic, etc. The [Tasks document guide](./docs/TASK.md) describes how to add custom tasks from the web-client UI, a `discojs-node` script or how to add support for a new pre-defined task.
