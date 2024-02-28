@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
 
-import { Task } from '@epfml/discojs'
+import { Task } from '@epfml/discojs-core'
 
 import DropdownCard from '@/components/containers/DropdownCard.vue'
 

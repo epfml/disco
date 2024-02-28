@@ -237,7 +237,8 @@
 import { computed, defineProps, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
-import { browser, data, ConsoleLogger, EmptyMemory, Memory, Task, Validator, LabelTypeEnum } from '@epfml/discojs'
+import { data, ConsoleLogger, EmptyMemory, Memory, Task, Validator, LabelTypeEnum } from '@epfml/discojs-core'
+import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
@@ -287,7 +288,7 @@ const isImageTaskType = computed<boolean>(() =>
 const isPolygonMapVisualization = computed<boolean>(() =>
   props.task.displayInformation.labelDisplay.labelType === LabelTypeEnum.POLYGON_MAP)
 
-const memory = computed<Memory>(() => useIndexedDB ? new browser.IndexedDB() : new EmptyMemory())
+const memory = computed<Memory>(() => useIndexedDB ? new IndexedDB() : new EmptyMemory())
 const accuracyData = computed<number[]>(() => {
   const r = validator.value?.accuracyData
   return r !== undefined ? r.toArray() : [0]

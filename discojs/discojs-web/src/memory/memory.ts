@@ -10,7 +10,8 @@ import { Map } from 'immutable'
 import path from 'path'
 import * as tf from '@tensorflow/tfjs'
 
-import { Memory, ModelType, type Path, type ModelInfo, type ModelSource } from '..'
+import type { Path, ModelInfo, ModelSource } from '@epfml/discojs-core'
+import { Memory, ModelType } from '@epfml/discojs-core'
 
 export class IndexedDB extends Memory {
   pathFor (source: ModelSource): Path {

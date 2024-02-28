@@ -5,17 +5,19 @@ import { List, Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 import type tf from '@tensorflow/tfjs'
 
+import type {
+  Task,
+  TaskID,
+  WeightsContainer,
+  MetadataKey,
+  MetadataValue
+} from '@epfml/discojs-core'
 import {
   client,
   serialization,
   AsyncInformant,
-  type Task,
-  type TaskID,
-  aggregator as aggregators,
-  type WeightsContainer,
-  type MetadataKey,
-  type MetadataValue
-} from '@epfml/discojs-node'
+  aggregator as aggregators
+} from '@epfml/discojs-core'
 
 import { Server } from '../server'
 

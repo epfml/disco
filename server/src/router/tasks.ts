@@ -3,8 +3,8 @@ import express from 'express'
 import { Set } from 'immutable'
 import type tf from '@tensorflow/tfjs'
 
-import type { Task, TaskID } from '@epfml/discojs-node'
-import { serialization, isTask } from '@epfml/discojs-node'
+import type { Task, TaskID } from '@epfml/discojs-core'
+import { serialization, isTask } from '@epfml/discojs-core'
 
 import type { Config } from '../config'
 import type { TasksAndModels } from '../tasks'

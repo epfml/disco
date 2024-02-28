@@ -3,7 +3,7 @@ import express from 'express'
 import expressWS from 'express-ws'
 import type tf from '@tensorflow/tfjs'
 
-import type { Task, TaskProvider } from '@epfml/discojs-node'
+import type { Task, TaskProvider } from '@epfml/discojs-core'
 
 import { CONFIG } from './config'
 import { Router } from './router'

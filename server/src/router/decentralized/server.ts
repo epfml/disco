@@ -7,8 +7,8 @@ import type { ParsedQs } from 'qs'
 import { Map, Set } from 'immutable'
 import type tf from '@tensorflow/tfjs'
 
-import type { Task, TaskID } from '@epfml/discojs-node'
-import { client } from '@epfml/discojs-node'
+import type { Task, TaskID } from '@epfml/discojs-core'
+import { client } from '@epfml/discojs-core'
 
 import { Server } from '../server'
 

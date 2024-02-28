@@ -1,10 +1,9 @@
 import { assert } from 'chai'
 import fs from 'fs'
 
-import {
-  type Task, node, Validator, ConsoleLogger, EmptyMemory,
-  client as clients, type data, aggregator, defaultTasks
-} from '@epfml/discojs-node'
+import type { Task, data } from '../..'
+import { Validator, ConsoleLogger, EmptyMemory, client as clients, aggregator, defaultTasks } from '../..'
+import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 
 const simplefaceMock = {
   taskID: 'simple_face',
@@ -32,7 +31,7 @@ describe('validator', () => {
         .map((file: string) => dir + subdir + file))
     const labels = files.flatMap((files, index) => Array(files.length).fill(index))
 
-    const data = (await new node.data.NodeImageLoader(simplefaceMock)
+    const data = (await new NodeImageLoader(simplefaceMock)
       .loadAll(files.flat(), { labels })).train
     const meanAggregator = new aggregator.MeanAggregator(simplefaceMock)
     const client = new clients.Local(new URL('http://localhost:8080'), simplefaceMock, meanAggregator)
@@ -63,7 +62,7 @@ describe('validator', () => {
   it('titanic validator', async () => {
     const titanicTask = defaultTasks.titanic.getTask()
     const files = ['../../example_training_data/titanic_train.csv']
-    const data: data.Data = (await new node.data.NodeTabularLoader(titanicTask, ',').loadAll(files, {
+    const data: data.Data = (await new NodeTabularLoader(titanicTask, ',').loadAll(files, {
       features: titanicTask.trainingInformation.inputColumns,
       labels: titanicTask.trainingInformation.outputColumns,
       shuffle: false

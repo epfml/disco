@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import { Map } from 'immutable'
 
-import { TaskID } from '@epfml/discojs'
+import { TaskID } from '@epfml/discojs-core'
 
 export const useTrainingStore = defineStore('training', () => {
   const steps = shallowRef<Map<TaskID, number>>(Map())

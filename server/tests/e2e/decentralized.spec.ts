@@ -2,9 +2,10 @@ import type { Server } from 'node:http'
 import { List } from 'immutable'
 import { assert } from 'chai'
 
+import type { Task } from '@epfml/discojs-core'
 import {
-  aggregator as aggregators, informant as informants, client as clients, type Task, WeightsContainer, defaultTasks, aggregation
-} from '@epfml/discojs-node'
+  aggregator as aggregators, informant as informants, client as clients, WeightsContainer, defaultTasks, aggregation
+} from '@epfml/discojs-core'
 
 import { getClient, startServer } from '../utils'
 

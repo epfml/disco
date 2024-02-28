@@ -134,7 +134,7 @@
 <script setup lang="ts">
 import { defineProps, computed } from 'vue'
 
-import { TrainingInformant } from '@epfml/discojs'
+import { TrainingInformant } from '@epfml/discojs-core'
 
 import { chartOptions } from '@/charts'
 import IconCardSmall from '@/components/containers/IconCardSmall.vue'

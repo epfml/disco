@@ -3,8 +3,8 @@ import fs from 'node:fs'
 import fs_promises from 'fs/promises'
 import path from 'node:path'
 
-import type { Task, data } from '@epfml/discojs-node'
-import { node } from '@epfml/discojs-node'
+import type { Task, data } from '@epfml/discojs-core'
+import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 
 function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
   const f = fs.readdirSync(dir + folder)
@@ -35,7 +35,7 @@ async function simplefaceData (task: Task): Promise<data.DataSplit> {
   const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
   const files = filesPerFolder.flat()
 
-  return await new node.data.NodeImageLoader(task).loadAll(files, { labels })
+  return await new NodeImageLoader(task).loadAll(files, { labels })
 }
 
 async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
@@ -43,13 +43,13 @@ async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
   const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
-  return await new node.data.NodeImageLoader(cifar10).loadAll(files, { labels })
+  return await new NodeImageLoader(cifar10).loadAll(files, { labels })
 }
 
 async function titanicData (titanic: Task): Promise<data.DataSplit> {
   const dir = '../example_training_data/titanic_train.csv'
 
-  const data = await (new node.data.NodeTabularLoader(titanic, ',').loadAll(
+  const data = await (new NodeTabularLoader(titanic, ',').loadAll(
     ['file://'.concat(dir)],
     {
       features: titanic.trainingInformation?.inputColumns,

@@ -2,7 +2,9 @@ import { assert, expect } from 'chai'
 import { List } from 'immutable'
 import tf from '@tensorflow/tfjs'
 
-import { node, type Task } from '../..'
+import type { Task } from '@epfml/discojs-core'
+
+import { TabularLoader } from './tabular_loader'
 
 const inputFiles = ['../../example_training_data/titanic_train.csv']
 
@@ -26,7 +28,7 @@ const titanicMock: Task = {
 
 describe('tabular loader', () => {
   it('loads a single sample', async () => {
-    const loaded = new node.data.NodeTabularLoader(titanicMock, ',').loadAll(
+    const loaded = new TabularLoader(titanicMock, ',').loadAll(
       inputFiles,
       {
         features: titanicMock.trainingInformation?.inputColumns,
@@ -51,7 +53,7 @@ describe('tabular loader', () => {
 
   it('shuffles samples', async () => {
     const titanic = titanicMock
-    const loader = new node.data.NodeTabularLoader(titanic, ',')
+    const loader = new TabularLoader(titanic, ',')
     const config = {
       features: titanic.trainingInformation?.inputColumns,
       labels: titanic.trainingInformation?.outputColumns,

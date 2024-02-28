@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 
-import { WeightsContainer, aggregation } from '@epfml/discojs-node'
+import { WeightsContainer, aggregation } from '.'
 
 describe('weights aggregation', () => {
   it('avg of weights with two operands', async () => {

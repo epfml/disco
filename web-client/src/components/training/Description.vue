@@ -90,7 +90,7 @@
 <script lang="ts" setup>
 import { computed, defineProps } from 'vue'
 
-import { Task } from '@epfml/discojs'
+import { Task } from '@epfml/discojs-core'
 
 import { trainingInformation, privacyParameters, modelCompileData, FormField, FormSection } from '@/task_creation_form'
 import ModelCaching from './ModelCaching.vue'

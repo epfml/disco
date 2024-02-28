@@ -162,7 +162,8 @@ import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { List } from 'immutable'
 
-import { browser, EmptyMemory, Memory, Path, Task, data, ModelType, client as clients } from '@epfml/discojs'
+import { EmptyMemory, Memory, Path, Task, data, ModelType, client as clients } from '@epfml/discojs-core'
+import { IndexedDB, WebImageLoader, WebTabularLoader } from '@epfml/discojs'
 
 import { CONFIG } from '@/config'
 import { useMemoryStore } from '@/store/memory'
@@ -199,7 +200,7 @@ const federatedTasks = computed<List<Task>>(() =>
   tasksStore.tasks.filter((t) => t.trainingInformation.scheme === 'Federated').toList())
 
 const memory = computed<Memory>(() =>
-  memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory())
+  memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory())
 
 const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
   if (currentTask.value === undefined) {
@@ -208,10 +209,10 @@ const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
   let dataLoader: data.DataLoader<File>
   switch (currentTask.value.trainingInformation.dataType) {
     case 'tabular':
-      dataLoader = new browser.data.WebTabularLoader(currentTask.value, ',')
+      dataLoader = new WebTabularLoader(currentTask.value, ',')
       break
     case 'image':
-      dataLoader = new browser.data.WebImageLoader(currentTask.value)
+      dataLoader = new WebImageLoader(currentTask.value)
       break
     default:
       throw new Error('not implemented')

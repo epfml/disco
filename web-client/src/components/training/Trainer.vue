@@ -48,7 +48,8 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { browser, data, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, client as clients } from '@epfml/discojs'
+import { data, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, client as clients } from '@epfml/discojs-core'
+import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 // TODO @s314cy: move to discojs-core/src/client/get.ts
@@ -91,7 +92,7 @@ export default defineComponent({
       return getClient(this.scheme, this.task)
     },
     memory (): Memory {
-      return this.memoryStore.useIndexedDB ? new browser.IndexedDB() : new EmptyMemory()
+      return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     },
     disco (): Disco {
       return new Disco(

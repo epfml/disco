@@ -1,6 +1,6 @@
 import type { Server } from 'node:http'
 
-import type { aggregator, client, Task } from '@epfml/discojs-node'
+import type { aggregator, client, Task } from '@epfml/discojs-core'
 
 import { runDefaultServer } from '../src/get_server'
 
