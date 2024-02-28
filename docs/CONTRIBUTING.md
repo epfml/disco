@@ -82,7 +82,7 @@ npm -w web-client start # from the root folder
 npm start # from the web-client folder
 ```
 
-The Vue development mode supports hot-reloading via `nodemon` and the client will automatically restart whenever a change in `web-client` is detected. Starting the Vue client should print something similar to
+The Vue development mode supports hot-reloading via `vue-cli-service` and the client will automatically restart whenever a change in `web-client` is detected. Starting the Vue client should print something similar to
 
 ```
 App running at:
