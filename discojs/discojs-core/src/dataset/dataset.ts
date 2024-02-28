@@ -1,4 +1,4 @@
-import { type tf } from '..'
+import type tf from '@tensorflow/tfjs'
 
 /**
  * Convenient type for the common dataset type used in TF.js.

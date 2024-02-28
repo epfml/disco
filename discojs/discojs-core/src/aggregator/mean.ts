@@ -1,7 +1,9 @@
-import { type Map } from 'immutable'
+import type { Map } from 'immutable'
+import type tf from '@tensorflow/tfjs'
 
 import { AggregationStep, Base as Aggregator } from './base'
-import { type Task, type WeightsContainer, aggregation, type tf, type client } from '..'
+import type { Task, WeightsContainer, client } from '..'
+import { aggregation } from '..'
 
 /**
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights.

@@ -1,6 +1,7 @@
 import * as msgpack from 'msgpack-lite'
+import tf from '@tensorflow/tfjs'
 
-import { tf, WeightsContainer } from '..'
+import { WeightsContainer } from '..'
 
 interface Serialized {
   shape: number[]

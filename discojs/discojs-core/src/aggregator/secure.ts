@@ -1,9 +1,10 @@
-import { AggregationStep, Base as Aggregator } from './base'
-import { tf, aggregation, type Task, type WeightsContainer, type client } from '..'
-
 import * as crypto from 'crypto'
-
 import { Map, List, Range } from 'immutable'
+import tf from '@tensorflow/tfjs'
+
+import { AggregationStep, Base as Aggregator } from './base'
+import type { Task, WeightsContainer, client } from '..'
+import { aggregation } from '..'
 
 /**
  * Aggregator implementing secure multi-party computation for decentralized learning.

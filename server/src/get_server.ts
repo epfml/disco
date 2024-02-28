@@ -1,11 +1,13 @@
 import cors from 'cors'
 import express from 'express'
 import expressWS from 'express-ws'
+import type tf from '@tensorflow/tfjs'
+
+import type { Task, TaskProvider } from '@epfml/discojs-node'
 
 import { CONFIG } from './config'
 import { Router } from './router'
 import { TasksAndModels } from './tasks'
-import { type tf, type Task, type TaskProvider } from '@epfml/discojs-node'
 import type * as http from 'http'
 
 export class Disco {

@@ -1,4 +1,6 @@
-import { type tf, type Task } from '..'
+import type tf from '@tensorflow/tfjs'
+
+import type { Task } from '..'
 
 export interface TaskProvider {
   getTask: () => Task

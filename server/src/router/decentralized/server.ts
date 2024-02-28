@@ -2,11 +2,13 @@ import { v4 as randomUUID } from 'uuid'
 import type express from 'express'
 import msgpack from 'msgpack-lite'
 import type WebSocket from 'ws'
-import { type ParamsDictionary } from 'express-serve-static-core'
-import { type ParsedQs } from 'qs'
+import type { ParamsDictionary } from 'express-serve-static-core'
+import type { ParsedQs } from 'qs'
 import { Map, Set } from 'immutable'
+import type tf from '@tensorflow/tfjs'
 
-import { type tf, client, type Task, type TaskID } from '@epfml/discojs-node'
+import type { Task, TaskID } from '@epfml/discojs-node'
+import { client } from '@epfml/discojs-node'
 
 import { Server } from '../server'
 

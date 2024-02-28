@@ -1,4 +1,6 @@
-import { tf, type Task, type TaskProvider } from '..'
+import tf from '@tensorflow/tfjs'
+
+import type { Task, TaskProvider } from '..'
 
 export const mnist: TaskProvider = {
   getTask (): Task {

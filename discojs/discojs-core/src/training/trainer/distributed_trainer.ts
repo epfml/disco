@@ -1,5 +1,8 @@
-import { type tf, type Memory, type Task, type TrainingInformant, type TrainingFunction, WeightsContainer, type client as clients } from '../..'
-import { type Aggregator } from '../../aggregator'
+import type tf from '@tensorflow/tfjs'
+
+import type { Memory, Task, TrainingInformant, TrainingFunction, client as clients } from '../..'
+import { WeightsContainer } from '../..'
+import type { Aggregator } from '../../aggregator'
 import { Trainer } from './trainer'
 
 /**

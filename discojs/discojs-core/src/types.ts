@@ -1,6 +1,9 @@
-import { type WeightsContainer, type tf } from '.'
-import { type NodeID } from './client'
-import { type Map } from 'immutable'
+import type tf from '@tensorflow/tfjs'
+import type { Map } from 'immutable'
+
+import type { WeightsContainer } from '.'
+import type { NodeID } from './client'
+
 // Filesystem reference
 export type Path = string
 

@@ -1,10 +1,13 @@
-import express, { type Request, type Response } from 'express'
+import type { Request, Response } from 'express'
+import express from 'express'
 import { Set } from 'immutable'
+import type tf from '@tensorflow/tfjs'
 
-import { type tf, serialization, type Task, type TaskID, isTask } from '@epfml/discojs-node'
+import type { Task, TaskID } from '@epfml/discojs-node'
+import { serialization, isTask } from '@epfml/discojs-node'
 
-import { type Config } from '../config'
-import { type TasksAndModels } from '../tasks'
+import type { Config } from '../config'
+import type { TasksAndModels } from '../tasks'
 
 export class Tasks {
   private readonly ownRouter: express.Router

@@ -1,7 +1,9 @@
 import { assert, expect } from 'chai'
-import { type Map } from 'immutable'
+import type { Map } from 'immutable'
+import type tf from '@tensorflow/tfjs'
 
-import { aggregator, defaultTasks, type client, type Task, type tf } from '..'
+import type { client, Task } from '..'
+import { aggregator, defaultTasks } from '..'
 import { AggregationStep } from './base'
 
 const task = defaultTasks.titanic.getTask()

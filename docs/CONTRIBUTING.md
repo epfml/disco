@@ -142,8 +142,6 @@ Similarly to the server, any file ending with `.spec.ts` will be ran in the test
 
 `discojs-core` contains the core, platform-agnostic code of Disco.js, used by both `discojs-web` and `discojs-node`. As such, contributions to `discojs-core` must only contain code independent of either Node or the browser. As the names subtly suggest, `discojs-node` and `discojs-web` implement features specific to Node.js and browsers respectively, mostly related to memory and data handling as browser don't allow access to the file system.
 
-Note that, if you end up making calls to the Tensorflow.js API, you must import it from the root index. This is to ensure the right version of TF.js is loaded (depending on the compilation `dist/`), and only once. The only exception occurs in unit tests, which should import TF.js from the (local) `@epfml/discojs-node`, since those run on Node.js.
-
 Currently, the `discojs-node` project is available as the `@epfml/discojs-node` NPM package, which can be installed with
 `npm i @epfml/discojs-node` while the `discojs-web` project is available as the `@epfml/discojs` (and **not** as `@epfml/discojs-web`) NPM package, which can be installed with `npm i @epfml/discojs`.
 

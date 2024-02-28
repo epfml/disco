@@ -10,7 +10,7 @@ import { createCustomI18n } from './locales/i18n'
 import '@/assets/css/tailwind.css'
 import '@/assets/css/styles.css'
 
-import { tf } from '@epfml/discojs'
+import * as tf from '@tensorflow/tfjs'
 
 tf.ready()
   .then(() => console.log(`Loaded ${tf.getBackend()} backend`))

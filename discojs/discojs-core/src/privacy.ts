@@ -1,4 +1,6 @@
-import { tf, type Task, type WeightsContainer } from '.'
+import tf from '@tensorflow/tfjs'
+
+import type { Task, WeightsContainer } from '.'
 
 /**
  * Add task-parametrized Gaussian noise to and clip the weights update between the previous and current rounds.

@@ -1,9 +1,12 @@
-import { type tf, type client as clients, type Task, type TrainingInformant, type TrainingFunction, type Memory, ModelType, type ModelInfo } from '../..'
-import { type Aggregator } from '../../aggregator'
+import type tf from '@tensorflow/tfjs'
+
+import type { client as clients, Task, TrainingInformant, TrainingFunction, ModelInfo, Memory } from '../..'
+import { ModelType } from '../..'
+import type { Aggregator } from '../../aggregator'
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
-import { type Trainer } from './trainer'
+import type { Trainer } from './trainer'
 
 /**
  * A class that helps build the Trainer and auxiliary classes.

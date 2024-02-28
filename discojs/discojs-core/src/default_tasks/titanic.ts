@@ -1,4 +1,7 @@
-import { tf, type Task, type TaskProvider, data } from '..'
+import tf from '@tensorflow/tfjs'
+
+import type { Task, TaskProvider } from '..'
+import { data } from '..'
 
 export const titanic: TaskProvider = {
   getTask (): Task {

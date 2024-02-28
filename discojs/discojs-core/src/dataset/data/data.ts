@@ -1,8 +1,9 @@
-import { type tf, type Task } from '../..'
-import { type Dataset } from '../dataset'
-import { type PreprocessingFunction } from './preprocessing/base'
+import type tf from '@tensorflow/tfjs'
+import type { List } from 'immutable'
 
-import { type List } from 'immutable'
+import type { Task } from '../..'
+import type { Dataset } from '../dataset'
+import type { PreprocessingFunction } from './preprocessing/base'
 
 /**
  * Abstract class representing an immutable Disco dataset, including a TF.js dataset,

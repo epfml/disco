@@ -1,7 +1,11 @@
-import { type tf, type Memory, type Task, type TrainingInformant, type TrainingFunction, fitModelFunctions } from '../..'
+import type tf from '@tensorflow/tfjs'
+
+import type { Memory, Task, TrainingInformant, TrainingFunction } from '../..'
+import { fitModelFunctions } from '../..'
 
 import { RoundTracker } from './round_tracker'
-import { TrainerLogger, type TrainerLog } from '../../logging/trainer_logger'
+import type { TrainerLog } from '../../logging/trainer_logger'
+import { TrainerLogger } from '../../logging/trainer_logger'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:

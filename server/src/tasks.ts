@@ -1,8 +1,11 @@
 import { List, Set } from 'immutable'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
+import tf from '@tensorflow/tfjs'
+import '@tensorflow/tfjs-node'
 
-import { tf, type Task, type Path, type Digest, isTaskProvider, type TaskProvider, defaultTasks } from '@epfml/discojs-node'
+import type { Task, Path, Digest, TaskProvider } from '@epfml/discojs-node'
+import { isTaskProvider, defaultTasks } from '@epfml/discojs-node'
 
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks

@@ -19,7 +19,8 @@
   },
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
-    "@epfml/discojs-core": "*"
+    "@epfml/discojs-core": "*",
+    "@tensorflow/tfjs": "4"
   },
   "devDependencies": {
     "nodemon": "3"

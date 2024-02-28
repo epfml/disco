@@ -1,4 +1,6 @@
-import { type tf, type TrainingInformation } from '..'
+import type tf from '@tensorflow/tfjs'
+
+import type { TrainingInformation } from '..'
 
 /**
  * The training function is the function that will be called to train the model.

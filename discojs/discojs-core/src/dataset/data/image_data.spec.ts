@@ -1,7 +1,8 @@
 import { assert, expect } from 'chai'
+import tf from '@tensorflow/tfjs'
 
 import { ImageData } from './image_data'
-import { tf, type Task } from '../..'
+import type { Task } from '../..'
 
 describe('image data checks', () => {
   const simplefaceMock: Task = {

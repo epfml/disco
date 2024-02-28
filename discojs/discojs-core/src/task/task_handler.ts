@@ -1,8 +1,10 @@
 import axios from 'axios'
 import { Map } from 'immutable'
+import type tf from '@tensorflow/tfjs'
 
-import { serialization, type tf, WeightsContainer } from '..'
-import { isTask, type Task, type TaskID } from './task'
+import { serialization, WeightsContainer } from '..'
+import type { Task, TaskID } from './task'
+import { isTask } from './task'
 
 const TASK_ENDPOINT = 'tasks'
 
