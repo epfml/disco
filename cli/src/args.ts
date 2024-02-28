@@ -32,7 +32,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   },
   {
     helpArg: 'help',
-    headerContentSections: [{ header: 'DISCO CLI', content: 'npm run start -- [Options]\n' + argExample }]
+    headerContentSections: [{ header: 'DISCO CLI', content: 'npm start -- [Options]\n' + argExample }]
   }
 )
 
