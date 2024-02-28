@@ -1,4 +1,6 @@
-import { tf, data } from '../..'
+import tf from '@tensorflow/tfjs'
+
+import { data } from '../..'
 
 export class WebTextLoader extends data.TextLoader<File> {
   async loadDatasetFrom (source: File, config?: Record<string, unknown>): Promise<data.Dataset> {

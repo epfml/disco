@@ -1,5 +1,7 @@
-import { type tf, type Task } from '../..'
-import { type Dataset } from '../dataset'
+import type tf from '@tensorflow/tfjs'
+
+import type { Task } from '../..'
+import type { Dataset } from '../dataset'
 import { Data } from './data'
 import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing'
 

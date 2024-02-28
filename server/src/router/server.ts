@@ -1,10 +1,11 @@
 import express from 'express'
 import type expressWS from 'express-ws'
 import type WebSocket from 'ws'
+import type tf from '@tensorflow/tfjs'
 
-import { type tf, type Task } from '@epfml/discojs-node'
+import type { Task } from '@epfml/discojs-node'
 
-import { type TasksAndModels } from '../tasks'
+import type { TasksAndModels } from '../tasks'
 
 export abstract class Server {
   private readonly ownRouter: expressWS.Router

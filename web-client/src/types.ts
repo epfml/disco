@@ -1,4 +1,4 @@
-import { tf } from '@epfml/discojs'
+import type tf from '@tensorflow/tfjs'
 
 export type Weights = tf.Tensor[]
 

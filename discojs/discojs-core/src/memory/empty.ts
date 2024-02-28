@@ -1,6 +1,7 @@
-import { type tf } from '..'
+import type tf from '@tensorflow/tfjs'
 
-import { Memory, type ModelInfo, type Path } from './base'
+import type { ModelInfo, Path } from './base'
+import { Memory } from './base'
 
 /**
  * Represents an empty model memory.

@@ -1,4 +1,7 @@
-import { tf, type Task, data, type TaskProvider } from '..'
+import tf from '@tensorflow/tfjs'
+
+import type { Task, TaskProvider } from '..'
+import { data } from '..'
 
 export const cifar10: TaskProvider = {
   getTask (): Task {

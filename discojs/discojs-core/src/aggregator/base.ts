@@ -1,6 +1,7 @@
-import { type client, type Task, type tf, type AsyncInformant } from '..'
-
 import { List, Map, Set } from 'immutable'
+import type tf from '@tensorflow/tfjs'
+
+import type { client, Task, AsyncInformant } from '..'
 
 export enum AggregationStep {
   ADD,

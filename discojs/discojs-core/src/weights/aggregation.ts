@@ -1,7 +1,8 @@
 import { List } from 'immutable'
+import tf from '@tensorflow/tfjs'
 
-import { tf } from '..'
-import { type TensorLike, WeightsContainer } from './weights_container'
+import type { TensorLike } from './weights_container'
+import { WeightsContainer } from './weights_container'
 
 type WeightsLike = Iterable<TensorLike>
 

@@ -1,10 +1,12 @@
 import axios from 'axios'
-import { type Set } from 'immutable'
+import type { Set } from 'immutable'
+import type tf from '@tensorflow/tfjs'
 
-import { type tf, type Task, type TrainingInformant, serialization, type WeightsContainer } from '..'
-import { type NodeID } from './types'
-import { type EventConnection } from './event_connection'
-import { type Aggregator } from '../aggregator'
+import type { Task, TrainingInformant, WeightsContainer } from '..'
+import { serialization } from '..'
+import type { NodeID } from './types'
+import type { EventConnection } from './event_connection'
+import type { Aggregator } from '../aggregator'
 
 /**
  * Main, abstract, class representing a Disco client in a network, which handles

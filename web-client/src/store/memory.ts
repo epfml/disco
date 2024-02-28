@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
-import { Map } from 'immutable'
 
-import { ModelInfo, ModelType, Path, tf } from '@epfml/discojs'
+import { Map } from 'immutable'
+import * as tf from '@tensorflow/tfjs'
+
+import { ModelInfo, ModelType, Path } from '@epfml/discojs'
 
 interface ModelMetadata extends ModelInfo {
   date: string

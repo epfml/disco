@@ -1,9 +1,11 @@
 import { Range } from 'immutable'
+import tf from '@tensorflow/tfjs'
 
-import { tf } from '../..'
-import { type Dataset } from '../dataset'
-import { type Data, ImageData, type DataSplit } from '../data'
-import { DataLoader, type DataConfig } from '../data_loader'
+import type { Dataset } from '../dataset'
+import type { Data, DataSplit } from '../data'
+import { ImageData } from '../data'
+import type { DataConfig } from '../data_loader'
+import { DataLoader } from '../data_loader'
 
 /**
  * Image data loader whose instantiable implementation is delegated by the platform-dependent Disco subprojects, namely,

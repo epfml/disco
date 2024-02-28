@@ -1,6 +1,7 @@
 import { List } from 'immutable'
+import tf from '@tensorflow/tfjs'
 
-import { tf, type Weights } from '..'
+import type { Weights } from '..'
 
 export type TensorLike = tf.Tensor | ArrayLike<number>
 

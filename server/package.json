@@ -17,6 +17,7 @@
   "dependencies": {
     "@epfml/discojs-node": "*",
     "@koush/wrtc": "0.5",
+    "@tensorflow/tfjs": "4",
     "cors": "2",
     "express": "4",
     "express-ws": "5",

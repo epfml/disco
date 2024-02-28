@@ -1,6 +1,8 @@
-import { type Task, type tf } from '../../..'
+import type tf from '@tensorflow/tfjs'
 import { List } from 'immutable'
-import { type PreprocessingFunction } from './base'
+
+import type { Task } from '../../..'
+import type { PreprocessingFunction } from './base'
 
 /**
  * Available tabular preprocessing types.

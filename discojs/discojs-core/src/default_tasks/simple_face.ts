@@ -1,4 +1,7 @@
-import { type tf, type Task, data, type TaskProvider } from '..'
+import type tf from '@tensorflow/tfjs'
+
+import type { Task, TaskProvider } from '..'
+import { data } from '..'
 
 export const simpleFace: TaskProvider = {
   getTask (): Task {

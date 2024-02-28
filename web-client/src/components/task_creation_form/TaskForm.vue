@@ -153,10 +153,12 @@
 <script lang="ts" setup>
 import * as yup from 'yup'
 import { ref, shallowRef } from 'vue'
-import { List, Map } from 'immutable'
 import { Form as VeeForm, ErrorMessage } from 'vee-validate'
 
-import { tf, Task, pushTask } from '@epfml/discojs'
+import { List, Map } from 'immutable'
+import * as tf from '@tensorflow/tfjs'
+
+import { Task, pushTask } from '@epfml/discojs'
 
 import { sections, modelCompileData, privacyParameters, FormField, FormSection } from '@/task_creation_form'
 import { useToaster } from '@/composables/toaster'

@@ -1,5 +1,7 @@
+import tf from '@tensorflow/tfjs'
+
 import type { Task, TaskProvider } from '..'
-import { tf, data } from '..'
+import { data } from '..'
 
 export const skinMnist: TaskProvider = {
   getTask (): Task {

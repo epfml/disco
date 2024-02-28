@@ -1,5 +1,3 @@
-export * as tf from '@tensorflow/tfjs'
-
 export * as data from './dataset'
 export * as serialization from './serialization'
 export * as training from './training'

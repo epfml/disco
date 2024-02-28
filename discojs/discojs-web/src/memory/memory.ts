@@ -8,8 +8,9 @@
  */
 import { Map } from 'immutable'
 import path from 'path'
+import * as tf from '@tensorflow/tfjs'
 
-import { tf, Memory, ModelType, type Path, type ModelInfo, type ModelSource } from '..'
+import { Memory, ModelType, type Path, type ModelInfo, type ModelSource } from '..'
 
 export class IndexedDB extends Memory {
   pathFor (source: ModelSource): Path {
