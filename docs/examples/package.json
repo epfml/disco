@@ -15,7 +15,4 @@
     "@epfml/disco-server": "*",
     "@epfml/discojs-node": "*"
   },
-  "devDependencies": {
-    "ts-node": "10"
-  }
 }
