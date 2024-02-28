@@ -18,9 +18,12 @@ jobs:
           node-version: ${{ env.node_version }}
           cache: npm
           registry-url: "https://registry.npmjs.org"
+      - run: echo now=`date +%Y%m%d%H%M%S` >> "$GITHUB_ENV"
+      - run: npm --workspace=./discojs version prerelease --preid=$now
+      - name: fix discojs-core version in deps
+        run: sed -E "s,(^\s+\"@epfml/discojs-core\":) \"\*\",\1 \"$now\"," package.json
       - run: npm ci
-      - run: npm --workspace=./discojs ./discojs run build
-      - run: npm --workspace=./discojs ./discojs version prerelease --preid=p`date +%Y%m%d%H%M%S`
+      - run: npm --workspace=./discojs run build
       - run: npm --workspace=./discojs --access public --tag dev
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -35,4 +38,4 @@ jobs:
       - uses: docker/build-push-action@v5
         with:
           push: true
-          tags: epfml/disco:latest
+          tags: "epfml/disco:latest"
