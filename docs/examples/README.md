@@ -41,5 +41,5 @@ You can run the custom task example with:
 
 ```
 cd docs/examples
-npm run custom_Task # compiles TypeScript and runs custom_task.ts
+npm run custom_task # compiles TypeScript and runs custom_task.ts
 ```
