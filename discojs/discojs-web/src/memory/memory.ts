@@ -10,11 +10,11 @@ import { Map } from 'immutable'
 import path from 'path'
 import * as tf from '@tensorflow/tfjs'
 
-import type { Path, ModelInfo, ModelSource } from '@epfml/discojs-core'
-import { Memory, ModelType } from '@epfml/discojs-core'
+import type { Path, Model, ModelInfo, ModelSource } from '@epfml/discojs-core'
+import { Memory, ModelType, models } from '@epfml/discojs-core'
 
 export class IndexedDB extends Memory {
-  pathFor (source: ModelSource): Path {
+  override pathFor (source: ModelSource): Path {
     if (typeof source === 'string') {
       return source
     }
@@ -28,7 +28,7 @@ export class IndexedDB extends Memory {
     return `indexeddb://${path.join(source.type, source.taskID, source.name)}@${version}`
   }
 
-  infoFor (source: ModelSource): ModelInfo {
+  override infoFor (source: ModelSource): ModelInfo {
     if (typeof source !== 'string') {
       return source
     }
@@ -50,8 +50,8 @@ export class IndexedDB extends Memory {
     return await this.getModelMetadata(source) !== undefined
   }
 
-  async getModel (source: ModelSource): Promise<tf.LayersModel> {
-    return await tf.loadLayersModel(this.pathFor(source))
+  override async getModel (source: ModelSource): Promise<Model> {
+    return new models.TFJS(await tf.loadLayersModel(this.pathFor(source)))
   }
 
   async deleteModel (source: ModelSource): Promise<void> {
@@ -75,13 +75,19 @@ export class IndexedDB extends Memory {
    * @param source the destination
    * @param model the model
    */
-  async updateWorkingModel (source: ModelSource, model: tf.LayersModel): Promise<void> {
+  override async updateWorkingModel (source: ModelSource, model: Model): Promise<void> {
     const src: ModelInfo = this.infoFor(source)
     if (src.type !== undefined && src.type !== ModelType.WORKING) {
       throw new Error('expected working model')
     }
+
+    if (model instanceof models.TFJS) {
+      await model.extract().save(this.pathFor({ ...src, type: ModelType.WORKING, version: 0 }), { includeOptimizer: true })
+    } else {
+      throw new Error('unknown model type')
+    }
+
     // Enforce version 0 to always keep a single working model at a time
-    await model.save(this.pathFor({ ...src, type: ModelType.WORKING, version: 0 }), { includeOptimizer: true })
   }
 
   /**
@@ -101,13 +107,17 @@ export class IndexedDB extends Memory {
     return dst
   }
 
-  async saveModel (source: ModelSource, model: tf.LayersModel): Promise<Path> {
+  override async saveModel (source: ModelSource, model: Model): Promise<Path> {
     const src: ModelInfo = this.infoFor(source)
     if (src.type !== undefined && src.type !== ModelType.SAVED) {
       throw new Error('expected saved model')
     }
     const dst = this.pathFor(await this.duplicateSource({ ...src, type: ModelType.SAVED }))
-    await model.save(dst, { includeOptimizer: true })
+    if (model instanceof models.TFJS) {
+      await model.extract().save(dst, { includeOptimizer: true })
+    } else {
+      throw new Error('unknown model type')
+    }
     return dst
   }
 

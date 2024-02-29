@@ -1,7 +1,7 @@
 import tf from '@tensorflow/tfjs'
 
-import type { Task, TaskProvider } from '..'
-import { data } from '..'
+import type { Model, Task, TaskProvider } from '..'
+import { data, models } from '..'
 
 export const simpleFace: TaskProvider = {
   getTask (): Task {
@@ -37,7 +37,7 @@ export const simpleFace: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<Model> {
     const model = await tf.loadLayersModel(
       'https://storage.googleapis.com/deai-313515.appspot.com/models/mobileNetV2_35_alpha_2_classes/model.json'
     )
@@ -48,6 +48,6 @@ export const simpleFace: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return model
+    return new models.TFJS(model)
   }
 }

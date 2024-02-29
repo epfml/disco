@@ -1,6 +1,4 @@
-import type tf from '@tensorflow/tfjs'
-
-import type { client as clients, Task, TrainingInformant, ModelInfo, Memory } from '../..'
+import type { client as clients, Model, Task, TrainingInformant, ModelInfo, Memory } from '../..'
 import { ModelType } from '../..'
 import type { Aggregator } from '../../aggregator'
 
@@ -49,7 +47,7 @@ export class TrainerBuilder {
    * If a model exists in memory, laod it, otherwise load model from server
    * @returns
    */
-  private async getModel (client: clients.Client): Promise<tf.LayersModel> {
+  private async getModel (client: clients.Client): Promise<Model> {
     const modelID = this.task.trainingInformation?.modelID
     if (modelID === undefined) {
       throw new TypeError('model ID is undefined')

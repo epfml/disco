@@ -1,8 +1,9 @@
 import axios from 'axios'
 import { Map } from 'immutable'
-import type tf from '@tensorflow/tfjs'
 
-import { serialization, WeightsContainer } from '..'
+import type { Model } from '..'
+import { serialization } from '..'
+
 import type { Task, TaskID } from './task'
 import { isTask } from './task'
 
@@ -11,14 +12,14 @@ const TASK_ENDPOINT = 'tasks'
 export async function pushTask (
   url: URL,
   task: Task,
-  model: tf.LayersModel
+  model: Model
 ): Promise<void> {
   await axios.post(
     url.href + TASK_ENDPOINT,
     {
       task,
       model: await serialization.model.encode(model),
-      weights: await serialization.weights.encode(WeightsContainer.from(model))
+      weights: await serialization.weights.encode(model.weights)
     }
   )
 }

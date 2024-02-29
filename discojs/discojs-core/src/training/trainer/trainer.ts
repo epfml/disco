@@ -1,10 +1,11 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Memory, Task, TrainingInformant } from '../..'
+import type { Memory, Model, Task, TrainingInformant } from '../..'
 
 import { RoundTracker } from './round_tracker'
 import type { TrainerLog } from '../../logging/trainer_logger'
 import { TrainerLogger } from '../../logging/trainer_logger'
+import { EventEmitter } from '../../utils/event_emitter'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:
@@ -18,7 +19,7 @@ import { TrainerLogger } from '../../logging/trainer_logger'
 export abstract class Trainer {
   public readonly roundTracker: RoundTracker
 
-  private stopTrainingRequested = false
+  private training?: AsyncGenerator<tf.Logs | undefined, void>
   private readonly trainerLogger: TrainerLogger
 
   /**
@@ -30,7 +31,7 @@ export abstract class Trainer {
     public readonly task: Task,
     public readonly trainingInformant: TrainingInformant,
     public readonly memory: Memory,
-    public readonly model: tf.LayersModel
+    public readonly model: Model
   ) {
     this.trainerLogger = new TrainerLogger()
     this.roundTracker = new RoundTracker(task.trainingInformation.roundDuration)
@@ -52,7 +53,6 @@ export abstract class Trainer {
     }
 
     this.roundTracker.updateBatch()
-    this.stopTrainModelIfRequested()
 
     if (this.roundTracker.roundHasEnded()) {
       await this.onRoundEnd(logs.acc)
@@ -100,7 +100,7 @@ export abstract class Trainer {
    * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
    */
   async stopTraining (): Promise<void> {
-    this.stopTrainingRequested = true
+    await this.training?.return()
   }
 
   /**
@@ -111,23 +111,39 @@ export abstract class Trainer {
     dataset: tf.data.Dataset<tf.TensorContainer>,
     valDataset: tf.data.Dataset<tf.TensorContainer>
   ): Promise<void> {
-    this.resetStopTrainerState()
+    if (this.training !== undefined) {
+      throw new Error('training already running, cancel it before launching a new one')
+    }
 
-    await this.model.fitDataset(
+    await this.onTrainBegin()
+
+    this.training = this.model.train(
       dataset,
-      {
-        epochs: this.task.trainingInformation.epochs,
-        validationData: valDataset,
-        callbacks: {
-          onEpochBegin: (e, l) => { this.onEpochBegin(e, l) },
-          onEpochEnd: (e, l) => { this.onEpochEnd(e, l) },
-          onBatchBegin: async (e, l) => { await this.onBatchBegin(e, l) },
-          onBatchEnd: async (e, l) => { await this.onBatchEnd(e, l) },
-          onTrainBegin: async (l) => { await this.onTrainBegin(l) },
-          onTrainEnd: async (l) => { await this.onTrainEnd(l) }
-        }
-      }
+      valDataset,
+      this.task.trainingInformation.epochs,
+      new EventEmitter({
+        // TODO implement
+        // epochBegin: () => this.onEpochBegin(),
+        // epochEnd: () => this.onEpochEnd(),
+        // batchBegin: async () => await this.onBatchBegin(),
+        // batchEnd: async () => await this.onBatchEnd(),
+      })
     )
+
+    let epoch = 0
+    this.onEpochBegin(epoch)
+    for await (const logs of this.training) {
+      this.onEpochEnd(epoch, logs)
+
+      epoch += 1
+      if (epoch < this.task.trainingInformation.epochs) {
+        this.onEpochBegin(epoch + 1)
+      }
+    }
+
+    this.training = undefined
+
+    await this.onTrainEnd()
   }
 
   /**
@@ -135,24 +151,6 @@ export abstract class Trainer {
    */
   protected roundDecimals (accuracy: number, decimalsToRound: number = 2): number {
     return +(accuracy * 100).toFixed(decimalsToRound)
-  }
-
-  /**
-   * reset stop training state
-   */
-  protected resetStopTrainerState (): void {
-    this.model.stopTraining = false
-    this.stopTrainingRequested = false
-  }
-
-  /**
-   * If stop training is requested, do so
-   */
-  protected stopTrainModelIfRequested (): void {
-    if (this.stopTrainingRequested) {
-      this.model.stopTraining = true
-      this.stopTrainingRequested = false
-    }
   }
 
   getTrainerLog (): TrainerLog {

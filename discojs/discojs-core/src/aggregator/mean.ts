@@ -1,8 +1,7 @@
 import type { Map } from 'immutable'
-import type tf from '@tensorflow/tfjs'
 
 import { AggregationStep, Base as Aggregator } from './base'
-import type { Task, WeightsContainer, client } from '..'
+import type { Model, Task, WeightsContainer, client } from '..'
 import { aggregation } from '..'
 
 /**
@@ -18,7 +17,7 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
 
   constructor (
     task: Task,
-    model?: tf.LayersModel,
+    model?: Model,
     roundCutoff = 0,
     threshold = 1
   ) {
@@ -69,7 +68,9 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
   aggregate (): void {
     this.log(AggregationStep.AGGREGATE)
     const result = aggregation.avg(this.contributions.get(0)?.values() as Iterable<WeightsContainer>)
-    this.model?.setWeights(result.weights)
+    if (this.model !== undefined) {
+      this.model.weights = result
+    }
     this.emit(result)
   }
 

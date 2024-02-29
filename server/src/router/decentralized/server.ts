@@ -5,9 +5,8 @@ import type WebSocket from 'ws'
 import type { ParamsDictionary } from 'express-serve-static-core'
 import type { ParsedQs } from 'qs'
 import { Map, Set } from 'immutable'
-import type tf from '@tensorflow/tfjs'
 
-import type { Task, TaskID } from '@epfml/discojs-core'
+import type { Model, Task, TaskID } from '@epfml/discojs-core'
 import { client } from '@epfml/discojs-core'
 
 import { Server } from '../server'
@@ -44,12 +43,12 @@ export class Decentralized extends Server {
     )
   }
 
-  protected initTask (task: Task, model: tf.LayersModel): void {}
+  protected initTask (task: Task, model: Model): void {}
 
   protected handle (
     task: Task,
     ws: WebSocket,
-    model: tf.LayersModel,
+    model: Model,
     req: express.Request<
     ParamsDictionary,
     any,

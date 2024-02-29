@@ -1,8 +1,8 @@
 import { Range } from 'immutable'
 import tf from '@tensorflow/tfjs'
 
-import type { Task, TaskProvider } from '..'
-import { data } from '..'
+import type { Model, Task, TaskProvider } from '..'
+import { data, models } from '..'
 import { LabelTypeEnum } from '../task/label_type'
 
 export const geotags: TaskProvider = {
@@ -44,7 +44,7 @@ export const geotags: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<Model> {
     const pretrainedModel = await tf.loadLayersModel(
       'https://storage.googleapis.com/deai-313515.appspot.com/models/geotags/model.json'
     )
@@ -68,6 +68,6 @@ export const geotags: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return model
+    return new models.TFJS(model)
   }
 }

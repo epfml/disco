@@ -121,13 +121,4 @@ export class WeightsContainer {
   static of (...weights: TensorLike[]): WeightsContainer {
     return new this(weights)
   }
-
-  /**
-   * Instantiates a new weights container from the given model's weights.
-   * @param model The TF.js model
-   * @returns The instantiated weights container
-   */
-  static from (model: tf.LayersModel): WeightsContainer {
-    return new this(model.weights.map((w) => w.read()))
-  }
 }
