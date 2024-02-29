@@ -11,6 +11,8 @@ export abstract class Base {
   protected readonly trainingGraphInformant = new GraphInformant()
   protected readonly validationGraphInformant = new GraphInformant()
 
+  private _losses = List<number>()
+
   // statistics
   protected currentRound = 0
   protected currentNumberOfParticipants = 0
@@ -69,6 +71,20 @@ export abstract class Base {
 
   validationAccuracy (): number {
     return this.validationGraphInformant.accuracy()
+  }
+
+  set loss (loss: number | undefined) {
+    if (loss === undefined) throw new Error('loss is undefined')
+    this._losses = this._losses.push(loss)
+  }
+
+  get loss (): number | undefined {
+    return this._losses.last()
+  }
+
+  /** return loss of each round */
+  get losses (): List<number> {
+    return this._losses
   }
 
   trainingAccuracyData (): List<number> {

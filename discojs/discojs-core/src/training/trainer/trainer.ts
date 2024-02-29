@@ -80,6 +80,9 @@ export abstract class Trainer {
     if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
       this.trainingInformant.updateTrainingGraph(this.roundDecimals(logs.acc))
       this.trainingInformant.updateValidationGraph(this.roundDecimals(logs.val_acc))
+      if (logs.val_loss !== undefined) {
+        this.trainingInformant.loss = logs.val_loss
+      }
     } else {
       this.trainerLogger.error('onEpochEnd: NaN value')
     }
