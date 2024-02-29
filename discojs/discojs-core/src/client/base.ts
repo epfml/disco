@@ -1,8 +1,7 @@
 import axios from 'axios'
 import type { Set } from 'immutable'
-import type tf from '@tensorflow/tfjs'
 
-import type { Task, TrainingInformant, WeightsContainer } from '..'
+import type { Model, Task, TrainingInformant, WeightsContainer } from '..'
 import { serialization } from '..'
 import type { NodeID } from './types'
 import type { EventConnection } from './event_connection'
@@ -55,7 +54,7 @@ export abstract class Base {
    * Fetches the latest model available on the network's server, for the adequate task.
    * @returns The latest model
    */
-  async getLatestModel (): Promise<tf.LayersModel> {
+  async getLatestModel (): Promise<Model> {
     const url = new URL('', this.url.href)
     if (!url.pathname.endsWith('/')) {
       url.pathname += '/'

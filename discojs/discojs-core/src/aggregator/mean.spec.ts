@@ -1,8 +1,7 @@
 import { assert, expect } from 'chai'
 import type { Map } from 'immutable'
-import type tf from '@tensorflow/tfjs'
 
-import type { client, Task } from '..'
+import type { client, Model, Task } from '..'
 import { aggregator, defaultTasks } from '..'
 import { AggregationStep } from './base'
 
@@ -16,7 +15,7 @@ const bufferCapacity = weights.length
 export class MockMeanAggregator extends aggregator.AggregatorBase<number> {
   constructor (
     task: Task,
-    model: tf.LayersModel,
+    model: Model,
     private readonly threshold: number,
     roundCutoff = 0
   ) {

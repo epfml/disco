@@ -1,14 +1,13 @@
 import cors from 'cors'
 import express from 'express'
 import expressWS from 'express-ws'
-import type tf from '@tensorflow/tfjs'
+import type * as http from 'http'
 
-import type { Task, TaskProvider } from '@epfml/discojs-core'
+import type { Model, Task, TaskProvider } from '@epfml/discojs-core'
 
 import { CONFIG } from './config'
 import { Router } from './router'
 import { TasksAndModels } from './tasks'
-import type * as http from 'http'
 
 export class Disco {
   private readonly _app: express.Application
@@ -29,7 +28,7 @@ export class Disco {
   }
 
   // If a model is not provided, its url must be provided in the task object
-  async addTask (task: Task | TaskProvider, model?: tf.LayersModel | URL): Promise<void> {
+  async addTask (task: Task | TaskProvider, model?: Model | URL): Promise<void> {
     await this.tasksAndModels.addTaskAndModel(task, model)
   }
 

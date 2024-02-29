@@ -1,11 +1,9 @@
-import type tf from '@tensorflow/tfjs'
-
-import type { Task } from '..'
+import type { Model, Task } from '..'
 
 export interface TaskProvider {
   getTask: () => Task
   // Create the corresponding model ready for training (compiled)
-  getModel: () => Promise<tf.LayersModel>
+  getModel: () => Promise<Model>
 }
 
 export function isTaskProvider (obj: any): obj is TaskProvider {

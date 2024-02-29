@@ -1,0 +1,43 @@
+import type tf from '@tensorflow/tfjs'
+
+import type { WeightsContainer } from '..'
+import type { EventEmitter } from 'utils/event_emitter'
+import type { Dataset } from 'dataset'
+
+// TODO still bound to tfjs
+export type EpochLogs = tf.Logs | undefined
+export type Prediction = tf.Tensor
+export type Sample = tf.Tensor
+
+// TODO remove as it's unused and kinda internal to tf
+export interface Events extends Record<string, unknown> {
+  batchBegin: undefined
+  batchEnd: undefined
+}
+
+/** Trainable predictor */
+// TODO make it typesafe: same shape of data/input/weights
+export abstract class Model {
+  abstract get weights (): WeightsContainer
+  abstract set weights (ws: WeightsContainer)
+
+  /**
+   * Improve predictor
+   * @param trainingData dataset to optimize for
+   * @param validationData dataset to measure how well it is training
+   * @param epochs number of pass over the training datatset
+   * @param tracker watch the various steps
+   * @yields on every epoch, training can be stop by `return`ing it
+   */
+  // TODO get rid of epoch & generator as total view is across the network
+  abstract train (
+    trainingData: Dataset,
+    validationData?: Dataset,
+    epochs?: number,
+    tracker?: EventEmitter<Events>
+  ): AsyncGenerator<EpochLogs, void>
+
+  /** Predict likely values */
+  // TODO extract in separated TrainedModel?
+  abstract predict (input: Sample): Promise<Prediction>
+}

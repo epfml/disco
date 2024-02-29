@@ -3,9 +3,9 @@ import type WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
 import { List, Map } from 'immutable'
 import msgpack from 'msgpack-lite'
-import type tf from '@tensorflow/tfjs'
 
 import type {
+  Model,
   Task,
   TaskID,
   WeightsContainer,
@@ -108,7 +108,7 @@ export class Federated extends Server {
     void this.storeAggregationResult(aggregator)
   }
 
-  protected initTask (task: Task, model: tf.LayersModel): void {
+  protected initTask (task: Task, model: Model): void {
     const aggregator = new aggregators.MeanAggregator(task, model)
 
     this.aggregators = this.aggregators.set(task.id, aggregator)
@@ -200,7 +200,7 @@ export class Federated extends Server {
   protected handle (
     task: Task,
     ws: WebSocket,
-    model: tf.LayersModel,
+    model: Model,
     req: express.Request
   ): void {
     const taskAggregator = this.aggregators.get(task.id)

@@ -1,8 +1,7 @@
 // only used browser-side
 // TODO: replace IO type
-import type tf from '@tensorflow/tfjs'
 
-import type { TaskID } from '..'
+import type { Model, TaskID } from '..'
 import type { ModelType } from './model_type'
 
 /**
@@ -49,7 +48,7 @@ export abstract class Memory {
    * @param source The model source
    * @returns The model
    */
-  abstract getModel (source: ModelSource): Promise<tf.LayersModel>
+  abstract getModel (source: ModelSource): Promise<Model>
 
   /**
    * Removes the model identified by the given model source from memory.
@@ -77,7 +76,7 @@ export abstract class Memory {
    * @param source The model source
    * @param model The new model
    */
-  abstract updateWorkingModel (source: ModelSource, model: tf.LayersModel): Promise<void>
+  abstract updateWorkingModel (source: ModelSource, model: Model): Promise<void>
 
   /**
    * Creates a saved model copy from the working model identified by the given model source.
@@ -94,7 +93,7 @@ export abstract class Memory {
    * @param model The new model
    * @returns The saved model's path
    */
-  abstract saveModel (source: ModelSource, model: tf.LayersModel): Promise<Path | undefined>
+  abstract saveModel (source: ModelSource, model: Model): Promise<Path | undefined>
 
   /**
    * Moves the model identified by the model source to a file system. This is platform-dependent.

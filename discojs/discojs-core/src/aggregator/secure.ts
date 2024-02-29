@@ -3,7 +3,7 @@ import { Map, List, Range } from 'immutable'
 import tf from '@tensorflow/tfjs'
 
 import { AggregationStep, Base as Aggregator } from './base'
-import type { Task, WeightsContainer, client } from '..'
+import type { Model, Task, WeightsContainer, client } from '..'
 import { aggregation } from '..'
 
 /**
@@ -20,7 +20,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
 
   constructor (
     task: Task,
-    model?: tf.LayersModel
+    model?: Model
   ) {
     super(task, model, 0, 2)
 
@@ -36,7 +36,9 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
     } else if (this.communicationRound === 1) {
       // Average the received partial sums
       const result = aggregation.avg(this.contributions.get(1)?.values() as Iterable<WeightsContainer>)
-      this.model?.setWeights(result.weights)
+      if (this.model !== undefined) {
+        this.model.weights = result
+      }
       this.emit(result)
     } else {
       throw new Error('communication round is out of bounds')

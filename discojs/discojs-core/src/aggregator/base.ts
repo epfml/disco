@@ -1,7 +1,6 @@
 import { Map, Set } from 'immutable'
-import type tf from '@tensorflow/tfjs'
 
-import type { client, Task, AsyncInformant } from '..'
+import type { client, Model, Task, AsyncInformant } from '..'
 
 import { EventEmitter } from '../utils/event_emitter'
 
@@ -60,9 +59,9 @@ export abstract class Base<T> {
      */
     public readonly task: Task,
     /**
-     * The TF.js model whose weights are updated on aggregation.
+     * The Model whose weights are updated on aggregation.
      */
-    protected _model?: tf.LayersModel,
+    protected _model?: Model,
     /**
      * The round cut-off for contributions.
      */
@@ -141,7 +140,7 @@ export abstract class Base<T> {
    * Sets the aggregator's TF.js model.
    * @param model The new TF.js model
    */
-  setModel (model: tf.LayersModel): void {
+  setModel (model: Model): void {
     this._model = model
   }
 
@@ -267,7 +266,7 @@ export abstract class Base<T> {
   /**
    * The aggregator's current model.
    */
-  get model (): tf.LayersModel | undefined {
+  get model (): Model | undefined {
     return this._model
   }
 

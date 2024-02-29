@@ -1,6 +1,7 @@
 import tf from '@tensorflow/tfjs'
 
-import type { Task, TaskProvider } from '..'
+import type { Model, Task, TaskProvider } from '..'
+import { models } from '..'
 
 export const mnist: TaskProvider = {
   getTask (): Task {
@@ -39,7 +40,7 @@ export const mnist: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<Model> {
     const model = tf.sequential()
 
     model.add(
@@ -68,6 +69,6 @@ export const mnist: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return model
+    return new models.TFJS(model)
   }
 }

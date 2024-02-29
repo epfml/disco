@@ -1,4 +1,4 @@
-import type tf from '@tensorflow/tfjs'
+import type { Model } from '..'
 
 import type { ModelInfo, Path } from './base'
 import { Memory } from './base'
@@ -15,7 +15,7 @@ export class Empty extends Memory {
     return false
   }
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<Model> {
     throw new Error('empty')
   }
 

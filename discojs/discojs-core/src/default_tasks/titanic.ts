@@ -1,7 +1,7 @@
 import tf from '@tensorflow/tfjs'
 
-import type { Task, TaskProvider } from '..'
-import { data } from '..'
+import type { Model, Task, TaskProvider } from '..'
+import { data, models } from '..'
 
 export const titanic: TaskProvider = {
   getTask (): Task {
@@ -71,7 +71,7 @@ export const titanic: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<Model> {
     const model = tf.sequential()
 
     model.add(
@@ -92,6 +92,6 @@ export const titanic: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return model
+    return new models.TFJS(model)
   }
 }

@@ -1,7 +1,7 @@
 import tf from '@tensorflow/tfjs'
 
-import type { Task, TaskProvider } from '..'
-import { data } from '..'
+import type { Model, Task, TaskProvider } from '..'
+import { data, models } from '..'
 
 export const lusCovid: TaskProvider = {
   getTask (): Task {
@@ -40,7 +40,7 @@ export const lusCovid: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<Model> {
     const imageHeight = 100
     const imageWidth = 100
     const imageChannels = 3
@@ -93,6 +93,6 @@ export const lusCovid: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return model
+    return new models.TFJS(model)
   }
 }

@@ -1,9 +1,8 @@
 import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
-import type tf from '@tensorflow/tfjs'
 
-import type { Task, TaskID } from '@epfml/discojs-core'
+import type { Model, Task, TaskID } from '@epfml/discojs-core'
 import { serialization, isTask } from '@epfml/discojs-core'
 
 import type { Config } from '../config'
@@ -12,7 +11,7 @@ import type { TasksAndModels } from '../tasks'
 export class Tasks {
   private readonly ownRouter: express.Router
 
-  private tasksAndModels = Set<[Task, tf.LayersModel]>()
+  private tasksAndModels = Set<[Task, Model]>()
 
   constructor (
     private readonly config: Config,
@@ -55,7 +54,7 @@ export class Tasks {
     return this.ownRouter
   }
 
-  onNewTask (task: Task, model: tf.LayersModel): void {
+  onNewTask (task: Task, model: Model): void {
     this.ownRouter.get(`/${task.id}/:file`, (req, res, next) => {
       this.getLatestModel(task.id, req, res).catch(next)
     })

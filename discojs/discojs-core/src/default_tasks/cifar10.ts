@@ -1,7 +1,7 @@
 import tf from '@tensorflow/tfjs'
 
-import type { Task, TaskProvider } from '..'
-import { data } from '..'
+import type { Model, Task, TaskProvider } from '..'
+import { data, models } from '..'
 
 export const cifar10: TaskProvider = {
   getTask (): Task {
@@ -40,7 +40,7 @@ export const cifar10: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<Model> {
     const mobilenet = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
     )
@@ -61,6 +61,6 @@ export const cifar10: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return model
+    return new models.TFJS(model)
   }
 }

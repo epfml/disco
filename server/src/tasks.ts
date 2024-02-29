@@ -5,21 +5,21 @@ import tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
 import type { Task, Path, Digest, TaskProvider } from '@epfml/discojs-core'
-import { isTaskProvider, defaultTasks, serialization } from '@epfml/discojs-core'
+import { Model, isTaskProvider, defaultTasks, models, serialization } from '@epfml/discojs-core'
 
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks
 // TODO save and load from disk
 export class TasksAndModels {
-  private listeners = List<(t: Task, m: tf.LayersModel) => void>()
-  tasksAndModels = Set<[Task, tf.LayersModel]>()
+  private listeners = List<(t: Task, m: Model) => void>()
+  tasksAndModels = Set<[Task, Model]>()
 
-  on (_: 'taskAndModel', callback: (t: Task, m: tf.LayersModel) => void): void {
+  on (_: 'taskAndModel', callback: (t: Task, m: Model) => void): void {
     this.tasksAndModels.forEach(([t, m]) => { callback(t, m) })
     this.listeners = this.listeners.push(callback)
   }
 
-  emit (_: 'taskAndModel', task: Task, model: tf.LayersModel): void {
+  emit (_: 'taskAndModel', task: Task, model: Model): void {
     this.listeners.forEach((listener) => { listener(task, model) })
   }
 
@@ -31,9 +31,9 @@ export class TasksAndModels {
   }
 
   // Returns already saved model in priority, then the model from the task definition
-  private async loadModelFromTask (task: Task | TaskProvider): Promise<tf.LayersModel> {
+  private async loadModelFromTask (task: Task | TaskProvider): Promise<Model> {
     const discoTask = isTaskProvider(task) ? task.getTask() : task
-    let model: tf.LayersModel | undefined
+    let model: Model | undefined
 
     const modelPath = `./models/${discoTask.id}/`
     try {
@@ -93,22 +93,21 @@ export class TasksAndModels {
     }
   }
 
-  async addTaskAndModel (task: Task | TaskProvider, model?: tf.LayersModel | URL): Promise<void> {
-    let tfModel: tf.LayersModel
+  async addTaskAndModel (task: Task | TaskProvider, model?: Model | URL): Promise<void> {
     let discoTask: Task
-
     if (isTaskProvider(task)) {
       discoTask = task.getTask()
     } else {
       discoTask = task
     }
 
+    let tfModel: Model
     if (model === undefined) {
       tfModel = await this.loadModelFromTask(task)
-    } else if (model instanceof tf.LayersModel) {
+    } else if (model instanceof Model) {
       tfModel = model
     } else if (model instanceof URL) {
-      tfModel = await tf.loadLayersModel(model.href)
+      tfModel = new models.TFJS(await tf.loadLayersModel(model.href))
     } else {
       throw new Error('invalid model')
     }

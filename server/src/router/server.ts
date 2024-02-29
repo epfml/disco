@@ -1,9 +1,8 @@
 import express from 'express'
 import type expressWS from 'express-ws'
 import type WebSocket from 'ws'
-import type tf from '@tensorflow/tfjs'
 
-import type { Task } from '@epfml/discojs-core'
+import type { Model, Task } from '@epfml/discojs-core'
 
 import type { TasksAndModels } from '../tasks'
 
@@ -34,7 +33,7 @@ export abstract class Server {
     return this.ownRouter
   }
 
-  private onNewTask (task: Task, model: tf.LayersModel): void {
+  private onNewTask (task: Task, model: Model): void {
     this.tasks.push(task.id)
     this.initTask(task, model)
 
@@ -66,12 +65,12 @@ export abstract class Server {
 
   protected abstract buildRoute (task: Task): string
 
-  protected abstract initTask (task: Task, model: tf.LayersModel): void
+  protected abstract initTask (task: Task, model: Model): void
 
   protected abstract handle (
     task: Task,
     ws: WebSocket,
-    model: tf.LayersModel,
+    model: Model,
     req: express.Request,
   ): void
 }

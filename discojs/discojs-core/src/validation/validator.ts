@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 import tf from '@tensorflow/tfjs'
 
-import type { data, Task, Logger, client as clients, Memory, ModelSource, Features } from '..'
+import type { data, Model, Task, Logger, client as clients, Memory, ModelSource, Features } from '..'
 import { GraphInformant } from '..'
 
 export class Validator {
@@ -21,11 +21,14 @@ export class Validator {
     }
   }
 
-  private getLabel (ys: tf.Tensor, isBinary: boolean): Float32Array | Int32Array | Uint8Array {
-    if (isBinary) {
-      return ys.greaterEqual(tf.scalar(0.5)).dataSync()
-    } else {
-      return ys.argMax(1).dataSync()
+  private async getLabel (ys: tf.Tensor): Promise<Float32Array | Int32Array | Uint8Array> {
+    switch (ys.shape[1]) {
+      case 1:
+        return await ys.greaterEqual(tf.scalar(0.5)).data()
+      case 2:
+        return await ys.argMax(1).data()
+      default:
+        throw new Error(`unable to reduce tensor of shape: ${ys.shape.toString()}`)
     }
   }
 
@@ -36,7 +39,6 @@ export class Validator {
     }
 
     const model = await this.getModel()
-    const isBinary = model.loss === 'binaryCrossentropy'
 
     let features: Features[] = []
     const groundTruth: number[] = []
@@ -48,8 +50,8 @@ export class Validator {
       .mapAsync(async e => {
         if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
           const xs = e.xs as tf.Tensor
-          const ys = this.getLabel(e.ys as tf.Tensor, isBinary)
-          const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor, isBinary)
+          const ys = await this.getLabel(e.ys as tf.Tensor)
+          const pred = await this.getLabel(await model.predict(xs))
 
           const currentFeatures = await xs.array()
           if (Array.isArray(currentFeatures)) {
@@ -98,7 +100,6 @@ export class Validator {
     }
 
     const model = await this.getModel()
-    const isBinary = model.loss === 'binaryCrossentropy'
     let features: Features[] = []
 
     // Get model prediction per batch and flatten the result
@@ -114,7 +115,7 @@ export class Validator {
           throw new TypeError('Data format is incorrect')
         }
 
-        const pred = this.getLabel(model.predict(xs, { batchSize }) as tf.Tensor, isBinary)
+        const pred = await this.getLabel(await model.predict(xs))
         return Array.from(pred)
       }).toArray()).flat()
 
@@ -123,7 +124,7 @@ export class Validator {
       .toArray()
   }
 
-  async getModel (): Promise<tf.LayersModel> {
+  async getModel (): Promise<Model> {
     if (this.source !== undefined && await this.memory.contains(this.source)) {
       return await this.memory.getModel(this.source)
     }

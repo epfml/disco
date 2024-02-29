@@ -4,8 +4,9 @@ import type { Server } from 'node:http'
 import { Range } from 'immutable'
 import { assert } from 'chai'
 
+import type { WeightsContainer } from '@epfml/discojs-core'
 import {
-  WeightsContainer, Disco, TrainingSchemes, client as clients,
+  Disco, TrainingSchemes, client as clients,
   aggregator as aggregators, informant, defaultTasks
 } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
@@ -32,7 +33,7 @@ describe('end-to-end federated', function () {
 
     const cifar10Task = defaultTasks.cifar10.getTask()
 
-    const data = await new NodeImageLoader(cifar10Task).loadAll(files, { labels })
+    const data = await new NodeImageLoader(cifar10Task).loadAll(files, { labels, shuffle: false })
 
     const aggregator = new aggregators.MeanAggregator(cifar10Task)
     const client = await getClient(clients.federated.FederatedClient, server, cifar10Task, aggregator)
@@ -44,7 +45,7 @@ describe('end-to-end federated', function () {
     if (aggregator.model === undefined) {
       throw new Error('model was not set')
     }
-    return WeightsContainer.from(aggregator.model)
+    return aggregator.model.weights
   }
 
   async function titanicUser (): Promise<WeightsContainer> {
@@ -80,7 +81,7 @@ describe('end-to-end federated', function () {
       trainingInformant.validationAccuracy() > 0.6,
       `expected validation accuracy greater than 0.6 but got ${trainingInformant.validationAccuracy()}`
     )
-    return WeightsContainer.from(aggregator.model)
+    return aggregator.model.weights
   }
 
   it('two cifar10 users reach consensus', async () => {
