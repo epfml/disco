@@ -1,8 +1,9 @@
 import { Range } from 'immutable'
 import tf from '@tensorflow/tfjs'
 
-import type { Dataset } from '../dataset'
-import type { Data, DataSplit } from '../data'
+import type { Task } from '../..'
+
+import type { Data, Dataset, DataSplit } from '..'
 import { ImageData } from '../data'
 import type { DataConfig } from '../data_loader'
 import { DataLoader } from '../data_loader'
@@ -17,8 +18,10 @@ import { DataLoader } from '../data_loader'
 export abstract class ImageLoader<Source> extends DataLoader<Source> {
   abstract readImageFrom (source: Source): Promise<tf.Tensor3D>
 
-  async createData (dataset: Dataset, size?: number): Promise<Data> {
-    return await ImageData.init(dataset, this.task, size)
+  constructor (
+    private readonly task: Task
+  ) {
+    super()
   }
 
   async load (image: Source, config?: DataConfig): Promise<Dataset> {
@@ -55,7 +58,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
     // @ts-expect-error: For some reasons typescript refuses async generator but tensorflow do work with them
     const dataset: tf.data.Dataset<tf.TensorContainer> = tf.data.generator(dataGenerator)
 
-    return await this.createData(dataset, indices.length)
+    return await ImageData.init(dataset, this.task, indices.length)
   }
 
   async loadAll (images: Source[], config?: DataConfig): Promise<DataSplit> {
