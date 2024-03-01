@@ -1,6 +1,6 @@
+import type { Dataset } from '..'
+
 import { TabularLoader } from './tabular_loader'
-import { type Dataset } from '../dataset'
-import { TextData, type Data } from '../data'
 
 /**
  * Text data loader whose instantiable implementation is delegated by the platform-dependent Disco subprojects, namely,
@@ -9,8 +9,4 @@ import { TextData, type Data } from '../data'
  */
 export abstract class TextLoader<Source> extends TabularLoader<Source> {
   abstract loadDatasetFrom (source: Source, config: Record<string, unknown>): Promise<Dataset>
-
-  async createData (dataset: Dataset): Promise<Data> {
-    return await TextData.init(dataset, this.task)
-  }
 }

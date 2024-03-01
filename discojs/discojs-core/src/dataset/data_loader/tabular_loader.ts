@@ -1,9 +1,11 @@
 import { List, Map, Set } from 'immutable'
 
-import { type Task } from '../..'
-import { type Dataset } from '../dataset'
-import { TabularData, type Data, type DataSplit } from '../data'
-import { DataLoader, type DataConfig } from '../data_loader'
+import type { Task } from '../..'
+
+import type { Dataset, DataSplit } from '..'
+import { TabularData } from '..'
+import type { DataConfig } from '../data_loader'
+import { DataLoader } from '../data_loader'
 
 // Window size from which the dataset shuffling will sample
 const BUFFER_SIZE = 1000
@@ -14,8 +16,11 @@ const BUFFER_SIZE = 1000
  * character-separated features and label(s). Such files typically have the .csv extension.
  */
 export abstract class TabularLoader<Source> extends DataLoader<Source> {
-  constructor (task: Task, public readonly delimiter = ',') {
-    super(task)
+  constructor (
+    private readonly task: Task,
+    public readonly delimiter = ','
+  ) {
+    super()
   }
 
   /**
@@ -25,12 +30,6 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
    * @returns The CSVDataset object built upon the given source.
    */
   abstract loadDatasetFrom (source: Source, csvConfig: Record<string, unknown>): Promise<Dataset>
-
-  async createData (dataset: Dataset): Promise<Data> {
-    // dataset.size does not work for csv datasets
-    // https://github.com/tensorflow/tfjs/issues/5845
-    return await TabularData.init(dataset, this.task)
-  }
 
   /**
    * Expects delimiter-separated tabular data made of N columns. The data may be
@@ -90,7 +89,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
       await this.load(source, { ...config, shuffle: false })))
     let dataset = List(datasets).reduce((acc: Dataset, dataset) => acc.concatenate(dataset))
     dataset = config?.shuffle === true ? dataset.shuffle(BUFFER_SIZE) : dataset
-    const data = await this.createData(dataset)
+    const data = await TabularData.init(dataset, this.task)
     // TODO: Implement validation split for tabular data (tricky due to streaming)
     return {
       train: data
