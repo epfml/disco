@@ -11,7 +11,7 @@ import {
 } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 
-import { getClient, startServer } from '../utils'
+import { getClient, startServer } from '../../src'
 
 const SCHEME = TrainingSchemes.FEDERATED
 
