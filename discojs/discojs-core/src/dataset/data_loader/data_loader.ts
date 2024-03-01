@@ -1,4 +1,4 @@
-import type { Dataset, DataSplit } from '..'
+import type { DataSplit, Dataset } from '..'
 
 export interface DataConfig { features?: string[], labels?: string[], shuffle?: boolean, validationSplit?: number, inference?: boolean }
 
