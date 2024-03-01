@@ -7,7 +7,7 @@ import {
   aggregator as aggregators, informant as informants, client as clients, WeightsContainer, defaultTasks, aggregation
 } from '@epfml/discojs-core'
 
-import { getClient, startServer } from '../utils'
+import { getClient, startServer } from '../../src'
 
 // Mocked aggregators with easy-to-fetch aggregation results
 class MockMeanAggregator extends aggregators.MeanAggregator {

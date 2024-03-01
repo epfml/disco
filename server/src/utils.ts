@@ -2,7 +2,7 @@ import type { Server } from 'node:http'
 
 import type { aggregator, client, Task } from '@epfml/discojs-core'
 
-import { runDefaultServer } from '../src/get_server'
+import { runDefaultServer } from './get_server'
 
 export async function startServer (): Promise<Server> {
   const server = await runDefaultServer()

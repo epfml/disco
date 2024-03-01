@@ -1,9 +1,11 @@
 import { Range } from 'immutable'
+import type { Server } from 'node:http'
 
 import type { TrainerLog, data, Task } from '@epfml/discojs-core'
-import { Disco, TrainingSchemes } from '@epfml/discojs-core'
+import { Disco, TrainingSchemes, aggregator as aggregators, client as clients } from '@epfml/discojs-core'
+import { getClient, startServer } from '@epfml/disco-server'
 
-import { startServer, saveLog } from './utils'
+import { saveLog } from './utils'
 import { getTaskData } from './data'
 import { args } from './args'
 
@@ -15,10 +17,12 @@ console.log(infoText)
 
 console.log({ args })
 
-async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<TrainerLog> {
+async function runUser (task: Task, server: Server, data: data.DataSplit): Promise<TrainerLog> {
+  const client = await getClient(clients.federated.FederatedClient, server, task, new aggregators.MeanAggregator(TASK))
+
   // force the federated scheme
   const scheme = TrainingSchemes.FEDERATED
-  const disco = new Disco(task, { scheme, url })
+  const disco = new Disco(task, { scheme, client })
 
   await disco.fit(data)
   await disco.close()
@@ -26,12 +30,12 @@ async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<Tra
 }
 
 async function main (): Promise<void> {
-  const [server, serverUrl] = await startServer()
+  const server = await startServer()
 
   const data = await getTaskData(TASK)
 
   const logs = await Promise.all(
-    Range(0, NUMBER_OF_USERS).map(async (_) => await runUser(TASK, serverUrl, data)).toArray()
+    Range(0, NUMBER_OF_USERS).map(async (_) => await runUser(TASK, server, data)).toArray()
   )
 
   if (args.save) {
