@@ -1,30 +1,14 @@
-// import fs from 'node:fs'
+import fs from 'node:fs/promises'
+import { data as tfData } from '@tensorflow/tfjs-node'
 
-// import split2 from 'split2'
+import { data } from '@epfml/discojs-core'
 
-// import { tf } from '../..'
-// import { TextLoader } from '../../core/dataset/data_loader/text_loader'
-// import { Dataset } from '../../core/dataset'
-// import { DataConfig } from '../../core/dataset/data_loader'
+export class TextLoader extends data.TextLoader<string> {
+  async loadDatasetFrom (source: string): Promise<data.Dataset> {
+    // TODO sure, good idea to load the whole dataset in memory #irony
+    const content = await fs.readFile(source)
+    const file = new tfData.FileDataSource(content)
 
-// export class NodeTextLoader extends TextLoader<string> {
-//   async loadDatasetFrom (source: string, config?: DataConfig): Promise<Dataset> {
-//     const prefix = 'file://'
-//     if (source.slice(0, 7) !== prefix) {
-//       source = prefix + source
-//     }
-//     // create stream being read by generator
-//     const stream = fs.createReadStream(source, { encoding: 'utf-8' })
-//     // eslint-disable-next-line @typescript-eslint/no-this-alias
-//     const self = this
-
-//     async function * dataGenerator (): AsyncGenerator<tf.TensorContainer> {
-//       // TODO @s314cy
-//       const withLabels = config?.labels !== undefined
-//       stream.pipe(split2())
-//       stream.on('data', (data) => yield self.tokenize(data))
-//     }
-
-//     return tf.data.generator(dataGenerator)
-//   }
-// }
+    return new tfData.TextLineDataset(file)
+  }
+}
