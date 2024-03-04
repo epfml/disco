@@ -2,7 +2,7 @@ import type * as http from 'http'
 
 import { aggregator as aggregators, client as clients, informant, defaultTasks } from '@epfml/discojs-core'
 
-import { getClient, startServer } from '../../src'
+import { startServer } from '../../src'
 
 const TASK = defaultTasks.titanic.getTask()
 
@@ -10,19 +10,19 @@ describe('federated client', function () {
   this.timeout(60_000)
 
   let server: http.Server
-  beforeEach(async () => { server = await startServer() })
+  let url: URL
+  beforeEach(async () => { [server, url] = await startServer() })
   afterEach(() => { server?.close() })
 
   it('connect to & disconnect from valid task', async () => {
-    const client = await getClient(clients.federated.FederatedClient, server, TASK, new aggregators.MeanAggregator(TASK))
+    const client = new clients.federated.FederatedClient(url, TASK, new aggregators.MeanAggregator(TASK))
     await client.connect()
     await client.disconnect()
   })
 
   it('connect to non valid task', async () => {
-    const client = await getClient(
-      clients.federated.FederatedClient,
-      server,
+    const client = new clients.federated.FederatedClient(
+      url,
       {
         id: 'nonValidTask',
         displayInformation: {},
@@ -49,7 +49,7 @@ describe('federated client', function () {
   })
 
   it('checks that getAsyncWeightInformantStatistics returns a JSON with the expected statistics', async () => {
-    const client = await getClient(clients.federated.FederatedClient, server, TASK, new aggregators.MeanAggregator(TASK))
+    const client = new clients.federated.FederatedClient(url, TASK, new aggregators.MeanAggregator(TASK))
     await client.connect()
 
     const ti = new informant.FederatedInformant(TASK, 0)
@@ -57,6 +57,7 @@ describe('federated client', function () {
 
     await client.disconnect()
 
+    // TODO commented code
     //   expect(ti.round()).to.be.greaterThanOrEqual(0)
     //   expect(ti.participants()).to.be.greaterThanOrEqual(1)
     //   expect(ti.totalParticipants()).to.be.greaterThanOrEqual(1)

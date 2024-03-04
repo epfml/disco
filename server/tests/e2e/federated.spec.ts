@@ -11,7 +11,7 @@ import {
 } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 
-import { getClient, startServer } from '../../src'
+import { startServer } from '../../src'
 
 const SCHEME = TrainingSchemes.FEDERATED
 
@@ -19,12 +19,9 @@ describe('end-to-end federated', function () {
   this.timeout(120_000)
 
   let server: Server
-  beforeEach(async () => {
-    server = await startServer()
-  })
-  afterEach(() => {
-    server?.close()
-  })
+  let url: URL
+  beforeEach(async () => { [server, url] = await startServer() })
+  afterEach(() => { server?.close() })
 
   async function cifar10user (): Promise<WeightsContainer> {
     const dir = '../example_training_data/CIFAR10/'
@@ -36,7 +33,7 @@ describe('end-to-end federated', function () {
     const data = await new NodeImageLoader(cifar10Task).loadAll(files, { labels, shuffle: false })
 
     const aggregator = new aggregators.MeanAggregator(cifar10Task)
-    const client = await getClient(clients.federated.FederatedClient, server, cifar10Task, aggregator)
+    const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
     const disco = new Disco(cifar10Task, { scheme: SCHEME, client })
 
     await disco.fit(data)
@@ -63,7 +60,7 @@ describe('end-to-end federated', function () {
     ))
 
     const aggregator = new aggregators.MeanAggregator(titanicTask)
-    const client = await getClient(clients.federated.FederatedClient, server, titanicTask, aggregator)
+    const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
     const trainingInformant = new informant.FederatedInformant(titanicTask, 10)
     const disco = new Disco(titanicTask, { scheme: SCHEME, client, aggregator, informant: trainingInformant })
 

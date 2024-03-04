@@ -3,7 +3,7 @@ import type * as http from 'http'
 import type { Task } from '@epfml/discojs-core'
 import { aggregator as aggregators, client as clients, defaultTasks } from '@epfml/discojs-core'
 
-import { getClient, startServer } from '../../src'
+import { startServer } from '../../src'
 
 const TASK = defaultTasks.titanic.getTask()
 
@@ -16,12 +16,13 @@ function test (
     this.timeout(30_000)
 
     let server: http.Server
-    before(async () => { server = await startServer() })
-    after(() => { server?.close() })
+    let url: URL
+    beforeEach(async () => { [server, url] = await startServer() })
+    afterEach(() => { server?.close() })
 
     it('connect and disconnect from valid task', async () => {
       const aggregator = new Aggregator(TASK)
-      const client = await getClient(Client, server, TASK, aggregator)
+      const client = new Client(url, TASK, aggregator)
 
       await client.connect()
       await client.disconnect()
