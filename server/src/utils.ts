@@ -1,10 +1,8 @@
 import type { Server } from 'node:http'
 
-import type { aggregator, client, Task } from '@epfml/discojs-core'
-
 import { runDefaultServer } from './get_server'
 
-export async function startServer (): Promise<Server> {
+export async function startServer (): Promise<[Server, URL]> {
   const server = await runDefaultServer()
 
   await new Promise((resolve, reject) => {
@@ -12,18 +10,9 @@ export async function startServer (): Promise<Server> {
     server.once('error', reject)
   })
 
-  return server
-}
-
-export async function getClient<T extends client.Client> (
-  Constructor: new (url: URL, t: Task, agg: aggregator.Aggregator) => T,
-  server: Server,
-  task: Task,
-  aggregator: aggregator.Aggregator
-): Promise<T> {
   let host: string
-  const addr = server?.address()
-  if (addr === undefined || addr === null) {
+  const addr = server.address()
+  if (addr === null) {
     throw new Error('server not started')
   } else if (typeof addr === 'string') {
     host = addr
@@ -40,5 +29,6 @@ export async function getClient<T extends client.Client> (
     }
   }
   const url = new URL(`http://${host}`)
-  return new Constructor(url, task, aggregator)
+
+  return [server, url]
 }

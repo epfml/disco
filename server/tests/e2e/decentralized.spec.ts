@@ -7,7 +7,7 @@ import {
   aggregator as aggregators, informant as informants, client as clients, WeightsContainer, defaultTasks, aggregation
 } from '@epfml/discojs-core'
 
-import { getClient, startServer } from '../../src'
+import { startServer } from '../../src'
 
 // Mocked aggregators with easy-to-fetch aggregation results
 class MockMeanAggregator extends aggregators.MeanAggregator {
@@ -63,12 +63,9 @@ describe('end-to-end decentralized', function () {
   this.timeout(30_000)
 
   let server: Server
-  beforeEach(async () => {
-    server = await startServer()
-  })
-  afterEach(() => {
-    server?.close()
-  })
+  let url: URL
+  beforeEach(async () => { [server, url] = await startServer() })
+  afterEach(() => { server?.close() })
 
   /**
    * Makes client object to connect to server. The input array is the weights that the client will share
@@ -85,7 +82,7 @@ describe('end-to-end decentralized', function () {
     const aggregator = new Aggregator(task)
 
     const informant = new informants.DecentralizedInformant(task)
-    const client = await getClient(clients.decentralized.DecentralizedClient, server, task, aggregator)
+    const client = new clients.decentralized.DecentralizedClient(url, task, aggregator)
 
     aggregator.outcome = inputWeights
 
