@@ -15,7 +15,7 @@ describe('federated client', function () {
   afterEach(() => { server?.close() })
 
   it('connect to & disconnect from valid task', async () => {
-    const client = new clients.federated.FederatedClient(url, TASK, new aggregators.MeanAggregator(TASK))
+    const client = new clients.federated.FederatedClient(url, TASK, new aggregators.MeanAggregator())
     await client.connect()
     await client.disconnect()
   })
@@ -36,7 +36,7 @@ describe('federated client', function () {
           dataType: 'tabular'
         }
       },
-      new aggregators.MeanAggregator(TASK)
+      new aggregators.MeanAggregator()
     )
 
     try {
@@ -49,7 +49,7 @@ describe('federated client', function () {
   })
 
   it('checks that getAsyncWeightInformantStatistics returns a JSON with the expected statistics', async () => {
-    const client = new clients.federated.FederatedClient(url, TASK, new aggregators.MeanAggregator(TASK))
+    const client = new clients.federated.FederatedClient(url, TASK, new aggregators.MeanAggregator())
     await client.connect()
 
     const ti = new informant.FederatedInformant(TASK, 0)

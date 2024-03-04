@@ -32,7 +32,7 @@ describe('validator', () => {
 
     const data = (await new NodeImageLoader(simplefaceMock)
       .loadAll(files.flat(), { labels })).train
-    const meanAggregator = new aggregator.MeanAggregator(simplefaceMock)
+    const meanAggregator = new aggregator.MeanAggregator()
     const client = new clients.Local(new URL('http://localhost:8080'), simplefaceMock, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(
@@ -66,7 +66,7 @@ describe('validator', () => {
       labels: titanicTask.trainingInformation.outputColumns,
       shuffle: false
     })).train
-    const meanAggregator = new aggregator.MeanAggregator(titanicTask)
+    const meanAggregator = new aggregator.MeanAggregator()
     const client = new clients.Local(new URL('http://localhost:8080'), titanicTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(titanicTask, new ConsoleLogger(), new EmptyMemory(), undefined, client)

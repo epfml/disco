@@ -1,11 +1,10 @@
 import { List, Set, Range } from 'immutable'
 import { assert } from 'chai'
 
-import { aggregator as aggregators, aggregation, WeightsContainer, defaultTasks } from '@epfml/discojs-core'
+import { aggregator as aggregators, aggregation, WeightsContainer } from '@epfml/discojs-core'
 
 describe('secret shares test', function () {
   const epsilon = 1e-4
-  const task = defaultTasks.cifar10.getTask()
 
   const expected = WeightsContainer.of([2, 2, 5, 1], [-10, 10])
   const secrets = List.of(
@@ -17,7 +16,7 @@ describe('secret shares test', function () {
   function buildShares (): List<List<WeightsContainer>> {
     const nodes = Set(secrets.keys()).map(String)
     return secrets.map((secret) => {
-      const aggregator = new aggregators.SecureAggregator(task)
+      const aggregator = new aggregators.SecureAggregator()
       aggregator.setNodes(nodes)
       return aggregator.generateAllShares(secret)
     })

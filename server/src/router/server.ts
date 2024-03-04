@@ -2,7 +2,7 @@ import express from 'express'
 import type expressWS from 'express-ws'
 import type WebSocket from 'ws'
 
-import type { Model, Task } from '@epfml/discojs-core'
+import type { Model, Task, TaskID } from '@epfml/discojs-core'
 
 import type { TasksAndModels } from '../tasks'
 
@@ -35,9 +35,9 @@ export abstract class Server {
 
   private onNewTask (task: Task, model: Model): void {
     this.tasks.push(task.id)
-    this.initTask(task, model)
+    this.initTask(task.id, model)
 
-    this.ownRouter.ws(this.buildRoute(task), (ws, req) => {
+    this.ownRouter.ws(this.buildRoute(task.id), (ws, req) => {
       if (this.isValidUrl(req.url)) {
         this.handle(task, ws, model, req)
       } else {
@@ -63,9 +63,9 @@ export abstract class Server {
 
   protected abstract readonly description: string
 
-  protected abstract buildRoute (task: Task): string
+  protected abstract buildRoute (task: TaskID): string
 
-  protected abstract initTask (task: Task, model: Model): void
+  protected abstract initTask (task: TaskID, model: Model): void
 
   protected abstract handle (
     task: Task,

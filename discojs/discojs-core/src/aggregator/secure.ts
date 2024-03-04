@@ -3,7 +3,7 @@ import { Map, List, Range } from 'immutable'
 import tf from '@tensorflow/tfjs'
 
 import { AggregationStep, Base as Aggregator } from './base'
-import type { Model, Task, WeightsContainer, client } from '..'
+import type { Model, WeightsContainer, client } from '..'
 import { aggregation } from '..'
 
 /**
@@ -16,15 +16,11 @@ import { aggregation } from '..'
 export class SecureAggregator extends Aggregator<WeightsContainer> {
   public static readonly MAX_SEED: number = 2 ** 47
 
-  private readonly maxShareValue: number
-
   constructor (
-    task: Task,
-    model?: Model
+    model?: Model,
+    private readonly maxShareValue = 100
   ) {
-    super(task, model, 0, 2)
-
-    this.maxShareValue = this.task.trainingInformation.maxShareValue ?? 100
+    super(model, 0, 2)
   }
 
   aggregate (): void {

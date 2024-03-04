@@ -45,7 +45,7 @@ export class Disco {
       options.scheme = TrainingSchemes[task.trainingInformation.scheme as keyof typeof TrainingSchemes]
     }
     if (options.aggregator === undefined) {
-      options.aggregator = new MeanAggregator(task)
+      options.aggregator = new MeanAggregator()
     }
     if (options.client === undefined) {
       if (options.url === undefined) {

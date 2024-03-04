@@ -1,5 +1,5 @@
-import { type WeightsContainer } from '../weights'
-import { type Base } from './base'
+import type { WeightsContainer } from '../weights'
+import type { Base } from './base'
 
 export { Base as AggregatorBase, AggregationStep } from './base'
 export { MeanAggregator } from './mean'

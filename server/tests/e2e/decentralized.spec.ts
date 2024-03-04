@@ -107,7 +107,7 @@ describe('end-to-end decentralized', function () {
    * The clients have model dimension of 4 model updates to share, which can be seen as their input parameter in makeClient.
    */
   async function reachConsensus (
-    Aggregator: new (task: Task) => MockAggregator,
+    Aggregator: new () => MockAggregator,
     rounds = 1
   ): Promise<void> {
     // Expect the clients to reach the mean consensus, for both the mean and secure aggregators

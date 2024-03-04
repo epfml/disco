@@ -8,16 +8,8 @@ import { saveLog } from './utils'
 import { getTaskData } from './data'
 import { args } from './args'
 
-const NUMBER_OF_USERS = args.numberOfUsers
-const TASK = args.task
-
-const infoText = `\nStarted federated training of ${TASK.id}`
-console.log(infoText)
-
-console.log({ args })
-
 async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<TrainerLog> {
-  const client = new clients.federated.FederatedClient(url, task, new aggregators.MeanAggregator(TASK))
+  const client = new clients.federated.FederatedClient(url, task, new aggregators.MeanAggregator())
 
   // force the federated scheme
   const scheme = TrainingSchemes.FEDERATED
@@ -28,17 +20,20 @@ async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<Tra
   return await disco.logs()
 }
 
-async function main (): Promise<void> {
+async function main (task: Task, numberOfUsers: number): Promise<void> {
+  console.log(`Started federated training of ${task.id}`)
+  console.log({ args })
+
   const [server, url] = await startServer()
 
-  const data = await getTaskData(TASK)
+  const data = await getTaskData(task)
 
   const logs = await Promise.all(
-    Range(0, NUMBER_OF_USERS).map(async (_) => await runUser(TASK, url, data)).toArray()
+    Range(0, numberOfUsers).map(async (_) => await runUser(task, url, data)).toArray()
   )
 
   if (args.save) {
-    const fileName = `${TASK.id}_${NUMBER_OF_USERS}users.csv`
+    const fileName = `${task.id}_${numberOfUsers}users.csv`
     saveLog(logs, fileName)
   }
   console.log('Shutting down the server...')
@@ -48,4 +43,4 @@ async function main (): Promise<void> {
   })
 }
 
-main().catch(console.error)
+main(args.task, args.numberOfUsers).catch(console.error)

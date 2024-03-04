@@ -1,4 +1,4 @@
-import { type AggregatorBase } from './aggregator'
+import type { AggregatorBase } from './aggregator'
 
 export class AsyncInformant<T> {
   private _round = 0
@@ -11,8 +11,6 @@ export class AsyncInformant<T> {
   ) {}
 
   update (): void {
-    console.debug('before:')
-    this.printAllInfos()
     if (this.round === 0 || this.round < this.aggregator.round) {
       this._round = this.aggregator.round
       this._currentNumberOfParticipants = this.aggregator.size
@@ -21,8 +19,6 @@ export class AsyncInformant<T> {
     } else {
       this._round = this.aggregator.round
     }
-    console.debug('after:')
-    this.printAllInfos()
   }
 
   // Getter functions
@@ -51,14 +47,5 @@ export class AsyncInformant<T> {
       totalNumberOfParticipants: this.totalNumberOfParticipants,
       averageNumberOfParticipants: this.averageNumberOfParticipants
     }
-  }
-
-  // Debug
-  public printAllInfos (): void {
-    console.debug('task:', this.aggregator.task.id)
-    console.debug('round:', this.round)
-    console.debug('participants:', this.currentNumberOfParticipants)
-    console.debug('total:', this.totalNumberOfParticipants)
-    console.debug('average:', this.averageNumberOfParticipants)
   }
 }
