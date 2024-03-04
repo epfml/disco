@@ -32,7 +32,7 @@ describe('end-to-end federated', function () {
 
     const data = await new NodeImageLoader(cifar10Task).loadAll(files, { labels, shuffle: false })
 
-    const aggregator = new aggregators.MeanAggregator(cifar10Task)
+    const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
     const disco = new Disco(cifar10Task, { scheme: SCHEME, client })
 
@@ -59,7 +59,7 @@ describe('end-to-end federated', function () {
       }
     ))
 
-    const aggregator = new aggregators.MeanAggregator(titanicTask)
+    const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
     const trainingInformant = new informant.FederatedInformant(titanicTask, 10)
     const disco = new Disco(titanicTask, { scheme: SCHEME, client, aggregator, informant: trainingInformant })

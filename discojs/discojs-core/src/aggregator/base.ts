@@ -1,6 +1,6 @@
 import { Map, Set } from 'immutable'
 
-import type { client, Model, Task, AsyncInformant } from '..'
+import type { client, Model, AsyncInformant } from '..'
 
 import { EventEmitter } from '../utils/event_emitter'
 
@@ -54,10 +54,6 @@ export abstract class Base<T> {
   protected _communicationRound = 0
 
   constructor (
-    /**
-     * The task for which the aggregator should be created.
-     */
-    public readonly task: Task,
     /**
      * The Model whose weights are updated on aggregation.
      */

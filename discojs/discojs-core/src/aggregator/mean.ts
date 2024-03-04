@@ -1,7 +1,7 @@
 import type { Map } from 'immutable'
 
 import { AggregationStep, Base as Aggregator } from './base'
-import type { Model, Task, WeightsContainer, client } from '..'
+import type { Model, WeightsContainer, client } from '..'
 import { aggregation } from '..'
 
 /**
@@ -16,12 +16,11 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
   public readonly threshold: number
 
   constructor (
-    task: Task,
     model?: Model,
     roundCutoff = 0,
     threshold = 1
   ) {
-    super(task, model, roundCutoff, 1)
+    super(model, roundCutoff, 1)
 
     // Default threshold is 100% of node participation
     if (threshold === undefined) {

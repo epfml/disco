@@ -1,4 +1,3 @@
-import type express from 'express'
 import type WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
 import { List, Map } from 'immutable'
@@ -71,8 +70,8 @@ export class Federated extends Server {
 
   protected readonly description = 'Disco Federated Server'
 
-  protected buildRoute (task: Task): string {
-    return `/${task.id}`
+  protected buildRoute (task: TaskID): string {
+    return `/${task}`
   }
 
   public isValidUrl (url: string | undefined): boolean {
@@ -94,28 +93,29 @@ export class Federated extends Server {
    * one resolved and awaits until it resolves. The promise is used in createPromiseForWeights.
    * @param aggregator The aggregation handler
    */
-  private async storeAggregationResult (aggregator: aggregators.Aggregator): Promise<void> {
+  private async storeAggregationResult (task: TaskID, aggregator: aggregators.Aggregator): Promise<void> {
     // Create a promise on the future aggregated weights
     const result = aggregator.receiveResult()
     // Store the promise such that it is accessible from other methods
-    this.results = this.results.set(aggregator.task.id, result)
+    this.results = this.results.set(task, result)
     // The promise resolves once the server received enough contributions (through the handle method)
     // and the aggregator aggregated the weights.
     await result
     // Update the server round with the aggregator round
-    this.rounds = this.rounds.set(aggregator.task.id, aggregator.round)
+    this.rounds = this.rounds.set(task, aggregator.round)
     // Create a new promise for the next round
-    void this.storeAggregationResult(aggregator)
+    // TODO weird usage, should be handled inside of aggregator
+    void this.storeAggregationResult(task, aggregator)
   }
 
-  protected initTask (task: Task, model: Model): void {
-    const aggregator = new aggregators.MeanAggregator(task, model)
+  protected initTask (task: TaskID, model: Model): void {
+    const aggregator = new aggregators.MeanAggregator(model)
 
-    this.aggregators = this.aggregators.set(task.id, aggregator)
-    this.informants = this.informants.set(task.id, new AsyncInformant(aggregator))
-    this.rounds = this.rounds.set(task.id, 0)
+    this.aggregators = this.aggregators.set(task, aggregator)
+    this.informants = this.informants.set(task, new AsyncInformant(aggregator))
+    this.rounds = this.rounds.set(task, 0)
 
-    void this.storeAggregationResult(aggregator)
+    void this.storeAggregationResult(task, aggregator)
   }
 
   /**
@@ -127,17 +127,21 @@ export class Federated extends Server {
    * @param clientId the clientID of the contribution
    * @param ws the websocket through which send the aggregated weights
    */
-  private async addContributionAndSendModel (msg: messages.SendPayload, task: Task,
-    clientId: client.NodeID, ws: WebSocket): Promise<void> {
+  private async addContributionAndSendModel (
+    msg: messages.SendPayload,
+    task: TaskID,
+    clientId: client.NodeID,
+    ws: WebSocket
+  ): Promise<void> {
     const { payload, round } = msg
-    const aggregator = this.aggregators.get(task.id)
+    const aggregator = this.aggregators.get(task)
 
     if (!(Array.isArray(payload) &&
       payload.every((e) => typeof e === 'number'))) {
       throw new Error('received invalid weights format')
     }
     if (aggregator === undefined) {
-      throw new Error(`received weights for unknown task: ${task.id}`)
+      throw new Error(`received weights for unknown task: ${task}`)
     }
 
     // It is important to create a promise for the weights BEFORE adding the contribution
@@ -169,12 +173,12 @@ export class Federated extends Server {
    * @param ws the websocket through which send the aggregated weights
    */
   private async createPromiseForWeights (
-    task: Task,
+    task: TaskID,
     aggregator: aggregators.Aggregator,
     ws: WebSocket): Promise<void> {
-    const promisedResult = this.results.get(task.id)
+    const promisedResult = this.results.get(task)
     if (promisedResult === undefined) {
-      throw new Error(`result promise was not set for task ${task.id}`)
+      throw new Error(`result promise was not set for task ${task}`)
     }
 
     // Wait for aggregation result to resolve with timeout, giving the network a time window
@@ -197,12 +201,7 @@ export class Federated extends Server {
       .catch(console.error)
   }
 
-  protected handle (
-    task: Task,
-    ws: WebSocket,
-    model: Model,
-    req: express.Request
-  ): void {
+  protected handle (task: Task, ws: WebSocket, model: Model): void {
     const taskAggregator = this.aggregators.get(task.id)
     if (taskAggregator === undefined) {
       throw new Error('connecting to a non-existing task')
@@ -225,7 +224,7 @@ export class Federated extends Server {
 
         let aggregator = this.aggregators.get(task.id)
         if (aggregator === undefined) {
-          aggregator = new aggregators.MeanAggregator(task)
+          aggregator = new aggregators.MeanAggregator()
           this.aggregators = this.aggregators.set(task.id, aggregator)
         }
         console.info('client', clientId, 'joined', task.id)
@@ -241,7 +240,7 @@ export class Federated extends Server {
         if (model === undefined) {
           throw new Error('aggregator model was not set')
         }
-        this.addContributionAndSendModel(msg, task, clientId, ws)
+        this.addContributionAndSendModel(msg, task.id, clientId, ws)
           .catch(console.error)
       } else if (msg.type === MessageTypes.ReceiveServerStatistics) {
         const statistics = this.informants
@@ -264,14 +263,14 @@ export class Federated extends Server {
           throw new Error('aggregator model was not set')
         }
 
-        this.createPromiseForWeights(task, aggregator, ws)
+        this.createPromiseForWeights(task.id, aggregator, ws)
           .catch(console.error)
       } else if (msg.type === MessageTypes.SendMetadata) {
         const { round, key, value } = msg
 
         this.logsAppend(task.id, clientId, MessageTypes.SendMetadata, round)
 
-        if (this.metadataMap.hasIn([task.id, round, clientId, key])) {
+        if (this.metadataMap.hasIn([task, round, clientId, key])) {
           throw new Error('metadata already set')
         }
         this.metadataMap = this.metadataMap.setIn(
@@ -317,13 +316,13 @@ export class Federated extends Server {
 
   /**
    * Appends a request to the logs.
-   * @param taskId The task id for which the request was made
+   * @param task The task id for which the request was made
    * @param nodeId The node id who made the request
    * @param type The request type
    * @param round The round for which the request was made
    */
   private logsAppend (
-    taskId: TaskID,
+    task: TaskID,
     nodeId: client.NodeID,
     type: MessageTypes,
     round: number | undefined = undefined
@@ -334,7 +333,7 @@ export class Federated extends Server {
 
     this.logs = this.logs.push({
       timestamp: new Date(),
-      task: taskId,
+      task,
       round,
       nodeId,
       type

@@ -1,7 +1,7 @@
 import { Base as Aggregator } from './base'
-import { type client, type WeightsContainer } from '..'
+import type { client, Model, WeightsContainer } from '..'
 
-import { type Map } from 'immutable'
+import type { Map } from 'immutable'
 
 export type Momentum = WeightsContainer
 
@@ -10,6 +10,15 @@ export type Momentum = WeightsContainer
 export class RobustAggregator extends Aggregator<WeightsContainer> {
   // TODO @s314y: move to task definition
   private readonly beta = 1
+
+  constructor (
+    private readonly tauPercentile: number,
+    model?: Model,
+    roundCutoff?: number,
+    communicationRounds?: number
+  ) {
+    super(model, roundCutoff, communicationRounds)
+  }
 
   add (nodeId: client.NodeID, contribution: WeightsContainer, round: number, communicationRound: number): boolean {
     if (this.isWithinRoundCutoff(round)) {
@@ -27,14 +36,7 @@ export class RobustAggregator extends Aggregator<WeightsContainer> {
   }
 
   aggregate (): void {
-    if (this.task.trainingInformation.tauPercentile === undefined) {
-      throw new Error('task doesn\'t provide tau percentile')
-    }
-    // this.emit(aggregation.avgClippingWeights(
-    //   this.contributions.values(),
-    //   undefined as unknown as WeightsContainer,
-    //   this.task.trainingInformation.tauPercentile
-    // ))
+    throw new Error('not implemented')
   }
 
   makePayloads (weights: WeightsContainer): Map<client.NodeID, WeightsContainer> {

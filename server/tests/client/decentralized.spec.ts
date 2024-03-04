@@ -10,7 +10,7 @@ const TASK = defaultTasks.titanic.getTask()
 function test (
   name: string,
   Client: new (url: URL, task: Task, aggregator: aggregators.Aggregator) => clients.Client,
-  Aggregator: new (task: Task) => aggregators.Aggregator
+  Aggregator: new () => aggregators.Aggregator
 ): void {
   describe(`decentralized ${name} client`, function () {
     this.timeout(30_000)
@@ -21,7 +21,7 @@ function test (
     afterEach(() => { server?.close() })
 
     it('connect and disconnect from valid task', async () => {
-      const aggregator = new Aggregator(TASK)
+      const aggregator = new Aggregator()
       const client = new Client(url, TASK, aggregator)
 
       await client.connect()

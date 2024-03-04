@@ -1,12 +1,9 @@
 import { v4 as randomUUID } from 'uuid'
-import type express from 'express'
 import msgpack from 'msgpack-lite'
 import type WebSocket from 'ws'
-import type { ParamsDictionary } from 'express-serve-static-core'
-import type { ParsedQs } from 'qs'
 import { Map, Set } from 'immutable'
 
-import type { Model, Task, TaskID } from '@epfml/discojs-core'
+import type { Task, TaskID } from '@epfml/discojs-core'
 import { client } from '@epfml/discojs-core'
 
 import { Server } from '../server'
@@ -27,8 +24,8 @@ export class Decentralized extends Server {
 
   protected readonly description = 'Disco Decentralized Server'
 
-  protected buildRoute (task: Task): string {
-    return `/${task.id}`
+  protected buildRoute (task: TaskID): string {
+    return `/${task}`
   }
 
   public isValidUrl (url: string | undefined): boolean {
@@ -43,20 +40,9 @@ export class Decentralized extends Server {
     )
   }
 
-  protected initTask (task: Task, model: Model): void {}
+  protected initTask (): void {}
 
-  protected handle (
-    task: Task,
-    ws: WebSocket,
-    model: Model,
-    req: express.Request<
-    ParamsDictionary,
-    any,
-    any,
-    ParsedQs,
-    Record<string, any>
-    >
-  ): void {
+  protected handle (task: Task, ws: WebSocket): void {
     // TODO @s314cy: add to task definition, to be used as threshold in aggregator
     const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
 
