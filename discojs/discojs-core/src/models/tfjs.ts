@@ -7,7 +7,9 @@ import { Model } from '.'
 import type { EpochLogs, Prediction, Sample } from './model'
 import type { Dataset } from '../dataset'
 
+/** TensorFlow JavaScript model with standard training */
 export class TFJS extends Model {
+  /** Wrap the given trainable model */
   constructor (
     private readonly model: tf.LayersModel
   ) {
