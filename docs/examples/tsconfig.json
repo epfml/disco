@@ -12,6 +12,8 @@
     "downlevelIteration": true, // needed by <ES6
 
     "declaration": true,
+
+    "outDir": "dist"
   },
   "include": ["*.ts"],
   "exclude": ["**/*.spec.ts"]

@@ -1,57 +1,62 @@
-import { Disco as DiscoServer, tf } from '@epfml/disco-server'
+import tf from '@tensorflow/tfjs'
+
+import type { TaskProvider } from '@epfml/discojs-core'
+import { models } from '@epfml/discojs-core'
+import { Disco as DiscoServer } from '@epfml/disco-server'
 
 // Define your own task provider (task definition + model)
-const customTask = {
-    getTask() {
-      return {
-        taskID: 'custom-task',
-        displayInformation: {
-          taskTitle: 'Custom task'
-        },
-        trainingInformation: {
-          modelID: 'custom-model',
-          epochs: 5,
-          roundDuration: 10,
-          validationSplit: 0,
-          batchSize: 30,
-          modelCompileData: {
-            optimizer: 'rmsprop',
-            loss: 'binaryCrossentropy',
-            metrics: ['accuracy']
-          },
-          dataType: 'tabular',
-          inputColumns: [
-            'Age',
-          ],
-          outputColumns: [
-            'Output'
-          ],
-          scheme: 'Federated',
-          noiseScale: undefined,
-          clippingRadius: undefined
-        }
+const customTask: TaskProvider = {
+  getTask () {
+    return {
+      id: 'custom-task',
+      displayInformation: {
+        taskTitle: 'Custom task'
+      },
+      trainingInformation: {
+        modelID: 'custom-model',
+        epochs: 5,
+        roundDuration: 10,
+        validationSplit: 0,
+        batchSize: 30,
+        dataType: 'tabular',
+        inputColumns: [
+          'Age'
+        ],
+        outputColumns: [
+          'Output'
+        ],
+        scheme: 'Federated',
+        noiseScale: undefined,
+        clippingRadius: undefined
       }
-    },
-
-    async getModel () {
-      const model = tf.sequential()
-
-      model.add(
-        tf.layers.dense({
-          inputShape: [1],
-          units: 124,
-          activation: 'relu',
-          kernelInitializer: 'leCunNormal'
-        })
-      )
-      model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
-      model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }))
-
-      return model
     }
-  }
+  },
 
-async function runServer() {
+  async getModel () {
+    const model = tf.sequential()
+
+    model.add(
+      tf.layers.dense({
+        inputShape: [1],
+        units: 124,
+        activation: 'relu',
+        kernelInitializer: 'leCunNormal'
+      })
+    )
+    model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
+    model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }))
+
+    model.compile({
+      optimizer: 'rmsprop',
+      loss: 'binaryCrossentropy',
+      metrics: ['accuracy']
+    })
+
+    return new models.TFJS(model)
+  }
+}
+
+async function runServer (): Promise<void> {
   const server = new DiscoServer()
   // Add default tasks provided by the server
   await server.addDefaultTasks()
@@ -71,11 +76,11 @@ async function runServer() {
   // })
 
   // Or provide an URL separately
-  
+
   // await server.addTask(customTask.getTask(), new URL('https://example.com/path/to/your/model.json'))
 
   // Start the server
   server.serve()
 }
 
-runServer()
+runServer().catch(console.error)

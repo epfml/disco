@@ -97,6 +97,20 @@ jobs:
       - run: npm --workspace=./discojs/discojs-{core,web} run build
       - run: npm --workspace=./web-client run lint
 
+  lint-docs-examples:
+    needs: [build-lib-core, build-lib-node, build-server]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
+      - run: npm run lint
+        working-directory: docs/examples
+
   build-lib-core:
     runs-on: ubuntu-latest
     steps:
@@ -182,6 +196,20 @@ jobs:
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-{core,web} run build
       - run: npm --workspace=./web-client run build
+
+  build-docs-examples:
+    needs: [build-lib-core, build-lib-node, build-server]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
+      - run: npm run build
+        working-directory: docs/examples
 
   test-lib-core:
     needs:
@@ -298,3 +326,22 @@ jobs:
       - run: npm ci
       - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
       - run: npm --workspace=./cli start -- -t cifar10 -u 1 -e 1
+
+  test-docs-examples:
+    needs:
+      [build-lib-core, build-lib-node, build-server, download-training-data]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: example_training_data
+          key: training_data
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node_version }}
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
+      - run: npm run test
+        working-directory: docs/examples
