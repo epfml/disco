@@ -15,14 +15,22 @@ export interface Events extends Record<string, unknown> {
   batchEnd: undefined
 }
 
-/** Trainable predictor */
+/**
+* Trainable predictor
+*
+* Allow for various implementation of models (various train function, tensor-library, ...)
+**/
 // TODO make it typesafe: same shape of data/input/weights
 export abstract class Model {
+  // TODO don't allow external access but upgrade train to return weights on every epoch
+  /** Return training state */
   abstract get weights (): WeightsContainer
+  /** Set training state */
   abstract set weights (ws: WeightsContainer)
 
   /**
    * Improve predictor
+   *
    * @param trainingData dataset to optimize for
    * @param validationData dataset to measure how well it is training
    * @param epochs number of pass over the training datatset
