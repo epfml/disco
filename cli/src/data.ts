@@ -12,7 +12,7 @@ function filesFromFolder (dir: string, folder: string, fractionToKeep: number): 
 }
 
 async function simplefaceData (task: Task): Promise<data.DataSplit> {
-  const dir = '../example_training_data/simple_face/'
+  const dir = '../datasets/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']
 
@@ -39,7 +39,7 @@ async function simplefaceData (task: Task): Promise<data.DataSplit> {
 }
 
 async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
-  const dir = '../example_training_data/CIFAR10/'
+  const dir = '../datasets/CIFAR10/'
   const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
@@ -47,7 +47,7 @@ async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
 }
 
 async function titanicData (titanic: Task): Promise<data.DataSplit> {
-  const dir = '../example_training_data/titanic_train.csv'
+  const dir = '../datasets/titanic_train.csv'
 
   const data = await (new NodeTabularLoader(titanic, ',').loadAll(
     ['file://'.concat(dir)],

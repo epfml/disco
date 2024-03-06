@@ -69,7 +69,7 @@ async function filesFromFolder (dir: string, folder: string): Promise<string[]> 
 }
 
 async function loadSimpleFaceData (task: Task): Promise<data.DataSplit> {
-  const dir = '../../example_training_data/simple_face/'
+  const dir = '../../datasets/simple_face/'
   const youngFolders = ['child']
   const oldFolders = ['adult']
 
@@ -85,7 +85,7 @@ async function loadSimpleFaceData (task: Task): Promise<data.DataSplit> {
 }
 
 async function loadTitanicData (task: Task): Promise<data.DataSplit> {
-  const files = ['../../example_training_data/titanic_train.csv']
+  const files = ['../../datasets/titanic_train.csv']
   const titanicTask = defaultTasks.titanic.getTask()
   return await new NodeTabularLoader(task, ',').loadAll(files, {
     features: titanicTask.trainingInformation.inputColumns,

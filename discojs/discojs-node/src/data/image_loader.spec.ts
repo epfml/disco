@@ -12,7 +12,7 @@ const readFilesFromDir = (dir: string): string[] =>
   fs.readdirSync(dir).map((file: string) => dir + file)
 
 const DIRS = {
-  CIFAR10: '../../example_training_data/CIFAR10/'
+  CIFAR10: '../../datasets/CIFAR10/'
 }
 
 const cifar10Mock: Task = {
@@ -57,7 +57,7 @@ const FILES = Map(DIRS).map((readFilesFromDir)).toObject()
 
 describe('image loader', () => {
   it('loads single sample without label', async () => {
-    const file = '../../example_training_data/9-mnist-example.png'
+    const file = '../../datasets/9-mnist-example.png'
     const singletonDataset = await LOADERS.MNIST.load(file)
     const imageContent = tfNode.decodeImage(fs.readFileSync(file))
     await Promise.all((await singletonDataset.toArrayForTest()).map(async (entry) => {

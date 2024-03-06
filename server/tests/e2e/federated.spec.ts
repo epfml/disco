@@ -24,7 +24,7 @@ describe('end-to-end federated', function () {
   afterEach(() => { server?.close() })
 
   async function cifar10user (): Promise<WeightsContainer> {
-    const dir = '../example_training_data/CIFAR10/'
+    const dir = '../datasets/CIFAR10/'
     const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
     const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
 
@@ -46,7 +46,7 @@ describe('end-to-end federated', function () {
   }
 
   async function titanicUser (): Promise<WeightsContainer> {
-    const files = ['../example_training_data/titanic_train.csv']
+    const files = ['../datasets/titanic_train.csv']
 
     const titanicTask = defaultTasks.titanic.getTask()
     titanicTask.trainingInformation.epochs = 5

@@ -51,7 +51,7 @@ describe('tabular data checks', () => {
 
   it('throw an error on incorrectly formatted data', async () => {
     try {
-      await TabularData.init(tf.data.csv('file://../../example_training_data/cifar10-labels.csv', csvConfig), titanicMock, 3)
+      await TabularData.init(tf.data.csv('file://../../datasets/cifar10-labels.csv', csvConfig), titanicMock, 3)
     } catch (e) {
       expect(e).to.be.an.instanceOf(Error)
       return
@@ -61,6 +61,6 @@ describe('tabular data checks', () => {
   })
 
   it('do nothing on correctly formatted data', async () => {
-    await TabularData.init(tf.data.csv('file://../../example_training_data/titanic_train.csv', csvConfig), titanicMock, 3)
+    await TabularData.init(tf.data.csv('file://../../datasets/titanic_train.csv', csvConfig), titanicMock, 3)
   })
 })
