@@ -17,13 +17,14 @@ export enum AggregatorChoice {
  */
 export function getAggregator (task: Task): aggregator.Aggregator {
   const error = new Error('not implemented')
-  switch (task.trainingInformation.aggregator) {
+  switch (task.trainingInformation.network.aggregator) {
     case AggregatorChoice.MEAN:
       return new aggregator.MeanAggregator()
     case AggregatorChoice.BANDIT:
       throw error
     case AggregatorChoice.SECURE:
-      if (task.trainingInformation.scheme !== 'decentralized') {
+      // TODO enforce check via type
+      if (task.trainingInformation.network.type !== 'decentralized') {
         throw new Error('secure aggregation is currently supported for decentralized only')
       }
       return new aggregator.SecureAggregator()

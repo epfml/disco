@@ -2,6 +2,8 @@ import * as tf from '@tensorflow/tfjs'
 
 import type { Task, WeightsContainer } from './index.js'
 
+// TODO unused
+
 /**
  * Add task-parametrized Gaussian noise to and clip the weights update between the previous and current rounds.
  * The previous round's weights are the last weights pulled from server/peers.

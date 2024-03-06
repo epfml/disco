@@ -1,14 +1,19 @@
 import { isDisplayInformation, type DisplayInformation } from './display_information.js'
-import { isTrainingInformation, type TrainingInformation } from './training_information.js'
+import { DatasetConfigType, ModelConfigType, NetworkConfigType, isTrainingInformation, type TrainingInformation } from './training_information.js'
 import { isDigest, type Digest } from './digest.js'
 
 export type TaskID = string
 
-export interface Task {
+export interface Task<
+  D extends DatasetConfigType,
+  M extends ModelConfigType,
+  N extends NetworkConfigType,
+>
+{
   id: TaskID
   digest?: Digest
   displayInformation: DisplayInformation
-  trainingInformation: TrainingInformation
+  trainingInformation: TrainingInformation<D, M, N>
 }
 
 export function isTaskID (obj: unknown): obj is TaskID {
