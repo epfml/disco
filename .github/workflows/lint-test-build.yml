@@ -8,16 +8,18 @@ env:
   node_version: 16
 
 jobs:
-  download-training-data:
+  download-datasets:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
       - uses: actions/cache@v3
         with:
-          path: example_training_data
-          key: training_data
-      - run: ./get_training_data.sh
-        working-directory: ./
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
+      - run: ./datasets/populate
 
   lint-lib-core:
     needs: [build-lib-core, build-lib-node]
@@ -213,19 +215,17 @@ jobs:
 
   test-lib-core:
     needs:
-      [
-        build-lib-core,
-        build-lib-node,
-        build-server-docker,
-        download-training-data,
-      ]
+      [build-lib-core, build-lib-node, build-server-docker, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
       - uses: actions/cache@v3
         with:
-          path: example_training_data
-          key: training_data
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -235,14 +235,17 @@ jobs:
       - run: ./with_server npm --workspace=./discojs/discojs-core test
 
   test-lib-node:
-    needs: [build-lib-core, build-server-docker, download-training-data]
+    needs: [build-lib-core, build-server-docker, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
       - uses: actions/cache@v3
         with:
-          path: example_training_data
-          key: training_data
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -252,14 +255,17 @@ jobs:
       - run: ./with_server npm --workspace=./discojs/discojs-node test
 
   test-lib-web:
-    needs: [build-lib-core, build-server-docker, download-training-data]
+    needs: [build-lib-core, build-server-docker, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
       - uses: actions/cache@v3
         with:
-          path: example_training_data
-          key: training_data
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -269,14 +275,17 @@ jobs:
       - run: ./with_server npm --workspace=./discojs/discojs-web test
 
   test-server:
-    needs: [build-lib-core, build-lib-node, download-training-data]
+    needs: [build-lib-core, build-lib-node, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
       - uses: actions/cache@v3
         with:
-          path: example_training_data
-          key: training_data
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -286,14 +295,17 @@ jobs:
       - run: npm --workspace=./server test
 
   test-web-client:
-    needs: [build-lib-core, build-lib-web, download-training-data]
+    needs: [build-lib-core, build-lib-web, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
       - uses: actions/cache@v3
         with:
-          path: example_training_data
-          key: training_data
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -310,15 +322,17 @@ jobs:
           config: baseUrl=http://localhost:8081/#/
 
   test-cli:
-    needs:
-      [build-lib-core, build-lib-node, build-server, download-training-data]
+    needs: [build-lib-core, build-lib-node, build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
       - uses: actions/cache@v3
         with:
-          path: example_training_data
-          key: training_data
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
@@ -328,15 +342,17 @@ jobs:
       - run: npm --workspace=./cli start -- -t cifar10 -u 1 -e 1
 
   test-docs-examples:
-    needs:
-      [build-lib-core, build-lib-node, build-server, download-training-data]
+    needs: [build-lib-core, build-lib-node, build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          lfs: true
+          submodules: true
       - uses: actions/cache@v3
         with:
-          path: example_training_data
-          key: training_data
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}

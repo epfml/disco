@@ -101,7 +101,7 @@ npm -ws run build
 **6.** Download and extract the sample training datasets. These datasets are used in the automated tests.
 
 ```
-./get_training_data.sh
+./datasets/populate
 ```
 
 **7.** Launch DISCO

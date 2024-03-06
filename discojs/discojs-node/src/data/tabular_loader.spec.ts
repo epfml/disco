@@ -6,7 +6,7 @@ import type { Task } from '@epfml/discojs-core'
 
 import { TabularLoader } from './tabular_loader'
 
-const inputFiles = ['../../example_training_data/titanic_train.csv']
+const inputFiles = ['../../datasets/titanic_train.csv']
 
 const titanicMock: Task = {
   id: 'titanic',

@@ -24,7 +24,7 @@ const simplefaceMock: Task = {
 
 describe('validator', () => {
   it('simple_face validator', async () => {
-    const dir = '../../example_training_data/simple_face/'
+    const dir = '../../datasets/simple_face/'
     const files: string[][] = ['child/', 'adult/']
       .map((subdir: string) => fs.readdirSync(dir + subdir)
         .map((file: string) => dir + subdir + file))
@@ -60,7 +60,7 @@ describe('validator', () => {
 
   it('titanic validator', async () => {
     const titanicTask = defaultTasks.titanic.getTask()
-    const files = ['../../example_training_data/titanic_train.csv']
+    const files = ['../../datasets/titanic_train.csv']
     const data: data.Data = (await new NodeTabularLoader(titanicTask, ',').loadAll(files, {
       features: titanicTask.trainingInformation.inputColumns,
       labels: titanicTask.trainingInformation.outputColumns,
