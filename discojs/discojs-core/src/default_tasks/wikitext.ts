@@ -20,7 +20,7 @@ export const wikitext: TaskProvider = {
         dataType: 'text',
         modelID: 'wikitext-103-raw-model',
         validationSplit: 0.2, // TODO: is this used somewhere? because train, eval and test are already split in dataset
-        epochs: 10_000,
+        epochs: 10,
         // constructing a batch is taken care automatically in the dataset to make things faster
         // so we fake a batch size of 1
         batchSize: 1,
