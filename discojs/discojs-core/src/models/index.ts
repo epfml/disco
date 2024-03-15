@@ -1,4 +1,4 @@
-export { Model } from './model'
+export { Model } from './model.js'
 
-export { GPT } from './gpt'
-export { TFJS } from './tfjs'
+export { GPT } from './gpt/index.js'
+export { TFJS } from './tfjs.js'

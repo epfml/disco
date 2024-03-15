@@ -1,7 +1,7 @@
 import { List } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import { ConsoleLogger } from '.'
+import { ConsoleLogger } from './index.js'
 
 export class TrainerLog {
   epochs: List<number> = List()

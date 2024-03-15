@@ -1,7 +1,7 @@
 import type { Map } from 'immutable'
 
-import type { WeightsContainer } from '.'
-import type { NodeID } from './client'
+import type { WeightsContainer } from './index.js'
+import type { NodeID } from './client/index.js'
 
 // Filesystem reference
 export type Path = string

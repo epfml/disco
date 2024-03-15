@@ -5,9 +5,9 @@ import type * as http from 'http'
 
 import type { Model, Task, TaskProvider } from '@epfml/discojs-core'
 
-import { CONFIG } from './config'
-import { Router } from './router'
-import { TasksAndModels } from './tasks'
+import { CONFIG } from './config.js'
+import { Router } from './router/index.js'
+import { TasksAndModels } from './tasks.js'
 
 export class Disco {
   private readonly _app: express.Application

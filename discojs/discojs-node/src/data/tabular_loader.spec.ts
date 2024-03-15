@@ -1,10 +1,10 @@
 import { assert, expect } from 'chai'
 import { List } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
 import type { Task } from '@epfml/discojs-core'
 
-import { TabularLoader } from './tabular_loader'
+import { TabularLoader } from './tabular_loader.js'
 
 const inputFiles = ['../../datasets/titanic_train.csv']
 

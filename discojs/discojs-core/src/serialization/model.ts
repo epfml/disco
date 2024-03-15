@@ -1,8 +1,8 @@
 import msgpack from 'msgpack-lite'
 import type tf from '@tensorflow/tfjs'
 
-import type { Model } from '..'
-import { models, serialization } from '..'
+import type { Model } from '../index.js'
+import { models, serialization } from '../index.js'
 
 const enum Type { TFJS, GPT }
 

@@ -1,11 +1,11 @@
-export { Base as Client } from './base'
+export { Base as Client } from './base.js'
 
-export * from './types'
+export * from './types.js'
 
-export * as aggregator from '../aggregator'
-export * as decentralized from './decentralized'
-export * as federated from './federated'
-export * as messages from './messages'
-export * as utils from './utils'
+export * as aggregator from '../aggregator/index.js'
+export * as decentralized from './decentralized/index.js'
+export * as federated from './federated/index.js'
+export * as messages from './messages.js'
+export * as utils from './utils.js'
 
-export { Local } from './local'
+export { Local } from './local.js'

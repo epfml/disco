@@ -1,11 +1,11 @@
 import axios from 'axios'
 import type { Set } from 'immutable'
 
-import type { Model, Task, TrainingInformant, WeightsContainer } from '..'
-import { serialization } from '..'
-import type { NodeID } from './types'
-import type { EventConnection } from './event_connection'
-import type { Aggregator } from '../aggregator'
+import type { Model, Task, TrainingInformant, WeightsContainer } from '../index.js'
+import { serialization } from '../index.js'
+import type { NodeID } from './types.js'
+import type { EventConnection } from './event_connection.js'
+import type { Aggregator } from '../aggregator/index.js'
 
 /**
  * Main, abstract, class representing a Disco client in a network, which handles

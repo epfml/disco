@@ -1,11 +1,11 @@
 import { assert } from 'chai'
 import { Map, Range } from 'immutable'
-import { type messages } from '.'
-import { type } from '../messages'
-import { type PeerConnection, type EventConnection } from '../event_connection'
+import type { messages } from './index.js'
+import { type } from '../messages.js'
+import type { PeerConnection, EventConnection } from '../event_connection.js'
 
-import { PeerPool } from './peer_pool'
-import { type NodeID } from '../types'
+import { PeerPool } from './peer_pool.js'
+import type { NodeID } from '../types.js'
 
 describe('peer pool', function () {
   this.timeout(10_000)

@@ -1,4 +1,4 @@
-import type { AggregatorBase } from './aggregator'
+import type { AggregatorBase } from './aggregator/index.js'
 
 export class AsyncInformant<T> {
   private _round = 0

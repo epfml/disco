@@ -1,2 +1,2 @@
-export * from './data'
-export * from './memory'
+export * from './data/index.js'
+export * from './memory/index.js'

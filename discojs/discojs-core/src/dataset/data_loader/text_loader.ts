@@ -1,9 +1,9 @@
-import type { Task } from '../..'
+import type { Task } from '../../index.js'
 
-import type { DataSplit, Dataset } from '..'
-import { TextData } from '..'
+import type { DataSplit, Dataset } from '../index.js'
+import { TextData } from '../index.js'
 
-import { DataLoader } from '.'
+import { DataLoader } from './index.js'
 
 /**
  * Text data loader whose instantiable implementation is delegated by the platform-dependent Disco subprojects, namely,

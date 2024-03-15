@@ -36,7 +36,7 @@ export class Config {
   }
 }
 
-const ROOT_DIR = path.join(__filename, '..', '..', '..')
+const ROOT_DIR = path.join(import.meta.dirname, '..', '..')
 
 export const CONFIG = new Config(
   'file://',

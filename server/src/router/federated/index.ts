@@ -1,1 +1,1 @@
-export { Federated } from './server'
+export { Federated } from './server.js'

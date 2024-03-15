@@ -1,9 +1,9 @@
 import { assert, expect } from 'chai'
 import type { Map } from 'immutable'
 
-import type { client, Model } from '..'
-import { aggregator, defaultTasks } from '..'
-import { AggregationStep } from './base'
+import type { client, Model } from '../index.js'
+import { aggregator, defaultTasks } from '../index.js'
+import { AggregationStep } from './base.js'
 
 const model = defaultTasks.titanic.getModel()
 const id = 'a'

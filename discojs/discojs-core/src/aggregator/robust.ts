@@ -1,5 +1,5 @@
-import { Base as Aggregator } from './base'
-import type { client, Model, WeightsContainer } from '..'
+import { Base as Aggregator } from './base.js'
+import type { client, Model, WeightsContainer } from '../index.js'
 
 import type { Map } from 'immutable'
 

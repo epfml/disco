@@ -1,6 +1,6 @@
 import type tf from '@tensorflow/tfjs'
 
-import { Trainer } from './trainer'
+import { Trainer } from './trainer.js'
 
 /** Class whose role is to locally (alone) train a model on a given dataset,
  * without any collaborators.

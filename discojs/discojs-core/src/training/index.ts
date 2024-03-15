@@ -1,1 +1,1 @@
-export { Disco } from './disco'
+export { Disco } from './disco.js'

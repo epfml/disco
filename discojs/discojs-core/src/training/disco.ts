@@ -1,18 +1,10 @@
-import {
-  client as clients,
-  type data,
-  type Logger,
-  type Task,
-  type TrainingInformant, informant as informants,
-  type Memory, EmptyMemory,
-  ConsoleLogger,
-  type TrainingInformation
-} from '..'
-import { type Trainer } from './trainer/trainer'
-import { TrainerBuilder } from './trainer/trainer_builder'
-import { type TrainerLog } from '../logging/trainer_logger'
-import { type Aggregator } from '../aggregator'
-import { MeanAggregator } from '../aggregator/mean'
+import type { data, Logger, Memory, Task, TrainingInformant, TrainingInformation } from '../index.js'
+import { client as clients, informant as informants, EmptyMemory, ConsoleLogger } from '../index.js'
+import type { Trainer } from './trainer/trainer.js'
+import { TrainerBuilder } from './trainer/trainer_builder.js'
+import type { TrainerLog } from '../logging/trainer_logger.js'
+import type { Aggregator } from '../aggregator/index.js'
+import { MeanAggregator } from '../aggregator/mean.js'
 
 export interface DiscoOptions {
   client?: clients.Client

@@ -1,8 +1,8 @@
 import { Map, type Set } from 'immutable'
 
-import { Peer, type SignalData } from './peer'
-import { type NodeID } from '../types'
-import { PeerConnection, type EventConnection } from '../event_connection'
+import { Peer, type SignalData } from './peer.js'
+import { type NodeID } from '../types.js'
+import { PeerConnection, type EventConnection } from '../event_connection.js'
 
 // TODO cleanup old peers
 
@@ -43,9 +43,12 @@ export class PeerPool {
 
     console.info(`[${this.id}] is connecting peers:`, peersToConnect.toJS())
 
-    const newPeers = Map(peersToConnect
-      .filter((id) => !this.peers.has(id))
-      .map((id) => [id, new Peer(id, id < this.id)]))
+    const newPeers = Map(await Promise.all(
+      peersToConnect
+        .filter((id) => !this.peers.has(id))
+        .map(async (id) => [id, await Peer.init(id, id < this.id)] as [string, Peer])
+        .toArray()
+    ))
 
     console.info(`[${this.id}] asked to connect new peers:`, newPeers.keySeq().toJS())
     const newPeersConnections = newPeers.map((peer, id) => new PeerConnection(this.id, peer, signallingServer))

@@ -1,4 +1,4 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
 import { data } from '@epfml/discojs-core'
 

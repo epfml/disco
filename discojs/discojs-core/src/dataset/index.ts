@@ -1,8 +1,9 @@
-export type { Dataset } from './dataset'
-export { DatasetBuilder } from './dataset_builder'
-export { ImageLoader, TabularLoader, DataLoader, TextLoader } from './data_loader'
+export type { Dataset } from './dataset.js'
+export { DatasetBuilder } from './dataset_builder.js'
+export { ImageLoader, TabularLoader, DataLoader, TextLoader } from './data_loader/index.js'
+export type { DataSplit } from './data/index.js'
 export {
-  type DataSplit, Data, TabularData, ImageData, TextData,
+  Data, TabularData, ImageData, TextData,
   ImagePreprocessing, TabularPreprocessing, TextPreprocessing,
   IMAGE_PREPROCESSING, TABULAR_PREPROCESSING, TEXT_PREPROCESSING
-} from './data'
+} from './data/index.js'

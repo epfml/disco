@@ -5,9 +5,11 @@
 
     "strict": true,
 
+    // tfjs and others
     "skipLibCheck": true,
 
-    "outDir": "dist"
-  },
-  "include": ["*.ts"]
+    // don't pollute
+    "noEmitOnError": true
+  }
 }
+  

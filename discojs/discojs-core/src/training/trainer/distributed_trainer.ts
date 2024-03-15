@@ -1,9 +1,9 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Model, Memory, Task, TrainingInformant, client as clients } from '../..'
-import type { Aggregator } from '../../aggregator'
+import type { Model, Memory, Task, TrainingInformant, client as clients } from '../../index.js'
+import type { Aggregator } from '../../aggregator/index.js'
 
-import { Trainer } from './trainer'
+import { Trainer } from './trainer.js'
 
 /**
  * Class whose role is to train a model in a distributed way with a given dataset.

@@ -2,7 +2,7 @@ import type * as http from 'http'
 
 import { aggregator as aggregators, client as clients, informant, defaultTasks } from '@epfml/discojs-core'
 
-import { startServer } from '../../src'
+import { startServer } from '../../src/index.js'
 
 const TASK = defaultTasks.titanic.getTask()
 
