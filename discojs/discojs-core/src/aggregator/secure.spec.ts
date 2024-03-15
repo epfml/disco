@@ -1,7 +1,7 @@
 import { List, Set, Range } from 'immutable'
 import { assert } from 'chai'
 
-import { aggregator as aggregators, aggregation, WeightsContainer } from '@epfml/discojs-core'
+import { aggregator as aggregators, aggregation, WeightsContainer } from '../index.js'
 
 describe('secret shares test', function () {
   const epsilon = 1e-4

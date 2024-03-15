@@ -1,9 +1,9 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Task } from '../../..'
-import type { ImagePreprocessing } from './image_preprocessing'
-import type { TabularPreprocessing } from './tabular_preprocessing'
-import type { TextPreprocessing } from './text_preprocessing'
+import type { Task } from '../../../index.js'
+import type { ImagePreprocessing } from './image_preprocessing.js'
+import type { TabularPreprocessing } from './tabular_preprocessing.js'
+import type { TextPreprocessing } from './text_preprocessing.js'
 
 /**
  * All available preprocessing type enums.

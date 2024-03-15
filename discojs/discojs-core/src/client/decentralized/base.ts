@@ -1,12 +1,12 @@
 import { Map, Set } from 'immutable'
 
-import { type TrainingInformant, type WeightsContainer, serialization } from '../..'
-import { Client, type NodeID } from '..'
-import { type, type ClientConnected } from '../messages'
-import { timeout } from '../utils'
-import { type EventConnection, WebSocketServer, waitMessage, type PeerConnection, waitMessageWithTimeout } from '../event_connection'
-import { PeerPool } from './peer_pool'
-import * as messages from './messages'
+import { type TrainingInformant, type WeightsContainer, serialization } from '../../index.js'
+import { Client, type NodeID } from '../index.js'
+import { type, type ClientConnected } from '../messages.js'
+import { timeout } from '../utils.js'
+import { type EventConnection, WebSocketServer, waitMessage, type PeerConnection, waitMessageWithTimeout } from '../event_connection.js'
+import { PeerPool } from './peer_pool.js'
+import * as messages from './messages.js'
 
 /**
  * Represents a decentralized client in a network of peers. Peers coordinate each other with the

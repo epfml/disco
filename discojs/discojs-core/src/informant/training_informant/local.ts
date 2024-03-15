@@ -1,5 +1,6 @@
-import { type Task } from '../../task'
-import { Base } from '.'
+import type { Task } from '../../index.js'
+
+import { Base } from './index.js'
 
 export class LocalInformant extends Base {
   constructor (task: Task, nbrMessagesToShow?: number) {

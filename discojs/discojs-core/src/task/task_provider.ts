@@ -1,4 +1,4 @@
-import type { Model, Task } from '..'
+import type { Model, Task } from '../index.js'
 
 export interface TaskProvider {
   getTask: () => Task

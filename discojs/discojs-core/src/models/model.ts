@@ -1,8 +1,9 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { WeightsContainer } from '..'
-import type { EventEmitter } from 'utils/event_emitter'
-import type { Dataset } from 'dataset'
+import type { WeightsContainer } from '../index.js'
+
+import type { EventEmitter } from '../utils/event_emitter.js'
+import type { Dataset } from '../dataset/index.js'
 
 // TODO still bound to tfjs
 export type EpochLogs = tf.Logs | undefined

@@ -1,7 +1,7 @@
-import type { Model } from '..'
+import type { Model } from '../index.js'
 
-import type { ModelInfo, Path } from './base'
-import { Memory } from './base'
+import type { ModelInfo, Path } from './base.js'
+import { Memory } from './base.js'
 
 /**
  * Represents an empty model memory.

@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 
-import { WeightsContainer, aggregation } from '.'
+import { WeightsContainer, aggregation } from './index.js'
 
 describe('weights aggregation', () => {
   it('avg of weights with two operands', async () => {

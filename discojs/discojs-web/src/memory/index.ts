@@ -1,1 +1,1 @@
-export { IndexedDB } from './memory'
+export { IndexedDB } from './memory.js'

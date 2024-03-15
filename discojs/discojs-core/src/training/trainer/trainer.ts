@@ -1,11 +1,11 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Memory, Model, Task, TrainingInformant } from '../..'
+import type { Memory, Model, Task, TrainingInformant } from '../../index.js'
 
-import { RoundTracker } from './round_tracker'
-import type { TrainerLog } from '../../logging/trainer_logger'
-import { TrainerLogger } from '../../logging/trainer_logger'
-import { EventEmitter } from '../../utils/event_emitter'
+import { RoundTracker } from './round_tracker.js'
+import type { TrainerLog } from '../../logging/trainer_logger.js'
+import { TrainerLogger } from '../../logging/trainer_logger.js'
+import { EventEmitter } from '../../utils/event_emitter.js'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:

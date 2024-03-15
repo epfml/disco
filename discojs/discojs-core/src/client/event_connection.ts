@@ -1,12 +1,12 @@
 import isomorphic from 'isomorphic-ws'
-import type { Peer, SignalData } from './decentralized/peer'
-import { type NodeID } from './types'
+import type { Peer, SignalData } from './decentralized/peer.js'
+import { type NodeID } from './types.js'
 import msgpack from 'msgpack-lite'
-import * as decentralizedMessages from './decentralized/messages'
-import { type, type NarrowMessage, type Message } from './messages'
-import { timeout } from './utils'
+import * as decentralizedMessages from './decentralized/messages.js'
+import { type, type NarrowMessage, type Message } from './messages.js'
+import { timeout } from './utils.js'
 
-import { EventEmitter } from '../utils/event_emitter'
+import { EventEmitter } from '../utils/event_emitter.js'
 
 export interface EventConnection {
   on: <K extends type>(type: K, handler: (event: NarrowMessage<K>) => void) => void

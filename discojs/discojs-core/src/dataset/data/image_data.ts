@@ -1,9 +1,10 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Task } from '../..'
-import type { Dataset } from '../dataset'
-import { Data } from './data'
-import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing'
+import type { Task } from '../../index.js'
+import type { Dataset } from '../dataset.js'
+
+import { Data } from './data.js'
+import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing/index.js'
 
 /**
  * Disco data made of image samples (.jpg, .png, etc.).

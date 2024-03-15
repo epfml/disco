@@ -1,8 +1,7 @@
-import { type NodeID } from '../types'
-
 import { List, Map, Range, Seq } from 'immutable'
-import wrtc from 'isomorphic-wrtc'
 import SimplePeer from 'simple-peer'
+
+import type { NodeID } from '../types.js'
 
 type MessageID = number
 type ChunkID = number
@@ -19,7 +18,9 @@ const TICK = 10
 // we can't use the definition in DOM as we're platform independent
 export type SignalData =
   | { type: 'answer' | 'offer' | 'pranswer' | 'rollback', sdp?: string }
-  | { type: 'transceiverRequest' | 'renegotiate' | 'candidate' }
+  | { type: 'transceiverRequest', transceiverRequest: { kind: string } }
+  | { type: 'renegotiate', renegotiate: true }
+  | { type: 'candidate', candidate: RTCIceCandidate }
 
 interface Events {
   'close': () => void
@@ -42,8 +43,6 @@ interface Events {
 //
 // see feross/simple-peer#393 for more info
 export class Peer {
-  public readonly id: NodeID
-  private readonly peer: SimplePeer.Instance
   private bufferSize?: number
 
   private sendCounter: MessageID = 0
@@ -54,9 +53,16 @@ export class Peer {
     chunks: Map<ChunkID, Buffer>
   }>()
 
-  constructor (id: NodeID, initiator: boolean = false) {
-    this.id = id
-    this.peer = new SimplePeer({ wrtc, initiator })
+  private constructor (
+    public readonly id: NodeID,
+    private readonly peer: SimplePeer.Instance
+  ) {}
+
+  static async init (id: NodeID, initiator: boolean = false): Promise<Peer> {
+    return new Peer(
+      id,
+      new SimplePeer({ wrtc: (await import('isomorphic-wrtc')).default, initiator })
+    )
   }
 
   send (msg: Buffer): void {

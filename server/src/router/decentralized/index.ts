@@ -1,1 +1,1 @@
-export { Decentralized } from './server'
+export { Decentralized } from './server.js'

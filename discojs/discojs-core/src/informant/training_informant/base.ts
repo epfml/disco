@@ -1,7 +1,8 @@
 import { List, Set } from 'immutable'
 
-import { type Task } from '../../task'
-import { GraphInformant } from '../graph_informant'
+import type { Task } from '../../index.js'
+
+import { GraphInformant } from '../graph_informant.js'
 
 export abstract class Base {
   // written feedback

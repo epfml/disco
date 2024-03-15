@@ -1,11 +1,11 @@
 import { Map } from 'immutable'
 
-import { serialization, type informant, type MetadataKey, type MetadataValue, type WeightsContainer, type TrainingInformant } from '../..'
-import { type NodeID } from '../types'
-import { Base as Client } from '../base'
-import { type, type ClientConnected } from '../messages'
-import { type EventConnection, waitMessageWithTimeout, WebSocketServer } from '../event_connection'
-import * as messages from './messages'
+import { serialization, type informant, type MetadataKey, type MetadataValue, type WeightsContainer, type TrainingInformant } from '../../index.js'
+import { type NodeID } from '../types.js'
+import { Base as Client } from '../base.js'
+import { type, type ClientConnected } from '../messages.js'
+import { type EventConnection, waitMessageWithTimeout, WebSocketServer } from '../event_connection.js'
+import * as messages from './messages.js'
 
 /**
  * Client class that communicates with a centralized, federated server, when training

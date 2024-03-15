@@ -1,6 +1,7 @@
-import { type Task } from '..'
-import { type DataSplit } from './data'
-import { type DataConfig, type DataLoader } from './data_loader/data_loader'
+import type { Task } from '../index.js'
+
+import type { DataSplit } from './data/index.js'
+import type { DataConfig, DataLoader } from './data_loader/data_loader.js'
 
 import { Map } from 'immutable'
 

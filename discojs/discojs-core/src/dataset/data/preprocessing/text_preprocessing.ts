@@ -1,8 +1,8 @@
 import { List } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Task } from '../../..'
-import type { PreprocessingFunction } from './base'
+import type { Task } from '../../../index.js'
+import type { PreprocessingFunction } from './base.js'
 
 /**
  * Available text preprocessing types.
