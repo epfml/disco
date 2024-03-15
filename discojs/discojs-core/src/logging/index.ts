@@ -1,3 +1,3 @@
-export { Logger } from './logger'
-export { ConsoleLogger } from './console_logger'
-export { TrainerLog } from './trainer_logger'
+export { Logger } from './logger.js'
+export { ConsoleLogger } from './console_logger.js'
+export { TrainerLog } from './trainer_logger.js'

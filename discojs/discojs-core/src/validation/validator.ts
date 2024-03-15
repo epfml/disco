@@ -1,8 +1,8 @@
 import { List } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { data, Model, Task, Logger, client as clients, Memory, ModelSource, Features } from '..'
-import { GraphInformant } from '..'
+import type { data, Model, Task, Logger, client as clients, Memory, ModelSource, Features } from '../index.js'
+import { GraphInformant } from '../index.js'
 
 export class Validator {
   private readonly graphInformant = new GraphInformant()

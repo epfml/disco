@@ -4,9 +4,9 @@ import type { TrainerLog, data, Task } from '@epfml/discojs-core'
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs-core'
 import { startServer } from '@epfml/disco-server'
 
-import { saveLog } from './utils'
-import { getTaskData } from './data'
-import { args } from './args'
+import { saveLog } from './utils.js'
+import { getTaskData } from './data.js'
+import { args } from './args.js'
 
 async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<TrainerLog> {
   const client = new clients.federated.FederatedClient(url, task, new aggregators.MeanAggregator())

@@ -1,5 +1,5 @@
-import type { Model, Task, TaskProvider } from '..'
-import { models } from '..'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { models } from '../index.js'
 
 export const wikitext: TaskProvider = {
   getTask (): Task {

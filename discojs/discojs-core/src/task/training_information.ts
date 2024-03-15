@@ -1,5 +1,5 @@
-import { type AggregatorChoice } from '../aggregator/get'
-import { type Preprocessing } from '../dataset/data/preprocessing'
+import { type AggregatorChoice } from '../aggregator/get.js'
+import { type Preprocessing } from '../dataset/data/preprocessing/index.js'
 
 export interface TrainingInformation {
   // modelID: unique ID for the model

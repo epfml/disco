@@ -1,11 +1,11 @@
 import axios from 'axios'
 import { Map } from 'immutable'
 
-import type { Model } from '..'
-import { serialization } from '..'
+import type { Model } from '../index.js'
+import { serialization } from '../index.js'
 
-import type { Task, TaskID } from './task'
-import { isTask } from './task'
+import type { Task, TaskID } from './task.js'
+import { isTask } from './task.js'
 
 const TASK_ENDPOINT = 'tasks'
 

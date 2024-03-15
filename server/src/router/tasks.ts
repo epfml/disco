@@ -5,8 +5,8 @@ import { Set } from 'immutable'
 import type { Model, Task, TaskID } from '@epfml/discojs-core'
 import { serialization, isTask } from '@epfml/discojs-core'
 
-import type { Config } from '../config'
-import type { TasksAndModels } from '../tasks'
+import type { Config } from '../config.js'
+import type { TasksAndModels } from '../tasks.js'
 
 export class Tasks {
   private readonly ownRouter: express.Router

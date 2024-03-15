@@ -18,7 +18,7 @@ import {
   aggregator as aggregators
 } from '@epfml/discojs-core'
 
-import { Server } from '../server'
+import { Server } from '../server.js'
 
 import messages = client.federated.messages
 import AssignNodeID = client.messages.AssignNodeID

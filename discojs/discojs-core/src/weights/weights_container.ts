@@ -1,5 +1,5 @@
 import { List } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
 type Weights = tf.Tensor[]
 

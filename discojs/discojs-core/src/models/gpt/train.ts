@@ -1,10 +1,10 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import { AdamW, clipByGlobalNormObj } from './optimizers'
-import type { GPTConfig } from './config'
-import { DEFAULT_CONFIG } from './config'
-import evaluate from './evaluate'
-import type { TrainingCallbacks } from './types'
+import { AdamW, clipByGlobalNormObj } from './optimizers.js'
+import type { GPTConfig } from './config.js'
+import { DEFAULT_CONFIG } from './config.js'
+import evaluate from './evaluate.js'
+import type { TrainingCallbacks } from './types.js'
 
 function resolveConfig (config: GPTConfig): Required<GPTConfig> {
   return {

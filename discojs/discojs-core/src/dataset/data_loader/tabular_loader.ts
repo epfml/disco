@@ -1,11 +1,12 @@
 import { List, Map, Set } from 'immutable'
 
-import type { Task } from '../..'
+import type { Task } from '../../index.js'
 
-import type { Dataset, DataSplit } from '..'
-import { TabularData } from '..'
-import type { DataConfig } from '../data_loader'
-import { DataLoader } from '../data_loader'
+import type { Dataset, DataSplit } from '../index.js'
+import { TabularData } from '../index.js'
+
+import type { DataConfig } from './index.js'
+import { DataLoader } from './index.js'
 
 // Window size from which the dataset shuffling will sample
 const BUFFER_SIZE = 1000

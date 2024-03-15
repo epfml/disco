@@ -1,9 +1,9 @@
-export type { DataSplit } from './data_split'
-export { Data } from './data'
-export { ImageData } from './image_data'
-export { TabularData } from './tabular_data'
-export { TextData } from './text_data'
+export type { DataSplit } from './data_split.js'
+export { Data } from './data.js'
+export { ImageData } from './image_data.js'
+export { TabularData } from './tabular_data.js'
+export { TextData } from './text_data.js'
 export {
   ImagePreprocessing, TabularPreprocessing, TextPreprocessing,
   IMAGE_PREPROCESSING, TABULAR_PREPROCESSING, TEXT_PREPROCESSING
-} from './preprocessing'
+} from './preprocessing/index.js'

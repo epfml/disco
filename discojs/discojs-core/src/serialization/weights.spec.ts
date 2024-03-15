@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 
-import { WeightsContainer, serialization } from '..'
+import { WeightsContainer, serialization } from '../index.js'
 
 describe('weights', () => {
   it('can encode what it decodes', async () => {

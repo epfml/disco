@@ -1,12 +1,12 @@
 import { assert, expect } from 'chai'
 import { List, Map, Range } from 'immutable'
 import fs from 'fs'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 import { node as tfNode } from '@tensorflow/tfjs-node'
 
 import type { Task } from '@epfml/discojs-core'
 
-import { ImageLoader } from './image_loader'
+import { ImageLoader } from './image_loader.js'
 
 const readFilesFromDir = (dir: string): string[] =>
   fs.readdirSync(dir).map((file: string) => dir + file)

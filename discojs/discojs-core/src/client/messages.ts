@@ -1,6 +1,6 @@
-import type * as decentralized from './decentralized/messages'
-import type * as federated from './federated/messages'
-import { type NodeID } from './types'
+import type * as decentralized from './decentralized/messages.js'
+import type * as federated from './federated/messages.js'
+import { type NodeID } from './types.js'
 
 export enum type {
   ClientConnected,

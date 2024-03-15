@@ -11,7 +11,7 @@ import {
 } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/discojs-node'
 
-import { startServer } from '../../src'
+import { startServer } from '../../src/index.js'
 
 describe('end-to-end federated', function () {
   this.timeout(100_000)

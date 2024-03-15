@@ -1,8 +1,8 @@
 import { Map, Set } from 'immutable'
 
-import type { client, Model, AsyncInformant } from '..'
+import type { client, Model, AsyncInformant } from '../index.js'
 
-import { EventEmitter } from '../utils/event_emitter'
+import { EventEmitter } from '../utils/event_emitter.js'
 
 export enum AggregationStep {
   ADD,

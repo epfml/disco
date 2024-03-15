@@ -1,9 +1,9 @@
 import { Range } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '..'
-import { data, models } from '..'
-import { LabelTypeEnum } from '../task/label_type'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { data, models } from '../index.js'
+import { LabelTypeEnum } from '../task/label_type.js'
 
 export const geotags: TaskProvider = {
   getTask (): Task {

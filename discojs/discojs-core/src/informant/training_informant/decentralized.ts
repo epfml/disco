@@ -1,4 +1,4 @@
-import { Base } from '.'
+import { Base } from './index.js'
 
 export class DecentralizedInformant extends Base {
   update (statistics: Record<string, number>): void {

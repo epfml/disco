@@ -8,7 +8,7 @@ COPY server/package.json server/
 RUN npm ci
 
 COPY isomorphic-wrtc/ isomorphic-wrtc/
-COPY discojs/tsconfig.base.json discojs/
+COPY tsconfig.base.json .
 COPY discojs/discojs-core/ discojs/discojs-core/
 COPY discojs/discojs-node/ discojs/discojs-node/
 RUN npm run build --workspace=@epfml/discojs-core --workspace=@epfml/discojs-node

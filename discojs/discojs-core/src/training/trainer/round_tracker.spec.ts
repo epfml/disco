@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { RoundTracker } from './round_tracker'
+import { RoundTracker } from './round_tracker.js'
 
 const roundDuration = 2
 

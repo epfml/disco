@@ -1,11 +1,11 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import { Sink } from '../utils/event_emitter'
-import { WeightsContainer } from '..'
+import { Sink } from '../utils/event_emitter.js'
+import { WeightsContainer } from '../index.js'
 
-import { Model } from '.'
-import type { EpochLogs, Prediction, Sample } from './model'
-import type { Dataset } from '../dataset'
+import { Model } from './index.js'
+import type { EpochLogs, Prediction, Sample } from './model.js'
+import type { Dataset } from '../dataset/index.js'
 
 /** TensorFlow JavaScript model with standard training */
 export class TFJS extends Model {

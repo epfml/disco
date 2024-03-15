@@ -2,6 +2,7 @@
   "name": "isomorphic-wrtc",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "node.js",
   "browser": "browser.js",
   "types": "types.d.ts",

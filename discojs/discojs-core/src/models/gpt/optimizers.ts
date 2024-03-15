@@ -1,4 +1,4 @@
-import tf, { AdamOptimizer } from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
 function l2Loss (tensor: tf.Tensor): tf.Tensor {
   return tf.div(tf.sum(tf.square(tensor)), 2)
@@ -57,7 +57,7 @@ function clipByGlobalNormObj (
   return tensorsObjClipped
 }
 
-class AdamW extends AdamOptimizer {
+class AdamW extends tf.AdamOptimizer {
   weightDecayRate: number
   includeInWeightDecay: string[]
   excludeFromWeightDecay: string[]

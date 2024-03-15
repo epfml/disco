@@ -1,6 +1,6 @@
-import { type Summary, isSummary } from './summary'
-import { type DataExample, isDataExample } from './data_example'
-import { isLabelType, type LabelType } from './label_type'
+import { type Summary, isSummary } from './summary.js'
+import { type DataExample, isDataExample } from './data_example.js'
+import { type LabelType, isLabelType } from './label_type.js'
 
 export interface DisplayInformation {
   taskTitle?: string

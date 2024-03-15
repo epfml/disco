@@ -1,11 +1,11 @@
-import tf, { LayersModel, layers, serialization } from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { GPTConfig } from './config'
-import { getModelSizes, DEFAULT_CONFIG } from './config'
-import { train } from './train'
-import type { TrainingCallbacks } from './types'
+import type { GPTConfig } from './config.js'
+import { getModelSizes, DEFAULT_CONFIG } from './config.js'
+import { train } from './train.js'
+import type { TrainingCallbacks } from './types.js'
 
-class Range extends layers.Layer {
+class Range extends tf.layers.Layer {
   static readonly className = 'Range'
 
   computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
@@ -25,9 +25,9 @@ class Range extends layers.Layer {
     })
   }
 }
-serialization.registerClass(Range)
+tf.serialization.registerClass(Range)
 
-class LogLayer extends layers.Layer {
+class LogLayer extends tf.layers.Layer {
   static readonly className = 'LogLayer'
 
   computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
@@ -44,9 +44,9 @@ class LogLayer extends layers.Layer {
     })
   }
 }
-serialization.registerClass(LogLayer)
+tf.serialization.registerClass(LogLayer)
 
-class CausalSelfAttentionBase extends layers.Layer {
+class CausalSelfAttentionBase extends tf.layers.Layer {
   static readonly className = 'CausalSelfAttentionBase'
 
   private readonly blockSize: number
@@ -73,7 +73,7 @@ class CausalSelfAttentionBase extends layers.Layer {
     return [null, this.blockSize, this.nEmbd]
   }
 
-  getConfig (): serialization.ConfigDict {
+  getConfig (): tf.serialization.ConfigDict {
     const config = super.getConfig()
     return Object.assign({}, config, this.config)
   }
@@ -112,14 +112,14 @@ class CausalSelfAttentionBase extends layers.Layer {
     })
   }
 }
-serialization.registerClass(CausalSelfAttentionBase)
+tf.serialization.registerClass(CausalSelfAttentionBase)
 
 type CausalSelfAttentionConfig =
     ConstructorParameters<typeof tf.layers.Layer>[0]
     & Record<'blockSize' | 'nHead' | 'nEmbd' | 'dropout', number>
     & { bias: boolean }
 
-class CausalSelfAttention extends layers.Layer {
+class CausalSelfAttention extends tf.layers.Layer {
   static readonly className = 'CausalSelfAttention'
 
   private readonly nHead: number
@@ -175,7 +175,7 @@ class CausalSelfAttention extends layers.Layer {
     return inputShape
   }
 
-  getConfig (): serialization.ConfigDict {
+  getConfig (): tf.serialization.ConfigDict {
     const config = super.getConfig()
     return Object.assign({}, config, this.config)
   }
@@ -241,9 +241,9 @@ class CausalSelfAttention extends layers.Layer {
     })
   }
 }
-serialization.registerClass(CausalSelfAttention)
+tf.serialization.registerClass(CausalSelfAttention)
 
-class GELU extends layers.Layer {
+class GELU extends tf.layers.Layer {
   static readonly className = 'GELU'
 
   constructor () {
@@ -277,9 +277,9 @@ class GELU extends layers.Layer {
     })
   }
 }
-serialization.registerClass(GELU)
+tf.serialization.registerClass(GELU)
 
-function MLP (conf: any): LayersModel {
+function MLP (conf: any): tf.LayersModel {
   const config = Object.assign({ name: 'mlp' }, conf)
   const inputs = tf.input({ shape: [config.blockSize, config.nEmbd] })
   let x
@@ -309,7 +309,7 @@ function MLP (conf: any): LayersModel {
   return tf.model({ inputs, outputs: x as any })
 }
 
-function Block (conf: CausalSelfAttentionConfig & { debug: boolean }): LayersModel {
+function Block (conf: CausalSelfAttentionConfig & { debug: boolean }): tf.LayersModel {
   const config = Object.assign({ name: 'h' }, conf)
   const inputs = tf.input({ shape: [config.blockSize, config.nEmbd] })
   let x1, x2
@@ -333,7 +333,7 @@ function Block (conf: CausalSelfAttentionConfig & { debug: boolean }): LayersMod
   return tf.model({ name: config.name, inputs, outputs: x2 as any })
 }
 
-function GPT (conf: GPTConfig): LayersModel {
+function GPT (conf: GPTConfig): tf.LayersModel {
   const configDefaults = {
     name: 'transformer',
     ...DEFAULT_CONFIG
@@ -456,7 +456,7 @@ declare abstract class Dataset<T> {
   size: number
 }
 
-class GPTModel extends LayersModel {
+class GPTModel extends tf.LayersModel {
   constructor (protected readonly config: GPTConfig) {
     const gpt = GPT(config)
     const { inputs, outputs, name } = gpt

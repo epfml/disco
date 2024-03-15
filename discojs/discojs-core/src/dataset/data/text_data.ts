@@ -1,7 +1,8 @@
-import { type Task } from '../..'
-import { type Dataset } from '../dataset'
-import { Data } from './data'
-import { TEXT_PREPROCESSING } from './preprocessing'
+import type { Task } from '../../index.js'
+import type { Dataset } from '../dataset.js'
+
+import { Data } from './data.js'
+import { TEXT_PREPROCESSING } from './preprocessing/index.js'
 
 /**
  * Disco data made of textual samples.
