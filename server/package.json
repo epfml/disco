@@ -10,7 +10,7 @@
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs/discojs-node/dist --watch . --exec npm run",
     "start": "npm run build && node dist/run_server.js",
     "build": "tsc",
-    "lint": "npx eslint --ext ts --max-warnings 0 .",
+    "lint": "npx eslint .",
     "test": "mocha"
   },
   "author": "",

@@ -7,7 +7,7 @@
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-core/dist --watch . --exec npm run",
     "build": "tsc",
-    "lint": "npx eslint --ext ts --max-warnings 0 .",
+    "lint": "npx eslint .",
     "test": ": nothing",
     "docs": "typedoc ./src/index.ts --theme oxide"
   },

@@ -1,3 +1,5 @@
+// TODO remove as nothing is implemented
+
 import { Base as Aggregator } from './base.js'
 import type { client, Model, WeightsContainer } from '../index.js'
 
@@ -8,11 +10,8 @@ export type Momentum = WeightsContainer
 // TODO @s314cy: store previous round contributions + be able to access own previous contribution
 // for computing the momentum
 export class RobustAggregator extends Aggregator<WeightsContainer> {
-  // TODO @s314y: move to task definition
-  private readonly beta = 1
-
   constructor (
-    private readonly tauPercentile: number,
+    _tauPercentile: number,
     model?: Model,
     roundCutoff?: number,
     communicationRounds?: number
@@ -35,19 +34,15 @@ export class RobustAggregator extends Aggregator<WeightsContainer> {
     return false
   }
 
-  aggregate (): void {
+  override aggregate (): void {
     throw new Error('not implemented')
   }
 
-  makePayloads (weights: WeightsContainer): Map<client.NodeID, WeightsContainer> {
-    return undefined as any
+  override makePayloads (): Map<client.NodeID, WeightsContainer> {
+    throw new Error('not implemented')
   }
 
   isFull (): boolean {
     return true
-  }
-
-  private computeMomentum (a: WeightsContainer, b: WeightsContainer): WeightsContainer {
-    return a.sub(b).mul(1 - this.beta).add(a.mul(this.beta))
   }
 }

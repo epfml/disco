@@ -7,7 +7,7 @@
     "train": "npm run build && node dist/training.js",
     "custom_task": "npm run build && node dist/custom_task.js",
     "build": "tsc",
-    "lint": "npx eslint --ext ts --max-warnings 0 .",
+    "lint": "npx eslint .",
     "test": "npm run train"
   },
   "license": "ISC",
@@ -17,12 +17,8 @@
     "@epfml/discojs-node": "*"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "6",
     "eslint": "8",
-    "eslint-config-standard-with-typescript": "43",
-    "eslint-plugin-import": "2",
-    "eslint-plugin-n": "15",
-    "eslint-plugin-promise": "6",
-    "typescript": "4"
+    "typescript": "4",
+    "typescript-eslint": "7"
   }
 }

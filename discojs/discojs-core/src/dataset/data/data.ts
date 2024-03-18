@@ -18,12 +18,12 @@ export abstract class Data {
     public readonly task: Task,
     public readonly size?: number) {}
 
-  static async init (
-    dataset: Dataset,
-    task: Task,
-    size?: number
+  static init (
+    _dataset: Dataset,
+    _task: Task,
+    _size?: number
   ): Promise<Data> {
-    throw new Error('abstract')
+    return Promise.reject(new Error('abstract'))
   }
 
   /**
@@ -85,11 +85,12 @@ export abstract class Data {
       return (x) => x
     }
 
-    const preprocessingChain = applyPreprocessing
-      .reduce((acc: (x: tf.TensorContainer, task: Task) => tf.TensorContainer, fn) =>
-        (x: tf.TensorContainer, task: Task) => fn(acc(x, this.task), this.task))
+    const preprocessingChain = applyPreprocessing.reduce((acc, fn) =>
+      (x: tf.TensorContainer) => fn(acc(x), this.task),
+      (x: tf.TensorContainer) => x,
+    )
 
-    return (x: tf.TensorContainer) => preprocessingChain(x, this.task)
+    return (x: tf.TensorContainer) => preprocessingChain(x)
   }
 
   /**

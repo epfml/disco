@@ -8,7 +8,7 @@ export function isDigest (raw: unknown): raw is Digest {
     return false
   }
 
-  const { algorithm, value }: Partial<Record<string, unknown>> = raw
+  const { algorithm, value }: Partial<Record<keyof Digest, unknown>> = raw
 
   if (!(
     typeof algorithm === 'string' &&

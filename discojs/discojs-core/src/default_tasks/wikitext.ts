@@ -34,7 +34,7 @@ export const wikitext: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
-    return new models.GPT()
+  getModel (): Promise<Model> {
+    return Promise.resolve(new models.GPT())
   }
 }

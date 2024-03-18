@@ -51,18 +51,18 @@ export class TFJS extends Model {
     }
   }
 
-  override async predict (input: Sample): Promise<Prediction> {
+  override predict (input: Sample): Promise<Prediction> {
     const ret = this.model.predict(input)
     if (Array.isArray(ret)) {
       throw new Error('prediction yield many Tensors but should have only returned one')
     }
 
-    return ret
+    return Promise.resolve(ret)
   }
 
   static async deserialize (raw: tf.io.ModelArtifacts): Promise<Model> {
     return new this(await tf.loadLayersModel({
-      load: async () => raw
+      load: () => Promise.resolve(raw)
     }))
   }
 
@@ -71,14 +71,14 @@ export class TFJS extends Model {
     const ret = new Promise<tf.io.ModelArtifacts>((resolve) => { resolveArtifacts = resolve })
 
     await this.model.save({
-      save: async (artifacts) => {
+      save: (artifacts) => {
         resolveArtifacts(artifacts)
-        return {
+        return Promise.resolve({
           modelArtifactsInfo: {
             dateSaved: new Date(),
             modelTopologyType: 'JSON'
           }
-        }
+        })
       }
     }, {
       includeOptimizer: true // keep model compiled

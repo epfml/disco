@@ -78,7 +78,7 @@ async function loadSimpleFaceData (task: Task): Promise<data.DataSplit> {
 
   const filesPerFolder = [youngFiles, oldFiles]
 
-  const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
+  const labels = filesPerFolder.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
   const files = filesPerFolder.flat()
 
   return await new NodeImageLoader(task).loadAll(files, { labels })

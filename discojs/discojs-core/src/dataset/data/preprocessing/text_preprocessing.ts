@@ -1,7 +1,6 @@
 import { List } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import type { Task } from '../../../index.js'
 import type { PreprocessingFunction } from './base.js'
 
 /**
@@ -22,11 +21,12 @@ interface TokenizedEntry extends tf.TensorContainerObject {
   ys: tf.Tensor1D
 }
 
-const gpt3Tokenizer = null as any
+// TODO that'll fail everytime
+const gpt3Tokenizer = null as unknown as { encode: (_: string) => { bpe: number[]; text: string[] } }
 
 const padding: PreprocessingFunction = {
   type: TextPreprocessing.Padding,
-  apply: (x: tf.TensorContainer, task: Task) => {
+  apply: (x: tf.TensorContainer) => {
     const { xs, ys } = x as TokenizedEntry
     // TODO: add to task definition
     const maxLength = 64
@@ -44,18 +44,10 @@ const padding: PreprocessingFunction = {
 
 const tokenize: PreprocessingFunction = {
   type: TextPreprocessing.Tokenize,
-  apply: (x: tf.TensorContainer, task: Task) => {
+  apply: (x: tf.TensorContainer) => {
     const { xs, ys } = x as TextEntry
-    const params = task.trainingInformation
-    // TODO: add to task definition
-    const tokenizer = (params as unknown as any).tokenizer
 
-    let tokenized: number[]
-    if (tokenizer === undefined) {
-      tokenized = gpt3Tokenizer.encode(xs[0]).bpe
-    } else {
-      throw new Error('tokenizer not implemented')
-    }
+    const tokenized = gpt3Tokenizer.encode(xs[0]).bpe
 
     return {
       xs: tf.tensor(tokenized),

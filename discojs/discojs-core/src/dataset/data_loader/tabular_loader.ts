@@ -73,7 +73,7 @@ export abstract class TabularLoader<Source> extends DataLoader<Source> {
             ys: Object.values(ys)
           }
         } else {
-          return Object.values(t)
+          return t
         }
       }
       throw new TypeError('Expected TensorContainerObject')

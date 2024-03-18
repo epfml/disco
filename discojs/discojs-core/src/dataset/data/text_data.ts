@@ -10,12 +10,12 @@ import { TEXT_PREPROCESSING } from './preprocessing/index.js'
 export class TextData extends Data {
   public readonly availablePreprocessing = TEXT_PREPROCESSING
 
-  static async init (
+  static init (
     dataset: Dataset,
     task: Task,
     size?: number
   ): Promise<TextData> {
-    return new TextData(dataset, task, size)
+    return Promise.resolve(new TextData(dataset, task, size))
   }
 
   protected create (dataset: Dataset, task: Task, size?: number): TextData {

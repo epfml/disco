@@ -1,5 +1,5 @@
-import { type AggregatorChoice } from '../aggregator/get.js'
-import { type Preprocessing } from '../dataset/data/preprocessing/index.js'
+import type { AggregatorChoice } from '../aggregator/get.js'
+import type { Preprocessing } from '../dataset/data/preprocessing/index.js'
 
 export interface TrainingInformation {
   // modelID: unique ID for the model
@@ -59,12 +59,12 @@ export interface TrainingInformation {
 }
 
 function isStringArray(raw: unknown): raw is string[] {
-  if (!Array.isArray(raw) || raw.some((e) => typeof e !== 'string')) {
+  if (!Array.isArray(raw)) {
     return false
   }
+  const arr: unknown[] = raw // isArray is unsafely guarding with any[]
 
-  const _: string[] = raw
-  return true
+  return arr.every((e) => typeof e === 'string')
 }
 
 export function isTrainingInformation (raw: unknown): raw is TrainingInformation {

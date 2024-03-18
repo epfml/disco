@@ -7,7 +7,7 @@ type ModelType =
     | 'gpt-micro'
     | 'gpt-nano'
 
-interface ModelSize {
+export interface ModelSize {
   nLayer?: number
   nHead?: number
   nEmbd?: number
