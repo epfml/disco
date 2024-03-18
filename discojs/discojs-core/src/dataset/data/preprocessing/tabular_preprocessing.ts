@@ -1,7 +1,6 @@
 import type tf from '@tensorflow/tfjs'
 import { List } from 'immutable'
 
-import type { Task } from '../../../index.js'
 import type { PreprocessingFunction } from './base.js'
 
 /**
@@ -19,7 +18,7 @@ interface TabularEntry extends tf.TensorContainerObject {
 
 const sanitize: PreprocessingFunction = {
   type: TabularPreprocessing.Sanitize,
-  apply: (entry: tf.TensorContainer, task: Task): tf.TensorContainer => {
+  apply: (entry: tf.TensorContainer): tf.TensorContainer => {
     // if preprocessing a dataset without labels, then the entry is an array of numbers
     if (Array.isArray(entry)) {
       return entry.map(i => i ?? 0)

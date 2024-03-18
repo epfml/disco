@@ -4,7 +4,10 @@ import type tf from '@tensorflow/tfjs'
 import type { Model } from '../index.js'
 import { models, serialization } from '../index.js'
 
-const enum Type { TFJS, GPT }
+const Type = {
+  TFJS: 0,
+  GPT: 1
+} as const
 
 export type Encoded = Uint8Array
 
@@ -37,7 +40,7 @@ export async function decode (encoded: unknown): Promise<Model> {
   }
   const [type, rawModel] = raw as [unknown, unknown]
 
-  if (typeof type !== 'number' || (type !== Type.TFJS && type !== Type.GPT)) {
+  if (typeof type !== 'number') {
     throw new Error('invalid encoding')
   }
   switch (type) {
@@ -57,5 +60,7 @@ export async function decode (encoded: unknown): Promise<Model> {
       const serialized = serialization.weights.decode(nums)
       return models.GPT.deserialize(serialized)
     }
+    default:
+      throw new Error('invalid encoding')
   }
 }

@@ -51,7 +51,7 @@ export class PeerPool {
     ))
 
     console.info(`[${this.id}] asked to connect new peers:`, newPeers.keySeq().toJS())
-    const newPeersConnections = newPeers.map((peer, id) => new PeerConnection(this.id, peer, signallingServer))
+    const newPeersConnections = newPeers.map((peer) => new PeerConnection(this.id, peer, signallingServer))
 
     // adding peers to pool before connecting them because they must be set to call signal on them
     this.peers = this.peers.merge(newPeersConnections)

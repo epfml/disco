@@ -18,7 +18,7 @@ function getCustomAdam (model: tf.LayersModel, c: Required<GPTConfig>): tf.Optim
   const excludeFromWeightDecay: string[] = []
 
   // TODO unsafe cast
-  const namedWeights = (model as unknown as any).getNamedWeights() as Array<{ name: string, tensor: tf.Tensor }>
+  const namedWeights = (model as unknown as Record<'getNamedWeights', () => Array<{ name: string, tensor: tf.Tensor }>>).getNamedWeights()
 
   namedWeights.forEach((v) => {
     if (

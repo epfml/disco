@@ -6,9 +6,11 @@ import { Trainer } from './trainer.js'
  * without any collaborators.
  */
 export class LocalTrainer extends Trainer {
-  async onRoundBegin (accuracy: number): Promise<void> {}
+  async onRoundBegin (): Promise<void> {
+    return await Promise.resolve()
+  }
 
-  async onRoundEnd (accuracy: number): Promise<void> {
+  async onRoundEnd (): Promise<void> {
     console.log('on round end')
     await this.memory.updateWorkingModel(
       { taskID: this.task.id, name: this.task.trainingInformation.modelID },

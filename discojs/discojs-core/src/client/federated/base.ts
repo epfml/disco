@@ -1,6 +1,6 @@
 import { Map } from 'immutable'
 
-import { serialization, type informant, type MetadataKey, type MetadataValue, type WeightsContainer, type TrainingInformant } from '../../index.js'
+import { serialization, type informant, type MetadataKey, type MetadataValue, type WeightsContainer } from '../../index.js'
 import { type NodeID } from '../types.js'
 import { Base as Client } from '../base.js'
 import { type, type ClientConnected } from '../messages.js'
@@ -72,18 +72,20 @@ export class Base extends Client {
   /**
    * Disconnection process when user quits the task.
    */
-  async disconnect (): Promise<void> {
+  override disconnect (): Promise<void> {
     this.server.disconnect()
     this._server = undefined
     this._ownId = undefined
 
     this.aggregator.setNodes(this.aggregator.nodes.delete(Base.SERVER_NODE_ID))
+
+    return Promise.resolve()
   }
 
   /**
    * Send a message containing our local weight updates to the federated server.
    * And waits for the server to reply with the most recent aggregated weights
-   * @param weights The weight updates to send
+   * @param payload The weight updates to send
    */
   private async sendPayloadAndReceiveResult (payload: WeightsContainer): Promise<WeightsContainer | undefined> {
     const msg: messages.SendPayload = {
@@ -145,25 +147,6 @@ export class Base extends Client {
   }
 
   /**
-   * Sends metadata to the federated server. Metadata is gathered server-side according
-   * to the key given by clients.
-   * @param key The metadata key
-   * @param value The metadata value
-   */
-  async sendMetadata (key: MetadataKey, value: MetadataValue): Promise<void> {
-    const msg: messages.SendMetadata = {
-      type: type.SendMetadata,
-      taskId: this.task.id,
-      nodeId: this.ownId,
-      round: this.aggregator.round,
-      key,
-      value
-    }
-
-    this.server.send(msg)
-  }
-
-  /**
    * Fetch the metadata values maintained by the federated server, for a given metadata key.
    * The values are indexed by node id.
    * @param key The metadata key
@@ -185,26 +168,23 @@ export class Base extends Client {
     const received = await waitMessageWithTimeout(this.server, type.ReceiveServerMetadata)
     if (received.metadataMap !== undefined) {
       this.metadataMap = Map(
-        received.metadataMap.filter(([k, v]) => v !== undefined) as Array<[NodeID, MetadataValue]>
+        received.metadataMap.filter(([_, v]) => v !== undefined) as Array<[NodeID, MetadataValue]>
       )
     }
 
     return this.metadataMap
   }
 
-  async onRoundBeginCommunication (
-    weights: WeightsContainer,
-    round: number, informant:
-    TrainingInformant
-  ): Promise<void> {
+  override onRoundBeginCommunication (): Promise<void> {
     // Prepare the result promise for the incoming round
     this.aggregationResult = this.aggregator.receiveResult()
+
+    return Promise.resolve()
   }
 
-  async onRoundEndCommunication (
+  override async onRoundEndCommunication (
     weights: WeightsContainer,
     round: number,
-    trainingInformant: informant.FederatedInformant
   ): Promise<void> {
     // NB: For now, we suppose a fully-federated setting.
 
@@ -229,6 +209,4 @@ export class Base extends Client {
     // Pull statistics about the contributors
     // await this.receiveStatistics(trainingInformant)
   }
-
-  async onTrainEndCommunication (): Promise<void> {}
 }

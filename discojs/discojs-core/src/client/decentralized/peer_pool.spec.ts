@@ -12,7 +12,7 @@ describe('peer pool', function () {
 
   let pools: Map<NodeID, PeerPool>
 
-  beforeEach(async () => {
+  beforeEach(() => {
     const count = 3
 
     pools = Map(Range(1, count + 1).map(String).map((id) =>
@@ -26,8 +26,8 @@ describe('peer pool', function () {
 
   function mockServer (poolId: string): EventConnection {
     return {
-      send: (msg: any): void => {
-        const signal: messages.SignalForPeer = msg
+      send: (msg): void => {
+        const signal = msg as messages.SignalForPeer
         const otherPool = pools.get(signal.peer)
         if (otherPool === undefined) {
           throw new Error(`signal for unknown pool: ${signal.peer}`)
@@ -71,7 +71,7 @@ describe('peer pool', function () {
     const messages =
       peersSets
         .entrySeq()
-        .map(([poolID, peers]) =>
+        .map(([_, peers]) =>
           peers
             .keySeq().map((id) => mockWeights(id))
             .toArray())
@@ -81,7 +81,7 @@ describe('peer pool', function () {
     peersSets
       .entrySeq()
       .forEach(([poolID, peers]) =>
-        peers.forEach((peer, id) => { peer.send(mockWeights(poolID)) }))
+        peers.forEach((peer) => { peer.send(mockWeights(poolID)) }))
 
     const exchanged = (await Promise.all(
       peersSets
@@ -106,7 +106,7 @@ describe('peer pool', function () {
     await assertCanSendMessagesToEach(poolsPeers)
   })
 
-  it('doesn\'t reconnect known peers', async () => {
+  it("doesn't reconnect known peers", async () => {
     const poolsPeersFirst = await getAllPeers(pools)
     await assertCanSendMessagesToEach(poolsPeersFirst)
 

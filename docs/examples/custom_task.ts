@@ -32,7 +32,7 @@ const customTask: TaskProvider = {
     }
   },
 
-  async getModel () {
+  getModel () {
     const model = tf.sequential()
 
     model.add(
@@ -52,7 +52,7 @@ const customTask: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return Promise.resolve(new models.TFJS(model))
   }
 }
 

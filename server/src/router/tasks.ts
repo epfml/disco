@@ -19,13 +19,18 @@ export class Tasks {
   ) {
     this.ownRouter = express.Router()
 
-    this.ownRouter.get('/', (req, res, next) => {
-      this.getTasksMetadata(req, res).catch(next)
+    this.ownRouter.get('/', (_, res) => {
+      res
+        .status(200)
+        .send(this.tasksAndModels.map(([t, _]) => t).toArray())
     })
 
     this.ownRouter.post('/', (req, res) => {
-      const model = req.body.model
-      const newTask = req.body.task
+      const raw: unknown = req.body
+      if (typeof raw !== 'object' || raw === null) {
+	return res.status(400)
+      }
+      const { model, newTask }: Partial<Record<'model' | 'newTask', unknown>> = raw
 
       if (!(
         model !== undefined &&
@@ -60,20 +65,6 @@ export class Tasks {
     })
 
     this.tasksAndModels = this.tasksAndModels.add([task, model])
-  }
-
-  /**
-   * Request handler called when a client sends a GET request asking for all the
-   * tasks metadata stored in the server's tasks.json file. This is used for
-   * generating the client's list of tasks. It requires no prior connection to the
-   * server and is thus publicly available data.
-   * @param request received from client
-   * @param response sent to client
-   */
-  private async getTasksMetadata (request: Request, response: Response): Promise<void> {
-    response
-      .status(200)
-      .send(this.tasksAndModels.map(([t, _]) => t).toArray())
   }
 
   /**

@@ -71,13 +71,28 @@ export class TasksAndModels {
     const hash = createHash(digest.algorithm)
     const modelConfigRaw = await fs.readFile(`${modelPath}/model.json`)
 
-    const modelConfig = JSON.parse(modelConfigRaw.toString())
-    const weightsFiles = modelConfig.weightsManifest[0].paths
+    const parsedModelConfig: unknown = JSON.parse(modelConfigRaw.toString())
+
+    if (typeof parsedModelConfig !== 'object' || parsedModelConfig === null) {
+      throw new Error('invalid model config')
+    }
+    const { weightsManifest }: Partial<Record<'weightsManifest', unknown>> = parsedModelConfig
+
+    if (!Array.isArray(weightsManifest) || weightsManifest.length === 0) {
+      throw new Error('invalid weights manifest')
+    }
+    const manifest: unknown = weightsManifest[0]
+
+    if (typeof manifest !== 'object' || manifest === null) {
+      throw new Error('invalid weight manifest')
+    }
+    const { paths: weightsFiles }: Partial<{ paths: unknown }> = manifest
+
     if (!(
       Array.isArray(weightsFiles) &&
       typeof weightsFiles[0] === 'string'
     )) {
-      throw new Error()
+      throw new Error("invalud weights files")
     }
     await Promise.all(weightsFiles.map(async (file: string) => {
       const data = await fs.readFile(`${modelPath}/${file}`)

@@ -31,14 +31,14 @@ export class DistributedTrainer extends Trainer {
     await this.client.onTrainBeginCommunication(this.model.weights, this.trainingInformant)
   }
 
-  async onRoundBegin (accuracy: number): Promise<void> {
+  async onRoundBegin (): Promise<void> {
     await this.client.onRoundBeginCommunication(this.model.weights, this.roundTracker.round, this.trainingInformant)
   }
 
   /**
    * Callback called every time a round is over
    */
-  async onRoundEnd (accuracy: number): Promise<void> {
+  async onRoundEnd (): Promise<void> {
     await this.client.onRoundEndCommunication(this.model.weights, this.roundTracker.round, this.trainingInformant)
     if (this.aggregator.model !== undefined) {
       // The aggregator's own aggregation is async. The trainer updates its model to match the aggregator's
