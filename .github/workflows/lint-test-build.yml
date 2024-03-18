@@ -19,7 +19,6 @@ jobs:
       - run: ./datasets/populate
 
   lint-lib-core:
-    needs: [build-lib-core, build-lib-node]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +27,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-{core,node} run build
       - run: npm --workspace=./discojs/discojs-core run lint
 
   lint-lib-node:
@@ -211,8 +209,7 @@ jobs:
         working-directory: docs/examples
 
   test-lib-core:
-    needs:
-      [build-lib-core, build-lib-node, build-server-docker, download-datasets]
+    needs: [build-lib-core, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -228,11 +225,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-{core,node} run build
-      - run: ./with_server npm --workspace=./discojs/discojs-core test
+      - run: npm --workspace=./discojs/discojs-core test
 
   test-lib-node:
-    needs: [build-lib-core, build-server-docker, download-datasets]
+    needs: [build-lib-core, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -249,10 +245,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-core run build
-      - run: ./with_server npm --workspace=./discojs/discojs-node test
+      - run: npm --workspace=./discojs/discojs-node test
 
   test-lib-web:
-    needs: [build-lib-core, build-server-docker, download-datasets]
+    needs: [build-lib-core]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -269,7 +265,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-core run build
-      - run: ./with_server npm --workspace=./discojs/discojs-web test
+      - run: npm --workspace=./discojs/discojs-web test
 
   test-server:
     needs: [build-lib-core, build-lib-node, download-datasets]
