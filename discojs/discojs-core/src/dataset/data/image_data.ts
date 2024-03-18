@@ -43,7 +43,13 @@ export class ImageData extends Data {
           throw new Error()
         }
       } catch (e) {
-        throw new Error('Data input format is not compatible with the chosen task')
+	let cause
+	if (e instanceof Error) {
+          cause = e
+	} else {
+          console.error("got invalid Error type", e)
+	}
+        throw new Error('Data input format is not compatible with the chosen task', { cause })
       }
     }
 

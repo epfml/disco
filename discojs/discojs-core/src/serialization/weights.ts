@@ -24,7 +24,6 @@ function isSerialized (raw: unknown): raw is Serialized {
     return false
   }
 
-  // eslint-disable-next-line
   const _: Serialized = {shape, data}
 
   return true
@@ -48,7 +47,7 @@ export async function encode (weights: WeightsContainer): Promise<Encoded> {
 }
 
 export function decode (encoded: Encoded): WeightsContainer {
-  const raw = msgpack.decode(encoded)
+  const raw: unknown = msgpack.decode(encoded)
 
   if (!(Array.isArray(raw) && raw.every(isSerialized))) {
     throw new Error('expected to decode an array of serialized weights')

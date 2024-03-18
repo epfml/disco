@@ -69,7 +69,8 @@ export abstract class Trainer {
     }
   }
 
-  protected onEpochBegin (epoch: number, logs?: tf.Logs): void {}
+  // TODO never used
+  protected onEpochBegin (_epoch: number, _logs?: tf.Logs): void {}
 
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
@@ -88,15 +89,17 @@ export abstract class Trainer {
     }
   }
 
-  protected async onTrainBegin (logs?: tf.Logs): Promise<void> {
+  protected async onTrainBegin (_logs?: tf.Logs): Promise<void> {
     this.trainingInformant.addMessage('Training started.')
+    return await Promise.resolve()
   }
 
   /**
    * When the training ends this function will be call
    */
-  protected async onTrainEnd (logs?: tf.Logs): Promise<void> {
+  protected async onTrainEnd (_logs?: tf.Logs): Promise<void> {
     this.trainingInformant.addMessage('Training finished.')
+    return await Promise.resolve()
   }
 
   /**

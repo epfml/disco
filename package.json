@@ -1,5 +1,6 @@
 {
   "name": "disco",
+  "type": "module",
   "workspaces": [
     "discojs/discojs-core",
     "discojs/discojs-node",
@@ -10,12 +11,8 @@
     "isomorphic-wrtc"
   ],
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "6",
     "eslint": "8",
-    "eslint-config-standard-with-typescript": "43",
-    "eslint-plugin-import": "2",
-    "eslint-plugin-n": "15",
-    "eslint-plugin-promise": "6",
-    "typescript": "4"
+    "typescript": "4",
+    "typescript-eslint": "7"
   }
 }

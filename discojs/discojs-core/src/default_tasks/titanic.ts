@@ -71,7 +71,7 @@ export const titanic: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
+  getModel (): Promise<Model> {
     const model = tf.sequential()
 
     model.add(
@@ -92,6 +92,6 @@ export const titanic: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return Promise.resolve(new models.TFJS(model))
   }
 }

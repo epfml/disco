@@ -123,13 +123,13 @@ export class GPT extends Model {
     }
   }
 
-  override async predict (input: Sample): Promise<Prediction> {
+  override predict (input: Sample): Promise<Prediction> {
     const ret = this.model.predict(input)
     if (Array.isArray(ret)) {
       throw new Error('prediction yield many Tensors but should have only returned one')
     }
 
-    return ret
+    return Promise.resolve(ret)
   }
 
   static deserialize (weights: WeightsContainer): Model {

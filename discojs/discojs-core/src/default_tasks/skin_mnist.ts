@@ -47,7 +47,7 @@ export const skinMnist: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
+  getModel (): Promise<Model> {
     const numClasses = 7
     const size = 28
 
@@ -98,6 +98,6 @@ export const skinMnist: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return Promise.resolve(new models.TFJS(model))
   }
 }

@@ -4,6 +4,7 @@ import { data } from '@epfml/discojs-core'
 
 export class TabularLoader extends data.TabularLoader<File> {
   async loadDatasetFrom (source: File, csvConfig: Record<string, unknown>): Promise<data.Dataset> {
-    return new tf.data.CSVDataset(new tf.data.FileDataSource(source), csvConfig)
+    const file = new tf.data.FileDataSource(source)
+    return Promise.resolve(new tf.data.CSVDataset(file, csvConfig))
   }
 }

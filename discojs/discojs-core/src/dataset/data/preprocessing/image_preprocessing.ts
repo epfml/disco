@@ -33,7 +33,7 @@ const resize: PreprocessingFunction = {
 
 const normalize: PreprocessingFunction = {
   type: ImagePreprocessing.Normalize,
-  apply: (entry: tf.TensorContainer, task: Task): tf.TensorContainer => {
+  apply: (entry: tf.TensorContainer): tf.TensorContainer => {
     const { xs, ys } = entry as ImageEntry
     return {
       xs: xs.div(tf.scalar(255)),

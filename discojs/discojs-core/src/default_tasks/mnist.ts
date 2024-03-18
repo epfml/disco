@@ -40,7 +40,7 @@ export const mnist: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
+  getModel (): Promise<Model> {
     const model = tf.sequential()
 
     model.add(
@@ -69,6 +69,6 @@ export const mnist: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return Promise.resolve(new models.TFJS(model))
   }
 }

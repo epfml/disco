@@ -40,7 +40,7 @@ export const lusCovid: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
+  getModel (): Promise<Model> {
     const imageHeight = 100
     const imageWidth = 100
     const imageChannels = 3
@@ -93,6 +93,6 @@ export const lusCovid: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return Promise.resolve(new models.TFJS(model))
   }
 }

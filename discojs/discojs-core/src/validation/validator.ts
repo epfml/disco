@@ -81,8 +81,8 @@ export class Validator {
           [],
           0
         ).arraySync()
-      } catch (e: any) {
-        console.error(e instanceof Error ? e.message : e.toString())
+      } catch (e) {
+        console.error(e instanceof Error ? e.message : e)
         throw new Error('Failed to compute the confusion matrix')
       }
     }

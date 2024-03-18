@@ -127,12 +127,12 @@ export class Federated extends Server {
    * @param clientId the clientID of the contribution
    * @param ws the websocket through which send the aggregated weights
    */
-  private async addContributionAndSendModel (
+  private addContributionAndSendModel (
     msg: messages.SendPayload,
     task: TaskID,
     clientId: client.NodeID,
     ws: WebSocket
-  ): Promise<void> {
+  ): void {
     const { payload, round } = msg
     const aggregator = this.aggregators.get(task)
 
@@ -150,7 +150,6 @@ export class Federated extends Server {
     // send the new weights to the client.
     // Use the void keyword to explicity avoid waiting for the promise to resolve
     this.createPromiseForWeights(task, aggregator, ws)
-      .catch(console.error)
 
     const serialized = serialization.weights.decode(payload)
     // Add the contribution to the aggregator,
@@ -172,10 +171,10 @@ export class Federated extends Server {
    * @param aggregator the server aggregator, in order to access the current round
    * @param ws the websocket through which send the aggregated weights
    */
-  private async createPromiseForWeights (
+  private createPromiseForWeights (
     task: TaskID,
     aggregator: aggregators.Aggregator,
-    ws: WebSocket): Promise<void> {
+    ws: WebSocket): void {
     const promisedResult = this.results.get(task)
     if (promisedResult === undefined) {
       throw new Error(`result promise was not set for task ${task}`)
@@ -213,7 +212,7 @@ export class Federated extends Server {
     }
 
     ws.on('message', (data: Buffer) => {
-      const msg = msgpack.decode(data)
+      const msg: unknown = msgpack.decode(data)
       if (!client.federated.messages.isMessageFederated(msg)) {
         console.error('invalid federated message received on WebSocket')
         return // TODO send back error
@@ -241,7 +240,6 @@ export class Federated extends Server {
           throw new Error('aggregator model was not set')
         }
         this.addContributionAndSendModel(msg, task.id, clientId, ws)
-          .catch(console.error)
       } else if (msg.type === MessageTypes.ReceiveServerStatistics) {
         const statistics = this.informants
           .get(task.id)
@@ -264,7 +262,6 @@ export class Federated extends Server {
         }
 
         this.createPromiseForWeights(task.id, aggregator, ws)
-          .catch(console.error)
       } else if (msg.type === MessageTypes.SendMetadata) {
         const { round, key, value } = msg
 
