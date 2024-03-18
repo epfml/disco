@@ -7,6 +7,7 @@ import tf from '@tensorflow/tfjs'
 import { WeightsContainer } from '../..'
 import type { Dataset } from '../../dataset'
 import { Sink } from '../../utils/event_emitter'
+import { encode, decode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
 
 import type { EpochLogs, Prediction, Sample } from '../model'
 import { Model } from '../model'
@@ -28,7 +29,7 @@ interface Config {
 export class GPT extends Model {
   private readonly model: GPTLMHeadModel
 
-  private static readonly batchSize = 4
+  private static readonly batchSize = 8
   private static readonly blockSize = 128
   private static readonly vocabSize = 50258
 
@@ -38,13 +39,13 @@ export class GPT extends Model {
     // TODO sensible defaults?
     const config: Config = {
       modelType: 'gpt-nano',
+      lr: 0.001,
       epochs: 1,
-      maxIter: 2,
+      maxIter: 10,
+      maxEvalBatches: 10,
       batchSize: GPT.batchSize,
       blockSize: GPT.blockSize,
-      lr: 0.001,
-      vocabSize: GPT.vocabSize,
-      maxEvalBatches: 1
+      vocabSize: GPT.vocabSize
     }
 
     this.model = new GPTLMHeadModel(config)
@@ -58,44 +59,13 @@ export class GPT extends Model {
     this.model.setWeights(ws.weights)
   }
 
-  // takes a stream of two bytes followed by a token ID
-  private convertCharDataset (dataset: Dataset): tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }> {
-    const batchSize = 4
-    const sampleSize = GPT.blockSize + 1
-    const chunkSize = sampleSize * batchSize * 2
-
-    function toUInt16 (low: number, high: number): number {
-      low &= 0xff
-      high &= 0xff
-      return (high << 8) | low
-    }
-
-    // TODO add support for small last batch
-    return dataset.batch(chunkSize, false).mapAsync(async (chunk) => {
-      if (!(chunk instanceof tf.Tensor)) {
-        throw new Error('chunk is not a Tensor')
-      }
-      if (chunk.shape.length !== 2 || chunk.shape[1] !== 1) {
-        throw new Error('dataset is not a only char')
-      }
-
-      const buffer = await chunk.buffer()
-
-      const xs = tf.buffer<tf.Rank.R2, 'int32'>([batchSize, GPT.blockSize], 'int32')
-      const ys = tf.buffer<tf.Rank.R3, 'int32'>([batchSize, GPT.blockSize, GPT.vocabSize], 'int32')
-
-      for (let i = 0; i < batchSize; i++) {
-        for (let j = 0; j < sampleSize; j++) {
-          const idx = (i * sampleSize + j) * 2
-          const low = buffer.get(idx)
-          const high = buffer.get(idx + 1)
-          const token = toUInt16(low, high)
-          if (j < sampleSize - 1) xs.set(token, i, j)
-          if (j > 0) ys.set(1, i, j - 1, token)
-        }
-      }
-
-      return { xs: xs.toTensor(), ys: ys.toTensor() }
+  private batchTokens (dataset: Dataset): Dataset {
+    const batchSize = 16
+    return dataset.batch(batchSize).mapAsync(async chunk => {
+      let xs = (chunk as tf.TensorContainerObject).xs as tf.Tensor
+      xs = tf.squeeze(xs) // Remove extra dimension
+      const ys = tf.oneHot(xs, GPT.vocabSize)
+      return { xs, ys }
     })
   }
 
@@ -105,20 +75,24 @@ export class GPT extends Model {
     epochs = 1,
     tracker = new Sink()
   ): AsyncGenerator<EpochLogs, void> {
-    for (let i = 0; i < epochs; i++) {
-      let logs: tf.Logs | undefined
-
-      await this.model.fitDataset(
-        this.convertCharDataset(trainingData), {
-          epochs: 1,
-          validationData: validationData !== undefined ? this.convertCharDataset(validationData) : validationData,
-          callbacks: {
-            onEpochEnd: (_, cur) => { logs = cur },
-            onBatchBegin: () => { tracker.emit('batchBegin', undefined) },
-            onBatchEnd: () => { tracker.emit('batchEnd', undefined) }
+    let logs: tf.Logs | undefined
+    trainingData = this.batchTokens(trainingData)
+    const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
+      epochs: 1, // required to match the ModelFitDatasetArgs type but is currently unused
+      validationData: validationData !== undefined ? this.batchTokens(validationData) : undefined,
+      callbacks: {
+        onEpochEnd: (epoch, cur) => {
+          logs = cur
+          if (logs !== undefined && cur !== undefined) {
+            logs.loss = cur.val_loss
           }
-        })
-
+        },
+        onBatchBegin: () => { tracker.emit('batchBegin', undefined) },
+        onBatchEnd: () => { tracker.emit('batchEnd', undefined) }
+      }
+    }
+    for (let i = 0; i < epochs; i++) {
+      await this.model.fitDataset(trainingData, trainingArgs)
       yield logs
     }
   }
@@ -130,6 +104,22 @@ export class GPT extends Model {
     }
 
     return ret
+  }
+
+  async generate (input: Sample, newTokens: number): Promise<string> {
+    const string = ((input.arraySync() as unknown) as string[])[0]
+    const tokenizer = { encode, decode }
+    const tokens = tokenizer.encode(string)
+
+    const generationConfig = {
+      maxNewTokens: newTokens,
+      temperature: 1.0,
+      doSample: false,
+      topK: null
+    }
+    const predictedTokens = await this.model.generate([tokens], generationConfig)
+    const generatedWords = tokenizer.decode(predictedTokens[0])
+    return generatedWords
   }
 
   static deserialize (weights: WeightsContainer): Model {

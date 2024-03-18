@@ -104,10 +104,10 @@ export async function train (
 
     let logs: tf.Logs | undefined
     if (evalDs !== undefined) {
-      logs = await evaluate(model, evalDs)
+      logs = await evaluate(model, evalDs, c.maxEvalBatches)
     }
+    console.log(epoch)
     await callbacks.onEpochEnd?.(epoch, logs)
-
     await new Promise((resolve) => setTimeout(resolve, 1))
   }
 

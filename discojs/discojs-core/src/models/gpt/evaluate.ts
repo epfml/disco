@@ -2,13 +2,14 @@ import tf from '@tensorflow/tfjs'
 
 export default async function evaluate (
   model: tf.LayersModel,
-  dataset: tf.data.Dataset<{ xs: tf.Tensor, ys: tf.Tensor }>
+  dataset: tf.data.Dataset<{ xs: tf.Tensor, ys: tf.Tensor }>,
+  maxEvalBatches: number
 ): Promise<Record<'acc' | 'val_acc' | 'val_loss' | 'val_perplexity', number>> {
   let datasetSize = 0
   let totalLoss = 0
   const acc: [number, number] = [0, 0]
 
-  await dataset.map(({ xs, ys }) => {
+  await dataset.take(maxEvalBatches).map(({ xs, ys }) => {
     const logits = model.apply(xs)
     if (Array.isArray(logits)) {
       throw new Error('model outputed many tensor')

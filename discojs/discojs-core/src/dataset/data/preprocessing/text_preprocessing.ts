@@ -3,6 +3,7 @@ import tf from '@tensorflow/tfjs'
 
 import type { Task } from '../../..'
 import type { PreprocessingFunction } from './base'
+import { encode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
 
 /**
  * Available text preprocessing types.
@@ -12,32 +13,22 @@ export enum TextPreprocessing {
   Padding
 }
 
-interface TextEntry extends tf.TensorContainerObject {
-  xs: string[]
-  ys: number[]
-}
-
 interface TokenizedEntry extends tf.TensorContainerObject {
   xs: tf.Tensor1D
-  ys: tf.Tensor1D
 }
-
-const gpt3Tokenizer = null as any
 
 const padding: PreprocessingFunction = {
   type: TextPreprocessing.Padding,
   apply: (x: tf.TensorContainer, task: Task) => {
-    const { xs, ys } = x as TokenizedEntry
-    // TODO: add to task definition
-    const maxLength = 64
-    if (maxLength === undefined) {
-      return { xs, ys }
-    }
+    const { xs } = x as TokenizedEntry
+    const maxLength = task.trainingInformation.maxSequenceLength ?? 128
+    // Use the tokenizer paddingToken except if undefined
+    // Fallback value to the last value of the vocab size
+    const paddingToken = task.trainingInformation.paddingToken ?? 50257
     return {
       xs: xs
-        .pad([[0, Math.max(0, maxLength - xs.size)]])
-        .slice([0], [maxLength]),
-      ys
+        .pad([[0, Math.max(0, maxLength - xs.size)]], paddingToken)
+        .slice([0], [maxLength])
     }
   }
 }
@@ -45,21 +36,13 @@ const padding: PreprocessingFunction = {
 const tokenize: PreprocessingFunction = {
   type: TextPreprocessing.Tokenize,
   apply: (x: tf.TensorContainer, task: Task) => {
-    const { xs, ys } = x as TextEntry
-    const params = task.trainingInformation
+    const xs = x as string // tf.TextLineDataset yields strings
     // TODO: add to task definition
-    const tokenizer = (params as unknown as any).tokenizer
-
-    let tokenized: number[]
-    if (tokenizer === undefined) {
-      tokenized = gpt3Tokenizer.encode(xs[0]).bpe
-    } else {
-      throw new Error('tokenizer not implemented')
-    }
+    const tokenizer = { encode }
+    const tokens = tokenizer.encode(xs)
 
     return {
-      xs: tf.tensor(tokenized),
-      ys: tf.tensor(ys)
+      xs: tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs
     }
   }
 }

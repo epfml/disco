@@ -166,4 +166,9 @@ export interface TrainingInformation {
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
   aggregator?: AggregatorChoice
+  // paddingToken (number) used for padding batches with different length sequences.
+  paddingToken?: number
+  // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
+  // truncate string to a maximum length
+  maxSequenceLength?: number
 }

@@ -1,5 +1,6 @@
 import type { Model, Task, TaskProvider } from '..'
-import { TrainingSchemes, models } from '..'
+import { TrainingSchemes, models, data } from '..'
+import { encode, EndOfText } from 'gpt-tokenizer/cjs/model/text-davinci-003'
 
 export const wikitext: TaskProvider = {
   getTask (): Task {
@@ -19,8 +20,9 @@ export const wikitext: TaskProvider = {
       trainingInformation: {
         dataType: 'text',
         modelID: 'wikitext-103-raw-model',
+        preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.Padding],
         validationSplit: 0.2, // TODO: is this used somewhere? because train, eval and test are already split in dataset
-        epochs: 10,
+        epochs: 1,
         // constructing a batch is taken care automatically in the dataset to make things faster
         // so we fake a batch size of 1
         batchSize: 1,
@@ -29,7 +31,9 @@ export const wikitext: TaskProvider = {
         decentralizedSecure: true,
         minimumReadyPeers: 3,
         maxShareValue: 100,
-        roundDuration: 10
+        roundDuration: 10,
+        paddingToken: encode(EndOfText, { allowedSpecial: new Set([EndOfText]) })[0],
+        maxSequenceLength: 128
       }
     }
   },

@@ -75,6 +75,7 @@ export abstract class Trainer {
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
   protected onEpochEnd (epoch: number, logs?: tf.Logs): void {
+    console.log('Trainer', epoch)
     this.trainerLogger.onEpochEnd(epoch, logs)
 
     if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
@@ -133,7 +134,7 @@ export abstract class Trainer {
       })
     )
 
-    let epoch = 0
+    let epoch = 0 // TODO: Trainer's epoch is not the same as the epoch in this.training
     this.onEpochBegin(epoch)
     for await (const logs of this.training) {
       this.onEpochEnd(epoch, logs)
