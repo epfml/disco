@@ -23,16 +23,15 @@ export const wikitext: TaskProvider = {
         preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.Padding],
         validationSplit: 0.2, // TODO: is this used somewhere? because train, eval and test are already split in dataset
         epochs: 1,
-        // constructing a batch is taken care automatically in the dataset to make things faster
-        // so we fake a batch size of 1
-        batchSize: 1,
         scheme: TrainingSchemes.FEDERATED,
         noiseScale: undefined,
         decentralizedSecure: true,
         minimumReadyPeers: 3,
         maxShareValue: 100,
         roundDuration: 10,
+        batchSize: 16,
         paddingToken: encode(EndOfText, { allowedSpecial: new Set([EndOfText]) })[0],
+        vocabSize: 50258,
         maxSequenceLength: 128
       }
     }

@@ -21,14 +21,15 @@ const padding: PreprocessingFunction = {
   type: TextPreprocessing.Padding,
   apply: (x: tf.TensorContainer, task: Task) => {
     const { xs } = x as TokenizedEntry
+    const vocabSize = task.trainingInformation.vocabSize ?? 50258
     const maxLength = task.trainingInformation.maxSequenceLength ?? 128
     // Use the tokenizer paddingToken except if undefined
     // Fallback value to the last value of the vocab size
-    const paddingToken = task.trainingInformation.paddingToken ?? 50257
+    const paddingToken = task.trainingInformation.paddingToken ?? vocabSize
+    const xsPadded = xs.pad([[0, Math.max(0, maxLength - xs.size)]], paddingToken).slice([0], [maxLength])
     return {
-      xs: xs
-        .pad([[0, Math.max(0, maxLength - xs.size)]], paddingToken)
-        .slice([0], [maxLength])
+      xs: xsPadded,
+      ys: tf.oneHot(xsPadded, vocabSize) // gpt-tfjs expects a one-hot encoded token label
     }
   }
 }

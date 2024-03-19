@@ -2,7 +2,7 @@
  * this code is taken from gpt-tfjs with modifications from @peacefulotter and @lukemovement
  **/
 
-import tf from '@tensorflow/tfjs'
+import type tf from '@tensorflow/tfjs'
 
 import { WeightsContainer } from '../..'
 import type { Dataset } from '../../dataset'
@@ -19,19 +19,14 @@ interface Config {
   modelType: 'gpt-nano'
   epochs: number // TODO mv to Task
   maxIter: number
-  batchSize: number
   blockSize: number
-  lr: number
   vocabSize: number
+  lr: number
   maxEvalBatches: number
 }
 
 export class GPT extends Model {
   private readonly model: GPTLMHeadModel
-
-  private static readonly batchSize = 8
-  private static readonly blockSize = 128
-  private static readonly vocabSize = 50258
 
   constructor () {
     super()
@@ -43,9 +38,8 @@ export class GPT extends Model {
       epochs: 1,
       maxIter: 10,
       maxEvalBatches: 10,
-      batchSize: GPT.batchSize,
-      blockSize: GPT.blockSize,
-      vocabSize: GPT.vocabSize
+      blockSize: 128,
+      vocabSize: 50258
     }
 
     this.model = new GPTLMHeadModel(config)
@@ -59,16 +53,6 @@ export class GPT extends Model {
     this.model.setWeights(ws.weights)
   }
 
-  private batchTokens (dataset: Dataset): Dataset {
-    const batchSize = 16
-    return dataset.batch(batchSize).mapAsync(async chunk => {
-      let xs = (chunk as tf.TensorContainerObject).xs as tf.Tensor
-      xs = tf.squeeze(xs) // Remove extra dimension
-      const ys = tf.oneHot(xs, GPT.vocabSize)
-      return { xs, ys }
-    })
-  }
-
   override async * train (
     trainingData: Dataset,
     validationData?: Dataset,
@@ -76,10 +60,9 @@ export class GPT extends Model {
     tracker = new Sink()
   ): AsyncGenerator<EpochLogs, void> {
     let logs: tf.Logs | undefined
-    trainingData = this.batchTokens(trainingData)
     const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
       epochs: 1, // required to match the ModelFitDatasetArgs type but is currently unused
-      validationData: validationData !== undefined ? this.batchTokens(validationData) : undefined,
+      validationData,
       callbacks: {
         onEpochEnd: (epoch, cur) => {
           logs = cur

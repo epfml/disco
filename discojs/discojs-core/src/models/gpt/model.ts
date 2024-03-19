@@ -342,8 +342,6 @@ function GPT (conf: GPTConfig): LayersModel {
   const modelSizes = getModelSizes(conf.modelType)
   const config = Object.assign({}, configDefaults, conf, modelSizes)
 
-  console.log('IN MODEL CONFIG', config)
-
   const inputs = tf.input({ shape: [null] })
 
   const tokEmb = config.tokEmb

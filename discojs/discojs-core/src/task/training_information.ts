@@ -166,9 +166,11 @@ export interface TrainingInformation {
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
   aggregator?: AggregatorChoice
-  // paddingToken (number) used for padding batches with different length sequences.
+  // paddingToken (number) used for text preprocessing to pad batches containing sequences of different lengths. The padding token is defined by which pre-trained tokenizer is selected
   paddingToken?: number
+  // vocabSize (number) used for text preprocessing using a tokenizer. The vocabSize is the number of tokens in the pre-trained tokenizer vocabulary.
+  vocabSize?: number
   // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
-  // truncate string to a maximum length
+  // truncate strings to a maximum length
   maxSequenceLength?: number
 }
