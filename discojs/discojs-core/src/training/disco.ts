@@ -34,7 +34,6 @@ export class Disco {
   public readonly logger: Logger
   public readonly memory: Memory
   private readonly client: clients.Client
-  private readonly aggregator: Aggregator
   private readonly trainer: Promise<Trainer>
 
   constructor (
@@ -95,12 +94,11 @@ export class Disco {
 
     this.task = task
     this.client = options.client
-    this.aggregator = options.aggregator
     this.memory = options.memory
     this.logger = options.logger
 
     const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
-    this.trainer = trainerBuilder.build(this.aggregator, this.client, options.scheme !== TrainingSchemes.LOCAL)
+    this.trainer = trainerBuilder.build(this.client, options.scheme !== TrainingSchemes.LOCAL)
   }
 
   /**

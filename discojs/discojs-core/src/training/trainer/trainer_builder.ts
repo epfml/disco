@@ -1,6 +1,5 @@
 import type { client as clients, Model, Task, TrainingInformant, ModelInfo, Memory } from '../..'
 import { ModelType } from '../..'
-import type { Aggregator } from '../../aggregator'
 
 import { DistributedTrainer } from './distributed_trainer'
 import { LocalTrainer } from './local_trainer'
@@ -23,7 +22,7 @@ export class TrainerBuilder {
    * @param distributed whether to build a distributed or local trainer
    * @returns
    */
-  async build (aggregator: Aggregator, client: clients.Client, distributed: boolean = false): Promise<Trainer> {
+  async build (client: clients.Client, distributed = false): Promise<Trainer> {
     const model = await this.getModel(client)
     if (distributed) {
       return new DistributedTrainer(
