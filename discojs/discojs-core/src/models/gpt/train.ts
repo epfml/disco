@@ -44,6 +44,7 @@ export async function train (
   model: tf.LayersModel,
   ds: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
   config: GPTConfig,
+  epochs: number,
   callbacks: TrainingCallbacks,
   evalDs?: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
 ): Promise<void> {
@@ -55,7 +56,7 @@ export async function train (
 
   console.warn('=== Starting training ===')
 
-  for (let epoch = 1; epoch <= c.epochs; epoch++) {
+  for (let epoch = 1; epoch <= epochs; epoch++) {
     await callbacks.onEpochBegin?.(epoch)
 
     await tf.data.zip<[number, { xs: tf.Tensor2D, ys: tf.Tensor3D }]>([

@@ -17,7 +17,7 @@ import { GPTLMHeadModel } from './model'
 // TODO too big config
 interface Config {
   modelType: 'gpt-nano'
-  epochs: number // TODO mv to Task
+  // epochs: number // TODO mv to Task
   maxIter: number
   blockSize: number
   vocabSize: number
@@ -35,7 +35,6 @@ export class GPT extends Model {
     const config: Config = {
       modelType: 'gpt-nano',
       lr: 0.001,
-      epochs: 1,
       maxIter: 10,
       maxEvalBatches: 10,
       blockSize: 128,
@@ -53,15 +52,25 @@ export class GPT extends Model {
     this.model.setWeights(ws.weights)
   }
 
+  /**
+   * The GPT train methods wraps the model.fitDataset call in a for loop to act as a generator (of logs)
+   * This allows for getting logs and stopping training without callbacks.
+   *
+   * @param trainingData training dataset
+   * @param validationData validation dataset
+   * @param epochs the number of passes of the training dataset
+   * @param tracker
+   */
   override async * train (
     trainingData: Dataset,
     validationData?: Dataset,
     epochs = 1,
     tracker = new Sink()
   ): AsyncGenerator<EpochLogs, void> {
+    console.log(epochs)
     let logs: tf.Logs | undefined
     const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
-      epochs: 1, // required to match the ModelFitDatasetArgs type but is currently unused
+      epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
       validationData,
       callbacks: {
         onEpochEnd: (epoch, cur) => {

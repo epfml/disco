@@ -473,6 +473,7 @@ class GPTModel extends LayersModel {
       this,
       dataset as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
       config,
+      args.epochs,
       args.callbacks as TrainingCallbacks,
       args.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
     )
