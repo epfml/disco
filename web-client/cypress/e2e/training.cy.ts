@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
-import { TASK_LIST } from './tasks.cy'
+
+import TASK_LIST from './tasks'
 
 describe('training page', () => {
   it('is navigable', () => {
