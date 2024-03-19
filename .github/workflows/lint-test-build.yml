@@ -305,14 +305,21 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-{core,web} run build
+      - run: npm --workspace=./web-client run test:unit
       - uses: cypress-io/github-action@v6
         with:
-          browser: chromium
-          start: npm start
-          install: false
-          wait-on: http://localhost:8081/
           working-directory: ./web-client
-          config: baseUrl=http://localhost:8081/#/
+          install: false
+          component: true
+        env:
+          VUE_APP_SERVER_URL: http://server
+      - uses: cypress-io/github-action@v6
+        with:
+          working-directory: ./web-client
+          install: false
+          start: npm start
+        env:
+          VUE_APP_SERVER_URL: http://server
 
   test-cli:
     needs: [build-lib-core, build-lib-node, build-server, download-datasets]

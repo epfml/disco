@@ -2,10 +2,13 @@
   "name": "@epfml/disco-web-client",
   "private": true,
   "scripts": {
-    "start": "vue-cli-service serve  --port 8081",
+    "start": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "test": "vue-cli-service test:unit tests"
+    "test": "npm run test:unit && npm run test:component && npm run test:e2e",
+    "test:unit": "vue-cli-service test:unit tests",
+    "test:component": "cypress run --component",
+    "test:e2e": "vue-cli-service test:e2e --headless --mode e2e"
   },
   "dependencies": {
     "@epfml/discojs": "*",
@@ -43,6 +46,7 @@
   "devDependencies": {
     "@types/msgpack-lite": "0.1",
     "@vue/cli-plugin-babel": "5",
+    "@vue/cli-plugin-e2e-cypress": "5",
     "@vue/cli-plugin-eslint": "5",
     "@vue/cli-plugin-router": "5",
     "@vue/cli-plugin-typescript": "5",

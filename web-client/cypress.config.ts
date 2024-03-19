@@ -1,14 +1,7 @@
 import { defineConfig } from 'cypress'
 
 export default defineConfig({
-  e2e: {
-    // TODO: env var
-    baseUrl: 'http://localhost:8081/#/',
-    setupNodeEvents (on, config) {
-      // implement node event listeners here
-    }
-  },
-
+  e2e: { baseUrl: 'http://localhost:8081/' },
   component: {
     devServer: {
       framework: 'vue-cli',

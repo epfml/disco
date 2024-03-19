@@ -1,5 +1,4 @@
 module.exports = {
-  publicPath: process.env.NODE_ENV === 'production' ? '/disco/' : '/',
   configureWebpack: {
     resolve: {
       fallback: {
@@ -14,5 +13,6 @@ module.exports = {
       args[0].title = 'Disco'
       return args
     })
-  }
+  },
+  devServer: { port: 8081 }
 }
