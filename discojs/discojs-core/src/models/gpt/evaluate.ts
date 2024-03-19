@@ -12,16 +12,17 @@ export default async function evaluate (
   await dataset.take(maxEvalBatches).map(({ xs, ys }) => {
     const logits = model.apply(xs)
     if (Array.isArray(logits)) {
-      throw new Error('model outputed many tensor')
+      throw new Error('model output too many tensor')
     }
     if (logits instanceof tf.SymbolicTensor) {
-      throw new Error('model outputed symbolic tensor')
+      throw new Error('model output symbolic tensor')
     }
     xs.dispose()
 
     return { logits, ys }
   }).mapAsync(async ({ logits, ys }) => {
-    const loss = (await tf.losses.softmaxCrossEntropy(ys, logits).array())
+    const lossTensor = tf.losses.softmaxCrossEntropy(ys, logits)
+    const loss = await lossTensor.array()
     if (typeof loss !== 'number') {
       throw new Error('got multiple loss')
     }
@@ -29,13 +30,12 @@ export default async function evaluate (
     const accTensor = tf.metrics.categoricalAccuracy(ys, logits)
     const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
     const accSum = accTensor.sum()
-    const accSummed = await accSum.array()
+    const accSummed = accSum.arraySync()
     if (typeof accSummed !== 'number') {
       throw new Error('got multiple accuracy sum')
     }
 
-    tf.dispose([ys, logits, accTensor, accSum])
-
+    tf.dispose([ys, logits, accTensor, accSum, lossTensor])
     return { loss, accSummed, accSize }
   }).forEachAsync(({ loss, accSummed, accSize }) => {
     datasetSize += 1

@@ -466,7 +466,6 @@ class GPTModel extends LayersModel {
     dataset: Dataset<T>,
     args: tf.ModelFitDatasetArgs<T>
   ): Promise<tf.History> {
-    console.log('=== GPTModel custom train function ===')
     const config = { ...this.config, ...args }
 
     await train(
