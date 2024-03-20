@@ -1,5 +1,5 @@
 import type { Model, Task, TaskProvider } from '..'
-import { TrainingSchemes, models } from '..'
+import { models } from '..'
 
 export const wikitext: TaskProvider = {
   getTask (): Task {
@@ -24,7 +24,7 @@ export const wikitext: TaskProvider = {
         // constructing a batch is taken care automatically in the dataset to make things faster
         // so we fake a batch size of 1
         batchSize: 1,
-        scheme: TrainingSchemes.FEDERATED,
+        scheme: 'federated',
         noiseScale: undefined,
         decentralizedSecure: true,
         minimumReadyPeers: 3,

@@ -25,7 +25,7 @@ const customTask: TaskProvider = {
         outputColumns: [
           'Output'
         ],
-        scheme: 'Federated',
+        scheme: 'federated',
         noiseScale: undefined,
         clippingRadius: undefined
       }

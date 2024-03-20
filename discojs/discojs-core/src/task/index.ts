@@ -1,5 +1,5 @@
 export { isTask, type Task, isTaskID, type TaskID } from './task'
-export { type TaskProvider, isTaskProvider } from './task_provider'
+export { type TaskProvider } from './task_provider'
 export { isDigest, type Digest } from './digest'
 export { isDisplayInformation, type DisplayInformation } from './display_information'
 export type { TrainingInformation } from './training_information'
