@@ -48,7 +48,7 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { data, EmptyMemory, isTask, informant, TrainingInformant, TrainingSchemes, Disco, Memory, client as clients } from '@epfml/discojs-core'
+import { data, EmptyMemory, isTask, Task, informant, TrainingInformant, Disco, Memory, client as clients } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
@@ -106,33 +106,29 @@ export default defineComponent({
         }
       )
     },
-    scheme (): TrainingSchemes {
-      if (this.distributedTraining) {
-        switch (this.task.trainingInformation?.scheme) {
-          case 'Federated':
-            return TrainingSchemes.FEDERATED
-          case 'Decentralized':
-            return TrainingSchemes.DECENTRALIZED
-        }
+    scheme (): Task['trainingInformation']['scheme'] {
+      if (this.distributedTraining && this.task.trainingInformation?.scheme !== undefined) {
+        return this.task.trainingInformation?.scheme
       }
+
       // default scheme
-      return TrainingSchemes.LOCAL
+      return 'local'
     },
     hasValidationData (): boolean {
       return this.task?.trainingInformation?.validationSplit > 0
     }
   },
   watch: {
-    scheme (newScheme: TrainingSchemes): void {
+    scheme (newScheme: Task['trainingInformation']['scheme']): void {
       const args = [this.task, 10] as const
       switch (newScheme) {
-        case TrainingSchemes.FEDERATED:
+        case 'federated':
           this.trainingInformant = new informant.FederatedInformant(...args)
           break
-        case TrainingSchemes.DECENTRALIZED:
+        case 'decentralized':
           this.trainingInformant = new informant.DecentralizedInformant(...args)
           break
-        default:
+        case 'local':
           this.trainingInformant = new informant.LocalInformant(...args)
           break
       }

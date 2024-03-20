@@ -64,7 +64,7 @@ export const titanic: TaskProvider = {
         outputColumns: [
           'Survived'
         ],
-        scheme: 'Federated', // secure aggregation not yet implemented for FeAI
+        scheme: 'federated', // secure aggregation not yet implemented for FeAI
         noiseScale: undefined,
         clippingRadius: undefined
       }

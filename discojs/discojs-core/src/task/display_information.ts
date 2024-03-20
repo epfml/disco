@@ -1,38 +1,42 @@
 import { type Summary, isSummary } from './summary'
 import { type DataExample, isDataExample } from './data_example'
-import { type LabelType } from './label_type'
+import { isLabelType, type LabelType } from './label_type'
+
+export interface DisplayInformation {
+  taskTitle?: string
+  summary?: Summary
+  tradeoffs?: string
+  dataFormatInformation?: string
+  // TODO merge dataExample
+  dataExampleText?: string
+  model?: string
+  // TODO no need for undefined
+  dataExample?: DataExample[]
+  // TODO no need for undefined
+  headers?: string[]
+  dataExampleImage?: string
+  limitations?: string
+  labelDisplay?: LabelType
+}
 
 export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
-  if (typeof raw !== 'object') {
-    return false
-  }
-  if (raw === null) {
+  if (typeof raw !== 'object' || raw === null) {
     return false
   }
 
-  type Fields =
-    'dataExample' |
-    'dataExampleImage' |
-    'dataExampleText' |
-    'dataFormatInformation' |
-    'headers' |
-    'limitations' |
-    'model' |
-    'summary' |
-    'taskTitle' |
-    'tradeoffs'
   const {
     dataExample,
     dataExampleImage,
     dataExampleText,
     dataFormatInformation,
     headers,
+    labelDisplay,
     limitations,
     model,
     summary,
     taskTitle,
     tradeoffs
-  } = raw as Record<Fields, unknown | undefined>
+  }: Partial<Record<keyof DisplayInformation, unknown>> = raw
 
   if (
     typeof taskTitle !== 'string' ||
@@ -41,6 +45,7 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     (tradeoffs !== undefined && typeof tradeoffs !== 'string') ||
     (model !== undefined && typeof model !== 'string') ||
     (dataExampleImage !== undefined && typeof dataExampleImage !== 'string') ||
+    (labelDisplay !== undefined && !isLabelType(labelDisplay)) ||
     (limitations !== undefined && typeof limitations !== 'string')
   ) {
     return false
@@ -65,36 +70,21 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     return false
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _: DisplayInformation = {
-    taskTitle,
-    summary,
-    tradeoffs,
-    dataFormatInformation,
-    dataExampleText,
-    model,
+  const repack = {
     dataExample,
-    headers,
     dataExampleImage,
-    limitations
+    dataExampleText,
+    dataFormatInformation,
+    headers,
+    labelDisplay,
+    limitations,
+    model,
+    summary,
+    taskTitle,
+    tradeoffs,
   }
+  const _correct: DisplayInformation = repack
+  const _total: Record<keyof DisplayInformation, unknown> = repack
 
   return true
-}
-
-export interface DisplayInformation {
-  taskTitle?: string
-  summary?: Summary
-  tradeoffs?: string
-  dataFormatInformation?: string
-  // TODO merge dataExample
-  dataExampleText?: string
-  model?: string
-  // TODO no need for undefined
-  dataExample?: DataExample[]
-  // TODO no need for undefined
-  headers?: string[]
-  dataExampleImage?: string
-  limitations?: string
-  labelDisplay?: LabelType
 }

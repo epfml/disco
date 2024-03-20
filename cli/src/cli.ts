@@ -1,7 +1,7 @@
 import { Range } from 'immutable'
 
 import type { TrainerLog, data, Task } from '@epfml/discojs-core'
-import { Disco, TrainingSchemes, aggregator as aggregators, client as clients } from '@epfml/discojs-core'
+import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs-core'
 import { startServer } from '@epfml/disco-server'
 
 import { saveLog } from './utils'
@@ -12,8 +12,7 @@ async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<Tra
   const client = new clients.federated.FederatedClient(url, task, new aggregators.MeanAggregator())
 
   // force the federated scheme
-  const scheme = TrainingSchemes.FEDERATED
-  const disco = new Disco(task, { scheme, client })
+  const disco = new Disco(task, { scheme: 'federated', client })
 
   await disco.fit(data)
   await disco.close()
