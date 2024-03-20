@@ -52,7 +52,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 
 import { useTasksStore } from '@/store/tasks'
 import { useMemoryStore } from '@/store/memory'
@@ -69,32 +68,7 @@ tasksStore.initTasks()
   .catch(console.error)
 
 onMounted(() => {
-  /**
-     * Use IndexedDB by default if it is available.
-     */
   memoryStore.setIndexedDB(!!window.indexedDB)
-  /**
-     * Initialize the global variable "isDark" to the
-     * browser-saved theme.
-     */
-  // setAppTheme(getBrowserTheme())
-  /**
-     * Initialize the app to the browser-saved platform.
-     */
-  initPlatform()
 })
 
-// function getBrowserTheme (): boolean {
-//   if (window.localStorage.getItem('dark')) {
-//     return JSON.parse(window.localStorage.getItem('dark'))
-//   }
-//   return (
-//     !!window.matchMedia &&
-//         window.matchMedia('(prefers-color-scheme: dark)').matches
-//   )
-// }
-
-function initPlatform (): void {
-  useI18n().locale.value = 'english'
-}
 </script>
