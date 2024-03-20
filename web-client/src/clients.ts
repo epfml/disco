@@ -1,18 +1,16 @@
-import { client as clients, aggregator as aggregators, Task, TrainingSchemes } from '@epfml/discojs-core'
+import { client as clients, aggregator as aggregators, Task } from '@epfml/discojs-core'
 
 import { CONFIG } from './config'
 
-export function getClient (trainingScheme: TrainingSchemes, task: Task): clients.Client {
+export function getClient (trainingScheme: Required<Task['trainingInformation']['scheme']>, task: Task): clients.Client {
   const aggregator = aggregators.getAggregator(task)
 
   switch (trainingScheme) {
-    case TrainingSchemes.DECENTRALIZED:
+    case 'decentralized':
       return new clients.decentralized.DecentralizedClient(CONFIG.serverUrl, task, aggregator)
-    case TrainingSchemes.FEDERATED:
+    case 'federated':
       return new clients.federated.FederatedClient(CONFIG.serverUrl, task, aggregator)
-    case TrainingSchemes.LOCAL:
+    case 'local':
       return new clients.Local(CONFIG.serverUrl, task, aggregator)
-    default:
-      throw new Error('unknown training scheme')
   }
 }

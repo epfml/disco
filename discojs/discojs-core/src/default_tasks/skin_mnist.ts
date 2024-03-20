@@ -40,7 +40,7 @@ export const skinMnist: TaskProvider = {
           'Vascular lesions',
           'Dermatofibroma'
         ],
-        scheme: 'Federated',
+        scheme: 'federated',
         noiseScale: undefined,
         clippingRadius: undefined
       }

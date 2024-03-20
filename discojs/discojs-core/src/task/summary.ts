@@ -1,25 +1,22 @@
+export interface Summary {
+  preview: string
+  overview: string
+}
+
 export function isSummary (raw: unknown): raw is Summary {
-  if (typeof raw !== 'object') {
+  if (typeof raw !== 'object' || raw === null) {
     return false
   }
 
-  if (raw === null) {
-    return false
-  }
-
-  const { preview, overview } = raw as Record<'preview' | 'overview', unknown>
+  const { preview, overview }: Partial<Record<keyof Summary, unknown>> = raw
 
   if (!(typeof preview === 'string' && typeof overview === 'string')) {
     return false
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _: Summary = { preview, overview }
+  const repack = { preview, overview }
+  const _correct: Summary = repack
+  const _total: Record<keyof Summary, unknown> = repack
 
   return true
-}
-
-export interface Summary {
-  preview: string
-  overview: string
 }

@@ -34,7 +34,7 @@ export const geotags: TaskProvider = {
         IMAGE_W: 224,
         preprocessingFunctions: [data.ImagePreprocessing.Resize],
         LABEL_LIST: Range(0, 127).map(String).toArray(),
-        scheme: 'Federated',
+        scheme: 'federated',
         noiseScale: undefined,
         clippingRadius: 20,
         decentralizedSecure: true,

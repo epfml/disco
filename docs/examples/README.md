@@ -21,7 +21,7 @@ npm run train # compiles TypeScript and runs training.ts
 As you can see in `training.ts` a client is represented by a `Disco` object:
 
 ```js
-const disco = new Disco(task, { url, scheme: TrainingSchemes.FEDERATED });
+const disco = new Disco(task, { url, scheme: "federated" });
 await disco.fit(dataset); // Start training on the dataset
 await disco.close();
 ```

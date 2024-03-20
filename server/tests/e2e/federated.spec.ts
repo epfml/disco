@@ -6,14 +6,12 @@ import { assert, expect } from 'chai'
 
 import type { WeightsContainer } from '@epfml/discojs-core'
 import {
-  Disco, TrainingSchemes, client as clients, data,
+  Disco, client as clients, data,
   aggregator as aggregators, informant, defaultTasks
 } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/discojs-node'
 
 import { startServer } from '../../src'
-
-const SCHEME = TrainingSchemes.FEDERATED
 
 describe('end-to-end federated', function () {
   this.timeout(100_000)
@@ -34,7 +32,7 @@ describe('end-to-end federated', function () {
 
     const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
-    const disco = new Disco(cifar10Task, { scheme: SCHEME, client })
+    const disco = new Disco(cifar10Task, { scheme: 'federated', client })
 
     await disco.fit(data)
     await disco.close()
@@ -62,7 +60,7 @@ describe('end-to-end federated', function () {
     const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
     const trainingInformant = new informant.FederatedInformant(titanicTask, 10)
-    const disco = new Disco(titanicTask, { scheme: SCHEME, client, aggregator, informant: trainingInformant })
+    const disco = new Disco(titanicTask, { scheme: 'federated', client, aggregator, informant: trainingInformant })
 
     await disco.fit(data)
     await disco.close()
@@ -92,7 +90,7 @@ describe('end-to-end federated', function () {
     const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, task, aggregator)
     const trainingInformant = new informant.FederatedInformant(task, 10)
-    const disco = new Disco(task, { scheme: SCHEME, client, aggregator, informant: trainingInformant })
+    const disco = new Disco(task, { scheme: 'federated', client, aggregator, informant: trainingInformant })
 
     await disco.fit(dataSplit)
     await disco.close()
