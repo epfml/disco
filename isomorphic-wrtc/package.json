@@ -13,6 +13,6 @@
     "test": ": nothing"
   },
   "peerDependencies": {
-    "@koush/wrtc": "*"
+    "node-datachannel": "*"
   }
 }
