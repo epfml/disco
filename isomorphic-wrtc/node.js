@@ -1,3 +1,3 @@
 "use strict";
 
-module.exports = require("@koush/wrtc");
+module.exports = require("node-datachannel/polyfill");
