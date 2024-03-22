@@ -4,7 +4,8 @@ import { ref, shallowRef } from 'vue'
 import { Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import { ModelInfo, ModelType, Path } from '@epfml/discojs-core'
+import type { ModelInfo, Path } from '@epfml/discojs-core'
+import { ModelType } from '@epfml/discojs-core'
 
 interface ModelMetadata extends ModelInfo {
   date: string
@@ -51,10 +52,11 @@ export const useMemoryStore = defineStore('memory', () => {
       const hourSaved = [date.getHours(), date.getMinutes()]
         .map(zeroPad)
         .join('h')
-      const size =
-        metadata.modelTopologyBytes +
-        metadata.weightSpecsBytes +
-        metadata.weightDataBytes
+      const size = [
+        metadata.modelTopologyBytes,
+        metadata.weightSpecsBytes,
+        metadata.weightDataBytes,
+      ].reduce((acc: number, v) => acc + (v === undefined ? 0 : v), 0)
 
       addModel(path, {
         name,

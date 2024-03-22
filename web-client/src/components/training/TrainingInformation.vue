@@ -62,7 +62,7 @@
             }}
           </span>
           <!-- Chart -->
-          <apexchart
+          <ApexChart
             width="100%"
             height="200"
             type="area"
@@ -92,7 +92,7 @@
             }}
           </span>
           <!-- Chart -->
-          <apexchart
+          <ApexChart
             width="100%"
             height="200"
             type="area"
@@ -132,7 +132,9 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed } from 'vue'
+import { computed } from 'vue'
+// @ts-expect-error waiting for vue3-apexcharts#98
+import ApexChart from "vue3-apexcharts";
 
 import { TrainingInformant } from '@epfml/discojs-core'
 
@@ -144,7 +146,7 @@ import People from '@/assets/svg/People.vue'
 import Contact from '@/assets/svg/Contact.vue'
 
 interface Props {
-  trainingInformant?: TrainingInformant
+  trainingInformant: TrainingInformant
   hasValidationData: boolean
 }
 const props = defineProps<Props>()

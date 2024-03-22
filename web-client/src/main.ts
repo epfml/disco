@@ -1,11 +1,10 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import VueApexCharts from 'vue3-apexcharts'
-import { createToaster, Toaster } from '@meforma/vue-toaster'
 
 import App from '@/components/App.vue'
 import { router } from '@/router'
 import { createCustomI18n } from './locales/i18n'
+import { useToaster } from './composables/toaster'
 
 import '@/assets/css/tailwind.css'
 import '@/assets/css/styles.css'
@@ -21,7 +20,7 @@ const app = createApp(App)
 
 // Global error handler
 app.config.errorHandler = (err, instance, info) => {
-  const toaster = createToaster({ duration: 5000 })
+  const toaster = useToaster()
   if (err instanceof TypeError) {
     // Implementation bug
     toaster.error('Sorry, something went wrong on our side. Please reach out on slack.')
@@ -32,11 +31,8 @@ app.config.errorHandler = (err, instance, info) => {
   console.error(err, instance, info)
 }
 
-const pinia = createPinia()
 app
-  .use(pinia)
-  .use(VueApexCharts)
+  .use(createPinia())
   .use(createCustomI18n())
-  .use(Toaster, { duration: 5000 })
   .use(router)
   .mount('#app')

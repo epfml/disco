@@ -93,9 +93,11 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { Memory, EmptyMemory, Path, ModelType } from '@epfml/discojs-core'
+import type { Path } from '@epfml/discojs-core'
+import { Memory, EmptyMemory, ModelType } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
+import { useToaster } from '@/composables/toaster'
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
 import ModelButton from './simple/ModelButton.vue'
@@ -105,6 +107,8 @@ import LoadIcon from '@/assets/svg/LoadIcon.vue'
 import StackIcon from '@/assets/svg/StackIcon.vue'
 import TippyCard from '@/components/sidebar/containers/TippyCard.vue'
 import TippyContainer from '@/components/sidebar/containers/TippyContainer.vue'
+
+const toaster = useToaster()
 
 export default defineComponent({
   name: 'ModelLibrary',
@@ -137,9 +141,13 @@ export default defineComponent({
       try {
         await this.memoryStore.deleteModel(path)
         await this.memory.deleteModel(path)
-        this.$toast.success('Successfully deleted the model')
+        toaster.success('Successfully deleted the model')
       } catch (e) {
-        this.$toast.error(e.message)
+        let msg = 'unable to delete model'
+        if (e instanceof Error) {
+          msg += `: ${e.message}`
+        }
+        toaster.error(msg)
       }
     },
 
@@ -154,17 +162,23 @@ export default defineComponent({
 
     async loadModel (path: Path) {
       const modelInfo = this.memory.infoFor(path)
+      if (modelInfo === undefined) {
+        throw new Error('not such model')
+      }
       if (modelInfo.type !== ModelType.WORKING) {
         try {
           await this.memory.loadModel(path)
           await this.memoryStore.initModels()
         } catch (e) {
-          console.log(e.message)
-          this.$toast.error('Error')
+          let msg = 'unable to load model'
+          if (e instanceof Error) {
+            msg += `: ${e.message}`
+          }
+          toaster.error(msg)
         }
-        this.$toast.success(`Loaded ${modelInfo.name}, ready for next training session.`)
+        toaster.success(`Loaded ${modelInfo.name}, ready for next training session.`)
       } else {
-        this.$toast.error('Model is already loaded')
+        toaster.error('Model is already loaded')
       }
     }
   }

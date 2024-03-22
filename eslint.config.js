@@ -31,5 +31,7 @@ export default tseslint.config(
       ]
     }
   },
-  { ignores: ['**/dist/*'] }
+  { ignores: ['**/dist/*'] },
+  // TODO waiting for eslintflat+vue+typescript @ https://eslint.vuejs.org/
+  { ignores: ['web-client/*'] }
 )

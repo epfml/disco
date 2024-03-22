@@ -1,8 +1,9 @@
+import { Set } from 'immutable'
+
 import { defaultTasks } from '@epfml/discojs-core'
 
-// most basic disco tasks
-export default [
+export const TASKS = Set.of(
   defaultTasks.titanic.getTask(),
   defaultTasks.mnist.getTask(),
   defaultTasks.cifar10.getTask()
-]
+)

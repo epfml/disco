@@ -19,8 +19,6 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { defineEmits } from 'vue'
-
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 
 interface Emits {

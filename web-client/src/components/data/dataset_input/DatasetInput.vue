@@ -141,10 +141,11 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps, ref } from 'vue'
+import { computed, ref } from 'vue'
 import * as d3 from 'd3'
 
-import { data, Task } from '@epfml/discojs-core'
+import type { Task } from '@epfml/discojs-core'
+import { data } from '@epfml/discojs-core'
 
 import Upload from '@/assets/svg/Upload.vue'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -180,6 +181,10 @@ const addFiles = (files: FileList, label?: string) => {
     if (label) {
       props.datasetBuilder.addFiles(filesArray, label)
     } else {
+      if (csvRows.value === undefined) {
+        throw new Error('adding files but not CSV rows defined')
+      }
+
       csvRows.value.forEach(row => {
         const imageFile = filesArray.find(file => row.filename === file.name.split('.').slice(0, -1).join('.'))
         if (imageFile) {
@@ -193,7 +198,7 @@ const addFiles = (files: FileList, label?: string) => {
 }
 
 const clearCsv = () => {
-  csvRows.value = null
+  csvRows.value = undefined
 }
 
 const clearFiles = (label?: string) => props.datasetBuilder.clearFiles(label)

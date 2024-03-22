@@ -6,8 +6,8 @@
   >
     <br>
     <fieldset
-      v-for="(_, idx) in fields"
-      :key="_.key"
+      v-for="(entry, idx) in fields"
+      :key="(entry as any).key"
     >
       <div
         class="
@@ -19,8 +19,8 @@
       >
         <div class="w-4/5 md:w-full">
           <VeeField
-            :id="`${props.field.id}_${idx}`"
-            :name="`${props.field.id}[${idx}]`"
+            :id="`${props.field.id}_${idx as any}`"
+            :name="`${props.field.id}[${idx as any}]`"
             :placeholder="props.field.default"
             class="
               inline
@@ -37,7 +37,7 @@
           />
           <ErrorMessage
             class="text-red-600"
-            :name="`${props.field.id}[${idx}]`"
+            :name="`${props.field.id}[${idx as any}]`"
           />
         </div>
         <div class="w-1/5 md:w-full">
@@ -52,7 +52,7 @@
               focus:shadow-outline
               hover:bg-red-100
             "
-            @click="remove(idx)"
+            @click="remove(idx as unknown as number)"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -119,14 +119,13 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps } from 'vue'
 import {
   Field as VeeField,
   FieldArray,
   ErrorMessage
 } from 'vee-validate'
 
-import { FormField } from '@/task_creation_form'
+import type { FormField } from '@/task_creation_form'
 
 interface Props {
   field: FormField

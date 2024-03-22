@@ -48,15 +48,19 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-import { data, EmptyMemory, isTask, Task, informant, TrainingInformant, Disco, Memory, client as clients } from '@epfml/discojs-core'
+import type { Task, TrainingInformant } from '@epfml/discojs-core'
+import { data, EmptyMemory, isTask, informant, Disco, Memory, client as clients } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 // TODO @s314cy: move to discojs-core/src/client/get.ts
 import { getClient } from '@/clients'
+import { useToaster } from '@/composables/toaster'
 import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import IconCard from '@/components/containers/IconCard.vue'
+
+const toaster = useToaster()
 
 export default defineComponent({
   name: 'Trainer',
@@ -68,22 +72,17 @@ export default defineComponent({
   props: {
     task: {
       validator: isTask,
-      default: undefined
+      default: undefined as Task | undefined
     },
-    datasetBuilder: {
-      type: data.DatasetBuilder,
-      default: undefined
-    }
+    datasetBuilder: data.DatasetBuilder
   },
   data (): {
     distributedTraining: boolean,
     startedTraining: boolean,
-    trainingInformant: TrainingInformant
     } {
     return {
       distributedTraining: false,
       startedTraining: false,
-      trainingInformant: new informant.LocalInformant(this.task, 10)
     }
   },
   computed: {
@@ -98,7 +97,7 @@ export default defineComponent({
       return new Disco(
         this.task,
         {
-          logger: this.$toast,
+          logger: toaster,
           memory: this.memory,
           scheme: this.scheme,
           informant: this.trainingInformant,
@@ -116,24 +115,20 @@ export default defineComponent({
     },
     hasValidationData (): boolean {
       return this.task?.trainingInformation?.validationSplit > 0
-    }
-  },
-  watch: {
-    scheme (newScheme: Task['trainingInformation']['scheme']): void {
+    },
+    trainingInformant (): TrainingInformant {
+      const scheme = this.scheme
       const args = [this.task, 10] as const
-      switch (newScheme) {
+      switch (scheme) {
         case 'federated':
-          this.trainingInformant = new informant.FederatedInformant(...args)
-          break
+          return new informant.FederatedInformant(...args)
         case 'decentralized':
-          this.trainingInformant = new informant.DecentralizedInformant(...args)
-          break
+          return new informant.DecentralizedInformant(...args)
         case 'local':
-          this.trainingInformant = new informant.LocalInformant(...args)
-          break
+          return new informant.LocalInformant(...args)
         default: {
           // eslint-disable-next-line no-unused-vars
-          const _: never = newScheme
+          const _: never = scheme
           throw new Error('should never happen')
         }
       }
@@ -143,35 +138,38 @@ export default defineComponent({
     async startTraining (distributedTraining: boolean): Promise<void> {
       this.distributedTraining = distributedTraining
 
-      if (!this.datasetBuilder.built) {
-        try {
-          this.dataset = await this.datasetBuilder.build()
-        } catch (e) {
-          console.error(e.message)
-          if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
-            // missing field is specified between two "quotes"
-            const missingFields: String = e.message.split('"')[1].split('"')[0]
-            this.$toast.error(`The input data is missing the field "${missingFields}"`)
-          } else {
-            this.$toast.error('Incorrect data format. Please check the expected format at the previous step.')
-          }
-          this.cleanState()
-          return
-        }
+      if (this.datasetBuilder === undefined) {
+        throw new Error('no dataset builder')
       }
 
-      this.$toast.info('Model training started')
+      let dataset
+      try {
+        dataset = await this.datasetBuilder.build()
+      } catch (e) {
+        console.error(e)
+        if (e instanceof Error && e.message.includes('provided in columnConfigs does not match any of the column names')) {
+          // missing field is specified between two "quotes"
+          const missingFields: String = e.message.split('"')[1].split('"')[0]
+          toaster.error(`The input data is missing the field "${missingFields}"`)
+        } else {
+          toaster.error('Incorrect data format. Please check the expected format at the previous step.')
+        }
+        this.cleanState()
+        return
+      }
+
+      toaster.info('Model training started')
 
       try {
         this.startedTraining = true
-        await this.disco.fit(this.dataset)
+        await this.disco.fit(dataset)
         this.startedTraining = false
       } catch (e) {
-        this.$toast.error('An error occurred during training')
+        toaster.error('An error occurred during training')
         console.error(e)
         this.cleanState()
       }
-      this.$toast.success('Training successfully completed')
+      toaster.success('Training successfully completed')
     },
     cleanState (): void {
       this.distributedTraining = false

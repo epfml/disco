@@ -36,10 +36,11 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { EmptyMemory, Memory, ModelType, Task, ModelInfo } from '@epfml/discojs-core'
+import type { Task, ModelInfo } from '@epfml/discojs-core'
+import { EmptyMemory, Memory, ModelType } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
@@ -47,9 +48,7 @@ import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 
-interface Props {
-  task?: Task
-}
+interface Props { task: Task }
 
 const memoryStore = useMemoryStore()
 const validationStore = useValidationStore()
@@ -68,8 +67,9 @@ const modelInfo = computed<ModelInfo>(() => {
 })
 
 async function testModel () {
-  if (await memory.value.contains(modelInfo.value)) {
-    validationStore.setModel(this.memory.pathFor(this.modelInfo))
+  const path = memory.value.pathFor(modelInfo.value)
+  if (await memory.value.contains(modelInfo.value) && path !== undefined) {
+    validationStore.setModel(path)
     router.push({ path: '/evaluate' })
   } else {
     toast.error('Model was not trained!')

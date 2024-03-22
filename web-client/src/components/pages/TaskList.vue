@@ -122,7 +122,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
-import { Task } from '@epfml/discojs-core'
+import type { Task } from '@epfml/discojs-core'
 
 import { useTasksStore } from '@/store/tasks'
 import { useTrainingStore } from '@/store/training'
