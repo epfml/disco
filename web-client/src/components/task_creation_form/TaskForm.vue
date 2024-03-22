@@ -86,7 +86,7 @@
                       v-else-if="field.type === 'file'"
                       :field="field"
                       :available="!modelURL"
-                      @input="handleModelFiles($event, field)"
+                      @input="handleModelFiles($event)"
                     />
                     <ArrayContainer
                       v-else-if="field.type === 'array'"
@@ -152,9 +152,11 @@ import { Form as VeeForm, ErrorMessage } from 'vee-validate'
 import { List, Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import { Task, pushTask } from '@epfml/discojs-core'
+import type { Task } from '@epfml/discojs-core'
+import { models, pushTask } from '@epfml/discojs-core'
 
-import { sections, privacyParameters, FormField, FormSection } from '@/task_creation_form'
+import type { FormDependency, FormField, FormSection } from '@/task_creation_form'
+import { sections, privacyParameters } from '@/task_creation_form'
 import { useToaster } from '@/composables/toaster'
 import { CONFIG } from '@/config'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -231,11 +233,11 @@ const formatSection = (section: FormSection, rawTask: any): any => {
   return [section.id, Map(fields).toObject()]
 }
 
-const handleModelFiles = async (files: FileList, field: FormField): Promise<void> => {
+const handleModelFiles = async (files: FileList): Promise<void> => {
   modelFiles.value = modelFiles.value.push(...files)
 }
 
-const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
+const onSubmit = async (rawTask: any): Promise<void> => {
   toaster.success('Form validation succeeded! Uploading...')
 
   // format the flat form entries to a nested task object
@@ -250,9 +252,9 @@ const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
     .set('id', rawTask.taskID)
     .toObject() as unknown as Task
 
-  let model: tf.LayersModel
+  let model
   try {
-    model = await tf.loadLayersModel(tf.io.browserFiles(modelFiles.value.toArray()))
+    model = new models.TFJS(await tf.loadLayersModel(tf.io.browserFiles(modelFiles.value.toArray())))
   } catch (error) {
     console.error(error)
     toaster.error('Model loading failed')
@@ -263,25 +265,21 @@ const onSubmit = async (rawTask: any, { resetForm }): Promise<void> => {
     await pushTask(CONFIG.serverUrl, task, model)
   } catch (e) {
     toaster.error('An error occured server-side')
-    console.error(e instanceof Error ? e.message : e.toString())
+    console.error(e instanceof Error ? e.message : e)
     return
   }
   toaster.success('Task successfully submitted')
-  resetForm()
 }
 
 const isFieldVisible = (
   field: FormField,
   dependencies: Record<string, unknown>
 ): boolean => {
-  if (field.dependencies === undefined) {
+  const fieldDeps = field.dependencies
+  if (fieldDeps === undefined) {
     return true
   }
-  for (const key of Object.keys(dependencies)) {
-    if (key in field.dependencies && field.dependencies[key] !== dependencies[key]) {
-      return false
-    }
-  }
-  return true
+  const potentialDependencies: Array<keyof FormDependency> = ['dataType', 'scheme', 'decentralizedSecure']
+  return potentialDependencies.every((key) => fieldDeps[key] !== dependencies[key])
 }
 </script>

@@ -21,6 +21,7 @@ export class DatasetBuilder<Source> {
   /**
    * Whether a dataset was already produced.
    */
+  // TODO useless, responsiblity on callers
   private _built: boolean
 
   constructor (

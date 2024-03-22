@@ -3,5 +3,5 @@ export interface Config {
 }
 
 export const CONFIG: Config = {
-  serverUrl: new URL('', process.env.VUE_APP_SERVER_URL)
+  serverUrl: new URL('', import.meta.env.VITE_SERVER_URL)
 }

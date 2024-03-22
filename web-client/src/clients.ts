@@ -1,4 +1,5 @@
-import { client as clients, aggregator as aggregators, Task } from '@epfml/discojs-core'
+import type { Task } from '@epfml/discojs-core'
+import { client as clients, aggregator as aggregators } from '@epfml/discojs-core'
 
 import { CONFIG } from './config'
 
@@ -13,7 +14,6 @@ export function getClient (trainingScheme: Required<Task['trainingInformation'][
     case 'local':
       return new clients.Local(CONFIG.serverUrl, task, aggregator)
     default: {
-      // eslint-disable-next-line no-unused-vars
       const _: never = trainingScheme
       throw new Error('should never happen')
     }

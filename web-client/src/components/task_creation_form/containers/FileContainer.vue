@@ -45,6 +45,7 @@
               hidden
             />
             <input
+              ref="upload"
               :id="`hidden_${field.id}`"
               :accept="field.extension"
               :disable="!available"
@@ -69,11 +70,10 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, ref } from 'vue'
+import { ref } from 'vue'
 import { Field as VeeField } from 'vee-validate'
 
-import { HTMLInputEvent } from '@/types'
-import { FormField } from '@/task_creation_form'
+import type { FormField } from '@/task_creation_form'
 
 const { field, available = true } = defineProps({
   field: {
@@ -92,9 +92,13 @@ interface Emits {
 const emit = defineEmits<Emits>()
 
 const fileName = ref('')
+const upload = ref<HTMLInputElement>()
 
-const onChange = (e: HTMLInputEvent): void => {
-  const files = e.target.files
+function onChange(): void {
+  if (upload.value === undefined) return
+  const files = upload.value.files
+  if (files === null) return
+
   // fill in the vee-field to trigger yup validation
   fileName.value = (files.length > 0) ? files[0].name : ''
   emit('input', files)

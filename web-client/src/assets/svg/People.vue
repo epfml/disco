@@ -16,7 +16,7 @@
     <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
   </svg>
 </template>
-<script>
+<script lang="ts">
 export default {
   name: 'People',
   props: {

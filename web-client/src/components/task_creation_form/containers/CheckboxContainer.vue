@@ -16,10 +16,10 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, ref } from 'vue'
+import { ref } from 'vue'
 import { Field as VeeField } from 'vee-validate'
 
-import { FormField } from '@/task_creation_form'
+import type { FormField } from '@/task_creation_form'
 import CheckBox from '@/components/simple/CheckBox.vue'
 
 interface Props {

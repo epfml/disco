@@ -1,11 +1,9 @@
-/* eslint-disable no-undef */
-
-import TASK_LIST from './tasks'
+import { TASKS } from './tasks'
 
 describe('training page', () => {
   it('is navigable', () => {
     const m = { matchCase: false }
-    cy.intercept('tasks', TASK_LIST)
+    cy.intercept('tasks', TASKS)
     cy.visit('')
     cy.get('button').contains('get started', m).click()
     cy.get('button').contains('train', m).click()

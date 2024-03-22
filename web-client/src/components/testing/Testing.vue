@@ -157,12 +157,14 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { watch, computed, shallowRef, onActivated, onMounted, Component } from 'vue'
+import type { Component } from 'vue'
+import { watch, computed, shallowRef, onActivated, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { List } from 'immutable'
 
-import { EmptyMemory, Memory, Path, Task, data, ModelType, client as clients } from '@epfml/discojs-core'
+import type { Path, Task } from '@epfml/discojs-core'
+import { EmptyMemory, Memory, data, ModelType, client as clients, aggregator } from '@epfml/discojs-core'
 import { IndexedDB, WebImageLoader, WebTabularLoader } from '@epfml/discojs'
 
 import { CONFIG } from '@/config'
@@ -197,7 +199,7 @@ const toaster = useToaster()
 const currentTask = shallowRef<Task | undefined>(undefined)
 
 const federatedTasks = computed<List<Task>>(() =>
-  tasksStore.tasks.filter((t) => t.trainingInformation.scheme === 'Federated').toList())
+  tasksStore.tasks.filter((t) => t.trainingInformation.scheme === 'federated').toList())
 
 const memory = computed<Memory>(() =>
   memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory())
@@ -243,7 +245,7 @@ onActivated(async () => {
 })
 
 const downloadModel = async (task: Task): Promise<void> => {
-  const client = new clients.Local(CONFIG.serverUrl, task)
+  const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
   const model = await client.getLatestModel()
   const source = {
     type: ModelType.SAVED,
@@ -254,7 +256,13 @@ const downloadModel = async (task: Task): Promise<void> => {
   await memoryStore.initModels()
 }
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
-  const selectedTask = tasksStore.tasks.get(memory.value.infoFor(path)?.id)
+  const taskID = memory.value.infoFor(path)?.taskID
+  if (taskID === undefined) {
+    toaster.error('Info for path not found')
+    return
+  }
+
+  const selectedTask = tasksStore.tasks.get(taskID)
   if (selectedTask !== undefined) {
     currentTask.value = selectedTask
     validationStore.model = path
@@ -265,7 +273,7 @@ const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
   }
 }
 
-const taskTitle = (taskID: string): string => {
+const taskTitle = (taskID: string): string | undefined => {
   const titled = tasksStore.tasks.get(taskID)
   if (titled !== undefined) {
     return titled.displayInformation.taskTitle
