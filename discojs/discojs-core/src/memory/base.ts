@@ -1,8 +1,8 @@
 // only used browser-side
 // TODO: replace IO type
 
-import type { Model, TaskID } from '..'
-import type { ModelType } from './model_type'
+import type { Model, TaskID } from '../index.js'
+import type { ModelType } from './model_type.js'
 
 /**
  * Model path which uniquely identifies a model in memory.

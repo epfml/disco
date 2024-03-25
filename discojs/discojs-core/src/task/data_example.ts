@@ -1,17 +1,14 @@
-import { Set } from 'immutable'
+export interface DataExample {
+  columnName: string
+  columnData: string | number
+}
 
 export function isDataExample (raw: unknown): raw is DataExample {
-  if (typeof raw !== 'object') {
-    return false
-  }
-  if (raw === null) {
+  if (typeof raw !== 'object' || raw === null) {
     return false
   }
 
-  if (!Set(Object.keys(raw)).equals(Set.of('columnName', 'columnData'))) {
-    return false
-  }
-  const { columnName, columnData } = raw as Record<'columnName' | 'columnData', unknown>
+  const { columnName, columnData }: Partial<Record<keyof DataExample, unknown>> = raw
 
   if (
     typeof columnName !== 'string' ||
@@ -20,13 +17,9 @@ export function isDataExample (raw: unknown): raw is DataExample {
     return false
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _: DataExample = { columnName, columnData }
+  const repack = { columnName, columnData }
+  const _correct: DataExample = repack
+  const _total: Record<keyof DataExample, unknown> = repack
 
   return true
-}
-
-export interface DataExample {
-  columnName: string
-  columnData: string | number
 }

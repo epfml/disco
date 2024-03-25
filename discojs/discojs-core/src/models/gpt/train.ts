@@ -1,10 +1,10 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import { AdamW, clipByGlobalNormObj } from './optimizers'
-import type { GPTConfig } from './config'
-import { DEFAULT_CONFIG } from './config'
-import evaluate from './evaluate'
-import type { TrainingCallbacks } from './types'
+import { AdamW, clipByGlobalNormObj } from './optimizers.js'
+import type { GPTConfig } from './config.js'
+import { DEFAULT_CONFIG } from './config.js'
+import evaluate from './evaluate.js'
+import type { TrainingCallbacks } from './types.js'
 
 function resolveConfig (config: GPTConfig): Required<GPTConfig> {
   return {
@@ -18,7 +18,7 @@ function getCustomAdam (model: tf.LayersModel, c: Required<GPTConfig>): tf.Optim
   const excludeFromWeightDecay: string[] = []
 
   // TODO unsafe cast
-  const namedWeights = (model as unknown as any).getNamedWeights() as Array<{ name: string, tensor: tf.Tensor }>
+  const namedWeights = (model as unknown as Record<'getNamedWeights', () => Array<{ name: string, tensor: tf.Tensor }>>).getNamedWeights()
 
   namedWeights.forEach((v) => {
     if (

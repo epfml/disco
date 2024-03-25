@@ -1,10 +1,9 @@
 import { assert, expect } from 'chai'
-import { List } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
 import type { Task } from '@epfml/discojs-core'
 
-import { TabularLoader } from './tabular_loader'
+import { TabularLoader } from './tabular_loader.js'
 
 const inputFiles = ['../../datasets/titanic_train.csv']
 
@@ -66,15 +65,15 @@ describe('tabular loader', () => {
       labels: titanic.trainingInformation?.outputColumns,
       shuffle: false
     }
-    const dataset = await (await loader
+    const dataset = (await (await loader
       .loadAll(inputFiles, config))
-      .train.dataset.toArray()
-    const shuffled = await (await loader
+      .train.dataset.toArray()) as Array<Record<'xs' | 'ys', tf.Tensor>>
+    const shuffled = (await (await loader
       .loadAll(inputFiles, { ...config, shuffle: true }))
-      .train.dataset.toArray()
+      .train.dataset.toArray()) as Array<Record<'xs' | 'ys', tf.Tensor>>
 
-    const misses = List(dataset).zip(List(shuffled)).map(([d, s]) =>
-      tf.notEqual((d as any).xs as tf.Tensor, (s as any).xs as tf.Tensor).any().dataSync()[0]
+    const misses = dataset.map((d, i) =>
+      tf.notEqual(d.xs, shuffled[i].xs).any().dataSync()[0]
     ).reduce((acc: number, e) => acc + e)
     assert(misses > 0)
   })

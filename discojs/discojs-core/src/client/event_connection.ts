@@ -1,12 +1,12 @@
 import isomorphic from 'isomorphic-ws'
-import type { Peer, SignalData } from './decentralized/peer'
-import { type NodeID } from './types'
+import type { Peer, SignalData } from './decentralized/peer.js'
+import { type NodeID } from './types.js'
 import msgpack from 'msgpack-lite'
-import * as decentralizedMessages from './decentralized/messages'
-import { type, type NarrowMessage, type Message } from './messages'
-import { timeout } from './utils'
+import * as decentralizedMessages from './decentralized/messages.js'
+import { type, type NarrowMessage, type Message } from './messages.js'
+import { timeout } from './utils.js'
 
-import { EventEmitter } from '../utils/event_emitter'
+import { EventEmitter } from '../utils/event_emitter.js'
 
 export interface EventConnection {
   on: <K extends type>(type: K, handler: (event: NarrowMessage<K>) => void) => void
@@ -30,7 +30,7 @@ export async function waitMessageWithTimeout<T extends type> (connection: EventC
 
 export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K> }> implements EventConnection {
   constructor (
-    private readonly ownId: NodeID,
+    private readonly _ownId: NodeID,
     private readonly peer: Peer,
     private readonly signallingServer: EventConnection
   ) {
@@ -48,7 +48,7 @@ export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K>
     })
 
     this.peer.on('data', (data) => {
-      const msg = msgpack.decode(data)
+      const msg: unknown = msgpack.decode(data)
 
       if (!decentralizedMessages.isPeerMessage(msg)) {
         throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
@@ -83,27 +83,26 @@ export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K>
 export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K> }> implements EventConnection {
   private constructor (
     private readonly socket: isomorphic.WebSocket,
-    private readonly validateReceived?: (msg: any) => boolean,
-    private readonly validateSent?: (msg: any) => boolean
+    private readonly validateSent?: (msg: Message) => boolean
   ) { super() }
 
   static async connect (url: URL,
-    validateReceived?: (msg: any) => boolean,
-    validateSent?: (msg: any) => boolean): Promise<WebSocketServer> {
+    validateReceived: (msg: unknown) => msg is Message,
+    validateSent: (msg: Message) => boolean): Promise<WebSocketServer> {
     const ws = new isomorphic.WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
-    const server: WebSocketServer = new WebSocketServer(ws, validateReceived, validateSent)
+    const server: WebSocketServer = new WebSocketServer(ws, validateSent)
 
     ws.onmessage = (event: isomorphic.MessageEvent) => {
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
 
-      const msg = msgpack.decode(new Uint8Array(event.data))
+      const msg: unknown = msgpack.decode(new Uint8Array(event.data))
 
       // Validate message format
-      if (validateReceived !== undefined && !validateReceived(msg)) {
+      if (!validateReceived(msg)) {
         throw new Error(`invalid message received: ${JSON.stringify(msg)}`)
       }
 

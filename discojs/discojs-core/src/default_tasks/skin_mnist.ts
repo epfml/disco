@@ -1,7 +1,7 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '..'
-import { data, models } from '..'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { data, models } from '../index.js'
 
 export const skinMnist: TaskProvider = {
   getTask (): Task {
@@ -40,14 +40,14 @@ export const skinMnist: TaskProvider = {
           'Vascular lesions',
           'Dermatofibroma'
         ],
-        scheme: 'Federated',
+        scheme: 'federated',
         noiseScale: undefined,
         clippingRadius: undefined
       }
     }
   },
 
-  async getModel (): Promise<Model> {
+  getModel (): Promise<Model> {
     const numClasses = 7
     const size = 28
 
@@ -98,6 +98,6 @@ export const skinMnist: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return Promise.resolve(new models.TFJS(model))
   }
 }

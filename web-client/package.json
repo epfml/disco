@@ -2,10 +2,13 @@
   "name": "@epfml/disco-web-client",
   "private": true,
   "scripts": {
-    "start": "vue-cli-service serve  --port 8081",
+    "start": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "test": "vue-cli-service test:unit tests"
+    "test": "npm run test:unit && npm run test:component && npm run test:e2e",
+    "test:unit": "vue-cli-service test:unit tests",
+    "test:component": "cypress run --component",
+    "test:e2e": "vue-cli-service test:e2e --headless --mode e2e"
   },
   "dependencies": {
     "@epfml/discojs": "*",
@@ -16,7 +19,7 @@
     "aws-sdk": "2",
     "core-js": "3",
     "crypto-browserify": "3",
-    "cypress": "10",
+    "cypress": "13",
     "d3": "7",
     "immutable": "4",
     "jshashes": "1",
@@ -43,6 +46,7 @@
   "devDependencies": {
     "@types/msgpack-lite": "0.1",
     "@vue/cli-plugin-babel": "5",
+    "@vue/cli-plugin-e2e-cypress": "5",
     "@vue/cli-plugin-eslint": "5",
     "@vue/cli-plugin-router": "5",
     "@vue/cli-plugin-typescript": "5",
@@ -59,7 +63,7 @@
     "eslint-plugin-vue": "9",
     "typescript": "4",
     "vue-cli-plugin-tailwind": "3",
-    "vue-loader-v16": "npm:vue-loader@16"
+    "vue-loader": "17"
   },
   "browserslist": [
     "> 1%",

@@ -1,7 +1,7 @@
-import { type client, type MetadataKey, type MetadataValue } from '../..'
-import { type weights } from '../../serialization'
+import { type client, type MetadataKey, type MetadataValue } from '../../index.js'
+import { type weights } from '../../serialization/index.js'
 
-import { type, hasMessageType, type AssignNodeID, type ClientConnected } from '../messages'
+import { type, hasMessageType, type AssignNodeID, type ClientConnected } from '../messages.js'
 
 export type MessageFederated =
   ClientConnected |

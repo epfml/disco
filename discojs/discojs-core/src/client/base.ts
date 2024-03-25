@@ -1,11 +1,11 @@
 import axios from 'axios'
 import type { Set } from 'immutable'
 
-import type { Model, Task, TrainingInformant, WeightsContainer } from '..'
-import { serialization } from '..'
-import type { NodeID } from './types'
-import type { EventConnection } from './event_connection'
-import type { Aggregator } from '../aggregator'
+import type { Model, Task, TrainingInformant, WeightsContainer } from '../index.js'
+import { serialization } from '../index.js'
+import type { NodeID } from './types.js'
+import type { EventConnection } from './event_connection.js'
+import type { Aggregator } from '../aggregator/index.js'
 
 /**
  * Main, abstract, class representing a Disco client in a network, which handles
@@ -67,46 +67,46 @@ export abstract class Base {
 
   /**
    * Communication callback called once at the beginning of the training instance.
-   * @param weights The initial model weights
-   * @param trainingInformant The training informant
+   * @param _weights The initial model weights
+   * @param _trainingInformant The training informant
    */
   async onTrainBeginCommunication (
-    weights: WeightsContainer,
-    trainingInformant: TrainingInformant
+    _weights: WeightsContainer,
+    _trainingInformant: TrainingInformant
   ): Promise<void> {}
 
   /**
    * Communication callback called once at the end of the training instance.
-   * @param weights The final model weights
-   * @param trainingInformant The training informant
+   * @param _weights The final model weights
+   * @param _trainingInformant The training informant
    */
   async onTrainEndCommunication (
-    weights: WeightsContainer,
-    trainingInformant: TrainingInformant
+    _weights: WeightsContainer,
+    _trainingInformant: TrainingInformant
   ): Promise<void> {}
 
   /**
    * Communication callback called at the beginning of every training round.
-   * @param weights The most recent local weight updates
-   * @param round The current training round
-   * @param trainingInformant The training informant
+   * @param _weights The most recent local weight updates
+   * @param _round The current training round
+   * @param _trainingInformant The training informant
    */
   async onRoundBeginCommunication (
-    weights: WeightsContainer,
-    round: number,
-    trainingInformant: TrainingInformant
+    _weights: WeightsContainer,
+    _round: number,
+    _trainingInformant: TrainingInformant
   ): Promise<void> {}
 
   /**
    * Communication callback called the end of every training round.
-   * @param weights The most recent local weight updates
-   * @param round The current training round
-   * @param trainingInformant The training informant
+   * @param _weights The most recent local weight updates
+   * @param _round The current training round
+   * @param _trainingInformant The training informant
    */
   async onRoundEndCommunication (
-    weights: WeightsContainer,
-    round: number,
-    trainingInformant: TrainingInformant
+    _weights: WeightsContainer,
+    _round: number,
+    _trainingInformant: TrainingInformant
   ): Promise<void> {}
 
   get nodes (): Set<NodeID> {

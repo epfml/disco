@@ -1,8 +1,8 @@
 import type { Map } from 'immutable'
 
-import { AggregationStep, Base as Aggregator } from './base'
-import type { Model, WeightsContainer, client } from '..'
-import { aggregation } from '..'
+import { AggregationStep, Base as Aggregator } from './base.js'
+import type { Model, WeightsContainer, client } from '../index.js'
+import { aggregation } from '../index.js'
 
 /**
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights.

@@ -4,8 +4,8 @@ import fs from 'node:fs/promises'
 import tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
-import type { Task, Path, Digest, TaskProvider } from '@epfml/discojs-core'
-import { Model, isTaskProvider, defaultTasks, models, serialization } from '@epfml/discojs-core'
+import { Task, Path, Digest, TaskProvider, isTask } from '@epfml/discojs-core'
+import { Model, defaultTasks, models, serialization } from '@epfml/discojs-core'
 
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks
@@ -32,7 +32,7 @@ export class TasksAndModels {
 
   // Returns already saved model in priority, then the model from the task definition
   private async loadModelFromTask (task: Task | TaskProvider): Promise<Model> {
-    const discoTask = isTaskProvider(task) ? task.getTask() : task
+    const discoTask = isTask(task) ? task : task.getTask()
     let model: Model | undefined
 
     const modelPath = `./models/${discoTask.id}/`
@@ -43,10 +43,10 @@ export class TasksAndModels {
       // unable to read file, continuing
     }
 
-    if (isTaskProvider(task)) {
-      model = await task.getModel()
+    if (isTask(task)) {
+      throw new Error('saved model not found and no way to get it')
     } else {
-      throw new Error('model not provided in task definition')
+      model = await task.getModel()
     }
 
     await fs.mkdir(modelPath, { recursive: true })
@@ -71,13 +71,28 @@ export class TasksAndModels {
     const hash = createHash(digest.algorithm)
     const modelConfigRaw = await fs.readFile(`${modelPath}/model.json`)
 
-    const modelConfig = JSON.parse(modelConfigRaw.toString())
-    const weightsFiles = modelConfig.weightsManifest[0].paths
+    const parsedModelConfig: unknown = JSON.parse(modelConfigRaw.toString())
+
+    if (typeof parsedModelConfig !== 'object' || parsedModelConfig === null) {
+      throw new Error('invalid model config')
+    }
+    const { weightsManifest }: Partial<Record<'weightsManifest', unknown>> = parsedModelConfig
+
+    if (!Array.isArray(weightsManifest) || weightsManifest.length === 0) {
+      throw new Error('invalid weights manifest')
+    }
+    const manifest: unknown = weightsManifest[0]
+
+    if (typeof manifest !== 'object' || manifest === null) {
+      throw new Error('invalid weight manifest')
+    }
+    const { paths: weightsFiles }: Partial<{ paths: unknown }> = manifest
+
     if (!(
       Array.isArray(weightsFiles) &&
       typeof weightsFiles[0] === 'string'
     )) {
-      throw new Error()
+      throw new Error("invalud weights files")
     }
     await Promise.all(weightsFiles.map(async (file: string) => {
       const data = await fs.readFile(`${modelPath}/${file}`)
@@ -95,10 +110,10 @@ export class TasksAndModels {
 
   async addTaskAndModel (task: Task | TaskProvider, model?: Model | URL): Promise<void> {
     let discoTask: Task
-    if (isTaskProvider(task)) {
-      discoTask = task.getTask()
-    } else {
+    if (isTask(task)) {
       discoTask = task
+    } else {
+      discoTask = task.getTask()
     }
 
     let tfModel: Model

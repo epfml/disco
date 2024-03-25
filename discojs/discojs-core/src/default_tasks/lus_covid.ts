@@ -1,7 +1,7 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '..'
-import { data, models } from '..'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { data, models } from '../index.js'
 
 export const lusCovid: TaskProvider = {
   getTask (): Task {
@@ -30,7 +30,7 @@ export const lusCovid: TaskProvider = {
         preprocessingFunctions: [data.ImagePreprocessing.Resize],
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
         dataType: 'image',
-        scheme: 'Decentralized',
+        scheme: 'decentralized',
         noiseScale: undefined,
         clippingRadius: 20,
         decentralizedSecure: true,
@@ -40,7 +40,7 @@ export const lusCovid: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
+  getModel (): Promise<Model> {
     const imageHeight = 100
     const imageWidth = 100
     const imageChannels = 3
@@ -93,6 +93,6 @@ export const lusCovid: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return Promise.resolve(new models.TFJS(model))
   }
 }

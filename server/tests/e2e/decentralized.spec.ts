@@ -7,7 +7,7 @@ import {
   aggregator as aggregators, informant as informants, client as clients, WeightsContainer, defaultTasks, aggregation
 } from '@epfml/discojs-core'
 
-import { startServer } from '../../src'
+import { startServer } from '../../src/index.js'
 
 // Mocked aggregators with easy-to-fetch aggregation results
 class MockMeanAggregator extends aggregators.MeanAggregator {
@@ -91,11 +91,11 @@ describe('end-to-end decentralized', function () {
     await client.onTrainBeginCommunication(aggregator.outcome, informant)
     // Perform multiple training rounds
     for (let r = 0; r < rounds; r++) {
-      await client.onRoundBeginCommunication(aggregator.outcome, aggregator.round, informant)
+      await client.onRoundBeginCommunication(aggregator.outcome, aggregator.round)
       await new Promise((resolve) => {
         setTimeout(resolve, 1_000)
       })
-      await client.onRoundEndCommunication(aggregator.outcome, aggregator.round, informant)
+      await client.onRoundEndCommunication(aggregator.outcome, aggregator.round)
     }
     await client.onTrainEndCommunication(aggregator.outcome, informant)
 

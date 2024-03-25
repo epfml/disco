@@ -1,8 +1,8 @@
 import { assert } from 'chai'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Model } from '..'
-import { serialization, models } from '..'
+import type { Model } from '../index.js'
+import { serialization, models } from '../index.js'
 
 async function getRawWeights (model: Model): Promise<Array<[number, Float32Array]>> {
   return Array.from(

@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 
 import type { data, Task } from '@epfml/discojs-core'
-import { Disco, fetchTasks, TrainingSchemes, defaultTasks } from '@epfml/discojs-core'
+import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 import { startServer } from '@epfml/disco-server'
 
@@ -11,7 +11,7 @@ import { startServer } from '@epfml/disco-server'
  */
 async function runUser (url: URL, task: Task, dataset: data.DataSplit): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
-  const disco = new Disco(task, { url, scheme: TrainingSchemes.FEDERATED })
+  const disco = new Disco(task, { url, scheme: 'federated' })
   await disco.fit(dataset) // Start training on the dataset
 
   // Stop training and disconnect from the remote server
@@ -78,7 +78,7 @@ async function loadSimpleFaceData (task: Task): Promise<data.DataSplit> {
 
   const filesPerFolder = [youngFiles, oldFiles]
 
-  const labels = filesPerFolder.flatMap((files, index) => Array(files.length).fill(index))
+  const labels = filesPerFolder.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
   const files = filesPerFolder.flat()
 
   return await new NodeImageLoader(task).loadAll(files, { labels })

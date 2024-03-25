@@ -1,18 +1,18 @@
-import tf, { LayersModel, layers, serialization } from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { GPTConfig } from './config'
-import { getModelSizes, DEFAULT_CONFIG } from './config'
-import { train } from './train'
-import type { TrainingCallbacks } from './types'
+import type { GPTConfig, ModelSize } from './config.js'
+import { getModelSizes, DEFAULT_CONFIG } from './config.js'
+import { train } from './train.js'
+import type { TrainingCallbacks } from './types.js'
 
-class Range extends layers.Layer {
+class Range extends tf.layers.Layer {
   static readonly className = 'Range'
 
   computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
     return inputShape
   }
 
-  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, any>): tf.Tensor | tf.Tensor[] {
+  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
     return tf.tidy(() => {
       if (Array.isArray(input)) {
         // TODO support multitensor
@@ -25,16 +25,16 @@ class Range extends layers.Layer {
     })
   }
 }
-serialization.registerClass(Range)
+tf.serialization.registerClass(Range)
 
-class LogLayer extends layers.Layer {
+class LogLayer extends tf.layers.Layer {
   static readonly className = 'LogLayer'
 
   computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
     return inputShape
   }
 
-  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, any>): tf.Tensor | tf.Tensor[] {
+  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
     return tf.tidy(() => {
       if (Array.isArray(input)) {
         input = input[0]
@@ -44,9 +44,9 @@ class LogLayer extends layers.Layer {
     })
   }
 }
-serialization.registerClass(LogLayer)
+tf.serialization.registerClass(LogLayer)
 
-class CausalSelfAttentionBase extends layers.Layer {
+class CausalSelfAttentionBase extends tf.layers.Layer {
   static readonly className = 'CausalSelfAttentionBase'
 
   private readonly blockSize: number
@@ -73,12 +73,12 @@ class CausalSelfAttentionBase extends layers.Layer {
     return [null, this.blockSize, this.nEmbd]
   }
 
-  getConfig (): serialization.ConfigDict {
+  getConfig (): tf.serialization.ConfigDict {
     const config = super.getConfig()
     return Object.assign({}, config, this.config)
   }
 
-  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, any>): tf.Tensor | tf.Tensor[] {
+  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
     return tf.tidy(() => {
       if (Array.isArray(input)) {
         input = input[0]
@@ -112,14 +112,14 @@ class CausalSelfAttentionBase extends layers.Layer {
     })
   }
 }
-serialization.registerClass(CausalSelfAttentionBase)
+tf.serialization.registerClass(CausalSelfAttentionBase)
 
 type CausalSelfAttentionConfig =
     ConstructorParameters<typeof tf.layers.Layer>[0]
     & Record<'blockSize' | 'nHead' | 'nEmbd' | 'dropout', number>
     & { bias: boolean }
 
-class CausalSelfAttention extends layers.Layer {
+class CausalSelfAttention extends tf.layers.Layer {
   static readonly className = 'CausalSelfAttention'
 
   private readonly nHead: number
@@ -175,12 +175,12 @@ class CausalSelfAttention extends layers.Layer {
     return inputShape
   }
 
-  getConfig (): serialization.ConfigDict {
+  getConfig (): tf.serialization.ConfigDict {
     const config = super.getConfig()
     return Object.assign({}, config, this.config)
   }
 
-  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, any>): tf.Tensor | tf.Tensor[] {
+  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
     return tf.tidy(() => {
       if (this.cAttnKernel === undefined ||
         this.cAttnBias === undefined ||
@@ -241,9 +241,9 @@ class CausalSelfAttention extends layers.Layer {
     })
   }
 }
-serialization.registerClass(CausalSelfAttention)
+tf.serialization.registerClass(CausalSelfAttention)
 
-class GELU extends layers.Layer {
+class GELU extends tf.layers.Layer {
   static readonly className = 'GELU'
 
   constructor () {
@@ -254,7 +254,7 @@ class GELU extends layers.Layer {
     return inputShape
   }
 
-  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, any>): tf.Tensor | tf.Tensor[] {
+  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
     return tf.tidy(() => {
       if (Array.isArray(input)) {
         // TODO support multitensor
@@ -277,39 +277,35 @@ class GELU extends layers.Layer {
     })
   }
 }
-serialization.registerClass(GELU)
+tf.serialization.registerClass(GELU)
 
-function MLP (conf: any): LayersModel {
-  const config = Object.assign({ name: 'mlp' }, conf)
-  const inputs = tf.input({ shape: [config.blockSize, config.nEmbd] })
-  let x
-  x = tf.layers
-    .dense({
-      name: config.name + '/c_fc',
+type MLPConfig = Required<ModelSize> & Record<'blockSize' | 'residDrop', number>
+
+function MLP (config: MLPConfig): tf.LayersModel {
+  return tf.sequential({ layers: [
+    tf.layers.dense({
+      name: 'mlp/c_fc',
       units: 4 * config.nEmbd,
       inputDim: config.nEmbd,
       inputShape: [config.blockSize, config.nEmbd]
-    })
-    .apply(inputs)
-  x = new GELU().apply(x)
-  x = tf.layers
-    .dense({
-      name: config.name + '/c_proj',
+    }),
+    new GELU(),
+  tf.layers.dense({
+      name: 'mlp/c_proj',
       units: config.nEmbd,
       inputDim: 4 * config.nEmbd,
       inputShape: [config.blockSize, 4 * config.nEmbd]
-    })
-    .apply(x)
-  x = tf.layers
-    .dropout({
-      name: config.name + '/drop',
+    }),
+    tf.layers.dropout({
+      name: 'mlp/drop',
       rate: config.residDrop
-    })
-    .apply(x)
-  return tf.model({ inputs, outputs: x as any })
+    }),
+  ]})
 }
 
-function Block (conf: CausalSelfAttentionConfig & { debug: boolean }): LayersModel {
+type BlockConfig = CausalSelfAttentionConfig & MLPConfig & { debug: boolean }
+
+function Block (conf: BlockConfig): tf.LayersModel {
   const config = Object.assign({ name: 'h' }, conf)
   const inputs = tf.input({ shape: [config.blockSize, config.nEmbd] })
   let x1, x2
@@ -322,18 +318,19 @@ function Block (conf: CausalSelfAttentionConfig & { debug: boolean }): LayersMod
   x1 = new CausalSelfAttention(
     Object.assign({}, config, { name: config.name + '/attn' })
   ).apply(x1)
-  x1 = tf.layers.add().apply([inputs, x1 as any])
+  x1 = tf.layers.add().apply([inputs, x1 as tf.SymbolicTensor])
   x2 = tf.layers
     .layerNormalization({ name: config.name + '/ln_2', epsilon: 1e-5 })
     .apply(x1)
   x2 = MLP(Object.assign({}, config, { name: config.name + '/mlp' })).apply(
     x2
   )
-  x2 = tf.layers.add().apply([x1 as any, x2 as any])
-  return tf.model({ name: config.name, inputs, outputs: x2 as any })
+  x2 = tf.layers.add().apply([x1 as tf.SymbolicTensor, x2 as tf.SymbolicTensor])
+
+  return tf.model({ name: config.name, inputs, outputs: x2 as tf.SymbolicTensor })
 }
 
-function GPT (conf: GPTConfig): LayersModel {
+function GPT (conf: GPTConfig): tf.LayersModel {
   const configDefaults = {
     name: 'transformer',
     ...DEFAULT_CONFIG
@@ -354,7 +351,7 @@ function GPT (conf: GPTConfig): LayersModel {
         embeddingsRegularizer: undefined,
         activityRegularizer: undefined
       })
-      .apply(inputs)
+      .apply(inputs) as tf.SymbolicTensor
     : inputs
 
   const range = new Range({}).apply(inputs)
@@ -365,13 +362,14 @@ function GPT (conf: GPTConfig): LayersModel {
       outputDim: config.nEmbd,
       embeddingsInitializer: 'zeros'
     })
-    .apply(range)
+    .apply(range) as tf.SymbolicTensor
   if (config.debug) {
-    posEmb = new LogLayer({ name: 'posEmb' }).apply(posEmb)
+    posEmb = new LogLayer({ name: 'posEmb' }).apply(posEmb) as tf.SymbolicTensor
   }
 
   let x
-  x = tf.layers.add().apply([tokEmb as any, posEmb as any])
+
+  x = tf.layers.add().apply([tokEmb, posEmb])
   x = tf.layers
     .dropout({
       name: 'drop',
@@ -405,7 +403,8 @@ function GPT (conf: GPTConfig): LayersModel {
       })
       .apply(x)
   }
-  return tf.model({ inputs, outputs: x as any })
+
+  return tf.model({ inputs, outputs: x as tf.SymbolicTensor })
 }
 
 interface GenerateConfig {
@@ -454,7 +453,7 @@ declare abstract class Dataset<T> {
   size: number
 }
 
-class GPTModel extends LayersModel {
+class GPTModel extends tf.LayersModel {
   constructor (protected readonly config: GPTConfig) {
     const gpt = GPT(config)
     const { inputs, outputs, name } = gpt
@@ -481,10 +480,8 @@ class GPTModel extends LayersModel {
   }
 }
 
-interface GenerateOutput { idxNext: tf.Tensor2D, timePerToken: number }
-
 class GPTLMHeadModel extends GPTModel {
-  async generate (idxRaw: tf.TensorLike, conf: GenerateConfig, act?: (_: GenerateOutput) => Promise<void>): Promise<number[][]> {
+  async generate (idxRaw: tf.TensorLike, conf: GenerateConfig, act?: (_: { idxNext: number[][], timePerToken: number }) => Promise<void>): Promise<number[][]> {
     const config = Object.assign({}, defaultGenerateConfig, conf)
     let idx = prepareIdx(idxRaw)
     for (let step = 0; step < config.maxNewTokens; step++) {
@@ -492,7 +489,7 @@ class GPTLMHeadModel extends GPTModel {
       const idxNew = idx.concat(idxNext, 1)
       tf.dispose(idx)
       idx = idxNew
-      const idxNextArr = await (idxNext as any).array()
+      const idxNextArr = await idxNext.array()
       tf.dispose(idxNext)
       if (act !== undefined) {
         await act({ idxNext: idxNextArr, timePerToken })
@@ -503,11 +500,13 @@ class GPTLMHeadModel extends GPTModel {
     return idxArr
   }
 
-  private generateOnce (model: tf.LayersModel, idx: tf.Tensor2D, config: GenerateConfig): GenerateOutput {
+  private generateOnce (model: tf.LayersModel, idx: tf.Tensor2D, config: GenerateConfig): { idxNext: tf.Tensor2D, timePerToken: number } {
     let timePerToken = performance.now()
 
     const idxNext = tf.tidy(() => {
-      const blockSize: any = model.inputs[0].shape[1]
+      const blockSize = model.inputs[0].shape[1]
+      if (blockSize === null) throw new Error('unexpected shape')
+
       const idxCond =
               idx.shape[1] <= blockSize
                 ? idx

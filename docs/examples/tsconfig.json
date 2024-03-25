@@ -1,20 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES5",
-    "lib": ["ES5"],
+    "module": "node16",
+    "target": "es2022",
 
     "strict": true,
 
-    "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "downlevelIteration": true, // needed by <ES6
-
-    "declaration": true,
 
     "outDir": "dist"
   },
-  "include": ["*.ts"],
-  "exclude": ["**/*.spec.ts"]
+  "include": ["*.ts"]
 }

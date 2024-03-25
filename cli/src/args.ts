@@ -1,5 +1,6 @@
 import { parse } from 'ts-command-line-args'
 import { Map } from 'immutable'
+
 import type { Task } from '@epfml/discojs-core'
 import { defaultTasks } from '@epfml/discojs-core'
 

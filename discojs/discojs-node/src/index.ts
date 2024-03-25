@@ -1,1 +1,1 @@
-export * from './data'
+export * from './data/index.js'

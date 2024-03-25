@@ -1,7 +1,7 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '..'
-import { data, models } from '..'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { data, models } from '../index.js'
 
 export const simpleFace: TaskProvider = {
   getTask (): Task {
@@ -30,7 +30,7 @@ export const simpleFace: TaskProvider = {
         IMAGE_H: 200,
         IMAGE_W: 200,
         LABEL_LIST: ['child', 'adult'],
-        scheme: 'Federated', // secure aggregation not yet implemented for federated
+        scheme: 'federated', // secure aggregation not yet implemented for federated
         noiseScale: undefined,
         clippingRadius: undefined
       }

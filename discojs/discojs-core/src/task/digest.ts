@@ -4,14 +4,11 @@ export interface Digest {
 }
 
 export function isDigest (raw: unknown): raw is Digest {
-  if (typeof raw !== 'object') {
-    return false
-  }
-  if (raw === null) {
+  if (typeof raw !== 'object' || raw === null) {
     return false
   }
 
-  const { algorithm, value } = raw as Record<string, unknown | undefined>
+  const { algorithm, value }: Partial<Record<keyof Digest, unknown>> = raw
 
   if (!(
     typeof algorithm === 'string' &&
@@ -19,6 +16,10 @@ export function isDigest (raw: unknown): raw is Digest {
   )) {
     return false
   }
+
+  const repack = { algorithm, value }
+  const _correct: Digest = repack
+  const _total: Record<keyof Digest, unknown> = repack
 
   return true
 }

@@ -1,3 +1,2 @@
-"use strict";
-
-module.exports = require("@koush/wrtc");
+import wrtc from "node-datachannel/polyfill"
+export default wrtc

@@ -1,9 +1,13 @@
 import { List } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
+<<<<<<< HEAD
 import type { Task } from '../../..'
 import type { PreprocessingFunction } from './base'
 import { encode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
+=======
+import type { PreprocessingFunction } from './base.js'
+>>>>>>> 632-upgrade-es2022-tharvik
 
 /**
  * Available text preprocessing types.

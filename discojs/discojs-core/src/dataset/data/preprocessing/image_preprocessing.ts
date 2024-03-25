@@ -1,8 +1,8 @@
 import { List } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Task } from '../../..'
-import type { PreprocessingFunction } from './base'
+import type { Task } from '../../../index.js'
+import type { PreprocessingFunction } from './base.js'
 
 /**
  * Available image preprocessing types.
@@ -33,7 +33,7 @@ const resize: PreprocessingFunction = {
 
 const normalize: PreprocessingFunction = {
   type: ImagePreprocessing.Normalize,
-  apply: (entry: tf.TensorContainer, task: Task): tf.TensorContainer => {
+  apply: (entry: tf.TensorContainer): tf.TensorContainer => {
     const { xs, ys } = entry as ImageEntry
     return {
       xs: xs.div(tf.scalar(255)),

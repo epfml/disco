@@ -1,14 +1,10 @@
-import type tf from '@tensorflow/tfjs'
 import type { Map } from 'immutable'
 
-import type { WeightsContainer } from '.'
-import type { NodeID } from './client'
+import type { WeightsContainer } from './index.js'
+import type { NodeID } from './client/index.js'
 
 // Filesystem reference
 export type Path = string
-
-// Weights of a model
-export type Weights = tf.Tensor[]
 
 export type MetadataKey = string
 export type MetadataValue = string

@@ -1,19 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "ES5",
-    "lib": ["ES5"],
-
-    "strict": true,
-
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "downlevelIteration": true, // needed by <ES6
-
-    "declaration": true,
-
-    "baseUrl": "src",
-    "outDir":  "dist",
-  },
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": { "outDir":  "dist" },
   "include": ["src"],
 }

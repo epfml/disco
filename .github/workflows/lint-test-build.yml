@@ -4,44 +4,39 @@ on:
     branches: production
   pull_request:
 
-env:
-  node_version: 16
-
 jobs:
   download-datasets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: datasets
           key: datasets-${{ hashFiles('datasets/**') }}
       - run: ./datasets/populate
 
   lint-lib-core:
-    needs: [build-lib-core, build-lib-node]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-{core,node} run build
       - run: npm --workspace=./discojs/discojs-core run lint
 
   lint-lib-node:
     needs: build-lib-core
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-core run build
@@ -51,10 +46,10 @@ jobs:
     needs: build-lib-core
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-core run build
@@ -64,10 +59,10 @@ jobs:
     needs: [build-lib-core, build-lib-node]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-{core,node} run build
@@ -77,10 +72,10 @@ jobs:
     needs: [build-lib-core, build-lib-node, build-server]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
@@ -90,10 +85,10 @@ jobs:
     needs: [build-lib-core, build-lib-web]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-{core,web} run build
@@ -103,10 +98,10 @@ jobs:
     needs: [build-lib-core, build-lib-node, build-server]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
@@ -116,10 +111,10 @@ jobs:
   build-lib-core:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-core run build
@@ -128,10 +123,10 @@ jobs:
     needs: build-lib-core
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-core run build
@@ -141,10 +136,10 @@ jobs:
     needs: build-lib-core
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run --workspace=./discojs/discojs-core build
@@ -154,10 +149,10 @@ jobs:
     needs: [build-lib-core, build-lib-node]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run --workspace=./discojs/discojs-{core,node} build
@@ -167,8 +162,8 @@ jobs:
     needs: build-server
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v1
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
         with:
           install: true
       - run: docker build .
@@ -177,10 +172,10 @@ jobs:
     needs: [build-lib-core, build-lib-node, build-server]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run --workspace={./discojs/discojs-{core,node},./server} build
@@ -190,10 +185,10 @@ jobs:
     needs: [build-lib-core, build-lib-web]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-{core,web} run build
@@ -203,10 +198,10 @@ jobs:
     needs: [build-lib-core, build-lib-node, build-server]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
@@ -214,81 +209,79 @@ jobs:
         working-directory: docs/examples
 
   test-lib-core:
-    needs:
-      [build-lib-core, build-lib-node, build-server-docker, download-datasets]
+    needs: [build-lib-core, download-datasets]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: datasets
           key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-{core,node} run build
-      - run: ./with_server npm --workspace=./discojs/discojs-core test
+      - run: npm --workspace=./discojs/discojs-core test
 
   test-lib-node:
-    needs: [build-lib-core, build-server-docker, download-datasets]
+    needs: [build-lib-core, download-datasets]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: datasets
           key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-core run build
-      - run: ./with_server npm --workspace=./discojs/discojs-node test
+      - run: npm --workspace=./discojs/discojs-node test
 
   test-lib-web:
-    needs: [build-lib-core, build-server-docker, download-datasets]
+    needs: [build-lib-core]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: datasets
           key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-core run build
-      - run: ./with_server npm --workspace=./discojs/discojs-web test
+      - run: npm --workspace=./discojs/discojs-web test
 
   test-server:
     needs: [build-lib-core, build-lib-node, download-datasets]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: datasets
           key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-{core,node} run build
@@ -298,44 +291,51 @@ jobs:
     needs: [build-lib-core, build-lib-web, download-datasets]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: datasets
           key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace=./discojs/discojs-{core,web} run build
+      - run: npm --workspace=./web-client run test:unit
       - uses: cypress-io/github-action@v6
         with:
-          browser: chromium
-          start: npm start
-          install: false
-          wait-on: http://localhost:8081/
           working-directory: ./web-client
-          config: baseUrl=http://localhost:8081/#/
+          install: false
+          component: true
+        env:
+          VUE_APP_SERVER_URL: http://server
+      - uses: cypress-io/github-action@v6
+        with:
+          working-directory: ./web-client
+          install: false
+          start: npm start
+        env:
+          VUE_APP_SERVER_URL: http://server
 
   test-cli:
     needs: [build-lib-core, build-lib-node, build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: datasets
           key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
@@ -345,17 +345,17 @@ jobs:
     needs: [build-lib-core, build-lib-node, build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: datasets
           key: datasets-${{ hashFiles('datasets/**') }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm --workspace={./discojs/discojs-{core,node},./server} run build

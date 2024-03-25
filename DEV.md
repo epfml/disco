@@ -44,49 +44,38 @@ flowchart LR
 
 The following instructions will install the required dependencies, build Disco.js and launch a DISCO server and a web client. If you run into any sort of trouble check our [FAQ](./docs/FAQ.md); otherwise please create a new issue or feel free to ask on [our slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw).
 
-**1.** We recommend using [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) to handle multiple Node.js versions. Start by installing `nvm` by following [their installation instructions](https://github.com/nvm-sh/nvm).
-After installation, you should be able to run
-
-```
-nvm -v
-0.39.7 # my nvm version at the time
-```
-
-**2.** Install Node.js version 16
-
-```
-nvm install 16
-```
-
-You can now choose which Node.js version to use:
-
-```
-nvm use 16
-```
-
-Using Node.js v16 should automatically set your [npm](https://docs.npmjs.com/about-npm) (Node Package Manager, different from n**v**m) version to 8:
-
-```
-npm --version
-8.xx.xx
-```
-
-`nvm` manages your different Node.js versions while `npm` handles your different Node.js project packages within one version.
-
-**3.** Clone the repository
+**1.** Clone the repository
 
 ```
 git clone git@github.com:epfml/disco.git
 cd disco
 ```
 
-**4.** Install the dependencies
+**2.** Install Node.js
+
+We recommend using [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) to handle multiple Node.js versions. Start by installing `nvm` by following [their installation instructions](https://github.com/nvm-sh/nvm).
+After installation, you should be able to run
+
+```
+nvm -v
+0.39.7 # at the time of writing
+```
+
+Use it to install the version we use in DISCO.
+
+```
+nvm install # it reads `.nvmrc` to select the correct version
+```
+
+`nvm` manages your different Node.js versions while `npm` handles your different Node.js project packages within one version.
+
+**3.** Install the dependencies
 
 ```
 npm ci
 ```
 
-**5.** Build the projects
+**4.** Build the projects
 
 Then we need to builds the packages meaning compile TypeScript into JavaScript.
 
@@ -98,13 +87,13 @@ Or you can select a specific workspace via `--workspace=$name-or-path-to-package
 npm -ws run build
 ```
 
-**6.** Download and extract the sample training datasets. These datasets are used in the automated tests.
+**5.** Download and extract the sample training datasets. These datasets are used in the automated tests.
 
 ```
 ./datasets/populate
 ```
 
-**7.** Launch DISCO
+**6.** Launch DISCO
 
 As you may have seen, there are many ways to use DISCO. Here we will run a server and a web client. From there, a user can use DISCO from their browser.
 

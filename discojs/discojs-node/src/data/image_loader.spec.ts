@@ -1,12 +1,12 @@
 import { assert, expect } from 'chai'
 import { List, Map, Range } from 'immutable'
 import fs from 'fs'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 import { node as tfNode } from '@tensorflow/tfjs-node'
 
 import type { Task } from '@epfml/discojs-core'
 
-import { ImageLoader } from './image_loader'
+import { ImageLoader } from './image_loader.js'
 
 const readFilesFromDir = (dir: string): string[] =>
   fs.readdirSync(dir).map((file: string) => dir + file)
@@ -78,9 +78,9 @@ describe('image loader', () => {
     const path = DIRS.CIFAR10 + '0.png'
     const imageContent = tfNode.decodeImage(fs.readFileSync(path))
     const datasetContent = await (await LOADERS.CIFAR10
-      .load(path, { labels: ['example'] })).toArray()
-    expect((datasetContent[0] as any).xs.shape).eql(imageContent.shape)
-    expect((datasetContent[0] as any).ys).eql('example')
+      .load(path, { labels: ['example'] })).toArray() as Array<Record<'xs' | 'ys', tf.Tensor>>
+    expect(datasetContent[0].xs.shape).eql(imageContent.shape)
+    expect(datasetContent[0].ys).eql('example')
   })
 
   it('loads multiple samples with labels', async () => {
@@ -119,7 +119,7 @@ describe('image loader', () => {
     assert(true)
   })
 
-  it('shuffles list', async () => {
+  it('shuffles list', () => {
     const loader = new ImageLoader(cifar10Mock)
     const list = Range(0, 100_000).toArray()
     const shuffled = [...list]

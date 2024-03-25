@@ -7,18 +7,14 @@ on:
         required: true
         type: string
 
-env:
-  node_version: 16
-
 jobs:
-
   publish-and-tag:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.node_version }}
+          node-version-file: .nvmrc
           registry-url: https://registry.npmjs.org
           cache: npm
           cache-dependency-path: |

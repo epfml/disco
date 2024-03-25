@@ -1,115 +1,5 @@
-import { type AggregatorChoice } from '../aggregator/get'
-import { type Preprocessing } from '../dataset/data/preprocessing'
-
-export function isTrainingInformation (raw: unknown): raw is TrainingInformation {
-  if (typeof raw !== 'object') {
-    return false
-  }
-  if (raw === null) {
-    return false
-  }
-
-  type Fields =
-    'dataType' |
-    'scheme' |
-    'epochs' |
-    'roundDuration' |
-    'validationSplit' |
-    'batchSize' |
-    'modelID' |
-    'preprocessingFunctions' |
-    'inputColumns' |
-    'outputColumns' |
-    'IMAGE_H' |
-    'IMAGE_W' |
-    'decentralizedSecure' |
-    'maxShareValue' |
-    'minimumReadyPeers' |
-    'LABEL_LIST' |
-    'noiseScale' |
-    'clippingRadius' |
-    'aggregator'
-
-  const {
-    dataType,
-    scheme,
-    epochs,
-    // roundDuration,
-    validationSplit,
-    batchSize,
-    modelID,
-    preprocessingFunctions,
-    inputColumns,
-    outputColumns,
-    IMAGE_H,
-    IMAGE_W,
-    roundDuration,
-    decentralizedSecure,
-    maxShareValue,
-    minimumReadyPeers,
-    LABEL_LIST,
-    noiseScale,
-    clippingRadius,
-    aggregator
-  } = raw as Record<Fields, unknown | undefined>
-
-  if (
-    typeof dataType !== 'string' ||
-    typeof modelID !== 'string' ||
-    typeof epochs !== 'number' ||
-    typeof batchSize !== 'number' ||
-    typeof roundDuration !== 'number' ||
-    typeof validationSplit !== 'number' ||
-    (noiseScale !== undefined && typeof noiseScale !== 'number') ||
-    (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
-    (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
-    (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
-    (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number') ||
-    (aggregator !== undefined && typeof aggregator !== 'number')
-  ) {
-    return false
-  }
-
-  // interdepences on data type
-  if (dataType === 'image') {
-    if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
-      return false
-    }
-  } else if (dataType in ['text', 'tabular']) {
-    if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
-      return false
-    }
-    if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
-      return false
-    }
-  }
-
-  // interdepences on scheme
-  switch (scheme) {
-    case 'decentralized':
-      break
-    case 'federated':
-      break
-    case 'local':
-      break
-  }
-
-  if (
-    LABEL_LIST !== undefined && !(
-      Array.isArray(LABEL_LIST) && LABEL_LIST.every((e) => typeof e === 'string')
-    )
-  ) {
-    return false
-  }
-
-  if (
-    preprocessingFunctions !== undefined && !(Array.isArray(preprocessingFunctions))
-  ) {
-    return false
-  }
-
-  return true
-}
+import type { AggregatorChoice } from '../aggregator/get.js'
+import type { Preprocessing } from '../dataset/data/preprocessing/index.js'
 
 export interface TrainingInformation {
   // modelID: unique ID for the model
@@ -139,7 +29,7 @@ export interface TrainingInformation {
   // define ['dogs', 'cats'].
   LABEL_LIST?: string[]
   // scheme: Distributed training scheme, i.e. Federated and Decentralized
-  scheme: string
+  scheme: 'decentralized' | 'federated' | 'local'
   // noiseScale: Differential Privacy (DP): Affects the variance of the Gaussian noise added to the models / model updates.
   // Number or undefined. If undefined, then no noise will be added.
   noiseScale?: number
@@ -173,4 +63,117 @@ export interface TrainingInformation {
   // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
   // truncate strings to a maximum length
   maxSequenceLength?: number
+}
+
+function isStringArray(raw: unknown): raw is string[] {
+  if (!Array.isArray(raw)) {
+    return false
+  }
+  const arr: unknown[] = raw // isArray is unsafely guarding with any[]
+
+  return arr.every((e) => typeof e === 'string')
+}
+
+export function isTrainingInformation (raw: unknown): raw is TrainingInformation {
+  if (typeof raw !== 'object' || raw === null) {
+    return false
+  }
+
+  const {
+    IMAGE_H,
+    IMAGE_W,
+    LABEL_LIST,
+    aggregator,
+    batchSize,
+    byzantineRobustAggregator,
+    clippingRadius,
+    dataType,
+    decentralizedSecure,
+    epochs,
+    inputColumns,
+    maxShareValue,
+    minimumReadyPeers,
+    modelID,
+    noiseScale,
+    outputColumns,
+    preprocessingFunctions,
+    roundDuration,
+    scheme,
+    tauPercentile,
+    validationSplit,
+  }: Partial<Record<keyof TrainingInformation, unknown>> = raw
+
+  if (
+    typeof dataType !== 'string' ||
+    typeof modelID !== 'string' ||
+    typeof epochs !== 'number' ||
+    typeof batchSize !== 'number' ||
+    typeof roundDuration !== 'number' ||
+    typeof validationSplit !== 'number' ||
+    (aggregator !== undefined && typeof aggregator !== 'number') ||
+    (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
+    (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
+    (byzantineRobustAggregator !== undefined && typeof byzantineRobustAggregator !== 'boolean') ||
+    (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
+    (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number') ||
+    (noiseScale !== undefined && typeof noiseScale !== 'number') ||
+    (tauPercentile !== undefined && typeof tauPercentile !== 'number') ||
+    (IMAGE_H !== undefined && typeof IMAGE_H !== 'number') ||
+    (IMAGE_W !== undefined && typeof IMAGE_W !== 'number') ||
+    (LABEL_LIST !== undefined && !isStringArray(LABEL_LIST)) ||
+    (inputColumns !== undefined && !isStringArray(inputColumns)) ||
+    (outputColumns !== undefined && !isStringArray(outputColumns)) ||
+    (preprocessingFunctions !== undefined && !Array.isArray(preprocessingFunctions))
+  ) {
+    return false
+  }
+
+  // interdepences on data type
+  if (dataType === 'image') {
+    if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
+      return false
+    }
+  } else if (dataType in ['text', 'tabular']) {
+    if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
+      return false
+    }
+    if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
+      return false
+    }
+  }
+
+  switch (scheme) {
+    case 'decentralized': break
+    case 'federated': break
+    case 'local': break
+    default: return false
+  }
+
+  const repack = {
+    IMAGE_W,
+    IMAGE_H,
+    LABEL_LIST,
+    aggregator,
+    batchSize,
+    byzantineRobustAggregator,
+    clippingRadius,
+    dataType,
+    decentralizedSecure,
+    epochs,
+    inputColumns,
+    maxShareValue,
+    minimumReadyPeers,
+    modelID,
+    noiseScale,
+    outputColumns,
+    preprocessingFunctions,
+    roundDuration,
+    scheme,
+    tauPercentile,
+    validationSplit,
+  }
+  const _correct: TrainingInformation = repack
+  const _total: Record<keyof TrainingInformation, unknown> = repack
+
+  return true
 }

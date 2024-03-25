@@ -1,12 +1,13 @@
 {
   "name": "@epfml/discojs-node",
   "version": "2.1.1",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-core/dist --watch . --exec npm run",
     "build": "tsc",
-    "lint": "npx eslint --ext ts --max-warnings 0 .",
+    "lint": "npx eslint .",
     "test": "mocha",
     "docs": "typedoc ./src/imports.ts --theme oxide"
   },

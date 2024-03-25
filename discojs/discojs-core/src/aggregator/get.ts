@@ -1,4 +1,5 @@
-import { aggregator, type Task } from '..'
+import type { Task } from '../index.js'
+import { aggregator } from '../index.js'
 
 /**
  * Enumeration of the available types of aggregator.

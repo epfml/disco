@@ -1,11 +1,11 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import { Sink } from '../utils/event_emitter'
-import { WeightsContainer } from '..'
+import { Sink } from '../utils/event_emitter.js'
+import { WeightsContainer } from '../index.js'
 
-import { Model } from '.'
-import type { EpochLogs, Prediction, Sample } from './model'
-import type { Dataset } from '../dataset'
+import { Model } from './index.js'
+import type { EpochLogs, Prediction, Sample } from './model.js'
+import type { Dataset } from '../dataset/index.js'
 
 /** TensorFlow JavaScript model with standard training */
 export class TFJS extends Model {
@@ -51,18 +51,18 @@ export class TFJS extends Model {
     }
   }
 
-  override async predict (input: Sample): Promise<Prediction> {
+  override predict (input: Sample): Promise<Prediction> {
     const ret = this.model.predict(input)
     if (Array.isArray(ret)) {
       throw new Error('prediction yield many Tensors but should have only returned one')
     }
 
-    return ret
+    return Promise.resolve(ret)
   }
 
   static async deserialize (raw: tf.io.ModelArtifacts): Promise<Model> {
     return new this(await tf.loadLayersModel({
-      load: async () => raw
+      load: () => Promise.resolve(raw)
     }))
   }
 
@@ -71,14 +71,14 @@ export class TFJS extends Model {
     const ret = new Promise<tf.io.ModelArtifacts>((resolve) => { resolveArtifacts = resolve })
 
     await this.model.save({
-      save: async (artifacts) => {
+      save: (artifacts) => {
         resolveArtifacts(artifacts)
-        return {
+        return Promise.resolve({
           modelArtifactsInfo: {
             dateSaved: new Date(),
             modelTopologyType: 'JSON'
           }
-        }
+        })
       }
     }, {
       includeOptimizer: true // keep model compiled

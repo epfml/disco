@@ -1,46 +1,47 @@
-import type { Model } from '..'
+import type { Model } from '../index.js'
 
-import type { ModelInfo, Path } from './base'
-import { Memory } from './base'
+import type { ModelInfo, Path } from './base.js'
+import { Memory } from './base.js'
 
 /**
  * Represents an empty model memory.
  */
 export class Empty extends Memory {
-  async getModelMetadata (): Promise<undefined> {
-    return undefined
+  getModelMetadata (): Promise<undefined> {
+    return Promise.resolve(undefined)
   }
 
-  async contains (): Promise<boolean> {
-    return false
+  contains (): Promise<boolean> {
+    return Promise.resolve(false)
   }
 
-  async getModel (): Promise<Model> {
-    throw new Error('empty')
+  getModel (): Promise<Model> {
+    return Promise.reject(new Error('empty'))
   }
 
-  async loadModel (): Promise<void> {
-    throw new Error('empty')
+  loadModel (): Promise<void> {
+    return Promise.reject(new Error('empty'))
   }
 
-  async updateWorkingModel (): Promise<void> {
+  updateWorkingModel (): Promise<void> {
     // nothing to do
+    return Promise.resolve()
   }
 
-  async saveWorkingModel (): Promise<undefined> {
-    return undefined
+  saveWorkingModel (): Promise<undefined> {
+    return Promise.resolve(undefined)
   }
 
-  async saveModel (): Promise<undefined> {
-    return undefined
+  saveModel (): Promise<undefined> {
+    return Promise.resolve(undefined)
   }
 
   async deleteModel (): Promise<void> {
     // nothing to do
   }
 
-  async downloadModel (): Promise<void> {
-    throw new Error('empty')
+  downloadModel (): Promise<void> {
+    return Promise.reject(new Error('empty'))
   }
 
   pathFor (): Path {
@@ -51,7 +52,7 @@ export class Empty extends Memory {
     throw new Error('empty')
   }
 
-  async duplicateSource (): Promise<undefined> {
-    return undefined
+  duplicateSource (): Promise<undefined> {
+    return Promise.resolve(undefined)
   }
 }

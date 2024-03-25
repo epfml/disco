@@ -1,9 +1,9 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["DOM"],
     "outDir": "dist",
-    "baseUrl": "src"
+    "declaration": true
   },
   "include": ["src"],
   "exclude": ["**/*.spec.ts"]

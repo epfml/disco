@@ -1,9 +1,9 @@
 import { Range } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '..'
-import { data, models } from '..'
-import { LabelTypeEnum } from '../task/label_type'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { data, models } from '../index.js'
+import { LabelTypeEnum } from '../task/label_type.js'
 
 export const geotags: TaskProvider = {
   getTask (): Task {
@@ -34,7 +34,7 @@ export const geotags: TaskProvider = {
         IMAGE_W: 224,
         preprocessingFunctions: [data.ImagePreprocessing.Resize],
         LABEL_LIST: Range(0, 127).map(String).toArray(),
-        scheme: 'Federated',
+        scheme: 'federated',
         noiseScale: undefined,
         clippingRadius: 20,
         decentralizedSecure: true,

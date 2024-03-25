@@ -1,9 +1,9 @@
 import { assert, expect } from 'chai'
 import { Map, Set } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import { TabularData } from './tabular_data'
-import type { Task } from '../..'
+import { TabularData } from './tabular_data.js'
+import type { Task } from '../../index.js'
 
 describe('tabular data checks', () => {
   const titanicMock: Task = {

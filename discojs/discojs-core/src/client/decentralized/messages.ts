@@ -1,7 +1,7 @@
-import { weights } from '../../serialization'
-import { type SignalData } from './peer'
-import { isNodeID, type NodeID } from '../types'
-import { type, type ClientConnected, type AssignNodeID, hasMessageType } from '../messages'
+import { weights } from '../../serialization/index.js'
+import { type SignalData } from './peer.js'
+import { isNodeID, type NodeID } from '../types.js'
+import { type, type ClientConnected, type AssignNodeID, hasMessageType } from '../messages.js'
 
 /// Phase 0 communication (between server and peers)
 

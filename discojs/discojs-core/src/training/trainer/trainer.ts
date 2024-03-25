@@ -1,11 +1,11 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Memory, Model, Task, TrainingInformant } from '../..'
+import type { Memory, Model, Task, TrainingInformant } from '../../index.js'
 
-import { RoundTracker } from './round_tracker'
-import type { TrainerLog } from '../../logging/trainer_logger'
-import { TrainerLogger } from '../../logging/trainer_logger'
-import { EventEmitter } from '../../utils/event_emitter'
+import { RoundTracker } from './round_tracker.js'
+import type { TrainerLog } from '../../logging/trainer_logger.js'
+import { TrainerLogger } from '../../logging/trainer_logger.js'
+import { EventEmitter } from '../../utils/event_emitter.js'
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:
@@ -69,7 +69,8 @@ export abstract class Trainer {
     }
   }
 
-  protected onEpochBegin (epoch: number, logs?: tf.Logs): void {}
+  // TODO never used
+  protected onEpochBegin (_epoch: number, _logs?: tf.Logs): void {}
 
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
@@ -88,15 +89,17 @@ export abstract class Trainer {
     }
   }
 
-  protected async onTrainBegin (logs?: tf.Logs): Promise<void> {
+  protected async onTrainBegin (_logs?: tf.Logs): Promise<void> {
     this.trainingInformant.addMessage('Training started.')
+    return await Promise.resolve()
   }
 
   /**
    * When the training ends this function will be call
    */
-  protected async onTrainEnd (logs?: tf.Logs): Promise<void> {
+  protected async onTrainEnd (_logs?: tf.Logs): Promise<void> {
     this.trainingInformant.addMessage('Training finished.')
+    return await Promise.resolve()
   }
 
   /**

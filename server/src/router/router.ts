@@ -1,12 +1,12 @@
 import express from 'express'
 import type expressWS from 'express-ws'
 
-import { type Config } from '../config'
-import { type TasksAndModels } from '../tasks'
+import type { Config } from '../config.js'
+import type { TasksAndModels } from '../tasks.js'
 
-import { Federated } from './federated/server'
-import { Decentralized } from './decentralized'
-import { Tasks } from './tasks'
+import { Federated } from './federated/index.js'
+import { Decentralized } from './decentralized/index.js'
+import { Tasks } from './tasks.js'
 
 export class Router {
   // TODO choose between federated and/or decentralized

@@ -1,7 +1,7 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '..'
-import { models } from '..'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { models } from '../index.js'
 
 export const mnist: TaskProvider = {
   getTask (): Task {
@@ -30,7 +30,7 @@ export const mnist: TaskProvider = {
         IMAGE_W: 28,
         preprocessingFunctions: [],
         LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-        scheme: 'Decentralized',
+        scheme: 'decentralized',
         noiseScale: undefined,
         clippingRadius: 20,
         decentralizedSecure: true,
@@ -40,7 +40,7 @@ export const mnist: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
+  getModel (): Promise<Model> {
     const model = tf.sequential()
 
     model.add(
@@ -69,6 +69,6 @@ export const mnist: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return Promise.resolve(new models.TFJS(model))
   }
 }

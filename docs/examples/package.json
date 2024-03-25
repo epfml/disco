@@ -1,12 +1,13 @@
 {
   "name": "@epfml/disco-node-example",
   "private": true,
+  "type": "module",
   "description": "In `training.ts` we give a brief example of discojs, in it we run two clients training jointly via federated learning. It trains  on a few examples of the [face task](https://www.kaggle.com/datasets/frabbisw/facial-age), the samples are already stored in the  repo and so it is not necessary to download any additional data.",
   "scripts": {
     "train": "npm run build && node dist/training.js",
     "custom_task": "npm run build && node dist/custom_task.js",
     "build": "tsc",
-    "lint": "npx eslint --ext ts --max-warnings 0 .",
+    "lint": "npx eslint .",
     "test": "npm run train"
   },
   "license": "ISC",
@@ -16,12 +17,8 @@
     "@epfml/discojs-node": "*"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "6",
     "eslint": "8",
-    "eslint-config-standard-with-typescript": "43",
-    "eslint-plugin-import": "2",
-    "eslint-plugin-n": "15",
-    "eslint-plugin-promise": "6",
-    "typescript": "4"
+    "typescript": "4",
+    "typescript-eslint": "7"
   }
 }

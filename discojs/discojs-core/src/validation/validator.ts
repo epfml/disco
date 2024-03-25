@@ -1,8 +1,8 @@
 import { List } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { data, Model, Task, Logger, client as clients, Memory, ModelSource, Features } from '..'
-import { GraphInformant } from '..'
+import type { data, Model, Task, Logger, client as clients, Memory, ModelSource, Features } from '../index.js'
+import { GraphInformant } from '../index.js'
 
 export class Validator {
   private readonly graphInformant = new GraphInformant()
@@ -81,8 +81,8 @@ export class Validator {
           [],
           0
         ).arraySync()
-      } catch (e: any) {
-        console.error(e instanceof Error ? e.message : e.toString())
+      } catch (e) {
+        console.error(e instanceof Error ? e.message : e)
         throw new Error('Failed to compute the confusion matrix')
       }
     }

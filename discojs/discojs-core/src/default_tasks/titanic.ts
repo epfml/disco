@@ -1,7 +1,7 @@
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '..'
-import { data, models } from '..'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { data, models } from '../index.js'
 
 export const titanic: TaskProvider = {
   getTask (): Task {
@@ -64,14 +64,14 @@ export const titanic: TaskProvider = {
         outputColumns: [
           'Survived'
         ],
-        scheme: 'Federated', // secure aggregation not yet implemented for FeAI
+        scheme: 'federated', // secure aggregation not yet implemented for FeAI
         noiseScale: undefined,
         clippingRadius: undefined
       }
     }
   },
 
-  async getModel (): Promise<Model> {
+  getModel (): Promise<Model> {
     const model = tf.sequential()
 
     model.add(
@@ -92,6 +92,6 @@ export const titanic: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return Promise.resolve(new models.TFJS(model))
   }
 }

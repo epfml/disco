@@ -1,9 +1,10 @@
 import type tf from '@tensorflow/tfjs'
 import type { List } from 'immutable'
 
-import type { Task } from '../..'
-import type { Dataset } from '../dataset'
-import type { PreprocessingFunction } from './preprocessing/base'
+import type { Task } from '../../index.js'
+import type { Dataset } from '../index.js'
+
+import type { PreprocessingFunction } from './preprocessing/base.js'
 
 /**
  * Abstract class representing an immutable Disco dataset, including a TF.js dataset,
@@ -17,12 +18,12 @@ export abstract class Data {
     public readonly task: Task,
     public readonly size?: number) {}
 
-  static async init (
-    dataset: Dataset,
-    task: Task,
-    size?: number
+  static init (
+    _dataset: Dataset,
+    _task: Task,
+    _size?: number
   ): Promise<Data> {
-    throw new Error('abstract')
+    return Promise.reject(new Error('abstract'))
   }
 
   /**
@@ -84,11 +85,12 @@ export abstract class Data {
       return (x) => x
     }
 
-    const preprocessingChain = applyPreprocessing
-      .reduce((acc: (x: tf.TensorContainer, task: Task) => tf.TensorContainer, fn) =>
-        (x: tf.TensorContainer, task: Task) => fn(acc(x, this.task), this.task))
+    const preprocessingChain = applyPreprocessing.reduce((acc, fn) =>
+      (x: tf.TensorContainer) => fn(acc(x), this.task),
+      (x: tf.TensorContainer) => x,
+    )
 
-    return (x: tf.TensorContainer) => preprocessingChain(x, this.task)
+    return (x: tf.TensorContainer) => preprocessingChain(x)
   }
 
   /**

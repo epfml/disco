@@ -1,24 +1,16 @@
-import {
-  client as clients,
-  type data,
-  type Logger,
-  type Task,
-  type TrainingInformant, informant as informants,
-  TrainingSchemes,
-  type Memory, EmptyMemory,
-  ConsoleLogger
-} from '..'
-import { type Trainer } from './trainer/trainer'
-import { TrainerBuilder } from './trainer/trainer_builder'
-import { type TrainerLog } from '../logging/trainer_logger'
-import { type Aggregator } from '../aggregator'
-import { MeanAggregator } from '../aggregator/mean'
+import type { data, Logger, Memory, Task, TrainingInformant, TrainingInformation } from '../index.js'
+import { client as clients, informant as informants, EmptyMemory, ConsoleLogger } from '../index.js'
+import type { Trainer } from './trainer/trainer.js'
+import { TrainerBuilder } from './trainer/trainer_builder.js'
+import type { TrainerLog } from '../logging/trainer_logger.js'
+import type { Aggregator } from '../aggregator/index.js'
+import { MeanAggregator } from '../aggregator/mean.js'
 
 export interface DiscoOptions {
   client?: clients.Client
   aggregator?: Aggregator
   url?: string | URL
-  scheme?: TrainingSchemes
+  scheme?: TrainingInformation['scheme']
   informant?: TrainingInformant
   logger?: Logger
   memory?: Memory
@@ -34,7 +26,6 @@ export class Disco {
   public readonly logger: Logger
   public readonly memory: Memory
   private readonly client: clients.Client
-  private readonly aggregator: Aggregator
   private readonly trainer: Promise<Trainer>
 
   constructor (
@@ -42,7 +33,7 @@ export class Disco {
     options: DiscoOptions
   ) {
     if (options.scheme === undefined) {
-      options.scheme = TrainingSchemes[task.trainingInformation.scheme as keyof typeof TrainingSchemes]
+      options.scheme = task.trainingInformation.scheme
     }
     if (options.aggregator === undefined) {
       options.aggregator = new MeanAggregator()
@@ -56,26 +47,26 @@ export class Disco {
         options.url = new URL(options.url)
       }
       switch (options.scheme) {
-        case TrainingSchemes.FEDERATED:
+        case 'federated':
           options.client = new clients.federated.FederatedClient(options.url, task, options.aggregator)
           break
-        case TrainingSchemes.DECENTRALIZED:
+        case 'decentralized':
           options.client = new clients.decentralized.DecentralizedClient(options.url, task, options.aggregator)
           break
-        default:
+        case 'local':
           options.client = new clients.Local(options.url, task, options.aggregator)
           break
       }
     }
     if (options.informant === undefined) {
       switch (options.scheme) {
-        case TrainingSchemes.FEDERATED:
+        case 'federated':
           options.informant = new informants.FederatedInformant(task)
           break
-        case TrainingSchemes.DECENTRALIZED:
+        case 'decentralized':
           options.informant = new informants.DecentralizedInformant(task)
           break
-        default:
+        case 'local':
           options.informant = new informants.LocalInformant(task)
           break
       }
@@ -95,12 +86,11 @@ export class Disco {
 
     this.task = task
     this.client = options.client
-    this.aggregator = options.aggregator
     this.memory = options.memory
     this.logger = options.logger
 
     const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
-    this.trainer = trainerBuilder.build(this.aggregator, this.client, options.scheme !== TrainingSchemes.LOCAL)
+    this.trainer = trainerBuilder.build(this.client, options.scheme !== 'local')
   }
 
   /**

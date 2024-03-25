@@ -1,7 +1,5 @@
 module.exports = {
-  publicPath: process.env.NODE_ENV === 'production' ? '/disco/' : '/',
   configureWebpack: {
-    module: { noParse: /wrtc/ },
     resolve: {
       fallback: {
         crypto: require.resolve('crypto-browserify'),
@@ -15,5 +13,6 @@ module.exports = {
       args[0].title = 'Disco'
       return args
     })
-  }
+  },
+  devServer: { port: 8081 }
 }

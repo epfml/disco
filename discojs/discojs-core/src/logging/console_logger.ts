@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { Logger } from './logger'
+import { Logger } from './logger.js'
 
 /**
  * Same properties as Toaster but on the console

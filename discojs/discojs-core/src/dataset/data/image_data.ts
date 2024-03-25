@@ -1,9 +1,10 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Task } from '../..'
-import type { Dataset } from '../dataset'
-import { Data } from './data'
-import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing'
+import type { Task } from '../../index.js'
+import type { Dataset } from '../dataset.js'
+
+import { Data } from './data.js'
+import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing/index.js'
 
 /**
  * Disco data made of image samples (.jpg, .png, etc.).
@@ -42,7 +43,13 @@ export class ImageData extends Data {
           throw new Error()
         }
       } catch (e) {
-        throw new Error('Data input format is not compatible with the chosen task')
+	let cause
+	if (e instanceof Error) {
+          cause = e
+	} else {
+          console.error("got invalid Error type", e)
+	}
+        throw new Error('Data input format is not compatible with the chosen task', { cause })
       }
     }
 

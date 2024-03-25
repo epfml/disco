@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "node16",
+    "target": "es2022",
+
+    "strict": true,
+
+    // tfjs and others
+    "skipLibCheck": true,
+
+    // don't pollute
+    "noEmitOnError": true
+  }
+}
+  

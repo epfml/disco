@@ -2,17 +2,17 @@
  * this code is taken from gpt-tfjs with modifications from @peacefulotter and @lukemovement
  **/
 
-import type tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import { WeightsContainer } from '../..'
-import type { Dataset } from '../../dataset'
-import { Sink } from '../../utils/event_emitter'
+import { WeightsContainer } from '../../index.js'
+import type { Dataset } from '../../dataset/index.js'
+import { Sink } from '../../utils/event_emitter.js'
 import { encode, decode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
 
-import type { EpochLogs, Prediction, Sample } from '../model'
-import { Model } from '../model'
+import type { EpochLogs, Prediction, Sample } from '../model.js'
+import { Model } from '../model.js'
 
-import { GPTLMHeadModel } from './model'
+import { GPTLMHeadModel } from './model.js'
 
 // TODO too big config
 interface Config {
@@ -88,13 +88,13 @@ export class GPT extends Model {
     }
   }
 
-  override async predict (input: Sample): Promise<Prediction> {
+  override predict (input: Sample): Promise<Prediction> {
     const ret = this.model.predict(input)
     if (Array.isArray(ret)) {
       throw new Error('prediction yield many Tensors but should have only returned one')
     }
 
-    return ret
+    return Promise.resolve(ret)
   }
 
   async generate (input: Sample, newTokens: number): Promise<string> {

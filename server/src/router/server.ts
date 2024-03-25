@@ -4,7 +4,7 @@ import type WebSocket from 'ws'
 
 import type { Model, Task, TaskID } from '@epfml/discojs-core'
 
-import type { TasksAndModels } from '../tasks'
+import type { TasksAndModels } from '../tasks.js'
 
 export abstract class Server {
   private readonly ownRouter: expressWS.Router

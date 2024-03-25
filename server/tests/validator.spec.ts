@@ -1,9 +1,11 @@
 import { assert } from 'chai'
 import fs from 'fs'
+import type { Server } from 'node:http'
 
-import type { Task, data } from '../..'
-import { Validator, ConsoleLogger, EmptyMemory, client as clients, aggregator, defaultTasks } from '../..'
+import type { Task, data } from '@epfml/discojs-core'
+import { Validator, ConsoleLogger, EmptyMemory, client as clients, aggregator, defaultTasks } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
+import { startServer } from '../src/index.js'
 
 const simplefaceMock: Task = {
   id: 'simple_face',
@@ -22,18 +24,25 @@ const simplefaceMock: Task = {
   }
 }
 
-describe('validator', () => {
+describe('validator', function () {
+  this.timeout(10_000)
+
+  let server: Server
+  let url: URL
+  beforeEach(async () => { [server, url] = await startServer() })
+  afterEach(() => { server?.close() })
+
   it('simple_face validator', async () => {
-    const dir = '../../datasets/simple_face/'
+    const dir = '../datasets/simple_face/'
     const files: string[][] = ['child/', 'adult/']
       .map((subdir: string) => fs.readdirSync(dir + subdir)
         .map((file: string) => dir + subdir + file))
-    const labels = files.flatMap((files, index) => Array(files.length).fill(index))
+    const labels = files.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
 
     const data = (await new NodeImageLoader(simplefaceMock)
       .loadAll(files.flat(), { labels })).train
     const meanAggregator = new aggregator.MeanAggregator()
-    const client = new clients.Local(new URL('http://localhost:8080'), simplefaceMock, meanAggregator)
+    const client = new clients.Local(url, simplefaceMock, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(
       simplefaceMock,
@@ -60,14 +69,14 @@ describe('validator', () => {
 
   it('titanic validator', async () => {
     const titanicTask = defaultTasks.titanic.getTask()
-    const files = ['../../datasets/titanic_train.csv']
+    const files = ['../datasets/titanic_train.csv']
     const data: data.Data = (await new NodeTabularLoader(titanicTask, ',').loadAll(files, {
       features: titanicTask.trainingInformation.inputColumns,
       labels: titanicTask.trainingInformation.outputColumns,
       shuffle: false
     })).train
     const meanAggregator = new aggregator.MeanAggregator()
-    const client = new clients.Local(new URL('http://localhost:8080'), titanicTask, meanAggregator)
+    const client = new clients.Local(url, titanicTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(titanicTask, new ConsoleLogger(), new EmptyMemory(), undefined, client)
     await validator.assess(data)

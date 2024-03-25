@@ -1,12 +1,12 @@
 import { Map, Set } from 'immutable'
 
-import { type TrainingInformant, type WeightsContainer, serialization } from '../..'
-import { Client, type NodeID } from '..'
-import { type, type ClientConnected } from '../messages'
-import { timeout } from '../utils'
-import { type EventConnection, WebSocketServer, waitMessage, type PeerConnection, waitMessageWithTimeout } from '../event_connection'
-import { PeerPool } from './peer_pool'
-import * as messages from './messages'
+import { type WeightsContainer, serialization } from '../../index.js'
+import { Client, type NodeID } from '../index.js'
+import { type, type ClientConnected } from '../messages.js'
+import { timeout } from '../utils.js'
+import { type EventConnection, WebSocketServer, waitMessage, type PeerConnection, waitMessageWithTimeout } from '../event_connection.js'
+import { PeerPool } from './peer_pool.js'
+import * as messages from './messages.js'
 
 /**
  * Represents a decentralized client in a network of peers. Peers coordinate each other with the
@@ -125,7 +125,7 @@ export class Base extends Client {
     this.pool = new PeerPool(peerIdMsg.id)
   }
 
-  async disconnect (): Promise<void> {
+  disconnect (): Promise<void> {
     // Disconnect from peers
     this.pool?.shutdown()
     this.pool = undefined
@@ -139,12 +139,13 @@ export class Base extends Client {
     this.server?.disconnect()
     this._server = undefined
     this._ownId = undefined
+
+    return Promise.resolve()
   }
 
-  async onRoundBeginCommunication (
-    weights: WeightsContainer,
+  override async onRoundBeginCommunication (
+    _: WeightsContainer,
     round: number,
-    trainingInformant: TrainingInformant
   ): Promise<void> {
     // Reset peers list at each round of training to make sure client works with an updated peers
     // list, maintained by the server. Adds any received weights to the aggregator.
@@ -153,10 +154,9 @@ export class Base extends Client {
     this.aggregationResult = this.aggregator.receiveResult()
   }
 
-  async onRoundEndCommunication (
+  override async onRoundEndCommunication (
     weights: WeightsContainer,
     round: number,
-    trainingInformant: TrainingInformant
   ): Promise<void> {
     let result = weights
 

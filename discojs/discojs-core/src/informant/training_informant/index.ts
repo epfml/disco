@@ -1,5 +1,5 @@
-export { Base } from './base'
+export { Base } from './base.js'
 
-export { FederatedInformant } from './federated'
-export { DecentralizedInformant } from './decentralized'
-export { LocalInformant } from './local'
+export { FederatedInformant } from './federated.js'
+export { DecentralizedInformant } from './decentralized.js'
+export { LocalInformant } from './local.js'

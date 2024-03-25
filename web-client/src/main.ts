@@ -33,11 +33,10 @@ app.config.errorHandler = (err, instance, info) => {
 }
 
 const pinia = createPinia()
-const i18n = createCustomI18n()
 app
   .use(pinia)
   .use(VueApexCharts)
-  .use(i18n)
+  .use(createCustomI18n())
   .use(Toaster, { duration: 5000 })
   .use(router)
   .mount('#app')

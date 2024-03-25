@@ -1,10 +1,9 @@
-import * as crypto from 'crypto'
 import { Map, List, Range } from 'immutable'
-import tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
-import { AggregationStep, Base as Aggregator } from './base'
-import type { Model, WeightsContainer, client } from '..'
-import { aggregation } from '..'
+import { AggregationStep, Base as Aggregator } from './base.js'
+import type { Model, WeightsContainer, client } from '../index.js'
+import { aggregation } from '../index.js'
 
 /**
  * Aggregator implementing secure multi-party computation for decentralized learning.
@@ -14,8 +13,6 @@ import { aggregation } from '..'
  * Finally, nodes are able to average the received partial sums to establish the aggregation result.
  */
 export class SecureAggregator extends Aggregator<WeightsContainer> {
-  public static readonly MAX_SEED: number = 2 ** 47
-
   constructor (
     model?: Model,
     private readonly maxShareValue = 100
@@ -93,7 +90,11 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
    * a uniform distribution between (-maxShareValue, maxShareValue).
    */
   public generateRandomShare (secret: WeightsContainer): WeightsContainer {
-    const seed = crypto.randomInt(SecureAggregator.MAX_SEED)
+    const MAX_SEED_BITS = 47
+
+    const random = crypto.getRandomValues(new BigInt64Array(1))[0]
+    const seed = Number(BigInt.asUintN(MAX_SEED_BITS, random))
+
     return secret.map((t) =>
       tf.randomUniform(t.shape, -this.maxShareValue, this.maxShareValue, 'float32', seed))
   }
