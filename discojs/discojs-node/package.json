@@ -8,8 +8,7 @@
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-core/dist --watch . --exec npm run",
     "build": "tsc",
     "lint": "npx eslint .",
-    "test": "mocha",
-    "docs": "typedoc ./src/imports.ts --theme oxide"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
