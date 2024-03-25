@@ -119,16 +119,21 @@ export abstract class Base<T> {
     switch (step) {
       case AggregationStep.ADD:
         console.log(`> Adding contribution from node ${from ?? '"unknown"'} for round (${this.communicationRound}, ${this.round})`)
-        return
+        break
       case AggregationStep.UPDATE:
         if (from === undefined) {
           return
         }
         console.log(`> Updating contribution from node ${from} for round (${this.communicationRound}, ${this.round})`)
-        return
+        break
       case AggregationStep.AGGREGATE:
         console.log('*'.repeat(80))
         console.log(`Buffer is full. Aggregating weights for round (${this.communicationRound}, ${this.round})\n`)
+        break
+      default: {
+        const _: never = step
+        throw new Error('should never happen')
+      }
     }
   }
 

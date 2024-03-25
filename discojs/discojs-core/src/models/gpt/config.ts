@@ -73,5 +73,9 @@ export function getModelSizes (modelType: ModelType): Required<ModelSize> {
       return { nLayer: 4, nHead: 4, nEmbd: 128 }
     case 'gpt-nano':
       return { nLayer: 3, nHead: 3, nEmbd: 48 }
+    default: {
+      const _: never = modelType
+      throw new Error("should never happen")
+    }
   }
 }
