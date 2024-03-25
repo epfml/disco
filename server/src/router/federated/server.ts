@@ -262,18 +262,6 @@ export class Federated extends Server {
         }
 
         this.createPromiseForWeights(task.id, aggregator, ws)
-      } else if (msg.type === MessageTypes.SendMetadata) {
-        const { round, key, value } = msg
-
-        this.logsAppend(task.id, clientId, MessageTypes.SendMetadata, round)
-
-        if (this.metadataMap.hasIn([task, round, clientId, key])) {
-          throw new Error('metadata already set')
-        }
-        this.metadataMap = this.metadataMap.setIn(
-          [task, round, clientId, key],
-          value
-        )
       } else if (msg.type === MessageTypes.ReceiveServerMetadata) {
         const { key, round } = msg
 

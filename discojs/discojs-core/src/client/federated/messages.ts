@@ -9,7 +9,6 @@ export type MessageFederated =
   ReceiveServerPayload |
   RequestServerStatistics |
   ReceiveServerStatistics |
-  SendMetadata |
   ReceiveServerMetadata |
   AssignNodeID
 
@@ -29,14 +28,6 @@ export interface RequestServerStatistics {
 export interface ReceiveServerStatistics {
   type: type.ReceiveServerStatistics
   statistics: Record<string, number>
-}
-export interface SendMetadata {
-  type: type.SendMetadata
-  nodeId: string
-  taskId: string
-  round: number
-  key: MetadataKey
-  value: MetadataValue
 }
 export interface ReceiveServerMetadata {
   type: type.ReceiveServerMetadata
@@ -62,8 +53,6 @@ export function isMessageFederated (raw: unknown): raw is MessageFederated {
     case type.RequestServerStatistics:
       return true
     case type.ReceiveServerStatistics:
-      return true
-    case type.SendMetadata:
       return true
     case type.ReceiveServerMetadata:
       return true

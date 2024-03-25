@@ -16,7 +16,6 @@ export enum type {
 
   // Federated
   SendPayload,
-  SendMetadata,
   ReceiveServerMetadata,
   ReceiveServerPayload,
   RequestServerStatistics,
