@@ -61,7 +61,7 @@
     "eslint-plugin-node": "11",
     "eslint-plugin-prettier": "3",
     "eslint-plugin-vue": "9",
-    "typescript": "4",
+    "typescript": "5",
     "vue-cli-plugin-tailwind": "3",
     "vue-loader": "17"
   },
