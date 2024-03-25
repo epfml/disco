@@ -120,6 +120,10 @@ export class Decentralized extends Server {
             }
             break
           }
+          default: {
+            const _: never = msg
+            throw new Error('should never happen')
+          }
         }
       } catch (e) {
         console.error('when processing WebSocket message:', e)

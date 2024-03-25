@@ -12,5 +12,10 @@ export function getClient (trainingScheme: Required<Task['trainingInformation'][
       return new clients.federated.FederatedClient(CONFIG.serverUrl, task, aggregator)
     case 'local':
       return new clients.Local(CONFIG.serverUrl, task, aggregator)
+    default: {
+      // eslint-disable-next-line no-unused-vars
+      const _: never = trainingScheme
+      throw new Error('should never happen')
+    }
   }
 }

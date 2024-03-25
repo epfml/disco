@@ -131,6 +131,11 @@ export default defineComponent({
         case 'local':
           this.trainingInformant = new informant.LocalInformant(...args)
           break
+        default: {
+          // eslint-disable-next-line no-unused-vars
+          const _: never = newScheme
+          throw new Error('should never happen')
+        }
       }
     }
   },
