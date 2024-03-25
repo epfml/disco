@@ -27,8 +27,7 @@
                     {
                       dataType,
                       scheme,
-                      decentralizedSecure,
-                      byzantineRobustAggregator
+                      decentralizedSecure
                     }
                   )"
                 >
@@ -71,11 +70,6 @@
                     v-else-if="field.id === 'decentralizedSecure'"
                     :field="field"
                     @clicked="setDecentralizedSecure($event)"
-                  />
-                  <CheckboxContainer
-                    v-else-if="field.id === 'byzantineRobustAggregator'"
-                    :field="field"
-                    @clicked="setByzantineRobustAggregator($event)"
                   />
                   <TextContainer
                     v-else-if="field.id === 'modelURL'"
@@ -192,12 +186,10 @@ const schema = yup.object().shape(schemaData, [['modelURL', 'weightsFile'], ['mo
 const dataType = ref('')
 const scheme = ref('')
 const decentralizedSecure = ref(false)
-const byzantineRobustAggregator = ref(false)
 const modelURL = ref('')
 const modelFiles = shallowRef(List<File>())
 
 const setDecentralizedSecure = (v: boolean) => { decentralizedSecure.value = v }
-const setByzantineRobustAggregator = (v: boolean) => { byzantineRobustAggregator.value = v }
 
 const formatSection = (section: FormSection, rawTask: any): any => {
   let fields = List(section.fields)

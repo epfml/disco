@@ -8,7 +8,6 @@ export interface FormElement {
 export interface FormDependency {
   dataType?: string
   scheme?: string
-  byzantineRobustAggregator?: boolean
   decentralizedSecure?: boolean
 }
 
@@ -364,31 +363,6 @@ export const privacyParameters: FormSection = {
       default: '100',
       dependencies: {
         decentralizedSecure: true
-      }
-    },
-    {
-      id: 'byzantineRobustAggregator',
-      name: 'Byzantine-Robust Aggregation',
-      yup: yup.string(),
-      as: 'input',
-      type: 'checkbox',
-      dependencies: {
-        scheme: 'federated'
-      }
-    },
-    {
-      id: 'tauPercentile',
-      name: 'Tau Percentile',
-      description: 'Percentile of Trusted Users for Byzantine-Robust Aggregation',
-      yup: yup
-        .number()
-        .positive()
-        .lessThan(1)
-        .when('byzantineRobustAggregator', otherReq((value: string) => !!value)),
-      as: 'input',
-      type: 'number',
-      dependencies: {
-        byzantineRobustAggregator: true
       }
     }
   ]
