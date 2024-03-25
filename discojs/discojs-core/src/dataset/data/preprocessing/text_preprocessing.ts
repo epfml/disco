@@ -1,13 +1,10 @@
 import { List } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-<<<<<<< HEAD
-import type { Task } from '../../..'
-import type { PreprocessingFunction } from './base'
-import { encode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
-=======
+import type { Task } from '../../../index.js'
 import type { PreprocessingFunction } from './base.js'
->>>>>>> 632-upgrade-es2022-tharvik
+import { encode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
+import { AutoTokenizer } from '@xenova/transformers';
 
 /**
  * Available text preprocessing types.
@@ -43,8 +40,10 @@ const tokenize: PreprocessingFunction = {
   apply: (x: tf.TensorContainer, task: Task) => {
     const xs = x as string // tf.TextLineDataset yields strings
     // TODO: add to task definition
-    const tokenizer = { encode }
-    const tokens = tokenizer.encode(xs)
+    const tokenizer = await AutoTokenizer.from_pretrained('Xenova/bert-base-uncased');
+    const { tokens } = await tokenizer(xs);
+    // const tokenizer = { encode }
+    // const tokens = tokenizer.encode(xs)
 
     return {
       xs: tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs

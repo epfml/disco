@@ -22,6 +22,7 @@
   "dependencies": {
     "@tensorflow/tfjs": "4",
     "@types/msgpack-lite": "0.1",
+    "@xenova/transformers": "^2.16.1",
     "axios": "1",
     "gpt-tokenizer": "^2.1.2",
     "gpt3-tokenizer": "1",
