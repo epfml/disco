@@ -7,7 +7,9 @@ import * as tf from '@tensorflow/tfjs'
 import { WeightsContainer } from '../../index.js'
 import type { Dataset } from '../../dataset/index.js'
 import { Sink } from '../../utils/event_emitter.js'
-import { encode, decode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
+// import { encode, decode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
+import { AutoTokenizer } from '@xenova/transformers';
+
 
 import type { EpochLogs, Prediction, Sample } from '../model.js'
 import { Model } from '../model.js'
@@ -35,7 +37,7 @@ export class GPT extends Model {
     const config: Config = {
       modelType: 'gpt-nano',
       lr: 0.001,
-      maxIter: 10,
+      maxIter: 1,
       maxEvalBatches: 10,
       blockSize: 128,
       vocabSize: 50258
@@ -97,10 +99,9 @@ export class GPT extends Model {
     return Promise.resolve(ret)
   }
 
-  async generate (input: Sample, newTokens: number): Promise<string> {
-    const string = ((input.arraySync() as unknown) as string[])[0]
-    const tokenizer = { encode, decode }
-    const tokens = tokenizer.encode(string)
+  async generate (input: string, tokenizerModel: string = 'Xenova/gpt2', newTokens: number = 10): Promise<string> {
+    const tokenizer = await AutoTokenizer.from_pretrained(tokenizerModel)
+    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false})
 
     const generationConfig = {
       maxNewTokens: newTokens,
@@ -108,7 +109,8 @@ export class GPT extends Model {
       doSample: false,
       topK: null
     }
-    const predictedTokens = await this.model.generate([tokens], generationConfig)
+    console.log(tokens)
+    const predictedTokens = await this.model.generate(tokens, generationConfig)
     const generatedWords = tokenizer.decode(predictedTokens[0])
     return generatedWords
   }

@@ -56,12 +56,10 @@ export interface TrainingInformation {
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
   aggregator?: AggregatorChoice
-  // paddingToken (number) used for text preprocessing to pad batches containing sequences of different lengths. The padding token is defined by which pre-trained tokenizer is selected
-  paddingToken?: number
-  // vocabSize (number) used for text preprocessing using a tokenizer. The vocabSize is the number of tokens in the pre-trained tokenizer vocabulary.
-  vocabSize?: number
+  // tokenizer (string). For example: 'Xenova/gpt2'. The name should match a Transformers.js tokenizer available on HuggingFace's hub. 
+  tokenizer?: string
   // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
-  // truncate strings to a maximum length
+  // truncate strings to a maximum length. The default value is tokenizer.model_max_length
   maxSequenceLength?: number
 }
 
@@ -173,7 +171,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     validationSplit,
   }
   const _correct: TrainingInformation = repack
-  const _total: Record<keyof TrainingInformation, unknown> = repack
+  // const _total: Record<keyof TrainingInformation, unknown> = repack
 
   return true
 }

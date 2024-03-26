@@ -64,33 +64,31 @@ export abstract class Data {
    * functions in a series. The preprocessing functions are chained according to their defined
    * priority.
    */
-  get preprocessing (): (entry: tf.TensorContainer) => tf.TensorContainer {
+  get preprocessing (): (entry: tf.TensorContainer) => Promise<tf.TensorContainer> {
     const params = this.task.trainingInformation
     const taskPreprocessing = params.preprocessingFunctions
-
     if (
       taskPreprocessing === undefined ||
       taskPreprocessing.length === 0 ||
       this.availablePreprocessing === undefined ||
       this.availablePreprocessing.size === 0
-    ) {
-      return (x) => x
-    }
-
+      ) {
+        return (x) => new Promise((res, _) => res(x))
+      }
+    
     const applyPreprocessing = this.availablePreprocessing
-      .filter((e) => e.type in taskPreprocessing)
-      .map((e) => e.apply)
-
+    .filter((e) => e.type in taskPreprocessing)
+    .map((e) => e.apply)
+    
     if (applyPreprocessing.size === 0) {
-      return (x) => x
+      return (x) => new Promise((res, _) => res(x))
     }
-
+    
     const preprocessingChain = applyPreprocessing.reduce((acc, fn) =>
-      (x: tf.TensorContainer) => fn(acc(x), this.task),
-      (x: tf.TensorContainer) => x,
+    (x: Promise<tf.TensorContainer>) => fn(acc(x), this.task),
+    (x: Promise<tf.TensorContainer>) => x,
     )
-
-    return (x: tf.TensorContainer) => preprocessingChain(x)
+    return (x: tf.TensorContainer) => preprocessingChain(new Promise((res, _) => res(x)))
   }
 
   /**
@@ -98,6 +96,6 @@ export abstract class Data {
    * parameters.
    */
   get preprocessedDataset (): Dataset {
-    return this.dataset.map(this.preprocessing)
+    return this.dataset.mapAsync(this.preprocessing)
   }
 }

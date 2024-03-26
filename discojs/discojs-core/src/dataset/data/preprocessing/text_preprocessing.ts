@@ -3,50 +3,33 @@ import * as tf from '@tensorflow/tfjs'
 
 import type { Task } from '../../../index.js'
 import type { PreprocessingFunction } from './base.js'
-import { encode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
+// import { encode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
 import { AutoTokenizer } from '@xenova/transformers';
 
 /**
  * Available text preprocessing types.
  */
 export enum TextPreprocessing {
-  Tokenize,
-  Padding
-}
-
-interface TokenizedEntry extends tf.TensorContainerObject {
-  xs: tf.Tensor1D
-}
-
-const padding: PreprocessingFunction = {
-  type: TextPreprocessing.Padding,
-  apply: (x: tf.TensorContainer, task: Task) => {
-    const { xs } = x as TokenizedEntry
-    const vocabSize = task.trainingInformation.vocabSize ?? 50258
-    const maxLength = task.trainingInformation.maxSequenceLength ?? 128
-    // Use the tokenizer paddingToken except if undefined
-    // Fallback value to the last value of the vocab size
-    const paddingToken = task.trainingInformation.paddingToken ?? vocabSize
-    const xsPadded = xs.pad([[0, Math.max(0, maxLength - xs.size)]], paddingToken).slice([0], [maxLength])
-    return {
-      xs: xsPadded,
-      ys: tf.oneHot(xsPadded, vocabSize) // gpt-tfjs expects a one-hot encoded token label
-    }
-  }
+  Tokenize
 }
 
 const tokenize: PreprocessingFunction = {
   type: TextPreprocessing.Tokenize,
-  apply: (x: tf.TensorContainer, task: Task) => {
-    const xs = x as string // tf.TextLineDataset yields strings
-    // TODO: add to task definition
-    const tokenizer = await AutoTokenizer.from_pretrained('Xenova/bert-base-uncased');
-    const { tokens } = await tokenizer(xs);
-    // const tokenizer = { encode }
-    // const tokens = tokenizer.encode(xs)
-
+  apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
+    let xs = await x as string // tf.TextLineDataset yields strings
+    const tokenizerName = task.trainingInformation.tokenizer ?? 'Xenova/gpt2'
+    const tokenizer = await AutoTokenizer.from_pretrained(tokenizerName)
+    const maxSequenceLength = task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length
+    const { input_ids: tokens } = tokenizer(xs, {
+      padding: true,
+      truncation: true,
+      max_length: maxSequenceLength,
+      return_tensor: false
+    })
+    const xsTokens = tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs
     return {
-      xs: tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs
+      xs: xsTokens, 
+      ys: tf.oneHot(xsTokens, tokenizer.model.vocab.length + 1) // gpt-tfjs expects a one-hot encoded token label
     }
   }
 }
@@ -55,6 +38,5 @@ const tokenize: PreprocessingFunction = {
  * Available text preprocessing functions.
  */
 export const AVAILABLE_PREPROCESSING = List.of(
-  tokenize,
-  padding
+  tokenize
 ).sortBy((e) => e.type)

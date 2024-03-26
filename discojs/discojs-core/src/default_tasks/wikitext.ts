@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-import type { Model, Task, TaskProvider } from '..'
-import { TrainingSchemes, models, data } from '..'
-import { encode, EndOfText } from 'gpt-tokenizer/cjs/model/text-davinci-003'
-=======
 import type { Model, Task, TaskProvider } from '../index.js'
-import { models } from '../index.js'
->>>>>>> 632-upgrade-es2022-tharvik
+import { data, models } from '../index.js'
 
 export const wikitext: TaskProvider = {
   getTask (): Task {
@@ -25,26 +19,17 @@ export const wikitext: TaskProvider = {
       trainingInformation: {
         dataType: 'text',
         modelID: 'wikitext-103-raw-model',
-        preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.Padding],
+        preprocessingFunctions: [data.TextPreprocessing.Tokenize],
         validationSplit: 0.2, // TODO: is this used somewhere? because train, eval and test are already split in dataset
-<<<<<<< HEAD
         epochs: 1,
-        scheme: TrainingSchemes.FEDERATED,
-=======
-        epochs: 10,
-        // constructing a batch is taken care automatically in the dataset to make things faster
-        // so we fake a batch size of 1
-        batchSize: 1,
         scheme: 'federated',
->>>>>>> 632-upgrade-es2022-tharvik
         noiseScale: undefined,
         decentralizedSecure: true,
         minimumReadyPeers: 3,
         maxShareValue: 100,
         roundDuration: 10,
         batchSize: 16,
-        paddingToken: encode(EndOfText, { allowedSpecial: new Set([EndOfText]) })[0],
-        vocabSize: 50258,
+        tokenizer: 'Xenova/gpt2',
         maxSequenceLength: 128
       }
     }
