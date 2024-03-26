@@ -7,7 +7,6 @@ import * as tf from '@tensorflow/tfjs'
 import { WeightsContainer } from '../../index.js'
 import type { Dataset } from '../../dataset/index.js'
 import { Sink } from '../../utils/event_emitter.js'
-// import { encode, decode } from 'gpt-tokenizer/cjs/model/text-davinci-003'
 import { AutoTokenizer } from '@xenova/transformers';
 
 

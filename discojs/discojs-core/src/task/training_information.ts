@@ -58,6 +58,8 @@ export interface TrainingInformation {
   aggregator?: AggregatorChoice
   // tokenizer (string). For example: 'Xenova/gpt2'. The name should match a Transformers.js tokenizer available on HuggingFace's hub. 
   tokenizer?: string
+  // tokenizerModel (object). The actual tokenizer. It is loaded the first time it is needed for the subsequent tokenizations
+  tokenizerModel?: object
   // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
   // truncate strings to a maximum length. The default value is tokenizer.model_max_length
   maxSequenceLength?: number
