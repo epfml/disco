@@ -29,7 +29,7 @@ export const wikitext: TaskProvider = {
         maxShareValue: 100,
         roundDuration: 10,
         batchSize: 16,
-        tokenizer: 'Xenova/gpt2',
+        tokenizerName: 'Xenova/gpt2',
         maxSequenceLength: 128
       }
     }

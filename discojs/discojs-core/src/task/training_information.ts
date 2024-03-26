@@ -47,7 +47,7 @@ export interface TrainingInformation {
   // Number (>0 && <1). It must be a number between 0 and 1 and it is used only if byzantineRobustAggregator is true.
   tauPercentile?: number
   // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
-  // default is 100, must be a positive number, check the ~/disco/information/PRIVACY.md file for more information on significance of maxShareValue selection
+  // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
   maxShareValue?: number
   // minimumReadyPeers: Decentralized Learning: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
@@ -56,10 +56,11 @@ export interface TrainingInformation {
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
   aggregator?: AggregatorChoice
-  // tokenizer (string). For example: 'Xenova/gpt2'. The name should match a Transformers.js tokenizer available on HuggingFace's hub. 
-  tokenizer?: string
-  // tokenizerModel (object). The actual tokenizer. It is loaded the first time it is needed for the subsequent tokenizations
-  tokenizerModel?: object
+  // tokenizerName (string). For example: 'Xenova/gpt2'. The name should match a Transformers.js tokenizer available on HuggingFace's hub. 
+  tokenizerName?: string
+  // tokenizer (object). The actual tokenizer. It is initialized according to the tokenizerName the first time it is needed for the subsequent tokenizations
+  // This field is not expected to be filled when initializing a field
+  tokenizer?: object
   // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
   // truncate strings to a maximum length. The default value is tokenizer.model_max_length
   maxSequenceLength?: number
