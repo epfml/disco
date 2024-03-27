@@ -49,7 +49,7 @@ const leftPadding: PreprocessingFunction = {
 }
 
 /**
- * Tokenize and pad input strings
+ * Tokenize and truncates input strings
  */
 const tokenize: PreprocessingFunction = {
   type: TextPreprocessing.Tokenize,
