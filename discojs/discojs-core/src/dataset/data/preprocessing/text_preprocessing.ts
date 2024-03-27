@@ -9,7 +9,43 @@ import { AutoTokenizer, PreTrainedTokenizer } from '@xenova/transformers';
  * Available text preprocessing types.
  */
 export enum TextPreprocessing {
-  Tokenize
+  Tokenize,
+  LeftPadding
+}
+
+interface TokenizedEntry extends tf.TensorContainerObject {
+  xs: tf.Tensor1D
+}
+
+/**
+ * We are currently only implementing left padding for text generation 
+ * https://huggingface.co/docs/transformers/en/llm_tutorial#wrong-padding-side
+ * The function can easily be extended to support right padding once the need arise
+ */
+const leftPadding: PreprocessingFunction = {
+  type: TextPreprocessing.LeftPadding,
+  apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
+    let { xs } = await x as TokenizedEntry
+    let tokenizer = task.trainingInformation.tokenizer as PreTrainedTokenizer
+    if (tokenizer === undefined) {
+      const tokenizerName = task.trainingInformation.tokenizerName ?? 'Xenova/gpt2'
+      tokenizer = await AutoTokenizer.from_pretrained(tokenizerName)
+      task.trainingInformation.tokenizer = tokenizer
+    }
+    const maxLength = task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length
+    // Should never happen because tokenization truncates inputs
+    if (xs.size > maxLength) {
+      xs = xs.slice([0], [maxLength])
+    } else if (xs.size < maxLength) {
+      const paddingToken = tokenizer.pad_token_id
+      xs = xs.pad([[Math.max(0, maxLength - xs.size), 0]], paddingToken)
+    }
+    // if xs.size == maxLength we can leave it as it is
+    return {
+      xs,
+      ys: tf.oneHot(xs, tokenizer.model.vocab.length + 1) // gpt-tfjs expects a one-hot encoded token label
+    }
+  }
 }
 
 /**
@@ -27,18 +63,17 @@ const tokenize: PreprocessingFunction = {
       tokenizer = await AutoTokenizer.from_pretrained(tokenizerName)
       task.trainingInformation.tokenizer = tokenizer
     }
-    const maxSequenceLength = task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length
     const { input_ids: tokens } = tokenizer(xs, {
-      padding: true,
+      // Transformers.js currently only supports right padding while we need left for text generation
+      // Right padding should be supported in the future, once it is, we can directly pad while tokenizing
+      // https://github.com/xenova/transformers.js/blob/8804c36591d11d8456788d1bb4b16489121b3be2/src/tokenizers.js#L2517
+      padding: false,
       truncation: true,
-      max_length: maxSequenceLength,
-      return_tensor: false
+      return_tensor: false,
+      max_length: task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length,
     })
-    const xsTokens = tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs
-
     return {
-      xs: xsTokens, 
-      ys: tf.oneHot(xsTokens, tokenizer.model.vocab.length + 1) // gpt-tfjs expects a one-hot encoded token label
+      xs: tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs}
     }
   }
 }
@@ -47,5 +82,6 @@ const tokenize: PreprocessingFunction = {
  * Available text preprocessing functions.
  */
 export const AVAILABLE_PREPROCESSING = List.of(
-  tokenize
+  tokenize,
+  leftPadding
 ).sortBy((e) => e.type)

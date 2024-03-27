@@ -19,7 +19,7 @@ export const wikitext: TaskProvider = {
       trainingInformation: {
         dataType: 'text',
         modelID: 'wikitext-103-raw-model',
-        preprocessingFunctions: [data.TextPreprocessing.Tokenize],
+        preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
         validationSplit: 0.2, // TODO: is this used somewhere? because train, eval and test are already split in dataset
         epochs: 1,
         scheme: 'federated',

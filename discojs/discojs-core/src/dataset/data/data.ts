@@ -73,7 +73,7 @@ export abstract class Data {
       this.availablePreprocessing === undefined ||
       this.availablePreprocessing.size === 0
       ) {
-        return (x) => new Promise((res, _) => res(x))
+        return x => Promise.resolve(x)
       }
     
     const applyPreprocessing = this.availablePreprocessing
@@ -81,14 +81,13 @@ export abstract class Data {
     .map((e) => e.apply)
     
     if (applyPreprocessing.size === 0) {
-      return (x) => new Promise((res, _) => res(x))
+      return x => Promise.resolve(x)
     }
     
     const preprocessingChain = applyPreprocessing.reduce((acc, fn) =>
-    (x: Promise<tf.TensorContainer>) => fn(acc(x), this.task),
-    (x: Promise<tf.TensorContainer>) => x,
-    )
-    return (x: tf.TensorContainer) => preprocessingChain(new Promise((res, _) => res(x)))
+      x => fn(acc(x), this.task), (x: Promise<tf.TensorContainer>) => x)
+    
+    return x => preprocessingChain(Promise.resolve(x))
   }
 
   /**

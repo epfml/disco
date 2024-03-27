@@ -18,10 +18,10 @@ import { GPTLMHeadModel } from './model.js'
 // TODO too big config
 interface Config {
   modelType: 'gpt-nano'
-  // epochs: number // TODO mv to Task
   maxIter: number
   blockSize: number
   vocabSize: number
+  evaluateEvery: number
   lr: number
   maxEvalBatches: number
 }
@@ -36,8 +36,9 @@ export class GPT extends Model {
     const config: Config = {
       modelType: 'gpt-nano',
       lr: 0.001,
-      maxIter: 1,
-      maxEvalBatches: 10,
+      maxIter: 500,
+      evaluateEvery:50,
+      maxEvalBatches: 50,
       blockSize: 128,
       vocabSize: 50258
     }
@@ -108,7 +109,6 @@ export class GPT extends Model {
       doSample: false,
       topK: null
     }
-    console.log(tokens)
     const predictedTokens = await this.model.generate(tokens, generationConfig)
     const generatedWords = tokenizer.decode(predictedTokens[0])
     return generatedWords

@@ -9,6 +9,6 @@ export class TextLoader extends data.TextLoader<string> {
     const inputFile = fs.readFileSync(source)
     const file = new tfData.FileDataSource(inputFile, { chunkSize: 1024 })
     // TODO: reading files line by line is an issue for LLM tokenization
-    return new tfData.TextLineDataset(file)
+    return new tfData.TextLineDataset(file).filter(s => s != ' ') // newline creates empty strings
   }
 }

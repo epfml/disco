@@ -56,14 +56,17 @@ export async function train (
     let iteration = 1
     const iterator = await ds.iterator()
     while (true) {
+      let preprocessingTime = performance.now()
       const next = await iterator.next()
+      preprocessingTime = performance.now() - preprocessingTime
       if (next.done === true || iteration > c.maxIter) {
         tf.dispose([next.value])
         break
       }
+      let weightUpdateTime = performance.now()
       await callbacks.onEpochBegin?.(epoch)
       const { xs, ys } = next.value
-
+      
       const lossFn: () => tf.Scalar = () => {
         const logits = model.apply(xs)
         if (Array.isArray(logits)) {
@@ -80,23 +83,31 @@ export async function train (
         opt.applyGradients(gradsClipped)
         return loss
       })
-
+      
       const loss = await lossTensor.array()
       tf.dispose([xs, ys, lossTensor])
+      weightUpdateTime = performance.now() - weightUpdateTime
       console.log(
         `Epoch: ${epoch}`,
         `\tStep: ${iteration} / ${c.maxIter}`,
         `\tLoss: ${loss.toFixed(3)}`,
-        `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`
+        `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`,
+        `\Preprocessing time: ${preprocessingTime.toFixed(0)} ms`,
+        `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
       )
-      let logs: tf.Logs | undefined
-      if (evalDs !== undefined) {
-        logs = await evaluate(model, evalDs, c.maxEvalBatches)
+      if (evalDs !== undefined && config.evaluateEvery !== undefined
+        && iteration % config.evaluateEvery == 0) {
+        const logs = await evaluate(model, evalDs, c.maxEvalBatches)
+        console.log(logs)
       }
-      await callbacks.onEpochEnd?.(epoch, logs)
-      await new Promise((resolve) => setTimeout(resolve, 1))
       iteration++
     }
+    let logs: tf.Logs | undefined
+    if (evalDs !== undefined) {
+      logs = await evaluate(model, evalDs, c.maxEvalBatches)
+      console.log(logs)
+    }
+    await callbacks.onEpochEnd?.(epoch, logs)
   }
 
   opt.dispose()

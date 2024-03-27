@@ -85,7 +85,7 @@ export abstract class Trainer {
         this.trainingInformant.loss = logs.val_loss
       }
     } else {
-      this.trainerLogger.error('onEpochEnd: NaN value')
+      this.trainerLogger.error('onEpochEnd: no logs available')
     }
   }
 
