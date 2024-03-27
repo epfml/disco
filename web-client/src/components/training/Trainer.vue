@@ -48,11 +48,7 @@
 import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
-<<<<<<< HEAD
-import { data, EmptyMemory, isTask, informant, TrainingInformant, Disco, Memory, client as clients } from '@epfml/discojs-core'
-=======
 import { data, EmptyMemory, isTask, Task, informant, TrainingInformant, Disco, Memory, client as clients } from '@epfml/discojs-core'
->>>>>>> develop
 import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
@@ -110,11 +106,7 @@ export default defineComponent({
         }
       )
     },
-<<<<<<< HEAD
-    scheme (): typeof TrainingInformation['scheme'] {
-=======
     scheme (): Task['trainingInformation']['scheme'] {
->>>>>>> develop
       if (this.distributedTraining && this.task.trainingInformation?.scheme !== undefined) {
         return this.task.trainingInformation?.scheme
       }
@@ -127,11 +119,7 @@ export default defineComponent({
     }
   },
   watch: {
-<<<<<<< HEAD
-    scheme (newScheme: typeof TrainingInformation['scheme']): void {
-=======
     scheme (newScheme: Task['trainingInformation']['scheme']): void {
->>>>>>> develop
       const args = [this.task, 10] as const
       switch (newScheme) {
         case 'federated':

@@ -1,13 +1,9 @@
 import { List } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-<<<<<<< HEAD
 import type { Task } from '../../../index.js'
 import type { PreprocessingFunction } from './base.js'
 import { AutoTokenizer, PreTrainedTokenizer } from '@xenova/transformers';
-=======
-import type { PreprocessingFunction } from './base.js'
->>>>>>> develop
 
 /**
  * Available text preprocessing types.
@@ -57,7 +53,6 @@ const leftPadding: PreprocessingFunction = {
  */
 const tokenize: PreprocessingFunction = {
   type: TextPreprocessing.Tokenize,
-<<<<<<< HEAD
   apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
     let xs = await x as string // tf.TextLineDataset yields strings
     let tokenizer = task.trainingInformation.tokenizer as PreTrainedTokenizer
@@ -77,13 +72,6 @@ const tokenize: PreprocessingFunction = {
       return_tensor: false,
       max_length: task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length,
     })
-=======
-  apply: (x: tf.TensorContainer) => {
-    const { xs, ys } = x as TextEntry
-
-    const tokenized = gpt3Tokenizer.encode(xs[0]).bpe
-
->>>>>>> develop
     return {
       xs: tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs}
     }
