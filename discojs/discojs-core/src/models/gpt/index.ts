@@ -40,7 +40,7 @@ export class GPT extends Model {
     const config: Config = {
       modelType: 'gpt-nano',
       lr: 0.001,
-      maxIter: 500,
+      maxIter: 1,
       evaluateEvery:50,
       maxEvalBatches: 50,
       blockSize: 128,
