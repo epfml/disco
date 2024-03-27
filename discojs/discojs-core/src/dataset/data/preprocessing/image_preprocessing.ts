@@ -19,8 +19,8 @@ interface ImageEntry extends tf.TensorContainerObject {
 
 const resize: PreprocessingFunction = {
   type: ImagePreprocessing.Resize,
-  apply: (entry: tf.TensorContainer, task: Task): tf.TensorContainer => {
-    const { xs, ys } = entry as ImageEntry
+  apply: async (entry: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
+    const { xs, ys } = await entry as ImageEntry
     const params = task.trainingInformation
     return {
       xs: params.IMAGE_W !== undefined && params.IMAGE_H !== undefined
@@ -33,8 +33,8 @@ const resize: PreprocessingFunction = {
 
 const normalize: PreprocessingFunction = {
   type: ImagePreprocessing.Normalize,
-  apply: (entry: tf.TensorContainer): tf.TensorContainer => {
-    const { xs, ys } = entry as ImageEntry
+  apply: async (entry: Promise<tf.TensorContainer>): Promise<tf.TensorContainer> => {
+    const { xs, ys } = await entry as ImageEntry
     return {
       xs: xs.div(tf.scalar(255)),
       ys

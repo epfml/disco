@@ -41,7 +41,7 @@ export interface TrainingInformation {
   // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
   decentralizedSecure?: boolean
   // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
-  // default is 100, must be a positive number, check the ~/disco/information/PRIVACY.md file for more information on significance of maxShareValue selection
+  // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
   maxShareValue?: number
   // minimumReadyPeers: Decentralized Learning: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
@@ -50,6 +50,14 @@ export interface TrainingInformation {
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
   aggregator?: AggregatorChoice
+  // tokenizerName (string). For example: 'Xenova/gpt2'. The name should match a Transformers.js tokenizer available on HuggingFace's hub. 
+  tokenizerName?: string
+  // tokenizer (object). The actual tokenizer. It is initialized according to the tokenizerName the first time it is needed for the subsequent tokenizations
+  // This field is not expected to be filled when initializing a field
+  tokenizer?: object | null
+  // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
+  // truncate strings to a maximum length. The default value is tokenizer.model_max_length
+  maxSequenceLength?: number
 }
 
 function isStringArray(raw: unknown): raw is string[] {
@@ -86,6 +94,9 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     roundDuration,
     scheme,
     validationSplit,
+    tokenizerName,
+    tokenizer,
+    maxSequenceLength,
   }: Partial<Record<keyof TrainingInformation, unknown>> = raw
 
   if (
@@ -95,6 +106,9 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof batchSize !== 'number' ||
     typeof roundDuration !== 'number' ||
     typeof validationSplit !== 'number' ||
+    (tokenizerName !== undefined && typeof tokenizerName !== 'string') ||
+    (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
+    (tokenizer !== null && tokenizer !== undefined && typeof tokenizer !== 'object') ||
     (aggregator !== undefined && typeof aggregator !== 'number') ||
     (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
     (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
@@ -152,6 +166,9 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     roundDuration,
     scheme,
     validationSplit,
+    tokenizer,
+    tokenizerName,
+    maxSequenceLength
   }
   const _correct: TrainingInformation = repack
   const _total: Record<keyof TrainingInformation, unknown> = repack

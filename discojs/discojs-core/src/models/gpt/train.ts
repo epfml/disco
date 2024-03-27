@@ -40,76 +40,84 @@ function getCustomAdam (model: tf.LayersModel, c: Required<GPTConfig>): tf.Optim
   })
 }
 
+interface DataPoint extends tf.TensorContainerObject {
+  xs: tf.Tensor2D,
+  ys: tf.Tensor3D,
+}
+
 export async function train (
   model: tf.LayersModel,
   ds: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
   config: GPTConfig,
+  epochs: number,
   callbacks: TrainingCallbacks,
   evalDs?: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
 ): Promise<void> {
   const c = resolveConfig(config)
-
   const opt = c.weightDecay !== 0 ? getCustomAdam(model, c) : tf.train.adam(c.lr)
 
   await callbacks.onTrainBegin?.()
+  for (let epoch = 1; epoch <= epochs; epoch++) {
+    let iteration = 1
+    const iterator = await ds.iterator()
+    let continueTraining = true
+    while (continueTraining) {
+      let preprocessingTime = performance.now()
+      const next = await iterator.next()
+      preprocessingTime = performance.now() - preprocessingTime
 
-  console.warn('=== Starting training ===')
+      let weightUpdateTime = performance.now()
+      await callbacks.onEpochBegin?.(epoch)
+      const { xs, ys } = next.value as DataPoint
 
-  for (let epoch = 1; epoch <= c.epochs; epoch++) {
-    await callbacks.onEpochBegin?.(epoch)
-
-    await tf.data.zip<[number, { xs: tf.Tensor2D, ys: tf.Tensor3D }]>([
-      tf.data.generator(function * () {
-        for (let i = 1; i <= c.maxIter; i++) { yield i }
-      }),
-      ds
-    ]).mapAsync(async ([iteration, { xs, ys }]) => {
-      await callbacks.onBatchBegin?.(iteration)
-      return { iteration, xs, ys }
-    }).map(({ iteration, xs, ys }) => tf.tidy(() => {
-      const { grads, value: loss } = opt.computeGradients(() => {
+      const lossFn: () => tf.Scalar = () => {
         const logits = model.apply(xs)
         if (Array.isArray(logits)) {
-          throw new Error('model outputed many tensor')
+          throw new Error('model outputs too many tensor')
         }
         if (logits instanceof tf.SymbolicTensor) {
-          throw new Error('model outputed symbolic tensor')
+          throw new Error('model outputs symbolic tensor')
         }
+        return tf.losses.softmaxCrossEntropy(ys, logits)
+      }
 
-        const loss = tf.losses.softmaxCrossEntropy(ys, logits)
-        return loss as tf.Scalar
+      const lossTensor = tf.tidy(() => {
+        const { grads, value: lossTensor } = opt.computeGradients(lossFn)
+        const gradsClipped = clipByGlobalNormObj(grads, 1)
+        opt.applyGradients(gradsClipped)
+        return lossTensor
       })
+      
+      const loss = await lossTensor.array()
+      tf.dispose([xs, ys, lossTensor, next.value])
 
-      tf.dispose([xs, ys])
-
-      const gradsClipped = clipByGlobalNormObj(grads, 1)
-      opt.applyGradients(gradsClipped)
-
-      return { iteration, loss }
-    })).mapAsync(async ({ iteration, loss }) => {
-      const raw = await loss.array()
-      tf.dispose(loss)
-      return [iteration, raw]
-    }).mapAsync(async ([iteration, loss]) => {
-      await callbacks.onBatchEnd?.(iteration)
-      return [iteration, loss]
-    }).forEachAsync(([iteration, loss]) => {
+      weightUpdateTime = performance.now() - weightUpdateTime
       console.log(
         `Epoch: ${epoch}`,
         `\tStep: ${iteration} / ${c.maxIter}`,
         `\tLoss: ${loss.toFixed(3)}`,
-        `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`
+        `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`,
+        `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
+        `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
+        `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
       )
-    })
 
+      if (evalDs !== undefined && config.evaluateEvery !== undefined
+        && iteration % config.evaluateEvery == 0) {
+        const logs = await evaluate(model, evalDs, c.maxEvalBatches)
+        console.log(logs)
+      }
+      iteration++
+      continueTraining = next.done !== true && iteration <= c.maxIter
+    }
     let logs: tf.Logs | undefined
     if (evalDs !== undefined) {
-      logs = await evaluate(model, evalDs)
+      logs = await evaluate(model, evalDs, c.maxEvalBatches)
+      console.log(logs)
     }
     await callbacks.onEpochEnd?.(epoch, logs)
-
-    await new Promise((resolve) => setTimeout(resolve, 1))
   }
 
+  opt.dispose()
   await callbacks.onTrainEnd?.()
 }
