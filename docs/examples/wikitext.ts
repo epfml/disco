@@ -23,7 +23,7 @@ async function main(): Promise<void> {
   if (aggregator.model === undefined) {
     throw new Error('model was not set')
   }
-  let model = aggregator.model as models.GPT
+  const model = aggregator.model as models.GPT
   const sample = 'Hello world'
   const tokenizerName = task.trainingInformation.tokenizerName ?? 'Xenova/gpt2'
   console.log(await model.generate(sample, tokenizerName))
