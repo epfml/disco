@@ -26,6 +26,10 @@ interface Config {
   maxEvalBatches: number
 }
 
+interface TokenizerOutput {
+    input_ids: number[]
+  }
+
 export class GPT extends Model {
   private readonly model: GPTLMHeadModel
 
@@ -74,7 +78,7 @@ export class GPT extends Model {
       epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
       validationData,
       callbacks: {
-        onEpochEnd: (epoch, cur) => {
+        onEpochEnd: (_, cur) => {
           logs = cur
           if (logs !== undefined && cur !== undefined) {
             logs.loss = cur.val_loss
@@ -101,7 +105,7 @@ export class GPT extends Model {
 
   async generate (input: string, tokenizerModel: string = 'Xenova/gpt2', newTokens: number = 10): Promise<string> {
     const tokenizer = await AutoTokenizer.from_pretrained(tokenizerModel)
-    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false})
+    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as TokenizerOutput
 
     const generationConfig = {
       maxNewTokens: newTokens,

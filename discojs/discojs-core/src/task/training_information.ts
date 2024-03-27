@@ -54,7 +54,7 @@ export interface TrainingInformation {
   tokenizerName?: string
   // tokenizer (object). The actual tokenizer. It is initialized according to the tokenizerName the first time it is needed for the subsequent tokenizations
   // This field is not expected to be filled when initializing a field
-  tokenizer?: object
+  tokenizer?: object | null
   // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
   // truncate strings to a maximum length. The default value is tokenizer.model_max_length
   maxSequenceLength?: number
@@ -94,6 +94,9 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     roundDuration,
     scheme,
     validationSplit,
+    tokenizerName,
+    tokenizer,
+    maxSequenceLength,
   }: Partial<Record<keyof TrainingInformation, unknown>> = raw
 
   if (
@@ -103,6 +106,9 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof batchSize !== 'number' ||
     typeof roundDuration !== 'number' ||
     typeof validationSplit !== 'number' ||
+    (tokenizerName !== undefined && typeof tokenizerName !== 'string') ||
+    (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
+    (tokenizer !== null && tokenizer !== undefined && typeof tokenizer !== 'object') ||
     (aggregator !== undefined && typeof aggregator !== 'number') ||
     (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
     (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
@@ -160,6 +166,9 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     roundDuration,
     scheme,
     validationSplit,
+    tokenizer,
+    tokenizerName,
+    maxSequenceLength
   }
   const _correct: TrainingInformation = repack
   const _total: Record<keyof TrainingInformation, unknown> = repack

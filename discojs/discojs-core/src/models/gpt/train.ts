@@ -40,6 +40,11 @@ function getCustomAdam (model: tf.LayersModel, c: Required<GPTConfig>): tf.Optim
   })
 }
 
+interface DataPoint extends tf.TensorContainerObject {
+  xs: tf.Tensor2D,
+  ys: tf.Tensor3D,
+}
+
 export async function train (
   model: tf.LayersModel,
   ds: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
@@ -55,18 +60,16 @@ export async function train (
   for (let epoch = 1; epoch <= epochs; epoch++) {
     let iteration = 1
     const iterator = await ds.iterator()
-    while (true) {
+    let continueTraining = true
+    while (continueTraining) {
       let preprocessingTime = performance.now()
       const next = await iterator.next()
       preprocessingTime = performance.now() - preprocessingTime
-      if (next.done === true || iteration > c.maxIter) {
-        tf.dispose([next.value])
-        break
-      }
+
       let weightUpdateTime = performance.now()
       await callbacks.onEpochBegin?.(epoch)
-      const { xs, ys } = next.value
-      
+      const { xs, ys } = next.value as DataPoint
+
       const lossFn: () => tf.Scalar = () => {
         const logits = model.apply(xs)
         if (Array.isArray(logits)) {
@@ -77,30 +80,35 @@ export async function train (
         }
         return tf.losses.softmaxCrossEntropy(ys, logits)
       }
+
       const lossTensor = tf.tidy(() => {
-        const { grads, value: loss } = opt.computeGradients(lossFn)
+        const { grads, value: lossTensor } = opt.computeGradients(lossFn)
         const gradsClipped = clipByGlobalNormObj(grads, 1)
         opt.applyGradients(gradsClipped)
-        return loss
+        return lossTensor
       })
       
       const loss = await lossTensor.array()
-      tf.dispose([xs, ys, lossTensor])
+      tf.dispose([xs, ys, lossTensor, next.value])
+
       weightUpdateTime = performance.now() - weightUpdateTime
       console.log(
         `Epoch: ${epoch}`,
         `\tStep: ${iteration} / ${c.maxIter}`,
         `\tLoss: ${loss.toFixed(3)}`,
         `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`,
-        `\Preprocessing time: ${preprocessingTime.toFixed(0)} ms`,
+        `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
+        `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
         `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
       )
+
       if (evalDs !== undefined && config.evaluateEvery !== undefined
         && iteration % config.evaluateEvery == 0) {
         const logs = await evaluate(model, evalDs, c.maxEvalBatches)
         console.log(logs)
       }
       iteration++
+      continueTraining = next.done !== true && iteration <= c.maxIter
     }
     let logs: tf.Logs | undefined
     if (evalDs !== undefined) {
