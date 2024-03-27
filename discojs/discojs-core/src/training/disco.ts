@@ -56,6 +56,10 @@ export class Disco {
         case 'local':
           options.client = new clients.Local(options.url, task, options.aggregator)
           break
+        default: {
+          const _: never = options.scheme
+          throw new Error('should never happen')
+        }
       }
     }
     if (options.informant === undefined) {
@@ -69,6 +73,10 @@ export class Disco {
         case 'local':
           options.informant = new informants.LocalInformant(task)
           break
+        default: {
+          const _: never = options.scheme
+          throw new Error('should never happen')
+        }
       }
     }
     if (options.logger === undefined) {

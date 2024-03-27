@@ -6,7 +6,6 @@ import { aggregator } from '../index.js'
  */
 export enum AggregatorChoice {
   MEAN,
-  ROBUST,
   SECURE,
   BANDIT
 }
@@ -21,8 +20,6 @@ export function getAggregator (task: Task): aggregator.Aggregator {
   switch (task.trainingInformation.aggregator) {
     case AggregatorChoice.MEAN:
       return new aggregator.MeanAggregator()
-    case AggregatorChoice.ROBUST:
-      throw error
     case AggregatorChoice.BANDIT:
       throw error
     case AggregatorChoice.SECURE:

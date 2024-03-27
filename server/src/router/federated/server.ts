@@ -262,6 +262,7 @@ export class Federated extends Server {
         }
 
         this.createPromiseForWeights(task.id, aggregator, ws)
+<<<<<<< HEAD
       } else if (msg.type === MessageTypes.SendMetadata) {
         const { round, key, value } = msg
 
@@ -274,6 +275,8 @@ export class Federated extends Server {
           [task, round, clientId, key],
           value
         )
+=======
+>>>>>>> develop
       } else if (msg.type === MessageTypes.ReceiveServerMetadata) {
         const { key, round } = msg
 

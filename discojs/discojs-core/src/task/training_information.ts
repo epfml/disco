@@ -40,12 +40,6 @@ export interface TrainingInformation {
   // decentralizedSecure: Secure Aggregation on/off:
   // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
   decentralizedSecure?: boolean
-  // byzantineRobustAggregator: Byzantine robust aggregator on/off:
-  // Boolean. true to use byzantine robust aggregation, if the training scheme is federated, false otherwise
-  byzantineRobustAggregator?: boolean
-  // tauPercentile: it indicates the percentile to take when choosing the tau for byzantine robust aggregator:
-  // Number (>0 && <1). It must be a number between 0 and 1 and it is used only if byzantineRobustAggregator is true.
-  tauPercentile?: number
   // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
   // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
@@ -175,6 +169,113 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
   }
   const _correct: TrainingInformation = repack
   // const _total: Record<keyof TrainingInformation, unknown> = repack
+
+  return true
+}
+
+function isStringArray(raw: unknown): raw is string[] {
+  if (!Array.isArray(raw)) {
+    return false
+  }
+  const arr: unknown[] = raw // isArray is unsafely guarding with any[]
+
+  return arr.every((e) => typeof e === 'string')
+}
+
+export function isTrainingInformation (raw: unknown): raw is TrainingInformation {
+  if (typeof raw !== 'object' || raw === null) {
+    return false
+  }
+
+  const {
+    IMAGE_H,
+    IMAGE_W,
+    LABEL_LIST,
+    aggregator,
+    batchSize,
+    clippingRadius,
+    dataType,
+    decentralizedSecure,
+    epochs,
+    inputColumns,
+    maxShareValue,
+    minimumReadyPeers,
+    modelID,
+    noiseScale,
+    outputColumns,
+    preprocessingFunctions,
+    roundDuration,
+    scheme,
+    validationSplit,
+  }: Partial<Record<keyof TrainingInformation, unknown>> = raw
+
+  if (
+    typeof dataType !== 'string' ||
+    typeof modelID !== 'string' ||
+    typeof epochs !== 'number' ||
+    typeof batchSize !== 'number' ||
+    typeof roundDuration !== 'number' ||
+    typeof validationSplit !== 'number' ||
+    (aggregator !== undefined && typeof aggregator !== 'number') ||
+    (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
+    (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
+    (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
+    (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number') ||
+    (noiseScale !== undefined && typeof noiseScale !== 'number') ||
+    (IMAGE_H !== undefined && typeof IMAGE_H !== 'number') ||
+    (IMAGE_W !== undefined && typeof IMAGE_W !== 'number') ||
+    (LABEL_LIST !== undefined && !isStringArray(LABEL_LIST)) ||
+    (inputColumns !== undefined && !isStringArray(inputColumns)) ||
+    (outputColumns !== undefined && !isStringArray(outputColumns)) ||
+    (preprocessingFunctions !== undefined && !Array.isArray(preprocessingFunctions))
+  ) {
+    return false
+  }
+
+  // interdepences on data type
+  if (dataType === 'image') {
+    if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
+      return false
+    }
+  } else if (dataType in ['text', 'tabular']) {
+    if (!(Array.isArray(inputColumns) && inputColumns.every((e) => typeof e === 'string'))) {
+      return false
+    }
+    if (!(Array.isArray(outputColumns) && outputColumns.every((e) => typeof e === 'string'))) {
+      return false
+    }
+  }
+
+  switch (scheme) {
+    case 'decentralized': break
+    case 'federated': break
+    case 'local': break
+    default: return false
+  }
+
+  const repack = {
+    IMAGE_W,
+    IMAGE_H,
+    LABEL_LIST,
+    aggregator,
+    batchSize,
+    clippingRadius,
+    dataType,
+    decentralizedSecure,
+    epochs,
+    inputColumns,
+    maxShareValue,
+    minimumReadyPeers,
+    modelID,
+    noiseScale,
+    outputColumns,
+    preprocessingFunctions,
+    roundDuration,
+    scheme,
+    validationSplit,
+  }
+  const _correct: TrainingInformation = repack
+  const _total: Record<keyof TrainingInformation, unknown> = repack
 
   return true
 }
