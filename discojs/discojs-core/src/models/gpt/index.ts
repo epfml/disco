@@ -7,7 +7,7 @@ import * as tf from '@tensorflow/tfjs'
 import { WeightsContainer } from '../../index.js'
 import type { Dataset } from '../../dataset/index.js'
 import { Sink } from '../../utils/event_emitter.js'
-import { AutoTokenizer } from '@xenova/transformers';
+import { PreTrainedTokenizer } from '@xenova/transformers';
 
 
 import type { EpochLogs, Prediction, Sample } from '../model.js'
@@ -103,8 +103,7 @@ export class GPT extends Model {
     return Promise.resolve(ret)
   }
 
-  async generate (input: string, tokenizerModel: string = 'Xenova/gpt2', newTokens: number = 10): Promise<string> {
-    const tokenizer = await AutoTokenizer.from_pretrained(tokenizerModel)
+  async generate (input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
     const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as TokenizerOutput
 
     const generationConfig = {

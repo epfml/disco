@@ -6,6 +6,7 @@
   "scripts": {
     "train": "npm run build && node dist/training.js",
     "custom_task": "npm run build && node dist/custom_task.js",
+    "language_model": "npm run build && node dist/wikitext.js",
     "build": "tsc",
     "lint": "npx eslint .",
     "test": "npm run train"

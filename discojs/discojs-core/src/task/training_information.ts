@@ -1,5 +1,6 @@
 import type { AggregatorChoice } from '../aggregator/get.js'
 import type { Preprocessing } from '../dataset/data/preprocessing/index.js'
+import { PreTrainedTokenizer } from '@xenova/transformers';
 
 export interface TrainingInformation {
   // modelID: unique ID for the model
@@ -50,11 +51,9 @@ export interface TrainingInformation {
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
   aggregator?: AggregatorChoice
-  // tokenizerName (string). For example: 'Xenova/gpt2'. The name should match a Transformers.js tokenizer available on HuggingFace's hub. 
-  tokenizerName?: string
-  // tokenizer (object). The actual tokenizer. It is initialized according to the tokenizerName the first time it is needed for the subsequent tokenizations
-  // This field is not expected to be filled when initializing a field
-  tokenizer?: object | null
+  // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'. 
+  // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
+  tokenizer?: string | PreTrainedTokenizer
   // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
   // truncate strings to a maximum length. The default value is tokenizer.model_max_length
   maxSequenceLength?: number
@@ -94,7 +93,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     roundDuration,
     scheme,
     validationSplit,
-    tokenizerName,
     tokenizer,
     maxSequenceLength,
   }: Partial<Record<keyof TrainingInformation, unknown>> = raw
@@ -106,9 +104,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof batchSize !== 'number' ||
     typeof roundDuration !== 'number' ||
     typeof validationSplit !== 'number' ||
-    (tokenizerName !== undefined && typeof tokenizerName !== 'string') ||
+    (tokenizer !== undefined && typeof tokenizer !== 'string' && !(tokenizer instanceof PreTrainedTokenizer)) ||
     (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
-    (tokenizer !== null && tokenizer !== undefined && typeof tokenizer !== 'object') ||
     (aggregator !== undefined && typeof aggregator !== 'number') ||
     (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
     (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
@@ -167,7 +164,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     scheme,
     validationSplit,
     tokenizer,
-    tokenizerName,
     maxSequenceLength
   }
   const _correct: TrainingInformation = repack
