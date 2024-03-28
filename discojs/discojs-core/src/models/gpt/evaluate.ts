@@ -7,7 +7,7 @@ interface DataPoint extends tf.TensorContainerObject {
 
 export default async function evaluate (
   model: tf.LayersModel,
-  dataset: tf.data.Dataset<{ xs: tf.Tensor, ys: tf.Tensor }>,
+  dataset: tf.data.Dataset<DataPoint>,
   maxEvalBatches: number
 ): Promise<Record<'acc' | 'val_acc' | 'val_loss' | 'val_perplexity', number>> {
   let datasetSize = 0
