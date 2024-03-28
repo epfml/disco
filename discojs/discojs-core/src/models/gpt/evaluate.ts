@@ -35,7 +35,7 @@ export default async function evaluate (
     const accTensor = tf.metrics.categoricalAccuracy(ys, logits)
     const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
     const accSum = accTensor.sum()
-    const accSummed = accSum.arraySync()
+    const accSummed = await accSum.array()
     if (typeof accSummed !== 'number') {
       throw new Error('got multiple accuracy sum')
     }
