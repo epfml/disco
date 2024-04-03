@@ -13,10 +13,10 @@ export class PeerPool {
     private readonly id: NodeID
   ) {}
 
-  shutdown (): void {
+  async shutdown (): Promise<void> {
     console.info(`[${this.id}] shutdown their peers`)
 
-    this.peers.forEach((peer) => { peer.disconnect() })
+    await Promise.all(this.peers.valueSeq().map((peer) => peer.disconnect()))
     this.peers = Map()
   }
 

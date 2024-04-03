@@ -125,9 +125,9 @@ export class Base extends Client {
     this.pool = new PeerPool(peerIdMsg.id)
   }
 
-  disconnect (): Promise<void> {
+  async disconnect (): Promise<void> {
     // Disconnect from peers
-    this.pool?.shutdown()
+    await this.pool?.shutdown()
     this.pool = undefined
 
     if (this.connections !== undefined) {
@@ -136,7 +136,7 @@ export class Base extends Client {
     }
 
     // Disconnect from server
-    this.server?.disconnect()
+    await this.server?.disconnect()
     this._server = undefined
     this._ownId = undefined
 

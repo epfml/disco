@@ -19,9 +19,8 @@ describe('peer', function () {
     ).toArray())
   })
 
-  afterEach(() => {
-    peer1.destroy()
-    peer2.destroy()
+  afterEach(async () => {
+    await Promise.all([peer1.destroy(), peer2.destroy()])
   })
 
   it('can send and receives a message', async () => {
