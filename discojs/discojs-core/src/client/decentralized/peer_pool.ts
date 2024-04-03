@@ -57,9 +57,7 @@ export class PeerPool {
 
     clientHandle(this.peers)
 
-    await Promise.all(
-      Array.from(newPeersConnections.values()).map(async (connection) => { await connection.connect() }))
-
+    await Promise.all(newPeersConnections.valueSeq().map((conn) => conn.connect()))
     console.info(`[${this.id}] knowns connected peers:`, this.peers.keySeq().toJS())
 
     return this.peers
