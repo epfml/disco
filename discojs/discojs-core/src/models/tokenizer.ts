@@ -6,8 +6,8 @@ import { AutoTokenizer, PreTrainedTokenizer } from '@xenova/transformers';
  * The first time the tokenizer is needed, this function initializes the actual tokenizer object 
  * and saves it in the task' tokenizer field to be reused in subsequent calls.
  * 
- * We are proceeding this way because the task object is sent from the server to the client. Rather than
- * sending complex objects through the network, we simply send the tokenizer name to be initialized client-side the 
+ * We are proceeding as such because the task object is sent from the server to the client. Rather than
+ * sending complex objects through the network, we simply send the tokenizer name, which is then initialized client-side the 
  * first time it is called.
  * @param task the task object specifying which tokenizer to use
  * @returns an initialized tokenizer object

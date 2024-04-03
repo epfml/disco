@@ -26,6 +26,9 @@ const leftPadding: PreprocessingFunction = {
   type: TextPreprocessing.LeftPadding,
   apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
     let { xs } = await x as TokenizedEntry
+    if (xs === undefined ||  !(xs instanceof tf.tensor) ||xs.rankType !== tf.Rank.R1) {
+      new Error("The leftPadding preprocessing expects a 1D tensor named 'xs' as input")
+    }
     const tokenizer = await models.getTaskTokenizer(task)
 
     
@@ -54,6 +57,9 @@ interface TokenizerOutput {
 const tokenize: PreprocessingFunction = {
   type: TextPreprocessing.Tokenize,
   apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
+    if (typeof x != 'string') {
+      new Error("The tokenize preprocessing expects a string as input")
+    }
     const xs = await x as string // tf.TextLineDataset yields strings
     const tokenizer = await models.getTaskTokenizer(task)
     const maxLength = task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length as number
