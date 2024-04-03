@@ -34,7 +34,7 @@ export abstract class Model {
    *
    * @param trainingData dataset to optimize for
    * @param validationData dataset to measure how well it is training
-   * @param epochs number of pass over the training datatset
+   * @param epochs number of pass over the training dataset
    * @param tracker watch the various steps
    * @yields on every epoch, training can be stop by `return`ing it
    */

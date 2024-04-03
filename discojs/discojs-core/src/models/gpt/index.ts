@@ -7,6 +7,8 @@ import * as tf from '@tensorflow/tfjs'
 import { WeightsContainer } from '../../index.js'
 import type { Dataset } from '../../dataset/index.js'
 import { Sink } from '../../utils/event_emitter.js'
+import { PreTrainedTokenizer } from '@xenova/transformers';
+
 
 import type { EpochLogs, Prediction, Sample } from '../model.js'
 import { Model } from '../model.js'
@@ -16,21 +18,20 @@ import { GPTLMHeadModel } from './model.js'
 // TODO too big config
 interface Config {
   modelType: 'gpt-nano'
-  epochs: number // TODO mv to Task
   maxIter: number
-  batchSize: number
   blockSize: number
-  lr: number
   vocabSize: number
+  evaluateEvery: number
+  lr: number
   maxEvalBatches: number
 }
 
+interface TokenizerOutput {
+    input_ids: number[]
+  }
+
 export class GPT extends Model {
   private readonly model: GPTLMHeadModel
-
-  private static readonly batchSize = 4
-  private static readonly blockSize = 128
-  private static readonly vocabSize = 50258
 
   constructor () {
     super()
@@ -38,13 +39,12 @@ export class GPT extends Model {
     // TODO sensible defaults?
     const config: Config = {
       modelType: 'gpt-nano',
-      epochs: 1,
-      maxIter: 2,
-      batchSize: GPT.batchSize,
-      blockSize: GPT.blockSize,
       lr: 0.001,
-      vocabSize: GPT.vocabSize,
-      maxEvalBatches: 1
+      maxIter: 2,
+      evaluateEvery:10,
+      maxEvalBatches: 10,
+      blockSize: 128,
+      vocabSize: 50258
     }
 
     this.model = new GPTLMHeadModel(config)
@@ -58,67 +58,38 @@ export class GPT extends Model {
     this.model.setWeights(ws.weights)
   }
 
-  // takes a stream of two bytes followed by a token ID
-  private convertCharDataset (dataset: Dataset): tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }> {
-    const batchSize = 4
-    const sampleSize = GPT.blockSize + 1
-    const chunkSize = sampleSize * batchSize * 2
-
-    function toUInt16 (low: number, high: number): number {
-      low &= 0xff
-      high &= 0xff
-      return (high << 8) | low
-    }
-
-    // TODO add support for small last batch
-    return dataset.batch(chunkSize, false).mapAsync(async (chunk) => {
-      if (!(chunk instanceof tf.Tensor)) {
-        throw new Error('chunk is not a Tensor')
-      }
-      if (chunk.shape.length !== 2 || chunk.shape[1] !== 1) {
-        throw new Error('dataset is not a only char')
-      }
-
-      const buffer = await chunk.buffer()
-
-      const xs = tf.buffer<tf.Rank.R2, 'int32'>([batchSize, GPT.blockSize], 'int32')
-      const ys = tf.buffer<tf.Rank.R3, 'int32'>([batchSize, GPT.blockSize, GPT.vocabSize], 'int32')
-
-      for (let i = 0; i < batchSize; i++) {
-        for (let j = 0; j < sampleSize; j++) {
-          const idx = (i * sampleSize + j) * 2
-          const low = buffer.get(idx)
-          const high = buffer.get(idx + 1)
-          const token = toUInt16(low, high)
-          if (j < sampleSize - 1) xs.set(token, i, j)
-          if (j > 0) ys.set(1, i, j - 1, token)
-        }
-      }
-
-      return { xs: xs.toTensor(), ys: ys.toTensor() }
-    })
-  }
-
+  /**
+   * The GPT train methods wraps the model.fitDataset call in a for loop to act as a generator (of logs)
+   * This allows for getting logs and stopping training without callbacks.
+   *
+   * @param trainingData training dataset
+   * @param validationData validation dataset
+   * @param epochs the number of passes of the training dataset
+   * @param tracker
+   */
   override async * train (
     trainingData: Dataset,
     validationData?: Dataset,
     epochs = 1,
     tracker = new Sink()
   ): AsyncGenerator<EpochLogs, void> {
-    for (let i = 0; i < epochs; i++) {
-      let logs: tf.Logs | undefined
-
-      await this.model.fitDataset(
-        this.convertCharDataset(trainingData), {
-          epochs: 1,
-          validationData: validationData !== undefined ? this.convertCharDataset(validationData) : validationData,
-          callbacks: {
-            onEpochEnd: (_, cur) => { logs = cur },
-            onBatchBegin: () => { tracker.emit('batchBegin', undefined) },
-            onBatchEnd: () => { tracker.emit('batchEnd', undefined) }
+    let logs: tf.Logs | undefined
+    const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
+      epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
+      validationData,
+      callbacks: {
+        onEpochEnd: (_, cur) => {
+          logs = cur
+          if (logs !== undefined && cur !== undefined) {
+            logs.loss = cur.val_loss
           }
-        })
-
+        },
+        onBatchBegin: () => { tracker.emit('batchBegin', undefined) },
+        onBatchEnd: () => { tracker.emit('batchEnd', undefined) }
+      }
+    }
+    for (let i = 0; i < epochs; i++) {
+      await this.model.fitDataset(trainingData, trainingArgs)
       yield logs
     }
   }
@@ -130,6 +101,20 @@ export class GPT extends Model {
     }
 
     return Promise.resolve(ret)
+  }
+
+  async generate (input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
+    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as TokenizerOutput
+
+    const generationConfig = {
+      maxNewTokens: newTokens,
+      temperature: 1.0,
+      doSample: false,
+      topK: null
+    }
+    const predictedTokens = await this.model.generate(tokens, generationConfig)
+    const generatedWords = tokenizer.decode(predictedTokens[0])
+    return generatedWords
   }
 
   static deserialize (weights: WeightsContainer): Model {

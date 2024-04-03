@@ -15,13 +15,11 @@ export interface ModelSize {
 
 export interface GPTConfig {
   lr: number
-  batchSize: number
   blockSize: number
   vocabSize: number
   evaluate?: boolean
   maxEvalBatches?: number
   evaluateEvery?: number
-  epochs?: number
   maxIter?: number
   weightDecay?: number
   verbose?: 0 | 1
@@ -38,8 +36,6 @@ export interface GPTConfig {
 export const DEFAULT_CONFIG: Required<GPTConfig> = {
   lr: 0.001,
   weightDecay: 0,
-  batchSize: 2,
-  epochs: 9999,
   maxIter: 10_000,
   verbose: 0,
   modelType: 'gpt-nano',

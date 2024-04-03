@@ -1,14 +1,15 @@
-import fs from 'node:fs/promises'
 import { data as tfData } from '@tensorflow/tfjs-node'
-
+import fs from 'node:fs/promises'
 import { data } from '@epfml/discojs-core'
 
 export class TextLoader extends data.TextLoader<string> {
   async loadDatasetFrom (source: string): Promise<data.Dataset> {
-    // TODO sure, good idea to load the whole dataset in memory #irony
-    const content = await fs.readFile(source)
-    const file = new tfData.FileDataSource(content)
-
-    return new tfData.TextLineDataset(file)
+    // TODO: reads all the file at once, 
+    // inputting the file path to FileDataSource isn't supported anymore
+    const inputFile = await fs.readFile(source)
+    const file = new tfData.FileDataSource(inputFile, { chunkSize: 1024 })
+    // TODO: reading files line by line is an issue for LLM tokenization
+    const dataset = new tfData.TextLineDataset(file).filter(s => s != ' ') // newline creates empty strings
+    return Promise.resolve(dataset)
   }
 }

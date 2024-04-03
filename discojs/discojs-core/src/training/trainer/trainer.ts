@@ -85,7 +85,7 @@ export abstract class Trainer {
         this.trainingInformant.loss = logs.val_loss
       }
     } else {
-      this.trainerLogger.error('onEpochEnd: NaN value')
+      this.trainerLogger.error('onEpochEnd: no logs available')
     }
   }
 
@@ -136,7 +136,7 @@ export abstract class Trainer {
       })
     )
 
-    let epoch = 0
+    let epoch = 0 // TODO: Trainer's epoch is not the same as the epoch in this.training
     this.onEpochBegin(epoch)
     for await (const logs of this.training) {
       this.onEpochEnd(epoch, logs)

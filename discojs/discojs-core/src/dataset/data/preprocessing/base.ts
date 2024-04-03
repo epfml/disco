@@ -15,5 +15,5 @@ export type Preprocessing = ImagePreprocessing | TextPreprocessing | TabularPrep
  */
 export interface PreprocessingFunction {
   type: Preprocessing
-  apply: (x: tf.TensorContainer, task: Task) => tf.TensorContainer
+  apply: (x: Promise<tf.TensorContainer>, task: Task) => Promise<tf.TensorContainer>
 }

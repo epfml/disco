@@ -18,13 +18,13 @@ interface TabularEntry extends tf.TensorContainerObject {
 
 const sanitize: PreprocessingFunction = {
   type: TabularPreprocessing.Sanitize,
-  apply: (entry: tf.TensorContainer): tf.TensorContainer => {
+  apply: async (entry: Promise<tf.TensorContainer>) => {
     // if preprocessing a dataset without labels, then the entry is an array of numbers
     if (Array.isArray(entry)) {
-      return entry.map(i => i ?? 0)
+      return entry.map((i: number) => i ?? 0)
     // otherwise it is an object with feature and labels
     } else {
-      const { xs, ys } = entry as TabularEntry
+      const { xs, ys } = await entry as TabularEntry
       return {
         xs: xs.map(i => i ?? 0),
         ys

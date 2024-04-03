@@ -471,6 +471,7 @@ class GPTModel extends tf.LayersModel {
       this,
       dataset as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
       config,
+      args.epochs,
       args.callbacks as TrainingCallbacks,
       args.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
     )
@@ -503,17 +504,14 @@ class GPTLMHeadModel extends GPTModel {
     let timePerToken = performance.now()
 
     const idxNext = tf.tidy(() => {
-      const blockSize = model.inputs[0].shape[1]
-      if (blockSize === null) throw new Error('unexpected shape')
-
-      const idxCond =
-              idx.shape[1] <= blockSize
-                ? idx
-                : idx.slice([0, -blockSize], [-1, -1])
-      const outputed = model.predict(idxCond)
-      if (Array.isArray(outputed)) throw new Error('model outputed multiple values')
-      if (outputed.shape.length !== 3) throw new Error('model outputed weird shape')
-      const logits = outputed as tf.Tensor3D
+      const blockSize = this.config.blockSize
+      const idxCond = idx.shape[1] <= blockSize
+        ? idx : idx.slice([0, -blockSize], [-1, -1])
+      
+      const output = model.predict(idxCond)
+      if (Array.isArray(output)) throw new Error('The model outputs too multiple values')
+      if (output.shape.length !== 3) throw new Error('The model outputs wrong shape')
+      const logits = output as tf.Tensor3D
 
       timePerToken = performance.now() - timePerToken
       const logitsScaled = logits

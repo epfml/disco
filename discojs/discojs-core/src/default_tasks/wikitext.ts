@@ -1,5 +1,5 @@
 import type { Model, Task, TaskProvider } from '../index.js'
-import { models } from '../index.js'
+import { data, models } from '../index.js'
 
 export const wikitext: TaskProvider = {
   getTask (): Task {
@@ -19,17 +19,18 @@ export const wikitext: TaskProvider = {
       trainingInformation: {
         dataType: 'text',
         modelID: 'wikitext-103-raw-model',
+        preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
         validationSplit: 0.2, // TODO: is this used somewhere? because train, eval and test are already split in dataset
-        epochs: 10,
-        // constructing a batch is taken care automatically in the dataset to make things faster
-        // so we fake a batch size of 1
-        batchSize: 1,
+        epochs: 5,
         scheme: 'federated',
         noiseScale: undefined,
         decentralizedSecure: true,
         minimumReadyPeers: 3,
         maxShareValue: 100,
-        roundDuration: 10
+        roundDuration: 10,
+        batchSize: 16,
+        tokenizer: 'Xenova/gpt2',
+        maxSequenceLength: 128
       }
     }
   },

@@ -1,5 +1,6 @@
 import type { AggregatorChoice } from '../aggregator/get.js'
 import type { Preprocessing } from '../dataset/data/preprocessing/index.js'
+import { PreTrainedTokenizer } from '@xenova/transformers';
 
 export interface TrainingInformation {
   // modelID: unique ID for the model
@@ -41,7 +42,7 @@ export interface TrainingInformation {
   // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
   decentralizedSecure?: boolean
   // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
-  // default is 100, must be a positive number, check the ~/disco/information/PRIVACY.md file for more information on significance of maxShareValue selection
+  // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
   maxShareValue?: number
   // minimumReadyPeers: Decentralized Learning: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
@@ -50,6 +51,12 @@ export interface TrainingInformation {
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
   aggregator?: AggregatorChoice
+  // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'. 
+  // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
+  tokenizer?: string | PreTrainedTokenizer
+  // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
+  // truncate strings to a maximum length. The default value is tokenizer.model_max_length
+  maxSequenceLength?: number
 }
 
 function isStringArray(raw: unknown): raw is string[] {
@@ -86,6 +93,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     roundDuration,
     scheme,
     validationSplit,
+    tokenizer,
+    maxSequenceLength,
   }: Partial<Record<keyof TrainingInformation, unknown>> = raw
 
   if (
@@ -95,6 +104,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof batchSize !== 'number' ||
     typeof roundDuration !== 'number' ||
     typeof validationSplit !== 'number' ||
+    (tokenizer !== undefined && typeof tokenizer !== 'string' && !(tokenizer instanceof PreTrainedTokenizer)) ||
+    (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
     (aggregator !== undefined && typeof aggregator !== 'number') ||
     (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
     (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
@@ -152,6 +163,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     roundDuration,
     scheme,
     validationSplit,
+    tokenizer,
+    maxSequenceLength
   }
   const _correct: TrainingInformation = repack
   const _total: Record<keyof TrainingInformation, unknown> = repack

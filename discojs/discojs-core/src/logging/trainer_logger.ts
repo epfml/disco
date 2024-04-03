@@ -41,7 +41,12 @@ export class TrainerLogger extends ConsoleLogger {
     }
 
     // console output
-    const msg = `Epoch: ${epoch}\nTrain: ${logs?.acc ?? 'undefined'}\nValidation:${logs?.val_acc ?? 'undefined'}\nLoss:${logs?.loss ?? 'undefined'}`
+    let msg = `Epoch: ${epoch}\n`
+    if (logs !== undefined) {
+      for (const [key, value] of Object.entries(logs)) {
+        msg += `${key}: ${value}\n`
+      }
+    }
     this.success(`On epoch end:\n${msg}\n`)
   }
 
@@ -49,7 +54,7 @@ export class TrainerLogger extends ConsoleLogger {
    *  Display ram usage
    */
   ramUsage (): void {
-    this.success(`Training RAM usage is  = ${tf.memory().numBytes * 0.000001} MB`)
+    this.success(`Training RAM usage is  = ${tf.memory().numBytes / 1024 / 1024} MB`)
     this.success(`Number of allocated tensors  = ${tf.memory().numTensors}`)
   }
 }
