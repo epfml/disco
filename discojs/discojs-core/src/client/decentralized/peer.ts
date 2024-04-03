@@ -157,8 +157,12 @@ export class Peer {
       )
   }
 
-  destroy (): void {
-    this.peer.destroy()
+  async destroy (): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.peer.once('error', reject)
+      this.peer.once('close', resolve)
+      this.peer.destroy()
+    })
   }
 
   signal (signal: SignalData): void {

@@ -72,8 +72,8 @@ export class Base extends Client {
   /**
    * Disconnection process when user quits the task.
    */
-  override disconnect (): Promise<void> {
-    this.server.disconnect()
+  override async disconnect (): Promise<void> {
+    await this.server.disconnect()
     this._server = undefined
     this._ownId = undefined
 
