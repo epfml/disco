@@ -43,12 +43,11 @@ export class PeerPool {
 
     console.info(`[${this.id}] is connecting peers:`, peersToConnect.toJS())
 
-    const newPeers = Map(await Promise.all(
+    const newPeers = Map(
       peersToConnect
         .filter((id) => !this.peers.has(id))
-        .map(async (id) => [id, await Peer.init(id, id < this.id)] as [string, Peer])
-        .toArray()
-    ))
+        .map((id) => [id, new Peer(id, id < this.id)] as [string, Peer])
+    )
 
     console.info(`[${this.id}] asked to connect new peers:`, newPeers.keySeq().toJS())
     const newPeersConnections = newPeers.map((peer) => new PeerConnection(this.id, peer, signallingServer))

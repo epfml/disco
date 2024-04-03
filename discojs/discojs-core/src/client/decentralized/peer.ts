@@ -1,4 +1,5 @@
 import { List, Map, Range, Seq } from 'immutable'
+import wrtc from 'isomorphic-wrtc'
 import SimplePeer from 'simple-peer'
 
 import type { NodeID } from '../types.js'
@@ -43,6 +44,8 @@ interface Events {
 //
 // see feross/simple-peer#393 for more info
 export class Peer {
+  private readonly peer: SimplePeer.Instance
+
   private bufferSize?: number
 
   private sendCounter: MessageID = 0
@@ -53,16 +56,11 @@ export class Peer {
     chunks: Map<ChunkID, Buffer>
   }>()
 
-  private constructor (
+  constructor (
     public readonly id: NodeID,
-    private readonly peer: SimplePeer.Instance
-  ) {}
-
-  static async init (id: NodeID, initiator: boolean = false): Promise<Peer> {
-    return new Peer(
-      id,
-      new SimplePeer({ wrtc: (await import('isomorphic-wrtc')).default, initiator })
-    )
+    initiator: boolean = false
+  ) {
+    this.peer = new SimplePeer({ wrtc, initiator })
   }
 
   send (msg: Buffer): void {
