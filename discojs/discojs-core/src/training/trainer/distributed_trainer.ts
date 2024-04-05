@@ -1,5 +1,3 @@
-import type tf from '@tensorflow/tfjs'
-
 import type { Model, Memory, Task, TrainingInformant, client as clients } from '../../index.js'
 import type { Aggregator } from '../../aggregator/index.js'
 
@@ -24,11 +22,6 @@ export class DistributedTrainer extends Trainer {
     super(task, trainingInformant, memory, model)
     this.aggregator = this.client.aggregator
     this.aggregator.setModel(model)
-  }
-
-  async onTrainBegin (logs?: tf.Logs): Promise<void> {
-    await super.onTrainBegin(logs)
-    await this.client.onTrainBeginCommunication(this.model.weights, this.trainingInformant)
   }
 
   async onRoundBegin (): Promise<void> {

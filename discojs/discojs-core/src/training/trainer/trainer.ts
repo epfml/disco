@@ -89,19 +89,6 @@ export abstract class Trainer {
     }
   }
 
-  protected async onTrainBegin (_logs?: tf.Logs): Promise<void> {
-    this.trainingInformant.addMessage('Training started.')
-    return await Promise.resolve()
-  }
-
-  /**
-   * When the training ends this function will be call
-   */
-  protected async onTrainEnd (_logs?: tf.Logs): Promise<void> {
-    this.trainingInformant.addMessage('Training finished.')
-    return await Promise.resolve()
-  }
-
   /**
    * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
    */
@@ -121,7 +108,7 @@ export abstract class Trainer {
       throw new Error('training already running, cancel it before launching a new one')
     }
 
-    await this.onTrainBegin()
+    this.trainingInformant.addMessage('Training started.')
 
     this.training = this.model.train(
       dataset,
@@ -148,8 +135,7 @@ export abstract class Trainer {
     }
 
     this.training = undefined
-
-    await this.onTrainEnd()
+    this.trainingInformant.addMessage('Training finished.')
   }
 
   /**
