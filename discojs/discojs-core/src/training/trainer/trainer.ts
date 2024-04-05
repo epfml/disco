@@ -69,9 +69,6 @@ export abstract class Trainer {
     }
   }
 
-  // TODO never used
-  protected onEpochBegin (_epoch: number, _logs?: tf.Logs): void {}
-
   /**
    * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
    */
@@ -116,7 +113,6 @@ export abstract class Trainer {
       this.task.trainingInformation.epochs,
       new EventEmitter({
         // TODO implement
-        // epochBegin: () => this.onEpochBegin(),
         // epochEnd: () => this.onEpochEnd(),
         // batchBegin: async () => await this.onBatchBegin(),
         // batchEnd: async () => await this.onBatchEnd(),
@@ -124,14 +120,10 @@ export abstract class Trainer {
     )
 
     let epoch = 0 // TODO: Trainer's epoch is not the same as the epoch in this.training
-    this.onEpochBegin(epoch)
     for await (const logs of this.training) {
       this.onEpochEnd(epoch, logs)
 
       epoch += 1
-      if (epoch < this.task.trainingInformation.epochs) {
-        this.onEpochBegin(epoch + 1)
-      }
     }
 
     this.training = undefined
