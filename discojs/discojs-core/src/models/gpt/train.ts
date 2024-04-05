@@ -66,7 +66,6 @@ export async function train (
       preprocessingTime = performance.now() - preprocessingTime
 
       let weightUpdateTime = performance.now()
-      await callbacks.onEpochBegin?.(epoch)
       const { xs, ys } = next.value as DataPoint
 
       const lossFn: () => tf.Scalar = () => {

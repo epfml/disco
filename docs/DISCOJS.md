@@ -53,7 +53,6 @@ abstract class Trainer {
           this.task.trainingInformation,
           dataset,
           valDataset,
-          (e, l) => this.onEpochBegin(e, l),                 // All the callbacks
           (e, l) => this.onEpochEnd(e, l),
           async (e, l) => await this.onBatchBegin(e, l),
           async (e, l) => await this.onBatchEnd(e, l),
