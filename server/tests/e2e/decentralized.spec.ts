@@ -4,7 +4,7 @@ import { assert } from 'chai'
 
 import type { Task } from '@epfml/discojs-core'
 import {
-  aggregator as aggregators, informant as informants, client as clients, WeightsContainer, defaultTasks, aggregation
+  aggregator as aggregators, client as clients, WeightsContainer, defaultTasks, aggregation
 } from '@epfml/discojs-core'
 
 import { startServer } from '../../src/index.js'
@@ -81,14 +81,12 @@ describe('end-to-end decentralized', function () {
     const inputWeights = WeightsContainer.of(input)
     const aggregator = new Aggregator(task)
 
-    const informant = new informants.DecentralizedInformant(task)
     const client = new clients.decentralized.DecentralizedClient(url, task, aggregator)
 
     aggregator.outcome = inputWeights
 
     await client.connect()
 
-    await client.onTrainBeginCommunication(aggregator.outcome, informant)
     // Perform multiple training rounds
     for (let r = 0; r < rounds; r++) {
       await client.onRoundBeginCommunication(aggregator.outcome, aggregator.round)
@@ -97,7 +95,6 @@ describe('end-to-end decentralized', function () {
       })
       await client.onRoundEndCommunication(aggregator.outcome, aggregator.round)
     }
-    await client.onTrainEndCommunication(aggregator.outcome, informant)
 
     return [aggregator.outcome, client]
   }

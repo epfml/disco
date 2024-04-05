@@ -56,7 +56,6 @@ export async function train (
   const c = resolveConfig(config)
   const opt = c.weightDecay !== 0 ? getCustomAdam(model, c) : tf.train.adam(c.lr)
 
-  await callbacks.onTrainBegin?.()
   for (let epoch = 1; epoch <= epochs; epoch++) {
     let iteration = 1
     const iterator = await ds.iterator()
@@ -119,5 +118,4 @@ export async function train (
   }
 
   opt.dispose()
-  await callbacks.onTrainEnd?.()
 }

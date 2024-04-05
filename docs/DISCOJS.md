@@ -57,8 +57,6 @@ abstract class Trainer {
           (e, l) => this.onEpochEnd(e, l),
           async (e, l) => await this.onBatchBegin(e, l),
           async (e, l) => await this.onBatchEnd(e, l),
-          async (l) => await this.onTrainBegin(l),
-          async (l) => await this.onTrainEnd(l))
       }
     
     protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {

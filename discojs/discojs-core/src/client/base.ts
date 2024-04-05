@@ -66,26 +66,6 @@ export abstract class Base {
   }
 
   /**
-   * Communication callback called once at the beginning of the training instance.
-   * @param _weights The initial model weights
-   * @param _trainingInformant The training informant
-   */
-  async onTrainBeginCommunication (
-    _weights: WeightsContainer,
-    _trainingInformant: TrainingInformant
-  ): Promise<void> {}
-
-  /**
-   * Communication callback called once at the end of the training instance.
-   * @param _weights The final model weights
-   * @param _trainingInformant The training informant
-   */
-  async onTrainEndCommunication (
-    _weights: WeightsContainer,
-    _trainingInformant: TrainingInformant
-  ): Promise<void> {}
-
-  /**
    * Communication callback called at the beginning of every training round.
    * @param _weights The most recent local weight updates
    * @param _round The current training round
