@@ -101,7 +101,7 @@
           @click="toStep(3)"
         >
           <template #text>
-            train your model
+            Train Your Model
           </template>
           <template #icon>
             <svg
@@ -126,7 +126,7 @@
           @click="toStep(4)"
         >
           <template #text>
-            finished
+            Evaluate Your Model
           </template>
           <template #icon>
             <svg

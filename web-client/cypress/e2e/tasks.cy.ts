@@ -1,28 +1,37 @@
-import { TASKS } from './tasks'
+import { defaultTasks } from "@epfml/discojs-core";
 
-describe('tasks page', () => {
-  it('displays tasks', () => {
-    cy.intercept({ hostname: 'server', pathname: 'tasks' }, TASKS).as('tasks')
+describe("tasks page", () => {
+  it("displays tasks", () => {
+    cy.intercept({ hostname: "server", pathname: "tasks" }, [
+      defaultTasks.titanic.getTask(),
+      defaultTasks.mnist.getTask(),
+      defaultTasks.geotags.getTask(),
+    ]);
+    cy.visit("/#/list");
 
-    cy.visit('/#/list')
-    cy.get('div[id="tasks"]').children().should('have.length', TASKS.size)
-  })
+    cy.get('div[id="tasks"]').children().should("have.length", 3);
+  });
 
-  it('redirects to training', () => {
-    cy.intercept({ hostname: 'server', pathname: 'tasks' }, TASKS).as('tasks')
+  it("redirects to training", () => {
+    cy.intercept({ hostname: "server", pathname: "tasks" }, [
+      defaultTasks.titanic.getTask(),
+    ]);
+    cy.visit("/#/list");
 
-    cy.visit('/#/list')
-    TASKS.forEach((task) => {
-      cy.get(`div[id="${task.id}"]`).find('button').click()
-      cy.url().should('eq', `${Cypress.config().baseUrl}#/${task.id}`)
-      cy.get('button').contains('previous', { matchCase: false }).click()
-    })
-  })
+    cy.get(`div[id="titanic"]`).find("button").click();
+    cy.url().should("eq", `${Cypress.config().baseUrl}#/titanic`);
 
-  it('displays error message', () => {
-    cy.intercept({ hostname: 'server', pathname: 'tasks' }, { statusCode: 404 }).as('tasks')
+    cy.contains("button", "previous").click();
+    cy.url().should("eq", `${Cypress.config().baseUrl}#/list`);
+  });
 
-    cy.visit('/#/list')
-    cy.get('button').contains('reload page', { matchCase: false })
-  })
-})
+  it("displays error message", () => {
+    cy.intercept(
+      { hostname: "server", pathname: "tasks" },
+      { statusCode: 404 },
+    );
+
+    cy.visit("/#/list");
+    cy.contains("button", "reload page");
+  });
+});
