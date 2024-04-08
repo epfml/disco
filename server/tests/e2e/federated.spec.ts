@@ -7,7 +7,7 @@ import { assert, expect } from 'chai'
 import type { WeightsContainer } from '@epfml/discojs-core'
 import {
   Disco, client as clients, data,
-  aggregator as aggregators, informant, defaultTasks
+  aggregator as aggregators, defaultTasks
 } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/discojs-node'
 
@@ -34,7 +34,7 @@ describe('end-to-end federated', function () {
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
     const disco = new Disco(cifar10Task, { scheme: 'federated', client })
 
-    await disco.fit(data)
+    await disco.fitted(data)
     await disco.close()
 
     if (aggregator.model === undefined) {
@@ -59,23 +59,16 @@ describe('end-to-end federated', function () {
 
     const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
-    const trainingInformant = new informant.FederatedInformant(titanicTask, 10)
-    const disco = new Disco(titanicTask, { scheme: 'federated', client, aggregator, informant: trainingInformant })
+    const disco = new Disco(titanicTask, { scheme: 'federated', client, aggregator })
 
-    await disco.fit(data)
+    const logs = await disco.fitted(data)
     await disco.close()
 
     if (aggregator.model === undefined) {
       throw new Error('model was not set')
     }
-    assert(
-      trainingInformant.trainingAccuracy() > 0.6,
-      `expected training accuracy greater than 0.6 but got ${trainingInformant.trainingAccuracy()}`
-    )
-    assert(
-      trainingInformant.validationAccuracy() > 0.6,
-      `expected validation accuracy greater than 0.6 but got ${trainingInformant.validationAccuracy()}`
-    )
+    expect(logs.last()?.epoches.last()?.training.accuracy).to.be.greaterThan(0.6)
+    expect(logs.last()?.epoches.last()?.validation.accuracy).to.be.greaterThan(0.6)
     return aggregator.model.weights
   }
 
@@ -89,13 +82,14 @@ describe('end-to-end federated', function () {
 
     const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, task, aggregator)
-    const trainingInformant = new informant.FederatedInformant(task, 10)
-    const disco = new Disco(task, { scheme: 'federated', client, aggregator, informant: trainingInformant })
+    const disco = new Disco(task, { scheme: 'federated', client, aggregator })
 
-    await disco.fit(dataSplit)
+    const logs = await disco.fitted(dataSplit)
     await disco.close()
 
-    expect(trainingInformant.losses.first()).to.be.above(trainingInformant.losses.last())
+    expect(logs.first()?.epoches.first()?.loss).to.be.above(
+      logs.last()?.epoches.last()?.loss as number,
+    );
   }
 
   it('two cifar10 users reach consensus', async () => {

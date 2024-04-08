@@ -1,22 +1,22 @@
 import { Range } from 'immutable'
+import fs from 'node:fs/promises'
 
-import type { TrainerLog, data, Task } from '@epfml/discojs-core'
+import type { data, Task } from '@epfml/discojs-core'
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs-core'
 import { startServer } from '@epfml/disco-server'
 
-import { saveLog } from './utils.js'
 import { getTaskData } from './data.js'
 import { args } from './args.js'
 
-async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<TrainerLog> {
+async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<unknown> {
   const client = new clients.federated.FederatedClient(url, task, new aggregators.MeanAggregator())
 
   // force the federated scheme
   const disco = new Disco(task, { scheme: 'federated', client })
 
-  await disco.fit(data)
-  await disco.close()
-  return await disco.logs()
+  const logs = await disco.fitted(data)
+  await disco.close();
+  return logs;
 }
 
 async function main (task: Task, numberOfUsers: number): Promise<void> {
@@ -32,8 +32,8 @@ async function main (task: Task, numberOfUsers: number): Promise<void> {
   )
 
   if (args.save) {
-    const fileName = `${task.id}_${numberOfUsers}users.csv`
-    saveLog(logs, fileName)
+    const fileName = `${task.id}_${numberOfUsers}users.csv`;
+    await fs.writeFile(fileName, JSON.stringify(logs, null, 2));
   }
   console.log('Shutting down the server...')
   await new Promise((resolve, reject) => {

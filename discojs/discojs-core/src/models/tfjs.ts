@@ -28,26 +28,52 @@ export class TFJS extends Model {
     this.model.setWeights(ws.weights)
   }
 
-  override async * train (
+  override async *train(
     trainingData: Dataset,
     validationData?: Dataset,
     epochs = 1,
-    tracker = new Sink()
+    tracker = new Sink(),
   ): AsyncGenerator<EpochLogs> {
-    for (let i = 0; i < epochs; i++) {
-      let logs: tf.Logs | undefined
+    for (let epoch = 0; epoch < epochs; epoch++) {
+      let logs: tf.Logs | undefined;
 
       await this.model.fitDataset(trainingData, {
         epochs: 1,
         validationData,
         callbacks: {
-          onEpochEnd: (_, cur) => { logs = cur },
-          onBatchBegin: () => { tracker.emit('batchBegin', undefined) },
-          onBatchEnd: () => { tracker.emit('batchEnd', undefined) }
-        }
-      })
+          onEpochEnd: (_, cur) => {
+            logs = cur;
+          },
+          onBatchBegin: () => {
+            tracker.emit("batchBegin", undefined);
+          },
+          onBatchEnd: () => {
+            tracker.emit("batchEnd", undefined);
+          },
+        },
+      });
 
-      yield logs
+      if (logs === undefined) {
+        throw new Error("epoch didn't gave any logs");
+      }
+      const { val_loss, acc, val_acc } = logs;
+      if (
+        val_loss === undefined ||
+        isNaN(val_loss) ||
+        acc === undefined ||
+        isNaN(acc) ||
+        val_acc === undefined ||
+        isNaN(val_acc)
+      ) {
+        throw new Error("epoch gave invalid logs");
+      }
+
+      yield {
+        epoch,
+        loss: logs.val_loss,
+        training: { accuracy: logs.acc },
+        validation: { accuracy: logs.val_acc },
+      };
     }
   }
 

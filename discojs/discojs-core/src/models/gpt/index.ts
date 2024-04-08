@@ -67,30 +67,56 @@ export class GPT extends Model {
    * @param epochs the number of passes of the training dataset
    * @param tracker
    */
-  override async * train (
+  override async *train(
     trainingData: Dataset,
     validationData?: Dataset,
     epochs = 1,
-    tracker = new Sink()
+    tracker = new Sink(),
   ): AsyncGenerator<EpochLogs, void> {
-    let logs: tf.Logs | undefined
+    let logs: tf.Logs | undefined;
+
     const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
       epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
       validationData,
       callbacks: {
         onEpochEnd: (_, cur) => {
-          logs = cur
+          logs = cur;
           if (logs !== undefined && cur !== undefined) {
-            logs.loss = cur.val_loss
+            logs.loss = cur.val_loss;
           }
         },
-        onBatchBegin: () => { tracker.emit('batchBegin', undefined) },
-        onBatchEnd: () => { tracker.emit('batchEnd', undefined) }
+        onBatchBegin: () => {
+          tracker.emit("batchBegin", undefined);
+        },
+        onBatchEnd: () => {
+          tracker.emit("batchEnd", undefined);
+        },
+      },
+    };
+    for (let epoch = 0; epoch < epochs; epoch++) {
+      await this.model.fitDataset(trainingData, trainingArgs);
+
+      if (logs === undefined) {
+        throw new Error("epoch didn't gave any logs");
       }
-    }
-    for (let i = 0; i < epochs; i++) {
-      await this.model.fitDataset(trainingData, trainingArgs)
-      yield logs
+      const { val_loss, acc, val_acc } = logs;
+      if (
+        val_loss === undefined ||
+        isNaN(val_loss) ||
+        acc === undefined ||
+        isNaN(acc) ||
+        val_acc === undefined ||
+        isNaN(val_acc)
+      ) {
+        throw new Error("epoch gave invalid logs");
+      }
+
+      yield {
+        epoch,
+        loss: logs.val_loss,
+        training: { accuracy: logs.acc },
+        validation: { accuracy: logs.val_acc },
+      };
     }
   }
 
