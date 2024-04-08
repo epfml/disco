@@ -6,6 +6,7 @@ import {
 import { NodeTextLoader } from '@epfml/discojs-node'
 import fs from 'node:fs'
 import fsPromises from 'node:fs/promises'
+import * as tf from '@tensorflow/tfjs'
 
 
 async function main(): Promise<void> { 
@@ -17,56 +18,83 @@ async function main(): Promise<void> {
   const task = tasks.get('wikitext-103')
   if (task === undefined) { throw new Error('task not found') }
   
-  // Load the wikitext dataset from the `datasets` folder
-  const dataset = await loadWikitextData(task)
-
-  // Initialize a Disco instance and start training a language model
-  const aggregator = new aggregators.MeanAggregator()
-  const client = new clients.federated.FederatedClient(url, task, aggregator)
-  const trainingInformant = new informant.FederatedInformant(task, 10)
-  const disco = new Disco(task, { scheme: 'federated', client, aggregator, informant: trainingInformant })
-  await disco.fit(dataset)
-
-  // Get the model and complete the prompt
-  if (aggregator.model === undefined) {
-    throw new Error('model was not set')
-  }
-  const model = aggregator.model as models.GPT
-
-  // Retrieve the tokenizer used during training
-  const tokenizer = await models.getTaskTokenizer(task)
-
-  const prompt = 'Hello world'
-  console.log(await model.generate(prompt, tokenizer))
-  
-  // Save the trained model
   const modelFolder = './models'
-  try {
-    if (!fs.existsSync(modelFolder)) {
-      fs.mkdirSync(modelFolder)
-    }
-  } catch (err) {
-    console.error(err);
-  }
-  const encoded = await serialization.model.encode(model)
-  await fsPromises.writeFile(`${modelFolder}/model.json`, encoded)
+  const modelFileName = 'model_10000it.json'
   
-  /**
-   * The commented code below shows how to load an existing model
-   */
+  // Toggle TRAIN_MODEL to either train and save a new model from scratch or load an existing model
+  const TRAIN_MODEL = false
+  if (TRAIN_MODEL) {
+    // Load the wikitext dataset from the `datasets` folder
+    const dataset = await loadWikitextData(task)
+    // const datapoint = (await dataset.train.preprocess().batch().dataset.take(1).toArray())[0] as tf.TensorContainerObject
+    // console.log(datapoint)
+    // console.log((datapoint['xs'] as tf.Tensor).arraySync())
+    // console.log((datapoint['ys'] as tf.Tensor).argMax(-1).arraySync())
+  
+    // Initialize a Disco instance and start training a language model
+    const aggregator = new aggregators.MeanAggregator()
+    const client = new clients.federated.FederatedClient(url, task, aggregator)
+    const trainingInformant = new informant.FederatedInformant(task, 10)
+    const disco = new Disco(task, { scheme: 'federated', client, aggregator, informant: trainingInformant })
+    await disco.fit(dataset)
+  
+    // Get the model and complete the prompt
+    if (aggregator.model === undefined) {
+      throw new Error('model was not set')
+    }
+    const model = aggregator.model as models.GPT
+    // Save the trained model
+    try {
+      if (!fs.existsSync(modelFolder)) {
+        fs.mkdirSync(modelFolder)
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    const encoded = await serialization.model.encode(model)
+    await fsPromises.writeFile(`${modelFolder}/${modelFileName}`, encoded)
+    
+    // Retrieve the tokenizer used during training
+    const tokenizer = await models.getTaskTokenizer(task)
+    const prompt = 'The game began development in 2010 , carrying over a large portion'
+    const generations = await model.generate(prompt, tokenizer)
+    console.log(generations)
+    
+    await disco.close()
+  } else {
+    // Load the trained model
+    const content = await fsPromises.readFile(`${modelFolder}/${modelFileName}`)
+    const model = await serialization.model.decode(content) as models.GPT
 
-  // const content = await fsPromises.readFile(`${modelFolder}/model.json`)
-  // model = await serialization.model.decode(content) as models.GPT
-  // console.log(await model.generate(sample, tokenizerName, 10))
+    // Retrieve the tokenizer used during training
+    const tokenizer = await models.getTaskTokenizer(task)
+    // The game began development in 2010 , carrying over a large portion
+    const prompt = 'Hello world how'
+    console.log(await model.generate(prompt, tokenizer, 20))
+  }
 
-  await disco.close()
+  // console.log(await tokenizer(' = Valkyria Chronicles III = ', { return_tensor: false}))
+  // The game began development in 2010 , carrying over a large portion of the work done on Valkyria Chronicles II
+  // const prompt = ' = Valkyria Chronicles'
+
+
+  // const dataset_batch = (await dataset.train.batch().dataset.take(1).toArray())[0] as tf.Tensor
+  // const dataset_tokens = (await dataset.train.preprocess().batch().dataset.take(1).toArray())[0] as tf.TensorContainerObject
+  // // console.log(await dataset_batch.slice(0, 1).array())
+  // const xs = (dataset_tokens['xs'] as tf.Tensor).slice([0, 120])
+  // const ys = (dataset_tokens['ys'] as tf.Tensor).slice([0, 120])
+  // // console.log(ys)
+  // const logits = model.model.apply(xs, ys)
+  // if (Array.isArray(logits)) throw new Error('model outputs too many tensor')
+  // if (logits instanceof tf.SymbolicTensor) throw new Error('model outputs symbolic tensor')
+  // console.log("loss", tf.losses.softmaxCrossEntropy(ys, logits).arraySync())  
 }
 
 async function loadWikitextData (task: Task): Promise<data.DataSplit> {
   const loader = new NodeTextLoader(task)
   const dataSplit: data.DataSplit = {
-    train: await data.TextData.init(await loader.load('../../datasets/wikitext/wiki.train.tokens', {shuffle: false}), task),
-    validation: await data.TextData.init(await loader.load('../../datasets/wikitext/wiki.valid.tokens', {shuffle: false}), task)
+    train: await data.TextData.init(await loader.load('../../datasets/wikitext/wiki.train.tokens', {shuffle: true}), task),
+    validation: await data.TextData.init(await loader.load('../../datasets/wikitext/wiki.valid.tokens', {shuffle: true}), task)
   }
   return dataSplit
 }
