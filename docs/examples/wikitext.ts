@@ -6,7 +6,6 @@ import {
 import { NodeTextLoader } from '@epfml/discojs-node'
 import fs from 'node:fs'
 import fsPromises from 'node:fs/promises'
-import * as tf from '@tensorflow/tfjs'
 
 
 async function main(): Promise<void> { 
@@ -26,10 +25,6 @@ async function main(): Promise<void> {
   if (TRAIN_MODEL) {
     // Load the wikitext dataset from the `datasets` folder
     const dataset = await loadWikitextData(task)
-    // const datapoint = (await dataset.train.preprocess().batch().dataset.take(1).toArray())[0] as tf.TensorContainerObject
-    // console.log(datapoint)
-    // console.log((datapoint['xs'] as tf.Tensor).arraySync())
-    // console.log((datapoint['ys'] as tf.Tensor).argMax(-1).arraySync())
   
     // Initialize a Disco instance and start training a language model
     const aggregator = new aggregators.MeanAggregator()
@@ -72,22 +67,6 @@ async function main(): Promise<void> {
     const prompt = 'Hello world how'
     console.log(await model.generate(prompt, tokenizer, 20))
   }
-
-  // console.log(await tokenizer(' = Valkyria Chronicles III = ', { return_tensor: false}))
-  // The game began development in 2010 , carrying over a large portion of the work done on Valkyria Chronicles II
-  // const prompt = ' = Valkyria Chronicles'
-
-
-  // const dataset_batch = (await dataset.train.batch().dataset.take(1).toArray())[0] as tf.Tensor
-  // const dataset_tokens = (await dataset.train.preprocess().batch().dataset.take(1).toArray())[0] as tf.TensorContainerObject
-  // // console.log(await dataset_batch.slice(0, 1).array())
-  // const xs = (dataset_tokens['xs'] as tf.Tensor).slice([0, 120])
-  // const ys = (dataset_tokens['ys'] as tf.Tensor).slice([0, 120])
-  // // console.log(ys)
-  // const logits = model.model.apply(xs, ys)
-  // if (Array.isArray(logits)) throw new Error('model outputs too many tensor')
-  // if (logits instanceof tf.SymbolicTensor) throw new Error('model outputs symbolic tensor')
-  // console.log("loss", tf.losses.softmaxCrossEntropy(ys, logits).arraySync())  
 }
 
 async function loadWikitextData (task: Task): Promise<data.DataSplit> {
