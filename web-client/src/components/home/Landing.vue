@@ -13,7 +13,7 @@
         <p>- Supports both <span class="italic">decentralized</span> and <span class="italic">federated</span> training</p>
       </template>
       <template #button>
-        Get Started
+        get started
       </template>
     </ButtonCard>
   </div>

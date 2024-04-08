@@ -101,7 +101,7 @@
           @click="toStep(3)"
         >
           <template #text>
-            Train Your Model
+            train your model
           </template>
           <template #icon>
             <svg
@@ -126,7 +126,7 @@
           @click="toStep(4)"
         >
           <template #text>
-            Finished
+            finished
           </template>
           <template #icon>
             <svg
@@ -153,7 +153,7 @@
             v-show="trainingStore.step !== undefined && trainingStore.step >= 1"
             @click="prevStepOrList"
           >
-            Previous
+            previous
           </CustomButton>
         </div>
         <div class="text-center md:text-left">
@@ -161,7 +161,7 @@
             v-show="trainingStore.step !== undefined && trainingStore.step <= 3"
             @click="nextStep"
           >
-            Next
+            next
           </CustomButton>
         </div>
       </div>

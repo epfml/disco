@@ -28,14 +28,14 @@
                   <CustomButton
                     @click="goToPreviousPage()"
                   >
-                    Go Back
+                    go back
                   </CustomButton>
                 </div>
                 <div class="text-left">
                   <CustomButton
                     @click="goToHomePage()"
                   >
-                    Home Page
+                    home page
                   </CustomButton>
                 </div>
               </div>

@@ -124,20 +124,20 @@
           type="submit"
           class="basis-48"
         >
-          Submit
+          submit
         </CustomButton>
         <CustomButton
           type="reset"
           class="basis-48"
         >
-          Reset
+          reset
         </CustomButton>
         <CustomButton
           type="button"
           href=""
           class="basis-48"
         >
-          Request Help on Slack
+          request help on slack
         </CustomButton>
       </div>
     </form>

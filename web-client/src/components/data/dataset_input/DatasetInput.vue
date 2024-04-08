@@ -33,14 +33,14 @@
                 :class="!isBoxView ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
                 @click="isBoxView = false"
               >
-                CSV
+                csv
               </button>
               <button
                 class="w-40 py-2 uppercase text-lg rounded-r-lg border-2 border-disco-cyan focus:outline-none"
                 :class="isBoxView ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
                 @click="isBoxView = true"
               >
-                Group
+                group
               </button>
             </div>
           </template>

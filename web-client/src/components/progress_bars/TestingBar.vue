@@ -86,7 +86,7 @@
           v-show="showPrev"
           @click="prevStep"
         >
-          Previous
+          previous
         </CustomButton>
       </div>
       <div class="text-center md:text-left">
@@ -94,7 +94,7 @@
           v-show="showNext"
           @click="nextStep"
         >
-          Next
+          next
         </CustomButton>
       </div>
     </div>
