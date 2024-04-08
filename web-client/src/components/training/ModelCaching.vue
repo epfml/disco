@@ -107,7 +107,7 @@
             <CustomButton
               @click="proceed"
             >
-              Continue training from this model
+              continue training from this model
             </CustomButton>
           </div>
         </div>

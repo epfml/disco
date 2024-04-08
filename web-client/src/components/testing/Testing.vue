@@ -51,7 +51,7 @@
                       </div>
                     </template>
                     <template #button>
-                      Test
+                      test
                     </template>
                     <template #altButton>
                       Predict
@@ -107,7 +107,7 @@
                       Download the latest {{ task.displayInformation.taskTitle }} model available on the remote server.
                     </template>
                     <template #button>
-                      Download
+                      download
                     </template>
                   </ButtonCard>
                 </div>

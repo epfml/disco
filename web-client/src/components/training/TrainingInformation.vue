@@ -4,7 +4,7 @@
     <div class="flex flex-wrap justify-center gap-4 md:gap-8">
       <IconCardSmall class="w-72 shrink-0">
         <template #header>
-          Current Round
+          current round
         </template>
         <template #text>
           {{ (logs.last()?.round ?? 0) + 1 }}
@@ -15,7 +15,7 @@
       </IconCardSmall>
       <IconCardSmall class="w-72 shrink-0">
         <template #header>
-          Current # of participants
+          current # of participants
         </template>
         <template #text>
           {{ participants.current }}
@@ -26,7 +26,7 @@
       </IconCardSmall>
       <IconCardSmall class="w-72 shrink-0">
         <template #header>
-          Average # of participants
+          average # of participants
         </template>
         <template #text>
           {{ participants.average }}

@@ -58,7 +58,7 @@
           Please press the button below to clear selected filters.
         </template>
         <template #button>
-          Clear filters
+          clear filters
         </template>
       </ButtonCard>
       <ButtonCard
@@ -73,7 +73,7 @@
           Please press the button below to reload the app. Please ensure the Disco server is up and running.
         </template>
         <template #button>
-          Reload page
+          reload page
         </template>
       </ButtonCard>
       <div
@@ -108,7 +108,7 @@
               </span>
             </template>
             <template #button>
-              Join
+              join
             </template>
           </ButtonCard>
         </div>

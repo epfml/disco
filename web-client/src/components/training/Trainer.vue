@@ -15,10 +15,10 @@
         >
           <div class="grid grid-cols-2 gap-8">
             <CustomButton @click="startTraining(false)">
-              Train alone
+              train alone
             </CustomButton>
             <CustomButton @click="startTraining(true)">
-              Train collaboratively
+              train collaboratively
             </CustomButton>
           </div>
         </template>
@@ -28,7 +28,7 @@
         >
           <div class="flex justify-center">
             <CustomButton @click="pauseTraining()">
-              Stop <span v-if="distributedTraining">Collaborative Training</span><span v-else>Training</span>
+              stop <span v-if="distributedTraining">collaborative training</span><span v-else>training</span>
             </CustomButton>
           </div>
         </template>

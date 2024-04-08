@@ -13,7 +13,7 @@
         by testing it on new data (that was not used in training).
       </template>
       <template #button>
-        Test model
+        test model
       </template>
     </ButtonCard>
     <!-- Test the model -->
@@ -29,7 +29,7 @@
         to update training in a new DISCOllaborative.
       </template>
       <template #button>
-        Save model
+        save model
       </template>
     </ButtonCard>
   </div>

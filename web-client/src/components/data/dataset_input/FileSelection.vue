@@ -48,7 +48,7 @@
                   hover:cursor-pointer
                 "
             >
-              Select file{{ isMultiple ? 's' : '' }}
+              select file{{ isMultiple ? 's' : '' }}
             </span>
             <input
               v-if="isDirectory"
@@ -97,7 +97,7 @@
             <span v-else>Selected file: <span class="pl-1">{{ selectedFiles?.item(0)?.name ?? 'none' }}</span></span>
           </div>
           <CustomButton @click="clearFiles">
-            Clear file{{ isMultiple ? 's' : '' }}
+            clear file{{ isMultiple ? 's' : '' }}
           </CustomButton>
         </div>
       </section>

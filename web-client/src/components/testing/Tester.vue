@@ -16,7 +16,7 @@
           Below, once you assessed the model, you can compare the ground truth and the predicted values
         </template>
         <template #button>
-          Test
+          test
         </template>
       </ButtonCard>
       <!--only predict using the model -->
@@ -33,7 +33,7 @@
           By clicking the button below, you will be able to predict using the selected model with chosen dataset of yours.
         </template>
         <template #button>
-          Predict
+          predict
         </template>
       </ButtonCard>
 
@@ -70,7 +70,7 @@
       <div v-if="dataWithPred !== undefined">
         <div class="mx-auto lg:w-1/2 text-center pb-8">
           <CustomButton @click="saveCsv()">
-            Download as CSV
+            download as csv
           </CustomButton>
           <a ref="downloadLink" class="hidden" />
         </div>

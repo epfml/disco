@@ -3,8 +3,8 @@
     <!-- Page Content -->
     <Card class="flex flex-col place-content-center p-6 space-y-6">
       <p class="flex flex-wrap justify-center text-3xl text-slate-400 mt-2">
-        <span><span class="font-disco text-disco-blue uppercase">Dis</span><span>-tributed</span>&nbsp;</span>
-        <span><span class="font-disco text-disco-cyan uppercase">Co</span><span>-llaborative</span>&nbsp;</span>
+        <span><span class="font-disco text-disco-blue uppercase">dis</span><span>-tributed</span>&nbsp;</span>
+        <span><span class="font-disco text-disco-cyan uppercase">co</span><span>-llaborative</span>&nbsp;</span>
         learning platform
       </p>
       <div class="grid gap-8 p-4 sm:grid-cols-2 text-slate-500">
