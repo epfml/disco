@@ -1,17 +1,18 @@
-import type { data, Logger, Memory, Task, TrainingInformant, TrainingInformation } from '../index.js'
-import { client as clients, informant as informants, EmptyMemory, ConsoleLogger } from '../index.js'
-import type { Trainer } from './trainer/trainer.js'
-import { TrainerBuilder } from './trainer/trainer_builder.js'
-import type { TrainerLog } from '../logging/trainer_logger.js'
+import { List } from 'immutable'
+
+import type { data, Logger, Memory, Task, TrainingInformation } from '../index.js'
+import { client as clients, EmptyMemory, ConsoleLogger } from '../index.js'
 import type { Aggregator } from '../aggregator/index.js'
 import { MeanAggregator } from '../aggregator/mean.js'
+
+import type { RoundLogs, Trainer } from './trainer/trainer.js'
+import { TrainerBuilder } from './trainer/trainer_builder.js'
 
 export interface DiscoOptions {
   client?: clients.Client
   aggregator?: Aggregator
   url?: string | URL
   scheme?: TrainingInformation['scheme']
-  informant?: TrainingInformant
   logger?: Logger
   memory?: Memory
 }
@@ -62,23 +63,6 @@ export class Disco {
         }
       }
     }
-    if (options.informant === undefined) {
-      switch (options.scheme) {
-        case 'federated':
-          options.informant = new informants.FederatedInformant(task)
-          break
-        case 'decentralized':
-          options.informant = new informants.DecentralizedInformant(task)
-          break
-        case 'local':
-          options.informant = new informants.LocalInformant(task)
-          break
-        default: {
-          const _: never = options.scheme
-          throw new Error('should never happen')
-        }
-      }
-    }
     if (options.logger === undefined) {
       options.logger = new ConsoleLogger()
     }
@@ -88,16 +72,13 @@ export class Disco {
     if (options.client.task !== task) {
       throw new Error('client not setup for given task')
     }
-    if (options.informant.task.id !== task.id) {
-      throw new Error('informant not setup for given task')
-    }
 
     this.task = task
     this.client = options.client
     this.memory = options.memory
     this.logger = options.logger
 
-    const trainerBuilder = new TrainerBuilder(this.memory, this.task, options.informant)
+    const trainerBuilder = new TrainerBuilder(this.memory, this.task)
     this.trainer = trainerBuilder.build(this.client, options.scheme !== 'local')
   }
 
@@ -105,12 +86,40 @@ export class Disco {
    * Starts a training instance for the Disco object's task on the provided data tuple.
    * @param dataTuple The data tuple
    */
-  async fit (dataTuple: data.DataSplit): Promise<void> {
-    const trainData = dataTuple.train.preprocess().batch()
-    const validationData = dataTuple.validation?.preprocess().batch() ?? trainData
-    await this.client.connect()
-    const trainer = await this.trainer
-    await trainer.fitModel(trainData.dataset, validationData.dataset)
+  async *fit(dataTuple: data.DataSplit): AsyncGenerator<RoundLogs> {
+    this.logger.success("Training started.");
+
+    const trainData = dataTuple.train.preprocess().batch();
+    const validationData =
+      dataTuple.validation?.preprocess().batch() ?? trainData;
+    await this.client.connect();
+    const trainer = await this.trainer;
+
+    for await (const roundLogs of trainer.fitModel(trainData.dataset, validationData.dataset)) {
+      let msg = `Round: ${roundLogs.round}\n`
+      for (const epochLogs of roundLogs.epoches.values()) {
+        msg += `  Epoch: ${epochLogs.epoch}\n`
+        msg += `    loss: ${epochLogs.loss}\n`
+        msg += `    training accuracy: ${epochLogs.training.accuracy}\n`
+        msg += `    validation accuracy: ${epochLogs.validation.accuracy}\n`
+      }
+      this.logger.success(msg)
+
+      yield roundLogs
+    }
+
+    this.logger.success("Training finished.");
+  }
+
+  /** Run an entire training */
+  async fitted(dataTuple: data.DataSplit): Promise<List<RoundLogs>> {
+    let ret = List<RoundLogs>();
+
+    for await (const logs of this.fit(dataTuple)) {
+      ret = ret.push(logs);
+    }
+
+    return ret;
   }
 
   /**
@@ -124,13 +133,8 @@ export class Disco {
   /**
    * Completely stops the ongoing training instance.
    */
-  async close (): Promise<void> {
-    await this.pause()
-    await this.client.disconnect()
-  }
-
-  async logs (): Promise<TrainerLog> {
-    const trainer = await this.trainer
-    return trainer.getTrainerLog()
+  async close(): Promise<void> {
+    await this.pause();
+    await this.client.disconnect();
   }
 }

@@ -1,11 +1,16 @@
-import type tf from '@tensorflow/tfjs'
+import type tf from "@tensorflow/tfjs";
+import { List } from "immutable";
 
-import type { Memory, Model, Task, TrainingInformant } from '../../index.js'
+import type { Memory, Model, Task } from "../../index.js";
 
-import { RoundTracker } from './round_tracker.js'
-import type { TrainerLog } from '../../logging/trainer_logger.js'
-import { TrainerLogger } from '../../logging/trainer_logger.js'
-import { EventEmitter } from '../../utils/event_emitter.js'
+import { RoundTracker } from "./round_tracker.js";
+import { EventEmitter } from "../../utils/event_emitter.js";
+import { EpochLogs } from "../../models/model.js";
+
+export interface RoundLogs {
+  round: number;
+  epoches: List<EpochLogs>;
+}
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
  * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:
@@ -19,22 +24,20 @@ import { EventEmitter } from '../../utils/event_emitter.js'
 export abstract class Trainer {
   public readonly roundTracker: RoundTracker
 
-  private training?: AsyncGenerator<tf.Logs | undefined, void>
-  private readonly trainerLogger: TrainerLogger
+  private training?: AsyncGenerator<EpochLogs, void>;
 
   /**
    * Constructs the training manager.
    * @param task the trained task
-   * @param trainingInformant the training informant
    */
-  constructor (
+  constructor(
     public readonly task: Task,
-    public readonly trainingInformant: TrainingInformant,
     public readonly memory: Memory,
-    public readonly model: Model
+    public readonly model: Model,
   ) {
-    this.trainerLogger = new TrainerLogger()
-    this.roundTracker = new RoundTracker(task.trainingInformation.roundDuration)
+    this.roundTracker = new RoundTracker(
+      task.trainingInformation.roundDuration,
+    );
   }
 
   protected abstract onRoundBegin (accuracy: number): Promise<void>
@@ -65,24 +68,7 @@ export abstract class Trainer {
     }
 
     if (this.roundTracker.roundHasBegun()) {
-      await this.onRoundBegin(logs.acc)
-    }
-  }
-
-  /**
-   * We update the training graph, this needs to be done on epoch end as there is no validation accuracy onBatchEnd.
-   */
-  protected onEpochEnd (epoch: number, logs?: tf.Logs): void {
-    this.trainerLogger.onEpochEnd(epoch, logs)
-
-    if (logs !== undefined && !isNaN(logs.acc) && !isNaN(logs.val_acc)) {
-      this.trainingInformant.updateTrainingGraph(this.roundDecimals(logs.acc))
-      this.trainingInformant.updateValidationGraph(this.roundDecimals(logs.val_acc))
-      if (logs.val_loss !== undefined) {
-        this.trainingInformant.loss = logs.val_loss
-      }
-    } else {
-      this.trainerLogger.error('onEpochEnd: no logs available')
+      await this.onRoundBegin(logs.acc);
     }
   }
 
@@ -97,15 +83,15 @@ export abstract class Trainer {
    * Start training the model with the given dataset
    * @param dataset
    */
-  async fitModel (
+  async *fitModel(
     dataset: tf.data.Dataset<tf.TensorContainer>,
-    valDataset: tf.data.Dataset<tf.TensorContainer>
-  ): Promise<void> {
+    valDataset: tf.data.Dataset<tf.TensorContainer>,
+  ): AsyncGenerator<RoundLogs> {
     if (this.training !== undefined) {
-      throw new Error('training already running, cancel it before launching a new one')
+      throw new Error(
+        "training already running, cancel it before launching a new one",
+      );
     }
-
-    this.trainingInformant.addMessage('Training started.')
 
     this.training = this.model.train(
       dataset,
@@ -113,31 +99,19 @@ export abstract class Trainer {
       this.task.trainingInformation.epochs,
       new EventEmitter({
         // TODO implement
-        // epochEnd: () => this.onEpochEnd(),
         // batchBegin: async () => await this.onBatchBegin(),
         // batchEnd: async () => await this.onBatchEnd(),
-      })
-    )
+      }),
+    );
 
-    let epoch = 0 // TODO: Trainer's epoch is not the same as the epoch in this.training
     for await (const logs of this.training) {
-      this.onEpochEnd(epoch, logs)
-
-      epoch += 1
+      // for now, round (sharing on network) == epoch (full pass over local data)
+      yield {
+        round: logs.epoch,
+        epoches: List.of(logs),
+      };
     }
 
-    this.training = undefined
-    this.trainingInformant.addMessage('Training finished.')
-  }
-
-  /**
-   * Format accuracy
-   */
-  protected roundDecimals (accuracy: number, decimalsToRound: number = 2): number {
-    return +(accuracy * 100).toFixed(decimalsToRound)
-  }
-
-  getTrainerLog (): TrainerLog {
-    return this.trainerLogger.log
+    this.training = undefined;
   }
 }

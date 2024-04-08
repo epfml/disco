@@ -4,12 +4,10 @@
     <div class="flex flex-wrap justify-center gap-4 md:gap-8">
       <IconCardSmall class="w-72 shrink-0">
         <template #header>
-          {{ currentRoundText }}
+          Current Round
         </template>
         <template #text>
-          <!-- rounds normally start at 0 but here have already been incremented
-          to start at 1 in the UI -->
-          {{ trainingInformant.round() }}
+          {{ (logs.last()?.round ?? 0) + 1 }}
         </template>
         <template #icon>
           <Timer />
@@ -20,7 +18,7 @@
           Current # of participants
         </template>
         <template #text>
-          {{ trainingInformant.participants() }}
+          {{ participants.current }}
         </template>
         <template #icon>
           <People />
@@ -31,7 +29,7 @@
           Average # of participants
         </template>
         <template #text>
-          {{ trainingInformant.averageParticipants() }}
+          {{ participants.average }}
         </template>
         <template #icon>
           <People />
@@ -54,7 +52,7 @@
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
-            {{ currentTrainingAccuracy }}
+            {{ percent(latestEpoch?.training.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
             {{
@@ -67,7 +65,7 @@
             height="200"
             type="area"
             :options="options"
-            :series="trainingAccuracyData"
+            :series="[{ data: accuracySeries.training }]"
           />
         </template>
       </IconCard>
@@ -84,7 +82,7 @@
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
-            {{ currentValidationAccuracy }}
+            {{ percent(latestEpoch?.validation.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
             {{
@@ -97,7 +95,7 @@
             height="200"
             type="area"
             :options="options"
-            :series="validationAccuracyData"
+            :series="[{ data: accuracySeries.validation }]"
           />
         </template>
       </IconCard>
@@ -115,7 +113,7 @@
         <div id="mapHeader">
           <ul class="grid grid-cols-1">
             <li
-              v-for="(message, index) in trainingInformant.getMessages()"
+              v-for="(message, index) in messages"
               :key="index"
               class="border-slate-400"
             >
@@ -132,11 +130,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { List } from 'immutable'
+import { computed, ref } from 'vue'
 // @ts-expect-error waiting for vue3-apexcharts#98
 import ApexChart from "vue3-apexcharts";
 
-import { TrainingInformant } from '@epfml/discojs-core'
+import type { RoundLogs } from '@epfml/discojs-core'
 
 import { chartOptions } from '@/charts'
 import IconCardSmall from '@/components/containers/IconCardSmall.vue'
@@ -145,22 +144,36 @@ import Timer from '@/assets/svg/Timer.vue'
 import People from '@/assets/svg/People.vue'
 import Contact from '@/assets/svg/Contact.vue'
 
-interface Props {
-  trainingInformant: TrainingInformant
-  hasValidationData: boolean
+const props = defineProps<{
+  logs: List<RoundLogs>
+  hasValidationData: boolean // TODO infer from logs
+}>()
+
+const options = chartOptions
+
+const participants = ref({ current: 1, average: 1 }) // TODO collect real data
+const messages = ref([]) // TODO why do we want messages?
+
+const latestEpoch = computed(() => props.logs.last()?.epoches.last())
+
+const accuracySeries = computed(() => props.logs
+  .flatMap((round) =>
+    round.epoches.map((epoch) => { return {
+      training: epoch.training.accuracy * 100,
+      validation: epoch.validation.accuracy * 100,
+    }})
+  )
+  .takeLast(10)
+  .reduce(({ training, validation }, cur) => { return {
+    training: training.concat([cur.training]),
+    validation: validation.concat([cur.validation]),
+  }}, {
+    training: [] as number[],
+    validation: [] as number[],
+  })
+)
+
+function percent(n: number): string {
+  return (n * 100).toFixed(2)
 }
-const props = defineProps<Props>()
-const options = computed(() => chartOptions)
-const currentRoundText = computed(() =>
-  props.trainingInformant.isDecentralized() || props.trainingInformant.isFederated()
-    ? 'Current Round'
-    : 'Current Epoch')
-const currentTrainingAccuracy = computed(() => props.trainingInformant.trainingAccuracy())
-const currentValidationAccuracy = computed(() => props.trainingInformant.validationAccuracy())
-const trainingAccuracyData = computed(() => [{
-  data: props.trainingInformant.trainingAccuracyData().toArray()
-}])
-const validationAccuracyData = computed(() => [{
-  data: props.trainingInformant.validationAccuracyData().toArray()
-}])
 </script>

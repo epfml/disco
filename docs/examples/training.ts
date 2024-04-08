@@ -12,7 +12,7 @@ import { startServer } from '@epfml/disco-server'
 async function runUser (url: URL, task: Task, dataset: data.DataSplit): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
   const disco = new Disco(task, { url, scheme: 'federated' })
-  await disco.fit(dataset) // Start training on the dataset
+  await disco.fitted(dataset) // Start training on the dataset
 
   // Stop training and disconnect from the remote server
   await disco.close()

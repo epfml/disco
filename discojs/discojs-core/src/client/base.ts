@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { Set } from 'immutable'
 
-import type { Model, Task, TrainingInformant, WeightsContainer } from '../index.js'
+import type { Model, Task, WeightsContainer } from '../index.js'
 import { serialization } from '../index.js'
 import type { NodeID } from './types.js'
 import type { EventConnection } from './event_connection.js'
@@ -69,31 +69,27 @@ export abstract class Base {
    * Communication callback called at the beginning of every training round.
    * @param _weights The most recent local weight updates
    * @param _round The current training round
-   * @param _trainingInformant The training informant
    */
-  async onRoundBeginCommunication (
+  async onRoundBeginCommunication(
     _weights: WeightsContainer,
     _round: number,
-    _trainingInformant: TrainingInformant
   ): Promise<void> {}
 
   /**
    * Communication callback called the end of every training round.
    * @param _weights The most recent local weight updates
    * @param _round The current training round
-   * @param _trainingInformant The training informant
    */
-  async onRoundEndCommunication (
+  async onRoundEndCommunication(
     _weights: WeightsContainer,
     _round: number,
-    _trainingInformant: TrainingInformant
   ): Promise<void> {}
 
   get nodes (): Set<NodeID> {
     return this.aggregator.nodes
   }
 
-  get ownId (): NodeID {
+  get ownId(): NodeID {
     if (this._ownId === undefined) {
       throw new Error('the node is not connected')
     }

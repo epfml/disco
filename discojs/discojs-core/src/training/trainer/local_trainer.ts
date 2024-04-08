@@ -1,5 +1,3 @@
-import type tf from '@tensorflow/tfjs'
-
 import { Trainer } from './trainer.js'
 
 /** Class whose role is to locally (alone) train a model on a given dataset,
@@ -16,11 +14,5 @@ export class LocalTrainer extends Trainer {
       { taskID: this.task.id, name: this.task.trainingInformation.modelID },
       this.model
     )
-  }
-
-  protected onEpochEnd (epoch: number, logs?: tf.Logs): void {
-    super.onEpochEnd(epoch, logs)
-    console.log('on epoch end')
-    this.trainingInformant.update({ currentRound: epoch })
   }
 }

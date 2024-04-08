@@ -2,13 +2,19 @@ import type tf from '@tensorflow/tfjs'
 
 import type { WeightsContainer } from '../index.js'
 
-import type { EventEmitter } from '../utils/event_emitter.js'
-import type { Dataset } from '../dataset/index.js'
+import type { EventEmitter } from "../utils/event_emitter.js";
+import type { Dataset } from "../dataset/index.js";
+
+export interface EpochLogs {
+  epoch: number;
+  loss: number; // TODO put in training/validation?
+  training: { accuracy: number };
+  validation: { accuracy: number };
+}
 
 // TODO still bound to tfjs
-export type EpochLogs = tf.Logs | undefined
-export type Prediction = tf.Tensor
-export type Sample = tf.Tensor
+export type Prediction = tf.Tensor;
+export type Sample = tf.Tensor;
 
 // TODO remove as it's unused and kinda internal to tf
 export interface Events extends Record<string, unknown> {

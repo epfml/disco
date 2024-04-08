@@ -37,7 +37,7 @@
     <!-- Training Board -->
     <div>
       <TrainingInformation
-        :training-informant="trainingInformant"
+        :logs="logs"
         :has-validation-data="hasValidationData"
       />
     </div>
@@ -45,11 +45,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { List } from 'immutable'
 import { mapStores } from 'pinia'
+import { defineComponent } from 'vue'
 
-import type { Task, TrainingInformant } from '@epfml/discojs-core'
-import { data, EmptyMemory, isTask, informant, Disco, Memory, client as clients } from '@epfml/discojs-core'
+import type { RoundLogs, Task } from '@epfml/discojs-core'
+import { data, EmptyMemory, isTask, Disco, Memory, client as clients } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
@@ -79,10 +80,12 @@ export default defineComponent({
   data (): {
     distributedTraining: boolean,
     startedTraining: boolean,
+    logs: List<RoundLogs>,
     } {
     return {
       distributedTraining: false,
       startedTraining: false,
+      logs: List(),
     }
   },
   computed: {
@@ -100,7 +103,6 @@ export default defineComponent({
           logger: toaster,
           memory: this.memory,
           scheme: this.scheme,
-          informant: this.trainingInformant,
           client: this.client
         }
       )
@@ -116,23 +118,6 @@ export default defineComponent({
     hasValidationData (): boolean {
       return this.task?.trainingInformation?.validationSplit > 0
     },
-    trainingInformant (): TrainingInformant {
-      const scheme = this.scheme
-      const args = [this.task, 10] as const
-      switch (scheme) {
-        case 'federated':
-          return new informant.FederatedInformant(...args)
-        case 'decentralized':
-          return new informant.DecentralizedInformant(...args)
-        case 'local':
-          return new informant.LocalInformant(...args)
-        default: {
-          // eslint-disable-next-line no-unused-vars
-          const _: never = scheme
-          throw new Error('should never happen')
-        }
-      }
-    }
   },
   methods: {
     async startTraining (distributedTraining: boolean): Promise<void> {
@@ -162,7 +147,9 @@ export default defineComponent({
 
       try {
         this.startedTraining = true
-        await this.disco.fit(dataset)
+        for await (const roundLogs of this.disco.fit(dataset)) {
+          this.logs = this.logs.push(roundLogs)
+        }
         this.startedTraining = false
       } catch (e) {
         toaster.error('An error occurred during training')
