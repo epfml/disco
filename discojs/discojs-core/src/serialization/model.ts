@@ -32,43 +32,47 @@ export async function encode (model: Model): Promise<Encoded> {
 
 export async function decode (encoded: unknown): Promise<Model> {
   if (!isEncoded(encoded)) {
-    throw new Error('invalid encoding')
+    throw new Error("Invalid encoding, raw encoding isn't an instance of Uint8Array")
   }
   const raw: unknown = msgpack.decode(encoded)
 
-  if (!Array.isArray(raw) || raw.length == 0) {
-    throw new Error('invalid encoding')
+  if (!Array.isArray(raw) || raw.length < 2) {
+    throw new Error("invalid encoding, encoding isn't an array or doesn't contain enough values")
   }
   const type = raw[0] as unknown
   if (typeof type !== 'number') {
-    throw new Error('invalid encoding')
+    throw new Error('invalid encoding, first encoding field should be the model type')
   }
+  const rawModel = raw[1]
   switch (type) {
     case Type.TFJS:
       if (raw.length !== 2) {
-        throw new Error('invalid encoding')
+        throw new Error('invalid encoding, TFJS model encoding should be an array of length 2')
       }
       // TODO totally unsafe casting
-      const rawModel = raw[1]
       return await models.TFJS.deserialize(rawModel as tf.io.ModelArtifacts)
-    case Type.GPT: {    
-      if (raw.length !== 3) {
-        throw new Error('invalid encoding')
+    case Type.GPT: {  
+      let config
+      if (raw.length == 2) {
+        config = undefined
+      } else if (raw.length == 3) {
+        config = raw[2]
+      } else {
+        throw new Error('invalid encoding, gpt-tfjs model encoding should be an array of length 2 or 3')
       }
-      const rawModel = raw[1]
-      const config = raw[2]
+
       if (!Array.isArray(rawModel)) {
-        throw new Error('invalid encoding')
+        throw new Error('invalid encoding, gpt-tfjs model weights should be an array')
       }
       const arr: unknown[] = rawModel
       if (arr.some((r) => typeof r !== 'number')) {
-        throw new Error('invalid encoding')
+        throw new Error("invalid encoding, gpt-tfjs weights should be numbers")
       }
       const nums = arr as number[]
       const weights = serialization.weights.decode(nums)
       return models.GPT.deserialize({weights, config})
     }
     default:
-      throw new Error('invalid encoding')
+      throw new Error('invalid encoding, model type unrecognized')
   }
 }

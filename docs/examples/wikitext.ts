@@ -1,11 +1,9 @@
 import type { Task } from '@epfml/discojs-core'
 import {
   Disco, fetchTasks, data, client as clients,
-  aggregator as aggregators, informant, serialization, models
+  aggregator as aggregators, informant, models
 } from '@epfml/discojs-core'
-import { NodeTextLoader } from '@epfml/discojs-node'
-import fs from 'node:fs'
-import fsPromises from 'node:fs/promises'
+import { NodeTextLoader, saveModelToDisk, loadModelFromDisk } from '@epfml/discojs-node'
 
 
 async function main(): Promise<void> { 
@@ -18,10 +16,10 @@ async function main(): Promise<void> {
   if (task === undefined) { throw new Error('task not found') }
   
   const modelFolder = './models'
-  const modelFileName = 'model_10000it.json'
+  const modelFileName = 'model_random.json'
   
   // Toggle TRAIN_MODEL to either train and save a new model from scratch or load an existing model
-  const TRAIN_MODEL = false
+  const TRAIN_MODEL = true
   if (TRAIN_MODEL) {
     // Load the wikitext dataset from the `datasets` folder
     const dataset = await loadWikitextData(task)
@@ -37,17 +35,9 @@ async function main(): Promise<void> {
     if (aggregator.model === undefined) {
       throw new Error('model was not set')
     }
-    const model = aggregator.model as models.GPT
     // Save the trained model
-    try {
-      if (!fs.existsSync(modelFolder)) {
-        fs.mkdirSync(modelFolder)
-      }
-    } catch (err) {
-      console.error(err);
-    }
-    const encoded = await serialization.model.encode(model)
-    await fsPromises.writeFile(`${modelFolder}/${modelFileName}`, encoded)
+    const model = aggregator.model as models.GPT
+    saveModelToDisk(model, modelFolder, modelFileName)
     
     // Retrieve the tokenizer used during training
     const tokenizer = await models.getTaskTokenizer(task)
@@ -58,8 +48,7 @@ async function main(): Promise<void> {
     await disco.close()
   } else {
     // Load the trained model
-    const content = await fsPromises.readFile(`${modelFolder}/${modelFileName}`)
-    const model = await serialization.model.decode(content) as models.GPT
+    const model = await loadModelFromDisk(`${modelFolder}/${modelFileName}`) as models.GPT
 
     // Retrieve the tokenizer used during training
     const tokenizer = await models.getTaskTokenizer(task)
