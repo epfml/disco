@@ -38,28 +38,32 @@ class GPTModel extends tf.LayersModel {
     this.config = completeConfig
   }
 
+  compile() {
+    this.optimizer = this.config.weightDecay !== 0
+      ? getCustomAdam(this, this.config.lr, this.config.weightDecay)
+      : tf.train.adam(this.config.lr) 
+  }
+
   async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
     const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs
     const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
-    const opt = this.config.weightDecay !== 0
-      ? getCustomAdam(this, this.config.lr, this.config.weightDecay)
-      : tf.train.adam(this.config.lr)
     
     await callbacks.onTrainBegin?.()
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let averageLoss = 0
       let iteration = 1
       const iterator = await dataset.iterator()
+
       let continueTraining = true
       while (continueTraining) {
         let preprocessingTime = performance.now()
+        console.log(`fitDataset 0 ${tf.memory().numTensors}`)
         const next = await iterator.next()
         preprocessingTime = performance.now() - preprocessingTime
 
         let weightUpdateTime = performance.now()
         await callbacks.onEpochBegin?.(epoch)
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
-
         const lossFn: () => tf.Scalar = () => {
           const logits = this.apply(xs)
           if (Array.isArray(logits)) {
@@ -70,11 +74,11 @@ class GPTModel extends tf.LayersModel {
           }
           return tf.losses.softmaxCrossEntropy(ys, logits)
         }
-
+        
         const lossTensor = tf.tidy(() => {
-          const { grads, value: lossTensor } = opt.computeGradients(lossFn)
+          const { grads, value: lossTensor } = this.optimizer.computeGradients(lossFn)
           const gradsClipped = clipByGlobalNormObj(grads, 1)
-          opt.applyGradients(gradsClipped)
+          this.optimizer.applyGradients(gradsClipped)
           return lossTensor
         })
         
@@ -111,7 +115,6 @@ class GPTModel extends tf.LayersModel {
       await callbacks.onEpochEnd?.(epoch, logs)
     }
 
-    opt.dispose()
     await callbacks.onTrainEnd?.()
     return new tf.History()
   }

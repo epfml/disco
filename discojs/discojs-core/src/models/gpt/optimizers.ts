@@ -115,7 +115,6 @@ class AdamW extends tf.AdamOptimizer {
   }
 }
 
-
 function getCustomAdam (model: tf.LayersModel, lr: number, weightDecay: number): tf.Optimizer {
   const includeInWeightDecay: string[] = []
   const excludeFromWeightDecay: string[] = []
@@ -143,4 +142,4 @@ function getCustomAdam (model: tf.LayersModel, lr: number, weightDecay: number):
   })
 }
 
-export { getCustomAdam, clipByGlobalNorm, clipByGlobalNormObj }
+export { getCustomAdam, clipByGlobalNormObj }

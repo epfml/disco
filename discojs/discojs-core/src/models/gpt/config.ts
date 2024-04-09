@@ -35,7 +35,7 @@ export const DEFAULT_CONFIG: Required<GPTConfig> = {
   name: 'transformer',
   lr: 0.001,
   weightDecay: 0,
-  maxIter: 10_000,
+  maxIter: 5,
   verbose: 0,
   modelType: 'gpt-nano',
   evaluate: true,

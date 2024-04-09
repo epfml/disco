@@ -46,6 +46,7 @@ export class GPT extends Model {
     epochs = 1,
     tracker = new Sink()
   ): AsyncGenerator<EpochLogs, void> {
+    this.model.compile() // init the optimizer
     let logs: tf.Logs | undefined
     const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
       epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
