@@ -4,80 +4,7 @@ import type { GPTConfig } from './config.js'
 import { getModelSizes, DEFAULT_CONFIG } from './config.js'
 import { getCustomAdam, clipByGlobalNormObj } from './optimizers.js'
 import evaluate from './evaluate.js'
-import type { TrainingCallbacks } from './types.js'
-import {Range, LogLayer, TransformerBlock } from './layers.js'
-
-
-/**
- * The GPTArchitecture specifically defines a GPT forward pass, i.e.,
- * what are the inputs, the successive transformer blocks and the outputs. It is then 
- * used to create a GPTModel
- * 
- * @param conf GPTConfig
- * @returns model, tf.LayersModel, which supports model(inputs), model.predict and model.apply
- */
-function GPTArchitecture (config: Required<GPTConfig>): tf.LayersModel {
-  const inputs = tf.input({ shape: [null] })
-
-  //Token embedding
-  const tokEmb = config.tokEmb
-    ? tf.layers.embedding({
-      name: config.name + '/wte',
-      inputDim: config.vocabSize,
-      outputDim: config.nEmbd,
-      embeddingsInitializer: 'zeros',
-      embeddingsRegularizer: undefined,
-      activityRegularizer: undefined
-    }).apply(inputs) as tf.SymbolicTensor
-    : inputs
-
-  // Positional embedding
-  const range = new Range({}).apply(inputs)
-  let posEmb = tf.layers.embedding({
-    name: config.name + '/wpe',
-    inputDim: config.blockSize,
-    outputDim: config.nEmbd,
-    embeddingsInitializer: 'zeros'
-  }).apply(range) as tf.SymbolicTensor
-  
-  if (config.debug) {
-    posEmb = new LogLayer({ name: 'posEmb' }).apply(posEmb) as tf.SymbolicTensor
-  }
-
-  // token and positional embeddings are added together
-  let x = tf.layers.add().apply([tokEmb, posEmb])
-  //dropout
-  x = tf.layers.dropout({name: 'drop', rate: config.embdDrop}).apply(x)
-  if (config.debug) {
-    x = new LogLayer({ name: 'dropadd' }).apply(x)
-  }
-
-  //Apply successively transformer blocks, attention and dense layers
-  for (let i = 0; i < config.nLayer; i++) {
-    x = TransformerBlock(
-      Object.assign({}, config, { name: config.name + '/h/' + i })
-    ).apply(x)
-  }
-  // Normalization
-  x = tf.layers.layerNormalization({ name: config.name + '/ln_f', epsilon: 1e-5 })
-    .apply(x)
-  if (config.debug) {
-    x = new LogLayer({ name: 'fin/ln' }).apply(x)
-  }
-
-  // Append a language modeling head if specified
-  if (config.lmHead) {
-    x = tf.layers.dense({
-      name: 'lm_head',
-      units: config.vocabSize,
-      inputDim: config.nEmbd,
-      inputShape: [config.blockSize, config.nEmbd],
-      useBias: false
-    }).apply(x)
-  }
-
-  return tf.model({ inputs, outputs: x as tf.SymbolicTensor })
-}
+import { GPTArchitecture } from './layers.js'
 
 /**
  * tfjs does not export LazyIterator and Dataset...
@@ -86,7 +13,7 @@ declare abstract class LazyIterator<T> {
   abstract next (): Promise<IteratorResult<T>>
 }
 
-declare abstract class Dataset<T> {
+export declare abstract class Dataset<T> {
   abstract iterator (): Promise<LazyIterator<T>>
   size: number
 }
@@ -112,7 +39,7 @@ class GPTModel extends tf.LayersModel {
   }
 
   async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
-    const callbacks = trainingArgs.callbacks as TrainingCallbacks
+    const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs
     const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
     const opt = this.config.weightDecay !== 0
       ? getCustomAdam(this, this.config.lr, this.config.weightDecay)
