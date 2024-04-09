@@ -61,7 +61,6 @@ class GPTModel extends tf.LayersModel {
       let continueTraining = true
       while (continueTraining) {
         let preprocessingTime = performance.now()
-        console.log(`fitDataset 0 ${tf.memory().numTensors}`)
         const next = await iterator.next()
         preprocessingTime = performance.now() - preprocessingTime
 

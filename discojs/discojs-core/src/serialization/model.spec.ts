@@ -53,7 +53,7 @@ describe('serialization', function () {
 
     const encoded = await serialization.model.encode(model)
     assert.isTrue(serialization.model.isEncoded(encoded))
-    let decoded = await serialization.model.decode(encoded)
+    const decoded = await serialization.model.decode(encoded)
     
     assert.instanceOf(decoded, models.GPT)
 

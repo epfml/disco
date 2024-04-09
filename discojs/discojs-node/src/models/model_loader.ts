@@ -5,7 +5,7 @@ import { serialization, models } from '@epfml/discojs-core'
 export async function saveModelToDisk(model: models.Model, modelFolder: string, modelFileName: string): Promise<void> {
   try {
     if (!fs.existsSync(modelFolder)) {
-      await fs.mkdirSync(modelFolder)
+      fs.mkdirSync(modelFolder)
     }
   } catch (err) {
     console.error(err);

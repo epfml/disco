@@ -114,5 +114,5 @@ export class GPT extends Model {
 
 export type GPTSerialization = {
   weights: WeightsContainer
-  config: GPTConfig
+  config?: GPTConfig
 }

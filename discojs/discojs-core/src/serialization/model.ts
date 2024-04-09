@@ -3,6 +3,7 @@ import type tf from '@tensorflow/tfjs'
 
 import type { Model } from '../index.js'
 import { models, serialization } from '../index.js'
+import { GPTConfig } from '../models/index.js'
 
 const Type = {
   TFJS: 0,
@@ -43,7 +44,7 @@ export async function decode (encoded: unknown): Promise<Model> {
   if (typeof type !== 'number') {
     throw new Error('invalid encoding, first encoding field should be the model type')
   }
-  const rawModel = raw[1]
+  const rawModel = raw[1] as unknown
   switch (type) {
     case Type.TFJS:
       if (raw.length !== 2) {
@@ -56,7 +57,7 @@ export async function decode (encoded: unknown): Promise<Model> {
       if (raw.length == 2) {
         config = undefined
       } else if (raw.length == 3) {
-        config = raw[2]
+        config = raw[2] as GPTConfig
       } else {
         throw new Error('invalid encoding, gpt-tfjs model encoding should be an array of length 2 or 3')
       }
