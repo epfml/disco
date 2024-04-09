@@ -7,16 +7,12 @@ type ModelType =
     | 'gpt-micro'
     | 'gpt-nano'
 
-export interface ModelSize {
-  nLayer?: number
-  nHead?: number
-  nEmbd?: number
-}
-
 export interface GPTConfig {
   lr: number
   blockSize: number
   vocabSize: number
+  modelType: ModelType
+  name?: string,
   evaluate?: boolean
   maxEvalBatches?: number
   evaluateEvery?: number
@@ -30,10 +26,13 @@ export interface GPTConfig {
   embdDrop?: number
   tokEmb?: boolean
   lmHead?: boolean
-  modelType: ModelType
+  nLayer?: number
+  nHead?: number
+  nEmbd?: number
 }
 
 export const DEFAULT_CONFIG: Required<GPTConfig> = {
+  name: 'transformer',
   lr: 0.001,
   weightDecay: 0,
   maxIter: 10_000,
@@ -50,7 +49,16 @@ export const DEFAULT_CONFIG: Required<GPTConfig> = {
   residDrop: 0.2,
   embdDrop: 0.2,
   tokEmb: true,
-  lmHead: true
+  lmHead: true,
+  nLayer: 3,
+  nHead: 3,
+  nEmbd: 48,
+}
+
+export type ModelSize = {
+  nLayer: number
+  nHead: number
+  nEmbd: number
 }
 
 export function getModelSizes (modelType: ModelType): Required<ModelSize> {

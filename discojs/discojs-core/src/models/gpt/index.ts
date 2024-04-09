@@ -18,21 +18,9 @@ import type { GPTConfig } from './config.js'
 export class GPT extends Model {
   private readonly model: GPTForCausalLM
 
-  constructor () {
+  constructor (partialConfig?: GPTConfig) {
     super()
-
-    // TODO sensible defaults?
-    const config: GPTConfig = {
-      modelType: 'gpt-nano',
-      lr: 0.01,
-      maxIter: 10,
-      evaluateEvery:10,
-      maxEvalBatches: 10,
-      blockSize: 8,
-      vocabSize: 50258
-    }
-
-    this.model = new GPTForCausalLM(config)
+    this.model = new GPTForCausalLM(partialConfig)
   }
 
   override get weights (): WeightsContainer {

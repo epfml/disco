@@ -2,7 +2,8 @@ import * as tf from '@tensorflow/tfjs'
 
 import type { GPTConfig } from './config.js'
 import { getModelSizes, DEFAULT_CONFIG } from './config.js'
-import { train } from './train.js'
+import { getCustomAdam, clipByGlobalNormObj } from './optimizers.js'
+import evaluate from './evaluate.js'
 import type { TrainingCallbacks } from './types.js'
 import {Range, LogLayer, TransformerBlock } from './layers.js'
 
@@ -14,15 +15,7 @@ import {Range, LogLayer, TransformerBlock } from './layers.js'
  * @param conf GPTConfig
  * @returns model, tf.LayersModel, which supports model(inputs), model.predict and model.apply
  */
-function GPTArchitecture (conf: GPTConfig): tf.LayersModel {
-  const configDefaults = {
-    name: 'transformer',
-    ...DEFAULT_CONFIG
-  }
-
-  const modelSizes = getModelSizes(conf.modelType)
-  const config = Object.assign({}, configDefaults, conf, modelSizes)
-
+function GPTArchitecture (config: Required<GPTConfig>): tf.LayersModel {
   const inputs = tf.input({ shape: [null] })
 
   //Token embedding
@@ -99,34 +92,105 @@ declare abstract class Dataset<T> {
 
 /**
  * GPTModel is a wrapper around GPTArchitecture that overrides tfjs' default training loop
+ * 
  */
 class GPTModel extends tf.LayersModel {
-  constructor (protected readonly config: GPTConfig) {
-    const gpt = GPTArchitecture(config)
+  protected readonly config: Required<GPTConfig>
+
+  constructor(partialConfig?: GPTConfig) {
+    // Complete missing config parameters with default values
+    let completeConfig: Required<GPTConfig> = { ...DEFAULT_CONFIG, ...partialConfig }
+    // Add layer sizes depending on which model has been specified
+    completeConfig = { ...completeConfig, ...getModelSizes(completeConfig.modelType) }
+
+    //Init the tf.LayersModel and assign it to this
+    const gpt = GPTArchitecture(completeConfig)
     const { inputs, outputs, name } = gpt
     super({ inputs, outputs, name })
     Object.assign(this, gpt)
+    this.config = completeConfig
   }
 
-  async fitDataset<T> (
+  async fitDataset<T>(
     dataset: Dataset<T>,
-    args: tf.ModelFitDatasetArgs<T>
+    trainingArgs: tf.ModelFitDatasetArgs<T>
   ): Promise<tf.History> {
-    const config = { ...this.config, ...args }
+    const model = this
+    const callbacks = trainingArgs.callbacks as TrainingCallbacks
+    const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
+    const opt = this.config.weightDecay !== 0 ? getCustomAdam(model, this.config.lr, this.config.weightDecay) : tf.train.adam(this.config.lr)
+    
+    await callbacks.onTrainBegin?.()
+    for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
+      let averageLoss = 0
+      let iteration = 1
+      const iterator = await dataset.iterator()
+      let continueTraining = true
+      while (continueTraining) {
+        let preprocessingTime = performance.now()
+        const next = await iterator.next()
+        preprocessingTime = performance.now() - preprocessingTime
 
-    await train(
-      this,
-      dataset as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
-      config,
-      args.epochs,
-      args.callbacks as TrainingCallbacks,
-      args.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
-    )
+        let weightUpdateTime = performance.now()
+        await callbacks.onEpochBegin?.(epoch)
+        const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
 
+        const lossFn: () => tf.Scalar = () => {
+          const logits = model.apply(xs)
+          if (Array.isArray(logits)) {
+            throw new Error('model outputs too many tensor')
+          }
+          if (logits instanceof tf.SymbolicTensor) {
+            throw new Error('model outputs symbolic tensor')
+          }
+          return tf.losses.softmaxCrossEntropy(ys, logits)
+        }
+
+        const lossTensor = tf.tidy(() => {
+          const { grads, value: lossTensor } = opt.computeGradients(lossFn)
+          const gradsClipped = clipByGlobalNormObj(grads, 1)
+          opt.applyGradients(gradsClipped)
+          return lossTensor
+        })
+        
+        const loss = await lossTensor.array()
+        averageLoss += loss
+        tf.dispose([xs, ys, lossTensor, next.value])
+
+        weightUpdateTime = performance.now() - weightUpdateTime
+        console.log(
+          `Epoch: ${epoch}`,
+          `\tStep: ${iteration} / ${this.config.maxIter}`,
+          `\tLoss: ${loss.toFixed(3)}`,
+          `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`,
+          `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
+          `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
+          `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
+        )
+
+        if (evalDataset !== undefined && this.config.evaluateEvery !== undefined
+          && iteration % this.config.evaluateEvery == 0) {
+          const logs = await evaluate(model, evalDataset, this.config.maxEvalBatches)
+          console.log(logs)
+        }
+        iteration++
+        continueTraining = next.done !== true && iteration <= this.config.maxIter
+      }
+      let logs: tf.Logs = {
+        'training_loss': averageLoss / iteration
+      }
+      if (evalDataset !== undefined) {
+        logs = { ...logs, ...await evaluate(model, evalDataset, this.config.maxEvalBatches) }
+        console.log(logs)
+      }
+      await callbacks.onEpochEnd?.(epoch, logs)
+    }
+
+    opt.dispose()
+    await callbacks.onTrainEnd?.()
     return new tf.History()
   }
 }
-
 
 interface GenerateConfig {
   maxNewTokens: number

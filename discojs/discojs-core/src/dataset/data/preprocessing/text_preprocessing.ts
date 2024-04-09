@@ -56,6 +56,7 @@ const leftPadding: PreprocessingFunction = {
     const ys = tf.oneHot(tokens.slice([1]), tokenizer.model.vocab.length + 1)
     // remove the extra token now that ys is created
     const xs = tokens.slice([0], maxLength) 
+    tf.dispose([tokens])
     return { xs, ys }
   }
 }

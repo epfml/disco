@@ -2,11 +2,23 @@ import { expect } from 'chai'
 import * as tf from '@tensorflow/tfjs-node'
 import { AutoTokenizer } from '@xenova/transformers';
 import { GPT } from './index.js'
+import { type GPTConfig } from './config.js'
 
 describe('gpt-tfjs', function() {
   this.timeout(30_000)
   const data = "Lorem ipsum dolor sit"
   
+  // TODO: this test doesn't work if GPT is not init with a block size of 8
+  // Config: 
+  // {
+  //   modelType: 'gpt-nano',
+  //   lr: 0.01,
+  //   maxIter: 10,
+  //   evaluateEvery:10,
+  //   maxEvalBatches: 10,
+  //   blockSize: 8,
+  //   vocabSize: 50258
+  // }
   it('can overfit one sentence', async () => {
     const tokenizer = await AutoTokenizer.from_pretrained('Xenova/gpt2')
     const datasetSource = new tf.data.FileDataSource(Buffer.from(data))
@@ -23,8 +35,19 @@ describe('gpt-tfjs', function() {
       const xs = tf.tensor(tokens.slice([0], sequenceLength), undefined, 'int32')
       return {xs, ys}
     }).repeat().batch(64)
-    const model = new GPT()
-    const logGenerator = model.train(tokenDataset, undefined, 5)
+
+    const config: GPTConfig = {
+      modelType: 'gpt-nano',
+      lr: 0.01,
+      maxIter: 10,
+      evaluateEvery:10,
+      maxEvalBatches: 10,
+      blockSize: 8,
+      vocabSize: 50258
+    }
+
+    const model = new GPT(config)
+    const logGenerator = model.train(tokenDataset, undefined, 5) // 5 epochs
     for await (const logs of logGenerator); // Await the end of training
     const generation = await model.generate("Lorem ipsum dolor", tokenizer, 1)
     console.log(generation)
