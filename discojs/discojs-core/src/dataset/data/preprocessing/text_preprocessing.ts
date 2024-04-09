@@ -14,7 +14,7 @@ export enum TextPreprocessing {
 }
 
 interface TokenizedEntry extends tf.TensorContainerObject {
-  tokens: tf.Tensor1D
+  tokens: number []
 }
 
 /**
@@ -32,11 +32,10 @@ interface TokenizedEntry extends tf.TensorContainerObject {
 const leftPadding: PreprocessingFunction = {
   type: TextPreprocessing.LeftPadding,
   apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
-    let { tokens } = await x as TokenizedEntry
-
-    if (tokens === undefined ||  !(tokens instanceof tf.tensor) ||tokens.rankType !== tf.Rank.R1) {
-      new Error("The leftPadding preprocessing expects a 1D tensor named 'xs' as input")
+    if (x === undefined || !Array.isArray(x) || x.length == 0 || typeof(x[0] != 'number')) {
+      new Error("The leftPadding preprocessing expects a non empty 1D array of number")
     }
+    const { tokens } = await x as TokenizedEntry
     const tokenizer = await models.getTaskTokenizer(task)
     return tf.tidy(() => {
       // maxLength is the final length of xs
@@ -45,17 +44,14 @@ const leftPadding: PreprocessingFunction = {
       const maxLength = task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length as number
       const maxLengthPlusLabel = maxLength + 1
       
-      // Don't reassign variable `tokens` to make sure `tokens` can be disposed afterward
-      let fixedLengthTokens = tokens 
-      if (tokens.size > maxLengthPlusLabel) { // Should never happen because tokenization truncates inputs
-        fixedLengthTokens = tokens.slice([0], [maxLengthPlusLabel])
-      } else if (tokens.size < maxLengthPlusLabel) { // Pad inputs to fixed length
+      let fixedLengthTokens = tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs
+      if (fixedLengthTokens.size > maxLengthPlusLabel) { // Should never happen because tokenization truncates inputs
+        fixedLengthTokens = fixedLengthTokens.slice([0], [maxLengthPlusLabel])
+      } else if (fixedLengthTokens.size < maxLengthPlusLabel) { // Pad inputs to fixed length
         const paddingToken = tokenizer.pad_token_id
-        fixedLengthTokens = tokens.pad([[Math.max(0, maxLengthPlusLabel - tokens.size), 0]], paddingToken)
+        fixedLengthTokens = fixedLengthTokens.pad([[Math.max(0, maxLengthPlusLabel - fixedLengthTokens.size), 0]], paddingToken)
       }
       // if tokens.size == maxLengthPlusLabel we can leave it as it is
-      // Make sure to dispose tokens manually because it is allocated outside tf.tidy
-      tf.dispose([tokens]) 
       
       // ys is a one-hot encoding of the next token (i.e. xs shifted by one)
       const ys = tf.oneHot(fixedLengthTokens.slice([1]), tokenizer.model.vocab.length + 1)
@@ -94,9 +90,7 @@ const tokenize: PreprocessingFunction = {
       return_tensor: false,
       max_length: maxLength,
     }) as TokenizerOutput
-    return {
-      tokens: tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs
-    }
+    return { tokens }
   }
 }
 
