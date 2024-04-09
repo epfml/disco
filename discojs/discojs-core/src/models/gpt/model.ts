@@ -10,7 +10,8 @@ import {Range, LogLayer, TransformerBlock } from './layers.js'
 
 /**
  * The GPTArchitecture specifically defines a GPT forward pass, i.e.,
- * what are the inputs, the successive transformer blocks and the outputs
+ * what are the inputs, the successive transformer blocks and the outputs. It is then 
+ * used to create a GPTModel
  * 
  * @param conf GPTConfig
  * @returns model, tf.LayersModel, which supports model(inputs), model.predict and model.apply
@@ -91,7 +92,7 @@ declare abstract class Dataset<T> {
 }
 
 /**
- * GPTModel is a wrapper around GPTArchitecture that overrides tfjs' default training loop
+ * GPTModel extends tf.LayersModel and overrides tfjs' default training loop
  * 
  */
 class GPTModel extends tf.LayersModel {
@@ -103,22 +104,19 @@ class GPTModel extends tf.LayersModel {
     // Add layer sizes depending on which model has been specified
     completeConfig = { ...completeConfig, ...getModelSizes(completeConfig.modelType) }
 
-    //Init the tf.LayersModel and assign it to this
+    // Init the tf.LayersModel and assign it to this
     const gpt = GPTArchitecture(completeConfig)
     const { inputs, outputs, name } = gpt
     super({ inputs, outputs, name })
-    Object.assign(this, gpt)
     this.config = completeConfig
   }
 
-  async fitDataset<T>(
-    dataset: Dataset<T>,
-    trainingArgs: tf.ModelFitDatasetArgs<T>
-  ): Promise<tf.History> {
-    const model = this
+  async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
     const callbacks = trainingArgs.callbacks as TrainingCallbacks
     const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
-    const opt = this.config.weightDecay !== 0 ? getCustomAdam(model, this.config.lr, this.config.weightDecay) : tf.train.adam(this.config.lr)
+    const opt = this.config.weightDecay !== 0
+      ? getCustomAdam(this, this.config.lr, this.config.weightDecay)
+      : tf.train.adam(this.config.lr)
     
     await callbacks.onTrainBegin?.()
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
@@ -136,7 +134,7 @@ class GPTModel extends tf.LayersModel {
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
 
         const lossFn: () => tf.Scalar = () => {
-          const logits = model.apply(xs)
+          const logits = this.apply(xs)
           if (Array.isArray(logits)) {
             throw new Error('model outputs too many tensor')
           }
@@ -170,7 +168,7 @@ class GPTModel extends tf.LayersModel {
 
         if (evalDataset !== undefined && this.config.evaluateEvery !== undefined
           && iteration % this.config.evaluateEvery == 0) {
-          const logs = await evaluate(model, evalDataset, this.config.maxEvalBatches)
+          const logs = await evaluate(this, evalDataset, this.config.maxEvalBatches)
           console.log(logs)
         }
         iteration++
@@ -180,7 +178,7 @@ class GPTModel extends tf.LayersModel {
         'training_loss': averageLoss / iteration
       }
       if (evalDataset !== undefined) {
-        logs = { ...logs, ...await evaluate(model, evalDataset, this.config.maxEvalBatches) }
+        logs = { ...logs, ...await evaluate(this, evalDataset, this.config.maxEvalBatches) }
         console.log(logs)
       }
       await callbacks.onEpochEnd?.(epoch, logs)
