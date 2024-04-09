@@ -33,31 +33,36 @@ const leftPadding: PreprocessingFunction = {
   type: TextPreprocessing.LeftPadding,
   apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
     let { tokens } = await x as TokenizedEntry
+
     if (tokens === undefined ||  !(tokens instanceof tf.tensor) ||tokens.rankType !== tf.Rank.R1) {
       new Error("The leftPadding preprocessing expects a 1D tensor named 'xs' as input")
     }
     const tokenizer = await models.getTaskTokenizer(task)
-
-    // maxLength is the final length of xs
-    // Because ys the contains the tokens in xs shifted by one (to predict the next token), we need
-    // to include one more token than maxSequenceLength in order to have the next token's label of the maxSequenceLength'th token
-    const maxLength = task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length as number
-    const maxLengthPlusLabel = maxLength + 1
-    
-    if (tokens.size > maxLengthPlusLabel) { // Should never happen because tokenization truncates inputs
-      tokens = tokens.slice([0], [maxLengthPlusLabel])
-    } else if (tokens.size < maxLengthPlusLabel) { // Pad inputs to fixed length
-      const paddingToken = tokenizer.pad_token_id
-      tokens = tokens.pad([[Math.max(0, maxLengthPlusLabel - tokens.size), 0]], paddingToken)
-    }
-    // if tokens.size == maxLengthPlusLabel we can leave it as it is
-
-    // ys is a one-hot encoding of the next token (i.e. xs shifted by one)
-    const ys = tf.oneHot(tokens.slice([1]), tokenizer.model.vocab.length + 1)
-    // remove the extra token now that ys is created
-    const xs = tokens.slice([0], maxLength) 
-    tf.dispose([tokens])
-    return { xs, ys }
+    return tf.tidy(() => {
+      // maxLength is the final length of xs
+      // Because ys the contains the tokens in xs shifted by one (to predict the next token), we need
+      // to include one more token than maxSequenceLength in order to have the next token's label of the maxSequenceLength'th token
+      const maxLength = task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length as number
+      const maxLengthPlusLabel = maxLength + 1
+      
+      // Don't reassign variable `tokens` to make sure `tokens` can be disposed afterward
+      let fixedLengthTokens = tokens 
+      if (tokens.size > maxLengthPlusLabel) { // Should never happen because tokenization truncates inputs
+        fixedLengthTokens = tokens.slice([0], [maxLengthPlusLabel])
+      } else if (tokens.size < maxLengthPlusLabel) { // Pad inputs to fixed length
+        const paddingToken = tokenizer.pad_token_id
+        fixedLengthTokens = tokens.pad([[Math.max(0, maxLengthPlusLabel - tokens.size), 0]], paddingToken)
+      }
+      // if tokens.size == maxLengthPlusLabel we can leave it as it is
+      // Make sure to dispose tokens manually because it is allocated outside tf.tidy
+      tf.dispose([tokens]) 
+      
+      // ys is a one-hot encoding of the next token (i.e. xs shifted by one)
+      const ys = tf.oneHot(fixedLengthTokens.slice([1]), tokenizer.model.vocab.length + 1)
+      // remove the extra token now that ys is created
+      const xs = fixedLengthTokens.slice([0], maxLength) 
+      return { xs, ys }
+    })
   }
 }
 
