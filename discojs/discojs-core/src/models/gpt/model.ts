@@ -38,6 +38,10 @@ class GPTModel extends tf.LayersModel {
     this.config = completeConfig
   }
 
+  get getGPTConfig() {
+    return this.config
+  }
+
   compile() {
     this.optimizer = this.config.weightDecay !== 0
       ? getCustomAdam(this, this.config.lr, this.config.weightDecay)

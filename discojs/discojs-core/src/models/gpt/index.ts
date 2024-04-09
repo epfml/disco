@@ -23,14 +23,6 @@ export class GPT extends Model {
     this.model = new GPTForCausalLM(partialConfig)
   }
 
-  override get weights (): WeightsContainer {
-    return new WeightsContainer(this.model.weights.map((w) => w.read()))
-  }
-
-  override set weights (ws: WeightsContainer) {
-    this.model.setWeights(ws.weights)
-  }
-
   /**
    * The GPT train methods wraps the model.fitDataset call in a for loop to act as a generator (of logs)
    * This allows for getting logs and stopping training without callbacks.
@@ -95,13 +87,32 @@ export class GPT extends Model {
     return generatedWords
   }
 
-  static deserialize (weights: WeightsContainer): Model {
-    const model = new GPT()
-    model.weights = weights
+  get config (): Required<GPTConfig> {
+    return this.model.getGPTConfig
+  }
+  override get weights (): WeightsContainer {
+    return new WeightsContainer(this.model.weights.map((w) => w.read()))
+  }
+
+  override set weights (ws: WeightsContainer) {
+    this.model.setWeights(ws.weights)
+  }
+
+  static deserialize (data: GPTSerialization): Model {
+    const model = new GPT(data.config)
+    model.weights = data.weights
     return model
   }
 
-  serialize (): WeightsContainer {
-    return this.weights
+  serialize (): GPTSerialization {
+    return {
+      weights: this.weights,
+      config: this.config
+    }
   }
+}
+
+export type GPTSerialization = {
+  weights: WeightsContainer
+  config: GPTConfig
 }
