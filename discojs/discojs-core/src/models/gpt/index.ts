@@ -3,51 +3,36 @@
  **/
 
 import * as tf from '@tensorflow/tfjs'
+import { PreTrainedTokenizer } from '@xenova/transformers';
 
 import { WeightsContainer } from '../../index.js'
 import type { Dataset } from '../../dataset/index.js'
 import { Sink } from '../../utils/event_emitter.js'
-import { PreTrainedTokenizer } from '@xenova/transformers';
 
-
-import type { EpochLogs, Prediction, Sample } from '../model.js'
 import { Model } from '../model.js'
+import { GPTForCausalLM } from './model.js'
+import type { EpochLogs, Prediction, Sample } from '../model.js'
+import type { GPTConfig } from './config.js'
 
-import { GPTLMHeadModel } from './model.js'
-
-// TODO too big config
-interface Config {
-  modelType: 'gpt-nano'
-  maxIter: number
-  blockSize: number
-  vocabSize: number
-  evaluateEvery: number
-  lr: number
-  maxEvalBatches: number
-}
-
-interface TokenizerOutput {
-    input_ids: number[]
-  }
 
 export class GPT extends Model {
-  private readonly model: GPTLMHeadModel
+  private readonly model: GPTForCausalLM
 
   constructor () {
     super()
 
     // TODO sensible defaults?
-    const config: Config = {
+    const config: GPTConfig = {
       modelType: 'gpt-nano',
-      lr: 0.001,
-      maxIter: 2,
+      lr: 0.01,
+      maxIter: 10,
       evaluateEvery:10,
       maxEvalBatches: 10,
-      blockSize: 128,
+      blockSize: 8,
       vocabSize: 50258
     }
 
-    this.model = new GPTLMHeadModel(config)
+    this.model = new GPTForCausalLM(config)
   }
 
   override get weights (): WeightsContainer {
@@ -91,6 +76,10 @@ export class GPT extends Model {
     for (let i = 0; i < epochs; i++) {
       await this.model.fitDataset(trainingData, trainingArgs)
       yield logs
+      if (logs !== undefined && logs.training_loss < 0.01) {
+        console.log("Early stopping")
+        break
+      }
     }
   }
 
@@ -104,7 +93,7 @@ export class GPT extends Model {
   }
 
   async generate (input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
-    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as TokenizerOutput
+    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as { input_ids: number[] }
 
     const generationConfig = {
       maxNewTokens: newTokens,

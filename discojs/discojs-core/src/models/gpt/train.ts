@@ -55,9 +55,10 @@ export async function train (
 ): Promise<void> {
   const c = resolveConfig(config)
   const opt = c.weightDecay !== 0 ? getCustomAdam(model, c) : tf.train.adam(c.lr)
-
+  
   await callbacks.onTrainBegin?.()
   for (let epoch = 1; epoch <= epochs; epoch++) {
+    let averageLoss = 0
     let iteration = 1
     const iterator = await ds.iterator()
     let continueTraining = true
@@ -89,6 +90,7 @@ export async function train (
       })
       
       const loss = await lossTensor.array()
+      averageLoss += loss
       tf.dispose([xs, ys, lossTensor, next.value])
 
       weightUpdateTime = performance.now() - weightUpdateTime
@@ -110,9 +112,11 @@ export async function train (
       iteration++
       continueTraining = next.done !== true && iteration <= c.maxIter
     }
-    let logs: tf.Logs | undefined
+    let logs: tf.Logs = {
+      'training_loss': averageLoss / iteration
+    }
     if (evalDs !== undefined) {
-      logs = await evaluate(model, evalDs, c.maxEvalBatches)
+      logs = { ...logs, ...await evaluate(model, evalDs, c.maxEvalBatches)}
       console.log(logs)
     }
     await callbacks.onEpochEnd?.(epoch, logs)
