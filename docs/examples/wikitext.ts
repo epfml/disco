@@ -37,7 +37,7 @@ async function main(): Promise<void> {
     }
     // Save the trained model
     const model = aggregator.model as models.GPT
-    saveModelToDisk(model, modelFolder, modelFileName)
+    await saveModelToDisk(model, modelFolder, modelFileName)
     
     // Retrieve the tokenizer used during training
     const tokenizer = await models.getTaskTokenizer(task)

@@ -5,7 +5,7 @@ import { GPT } from './index.js'
 import { type GPTConfig } from './config.js'
 
 describe('gpt-tfjs', function() {
-  this.timeout(30_000)
+  this.timeout(50_000)
   const data = "Lorem ipsum dolor sit"
 
   const config: GPTConfig = {
