@@ -1,20 +1,30 @@
-import { Range } from 'immutable'
+import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
 
-import type { data, Task } from '@epfml/discojs-core'
+import type { data, RoundLogs, Task } from '@epfml/discojs-core'
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs-core'
 import { startServer } from '@epfml/disco-server'
 
 import { getTaskData } from './data.js'
 import { args } from './args.js'
 
-async function runUser (task: Task, url: URL, data: data.DataSplit): Promise<unknown> {
-  const client = new clients.federated.FederatedClient(url, task, new aggregators.MeanAggregator())
+async function runUser(
+  task: Task,
+  url: URL,
+  data: data.DataSplit,
+): Promise<List<RoundLogs>> {
+  const client = new clients.federated.FederatedClient(
+    url,
+    task,
+    new aggregators.MeanAggregator(),
+  );
 
   // force the federated scheme
-  const disco = new Disco(task, { scheme: 'federated', client })
+  const disco = new Disco(task, { scheme: "federated", client });
 
-  const logs = await disco.fitted(data)
+  let logs = List<RoundLogs>();
+  for await (const round of disco.fit(data)) logs = logs.push(round);
+
   await disco.close();
   return logs;
 }

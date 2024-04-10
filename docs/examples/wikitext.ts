@@ -24,7 +24,7 @@ async function main(): Promise<void> {
   const aggregator = new aggregators.MeanAggregator()
   const client = new clients.federated.FederatedClient(url, task, aggregator)
   const disco = new Disco(task, { scheme: 'federated', client, aggregator })
-  await disco.fitted(dataset)
+  for await (const _ of disco.fit(dataset));
 
   // Get the model and complete the prompt
   if (aggregator.model === undefined) {

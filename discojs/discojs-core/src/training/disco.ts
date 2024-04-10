@@ -1,5 +1,3 @@
-import { List } from 'immutable'
-
 import type { data, Logger, Memory, Task, TrainingInformation } from '../index.js'
 import { client as clients, EmptyMemory, ConsoleLogger } from '../index.js'
 import type { Aggregator } from '../aggregator/index.js'
@@ -109,17 +107,6 @@ export class Disco {
     }
 
     this.logger.success("Training finished.");
-  }
-
-  /** Run an entire training */
-  async fitted(dataTuple: data.DataSplit): Promise<List<RoundLogs>> {
-    let ret = List<RoundLogs>();
-
-    for await (const logs of this.fit(dataTuple)) {
-      ret = ret.push(logs);
-    }
-
-    return ret;
   }
 
   /**
