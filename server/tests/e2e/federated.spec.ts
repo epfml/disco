@@ -1,10 +1,10 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { Server } from 'node:http'
-import { Range } from 'immutable'
+import { List, Range } from 'immutable'
 import { assert, expect } from 'chai'
 
-import type { WeightsContainer } from '@epfml/discojs-core'
+import type { RoundLogs, WeightsContainer } from '@epfml/discojs-core'
 import {
   Disco, client as clients, data,
   aggregator as aggregators, defaultTasks
@@ -34,7 +34,7 @@ describe('end-to-end federated', function () {
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
     const disco = new Disco(cifar10Task, { scheme: 'federated', client })
 
-    await disco.fitted(data)
+    for await (const _ of disco.fit(data));
     await disco.close()
 
     if (aggregator.model === undefined) {
@@ -61,7 +61,9 @@ describe('end-to-end federated', function () {
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
     const disco = new Disco(titanicTask, { scheme: 'federated', client, aggregator })
 
-    const logs = await disco.fitted(data)
+    let logs = List<RoundLogs>()
+    for await (const round of disco.fit(data))
+	logs = logs.push(round)
     await disco.close()
 
     if (aggregator.model === undefined) {
@@ -84,7 +86,9 @@ describe('end-to-end federated', function () {
     const client = new clients.federated.FederatedClient(url, task, aggregator)
     const disco = new Disco(task, { scheme: 'federated', client, aggregator })
 
-    const logs = await disco.fitted(dataSplit)
+    let logs = List<RoundLogs>()
+    for await (const round of disco.fit(dataSplit))
+	logs = logs.push(round)
     await disco.close()
 
     expect(logs.first()?.epoches.first()?.loss).to.be.above(
