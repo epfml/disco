@@ -21,7 +21,7 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@tensorflow/tfjs": "4",
-    "@tensorflow/tfjs-node": "^4.17.0",
+    "@tensorflow/tfjs-node": "4",
     "@types/msgpack-lite": "0.1",
     "@xenova/transformers": "2",
     "axios": "1",
