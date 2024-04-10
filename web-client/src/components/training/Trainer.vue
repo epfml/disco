@@ -39,6 +39,7 @@
       <TrainingInformation
         :logs="logs"
         :has-validation-data="hasValidationData"
+        :messages="messages"
       />
     </div>
   </div>
@@ -81,11 +82,13 @@ export default defineComponent({
     distributedTraining: boolean,
     startedTraining: boolean,
     logs: List<RoundLogs>,
+    messages: List<string>,
     } {
     return {
       distributedTraining: false,
       startedTraining: false,
       logs: List(),
+      messages: List(),
     }
   },
   computed: {
@@ -100,7 +103,14 @@ export default defineComponent({
       return new Disco(
         this.task,
         {
-          logger: toaster,
+          logger: {
+            success: (msg: string) => {
+              this.messages = this.messages.push(msg)
+            },
+            error: (msg: string) => {
+              this.messages = this.messages.push(msg)
+            },
+          },
           memory: this.memory,
           scheme: this.scheme,
           client: this.client

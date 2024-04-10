@@ -113,7 +113,7 @@
         <div id="mapHeader">
           <ul class="grid grid-cols-1">
             <li
-              v-for="(message, index) in messages"
+              v-for="(message, index) in props.messages"
               :key="index"
               class="border-slate-400"
             >
@@ -147,12 +147,12 @@ import Contact from '@/assets/svg/Contact.vue'
 const props = defineProps<{
   logs: List<RoundLogs>
   hasValidationData: boolean // TODO infer from logs
+  messages: List<string> // TODO why do we want messages?
 }>()
 
 const options = chartOptions
 
 const participants = ref({ current: 1, average: 1 }) // TODO collect real data
-const messages = ref([]) // TODO why do we want messages?
 
 const latestEpoch = computed(() => props.logs.last()?.epoches.last())
 
