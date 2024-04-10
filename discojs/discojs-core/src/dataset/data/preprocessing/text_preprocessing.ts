@@ -46,7 +46,7 @@ const leftPadding: PreprocessingFunction = {
       
       let fixedLengthTokens = tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs
       if (fixedLengthTokens.size > maxLengthPlusLabel) { // Should never happen because tokenization truncates inputs
-        fixedLengthTokens = fixedLengthTokens.slice([0], [maxLengthPlusLabel])
+        throw Error("There are more tokens than expected after tokenization and truncation")
       } else if (fixedLengthTokens.size < maxLengthPlusLabel) { // Pad inputs to fixed length
         const paddingToken = tokenizer.pad_token_id
         fixedLengthTokens = fixedLengthTokens.pad([[Math.max(0, maxLengthPlusLabel - fixedLengthTokens.size), 0]], paddingToken)
@@ -79,7 +79,8 @@ const tokenize: PreprocessingFunction = {
     const tokenizer = await models.getTaskTokenizer(task)
     // Add plus one to include the next token label of the last token in the input sequence
     // The inputs are truncated down to exactly maxSequenceLength in leftPadding
-    const maxLength = task.trainingInformation.maxSequenceLength ?? (tokenizer.model_max_length as number) + 1
+    const maxLength = task.trainingInformation.maxSequenceLength ?? (tokenizer.model_max_length as number)
+    const maxLengthPlusLabel = maxLength + 1
 
     const {input_ids: tokens} = tokenizer(xs, {
       // Transformers.js currently only supports right padding while we need left for text generation
@@ -88,7 +89,7 @@ const tokenize: PreprocessingFunction = {
       padding: false,
       truncation: true,
       return_tensor: false,
-      max_length: maxLength,
+      max_length: maxLengthPlusLabel,
     }) as TokenizerOutput
     return { tokens }
   }
