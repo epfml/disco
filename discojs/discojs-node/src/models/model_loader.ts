@@ -1,19 +1,17 @@
-import fs from 'node:fs'
-import fsPromises from 'node:fs/promises'
+import fs from 'node:fs/promises'
 import { serialization, models } from '@epfml/discojs-core'
 
 export async function saveModelToDisk(model: models.Model, modelFolder: string, modelFileName: string): Promise<void> {
-  if (!fs.existsSync(modelFolder)) {
-    fs.mkdirSync(modelFolder)
+  try {
+    await fs.access(modelFolder)
+  } catch {
+    await fs.mkdir(modelFolder)
   }
   const encoded = await serialization.model.encode(model)
-  await fsPromises.writeFile(`${modelFolder}/${modelFileName}`, encoded)
+  await fs.writeFile(`${modelFolder}/${modelFileName}`, encoded)
 }
 
 export async function loadModelFromDisk(modelPath: string): Promise<models.Model> {
-  if (!fs.existsSync(modelPath)) {
-    throw new Error(`File ${modelPath} doesn't exist`)
-  }
-  const content = await fsPromises.readFile(modelPath)
+  const content = await fs.readFile(modelPath)
   return await serialization.model.decode(content) as models.GPT
 }
