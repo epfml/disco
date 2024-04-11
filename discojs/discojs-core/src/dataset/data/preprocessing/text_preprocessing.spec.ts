@@ -33,7 +33,7 @@ describe('text preprocessing', function () {
 
   it('can truncate inputs when tokenizing', async () => {
     const truncationTask = initMockTask()
-    truncationTask['trainingInformation']['maxSequenceLength'] = 10
+    truncationTask.trainingInformation.maxSequenceLength = 10
     const { tokens } = await tokenize.apply(Promise.resolve(text), truncationTask) as { tokens: number[] }
     const expectedLength = truncationTask.trainingInformation.maxSequenceLength + 1 // + 1 because tokenization includes an extra token label for next label prediction
     expect(tokens.length).to.be.equal(expectedLength)
