@@ -7,7 +7,7 @@ import * as tf from '@tensorflow/tfjs'
 describe('text preprocessing', function () {
   const [tokenize, leftPadding] = TEXT_PREPROCESSING
   // Use a function to create different task object for each test (otherwise the tokenizer gets cached)
-  const initMockTask: () => Task = () => {
+  function initMockTask(): Task {
     return {
       id: 'mock-task-id',
       displayInformation: {},
