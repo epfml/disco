@@ -3,12 +3,8 @@ import fsPromises from 'node:fs/promises'
 import { serialization, models } from '@epfml/discojs-core'
 
 export async function saveModelToDisk(model: models.Model, modelFolder: string, modelFileName: string): Promise<void> {
-  try {
-    if (!fs.existsSync(modelFolder)) {
-      fs.mkdirSync(modelFolder)
-    }
-  } catch (err) {
-    console.error(err);
+  if (!fs.existsSync(modelFolder)) {
+    fs.mkdirSync(modelFolder)
   }
   const encoded = await serialization.model.encode(model)
   await fsPromises.writeFile(`${modelFolder}/${modelFileName}`, encoded)
