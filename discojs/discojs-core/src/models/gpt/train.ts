@@ -102,8 +102,7 @@ export async function train (
 
       if (evalDs !== undefined && config.evaluateEvery !== undefined
         && iteration % config.evaluateEvery == 0) {
-        const logs = await evaluate(model, evalDs, c.maxEvalBatches)
-        console.log(logs)
+        await evaluate(model, evalDs, c.maxEvalBatches)
       }
       iteration++
       continueTraining = next.done !== true && iteration <= c.maxIter
@@ -111,7 +110,6 @@ export async function train (
     let logs: tf.Logs | undefined
     if (evalDs !== undefined) {
       logs = await evaluate(model, evalDs, c.maxEvalBatches)
-      console.log(logs)
     }
     await callbacks.onEpochEnd?.(epoch, logs)
   }
