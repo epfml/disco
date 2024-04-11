@@ -45,7 +45,7 @@ export class Validator {
 
     let hits = 0
     // Get model predictions per batch and flatten the result
-    // Also build the features and groudTruth arrays
+    // Also build the features and ground truth arrays
     const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
       .mapAsync(async e => {
         if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
