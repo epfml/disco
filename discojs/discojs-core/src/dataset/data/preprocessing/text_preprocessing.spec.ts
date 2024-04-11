@@ -43,7 +43,7 @@ describe('text preprocessing', function () {
   it('can left pad tokens', async () => {
     // Create a task where output token sequence should all have length 20
     const paddingTask = initMockTask()
-    paddingTask['trainingInformation']['maxSequenceLength'] = 20
+    paddingTask.trainingInformation.maxSequenceLength = 20
     
     // Create a token sequence of length 10
     const tokens = { tokens: [0,1,2,3,4,5,6,7,8,9] }
