@@ -78,7 +78,7 @@ describe('text preprocessing', function () {
     invalidTask.trainingInformation.tokenizer = undefined;
     try {
       await tokenize.apply(Promise.resolve("input text doesn't matter"), invalidTask)
-    } catch (e) {
+    } catch {
       return
     }
     throw new Error("undefined tokenizer should have thrown an error")
@@ -88,7 +88,7 @@ describe('text preprocessing', function () {
     invalidTask['trainingInformation']['tokenizer'] = 'invalid-tokenizer-name'
     try {
       await tokenize.apply(Promise.resolve("input text doesn't matter"), invalidTask)
-    } catch (e) {
+    } catch {
       return
     }
     throw new Error("invalid tokenizer name should have thrown an error")
