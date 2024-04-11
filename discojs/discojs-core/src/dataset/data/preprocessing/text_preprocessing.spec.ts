@@ -75,7 +75,7 @@ describe('text preprocessing', function () {
 
   it('throws an error if no tokenizer is specified', async () => {
     const invalidTask = initMockTask()
-    invalidTask['trainingInformation']['tokenizer'] = undefined;
+    invalidTask.trainingInformation.tokenizer = undefined;
     try {
       await tokenize.apply(Promise.resolve("input text doesn't matter"), invalidTask)
     } catch (e) {
