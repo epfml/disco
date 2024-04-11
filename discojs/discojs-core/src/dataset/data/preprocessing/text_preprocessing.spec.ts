@@ -89,7 +89,6 @@ describe('text preprocessing', function () {
     try {
       await tokenize.apply(Promise.resolve("input text doesn't matter"), invalidTask)
     } catch (e) {
-      console.error(e)
       return
     }
     throw new Error("invalid tokenizer name should have thrown an error")
