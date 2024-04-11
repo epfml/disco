@@ -6,7 +6,6 @@ import * as tf from '@tensorflow/tfjs'
 
 import { WeightsContainer } from '../../index.js'
 import type { Dataset } from '../../dataset/index.js'
-import { Sink } from '../../utils/event_emitter.js'
 import { PreTrainedTokenizer } from '@xenova/transformers';
 
 
@@ -71,7 +70,6 @@ export class GPT extends Model {
     trainingData: Dataset,
     validationData?: Dataset,
     epochs = 1,
-    tracker = new Sink(),
   ): AsyncGenerator<EpochLogs, void> {
     let logs: tf.Logs | undefined;
 
@@ -84,12 +82,6 @@ export class GPT extends Model {
           if (logs !== undefined && cur !== undefined) {
             logs.loss = cur.val_loss;
           }
-        },
-        onBatchBegin: () => {
-          tracker.emit("batchBegin", undefined);
-        },
-        onBatchEnd: () => {
-          tracker.emit("batchEnd", undefined);
         },
       },
     };

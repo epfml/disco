@@ -1,10 +1,8 @@
 import type tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 
-import type { Memory, Model, Task } from "../../index.js";
+import type { Model, Task } from "../../index.js";
 
-import { RoundTracker } from "./round_tracker.js";
-import { EventEmitter } from "../../utils/event_emitter.js";
 import { EpochLogs } from "../../models/model.js";
 
 export interface RoundLogs {
@@ -13,70 +11,35 @@ export interface RoundLogs {
 }
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
- * locally (alone) or in a distributed way with collaborators. The Trainer works as follows:
+ * locally (alone) or in a distributed way with collaborators.
  *
- * 1. Call trainModel(dataset) to start training
- * 2. Once a batch ends, onBatchEnd is triggered, which will then call onRoundEnd once the round has ended.
+ * 1. Call `fitModel(dataset)` to start training.
+ * 2. which will then call onRoundEnd once the round has ended.
  *
- * The onRoundEnd needs to be implemented to specify what actions to do when the round has ended, such as a communication step with collaborators. To know when
- * a round has ended we use the roundTracker object.
+ * The onRoundEnd needs to be implemented to specify what actions to do when the round has ended, such as a communication step with collaborators.
  */
 export abstract class Trainer {
-  public readonly roundTracker: RoundTracker
+  readonly #roundDuration: number;
+  readonly #epochs: number;
 
   private training?: AsyncGenerator<EpochLogs, void>;
 
-  /**
-   * Constructs the training manager.
-   * @param task the trained task
-   */
   constructor(
-    public readonly task: Task,
-    public readonly memory: Memory,
+    task: Task,
     public readonly model: Model,
   ) {
-    this.roundTracker = new RoundTracker(
-      task.trainingInformation.roundDuration,
-    );
+    this.#roundDuration = task.trainingInformation.roundDuration;
+    this.#epochs = task.trainingInformation.epochs;
   }
 
-  protected abstract onRoundBegin (accuracy: number): Promise<void>
-
-  /**
-   * Every time a round ends this function will be called
-   */
-  protected abstract onRoundEnd (accuracy: number): Promise<void>
-
-  /**
-   * Callback executed on every batch end. When a round ends, onRoundEnd is called
-   */
-  protected async onBatchEnd (_: number, logs?: tf.Logs): Promise<void> {
-    if (logs === undefined) {
-      return
-    }
-
-    this.roundTracker.updateBatch()
-
-    if (this.roundTracker.roundHasEnded()) {
-      await this.onRoundEnd(logs.acc)
-    }
-  }
-
-  protected async onBatchBegin (_: number, logs?: tf.Logs): Promise<void> {
-    if (logs === undefined) {
-      return
-    }
-
-    if (this.roundTracker.roundHasBegun()) {
-      await this.onRoundBegin(logs.acc);
-    }
-  }
+  protected abstract onRoundBegin(round: number): Promise<void>;
+  protected abstract onRoundEnd(round: number): Promise<void>;
 
   /**
    * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
    */
-  async stopTraining (): Promise<void> {
-    await this.training?.return()
+  async stopTraining(): Promise<void> {
+    await this.training?.return();
   }
 
   /**
@@ -93,16 +56,9 @@ export abstract class Trainer {
       );
     }
 
-    this.training = this.model.train(
-      dataset,
-      valDataset,
-      this.task.trainingInformation.epochs,
-      new EventEmitter({
-        // TODO implement
-        // batchBegin: async () => await this.onBatchBegin(),
-        // batchEnd: async () => await this.onBatchEnd(),
-      }),
-    );
+    await this.onRoundBegin(0);
+
+    this.training = this.model.train(dataset, valDataset, this.#epochs);
 
     for await (const logs of this.training) {
       // for now, round (sharing on network) == epoch (full pass over local data)
@@ -110,7 +66,16 @@ export abstract class Trainer {
         round: logs.epoch,
         epoches: List.of(logs),
       };
+
+      if (logs.epoch % this.#roundDuration === 0) {
+        const round = Math.trunc(logs.epoch / this.#roundDuration);
+        await this.onRoundEnd(round);
+        await this.onRoundBegin(round);
+      }
     }
+
+    const round = Math.trunc(this.#epochs / this.#roundDuration);
+    await this.onRoundEnd(round);
 
     this.training = undefined;
   }

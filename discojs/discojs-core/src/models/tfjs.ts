@@ -1,6 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
 
-import { Sink } from '../utils/event_emitter.js'
 import { WeightsContainer } from '../index.js'
 
 import { Model } from './index.js'
@@ -32,7 +31,6 @@ export class TFJS extends Model {
     trainingData: Dataset,
     validationData?: Dataset,
     epochs = 1,
-    tracker = new Sink(),
   ): AsyncGenerator<EpochLogs> {
     for (let epoch = 0; epoch < epochs; epoch++) {
       let logs: tf.Logs | undefined;
@@ -43,12 +41,6 @@ export class TFJS extends Model {
         callbacks: {
           onEpochEnd: (_, cur) => {
             logs = cur;
-          },
-          onBatchBegin: () => {
-            tracker.emit("batchBegin", undefined);
-          },
-          onBatchEnd: () => {
-            tracker.emit("batchEnd", undefined);
           },
         },
       });

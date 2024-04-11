@@ -1,18 +1,27 @@
-import { Trainer } from './trainer.js'
+import type { Memory, Model, Task } from "../../index.js";
+
+import { Trainer } from "./trainer.js";
 
 /** Class whose role is to locally (alone) train a model on a given dataset,
  * without any collaborators.
  */
 export class LocalTrainer extends Trainer {
-  async onRoundBegin (): Promise<void> {
-    return await Promise.resolve()
+  constructor(
+    private readonly task: Task,
+    private readonly memory: Memory,
+    model: Model,
+  ) {
+    super(task, model);
   }
 
-  async onRoundEnd (): Promise<void> {
-    console.log('on round end')
+  override async onRoundBegin(): Promise<void> {
+    return await Promise.resolve();
+  }
+
+  override async onRoundEnd(): Promise<void> {
     await this.memory.updateWorkingModel(
       { taskID: this.task.id, name: this.task.trainingInformation.modelID },
-      this.model
-    )
+      this.model,
+    );
   }
 }

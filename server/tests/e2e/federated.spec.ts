@@ -13,13 +13,16 @@ import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/disco
 
 import { startServer } from '../../src/index.js'
 
-describe('end-to-end federated', function () {
-  this.timeout(100_000)
-
-  let server: Server
-  let url: URL
-  beforeEach(async () => { [server, url] = await startServer() })
-  afterEach(() => { server?.close() })
+describe("end-to-end federated", function () {
+  let server: Server;
+  let url: URL;
+  beforeEach(async function () {
+    this.timeout("5s");
+    [server, url] = await startServer();
+  });
+  afterEach(() => {
+    server?.close();
+  });
 
   async function cifar10user (): Promise<WeightsContainer> {
     const dir = '../datasets/CIFAR10/'
@@ -96,23 +99,23 @@ describe('end-to-end federated', function () {
     );
   }
 
-  it('two cifar10 users reach consensus', async () => {
-    this.timeout(90_000)
+  it("two cifar10 users reach consensus", async function () {
+    this.timeout(90_000);
 
-    const [m1, m2] = await Promise.all([cifar10user(), cifar10user()])
-    assert.isTrue(m1.equals(m2))
-  })
+    const [m1, m2] = await Promise.all([cifar10user(), cifar10user()]);
+    assert.isTrue(m1.equals(m2));
+  });
 
-  it('two titanic users reach consensus', async () => {
-    this.timeout(30_000)
+  it("two titanic users reach consensus", async function () {
+    this.timeout(30_000);
 
-    const [m1, m2] = await Promise.all([titanicUser(), titanicUser()])
-    assert.isTrue(m1.equals(m2))
-  })
+    const [m1, m2] = await Promise.all([titanicUser(), titanicUser()]);
+    assert.isTrue(m1.equals(m2));
+  });
 
-  it('trains wikitext', async () => {
-    this.timeout(120_000)
+  it("trains wikitext", async function () {
+    this.timeout("3m");
 
-    await wikitextUser()
-  })
+    await wikitextUser();
+  });
 })
