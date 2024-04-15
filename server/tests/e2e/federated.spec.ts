@@ -72,8 +72,8 @@ describe("end-to-end federated", function () {
     if (aggregator.model === undefined) {
       throw new Error('model was not set')
     }
-    expect(logs.last()?.epoches.last()?.training.accuracy).to.be.greaterThan(0.6)
-    expect(logs.last()?.epoches.last()?.validation.accuracy).to.be.greaterThan(0.6)
+    expect(logs.last()?.epochs.last()?.training.accuracy).to.be.greaterThan(0.6)
+    expect(logs.last()?.epochs.last()?.validation.accuracy).to.be.greaterThan(0.6)
     return aggregator.model.weights
   }
 
@@ -91,11 +91,11 @@ describe("end-to-end federated", function () {
 
     let logs = List<RoundLogs>()
     for await (const round of disco.fit(dataSplit))
-	logs = logs.push(round)
+	    logs = logs.push(round)
     await disco.close()
 
-    expect(logs.first()?.epoches.first()?.loss).to.be.above(
-      logs.last()?.epoches.last()?.loss as number,
+    expect(logs.first()?.epochs.first()?.loss).to.be.above(
+      logs.last()?.epochs.last()?.loss as number,
     );
   }
 

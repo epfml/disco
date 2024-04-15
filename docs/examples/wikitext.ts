@@ -1,7 +1,7 @@
 import type { Task } from '@epfml/discojs-core'
 import {
   Disco, fetchTasks, data, client as clients,
-  aggregator as aggregators, informant, models
+  aggregator as aggregators, models
 } from '@epfml/discojs-core'
 import { NodeTextLoader, saveModelToDisk, loadModelFromDisk } from '@epfml/discojs-node'
 
@@ -28,9 +28,8 @@ async function main(): Promise<void> {
     // Initialize a Disco instance and start training a language model
     const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, task, aggregator)
-    const trainingInformant = new informant.FederatedInformant(task, 10)
-    const disco = new Disco(task, { scheme: 'federated', client, aggregator, informant: trainingInformant })
-    await disco.fit(dataset)
+    const disco = new Disco(task, { scheme: 'federated', client, aggregator })
+    for await (const _ of disco.fit(dataset));
   
     // Get the model and complete the prompt
     if (aggregator.model === undefined) {

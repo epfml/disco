@@ -7,7 +7,6 @@ import { PreTrainedTokenizer } from '@xenova/transformers';
 
 import { WeightsContainer } from '../../index.js'
 import type { Dataset } from '../../dataset/index.js'
-import { Sink } from '../../utils/event_emitter.js'
 
 import { Model } from '../model.js'
 import { GPTForCausalLM } from './model.js'
@@ -37,8 +36,8 @@ export class GPT extends Model {
     validationData?: Dataset,
     epochs = 1,
   ): AsyncGenerator<EpochLogs, void> {
+    this.model.compile()
     let logs: tf.Logs | undefined;
-
     const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
       epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
       validationData,

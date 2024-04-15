@@ -68,6 +68,6 @@ it("increases accuracy when training alone", async () => {
   }
 
   expect(
-    infos.props("logs").last()?.epoches.last()?.training.accuracy,
+    infos.props("logs").last()?.epochs.last()?.training.accuracy,
   ).toBeGreaterThan(0);
 });

@@ -31,7 +31,7 @@
     "ws": "8"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "^4.17.0",
+    "@tensorflow/tfjs-node": "4",
     "@types/chai": "4",
     "@types/mocha": "10",
     "@types/simple-peer": "9",

@@ -7,7 +7,7 @@ import { EpochLogs } from "../../models/model.js";
 
 export interface RoundLogs {
   round: number;
-  epoches: List<EpochLogs>;
+  epochs: List<EpochLogs>;
 }
 
 /** Abstract class whose role is to train a model with a given dataset. This can be either done
@@ -64,7 +64,7 @@ export abstract class Trainer {
       // for now, round (sharing on network) == epoch (full pass over local data)
       yield {
         round: logs.epoch,
-        epoches: List.of(logs),
+        epochs: List.of(logs),
       };
 
       if (logs.epoch % this.#roundDuration === 0) {

@@ -154,11 +154,11 @@ const options = chartOptions
 
 const participants = ref({ current: 1, average: 1 }) // TODO collect real data
 
-const latestEpoch = computed(() => props.logs.last()?.epoches.last())
+const latestEpoch = computed(() => props.logs.last()?.epochs.last())
 
 const accuracySeries = computed(() => props.logs
   .flatMap((round) =>
-    round.epoches.map((epoch) => { return {
+    round.epochs.map((epoch) => { return {
       training: epoch.training.accuracy * 100,
       validation: epoch.validation.accuracy * 100,
     }})
