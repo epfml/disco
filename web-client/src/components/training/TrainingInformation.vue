@@ -82,7 +82,7 @@
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
-            {{ percent(latestEpoch?.validation.accuracy ?? 0) }}
+            {{ percent(latestEpoch?.validation?.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
             {{
@@ -159,8 +159,8 @@ const latestEpoch = computed(() => props.logs.last()?.epochs.last())
 const accuracySeries = computed(() => props.logs
   .flatMap((round) =>
     round.epochs.map((epoch) => { return {
-      training: epoch.training.accuracy * 100,
-      validation: epoch.validation.accuracy * 100,
+      training: (epoch.training.accuracy ?? 0) * 100,
+      validation: (epoch.validation?.accuracy ?? 0) * 100,
     }})
   )
   .takeLast(10)
