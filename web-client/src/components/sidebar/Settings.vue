@@ -143,18 +143,16 @@ export default defineComponent({
       )
     },
     toggleIndexedDB () {
-      this.memoryStore.setIndexedDB(!this.memoryStore.useIndexedDB && window.indexedDB)
+      this.memoryStore.setIndexedDB(!this.memoryStore.useIndexedDB && Boolean(window.indexedDB))
     },
     setBrowserTheme (value: string) {
       window.localStorage.setItem('dark', value)
     },
     setLightTheme () {
-      this.setAppTheme(false)
-      this.setBrowserTheme(false)
+      this.setBrowserTheme('false')
     },
     setDarkTheme () {
-      this.setAppTheme(true)
-      this.setBrowserTheme(true)
+      this.setBrowserTheme('true')
     }
   }
 })

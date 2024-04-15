@@ -1,4 +1,4 @@
-import type { client as clients, Model, Task, TrainingInformant, ModelInfo, Memory } from '../../index.js'
+import type { client as clients, Model, Task, ModelInfo, Memory } from '../../index.js'
 import { ModelType } from '../../index.js'
 
 import { DistributedTrainer } from './distributed_trainer.js'
@@ -12,7 +12,6 @@ export class TrainerBuilder {
   constructor (
     private readonly memory: Memory,
     private readonly task: Task,
-    private readonly trainingInformant: TrainingInformant
   ) {}
 
   /**
@@ -27,7 +26,6 @@ export class TrainerBuilder {
     if (distributed) {
       return new DistributedTrainer(
         this.task,
-        this.trainingInformant,
         this.memory,
         model,
         client
@@ -35,7 +33,6 @@ export class TrainerBuilder {
     } else {
       return new LocalTrainer(
         this.task,
-        this.trainingInformant,
         this.memory,
         model
       )

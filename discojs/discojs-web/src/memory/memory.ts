@@ -7,7 +7,6 @@
  * The working model is loaded from IndexedDB for training (model.fit) only.
  */
 import { Map } from 'immutable'
-import path from 'path'
 import * as tf from '@tensorflow/tfjs'
 
 import type { Path, Model, ModelInfo, ModelSource } from '@epfml/discojs-core'
@@ -25,7 +24,7 @@ export class IndexedDB extends Memory {
 
     const version = source.version ?? 0
 
-    return `indexeddb://${path.join(source.type, source.taskID, source.name)}@${version}`
+    return `indexeddb://${source.type}/${source.taskID}/${source.name}@${version}`
   }
 
   override infoFor (source: ModelSource): ModelInfo {

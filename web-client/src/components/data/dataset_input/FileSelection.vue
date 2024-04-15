@@ -48,19 +48,21 @@
                   hover:cursor-pointer
                 "
             >
-              Select file{{ isMultiple ? 's' : '' }}
+              select file{{ isMultiple ? 's' : '' }}
             </span>
             <input
               v-if="isDirectory"
+              ref="uploadDirectory"
               type="file"
               multiple
               webkitdirectory
               directory
               class="hidden"
-              @change="submitFiles"
+              @change="submitDirectory"
             >
             <input
               v-else
+              ref="uploadFile"
               type="file"
               :multiple="isMultiple"
               :accept="acceptFiles.join(',')"
@@ -92,10 +94,10 @@
         <div class="pt-8 flex flex-col items-center pb-2">
           <div class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue">
             <span v-if="isMultiple">Number of selected files: <span class="pl-1 text-xl">{{ selectedFiles?.length ?? 0 }}</span></span>
-            <span v-else>Selected file: <span class="pl-1">{{ selectedFiles?.item(0).name ?? 'none' }}</span></span>
+            <span v-else>Selected file: <span class="pl-1">{{ selectedFiles?.item(0)?.name ?? 'none' }}</span></span>
           </div>
           <CustomButton @click="clearFiles">
-            Clear file{{ isMultiple ? 's' : '' }}
+            clear file{{ isMultiple ? 's' : '' }}
           </CustomButton>
         </div>
       </section>
@@ -104,9 +106,8 @@
 </template>
 
 <script lang="ts" setup>
-import { defineEmits, ref, defineProps, withDefaults } from 'vue'
+import { ref, withDefaults } from 'vue'
 
-import { HTMLDragEvent, HTMLInputEvent } from '@/types'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
 interface Emits {
@@ -121,7 +122,10 @@ interface Props {
   infoText?: boolean
 }
 const emit = defineEmits<Emits>()
-const selectedFiles = ref<FileList | undefined>()
+const selectedFiles = ref<FileList>()
+
+const uploadFile = ref<HTMLInputElement>()
+const uploadDirectory = ref<HTMLInputElement>()
 
 withDefaults(defineProps<Props>(), {
   isDirectory: false,
@@ -134,11 +138,25 @@ const clearFiles = () => {
   emit('clear')
   selectedFiles.value = undefined
 }
-const submitFiles = (e: HTMLInputEvent) => {
-  emit('input', e.target.files)
-  selectedFiles.value = e.target.files
+const submitFiles = () => {
+  if (uploadFile.value === undefined) return
+  const files = uploadFile.value.files
+  if (files === null) return
+
+  emit('input', files)
+  selectedFiles.value = files
 }
-const dragFiles = (e: HTMLDragEvent) => {
+const submitDirectory = () => {
+  if (uploadDirectory.value === undefined) return
+  const files = uploadDirectory.value.files
+  if (files === null) return
+
+  emit('input', files)
+  selectedFiles.value = files
+}
+const dragFiles = (e: DragEvent) => {
+  if (e.dataTransfer === null) return
+
   e.dataTransfer.dropEffect = 'copy'
   emit('input', e.dataTransfer.files)
   selectedFiles.value = e.dataTransfer.files

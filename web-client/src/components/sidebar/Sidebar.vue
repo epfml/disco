@@ -149,7 +149,8 @@
   </div>
 </template>
 <script lang="ts">
-import tippy, { Instance, Props, Placement } from 'tippy.js'
+import type { Instance, Props, Placement } from 'tippy.js'
+import tippy from 'tippy.js'
 
 import Settings from './Settings.vue'
 import ModelLibrary from './ModelLibrary.vue'
@@ -189,9 +190,9 @@ export default {
       theme: 'custom-dark',
       delay: 0,
       duration: 0,
-      content: (reference: Element) => reference.getAttribute('data-title'),
+      content: (reference: Element) => reference.getAttribute('data-title') as string,
       onMount: (instance: Instance<Props>) => {
-        instance.popperInstance.setOptions({
+        instance.popperInstance?.setOptions({
           placement: instance.reference.getAttribute('data-placement') as Placement
         })
       }
@@ -199,7 +200,7 @@ export default {
   },
   methods: {
     switchFromModelLibraryToSettings () {
-      this.isModeLibraryOpen = false
+      this.isModelLibraryOpen = false
       this.isSettingsPanelOpen = true
     },
     openModelLibrary () {
@@ -228,6 +229,5 @@ export default {
       this.$router.push({ path: '/about' })
     }
   }
-
 }
 </script>

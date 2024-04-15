@@ -1,5 +1,4 @@
-import { createToaster } from '@meforma/vue-toaster'
+import { useToast } from "vue-toast-notification";
+import "vue-toast-notification/dist/theme-default.css";
 
-const toaster = createToaster({ duration: 5000 })
-
-export const useToaster = () => toaster
+export const useToaster = () => useToast({ duration: 5000 });

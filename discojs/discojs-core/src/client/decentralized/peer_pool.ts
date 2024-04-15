@@ -13,10 +13,10 @@ export class PeerPool {
     private readonly id: NodeID
   ) {}
 
-  shutdown (): void {
+  async shutdown (): Promise<void> {
     console.info(`[${this.id}] shutdown their peers`)
 
-    this.peers.forEach((peer) => { peer.disconnect() })
+    await Promise.all(this.peers.valueSeq().map((peer) => peer.disconnect()))
     this.peers = Map()
   }
 
@@ -43,12 +43,11 @@ export class PeerPool {
 
     console.info(`[${this.id}] is connecting peers:`, peersToConnect.toJS())
 
-    const newPeers = Map(await Promise.all(
+    const newPeers = Map(
       peersToConnect
         .filter((id) => !this.peers.has(id))
-        .map(async (id) => [id, await Peer.init(id, id < this.id)] as [string, Peer])
-        .toArray()
-    ))
+        .map((id) => [id, new Peer(id, id < this.id)] as [string, Peer])
+    )
 
     console.info(`[${this.id}] asked to connect new peers:`, newPeers.keySeq().toJS())
     const newPeersConnections = newPeers.map((peer) => new PeerConnection(this.id, peer, signallingServer))
@@ -58,9 +57,7 @@ export class PeerPool {
 
     clientHandle(this.peers)
 
-    await Promise.all(
-      Array.from(newPeersConnections.values()).map(async (connection) => { await connection.connect() }))
-
+    await Promise.all(newPeersConnections.valueSeq().map((conn) => conn.connect()))
     console.info(`[${this.id}] knowns connected peers:`, this.peers.keySeq().toJS())
 
     return this.peers

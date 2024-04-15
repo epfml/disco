@@ -107,7 +107,7 @@
             <CustomButton
               @click="proceed"
             >
-              Continue training from this model
+              continue training from this model
             </CustomButton>
           </div>
         </div>
@@ -133,15 +133,20 @@
 
 <script lang="ts">
 import { mapStores } from 'pinia'
+import type { PropType } from 'vue'
 
-import { EmptyMemory, Memory, ModelType, isTask, ModelInfo } from '@epfml/discojs-core'
+import type { ModelInfo, Task } from '@epfml/discojs-core'
+import { EmptyMemory, Memory, ModelType, isTask } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
 import { getClient } from '@/clients'
+import { useToaster } from '@/composables/toaster'
 import Clock from '@/assets/svg/Clock.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import { useMemoryStore } from '@/store/memory'
+
+const toaster = useToaster()
 
 export default {
   name: 'ModelCaching',
@@ -152,8 +157,9 @@ export default {
   },
   props: {
     task: {
+      type: Object as PropType<Task>,
       validator: isTask,
-      default: undefined
+      required: true
     }
   },
   data () {
@@ -182,7 +188,9 @@ export default {
     },
     modelInfo (): ModelInfo {
       return {
-        type: ModelType.WORKING, taskID: this.task.id, name: this.task.trainingInformation.modelID
+        type: ModelType.WORKING,
+        taskID: this.task.id,
+        name: this.task.trainingInformation.modelID
       }
     }
   },
@@ -197,8 +205,8 @@ export default {
       } else {
         modelInUseMessage = `A new ${this.task.displayInformation.taskTitle} model will be created. You can start training!`
       }
-      this.$toast.success(modelInUseMessage)
-      setTimeout(this.$toast.clear, 30000)
+      const toast = toaster.open(modelInUseMessage)
+      setTimeout(toast.dismiss, 30000)
     }
   },
   /**
@@ -216,18 +224,20 @@ export default {
         if (workingModelMetadata) {
           this.workingModelExistsOnMount = true
           this.workingModelExists = true
-          const date = workingModelMetadata.dateSaved
-          const zeroPad = (number: number) => String(number).padStart(2, '0')
-          this.dateSaved = [
-            date.getDate(),
-            date.getMonth() + 1,
-            date.getFullYear()
-          ]
-            .map(zeroPad)
-            .join('/')
-          this.hourSaved = [date.getHours(), date.getMinutes()]
-            .map(zeroPad)
-            .join('h')
+          const date = 'dateSaved' in workingModelMetadata ? workingModelMetadata.dateSaved : undefined
+          if (date instanceof Date) {
+            const zeroPad = (number: number) => String(number).padStart(2, '0')
+            this.dateSaved = [
+              date.getDate(),
+              date.getMonth() + 1,
+              date.getFullYear()
+            ]
+              .map(zeroPad)
+              .join('/')
+            this.hourSaved = [date.getHours(), date.getMinutes()]
+              .map(zeroPad)
+              .join('h')
+          }
         }
       }
     })
@@ -239,7 +249,7 @@ export default {
     async deleteModel (): Promise<void> {
       this.workingModelExists = false
       await this.memory.deleteModel(this.modelInfo)
-      this.$toast.success(
+      toaster.success(
         `Deleted the cached ${this.task.displayInformation.taskTitle} model.`
       )
     },
@@ -248,7 +258,7 @@ export default {
      */
     async saveModel () {
       await this.memory.saveWorkingModel(this.modelInfo)
-      this.$toast.success(
+      toaster.success(
         `Saved the cached ${this.task.displayInformation.taskTitle} model to the model library`
       )
     },
@@ -271,7 +281,7 @@ export default {
       if (this.memoryStore.useIndexedDB && this.shouldCreateFreshModel) {
         await this.loadFreshModel()
         this.isModelCreated = true
-        this.$toast.success(
+        toaster.success(
           `A new ${this.task.displayInformation.taskTitle} model has been created. You can start training!`
         )
       }

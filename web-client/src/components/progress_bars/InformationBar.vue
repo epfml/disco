@@ -113,7 +113,7 @@
           v-show="isActive(1)"
           @click="prevStep"
         >
-          Previous
+          previous
         </CustomButton>
       </div>
       <div
@@ -123,7 +123,7 @@
           v-show="!isActive(3)"
           @click="nextStep"
         >
-          Next
+          next
         </CustomButton>
       </div>
     </div>

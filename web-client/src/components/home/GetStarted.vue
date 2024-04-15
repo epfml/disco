@@ -11,7 +11,7 @@
         >DISCO</span>llaborative</span> to train a model
       </template>
       <template #button>
-        Train
+        train
       </template>
     </ButtonCard>
     <!-- Model testing -->
@@ -23,7 +23,7 @@
         Evaluate your <span class="font-disco text-disco-cyan">DISCO</span>-trained model
       </template>
       <template #button>
-        Evaluate
+        evaluate
       </template>
     </ButtonCard>
     <!-- Task creation -->
@@ -35,7 +35,7 @@
         Add your own ML task to be trained in <span class="font-disco text-disco-cyan">DISCO</span>
       </template>
       <template #button>
-        Create
+        create
       </template>
     </ButtonCard>
   </div>

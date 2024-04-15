@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!verifyingRoute">
+  <div v-if="task !== undefined && datasetBuilder !== undefined">
     <Description
       v-show="trainingStore.step === 1"
       :task="task"
@@ -23,10 +23,11 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, defineProps } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { data, TaskID } from '@epfml/discojs-core'
+import type { TaskID } from '@epfml/discojs-core'
+import { data } from '@epfml/discojs-core'
 import { WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs'
 
 import { useTrainingStore } from '@/store/training'
@@ -44,16 +45,18 @@ const tasksStore = useTasksStore()
 interface Props { id: TaskID }
 const props = defineProps<Props>()
 
-const verifyingRoute = ref(true)
+const task = computed(() => {
+  const task = tasksStore.tasks.get(props.id)
+  if (task === undefined) {
+    router.replace({ name: 'not-found' })
+    return
+  }
+  return task
+})
 
-if (!tasksStore.tasks.has(props.id)) {
-  router.replace({ name: 'not-found' })
-} else {
-  verifyingRoute.value = false
-}
-
-const task = computed(() => tasksStore.tasks.get(props.id))
 const datasetBuilder = computed(() => {
+  if (task.value === undefined) return
+
   let dataLoader: data.DataLoader<File>
   switch (task.value.trainingInformation.dataType) {
     case 'tabular':

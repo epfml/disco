@@ -1,7 +1,5 @@
 <script setup lang="ts">
 
-import { defineProps, defineEmits } from 'vue'
-
 interface Props { event: string }
 interface Emits { (e: string): void }
 

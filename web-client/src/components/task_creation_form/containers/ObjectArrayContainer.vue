@@ -7,8 +7,8 @@
     <br>
     <div class="space-y-2">
       <fieldset
-        v-for="(_, idx) in fields"
-        :key="_.key"
+        v-for="(entry, idx) in fields"
+        :key="(entry as any).key"
       >
         <div
           class="
@@ -24,12 +24,12 @@
           >
             <div class="w-2/5 md:w-full">
               <label
-                :for="`${element.key}_${idx}`"
+                :for="`${element.key}_${idx as any}`"
                 class="inline md:text-right mb-1 md:mb-0 pr-4"
               >{{ element.key }}</label>
               <VeeField
-                :id="`${element.key}_${idx}`"
-                :name="`${props.field.id}[${idx}].${element.key}`"
+                :id="`${element.key}_${idx as any}`"
+                :name="`${props.field.id}[${idx as any}].${element.key}`"
                 :placeholder="element.default"
                 class="
                   inline
@@ -47,7 +47,7 @@
                 "
               />
               <ErrorMessage
-                :name="`${props.field.id}[${idx}].${element.key}`"
+                :name="`${props.field.id}[${idx as any}].${element.key}`"
                 class="text-red-600"
               />
             </div>
@@ -75,7 +75,7 @@
                 focus:shadow-outline
                 hover:bg-red-100
               "
-              @click="remove(idx)"
+              @click="remove(idx as unknown as any)"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -119,9 +119,9 @@
         "
         @click="
           push(
-            field.elements.reduce(
+            (field.elements ?? []).reduce(
               (acc, element) => ((acc[element.key] = ''), acc),
-              {}
+              {} as Record<string, string>
             )
           )
         "
@@ -150,17 +150,14 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps } from 'vue'
 import {
   Field as VeeField,
   FieldArray,
   ErrorMessage
 } from 'vee-validate'
 
-import { FormField } from '@/task_creation_form'
+import type { FormField } from '@/task_creation_form'
 
-interface Props {
-  field: FormField
-}
+interface Props { field: FormField }
 const props = defineProps<Props>()
 </script>

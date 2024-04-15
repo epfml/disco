@@ -1,18 +1,17 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "jsx": "preserve",
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "useDefineForClassFields": true,
-    "types": ["cypress", "node"],
-    "sourceMap": true,
-    "moduleResolution": "node",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.vitest.json"
     }
-  },
-  "include": ["src/**/*.ts", "src/**/*.vue", "src/**/*.cy.ts"]
+  ],
+  "compilerOptions": {
+    "module": "NodeNext"
+  }
 }

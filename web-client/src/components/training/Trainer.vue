@@ -15,10 +15,10 @@
         >
           <div class="grid grid-cols-2 gap-8">
             <CustomButton @click="startTraining(false)">
-              Train alone
+              train alone
             </CustomButton>
             <CustomButton @click="startTraining(true)">
-              Train collaboratively
+              train collaboratively
             </CustomButton>
           </div>
         </template>
@@ -28,7 +28,7 @@
         >
           <div class="flex justify-center">
             <CustomButton @click="pauseTraining()">
-              Stop <span v-if="distributedTraining">Collaborative Training</span><span v-else>Training</span>
+              stop <span v-if="distributedTraining">collaborative training</span><span v-else>training</span>
             </CustomButton>
           </div>
         </template>
@@ -37,26 +37,32 @@
     <!-- Training Board -->
     <div>
       <TrainingInformation
-        :training-informant="trainingInformant"
+        :logs="logs"
         :has-validation-data="hasValidationData"
+        :messages="messages"
       />
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { List } from 'immutable'
 import { mapStores } from 'pinia'
+import { defineComponent } from 'vue'
 
-import { data, EmptyMemory, isTask, Task, informant, TrainingInformant, Disco, Memory, client as clients } from '@epfml/discojs-core'
+import type { RoundLogs, Task } from '@epfml/discojs-core'
+import { data, EmptyMemory, isTask, Disco, Memory, client as clients } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
 // TODO @s314cy: move to discojs-core/src/client/get.ts
 import { getClient } from '@/clients'
+import { useToaster } from '@/composables/toaster'
 import TrainingInformation from '@/components/training/TrainingInformation.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import IconCard from '@/components/containers/IconCard.vue'
+
+const toaster = useToaster()
 
 export default defineComponent({
   name: 'Trainer',
@@ -68,22 +74,21 @@ export default defineComponent({
   props: {
     task: {
       validator: isTask,
-      default: undefined
+      default: undefined as Task | undefined
     },
-    datasetBuilder: {
-      type: data.DatasetBuilder,
-      default: undefined
-    }
+    datasetBuilder: data.DatasetBuilder
   },
   data (): {
     distributedTraining: boolean,
     startedTraining: boolean,
-    trainingInformant: TrainingInformant
+    logs: List<RoundLogs>,
+    messages: List<string>,
     } {
     return {
       distributedTraining: false,
       startedTraining: false,
-      trainingInformant: new informant.LocalInformant(this.task, 10)
+      logs: List(),
+      messages: List(),
     }
   },
   computed: {
@@ -98,10 +103,16 @@ export default defineComponent({
       return new Disco(
         this.task,
         {
-          logger: this.$toast,
+          logger: {
+            success: (msg: string) => {
+              this.messages = this.messages.push(msg)
+            },
+            error: (msg: string) => {
+              this.messages = this.messages.push(msg)
+            },
+          },
           memory: this.memory,
           scheme: this.scheme,
-          informant: this.trainingInformant,
           client: this.client
         }
       )
@@ -116,62 +127,46 @@ export default defineComponent({
     },
     hasValidationData (): boolean {
       return this.task?.trainingInformation?.validationSplit > 0
-    }
-  },
-  watch: {
-    scheme (newScheme: Task['trainingInformation']['scheme']): void {
-      const args = [this.task, 10] as const
-      switch (newScheme) {
-        case 'federated':
-          this.trainingInformant = new informant.FederatedInformant(...args)
-          break
-        case 'decentralized':
-          this.trainingInformant = new informant.DecentralizedInformant(...args)
-          break
-        case 'local':
-          this.trainingInformant = new informant.LocalInformant(...args)
-          break
-        default: {
-          // eslint-disable-next-line no-unused-vars
-          const _: never = newScheme
-          throw new Error('should never happen')
-        }
-      }
-    }
+    },
   },
   methods: {
     async startTraining (distributedTraining: boolean): Promise<void> {
       this.distributedTraining = distributedTraining
 
-      if (!this.datasetBuilder.built) {
-        try {
-          this.dataset = await this.datasetBuilder.build()
-        } catch (e) {
-          console.error(e.message)
-          if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
-            // missing field is specified between two "quotes"
-            const missingFields: String = e.message.split('"')[1].split('"')[0]
-            this.$toast.error(`The input data is missing the field "${missingFields}"`)
-          } else {
-            this.$toast.error('Incorrect data format. Please check the expected format at the previous step.')
-          }
-          this.cleanState()
-          return
-        }
+      if (this.datasetBuilder === undefined) {
+        throw new Error('no dataset builder')
       }
 
-      this.$toast.info('Model training started')
+      let dataset
+      try {
+        dataset = await this.datasetBuilder.build()
+      } catch (e) {
+        console.error(e)
+        if (e instanceof Error && e.message.includes('provided in columnConfigs does not match any of the column names')) {
+          // missing field is specified between two "quotes"
+          const missingFields: String = e.message.split('"')[1].split('"')[0]
+          toaster.error(`The input data is missing the field "${missingFields}"`)
+        } else {
+          toaster.error('Incorrect data format. Please check the expected format at the previous step.')
+        }
+        this.cleanState()
+        return
+      }
+
+      toaster.info('Model training started')
 
       try {
         this.startedTraining = true
-        await this.disco.fit(this.dataset)
+        for await (const roundLogs of this.disco.fit(dataset)) {
+          this.logs = this.logs.push(roundLogs)
+        }
         this.startedTraining = false
       } catch (e) {
-        this.$toast.error('An error occurred during training')
+        toaster.error('An error occurred during training')
         console.error(e)
         this.cleanState()
       }
-      this.$toast.success('Training successfully completed')
+      toaster.success('Training successfully completed')
     },
     cleanState (): void {
       this.distributedTraining = false

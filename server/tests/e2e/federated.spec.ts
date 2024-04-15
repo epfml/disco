@@ -1,25 +1,28 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { Server } from 'node:http'
-import { Range } from 'immutable'
+import { List, Range } from 'immutable'
 import { assert, expect } from 'chai'
 
-import type { WeightsContainer } from '@epfml/discojs-core'
+import type { RoundLogs, WeightsContainer } from '@epfml/discojs-core'
 import {
   Disco, client as clients, data,
-  aggregator as aggregators, informant, defaultTasks
+  aggregator as aggregators, defaultTasks
 } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/discojs-node'
 
 import { startServer } from '../../src/index.js'
 
-describe('end-to-end federated', function () {
-  this.timeout(100_000)
-
-  let server: Server
-  let url: URL
-  beforeEach(async () => { [server, url] = await startServer() })
-  afterEach(() => { server?.close() })
+describe("end-to-end federated", function () {
+  let server: Server;
+  let url: URL;
+  beforeEach(async function () {
+    this.timeout("5s");
+    [server, url] = await startServer();
+  });
+  afterEach(() => {
+    server?.close();
+  });
 
   async function cifar10user (): Promise<WeightsContainer> {
     const dir = '../datasets/CIFAR10/'
@@ -34,7 +37,7 @@ describe('end-to-end federated', function () {
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
     const disco = new Disco(cifar10Task, { scheme: 'federated', client })
 
-    await disco.fit(data)
+    for await (const _ of disco.fit(data));
     await disco.close()
 
     if (aggregator.model === undefined) {
@@ -59,23 +62,18 @@ describe('end-to-end federated', function () {
 
     const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
-    const trainingInformant = new informant.FederatedInformant(titanicTask, 10)
-    const disco = new Disco(titanicTask, { scheme: 'federated', client, aggregator, informant: trainingInformant })
+    const disco = new Disco(titanicTask, { scheme: 'federated', client, aggregator })
 
-    await disco.fit(data)
+    let logs = List<RoundLogs>()
+    for await (const round of disco.fit(data))
+	logs = logs.push(round)
     await disco.close()
 
     if (aggregator.model === undefined) {
       throw new Error('model was not set')
     }
-    assert(
-      trainingInformant.trainingAccuracy() > 0.6,
-      `expected training accuracy greater than 0.6 but got ${trainingInformant.trainingAccuracy()}`
-    )
-    assert(
-      trainingInformant.validationAccuracy() > 0.6,
-      `expected validation accuracy greater than 0.6 but got ${trainingInformant.validationAccuracy()}`
-    )
+    expect(logs.last()?.epoches.last()?.training.accuracy).to.be.greaterThan(0.6)
+    expect(logs.last()?.epoches.last()?.validation.accuracy).to.be.greaterThan(0.6)
     return aggregator.model.weights
   }
 
@@ -89,32 +87,35 @@ describe('end-to-end federated', function () {
 
     const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, task, aggregator)
-    const trainingInformant = new informant.FederatedInformant(task, 10)
-    const disco = new Disco(task, { scheme: 'federated', client, aggregator, informant: trainingInformant })
+    const disco = new Disco(task, { scheme: 'federated', client, aggregator })
 
-    await disco.fit(dataSplit)
+    let logs = List<RoundLogs>()
+    for await (const round of disco.fit(dataSplit))
+	logs = logs.push(round)
     await disco.close()
 
-    expect(trainingInformant.losses.first()).to.be.above(trainingInformant.losses.last())
+    expect(logs.first()?.epoches.first()?.loss).to.be.above(
+      logs.last()?.epoches.last()?.loss as number,
+    );
   }
 
-  it('two cifar10 users reach consensus', async () => {
-    this.timeout(90_000)
+  it("two cifar10 users reach consensus", async function () {
+    this.timeout(90_000);
 
-    const [m1, m2] = await Promise.all([cifar10user(), cifar10user()])
-    assert.isTrue(m1.equals(m2))
-  })
+    const [m1, m2] = await Promise.all([cifar10user(), cifar10user()]);
+    assert.isTrue(m1.equals(m2));
+  });
 
-  it('two titanic users reach consensus', async () => {
-    this.timeout(30_000)
+  it("two titanic users reach consensus", async function () {
+    this.timeout(30_000);
 
-    const [m1, m2] = await Promise.all([titanicUser(), titanicUser()])
-    assert.isTrue(m1.equals(m2))
-  })
+    const [m1, m2] = await Promise.all([titanicUser(), titanicUser()]);
+    assert.isTrue(m1.equals(m2));
+  });
 
-  it('trains wikitext', async () => {
-    this.timeout(120_000)
+  it("trains wikitext", async function () {
+    this.timeout("3m");
 
-    await wikitextUser()
-  })
+    await wikitextUser();
+  });
 })

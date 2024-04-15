@@ -20,7 +20,7 @@
       <CustomButton
         class="text-xs"
       >
-        Click to show on Maps
+        click to show on maps
       </CustomButton>
     </div>
   </div>

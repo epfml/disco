@@ -1,4 +1,8 @@
 # local env files
 .env.local
 .env.*.local
+
+# tsc --build state
+/tsconfig.*.tsbuildinfo
+
 node_modules

@@ -18,7 +18,7 @@
     />
   </svg>
 </template>
-<script>
+<script lang="ts">
 export default {
   name: 'Download2Icon',
   props: {

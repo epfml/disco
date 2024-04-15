@@ -20,8 +20,8 @@ describe('peer pool', function () {
     ))
   })
 
-  afterEach(() => {
-    pools.forEach((p) => { p.shutdown() })
+  afterEach(async () => {
+    await Promise.all(pools.valueSeq().map((p) => p.shutdown()))
   })
 
   function mockServer (poolId: string): EventConnection {
@@ -36,7 +36,7 @@ describe('peer pool', function () {
       },
       on: (): void => {},
       once: (): void => {},
-      disconnect: (): void => {}
+      disconnect: (): Promise<void> => Promise.resolve()
     }
   }
 

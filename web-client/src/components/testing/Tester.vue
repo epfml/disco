@@ -16,7 +16,7 @@
           Below, once you assessed the model, you can compare the ground truth and the predicted values
         </template>
         <template #button>
-          Test
+          test
         </template>
       </ButtonCard>
       <!--only predict using the model -->
@@ -33,7 +33,7 @@
           By clicking the button below, you will be able to predict using the selected model with chosen dataset of yours.
         </template>
         <template #button>
-          Predict
+          predict
         </template>
       </ButtonCard>
 
@@ -58,7 +58,7 @@
           </div>
         </div>
         <!-- chart -->
-        <apexchart
+        <ApexChart
           width="100%"
           height="200"
           type="area"
@@ -67,15 +67,12 @@
         />
       </div>
 
-      <div v-if="dataWithPred">
+      <div v-if="dataWithPred !== undefined">
         <div class="mx-auto lg:w-1/2 text-center pb-8">
           <CustomButton @click="saveCsv()">
-            Download as CSV
+            download as csv
           </CustomButton>
-          <a
-            id="downloadLink"
-            class="hidden"
-          />
+          <a ref="downloadLink" class="hidden" />
         </div>
 
         <div
@@ -135,7 +132,7 @@
             <button
               type="button"
               class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
-              @click="mapModalUrl = null"
+              @click="mapModalUrl = undefined"
             >
               <svg
                 aria-hidden="true"
@@ -184,7 +181,7 @@
                       p-3 border-l-2 border-disco-cyan
                     "
                 >
-                  {{ task.trainingInformation.LABEL_LIST[i] }}
+                  {{ task.trainingInformation.LABEL_LIST === undefined ? 'undefined' : task.trainingInformation.LABEL_LIST[i] }}
                 </td>
               </tr>
             </thead>
@@ -194,7 +191,7 @@
                 :key="i"
               >
                 <th class="text-center text-disco-cyan text-lg font-normal border-t-2 border-disco-cyan">
-                  {{ task.trainingInformation.LABEL_LIST[i] }}
+                  {{ task.trainingInformation.LABEL_LIST === undefined ? 'undefined' : task.trainingInformation.LABEL_LIST[i] }}
                 </th>
                 <td
                   v-for="(predictions, j) in row"
@@ -234,10 +231,13 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed, defineProps, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { computed, ref } from 'vue'
+// @ts-expect-error waiting for vue3-apexcharts#98
+import ApexChart from "vue3-apexcharts";
 
-import { data, ConsoleLogger, EmptyMemory, Memory, Task, Validator, LabelTypeEnum } from '@epfml/discojs-core'
+import type { Task } from '@epfml/discojs-core'
+import { data, ConsoleLogger, EmptyMemory, Memory, Validator, LabelTypeEnum } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
@@ -258,7 +258,7 @@ const validationStore = useValidationStore()
 
 interface Props {
   task: Task
-  datasetBuilder?: data.DatasetBuilder<File>
+  datasetBuilder: data.DatasetBuilder<File>
   groundTruth: Boolean
 }
 
@@ -275,18 +275,18 @@ interface DataWithPrediction {
   groundTruth?: number
 }
 
-const featuresNames = ref<String[]>(null)
-const dataWithPred = ref<DataWithPrediction[]>(null)
+const featuresNames = ref<String[]>([])
+const dataWithPred = ref<DataWithPrediction[] | undefined>(undefined)
 
-const validator = ref<Validator>(undefined)
-const mapModalUrl = ref<string>(null)
+const validator = ref<Validator | undefined>(undefined)
+const mapModalUrl = ref<string | undefined>(undefined)
 
 const numberOfClasses = computed<number>(() =>
   props.task.trainingInformation.LABEL_LIST?.length ?? 2)
 const isImageTaskType = computed<boolean>(() =>
   props.task.trainingInformation.dataType === 'image')
 const isPolygonMapVisualization = computed<boolean>(() =>
-  props.task.displayInformation.labelDisplay.labelType === LabelTypeEnum.POLYGON_MAP)
+  props.task.displayInformation.labelDisplay?.labelType === LabelTypeEnum.POLYGON_MAP)
 
 const memory = computed<Memory>(() => useIndexedDB ? new IndexedDB() : new EmptyMemory())
 const accuracyData = computed<number[]>(() => {
@@ -301,6 +301,8 @@ const visitedSamples = computed<number>(() => {
   const r = validator.value?.visitedSamples
   return r !== undefined ? r : 0
 })
+
+const downloadLink = ref<HTMLAnchorElement>()
 
 async function getValidator (): Promise<Validator | undefined> {
   if (validationStore.model === undefined) {
@@ -322,20 +324,26 @@ function handleDatasetBuildError (e: Error) {
 
 async function predictUsingModel (): Promise<void> {
   if (props.datasetBuilder?.size === 0) {
-    return toaster.error('Upload a dataset first')
+    toaster.error('Upload a dataset first')
+    return
   }
 
   const v = await getValidator()
   if (v !== undefined) {
     validator.value = v
   } else {
-    return toaster.error('No model found')
+    toaster.error('No model found')
+    return
   }
   let testingSet: data.Data
   try {
     testingSet = (await props.datasetBuilder.build({ inference: true })).train
   } catch (e) {
-    handleDatasetBuildError(e)
+    if (e instanceof Error) {
+      handleDatasetBuildError(e)
+    } else {
+      console.error(e)
+    }
     return
   }
 
@@ -346,6 +354,9 @@ async function predictUsingModel (): Promise<void> {
     dataWithPred.value = List(props.datasetBuilder.sources).zip(List(predictions)).map(([source, prediction]) =>
       ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred })).toArray()
   } else {
+    if (props.task.trainingInformation.inputColumns === undefined) {
+      throw new Error("no input columns but CSV needs it")
+    }
     featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
     dataWithPred.value = predictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
   }
@@ -354,21 +365,27 @@ async function predictUsingModel (): Promise<void> {
 
 async function assessModel (): Promise<void> {
   if (props.datasetBuilder?.size === 0) {
-    return toaster.error('Upload a dataset first')
+    toaster.error('Upload a dataset first')
+    return
   }
 
   const v = await getValidator()
   if (v !== undefined) {
     validator.value = v
   } else {
-    return toaster.error('No model found')
+    toaster.error('No model found')
+    return
   }
 
   let testingSet: data.Data
   try {
     testingSet = (await props.datasetBuilder.build()).train
   } catch (e) {
-    handleDatasetBuildError(e)
+    if (e instanceof Error) {
+      handleDatasetBuildError(e)
+    } else {
+      console.error(e)
+    }
     return
   }
 
@@ -380,17 +397,24 @@ async function assessModel (): Promise<void> {
       dataWithPred.value = List(props.datasetBuilder.sources).zip(List(assessmentResults)).map(([source, prediction]) =>
         ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred, groundTruth: prediction.groundTruth })).toArray()
     } else {
+      if (props.task.trainingInformation.inputColumns === undefined) {
+        throw new Error("no input columns but CSV needs it")
+      }
       featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns, 'Target_' + props.task.trainingInformation.outputColumns]
       dataWithPred.value = assessmentResults.map(pred => ({ data: [...(pred.features as number[]), pred.pred, pred.groundTruth] }))
     }
     toaster.success('Model testing finished successfully!')
   } catch (e) {
-    toaster.error(e instanceof Error ? e.message : e.toString())
+    let msg = 'unable to assess model'
+    if (e instanceof Error) {
+      msg += `: ${e.message}`
+    }
+    toaster.error(msg)
   }
 }
 
-function openMapModal (prediction: number, groundTruth?: number) {
-  const baseUrl = props.task.displayInformation.labelDisplay.mapBaseUrl
+function openMapModal (prediction?: number, groundTruth?: number) {
+  const baseUrl = props.task.displayInformation.labelDisplay?.mapBaseUrl
   if (isPolygonMapVisualization.value && baseUrl) {
     const correctColor = '274C78'
     const errorColor = 'FF0000'
@@ -404,8 +428,15 @@ function openMapModal (prediction: number, groundTruth?: number) {
 }
 
 function saveCsv () {
-  let csvData: string
+  if (downloadLink.value === undefined) {
+    throw new Error("asked to download CSV but page yet rendered")
+  }
 
+  if (dataWithPred.value === undefined) {
+    throw new Error("asked to save CSV without having training results")
+  }
+
+  let csvData: string
   if (isImageTaskType.value) {
     if (props.groundTruth) {
       const rows = dataWithPred.value.map(el => [(el.data as ImageWithUrl).name, String(el.prediction), String(el.groundTruth)])
@@ -421,10 +452,9 @@ function saveCsv () {
   }
 
   const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
-  const downloadLink = document.getElementById('downloadLink')
-  downloadLink.setAttribute('href', URL.createObjectURL(blob))
-  downloadLink.setAttribute('download', `predictions_${props.task.id}_${Date.now()}.csv`)
-  downloadLink.click()
+  downloadLink.value.setAttribute('href', URL.createObjectURL(blob))
+  downloadLink.value.setAttribute('download', `predictions_${props.task.id}_${Date.now()}.csv`)
+  downloadLink.value.click()
 }
 
 </script>

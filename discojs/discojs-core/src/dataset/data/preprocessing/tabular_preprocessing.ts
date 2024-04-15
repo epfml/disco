@@ -19,16 +19,27 @@ interface TabularEntry extends tf.TensorContainerObject {
 const sanitize: PreprocessingFunction = {
   type: TabularPreprocessing.Sanitize,
   apply: async (entry: Promise<tf.TensorContainer>) => {
+    const entryContainer = await entry
     // if preprocessing a dataset without labels, then the entry is an array of numbers
-    if (Array.isArray(entry)) {
+    if (Array.isArray(entryContainer)) {
+      const entry = entryContainer as number[]
       return entry.map((i: number) => i ?? 0)
-    // otherwise it is an object with feature and labels
-    } else {
-      const { xs, ys } = await entry as TabularEntry
-      return {
-        xs: xs.map(i => i ?? 0),
-        ys
+      // if it is an object
+    } else if (typeof entryContainer === 'object' && entry !== null) {
+      // if the object is a tensor container with features xs and labels ys
+      if (Object.hasOwn(entryContainer, 'xs')) {
+        const { xs, ys } = entryContainer as TabularEntry
+        return {
+          xs: xs.map(i => i ?? 0),
+          ys
+        }
+        // if the object contains features as a dict of feature names-values
+      } else {
+        const entry = Object.values(entryContainer)
+        return entry.map((i: number) => i ?? 0)
       }
+    } else {
+      throw new Error('Unrecognized format during tabular preprocessing')
     }
   }
 }

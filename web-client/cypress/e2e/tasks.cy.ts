@@ -1,30 +1,37 @@
-/* eslint-disable no-undef */
+import { defaultTasks } from "@epfml/discojs-core";
 
-import TASK_LIST from './tasks'
+describe("tasks page", () => {
+  it("displays tasks", () => {
+    cy.intercept({ hostname: "server", pathname: "tasks" }, [
+      defaultTasks.titanic.getTask(),
+      defaultTasks.mnist.getTask(),
+      defaultTasks.geotags.getTask(),
+    ]);
+    cy.visit("/#/list");
 
-describe('tasks page', () => {
-  it('displays tasks', () => {
-    cy.intercept({ hostname: 'server', pathname: 'tasks' }, TASK_LIST).as('tasks')
+    cy.get('div[id="tasks"]').children().should("have.length", 3);
+  });
 
-    cy.visit('/#/list')
-    cy.get('div[id="tasks"]').children().should('have.length', TASK_LIST.length)
-  })
+  it("redirects to training", () => {
+    cy.intercept({ hostname: "server", pathname: "tasks" }, [
+      defaultTasks.titanic.getTask(),
+    ]);
+    cy.visit("/#/list");
 
-  it('redirects to training', () => {
-    cy.intercept({ hostname: 'server', pathname: 'tasks' }, TASK_LIST).as('tasks')
+    cy.get(`div[id="titanic"]`).find("button").click();
+    cy.url().should("eq", `${Cypress.config().baseUrl}#/titanic`);
 
-    cy.visit('/#/list')
-    TASK_LIST.forEach((task) => {
-      cy.get(`div[id="${task.id}"]`).find('button').click()
-      cy.url().should('eq', `${Cypress.config().baseUrl}#/${task.id}`)
-      cy.get('button').contains('previous', { matchCase: false }).click()
-    })
-  })
+    cy.contains("button", "previous").click();
+    cy.url().should("eq", `${Cypress.config().baseUrl}#/list`);
+  });
 
-  it('displays error message', () => {
-    cy.intercept({ hostname: 'server', pathname: 'tasks' }, { statusCode: 404 }).as('tasks')
+  it("displays error message", () => {
+    cy.intercept(
+      { hostname: "server", pathname: "tasks" },
+      { statusCode: 404 },
+    );
 
-    cy.visit('/#/list')
-    cy.get('button').contains('reload page', { matchCase: false })
-  })
-})
+    cy.visit("/#/list");
+    cy.contains("button", "reload page");
+  });
+});

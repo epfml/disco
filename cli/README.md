@@ -2,7 +2,7 @@
 
 The CLI lets one use DISCO in standalone manner (i.e. without running a server or browser backend manually). The CLI allows to conveniently simulate multiple clients and log metrics such as the training and validation accuracy of each client. Integration of DISCO into other apps can follow the same principles (no browser needed). Currently, the CLI only support running federated tasks. Since the CLI relies on Node.js, it uses DISCO through `discojs-node`.
 
-For example, the following command trains a model on CIFAR10, using 4 federated clients for 15 epochs with a round duration of 5 batches (see [DISCOJS.md](../docs/DISCOJS.md#rounds) for more information on rounds)
+For example, the following command trains a model on CIFAR10, using 4 federated clients for 15 epochs with a round duration of 5 epochs (see [DISCOJS.md](../docs/DISCOJS.md#rounds) for more information on rounds)
 
 > [!NOTE]
 > Make sure you first ran `./get_training_data.sh` (in the root folder) to download training data.

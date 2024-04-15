@@ -82,17 +82,19 @@ npm -w web-client start # from the root folder
 npm start # from the web-client folder
 ```
 
-The Vue development mode supports hot-reloading via `vue-cli-service` and the client will automatically restart whenever a change in `web-client` is detected. Starting the Vue client should print something similar to
+The Vue development mode supports hot-reloading via `vite` and the client will automatically restart whenever a change in `web-client` is detected. Starting the Web Client should print something similar to
 
 ```
-App running at:
-  - Local:   http://localhost:8081/
-  - Network: http://192.168.43.231:8081/
+  VITE v5.2.7  ready in 1312 ms
+
+  ➜  Local:   http://localhost:8081/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
 ```
 
 You can access the client at the Local address from the machine running the web-client and any device on the same network can access the app with the Network address.
 
-As said previously, modifying `discojs` isn't effective automatically and requires a build. You may have to restart the `web-client` manually after rebuilding `discojs`. Section [Building `discojs`](#building-discojs) discusses this in more details.
+As said previously, modifying `discojs` isn't effective automatically and requires a build.
 
 You can test the `web-client` with:
 

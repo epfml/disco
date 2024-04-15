@@ -1,9 +1,10 @@
 {
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["./e2e/**/*", "./support/**/*"],
   "compilerOptions": {
-    "target": "es6",
-    "lib": ["es6", "dom"],
-    "types": ["cypress", "node"],
-    "moduleResolution": "node"
-  },
-  "include": ["**/*.ts"]
+    "isolatedModules": false,
+    "target": "es2022",
+    "lib": ["es2022", "dom"],
+    "types": ["cypress"]
+  }
 }

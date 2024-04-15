@@ -75,11 +75,12 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps } from 'vue'
+import { computed } from 'vue'
 
-import { Task } from '@epfml/discojs-core'
+import type { Task } from '@epfml/discojs-core'
 
-import { trainingInformation, privacyParameters, FormField, FormSection } from '@/task_creation_form'
+import type { FormDependency, FormField, FormSection } from '@/task_creation_form'
+import { trainingInformation, privacyParameters } from '@/task_creation_form'
 import ModelCaching from './ModelCaching.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DropdownCard from '@/components/containers/DropdownCard.vue'
@@ -112,7 +113,7 @@ const prettifyField = (field: FormField, from: any, camelCase: boolean): string 
     case 'boolean':
       return obj ? 'Yes' : 'No'
     case 'object':
-      if ('length' in obj) {
+      if (Array.isArray(obj)) {
         return obj.length > 1
           ? obj.reduce((a, b) => strCase(String(a)) + ', ' + strCase(String(b)))
           : strCase(String(obj[0]))
@@ -129,15 +130,12 @@ const camelToTitleCase = (camelCase: string): string =>
 
 const displayField = (section: FormSection, field: FormField): boolean => {
   if (section.id === 'privacyParameters') {
-    if (field.dependencies === undefined) {
+    const deps = field.dependencies
+    if (deps === undefined) {
       return true
     }
-    for (const key of Object.keys(field.dependencies)) {
-      if (props.task.trainingInformation[key] !== field.dependencies[key]) {
-        return false
-      }
-    }
-    return true
+    const potentialDependencies: Array<keyof FormDependency> = ['dataType', 'scheme', 'decentralizedSecure']
+    return potentialDependencies.every((key) => props.task.trainingInformation[key] !== deps[key])
   }
   return false
 }

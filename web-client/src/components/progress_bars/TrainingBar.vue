@@ -126,7 +126,7 @@
           @click="toStep(4)"
         >
           <template #text>
-            Finished
+            Evaluate Your Model
           </template>
           <template #icon>
             <svg
@@ -150,18 +150,18 @@
       >
         <div class="text-center md:text-right">
           <CustomButton
-            v-show="trainingStore.step >= 1"
+            v-show="trainingStore.step !== undefined && trainingStore.step >= 1"
             @click="prevStepOrList"
           >
-            Previous
+            previous
           </CustomButton>
         </div>
         <div class="text-center md:text-left">
           <CustomButton
-            v-show="trainingStore.step <= 3"
+            v-show="trainingStore.step !== undefined && trainingStore.step <= 3"
             @click="nextStep"
           >
-            Next
+            next
           </CustomButton>
         </div>
       </div>
@@ -186,6 +186,7 @@ const tasksStore = useTasksStore()
 const trainingStore = useTrainingStore()
 
 const scheme = computed(() => {
+  if (trainingStore.task === undefined) return undefined
   const task = tasksStore.tasks.get(trainingStore.task)
   return task?.trainingInformation?.scheme
 })

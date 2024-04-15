@@ -310,16 +310,9 @@ jobs:
         with:
           working-directory: ./web-client
           install: false
-          component: true
-        env:
-          VUE_APP_SERVER_URL: http://server
-      - uses: cypress-io/github-action@v6
-        with:
-          working-directory: ./web-client
-          install: false
           start: npm start
         env:
-          VUE_APP_SERVER_URL: http://server
+          VITE_SERVER_URL: http://server
 
   test-cli:
     needs: [build-lib-core, build-lib-node, build-server, download-datasets]

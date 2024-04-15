@@ -8,8 +8,7 @@
     "watch": "nodemon --ext ts --ignore dist --exec npm run",
     "build": "tsc",
     "lint": "npx eslint .",
-    "test": "mocha",
-    "docs": "typedoc ./src/index.ts --theme oxide"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -21,28 +20,24 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@tensorflow/tfjs": "4",
-    "@tensorflow/tfjs-node": "4",
-    "@types/msgpack-lite": "0.1",
     "@xenova/transformers": "2",
     "axios": "1",
-    "gpt3-tokenizer": "1",
     "immutable": "4",
     "isomorphic-wrtc": "1",
-    "isomorphic-ws": "4",
+    "isomorphic-ws": "5",
     "msgpack-lite": "0.1",
     "simple-peer": "9",
     "tslib": "2",
     "ws": "8"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-node": "^4.17.0",
     "@types/chai": "4",
-    "@types/mocha": "9",
+    "@types/mocha": "10",
     "@types/simple-peer": "9",
-    "chai": "4",
-    "mocha": "9",
+    "chai": "5",
+    "mocha": "10",
     "nodemon": "3",
-    "ts-node": "10",
-    "typedoc": "0.22",
-    "typedoc-theme-oxide": "0.1"
+    "ts-node": "10"
   }
 }

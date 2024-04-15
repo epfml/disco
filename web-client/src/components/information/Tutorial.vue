@@ -39,10 +39,10 @@
         <div class="flex items-center justify-center space-x-8">
           <!-- Light button -->
           <CustomButton @click="router.push('/list')">
-            Explore examples
+            explore examples
           </CustomButton>
           <CustomButton @click="router.push('/create')">
-            Create your own task
+            create your own task
           </CustomButton>
         </div>
       </card>

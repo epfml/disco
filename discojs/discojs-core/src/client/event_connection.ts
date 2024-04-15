@@ -12,7 +12,7 @@ export interface EventConnection {
   on: <K extends type>(type: K, handler: (event: NarrowMessage<K>) => void) => void
   once: <K extends type>(type: K, handler: (event: NarrowMessage<K>) => void) => void
   send: <T extends Message>(msg: T) => void
-  disconnect: () => void
+  disconnect: () => Promise<void>
 }
 
 export async function waitMessage<T extends type> (connection: EventConnection, type: T): Promise<NarrowMessage<T>> {
@@ -75,8 +75,8 @@ export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K>
     this.peer.send(msgpack.encode(msg))
   }
 
-  disconnect (): void {
-    this.peer.destroy()
+  async disconnect (): Promise<void> {
+    await this.peer.destroy()
   }
 }
 
@@ -117,8 +117,12 @@ export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K
     })
   }
 
-  disconnect (): void {
-    this.socket.close()
+  disconnect (): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.socket.once('close', resolve)
+      this.socket.once('error', reject)
+      this.socket.close()
+    })
   }
 
   send (msg: Message): void {
