@@ -15,9 +15,10 @@ async function main(): Promise<void> {
   const task = tasks.get('wikitext-103')
   if (task === undefined) { throw new Error('task not found') }
   
+  let model;
   const modelFolder = './models'
   const modelFileName = 'model_random.json'
-  
+
   // Toggle TRAIN_MODEL to either train and save a new model from scratch or load an existing model
   const TRAIN_MODEL = true
   if (TRAIN_MODEL) {
@@ -36,26 +37,19 @@ async function main(): Promise<void> {
       throw new Error('model was not set')
     }
     // Save the trained model
-    const model = aggregator.model as models.GPT
+    model = aggregator.model as models.GPT
     await saveModelToDisk(model, modelFolder, modelFileName)
-    
-    // Retrieve the tokenizer used during training
-    const tokenizer = await models.getTaskTokenizer(task)
-    const prompt = 'The game began development in 2010 , carrying over a large portion'
-    const generations = await model.generate(prompt, tokenizer)
-    console.log(generations)
-    
     await disco.close()
   } else {
     // Load the trained model
-    const model = await loadModelFromDisk(`${modelFolder}/${modelFileName}`) as models.GPT
-
-    // Retrieve the tokenizer used during training
-    const tokenizer = await models.getTaskTokenizer(task)
-    // The game began development in 2010 , carrying over a large portion
-    const prompt = 'Hello world how'
-    console.log(await model.generate(prompt, tokenizer, 20))
+    model = await loadModelFromDisk(`${modelFolder}/${modelFileName}`) as models.GPT
   }
+
+  // Retrieve the tokenizer used during training
+  const tokenizer = await models.getTaskTokenizer(task)
+  const prompt = 'The game began development in 2010 , carrying over a large portion'
+  const generations = await model.generate(prompt, tokenizer)
+  console.log(generations)
 }
 
 async function loadWikitextData (task: Task): Promise<data.DataSplit> {
