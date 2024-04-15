@@ -109,7 +109,7 @@ class GPTModel extends tf.LayersModel {
         continueTraining = next.done !== true && iteration <= this.config.maxIter
       }
       let logs: tf.Logs = {
-        'training_loss': averageLoss / iteration
+        'loss': averageLoss / iteration
       }
       if (evalDataset !== undefined) {
         logs = { ...logs, ...await evaluate(this, evalDataset, this.config.maxEvalBatches) }

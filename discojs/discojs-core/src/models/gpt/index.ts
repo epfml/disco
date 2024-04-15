@@ -41,14 +41,7 @@ export class GPT extends Model {
     const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
       epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
       validationData,
-      callbacks: {
-        onEpochEnd: (_, cur) => {
-          logs = cur;
-          if (logs !== undefined && cur !== undefined) {
-            logs.loss = cur.val_loss;
-          }
-        },
-      },
+      callbacks: { onEpochEnd: (_, cur) => { logs = cur }},
     };
     for (let epoch = 0; epoch < epochs; epoch++) {
       await this.model.fitDataset(trainingData, trainingArgs);
@@ -56,24 +49,26 @@ export class GPT extends Model {
       if (logs === undefined) {
         throw new Error("epoch didn't gave any logs");
       }
-      const { val_loss, acc, val_acc } = logs;
-      if (
-        val_loss === undefined ||
-        isNaN(val_loss) ||
-        acc === undefined ||
-        isNaN(acc) ||
-        val_acc === undefined ||
-        isNaN(val_acc)
-      ) {
-        throw new Error("epoch gave invalid logs");
+      const { loss, val_acc, val_loss } = logs;
+      if (loss === undefined || isNaN(loss)) {
+        throw new Error("Invalid training logs");
+      }
+      const structuredLogs: EpochLogs = {
+        epoch,
+        training: {
+          loss: logs.loss
+        }
       }
 
-      yield {
-        epoch,
-        loss: logs.val_loss,
-        training: { accuracy: logs.acc },
-        validation: { accuracy: logs.val_acc },
-      };
+      if (validationData !== undefined) {
+        if(val_loss === undefined || isNaN(val_loss) ||
+          val_acc === undefined || isNaN(val_acc)) {
+          throw new Error("Invalid validation logs");
+        }
+        structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
+      }
+
+      yield structuredLogs
     }
   }
 

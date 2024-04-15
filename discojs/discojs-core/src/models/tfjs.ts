@@ -38,34 +38,32 @@ export class TFJS extends Model {
       await this.model.fitDataset(trainingData, {
         epochs: 1,
         validationData,
-        callbacks: {
-          onEpochEnd: (_, cur) => {
-            logs = cur;
-          },
-        },
+        callbacks: { onEpochEnd: (_, cur) => { logs = cur } },
       });
 
       if (logs === undefined) {
         throw new Error("epoch didn't gave any logs");
       }
-      const { val_loss, acc, val_acc } = logs;
-      if (
-        val_loss === undefined ||
-        isNaN(val_loss) ||
-        acc === undefined ||
-        isNaN(acc) ||
-        val_acc === undefined ||
-        isNaN(val_acc)
-      ) {
-        throw new Error("epoch gave invalid logs");
+      const { loss, acc, val_acc, val_loss } = logs;
+      console.log(logs)
+      if (loss === undefined || isNaN(loss) || acc === undefined || isNaN(acc)) {
+        throw new Error("Invalid training logs");
       }
-
-      yield {
+      const structuredLogs: EpochLogs = {
         epoch,
-        loss: logs.val_loss,
-        training: { accuracy: logs.acc },
-        validation: { accuracy: logs.val_acc },
-      };
+        training: {
+          loss: logs.loss,
+          accuracy: logs.acc,
+         }
+      }
+      if (validationData !== undefined) {
+        if(val_loss === undefined || isNaN(val_loss) ||
+          val_acc === undefined || isNaN(val_acc)) {
+          throw new Error("Invalid validation logs");
+        }
+        structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
+      }
+      yield structuredLogs
     }
   }
 
