@@ -1,8 +1,10 @@
 import { List } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import type { data, Model, Task, Logger, client as clients, Memory, ModelSource, Features } from '../index.js'
+import type { data, Model, Task, Logger, client as clients, Memory, ModelSource } from '../index.js'
 import { GraphInformant } from '../index.js'
+
+type Features = number | number[] | number[][] | number[][][] | number[][][][] | number[][][][][]
 
 export class Validator {
   private readonly graphInformant = new GraphInformant()
