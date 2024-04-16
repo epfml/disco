@@ -3,7 +3,7 @@ import * as tf from '@tensorflow/tfjs'
 
 import type { Task } from '../../index.js'
 
-import type { Data, Dataset, DataSplit } from '../index.js'
+import type { Data, DataSplit } from '../index.js'
 import { ImageData } from '../data/index.js'
 import type { DataConfig } from '../data_loader/index.js'
 import { DataLoader } from '../data_loader/index.js'
@@ -27,7 +27,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
     super()
   }
 
-  async load (image: Source, config?: DataConfig): Promise<Dataset> {
+  async load (image: Source, config?: DataConfig): Promise<tf.data.Dataset<tf.TensorContainer>> {
     let tensorContainer: tf.TensorContainer
     if (config?.labels === undefined) {
       tensorContainer = await this.readImageFrom(image, config?.channels)

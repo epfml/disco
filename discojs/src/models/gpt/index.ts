@@ -8,7 +8,6 @@ import * as tf from '@tensorflow/tfjs'
 import { PreTrainedTokenizer } from '@xenova/transformers';
 
 import { WeightsContainer } from '../../index.js'
-import type { Dataset } from '../../dataset/index.js'
 
 import { BatchLogs, Model, EpochLogs } from "../index.js";
 import type { Prediction, Sample } from '../model.js'
@@ -100,7 +99,7 @@ export class GPT extends Model {
   }
 
   async #evaluate(
-    dataset: Dataset,
+    dataset: tf.data.Dataset<tf.TensorContainer>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await evaluate(
       this.model,

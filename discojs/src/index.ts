@@ -19,4 +19,9 @@ export * from './task/index.js'
 export * as defaultTasks from './default_tasks/index.js'
 
 export * as async_iterator from "./utils/async_iterator.js"
+
+export { Dataset } from "./dataset/index.js";
+export * from "./dataset/types.js"; // TODO merge with above
+export * from "./types.js";
+
 export * as convertors from "./convertors.js";
