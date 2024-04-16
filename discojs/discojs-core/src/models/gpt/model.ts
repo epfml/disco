@@ -55,6 +55,8 @@ class GPTModel extends tf.LayersModel {
     await callbacks.onTrainBegin?.()
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let averageLoss = 0
+      let averageWeightUpdateTime = 0
+      let averageMemory = 0
       let iteration = 1
       const iterator = await dataset.iterator()
 
@@ -77,23 +79,28 @@ class GPTModel extends tf.LayersModel {
           }
           return tf.losses.softmaxCrossEntropy(ys, logits)
         }
-        
+        let peakMemory
         const lossTensor = tf.tidy(() => {
           const { grads, value: lossTensor } = this.optimizer.computeGradients(lossFn)
           const gradsClipped = clipByGlobalNormObj(grads, 1)
           this.optimizer.applyGradients(gradsClipped)
+          peakMemory = tf.memory().numBytes / 1024 / 1024
           return lossTensor
         })
         
         const loss = await lossTensor.array()
         averageLoss += loss
+        weightUpdateTime = performance.now() - weightUpdateTime
+        averageWeightUpdateTime += weightUpdateTime
+        peakMemory = peakMemory ?? 0
+        averageMemory += peakMemory
         tf.dispose([xs, ys, lossTensor, next.value])
 
-        weightUpdateTime = performance.now() - weightUpdateTime
         console.log(
           `Epoch: ${epoch}`,
           `\tStep: ${iteration} / ${this.config.maxIter}`,
           `\tLoss: ${loss.toFixed(3)}`,
+          `\tPeak memory: ${peakMemory.toFixed(2)} MB`,
           `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`,
           `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
           `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
@@ -107,9 +114,16 @@ class GPTModel extends tf.LayersModel {
         }
         iteration++
         continueTraining = next.done !== true && iteration <= this.config.maxIter
+        // If we reached the last iteration, cleanup the tensors
+        if (next.done != true && iteration > this.config.maxIter) {
+          const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
+          tf.dispose([xs, ys])
+        }
       }
       let logs: tf.Logs = {
-        'loss': averageLoss / iteration
+        'loss': averageLoss / iteration,
+        'weightUpdateTime': averageWeightUpdateTime / iteration,
+        'memory': averageMemory / iteration
       }
       if (evalDataset !== undefined) {
         logs = { ...logs, ...await evaluate(this, evalDataset, this.config.maxEvalBatches) }

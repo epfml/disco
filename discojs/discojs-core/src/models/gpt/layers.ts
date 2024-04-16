@@ -188,7 +188,7 @@ class CausalSelfAttention extends tf.layers.Layer {
       y = tf.reshape(y, [B, T, C])
       y = dense(y, this.cProjKernel, this.cProjBias)
       y = kwargs.training === true ? tf.dropout(y, this.dropout) : y
-
+      console.log("Attention memory", (tf.memory().numBytes / 1024 / 1024).toFixed(0))
       return y
     })
   }

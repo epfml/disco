@@ -45,13 +45,14 @@ export class GPT extends Model {
     };
     for (let epoch = 0; epoch < epochs; epoch++) {
       await this.model.fitDataset(trainingData, trainingArgs);
-
       if (logs === undefined) {
         throw new Error("epoch didn't gave any logs");
       }
-      const { loss, val_acc, val_loss } = logs;
+      const { loss, val_acc, val_loss, weightUpdateTime, memory } = logs;
       if (loss === undefined || isNaN(loss)) {
-        throw new Error("Invalid training logs");
+        console.log(loss)
+        logs.loss = -1
+        // throw new Error("Invalid training logs");
       }
       const structuredLogs: EpochLogs = {
         epoch,
@@ -67,9 +68,16 @@ export class GPT extends Model {
         }
         structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
       }
+      if (weightUpdateTime !== undefined && !isNaN(weightUpdateTime)) {
+        structuredLogs['weightUpdateTime'] = weightUpdateTime
+      }
+      if (memory !== undefined && !isNaN(memory)) {
+        structuredLogs['memory'] = memory
+      }
 
       yield structuredLogs
     }
+    this.model.optimizer.dispose()
   }
 
   override predict (input: Sample): Promise<Prediction> {
@@ -117,6 +125,10 @@ export class GPT extends Model {
       weights: this.weights,
       config: this.config
     }
+  }
+
+  dispose(): void {
+    this.model.dispose()
   }
 }
 

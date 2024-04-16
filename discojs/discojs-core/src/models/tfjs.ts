@@ -103,6 +103,10 @@ export class TFJS extends Model {
     return await ret
   }
 
+  dispose() {
+    this.model.dispose()
+  }
+
   /**
    * extract wrapped model
    *

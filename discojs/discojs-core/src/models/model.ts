@@ -13,6 +13,8 @@ export interface EpochLogs {
     loss: number,
     accuracy: number
   };
+  weightUpdateTime?: number;
+  memory?: number;
 }
 
 // TODO still bound to tfjs
@@ -50,4 +52,7 @@ export abstract class Model {
   /** Predict likely values */
   // TODO extract in separated TrainedModel?
   abstract predict(input: Sample): Promise<Prediction>;
+
+  // Cleanup the memory occupied by the model
+  abstract dispose(): void;
 }

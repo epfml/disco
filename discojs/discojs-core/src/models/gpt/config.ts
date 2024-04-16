@@ -1,4 +1,4 @@
-type ModelType =
+export type GPTModelType =
     | 'gpt2'
     | 'gpt2-medium'
     | 'gpt2-large'
@@ -11,7 +11,7 @@ export interface GPTConfig {
   lr: number
   blockSize: number
   vocabSize: number
-  modelType: ModelType
+  modelType: GPTModelType
   name?: string,
   evaluate?: boolean
   maxEvalBatches?: number
@@ -61,7 +61,7 @@ export type ModelSize = {
   nEmbd: number
 }
 
-export function getModelSizes (modelType: ModelType): Required<ModelSize> {
+export function getModelSizes (modelType: GPTModelType): Required<ModelSize> {
   switch (modelType) {
     case 'gpt2':
       return { nLayer: 12, nHead: 12, nEmbd: 768 }
@@ -79,7 +79,7 @@ export function getModelSizes (modelType: ModelType): Required<ModelSize> {
       return { nLayer: 3, nHead: 3, nEmbd: 48 }
     default: {
       const _: never = modelType
-      throw new Error("should never happen")
+      throw new Error(`GPT model type specified doesn't exist: ${modelType}`)
     }
   }
 }
