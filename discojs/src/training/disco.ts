@@ -5,16 +5,17 @@ import {
   EpochLogs,
   Logger,
   Memory,
-  Model,
   Task,
   TrainingInformation,
 } from "../index.js";
+import type { TypedLabeledDataset } from "../index.js";
 import { client as clients, ConsoleLogger, EmptyMemory } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
 import { enumerate, split } from "../utils/async_iterator.js";
 
 import { RoundLogs, Trainer } from "./trainer.js";
+import { labeledDatasetToDataSplit } from "../dataset/data/helpers.js";
 
 interface Config {
   scheme: TrainingInformation["scheme"];
@@ -30,9 +31,8 @@ interface Config {
 export class Disco {
   readonly #client: clients.Client;
   readonly #logger: Logger;
-
-  // small helper to avoid keeping Task & Memory around
-  readonly #updateWorkingModel: (_: Model) => Promise<void>;
+  readonly #memory: Memory;
+  readonly #task: Task;
 
   private constructor(
     public readonly trainer: Trainer,
@@ -43,17 +43,8 @@ export class Disco {
   ) {
     this.#client = client;
     this.#logger = logger;
-
-    this.#updateWorkingModel = () =>
-      memory.updateWorkingModel(
-        {
-          type: "working",
-          taskID: task.id,
-          name: task.trainingInformation.modelID,
-          tensorBackend: task.trainingInformation.tensorBackend,
-        },
-        this.trainer.model,
-      );
+    this.#memory = memory;
+    this.#task = task;
   }
 
   /**
@@ -112,8 +103,10 @@ export class Disco {
   }
 
   /** Train on dataset, yielding logs of every round. */
-  async *trainByRound(dataTuple: data.DataSplit): AsyncGenerator<RoundLogs> {
-    for await (const round of this.train(dataTuple)) {
+  async *trainByRound(
+    dataset: data.DataSplit | TypedLabeledDataset,
+  ): AsyncGenerator<RoundLogs> {
+    for await (const round of this.train(dataset)) {
       const [roundGen, roundLogs] = async_iterator.split(round);
       for await (const epoch of roundGen) for await (const _ of epoch);
       yield await roundLogs;
@@ -121,8 +114,10 @@ export class Disco {
   }
 
   /** Train on dataset, yielding logs of every epoch. */
-  async *trainByEpoch(dataTuple: data.DataSplit): AsyncGenerator<EpochLogs> {
-    for await (const round of this.train(dataTuple)) {
+  async *trainByEpoch(
+    dataset: data.DataSplit | TypedLabeledDataset,
+  ): AsyncGenerator<EpochLogs> {
+    for await (const round of this.train(dataset)) {
       for await (const epoch of round) {
         const [epochGen, epochLogs] = async_iterator.split(epoch);
         for await (const _ of epochGen);
@@ -132,13 +127,15 @@ export class Disco {
   }
 
   /** Train on dataset, yielding logs of every batch. */
-  async *trainByBatch(dataTuple: data.DataSplit): AsyncGenerator<BatchLogs> {
+  async *trainByBatch(
+    dataTuple: data.DataSplit | TypedLabeledDataset,
+  ): AsyncGenerator<BatchLogs> {
     for await (const round of this.train(dataTuple))
       for await (const epoch of round) yield* epoch;
   }
 
   /** Run whole train on dataset. */
-  async trainFully(dataTuple: data.DataSplit): Promise<void> {
+  async trainFully(dataTuple: data.DataSplit | TypedLabeledDataset): Promise<void> {
     for await (const round of this.train(dataTuple))
       for await (const epoch of round) for await (const _ of epoch);
   }
@@ -150,19 +147,22 @@ export class Disco {
    * If you don't care about the whole process, use one of the other train methods.
    **/
   async *train(
-    dataTuple: data.DataSplit,
+    dataset: data.DataSplit | TypedLabeledDataset,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
     this.#logger.success("Training started.");
 
-    const trainData = dataTuple.train.preprocess().batch();
+    if (Array.isArray(dataset))
+      dataset = await labeledDatasetToDataSplit(this.#task, dataset);
+
+    const trainData = dataset.train.preprocess().batch().dataset;
     const validationData =
-      dataTuple.validation?.preprocess().batch() ?? trainData;
+      dataset.validation?.preprocess().batch().dataset ?? trainData;
     await this.#client.connect();
 
     for await (const [round, epochs] of enumerate(
-      this.trainer.train(trainData.dataset, validationData.dataset),
+      this.trainer.train(trainData, validationData),
     )) {
       yield async function* (this: Disco) {
         const [gen, returnedRoundLogs] = split(epochs);
@@ -191,7 +191,15 @@ export class Disco {
         return await returnedRoundLogs;
       }.bind(this)();
 
-      await this.#updateWorkingModel(this.trainer.model);
+      await this.#memory.updateWorkingModel(
+        {
+          type: "working",
+          taskID: this.#task.id,
+          name: this.#task.trainingInformation.modelID,
+          tensorBackend: this.#task.trainingInformation.tensorBackend,
+        },
+        this.trainer.model,
+      );
     }
 
     this.#logger.success("Training finished.");

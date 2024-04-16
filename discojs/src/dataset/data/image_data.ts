@@ -1,7 +1,6 @@
 import type tf from '@tensorflow/tfjs'
 
 import type { Task } from '../../index.js'
-import type { Dataset } from '../dataset.js'
 
 import { Data } from './data.js'
 import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing/index.js'
@@ -13,7 +12,7 @@ export class ImageData extends Data {
   public readonly availablePreprocessing = IMAGE_PREPROCESSING
 
   static async init (
-    dataset: Dataset,
+    dataset: tf.data.Dataset<tf.TensorContainer>,
     task: Task,
     size?: number
   ): Promise<Data> {
@@ -44,7 +43,7 @@ export class ImageData extends Data {
     return new ImageData(dataset, task, size)
   }
 
-  protected create (dataset: Dataset, task: Task, size: number): ImageData {
+  protected create (dataset: tf.data.Dataset<tf.TensorContainer>, task: Task, size: number): ImageData {
     return new ImageData(dataset, task, size)
   }
 }
