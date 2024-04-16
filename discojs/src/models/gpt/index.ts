@@ -6,7 +6,6 @@ import * as tf from '@tensorflow/tfjs'
 import { PreTrainedTokenizer } from '@xenova/transformers';
 
 import { WeightsContainer } from '../../index.js'
-import type { Dataset } from '../../dataset/index.js'
 
 import { Model } from '../model.js'
 import { GPTForCausalLM } from './model.js'
@@ -32,8 +31,8 @@ export class GPT extends Model {
    * @param tracker
    */
   override async *train(
-    trainingData: Dataset,
-    validationData?: Dataset,
+    trainingData: tf.data.Dataset<tf.TensorContainer>,
+    validationData?: tf.data.Dataset<tf.TensorContainer>,
     epochs = 1,
   ): AsyncGenerator<EpochLogs, void> {
     this.model.compile()

@@ -4,7 +4,6 @@ import { WeightsContainer } from '../index.js'
 
 import { Model } from './index.js'
 import type { EpochLogs, Prediction, Sample } from './model.js'
-import type { Dataset } from '../dataset/index.js'
 
 /** TensorFlow JavaScript model with standard training */
 export class TFJS extends Model {
@@ -28,8 +27,8 @@ export class TFJS extends Model {
   }
 
   override async *train(
-    trainingData: Dataset,
-    validationData?: Dataset,
+    trainingData: tf.data.Dataset<tf.TensorContainer>,
+    validationData?: tf.data.Dataset<tf.TensorContainer>,
     epochs = 1,
   ): AsyncGenerator<EpochLogs> {
     for (let epoch = 0; epoch < epochs; epoch++) {

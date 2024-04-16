@@ -1,7 +1,6 @@
 import type tf from "@tensorflow/tfjs";
 
 import type { WeightsContainer } from "../index.js";
-import type { Dataset } from "../dataset/index.js";
 
 export interface EpochLogs {
   epoch: number; // first epoch is zero
@@ -19,6 +18,7 @@ export interface EpochLogs {
 // TODO still bound to tfjs
 export type Prediction = tf.Tensor;
 export type Sample = tf.Tensor;
+type Dataset = tf.data.Dataset<tf.TensorContainer>
 
 /**
  * Trainable predictor

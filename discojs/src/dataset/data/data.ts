@@ -2,7 +2,6 @@ import type tf from '@tensorflow/tfjs'
 import type { List } from 'immutable'
 
 import type { Task } from '../../index.js'
-import type { Dataset } from '../index.js'
 
 import type { PreprocessingFunction } from './preprocessing/base.js'
 
@@ -14,12 +13,12 @@ export abstract class Data {
   public abstract readonly availablePreprocessing: List<PreprocessingFunction>
 
   protected constructor (
-    public readonly dataset: Dataset,
+    public readonly dataset: tf.data.Dataset<tf.TensorContainer>,
     public readonly task: Task,
     public readonly size?: number) {}
 
   static init (
-    _dataset: Dataset,
+    _dataset: tf.data.Dataset<tf.TensorContainer>,
     _task: Task,
     _size?: number
   ): Promise<Data> {
@@ -29,7 +28,7 @@ export abstract class Data {
   /**
    * Callable abstract method instead of constructor.
    */
-  protected abstract create (dataset: Dataset, task: Task, size?: number): Data
+  protected abstract create (dataset: tf.data.Dataset<tf.TensorContainer>, task: Task, size?: number): Data
 
   /**
    * Creates a new Disco data object containing the batched TF.js dataset, according to the
@@ -43,7 +42,7 @@ export abstract class Data {
   /**
    * The TF.js dataset batched according to the task's parameters.
    */
-  get batchedDataset (): Dataset {
+  get batchedDataset (): tf.data.Dataset<tf.TensorContainer> {
     const batchSize = this.task.trainingInformation.batchSize
     return batchSize === undefined
       ? this.dataset
@@ -94,7 +93,7 @@ export abstract class Data {
    * The TF.js dataset preprocessing according to the set of preprocessing functions and the task's
    * parameters.
    */
-  get preprocessedDataset (): Dataset {
+  get preprocessedDataset (): tf.data.Dataset<tf.TensorContainer> {
     return this.dataset.mapAsync(this.preprocessing)
   }
 }

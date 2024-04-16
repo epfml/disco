@@ -1,4 +1,6 @@
-import type { DataSplit, Dataset } from '../index.js'
+import * as tf from '@tensorflow/tfjs'
+
+import type { DataSplit } from '../index.js'
 
 export interface DataConfig {
   features?: string[],
@@ -11,6 +13,6 @@ export interface DataConfig {
 }
 
 export abstract class DataLoader<Source> {
-  abstract load (source: Source, config: DataConfig): Promise<Dataset>
+  abstract load (source: Source, config: DataConfig): Promise<tf.data.Dataset<tf.TensorContainer>>
   abstract loadAll (sources: Source[], config: DataConfig): Promise<DataSplit>
 }

@@ -1,5 +1,6 @@
+import * as tf from '@tensorflow/tfjs'
+
 import type { Task } from '../../index.js'
-import type { Dataset } from '../dataset.js'
 
 import { Data } from './data.js'
 import { TABULAR_PREPROCESSING } from './preprocessing/index.js'
@@ -11,7 +12,7 @@ export class TabularData extends Data {
   public readonly availablePreprocessing = TABULAR_PREPROCESSING
 
   static async init (
-    dataset: Dataset,
+    dataset: tf.data.Dataset<tf.TensorContainer>,
     task: Task,
     size?: number
   ): Promise<TabularData> {
@@ -29,7 +30,7 @@ export class TabularData extends Data {
     return new TabularData(dataset, task, size)
   }
 
-  protected create (dataset: Dataset, task: Task, size: number): TabularData {
+  protected create (dataset: tf.data.Dataset<tf.TensorContainer>, task: Task, size: number): TabularData {
     return new TabularData(dataset, task, size)
   }
 }

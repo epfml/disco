@@ -20,5 +20,9 @@ export * as models from './models/index.js'
 export * from './task/index.js'
 export * as defaultTasks from './default_tasks/index.js'
 
-export * from './types.js'
+export { Dataset } from "./dataset/index.js"; // TODO merge with below
+export * from "./dataset/types.js";
+export { Tensor } from "./tensor.js";
+export * from "./types.js";
+
 export * as convertors from "./convertors.js";
