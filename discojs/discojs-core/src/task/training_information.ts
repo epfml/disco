@@ -16,8 +16,8 @@ export interface TrainingInformation {
   batchSize: number
   // preprocessingFunctions: preprocessing functions such as resize and normalize
   preprocessingFunctions?: Preprocessing[]
-  // dataType, e.g. image or tabular
-  dataType: string
+  // dataType, 'image', 'tabular' or 'text'
+  dataType: 'image' | 'tabular' | 'text'
   // inputColumns: for tabular data, the columns to be chosen as input data for the model
   inputColumns?: string[]
   // outputColumns: for tabular data, the columns to be predicted by the model
@@ -120,6 +120,13 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     (preprocessingFunctions !== undefined && !Array.isArray(preprocessingFunctions))
   ) {
     return false
+  }
+
+  switch (dataType) {
+    case 'image': break
+    case 'tabular': break
+    case 'text': break
+    default: return false
   }
 
   // interdepences on data type

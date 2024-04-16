@@ -65,20 +65,26 @@ describe("end-to-end federated", function () {
     const disco = new Disco(titanicTask, { scheme: 'federated', client, aggregator })
 
     let logs = List<RoundLogs>()
-    for await (const round of disco.fit(data))
-	logs = logs.push(round)
+    for await (const round of disco.fit(data)) {
+      logs = logs.push(round)
+    }
     await disco.close()
 
     if (aggregator.model === undefined) {
       throw new Error('model was not set')
     }
-    expect(logs.last()?.epoches.last()?.training.accuracy).to.be.greaterThan(0.6)
-    expect(logs.last()?.epoches.last()?.validation.accuracy).to.be.greaterThan(0.6)
+    expect(logs.last()?.epochs.last()?.training.accuracy).to.be.greaterThan(0.6)
+    if (logs.last()?.epochs.last()?.validation === undefined) {
+      throw new Error('No validation logs while validation dataset was specified')
+    } 
+    const validationLogs = logs.last()?.epochs.last()?.validation
+    expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
     return aggregator.model.weights
   }
 
   async function wikitextUser (): Promise<void> {
     const task = defaultTasks.wikitext.getTask()
+    task.trainingInformation.epochs = 2
     const loader = new NodeTextLoader(task)
     const dataSplit: data.DataSplit = {
       train: await data.TextData.init((await loader.load('../datasets/wikitext/wiki.train.tokens')), task),
@@ -90,12 +96,13 @@ describe("end-to-end federated", function () {
     const disco = new Disco(task, { scheme: 'federated', client, aggregator })
 
     let logs = List<RoundLogs>()
-    for await (const round of disco.fit(dataSplit))
-	logs = logs.push(round)
+    for await (const round of disco.fit(dataSplit)) {
+      logs = logs.push(round)
+    }
     await disco.close()
 
-    expect(logs.first()?.epoches.first()?.loss).to.be.above(
-      logs.last()?.epoches.last()?.loss as number,
+    expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
+      logs.last()?.epochs.last()?.training.loss as number,
     );
   }
 

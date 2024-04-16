@@ -82,7 +82,7 @@
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
-            {{ percent(latestEpoch?.validation.accuracy ?? 0) }}
+            {{ percent(latestEpoch?.validation?.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
             {{
@@ -154,13 +154,13 @@ const options = chartOptions
 
 const participants = ref({ current: 1, average: 1 }) // TODO collect real data
 
-const latestEpoch = computed(() => props.logs.last()?.epoches.last())
+const latestEpoch = computed(() => props.logs.last()?.epochs.last())
 
 const accuracySeries = computed(() => props.logs
   .flatMap((round) =>
-    round.epoches.map((epoch) => { return {
-      training: epoch.training.accuracy * 100,
-      validation: epoch.validation.accuracy * 100,
+    round.epochs.map((epoch) => { return {
+      training: (epoch.training.accuracy ?? 0) * 100,
+      validation: (epoch.validation?.accuracy ?? 0) * 100,
     }})
   )
   .takeLast(10)

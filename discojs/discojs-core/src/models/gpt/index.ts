@@ -3,58 +3,23 @@
  **/
 
 import * as tf from '@tensorflow/tfjs'
+import { PreTrainedTokenizer } from '@xenova/transformers';
 
 import { WeightsContainer } from '../../index.js'
 import type { Dataset } from '../../dataset/index.js'
-import { PreTrainedTokenizer } from '@xenova/transformers';
 
-
-import type { EpochLogs, Prediction, Sample } from '../model.js'
 import { Model } from '../model.js'
+import { GPTForCausalLM } from './model.js'
+import type { EpochLogs, Prediction, Sample } from '../model.js'
+import type { GPTConfig } from './config.js'
 
-import { GPTLMHeadModel } from './model.js'
-
-// TODO too big config
-interface Config {
-  modelType: 'gpt-nano'
-  maxIter: number
-  blockSize: number
-  vocabSize: number
-  evaluateEvery: number
-  lr: number
-  maxEvalBatches: number
-}
-
-interface TokenizerOutput {
-    input_ids: number[]
-  }
 
 export class GPT extends Model {
-  private readonly model: GPTLMHeadModel
+  private readonly model: GPTForCausalLM
 
-  constructor () {
+  constructor (partialConfig?: GPTConfig) {
     super()
-
-    // TODO sensible defaults?
-    const config: Config = {
-      modelType: 'gpt-nano',
-      lr: 0.001,
-      maxIter: 2,
-      evaluateEvery:10,
-      maxEvalBatches: 10,
-      blockSize: 128,
-      vocabSize: 50258
-    }
-
-    this.model = new GPTLMHeadModel(config)
-  }
-
-  override get weights (): WeightsContainer {
-    return new WeightsContainer(this.model.weights.map((w) => w.read()))
-  }
-
-  override set weights (ws: WeightsContainer) {
-    this.model.setWeights(ws.weights)
+    this.model = new GPTForCausalLM(partialConfig)
   }
 
   /**
@@ -71,19 +36,12 @@ export class GPT extends Model {
     validationData?: Dataset,
     epochs = 1,
   ): AsyncGenerator<EpochLogs, void> {
+    this.model.compile()
     let logs: tf.Logs | undefined;
-
     const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
       epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
       validationData,
-      callbacks: {
-        onEpochEnd: (_, cur) => {
-          logs = cur;
-          if (logs !== undefined && cur !== undefined) {
-            logs.loss = cur.val_loss;
-          }
-        },
-      },
+      callbacks: { onEpochEnd: (_, cur) => { logs = cur }},
     };
     for (let epoch = 0; epoch < epochs; epoch++) {
       await this.model.fitDataset(trainingData, trainingArgs);
@@ -91,24 +49,26 @@ export class GPT extends Model {
       if (logs === undefined) {
         throw new Error("epoch didn't gave any logs");
       }
-      const { val_loss, acc, val_acc } = logs;
-      if (
-        val_loss === undefined ||
-        isNaN(val_loss) ||
-        acc === undefined ||
-        isNaN(acc) ||
-        val_acc === undefined ||
-        isNaN(val_acc)
-      ) {
-        throw new Error("epoch gave invalid logs");
+      const { loss, val_acc, val_loss } = logs;
+      if (loss === undefined || isNaN(loss)) {
+        throw new Error("Invalid training logs");
+      }
+      const structuredLogs: EpochLogs = {
+        epoch,
+        training: {
+          loss: logs.loss
+        }
       }
 
-      yield {
-        epoch,
-        loss: logs.val_loss,
-        training: { accuracy: logs.acc },
-        validation: { accuracy: logs.val_acc },
-      };
+      if (validationData !== undefined) {
+        if(val_loss === undefined || isNaN(val_loss) ||
+          val_acc === undefined || isNaN(val_acc)) {
+          throw new Error("Invalid validation logs");
+        }
+        structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
+      }
+
+      yield structuredLogs
     }
   }
 
@@ -122,7 +82,7 @@ export class GPT extends Model {
   }
 
   async generate (input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
-    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as TokenizerOutput
+    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as { input_ids: number[] }
 
     const generationConfig = {
       maxNewTokens: newTokens,
@@ -135,13 +95,32 @@ export class GPT extends Model {
     return generatedWords
   }
 
-  static deserialize (weights: WeightsContainer): Model {
-    const model = new GPT()
-    model.weights = weights
+  get config (): Required<GPTConfig> {
+    return this.model.getGPTConfig
+  }
+  override get weights (): WeightsContainer {
+    return new WeightsContainer(this.model.weights.map((w) => w.read()))
+  }
+
+  override set weights (ws: WeightsContainer) {
+    this.model.setWeights(ws.weights)
+  }
+
+  static deserialize (data: GPTSerialization): Model {
+    const model = new GPT(data.config)
+    model.weights = data.weights
     return model
   }
 
-  serialize (): WeightsContainer {
-    return this.weights
+  serialize (): GPTSerialization {
+    return {
+      weights: this.weights,
+      config: this.config
+    }
   }
+}
+
+export type GPTSerialization = {
+  weights: WeightsContainer
+  config?: GPTConfig
 }

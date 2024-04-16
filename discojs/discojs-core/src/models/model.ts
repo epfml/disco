@@ -5,9 +5,14 @@ import type { Dataset } from "../dataset/index.js";
 
 export interface EpochLogs {
   epoch: number; // first epoch is zero
-  loss: number; // TODO put in training/validation?
-  training: { accuracy: number };
-  validation: { accuracy: number };
+  training: {
+    loss: number,
+    accuracy?: number
+  };
+  validation?: {
+    loss: number,
+    accuracy: number
+  };
 }
 
 // TODO still bound to tfjs

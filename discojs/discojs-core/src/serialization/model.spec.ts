@@ -2,6 +2,7 @@ import { assert } from 'chai'
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model } from '../index.js'
+import type { GPTConfig } from '../models/index.js'
 import { serialization, models } from '../index.js'
 
 async function getRawWeights (model: Model): Promise<Array<[number, Float32Array]>> {
@@ -12,8 +13,9 @@ async function getRawWeights (model: Model): Promise<Array<[number, Float32Array
   )
 }
 
-describe('model', () => {
-  it('can encode what it decodes', async () => {
+describe('serialization', function () {
+  this.timeout(5_000)
+  it('can encode decode a TFJS model', async () => {
     const rawModel = tf.sequential({
       layers: [
         tf.layers.conv2d({
@@ -34,6 +36,34 @@ describe('model', () => {
     assert.sameDeepOrderedMembers(
       await getRawWeights(model),
       await getRawWeights(decoded)
+    )
+  })
+
+  it('can encode decode a gpt-tfjs model', async () => {
+    const config: GPTConfig = {
+      modelType: 'gpt-nano',
+      lr: 0.01,
+      maxIter: 10,
+      evaluateEvery:10,
+      maxEvalBatches: 10,
+      blockSize: 8,
+      vocabSize: 50258
+    }
+    const model = new models.GPT(config)
+
+    const encoded = await serialization.model.encode(model)
+    assert.isTrue(serialization.model.isEncoded(encoded))
+    const decoded = await serialization.model.decode(encoded)
+    
+    assert.instanceOf(decoded, models.GPT)
+
+    assert.sameDeepOrderedMembers(
+      await getRawWeights(model),
+      await getRawWeights(decoded)
+    )
+    assert.deepEqual(
+      model.config,
+      (decoded as models.GPT).config
     )
   })
 })

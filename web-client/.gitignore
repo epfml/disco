@@ -4,3 +4,5 @@
 
 # tsc --build state
 /tsconfig.*.tsbuildinfo
+
+node_modules

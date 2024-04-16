@@ -115,4 +115,31 @@ class AdamW extends tf.AdamOptimizer {
   }
 }
 
-export { AdamW, clipByGlobalNorm, clipByGlobalNormObj }
+function getCustomAdam (model: tf.LayersModel, lr: number, weightDecay: number): tf.Optimizer {
+  const includeInWeightDecay: string[] = []
+  const excludeFromWeightDecay: string[] = []
+
+  // TODO unsafe cast
+  const namedWeights = (model as unknown as Record<'getNamedWeights', () => Array<{ name: string, tensor: tf.Tensor }>>).getNamedWeights()
+
+  namedWeights.forEach((v) => {
+    if (
+      v.name.includes('bias') ||
+            v.name.includes('normalization') ||
+            v.name.includes('emb')
+    ) {
+      excludeFromWeightDecay.push(v.name)
+    } else {
+      includeInWeightDecay.push(v.name)
+    }
+  })
+
+  return new AdamW({
+    learningRate: lr,
+    weightDecayRate: weightDecay,
+    includeInWeightDecay,
+    excludeFromWeightDecay
+  })
+}
+
+export { getCustomAdam, clipByGlobalNormObj }

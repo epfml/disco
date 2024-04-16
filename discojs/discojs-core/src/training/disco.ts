@@ -95,11 +95,16 @@ export class Disco {
 
     for await (const roundLogs of trainer.fitModel(trainData.dataset, validationData.dataset)) {
       let msg = `Round: ${roundLogs.round}\n`
-      for (const epochLogs of roundLogs.epoches.values()) {
-        msg += `  Epoch: ${epochLogs.epoch}\n`
-        msg += `    loss: ${epochLogs.loss}\n`
-        msg += `    training accuracy: ${epochLogs.training.accuracy}\n`
-        msg += `    validation accuracy: ${epochLogs.validation.accuracy}\n`
+      for (const epochLogs of roundLogs.epochs.values()) {
+        msg += `    Epoch: ${epochLogs.epoch}\n`
+        msg += `        Training loss: ${epochLogs.training.loss}\n`
+        if (epochLogs.training.accuracy !== undefined) {
+          msg += `        Training accuracy: ${epochLogs.training.accuracy}\n`
+        }
+        if (epochLogs.validation !== undefined) {
+          msg += `        Validation loss: ${epochLogs.validation.loss}\n`
+          msg += `        Validation accuracy: ${epochLogs.validation.accuracy}\n`
+        }
       }
       this.logger.success(msg)
 
