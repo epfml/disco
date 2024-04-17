@@ -9,12 +9,30 @@
       </div>
     </div>
 
-    <img class="h-full w-full object-fill rounded-b-lg" :src="imageUrl" />
+    <canvas class="h-full w-full object-fill rounded-b-lg" ref="canvas" />
   </div>
 </template>
 
 <script lang="ts" setup>
-defineProps<{
-  imageUrl: string;
+import { ref, onMounted, onUpdated } from "vue";
+
+const props = defineProps<{
+  image: ImageData;
 }>();
+
+const canvas = ref<HTMLCanvasElement | null>(null);
+
+onMounted(draw);
+onUpdated(draw);
+
+function draw() {
+  const element = canvas.value;
+  if (element === null) throw new Error("canvas element doesn't exists");
+  element.width = props.image.width;
+  element.height = props.image.height;
+
+  const context = element.getContext("2d");
+  if (context === null) throw new Error("canvas doesn't support 2D context");
+  context.putImageData(props.image, 0, 0);
+}
 </script>

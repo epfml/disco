@@ -10,23 +10,30 @@
 import { Set } from "immutable";
 import { ref, watch } from "vue";
 
-import { data } from "@epfml/discojs";
+import type { Text } from "@epfml/discojs";
+import { Dataset } from "@epfml/discojs";
+import { loadText } from "@epfml/discojs-web";
 
 import DatasetInput from "./DatasetInput.vue";
 import FileSelection from "./FileSelection.vue";
 
-const props = defineProps<{
-  datasetBuilder: data.DatasetBuilder<File>;
-}>();
+const dataset = defineModel<Dataset<Text>>();
+watch(dataset, (dataset: Dataset<Text> | undefined) => {
+  if (dataset === undefined) files.value = undefined;
+});
 
 const files = ref<Set<File>>();
-
 watch(files, (files) => {
   if (files === undefined) {
-    props.datasetBuilder.clearFiles();
+    dataset.value = undefined;
     return;
   }
 
-  props.datasetBuilder.addFiles(files.toArray());
+  const file = files.first();
+  if (file === undefined || files.size > 1)
+    // enforced by <FileSelection multiple=false />
+    throw new Error("excepted a single file");
+
+  dataset.value = loadText(file);
 });
 </script>

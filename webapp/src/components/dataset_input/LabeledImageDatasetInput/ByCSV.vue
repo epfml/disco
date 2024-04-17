@@ -55,20 +55,24 @@ import * as d3 from "d3";
 import { Map, Set } from "immutable";
 import { computed, ref, watch } from "vue";
 
-import { data } from "@epfml/discojs";
+import { Dataset } from "@epfml/discojs";
+import { loadImage } from "@epfml/discojs-web";
 
 import IconCard from "@/components/containers/IconCard.vue";
 import { useToaster } from "@/composables/toaster";
 
 import FileSelection from "../FileSelection.vue";
 
+import type { NamedLabeledImageDataset } from "../types.js";
 import { browsingTip } from "./strings.js";
 
-const props = defineProps<{
-  datasetBuilder: data.DatasetBuilder<File>;
-}>();
-
 const toaster = useToaster();
+
+const dataset = defineModel<NamedLabeledImageDataset>();
+watch(dataset, (dataset: NamedLabeledImageDataset | undefined) => {
+  if (dataset === undefined)
+    csvFiles.value = undefined; // trickles down
+});
 
 const csvFiles = ref<Set<File>>();
 const filenameToLabel = ref<Map<string, string>>();
@@ -114,14 +118,14 @@ watch(csvFiles, async (files) => {
   filenameToLabel.value = updatedFilenameToLabel;
 });
 
-// Match the images to labels via the parsed CSV
+// match the images to labels via the parsed CSV
 watch(images, async (files) => {
-  // always start from a clean state
-  props.datasetBuilder.clearFiles();
+  if (files === undefined) {
+    dataset.value = undefined;
+    return;
+  }
 
-  if (files === undefined) return;
-
-  // Create a map from filename to file to speed up the search
+  // create a map from filename to file to speed up the search
   const filenameToFile = Map(
     files.map((file) => {
       const filename = file.name.split(".").slice(0, -1).join(".");
@@ -132,18 +136,26 @@ watch(images, async (files) => {
   if (filenameToLabel.value === undefined)
     throw new Error("csvFiles should have been called");
 
+  if (files.size !== filenameToLabel.value.size)
+    toaster.warning(
+      "Some inputted images we not found in the CSV: " +
+        filenameToFile
+          .keySeq()
+          .toSet()
+          .subtract(filenameToLabel.value.keySeq())
+          .join(", "),
+    );
+
   const missingImages = new Error();
+  let fileToLabel: Iterable<[File, string]>;
   try {
-    filenameToLabel.value.forEach((label, filename) => {
+    fileToLabel = filenameToLabel.value.mapEntries(([filename, label]) => {
       const file = filenameToFile.get(filename);
       if (file === undefined) throw missingImages;
-
-      props.datasetBuilder.addFiles([file], label);
+      return [file, label];
     });
   } catch (e) {
-    // reset state
     images.value = undefined;
-    props.datasetBuilder.clearFiles();
 
     if (e === missingImages) {
       toaster.error(
@@ -156,14 +168,10 @@ watch(images, async (files) => {
     throw e;
   }
 
-  if (files.size !== filenameToLabel.value.size)
-    toaster.warning(
-      "Some inputted images we not found in the CSV: " +
-        filenameToFile
-          .keySeq()
-          .toSet()
-          .subtract(filenameToLabel.value.keySeq())
-          .join(", "),
-    );
+  dataset.value = new Dataset(fileToLabel).map(async ([file, label]) => ({
+    filename: file.name,
+    image: await loadImage(file),
+    label,
+  }));
 });
 </script>
