@@ -1,5 +1,4 @@
 <template>
-  <div>
     <div v-show="validationStore.step === 0">
       <div class="flex flex-col gap-16">
         <div v-if="memoryStore.models.size > 0">
@@ -127,11 +126,11 @@
         </div>
       </div>
     </div>
-    <div v-if="currentTask !== undefined">
+
+    <div v-if="validationStore.step === 1 && currentTask !== undefined">
       <!-- Information specific to the validation panel -->
       <IconCard
         v-if="!validationStore.isOnlyPrediction"
-        v-show="validationStore.step === 1"
         class="mb-4 md:mb-8"
       >
         <template #title>
@@ -142,37 +141,38 @@
           As such, please ensure your dataset of choice was not used during the training phase of your model.
         </template>
       </IconCard>
-      <KeepAlive>
-        <component
-          :is="currentComponent[0]"
-          v-if="currentComponent !== undefined"
-          :key="validationStore.model + currentComponent[1]"
-          :task="currentTask"
-          :dataset-builder="datasetBuilder"
-          :ground-truth="!validationStore.isOnlyPrediction"
-          :is-only-prediction="validationStore.isOnlyPrediction"
-        />
-      </KeepAlive>
+
+      <Data
+        :task="currentTask"
+        @dataset="setDataset"
+      />
     </div>
-  </div>
+
+    <div v-if="validationStore.step === 2 && currentTask !== undefined && dataset !== undefined">
+      <Tester
+        :task="currentTask"
+        :ground-truth="!validationStore.isOnlyPrediction"
+        :dataset="dataset"
+      />
+
+    </div>
 </template>
 <script lang="ts" setup>
-import type { Component } from 'vue'
-import { watch, computed, shallowRef, onActivated, onMounted } from 'vue'
+import { watch, computed, ref, shallowRef, onActivated, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { List } from 'immutable'
 
 import type { Path, Task } from '@epfml/discojs'
-import { EmptyMemory, Memory, data, ModelType, client as clients, aggregator } from '@epfml/discojs'
-import { IndexedDB, WebImageLoader, WebTabularLoader } from '@epfml/discojs-web'
+import { EmptyMemory, Memory, ModelType, client as clients, aggregator } from '@epfml/discojs'
+import { IndexedDB } from '@epfml/discojs-web'
 
 import { CONFIG } from '@/config'
 import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
-import Data from '@/components/data/Data.vue'
+import Data, { type TypedNamedDataset } from '@/components/data/Data.vue'
 import Tester from '@/components/testing/Tester.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -181,22 +181,11 @@ const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
 
-const currentComponent = computed<[Component, string] | undefined>(() => {
-  switch (stepRef.value) {
-    case 1:
-      return [Data, 'data']
-    case 2:
-      return [Tester, 'tester']
-    default:
-      return undefined
-  }
-})
-
 const { step: stepRef, state: stateRef } = storeToRefs(validationStore)
 
 const toaster = useToaster()
 
-const currentTask = shallowRef<Task | undefined>(undefined)
+const currentTask = shallowRef<Task>()
 
 const federatedTasks = computed<List<Task>>(() =>
   tasksStore.tasks.filter((t) => t.trainingInformation.scheme === 'federated').toList())
@@ -204,23 +193,11 @@ const federatedTasks = computed<List<Task>>(() =>
 const memory = computed<Memory>(() =>
   memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory())
 
-const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
-  if (currentTask.value === undefined) {
-    return undefined
-  }
-  let dataLoader: data.DataLoader<File>
-  switch (currentTask.value.trainingInformation.dataType) {
-    case 'tabular':
-      dataLoader = new WebTabularLoader(currentTask.value, ',')
-      break
-    case 'image':
-      dataLoader = new WebImageLoader(currentTask.value)
-      break
-    default:
-      throw new Error('not implemented')
-  }
-  return new data.DatasetBuilder(dataLoader, currentTask.value)
-})
+const dataset = ref<TypedNamedDataset>();
+
+function setDataset(value: TypedNamedDataset | undefined): void {
+  dataset.value = value;
+}
 
 watch(stateRef, () => {
   if (validationStore.model !== undefined) {

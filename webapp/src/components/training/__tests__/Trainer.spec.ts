@@ -3,8 +3,8 @@ import { mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import * as fs from "node:fs/promises";
 
-import { data, defaultTasks, serialization } from "@epfml/discojs";
-import { WebTabularLoader } from "@epfml/discojs-web";
+import { defaultTasks, serialization } from "@epfml/discojs";
+import { parseCSV } from "@epfml/discojs-web";
 
 import Trainer from "../Trainer.vue";
 import TrainingInformation from "../TrainingInformation.vue";
@@ -33,13 +33,6 @@ vi.mock("axios", async () => {
 
 async function setupForTask() {
   const task = defaultTasks.titanic.getTask();
-  const builder = new data.DatasetBuilder(new WebTabularLoader(task), task);
-  builder.addFiles([
-    new File(
-      [await fs.readFile("../datasets/titanic_train.csv")],
-      "titanic_train.csv",
-    ),
-  ]);
 
   return mount(Trainer, {
     global: {
@@ -50,7 +43,15 @@ async function setupForTask() {
     },
     props: {
       task,
-      datasetBuilder: builder,
+      dataset: [
+        "tabular",
+        parseCSV(
+          new File(
+            [await fs.readFile("../datasets/titanic_train.csv")],
+            "titanic_train.csv",
+          ),
+        ),
+      ],
     },
   });
 }
