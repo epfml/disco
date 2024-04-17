@@ -33,16 +33,8 @@
     </DatasetInput>
 
     <div class="space-y-4 md:space-y-8 mt-8">
-      <ByGroup
-        v-show="connectImagesByGroup"
-        :labels="labels"
-        :datasetBuilder="datasetBuilder"
-      />
-      <ByCSV
-        v-show="!connectImagesByGroup"
-        :task="task"
-        :datasetBuilder="datasetBuilder"
-      />
+      <ByGroup v-if="connectImagesByGroup" v-model="dataset" :labels="labels" />
+      <ByCSV v-else v-model="dataset" />
     </div>
   </div>
 </template>
@@ -51,28 +43,19 @@
 defineOptions({ name: "LabeledImageDatasetInput" });
 
 import { Set } from "immutable";
-import { computed, ref } from "vue";
-
-import type { Task } from "@epfml/discojs";
-import { data } from "@epfml/discojs";
+import { ref } from "vue";
 
 import DatasetInput from "../DatasetInput.vue";
+import type { NamedLabeledImageDataset } from "../types.js";
 
 import ByCSV from "./ByCSV.vue";
 import ByGroup from "./ByGroup.vue";
 
 const props = defineProps<{
-  task: Task;
-  datasetBuilder: data.DatasetBuilder<File>;
+  labels: Set<string>;
 }>();
 
-const labels = computed(() => {
-  const ret = props.task.trainingInformation.LABEL_LIST;
-  if (ret === undefined) throw new Error("image task without labels");
-  return Set(ret);
-});
+const dataset = defineModel<NamedLabeledImageDataset>();
 
-const isLabelLengthSmall =
-  (props.task.trainingInformation.LABEL_LIST?.length ?? 0) <= 2;
-const connectImagesByGroup = ref(isLabelLengthSmall);
+const connectImagesByGroup = ref(props.labels.size <= 2);
 </script>

@@ -1,9 +1,6 @@
 <template>
-  <div v-if="task !== undefined && datasetBuilder !== undefined">
-    <Description
-      v-show="trainingStore.step === 1"
-      :task="task"
-    />
+  <div v-if="task !== undefined">
+    <Description v-show="trainingStore.step === 1" :task="task" />
 
     <div
       v-show="trainingStore.step === 2"
@@ -13,109 +10,124 @@
 
       <LabeledImageDatasetInput
         v-if="task.trainingInformation.dataType === 'image'"
-        :task="task"
-        :dataset-builder="datasetBuilder"
+        v-model="imageDataset"
+        :labels="labels"
       />
       <TabularDatasetInput
         v-if="task.trainingInformation.dataType === 'tabular'"
-        :task="task"
-        :dataset-builder="datasetBuilder"
+        v-model="tabularDataset"
       />
       <TextDatasetInput
         v-if="task.trainingInformation.dataType === 'text'"
-        :dataset-builder="datasetBuilder"
+        v-model="textDataset"
       />
     </div>
 
     <Trainer
       v-show="trainingStore.step === 3"
       :task="task"
-      :dataset-builder="datasetBuilder"
+      :dataset="dataset"
     />
 
-    <Finished
-      v-show="trainingStore.step === 4"
-      :task="task"
-    />
+    <Finished v-show="trainingStore.step === 4" :task="task" />
+
+    <Finished v-show="trainingStore.step === 4" :task="task" />
   </div>
   <TrainingButtons />
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { Set } from "immutable";
+import { computed, onMounted, ref, toRaw, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
-import type { TaskID } from '@epfml/discojs'
-import { data } from '@epfml/discojs'
-import { WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs-web'
+import type {
+  Dataset,
+  Tabular,
+  TaskID,
+  Text,
+  TypedLabeledDataset,
+} from "@epfml/discojs";
 
-import { useTrainingStore } from '@/store/training'
-import { useTasksStore } from '@/store/tasks'
+import { useTrainingStore } from "@/store/training";
+import { useTasksStore } from "@/store/tasks";
+import Description from "@/components/training/Description.vue";
+import Trainer from "@/components/training/Trainer.vue";
+import Finished from "@/components/training/Finished.vue";
+import type { NamedLabeledImageDataset } from "@/components/dataset_input/types.js";
 import DataDescription from "@/components/dataset_input/DataDescription.vue";
-import Description from '@/components/training/Description.vue'
-import Trainer from '@/components/training/Trainer.vue'
-import Finished from '@/components/training/Finished.vue'
 import LabeledImageDatasetInput from "@/components/dataset_input/LabeledImageDatasetInput/index.vue";
 import TabularDatasetInput from "@/components/dataset_input/TabularDatasetInput.vue";
 import TextDatasetInput from "@/components/dataset_input/TextDatasetInput.vue";
-import TrainingButtons from '@/components/progress_bars/TrainingButtons.vue'
+import TrainingButtons from "@/components/progress_bars/TrainingButtons.vue";
 
-
-const router = useRouter()
-const route = useRoute()
-const trainingStore = useTrainingStore()
-const tasksStore = useTasksStore()
+const router = useRouter();
+const route = useRoute();
+const trainingStore = useTrainingStore();
+const tasksStore = useTasksStore();
 
 // task ID given by the route
-interface Props { id: TaskID }
-const props = defineProps<Props>()
+const props = defineProps<{
+  id: TaskID;
+}>();
 
 function setupTrainingStore() {
-  trainingStore.setTask(route.params.id as string) // more reliable than props.id
-  trainingStore.setStep(1)
+  trainingStore.setTask(route.params.id as string); // more reliable than props.id
+  trainingStore.setStep(1);
 }
 // Init the task once the taskStore has been loaded successfully
 // If it is not we redirect to the task list
 const task = computed(() => {
-  if (tasksStore.status == 'success') {
-    return tasksStore.tasks.get(props.id)
+  if (tasksStore.status == "success") {
+    return tasksStore.tasks.get(props.id);
   }
   // Redirect to the task list if not loaded yet
   // This happens when refreshing the page, every task are reset when fetched
-  if (route.name !== 'task-list') {
-    router.replace({ name: 'task-list' })
+  if (route.name !== "task-list") {
+    router.replace({ name: "task-list" });
   }
-  return undefined
-})
+  return undefined;
+});
 
 // Addresses the case when users enter a url manually
 // Force the training store to synch with the task specified in the url
 // Watching route.fullPath triggers onMount (while route.name would not)
-watch(() => route.fullPath, () => {
-  if (route.params.id === undefined) return; // don't do anything if not on a task page
-  if (trainingStore.step !== 0 && route.params.id === props.id) return; // check that params are consistent
-  setupTrainingStore(); // if inconsistent, force sync the training store
-})
+watch(
+  () => route.fullPath,
+  () => {
+    if (route.params.id === undefined) return; // don't do anything if not on a task page
+    if (trainingStore.step !== 0 && route.params.id === props.id) return; // check that params are consistent
+    setupTrainingStore(); // if inconsistent, force sync the training store
+  },
+);
 
-onMounted(setupTrainingStore)
+onMounted(setupTrainingStore);
 
-const datasetBuilder = computed(() => {
-  if (task.value === undefined) return
+const labels = computed(() => Set(task.value?.trainingInformation.LABEL_LIST));
 
-  let dataLoader: data.DataLoader<File>
-  switch (task.value.trainingInformation.dataType) {
-    case 'tabular':
-      dataLoader = new WebTabularLoader(task.value)
-      break
-    case 'image':
-      dataLoader = new WebImageLoader(task.value)
-      break
-    case 'text':
-      dataLoader = new WebTextLoader(task.value)
-      break
-    default:
-      throw new Error('not implemented')
-  }
-  return new data.DatasetBuilder(dataLoader, task.value)
-})
+const imageDataset = ref<NamedLabeledImageDataset>();
+const tabularDataset = ref<Dataset<Tabular>>();
+const textDataset = ref<Dataset<Text>>();
+const dataset = computed<TypedLabeledDataset | undefined>(() => {
+  if (
+    Set.of<unknown>(
+      imageDataset.value,
+      tabularDataset.value,
+      textDataset.value,
+    ).filter((d) => d !== undefined).size > 1
+  )
+    throw new Error("multiple dataset entered");
+
+  if (imageDataset.value !== undefined)
+    return [
+      "image",
+      toRaw(imageDataset.value.map(({ image, label }) => [image, label])),
+    ];
+  if (tabularDataset.value !== undefined)
+    return ["tabular", toRaw(tabularDataset.value)];
+  if (textDataset.value !== undefined)
+    return ["text", toRaw(textDataset.value)];
+
+  return undefined;
+});
 </script>

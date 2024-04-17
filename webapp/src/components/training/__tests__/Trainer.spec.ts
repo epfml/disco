@@ -4,8 +4,8 @@ import { mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import * as fs from "node:fs/promises";
 
-import { data, defaultTasks, serialization } from "@epfml/discojs";
-import { WebTabularLoader } from "@epfml/discojs-web";
+import { defaultTasks, serialization } from "@epfml/discojs";
+import { loadCSV } from "@epfml/discojs-web";
 
 import Trainer from "../Trainer.vue";
 import TrainingInformation from "../TrainingInformation.vue";
@@ -34,13 +34,6 @@ vi.mock("axios", async () => {
 
 async function setupForTask() {
   const task = defaultTasks.titanic.getTask();
-  const builder = new data.DatasetBuilder(new WebTabularLoader(task), task);
-  builder.addFiles([
-    new File(
-      [await fs.readFile("../datasets/titanic_train.csv")],
-      "titanic_train.csv",
-    ),
-  ]);
 
   return mount(Trainer, {
     global: {
@@ -50,7 +43,15 @@ async function setupForTask() {
     },
     props: {
       task,
-      datasetBuilder: builder,
+      dataset: [
+        "tabular",
+        loadCSV(
+          new File(
+            [await fs.readFile("../datasets/titanic_train.csv")],
+            "titanic_train.csv",
+          ),
+        ),
+      ],
     },
   });
 }
@@ -60,11 +61,10 @@ it("increases accuracy when training alone", async () => {
 
   await wrapper.get("button").trigger("click");
   const infos = wrapper.getComponent(TrainingInformation);
-  while (infos.props("epochsOfRound").isEmpty()) {
+  while (infos.props("rounds").isEmpty())
     await new Promise((resolve) => setTimeout(resolve, 100));
-  }
 
   expect(
-    infos.props("epochsOfRound").last()?.training.accuracy,
+    infos.props("rounds").last()?.epochs.last()?.training.accuracy,
   ).toBeGreaterThan(0);
 });

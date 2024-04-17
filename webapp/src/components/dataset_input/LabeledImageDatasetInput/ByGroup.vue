@@ -13,22 +13,32 @@
 </template>
 
 <script lang="ts" setup>
-import { Set } from "immutable";
+import { Map, Set } from "immutable";
 import { computed, ref, watch } from "vue";
 
-import { data } from "@epfml/discojs";
+import { Dataset } from "@epfml/discojs";
+import { loadImage } from "@epfml/discojs-web";
 
 import IconCard from "@/components/containers/IconCard.vue";
 
 import FileSelection from "../FileSelection.vue";
 
+import type { NamedLabeledImageDataset } from "../types.js";
 import { browsingTip } from "./strings.js";
 
 const props = defineProps<{
   labels: Set<string>;
-  datasetBuilder: data.DatasetBuilder<File>;
 }>();
 
+const dataset = defineModel<NamedLabeledImageDataset>();
+watch(dataset, (dataset: NamedLabeledImageDataset | undefined) => {
+  if (dataset === undefined)
+    Object.values(labelToFiles.value).forEach((files) => {
+      files.value = undefined;
+    });
+});
+
+// using an object instead of a map as vue needs to update in place
 const labelToFiles = computed(() =>
   Object.fromEntries(
     props.labels.map((label) => [label, ref<Set<File>>()] as const),
@@ -36,11 +46,16 @@ const labelToFiles = computed(() =>
 );
 
 watch(Object.values(labelToFiles.value), () => {
-  props.datasetBuilder.clearFiles();
+  const labelsAndFiles = Map(Object.entries(labelToFiles.value))
+    .toSeq()
+    .flatMap(
+      (files, label) => files.value?.map((f) => [label, f] as const) ?? [],
+    );
 
-  for (const [label, files] of Object.entries(labelToFiles.value)) {
-    if (files.value === undefined) continue;
-    props.datasetBuilder.addFiles(files.value.toArray(), label);
-  }
+  dataset.value = new Dataset(labelsAndFiles).map(async ([label, file]) => ({
+    filename: file.name,
+    image: await loadImage(file),
+    label,
+  }));
 });
 </script>
