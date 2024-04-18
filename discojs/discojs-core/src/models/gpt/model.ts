@@ -68,8 +68,8 @@ class GPTModel extends tf.LayersModel {
   async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
     const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs
     const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
-    console.log(`Begin train - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
     await callbacks.onTrainBegin?.()
+    
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let averageLoss = 0
       let averageWeightUpdateTime = 0
@@ -93,12 +93,12 @@ class GPTModel extends tf.LayersModel {
           }
           return tf.losses.softmaxCrossEntropy(ys, logits)
         }
-        let currentMemory = 0
+        let backwardPassMemory = 0
         const lossTensor = tf.tidy(() => {
           const { grads, value: lossTensor } = this.optimizer.computeGradients(lossFn)
           const gradsClipped = clipByGlobalNormObj(grads, 1)
           this.optimizer.applyGradients(gradsClipped)
-          currentMemory = tf.memory().numBytes / 1024 / 1024 / 1024
+          backwardPassMemory = tf.memory().numBytes / 1024 / 1024 / 1024
           return lossTensor
         })
         
@@ -106,9 +106,10 @@ class GPTModel extends tf.LayersModel {
         averageLoss += loss
         weightUpdateTime = performance.now() - weightUpdateTime
         averageWeightUpdateTime += weightUpdateTime
-        if (currentMemory > this.peakMemory.value) {
-          console.log("Max memory", currentMemory)
-          this.peakMemory.value = currentMemory
+        // Probably never the case. Empirically the attention mechanism always allocates
+        // more memory than the backward pass
+        if (backwardPassMemory > this.peakMemory.value) {
+          this.peakMemory.value = backwardPassMemory
         }
         tf.dispose([xs, ys, lossTensor])
 
@@ -151,8 +152,6 @@ class GPTModel extends tf.LayersModel {
     }
 
     await callbacks.onTrainEnd?.()
-    console.log(`End train - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
-
     return new tf.History()
   }
 }
