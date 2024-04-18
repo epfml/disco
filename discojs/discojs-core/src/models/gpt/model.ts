@@ -68,20 +68,18 @@ class GPTModel extends tf.LayersModel {
   async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
     const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs
     const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
-    
+    console.log(`Begin train - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
     await callbacks.onTrainBegin?.()
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let averageLoss = 0
       let averageWeightUpdateTime = 0
       let iteration = 1
       const iterator = await dataset.iterator()
+      let preprocessingTime = performance.now()
+      let next = await iterator.next()
+      preprocessingTime = performance.now() - preprocessingTime
 
-      let continueTraining = true
-      while (continueTraining) {
-        let preprocessingTime = performance.now()
-        const next = await iterator.next()
-        preprocessingTime = performance.now() - preprocessingTime
-
+      while (next.done !== true && iteration <= this.config.maxIter) {
         let weightUpdateTime = performance.now()
         await callbacks.onEpochBegin?.(epoch)
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
@@ -112,8 +110,17 @@ class GPTModel extends tf.LayersModel {
           console.log("Max memory", currentMemory)
           this.peakMemory.value = currentMemory
         }
-        tf.dispose([xs, ys, lossTensor, next.value])
+        tf.dispose([xs, ys, lossTensor])
 
+        
+        if (
+          evalDataset !== undefined &&
+          this.config.evaluateEvery !== undefined &&
+          iteration % this.config.evaluateEvery == 0
+        ){
+          const iterationLogs = await evaluate(this, evalDataset, this.config.maxEvalBatches)
+          console.log(iterationLogs)
+        }
         console.log(
           `Epoch: ${epoch}`,
           `\tStep: ${iteration} / ${this.config.maxIter}`,
@@ -123,19 +130,13 @@ class GPTModel extends tf.LayersModel {
           `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
           `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
         )
-
-        if (evalDataset !== undefined && this.config.evaluateEvery !== undefined
-          && iteration % this.config.evaluateEvery == 0) {
-          const logs = await evaluate(this, evalDataset, this.config.maxEvalBatches)
-          console.log(logs)
-        }
         iteration++
-        continueTraining = next.done !== true && iteration <= this.config.maxIter
-        // If we reached the last iteration, cleanup the tensors
-        if (next.done != true && iteration > this.config.maxIter) {
-          const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
-          tf.dispose([xs, ys])
-        }
+        next = await iterator.next()
+      }
+      // Memory leak: If we reached the last iteration rather than the end of the dataset, cleanup the tensors
+      if (next.done != true && iteration > this.config.maxIter) {
+        const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
+        tf.dispose([xs, ys])
       }
       let logs: tf.Logs = {
         'loss': averageLoss / iteration,
@@ -150,6 +151,8 @@ class GPTModel extends tf.LayersModel {
     }
 
     await callbacks.onTrainEnd?.()
+    console.log(`End train - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
+
     return new tf.History()
   }
 }
@@ -220,7 +223,7 @@ export class GPTForCausalLM extends GPTModel {
       const blockSize = this.config.blockSize
       idx = idx.shape[1] <= blockSize
       ? idx : idx.slice([0, idx.shape[1] - blockSize])
-      
+
       const output = model.predict(idx)
       if (Array.isArray(output)) throw new Error('The model outputs too multiple values')
       if (output.shape.length !== 3) throw new Error('The model outputs wrong shape')
@@ -231,7 +234,7 @@ export class GPTForCausalLM extends GPTModel {
         .slice([0, idx.shape[1] - 1, 0])
         .reshape([logits.shape[0], logits.shape[2]])
         .div<tf.Tensor2D>(tf.scalar(config.temperature))
-        const probs = logitsScaled.softmax(-1)
+      const probs = logitsScaled.softmax(-1)
       if (config.doSample) {
         return tf.multinomial(probs, 1) as tf.Tensor2D
       } else {
@@ -244,5 +247,4 @@ export class GPTForCausalLM extends GPTModel {
       timePerToken
     }
   }
-
 }

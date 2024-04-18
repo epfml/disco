@@ -44,6 +44,9 @@ async function main(): Promise<void> {
       console.log(`\t\t\t${msPerToken.toFixed(2)} ms/token <br> ${logs.peakMemory?.toFixed(2)} GB`)
     }
     model.dispose()
+
+    // Check for memory leak. Currently, there are a few tensors that are still not disposed
+    console.log(`End loop - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
   } else {
     
     const model = await loadModelFromDisk(`models/model_random.json`) as models.GPT

@@ -96,15 +96,13 @@ export class GPT extends Model {
       doSample: false
     }
     let avgTimePerToken = 0
-    let tokenCount = 0
     const predictedTokens = await this.model.generate(tokens, generationConfig, (res) => {
       avgTimePerToken += res.timePerToken
-      tokenCount += 1
     })
     const generatedWords = tokenizer.decode(predictedTokens[0])
     return {
       generation: generatedWords,
-      avgTokenTime: avgTimePerToken / tokenCount
+      avgTokenTime: avgTimePerToken / generationConfig.maxNewTokens
     }
   }
 
