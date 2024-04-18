@@ -1,11 +1,11 @@
 export type GPTModelType =
-    | 'gpt2'
-    | 'gpt2-medium'
-    | 'gpt2-large'
-    | 'gpt2-xl'
-    | 'gpt-mini'
-    | 'gpt-micro'
-    | 'gpt-nano'
+  | 'gpt2'
+  | 'gpt2-medium'
+  | 'gpt2-large'
+  | 'gpt2-xl'
+  | 'gpt-mini'
+  | 'gpt-micro'
+  | 'gpt-nano'
 
 export interface GPTConfig {
   lr: number
@@ -77,9 +77,5 @@ export function getModelSizes (modelType: GPTModelType): Required<ModelSize> {
       return { nLayer: 4, nHead: 4, nEmbd: 128 }
     case 'gpt-nano':
       return { nLayer: 3, nHead: 3, nEmbd: 48 }
-    default: {
-      const _: never = modelType
-      throw new Error(`GPT model type specified doesn't exist: ${modelType}`)
-    }
   }
 }

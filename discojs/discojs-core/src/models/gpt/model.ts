@@ -49,7 +49,7 @@ class GPTModel extends tf.LayersModel {
   // Some tensors are not cleaned up when model.dispose is called 
   // So we dispose them manually
   disposeRefs() {
-    for (let tensorContainer of this.disposalRefs) {
+    for (const tensorContainer of this.disposalRefs) {
       tf.dispose([tensorContainer])
     }
   }
@@ -208,7 +208,7 @@ export class GPTForCausalLM extends GPTModel {
       const idxNextArr = await idxNext.array()
       tf.dispose(idxNext)
       if (act !== undefined) {
-        await act({ idxNext: idxNextArr, timePerToken })
+        act({ idxNext: idxNextArr, timePerToken })
       }
     }
     const idxArr = await idx.array()

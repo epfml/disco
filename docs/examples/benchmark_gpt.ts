@@ -45,7 +45,7 @@ async function main(): Promise<void> {
     }
     model.dispose()
 
-    // Check for memory leak. Currently, there are a few tensors that are still not disposed
+    // Check for memory leak. Currently, there are a few tensors that are still not disposed (one per attention layer in the model)
     console.log(`End loop - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
   } else {
     
@@ -55,14 +55,14 @@ async function main(): Promise<void> {
     const prompt = 'The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion,'
     const nbNewTokens = 200
     const iterations = 10
-    console.log("Prompt token size", tokenizer(prompt)['input_ids']['size'])
+    console.log("Prompt token size", (tokenizer(prompt) as {input_ids: number[]}).input_ids.length)
     console.log("Number new tokens", nbNewTokens)
 
     let inferenceTime = 0
     let iterationAvgTokenTime = 0
     for (let i = 0; i < iterations; i++) {
       const timeStart = performance.now()
-      const { generation, avgTokenTime } = await model.generate(prompt, tokenizer, nbNewTokens)
+      const { generation: _, avgTokenTime } = await model.generate(prompt, tokenizer, nbNewTokens)
       inferenceTime += performance.now() - timeStart
       iterationAvgTokenTime += avgTokenTime
     }
