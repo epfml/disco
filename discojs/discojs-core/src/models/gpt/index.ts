@@ -48,11 +48,9 @@ export class GPT extends Model {
       if (logs === undefined) {
         throw new Error("epoch didn't gave any logs");
       }
-      const { loss, val_acc, val_loss, weightUpdateTime, memory } = logs;
+      const { loss, val_acc, val_loss, weightUpdateTime, peakMemory } = logs;
       if (loss === undefined || isNaN(loss)) {
-        console.log(loss)
-        logs.loss = -1
-        // throw new Error("Invalid training logs");
+        throw new Error("Training loss is undefined or nan");
       }
       const structuredLogs: EpochLogs = {
         epoch,
@@ -71,13 +69,12 @@ export class GPT extends Model {
       if (weightUpdateTime !== undefined && !isNaN(weightUpdateTime)) {
         structuredLogs['weightUpdateTime'] = weightUpdateTime
       }
-      if (memory !== undefined && !isNaN(memory)) {
-        structuredLogs['memory'] = memory
+      if (peakMemory !== undefined && !isNaN(peakMemory)) {
+        structuredLogs['peakMemory'] = peakMemory
       }
 
       yield structuredLogs
     }
-    this.model.optimizer.dispose()
   }
 
   override predict (input: Sample): Promise<Prediction> {
@@ -89,18 +86,26 @@ export class GPT extends Model {
     return Promise.resolve(ret)
   }
 
-  async generate (input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
+  async generate(input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10):
+    Promise<{ generation: string, avgTokenTime: number }> {
     const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as { input_ids: number[] }
 
     const generationConfig = {
       maxNewTokens: newTokens,
       temperature: 1.0,
-      doSample: false,
-      topK: null
+      doSample: false
     }
-    const predictedTokens = await this.model.generate(tokens, generationConfig)
+    let avgTimePerToken = 0
+    let tokenCount = 0
+    const predictedTokens = await this.model.generate(tokens, generationConfig, (res) => {
+      avgTimePerToken += res.timePerToken
+      tokenCount += 1
+    })
     const generatedWords = tokenizer.decode(predictedTokens[0])
-    return generatedWords
+    return {
+      generation: generatedWords,
+      avgTokenTime: avgTimePerToken / tokenCount
+    }
   }
 
   get config (): Required<GPTConfig> {
@@ -128,6 +133,9 @@ export class GPT extends Model {
   }
 
   dispose(): void {
+    this.model.optimizer.dispose()
+    // Some tensors are not cleaned up when model.dispose is called 
+    // So we dispose them manually
     this.model.disposeRefs()
     this.model.dispose()
   }

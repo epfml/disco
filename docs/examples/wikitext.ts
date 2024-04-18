@@ -47,8 +47,8 @@ async function main(): Promise<void> {
   // Retrieve the tokenizer used during training
   const tokenizer = await models.getTaskTokenizer(task)
   const prompt = 'The game began development in 2010 , carrying over a large portion'
-  const generations = await model.generate(prompt, tokenizer)
-  console.log(generations)
+  const { generation, avgTokenTime } = await model.generate(prompt, tokenizer)
+  console.log(generation)
 }
 
 async function loadWikitextData (task: Task): Promise<data.DataSplit> {

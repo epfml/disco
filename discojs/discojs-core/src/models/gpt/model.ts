@@ -24,7 +24,10 @@ export declare abstract class Dataset<T> {
  */
 class GPTModel extends tf.LayersModel {
   protected readonly config: Required<GPTConfig>
-  private readonly disposalRefs: Array<() => void>
+  private readonly disposalRefs: tf.TensorContainer[] // Array to store tensor to dispose manually
+  // Object to pass down to layers to store max memory allocated
+  // This is an object rather than a primitive to pass the reference
+  protected peakMemory: { value: number }
 
   constructor(partialConfig?: GPTConfig) {
     // Fill missing config parameters with default values
@@ -33,17 +36,21 @@ class GPTModel extends tf.LayersModel {
     completeConfig = { ...completeConfig, ...getModelSizes(completeConfig.modelType) }
 
     // Init the tf.LayersModel and assign it to this
-    const disposalRefs:Array<() => void> = []
-    const gpt = GPTArchitecture(completeConfig, disposalRefs)
+    const disposalRefs: tf.TensorContainer[] = []
+    const peakMemory: { value: number } = {value: 0}
+    const gpt = GPTArchitecture(completeConfig, disposalRefs, peakMemory)
     const { inputs, outputs, name } = gpt
     super({ inputs, outputs, name })
     this.config = completeConfig
     this.disposalRefs = disposalRefs
+    this.peakMemory = peakMemory
   }
 
+  // Some tensors are not cleaned up when model.dispose is called 
+  // So we dispose them manually
   disposeRefs() {
-    for (let disposeFn of this.disposalRefs) {
-      disposeFn()
+    for (let tensorContainer of this.disposalRefs) {
+      tf.dispose([tensorContainer])
     }
   }
 
@@ -55,6 +62,7 @@ class GPTModel extends tf.LayersModel {
     this.optimizer = this.config.weightDecay !== 0
       ? getCustomAdam(this, this.config.lr, this.config.weightDecay)
       : tf.train.adam(this.config.lr) 
+    this.peakMemory.value = 0
   }
 
   async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
@@ -65,7 +73,6 @@ class GPTModel extends tf.LayersModel {
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let averageLoss = 0
       let averageWeightUpdateTime = 0
-      let averageMemory = 0
       let iteration = 1
       const iterator = await dataset.iterator()
 
@@ -88,12 +95,12 @@ class GPTModel extends tf.LayersModel {
           }
           return tf.losses.softmaxCrossEntropy(ys, logits)
         }
-        let peakMemory
+        let currentMemory = 0
         const lossTensor = tf.tidy(() => {
           const { grads, value: lossTensor } = this.optimizer.computeGradients(lossFn)
           const gradsClipped = clipByGlobalNormObj(grads, 1)
           this.optimizer.applyGradients(gradsClipped)
-          peakMemory = tf.memory().numBytes / 1024 / 1024
+          currentMemory = tf.memory().numBytes / 1024 / 1024 / 1024
           return lossTensor
         })
         
@@ -101,20 +108,21 @@ class GPTModel extends tf.LayersModel {
         averageLoss += loss
         weightUpdateTime = performance.now() - weightUpdateTime
         averageWeightUpdateTime += weightUpdateTime
-        peakMemory = peakMemory ?? 0
-        averageMemory += peakMemory
+        if (currentMemory > this.peakMemory.value) {
+          console.log("Max memory", currentMemory)
+          this.peakMemory.value = currentMemory
+        }
         tf.dispose([xs, ys, lossTensor, next.value])
 
-        // console.log(
-        //   `Epoch: ${epoch}`,
-        //   `\tStep: ${iteration} / ${this.config.maxIter}`,
-        //   `\tLoss: ${loss.toFixed(3)}`,
-        //   `\tPeak memory: ${peakMemory.toFixed(2)} MB`,
-        //   `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`,
-        //   `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
-        //   `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
-        //   `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
-        // )
+        console.log(
+          `Epoch: ${epoch}`,
+          `\tStep: ${iteration} / ${this.config.maxIter}`,
+          `\tLoss: ${loss.toFixed(3)}`,
+          `\tPeak memory: ${this.peakMemory.value.toFixed(2)} GB`,
+          `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
+          `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
+          `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
+        )
 
         if (evalDataset !== undefined && this.config.evaluateEvery !== undefined
           && iteration % this.config.evaluateEvery == 0) {
@@ -132,7 +140,7 @@ class GPTModel extends tf.LayersModel {
       let logs: tf.Logs = {
         'loss': averageLoss / iteration,
         'weightUpdateTime': averageWeightUpdateTime / iteration,
-        'memory': averageMemory / iteration
+        'peakMemory': this.peakMemory.value
       }
       if (evalDataset !== undefined) {
         logs = { ...logs, ...await evaluate(this, evalDataset, this.config.maxEvalBatches) }
@@ -186,7 +194,7 @@ function prepareIdx (idx: tf.TensorLike): tf.Tensor2D {
  * 
  */
 export class GPTForCausalLM extends GPTModel {
-  async generate (idxRaw: tf.TensorLike, conf: GenerateConfig, act?: (_: { idxNext: number[][], timePerToken: number }) => Promise<void>): Promise<number[][]> {
+  async generate (idxRaw: tf.TensorLike, conf: GenerateConfig, act?: (_: { idxNext: number[][], timePerToken: number }) => void): Promise<number[][]> {
     const config = Object.assign({}, defaultGenerateConfig, conf)
     let idx = prepareIdx(idxRaw)
     for (let step = 0; step < config.maxNewTokens; step++) {
@@ -207,23 +215,23 @@ export class GPTForCausalLM extends GPTModel {
 
   private generateOnce (model: tf.LayersModel, idx: tf.Tensor2D, config: GenerateConfig): { idxNext: tf.Tensor2D, timePerToken: number } {
     let timePerToken = performance.now()
-
     const idxNext = tf.tidy(() => {
+      // slice input tokens if longer than context length
       const blockSize = this.config.blockSize
-      const idxCond = idx.shape[1] <= blockSize
-        ? idx : idx.slice([0, -blockSize], [-1, -1])
+      idx = idx.shape[1] <= blockSize
+      ? idx : idx.slice([0, idx.shape[1] - blockSize])
       
-      const output = model.predict(idxCond)
+      const output = model.predict(idx)
       if (Array.isArray(output)) throw new Error('The model outputs too multiple values')
       if (output.shape.length !== 3) throw new Error('The model outputs wrong shape')
       const logits = output as tf.Tensor3D
-
+        
       timePerToken = performance.now() - timePerToken
       const logitsScaled = logits
         .slice([0, idx.shape[1] - 1, 0])
         .reshape([logits.shape[0], logits.shape[2]])
         .div<tf.Tensor2D>(tf.scalar(config.temperature))
-      const probs = logitsScaled.softmax(-1)
+        const probs = logitsScaled.softmax(-1)
       if (config.doSample) {
         return tf.multinomial(probs, 1) as tf.Tensor2D
       } else {
@@ -236,4 +244,5 @@ export class GPTForCausalLM extends GPTModel {
       timePerToken
     }
   }
+
 }

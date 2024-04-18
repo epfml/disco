@@ -59,13 +59,12 @@ class CausalSelfAttention extends tf.layers.Layer {
   private readonly dropout: number
   private readonly bias: boolean
   private readonly mask: tf.Tensor2D
-
   cAttnKernel?: tf.LayerVariable
   cAttnBias?: tf.LayerVariable
   cProjKernel?: tf.LayerVariable
   cProjBias?: tf.LayerVariable
 
-  constructor (private readonly config: CausalSelfAttentionConfig, disposalRefs: Array<() => void>) {
+  constructor (private readonly config: CausalSelfAttentionConfig, disposalRefs: tf.TensorContainer[], private peakMemory: {value: number}) {
     super(config)
 
     this.nEmbd = config.nEmbd
@@ -77,7 +76,7 @@ class CausalSelfAttention extends tf.layers.Layer {
     // calling bandPart zero out the upper triangular part of the all-ones matrix
     // from the doc: tf.linalg.band_part(input, -1, 0) ==> Lower triangular part
     this.mask = tf.linalg.bandPart(tf.ones([config.blockSize, config.blockSize]), -1, 0)
-    disposalRefs.push(() => tf.dispose(this.mask)) // Push a callback to dispose this matrix later
+    disposalRefs.push(this.mask) // Push a reference to dispose this matrix later
   }
 
   build (): void {
@@ -189,7 +188,10 @@ class CausalSelfAttention extends tf.layers.Layer {
       y = tf.reshape(y, [B, T, C])
       y = dense(y, this.cProjKernel, this.cProjBias)
       y = kwargs.training === true ? tf.dropout(y, this.dropout) : y
-      console.log("Attention memory", (tf.memory().numBytes / 1024 / 1024 / 1024).toFixed(2))
+      const memoryAllocated = tf.memory().numBytes / 1024 / 1024 / 1024 // GB
+      if (memoryAllocated > this.peakMemory.value) {
+        this.peakMemory.value = memoryAllocated
+      }
       return y
     })
   }
@@ -258,7 +260,7 @@ function MLP (config: MLPConfig): tf.LayersModel {
 
 type BlockConfig = CausalSelfAttentionConfig & MLPConfig & { debug: boolean }
 
-function TransformerBlock (conf: BlockConfig, disposalRefs: Array<() => void>): tf.LayersModel {
+function TransformerBlock (conf: BlockConfig, disposalRefs: tf.TensorContainer[], peakMemory: {value: number}): tf.LayersModel {
   const config = Object.assign({ name: 'h' }, conf)
   const inputs = tf.input({ shape: [config.blockSize, config.nEmbd] })
   let x1, x2
@@ -271,7 +273,8 @@ function TransformerBlock (conf: BlockConfig, disposalRefs: Array<() => void>): 
   // self attention layer
   x1 = new CausalSelfAttention(
     Object.assign({}, config, { name: config.name + '/attn' }),
-    disposalRefs
+    disposalRefs,
+    peakMemory
   ).apply(x1)
   // Residual connection
   x1 = tf.layers.add().apply([inputs, x1 as tf.SymbolicTensor])
@@ -297,7 +300,10 @@ function TransformerBlock (conf: BlockConfig, disposalRefs: Array<() => void>): 
  * @param conf GPTConfig
  * @returns model, tf.LayersModel, which supports model(inputs), model.predict and model.apply
  */
-export function GPTArchitecture(config: Required<GPTConfig>, disposalRefs: Array<() => void>): tf.LayersModel {
+export function GPTArchitecture(
+  config: Required<GPTConfig>,
+  disposalRefs: tf.TensorContainer[],
+  peakMemory: {value: number }): tf.LayersModel {
   const inputs = tf.input({ shape: [null] })
 
   //Token embedding
@@ -337,7 +343,8 @@ export function GPTArchitecture(config: Required<GPTConfig>, disposalRefs: Array
   for (let i = 0; i < config.nLayer; i++) {
     x = TransformerBlock(
       Object.assign({}, config, { name: config.name + '/h/' + i }),
-      disposalRefs
+      disposalRefs,
+      peakMemory
     ).apply(x)
   }
   // Normalization
