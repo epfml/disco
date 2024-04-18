@@ -3,6 +3,10 @@ import { fetchTasks, data, models } from '@epfml/discojs-core'
 import { NodeTextLoader, loadModelFromDisk } from '@epfml/discojs-node'
 import * as tf from '@tensorflow/tfjs'
 
+/**
+ * Benchmark results are reported in https://github.com/epfml/disco/pull/659
+ */
+
 async function main(): Promise<void> { 
   // Launch a server instance
   const url = new URL('http://localhost:8080')

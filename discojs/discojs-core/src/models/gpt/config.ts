@@ -30,7 +30,7 @@ export interface GPTConfig {
   nHead?: number
   nEmbd?: number
 }
-
+// for a benchmark of performance, see https://github.com/epfml/disco/pull/659
 export const DEFAULT_CONFIG: Required<GPTConfig> = {
   name: 'transformer',
   lr: 0.001,
