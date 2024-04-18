@@ -24,18 +24,27 @@ export declare abstract class Dataset<T> {
  */
 class GPTModel extends tf.LayersModel {
   protected readonly config: Required<GPTConfig>
+  private readonly disposalRefs: Array<() => void>
 
   constructor(partialConfig?: GPTConfig) {
-    // Complete missing config parameters with default values
+    // Fill missing config parameters with default values
     let completeConfig: Required<GPTConfig> = { ...DEFAULT_CONFIG, ...partialConfig }
     // Add layer sizes depending on which model has been specified
     completeConfig = { ...completeConfig, ...getModelSizes(completeConfig.modelType) }
 
     // Init the tf.LayersModel and assign it to this
-    const gpt = GPTArchitecture(completeConfig)
+    const disposalRefs:Array<() => void> = []
+    const gpt = GPTArchitecture(completeConfig, disposalRefs)
     const { inputs, outputs, name } = gpt
     super({ inputs, outputs, name })
     this.config = completeConfig
+    this.disposalRefs = disposalRefs
+  }
+
+  disposeRefs() {
+    for (let disposeFn of this.disposalRefs) {
+      disposeFn()
+    }
   }
 
   get getGPTConfig() {
@@ -96,16 +105,16 @@ class GPTModel extends tf.LayersModel {
         averageMemory += peakMemory
         tf.dispose([xs, ys, lossTensor, next.value])
 
-        console.log(
-          `Epoch: ${epoch}`,
-          `\tStep: ${iteration} / ${this.config.maxIter}`,
-          `\tLoss: ${loss.toFixed(3)}`,
-          `\tPeak memory: ${peakMemory.toFixed(2)} MB`,
-          `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`,
-          `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
-          `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
-          `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
-        )
+        // console.log(
+        //   `Epoch: ${epoch}`,
+        //   `\tStep: ${iteration} / ${this.config.maxIter}`,
+        //   `\tLoss: ${loss.toFixed(3)}`,
+        //   `\tPeak memory: ${peakMemory.toFixed(2)} MB`,
+        //   `\tMemory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`,
+        //   `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
+        //   `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
+        //   `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
+        // )
 
         if (evalDataset !== undefined && this.config.evaluateEvery !== undefined
           && iteration % this.config.evaluateEvery == 0) {

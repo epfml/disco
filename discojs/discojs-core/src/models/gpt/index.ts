@@ -128,6 +128,7 @@ export class GPT extends Model {
   }
 
   dispose(): void {
+    this.model.disposeRefs()
     this.model.dispose()
   }
 }
