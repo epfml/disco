@@ -1,4 +1,4 @@
-type GPTModelType =
+type ModelType =
   | 'gpt2'
   | 'gpt2-medium'
   | 'gpt2-large'
@@ -11,7 +11,7 @@ export interface GPTConfig {
   lr: number
   blockSize: number
   vocabSize: number
-  modelType: GPTModelType
+  modelType: ModelType
   name?: string,
   evaluate?: boolean
   maxEvalBatches?: number
@@ -61,7 +61,7 @@ export type ModelSize = {
   nEmbd: number
 }
 
-export function getModelSizes (modelType: GPTModelType): Required<ModelSize> {
+export function getModelSizes (modelType: ModelType): Required<ModelSize> {
   switch (modelType) {
     case 'gpt2':
       return { nLayer: 12, nHead: 12, nEmbd: 768 }

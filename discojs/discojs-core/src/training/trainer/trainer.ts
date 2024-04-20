@@ -66,7 +66,6 @@ export abstract class Trainer {
         round: logs.epoch,
         epochs: List.of(logs),
       };
-      console.log(logs.peakMemory)
 
       if (logs.epoch % this.#roundDuration === 0) {
         const round = Math.trunc(logs.epoch / this.#roundDuration);

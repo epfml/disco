@@ -83,7 +83,6 @@ async function main(args: Required<CLIArguments>): Promise<void> {
       const msPerToken = epochTime / (batchSize * contextLength * iterationsPerEpoch * epoch)
       console.log(`\t\tTraining time: ${msPerToken.toFixed(2)} ms/token <br> ${logs.peakMemory.toFixed(2)} GB`)
     }
-    // model.dispose()
 
   /**
    * Inference benchmark
