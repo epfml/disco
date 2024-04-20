@@ -47,7 +47,7 @@ async function main(): Promise<void> {
   // Retrieve the tokenizer used during training
   const tokenizer = await models.getTaskTokenizer(task)
   const prompt = 'The game began development in 2010 , carrying over a large portion'
-  const { generation, avgTokenTime: _ } = await model.generate(prompt, tokenizer)
+  const generation = await model.generate(prompt, tokenizer)
   console.log(generation)
 }
 

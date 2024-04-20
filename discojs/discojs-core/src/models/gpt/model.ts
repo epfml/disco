@@ -141,7 +141,6 @@ class GPTModel extends tf.LayersModel {
       }
       let logs: tf.Logs = {
         'loss': averageLoss / iteration,
-        'weightUpdateTime': averageWeightUpdateTime / iteration,
         'peakMemory': this.peakMemory.value
       }
       if (evalDataset !== undefined) {
@@ -196,27 +195,23 @@ function prepareIdx (idx: tf.TensorLike): tf.Tensor2D {
  * 
  */
 export class GPTForCausalLM extends GPTModel {
-  async generate (idxRaw: tf.TensorLike, conf: GenerateConfig, act?: (_: { idxNext: number[][], timePerToken: number }) => void): Promise<number[][]> {
+  async generate (idxRaw: tf.TensorLike, conf: GenerateConfig): Promise<number[][]> {
     const config = Object.assign({}, defaultGenerateConfig, conf)
     let idx = prepareIdx(idxRaw)
     for (let step = 0; step < config.maxNewTokens; step++) {
-      const { idxNext, timePerToken } = this.generateOnce(this, idx, config)
+      const idxNext = this.generateOnce(this, idx, config)
       const idxNew = idx.concat(idxNext, 1)
       tf.dispose(idx)
       idx = idxNew
       const idxNextArr = await idxNext.array()
       tf.dispose(idxNext)
-      if (act !== undefined) {
-        act({ idxNext: idxNextArr, timePerToken })
-      }
     }
     const idxArr = await idx.array()
     tf.dispose(idx)
     return idxArr
   }
 
-  private generateOnce (model: tf.LayersModel, idx: tf.Tensor2D, config: GenerateConfig): { idxNext: tf.Tensor2D, timePerToken: number } {
-    let timePerToken = performance.now()
+  private generateOnce (model: tf.LayersModel, idx: tf.Tensor2D, config: GenerateConfig): tf.Tensor2D {
     const idxNext = tf.tidy(() => {
       // slice input tokens if longer than context length
       const blockSize = this.config.blockSize
@@ -228,7 +223,6 @@ export class GPTForCausalLM extends GPTModel {
       if (output.shape.length !== 3) throw new Error('The model outputs wrong shape')
       const logits = output as tf.Tensor3D
         
-      timePerToken = performance.now() - timePerToken
       const logitsScaled = logits
         .slice([0, idx.shape[1] - 1, 0])
         .reshape([logits.shape[0], logits.shape[2]])
@@ -240,10 +234,6 @@ export class GPTForCausalLM extends GPTModel {
         return probs.argMax(-1).expandDims<tf.Tensor2D>(1)
       }
     })
-
-    return {
-      idxNext,
-      timePerToken
-    }
+    return idxNext
   }
 }

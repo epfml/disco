@@ -1,4 +1,4 @@
-export type GPTModelType =
+type GPTModelType =
   | 'gpt2'
   | 'gpt2-medium'
   | 'gpt2-large'

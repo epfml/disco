@@ -21,19 +21,20 @@ async function main(): Promise<void> {
       modelType: 'gpt-nano',
       lr: 0.0001,
       maxIter: 10,
-      evaluateEvery:10000,
-      maxEvalBatches: 10,
       blockSize: 8,
       vocabSize: 50258
     }
     
-    const modelType = 'gpt-nano'//['gpt-nano', 'gpt-micro', 'gpt-mini', 'gpt2']
-    const contextLength = 256 // [128, 256, 512, 1024, 2048]
-    const batchSize = 8 //[8, 16, 32, 64]
+    if (config.maxIter === undefined) {
+      throw new Error("The maximum number of iterations per epoch should be specified in the GPTConfig")
+    }
+    const modelType = 'gpt-nano' as const //['gpt-nano', 'gpt-micro', 'gpt-mini', 'gpt2']
+    const contextLength = 512 // [128, 256, 512, 1024, 2048]
+    const batchSize = 16 //[8, 16, 32, 64]
     
     console.log(`Begin loop - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
     task.trainingInformation.batchSize = batchSize
-    config.modelType = modelType as models.GPTModelType
+    config.modelType = modelType
     task.trainingInformation.maxSequenceLength = contextLength
     config.blockSize = contextLength
     console.log(`\tmodel type ${modelType} \n\tbatch size ${batchSize} \n\tcontext length ${contextLength}`)
@@ -41,19 +42,22 @@ async function main(): Promise<void> {
     const dataset = await loadWikitextData(task)
     const preprocessedDataset = dataset.train.preprocess().batch().dataset
     const model = new models.GPT(config)
-    const logGenerator = model.train(preprocessedDataset, undefined, 1)
+    let epochTime = performance.now()
+    const logGenerator = model.train(preprocessedDataset, undefined, 1) // Only one epoch
     for await (const logs of logGenerator) {
-      const updateTime = logs.weightUpdateTime ?? 0
-      const msPerToken = updateTime / batchSize / contextLength  
-      console.log(`\t\t\t${msPerToken.toFixed(2)} ms/token <br> ${logs.peakMemory?.toFixed(2)} GB`)
+      epochTime = (performance.now() - epochTime)
+      const msPerToken = epochTime / (batchSize * contextLength * config.maxIter)
+      console.log(`\t\t\t${msPerToken.toFixed(2)} ms/token <br> ${logs.peakMemory.toFixed(2)} GB`)
     }
     model.dispose()
-
     // Check for memory leak. Currently, there are a few tensors that are still not disposed (one per attention layer in the model)
     console.log(`End loop - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
   } else {
     
-    const model = await loadModelFromDisk(`models/model_random.json`) as models.GPT
+    const model = await loadModelFromDisk(`models/model_random.json`)
+    if (!(model instanceof models.GPT)){
+      throw new Error("Loaded model isn't a GPT model")
+    }
     // Retrieve the tokenizer used during training
     const tokenizer = await models.getTaskTokenizer(task)
     const prompt = 'The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion,'
@@ -63,16 +67,13 @@ async function main(): Promise<void> {
     console.log("Number new tokens", nbNewTokens)
 
     let inferenceTime = 0
-    let iterationAvgTokenTime = 0
     for (let i = 0; i < iterations; i++) {
       const timeStart = performance.now()
-      const { generation: _, avgTokenTime } = await model.generate(prompt, tokenizer, nbNewTokens)
+      const _ = await model.generate(prompt, tokenizer, nbNewTokens)
       inferenceTime += performance.now() - timeStart
-      iterationAvgTokenTime += avgTokenTime
     }
     // Overall average includes tokenization, token sampling and de-tokenization
     console.log(`Overall average: ${(inferenceTime/ nbNewTokens / iterations).toFixed(2)} ms/token`)
-    console.log(`token inference only: ${(iterationAvgTokenTime / iterations).toFixed(2)} ms/token`)
   }
     
 }

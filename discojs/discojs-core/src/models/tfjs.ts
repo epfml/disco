@@ -34,23 +34,31 @@ export class TFJS extends Model {
   ): AsyncGenerator<EpochLogs> {
     for (let epoch = 0; epoch < epochs; epoch++) {
       let logs: tf.Logs | undefined;
-
+      let peakMemory = 0
       await this.model.fitDataset(trainingData, {
         epochs: 1,
         validationData,
-        callbacks: { onEpochEnd: (_, cur) => { logs = cur } },
+        callbacks: {
+          onBatchEnd: (_) => { 
+            let currentMemory = tf.memory().numBytes
+            if (currentMemory > peakMemory) {
+              peakMemory = currentMemory
+            }
+          },
+          onEpochEnd: (_, cur) => { logs = cur }
+        },
       });
 
       if (logs === undefined) {
-        throw new Error("epoch didn't gave any logs");
+        throw new Error("Epoch didn't gave any logs");
       }
       const { loss, acc, val_acc, val_loss } = logs;
-      console.log(logs)
       if (loss === undefined || isNaN(loss) || acc === undefined || isNaN(acc)) {
-        throw new Error("Invalid training logs");
+        throw new Error("Training loss is undefined or nan");
       }
       const structuredLogs: EpochLogs = {
         epoch,
+        peakMemory,
         training: {
           loss: logs.loss,
           accuracy: logs.acc,
@@ -61,7 +69,10 @@ export class TFJS extends Model {
           val_acc === undefined || isNaN(val_acc)) {
           throw new Error("Invalid validation logs");
         }
-        structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
+        structuredLogs.validation = {
+          accuracy: logs.val_acc,
+          loss: logs.val_loss
+        }
       }
       yield structuredLogs
     }

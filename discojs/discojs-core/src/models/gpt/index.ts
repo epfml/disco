@@ -46,14 +46,15 @@ export class GPT extends Model {
     for (let epoch = 0; epoch < epochs; epoch++) {
       await this.model.fitDataset(trainingData, trainingArgs);
       if (logs === undefined) {
-        throw new Error("epoch didn't gave any logs");
+        throw new Error("Epoch didn't gave any logs");
       }
-      const { loss, val_acc, val_loss, weightUpdateTime, peakMemory } = logs;
+      const { loss, val_acc, val_loss, peakMemory } = logs;
       if (loss === undefined || isNaN(loss)) {
         throw new Error("Training loss is undefined or nan");
       }
       const structuredLogs: EpochLogs = {
         epoch,
+        peakMemory,
         training: {
           loss: logs.loss
         }
@@ -66,13 +67,6 @@ export class GPT extends Model {
         }
         structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
       }
-      if (weightUpdateTime !== undefined && !isNaN(weightUpdateTime)) {
-        structuredLogs['weightUpdateTime'] = weightUpdateTime
-      }
-      if (peakMemory !== undefined && !isNaN(peakMemory)) {
-        structuredLogs['peakMemory'] = peakMemory
-      }
-
       yield structuredLogs
     }
   }
@@ -86,8 +80,7 @@ export class GPT extends Model {
     return Promise.resolve(ret)
   }
 
-  async generate(input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10):
-    Promise<{ generation: string, avgTokenTime: number }> {
+  async generate(input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
     const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as { input_ids: number[] }
 
     const generationConfig = {
@@ -95,15 +88,9 @@ export class GPT extends Model {
       temperature: 1.0,
       doSample: false
     }
-    let avgTimePerToken = 0
-    const predictedTokens = await this.model.generate(tokens, generationConfig, (res) => {
-      avgTimePerToken += res.timePerToken
-    })
+    const predictedTokens = await this.model.generate(tokens, generationConfig)
     const generatedWords = tokenizer.decode(predictedTokens[0])
-    return {
-      generation: generatedWords,
-      avgTokenTime: avgTimePerToken / generationConfig.maxNewTokens
-    }
+    return generatedWords
   }
 
   get config (): Required<GPTConfig> {

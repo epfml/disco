@@ -13,8 +13,7 @@ export interface EpochLogs {
     loss: number,
     accuracy: number
   };
-  weightUpdateTime?: number;
-  peakMemory?: number;
+  peakMemory: number;
 }
 
 // TODO still bound to tfjs
