@@ -114,7 +114,7 @@ export class TFJS extends Model {
     return await ret
   }
 
-  dispose() {
+  [Symbol.dispose](): void{
     this.model.dispose()
   }
 

@@ -117,8 +117,11 @@ export class GPT extends Model {
     }
   }
 
-  dispose(): void {
-    this.model.optimizer.dispose()
+  [Symbol.dispose](): void{
+    console.log("Disposing model")
+    if (this.model.optimizer !== undefined) {
+      this.model.optimizer.dispose()
+    }
     // Some tensors are not cleaned up when model.dispose is called 
     // So we dispose them manually
     this.model.disposeRefs()
