@@ -1,43 +1,71 @@
+import { parse } from 'ts-command-line-args';
 import type { Task } from '@epfml/discojs-core'
 import { fetchTasks, data, models } from '@epfml/discojs-core'
 import { NodeTextLoader, loadModelFromDisk } from '@epfml/discojs-node'
-import * as tf from '@tensorflow/tfjs'
+import { startServer } from '@epfml/disco-server'
+
+interface CLIArguments{
+  modelType?: string; // 'gpt-nano', 'gpt-micro', 'gpt-mini', 'gpt2'
+  contextLength?: number; // 128, 256, 512, 1024, 2048
+  batchSize?: number; // 8, 16, 32, 64
+  inference?: boolean; // benchmark inference if true, training otherwise
+  modelPath?: string;
+}
+
+const parsedArgs = parse<CLIArguments>({
+  modelType: { type: String, optional: true, description: "A GPT architecture: 'gpt-nano', 'gpt-micro', 'gpt-mini', 'gpt2'" },
+  contextLength: { type: Number, optional: true, description: "The maximum input sequence length to train the model on" },
+  batchSize: { type: Number, optional: true, description: "The model training bat size" },
+  inference: { type: Boolean, optional: true, description: "Whether to benchmark the model inference or training" },
+  modelPath: { type: String, optional: true, description: "If benchmarking inference, the path to the trained model" },
+});
+
+const defaultArgs: Required<CLIArguments> = {
+  modelType: 'gpt-nano',
+  contextLength: 128,
+  batchSize: 8,
+  inference: false,
+  modelPath: 'models/model.json',
+}
+
+// Fill parsed args with default args
+const args = { ...defaultArgs, ...parsedArgs }
 
 /**
  * Benchmark results are reported in https://github.com/epfml/disco/pull/659
  */
 
-async function main(): Promise<void> { 
+async function main(args: Required<CLIArguments>): Promise<void> { 
+  const { inference: benchmarkInference, modelType,
+    contextLength, batchSize, modelPath } = args
+
   // Launch a server instance
-  const url = new URL('http://localhost:8080')
+  const [server, url] = await startServer()
+
+  // const url = new URL('http://localhost:8080')
+
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
   const task = tasks.get('wikitext-103')
   if (task === undefined) { throw new Error('task not found') }  
-  
-  const BENCHMARK_TRAIN = true // if false benchmark inference
-  if (BENCHMARK_TRAIN) {
-    
+
+  /**
+   * Training benchmark
+   */
+  if (!benchmarkInference) {
     // Benchmark parameters
     const epoch = 1
     const iterationsPerEpoch = 10
 
-    // Model parameters to benchmark
-    const modelType = 'gpt-nano' //['gpt-nano', 'gpt-micro', 'gpt-mini', 'gpt2']
-    const contextLength = 512 // [128, 256, 512, 1024, 2048]
-    const batchSize = 16 //[8, 16, 32, 64]
-    
     const config: models.GPTConfig = {
-      modelType: modelType,
-      lr: 0.0001,
+      modelType: modelType as models.GPTConfig['modelType'],
       maxIter: iterationsPerEpoch,
       blockSize: contextLength,
-      vocabSize: 50258
+      lr: 0.0001,
+      vocabSize: 50258 // default wikitext task uses the gpt2 tokenizer with vocabSize 50258
     }
-    console.log(`Begin loop - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
-    
-    
-    // Load the dataset after choosing the batch size and max sequence length
+
+    // Load the dataset after setting the Task batch size and max sequence length
     // to make sure the dataset is batched and tokenized correctly
     task.trainingInformation.batchSize = batchSize
     task.trainingInformation.maxSequenceLength = contextLength
@@ -53,23 +81,26 @@ async function main(): Promise<void> {
     for await (const logs of logGenerator) {
       epochTime = (performance.now() - epochTime)
       const msPerToken = epochTime / (batchSize * contextLength * iterationsPerEpoch * epoch)
-      console.log(`\t\t\t${msPerToken.toFixed(2)} ms/token <br> ${logs.peakMemory.toFixed(2)} GB`)
+      console.log(`\t\tTraining time: ${msPerToken.toFixed(2)} ms/token <br> ${logs.peakMemory.toFixed(2)} GB`)
     }
     model.dispose()
-    // Check for memory leak. Currently, there are a few tensors that are still not disposed (one per attention layer in the model)
-    console.log(`End loop - Memory: ${(tf.memory().numBytes / 1024 / 1024).toFixed(2)} MB`, `Num tensors: ${tf.memory().numTensors}`)
+
+  /**
+   * Inference benchmark
+   */
   } else {
-    const model = await loadModelFromDisk(`models/model_random.json`)
+    const model = await loadModelFromDisk(modelPath)
     if (!(model instanceof models.GPT)){
       throw new Error("Loaded model isn't a GPT model")
     }
     // Retrieve the tokenizer used during training
     const tokenizer = await models.getTaskTokenizer(task)
+    
+    // Benchmark parameters
     const prompt = 'The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion,'
     const nbNewTokens = 200
     const iterations = 10
-    console.log("Prompt token size", (tokenizer(prompt) as {input_ids: number[]}).input_ids.length)
-    console.log("Number new tokens", nbNewTokens)
+    console.log("Generating", nbNewTokens, "new tokens")
 
     let inferenceTime = 0
     for (let i = 0; i < iterations; i++) {
@@ -78,19 +109,21 @@ async function main(): Promise<void> {
       inferenceTime += performance.now() - timeStart
     }
     // Overall average includes tokenization, token sampling and de-tokenization
-    console.log(`Overall average: ${(inferenceTime/ nbNewTokens / iterations).toFixed(2)} ms/token`)
+    console.log(`Inference time: ${(inferenceTime/ nbNewTokens / iterations).toFixed(2)} ms/token`)
   }
-    
+  await new Promise((resolve, reject) => {
+    server.once('close', resolve)
+    server.close(reject)
+  })
 }
 
 async function loadWikitextData (task: Task): Promise<data.DataSplit> {
   const loader = new NodeTextLoader(task)
   const dataSplit: data.DataSplit = {
-    train: await data.TextData.init(await loader.load('../../datasets/wikitext/wiki.train.tokens', {shuffle: true}), task),
-    validation: await data.TextData.init(await loader.load('../../datasets/wikitext/wiki.valid.tokens', {shuffle: true}), task)
+    train: await data.TextData.init(await loader.load('../datasets/wikitext/wiki.train.tokens', {shuffle: true}), task)
   }
   return dataSplit
 }
 
 // You can run this example with "npm start" from this folder
-main().catch(console.error)
+main(args).catch(console.error)
