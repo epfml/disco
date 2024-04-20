@@ -72,7 +72,6 @@ class GPTModel extends tf.LayersModel {
     
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let averageLoss = 0
-      let averageWeightUpdateTime = 0
       let iteration = 1
       const iterator = await dataset.iterator()
       let preprocessingTime = performance.now()
@@ -105,7 +104,6 @@ class GPTModel extends tf.LayersModel {
         const loss = await lossTensor.array()
         averageLoss += loss
         weightUpdateTime = performance.now() - weightUpdateTime
-        averageWeightUpdateTime += weightUpdateTime
         // Probably never the case. Empirically the attention mechanism always allocates
         // more memory than the backward pass
         if (backwardPassMemory > this.peakMemory.value) {
@@ -203,7 +201,6 @@ export class GPTForCausalLM extends GPTModel {
       const idxNew = idx.concat(idxNext, 1)
       tf.dispose(idx)
       idx = idxNew
-      const idxNextArr = await idxNext.array()
       tf.dispose(idxNext)
     }
     const idxArr = await idx.array()

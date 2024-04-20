@@ -40,7 +40,7 @@ export class TFJS extends Model {
         validationData,
         callbacks: {
           onBatchEnd: (_) => { 
-            let currentMemory = tf.memory().numBytes
+            const currentMemory = tf.memory().numBytes / 1024 / 1024 / 1024 // GB
             if (currentMemory > peakMemory) {
               peakMemory = currentMemory
             }
