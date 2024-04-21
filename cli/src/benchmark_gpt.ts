@@ -10,6 +10,7 @@ interface CLIArguments{
   batchSize?: number; // 8, 16, 32, 64
   inference?: boolean; // benchmark inference if true, training otherwise
   modelPath?: string;
+  help?: boolean // print help
 }
 
 const parsedArgs = parse<CLIArguments>({
@@ -18,7 +19,8 @@ const parsedArgs = parse<CLIArguments>({
   batchSize: { type: Number, optional: true, description: "The model training bat size" },
   inference: { type: Boolean, optional: true, description: "Whether to benchmark the model inference or training" },
   modelPath: { type: String, optional: true, description: "If benchmarking inference, the path to the trained model" },
-});
+  help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide' },
+}, {helpArg: 'help'});
 
 const defaultArgs: Required<CLIArguments> = {
   modelType: 'gpt-nano',
@@ -26,6 +28,7 @@ const defaultArgs: Required<CLIArguments> = {
   batchSize: 8,
   inference: false,
   modelPath: 'models/model.json',
+  help: false
 }
 
 // Fill parsed args with default args
