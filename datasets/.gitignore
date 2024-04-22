@@ -12,6 +12,9 @@
 /titanic_wrong_number_columns.csv
 /titanic_wrong_passengerID.csv
 
+# lungs ultrasound
+/lus_covid/
+
 # wikitext
 /wikitext/
 
