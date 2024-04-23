@@ -42,6 +42,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
 
   private async buildDataset (images: Source[], labels: number[], indices: number[], config?: DataConfig): Promise<Data> {
     // Can't use arrow function for generator and need access to 'this'
+    // eslint-disable-next-line
     const self = this
     async function * dataGenerator (): AsyncGenerator<tf.TensorContainer> {
       const withLabels = config?.labels !== undefined

@@ -87,13 +87,14 @@ async function readImageTensor(source: string, channels?: number) {
 
 const imagesCIFAR10 = await Promise.all(FILES.CIFAR10.map(source => readImageTensor(source)))
 
-describe('image loader', async () => {
+describe('image loader', () => {
   it('loads single sample without label', async () => {
     const source = '../../datasets/9-mnist-example.png'
     const singletonDataset = await LOADERS.MNIST.load(source)
     const imageContent = await readImageTensor(source)
 
-    await Promise.all((await singletonDataset.toArrayForTest()).map(async (entry) => {
+    const datasetArr = await singletonDataset.toArrayForTest()
+    await Promise.all(datasetArr.map(async (entry) => {
       expect(await imageContent.bytes()).eql(await (entry as tf.Tensor).bytes())
     }))
   })
