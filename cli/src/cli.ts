@@ -31,7 +31,7 @@ async function runUser(
 
 async function main (task: Task, numberOfUsers: number): Promise<void> {
   console.log(`Started federated training of ${task.id}`)
-  console.log({ args })
+  console.log(args)
 
   const [server, url] = await startServer()
 

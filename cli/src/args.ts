@@ -42,6 +42,7 @@ let supportedTasks: Map<string, Task> = Map()
 supportedTasks = supportedTasks.set(defaultTasks.simpleFace.getTask().id, defaultTasks.simpleFace.getTask())
 supportedTasks = supportedTasks.set(defaultTasks.titanic.getTask().id, defaultTasks.titanic.getTask())
 supportedTasks = supportedTasks.set(defaultTasks.cifar10.getTask().id, defaultTasks.cifar10.getTask())
+supportedTasks = supportedTasks.set(defaultTasks.lusCovid.getTask().id, defaultTasks.lusCovid.getTask())
 
 const task = supportedTasks.get(unsafeArgs.task)
 if (task === undefined) {
@@ -56,6 +57,8 @@ if (task.trainingInformation !== undefined) {
   // For DP
   // TASK.trainingInformation.clippingRadius = 10000000
   // TASK.trainingInformation.noiseScale = 0
+} else {
+  throw new Error("Task training information is undefined")
 }
 
 export const args: BenchmarkArguments = { ...unsafeArgs, task }

@@ -42,8 +42,24 @@ async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
   const dir = '../datasets/CIFAR10/'
   const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
-
   return await new NodeImageLoader(cifar10).loadAll(files, { labels })
+}
+
+async function lusCovidData (lusCovid: Task): Promise<data.DataSplit> {
+  const dir = '../datasets/lus_covid/'
+  const covid_pos = dir + 'COVID+'
+  const covid_neg = dir + 'COVID-'
+  const files_pos = (await fs_promises.readdir(covid_pos)).map(file => path.join(covid_pos, file))
+  const label_pos = Range(0, files_pos.length).map(_ => 'COVID-Positive')
+
+  const files_neg = (await fs_promises.readdir(covid_neg)).map(file => path.join(covid_neg, file))
+  const label_neg = Range(0, files_neg.length).map(_ => 'COVID-Negative')
+  
+  const files = files_pos.concat(files_neg)
+  const labels = label_pos.concat(label_neg).toArray()
+
+  const dataConfig = { labels, shuffle: true, validationSplit: 0.1, channels: 3 }
+  return await new NodeImageLoader(lusCovid).loadAll(files, dataConfig)
 }
 
 async function titanicData (titanic: Task): Promise<data.DataSplit> {
@@ -68,6 +84,8 @@ export async function getTaskData (task: Task): Promise<data.DataSplit> {
       return await titanicData(task)
     case 'cifar10':
       return await cifar10Data(task)
+    case 'lus_covid':
+      return await lusCovidData(task)
     case 'YOUR CUSTOM TASK HERE':
       throw new Error('YOUR CUSTOM FUNCTION HERE')
     default:

@@ -16,7 +16,10 @@ import { DataLoader } from '../data_loader/index.js'
  * 2. Labels are given as multiple labels/1 file, each label file can contain a different amount of labels.
  */
 export abstract class ImageLoader<Source> extends DataLoader<Source> {
-  abstract readImageFrom (source: Source): Promise<tf.Tensor3D>
+  // We allow specifying the number of channels because the default number of channels
+  // differs between web and node for the same image 
+  // E.g. lus covid images have 1 channel with fs.readFile but 3 when loaded with discojs-web
+  abstract readImageFrom (source: Source, channels?:number): Promise<tf.Tensor3D>
 
   constructor (
     private readonly task: Task
@@ -27,10 +30,10 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
   async load (image: Source, config?: DataConfig): Promise<Dataset> {
     let tensorContainer: tf.TensorContainer
     if (config?.labels === undefined) {
-      tensorContainer = await this.readImageFrom(image)
+      tensorContainer = await this.readImageFrom(image, config?.channels)
     } else {
       tensorContainer = {
-        xs: await this.readImageFrom(image),
+        xs: await this.readImageFrom(image, config?.channels),
         ys: config.labels[0]
       }
     }
@@ -39,14 +42,13 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
 
   private async buildDataset (images: Source[], labels: number[], indices: number[], config?: DataConfig): Promise<Data> {
     // Can't use arrow function for generator and need access to 'this'
-    // eslint-disable-next-line
     const self = this
     async function * dataGenerator (): AsyncGenerator<tf.TensorContainer> {
       const withLabels = config?.labels !== undefined
 
       let index = 0
       while (index < indices.length) {
-        const sample = await self.readImageFrom(images[indices[index]])
+        const sample = await self.readImageFrom(images[indices[index]], config?.channels)
         const label = withLabels ? labels[indices[index]] : undefined
         const value = withLabels ? { xs: sample, ys: label } : sample
 
