@@ -21,7 +21,7 @@ export class DatasetBuilder<Source> {
   /**
    * Whether a dataset was already produced.
    */
-  // TODO useless, responsiblity on callers
+  // TODO useless, responsibility on callers
   private _built: boolean
 
   constructor (
@@ -84,12 +84,12 @@ export class DatasetBuilder<Source> {
   }
 
   private getLabels (): string[] {
-    // We need to duplicate the labels as we need one for each soure.
+    // We need to duplicate the labels as we need one for each source.
     // Say for label A we have sources [img1, img2, img3], then we
     // need labels [A, A, A].
     let labels: string[][] = []
-    this.labelledSources.valueSeq().forEach((sources, index) => {
-      const sourcesLabels = Array.from({ length: sources.length }, (_) => index.toString())
+    this.labelledSources.forEach((sources, label) => {
+      const sourcesLabels = Array.from({ length: sources.length }, (_) => label)
       labels = labels.concat(sourcesLabels)
     })
     return labels.flat()

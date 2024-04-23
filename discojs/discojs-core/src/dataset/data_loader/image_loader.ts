@@ -68,12 +68,26 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
 
     const indices = Range(0, images.length).toArray()
     if (config?.labels !== undefined) {
-      const numberOfClasses = this.task.trainingInformation?.LABEL_LIST?.length
-      if (numberOfClasses === undefined) {
-        throw new Error('wanted labels but none found in task')
+      const label_list = this.task.trainingInformation?.LABEL_LIST
+      if (label_list === undefined || !Array.isArray(label_list)) {
+        throw new Error('LABEL_LIST should be specified in the task training information')
+      }
+      const numberOfClasses = label_list.length
+      // Map label strings to integer
+      const label_to_int = new Map(label_list.map((label_name, idx) => [label_name, idx]))
+      if (label_to_int.size != numberOfClasses) {
+        throw new Error("Input labels aren't matching the task LABEL_LIST")
       }
 
-      labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), numberOfClasses).arraySync() as number[]
+      labels = config.labels.map(label_name => {
+        const label_int = label_to_int.get(label_name)
+        if (label_int === undefined) {
+          throw new Error(`Found input label ${label_name} not specified in task LABEL_LIST`)
+        }
+        return label_int
+      })
+
+      labels = await tf.oneHot(tf.tensor1d(labels, 'int32'), numberOfClasses).array() as number[]
     }
     if (config?.shuffle === undefined || config?.shuffle) {
       this.shuffle(indices)
