@@ -30,7 +30,7 @@ export const lusCovid: TaskProvider = {
         preprocessingFunctions: [data.ImagePreprocessing.Resize],
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
         dataType: 'image',
-        scheme: 'decentralized',
+        scheme: 'federated',
         noiseScale: undefined,
         clippingRadius: 20,
         decentralizedSecure: true,
@@ -40,7 +40,9 @@ export const lusCovid: TaskProvider = {
     }
   },
 
-  getModel (): Promise<Model> {
+  // Model architecture from tensorflow js docs: 
+  // https://codelabs.developers.google.com/codelabs/tfjs-training-classfication/index.html#4
+  async getModel (): Promise<Model> {
     const imageHeight = 100
     const imageWidth = 100
     const imageChannels = 3
@@ -63,16 +65,18 @@ export const lusCovid: TaskProvider = {
     // in a region instead of averaging.
     model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
 
-    // Repeat another conv2d + maxPooling stack.
+    // Repeat 3 conv2d + maxPooling blocks.
     // Note that we have more filters in the convolution.
-    model.add(tf.layers.conv2d({
-      kernelSize: 5,
-      filters: 16,
-      strides: 1,
-      activation: 'relu',
-      kernelInitializer: 'varianceScaling'
-    }))
-    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
+    for (let i = 0; i < 3; i++) {
+      model.add(tf.layers.conv2d({
+        kernelSize: 5,
+        filters: 16,
+        strides: 1,
+        activation: 'relu',
+        kernelInitializer: 'varianceScaling'
+      }))
+      model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
+    }
 
     // Now we flatten the output from the 2D filters into a 1D vector to prepare
     // it for input into our last layer. This is common practice when feeding
@@ -88,7 +92,7 @@ export const lusCovid: TaskProvider = {
     }))
 
     model.compile({
-      optimizer: tf.train.sgd(0.001),
+      optimizer: tf.train.adam(0.0001), // lus_covid performance are very sensitive to the learning rate
       loss: 'binaryCrossentropy',
       metrics: ['accuracy']
     })

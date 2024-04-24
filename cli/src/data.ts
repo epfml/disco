@@ -16,26 +16,17 @@ async function simplefaceData (task: Task): Promise<data.DataSplit> {
   const youngFolders = ['child']
   const oldFolders = ['adult']
 
-  // const dir = '../../face_age/'
-  // const youngFolders = ['007', '008', '009', '010', '011', '012', '013', '014']
-  // const oldFolders = ['021', '022', '023', '024', '025', '026']
-
-  // TODO: we just keep x% of data for faster training, e.g., for each folder, we keep 0.1 fraction of images
   const fractionToKeep = 1
-  const youngFiles = youngFolders.flatMap(folder => {
-    return filesFromFolder(dir, folder, fractionToKeep)
-  })
+  const youngFiles = youngFolders.flatMap(folder => filesFromFolder(dir, folder, fractionToKeep))
+  const adultFiles = oldFolders.flatMap(folder => filesFromFolder(dir, folder, fractionToKeep))
+  const images = youngFiles.concat(adultFiles)
 
-  const oldFiles = oldFolders.flatMap(folder => {
-    return filesFromFolder(dir, folder, fractionToKeep)
-  })
+  const youngLabels = youngFiles.map(_ => 'child')
+  const oldLabels = adultFiles.map(_ => 'adult')
+  const labels = youngLabels.concat(oldLabels)
+  console.log(labels)
 
-  const filesPerFolder = [youngFiles, oldFiles]
-
-  const labels = filesPerFolder.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
-  const files = filesPerFolder.flat()
-
-  return await new NodeImageLoader(task).loadAll(files, { labels })
+  return await new NodeImageLoader(task).loadAll(images, { labels })
 }
 
 async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
