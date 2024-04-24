@@ -18,4 +18,4 @@ curl 'https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.ta
 mkdir -p lus_covid
 cd lus_covid
 curl https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly/download |
-        tar --extract --gzip --strip-components=1
+	tar --extract --gzip --strip-components=1
