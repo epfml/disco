@@ -7,7 +7,7 @@ import * as tf from '@tensorflow/tfjs'
 import type { ModelInfo, Path } from '@epfml/discojs-core'
 import { ModelType } from '@epfml/discojs-core'
 
-interface ModelMetadata extends ModelInfo {
+export interface ModelMetadata extends ModelInfo {
   date: string
   hours: string
   fileSize: number
