@@ -37,7 +37,10 @@ describe('validator', function () {
     const files: string[][] = ['child/', 'adult/']
       .map((subdir: string) => fs.readdirSync(dir + subdir)
         .map((file: string) => dir + subdir + file))
-    const labels = files.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
+    // const labels = files.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
+    const youngLabels = files[0].map(_ => 'child')
+    const oldLabels = files[1].map(_ => 'adult')
+    const labels = youngLabels.concat(oldLabels)
 
     const data = (await new NodeImageLoader(simplefaceMock)
       .loadAll(files.flat(), { labels })).train
