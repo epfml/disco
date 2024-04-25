@@ -81,7 +81,7 @@ export default defineComponent({
   data (): {
     distributedTraining: boolean,
     startedTraining: boolean,
-    logs: List<RoundLogs>,
+    logs: List<RoundLogs & { participants: number }>,
     messages: List<string>,
     } {
     return {

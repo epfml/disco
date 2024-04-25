@@ -17,7 +17,7 @@ it("shows messages", async () => {
       },
     },
     props: {
-      logs: List<RoundLogs>(),
+      logs: List<RoundLogs & { participants: number }>(),
       messages: List.of<string>("a", "b", "c"),
       hasValidationData: false,
     },
