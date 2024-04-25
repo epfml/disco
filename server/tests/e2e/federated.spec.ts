@@ -142,11 +142,11 @@ describe("end-to-end federated", function () {
     return aggregator.model.weights
   }
 
-  it("two cifar10 users reach consensus", async function () {
+  it("three cifar10 users reach consensus", async function () {
     this.timeout(90_000);
 
-    const [m1, m2] = await Promise.all([cifar10user(), cifar10user()]);
-    assert.isTrue(m1.equals(m2))
+    const [m1, m2, m3] = await Promise.all([cifar10user(), cifar10user(), cifar10user()]);
+    assert.isTrue(m1.equals(m2) && m2.equals(m3))
   });
 
   it("two titanic users reach consensus", async function () {
