@@ -128,7 +128,7 @@ export class DatasetBuilder<Source> {
         shuffle: false
       }
       const sources = this.labelledSources.valueSeq().toArray().flat()
-      dataTuple = await this.dataLoader.loadAll(sources, defaultConfig)
+      dataTuple = await this.dataLoader.loadAll(sources, { ...defaultConfig, ...config })
     }
     // TODO @s314cy: Support .csv labels for image datasets (supervised training or testing)
     this._built = true
