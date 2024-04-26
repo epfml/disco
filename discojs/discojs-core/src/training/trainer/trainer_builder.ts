@@ -1,6 +1,5 @@
 import type { client as clients, Model, Task, ModelInfo, Memory } from '../../index.js'
 import { ModelType } from '../../index.js'
-import * as tf from '@tensorflow/tfjs'
 import { DistributedTrainer } from './distributed_trainer.js'
 import { LocalTrainer } from './local_trainer.js'
 import type { Trainer } from './trainer.js'

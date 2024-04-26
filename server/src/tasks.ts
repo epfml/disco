@@ -38,36 +38,33 @@ export class TasksAndModels {
     const modelPath = `./models/${discoTask.id}/`
     try {
       const content = await fs.readFile(`${modelPath}/model.json`)
-      console.log("Loading local model for task", discoTask.id)
       return await serialization.model.decode(content)
     } catch {
-      throw new Error("No local model found")
       // unable to read file, continuing
     }
-    // console.log("Instantiating a new model", discoTask.id)
     
-    // if (isTask(task)) {
-    //   throw new Error('saved model not found and no way to get it')
-    // } else {
-    //   model = await task.getModel()
-    // }
-    // console.log('Saving model to disk')
-    // await fs.mkdir(modelPath, { recursive: true })
-    // const encoded = await serialization.model.encode(model)
-    // await fs.writeFile(`${modelPath}/model.json`, encoded)
+    if (isTask(task)) {
+      throw new Error('saved model not found and no way to get it')
+    } else {
+      model = await task.getModel()
+    }
+    console.log('Saving model to disk')
+    await fs.mkdir(modelPath, { recursive: true })
+    const encoded = await serialization.model.encode(model)
+    await fs.writeFile(`${modelPath}/model.json`, encoded)
     
-    // // Check digest if provided
-    // if (discoTask.digest !== undefined) {
-    //   try {
-    //     await this.checkDigest(discoTask.digest, modelPath)
-    //   } catch (e) {
-    //     console.warn('removing model files at', modelPath)
-    //     await fs.rm(modelPath, { recursive: true, force: true })
-    //     throw e
-    //   }
-    // }
+    // Check digest if provided
+    if (discoTask.digest !== undefined) {
+      try {
+        await this.checkDigest(discoTask.digest, modelPath)
+      } catch (e) {
+        console.warn('removing model files at', modelPath)
+        await fs.rm(modelPath, { recursive: true, force: true })
+        throw e
+      }
+    }
     
-    // return model
+    return model
   }
 
   private async checkDigest (digest: Digest, modelPath: Path): Promise<void> {
