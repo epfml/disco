@@ -12,10 +12,8 @@ function isSerialized (raw: unknown): raw is Serialized {
   if (typeof raw !== 'object' || raw === null) {
     return false
   }
-  if (!('shape' in raw && 'data' in raw)) {
-    return false
-  }
-  const { shape, data } = raw as Record<'shape' | 'data', unknown>
+
+  const { shape, data }: Partial<Record<'shape' | 'data', unknown>> = raw
 
   if (
     !(Array.isArray(shape) && shape.every((e) => typeof e === 'number')) ||
@@ -24,7 +22,10 @@ function isSerialized (raw: unknown): raw is Serialized {
     return false
   }
 
-  const _: Serialized = {shape, data}
+  const _: Serialized = {
+    shape: shape as number[],
+    data: data as number[],
+  }
 
   return true
 }
