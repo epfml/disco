@@ -139,7 +139,10 @@ export default defineComponent({
 
       let dataset: data.DataSplit
       try {
-        dataset = await this.datasetBuilder.build()
+        dataset = await this.datasetBuilder.build({
+          shuffle: true,
+          validationSplit: this.task.trainingInformation.validationSplit
+        })
       } catch (e) {
         console.error(e)
         if (e instanceof Error && e.message.includes('provided in columnConfigs does not match any of the column names')) {
