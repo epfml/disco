@@ -24,7 +24,7 @@ const argExample = 'e.g. npm start -- -u 2 -e 3 # runs 2 users for 3 epochs'
 
 const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   {
-    task: { type: String, alias: 't', description: 'Task: titanic, simple_face or cifar10', defaultValue: 'simple_face' },
+    task: { type: String, alias: 't', description: 'Task: titanic, simple_face, cifar10 or lus_covid', defaultValue: 'simple_face' },
     numberOfUsers: { type: Number, alias: 'u', description: 'Number of users', defaultValue: 1 },
     epochs: { type: Number, alias: 'e', description: 'Number of epochs', defaultValue: 10 },
     roundDuration: { type: Number, alias: 'r', description: 'Round duration', defaultValue: 10 },

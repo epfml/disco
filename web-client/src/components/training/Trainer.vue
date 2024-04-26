@@ -137,7 +137,7 @@ export default defineComponent({
         throw new Error('no dataset builder')
       }
 
-      let dataset
+      let dataset: data.DataSplit
       try {
         dataset = await this.datasetBuilder.build()
       } catch (e) {
@@ -165,6 +165,7 @@ export default defineComponent({
         toaster.error('An error occurred during training')
         console.error(e)
         this.cleanState()
+        return
       }
       toaster.success('Training successfully completed')
     },

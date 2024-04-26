@@ -4,7 +4,6 @@ import { runDefaultServer } from './get_server.js'
 
 export async function startServer (): Promise<[Server, URL]> {
   const server = await runDefaultServer()
-
   await new Promise((resolve, reject) => {
     server.once('listening', resolve)
     server.once('error', reject)

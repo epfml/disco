@@ -1,6 +1,6 @@
 import type { client as clients, Model, Task, ModelInfo, Memory } from '../../index.js'
 import { ModelType } from '../../index.js'
-
+import * as tf from '@tensorflow/tfjs'
 import { DistributedTrainer } from './distributed_trainer.js'
 import { LocalTrainer } from './local_trainer.js'
 import type { Trainer } from './trainer.js'
@@ -40,7 +40,7 @@ export class TrainerBuilder {
   }
 
   /**
-   * If a model exists in memory, laod it, otherwise load model from server
+   * If a model exists in memory, load it, otherwise load model from server
    * @returns
    */
   private async getModel (client: clients.Client): Promise<Model> {
@@ -54,7 +54,7 @@ export class TrainerBuilder {
     const model = await (
       await this.memory.contains(info) ? this.memory.getModel(info) : client.getLatestModel()
     )
-
+    console.log("Model weights: ", await model.weights.weights.at(0)?.data<'float32'>())
     return model
   }
 }

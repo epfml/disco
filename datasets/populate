@@ -8,8 +8,16 @@ cd "$(dirname "$0")"
 curl 'http://deai-313515.appspot.com.storage.googleapis.com/example_training_data.tar.gz' |
 	tar --extract --strip-components=1
 
+# lungs ultrasound
+curl 'https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly/download' > archive.zip
+unzip -u archive.zip
+rm -rf 'lungs ultrasound'
+mv DeAI-testimages 'lus_covid'
+rm archive.zip
+
 # wikitext
 mkdir -p wikitext
 cd wikitext
 curl 'https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz' |
 	tar --extract --gzip --strip-components=1
+cd ..

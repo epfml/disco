@@ -21,10 +21,10 @@ export const lusCovid: TaskProvider = {
       },
       trainingInformation: {
         modelID: 'lus-covid-model',
-        epochs: 15,
+        epochs: 10,
         roundDuration: 10,
         validationSplit: 0.2,
-        batchSize: 2,
+        batchSize: 5,
         IMAGE_H: 100,
         IMAGE_W: 100,
         preprocessingFunctions: [data.ImagePreprocessing.Resize],
@@ -40,7 +40,7 @@ export const lusCovid: TaskProvider = {
     }
   },
 
-  // Model architecture from tensorflow js docs: 
+  // Model architecture from tensorflow.js docs: 
   // https://codelabs.developers.google.com/codelabs/tfjs-training-classfication/index.html#4
   async getModel (): Promise<Model> {
     const imageHeight = 100
@@ -92,7 +92,7 @@ export const lusCovid: TaskProvider = {
     }))
 
     model.compile({
-      optimizer: tf.train.adam(0.0001), // lus_covid performance are very sensitive to the learning rate
+      optimizer: tf.train.adam(), // lus_covid performance are very sensitive to the learning rate
       loss: 'binaryCrossentropy',
       metrics: ['accuracy']
     })

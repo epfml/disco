@@ -24,8 +24,6 @@ async function simplefaceData (task: Task): Promise<data.DataSplit> {
   const youngLabels = youngFiles.map(_ => 'child')
   const oldLabels = adultFiles.map(_ => 'adult')
   const labels = youngLabels.concat(oldLabels)
-  console.log(labels)
-
   return await new NodeImageLoader(task).loadAll(images, { labels })
 }
 
