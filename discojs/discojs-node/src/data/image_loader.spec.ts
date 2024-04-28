@@ -4,81 +4,25 @@ import fs from 'node:fs/promises'
 import * as tf from '@tensorflow/tfjs'
 import { node as tfNode } from '@tensorflow/tfjs-node'
 
-import type { Task } from '@epfml/discojs-core'
-import { data } from '@epfml/discojs-core'
-
+import { defaultTasks } from '@epfml/discojs-core'
 import { ImageLoader } from './image_loader.js'
 
-const cifar10Mock: Task = {
-  id: 'cifar10',
-  displayInformation: {},
-  trainingInformation: {
-    modelID: 'cifar10',
-    epochs: 1,
-    roundDuration: 1,
-    batchSize: 1,
-    dataType: 'image',
-    validationSplit: 0,
-    scheme: 'federated',
-    IMAGE_H: 32,
-    IMAGE_W: 32,
-    LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-  }
-}
-
-const mnistMock: Task = {
-  id: 'mnist',
-  displayInformation: {},
-  trainingInformation: {
-    modelID: 'mnist',
-    epochs: 1,
-    roundDuration: 1,
-    batchSize: 1,
-    dataType: 'image',
-    validationSplit: 0,
-    scheme: 'federated',
-    IMAGE_H: 28,
-    IMAGE_W: 28,
-    LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-  }
-}
-
-const lusCovidMock: Task = {
-  id: 'lus-covid',
-  displayInformation: {},
-  trainingInformation: {
-      modelID: 'lus-covid-model',
-      epochs: 1,
-      roundDuration: 1,
-      validationSplit: 0.2,
-      batchSize: 1,
-      IMAGE_H: 100,
-      IMAGE_W: 100,
-      preprocessingFunctions: [data.ImagePreprocessing.Resize],
-      LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
-      dataType: 'image',
-      scheme: 'federated',
-    }
-}
-
-const DIRS = {
-  CIFAR10: '../../datasets/CIFAR10/',
-  LUS_COVID: '../../datasets/lus_covid/COVID+/'
-}
+const DATASET_DIR = '../../datasets/'
 
 async function readFilesFromDir(dir: string): Promise<string[]>{
   return (await fs.readdir(dir)).map((file: string) => dir + file)
 }
 
 const FILES = {
-  CIFAR10: await readFilesFromDir(DIRS.CIFAR10),
-  LUS_COVID: await readFilesFromDir(DIRS.LUS_COVID),
+  CIFAR10: await readFilesFromDir(DATASET_DIR + 'CIFAR10/'),
+  LUS_COVID: await readFilesFromDir(DATASET_DIR + 'lus_covid/COVID+/'),
 }
 
 const LOADERS = {
-  CIFAR10: new ImageLoader(cifar10Mock),
-  MNIST: new ImageLoader(mnistMock),
-  LUS_COVID: new ImageLoader(lusCovidMock),
+  CIFAR10: new ImageLoader(defaultTasks.cifar10.getTask()),
+  LUS_COVID: new ImageLoader(defaultTasks.lusCovid.getTask()),
+  MNIST: new ImageLoader(defaultTasks.mnist.getTask()),
+  SIMPLE_FACE: new ImageLoader(defaultTasks.simpleFace.getTask()),
 }
 
 async function readImageTensor(source: string, channels?: number) {
@@ -88,9 +32,19 @@ async function readImageTensor(source: string, channels?: number) {
 const imagesCIFAR10 = await Promise.all(FILES.CIFAR10.map(source => readImageTensor(source)))
 
 describe('image loader', () => {
-  it('loads single sample without label', async () => {
+  it('loads single MNIST sample without label', async () => {
     const source = '../../datasets/9-mnist-example.png'
     const singletonDataset = await LOADERS.MNIST.load(source)
+    const imageContent = await readImageTensor(source)
+
+    const datasetArr = await singletonDataset.toArrayForTest()
+    await Promise.all(datasetArr.map(async (entry) => {
+      expect(await imageContent.bytes()).eql(await (entry as tf.Tensor).bytes())
+    }))
+  })
+  it('loads single simple face sample without label', async () => {
+    const source = '../../datasets/simple_face-example.png'
+    const singletonDataset = await LOADERS.SIMPLE_FACE.load(source)
     const imageContent = await readImageTensor(source)
 
     const datasetArr = await singletonDataset.toArrayForTest()
@@ -121,7 +75,7 @@ describe('image loader', () => {
   })
 
   it('loads single sample with label', async () => {
-    const source = DIRS.CIFAR10 + '0.png'
+    const source = DATASET_DIR + 'CIFAR10/0.png'
     const imageContent = await readImageTensor(source)
     const datasetContent = await (await LOADERS.CIFAR10
       .load(source, { labels: ['example'] })).toArray() as Array<Record<'xs' | 'ys', tf.Tensor>>
@@ -153,7 +107,7 @@ describe('image loader', () => {
   })
 
   it('loads samples in order', async () => {
-    const loader = new ImageLoader(cifar10Mock)
+    const loader = new ImageLoader(defaultTasks.mnist.getTask())
     const dataset = await ((await loader.loadAll(FILES.CIFAR10, { shuffle: false })).train.dataset).toArray()
 
     List(dataset).zip(List(FILES.CIFAR10))
@@ -165,7 +119,7 @@ describe('image loader', () => {
   })
 
   it('shuffles list', () => {
-    const loader = new ImageLoader(cifar10Mock)
+    const loader = new ImageLoader(defaultTasks.mnist.getTask())
     const list = Range(0, 100_000).toArray()
     const shuffled = [...list]
 
@@ -177,7 +131,7 @@ describe('image loader', () => {
   })
 
   it('shuffles samples', async () => {
-    const loader = new ImageLoader(cifar10Mock)
+    const loader = new ImageLoader(defaultTasks.mnist.getTask())
     const dataset = await (await loader.loadAll(FILES.CIFAR10, { shuffle: false })).train.dataset.toArray()
     const shuffled = await (await loader.loadAll(FILES.CIFAR10, { shuffle: true })).train.dataset.toArray()
 
@@ -188,7 +142,7 @@ describe('image loader', () => {
   })
   it('validation split', async () => {
     const validationSplit = 0.2
-    const datasetContent = await new ImageLoader(cifar10Mock)
+    const datasetContent = await new ImageLoader(defaultTasks.mnist.getTask())
       .loadAll(FILES.CIFAR10, { shuffle: false, validationSplit })
 
     const trainSize = Math.floor(imagesCIFAR10.length * (1 - validationSplit))

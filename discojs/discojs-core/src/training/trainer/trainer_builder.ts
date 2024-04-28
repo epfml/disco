@@ -53,7 +53,6 @@ export class TrainerBuilder {
     const model = await (
       await this.memory.contains(info) ? this.memory.getModel(info) : client.getLatestModel()
     )
-    console.log("Model weights: ", await model.weights.weights.at(0)?.data<'float32'>())
     return model
   }
 }

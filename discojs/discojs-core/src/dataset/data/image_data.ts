@@ -22,37 +22,25 @@ export class ImageData extends Data {
     // cause an error during training, because of the lazy aspect of the dataset; we only
     // verify the first sample.
     if (task.trainingInformation.preprocessingFunctions?.includes(ImagePreprocessing.Resize) !== true) {
-      try {
-        const sample = (await dataset.take(1).toArray())[0]
-        // TODO: We suppose the presence of labels
-        // TODO: Typing (discojs-node/src/dataset/data_loader/image_loader.spec.ts)
-        if (!(typeof sample === 'object' && sample !== null)) {
-          throw new Error()
-        }
+      const sample = (await dataset.take(1).toArray())[0]
+      // TODO: We suppose the presence of labels
+      // TODO: Typing (discojs-node/src/dataset/data_loader/image_loader.spec.ts)
+      if (typeof sample !== 'object' || sample === null  || sample === undefined) {
+        throw new Error("Image is undefined or is not an object")
+      }
 
-        let shape
-        if ('xs' in sample && 'ys' in sample) {
-          shape = (sample as { xs: tf.Tensor, ys: number[] }).xs.shape
-        } else {
-          shape = (sample as tf.Tensor3D).shape
-        }
-        if (!(
-          shape[0] === task.trainingInformation.IMAGE_W &&
-          shape[1] === task.trainingInformation.IMAGE_H
-        )) {
-          throw new Error()
-        }
-      } catch (e) {
-        let cause
-        if (e instanceof Error) {
-          cause = e
-        } else {
-          console.error("got invalid Error type", e)
-        }
-        throw new Error('Data input format is not compatible with the chosen task', { cause })
+      let shape
+      if ('xs' in sample && 'ys' in sample) {
+        shape = (sample as { xs: tf.Tensor, ys: number[] }).xs.shape
+      } else {
+        shape = (sample as tf.Tensor3D).shape
+      }
+      const {IMAGE_H, IMAGE_W} = task.trainingInformation
+      if (IMAGE_W !== undefined && IMAGE_H !== undefined &&
+        (shape[0] !== IMAGE_W || shape[1] !== IMAGE_H)) {
+          throw new Error(`Image doesn't have the dimensions specified in the task's training information. Expected ${IMAGE_H}x${IMAGE_W} but got ${shape[0]}x${shape[1]}.`)
       }
     }
-
     return new ImageData(dataset, task, size)
   }
 
