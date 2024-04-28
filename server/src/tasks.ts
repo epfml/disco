@@ -48,7 +48,7 @@ export class TasksAndModels {
     } else {
       model = await task.getModel()
     }
-    console.log('Saving model to disk')
+
     await fs.mkdir(modelPath, { recursive: true })
     const encoded = await serialization.model.encode(model)
     await fs.writeFile(`${modelPath}/model.json`, encoded)

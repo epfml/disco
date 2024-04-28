@@ -31,10 +31,11 @@ async function runUser(
 
 async function main (task: Task, numberOfUsers: number): Promise<void> {
   console.log(`Started federated training of ${task.id}`)
-
+  console.log({ args })
   const [server, url] = await startServer()
 
   const data = await getTaskData(task)
+
   const logs = await Promise.all(
     Range(0, numberOfUsers).map(async (_) => await runUser(task, url, data)).toArray()
   )

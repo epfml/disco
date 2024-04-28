@@ -21,16 +21,16 @@ export const lusCovid: TaskProvider = {
       },
       trainingInformation: {
         modelID: 'lus-covid-model',
-        epochs: 10,
+        epochs: 15,
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 5,
         IMAGE_H: 100,
         IMAGE_W: 100,
-        preprocessingFunctions: [data.ImagePreprocessing.Resize],
+        preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
         dataType: 'image',
-        scheme: 'federated',
+        scheme: 'decentralized',
         noiseScale: undefined,
         clippingRadius: 20,
         decentralizedSecure: true,
@@ -65,18 +65,16 @@ export const lusCovid: TaskProvider = {
     // in a region instead of averaging.
     model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
 
-    // Repeat 3 conv2d + maxPooling blocks.
+    // Repeat the conv2d + maxPooling block.
     // Note that we have more filters in the convolution.
-    for (let i = 0; i < 3; i++) {
-      model.add(tf.layers.conv2d({
-        kernelSize: 5,
-        filters: 16,
-        strides: 1,
-        activation: 'relu',
-        kernelInitializer: 'varianceScaling'
-      }))
-      model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
-    }
+    model.add(tf.layers.conv2d({
+      kernelSize: 5,
+      filters: 16,
+      strides: 1,
+      activation: 'relu',
+      kernelInitializer: 'varianceScaling'
+    }))
+    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
 
     // Now we flatten the output from the 2D filters into a 1D vector to prepare
     // it for input into our last layer. This is common practice when feeding
@@ -92,7 +90,7 @@ export const lusCovid: TaskProvider = {
     }))
 
     model.compile({
-      optimizer: tf.train.adam(), // lus_covid performance are very sensitive to the learning rate
+      optimizer: 'sgd',
       loss: 'binaryCrossentropy',
       metrics: ['accuracy']
     })
