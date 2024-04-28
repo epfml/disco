@@ -107,23 +107,21 @@ describe('image loader', () => {
   })
 
   it('loads samples in order', async () => {
-    const loader = new ImageLoader(defaultTasks.mnist.getTask())
-    const dataset = await ((await loader.loadAll(FILES.CIFAR10, { shuffle: false })).train.dataset).toArray()
+    const dataset = await ((await LOADERS.CIFAR10.loadAll(FILES.CIFAR10, { shuffle: false })).train.dataset).toArray()
 
     List(dataset).zip(List(FILES.CIFAR10))
       .forEach(async ([s, f]) => {
-        const sample = (await (await loader.load(f)).toArray())[0]
+        const sample = (await (await LOADERS.CIFAR10.load(f)).toArray())[0]
         assert.deepEqual((await tf.equal(s as tf.Tensor, sample as tf.Tensor).all().array()), [1])
       })
     assert(true)
   })
 
   it('shuffles list', () => {
-    const loader = new ImageLoader(defaultTasks.mnist.getTask())
     const list = Range(0, 100_000).toArray()
     const shuffled = [...list]
 
-    loader.shuffle(shuffled)
+    LOADERS.CIFAR10.shuffle(shuffled)
     expect(list).to.not.eql(shuffled)
 
     shuffled.sort((a, b) => a - b)
@@ -131,9 +129,8 @@ describe('image loader', () => {
   })
 
   it('shuffles samples', async () => {
-    const loader = new ImageLoader(defaultTasks.mnist.getTask())
-    const dataset = await (await loader.loadAll(FILES.CIFAR10, { shuffle: false })).train.dataset.toArray()
-    const shuffled = await (await loader.loadAll(FILES.CIFAR10, { shuffle: true })).train.dataset.toArray()
+    const dataset = await (await LOADERS.CIFAR10.loadAll(FILES.CIFAR10, { shuffle: false })).train.dataset.toArray()
+    const shuffled = await (await LOADERS.CIFAR10.loadAll(FILES.CIFAR10, { shuffle: true })).train.dataset.toArray()
 
     const misses = List(dataset).zip(List(shuffled)).map(([d, s]) =>
       tf.notEqual(d as tf.Tensor, s as tf.Tensor).any().dataSync()[0]
@@ -142,8 +139,7 @@ describe('image loader', () => {
   })
   it('validation split', async () => {
     const validationSplit = 0.2
-    const datasetContent = await new ImageLoader(defaultTasks.mnist.getTask())
-      .loadAll(FILES.CIFAR10, { shuffle: false, validationSplit })
+    const datasetContent = await LOADERS.CIFAR10.loadAll(FILES.CIFAR10, { shuffle: false, validationSplit })
 
     const trainSize = Math.floor(imagesCIFAR10.length * (1 - validationSplit))
     expect((await datasetContent.train.dataset.toArray()).length).equal(trainSize)
