@@ -30,11 +30,11 @@ export const lusCovid: TaskProvider = {
         preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
         dataType: 'image',
-        scheme: 'decentralized',
+        scheme: 'federated',
         noiseScale: undefined,
         clippingRadius: 20,
         decentralizedSecure: true,
-        minimumReadyPeers: 3,
+        minimumReadyPeers: 2,
         maxShareValue: 100
       }
     }

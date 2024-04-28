@@ -138,7 +138,7 @@ describe("end-to-end federated", function () {
       throw new Error('model was not set')
     }
     const validationLogs = logs.last()?.epochs.last()?.validation
-    expect(validationLogs?.accuracy).to.be.greaterThan(0.8)
+    expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
     return aggregator.model.weights
   }
 

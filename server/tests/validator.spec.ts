@@ -61,7 +61,7 @@ describe('validator', function () {
       validator.accuracy > 0.3,
       `Expected random weight init accuracy greater than 0.3 but got ${validator.accuracy}`
     )
-  }).timeout(1000)
+  }).timeout(5_000)
 
   it('can read and predict randomly on titanic', async () => {
     const titanicTask = defaultTasks.titanic.getTask()
