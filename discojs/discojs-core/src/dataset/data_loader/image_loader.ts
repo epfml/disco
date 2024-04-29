@@ -69,13 +69,13 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
 
     const indices = Range(0, images.length).toArray()
     if (config?.labels !== undefined) {
-      const label_list = this.task.trainingInformation?.LABEL_LIST
-      if (label_list === undefined || !Array.isArray(label_list)) {
+      const labelList = this.task.trainingInformation?.LABEL_LIST
+      if (labelList === undefined || !Array.isArray(labelList)) {
         throw new Error('LABEL_LIST should be specified in the task training information')
       }
-      const numberOfClasses = label_list.length
+      const numberOfClasses = labelList.length
       // Map label strings to integer
-      const label_to_int = new Map(label_list.map((label_name, idx) => [label_name, idx]))
+      const label_to_int = new Map(labelList.map((label_name, idx) => [label_name, idx]))
       if (label_to_int.size != numberOfClasses) {
         throw new Error("Input labels aren't matching the task LABEL_LIST")
       }

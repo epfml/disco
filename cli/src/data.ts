@@ -1,24 +1,17 @@
 import { Range } from 'immutable'
-import fs from 'node:fs'
-import fs_promises from 'fs/promises'
+import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import type { Task, data } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 
-function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
-  const f = fs.readdirSync(dir + folder)
-  return f.slice(0, Math.round(f.length * fractionToKeep)).map(file => dir + folder + '/' + file)
-}
-
 async function simplefaceData (task: Task): Promise<data.DataSplit> {
   const dir = '../datasets/simple_face/'
-  const youngFolders = ['child']
-  const oldFolders = ['adult']
+  const youngFolder = dir + 'child/'
+  const adultFolder = dir + 'adult/'
 
-  const fractionToKeep = 1
-  const youngFiles = youngFolders.flatMap(folder => filesFromFolder(dir, folder, fractionToKeep))
-  const adultFiles = oldFolders.flatMap(folder => filesFromFolder(dir, folder, fractionToKeep))
+  const youngFiles = (await fs.readdir(youngFolder)).map(file => path.join(youngFolder, file))
+  const adultFiles = (await fs.readdir(adultFolder)).map(file => path.join(adultFolder, file))
   const images = youngFiles.concat(adultFiles)
 
   const youngLabels = youngFiles.map(_ => 'child')
@@ -29,7 +22,7 @@ async function simplefaceData (task: Task): Promise<data.DataSplit> {
 
 async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
   const dir = '../datasets/CIFAR10/'
-  const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
+  const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
   return await new NodeImageLoader(cifar10).loadAll(files, { labels })
 }
@@ -38,10 +31,10 @@ async function lusCovidData (lusCovid: Task): Promise<data.DataSplit> {
   const dir = '../datasets/lus_covid/'
   const covid_pos = dir + 'COVID+'
   const covid_neg = dir + 'COVID-'
-  const files_pos = (await fs_promises.readdir(covid_pos)).map(file => path.join(covid_pos, file))
+  const files_pos = (await fs.readdir(covid_pos)).map(file => path.join(covid_pos, file))
   const label_pos = Range(0, files_pos.length).map(_ => 'COVID-Positive')
 
-  const files_neg = (await fs_promises.readdir(covid_neg)).map(file => path.join(covid_neg, file))
+  const files_neg = (await fs.readdir(covid_neg)).map(file => path.join(covid_neg, file))
   const label_neg = Range(0, files_neg.length).map(_ => 'COVID-Negative')
   
   const files = files_pos.concat(files_neg)
