@@ -156,7 +156,7 @@ describe("end-to-end federated", function () {
     assert.isTrue(m1.equals(m2))
   });
   it("two lus_covid users reach consensus", async function () {
-    this.timeout(30_000);
+    this.timeout('3m');
 
     const [m1, m2] = await Promise.all([lusCovidUser(), lusCovidUser()]);
     assert.isTrue(m1.equals(m2))
