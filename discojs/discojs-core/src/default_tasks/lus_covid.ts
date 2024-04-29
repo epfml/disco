@@ -21,7 +21,7 @@ export const lusCovid: TaskProvider = {
       },
       trainingInformation: {
         modelID: 'lus-covid-model',
-        epochs: 50,
+        epochs: 10,
         roundDuration: 2,
         validationSplit: 0.2,
         batchSize: 5,
