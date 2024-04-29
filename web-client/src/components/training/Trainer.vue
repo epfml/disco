@@ -128,6 +128,7 @@ async function startTraining(distributed: boolean): Promise<void> {
 
   try {
     training.value = disco.fit(dataset);
+    logs.value = List<RoundLogs & { participants: number }>();
     for await (const roundLogs of training.value)
       logs.value = logs.value.push(roundLogs);
 
