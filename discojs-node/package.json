@@ -21,11 +21,14 @@
   "dependencies": {
     "@epfml/discojs": "*",
     "@koush/wrtc": "0.5",
-    "@tensorflow/tfjs-node": "4"
+    "@tensorflow/tfjs-node": "4",
+    "csv-parse": "5",
+    "sharp": "0.33"
   },
   "devDependencies": {
     "@types/node": "20",
     "nodemon": "3",
+    "tmp-promise": "3",
     "ts-node": "10"
   }
 }

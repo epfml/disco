@@ -8,7 +8,7 @@
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
     "build": "tsc",
     "lint": "npx eslint .",
-    "test": ": nothing"
+    "test": "vitest --run"
   },
   "repository": {
     "type": "git",
@@ -20,9 +20,13 @@
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
     "@epfml/discojs": "*",
-    "@tensorflow/tfjs": "4"
+    "@tensorflow/tfjs": "4",
+    "papaparse": "5"
   },
   "devDependencies": {
-    "nodemon": "3"
+    "@types/papaparse": "5",
+    "jsdom": "24",
+    "nodemon": "3",
+    "vitest": "1"
   }
 }
