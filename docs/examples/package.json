@@ -7,6 +7,7 @@
     "train": "npm run build && node dist/training.js",
     "custom_task": "npm run build && node dist/custom_task.js",
     "language_model": "npm run build && node dist/wikitext.js",
+    "benchmark_gpt": "npm run build && node dist/benchmark_gpt.js",
     "build": "tsc",
     "lint": "npx eslint .",
     "test": "npm run train"

@@ -1,11 +1,11 @@
 type ModelType =
-    | 'gpt2'
-    | 'gpt2-medium'
-    | 'gpt2-large'
-    | 'gpt2-xl'
-    | 'gpt-mini'
-    | 'gpt-micro'
-    | 'gpt-nano'
+  | 'gpt2'
+  | 'gpt2-medium'
+  | 'gpt2-large'
+  | 'gpt2-xl'
+  | 'gpt-mini'
+  | 'gpt-micro'
+  | 'gpt-nano'
 
 export interface GPTConfig {
   lr: number
@@ -30,7 +30,7 @@ export interface GPTConfig {
   nHead?: number
   nEmbd?: number
 }
-
+// for a benchmark of performance, see https://github.com/epfml/disco/pull/659
 export const DEFAULT_CONFIG: Required<GPTConfig> = {
   name: 'transformer',
   lr: 0.001,
@@ -77,9 +77,5 @@ export function getModelSizes (modelType: ModelType): Required<ModelSize> {
       return { nLayer: 4, nHead: 4, nEmbd: 128 }
     case 'gpt-nano':
       return { nLayer: 3, nHead: 3, nEmbd: 48 }
-    default: {
-      const _: never = modelType
-      throw new Error("should never happen")
-    }
   }
 }

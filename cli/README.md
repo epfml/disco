@@ -5,7 +5,7 @@ The CLI lets one use DISCO in standalone manner (i.e. without running a server o
 For example, the following command trains a model on CIFAR10, using 4 federated clients for 15 epochs with a round duration of 5 epochs (see [DISCOJS.md](../docs/DISCOJS.md#rounds) for more information on rounds)
 
 > [!NOTE]
-> Make sure you first ran `./get_training_data.sh` (in the root folder) to download training data.
+> Make sure you first ran `./datasets/populate` (from the root folder) to download training data.
 
 ```
 # From the root folder
@@ -35,3 +35,12 @@ You should now be able to run your task as follows:
 ```
 npm -w cli start -- --task your_task --numberOfUsers 4 --epochs 15 --roundDuration 5
 ```
+
+## Benchmarking GPT-TF.js
+
+The CLI also allows benchmarking the time and memory requirements of the gpt-tfjs implementation in DISCO. The last benchmark has been reported in [this PR](https://github.com/epfml/disco/pull/659).
+CLI options can be listed with `npm -w cli run benchmark_gpt -- -h`.
+
+To benchmark model training, you can run `npm -w cli run benchmark_gpt -- --modelType gpt-nano --contextLength 128 --batchSize 8`. 
+
+For inference run `npm -w cli run benchmark_gpt -- --inference --modelPath <path to trained model json file>`. You can use the `docs/example/wikitext` example script to train a model. The model needs to be trained on the wikitext default task to ensure that model parameters such as vocab size, tokenizer, max sequence length are the same between training and inference.
