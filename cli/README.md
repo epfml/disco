@@ -13,11 +13,15 @@ npm -w cli start -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration
 # Or from the cli folder directly
 npm start -- --task cifar10 --numberOfUsers 4 --epochs 15 --roundDuration 5
 ```
+
 or using the shorter alias notation:
+
 ```
 npm -w cli start -- -t cifar10 -u 4 -e 15 -r 5
 ```
+
 You can find all the command arguments with:
+
 ```
 npm -w cli start -- --help # or -h
 ```
@@ -32,6 +36,7 @@ Once a function to load data has been added, make sure to extend `getTaskData` i
 
 The last thing to add is to add the task as a CLI argument in [args.ts](./src/args.ts) to the `supportedTasks` Map.
 You should now be able to run your task as follows:
+
 ```
 npm -w cli start -- --task your_task --numberOfUsers 4 --epochs 15 --roundDuration 5
 ```
@@ -39,8 +44,11 @@ npm -w cli start -- --task your_task --numberOfUsers 4 --epochs 15 --roundDurati
 ## Benchmarking GPT-TF.js
 
 The CLI also allows benchmarking the time and memory requirements of the gpt-tfjs implementation in DISCO. The last benchmark has been reported in [this PR](https://github.com/epfml/disco/pull/659).
+
+In a few words, gpt-tfjs is 3 times slower than python during training; the memory requirements are the bottleneck: training gpt2 with batch size 8 and context length 256 requires 12GB, while gpt-nano (2.5M parameters) with batch size 8 and a context length of 2048 already requires 10GB. Choosing a batch size of 8 and context length of 512 on gpt-nano are sensible values. See the [PR description](https://github.com/epfml/disco/pull/659) for more details.
+
 CLI options can be listed with `npm -w cli run benchmark_gpt -- -h`.
 
-To benchmark model training, you can run `npm -w cli run benchmark_gpt -- --modelType gpt-nano --contextLength 128 --batchSize 8`. 
+To benchmark model training, you can run `npm -w cli run benchmark_gpt -- --modelType gpt-nano --contextLength 128 --batchSize 8`.
 
 For inference run `npm -w cli run benchmark_gpt -- --inference --modelPath <path to trained model json file>`. You can use the `docs/example/wikitext` example script to train a model. The model needs to be trained on the wikitext default task to ensure that model parameters such as vocab size, tokenizer, max sequence length are the same between training and inference.
