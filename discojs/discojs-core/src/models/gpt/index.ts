@@ -45,16 +45,16 @@ export class GPT extends Model {
     };
     for (let epoch = 0; epoch < epochs; epoch++) {
       await this.model.fitDataset(trainingData, trainingArgs);
-
       if (logs === undefined) {
-        throw new Error("epoch didn't gave any logs");
+        throw new Error("Epoch didn't gave any logs");
       }
-      const { loss, val_acc, val_loss } = logs;
+      const { loss, val_acc, val_loss, peakMemory } = logs;
       if (loss === undefined || isNaN(loss)) {
-        throw new Error("Invalid training logs");
+        throw new Error("Training loss is undefined or nan");
       }
       const structuredLogs: EpochLogs = {
         epoch,
+        peakMemory,
         training: {
           loss: logs.loss
         }
@@ -67,7 +67,6 @@ export class GPT extends Model {
         }
         structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
       }
-
       yield structuredLogs
     }
   }
@@ -81,14 +80,13 @@ export class GPT extends Model {
     return Promise.resolve(ret)
   }
 
-  async generate (input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
+  async generate(input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
     const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as { input_ids: number[] }
 
     const generationConfig = {
       maxNewTokens: newTokens,
       temperature: 1.0,
-      doSample: false,
-      topK: null
+      doSample: false
     }
     const predictedTokens = await this.model.generate(tokens, generationConfig)
     const generatedWords = tokenizer.decode(predictedTokens[0])
@@ -117,6 +115,17 @@ export class GPT extends Model {
       weights: this.weights,
       config: this.config
     }
+  }
+
+  [Symbol.dispose](): void{
+    console.log("Disposing model")
+    if (this.model.optimizer !== undefined) {
+      this.model.optimizer.dispose()
+    }
+    // Some tensors are not cleaned up when model.dispose is called 
+    // So we dispose them manually
+    this.model.disposeRefs()
+    this.model.dispose()
   }
 }
 

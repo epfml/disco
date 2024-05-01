@@ -13,6 +13,7 @@ export interface EpochLogs {
     loss: number,
     accuracy: number
   };
+  peakMemory: number;
 }
 
 // TODO still bound to tfjs
@@ -25,7 +26,7 @@ export type Sample = tf.Tensor;
  * Allow for various implementation of models (various train function, tensor-library, ...)
  **/
 // TODO make it typesafe: same shape of data/input/weights
-export abstract class Model {
+export abstract class Model implements Disposable{
   // TODO don't allow external access but upgrade train to return weights on every epoch
   /** Return training state */
   abstract get weights(): WeightsContainer;
@@ -50,4 +51,16 @@ export abstract class Model {
   /** Predict likely values */
   // TODO extract in separated TrainedModel?
   abstract predict(input: Sample): Promise<Prediction>;
+
+
+  /**
+   * This method is automatically called to cleanup the memory occupied by the model
+   * when leaving the definition scope if the instance has been defined with the `using` keyword.
+   * For example:
+   * function f() {
+   *   using model = new Model();
+   * }
+   * Calling f() will call the model's dispose method when exiting the function.
+   */
+  abstract [Symbol.dispose](): void;
 }
