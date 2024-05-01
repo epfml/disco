@@ -120,6 +120,7 @@ describe("end-to-end federated", function () {
     const negativeLabels = files[1].map(_ => 'COVID-Negative')
     const labels = positiveLabels.concat(negativeLabels)
     const lusCovidTask = defaultTasks.lusCovid.getTask()
+    lusCovidTask.trainingInformation.epochs = 15
 
     const data = await new NodeImageLoader(lusCovidTask)
       .loadAll(files.flat(), { labels, channels: 3 })
