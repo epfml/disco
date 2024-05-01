@@ -3,7 +3,7 @@ import * as tf from "@tensorflow/tfjs";
 
 import {
   convert_to_number,
-  extract_column,
+  extract_column as extract_column,
   index_in_list,
 } from "../convertors.js";
 import type { Task } from "../task/task.js";
@@ -13,6 +13,7 @@ import { TypedDataset } from "./types.js";
 import { ImageData } from "./data/image_data.js";
 import { Data } from "./data/data.js";
 import { TabularData } from "./data/tabular_data.js";
+import { TextData } from "./data/text_data.js";
 
 /** Immutable serie of data */
 export class Dataset<T> implements AsyncIterable<T> {
@@ -140,12 +141,16 @@ export class Dataset<T> implements AsyncIterable<T> {
    * @param other right side
    **/
   zip<U>(other: AsyncIterable<U> | Iterable<U>): Dataset<[T, U]> {
-    const left = this.#content();
-    let right;
-    if (Symbol.asyncIterator in other) right = other[Symbol.asyncIterator]();
-    else right = other[Symbol.iterator]();
+    const content = {
+      [Symbol.asyncIterator]: () => this.#content(),
+    };
 
     return new Dataset(async function* () {
+      const left = content[Symbol.asyncIterator]();
+      let right;
+      if (Symbol.asyncIterator in other) right = other[Symbol.asyncIterator]();
+      else right = other[Symbol.iterator]();
+
       while (true) {
         const [l, r] = await Promise.all([left.next(), right.next()]);
         if (l.done || r.done) return;
@@ -158,10 +163,12 @@ export class Dataset<T> implements AsyncIterable<T> {
 function intoTFGenerator<T extends tf.TensorContainer>(
   iter: AsyncIterable<T>,
 ): tf.data.Dataset<T> {
-  // @ts-expect-error generator
-  return tf.data.generator(async function* () {
-    yield* iter;
-  });
+  return tf.data.generator(
+    // @ts-expect-error badly typed, async generator is supported too
+    async function* () {
+      yield* iter;
+    },
+  );
 }
 
 export async function datasetToData(
@@ -201,8 +208,9 @@ export async function datasetToData(
             [
               List(task.trainingInformation.inputColumns)
                 .map((column) => extract_column(row, column))
+                .map((v) => (v !== "" ? v : "0")) // TODO how to specify defaults?
                 .map(convert_to_number),
-              index_in_list(extract_column(row, outputColumn), labels),
+              convert_to_number(extract_column(row, outputColumn)),
             ] as const,
         )
         .map(
@@ -218,7 +226,7 @@ export async function datasetToData(
       return await TabularData.init(intoTFGenerator(converted), task);
     }
     case "text":
-      throw new Error("TODO implement");
+      return await TextData.init(intoTFGenerator(dataset), task);
   }
 }
 
@@ -244,8 +252,12 @@ export async function datasetToDataSplit(
       );
       break;
     }
-    case "text":
-      throw new Error("TODO implement");
+    case "text": {
+      [train, validation] = await Promise.all(
+        dataset.split(split).map((d) => datasetToData(task, [t, d])),
+      );
+      break;
+    }
   }
 
   return { train, validation };

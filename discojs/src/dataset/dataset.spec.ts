@@ -123,6 +123,25 @@ describe("dataset", () => {
     expect(await arrayFromAsync(mapped)).to.have.ordered.members([1, 2, 3]);
   });
 
+  it("chains with dataset", async () => {
+    const left = new Dataset(async function* () {
+      yield Promise.resolve(1);
+      yield Promise.resolve(2);
+      yield Promise.resolve(3);
+    });
+    const right = new Dataset(async function* () {
+      yield Promise.resolve(4);
+      yield Promise.resolve(5);
+      yield Promise.resolve(6);
+    });
+
+    const chained = left.chain(right);
+
+    expect(await arrayFromAsync(chained)).to.have.ordered.members([
+      1, 2, 3, 4, 5, 6,
+    ]);
+  });
+
   it("zips with other dataset", async () => {
     const dataset = new Dataset(async function* () {
       yield Promise.resolve(1);

@@ -1,8 +1,9 @@
 import { List } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import type { data, Model, Task, Logger, client as clients, Memory, ModelSource } from '../index.js'
-import { GraphInformant } from '../index.js'
+import type { Model, Task, Logger, client as clients, Memory, ModelSource, TypedDataset } from '../index.js'
+import { data, GraphInformant } from '../index.js'
+import { datasetToData } from '../dataset/dataset.js'
 
 type Features = number | number[] | number[][] | number[][][] | number[][][][] | number[][][][][]
 
@@ -34,11 +35,14 @@ export class Validator {
     // Multi-label classification is not supported
   }
 
-  async assess (data: data.Data, useConfusionMatrix: boolean = false): Promise<Array<{ groundTruth: number, pred: number, features: Features }>> {
-    const batchSize = this.task.trainingInformation?.batchSize
-    if (batchSize === undefined) {
-      throw new TypeError('Batch size is undefined')
-    }
+  async assess (dataset: data.Data | TypedDataset, useConfusionMatrix: boolean = false): Promise<Array<{ groundTruth: number, pred: number, features: Features }>> {
+    if (Array.isArray(dataset))
+      dataset = await datasetToData(this.task, dataset);
+
+    const batched = dataset
+      .preprocess()
+      .dataset.batch(this.task.trainingInformation.batchSize);
+
     const model = await this.getModel()
 
     let features: Features[] = []
@@ -47,7 +51,7 @@ export class Validator {
     let hits = 0
     // Get model predictions per batch and flatten the result
     // Also build the features and ground truth arrays
-    const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
+    const predictions: number[] = (await batched
       .mapAsync(async e => {
         if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
           const xs = e.xs as tf.Tensor
@@ -94,18 +98,17 @@ export class Validator {
       .toArray()
   }
 
-  async predict (data: data.Data): Promise<Array<{ features: Features, pred: number }>> {
-    const batchSize = this.task.trainingInformation?.batchSize
-    if (batchSize === undefined) {
-      throw new TypeError('Batch size is undefined')
-    }
+  async predict (dataset: data.Data | TypedDataset): Promise<Array<{ features: Features, pred: number }>> {
+    if (Array.isArray(dataset))
+      dataset = await datasetToData(this.task, dataset)
+    const batched = dataset.preprocess().dataset.batch(this.task.trainingInformation.batchSize)
 
     const model = await this.getModel()
     let features: Features[] = []
 
     // Get model prediction per batch and flatten the result
     // Also incrementally build the features array
-    const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
+    const predictions: number[] = (await batched
       .mapAsync(async e => {
         const xs = e as tf.Tensor
         const currentFeatures = await xs.array()
