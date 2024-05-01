@@ -1,4 +1,4 @@
-import isomorphic from 'isomorphic-ws'
+import WebSocket from 'isomorphic-ws'
 import type { Peer, SignalData } from './decentralized/peer.js'
 import { type NodeID } from './types.js'
 import msgpack from 'msgpack-lite'
@@ -82,19 +82,19 @@ export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K>
 
 export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K> }> implements EventConnection {
   private constructor (
-    private readonly socket: isomorphic.WebSocket,
+    private readonly socket: WebSocket.WebSocket,
     private readonly validateSent?: (msg: Message) => boolean
   ) { super() }
 
   static async connect (url: URL,
     validateReceived: (msg: unknown) => msg is Message,
     validateSent: (msg: Message) => boolean): Promise<WebSocketServer> {
-    const ws = new isomorphic.WebSocket(url)
+    const ws = new WebSocket(url)
     ws.binaryType = 'arraybuffer'
 
     const server: WebSocketServer = new WebSocketServer(ws, validateSent)
 
-    ws.onmessage = (event: isomorphic.MessageEvent) => {
+    ws.onmessage = (event: WebSocket.MessageEvent) => {
       if (!(event.data instanceof ArrayBuffer)) {
         throw new Error('server did not send an ArrayBuffer')
       }
@@ -110,7 +110,7 @@ export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K
     }
 
     return await new Promise((resolve, reject) => {
-      ws.onerror = (err: isomorphic.ErrorEvent) => {
+      ws.onerror = (err: WebSocket.ErrorEvent) => {
         reject(new Error(`Server unreachable: ${err.message}`))
       }
       ws.onopen = () => { resolve(server) }

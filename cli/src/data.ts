@@ -1,49 +1,47 @@
 import { Range } from 'immutable'
-import fs from 'node:fs'
-import fs_promises from 'fs/promises'
+import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import type { Task, data } from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 
-function filesFromFolder (dir: string, folder: string, fractionToKeep: number): string[] {
-  const f = fs.readdirSync(dir + folder)
-  return f.slice(0, Math.round(f.length * fractionToKeep)).map(file => dir + folder + '/' + file)
-}
-
 async function simplefaceData (task: Task): Promise<data.DataSplit> {
   const dir = '../datasets/simple_face/'
-  const youngFolders = ['child']
-  const oldFolders = ['adult']
+  const youngFolder = dir + 'child/'
+  const adultFolder = dir + 'adult/'
 
-  // const dir = '../../face_age/'
-  // const youngFolders = ['007', '008', '009', '010', '011', '012', '013', '014']
-  // const oldFolders = ['021', '022', '023', '024', '025', '026']
+  const youngFiles = (await fs.readdir(youngFolder)).map(file => path.join(youngFolder, file))
+  const adultFiles = (await fs.readdir(adultFolder)).map(file => path.join(adultFolder, file))
+  const images = youngFiles.concat(adultFiles)
 
-  // TODO: we just keep x% of data for faster training, e.g., for each folder, we keep 0.1 fraction of images
-  const fractionToKeep = 1
-  const youngFiles = youngFolders.flatMap(folder => {
-    return filesFromFolder(dir, folder, fractionToKeep)
-  })
-
-  const oldFiles = oldFolders.flatMap(folder => {
-    return filesFromFolder(dir, folder, fractionToKeep)
-  })
-
-  const filesPerFolder = [youngFiles, oldFiles]
-
-  const labels = filesPerFolder.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
-  const files = filesPerFolder.flat()
-
-  return await new NodeImageLoader(task).loadAll(files, { labels })
+  const youngLabels = youngFiles.map(_ => 'child')
+  const oldLabels = adultFiles.map(_ => 'adult')
+  const labels = youngLabels.concat(oldLabels)
+  return await new NodeImageLoader(task).loadAll(images, { labels })
 }
 
 async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
   const dir = '../datasets/CIFAR10/'
-  const files = (await fs_promises.readdir(dir)).map((file) => path.join(dir, file))
+  const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
   const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
-
   return await new NodeImageLoader(cifar10).loadAll(files, { labels })
+}
+
+async function lusCovidData (lusCovid: Task): Promise<data.DataSplit> {
+  const dir = '../datasets/lus_covid/'
+  const covid_pos = dir + 'COVID+'
+  const covid_neg = dir + 'COVID-'
+  const files_pos = (await fs.readdir(covid_pos)).map(file => path.join(covid_pos, file))
+  const label_pos = Range(0, files_pos.length).map(_ => 'COVID-Positive')
+
+  const files_neg = (await fs.readdir(covid_neg)).map(file => path.join(covid_neg, file))
+  const label_neg = Range(0, files_neg.length).map(_ => 'COVID-Negative')
+  
+  const files = files_pos.concat(files_neg)
+  const labels = label_pos.concat(label_neg).toArray()
+
+  const dataConfig = { labels, shuffle: true, validationSplit: 0.1, channels: 3 }
+  return await new NodeImageLoader(lusCovid).loadAll(files, dataConfig)
 }
 
 async function titanicData (titanic: Task): Promise<data.DataSplit> {
@@ -68,6 +66,8 @@ export async function getTaskData (task: Task): Promise<data.DataSplit> {
       return await titanicData(task)
     case 'cifar10':
       return await cifar10Data(task)
+    case 'lus_covid':
+      return await lusCovidData(task)
     case 'YOUR CUSTOM TASK HERE':
       throw new Error('YOUR CUSTOM FUNCTION HERE')
     default:

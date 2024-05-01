@@ -1,6 +1,6 @@
-import type WebSocket from 'ws'
+import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
-import { List, Map } from 'immutable'
+import { List, Map, Set } from 'immutable'
 import msgpack from 'msgpack-lite'
 
 import type {
@@ -15,7 +15,8 @@ import {
   client,
   serialization,
   AsyncInformant,
-  aggregator as aggregators
+  aggregator as aggregators,
+  aggregation
 } from '@epfml/discojs-core'
 
 import { Server } from '../server.js'
@@ -46,6 +47,11 @@ export class Federated extends Server {
    * Aggregators for each hosted task.
    */
   private aggregators = Map<TaskID, aggregators.Aggregator>()
+
+  private contributions = Map<TaskID, {
+    round: number
+    participants: Set<[WebSocket.WebSocket, WeightsContainer]>
+  }>()
   /**
    * Promises containing the current round's results. To be awaited on when providing clients
    * with the most recent result.
@@ -119,47 +125,6 @@ export class Federated extends Server {
   }
 
   /**
-   * This method is called when a client sends its contribution to the server. The server
-   * first adds the contribution to the aggregator and then replies with the aggregated weights
-   *
-   * @param msg the client message received of type SendPayload which contains the local client's weights
-   * @param task the task for which the client is contributing
-   * @param clientId the clientID of the contribution
-   * @param ws the websocket through which send the aggregated weights
-   */
-  private addContributionAndSendModel (
-    msg: messages.SendPayload,
-    task: TaskID,
-    clientId: client.NodeID,
-    ws: WebSocket
-  ): void {
-    const { payload, round } = msg
-    const aggregator = this.aggregators.get(task)
-
-    if (!(Array.isArray(payload) &&
-      payload.every((e) => typeof e === 'number'))) {
-      throw new Error('received invalid weights format')
-    }
-    if (aggregator === undefined) {
-      throw new Error(`received weights for unknown task: ${task}`)
-    }
-
-    // It is important to create a promise for the weights BEFORE adding the contribution
-    // Otherwise the server might go to the next round before sending the
-    // aggregated weights. Once the server has aggregated the weights it will
-    // send the new weights to the client.
-    // Use the void keyword to explicity avoid waiting for the promise to resolve
-    this.createPromiseForWeights(task, aggregator, ws)
-
-    const serialized = serialization.weights.decode(payload)
-    // Add the contribution to the aggregator,
-    // which returns False if the contribution is too old
-    if (!aggregator.add(clientId, serialized, round, 0)) {
-      console.info('Dropped contribution from client', clientId, 'for round', round)
-    }
-  }
-
-  /**
    * This method is called after received a local update.
    * It puts the client on hold until the server has aggregated the weights
    * by creating a Promise which will resolve once the server has received
@@ -195,6 +160,7 @@ export class Federated extends Server {
           round,
           payload: serialized
         }
+	console.log("federated: sending back weights:", msg)
         ws.send(msgpack.encode(msg))
       })
       .catch(console.error)
@@ -236,10 +202,36 @@ export class Federated extends Server {
       } else if (msg.type === MessageTypes.SendPayload) {
         this.logsAppend(task.id, clientId, MessageTypes.SendPayload, msg.round)
 
-        if (model === undefined) {
-          throw new Error('aggregator model was not set')
+        const { payload, round } = msg
+        const weights = serialization.weights.decode(payload)
+
+        console.log("federated: recv payload for round", round)
+
+        const {round: currentRound, participants: currentParticipants} = this.contributions.get(task.id, {
+          round,
+          participants: Set<[WebSocket, WeightsContainer]>()
+        })
+        if (round < currentRound) {
+          console.info('federate: dropped contribution from client', clientId, 'for round', round)
+          return // TODO what to answer?
         }
-        this.addContributionAndSendModel(msg, task.id, clientId, ws)
+
+        const participants = currentParticipants.add([ws, weights])
+        this.contributions = this.contributions.set(task.id, {round, participants})
+
+	if (participants.size >= (task.trainingInformation.minimumReadyPeers ?? 0)) {
+          console.log("federated: sending back weights for round", round)
+          serialization.weights.encode(aggregation.avg(participants.map(([_, weights]) => weights)))
+            .then((payload) => msgpack.encode({
+              type: MessageTypes.ReceiveServerPayload,
+              round,
+              payload,
+            }))
+            .then((reply) => participants.forEach(([client, _]) => client.send(reply)))
+            .catch((err) => console.error("sending weights back", err))
+
+          this.contributions = this.contributions.delete(task.id)
+	}
       } else if (msg.type === MessageTypes.ReceiveServerStatistics) {
         const statistics = this.informants
           .get(task.id)

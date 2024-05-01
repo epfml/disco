@@ -1,6 +1,7 @@
 # dependencies
 /node_modules/
-
+# disco models
+**/models
 # built
 dist/
 

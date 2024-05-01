@@ -84,7 +84,8 @@ export class Disco {
    * Starts a training instance for the Disco object's task on the provided data tuple.
    * @param dataTuple The data tuple
    */
-  async *fit(dataTuple: data.DataSplit): AsyncGenerator<RoundLogs> {
+  // TODO RoundLogs should contain number of participants but Trainer doesn't need client
+  async *fit(dataTuple: data.DataSplit): AsyncGenerator<RoundLogs & { participants: number }> {
     this.logger.success("Training started.");
 
     const trainData = dataTuple.train.preprocess().batch();
@@ -108,7 +109,10 @@ export class Disco {
       }
       this.logger.success(msg)
 
-      yield roundLogs
+      yield {
+        ...roundLogs,
+        participants: this.client.nodes.size + 1 // add ourself
+      }
     }
 
     this.logger.success("Training finished.");

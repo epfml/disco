@@ -21,26 +21,28 @@ export const lusCovid: TaskProvider = {
       },
       trainingInformation: {
         modelID: 'lus-covid-model',
-        epochs: 15,
-        roundDuration: 10,
-        validationSplit: 0.2,
-        batchSize: 2,
+        epochs: 50,
+        roundDuration: 2,
+        validationSplit: 0,
+        batchSize: 5,
         IMAGE_H: 100,
         IMAGE_W: 100,
-        preprocessingFunctions: [data.ImagePreprocessing.Resize],
+        preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
         dataType: 'image',
-        scheme: 'decentralized',
+        scheme: 'federated',
         noiseScale: undefined,
         clippingRadius: 20,
         decentralizedSecure: true,
-        minimumReadyPeers: 3,
+        minimumReadyPeers: 2,
         maxShareValue: 100
       }
     }
   },
 
-  getModel (): Promise<Model> {
+  // Model architecture from tensorflow.js docs: 
+  // https://codelabs.developers.google.com/codelabs/tfjs-training-classfication/index.html#4
+  async getModel (): Promise<Model> {
     const imageHeight = 100
     const imageWidth = 100
     const imageChannels = 3
@@ -63,7 +65,7 @@ export const lusCovid: TaskProvider = {
     // in a region instead of averaging.
     model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
 
-    // Repeat another conv2d + maxPooling stack.
+    // Repeat the conv2d + maxPooling block.
     // Note that we have more filters in the convolution.
     model.add(tf.layers.conv2d({
       kernelSize: 5,
@@ -88,7 +90,7 @@ export const lusCovid: TaskProvider = {
     }))
 
     model.compile({
-      optimizer: tf.train.sgd(0.001),
+      optimizer: 'sgd',
       loss: 'binaryCrossentropy',
       metrics: ['accuracy']
     })

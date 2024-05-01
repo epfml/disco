@@ -131,7 +131,7 @@
 
 <script setup lang="ts">
 import { List } from 'immutable'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 // @ts-expect-error waiting for vue3-apexcharts#98
 import ApexChart from "vue3-apexcharts";
 
@@ -145,14 +145,22 @@ import People from '@/assets/svg/People.vue'
 import Contact from '@/assets/svg/Contact.vue'
 
 const props = defineProps<{
-  logs: List<RoundLogs>
+  logs: List<RoundLogs & { participants: number }>
   hasValidationData: boolean // TODO infer from logs
   messages: List<string> // TODO why do we want messages?
 }>()
 
 const options = chartOptions
 
-const participants = ref({ current: 1, average: 1 }) // TODO collect real data
+const participants = computed(() => {
+  const average = props.logs.size > 0
+    ? props.logs.reduce((acc, logs) => acc + logs.participants, 0) / props.logs.size
+    : 0
+  return {
+    current: props.logs.last()?.participants ?? 0,
+    average
+  }
+})
 
 const latestEpoch = computed(() => props.logs.last()?.epochs.last())
 

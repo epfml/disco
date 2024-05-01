@@ -2,27 +2,12 @@ import { assert } from 'chai'
 import fs from 'fs'
 import type { Server } from 'node:http'
 
-import type { Task, data } from '@epfml/discojs-core'
-import { Validator, ConsoleLogger, EmptyMemory, client as clients, aggregator, defaultTasks } from '@epfml/discojs-core'
+import {
+  Validator, ConsoleLogger, EmptyMemory, client as clients,
+  aggregator, defaultTasks, data
+} from '@epfml/discojs-core'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 import { startServer } from '../src/index.js'
-
-const simplefaceMock: Task = {
-  id: 'simple_face',
-  displayInformation: {},
-  trainingInformation: {
-    modelID: 'simple_face-model',
-    epochs: 1,
-    batchSize: 4,
-    roundDuration: 1,
-    validationSplit: 0,
-    scheme: 'federated',
-    dataType: 'image',
-    IMAGE_H: 200,
-    IMAGE_W: 200,
-    LABEL_LIST: ['child', 'adult']
-  }
-}
 
 describe('validator', function () {
   this.timeout(10_000)
@@ -32,25 +17,37 @@ describe('validator', function () {
   beforeEach(async () => { [server, url] = await startServer() })
   afterEach(() => { server?.close() })
 
-  it('simple_face validator', async () => {
+  it('can read and predict randomly on simple_face', async () => {
+    // Load the data
     const dir = '../datasets/simple_face/'
-    const files: string[][] = ['child/', 'adult/']
-      .map((subdir: string) => fs.readdirSync(dir + subdir)
-        .map((file: string) => dir + subdir + file))
-    const labels = files.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
+    const files: string[][] = ['child/', 'adult/'].map((subdir: string) => {
+      return fs.readdirSync(dir + subdir)
+        .map((file: string) => dir + subdir + file)
+        .filter((path: string) => path.endsWith('.png'))
+    })
+    
+    const childLabels = files[0].map(_ => 'child')
+    const adultLabels = files[1].map(_ => 'adult')
+    const labels = childLabels.concat(adultLabels)
 
-    const data = (await new NodeImageLoader(simplefaceMock)
-      .loadAll(files.flat(), { labels })).train
+    const simplefaceTask = defaultTasks.simpleFace.getTask()
+
+    const data = (await new NodeImageLoader(simplefaceTask)
+      .loadAll(files.flat(), { labels, channels: undefined })).train
+    
+    // Init a validator instance
     const meanAggregator = new aggregator.MeanAggregator()
-    const client = new clients.Local(url, simplefaceMock, meanAggregator)
+    const client = new clients.Local(url, simplefaceTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(
-      simplefaceMock,
+      simplefaceTask,
       new ConsoleLogger(),
       new EmptyMemory(),
       undefined,
       client
     )
+
+    // Read data and predict with an untrained model
     await validator.assess(data)
     const size = data.size ?? -1
     if (size === -1) {
@@ -64,10 +61,9 @@ describe('validator', function () {
       validator.accuracy > 0.3,
       `Expected random weight init accuracy greater than 0.3 but got ${validator.accuracy}`
     )
-    console.table(validator.confusionMatrix)
-  }).timeout(15_000)
+  }).timeout(5_000)
 
-  it('titanic validator', async () => {
+  it('can read and predict randomly on titanic', async () => {
     const titanicTask = defaultTasks.titanic.getTask()
     const files = ['../datasets/titanic_train.csv']
     const data: data.Data = (await new NodeTabularLoader(titanicTask, ',').loadAll(files, {
@@ -92,5 +88,53 @@ describe('validator', function () {
       validator.accuracy > 0.3,
       `Expected random weight init accuracy greater than 0.3 but got ${validator.accuracy}`
     )
-  }).timeout(15_000)
+  }).timeout(1000)
+
+  it('can read and predict randomly on lus_covid', async () => {
+    // Load the data
+    const dir = '../datasets/lus_covid/'
+    const files: string[][] = ['COVID+/', 'COVID-/'].map((subdir: string) => {
+      return fs.readdirSync(dir + subdir)
+        .map((file: string) => dir + subdir + file)
+        .filter((path: string) => path.endsWith('.png'))
+    })
+    
+    const positiveLabels = files[0].map(_ => 'COVID-Positive')
+    const negativeLabels = files[1].map(_ => 'COVID-Negative')
+    const labels = positiveLabels.concat(negativeLabels)
+
+    const lusCovidTask = defaultTasks.lusCovid.getTask()
+
+    const data = (await new NodeImageLoader(lusCovidTask)
+      .loadAll(files.flat(), { labels, channels: 3 })).train
+    
+    // Initialize a validator instance
+    const meanAggregator = new aggregator.MeanAggregator()
+    const client = new clients.Local(url, lusCovidTask, meanAggregator)
+    meanAggregator.setModel(await client.getLatestModel())
+
+    const validator = new Validator(
+      lusCovidTask,
+      new ConsoleLogger(),
+      new EmptyMemory(),
+      undefined,
+      client
+    )
+
+    // Assert random initialization metrics
+    await validator.assess(data)
+    const size = data.size ?? -1
+    if (size === -1) {
+      console.log('data.size was undefined')
+    }
+    assert(
+      validator.visitedSamples === data.size,
+      `Expected ${size} visited samples but got ${validator.visitedSamples}`
+    )
+    assert(
+      validator.accuracy > 0.4,
+      `Expected random weight init accuracy greater than 0.4 but got ${validator.accuracy}`
+    )
+  }).timeout(1000)
+
 })

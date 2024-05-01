@@ -16,7 +16,10 @@ import { DataLoader } from '../data_loader/index.js'
  * 2. Labels are given as multiple labels/1 file, each label file can contain a different amount of labels.
  */
 export abstract class ImageLoader<Source> extends DataLoader<Source> {
-  abstract readImageFrom (source: Source): Promise<tf.Tensor3D>
+  // We allow specifying the number of channels because the default number of channels
+  // differs between web and node for the same image 
+  // E.g. lus covid images have 1 channel with fs.readFile but 3 when loaded with discojs-web
+  abstract readImageFrom (source: Source, channels?:number): Promise<tf.Tensor3D>
 
   constructor (
     private readonly task: Task
@@ -27,10 +30,10 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
   async load (image: Source, config?: DataConfig): Promise<Dataset> {
     let tensorContainer: tf.TensorContainer
     if (config?.labels === undefined) {
-      tensorContainer = await this.readImageFrom(image)
+      tensorContainer = await this.readImageFrom(image, config?.channels)
     } else {
       tensorContainer = {
-        xs: await this.readImageFrom(image),
+        xs: await this.readImageFrom(image, config?.channels),
         ys: config.labels[0]
       }
     }
@@ -46,7 +49,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
 
       let index = 0
       while (index < indices.length) {
-        const sample = await self.readImageFrom(images[indices[index]])
+        const sample = await self.readImageFrom(images[indices[index]], config?.channels)
         const label = withLabels ? labels[indices[index]] : undefined
         const value = withLabels ? { xs: sample, ys: label } : sample
 
@@ -66,12 +69,26 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
 
     const indices = Range(0, images.length).toArray()
     if (config?.labels !== undefined) {
-      const numberOfClasses = this.task.trainingInformation?.LABEL_LIST?.length
-      if (numberOfClasses === undefined) {
-        throw new Error('wanted labels but none found in task')
+      const labelList = this.task.trainingInformation?.LABEL_LIST
+      if (labelList === undefined || !Array.isArray(labelList)) {
+        throw new Error('LABEL_LIST should be specified in the task training information')
+      }
+      const numberOfClasses = labelList.length
+      // Map label strings to integer
+      const label_to_int = new Map(labelList.map((label_name, idx) => [label_name, idx]))
+      if (label_to_int.size != numberOfClasses) {
+        throw new Error("Input labels aren't matching the task LABEL_LIST")
       }
 
-      labels = tf.oneHot(tf.tensor1d(config.labels, 'int32'), numberOfClasses).arraySync() as number[]
+      labels = config.labels.map(label_name => {
+        const label_int = label_to_int.get(label_name)
+        if (label_int === undefined) {
+          throw new Error(`Found input label ${label_name} not specified in task LABEL_LIST`)
+        }
+        return label_int
+      })
+
+      labels = await tf.oneHot(tf.tensor1d(labels, 'int32'), numberOfClasses).array() as number[]
     }
     if (config?.shuffle === undefined || config?.shuffle) {
       this.shuffle(indices)

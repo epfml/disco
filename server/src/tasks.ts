@@ -31,10 +31,10 @@ export class TasksAndModels {
   }
 
   // Returns already saved model in priority, then the model from the task definition
-  private async loadModelFromTask (task: Task | TaskProvider): Promise<Model> {
+  private async loadModelFromTask(task: Task | TaskProvider): Promise<Model> {
     const discoTask = isTask(task) ? task : task.getTask()
     let model: Model | undefined
-
+    
     const modelPath = `./models/${discoTask.id}/`
     try {
       const content = await fs.readFile(`${modelPath}/model.json`)
@@ -42,7 +42,7 @@ export class TasksAndModels {
     } catch {
       // unable to read file, continuing
     }
-
+    
     if (isTask(task)) {
       throw new Error('saved model not found and no way to get it')
     } else {
@@ -52,18 +52,18 @@ export class TasksAndModels {
     await fs.mkdir(modelPath, { recursive: true })
     const encoded = await serialization.model.encode(model)
     await fs.writeFile(`${modelPath}/model.json`, encoded)
-
+    
     // Check digest if provided
     if (discoTask.digest !== undefined) {
       try {
         await this.checkDigest(discoTask.digest, modelPath)
       } catch (e) {
-        console.warn('removing nodel files at', modelPath)
+        console.warn('removing model files at', modelPath)
         await fs.rm(modelPath, { recursive: true, force: true })
         throw e
       }
     }
-
+    
     return model
   }
 
@@ -92,7 +92,7 @@ export class TasksAndModels {
       Array.isArray(weightsFiles) &&
       typeof weightsFiles[0] === 'string'
     )) {
-      throw new Error("invalud weights files")
+      throw new Error("invalid weights files")
     }
     await Promise.all(weightsFiles.map(async (file: string) => {
       const data = await fs.readFile(`${modelPath}/${file}`)
