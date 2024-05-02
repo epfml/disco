@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises'
 
-import type { data, Task } from '@epfml/discojs-core'
-import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs-core'
+import type { data, Task } from '@epfml/discojs'
+import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
-import { startServer } from '@epfml/disco-server'
+import { startServer } from 'server'
 
 /**
  * Example of discojs API, we load data, build the appropriate loggers, the disco object

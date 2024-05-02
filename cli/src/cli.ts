@@ -1,9 +1,9 @@
 import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
 
-import type { data, RoundLogs, Task } from '@epfml/discojs-core'
-import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs-core'
-import { startServer } from '@epfml/disco-server'
+import type { data, RoundLogs, Task } from '@epfml/discojs'
+import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
+import { startServer } from 'server'
 
 import { getTaskData } from './data.js'
 import { args } from './args.js'

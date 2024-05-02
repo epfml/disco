@@ -1,5 +1,6 @@
 {
-  "name": "@epfml/disco-server",
+  "name": "server",
+  "private": true,
   "version": "2.1.1",
   "type": "module",
   "main": "dist/index.js",
@@ -7,7 +8,7 @@
     "disco-server": "./dist/run_server.js"
   },
   "scripts": {
-    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/discojs-node/dist --watch . --exec npm run",
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec npm run",
     "start": "npm run build && node dist/run_server.js",
     "build": "tsc",
     "lint": "npx eslint .",

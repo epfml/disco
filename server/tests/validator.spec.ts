@@ -5,7 +5,7 @@ import type { Server } from 'node:http'
 import {
   Validator, ConsoleLogger, EmptyMemory, client as clients,
   aggregator, defaultTasks, data
-} from '@epfml/discojs-core'
+} from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 import { startServer } from '../src/index.js'
 

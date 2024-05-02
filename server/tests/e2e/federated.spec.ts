@@ -4,11 +4,11 @@ import type { Server } from 'node:http'
 import { List, Repeat } from 'immutable'
 import { assert, expect } from 'chai'
 
-import type { RoundLogs, WeightsContainer } from '@epfml/discojs-core'
+import type { RoundLogs, WeightsContainer } from '@epfml/discojs'
 import {
   Disco, client as clients, data,
   aggregator as aggregators, defaultTasks
-} from '@epfml/discojs-core'
+} from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/discojs-node'
 
 import { startServer } from '../../src/index.js'

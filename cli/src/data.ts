@@ -2,7 +2,7 @@ import { Range, Repeat } from 'immutable'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import type { Task, data } from '@epfml/discojs-core'
+import type { Task, data } from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 
 async function simplefaceData (task: Task): Promise<data.DataSplit> {

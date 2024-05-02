@@ -1,10 +1,10 @@
 {
-  "name": "@epfml/disco-cli",
+  "name": "cli",
   "private": true,
   "type": "module",
   "main": "dist/cli.js",
   "scripts": {
-    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/discojs-node/dist --watch ../server/dist --watch . --exec npm run",
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch ../server/dist --watch . --exec npm run",
     "start": "npm run build && node dist/cli.js",
     "benchmark_gpt": "npm run build && node dist/benchmark_gpt.js",
     "build": "tsc",
@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@epfml/disco-server": "*",
+    "server": "*",
     "@epfml/discojs-node": "*",
     "immutable": "4",
     "tslib": "2"

@@ -16,9 +16,9 @@ jobs:
         with:
           path: datasets
           key: datasets-${{ hashFiles('datasets/**') }}
-      - run: ./datasets/populate
+      - run: datasets/populate
 
-  lint-lib-core:
+  lint-lib:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,10 +27,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-core run lint
+      - run: npm --workspace=discojs run lint
 
   lint-lib-node:
-    needs: build-lib-core
+    needs: build-lib
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,11 +39,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-core run build
-      - run: npm --workspace=./discojs/discojs-node run lint
+      - run: npm --workspace=discojs run build
+      - run: npm --workspace=discojs-node run lint
 
   lint-lib-web:
-    needs: build-lib-core
+    needs: build-lib
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -52,11 +52,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-core run build
-      - run: npm --workspace=./discojs/discojs-web run lint
+      - run: npm --workspace=discojs run build
+      - run: npm --workspace=discojs-web run lint
 
   lint-server:
-    needs: [build-lib-core, build-lib-node]
+    needs: [build-lib, build-lib-node]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,11 +65,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-{core,node} run build
-      - run: npm --workspace=./server run lint
+      - run: npm --workspace={discojs,discojs-node} run build
+      - run: npm --workspace=server run lint
 
   lint-cli:
-    needs: [build-lib-core, build-lib-node, build-server]
+    needs: [build-lib, build-lib-node, build-server]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -78,11 +78,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
-      - run: npm --workspace=./cli run lint
+      - run: npm --workspace={discojs,discojs-node,server} run build
+      - run: npm --workspace=cli run lint
 
-  lint-web-client:
-    needs: [build-lib-core, build-lib-web]
+  lint-webapp:
+    needs: [build-lib, build-lib-web]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -91,11 +91,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-{core,web} run build
-      - run: npm --workspace=./web-client run lint
+      - run: npm --workspace={discojs,discojs-web} run build
+      - run: npm --workspace=webapp run lint
 
   lint-docs-examples:
-    needs: [build-lib-core, build-lib-node, build-server]
+    needs: [build-lib, build-lib-node, build-server]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -104,11 +104,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
+      - run: npm --workspace={discojs,discojs-node,server} run build
       - run: npm run lint
         working-directory: docs/examples
 
-  build-lib-core:
+  build-lib:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -117,10 +117,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-core run build
+      - run: npm --workspace=discojs run build
 
   build-lib-node:
-    needs: build-lib-core
+    needs: build-lib
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -129,11 +129,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-core run build
-      - run: npm --workspace=./discojs/discojs-node run build
+      - run: npm --workspace=discojs run build
+      - run: npm --workspace=discojs-node run build
 
   build-lib-web:
-    needs: build-lib-core
+    needs: build-lib
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -142,11 +142,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run --workspace=./discojs/discojs-core build
-      - run: npm run --workspace=./discojs/discojs-web build
+      - run: npm run --workspace=discojs build
+      - run: npm run --workspace=discojs-web build
 
   build-server:
-    needs: [build-lib-core, build-lib-node]
+    needs: [build-lib, build-lib-node]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -155,8 +155,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run --workspace=./discojs/discojs-{core,node} build
-      - run: npm run --workspace=./server build
+      - run: npm run --workspace={discojs,discojs-node} build
+      - run: npm run --workspace=server build
 
   build-server-docker:
     needs: build-server
@@ -169,7 +169,7 @@ jobs:
       - run: docker build .
 
   build-cli:
-    needs: [build-lib-core, build-lib-node, build-server]
+    needs: [build-lib, build-lib-node, build-server]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -178,11 +178,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run --workspace={./discojs/discojs-{core,node},./server} build
-      - run: npm run --workspace=./cli build
+      - run: npm run --workspace={discojs,discojs-node,server} build
+      - run: npm run --workspace=cli build
 
-  build-web-client:
-    needs: [build-lib-core, build-lib-web]
+  build-webapp:
+    needs: [build-lib, build-lib-web]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -191,11 +191,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-{core,web} run build
-      - run: npm --workspace=./web-client run build
+      - run: npm --workspace={discojs,discojs-web} run build
+      - run: npm --workspace=webapp run build
 
   build-docs-examples:
-    needs: [build-lib-core, build-lib-node, build-server]
+    needs: [build-lib, build-lib-node, build-server]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -204,12 +204,12 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
+      - run: npm --workspace={discojs,discojs-node,server} run build
       - run: npm run build
         working-directory: docs/examples
 
-  test-lib-core:
-    needs: [build-lib-core, download-datasets]
+  test-lib:
+    needs: [build-lib, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -225,10 +225,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-core test
+      - run: npm --workspace=discojs test
 
   test-lib-node:
-    needs: [build-lib-core, download-datasets]
+    needs: [build-lib, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -244,11 +244,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-core run build
-      - run: npm --workspace=./discojs/discojs-node test
+      - run: npm --workspace=discojs run build
+      - run: npm --workspace=discojs-node test
 
   test-lib-web:
-    needs: [build-lib-core]
+    needs: [build-lib]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -264,11 +264,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-core run build
-      - run: npm --workspace=./discojs/discojs-web test
+      - run: npm --workspace=discojs run build
+      - run: npm --workspace=discojs-web test
 
   test-server:
-    needs: [build-lib-core, build-lib-node, download-datasets]
+    needs: [build-lib, build-lib-node, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -284,11 +284,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-{core,node} run build
-      - run: npm --workspace=./server test
+      - run: npm --workspace={discojs,discojs-node} run build
+      - run: npm --workspace=server test
 
-  test-web-client:
-    needs: [build-lib-core, build-lib-web, download-datasets]
+  test-webapp:
+    needs: [build-lib, build-lib-web, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -304,18 +304,18 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace=./discojs/discojs-{core,web} run build
-      - run: npm --workspace=./web-client run test:unit
+      - run: npm --workspace={discojs,discojs-web} run build
+      - run: npm --workspace=webapp run test:unit
       - uses: cypress-io/github-action@v6
         with:
-          working-directory: ./web-client
+          working-directory: webapp
           install: false
           start: npm start
         env:
           VITE_SERVER_URL: http://server
 
   test-cli:
-    needs: [build-lib-core, build-lib-node, build-server, download-datasets]
+    needs: [build-lib, build-lib-node, build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -331,11 +331,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
-      - run: npm --workspace=./cli start -- -t cifar10 -u 3 -e 1
+      - run: npm --workspace={discojs,discojs-node,server} run build
+      - run: npm --workspace=cli start -- -t cifar10 -u 3 -e 1
 
   test-docs-examples:
-    needs: [build-lib-core, build-lib-node, build-server, download-datasets]
+    needs: [build-lib, build-lib-node, build-server, download-datasets]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -351,6 +351,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
+      - run: npm --workspace={discojs,discojs-node,server} run build
       - run: npm run test
         working-directory: docs/examples

@@ -1,7 +1,7 @@
 # `Disco.js` under the hood
 
-This guide goes over how the core logic is structured and what are the main abstractions of Disco.js, implemented in `discojs/discojs-core`.
-As described in the [developer guide](../DEV.md), `discojs-node` and `discojs-web` are simple wrappers allowing to use `discojs-core` code from different platforms and technology, namely, a browser or Node.js. 
+This guide goes over how the core logic is structured and what are the main abstractions of Disco.js, implemented in `discojs`.
+As described in the [developer guide](../DEV.md), `discojs-node` and `discojs-web` are simple wrappers allowing to use `discojs` code from different platforms and technology, namely, a browser or Node.js. 
 
 ### Terminology
 
@@ -118,7 +118,7 @@ flowchart LR
 
 ### Memory
 
-The `DistributedTrainer` has a `memory` attribute that is used to abstract how trained models are stored by the client. As mentioned in various guides, `discojs-core` is platform-agnostic and  only what endpoints the memory storage should offer. The actual implementation is in `discojs-web` used by the browser UI and implements the memory via IndexedDB, a browser storage. `discojs-core` also implements a dummy memory, used by the CLI for example, to benchmark performance metrics without saving any models.
+The `DistributedTrainer` has a `memory` attribute that is used to abstract how trained models are stored by the client. As mentioned in various guides, `discojs` is platform-agnostic and  only what endpoints the memory storage should offer. The actual implementation is in `discojs-web` used by the browser UI and implements the memory via IndexedDB, a browser storage. `discojs` also implements a dummy memory, used by the CLI for example, to benchmark performance metrics without saving any models.
 
 ### Training informant
 

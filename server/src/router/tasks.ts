@@ -2,8 +2,8 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
 
-import type { Model, Task, TaskID } from '@epfml/discojs-core'
-import { serialization, isTask } from '@epfml/discojs-core'
+import type { Model, Task, TaskID } from '@epfml/discojs'
+import { serialization, isTask } from '@epfml/discojs'
 
 import type { Config } from '../config.js'
 import type { TasksAndModels } from '../tasks.js'
