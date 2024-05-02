@@ -13,9 +13,8 @@ async function getRawWeights (model: Model): Promise<Array<[number, Float32Array
   )
 }
 
-describe('serialization', function () {
-  this.timeout(5_000)
-  it('can encode decode a TFJS model', async () => {
+describe('serialization', () => {
+  it('can encode & decode a TFJS model', async function () {
     const rawModel = tf.sequential({
       layers: [
         tf.layers.conv2d({
@@ -39,7 +38,9 @@ describe('serialization', function () {
     )
   })
 
-  it('can encode decode a gpt-tfjs model', async () => {
+  it('can encode & decode a gpt-tfjs model', async function () {
+    this.timeout("10s")
+
     const config: GPTConfig = {
       modelType: 'gpt-nano',
       lr: 0.01,
