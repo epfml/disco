@@ -1,8 +1,8 @@
-import type { Task } from '@epfml/discojs-core'
+import type { Task } from '@epfml/discojs'
 import {
   Disco, fetchTasks, data, client as clients,
   aggregator as aggregators, models
-} from '@epfml/discojs-core'
+} from '@epfml/discojs'
 import { NodeTextLoader, saveModelToDisk, loadModelFromDisk } from '@epfml/discojs-node'
 
 

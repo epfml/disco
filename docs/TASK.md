@@ -2,7 +2,7 @@
 
 DISCO currently allows learning of arbitrary machine learning tasks, where tasks can be defined in three possible ways:
 
-1. **Predefined tasks**: As examples, DISCO already hosts several pre-defined popular tasks such as [Titanic](../discojs/discojs-core/src/tasks/titanic.ts), [CIFAR-10](../discojs/discojs-core/src/tasks/cifar10.ts), and [MNIST](../discojs/discojs-core/src/tasks/mnist.ts) among others.
+1. **Predefined tasks**: As examples, DISCO already hosts several pre-defined popular tasks such as [Titanic](../discojs/src/tasks/titanic.ts), [CIFAR-10](../discojs/src/tasks/cifar10.ts), and [MNIST](../discojs/src/tasks/mnist.ts) among others.
 2. **Task creation UI**: new tasks can be defined via the [**task creation form**](https://epfml.github.io/disco/#/create)
 3. **Implementing custom tasks**: tasks too specific for the UI form need to be implemented in the repository directly.
 
@@ -53,7 +53,7 @@ The [task creation form](https://epfml.github.io/disco/#/create) lets users crea
 Programming skills are necessary to add a custom task not supported by the task creation UI.
 A task is mainly defined by a `TaskProvider` which needs to implement two methods:
 
-- `getTask` which returns a `Task` as defined by the [Task interface](../discojs/discojs-core/src/task/task.ts). The `Task` contains all the crucial information from training to the mode
+- `getTask` which returns a `Task` as defined by the [Task interface](../discojs/src/task/task.ts). The `Task` contains all the crucial information from training to the mode
 - `getModel` which returns a `Promise<tf.LayersModel>` specifying a model architecture for the task
 
 You can add a new task in two different ways:
@@ -61,7 +61,7 @@ You can add a new task in two different ways:
 - a) As a new default task, e.g. to make the task available in production
 - b) By using the `disco.addTask` method if you run the server yourself
 
-a) By creating (and exporting in [`index.ts`](https://github.com/epfml/disco/blob/develop/discojs/discojs-core/src/default_tasks/index.ts)) a new `TaskProvider` in [`default_tasks`](https://github.com/epfml/disco/tree/develop/discojs/discojs-core/src/default_tasks) it will be loaded automatically by the server. Adding a new task this way is necessary to add a new task to the production server.
+a) By creating (and exporting in [`index.ts`](../discojs/src/default_tasks/index.ts)) a new `TaskProvider` in [`default_tasks`](../discojs/src/default_tasks) it will be loaded automatically by the server. Adding a new task this way is necessary to add a new task to the production server.
 
 b) If you run the server yourself you directly provide the task to the server without modifying Disco.js. An example is given in [custom_task.ts](./examples/README.md).
 
@@ -134,9 +134,9 @@ async function getModel(modelPath: string): Promise<tf.LayersModel> {
 
 In summary here are the most common ways of loading a model:
 
-- Loading the model from the web (example in [cifar10](../discojs/discojs-core/src/default_tasks/cifar10.ts))
+- Loading the model from the web (example in [cifar10](../discojs/src/default_tasks/cifar10.ts))
 - Loading the model from the local filesystem (similar to the web with a file path from the server filesystem)
-- Defining the architecture directly in the `TaskProvider` (example in [luscovid](../discojs/discojs-core/src/default_tasks/lus_covid.ts))
+- Defining the architecture directly in the `TaskProvider` (example in [luscovid](../discojs/src/default_tasks/lus_covid.ts))
 
 At runtime, the models are stored in `disco/server/models/`, and it is also in the server side that we let disco know where exactly they are saved.
 
@@ -150,7 +150,7 @@ scheme of distributed learning (federated or decentralized), along with other me
 
 The [`TrainingInformation` object](../discojs/src/task/training_information.ts) of a task contains all the customizable parameters and their descriptions.
 
-As an example, the task class for `simple-face` can be found [here](../discojs/discojs-core/src/default_tasks/simple_face.ts). Suppose
+As an example, the task class for `simple-face` can be found [here](../discojs/src/default_tasks/simple_face.ts). Suppose
 our own task is a binary classification for age detection (similar to simple face), then we could write:
 
 ```js
@@ -184,14 +184,14 @@ export const customTask: TaskProvider = {
 }
 ```
 
-The `Task` interface has three fields: a mandatory `id` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/discojs-core/src/task/display_information.ts) and [`TrainingInformation`](../discojs/discojs-core/src/task/training_information.ts).
+The `Task` interface has three fields: a mandatory `id` (of `string` type), an optional `displayInformation`, and an optional `trainingInformation`. The interfaces for the optional fields are [`DisplayInformation`](../discojs/src/task/display_information.ts) and [`TrainingInformation`](../discojs/src/task/training_information.ts).
 
 ### Preprocessing
 
-In the Task object we can optionally choose to add preprocessing functions. Preprocessing is defined [here](../discojs/discojs-core/src/dataset/data/preprocessing.ts),
+In the Task object we can optionally choose to add preprocessing functions. Preprocessing is defined [here](../discojs/src/dataset/data/preprocessing.ts),
 and is currently only implemented for images (e.g. resize, normalize, ...).
 
-Suppose we want our custom preprocessing that divides each pixel value by 2. In the [preprocessing](../discojs/discojs-core/src/dataset/data/preprocessing.ts) file,
+Suppose we want our custom preprocessing that divides each pixel value by 2. In the [preprocessing](../discojs/src/dataset/data/preprocessing.ts) file,
 first we add the enum of our custom function:
 
 ```js
@@ -202,7 +202,7 @@ export enum ImagePreprocessing {
 }
 ```
 
-If your task requires a preprocessing function to be applied to the data before training, you can specify it in the `preprocessingFunctions` field of the `trainingInformation` parameter in the task object. In order to add custom preprocessing function, either extend the `Preprocessing` type and define your preprocessing functions in the [preprocessing](../discojs/discojs-core/src/dataset/data/preprocessing.ts) file. If the preprocessing function is challenging to implement in JS (e.g requires complex audio preprocessing for JS), we recommend implementing in some other language which supports the desired preprocessing (e.g. Python) and feed the preprocessed data to the task.
+If your task requires a preprocessing function to be applied to the data before training, you can specify it in the `preprocessingFunctions` field of the `trainingInformation` parameter in the task object. In order to add custom preprocessing function, either extend the `Preprocessing` type and define your preprocessing functions in the [preprocessing](../discojs/src/dataset/data/preprocessing.ts) file. If the preprocessing function is challenging to implement in JS (e.g requires complex audio preprocessing for JS), we recommend implementing in some other language which supports the desired preprocessing (e.g. Python) and feed the preprocessed data to the task.
 
 #### Rebuild
 
@@ -255,14 +255,10 @@ export const task: Task = {
 
 ## Summary
 
-- In `disco/discojs/discojs-core/src/default_tasks/` define your new custom task by implementing the `TaskProvider` interface. You will need to have your model in the .json + .bin format.
-- In `disco/discojs/discojs-core/src/default_tasks/index.ts` export your newly defined task
-- Run the `./build.sh` script from `discojs/discojs-core`
-- Reinstall cleanly the server by running `npm ci` from `disco/server`
-- Reinstall cleanly the client by running `npm ci` from `disco/web-client`
-- Instantiate a Disco server by running `npm run dev` from `disco/server`
-- Instantiate a Disco client by running `npm run dev` from `disco/web-client`
+- In `discojs/src/default_tasks/` define your new custom task by implementing the `TaskProvider` interface.
+- In `discojs/src/default_tasks/index.ts` export your newly defined task
+- Run `npm -ws run build`
+- Instantiate a Disco server by running `npm start` from `server`
+- Instantiate a Disco client by running `npm start` from `webapp`
 
 Your task has been successfully uploaded.
-
-**Or** just use the NPM `disco-server` package and add your own custom `TaskProvider` directly to the server.

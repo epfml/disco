@@ -2,13 +2,13 @@
   "name": "disco",
   "type": "module",
   "workspaces": [
-    "discojs/discojs-core",
-    "discojs/discojs-node",
-    "discojs/discojs-web",
+    "isomorphic-wrtc",
+    "discojs",
+    "discojs-node",
+    "discojs-web",
     "server",
     "cli",
-    "web-client",
-    "isomorphic-wrtc"
+    "webapp"
   ],
   "dependencies": {
     "immutable": "4"

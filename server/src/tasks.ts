@@ -4,8 +4,8 @@ import fs from 'node:fs/promises'
 import tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
-import { Task, Path, Digest, TaskProvider, isTask } from '@epfml/discojs-core'
-import { Model, defaultTasks, models, serialization } from '@epfml/discojs-core'
+import { Task, Path, Digest, TaskProvider, isTask } from '@epfml/discojs'
+import { Model, defaultTasks, models, serialization } from '@epfml/discojs'
 
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks

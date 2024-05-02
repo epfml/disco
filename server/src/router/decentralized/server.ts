@@ -3,8 +3,8 @@ import msgpack from 'msgpack-lite'
 import type WebSocket from 'ws'
 import { Map, Set } from 'immutable'
 
-import type { Task, TaskID } from '@epfml/discojs-core'
-import { client } from '@epfml/discojs-core'
+import type { Task, TaskID } from '@epfml/discojs'
+import { client } from '@epfml/discojs'
 
 import { Server } from '../server.js'
 

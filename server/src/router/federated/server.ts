@@ -10,14 +10,14 @@ import type {
   WeightsContainer,
   MetadataKey,
   MetadataValue
-} from '@epfml/discojs-core'
+} from '@epfml/discojs'
 import {
   client,
   serialization,
   AsyncInformant,
   aggregator as aggregators,
   aggregation
-} from '@epfml/discojs-core'
+} from '@epfml/discojs'
 
 import { Server } from '../server.js'
 

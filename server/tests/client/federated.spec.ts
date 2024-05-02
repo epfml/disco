@@ -4,7 +4,7 @@ import {
   aggregator as aggregators,
   client as clients,
   defaultTasks,
-} from "@epfml/discojs-core";
+} from "@epfml/discojs";
 
 import { startServer } from "../../src/index.js";
 

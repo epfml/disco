@@ -1,6 +1,6 @@
 // import { agent as request } from 'supertest'
 
-// import { serialization, WeightsContainer } from '@epfml/discojs'
+// import { serialization, WeightsContainer } from '@epfml/discojs-web'
 
 // import { getApp } from '../../src/get_server'
 

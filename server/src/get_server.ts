@@ -3,7 +3,7 @@ import express from 'express'
 import expressWS from 'express-ws'
 import type * as http from 'http'
 
-import type { Model, Task, TaskProvider } from '@epfml/discojs-core'
+import type { Model, Task, TaskProvider } from '@epfml/discojs'
 
 import { CONFIG } from './config.js'
 import { Router } from './router/index.js'

@@ -2,7 +2,7 @@ import express from 'express'
 import type expressWS from 'express-ws'
 import type WebSocket from 'ws'
 
-import type { Model, Task, TaskID } from '@epfml/discojs-core'
+import type { Model, Task, TaskID } from '@epfml/discojs'
 
 import type { TasksAndModels } from '../tasks.js'
 

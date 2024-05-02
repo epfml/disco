@@ -1,0 +1,31 @@
+{
+  "name": "@epfml/discojs-node",
+  "version": "2.1.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "watch": "nodemon --ext ts --ignore dist --watch ../discojs/dist --watch . --exec npm run",
+    "build": "tsc",
+    "lint": "npx eslint .",
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epfml/disco.git"
+  },
+  "bugs": {
+    "url": "https://github.com/epfml/disco/issues"
+  },
+  "homepage": "https://github.com/epfml/disco#readme",
+  "dependencies": {
+    "@epfml/discojs": "*",
+    "@koush/wrtc": "0.5",
+    "@tensorflow/tfjs-node": "4"
+  },
+  "devDependencies": {
+    "@types/node": "20",
+    "nodemon": "3",
+    "ts-node": "10"
+  }
+}

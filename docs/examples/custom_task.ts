@@ -1,8 +1,8 @@
 import tf from '@tensorflow/tfjs'
 
-import type { TaskProvider } from '@epfml/discojs-core'
-import { models } from '@epfml/discojs-core'
-import { Disco as DiscoServer } from '@epfml/disco-server'
+import type { TaskProvider } from '@epfml/discojs'
+import { models } from '@epfml/discojs'
+import { Disco as DiscoServer } from 'server'
 
 // Define your own task provider (task definition + model)
 const customTask: TaskProvider = {

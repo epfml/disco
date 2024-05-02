@@ -1,8 +1,8 @@
 import { parse } from 'ts-command-line-args';
-import type { Task } from '@epfml/discojs-core'
-import { fetchTasks, data, models } from '@epfml/discojs-core'
+import type { Task } from '@epfml/discojs'
+import { fetchTasks, data, models } from '@epfml/discojs'
 import { NodeTextLoader, loadModelFromDisk } from '@epfml/discojs-node'
-import { startServer } from '@epfml/disco-server'
+import { startServer } from 'server'
 
 interface CLIArguments{
   modelType?: string; // 'gpt-nano', 'gpt-micro', 'gpt-mini', 'gpt2'
