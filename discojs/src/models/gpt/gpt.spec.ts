@@ -5,7 +5,6 @@ import { GPT } from './index.js'
 import { type GPTConfig } from './config.js'
 
 describe('gpt-tfjs', function() {
-  this.timeout(50_000)
   const data = "Lorem ipsum dolor sit"
 
   const config: GPTConfig = {
@@ -18,7 +17,9 @@ describe('gpt-tfjs', function() {
     vocabSize: 50258
   }
   
-  it('can overfit one sentence', async () => {
+  it('can overfit one sentence', async function() {
+    this.timeout("2m")
+
     const tokenizer = await AutoTokenizer.from_pretrained('Xenova/gpt2')
     const datasetSource = new tf.data.FileDataSource(Buffer.from(data))
     const textDataset = new tf.data.TextLineDataset(datasetSource)
@@ -38,7 +39,6 @@ describe('gpt-tfjs', function() {
     const logGenerator = model.train(tokenDataset, undefined, 5) // 5 epochs
     for await (const _ of logGenerator); // Await the end of training
     const generation = await model.generate("Lorem ipsum dolor", tokenizer, 1)
-    console.log(generation)
     expect(generation).equal(data) // Assert that the model completes 'Lorem ipsum dolor' with 'sit' 
   })
 })
