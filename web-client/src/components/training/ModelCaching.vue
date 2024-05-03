@@ -1,18 +1,24 @@
+<!-- 
+  This component is only displayed if the model library is enabled and a cached model exists.
+  It informs users that the cached model will be used by default during the next training, and let
+  them choose whether they would like to delete it and start with a new model and if they want to 
+  save the cached model to library.
+ -->
 <template>
   <!-- Card to load a model-->
-  <div v-if="memoryStore.useIndexedDB && workingModelExistsOnMount">
+  <div v-if="memoryStore.useIndexedDB && cachedModelExistsOnMount">
     <IconCard>
       <template #title>
-        Using an Existing Cached Model
+        Re-using a Cached Model
       </template>
       <template #icon>
         <Clock />
       </template>
       <template #content>
         <!-- Restore Model -->
-        <div v-if="workingModelExists && !isModelCreated">
+        <div v-if="cachedModelExists && !isNewModelCreated">
           <div class="text-sm text-gray-500 dark:text-light">
-            Disco has cached the last model you trained, which was last updated the
+            Disco has cached and will re-use the last model you trained, which was last updated the
             <span class="text-primary-dark dark:text-primary-light">
               {{ dateSaved }}
             </span>
@@ -20,8 +26,8 @@
             <span class="text-primary-dark dark:text-primary-light">
               {{ hourSaved }}.
             </span><br>
-            You can choose to continue training this model or the start from a new one. 
-            Training with a new model will overwrite the cached so you may want to save it to the model library beforehand.
+            By default this model will be reused when training but you can choose to delete it and start with an untrained one.
+            You may want to save the cached model to the model library beforehand.
             
           </div>
           <!-- Buttons row container -->
@@ -29,33 +35,16 @@
             <CustomButton @click="saveModel()">
               <span>save to library</span>
             </CustomButton>
-            <CustomButton @click="saveModel()">
+            <CustomButton @click="deleteModel()">
               <span>delete cached model</span>
             </CustomButton>
-          <!-- Toggle button enabling/disabling using the cached model -->
-          <!-- <button
-            class="relative focus:outline-none flex space-x-4 pt-4 items-center"
-            @click="toggleUseWorkingModel()"
-          >
-            <span> Use the cached model </span>
-            <div class="relative focus:outline-none">
-              <div class=" w-12 h-6 transition rounded-full outline-none bg-slate-200"/>
-              <div
-                class="absolute top-0 left-0 inline-flex w-6 h-6
-                  transition-all duration-200 ease-in-out transform
-                  scale-110 rounded-full shadow-sm"
-                :class="{'translate-x-0 bg-slate-300':!useWorkingModel,
-                          'translate-x-6 bg-disco-blue':useWorkingModel}"
-              />
-            </div>
-          </button> -->
           </div>
         </div>
         <div
           v-else
           class="text-sm text-gray-500"
         >
-          <div v-if="memoryStore.useIndexedDB && isModelCreated">
+          <div v-if="memoryStore.useIndexedDB && isNewModelCreated">
             A new model has been created.
           </div>
           <div v-else>
@@ -75,7 +64,6 @@ import type { ModelInfo, Task } from '@epfml/discojs-core'
 import { EmptyMemory, Memory, ModelType, isTask } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
-import { getClient } from '@/clients'
 import { useToaster } from '@/composables/toaster'
 import Clock from '@/assets/svg/Clock.vue'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -100,25 +88,17 @@ export default {
   },
   data () {
     return {
-      isModelCreated: false,
-      workingModelExists: false,
-      workingModelExistsOnMount: false,
-      useWorkingModel: true,
+      isNewModelCreated: false,
+      // whether a cached model exists when mounting the page
+      cachedModelExistsOnMount: false,
+      // whether the cached model exists (could be deleted now)
+      cachedModelExists: false,
       dateSaved: '',
       hourSaved: ''
     }
   },
   computed: {
     ...mapStores(useMemoryStore),
-    /**
-       * Returns true if a new model needs to be created
-       */
-    shouldCreateFreshModel (): boolean {
-      return (
-        !this.isModelCreated &&
-          !(this.workingModelExists && this.useWorkingModel)
-      )
-    },
     memory (): Memory {
       return this.memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory()
     },
@@ -143,8 +123,8 @@ export default {
       if (this.memoryStore.useIndexedDB) {
         const workingModelMetadata = await this.memory.getModelMetadata(this.modelInfo)
         if (workingModelMetadata) {
-          this.workingModelExistsOnMount = true
-          this.workingModelExists = true
+          this.cachedModelExistsOnMount = true
+          this.cachedModelExists = true
           const date = 'dateSaved' in workingModelMetadata ? workingModelMetadata.dateSaved : undefined
           if (date instanceof Date) {
             const zeroPad = (number: number) => String(number).padStart(2, '0')
@@ -164,7 +144,7 @@ export default {
      * Delete the model stored in IndexedDB corresponding to this task.
      */
     async deleteModel (): Promise<void> {
-      this.workingModelExists = false
+      this.cachedModelExists = false
       await this.memory.deleteModel(this.modelInfo)
       toaster.success(`Deleted the cached model successfully.`)
     },
@@ -175,37 +155,6 @@ export default {
       await this.memory.saveWorkingModel(this.modelInfo)
       toaster.success(`Saved the cached model to the model library`)
     },
-    /**
-     * Toggle use working model
-     */
-    async toggleUseWorkingModel() {
-      this.useWorkingModel = !this.useWorkingModel
-      let modelInUseMessage: string
-      if (this.useWorkingModel) {
-        modelInUseMessage = "The cached model will be used during training."
-      } else {
-        modelInUseMessage = "A new model will be created and will overwrite the cached model."
-      }
-      toaster.info(modelInUseMessage)
-    },
-    /**
-     * Create a new model and overwrite the IndexedDB model with the new model
-     */
-    async loadFreshModel () {
-      // TODO do not force scheme
-      const client = getClient('federated', this.task)
-
-      this.memory.updateWorkingModel(this.modelInfo, await client.getLatestModel())
-    },
-    async proceed () {
-      if (this.memoryStore.useIndexedDB && this.shouldCreateFreshModel) {
-        await this.loadFreshModel()
-        this.isModelCreated = true
-        toaster.success(
-          `A new ${this.task.displayInformation.taskTitle} model has been created. You can start training!`
-        )
-      }
-    }
   }
 }
 </script>

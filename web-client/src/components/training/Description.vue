@@ -68,9 +68,6 @@
         </div>
       </template>
     </DropdownCard>
-    <ModelCaching
-      :task="task"
-    />
   </div>
 </template>
 
@@ -81,7 +78,6 @@ import type { Task } from '@epfml/discojs-core'
 
 import type { FormDependency, FormField, FormSection } from '@/task_creation_form'
 import { trainingInformation, privacyParameters } from '@/task_creation_form'
-import ModelCaching from './ModelCaching.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DropdownCard from '@/components/containers/DropdownCard.vue'
 import Tasks from '@/assets/svg/Tasks.vue'

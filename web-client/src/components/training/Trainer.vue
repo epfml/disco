@@ -1,8 +1,12 @@
 <template>
   <div class="space-y-4 md:space-y-8">
+    <!-- If a cached model exists, display it -->
+    <ModelCaching
+      :task="task"
+    />
     <!-- Train Button -->
     <div class="flex justify-center">
-      <IconCard title-placement="center" class="w-3/5">
+      <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
         <template v-if="training === undefined" #content>
           <div class="grid grid-cols-2 gap-8">
@@ -43,10 +47,10 @@ import {
   Disco,
 } from "@epfml/discojs-core";
 import { IndexedDB } from "@epfml/discojs";
-
 import { getClient } from '@/clients'
 import { useMemoryStore } from "@/store/memory";
 import { useToaster } from "@/composables/toaster";
+import ModelCaching from './ModelCaching.vue'
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";

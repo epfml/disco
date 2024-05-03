@@ -37,7 +37,7 @@
               {{ task.displayInformation.taskTitle }} - {{ task.trainingInformation.scheme }}
             </template>
             <template #text>
-              <div v-html="task.displayInformation.summary.preview"/>
+              <div v-html="task.displayInformation.summary.preview" />
             </template>
             <template #button>
               participate
