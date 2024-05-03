@@ -119,8 +119,12 @@ export default {
       accuracyCharts: {
         validationAccuracyHeader: 'Validation Accuracy of the Model',
         validationAccuracyText: '% of validation accuracy',
+        validationLossHeader: 'Validation Loss of the Model',
+        validationLossText: ' validation loss',
         trainingAccuracyHeader: 'Training Accuracy of the Model',
-        trainingAccuracyText: '% of training accuracy'
+        trainingAccuracyText: '% of training accuracy',
+        trainingLossHeader: 'Training Loss of the Model',
+        trainingLossText: ' training loss'
       },
       trainingInformations: {
         trainingConsoleHeader: 'Peer Training Console',

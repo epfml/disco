@@ -51,7 +51,10 @@ const chartOptions = {
     max: 100,
     min: 0,
     labels: {
-      show: false
+      show: true,
+      formatter: function (value: number) {
+        return value.toFixed(0);
+      }
     }
   },
   xaxis: {
@@ -63,7 +66,7 @@ const chartOptions = {
     show: false
   },
   tooltip: {
-    enabled: false
+    enabled: true
   }
 }
 
