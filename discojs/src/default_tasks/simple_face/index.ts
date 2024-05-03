@@ -1,7 +1,9 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import type { Model, Task, TaskProvider } from '../../index.js'
+import { data, models } from '../../index.js'
+
+import baseModel from './model.js'
 
 export const simpleFace: TaskProvider = {
   getTask (): Task {
@@ -36,9 +38,9 @@ export const simpleFace: TaskProvider = {
   },
 
   async getModel (): Promise<Model> {
-    const model = await tf.loadLayersModel(
-      'https://storage.googleapis.com/deai-313515.appspot.com/models/mobileNetV2_35_alpha_2_classes/model.json'
-    )
+    const model = await tf.loadLayersModel({
+      load: async () => Promise.resolve(baseModel),
+    });
 
     model.compile({
       optimizer: tf.train.sgd(0.001),

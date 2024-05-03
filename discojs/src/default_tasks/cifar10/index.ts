@@ -1,7 +1,9 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import type { Model, Task, TaskProvider } from '../../index.js'
+import { data, models } from '../../index.js'
+
+import baseModel from './model.js'
 
 export const cifar10: TaskProvider = {
   getTask (): Task {
@@ -40,9 +42,10 @@ export const cifar10: TaskProvider = {
   },
 
   async getModel (): Promise<Model> {
-    const mobilenet = await tf.loadLayersModel(
-      'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json'
-    )
+    const mobilenet = await tf.loadLayersModel({
+      load: async () => Promise.resolve(baseModel),
+    })
+
     const x = mobilenet.getLayer('global_average_pooling2d_1')
     const predictions = tf.layers
       .dense({ units: 10, activation: 'softmax', name: 'denseModified' })
