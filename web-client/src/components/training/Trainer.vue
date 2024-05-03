@@ -38,15 +38,13 @@ import { ref, computed } from "vue";
 
 import type { RoundLogs, Task } from "@epfml/discojs-core";
 import {
-  aggregator as aggregators,
-  client as clients,
   data,
   EmptyMemory,
   Disco,
 } from "@epfml/discojs-core";
 import { IndexedDB } from "@epfml/discojs";
 
-import { CONFIG } from "@/config";
+import { getClient } from '@/clients'
 import { useMemoryStore } from "@/store/memory";
 import { useToaster } from "@/composables/toaster";
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
@@ -99,18 +97,7 @@ async function startTraining(distributed: boolean): Promise<void> {
   toaster.info("Model training started");
 
   const scheme = distributed ? props.task.trainingInformation.scheme : "local";
-  const client =
-    scheme === "local"
-      ? new clients.Local(
-          CONFIG.serverUrl,
-          props.task,
-          new aggregators.MeanAggregator(),
-        )
-      : new clients.federated.FederatedClient(
-          CONFIG.serverUrl,
-          props.task,
-          new aggregators.MeanAggregator(),
-        );
+  const client = getClient(scheme, props.task)
 
   const disco = new Disco(props.task, {
     logger: {

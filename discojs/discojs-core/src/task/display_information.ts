@@ -3,8 +3,8 @@ import { type DataExample, isDataExample } from './data_example.js'
 import { type LabelType, isLabelType } from './label_type.js'
 
 export interface DisplayInformation {
-  taskTitle?: string
-  summary?: Summary
+  taskTitle: string
+  summary: Summary
   tradeoffs?: string
   dataFormatInformation?: string
   // TODO merge dataExample
@@ -51,7 +51,7 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     return false
   }
 
-  if (summary !== undefined && !isSummary(summary)) {
+  if (!isSummary(summary)) {
     return false
   }
 
