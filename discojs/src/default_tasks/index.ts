@@ -1,6 +1,6 @@
-export { cifar10 } from './cifar10.js'
+export { cifar10 } from './cifar10/index.js'
 export { lusCovid } from './lus_covid.js'
 export { mnist } from './mnist.js'
-export { simpleFace } from './simple_face.js'
+export { simpleFace } from './simple_face/index.js'
 export { titanic } from './titanic.js'
 export { wikitext } from './wikitext.js'
