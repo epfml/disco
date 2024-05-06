@@ -14,7 +14,10 @@ export interface DisplayInformation {
   dataExample?: DataExample[]
   // TODO no need for undefined
   headers?: string[]
+  // Displays the image at this URL in the UI as an example when connecting data
   dataExampleImage?: string
+  // URL to download a dataset for the task, is displayed in the UI when asking to connect data
+  sampleDatasetLink?: string
   limitations?: string
   labelDisplay?: LabelType
 }
@@ -29,6 +32,7 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataExampleImage,
     dataExampleText,
     dataFormatInformation,
+    sampleDatasetLink,
     headers,
     labelDisplay,
     limitations,
@@ -41,6 +45,7 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   if (
     typeof taskTitle !== 'string' ||
     (dataExampleText !== undefined && typeof dataExampleText !== 'string') ||
+    (sampleDatasetLink !== undefined && typeof sampleDatasetLink !== 'string') ||
     (dataFormatInformation !== undefined && typeof dataFormatInformation !== 'string') ||
     (tradeoffs !== undefined && typeof tradeoffs !== 'string') ||
     (model !== undefined && typeof model !== 'string') ||
@@ -75,6 +80,7 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataExampleImage,
     dataExampleText,
     dataFormatInformation,
+    sampleDatasetLink,
     headers,
     labelDisplay,
     limitations,

@@ -17,7 +17,8 @@ export const cifar10: TaskProvider = {
         tradeoffs: 'Training success strongly depends on label distribution',
         dataFormatInformation: 'Images should be of .png format and of size 32x32. <br> The label file should be .csv, where each row contains a file_name, class.  <br> <br> e.g. if you have images: 0.png (of a frog) and 1.png (of a car) <br> labels.csv contains: (Note that no header is needed)<br> 0.png, frog <br> 1.png, car',
         dataExampleText: 'Below you can find 10 random examples from each of the 10 classes in the dataset.',
-        dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/cifar10-example.png'
+        dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/cifar10-example.png',
+        sampleDatasetLink: 'https://www.kaggle.com/competitions/cifar-10/data'
       },
       trainingInformation: {
         modelID: 'cifar10-model',
@@ -29,7 +30,7 @@ export const cifar10: TaskProvider = {
         preprocessingFunctions: [data.ImagePreprocessing.Resize],
         IMAGE_H: 224,
         IMAGE_W: 224,
-        LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+        LABEL_LIST: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
         scheme: 'decentralized',
         noiseScale: undefined,
         clippingRadius: 20,
