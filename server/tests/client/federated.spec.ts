@@ -37,7 +37,10 @@ describe("federated client", function () {
       url,
       {
         id: "nonValidTask",
-        displayInformation: {},
+        displayInformation: {
+          taskTitle: 'mock title',
+          summary: { overview: '', preview: '' }
+        },
         trainingInformation: {
           modelID: "irrelevant",
           epochs: 1,

@@ -1,44 +1,22 @@
 import { assert, expect } from 'chai'
 import * as tf from '@tensorflow/tfjs'
 
-import type { Task } from '@epfml/discojs-core'
+import { defaultTasks } from '@epfml/discojs-core'
 
 import { TabularLoader } from './tabular_loader.js'
 
-const inputFiles = ['../../datasets/titanic_train.csv']
-
-const titanicMock: Task = {
-  id: 'titanic',
-  displayInformation: {},
-  trainingInformation: {
-    modelID: 'titanic',
-    epochs: 1,
-    roundDuration: 1,
-    validationSplit: 0,
-    batchSize: 1,
-    dataType: 'tabular',
-    scheme: 'federated',
-    inputColumns: [
-      'PassengerId',
-      'Age',
-      'SibSp',
-      'Parch',
-      'Fare',
-      'Pclass'
-    ],
-    outputColumns: [
-      'Survived'
-    ]
-  }
-}
 
 describe('tabular loader', () => {
+  const inputFiles = ['../../datasets/titanic_train.csv']
+  
+  const titanicTask = defaultTasks.titanic.getTask()
+
   it('loads a single sample', async () => {
-    const loaded = new TabularLoader(titanicMock, ',').loadAll(
+    const loaded = new TabularLoader(titanicTask, ',').loadAll(
       inputFiles,
       {
-        features: titanicMock.trainingInformation?.inputColumns,
-        labels: titanicMock.trainingInformation?.outputColumns,
+        features: titanicTask.trainingInformation?.inputColumns,
+        labels: titanicTask.trainingInformation?.outputColumns,
         shuffle: false
       }
     )
@@ -50,7 +28,7 @@ describe('tabular loader', () => {
      */
     expect(sample).to.eql({
       value: {
-        xs: [1, 3, 22, 1, 0, 7.25],
+        xs: [3, 22, 1, 0, 7.25],
         ys: [0]
       },
       done: false
@@ -58,7 +36,7 @@ describe('tabular loader', () => {
   })
 
   it('shuffles samples', async () => {
-    const titanic = titanicMock
+    const titanic = titanicTask
     const loader = new TabularLoader(titanic, ',')
     const config = {
       features: titanic.trainingInformation?.inputColumns,

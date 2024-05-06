@@ -2,21 +2,13 @@ import { assert, expect } from 'chai'
 import * as tf from '@tensorflow/tfjs'
 
 import { ImageData } from './image_data.js'
-import type { Task } from '../../index.js'
+import { defaultTasks } from '../../index.js'
 
 describe('image data checks', () => {
-  const simplefaceMock: Task = {
-    id: 'simpleface',
-    displayInformation: {},
-    trainingInformation: {
-      IMAGE_H: 200,
-      IMAGE_W: 200
-    }
-  } as unknown as Task
-
+  const simpleFaceTask = defaultTasks.simpleFace.getTask()
   it('throw an error on incorrectly formatted data', async () => {
     try {
-      await ImageData.init(tf.data.array([tf.zeros([150, 150, 3]), tf.zeros([150, 150, 3])]), simplefaceMock, 3)
+      await ImageData.init(tf.data.array([tf.zeros([150, 150, 3]), tf.zeros([150, 150, 3])]), simpleFaceTask, 3)
     } catch (e) {
       expect(e).to.be.an.instanceOf(Error)
       return
@@ -26,6 +18,6 @@ describe('image data checks', () => {
   })
 
   it('do nothing on correctly formatted data', async () => {
-    await ImageData.init(tf.data.array([tf.zeros([200, 200, 3]), tf.zeros([200, 200, 3])]), simplefaceMock, 3)
+    await ImageData.init(tf.data.array([tf.zeros([200, 200, 3]), tf.zeros([200, 200, 3])]), simpleFaceTask, 3)
   })
 })

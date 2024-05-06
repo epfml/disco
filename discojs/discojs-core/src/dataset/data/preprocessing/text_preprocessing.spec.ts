@@ -10,7 +10,10 @@ describe('text preprocessing', function () {
   function initMockTask(): Task {
     return {
       id: 'mock-task-id',
-      displayInformation: {},
+      displayInformation: {
+      taskTitle: 'mock title',
+      summary: { overview: '', preview: '' }
+    },
       trainingInformation: {
         modelID: 'model-id',
         epochs: 1,
