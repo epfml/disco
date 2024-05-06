@@ -10,7 +10,11 @@ const customTask: TaskProvider = {
     return {
       id: 'custom-task',
       displayInformation: {
-        taskTitle: 'Custom task'
+        taskTitle: 'Custom task',
+        summary: {
+          preview: 'task preview',
+          overview: 'task overview'
+        }
       },
       trainingInformation: {
         modelID: 'custom-model',
