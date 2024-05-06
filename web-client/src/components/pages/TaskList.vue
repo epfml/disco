@@ -22,10 +22,24 @@
       <div
         id="tasks"
         class="contents"
+        v-show="sortedTasks.length > 0"
       >
+        <IconCard class="justify-self-center w-full">
+        <template #title>
+          What are DISCOllaboratives?
+        </template>
+          <template #icon>
+            <Tasks/>
+          </template>
+          <template #content>
+          DISCOllaboratives are pre-defined machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that benefits from your data. 
+          By participating, you can either choose to train a model on your own data or join a collaborative training session. Here you can get a sense of how DISCO can be useful and how it works.
+          If you want to bring your own collaborative task into DISCO, you can do so by creating a new DISCOllaborative from the home page.
+          <br/><br/> <b>The data you connect is never uploaded or shared with anyone and always stays on your computer.</b>
+          </template>
+        </IconCard>
         <div
           v-for="task in sortedTasks"
-          v-show="sortedTasks.length > 0"
           :id="task.id"
           :key="task.id"
         >
@@ -59,6 +73,9 @@ import type { Task } from '@epfml/discojs-core'
 import { useTasksStore } from '@/store/tasks'
 import { useTrainingStore } from '@/store/training'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
+import IconCard from '@/components/containers/IconCard.vue'
+import Tasks from '@/assets/svg/Tasks.vue'
+
 
 const router = useRouter()
 const trainingStore = useTrainingStore()

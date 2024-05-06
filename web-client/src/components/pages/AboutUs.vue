@@ -15,7 +15,7 @@
         >
           About Us
         </h6>
-        <img :src="mloLogo">
+        <img src="../../assets/images/mlologo.png">
         <ul class="text-lg ont-semibold text-gray-500 dark:text-light p-4">
           This app was developed in the Machine Learning and Optimization
           Laboratory at EPFL.
@@ -58,7 +58,5 @@
 </template>
 
 <script lang="ts" setup>
-import Card from '@/components/containers/Card.vue'
-
-const mloLogo = require('../../assets/images/mlologo.png')
+  import Card from '@/components/containers/Card.vue'
 </script>
