@@ -5,11 +5,12 @@ describe("tasks page", () => {
     cy.intercept({ hostname: "server", pathname: "tasks" }, [
       defaultTasks.titanic.getTask(),
       defaultTasks.mnist.getTask(),
-      defaultTasks.geotags.getTask(),
+      defaultTasks.cifar10.getTask(),
     ]);
     cy.visit("/#/list");
 
-    cy.get('div[id="tasks"]').children().should("have.length", 3);
+    // Length 4 = 3 tasks and 1 div for text description
+    cy.get('div[id="tasks"]').children().should("have.length", 4);
   });
 
   it("redirects to training", () => {
