@@ -2,7 +2,7 @@
   <div class="space-y-4 md:space-y-8">
     <IconCard>
       <template #title>
-        The Task
+        {{ props.task.displayInformation.taskTitle }}
       </template>
       <template #icon>
         <Tasks />

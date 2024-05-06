@@ -24,31 +24,38 @@
       <div class="flex justify-center">
         <IconCard title-placement="center">
           <template #title>
-            Select labels by
+            Connect your Data
           </template>
           <template #content>
-            <div class="inline-flex">
+            <div class="flex flex-col">
+            <div class="mb-5 text-left">
+              Disco needs to know where your data is located on your computer to train models. You can connect them by selecting the location of each data category or by submitting a csv file.
+              Models are trained on your local data and are periodically aggregated with other users' models.
+              <br/><b>Your data stays private and is never uploaded online.</b>
+            </div>
+            <div class="inline-flex justify-center">
               <button
                 class="w-40 py-2 uppercase text-lg rounded-l-lg border-2 border-disco-cyan focus:outline-none"
-                :class="!isBoxView ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
-                @click="isBoxView = false"
-              >
-                csv
-              </button>
-              <button
-                class="w-40 py-2 uppercase text-lg rounded-r-lg border-2 border-disco-cyan focus:outline-none"
-                :class="isBoxView ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
-                @click="isBoxView = true"
+                :class="connectImagesByGroup ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
+                @click="connectImagesByGroup = true"
               >
                 group
               </button>
+              <button
+                class="w-40 py-2 uppercase text-lg rounded-r-lg border-2 border-disco-cyan focus:outline-none"
+                :class="!connectImagesByGroup ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
+                @click="connectImagesByGroup = false"
+              >
+                csv
+              </button>
+            </div>
             </div>
           </template>
         </IconCard>
       </div>
 
       <div
-        v-show="isBoxView"
+        v-show="connectImagesByGroup"
         class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8"
       >
         <div
@@ -60,7 +67,7 @@
             :key="label"
           >
             <template #title>
-              Group label:&nbsp;&nbsp;&nbsp;"{{ label }}"
+              Group label:&nbsp;&nbsp;{{ label }}
             </template>
             <template #content>
               <FileSelection
@@ -77,7 +84,7 @@
         />
       </div>
       <div
-        v-show="!isBoxView"
+        v-show="!connectImagesByGroup"
         class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8"
       >
         <div v-if="requireLabels">
@@ -160,7 +167,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const csvRows = ref<{ filename: string, label: string }[]>()
-const isBoxView = ref<boolean>(false)
+const connectImagesByGroup = ref<boolean>(true)
 
 const requireLabels = computed(
   () => props.task.trainingInformation.LABEL_LIST !== undefined

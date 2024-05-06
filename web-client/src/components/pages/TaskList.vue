@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-8 mt-8 md:mt-16">
-    <div class="flex flex-col gap-8 mt-8">
+    <div class="flex flex-col gap-4 mt-8">
       <!-- In case no tasks were retrieved, suggest reloading the page -->
       <ButtonCard
-        v-show="tasks.size === 0"
+        v-if="tasks.size === 0"
         class="mx-auto"
         @action="() => { router.go(0) }"
       >
@@ -22,7 +22,7 @@
       <div
         id="tasks"
         class="contents"
-        v-show="sortedTasks.length > 0"
+        v-else
       >
         <IconCard class="justify-self-center w-full">
         <template #title>
