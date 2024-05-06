@@ -92,7 +92,9 @@
 
         <!-- If no preview of the selected file, display the nbr. of uploaded files -->
         <div class="pt-8 flex flex-col items-center pb-2">
-          <div class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue">
+          <div 
+            v-if="selectedFiles?.length"
+            class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue">
             <span v-if="isMultiple">Number of selected files: <span class="pl-1 text-xl">{{ selectedFiles?.length ?? 0 }}</span></span>
             <span v-else>Selected file: <span class="pl-1">{{ selectedFiles?.item(0)?.name ?? 'none' }}</span></span>
           </div>
