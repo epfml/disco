@@ -84,8 +84,8 @@ describe('image loader', () => {
   })
 
   it('loads multiple samples with labels', async () => {
-    const labels = Range(0, 24).map((label) => (label % 10))
-    const stringLabels = labels.map((label) => label.toString())
+    const labels = Range(0, 24).map(_ => 3) //internally, disco maps string labels to their index in the task LABEL_LIST
+    const stringLabels = labels.map(_ => 'cat') // so cat is mapped to integer 3
     const oneHotLabels = List(tf.oneHot(labels.toArray(), 10).arraySync() as number[])
 
     const datasetContent = List(await (await LOADERS.CIFAR10
