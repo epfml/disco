@@ -49,6 +49,20 @@
         >
           <ListIcon />
         </SidebarButton>
+        <!-- Go to custom task creation page -->
+        <SidebarButton
+          hover-text="Create a new DISCOllaborative"
+          @click="goToNewCustomTask()"
+        >
+          <CreateIcon />
+        </SidebarButton>
+        <!-- Go to model evaluation page -->
+        <SidebarButton
+          hover-text="Evaluate models"
+          @click="goToEvaluate()"
+        >
+          <EvaluateIcon />
+        </SidebarButton>
         <!-- Display Model Library panel -->
         <SidebarButton
           hover-text="Model Library"
@@ -148,6 +162,8 @@ import ModelLibrary from './ModelLibrary.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 import HomeIcon from '@/assets/svg/HomeIcon.vue'
 import ListIcon from '@/assets/svg/ListIcon.vue'
+import CreateIcon from '@/assets/svg/CreateIcon.vue'
+import EvaluateIcon from '@/assets/svg/EvaluateIcon.vue'
 import InfoIcon from '@/assets/svg/InfoIcon.vue'
 import FileIcon from '@/assets/svg/FileIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
@@ -158,6 +174,8 @@ export default {
   components: {
     ModelLibrary,
     HomeIcon,
+    CreateIcon,
+    EvaluateIcon,
     FileIcon,
     InfoIcon,
     ListIcon,
@@ -199,6 +217,12 @@ export default {
     },
     goToTaskList () {
       this.$router.push({ path: '/list' })
+    },
+    goToNewCustomTask () {
+      this.$router.push({ path: '/create' })
+    },
+    goToEvaluate () {
+      this.$router.push({ path: '/evaluate' })
     },
     goToInformation () {
       this.$router.push({ path: '/information' })
