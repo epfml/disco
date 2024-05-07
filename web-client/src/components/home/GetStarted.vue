@@ -14,18 +14,6 @@
         train
       </template>
     </ButtonCard>
-    <!-- Model testing -->
-    <ButtonCard
-      title-placement="center"
-      @action="goToModelTesting()"
-    >
-      <template #title>
-        Evaluate or download a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
-      </template>
-      <template #button>
-        evaluate
-      </template>
-    </ButtonCard>
     <!-- Task creation -->
     <ButtonCard
       title-placement="center"
@@ -38,6 +26,18 @@
       </template>
       <template #button>
         create
+      </template>
+    </ButtonCard>
+    <!-- Model testing -->
+    <ButtonCard
+      title-placement="center"
+      @action="goToModelTesting()"
+    >
+      <template #title>
+        Evaluate or download a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
+      </template>
+      <template #button>
+        evaluate
       </template>
     </ButtonCard>
   </div>

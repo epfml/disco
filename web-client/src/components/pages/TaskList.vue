@@ -32,9 +32,13 @@
             <Tasks/>
           </template>
           <template #content>
-          DISCOllaboratives are pre-defined machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that benefits from your data. 
-          By participating, you can either choose to train a model on your own data or join a collaborative training session. Here you can get a sense of how DISCO can be useful and how it works.
-          If you want to bring your own collaborative task into DISCO, you can do so by creating a new DISCOllaborative from the home page.
+          DISCOllaboratives are machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that users can join to train on their own respective data. Some are already pre-defined
+          along with some example data to let you get a sense of how to use DISCO.
+          By participating, you can either choose to train a model on your own data or join a collaborative training session with other users.
+          If you want to bring your own collaborative task into DISCO, you can do so by <button
+            class="text-blue-400"
+            @click="goToCreateTask()"
+          >creating a new DISCOllaborative</button>.
           <br/><br/> <b>The data you connect is never uploaded or shared with anyone and always stays on your computer.</b>
           </template>
         </IconCard>
@@ -90,4 +94,7 @@ const toTask = (task: Task): void => {
   router.push(`/${task.id}`)
 }
 
+const goToCreateTask = (): void => {
+  router.push({ path: '/create' })
+}
 </script>

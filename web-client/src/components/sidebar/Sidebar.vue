@@ -44,14 +44,14 @@
         </SidebarButton>
         <!-- Go to Task List page -->
         <SidebarButton
-          hover-text="tasks"
+          hover-text="DISCOllaboratives"
           @click="goToTaskList()"
         >
           <ListIcon />
         </SidebarButton>
         <!-- Display Model Library panel -->
         <SidebarButton
-          hover-text="models"
+          hover-text="Model Library"
           @click="openModelLibrary()"
         >
           <FileIcon />
@@ -62,13 +62,6 @@
           @click="goToInformation()"
         >
           <InfoIcon />
-        </SidebarButton>
-        <!-- Display Settings panel-->
-        <SidebarButton
-          hover-text="settings"
-          @click="openSettingsPanel()"
-        >
-          <SettingsIcon />
         </SidebarButton>
         <!-- Go to About Us page -->
         <SidebarButton
@@ -138,10 +131,9 @@
             </button>
           </div>
           <!-- Panel content -->
-          <Settings v-if="isSettingsPanelOpen" />
           <ModelLibrary
-            v-else-if="isModelLibraryOpen"
-            @switch-panel="switchFromModelLibraryToSettings()"
+            v-if="isModelLibraryOpen"
+            @close-panel="closeMenu()"
           />
         </section>
       </Transition>
@@ -152,26 +144,22 @@
 import type { Instance, Props, Placement } from 'tippy.js'
 import tippy from 'tippy.js'
 
-import Settings from './Settings.vue'
 import ModelLibrary from './ModelLibrary.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 import HomeIcon from '@/assets/svg/HomeIcon.vue'
 import ListIcon from '@/assets/svg/ListIcon.vue'
 import InfoIcon from '@/assets/svg/InfoIcon.vue'
 import FileIcon from '@/assets/svg/FileIcon.vue'
-import SettingsIcon from '@/assets/svg/SettingsIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
 import AboutUsIcon from '@/assets/svg/AboutUsIcon.vue'
 
 export default {
   name: 'SidebarMain',
   components: {
-    Settings,
     ModelLibrary,
     HomeIcon,
     FileIcon,
     InfoIcon,
-    SettingsIcon,
     ListIcon,
     CrossIcon,
     AboutUsIcon,
@@ -181,7 +169,6 @@ export default {
     return {
       loading: false,
       isMenuOpen: false,
-      isSettingsPanelOpen: false,
       isModelLibraryOpen: false
     }
   },
@@ -199,21 +186,12 @@ export default {
     })
   },
   methods: {
-    switchFromModelLibraryToSettings () {
-      this.isModelLibraryOpen = false
-      this.isSettingsPanelOpen = true
-    },
     openModelLibrary () {
       this.isMenuOpen = true
       this.isModelLibraryOpen = true
     },
-    openSettingsPanel () {
-      this.isMenuOpen = true
-      this.isSettingsPanelOpen = true
-    },
     closeMenu () {
       this.isMenuOpen = false
-      this.isSettingsPanelOpen = false
       this.isModelLibraryOpen = false
     },
     goToHome () {
