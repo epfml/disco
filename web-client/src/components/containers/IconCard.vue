@@ -1,7 +1,6 @@
 <template>
   <!--  Card -->
-  <div class="grid grid-cols-1 space-y-8 lg:gap-8rounded-xl group/super">
-    <!-- div class="container mx-width lg h-full"></div-->
+  <div class="grid grid-cols-1 space-y-8 lg:gap-8 rounded-xl group/super">
     <div class="col-span-1 bg-white rounded-xl">
       <!-- Card header -->
       <div

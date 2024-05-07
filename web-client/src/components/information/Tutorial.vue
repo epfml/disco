@@ -1,52 +1,28 @@
 <template>
-  <div>
-    <!-- How to use Disco? -->
-    <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1">
-      <card custom-class="hover:text-primary dark:hover:text-light">
-        <h6
-          class="
-              text-xl
-              font-large
-              leading-none
-              tracking-wider
-              dark:group-hover:text-light
-              px-2
-              py-6
-            "
+  <div class="flex justify-center">
+    <IconCard class="justify-self-center w-full lg:w-4/5">
+      <template #title>
+        {{ $tm('information.howToUseTitle') }}
+      </template>
+      <template #content>
+        <div
+          v-for="card in $tm('information.howToUseCard') "
+          :key="(card as any).title"
+            class="mb-4"
         >
-          {{ $tm('information.howToUseTitle') }}
-        </h6>
-        <div class="ml-10">
-          <div
-            class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1"
-          >
-            <card
-              v-for="card in $tm('information.howToUseCard')"
-              :key="(card as any).title"
-              custom-class="hover:text-primary dark:hover:text-light"
-            >
-              <div class="ml-10">
-                <ul
-                  class="text-lg ont-semibold text-gray-500 dark:text-light"
-                >
-                  <b>{{ (card as any).title }}</b>
-                  {{ (card as any).text }}
-                </ul>
-              </div>
-            </card>
-          </div>
+          <b>{{ (card as any).title }}</b><br>
+          <p>{{ (card as any).text }}</p>
+      </div>
+      <div class="flex items-center justify-center space-x-8">
+        <CustomButton @click="router.push('/list')">
+          explore DISCOllaboratives
+        </CustomButton>
+        <CustomButton @click="router.push('/create')">
+          create your own task
+        </CustomButton>
         </div>
-        <div class="flex items-center justify-center space-x-8">
-          <!-- Light button -->
-          <CustomButton @click="router.push('/list')">
-            explore examples
-          </CustomButton>
-          <CustomButton @click="router.push('/create')">
-            create your own task
-          </CustomButton>
-        </div>
-      </card>
-    </div>
+      </template>
+    </IconCard>
   </div>
 </template>
 
@@ -55,7 +31,8 @@ import { onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useInformationStore } from '@/store/information'
-import Card from '@/components/containers/Card.vue'
+import IconCard from '@/components/containers/IconCard.vue'
+import CustomButton from '@/components/simple/CustomButton.vue'
 
 // TODO fix i18n types
 

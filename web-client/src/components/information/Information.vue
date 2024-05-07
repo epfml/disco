@@ -1,13 +1,13 @@
 <template>
   <div>
     <!-- Page Content -->
-    <Card class="flex flex-col place-content-center p-6 space-y-6">
+    <Card class="flex flex-col place-content-center p-6 space-y-6 rounded-xl ">
       <p class="flex flex-wrap justify-center text-3xl text-slate-400 mt-2">
         <span><span class="font-disco text-disco-blue uppercase">dis</span><span>-tributed</span>&nbsp;</span>
         <span><span class="font-disco text-disco-cyan uppercase">co</span><span>-llaborative</span>&nbsp;</span>
         learning platform
       </p>
-      <div class="grid gap-8 p-4 sm:grid-cols-2 text-slate-500">
+      <div class="grid gap-8 p-4 sm:grid-cols-2 text-slate-500 border-t">
         <!-- Federated insight -->
         <div class="flex flex-col items-center">
           <h6
@@ -23,8 +23,8 @@
             Federated Learning
           </h6>
           <FederatedGIF class="my-md" />
-          <p class="text-lg py-6">
-            - Server coordinates secure collaborative learning of model
+          <p class="text-sm py-6 text-center">
+            The server puts in common local model updates and sends back an aggregated global model. <br/>No data is shared.
           </p>
         </div>
         <!-- Decentralised insight -->
@@ -42,21 +42,11 @@
             Decentralized Learning
           </h6>
           <DecentralizedGIF class="my-md" />
-          <p class="text-lg py-6">
-            - Peer2Peer secure collaborative learning of model
+          <p class="text-sm py-6 text-center">
+            Local model aggregation is coordinated between peers without any server.
+            <br/> No data is shared.
           </p>
         </div>
-      </div>
-      <div class="flex w-full md:w-1/2 justify-center rounded-3xl bg-disco-cyan">
-        <ul class="text-lg ont-semibold text-white">
-          <div
-            class="py-6"
-          >
-            <p>- Data stays local, always</p>
-            <p>- Secure and privacy preserving</p>
-            <p>- Collaborative training</p>
-          </div>
-        </ul>
       </div>
     </Card>
   </div>

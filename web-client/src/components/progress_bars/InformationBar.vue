@@ -1,5 +1,8 @@
 <template>
-  <div class="space-y-4 md:space-y-8 my-8 md:my-16">
+  <div class="mb-8 md:mb-16 space-y-4 md:space-y-8">
+     <div class="flex flex-wrap text-3xl text-slate-600 justify-center">
+      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>
+    </div>
     <div class="hidden md:inline-block w-full">
       <div class="flex">
         <ProgressIcon

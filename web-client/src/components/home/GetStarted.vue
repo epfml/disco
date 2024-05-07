@@ -1,5 +1,17 @@
 <template>
   <div class="grid grid-cols-1 gap-8 md:mx-20 lg:gap-16 lg:grid-cols-3 items-stretch">
+     <!-- Model testing -->
+    <ButtonCard
+      title-placement="center"
+      @action="goToDiscoInformation()"
+    >
+      <template #title>
+        Learn more about <span class="font-disco text-disco-cyan">DISCO</span> and distributed learning fundamentals
+      </template>
+      <template #button>
+        more info
+      </template>
+    </ButtonCard>
     <!-- List of tasks -->
     <ButtonCard
       title-placement="center"
@@ -28,18 +40,6 @@
         create
       </template>
     </ButtonCard>
-    <!-- Model testing -->
-    <ButtonCard
-      title-placement="center"
-      @action="goToModelTesting()"
-    >
-      <template #title>
-        Evaluate or download a <span class="font-disco text-disco-cyan">DISCO</span>-trained model
-      </template>
-      <template #button>
-        evaluate
-      </template>
-    </ButtonCard>
   </div>
 </template>
 <script lang="ts" setup>
@@ -51,5 +51,5 @@ const router = useRouter()
 
 const goToTaskList = (): void => { router.push({ path: '/list' }) }
 const goToNewTaskCreationForm = (): void => { router.push({ path: '/create' }) }
-const goToModelTesting = (): void => { router.push({ path: '/evaluate' }) }
+const goToDiscoInformation = (): void => { router.push({ path: '/information' }) }
 </script>

@@ -72,7 +72,7 @@
         </SidebarButton>
         <!-- Go to Information page -->
         <SidebarButton
-          hover-text="information"
+          hover-text="More on DISCO"
           @click="goToInformation()"
         >
           <InfoIcon />

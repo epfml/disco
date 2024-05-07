@@ -15,7 +15,7 @@ export default {
         items: [
           "Exchange <span class='italic'>models</span> not data",
           'Keep data at its source',
-          "choose either <span class='italic'>decentralised</span> or <span class='italic'>federated</span> training"
+          "choose either <span class='italic'>decentralized</span> or <span class='italic'>federated</span> training"
         ]
       }
     ],
@@ -39,19 +39,19 @@ export default {
     informationTitle: 'Further Information',
     informationCard: [
       {
-        title: 'Goal:',
+        title: 'Goal',
         text: 'Disco enables collaborative and privacy-preserving training of machine learning models. Disco is an easy-to-use mobile app & web software, running directly in your browser.'
       },
       {
-        title: 'Key Question:',
+        title: 'Key Question',
         text: 'Can we keep control over our own data, while still benefitting from joint collaborative training with other participants? - or - Can we train an ML model which is equally good as if all data were in one place, but while respecting privacy? Federated and decentralized learning make this possible.'
       },
       {
-        title: 'Federated learning:',
+        title: 'Federated learning',
         text: 'The key insight is to share weight updates instead of data - each user trains on their own device and periodically shares weight updates with a central server, while keeping data local at all times. The server will agreggate all these weights between participants, and send them back.'
       },
       {
-        title: 'Decentralized learning:',
+        title: 'Decentralized learning',
         text: 'Building upon the same principles as in federated learning, decentralized learning achieved allows collaboration and data privacy without the need for a central coordinator. Updates are shared purely via peer2peer communication. Disco puts users in control of the entire collaborative training process, without a central point of failure.'
       }
     ],
@@ -73,24 +73,24 @@ export default {
     howToUseTitle: 'How to use Disco?',
     howToUseCard: [
       {
-        title: 'Step 1: Select a task',
-        text: '- choose different tasks and data sets for training, ranging from tabular data to images, and from binary classification to class-wise prediction (or define your own task).'
+        title: 'Step 1: Select a DISCOllaborative',
+        text: 'Choose different tasks and datasets for training, ranging from tabular data to images, and from binary classification to class-wise prediction. Or you can define your own task.'
       },
       {
         title: 'Step 2: Select data for the training process',
-        text: '- choose the files that are used for the training process on your local devices. Those files will not be uploaded anywhere.'
+        text: 'Connect your local data files to use during the training process. Those files will not be uploaded anywhere.'
       },
       {
         title: 'Step 3: Neural network training',
-        text: '- select between training alone and training collaboratively. Local training will fine tune the model with your local data and the resulting model will only be available to your device. Training collaboratively will allow communication between local devices during training so the local model updatess are aggregated into an improved shared model. After completing training, you can find training statistics on the model accuracy in the dashboard. For training collaboratively, details on the communication rounds will also appear on the board.'
+        text: 'Choose between training alone and training collaboratively. Local training will fine tune the model with your local data and the resulting model will only be available to your device. Training collaboratively will allow model communication between local devices during training. Your local model updates (and not the data) are aggregated into an improved shared model. After completing training, you can find training statistics on the model accuracy in the dashboard. For training collaboratively, details on the communication rounds will also appear on the board.'
       },
       {
         title: 'Step 4: Save the model',
-        text: '- click on the button to save the model for later.'
+        text: 'You can choose to save the model to reuse later.'
       },
       {
         title: 'Step 5: Reuse the model',
-        text: '- come back any time to reuse your local model and resume training or test it against other data.'
+        text: 'Come back any time to reuse your local model: resume training or run inference on new data.'
       }
     ],
     federatedTitle: 'Federated Learning',
