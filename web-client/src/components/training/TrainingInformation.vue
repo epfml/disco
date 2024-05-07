@@ -46,18 +46,14 @@
       <IconCard>
         <!-- Card header -->
         <template #title>
-          {{
-            $t('training.trainingInformationFrame.accuracyCharts.trainingLossHeader')
-          }}
+          Training Loss of the Model
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
             {{ (latestEpoch?.training.loss ?? 0).toFixed(2) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
-            {{
-              $t('training.trainingInformationFrame.accuracyCharts.trainingLossText')
-            }}
+            ' training loss'
           </span>
           <!-- Chart -->
           <ApexChart
@@ -76,18 +72,14 @@
       >
         <!-- Card header -->
         <template #title>
-          {{
-            $t('training.trainingInformationFrame.accuracyCharts.validationLossHeader')
-          }}
+          Validation Loss of the Model
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
             {{ (latestEpoch?.validation?.loss ?? 0).toFixed(2) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
-            {{
-              $t('training.trainingInformationFrame.accuracyCharts.validationLossText')
-            }}
+            validation loss
           </span>
           <!-- Chart -->
           <ApexChart
@@ -109,18 +101,14 @@
       <IconCard>
         <!-- Card header -->
         <template #title>
-          {{
-            $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
-          }}
+          Training Accuracy of the Model
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
             {{ percent(latestEpoch?.training.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
-            {{
-              $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
-            }}
+             '% of training accuracy'
           </span>
           <!-- Chart -->
           <ApexChart
@@ -139,18 +127,14 @@
       >
         <!-- Card header -->
         <template #title>
-          {{
-            $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyHeader')
-          }}
+          Validation Accuracy of the Model
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
             {{ percent(latestEpoch?.validation?.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
-            {{
-              $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyText')
-            }}
+            % of validation accuracy
           </span>
           <!-- Chart -->
           <ApexChart

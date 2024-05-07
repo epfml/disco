@@ -1,9 +1,7 @@
 <template>
-  <div>
-    <!-- Welcoming words -->
-    <CustomHeader />
+  <div class="flex justify-center">
     <!-- Information sections -->
-    <section class="flex-col items-center justify-center p-4 space-y-4">
+    <section class="flex-col items-center justify-center p-4 space-y-4 w-3/4">
       <div class="grid grid-cols-1 gap-4 p-4">
         <div
           class="
@@ -17,30 +15,14 @@
             dark:bg-darker
           "
         >
-          <TitleCard>
+          <IconCard>
             <template #title>
               404 - Page Not Found
             </template>
-            <template #text>
+            <template #content>
               The page you're looking for does not exist.
-              <div class="grid grid-cols-2 gap-8 items-center">
-                <div class="text-right">
-                  <CustomButton
-                    @click="goToPreviousPage()"
-                  >
-                    go back
-                  </CustomButton>
-                </div>
-                <div class="text-left">
-                  <CustomButton
-                    @click="goToHomePage()"
-                  >
-                    home page
-                  </CustomButton>
-                </div>
-              </div>
             </template>
-          </TitleCard>
+          </IconCard>
         </div>
       </div>
     </section>
@@ -49,24 +31,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import CustomButton from '../simple/CustomButton.vue'
-import CustomHeader from '../simple/CustomHeader.vue'
-import TitleCard from '../containers/TitleCard.vue'
+import IconCard from '../containers/IconCard.vue'
 
 export default defineComponent({
   name: 'NotFound',
   components: {
-    CustomButton,
-    CustomHeader,
-    TitleCard
-  },
-  methods: {
-    goToPreviousPage () {
-      this.$router.go(-1)
-    },
-    goToHomePage () {
-      this.$router.push({ path: '/' })
-    }
+    IconCard
   }
 })
 </script>

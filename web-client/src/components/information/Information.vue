@@ -60,8 +60,6 @@ import Card from '@/components/containers/Card.vue'
 import DecentralizedGIF from '@/assets/gif/DecentralizedGIF.vue'
 import FederatedGIF from '@/assets/gif/FederatedGIF.vue'
 
-// TODO fix i18n types
-
 const informationStore = useInformationStore()
 onActivated(() => { informationStore.step = 0 })
 </script>
