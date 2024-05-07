@@ -77,13 +77,6 @@
         >
           <InfoIcon />
         </SidebarButton>
-        <!-- Go to About Us page -->
-        <SidebarButton
-          hover-text="about"
-          @click="goToAboutUs()"
-        >
-          <AboutUsIcon />
-        </SidebarButton>
       </div>
     </nav>
 

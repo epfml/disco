@@ -38,11 +38,22 @@
       >
         <i class="fa-solid fa-earth-europe fa-xl" />
       </a>
-      <div class="text-disco-cyan font-bold text-sm">
+      <button 
+        title="About Us"
+        class="text-disco-cyan font-bold text-sm"
+        @click="goToAboutUs"
+        >
         &copy; MLO EPFL
-      </div>
+      </button>
     </div>
   </footer>
 </template>
 
-<script lang="ts" setup />
+<script lang="ts" setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter()
+function goToAboutUs() {
+  router.push({ path: '/about' })
+}
+</script>
