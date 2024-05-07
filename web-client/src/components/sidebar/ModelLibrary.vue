@@ -61,6 +61,7 @@
               <div class="w-1/9">
                 <ModelButton
                   event="delete-model"
+                  hover="Delete"
                   @delete-model="deleteModel(path)"
                 >
                   <Bin2Icon />
@@ -69,6 +70,7 @@
               <div class="w-1/9">
                 <ModelButton
                   event="download-model"
+                  hover="Download"
                   @download-model="downloadModel(path)"
                 >
                   <Download2Icon />
@@ -77,6 +79,7 @@
               <div class="w-1/9">
                 <ModelButton
                   event="load-model"
+                  hover="Load for next training"
                   @load-model="loadModel(path)"
                 >
                   <LoadIcon />

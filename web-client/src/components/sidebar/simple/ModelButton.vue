@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-interface Props { event: string }
+interface Props { event: string, hover?: string }
 interface Emits { (e: string): void }
 
 const props = defineProps<Props>()
@@ -22,6 +22,7 @@ const emit = defineEmits<Emits>()
       focus:outline-none focus:ring-1 focus:ring-slate-800
       focus:text-slate-800
     "
+    :title="props.hover"
     @click="emit(props.event)"
   >
     <span><slot /></span>
