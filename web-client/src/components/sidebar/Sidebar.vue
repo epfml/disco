@@ -80,7 +80,7 @@
       </div>
     </nav>
 
-    <!-- Menu (RHS) -->
+    <!-- Menu (RHS)  currently only contains the model library but can be expanded with more -->
     <div class="absolute">
       <!-- Backdrop -->
       <Transition
@@ -139,7 +139,6 @@
           </div>
           <!-- Panel content -->
           <ModelLibrary
-            v-if="isModelLibraryOpen"
             @close-panel="closeMenu()"
           />
         </section>
@@ -160,7 +159,6 @@ import EvaluateIcon from '@/assets/svg/EvaluateIcon.vue'
 import InfoIcon from '@/assets/svg/InfoIcon.vue'
 import FileIcon from '@/assets/svg/FileIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
-import AboutUsIcon from '@/assets/svg/AboutUsIcon.vue'
 
 export default {
   name: 'SidebarMain',
@@ -173,14 +171,12 @@ export default {
     InfoIcon,
     ListIcon,
     CrossIcon,
-    AboutUsIcon,
     SidebarButton
   },
   data () {
     return {
       loading: false,
       isMenuOpen: false,
-      isModelLibraryOpen: false
     }
   },
   async mounted () {
@@ -199,11 +195,9 @@ export default {
   methods: {
     openModelLibrary () {
       this.isMenuOpen = true
-      this.isModelLibraryOpen = true
     },
     closeMenu () {
       this.isMenuOpen = false
-      this.isModelLibraryOpen = false
     },
     goToHome () {
       this.$router.push({ path: '/' })
