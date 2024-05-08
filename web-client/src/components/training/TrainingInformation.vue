@@ -243,7 +243,7 @@ const lossSeries = computed(() => props.logs
 )
 
 const yAxisMax = computed(() => {
-  let maxVal = Math.max(...[...lossSeries.value.training, ...lossSeries.value.validation])
+  let maxVal = Math.max(...lossSeries.value.training, ...lossSeries.value.validation)
   return (maxVal > 0) ? maxVal : 10 // if Math.max returns -inf or 0, set the max to 10 arbitrarily
 })
 
