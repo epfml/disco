@@ -172,7 +172,7 @@ const toaster = useToaster()
 const props = defineProps<Props>()
 
 const csvRows = ref<{ filename: string, label: string }[]>()
-const connectImagesByGroup = ref<boolean>(true)
+const connectImagesByGroup = ref(true)
 
 const requireLabels = computed(
   () => props.task.trainingInformation.LABEL_LIST !== undefined
