@@ -53,7 +53,7 @@
             {{ (latestEpoch?.training.loss ?? 0).toFixed(2) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
-            ' training loss'
+            training loss
           </span>
           <!-- Chart -->
           <ApexChart
@@ -108,7 +108,7 @@
             {{ percent(latestEpoch?.training.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
-             '% of training accuracy'
+             % of training accuracy
           </span>
           <!-- Chart -->
           <ApexChart
@@ -157,7 +157,8 @@
         <Contact />
       </template>
       <template #content>
-        <div id="mapHeader">
+        <!-- Scrollable training logs -->
+        <div id="mapHeader" class="max-h-80 overflow-y-auto">
           <ul class="grid grid-cols-1">
             <li
               v-for="(message, index) in props.messages"

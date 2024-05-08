@@ -10,7 +10,7 @@
     <div class="flex justify-center">
       <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
-        <template v-if="trainingLogs === undefined" #content>
+        <template v-if="trainingGenerator === undefined" #content>
           <div class="grid grid-cols-2 gap-8">
             <CustomButton @click="startTraining(false)">
               train alone
@@ -67,7 +67,7 @@ const props = defineProps<{
 
 const displayModelCaching = ref(true)
 
-const trainingLogs =
+const trainingGenerator =
   ref<AsyncGenerator<RoundLogs & { participants: number }, void>>();
 const logs = ref(List<RoundLogs & { participants: number }>());
 const messages = ref(List<string>());
@@ -76,14 +76,12 @@ const hasValidationData = computed(
   () => props.task.trainingInformation.validationSplit > 0,
 );
 
-function resetTrainingInformation() {
-  trainingLogs.value = undefined
+async function startTraining(distributed: boolean): Promise<void> {
+  // Reset training information before starting a new training
+  trainingGenerator.value = undefined
   logs.value = List<RoundLogs & { participants: number }>()
   messages.value = List<string>()
-}
 
-async function startTraining(distributed: boolean): Promise<void> {
-  resetTrainingInformation()
   let dataset: data.DataSplit;
   try {
     dataset = await props.datasetBuilder.build({
@@ -132,12 +130,12 @@ async function startTraining(distributed: boolean): Promise<void> {
 
   try {
     displayModelCaching.value= false // hide model caching buttons during training
-    trainingLogs.value = disco.fit(dataset);
+    trainingGenerator.value = disco.fit(dataset);
     logs.value = List<RoundLogs & { participants: number }>();
-    for await (const roundLogs of trainingLogs.value)
+    for await (const roundLogs of trainingGenerator.value)
       logs.value = logs.value.push(roundLogs);
 
-    if (trainingLogs.value === undefined) {
+    if (trainingGenerator.value === undefined) {
       toaster.info("Training stopped");
       return;
     }
@@ -147,17 +145,17 @@ async function startTraining(distributed: boolean): Promise<void> {
     return
   } finally {
     displayModelCaching.value = true // show model caching buttons again after training
-    trainingLogs.value = undefined;
+    trainingGenerator.value = undefined;
   }
 
   toaster.success("Training successfully completed");
 }
 
 async function stopTraining(): Promise<void> {
-  const generator = trainingLogs.value;
+  const generator = trainingGenerator.value;
   if (generator === undefined) return;
 
-  trainingLogs.value = undefined;
+  trainingGenerator.value = undefined;
   generator.return();
 }
 </script>
