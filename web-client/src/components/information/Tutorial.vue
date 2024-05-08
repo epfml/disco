@@ -25,11 +25,11 @@
           <b>Step 5: Reuse the model</b><br>
           Come back any time to reuse your local model: resume training or run inference on new data.
         </div>
-      <div class="flex items-center justify-center space-x-8">
-        <CustomButton @click="router.push('/list')">
+      <div class="flex flex-wrap items-center justify-center space-x-8">
+        <CustomButton @click="router.push('/list')" class="mb-2">
           explore DISCOllaboratives
         </CustomButton>
-        <CustomButton @click="router.push('/create')">
+        <CustomButton @click="router.push('/create')" class="mb-2">
           create your own task
         </CustomButton>
         </div>
