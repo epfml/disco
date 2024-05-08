@@ -17,7 +17,7 @@ export interface DisplayInformation {
   // Displays the image at this URL in the UI as an example when connecting data
   dataExampleImage?: string
   // URL to download a dataset for the task, is displayed in the UI when asking to connect data
-  sampleDatasetLink?: string
+  sampleDatasetLink?: URL
   limitations?: string
   labelDisplay?: LabelType
 }
