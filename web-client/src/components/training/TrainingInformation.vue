@@ -250,15 +250,13 @@ const yAxisMax = computed(() => {
 const lossChartsOptions = computed(() => {
   return {
     ...options,
-    ...{
-      yaxis: {
-        max: () => yAxisMax.value,
-        min: 0,
-        labels: {
-          show: true,
-          formatter: function (value: number) {
-            return value.toFixed(2);
-          }
+    yaxis: {
+      max: () => yAxisMax.value,
+      min: 0,
+      labels: {
+        show: true,
+        formatter: function (value: number) {
+          return value.toFixed(2);
         }
       }
     }
