@@ -84,7 +84,7 @@ describe('image loader', () => {
   })
 
   it('loads multiple samples with labels', async () => {
-    const labels = Range(0, 24).map(_ => 3) //internally, disco maps string labels to their index in the task LABEL_LIST
+    const labels = Repeat(3, 24) //internally, disco maps string labels to their index in the task LABEL_LIST
     const stringLabels = labels.map(_ => 'cat') // so cat is mapped to integer 3
     const oneHotLabels = List(tf.oneHot(labels.toArray(), 10).arraySync() as number[])
 
