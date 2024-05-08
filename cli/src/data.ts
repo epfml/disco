@@ -1,4 +1,4 @@
-import { Range } from 'immutable'
+import { Range, Repeat } from 'immutable'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 

@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { Server } from 'node:http'
-import { List, Range } from 'immutable'
+import { List, Repeat } from 'immutable'
 import { assert, expect } from 'chai'
 
 import type { RoundLogs, WeightsContainer } from '@epfml/discojs-core'

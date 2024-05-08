@@ -1,5 +1,5 @@
 import { assert, expect } from 'chai'
-import { List, Range } from 'immutable'
+import { List, Range, Repeat } from 'immutable'
 import fs from 'node:fs/promises'
 import * as tf from '@tensorflow/tfjs'
 import { node as tfNode } from '@tensorflow/tfjs-node'
