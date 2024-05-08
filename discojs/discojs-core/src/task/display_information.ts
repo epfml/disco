@@ -1,6 +1,5 @@
 import { type Summary, isSummary } from './summary.js'
 import { type DataExample, isDataExample } from './data_example.js'
-import { type LabelType, isLabelType } from './label_type.js'
 
 export interface DisplayInformation {
   taskTitle: string
@@ -19,7 +18,6 @@ export interface DisplayInformation {
   // URL to download a dataset for the task, is displayed in the UI when asking to connect data
   sampleDatasetLink?: string
   limitations?: string
-  labelDisplay?: LabelType
 }
 
 export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
@@ -34,7 +32,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataFormatInformation,
     sampleDatasetLink,
     headers,
-    labelDisplay,
     limitations,
     model,
     summary,
@@ -50,7 +47,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     (tradeoffs !== undefined && typeof tradeoffs !== 'string') ||
     (model !== undefined && typeof model !== 'string') ||
     (dataExampleImage !== undefined && typeof dataExampleImage !== 'string') ||
-    (labelDisplay !== undefined && !isLabelType(labelDisplay)) ||
     (limitations !== undefined && typeof limitations !== 'string')
   ) {
     return false
@@ -96,7 +92,6 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataFormatInformation,
     sampleDatasetLink,
     headers,
-    labelDisplay,
     limitations,
     model,
     summary,

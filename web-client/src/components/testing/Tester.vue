@@ -83,8 +83,6 @@
             v-for="(value, key) in dataWithPred"
             :key="key"
             :image-url="(value.data as ImageWithUrl).url"
-            :show-button="isPolygonMapVisualization"
-            @click="openMapModal(value.prediction, value.groundTruth)"
           >
             <template #title>
               <p :class="value.groundTruth && value.prediction !== value.groundTruth ? 'text-red-700' : 'text-disco-blue'">
@@ -237,7 +235,7 @@ import { computed, ref } from 'vue'
 import ApexChart from "vue3-apexcharts";
 
 import type { Task } from '@epfml/discojs-core'
-import { data, ConsoleLogger, EmptyMemory, Memory, Validator, LabelTypeEnum } from '@epfml/discojs-core'
+import { data, ConsoleLogger, EmptyMemory, Memory, Validator } from '@epfml/discojs-core'
 import { IndexedDB } from '@epfml/discojs'
 
 import { useMemoryStore } from '@/store/memory'
@@ -285,8 +283,6 @@ const numberOfClasses = computed<number>(() =>
   props.task.trainingInformation.LABEL_LIST?.length ?? 2)
 const isImageTaskType = computed<boolean>(() =>
   props.task.trainingInformation.dataType === 'image')
-const isPolygonMapVisualization = computed<boolean>(() =>
-  props.task.displayInformation.labelDisplay?.labelType === LabelTypeEnum.POLYGON_MAP)
 
 const memory = computed<Memory>(() => useIndexedDB ? new IndexedDB() : new EmptyMemory())
 const accuracyData = computed<number[]>(() => {
@@ -410,20 +406,6 @@ async function assessModel (): Promise<void> {
       msg += `: ${e.message}`
     }
     toaster.error(msg)
-  }
-}
-
-function openMapModal (prediction?: number, groundTruth?: number) {
-  const baseUrl = props.task.displayInformation.labelDisplay?.mapBaseUrl
-  if (isPolygonMapVisualization.value && baseUrl) {
-    const correctColor = '274C78'
-    const errorColor = 'FF0000'
-
-    if (groundTruth && groundTruth !== prediction) {
-      mapModalUrl.value = `${baseUrl}?cellIds=${prediction},${groundTruth}&colors=${errorColor},${correctColor}`
-    } else {
-      mapModalUrl.value = `${baseUrl}?cellIds=${prediction}&colors=${correctColor}`
-    }
   }
 }
 
