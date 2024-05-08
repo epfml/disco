@@ -15,9 +15,9 @@ export interface DisplayInformation {
   // TODO no need for undefined
   headers?: string[]
   // Displays the image at this URL in the UI as an example when connecting data
-  dataExampleImage?: URL
+  dataExampleImage?: string
   // URL to download a dataset for the task, is displayed in the UI when asking to connect data
-  sampleDatasetLink?: URL
+  sampleDatasetLink?: string
   limitations?: string
   labelDisplay?: LabelType
 }
@@ -45,11 +45,11 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
   if (
     typeof taskTitle !== 'string' ||
     (dataExampleText !== undefined && typeof dataExampleText !== 'string') ||
-    (sampleDatasetLink !== undefined && !(sampleDatasetLink instanceof URL)) ||
+    (sampleDatasetLink !== undefined && typeof sampleDatasetLink !== 'string') ||
     (dataFormatInformation !== undefined && typeof dataFormatInformation !== 'string') ||
     (tradeoffs !== undefined && typeof tradeoffs !== 'string') ||
     (model !== undefined && typeof model !== 'string') ||
-    (dataExampleImage !== undefined && !(dataExampleImage instanceof URL)) ||
+    (dataExampleImage !== undefined && typeof dataExampleImage !== 'string') ||
     (labelDisplay !== undefined && !isLabelType(labelDisplay)) ||
     (limitations !== undefined && typeof limitations !== 'string')
   ) {
@@ -58,6 +58,20 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
 
   if (!isSummary(summary)) {
     return false
+  }
+  if (sampleDatasetLink !== undefined) {
+    try {
+      new URL(sampleDatasetLink)
+    } catch {
+      return false
+    }
+  }
+  if (dataExampleImage !== undefined) {
+    try {
+      new URL(dataExampleImage)
+    } catch {
+      return false
+    }
   }
 
   if (
