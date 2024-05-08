@@ -13,8 +13,6 @@ export const cifar10: TaskProvider = {
           preview: 'In this challenge, we ask you to classify images into categories based on the objects shown on the image.',
           overview: 'The CIFAR-10 dataset is a collection of images that are commonly used to train machine learning and computer vision algorithms. It is one of the most widely used datasets for machine learning research.'
         },
-        limitations: 'The training data is limited to small images of size 32x32.',
-        tradeoffs: 'Training success strongly depends on label distribution',
         dataFormatInformation: 'Images should be of .png format and of size 32x32. <br> The label file should be .csv, where each row contains a file_name, class.  <br> <br> e.g. if you have images: 0.png (of a frog) and 1.png (of a car) <br> labels.csv contains: (Note that no header is needed)<br> 0.png, frog <br> 1.png, car',
         dataExampleText: 'Below you can find 10 random examples from each of the 10 classes in the dataset.',
         dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/cifar10-example.png',

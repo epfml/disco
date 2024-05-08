@@ -4,7 +4,6 @@ import { type DataExample, isDataExample } from './data_example.js'
 export interface DisplayInformation {
   taskTitle: string
   summary: Summary
-  tradeoffs?: string
   dataFormatInformation?: string
   // TODO merge dataExample
   dataExampleText?: string
@@ -17,7 +16,6 @@ export interface DisplayInformation {
   dataExampleImage?: string
   // URL to download a dataset for the task, is displayed in the UI when asking to connect data
   sampleDatasetLink?: string
-  limitations?: string
 }
 
 export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
@@ -32,11 +30,9 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataFormatInformation,
     sampleDatasetLink,
     headers,
-    limitations,
     model,
     summary,
     taskTitle,
-    tradeoffs
   }: Partial<Record<keyof DisplayInformation, unknown>> = raw
 
   if (
@@ -44,10 +40,8 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     (dataExampleText !== undefined && typeof dataExampleText !== 'string') ||
     (sampleDatasetLink !== undefined && typeof sampleDatasetLink !== 'string') ||
     (dataFormatInformation !== undefined && typeof dataFormatInformation !== 'string') ||
-    (tradeoffs !== undefined && typeof tradeoffs !== 'string') ||
     (model !== undefined && typeof model !== 'string') ||
-    (dataExampleImage !== undefined && typeof dataExampleImage !== 'string') ||
-    (limitations !== undefined && typeof limitations !== 'string')
+    (dataExampleImage !== undefined && typeof dataExampleImage !== 'string')
   ) {
     return false
   }
@@ -92,11 +86,9 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataFormatInformation,
     sampleDatasetLink,
     headers,
-    limitations,
     model,
     summary,
     taskTitle,
-    tradeoffs,
   }
   const _correct: DisplayInformation = repack
   const _total: Record<keyof DisplayInformation, unknown> = repack
