@@ -3,37 +3,16 @@ import { Map, Set } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
 import { TabularData } from './tabular_data.js'
-import type { Task } from '../../index.js'
+import { defaultTasks } from '../../index.js'
+
 
 describe('tabular data checks', () => {
-  const titanicMock: Task = {
-    id: 'titanic',
-    displayInformation: {},
-    trainingInformation: {
-      modelID: 'titanic',
-      epochs: 1,
-      roundDuration: 1,
-      validationSplit: 0,
-      batchSize: 1,
-      dataType: 'tabular',
-      scheme: 'federated',
-      inputColumns: [
-        'PassengerId',
-        'Age',
-        'SibSp',
-        'Parch',
-        'Fare',
-        'Pclass'
-      ],
-      outputColumns: [
-        'Survived'
-      ]
-    }
-  }
+  const titanicTask = defaultTasks.titanic.getTask()
+  
 
   const dataConfig = {
-    features: titanicMock.trainingInformation.inputColumns,
-    labels: titanicMock.trainingInformation.outputColumns
+    features: titanicTask.trainingInformation.inputColumns,
+    labels: titanicTask.trainingInformation.outputColumns
   }
 
   const columnConfigs = Map(
@@ -51,7 +30,7 @@ describe('tabular data checks', () => {
 
   it('throw an error on incorrectly formatted data', async () => {
     try {
-      await TabularData.init(tf.data.csv('file://../../datasets/cifar10-labels.csv', csvConfig), titanicMock, 3)
+      await TabularData.init(tf.data.csv('file://../../datasets/cifar10-labels.csv', csvConfig), titanicTask, 3)
     } catch (e) {
       expect(e).to.be.an.instanceOf(Error)
       return
@@ -61,6 +40,6 @@ describe('tabular data checks', () => {
   })
 
   it('do nothing on correctly formatted data', async () => {
-    await TabularData.init(tf.data.csv('file://../../datasets/titanic_train.csv', csvConfig), titanicMock, 3)
+    await TabularData.init(tf.data.csv('file://../../datasets/titanic_train.csv', csvConfig), titanicTask, 3)
   })
 })

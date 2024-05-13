@@ -1,10 +1,16 @@
 <template>
   <div class="space-y-4 md:space-y-8">
+    <!-- If a cached model exists, display it -->
+    <div v-if="displayModelCaching">
+      <ModelCaching
+        :task="task"
+      />
+    </div>
     <!-- Train Button -->
     <div class="flex justify-center">
-      <IconCard title-placement="center" class="w-3/5">
+      <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
-        <template v-if="training === undefined" #content>
+        <template v-if="trainingGenerator === undefined" #content>
           <div class="grid grid-cols-2 gap-8">
             <CustomButton @click="startTraining(false)">
               train alone
@@ -38,17 +44,15 @@ import { ref, computed } from "vue";
 
 import type { RoundLogs, Task } from "@epfml/discojs-core";
 import {
-  aggregator as aggregators,
-  client as clients,
   data,
   EmptyMemory,
   Disco,
 } from "@epfml/discojs-core";
 import { IndexedDB } from "@epfml/discojs";
-
-import { CONFIG } from "@/config";
+import { getClient } from '@/clients'
 import { useMemoryStore } from "@/store/memory";
 import { useToaster } from "@/composables/toaster";
+import ModelCaching from './ModelCaching.vue'
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
@@ -61,7 +65,9 @@ const props = defineProps<{
   datasetBuilder: data.DatasetBuilder<File>;
 }>();
 
-const training =
+const displayModelCaching = ref(true)
+
+const trainingGenerator =
   ref<AsyncGenerator<RoundLogs & { participants: number }, void>>();
 const logs = ref(List<RoundLogs & { participants: number }>());
 const messages = ref(List<string>());
@@ -71,6 +77,11 @@ const hasValidationData = computed(
 );
 
 async function startTraining(distributed: boolean): Promise<void> {
+  // Reset training information before starting a new training
+  trainingGenerator.value = undefined
+  logs.value = List<RoundLogs & { participants: number }>()
+  messages.value = List<string>()
+
   let dataset: data.DataSplit;
   try {
     dataset = await props.datasetBuilder.build({
@@ -88,6 +99,8 @@ async function startTraining(distributed: boolean): Promise<void> {
       // missing field is specified between two "quotes"
       const missingFields: String = e.message.split('"')[1].split('"')[0];
       toaster.error(`The input data is missing the field "${missingFields}"`);
+    } else if (e instanceof Error && e.message.includes("provide dataset input files")) {
+      toaster.error("First connect your data at the previous step.")
     } else {
       toaster.error(
         "Incorrect data format. Please check the expected format at the previous step.",
@@ -99,18 +112,7 @@ async function startTraining(distributed: boolean): Promise<void> {
   toaster.info("Model training started");
 
   const scheme = distributed ? props.task.trainingInformation.scheme : "local";
-  const client =
-    scheme === "local"
-      ? new clients.Local(
-          CONFIG.serverUrl,
-          props.task,
-          new aggregators.MeanAggregator(),
-        )
-      : new clients.federated.FederatedClient(
-          CONFIG.serverUrl,
-          props.task,
-          new aggregators.MeanAggregator(),
-        );
+  const client = getClient(scheme, props.task)
 
   const disco = new Disco(props.task, {
     logger: {
@@ -127,30 +129,33 @@ async function startTraining(distributed: boolean): Promise<void> {
   });
 
   try {
-    training.value = disco.fit(dataset);
+    displayModelCaching.value= false // hide model caching buttons during training
+    trainingGenerator.value = disco.fit(dataset);
     logs.value = List<RoundLogs & { participants: number }>();
-    for await (const roundLogs of training.value)
+    for await (const roundLogs of trainingGenerator.value)
       logs.value = logs.value.push(roundLogs);
 
-    if (training.value === undefined) {
-      toaster.success("Training stopped");
+    if (trainingGenerator.value === undefined) {
+      toaster.info("Training stopped");
       return;
     }
   } catch (e) {
     toaster.error("An error occurred during training");
     console.error(e);
+    return
   } finally {
-    training.value = undefined;
+    displayModelCaching.value = true // show model caching buttons again after training
+    trainingGenerator.value = undefined;
   }
 
   toaster.success("Training successfully completed");
 }
 
 async function stopTraining(): Promise<void> {
-  const generator = training.value;
+  const generator = trainingGenerator.value;
   if (generator === undefined) return;
 
-  training.value = undefined;
+  trainingGenerator.value = undefined;
   generator.return();
 }
 </script>

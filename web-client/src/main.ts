@@ -3,7 +3,6 @@ import { createPinia } from 'pinia'
 
 import App from '@/components/App.vue'
 import { router } from '@/router'
-import { createCustomI18n } from './locales/i18n'
 import { useToaster } from './composables/toaster'
 
 import '@/assets/css/tailwind.css'
@@ -33,6 +32,5 @@ app.config.errorHandler = (err, instance, info) => {
 
 app
   .use(createPinia())
-  .use(createCustomI18n())
   .use(router)
   .mount('#app')

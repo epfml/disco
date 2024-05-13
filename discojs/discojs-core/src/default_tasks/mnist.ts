@@ -14,7 +14,6 @@ export const mnist: TaskProvider = {
           overview: 'The MNIST handwritten digit classification problem is a standard dataset used in computer vision and deep learning. Although the dataset is effectively solved, we use it to test our Decentralised Learning algorithms and platform.'
         },
         model: 'The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.',
-        tradeoffs: 'We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.',
         dataFormatInformation: 'This model is trained on images corresponding to digits 0 to 9. You can upload each digit image of your dataset in the box corresponding to its label. The model taskes images of size 28x28 as input.',
         dataExampleText: 'Below you can find an example of an expected image representing the digit 9.',
         dataExampleImage: 'http://storage.googleapis.com/deai-313515.appspot.com/example_training_data/9-mnist-example.png'

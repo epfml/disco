@@ -44,43 +44,43 @@
         </SidebarButton>
         <!-- Go to Task List page -->
         <SidebarButton
-          hover-text="tasks"
+          hover-text="DISCOllaboratives"
           @click="goToTaskList()"
         >
           <ListIcon />
         </SidebarButton>
+        <!-- Go to custom task creation page -->
+        <SidebarButton
+          hover-text="Create a new DISCOllaborative"
+          @click="goToNewCustomTask()"
+        >
+          <CreateIcon />
+        </SidebarButton>
+        <!-- Go to model evaluation page -->
+        <SidebarButton
+          hover-text="Evaluate models"
+          @click="goToEvaluate()"
+        >
+          <EvaluateIcon />
+        </SidebarButton>
         <!-- Display Model Library panel -->
         <SidebarButton
-          hover-text="models"
+          hover-text="Model Library"
           @click="openModelLibrary()"
         >
           <FileIcon />
         </SidebarButton>
         <!-- Go to Information page -->
         <SidebarButton
-          hover-text="information"
+          hover-text="More on DISCO"
           @click="goToInformation()"
         >
           <InfoIcon />
         </SidebarButton>
-        <!-- Display Settings panel-->
-        <SidebarButton
-          hover-text="settings"
-          @click="openSettingsPanel()"
-        >
-          <SettingsIcon />
-        </SidebarButton>
-        <!-- Go to About Us page -->
-        <SidebarButton
-          hover-text="about"
-          @click="goToAboutUs()"
-        >
-          <AboutUsIcon />
-        </SidebarButton>
       </div>
     </nav>
 
-    <!-- Menu (RHS) -->
+    <!-- Menu (RHS)  currently only contains the model library but can be expanded with more -->
     <div class="absolute">
       <!-- Backdrop -->
       <Transition
@@ -138,10 +138,8 @@
             </button>
           </div>
           <!-- Panel content -->
-          <Settings v-if="isSettingsPanelOpen" />
           <ModelLibrary
-            v-else-if="isModelLibraryOpen"
-            @switch-panel="switchFromModelLibraryToSettings()"
+            @close-panel="closeMenu()"
           />
         </section>
       </Transition>
@@ -152,37 +150,33 @@
 import type { Instance, Props, Placement } from 'tippy.js'
 import tippy from 'tippy.js'
 
-import Settings from './Settings.vue'
 import ModelLibrary from './ModelLibrary.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 import HomeIcon from '@/assets/svg/HomeIcon.vue'
 import ListIcon from '@/assets/svg/ListIcon.vue'
+import CreateIcon from '@/assets/svg/CreateIcon.vue'
+import EvaluateIcon from '@/assets/svg/EvaluateIcon.vue'
 import InfoIcon from '@/assets/svg/InfoIcon.vue'
 import FileIcon from '@/assets/svg/FileIcon.vue'
-import SettingsIcon from '@/assets/svg/SettingsIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
-import AboutUsIcon from '@/assets/svg/AboutUsIcon.vue'
 
 export default {
   name: 'SidebarMain',
   components: {
-    Settings,
     ModelLibrary,
     HomeIcon,
+    CreateIcon,
+    EvaluateIcon,
     FileIcon,
     InfoIcon,
-    SettingsIcon,
     ListIcon,
     CrossIcon,
-    AboutUsIcon,
     SidebarButton
   },
   data () {
     return {
       loading: false,
       isMenuOpen: false,
-      isSettingsPanelOpen: false,
-      isModelLibraryOpen: false
     }
   },
   async mounted () {
@@ -199,28 +193,23 @@ export default {
     })
   },
   methods: {
-    switchFromModelLibraryToSettings () {
-      this.isModelLibraryOpen = false
-      this.isSettingsPanelOpen = true
-    },
     openModelLibrary () {
       this.isMenuOpen = true
-      this.isModelLibraryOpen = true
-    },
-    openSettingsPanel () {
-      this.isMenuOpen = true
-      this.isSettingsPanelOpen = true
     },
     closeMenu () {
       this.isMenuOpen = false
-      this.isSettingsPanelOpen = false
-      this.isModelLibraryOpen = false
     },
     goToHome () {
       this.$router.push({ path: '/' })
     },
     goToTaskList () {
       this.$router.push({ path: '/list' })
+    },
+    goToNewCustomTask () {
+      this.$router.push({ path: '/create' })
+    },
+    goToEvaluate () {
+      this.$router.push({ path: '/evaluate' })
     },
     goToInformation () {
       this.$router.push({ path: '/information' })

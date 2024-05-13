@@ -22,16 +22,18 @@
       <slot name="text" />
     </div>
     <div
-      :class="isAltAction ? 'flex justify-between mt-auto' : ('mt-auto text-'+buttonPlacement)"
+      :class="isAltAction ? 'flex flex-wrap justify-around mt-auto items-center' : ('mt-auto text-'+buttonPlacement)"
     >
       <CustomButton
         @click="$emit('action')"
+        class="mb-1"
       >
         <slot name="button" />
       </CustomButton>
       <CustomButton
         v-if="isAltAction"
         @click="$emit('altAction')"
+        class="mb-1"
       >
         <slot name="altButton" />
       </CustomButton>

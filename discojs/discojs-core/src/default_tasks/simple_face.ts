@@ -13,8 +13,6 @@ export const simpleFace: TaskProvider = {
           preview: 'Can you detect if the person in a picture is a child or an adult?',
           overview: 'Simple face is a small subset of face_task from Kaggle'
         },
-        limitations: 'The training data is limited to small images of size 200x200.',
-        tradeoffs: 'Training success strongly depends on label distribution',
         dataFormatInformation: '',
         dataExampleText: 'Below you find an example',
         dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/simple_face-example.png'

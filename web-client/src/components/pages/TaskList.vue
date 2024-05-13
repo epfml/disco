@@ -1,73 +1,14 @@
 <template>
   <div class="space-y-8 mt-8 md:mt-16">
-    <div
-      v-show="tasks.size > 0"
-      class="flex flex-wrap gap-8"
-    >
-      <IconCard class="grow shrink-0 basis-48">
-        <template #title>
-          Filter by Training Scheme
-        </template>
-        <template #content>
-          <div
-            class="flex flex-wrap gap-8"
-          >
-            <div
-              v-for="(filter, idx) in schemeFilters"
-              :key="offset + idx"
-              class="text-center"
-            >
-              <CheckBox @clicked="toggle(filter)">
-                {{ filter.name }}
-              </CheckBox>
-            </div>
-          </div>
-        </template>
-      </IconCard>
-      <IconCard class="grow shrink-0 basis-48">
-        <template #title>
-          Filter by Data Type
-        </template>
-        <template #content>
-          <div
-            class="flex flex-wrap gap-8"
-          >
-            <div
-              v-for="(filter, idx) in dataFilters"
-              :key="offset + idx"
-              class="text-center"
-            >
-              <CheckBox @clicked="toggle(filter)">
-                {{ filter.name }}
-              </CheckBox>
-            </div>
-          </div>
-        </template>
-      </IconCard>
-    </div>
-    <div class="flex flex-col gap-8 mt-8">
+    <div class="flex flex-col gap-4 mt-8">
+      <!-- In case no tasks were retrieved, suggest reloading the page -->
       <ButtonCard
-        v-show="filteredTasks.length === 0 && tasks.size > 0"
-        class="mx-auto"
-        @action="clearFilters()"
-      >
-        <template #title>
-          No task corresponds to the selected filters
-        </template>
-        <template #text>
-          Please press the button below to clear selected filters.
-        </template>
-        <template #button>
-          clear filters
-        </template>
-      </ButtonCard>
-      <ButtonCard
-        v-show="tasks.size === 0"
+        v-if="tasks.size === 0"
         class="mx-auto"
         @action="() => { router.go(0) }"
       >
         <template #title>
-          No task fetched from server
+          Tasks could not be retrieved
         </template>
         <template #text>
           Please press the button below to reload the app. Please ensure the Disco server is up and running.
@@ -76,13 +17,33 @@
           reload page
         </template>
       </ButtonCard>
+
+      <!-- Tasks could be retrieved, display them alphabetically -->
       <div
         id="tasks"
         class="contents"
+        v-else
       >
+        <IconCard class="justify-self-center w-full">
+        <template #title>
+          What are DISCOllaboratives?
+        </template>
+          <template #icon>
+            <Tasks/>
+          </template>
+          <template #content>
+          DISCOllaboratives are machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that users can join to train on their own respective data. Some are already pre-defined
+          along with some example data to let you get a sense of how to use DISCO.
+          By participating, you can either choose to train a model on your own data or join a collaborative training session with other users.
+          If you want to bring your own collaborative task into DISCO, you can do so by <button
+            class="text-blue-400"
+            @click="goToCreateTask()"
+          >creating a new DISCOllaborative</button>.
+          <br/><br/> <b>The data you connect is never uploaded or shared with anyone and always stays on your computer.</b>
+          </template>
+        </IconCard>
         <div
-          v-for="task in filteredTasks"
-          v-show="filteredTasks.length > 0"
+          v-for="task in sortedTasks"
           :id="task.id"
           :key="task.id"
         >
@@ -90,25 +51,14 @@
             button-placement="left"
             @action="() => toTask(task)"
           >
-            <template
-              #title
-            >
+            <template #title>
               {{ task.displayInformation.taskTitle }} - {{ task.trainingInformation.scheme }}
             </template>
             <template #text>
-              <div
-                v-if="task.displayInformation.summary?.preview !== undefined"
-                v-html="task.displayInformation.summary.preview"
-              />
-              <span
-                v-else
-                class="italic"
-              >
-                No description was provided by the task's author.
-              </span>
+              <div v-html="task.displayInformation.summary.preview" />
             </template>
             <template #button>
-              join
+              participate
             </template>
           </ButtonCard>
         </div>
@@ -118,7 +68,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
@@ -126,68 +76,25 @@ import type { Task } from '@epfml/discojs-core'
 
 import { useTasksStore } from '@/store/tasks'
 import { useTrainingStore } from '@/store/training'
-import IconCard from '@/components/containers/IconCard.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
-import CheckBox from '@/components/simple/CheckBox.vue'
+import IconCard from '@/components/containers/IconCard.vue'
+import Tasks from '@/assets/svg/Tasks.vue'
 
-abstract class Filter {
-  public active: boolean
-  constructor (
-    public readonly name: string,
-    public readonly apply: (task: Task) => boolean
-  ) {
-    this.active = false
-  }
-}
-class SchemeFilter extends Filter {
-  constructor (name: string) {
-    const apply = (task: Task) => task.trainingInformation.scheme === name
-    super(name, apply)
-  }
-}
-
-class DataFilter extends Filter {
-  constructor (name: string) {
-    const apply = (task: Task) => task.trainingInformation.dataType === name
-    super(name, apply)
-  }
-}
 
 const router = useRouter()
 const trainingStore = useTrainingStore()
 const { tasks } = storeToRefs(useTasksStore())
 
-const schemeFilters = reactive(['Decentralized', 'Federated']
-  .map((scheme: string) => new SchemeFilter(scheme)))
-
-const dataFilters = reactive(['image', 'tabular', 'text']
-  .map((dataType: string) => new DataFilter(dataType)))
-
-const offset = ref(0)
-
-const filters = computed(() => schemeFilters.concat(dataFilters))
-
-const filteredTasks = computed(() => {
-  return ([...tasks.value.values()])
-    .filter((task: Task) =>
-      filters.value.every((filter: Filter) =>
-        filter.active ? filter.apply(task) : true)
-    )
-})
-
-const toggle = (filter: Filter): void => {
-  filter.active = !filter.active
-}
-
-const clearFilters = (): void => {
-  filters.value.forEach((filter: Filter) => { filter.active = false })
-  // little trick to reset the affiliated checkboxes
-  offset.value = offset.value === 0 ? filters.value.length : 0
-}
+const sortedTasks = computed(() => [...tasks.value.values()].sort(
+  (task1, task2) => task1.displayInformation.taskTitle.localeCompare(task2.displayInformation.taskTitle)
+))
 
 const toTask = (task: Task): void => {
   trainingStore.setTask(task.id)
   router.push(`/${task.id}`)
 }
 
+const goToCreateTask = (): void => {
+  router.push({ path: '/create' })
+}
 </script>

@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import type { Server } from 'node:http'
-import { List, Range } from 'immutable'
+import { List, Repeat } from 'immutable'
 import { assert, expect } from 'chai'
 
 import type { RoundLogs, WeightsContainer } from '@epfml/discojs-core'
@@ -29,7 +29,7 @@ describe("end-to-end federated", function () {
   async function cifar10user (): Promise<WeightsContainer> {
     const dir = DATASET_DIR + 'CIFAR10/'
     const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
-    const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
+    const labels = Repeat('cat', 24).toArray() // TODO read labels in csv
 
     const cifar10Task = defaultTasks.cifar10.getTask()
 

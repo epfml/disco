@@ -98,7 +98,7 @@ export class DatasetBuilder<Source> {
   async build (config?: DataConfig): Promise<DataSplit> {
     // Require that at least one source collection is non-empty, but not both
     if ((this._sources.length > 0) === (this.labelledSources.size > 0)) {
-      throw new Error('Please provide dataset input files')
+      throw new Error('Please provide dataset input files') // This error message is parsed in DatasetInput.vue
     }
 
     let dataTuple: DataSplit

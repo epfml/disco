@@ -88,7 +88,7 @@ async function saveModel () {
     }
   } else {
     toast.error(
-      'The model library is currently turned off. See settings for more information'
+      'The model library is currently turned off. Go to the model library settings to turn it one.'
     )
   }
 }

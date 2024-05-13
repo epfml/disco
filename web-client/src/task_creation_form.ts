@@ -110,15 +110,6 @@ export const displayInformation: FormSection = {
         'The current model is a very simple CNN and its main goal is to test the app and the Decentralizsed Learning functionality.'
     },
     {
-      id: 'tradeoffs',
-      name: 'Model Tradeoffs',
-      yup: yup.string(),
-      as: 'textarea',
-      type: 'text',
-      default:
-        'We are using a simple model, first a 2d convolutional layer > max pooling > 2d convolutional layer > max pooling > convolutional layer > 2 dense layers.'
-    },
-    {
       id: 'dataFormatInformation',
       name: 'Data Format Information',
       yup: yup.string(),

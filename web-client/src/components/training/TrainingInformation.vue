@@ -37,6 +37,61 @@
       </IconCardSmall>
     </div>
 
+    <!-- Training and validation loss charts -->
+    <div
+      class="flex flex-col md:grid gap-4 md:gap-8"
+      :class="hasValidationData ? 'md:grid-cols-2' : ''"
+    >
+      <!-- Training Accuracy users chart -->
+      <IconCard>
+        <!-- Card header -->
+        <template #title>
+          Training Loss of the Model
+        </template>
+        <template #content>
+          <span class="text-2xl font-medium text-slate-500">
+            {{ (latestEpoch?.training.loss ?? 0).toFixed(2) }}
+          </span>
+          <span class="text-sm font-medium text-slate-500">
+            training loss
+          </span>
+          <!-- Chart -->
+          <ApexChart
+            width="100%"
+            height="200"
+            type="area"
+            :options="lossChartsOptions"
+            :series="[{ name: 'Training loss', data: lossSeries.training }]"
+          />
+        </template>
+      </IconCard>
+
+      <!-- Validation Loss users chart -->
+      <IconCard
+        v-if="hasValidationData"
+      >
+        <!-- Card header -->
+        <template #title>
+          Validation Loss of the Model
+        </template>
+        <template #content>
+          <span class="text-2xl font-medium text-slate-500">
+            {{ (latestEpoch?.validation?.loss ?? 0).toFixed(2) }}
+          </span>
+          <span class="text-sm font-medium text-slate-500">
+            validation loss
+          </span>
+          <!-- Chart -->
+          <ApexChart
+            width="100%"
+            height="200"
+            type="area"
+            :options="lossChartsOptions"
+            :series="[{ name: 'Validation loss', data: lossSeries.validation }]"
+          />
+        </template>
+      </IconCard>
+    </div>
     <!-- Training and validation accuracy charts -->
     <div
       class="flex flex-col md:grid gap-4 md:gap-8"
@@ -46,18 +101,14 @@
       <IconCard>
         <!-- Card header -->
         <template #title>
-          {{
-            $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyHeader')
-          }}
+          Training Accuracy of the Model
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
             {{ percent(latestEpoch?.training.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
-            {{
-              $t('training.trainingInformationFrame.accuracyCharts.trainingAccuracyText')
-            }}
+             % of training accuracy
           </span>
           <!-- Chart -->
           <ApexChart
@@ -65,7 +116,7 @@
             height="200"
             type="area"
             :options="options"
-            :series="[{ data: accuracySeries.training }]"
+            :series="[{ name: 'Training accuracy', data: accuracySeries.training }]"
           />
         </template>
       </IconCard>
@@ -76,18 +127,14 @@
       >
         <!-- Card header -->
         <template #title>
-          {{
-            $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyHeader')
-          }}
+          Validation Accuracy of the Model
         </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
             {{ percent(latestEpoch?.validation?.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
-            {{
-              $t('training.trainingInformationFrame.accuracyCharts.validationAccuracyText')
-            }}
+            % of validation accuracy
           </span>
           <!-- Chart -->
           <ApexChart
@@ -95,7 +142,7 @@
             height="200"
             type="area"
             :options="options"
-            :series="[{ data: accuracySeries.validation }]"
+            :series="[{ name: 'Validation accuracy', data: accuracySeries.validation }]"
           />
         </template>
       </IconCard>
@@ -110,7 +157,8 @@
         <Contact />
       </template>
       <template #content>
-        <div id="mapHeader">
+        <!-- Scrollable training logs -->
+        <div id="mapHeader" class="max-h-80 overflow-y-auto">
           <ul class="grid grid-cols-1">
             <li
               v-for="(message, index) in props.messages"
@@ -134,10 +182,10 @@ import { List } from 'immutable'
 import { computed } from 'vue'
 // @ts-expect-error waiting for vue3-apexcharts#98
 import ApexChart from "vue3-apexcharts";
+import { chartOptions } from '@/charts'
 
 import type { RoundLogs } from '@epfml/discojs-core'
 
-import { chartOptions } from '@/charts'
 import IconCardSmall from '@/components/containers/IconCardSmall.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import Timer from '@/assets/svg/Timer.vue'
@@ -171,7 +219,6 @@ const accuracySeries = computed(() => props.logs
       validation: (epoch.validation?.accuracy ?? 0) * 100,
     }})
   )
-  .takeLast(10)
   .reduce(({ training, validation }, cur) => { return {
     training: training.concat([cur.training]),
     validation: validation.concat([cur.validation]),
@@ -180,6 +227,42 @@ const accuracySeries = computed(() => props.logs
     validation: [] as number[],
   })
 )
+const lossSeries = computed(() => props.logs
+  .flatMap((round) =>
+    round.epochs.map((epoch) => { return {
+      training: epoch.training.loss,
+      validation: (epoch.validation?.loss ?? 0),
+    }})
+  )
+  .reduce(({ training, validation }, cur) => { return {
+    training: training.concat([cur.training]),
+    validation: validation.concat([cur.validation]),
+  }}, {
+    training: [] as number[],
+    validation: [] as number[],
+  })
+)
+
+const yAxisMax = computed(() => {
+  let maxVal = Math.max(...lossSeries.value.training, ...lossSeries.value.validation)
+  return (maxVal > 0) ? maxVal : 10 // if Math.max returns -inf or 0, set the max to 10 arbitrarily
+})
+
+const lossChartsOptions = computed(() => {
+  return {
+    ...options,
+    yaxis: {
+      max: () => yAxisMax.value,
+      min: 0,
+      labels: {
+        show: true,
+        formatter: function (value: number) {
+          return value.toFixed(2);
+        }
+      }
+    }
+  }
+})
 
 function percent(n: number): string {
   return (n * 100).toFixed(2)

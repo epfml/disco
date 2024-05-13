@@ -9,7 +9,7 @@ describe("training page", () => {
 
     cy.contains("button", "get started").click();
     cy.contains("button", "train").click();
-    cy.contains("button", "join").click();
+    cy.contains("button", "participate").click();
 
     const navigationButtons = 3;
     for (let i = 0; i < navigationButtons; i++) {
@@ -26,7 +26,7 @@ describe("training page", () => {
     ]);
 
     // cypress really wants to JSON encode our buffer.
-    // to avoid that, we are replacing it directly in the reponse
+    // to avoid that, we are replacing it directly in the response
     cy.intercept(
       { hostname: "server", pathname: "/tasks/titanic/model.json" },
       { statusCode: 200 },
@@ -47,7 +47,7 @@ describe("training page", () => {
 
     cy.contains("button", "get started").click();
     cy.contains("button", "train").click();
-    cy.contains("button", "join").click();
+    cy.contains("button", "participate").click();
     cy.contains("button", "next").click();
 
     cy.contains("label", "select file").selectFile(

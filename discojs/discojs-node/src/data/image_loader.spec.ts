@@ -1,5 +1,5 @@
 import { assert, expect } from 'chai'
-import { List, Range } from 'immutable'
+import { List, Range, Repeat } from 'immutable'
 import fs from 'node:fs/promises'
 import * as tf from '@tensorflow/tfjs'
 import { node as tfNode } from '@tensorflow/tfjs-node'
@@ -84,8 +84,8 @@ describe('image loader', () => {
   })
 
   it('loads multiple samples with labels', async () => {
-    const labels = Range(0, 24).map((label) => (label % 10))
-    const stringLabels = labels.map((label) => label.toString())
+    const labels = Repeat(3, 24) //internally, disco maps string labels to their index in the task LABEL_LIST
+    const stringLabels = labels.map(_ => 'cat') // so cat is mapped to integer 3
     const oneHotLabels = List(tf.oneHot(labels.toArray(), 10).arraySync() as number[])
 
     const datasetContent = List(await (await LOADERS.CIFAR10

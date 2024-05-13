@@ -1,41 +1,25 @@
 <template>
-  <div>
-    <!-- Why use Disco? / Features -->
-    <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-1 xl:grid-cols-1 blue">
-      <Card custom-class="hover:text-primary dark:hover:text-light">
-        <h6
-          class="
-              text-xl
-              font-large
-              leading-none
-              tracking-wider
-              dark:group-hover:text-light
-              px-2
-              py-6
-            "
-        >
-          {{ $tm('information.featuresTitle') }}
-        </h6>
-        <div class="ml-10">
-          <Card
-            v-for="card in $tm('information.featuresCard')"
-            :key="(card as any).title"
-            custom-class="hover:text-primary dark:hover:text-light"
-          >
-            <div class="ml-10">
-              <ul
-                class="text-lg ont-semibold text-gray-500 dark:text-light"
-              >
-                <b>{{ (card as any).title }}</b><br>
-                {{
-                  (card as any).text
-                }}
-              </ul>
-            </div>
-          </Card>
+  <!-- Why use Disco? / Features -->
+  <div class="flex justify-center">
+    <IconCard class="justify-self-center w-full lg:w-4/5">
+      <template #title>
+        Why use Disco?
+      </template>
+      <template #content>
+        <div class="mb-4">
+          <b>Supports arbitrary deep learning architectures</b><br>
+          Disco supports arbitrary deep learning tasks and model architectures, running on your device via TensorFlow.js
         </div>
-      </Card>
-    </div>
+        <div class="mb-4">
+          <b>Data and model privacy</b><br>
+          Data privacy by design - no data ever leaves any device. Models updates can be protected by encryption (secure multiparty computation), and by differential privacy.
+        </div>
+        <div class="mb-4">
+          <b>Runs anywhere</b><br>
+          Disco runs in the browser, from any device equipped with a modern browser. For developers, we also offer a standalone node.js version, not needing any browser.
+        </div>
+      </template>
+    </IconCard>
   </div>
 </template>
 
@@ -43,9 +27,7 @@
 import { onActivated } from 'vue'
 
 import { useInformationStore } from '@/store/information'
-import Card from '@/components/containers/Card.vue'
-
-// TODO fix i18n types
+import IconCard from '@/components/containers/IconCard.vue'
 
 const informationStore = useInformationStore()
 onActivated(() => { informationStore.step = 1 })

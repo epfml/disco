@@ -332,7 +332,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm --workspace={./discojs/discojs-{core,node},./server} run build
-      - run: npm --workspace=./cli start -- -t cifar10 -u 1 -e 1
+      - run: npm --workspace=./cli start -- -t cifar10 -u 3 -e 1
 
   test-docs-examples:
     needs: [build-lib-core, build-lib-node, build-server, download-datasets]

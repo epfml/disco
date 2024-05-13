@@ -1,4 +1,4 @@
-import { Range } from 'immutable'
+import { Range, Repeat } from 'immutable'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
@@ -23,7 +23,7 @@ async function simplefaceData (task: Task): Promise<data.DataSplit> {
 async function cifar10Data (cifar10: Task): Promise<data.DataSplit> {
   const dir = '../datasets/CIFAR10/'
   const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
-  const labels = Range(0, 24).map((label) => (label % 10).toString()).toArray()
+  const labels = Repeat('airplane', 24).toArray() // TODO read labels in csv
   return await new NodeImageLoader(cifar10).loadAll(files, { labels })
 }
 
