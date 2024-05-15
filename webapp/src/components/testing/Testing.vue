@@ -46,7 +46,7 @@
                           <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
                         </p>
                         <p class="contents">
-                          <span>Type:</span><span>{{ metadata.type === ModelType.SAVED ? 'Saved' : 'Cached' }}</span>
+                          <span>Type:</span><span>{{ metadata.type === StoredModelType.SAVED ? 'Saved' : 'Cached' }}</span>
                         </p>
                       </div>
                     </template>
@@ -164,8 +164,8 @@ import { storeToRefs } from 'pinia'
 import { List } from 'immutable'
 
 import type { Path, Task } from '@epfml/discojs'
-import { EmptyMemory, Memory, data, ModelType, client as clients, aggregator } from '@epfml/discojs'
-import { IndexedDB, WebImageLoader, WebTabularLoader } from '@epfml/discojs-web'
+import { EmptyMemory, Memory, data, StoredModelType, client as clients, aggregator } from '@epfml/discojs'
+import { IndexedDB, WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs-web'
 
 import { CONFIG } from '@/config'
 import { useMemoryStore } from '@/store/memory'
@@ -216,8 +216,11 @@ const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
     case 'image':
       dataLoader = new WebImageLoader(currentTask.value)
       break
+    case 'text':
+      dataLoader = new WebTextLoader(currentTask.value)
+      break
     default:
-      throw new Error('not implemented')
+      throw new Error(`Browser data loader for data type ${currentTask.value.trainingInformation.dataType} is not implemented`)
   }
   return new data.DatasetBuilder(dataLoader, currentTask.value)
 })
@@ -248,7 +251,7 @@ const downloadModel = async (task: Task): Promise<void> => {
   const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
   const model = await client.getLatestModel()
   const source = {
-    type: ModelType.SAVED,
+    type: StoredModelType.SAVED,
     taskID: task.id,
     name: task.trainingInformation.modelID
   }
@@ -256,7 +259,7 @@ const downloadModel = async (task: Task): Promise<void> => {
   await memoryStore.initModels()
 }
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
-  const taskID = memory.value.infoFor(path)?.taskID
+  const taskID = memory.value.getModelInfo(path)?.taskID
   if (taskID === undefined) {
     toaster.error('Info for path not found')
     return

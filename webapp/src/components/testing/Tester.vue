@@ -344,19 +344,28 @@ async function predictUsingModel (): Promise<void> {
   }
 
   toaster.info('Model prediction started')
-  const predictions = await validator.value?.predict(testingSet)
+  try {
+    const predictions = await validator.value?.predict(testingSet)
 
-  if (isImageTaskType.value) {
-    dataWithPred.value = List(props.datasetBuilder.sources).zip(List(predictions)).map(([source, prediction]) =>
-      ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred })).toArray()
-  } else {
-    if (props.task.trainingInformation.inputColumns === undefined) {
-      throw new Error("no input columns but CSV needs it")
+    if (isImageTaskType.value) {
+      dataWithPred.value = List(props.datasetBuilder.sources).zip(List(predictions)).map(([source, prediction]) =>
+        ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred })).toArray()
+    } else {
+      if (props.task.trainingInformation.inputColumns === undefined) {
+        throw new Error("no input columns but CSV needs it")
+      }
+      featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
+      dataWithPred.value = predictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
     }
-    featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
-    dataWithPred.value = predictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
+    toaster.success('Model prediction finished successfully!')
+  } catch (e) {
+    let msg = 'unable to assess model'
+    if (e instanceof Error) {
+      msg += `: ${e.message}`
+    }
+    console.error(msg)
+    toaster.error('Something went wrong during model inference')
   }
-  toaster.success('Model prediction finished successfully!')
 }
 
 async function assessModel (): Promise<void> {
@@ -405,7 +414,8 @@ async function assessModel (): Promise<void> {
     if (e instanceof Error) {
       msg += `: ${e.message}`
     }
-    toaster.error(msg)
+    console.error(msg)
+    toaster.error('Something went wrong during model testing')
   }
 }
 

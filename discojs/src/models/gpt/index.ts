@@ -116,6 +116,9 @@ export class GPT extends Model {
       config: this.config
     }
   }
+  extract (): tf.LayersModel {
+    return this.model
+  }
 
   [Symbol.dispose](): void{
     console.log("Disposing model")

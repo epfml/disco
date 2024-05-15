@@ -44,11 +44,11 @@ export class Empty extends Memory {
     return Promise.reject(new Error('empty'))
   }
 
-  pathFor (): Path {
+  getModelMemoryPath (): Path {
     throw new Error('empty')
   }
 
-  infoFor (): ModelInfo {
+  getModelInfo (): ModelInfo {
     throw new Error('empty')
   }
 

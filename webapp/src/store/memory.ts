@@ -5,7 +5,7 @@ import { Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
 import type { ModelInfo, Path } from '@epfml/discojs'
-import { ModelType } from '@epfml/discojs'
+import { StoredModelType } from '@epfml/discojs'
 
 export interface ModelMetadata extends ModelInfo {
   date: string
@@ -61,7 +61,7 @@ export const useMemoryStore = defineStore('memory', () => {
       addModel(path, {
         name,
         taskID: task,
-        type: directory === 'working' ? ModelType.WORKING : ModelType.SAVED,
+        type: directory === 'working' ? StoredModelType.WORKING : StoredModelType.SAVED,
         date: dateSaved,
         hours: hourSaved,
         fileSize: Math.round(size / 1024),

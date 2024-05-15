@@ -3,7 +3,7 @@
  * being trained ("working model") or a regular model saved in memory ("saved model").
  * There can only be a single working model for a given task.
  */
-export enum ModelType {
+export enum StoredModelType {
   WORKING = 'working',
   SAVED = 'saved'
 }

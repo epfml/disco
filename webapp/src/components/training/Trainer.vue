@@ -130,7 +130,7 @@ async function startTraining(distributed: boolean): Promise<void> {
   });
 
   try {
-    displayModelCaching.value= false // hide model caching buttons during training
+    displayModelCaching.value = false // hide model caching buttons during training
     trainingGenerator.value = disco.fit(dataset);
     logs.value = List<RoundLogs & { participants: number }>();
     for await (const roundLogs of trainingGenerator.value)

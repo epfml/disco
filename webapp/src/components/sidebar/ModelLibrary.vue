@@ -163,7 +163,7 @@ import { defineComponent } from 'vue'
 import { mapStores } from 'pinia'
 
 import type { Path } from '@epfml/discojs'
-import { Memory, EmptyMemory, ModelType } from '@epfml/discojs'
+import { Memory, EmptyMemory, StoredModelType } from '@epfml/discojs'
 import { IndexedDB } from '@epfml/discojs-web'
 
 import { useToaster } from '@/composables/toaster'
@@ -247,11 +247,11 @@ export default defineComponent({
     },
 
     async loadModel (path: Path) {
-      const modelInfo = this.memory.infoFor(path)
+      const modelInfo = this.memory.getModelInfo(path)
       if (modelInfo === undefined) {
         throw new Error('not such model')
       }
-      if (modelInfo.type !== ModelType.WORKING) {
+      if (modelInfo.type !== StoredModelType.WORKING) {
         try {
           await this.memory.loadModel(path)
           await this.memoryStore.initModels()

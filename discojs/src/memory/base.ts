@@ -2,7 +2,7 @@
 // TODO: replace IO type
 
 import type { Model, TaskID } from '../index.js'
-import type { ModelType } from './model_type.js'
+import type { StoredModelType } from './model_type.js'
 
 /**
  * Model path which uniquely identifies a model in memory.
@@ -13,22 +13,14 @@ export type Path = string
  * Model information which uniquely identifies a model in memory.
  */
 export interface ModelInfo {
-  /**
-   * The model's type: "working" or "saved" model.
-   */
-  type?: ModelType
-  /**
-   * The model's version, to allow for multiple saved models of a same task without
-   * causing id conflicts
-   */
+  // The model's type: "working" or "saved" model.
+  type?: StoredModelType
+  // The model's version, to allow for multiple saved models of a same task without
+  // causing id conflicts
   version?: number
-  /**
-   * The model's corresponding task
-   */
+  // The model's corresponding task
   taskID: TaskID
-  /**
-   * The model's name
-   */
+  // The model's name
   name: string
 }
 
@@ -111,22 +103,22 @@ export abstract class Memory {
   /**
    * Computes the path in memory corresponding to the given model source, be it a path or model information.
    * This is used to easily switch between model path and information, which are both unique model identifiers
-   * with a one-to-one correspondance. Returns undefined instead if no path could be inferred from the given
+   * with a one-to-one equivalence. Returns undefined instead if no path could be inferred from the given
    * model source.
    * @param source The model source
    * @returns The model path
    */
-  abstract pathFor (source: ModelSource): Path | undefined
+  abstract getModelMemoryPath (source: ModelSource): Path | undefined
 
   /**
    * Computes the model information corresponding to the given model source, be it a path or model information.
    * This is used to easily switch between model path and information, which are both unique model identifiers
-   * with a one-to-one correspondance. Returns undefined instead if no unique model information could be inferred
+   * with a one-to-one equivalence. Returns undefined instead if no unique model information could be inferred
    * from the given model source.
    * @param source The model source
    * @returns The model information
    */
-  abstract infoFor (source: ModelSource): ModelInfo | undefined
+  abstract getModelInfo (source: ModelSource): ModelInfo | undefined
 
   /**
    * Computes the lowest version a model source can have without conflicting with model versions currently in memory.
