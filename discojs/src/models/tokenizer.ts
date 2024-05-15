@@ -1,5 +1,5 @@
 import type { Task } from '../index.js'
-import { AutoTokenizer, PreTrainedTokenizer } from '@xenova/transformers';
+import { AutoTokenizer, PreTrainedTokenizer, env } from '@xenova/transformers';
 
 /**
  * A task's tokenizer is initially specified as the tokenizer name, e.g., 'Xenova/gpt2'.
@@ -16,6 +16,7 @@ export async function getTaskTokenizer(task: Task): Promise<PreTrainedTokenizer>
   let tokenizer = task.trainingInformation.tokenizer
   if (tokenizer === undefined) throw Error('No tokenizer specified in the task training information')
   if (typeof tokenizer == 'string') {
+    env.allowLocalModels = false
     tokenizer = await AutoTokenizer.from_pretrained(tokenizer)
     task.trainingInformation.tokenizer = tokenizer
   }
