@@ -231,7 +231,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
-// @ts-expect-error waiting for vue3-apexcharts#98
 import ApexChart from "vue3-apexcharts";
 
 import type { Task } from '@epfml/discojs'
