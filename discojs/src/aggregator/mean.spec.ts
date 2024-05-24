@@ -1,114 +1,52 @@
-import { assert, expect } from 'chai'
-import type { Map } from 'immutable'
+import { expect } from "chai";
+import { Set } from "immutable";
 
-import type { client, Model } from '../index.js'
-import { aggregator, defaultTasks } from '../index.js'
-import { AggregationStep } from './base.js'
+import { WeightsContainer } from "../index.js";
+import { MeanAggregator } from "./mean.js";
 
-const model = defaultTasks.titanic.getModel()
-const id = 'a'
-const weights = [1, 2, 3]
-const newWeights = [4, 5, 6]
-const bufferCapacity = weights.length
-
-export class MockMeanAggregator extends aggregator.AggregatorBase<number> {
-  constructor (
-    model: Model,
-    private readonly threshold: number,
-    roundCutoff = 0
-  ) {
-    super(model, roundCutoff, 1)
-  }
-
-  isFull (): boolean {
-    return this.size >= this.threshold
-  }
-
-  add (nodeId: client.NodeID, contribution: number, round: number): boolean {
-    if (this.isWithinRoundCutoff(round)) {
-      this.log(AggregationStep.ADD, nodeId)
-      this.contributions = this.contributions.setIn([0, nodeId], contribution)
-      this.informant?.update()
-      if (this.isFull()) {
-        this.aggregate()
-      }
-      return true
-    }
-    return false
-  }
-
-  aggregate (): void {
-    this.log(AggregationStep.AGGREGATE)
-    const contribs = this.contributions.get(0)?.valueSeq().toList()
-    if (contribs === undefined) {
-      throw new Error()
-    }
-    this.emit(contribs.reduce((acc: number, e) => acc + e) / contribs.size)
-  }
-
-  makePayloads (base: number): Map<client.NodeID, number> {
-    return this.nodes.toMap().map(() => base)
-  }
+async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {
+  return (await Promise.all(ws.weights.map(async (w) => await w.data()))).map(
+    (arr) => [...arr],
+  );
 }
 
-describe('mean aggregator tests', () => {
-  it('adding weight update with old time stamp returns false', async () => {
-    const t0 = -1
-    const aggregator = new MockMeanAggregator(await model, bufferCapacity)
-    assert.isFalse(aggregator.add(id, weights[0], t0))
-  })
+describe("mean aggregator", () => {
+  it("updates only within round cutoff", () => {
+    const aggregator = new MeanAggregator(undefined, 1, 3);
+    aggregator.setNodes(
+      Set.of("first client", "second client", "third client"),
+    );
 
-  it('adding weight update with recent time stamp returns true', async () => {
-    const aggregator = new MockMeanAggregator(await model, bufferCapacity)
-    const t0 = Date.now()
-    assert.isTrue(aggregator.add(id, weights[0], t0))
-  })
+    // round 0
 
-  it('aggregator returns false if it is not full', async () => {
-    const aggregator = new MockMeanAggregator(await model, bufferCapacity)
-    assert.isFalse(aggregator.isFull())
-  })
+    expect(aggregator.add("first client", WeightsContainer.of(), 0)).to.be.true;
 
-  it('aggregator with standard cutoff = 0', async () => {
-    const aggregator = new MockMeanAggregator(await model, bufferCapacity)
-    assert.isTrue(aggregator.isWithinRoundCutoff(0))
-    assert.isFalse(aggregator.isWithinRoundCutoff(-1))
-  })
+    aggregator.nextRound();
+    // round 1
 
-  it('aggregator with different cutoff = 1', async () => {
-    const aggregator = new MockMeanAggregator(await model, bufferCapacity, 1)
-    assert.isTrue(aggregator.isWithinRoundCutoff(0))
-    assert.isTrue(aggregator.isWithinRoundCutoff(-1))
-    assert.isFalse(aggregator.isWithinRoundCutoff(-2))
-  })
+    expect(aggregator.add("second client", WeightsContainer.of(), 0)).to.be
+      .true;
+    expect(aggregator.add("first client", WeightsContainer.of(), 1)).to.be.true;
 
-  it('adding enough updates to buffer launches aggregator and updates weights', async () => {
-    const aggregator = new MockMeanAggregator(await model, bufferCapacity)
-    const mockAggregatedWeights = 2
+    aggregator.nextRound();
+    // round 2
 
-    const result = aggregator.receiveResult()
+    expect(aggregator.add("third client", WeightsContainer.of(), 0)).to.be
+      .false;
+    expect(aggregator.add("second client", WeightsContainer.of(), 1)).to.be
+      .true;
+    expect(aggregator.add("first client", WeightsContainer.of(), 2)).to.be.true;
+  });
 
-    const t0 = Date.now()
-    weights.forEach((w) => aggregator.add(w.toString(), w, t0))
-    expect(aggregator.size).equal(0)
-    expect(await result).eql(mockAggregatedWeights)
-    expect(aggregator.round).equal(1)
-  })
+  it("returns the mean of the weights", async () => {
+    const aggregator = new MeanAggregator(undefined, 0, 2);
+    aggregator.setNodes(Set.of("first client", "second client"));
 
-  it('testing two full cycles (adding x2 buffer capacity)', async () => {
-    const aggregator = new MockMeanAggregator(await model, bufferCapacity, 0)
+    const results = aggregator.receiveResult();
 
-    let mockAggregatedWeights = 2
-    let result = aggregator.receiveResult()
-    const t0 = Date.now()
-    weights.forEach((w) => aggregator.add(w.toString(), w, t0))
-    expect(await result).eql(mockAggregatedWeights)
+    aggregator.add("first client", WeightsContainer.of([0], [1]), 0);
+    aggregator.add("second client", WeightsContainer.of([2], [3]), 0);
 
-    mockAggregatedWeights = 5
-    result = aggregator.receiveResult()
-    const t1 = Date.now()
-    newWeights.map((w) => aggregator.add(w.toString(), w, t1))
-    expect(await result).eql(mockAggregatedWeights)
-    expect(aggregator.round).equal(2)
-  })
-})
+    expect(await WSIntoArrays(await results)).to.deep.equal([[1], [2]]);
+  });
+});
