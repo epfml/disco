@@ -208,7 +208,7 @@ const addFiles = (files: FileList, label?: string) => {
           // Match the selected files with the csv file names and label
           const imageFile = filesArray.find(file => row.filename === file.name.split('.').slice(0, -1).join('.'))
           if (imageFile === undefined) {
-            toaster.error("An image was not found in the CSV file, make sure the CSV filenames don't include file extensions.")
+            toaster.error("Images specified in the CSV file are missing, make sure the CSV filenames don't include file extensions.")
             throw new Error("Image not found in the CSV file")
           } else if (imageFile) {
             props.datasetBuilder.addFiles([imageFile], row.label)
