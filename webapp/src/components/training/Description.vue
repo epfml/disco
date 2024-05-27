@@ -1,5 +1,18 @@
 <template>
   <div class="space-y-4 md:space-y-8">
+    <div class="flex justify-center">
+    <IconCard 
+      title-placement="left"
+      v-if="isBrowserUnsupported">
+      <template #title>Browser Unsupported</template>
+       <template #icon>
+        <Tasks />
+      </template>
+      <template #content>
+        Unfortunately, this task is currently not available on your browser. Please try using a different one.
+      </template>
+    </IconCard>
+    </div>
     <IconCard>
       <template #title>
         {{ props.task.displayInformation.taskTitle }}
@@ -88,6 +101,9 @@ interface Props {
 }
 const props = defineProps<Props>()
 
+const isBrowserUnsupported = computed(() => {
+  return props.task.id =='wikitext-103' && navigator.userAgent.indexOf("Firefox") != -1
+})
 // filter the fields we do not wish to display
 trainingInformation.fields = trainingInformation.fields.filter((field) => field.id !== 'modelID')
 

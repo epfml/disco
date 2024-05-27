@@ -63,7 +63,7 @@ export class GPT extends Model {
       if (validationData !== undefined) {
         if(val_loss === undefined || isNaN(val_loss) ||
           val_acc === undefined || isNaN(val_acc)) {
-          throw new Error("Invalid validation logs");
+          throw new Error("Validation accuracy or loss is undefined or nan");
         }
         structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
       }
