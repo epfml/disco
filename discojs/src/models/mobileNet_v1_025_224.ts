@@ -1,3 +1,4 @@
+// Source: https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json
 export default {
   modelTopology: {
     keras_version: "2.1.4",

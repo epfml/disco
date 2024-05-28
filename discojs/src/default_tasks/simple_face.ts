@@ -1,9 +1,8 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../../index.js'
-import { data, models } from '../../index.js'
-
-import baseModel from './model.js'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { data, models } from '../index.js'
+import baseModel from '../models/mobileNetV2_35_alpha_2_classes.js'
 
 export const simpleFace: TaskProvider = {
   getTask (): Task {
