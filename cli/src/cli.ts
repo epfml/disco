@@ -1,7 +1,7 @@
 import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
 
-import type { data, RoundLogs, Task } from '@epfml/discojs'
+import type { data, RoundLogs, Task, TypedDataset } from '@epfml/discojs'
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 import { startServer } from 'server'
 
@@ -11,7 +11,7 @@ import { args } from './args.js'
 async function runUser(
   task: Task,
   url: URL,
-  data: data.DataSplit,
+  data: data.DataSplit | TypedDataset,
 ): Promise<List<RoundLogs>> {
   const client = new clients.federated.FederatedClient(
     url,

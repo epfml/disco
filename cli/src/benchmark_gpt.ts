@@ -1,8 +1,11 @@
 import { parse } from 'ts-command-line-args';
-import type { Task } from '@epfml/discojs'
-import { fetchTasks, data, models } from '@epfml/discojs'
-import { NodeTextLoader, loadModelFromDisk } from '@epfml/discojs-node'
+import * as tf from "@tensorflow/tfjs"
+import { AutoTokenizer } from '@xenova/transformers';
+
+import { fetchTasks, models } from '@epfml/discojs'
+import { loadModelFromDisk, parseText } from '@epfml/discojs-node'
 import { startServer } from 'server'
+import { tokenize_and_left_pad } from '@epfml/discojs/dist/convertors.js';
 
 interface CLIArguments{
   modelType?: string; // 'gpt-nano', 'gpt-micro', 'gpt-mini', 'gpt2'
@@ -38,6 +41,15 @@ const args = { ...defaultArgs, ...parsedArgs }
  * Benchmark results are reported in https://github.com/epfml/disco/pull/659
  */
 
+function intoTFGenerator<T extends tf.TensorContainer>(
+  iter: AsyncIterable<T>,
+): tf.data.Dataset<T> {
+  // @ts-expect-error generator
+  return tf.data.generator(async function* () {
+    yield* iter;
+  });
+}
+
 async function main(args: Required<CLIArguments>): Promise<void> { 
   const { inference: benchmarkInference, modelType,
     contextLength, batchSize, modelPath } = args
@@ -51,6 +63,10 @@ async function main(args: Required<CLIArguments>): Promise<void> {
   const tasks = await fetchTasks(url)
   const task = tasks.get('wikitext-103')
   if (task === undefined) { throw new Error('task not found') }  
+
+  const tokenizerName = task.trainingInformation.tokenizer
+  if (typeof tokenizerName !== 'string') throw Error('no tokenizer name specified in the task training information')
+  const tokenizer = await AutoTokenizer.from_pretrained(tokenizerName)
 
   /**
    * Training benchmark
@@ -72,8 +88,28 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     // to make sure the dataset is batched and tokenized correctly
     task.trainingInformation.batchSize = batchSize
     task.trainingInformation.maxSequenceLength = contextLength
-    const dataset = await loadWikitextData(task)
-    const preprocessedDataset = dataset.train.preprocess().batch().dataset
+    const dataset = parseText('../datasets/wikitext/wiki.train.tokens')
+
+    const maxLength = task.trainingInformation.maxSequenceLength ?? (tokenizer.model_max_length as number) + 1
+    const preprocessedDataset = intoTFGenerator(
+      dataset
+        .map((line) => tokenize_and_left_pad(line, tokenizer, maxLength))
+        .batch(batchSize)
+        .map((batch) => ({
+          xs: tf.tensor2d(batch.map((tokens) => tokens.slice(0, -1)).toArray()),
+          ys: tf.stack(
+            batch
+              .map(
+                (tokens) =>
+                  tf.oneHot(
+                    tokens.slice(1),
+                    tokenizer.model.vocab.length + 1,
+                  ) as tf.Tensor2D,
+              )
+              .toArray(),
+          ) as tf.Tensor3D,
+        })),
+    );
     
     // Init and train the model
     const model = new models.GPT(config)
@@ -95,8 +131,6 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     if (!(model instanceof models.GPT)){
       throw new Error("Loaded model isn't a GPT model")
     }
-    // Retrieve the tokenizer used during training
-    const tokenizer = await models.getTaskTokenizer(task)
     
     // Benchmark parameters
     const prompt = 'The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion,'
@@ -117,14 +151,6 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     server.once('close', resolve)
     server.close(reject)
   })
-}
-
-async function loadWikitextData (task: Task): Promise<data.DataSplit> {
-  const loader = new NodeTextLoader(task)
-  const dataSplit: data.DataSplit = {
-    train: await data.TextData.init(await loader.load('../datasets/wikitext/wiki.train.tokens', {shuffle: true}), task)
-  }
-  return dataSplit
 }
 
 // You can run this example with "npm start" from this folder
