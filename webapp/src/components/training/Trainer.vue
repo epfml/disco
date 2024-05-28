@@ -86,21 +86,19 @@ async function startTraining(distributed: boolean): Promise<void> {
   let dataset: data.DataSplit;
   try {
     dataset = await props.datasetBuilder.build({
-      shuffle: false,
+      shuffle: true,
       validationSplit: props.task.trainingInformation.validationSplit,
     });
   } catch (e) {
     console.error(e);
     if (
       e instanceof Error &&
-      e.message.includes(
-        "provided in columnConfigs does not match any of the column names",
-      )
+      e.message.includes("provided in columnConfigs does not match any of the column names")
     ) {
       // missing field is specified between two "quotes"
       const missingFields: String = e.message.split('"')[1].split('"')[0];
       toaster.error(`The input data is missing the field "${missingFields}"`);
-    } else if (e instanceof Error && e.message.includes("provide dataset input files")) {
+    } else if (e instanceof Error && e.message.includes("No input files connected")) {
       toaster.error("First connect your data at the previous step.")
     } else {
       toaster.error(
