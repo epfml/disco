@@ -1,22 +1,25 @@
 import { assert, expect } from "chai";
 import { List, Repeat } from "immutable";
-import fs from 'node:fs/promises'
 import type * as http from "node:http";
 import path from "node:path";
 
-import type { WeightsContainer } from '@epfml/discojs'
-import {
-  Disco, client as clients, data,
-  aggregator as aggregators, defaultTasks,
-} from '@epfml/discojs'
-import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/discojs-node'
+import type { WeightsContainer } from "@epfml/discojs";
+import { Disco, defaultTasks } from "@epfml/discojs";
+import { loadCSV, loadImagesInDir, loadText } from "@epfml/discojs-node";
 
 import { Server } from "../../src/index.js";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
   const ret: T[] = [];
-  for await (const e of iter) ret.push(e);
+  for await (const e of iter) {
+    // TODO trick to allow other Promises to run
+    // else one client might progress alone without communicating with others
+    // will be fixed when client orchestrations in the server is correctly done
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    ret.push(e);
+  }
   return ret;
 }
 
@@ -36,135 +39,129 @@ describe("end-to-end federated", () => {
     server?.close();
   });
 
-  const DATASET_DIR = '../datasets/'
+  const DATASET_DIR = path.join("..", "datasets");
 
-  async function cifar10user (): Promise<WeightsContainer> {
-    const dir = DATASET_DIR + 'CIFAR10/'
-    const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
-    const labels = Repeat('cat', 24).toArray() // TODO read labels in csv
+  async function cifar10user(): Promise<WeightsContainer> {
+    // TODO single label means to model can't be wrong
 
-    const trainingScheme = 'federated'
-    const cifar10Task = defaultTasks.cifar10.getTask()
-    cifar10Task.trainingInformation.scheme = trainingScheme
-    const data = await new NodeImageLoader(cifar10Task).loadAll(files, { labels, shuffle: false })
+    const dataset = (
+      await loadImagesInDir(path.join(DATASET_DIR, "CIFAR10"))
+    ).zip(Repeat("cat"));
 
-    const aggregator = aggregators.getAggregator(cifar10Task, {scheme: trainingScheme})
-    const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
-    const disco = await Disco.fromTask(cifar10Task, client, { scheme: trainingScheme })
+    const disco = await Disco.fromTask(defaultTasks.cifar10.getTask(), url, {
+      scheme: "federated",
+    });
 
-    await disco.trainFully(data);
-    await disco.close()
+    await disco.trainFully(["image", dataset]);
+    await disco.close();
 
-    return disco.trainer.model.weights
+    return disco.trainer.model.weights;
   }
 
-  async function titanicUser (): Promise<WeightsContainer> {
-    const files = [DATASET_DIR + 'titanic_train.csv']
+  async function titanicUser(): Promise<WeightsContainer> {
+    const task = defaultTasks.titanic.getTask();
+    task.trainingInformation.epochs =
+      task.trainingInformation.roundDuration = 5;
 
-    const trainingScheme = 'federated'
-    const titanicTask = defaultTasks.titanic.getTask()
-    titanicTask.trainingInformation.scheme = trainingScheme
-    titanicTask.trainingInformation.epochs = titanicTask.trainingInformation.roundDuration = 5
-    const data = await (new NodeTabularLoader(titanicTask, ',').loadAll(
-      files,
-      {
-        features: titanicTask.trainingInformation.inputColumns,
-        labels: titanicTask.trainingInformation.outputColumns,
-        shuffle: false
-      }
-    ))
-    const aggregator = aggregators.getAggregator(titanicTask, {scheme: trainingScheme})
-    const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
-    const disco = await Disco.fromTask(titanicTask, client, { scheme: trainingScheme })
+    const dataset = loadCSV(path.join(DATASET_DIR, "titanic_train.csv"));
 
-    const logs = List(await arrayFromAsync(disco.trainByRound(data)));
-    await disco.close()
+    const titanicTask = defaultTasks.titanic.getTask();
+    titanicTask.trainingInformation.epochs =
+      titanicTask.trainingInformation.roundDuration = 5;
+    const disco = await Disco.fromTask(titanicTask, url, {
+      scheme: "federated",
+    });
 
-    expect(logs.last()?.epochs.last()?.training.accuracy).to.be.greaterThan(0.6)
-    if (logs.last()?.epochs.last()?.validation === undefined) {
-      throw new Error('No validation logs while validation dataset was specified')
-    } 
-    const validationLogs = logs.last()?.epochs.last()?.validation
-    expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
+    const logs = List(
+      await arrayFromAsync(disco.trainByRound(["tabular", dataset])),
+    );
+    await disco.close();
 
-    return disco.trainer.model.weights
+    expect(logs.last()?.epochs.last()?.training.accuracy).to.be.greaterThan(
+      0.6,
+    );
+    if (logs.last()?.epochs.last()?.validation === undefined)
+      throw new Error(
+        "No validation logs while validation dataset was specified",
+      );
+    const validationLogs = logs.last()?.epochs.last()?.validation;
+    expect(validationLogs?.accuracy).to.be.greaterThan(0.6);
+
+    return disco.trainer.model.weights;
   }
 
   async function wikitextUser(): Promise<void> {
-    const trainingScheme = 'federated'
-    const task = defaultTasks.wikitext.getTask()
-    task.trainingInformation.scheme = trainingScheme
-    task.trainingInformation.epochs = 2
-    const loader = new NodeTextLoader(task)
-    const dataSplit: data.DataSplit = {
-      train: await data.TextData.init((await loader.load(DATASET_DIR + 'wikitext/wiki.train.tokens')), task),
-      validation: await data.TextData.init(await loader.load(DATASET_DIR + 'wikitext/wiki.valid.tokens'), task)
-    }
+    const task = defaultTasks.wikitext.getTask();
+    task.trainingInformation.epochs = 2;
 
-    const aggregator = aggregators.getAggregator(task, {scheme: trainingScheme})
-    const client = new clients.federated.FederatedClient(url, task, aggregator)
-    const disco = await Disco.fromTask(task, client, { scheme: trainingScheme })
+    const dataset = loadText(
+      path.join(DATASET_DIR, "wikitext", "wiki.train.tokens"),
+    ).chain(loadText(path.join(DATASET_DIR, "wikitext", "wiki.valid.tokens")));
 
-    const logs = List(await arrayFromAsync(disco.trainByRound(dataSplit)));
-    await disco.close()
+    const disco = await Disco.fromTask(task, url, { scheme: "federated" });
+
+    const logs = List(
+      await arrayFromAsync(disco.trainByRound(["text", dataset])),
+    );
+    await disco.close();
 
     expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
       logs.last()?.epochs.last()?.training.loss as number,
     );
   }
 
-  async function lusCovidUser (): Promise<WeightsContainer> {
-    const dir = DATASET_DIR + 'lus_covid/'
-    const files = await Promise.all(['COVID+/', 'COVID-/'].map(async (subdir: string) => {
-      return (await fs.readdir(dir + subdir))
-        .map((file: string) => dir + subdir + file)
-        .filter((path: string) => path.endsWith('.png'))
-    }))
+  async function lusCovidUser(): Promise<WeightsContainer> {
+    const lusCovidTask = defaultTasks.lusCovid.getTask();
+    lusCovidTask.trainingInformation.epochs = 16;
+    lusCovidTask.trainingInformation.roundDuration = 4;
 
-    const positiveLabels = files[0].map(_ => 'COVID-Positive')
-    const negativeLabels = files[1].map(_ => 'COVID-Negative')
-    const labels = positiveLabels.concat(negativeLabels)
+    const [positive, negative] = [
+      (
+        await loadImagesInDir(path.join(DATASET_DIR, "lus_covid", "COVID+"))
+      ).zip(Repeat("COVID-Positive")),
+      (
+        await loadImagesInDir(path.join(DATASET_DIR, "lus_covid", "COVID-"))
+      ).zip(Repeat("COVID-Negative")),
+    ];
+    const dataset = positive.chain(negative);
 
-    const trainingScheme = 'federated'
-    const lusCovidTask = defaultTasks.lusCovid.getTask()
-    lusCovidTask.trainingInformation.scheme = trainingScheme
-    lusCovidTask.trainingInformation.epochs = 16
-    lusCovidTask.trainingInformation.roundDuration = 4
+    const disco = await Disco.fromTask(lusCovidTask, url, {
+      scheme: "federated",
+    });
 
-    const data = await new NodeImageLoader(lusCovidTask)
-      .loadAll(files.flat(), { labels, channels: 3 })
+    const logs = List(
+      await arrayFromAsync(disco.trainByRound(["image", dataset])),
+    );
+    await disco.close();
 
-    const aggregator = aggregators.getAggregator(lusCovidTask, {scheme: trainingScheme})
-    const client = new clients.federated.FederatedClient(url, lusCovidTask, aggregator)
-    const disco = await Disco.fromTask(lusCovidTask, client, { scheme: trainingScheme })
+    const validationLogs = logs.last()?.epochs.last()?.validation;
+    expect(validationLogs?.accuracy).to.be.greaterThan(0.6);
 
-    const logs = List(await arrayFromAsync(disco.trainByRound(data)));
-    await disco.close()
-
-    const validationLogs = logs.last()?.epochs.last()?.validation
-    expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
-
-    return disco.trainer.model.weights
+    return disco.trainer.model.weights;
   }
 
   it("three cifar10 users reach consensus", async function () {
     this.timeout(90_000);
 
-    const [m1, m2, m3] = await Promise.all([cifar10user(), cifar10user(), cifar10user()]);
-    assert.isTrue(m1.equals(m2) && m2.equals(m3))
+    const [m1, m2, m3] = await Promise.all([
+      cifar10user(),
+      cifar10user(),
+      cifar10user(),
+    ]);
+    assert.isTrue(m1.equals(m2) && m2.equals(m3));
   });
 
   it("two titanic users reach consensus", async function () {
     this.timeout(30_000);
 
     const [m1, m2] = await Promise.all([titanicUser(), titanicUser()]);
-    assert.isTrue(m1.equals(m2))
+    assert.isTrue(m1.equals(m2));
   });
   it("two lus_covid users reach consensus", async function () {
-    this.timeout('3m');
+    this.timeout("3m");
 
     const [m1, m2] = await Promise.all([lusCovidUser(), lusCovidUser()]);
-    assert.isTrue(m1.equals(m2))
+    assert.isTrue(m1.equals(m2));
   });
 
   it("trains wikitext", async function () {
@@ -172,4 +169,4 @@ describe("end-to-end federated", () => {
 
     await wikitextUser();
   });
-})
+});
