@@ -1,15 +1,16 @@
-import fs from 'node:fs/promises'
+import { Repeat } from 'immutable'
+import * as path from 'node:path'
 
-import type { data, Task } from '@epfml/discojs'
+import type { Dataset, Image, Task, TypedLabeledDataset } from '@epfml/discojs'
 import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
-import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
+import { loadCSV, loadImagesInDir } from '@epfml/discojs-node'
 import { Server } from 'server'
 
 /**
  * Example of discojs API, we load data, build the appropriate loggers, the disco object
  * and finally start training.
  */
-async function runUser (url: URL, task: Task, dataset: data.DataSplit): Promise<void> {
+async function runUser (url: URL, task: Task, dataset: TypedLabeledDataset): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
   const disco = await Disco.fromTask(task, url, { scheme: 'federated' })
 
@@ -34,18 +35,18 @@ async function main (): Promise<void> {
   // Choose the task and load local data
   // Make sure you first ran ./get_training_data
   let task: Task | undefined
-  let dataset: data.DataSplit
+  let dataset: TypedLabeledDataset
   switch (NAME) {
     case 'titanic': {
       task = tasks.get('titanic')
       if (task === undefined) { throw new Error('task not found') }
-      dataset = await loadTitanicData(task)
+      dataset = ["tabular", loadCSV("../../datasets/titanic_train.csv")]
       break
     }
     case 'simple_face': {
       task = tasks.get('simple_face')
       if (task === undefined) { throw new Error('task not found') }
-      dataset = await loadSimpleFaceData(task)
+      dataset = ["image", await loadSimpleFaceData()]
       break
     }
     default:
@@ -66,35 +67,15 @@ async function main (): Promise<void> {
   })
 }
 
-async function filesFromFolder (dir: string, folder: string): Promise<string[]> {
-  const f = await fs.readdir(dir + folder)
-  return f.map(file => dir + folder + '/' + file)
-}
+async function loadSimpleFaceData(): Promise<Dataset<[Image, string]>> {
+  const folder = "../datasets/simple_face";
 
-async function loadSimpleFaceData (task: Task): Promise<data.DataSplit> {
-  const dir = '../../datasets/simple_face/'
-  const youngFolders = ['child']
-  const oldFolders = ['adult']
+  const [adults, childs]: Dataset<[Image, string]>[] = [
+    (await loadImagesInDir(path.join(folder, "adult"))).zip(Repeat("adult")),
+    (await loadImagesInDir(path.join(folder, "child"))).zip(Repeat("child")),
+  ];
 
-  const youngFiles = (await Promise.all(youngFolders.map(async folder => await filesFromFolder(dir, folder)))).flat()
-  const oldFiles = (await Promise.all(oldFolders.map(async folder => await filesFromFolder(dir, folder)))).flat()
-
-  const filesPerFolder = [youngFiles, oldFiles]
-
-  const labels = filesPerFolder.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
-  const files = filesPerFolder.flat()
-
-  return await new NodeImageLoader(task).loadAll(files, { labels })
-}
-
-async function loadTitanicData (task: Task): Promise<data.DataSplit> {
-  const files = ['../../datasets/titanic_train.csv']
-  const titanicTask = defaultTasks.titanic.getTask()
-  return await new NodeTabularLoader(task, ',').loadAll(files, {
-    features: titanicTask.trainingInformation.inputColumns,
-    labels: titanicTask.trainingInformation.outputColumns,
-    shuffle: false
-  })
+  return adults.chain(childs);
 }
 
 // You can run this example with "npm start" from this folder
