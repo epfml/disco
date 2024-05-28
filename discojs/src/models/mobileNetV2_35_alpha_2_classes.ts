@@ -1,3 +1,5 @@
+// Source: https://storage.googleapis.com/deai-313515.appspot.com/models/mobileNetV2_35_alpha_2_classes/model.json
+// This model was converted using the tensorflow.js converter
 export default {
   format: "layers-model",
   generatedBy: "keras v2.6.0",
