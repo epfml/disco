@@ -2,6 +2,9 @@ import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
 import { data, models } from '../index.js'
+import baseModel from '../models/mobileNet_v1_025_224.js'
+
+const IMAGE_SIZE = 28
 
 export const skinMnist: TaskProvider = {
   getTask (): Task {
@@ -25,8 +28,8 @@ export const skinMnist: TaskProvider = {
         batchSize: 5,
         preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         dataType: 'image',
-        IMAGE_H: 28,
-        IMAGE_W: 28,
+        IMAGE_H: IMAGE_SIZE,
+        IMAGE_W: IMAGE_SIZE,
         LABEL_LIST: ['nv', 'vasc', 'mel', 'bkl', 'df', 'akiec', 'bcc'],
         scheme: 'federated',
         noiseScale: undefined,
@@ -35,110 +38,77 @@ export const skinMnist: TaskProvider = {
     }
   },
 
-  // async getModel (): Promise<Model> {
-  //   const imageHeight = 28
-  //   const imageWidth = 28
-  //   const imageChannels = 3
-  //   const numOutputClasses = 7
-  //   const model = tf.sequential()
-
-  //   // In the first layer of our convolutional neural network we have
-  //   // to specify the input shape. Then we specify some parameters for
-  //   // the convolution operation that takes place in this layer.
-  //   model.add(tf.layers.conv2d({
-  //     inputShape: [imageHeight, imageWidth, imageChannels],
-  //     kernelSize: 5,
-  //     filters: 8,
-  //     strides: 1,
-  //     activation: 'relu',
-  //     kernelInitializer: 'varianceScaling'
-  //   }))
-
-  //   // The MaxPooling layer acts as a sort of downsampling using max values
-  //   // in a region instead of averaging.
-  //   model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
-
-  //   // Repeat the conv2d + maxPooling block.
-  //   // Note that we have more filters in the convolution.
-  //   model.add(tf.layers.conv2d({
-  //     kernelSize: 5,
-  //     filters: 16,
-  //     strides: 1,
-  //     activation: 'relu',
-  //     kernelInitializer: 'varianceScaling'
-  //   }))
-  //   model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
-
-  //   // Now we flatten the output from the 2D filters into a 1D vector to prepare
-  //   // it for input into our last layer. This is common practice when feeding
-  //   // higher dimensional data to a final classification output layer.
-  //   model.add(tf.layers.flatten())
-
-  //   // Our last layer is a dense layer which has 2 output units, one for each
-  //   // output class.
-  //   model.add(tf.layers.dense({
-  //     units: numOutputClasses,
-  //     kernelInitializer: 'varianceScaling',
-  //     activation: 'softmax'
-  //   }))
-
-  //   model.compile({
-  //     optimizer: 'adam',
-  //     loss: 'categoricalCrossentropy',
-  //     metrics: ['accuracy']
-  //   })
-
-  //   return Promise.resolve(new models.TFJS(model))
-  // }
   async getModel(): Promise<Model> {
-    const imageHeight = 28
-    const imageWidth = 28
     const imageChannels = 3
     const numOutputClasses = 7
+    // const mobilenet = await tf.loadLayersModel({
+    //   load: async () => Promise.resolve(baseModel),
+    // })
+
+    // const x = mobilenet.getLayer('global_average_pooling2d_1')
+    // const predictions = tf.layers
+    //   .dense({ units: 10, activation: 'softmax', name: 'denseModified' })
+    //   .apply(x.output) as tf.SymbolicTensor
+
+    // const model = tf.model({
+    //   inputs: mobilenet.input,
+    //   outputs: predictions,
+    //   name: 'modelModified'
+    // })
 
     const model = tf.sequential()
 
+
     model.add(
       tf.layers.conv2d({
-        inputShape: [imageHeight, imageWidth, imageChannels],
+        inputShape: [IMAGE_SIZE, IMAGE_SIZE, imageChannels],
         filters: 256,
         kernelSize: 3,
+        strides: 1,
+        kernelInitializer: 'varianceScaling',
         activation: 'relu'
       })
     )
 
-    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2] }))
-    model.add(tf.layers.dropout({ rate: 0.3 }))
+    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
+    model.add(tf.layers.dropout({ rate: 0.2 }))
 
     model.add(
       tf.layers.conv2d({
         filters: 128,
         kernelSize: 3,
+        strides: 1,
+        kernelInitializer: 'varianceScaling',
         activation: 'relu'
       })
     )
 
-    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2] }))
-    model.add(tf.layers.dropout({ rate: 0.3 }))
+    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
+    model.add(tf.layers.dropout({ rate: 0.2 }))
 
     model.add(
       tf.layers.conv2d({
         filters: 64,
         kernelSize: 3,
+        strides: 1,
+        kernelInitializer: 'varianceScaling',
         activation: 'relu'
       })
     )
 
-    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2] }))
-    model.add(tf.layers.dropout({ rate: 0.3 }))
+    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
+    model.add(tf.layers.dropout({ rate: 0.2 }))
 
     model.add(tf.layers.flatten())
-
     model.add(tf.layers.dense({ units: 32 }))
-    model.add(tf.layers.dense({ units: numOutputClasses, activation: 'softmax' }))
+    model.add(tf.layers.dense({
+      units: numOutputClasses,
+      kernelInitializer: 'varianceScaling',
+      activation: 'softmax'
+    }))
 
     model.compile({
-      optimizer: tf.train.adam(0.00001),
+      optimizer: tf.train.adam(),
       loss: 'categoricalCrossentropy',
       metrics: ['accuracy']
     })
