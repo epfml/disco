@@ -7,8 +7,6 @@ export type MessageFederated =
   ClientConnected |
   SendPayload |
   ReceiveServerPayload |
-  RequestServerStatistics |
-  ReceiveServerStatistics |
   ReceiveServerMetadata |
   AssignNodeID
 
@@ -21,13 +19,6 @@ export interface ReceiveServerPayload {
   type: type.ReceiveServerPayload
   payload: weights.Encoded
   round: number
-}
-export interface RequestServerStatistics {
-  type: type.RequestServerStatistics
-}
-export interface ReceiveServerStatistics {
-  type: type.ReceiveServerStatistics
-  statistics: Record<string, number>
 }
 export interface ReceiveServerMetadata {
   type: type.ReceiveServerMetadata
@@ -45,20 +36,12 @@ export function isMessageFederated (raw: unknown): raw is MessageFederated {
 
   switch (raw.type) {
     case type.ClientConnected:
-      return true
     case type.SendPayload:
-      return true
     case type.ReceiveServerPayload:
-      return true
-    case type.RequestServerStatistics:
-      return true
-    case type.ReceiveServerStatistics:
-      return true
     case type.ReceiveServerMetadata:
-      return true
     case type.AssignNodeID:
       return true
-    default:
-      return false
   }
+
+  return false
 }

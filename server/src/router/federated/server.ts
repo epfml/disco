@@ -200,21 +200,6 @@ export class Federated extends Server {
           console.info(`dropped contribution from client ${clientId} for round ${round}`)
           return // TODO what to answer?
 	}
-      } else if (msg.type === MessageTypes.ReceiveServerStatistics) {
-        const statistics = this.informants
-          .get(task.id)
-          ?.getAllStatistics()
-
-        const msg: messages.ReceiveServerStatistics = {
-          type: MessageTypes.ReceiveServerStatistics,
-          statistics: statistics ?? {}
-        }
-
-        ws.send(msgpack.encode(msg))
-      } else if (msg.type === MessageTypes.RequestServerStatistics) {
-        this.logsAppend(task.id, clientId, MessageTypes.ReceiveServerPayload, 0)
-
-        this.createPromiseForWeights(task.id, aggregator, ws)
       } else if (msg.type === MessageTypes.ReceiveServerMetadata) {
         const { key, round } = msg
 
