@@ -1,6 +1,6 @@
 import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
-import { List, Map, Set } from 'immutable'
+import { List, Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 
 import type {
@@ -16,7 +16,6 @@ import {
   serialization,
   AsyncInformant,
   aggregator as aggregators,
-  aggregation
 } from '@epfml/discojs'
 
 import { Server } from '../server.js'
@@ -47,11 +46,6 @@ export class Federated extends Server {
    * Aggregators for each hosted task.
    */
   private aggregators = Map<TaskID, aggregators.Aggregator>()
-
-  private contributions = Map<TaskID, {
-    round: number
-    participants: Set<[WebSocket.WebSocket, WeightsContainer]>
-  }>()
   /**
    * Promises containing the current round's results. To be awaited on when providing clients
    * with the most recent result.
@@ -166,14 +160,14 @@ export class Federated extends Server {
       .catch(console.error)
   }
 
-  protected handle (task: Task, ws: WebSocket, model: Model): void {
-    const taskAggregator = this.aggregators.get(task.id)
-    if (taskAggregator === undefined) {
-      throw new Error('connecting to a non-existing task')
-    }
+  protected handle (task: Task, ws: WebSocket): void {
+    const aggregator = this.aggregators.get(task.id)
+    if (aggregator === undefined)
+      throw new Error(`no aggregator for task ${task.id}`)
+
     // Client id of the message sender
     let clientId = randomUUID()
-    while (!taskAggregator.registerNode(clientId)) {
+    while (!aggregator.registerNode(clientId)) {
       clientId = randomUUID()
     }
 
@@ -186,12 +180,6 @@ export class Federated extends Server {
 
       if (msg.type === MessageTypes.ClientConnected) {
         this.logsAppend(task.id, clientId, MessageTypes.ClientConnected, 0)
-
-        let aggregator = this.aggregators.get(task.id)
-        if (aggregator === undefined) {
-          aggregator = new aggregators.MeanAggregator()
-          this.aggregators = this.aggregators.set(task.id, aggregator)
-        }
         console.info('client', clientId, 'joined', task.id)
 
         const msg: AssignNodeID = {
@@ -205,32 +193,12 @@ export class Federated extends Server {
         const { payload, round } = msg
         const weights = serialization.weights.decode(payload)
 
-        console.log("federated: recv payload for round", round)
+	this.createPromiseForWeights(task.id, aggregator, ws)
 
-        const {round: currentRound, participants: currentParticipants} = this.contributions.get(task.id, {
-          round,
-          participants: Set<[WebSocket, WeightsContainer]>()
-        })
-        if (round < currentRound) {
-          console.info('federate: dropped contribution from client', clientId, 'for round', round)
+	// TODO support multiple communication round
+        if (!aggregator.add(clientId, weights, round, 0)) {
+          console.info(`dropped contribution from client ${clientId} for round ${round}`)
           return // TODO what to answer?
-        }
-
-        const participants = currentParticipants.add([ws, weights])
-        this.contributions = this.contributions.set(task.id, {round, participants})
-
-	if (participants.size >= (task.trainingInformation.minimumReadyPeers ?? 0)) {
-          console.log("federated: sending back weights for round", round)
-          serialization.weights.encode(aggregation.avg(participants.map(([_, weights]) => weights)))
-            .then((payload) => msgpack.encode({
-              type: MessageTypes.ReceiveServerPayload,
-              round,
-              payload,
-            }))
-            .then((reply) => participants.forEach(([client, _]) => client.send(reply)))
-            .catch((err) => console.error("sending weights back", err))
-
-          this.contributions = this.contributions.delete(task.id)
 	}
       } else if (msg.type === MessageTypes.ReceiveServerStatistics) {
         const statistics = this.informants
@@ -245,13 +213,6 @@ export class Federated extends Server {
         ws.send(msgpack.encode(msg))
       } else if (msg.type === MessageTypes.RequestServerStatistics) {
         this.logsAppend(task.id, clientId, MessageTypes.ReceiveServerPayload, 0)
-        const aggregator = this.aggregators.get(task.id)
-        if (aggregator === undefined) {
-          throw new Error(`requesting round of unknown task: ${task.id}`)
-        }
-        if (model === undefined) {
-          throw new Error('aggregator model was not set')
-        }
 
         this.createPromiseForWeights(task.id, aggregator, ws)
       } else if (msg.type === MessageTypes.ReceiveServerMetadata) {
