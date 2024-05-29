@@ -1,15 +1,17 @@
-import fs from 'node:fs/promises'
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
 
-import type { data, Task } from '@epfml/discojs'
-import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
-import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
+import type { ImageDataset, TabularDataset, Task, TypedDataset } from '@epfml/discojs'
+import { Disco, fetchTasks, Dataset } from '@epfml/discojs'
+import { parseCSV, parseImage } from '@epfml/discojs-node'
 import { startServer } from 'server'
+import { Map } from 'immutable'
 
 /**
  * Example of discojs API, we load data, build the appropriate loggers, the disco object
  * and finally start training.
  */
-async function runUser (url: URL, task: Task, dataset: data.DataSplit): Promise<void> {
+async function runUser (url: URL, task: Task, dataset: TypedDataset): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
   const disco = new Disco(task, { url, scheme: 'federated' })
   for await (const _ of disco.fit(dataset)); // Start training on the dataset
@@ -31,18 +33,18 @@ async function main (): Promise<void> {
   // Choose the task and load local data
   // Make sure you first ran ./get_training_data
   let task: Task | undefined
-  let dataset: data.DataSplit
+  let dataset: TypedDataset
   switch (NAME) {
     case 'titanic': {
       task = tasks.get('titanic')
       if (task === undefined) { throw new Error('task not found') }
-      dataset = await loadTitanicData(task)
+      dataset = ["tabular", await loadTitanicData()]
       break
     }
     case 'simple_face': {
       task = tasks.get('simple_face')
       if (task === undefined) { throw new Error('task not found') }
-      dataset = await loadSimpleFaceData(task)
+      dataset = ["image", await loadSimpleFaceData()]
       break
     }
     default:
@@ -63,35 +65,32 @@ async function main (): Promise<void> {
   })
 }
 
-async function filesFromFolder (dir: string, folder: string): Promise<string[]> {
-  const f = await fs.readdir(dir + folder)
-  return f.map(file => dir + folder + '/' + file)
+async function readdirWithFullPath(dir: string): Promise<string[]> {
+  return await fs
+    .readdir(dir)
+    .then((filenames) => filenames.map((f) => path.join(dir, f)));
 }
 
-async function loadSimpleFaceData (task: Task): Promise<data.DataSplit> {
-  const dir = '../../datasets/simple_face/'
-  const youngFolders = ['child']
-  const oldFolders = ['adult']
+async function loadSimpleFaceData(): Promise<ImageDataset> {
+  const folder = path.join("..", "datasets", "simple_face");
 
-  const youngFiles = (await Promise.all(youngFolders.map(async folder => await filesFromFolder(dir, folder)))).flat()
-  const oldFiles = (await Promise.all(oldFolders.map(async folder => await filesFromFolder(dir, folder)))).flat()
+  const labelToFiles = Map({
+    adult: await readdirWithFullPath(path.join(folder, "adult")),
+    child: await readdirWithFullPath(path.join(folder, "child")),
+  });
 
-  const filesPerFolder = [youngFiles, oldFiles]
-
-  const labels = filesPerFolder.flatMap((files, index) => Array<string>(files.length).fill(`${index}`))
-  const files = filesPerFolder.flat()
-
-  return await new NodeImageLoader(task).loadAll(files, { labels })
+  return new Dataset(async function* () {
+    for (const [label, paths] of labelToFiles)
+      for (const path of paths)
+        yield {
+          image: await parseImage(path),
+          label,
+        };
+  });
 }
 
-async function loadTitanicData (task: Task): Promise<data.DataSplit> {
-  const files = ['../../datasets/titanic_train.csv']
-  const titanicTask = defaultTasks.titanic.getTask()
-  return await new NodeTabularLoader(task, ',').loadAll(files, {
-    features: titanicTask.trainingInformation.inputColumns,
-    labels: titanicTask.trainingInformation.outputColumns,
-    shuffle: false
-  })
+async function loadTitanicData (): Promise<TabularDataset> {
+  return parseCSV(path.join('..', '..', 'datasets', 'titanic_train.csv'))
 }
 
 // You can run this example with "npm start" from this folder
