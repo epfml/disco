@@ -2,9 +2,10 @@ import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
 import { data, models } from '../index.js'
-import baseModel from '../models/mobileNet_v1_025_224.js'
+// import baseModel from '../models/mobileNet_v1_025_224.js'
 
-const IMAGE_SIZE = 224
+// Using mobilenet requires using image size of 224
+const IMAGE_SIZE = 32
 
 export const skinMnist: TaskProvider = {
   getTask (): Task {
@@ -42,22 +43,72 @@ export const skinMnist: TaskProvider = {
     const imageChannels = 3
     const numOutputClasses = 7
 
-    // const model = tf.sequential()
+    // const mobilenet = await tf.loadLayersModel({
+    //   load: async () => Promise.resolve(baseModel),
+    // })
 
-    // model.add(
-    //   tf.layers.conv2d({
-    //     inputShape: [IMAGE_SIZE, IMAGE_SIZE, imageChannels],
-    //     filters: 256,
-    //     kernelSize: 3,
-    //     strides: 1,
-    //     kernelInitializer: 'varianceScaling',
-    //     activation: 'relu'
+    // // Get the mobilenet layers up until the last pooling layer (i.e. before the classification layers)
+    // const x = mobilenet.getLayer('global_average_pooling2d_1')
+    
+    // // Add dropout
+    // // const dropout = tf.layers.dropout({ rate: 0.3 }).apply(x.output) as tf.SymbolicTensor
+    
+    // // Redefine the output layer for the skin mnist categories
+    // const predictions = tf.layers
+    //   .dense({
+    //     units: numOutputClasses,
+    //     activation: 'softmax',
+    //     kernelInitializer: 'varianceScaling'
     //   })
-    // )
+    //   .apply(x.output) as tf.SymbolicTensor
 
-    // model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
+    // // Put everything together
+    // const model = tf.model({ inputs: mobilenet.input, outputs: predictions })
+
+    // // Freeze most of the pre-trained layers (84 total layers)
+    // // Leaves 3 convolution blocks left to retrain
+    // // You can find the mobilenet architecture at
+    // // https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json
+    // for (let i = 0; i < model.layers.length; ++i) {
+    //   const layer = model.layers[i]
+    //   if (i < 79) {
+    //     model.layers[i].trainable = false;
+    //   } else if (layer.getClassName() == 'BatchNormalization') {
+    //     model.layers[i].trainable = false; // Freeze all batch normalization layers        
+    //   }
+    // }
+
+    const model = tf.sequential()
+
+    model.add(
+      tf.layers.conv2d({
+        inputShape: [IMAGE_SIZE, IMAGE_SIZE, imageChannels],
+        filters: 8,
+        kernelSize: 3,
+        strides: 1,
+        kernelInitializer: 'varianceScaling',
+        activation: 'relu'
+      })
+    )
+    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
     // model.add(tf.layers.dropout({ rate: 0.2 }))
 
+    const convFilters = [16]
+    for (const filters of convFilters) {
+      console.log(filters)
+      model.add(
+        tf.layers.conv2d({
+          filters: filters,
+          kernelSize: 3,
+          strides: 1,
+          kernelInitializer: 'varianceScaling',
+          activation: 'relu'
+        })
+      )
+  
+      model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
+      // model.add(tf.layers.dropout({ rate: 0.2 }))
+    }
     // model.add(
     //   tf.layers.conv2d({
     //     filters: 128,
@@ -84,38 +135,19 @@ export const skinMnist: TaskProvider = {
     // model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }))
     // model.add(tf.layers.dropout({ rate: 0.2 }))
 
-    // model.add(tf.layers.flatten())
 
-    // model.add(tf.layers.dense({
-    //   units: numOutputClasses,
-    //   kernelInitializer: 'varianceScaling',
-    //   activation: 'softmax'
-    // }))
+    model.add(tf.layers.flatten())
+    model.add(tf.layers.dense({
+      units: 64,
+      kernelInitializer: 'varianceScaling',
+      activation: 'relu',
+    }))
 
-    const mobilenet = await tf.loadLayersModel({
-      load: async () => Promise.resolve(baseModel),
-    })
-
-    const x = mobilenet.getLayer('global_average_pooling2d_1')
-    const predictions = tf.layers
-      .dense({ units: numOutputClasses, activation: 'softmax', kernelInitializer: 'varianceScaling', name: 'denseModified' })
-      .apply(x.output) as tf.SymbolicTensor
-
-    const model = tf.model({
-      inputs: mobilenet.input,
-      outputs: predictions,
-      name: 'mobileNetTransferSkinMNIST'
-    })
-
-    console.log(model.layers.length)
-
-    // Freeze most of the pre-trained layers
-    // Leaves 3 convolution blocks left to retrain
-    // You can find the mobilenet architecture at
-    // https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json
-    for (let i = 0; i < 73; ++i) {
-      model.layers[i].trainable = false;
-    }
+    model.add(tf.layers.dense({
+      units: numOutputClasses,
+      kernelInitializer: 'varianceScaling',
+      activation: 'softmax'
+    }))
 
     model.compile({
       optimizer: tf.train.adam(),
