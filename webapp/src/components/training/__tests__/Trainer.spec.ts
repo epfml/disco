@@ -43,9 +43,6 @@ async function setupForTask() {
 
   return mount(Trainer, {
     global: {
-      mocks: {
-        $t: (text: string) => text,
-      },
       stubs: {
         apexchart: true,
       },
