@@ -21,15 +21,15 @@ export class Validator {
     }
   }
 
-  private async getLabel (ys: tf.Tensor): Promise<Float32Array | Int32Array | Uint8Array> {
-    switch (ys.shape[1]) {
-      case 1:
-        return await ys.greaterEqual(tf.scalar(0.5)).data()
-      case 2:
-        return await ys.argMax(1).data()
-      default:
-        throw new Error(`unable to reduce tensor of shape: ${ys.shape.toString()}`)
+  private async getLabel(ys: tf.Tensor): Promise<Float32Array | Int32Array | Uint8Array> {
+    // Binary classification
+    if (ys.shape[1] == 1) {
+      return await ys.greaterEqual(tf.scalar(0.5)).data()
+    // Multi-class classification
+    } else {
+      return await ys.argMax(-1).data()
     }
+    // Multi-label classification is not supported
   }
 
   async assess (data: data.Data, useConfusionMatrix: boolean = false): Promise<Array<{ groundTruth: number, pred: number, features: Features }>> {
@@ -37,7 +37,6 @@ export class Validator {
     if (batchSize === undefined) {
       throw new TypeError('Batch size is undefined')
     }
-
     const model = await this.getModel()
 
     let features: Features[] = []
@@ -52,7 +51,7 @@ export class Validator {
           const xs = e.xs as tf.Tensor
           const ys = await this.getLabel(e.ys as tf.Tensor)
           const pred = await this.getLabel(await model.predict(xs))
-
+          
           const currentFeatures = await xs.array()
           if (Array.isArray(currentFeatures)) {
             features = features.concat(currentFeatures)
@@ -70,7 +69,7 @@ export class Validator {
           throw new Error('Input data is missing a feature or the label')
         }
       }).toArray()).flat()
-
+    
     this.logger.success(`Obtained validation accuracy of ${this.accuracy}`)
     this.logger.success(`Visited ${this.visitedSamples} samples`)
 
