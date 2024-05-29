@@ -95,9 +95,11 @@ export class DatasetBuilder<Source> {
         }
       } else {
         // Labels are contained in the given sources
+        if (this.task.trainingInformation.outputColumn === undefined)
+          throw new Error("tabular data without output column")
         defaultConfig = {
           features: this.task.trainingInformation.inputColumns,
-          labels: this.task.trainingInformation.outputColumns,
+          labels: [this.task.trainingInformation.outputColumn],
           shuffle: true
         }
       }

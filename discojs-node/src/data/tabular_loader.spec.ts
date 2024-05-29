@@ -15,7 +15,7 @@ describe('tabular loader', () => {
       inputFiles,
       {
         features: titanicTask.trainingInformation?.inputColumns,
-        labels: titanicTask.trainingInformation?.outputColumns,
+        labels: [titanicTask.trainingInformation?.outputColumn as string],
         shuffle: false
       }
     )
@@ -39,7 +39,7 @@ describe('tabular loader', () => {
     const loader = new TabularLoader(titanic, ',')
     const config = {
       features: titanic.trainingInformation?.inputColumns,
-      labels: titanic.trainingInformation?.outputColumns,
+      labels: [titanic.trainingInformation?.outputColumn as string],
       shuffle: false
     }
     const dataset = (await (await loader

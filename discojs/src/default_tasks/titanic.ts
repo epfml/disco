@@ -60,9 +60,7 @@ export const titanic: TaskProvider = {
           'Fare',
           'Pclass'
         ],
-        outputColumns: [
-          'Survived'
-        ],
+        outputColumn: 'Survived',
         scheme: 'federated', // secure aggregation not yet implemented for FeAI
         noiseScale: undefined,
         clippingRadius: undefined

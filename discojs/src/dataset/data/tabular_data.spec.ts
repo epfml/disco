@@ -12,13 +12,13 @@ describe('tabular data checks', () => {
 
   const dataConfig = {
     features: titanicTask.trainingInformation.inputColumns,
-    labels: titanicTask.trainingInformation.outputColumns
+    label: titanicTask.trainingInformation.outputColumn
   }
 
   const columnConfigs = Map(
     Set(dataConfig.features).map((feature) => [feature, { required: false, isLabel: false }])
   ).merge(
-    Set(dataConfig.labels).map((label) => [label, { required: true, isLabel: true }])
+    Set.of(dataConfig.label).map((label) => [label, { required: true, isLabel: true }])
   )
 
   const csvConfig = {
