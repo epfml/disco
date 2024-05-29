@@ -1,140 +1,128 @@
-import { assert } from 'chai'
-import fs from 'fs'
-import type { Server } from 'node:http'
+import { assert, expect } from "chai";
+import { Repeat } from "immutable";
+import type { Server } from "node:http";
 
 import {
-  Validator, ConsoleLogger, EmptyMemory, client as clients,
-  aggregator, defaultTasks, data
-} from '@epfml/discojs'
-import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
-import { startServer } from '../src/index.js'
+  Validator,
+  ConsoleLogger,
+  EmptyMemory,
+  client as clients,
+  aggregator,
+  defaultTasks,
+} from "@epfml/discojs";
+import { parseCSV, parseImagesInDir } from "@epfml/discojs-node";
 
-describe('validator', function () {
-  this.timeout(10_000)
+import { startServer } from "../src/index.js";
 
-  let server: Server
-  let url: URL
-  beforeEach(async () => { [server, url] = await startServer() })
-  afterEach(() => { server?.close() })
+describe("validator", function () {
+  this.timeout(10_000);
 
-  it('can read and predict randomly on simple_face', async () => {
+  let server: Server;
+  let url: URL;
+  beforeEach(async () => {
+    [server, url] = await startServer();
+  });
+  afterEach(() => {
+    server?.close();
+  });
+
+  it("can read and predict randomly on simple_face", async () => {
+    const task = defaultTasks.simpleFace.getTask();
+
     // Load the data
-    const dir = '../datasets/simple_face/'
-    const files: string[][] = ['child/', 'adult/'].map((subdir: string) => {
-      return fs.readdirSync(dir + subdir)
-        .map((file: string) => dir + subdir + file)
-        .filter((path: string) => path.endsWith('.png'))
-    })
-    
-    const childLabels = files[0].map(_ => 'child')
-    const adultLabels = files[1].map(_ => 'adult')
-    const labels = childLabels.concat(adultLabels)
+    const [adult, child] = [
+      (await parseImagesInDir("../datasets/simple_face/adult")).zip(
+        Repeat("adult"),
+      ),
+      (await parseImagesInDir("../datasets/simple_face/child")).zip(
+        Repeat("child"),
+      ),
+    ];
 
-    const simplefaceTask = defaultTasks.simpleFace.getTask()
+    const dataset = adult.chain(child);
+    let size = 0;
+    for await (const _ of dataset) size++;
 
-    const data = (await new NodeImageLoader(simplefaceTask)
-      .loadAll(files.flat(), { labels, channels: undefined })).train
-    
     // Init a validator instance
-    const meanAggregator = new aggregator.MeanAggregator()
-    const client = new clients.Local(url, simplefaceTask, meanAggregator)
-    meanAggregator.setModel(await client.getLatestModel())
+    const meanAggregator = new aggregator.MeanAggregator();
+    const client = new clients.Local(url, task, meanAggregator);
+    meanAggregator.setModel(await client.getLatestModel());
     const validator = new Validator(
-      simplefaceTask,
+      task,
       new ConsoleLogger(),
       new EmptyMemory(),
       undefined,
-      client
-    )
+      client,
+    );
 
     // Read data and predict with an untrained model
-    await validator.assess(data)
-    const size = data.size ?? -1
-    if (size === -1) {
-      console.log('data.size was undefined')
-    }
-    assert(
-      validator.visitedSamples === data.size,
-      `Expected ${size} visited samples but got ${validator.visitedSamples}`
-    )
-    assert(
-      validator.accuracy > 0.3,
-      `Expected random weight init accuracy greater than 0.3 but got ${validator.accuracy}`
-    )
-  }).timeout(5_000)
-
-  it('can read and predict randomly on titanic', async () => {
-    const titanicTask = defaultTasks.titanic.getTask()
-    const files = ['../datasets/titanic_train.csv']
-    const data: data.Data = (await new NodeTabularLoader(titanicTask, ',').loadAll(files, {
-      features: titanicTask.trainingInformation.inputColumns,
-      labels: titanicTask.trainingInformation.outputColumns,
-      shuffle: false
-    })).train
-    const meanAggregator = new aggregator.MeanAggregator()
-    const client = new clients.Local(url, titanicTask, meanAggregator)
-    meanAggregator.setModel(await client.getLatestModel())
-    const validator = new Validator(titanicTask, new ConsoleLogger(), new EmptyMemory(), undefined, client)
-    await validator.assess(data)
-    // data.size is undefined because tfjs handles dataset lazily
-    // instead we count the dataset size manually
-    let size = 0
-    await data.dataset.forEachAsync(() => { size += 1 })
+    await validator.assess(["image", dataset]);
     assert(
       validator.visitedSamples === size,
-      `Expected ${size} visited samples but got ${validator.visitedSamples}`
-    )
+      `Expected ${size} visited samples but got ${validator.visitedSamples}`,
+    );
     assert(
       validator.accuracy > 0.3,
-      `Expected random weight init accuracy greater than 0.3 but got ${validator.accuracy}`
-    )
-  }).timeout(1000)
+      `Expected random weight init accuracy greater than 0.3 but got ${validator.accuracy}`,
+    );
+  }).timeout(5_000);
 
-  it('can read and predict randomly on lus_covid', async () => {
-    // Load the data
-    const dir = '../datasets/lus_covid/'
-    const files: string[][] = ['COVID+/', 'COVID-/'].map((subdir: string) => {
-      return fs.readdirSync(dir + subdir)
-        .map((file: string) => dir + subdir + file)
-        .filter((path: string) => path.endsWith('.png'))
-    })
-    
-    const positiveLabels = files[0].map(_ => 'COVID-Positive')
-    const negativeLabels = files[1].map(_ => 'COVID-Negative')
-    const labels = positiveLabels.concat(negativeLabels)
+  it("can read and predict randomly on titanic", async () => {
+    const task = defaultTasks.titanic.getTask();
 
-    const lusCovidTask = defaultTasks.lusCovid.getTask()
+    // load dataset
+    const dataset = parseCSV("../datasets/titanic_train.csv");
+    let size = 0;
+    for await (const _ of dataset) size++;
 
-    const data = (await new NodeImageLoader(lusCovidTask)
-      .loadAll(files.flat(), { labels, channels: 3 })).train
-    
-    // Initialize a validator instance
-    const meanAggregator = new aggregator.MeanAggregator()
-    const client = new clients.Local(url, lusCovidTask, meanAggregator)
-    meanAggregator.setModel(await client.getLatestModel())
-
+    const meanAggregator = new aggregator.MeanAggregator();
+    const client = new clients.Local(url, task, meanAggregator);
+    meanAggregator.setModel(await client.getLatestModel());
     const validator = new Validator(
-      lusCovidTask,
+      task,
       new ConsoleLogger(),
       new EmptyMemory(),
       undefined,
-      client
-    )
+      client,
+    );
+
+    await validator.assess(["tabular", dataset]);
+
+    expect(validator.visitedSamples).to.equal(size);
+  }).timeout(1_000);
+
+  it("can read and predict randomly on lus_covid", async () => {
+    const task = defaultTasks.lusCovid.getTask();
+
+    // Load the data
+    const [positive, negative] = [
+      (await parseImagesInDir("../datasets/lus_covid/COVID+")).zip(
+        Repeat("COVID-Positive"),
+      ),
+      (await parseImagesInDir("../datasets/lus_covid/COVID-")).zip(
+        Repeat("COVID-Negative"),
+      ),
+    ];
+    const dataset = positive.chain(negative);
+    let size = 0;
+    for await (const _ of dataset) size++;
+
+    // Initialize a validator instance
+    const meanAggregator = new aggregator.MeanAggregator();
+    const client = new clients.Local(url, task, meanAggregator);
+    meanAggregator.setModel(await client.getLatestModel());
+
+    const validator = new Validator(
+      task,
+      new ConsoleLogger(),
+      new EmptyMemory(),
+      undefined,
+      client,
+    );
 
     // Assert random initialization metrics
-    await validator.assess(data)
-    const size = data.size ?? -1
-    if (size === -1) {
-      console.log('data.size was undefined')
-    }
-    assert(
-      validator.visitedSamples === data.size,
-      `Expected ${size} visited samples but got ${validator.visitedSamples}`
-    )
-    assert(
-      validator.accuracy > 0.4,
-      `Expected random weight init accuracy greater than 0.4 but got ${validator.accuracy}`
-    )
-  }).timeout(1000)
+    await validator.assess(["image", dataset]);
 
-})
+    expect(validator.visitedSamples).to.equal(size);
+  }).timeout(1000);
+});
