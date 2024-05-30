@@ -43,3 +43,7 @@ You can run the custom task example with:
 cd docs/examples
 npm run custom_task # compiles TypeScript and runs custom_task.ts
 ```
+
+### Creating a CSV file to connect a dataset in DISCO
+
+DISCO allows connecting data through a CSV file that maps filenames to labels. The python notebook `dataset_csv_creation.ipynb` shows how to create such a CSV for the Skin Disease Classification task.
