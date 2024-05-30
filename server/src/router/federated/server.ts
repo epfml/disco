@@ -154,7 +154,6 @@ export class Federated extends Server {
           round,
           payload: serialized
         }
-	console.log("federated: sending back weights:", msg)
         ws.send(msgpack.encode(msg))
       })
       .catch(console.error)

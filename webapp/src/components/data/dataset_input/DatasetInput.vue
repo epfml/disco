@@ -177,7 +177,7 @@ const props = defineProps<Props>()
 
 const csvRows = ref<{ filename: string, label: string }[]>()
 
-const isLabelLengthSmall = (props.task.trainingInformation.LABEL_LIST?.length ?? 0) <= 3
+const isLabelLengthSmall = (props.task.trainingInformation.LABEL_LIST?.length ?? 0) <= 2
 const connectImagesByGroup = ref(isLabelLengthSmall)
 
 const requireLabels = computed(
