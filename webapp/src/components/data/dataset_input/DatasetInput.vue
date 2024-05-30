@@ -109,7 +109,7 @@
               >
                 <template #text>
                   <b>The CSV file must contain a header with only two columns (filename, label)</b>. The file name must NOT include the file
-                  extension.
+                  extension. You can find an example of how to create a CSV <a class='underline text-primary-dark dark:text-primary-light' href='https://github.com/epfml/disco/blob/develop/docs/examples/dataset_csv_creation.ipynb'>here</a>.
                 </template>
               </FileSelection>
             </template>
