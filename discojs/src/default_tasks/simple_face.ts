@@ -15,7 +15,7 @@ export const simpleFace: TaskProvider = {
           overview: 'Simple face is a small subset of face_task from Kaggle'
         },
         dataFormatInformation: '',
-        dataExampleText: 'Below you find an example',
+        dataExampleText: 'Below you can find an example',
         dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/simple_face-example.png'
       },
       trainingInformation: {

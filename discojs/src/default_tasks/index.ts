@@ -1,6 +1,6 @@
 export { cifar10 } from './cifar10.js'
 export { lusCovid } from './lus_covid.js'
-export { skinMnist } from './skin_mnist.js'
+export { skinCondition } from './skin_condition.js'
 export { mnist } from './mnist.js'
 export { simpleFace } from './simple_face.js'
 export { titanic } from './titanic.js'
