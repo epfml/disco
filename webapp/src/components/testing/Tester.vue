@@ -78,7 +78,7 @@
           >
             <template #title>
               <p :class="value.groundTruth && value.prediction !== value.groundTruth ? 'text-red-700' : 'text-green-500'">
-                Prediction: <span class="font-bold">{{ getLabelName(value.prediction) }}</span>
+                Pred: <span class="font-bold">{{ getLabelName(value.prediction) }}</span>
               </p>
             </template>
             <template #subtitle>
@@ -86,7 +86,7 @@
                 v-if="value.groundTruth && value.groundTruth !== value.prediction"
                 class="text-disco-blue"
               >
-                Ground truth: <span class="font-bold">{{ getLabelName(value.groundTruth) }}</span>
+                Truth: <span class="font-bold">{{ getLabelName(value.groundTruth) }}</span>
               </p>
             </template>
           </imagecard>
@@ -233,7 +233,12 @@ function getLabelName(labelIndex: number | undefined): string {
   }
   const labelList = props.task.trainingInformation.LABEL_LIST
   if (labelList !== undefined && labelList.length > labelIndex) {
-    return labelList[labelIndex]
+    let label = labelList[labelIndex]
+    if (label.length > 6) {
+      return label.slice(0,6).concat('...')
+    } else {
+      return label
+    }
   } else {
     return labelIndex.toString()
   }
