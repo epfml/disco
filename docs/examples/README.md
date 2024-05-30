@@ -46,4 +46,4 @@ npm run custom_task # compiles TypeScript and runs custom_task.ts
 
 ### Creating a CSV file to connect a dataset in DISCO
 
-DISCO allows connecting data through a CSV file that maps filenames to labels. The python notebook `dataset_csv_creation.ipynb` shows how to create such a CSV for the Skin Disease Classification task.
+DISCO allows connecting data through a CSV file that maps filenames to labels. The python notebook `dataset_csv_creation.ipynb` shows how to create such a CSV and the `scin_dataset.ipynb` shows how to download the [SCIN dataset](https://github.com/google-research-datasets/scin/tree/main?tab=readme-ov-file) and how to preprocess it in a format accepted by DISCO.
