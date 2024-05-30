@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-expressions */
 <template>
   <!-- Upload File Card-->
   <div>
@@ -48,7 +47,7 @@
                   hover:cursor-pointer
                 "
             >
-              select file{{ isMultiple ? 's' : '' }}
+              select {{isDirectory ? 'folder' : ('file' + (isMultiple ? 's' : ''))}}
             </span>
             <input
               v-if="isDirectory"
