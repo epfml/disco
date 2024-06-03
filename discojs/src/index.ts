@@ -21,3 +21,4 @@ export * from './task/index.js'
 export * as defaultTasks from './default_tasks/index.js'
 
 export * from './types.js'
+export * as convertors from "./convertors.js";
