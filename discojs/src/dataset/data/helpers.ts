@@ -12,7 +12,8 @@ import type {
 } from "../../index.js";
 import { convertors } from "../../index.js";
 
-import { Data, DataSplit, ImageData, TabularData, TextData } from "./index.js";
+import { Data, ImageData, TabularData, TextData } from "./index.js";
+import { DataSplit } from "./data_split.js";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {

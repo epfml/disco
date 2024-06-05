@@ -1,14 +1,6 @@
 export { Dataset } from "./dataset.js";
 export * from "./types.js";
 
-export { DatasetBuilder } from "./dataset_builder.js";
-export {
-  ImageLoader,
-  TabularLoader,
-  DataLoader,
-  TextLoader,
-} from "./data_loader/index.js";
-export type { DataSplit } from "./data/index.js";
 export {
   Data,
   TabularData,
