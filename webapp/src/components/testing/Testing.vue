@@ -15,14 +15,14 @@
 
           <div class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8">
             <div
-              v-for="[path, metadata] in memoryStore.models"
-              :key="path"
+              v-for="[id, metadata] in memoryStore.models"
+              :key="id"
               class="contents"
             >
               <ButtonsCard
                 :buttons="List.of(
-                  ['test', () => selectModel(path, false)],
-                  ['predict', () => selectModel(path, true)],
+                  ['test', () => selectModel(id, false)],
+                  ['predict', () => selectModel(id, true)],
                 )"
                 class="shadow shadow-disco-cyan"
               >
@@ -180,7 +180,7 @@ import { storeToRefs } from 'pinia'
 import { List } from 'immutable'
 import { VueSpinner } from 'vue3-spinners';
 
-import type { Path, Task } from '@epfml/discojs'
+import type { Task } from '@epfml/discojs'
 import { EmptyMemory, Memory, data, client as clients, aggregator } from '@epfml/discojs'
 import { IndexedDB, WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs-web'
 
@@ -285,16 +285,16 @@ const downloadModel = async (task: Task): Promise<void> => {
   }
 }
 
-const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
-  const taskID = memory.value.getModelInfo(path)?.taskID
+function selectModel(modelID: string, isOnlyPrediction: boolean): void {
+  const taskID = memory.value.getModelInfo(modelID)?.taskID
   if (taskID === undefined) {
-    throw new Error('Model task id for found in memory for path: ' + path)
+    throw new Error(`Model task id for found in memory for model id: ${modelID}`)
   }
 
   const selectedTask = tasksStore.tasks.get(taskID)
   if (selectedTask !== undefined) {
     currentTask.value = selectedTask
-    validationStore.model = path
+    validationStore.model = modelID
     validationStore.step = 1
     validationStore.isOnlyPrediction = isOnlyPrediction
   } else {

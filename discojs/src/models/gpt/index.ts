@@ -46,8 +46,8 @@ export class GPT extends Model {
    * @param tracker
    */
   override async *train(
-    trainingData: Dataset,
-    validationData?: Dataset,
+    trainingData: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
+    validationData?: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     this.model.compile();
 

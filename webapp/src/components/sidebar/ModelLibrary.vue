@@ -24,11 +24,11 @@
           </span>
           <div v-if="memoryStore.useIndexedDB" class="space-y-4">
             <button
-              v-for="[path, metadata] in memoryStore.models"
-              :key="path"
+              v-for="[id, metadata] in memoryStore.models"
+              :key="id"
               class="flex items-center justify-between px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800"
             >
-              <div class="cursor-pointer w-2/3" @click="openTesting(path)">
+              <div class="cursor-pointer w-2/3" @click="openTesting(id)">
                 <span>
                   {{ metadata.name.slice(0, 16) }}
                   <span
@@ -48,7 +48,7 @@
                 <ModelButton
                   event="delete-model"
                   hover="Delete"
-                  @delete-model="deleteModel(path)"
+                  @delete-model="deleteModel(id)"
                 >
                   <Bin2Icon />
                 </ModelButton>
@@ -57,7 +57,7 @@
                 <ModelButton
                   event="download-model"
                   hover="Download"
-                  @download-model="downloadModel(path)"
+                  @download-model="memory.downloadModel(id)"
                 >
                   <Download2Icon />
                 </ModelButton>
@@ -66,7 +66,7 @@
                 <ModelButton
                   event="load-model"
                   hover="Load for next training"
-                  @load-model="loadModel(path)"
+                  @load-model="loadModel(id)"
                 >
                   <LoadIcon />
                 </ModelButton>
@@ -126,7 +126,6 @@ import { List } from "immutable";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-import type { Path } from "@epfml/discojs";
 import { EmptyMemory } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
@@ -172,19 +171,19 @@ function switchToEvaluate(): void {
   router.push({ path: "/evaluate" });
   emit("close-panel");
 }
-function openTesting(path: Path) {
-  validationStore.setModel(path);
+function openTesting(modelID: string) {
+  validationStore.setModel(modelID);
   router.push({ path: "/evaluate" });
 }
 
- async function loadModel(path: Path) {
-  const modelInfo = memory.getModelInfo(path)
+ async function loadModel(modelID: string) {
+  const modelInfo = memory.getModelInfo(modelID)
   if (modelInfo === undefined) {
     throw new Error('not such model')
   }
    if (modelInfo.type !== 'working') {
     try {
-      await memory.loadModel(path)
+      await memory.loadModel(modelID)
       await memoryStore.initModels()
     } catch (e) {
       let msg = 'unable to load model'
@@ -199,14 +198,10 @@ function openTesting(path: Path) {
   }
 }
 
-async function downloadModel(path: Path) {
-  await memory.downloadModel(path);
-}
-
-async function deleteModel(path: Path): Promise<void> {
+async function deleteModel(modelID: string): Promise<void> {
   try {
-    await memoryStore.deleteModel(path);
-    await memory.deleteModel(path);
+    await memoryStore.deleteModel(modelID);
+    await memory.deleteModel(modelID);
     toaster.success("Successfully deleted the model");
   } catch (e) {
     let msg = "unable to delete model";

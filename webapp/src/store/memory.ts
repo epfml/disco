@@ -4,7 +4,7 @@ import { ref, shallowRef } from 'vue'
 import { Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import type { ModelInfo, Path } from '@epfml/discojs'
+import type { ModelInfo } from '@epfml/discojs'
 
 export interface ModelMetadata extends ModelInfo {
   date: string
@@ -13,19 +13,19 @@ export interface ModelMetadata extends ModelInfo {
 }
 
 export const useMemoryStore = defineStore('memory', () => {
-  const models = shallowRef<Map<Path, ModelMetadata>>(Map())
+  const models = shallowRef<Map<string, ModelMetadata>>(Map())
   const useIndexedDB = ref(true)
 
   function setIndexedDB (use: boolean) {
     useIndexedDB.value = use
   }
 
-  function addModel (path: Path, metadata: ModelMetadata) {
-    models.value = models.value.set(path, metadata)
+  function addModel (id: string, metadata: ModelMetadata) {
+    models.value = models.value.set(id, metadata)
   }
 
-  function deleteModel (path: Path) {
-    models.value = models.value.delete(path)
+  function deleteModel (id: string) {
+    models.value = models.value.delete(id)
   }
 
   async function initModels () {

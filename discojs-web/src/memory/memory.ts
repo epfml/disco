@@ -9,11 +9,11 @@
 import { Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import type { Path, Model, ModelInfo, ModelSource } from '@epfml/discojs'
+import type { Model, ModelInfo, ModelSource } from '@epfml/discojs'
 import { Memory, models } from '@epfml/discojs'
 
 export class IndexedDB extends Memory {
-  override getModelMemoryPath (source: ModelSource): Path {
+  override getModelMemoryPath (source: ModelSource): string {
     if (typeof source === 'string') {
       return source
     }
@@ -110,7 +110,7 @@ export class IndexedDB extends Memory {
  * Creates a saved copy of the working model corresponding to the source.
  * @param source the source
  */
-  async saveWorkingModel (source: ModelSource): Promise<Path> {
+  async saveWorkingModel (source: ModelSource): Promise<string> {
     const src: ModelInfo = this.getModelInfo(source)
     if (src.type !== 'working') {
       throw new Error('expected working type model')
@@ -123,7 +123,7 @@ export class IndexedDB extends Memory {
     return dst
   }
 
-  override async saveModel (source: ModelSource, model: Model): Promise<Path> {
+  override async saveModel (source: ModelSource, model: Model): Promise<string> {
     const src: ModelInfo = this.getModelInfo(source)
     if (src.type !== 'saved') {
       throw new Error('expected saved type model')

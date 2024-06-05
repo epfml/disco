@@ -4,11 +4,6 @@
 import type { Model, TaskID } from '../index.js'
 
 /**
- * Model path which uniquely identifies a model in memory.
- */
-export type Path = string
-
-/**
  * Type of models stored in memory. Stored models can either be a model currently
  * being trained ("working model") or a regular model saved in memory ("saved model").
  * There can only be a single working model for a given task.
@@ -34,10 +29,10 @@ export interface ModelInfo {
 
 /**
  * A model source uniquely identifies a model stored in memory.
- * It can be in the form of either a model info object or a Path string 
+ * It can be in the form of either a model info object or an ID
  * (one-to-one mapping between the two)
  */
-export type ModelSource = ModelInfo | Path
+export type ModelSource = ModelInfo | string
 
 /**
  * Represents a model memory system, providing functions to fetch, save, delete and update models.
@@ -86,7 +81,7 @@ export abstract class Memory {
    * @param source The model source
    * @returns The saved model's path
    */
-  abstract saveWorkingModel (source: ModelSource): Promise<Path | undefined>
+  abstract saveWorkingModel (source: ModelSource): Promise<string | undefined>
 
   /**
    * Saves the newly provided model to the given model source.
@@ -95,7 +90,7 @@ export abstract class Memory {
    * @param model The new model
    * @returns The saved model's path
    */
-  abstract saveModel (source: ModelSource, model: Model): Promise<Path | undefined>
+  abstract saveModel (source: ModelSource, model: Model): Promise<string | undefined>
 
   /**
    * Moves the model identified by the model source to a file system. This is platform-dependent.
@@ -118,7 +113,7 @@ export abstract class Memory {
    * @param source The model source
    * @returns The model path
    */
-  abstract getModelMemoryPath (source: ModelSource): Path | undefined
+  abstract getModelMemoryPath (source: ModelSource): string | undefined
 
   /**
    * Computes the model information corresponding to the given model source, be it a path or model information.

@@ -1,4 +1,5 @@
 import { parse } from "ts-command-line-args";
+import type * as tf from "@tensorflow/tfjs"
 
 import type { Task } from '@epfml/discojs'
 import { fetchTasks, data, models, async_iterator, defaultTasks } from "@epfml/discojs";
@@ -74,7 +75,11 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     task.trainingInformation.batchSize = batchSize
     task.trainingInformation.maxSequenceLength = contextLength
     const dataset = await loadWikitextData(task)
-    const preprocessedDataset = dataset.train.preprocess().batch().dataset
+    const preprocessedDataset = dataset.train.preprocess().batch()
+      .dataset as tf.data.Dataset<{
+      xs: tf.Tensor2D;
+      ys: tf.Tensor3D;
+    }>;
     
     // Init and train the model
     const model = new models.GPT(config)

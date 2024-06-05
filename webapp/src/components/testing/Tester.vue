@@ -205,7 +205,7 @@ import createDebug from "debug";
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 
-import type { Task, Features } from '@epfml/discojs'
+import type { Task } from '@epfml/discojs'
 import { data, ConsoleLogger, EmptyMemory, Memory, Validator } from '@epfml/discojs'
 import { IndexedDB } from '@epfml/discojs-web'
 
@@ -250,10 +250,10 @@ const validator = ref<Validator | undefined>(undefined)
 const numberOfClasses = computed<number>(() =>
   props.task.trainingInformation.LABEL_LIST?.length ?? 2)
 
-type inferenceResults = Array<{ features: Features, pred: number }>
+type inferenceResults = Array<{ features: number[], pred: number }>
 const inferenceGenerator = ref<AsyncGenerator<inferenceResults, void>>();
 
-type testResults = Array<{ groundTruth: number, pred: number, features: Features }>
+type testResults = Array<{ groundTruth: number, pred: number, features: number[] }>
 const testGenerator = ref<AsyncGenerator<testResults, void>>();
 
 function getLabelName(labelIndex: number | undefined): string {
@@ -342,7 +342,7 @@ async function modelInference (): Promise<void> {
             throw new Error("no input columns but CSV needs it")
           }
           featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
-          dataWithPred.value = runningPredictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
+          dataWithPred.value = runningPredictions.map(pred => ({ data: [...pred.features, pred.pred] }))
           break;
         case 'text':
           //TODO add UI results
@@ -405,8 +405,7 @@ async function testModel(): Promise<void> {
           }
           featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns, 'Target_' + props.task.trainingInformation.outputColumns]
           dataWithPred.value = runningResults.map(pred => ({
-            data: [...(pred.features as number[]),
-            pred.pred, pred.groundTruth]
+            data: [...pred.features, pred.pred, pred.groundTruth]
           }))
           break;
         case 'text':
