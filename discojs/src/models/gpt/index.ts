@@ -31,13 +31,13 @@ export class GPT extends Model {
    * @param tracker
    */
   override async *train(
-    trainingData: tf.data.Dataset<tf.TensorContainer>,
-    validationData?: tf.data.Dataset<tf.TensorContainer>,
+    trainingData: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
+    validationData?: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
     epochs = 1,
   ): AsyncGenerator<EpochLogs, void> {
     this.model.compile()
     let logs: tf.Logs | undefined;
-    const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
+    const trainingArgs: tf.ModelFitDatasetArgs<{ xs: tf.Tensor2D, ys: tf.Tensor3D }> = {
       epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
       validationData,
       callbacks: { onEpochEnd: (_, cur) => { logs = cur }},

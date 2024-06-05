@@ -33,7 +33,7 @@ describe('gpt-tfjs', function() {
       const ys = tf.oneHot(tokens.slice(1), tokenizer.model.vocab.length + 1)
       const xs = tf.tensor(tokens.slice(0, config.blockSize), undefined, 'int32')
       return {xs, ys}
-    }).repeat().batch(64)
+    }).repeat().batch(64) as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
 
     const model = new GPT(config)
     const logGenerator = model.train(tokenDataset, undefined, 5) // 5 epochs
