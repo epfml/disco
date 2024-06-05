@@ -1,6 +1,6 @@
 import type { Model } from '../index.js'
 
-import type { ModelInfo, Path } from './base.js'
+import type { ModelInfo } from './base.js'
 import { Memory } from './base.js'
 
 /**
@@ -44,7 +44,7 @@ export class Empty extends Memory {
     return Promise.reject(new Error('empty'))
   }
 
-  getModelMemoryPath (): Path {
+  getModelMemoryPath (): string {
     throw new Error('empty')
   }
 

@@ -1,7 +1,7 @@
 import { List } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import type { data, Model, Task, Logger, client as clients, Memory, ModelSource, Features } from '../index.js'
+import type { data, Model, Task, Logger, client as clients, Memory, ModelSource } from '../index.js'
 
 export class Validator {
   private size = 0
@@ -40,7 +40,7 @@ export class Validator {
 
   // test assumes data comes with labels while predict doesn't
   async *test(data: data.Data):
-    AsyncGenerator<Array<{ groundTruth: number, pred: number, features: Features }>, void> {
+    AsyncGenerator<Array<{ groundTruth: number, pred: number, features: number[] }>, void> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('Batch size is undefined')
@@ -60,7 +60,7 @@ export class Validator {
       this.rollingAccuracy = hits / this.size
       tf.dispose([xs, ys, yPredTensor])
 
-      yield (List(ysLabel).zip(List(pred), List(currentFeatures)) as List<[number, number, Features]>)
+      yield (List(ysLabel).zip(List(pred), List(currentFeatures)))
         .map(([gt, p, f]) => ({ groundTruth: gt, pred: p, features: f }))
         .toArray()
       
@@ -71,7 +71,7 @@ export class Validator {
     this.logger.success(`Visited ${this.visitedSamples} samples`)
   }
 
-  async *inference (data: data.Data): AsyncGenerator<Array<{ features: Features, pred: number }>, void> {
+  async *inference (data: data.Data): AsyncGenerator<Array<{ features: number[], pred: number }>, void> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('Batch size is undefined')
@@ -82,7 +82,7 @@ export class Validator {
     let next = await iterator.next()
 
     while (next.done !== true) {
-      let xs: tf.Tensor
+      let xs: tf.Tensor2D
       if (next.value instanceof tf.Tensor) {
         xs = next.value as tf.Tensor2D
       } else {
@@ -99,7 +99,7 @@ export class Validator {
       }
       tf.dispose([xs, yPredTensor])
       
-      yield List(currentFeatures as number[]).zip(List(pred))
+      yield List(currentFeatures).zip(List(pred))
         .map(([f, p]) => ({ features: f, pred: p }))
         .toArray()
       

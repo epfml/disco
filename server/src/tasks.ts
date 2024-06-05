@@ -5,7 +5,7 @@ import fs from 'node:fs/promises'
 import tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
-import { Task, Path, Digest, TaskProvider, isTask } from '@epfml/discojs'
+import { Task, Digest, TaskProvider, isTask } from '@epfml/discojs'
 import { Model, models, serialization } from '@epfml/discojs'
 
 const debug = createDebug("server:tasks");
@@ -63,7 +63,7 @@ export class TasksAndModels {
     return model
   }
 
-  private async checkDigest (digest: Digest, modelPath: Path): Promise<void> {
+  private async checkDigest (digest: Digest, modelPath: string): Promise<void> {
     const hash = createHash(digest.algorithm)
     const modelConfigRaw = await fs.readFile(`${modelPath}/model.json`)
 

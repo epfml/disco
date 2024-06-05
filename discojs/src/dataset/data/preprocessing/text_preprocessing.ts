@@ -31,7 +31,7 @@ interface TokenizedEntry extends tf.TensorContainerObject {
  */
 const leftPadding: PreprocessingFunction = {
   type: TextPreprocessing.LeftPadding,
-  apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
+  apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<{ xs: tf.Tensor1D, ys: tf.Tensor2D }> => {
     if (x === undefined || !Array.isArray(x) || x.length == 0 || typeof(x[0] !== 'number')) {
       new Error("The leftPadding preprocessing expects a non empty 1D array of number")
     }
@@ -44,7 +44,7 @@ const leftPadding: PreprocessingFunction = {
       const maxLength = task.trainingInformation.maxSequenceLength ?? tokenizer.model_max_length as number
       const maxLengthPlusLabel = maxLength + 1
       
-      let fixedLengthTokens = tf.tensor(tokens, undefined, 'int32') // cast tokens from float to int for gpt-tfjs
+      let fixedLengthTokens = tf.tensor1d(tokens, 'int32') // cast tokens from float to int for gpt-tfjs
       if (fixedLengthTokens.size > maxLengthPlusLabel) { // Should never happen because tokenization truncates inputs
         throw Error("There are more tokens than expected after tokenization and truncation")
       } else if (fixedLengthTokens.size < maxLengthPlusLabel) { // Pad inputs to fixed length
@@ -54,7 +54,8 @@ const leftPadding: PreprocessingFunction = {
       // if tokens.size == maxLengthPlusLabel we can leave it as it is
       
       // ys is a one-hot encoding of the next token (i.e. xs shifted by one)
-      const ys = tf.oneHot(fixedLengthTokens.slice([1]), tokenizer.model.vocab.length + 1)
+      // cast because oneHot isn't size-typing its return value
+      const ys = tf.oneHot(fixedLengthTokens.slice([1]), tokenizer.model.vocab.length + 1) as tf.Tensor2D
       // remove the extra token now that ys is created
       const xs = fixedLengthTokens.slice([0], maxLength) 
       return { xs, ys }
@@ -71,7 +72,7 @@ interface TokenizerOutput {
  */
 const tokenize: PreprocessingFunction = {
   type: TextPreprocessing.Tokenize,
-  apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
+  apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<{ tokens: number[] }> => {
     if (typeof x !== 'string') {
       new Error("The tokenize preprocessing expects a string as input")
     }
