@@ -1,4 +1,3 @@
-export type { DataSplit } from './data_split.js'
 export { Data } from './data.js'
 export { ImageData } from './image_data.js'
 export { TabularData } from './tabular_data.js'

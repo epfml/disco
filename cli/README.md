@@ -31,7 +31,7 @@ npm -w cli start -- --help # or -h
 The CLI can be used on several pre-defined tasks: titanic, simple-face and CIFAR10. In order
 to understand how to add a new task have a look at [TASK.md](../docs/TASK.md).
 
-Once a new task has been defined in `discojs`, it can be loaded in [data.ts](./src/data.ts) as it is already implemented for current tasks. There are currently [multiple classes](../discojs-node/src/dataset/data_loader) you can use to load data using Node.js and preprocess data: ImageLoader, TabularLoader and TextLoader.
+Once a new task has been defined in `discojs`, it can be loaded in [data.ts](./src/data.ts) as it is already implemented for current tasks. There are currently [multiple classes](../discojs-node/src/loaders) you can use to load data using Node.js and preprocess data: loadImagesInDir, loadCSV and loadText.
 Once a function to load data has been added, make sure to extend `getTaskData` in `data.ts`, which matches each task with it respective with data loading function.
 
 The last thing to add is to add the task as a CLI argument in [args.ts](./src/args.ts) to the `supportedTasks` Map.
