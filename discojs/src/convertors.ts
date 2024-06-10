@@ -1,5 +1,6 @@
 import { PreTrainedTokenizer } from "@xenova/transformers";
-import { List } from "immutable";
+import { List, Repeat, Seq } from "immutable";
+import { Image } from "./dataset/image.js";
 
 export function convertToNumber(raw: string): number {
   const num = Number.parseFloat(raw);
@@ -66,4 +67,60 @@ export function tokenizeAndLeftPad(
   const padded = padding.concat(tokens);
 
   return padded;
+}
+
+export function removeAlpha<W extends number, H extends number>(
+  image: Image<4, W, H>,
+): Image<3, W, H>;
+export function removeAlpha<
+  D extends 1 | 3,
+  W extends number,
+  H extends number,
+>(image: Image<D | 4, W, H>): Image<D, W, H>;
+export function removeAlpha<W extends number, H extends number>(
+  image: Image<1 | 3 | 4, W, H>,
+): Image<1 | 3, W, H> {
+  switch (image.depth) {
+    case 1:
+    case 3:
+      return new Image(image.data, image.width, image.height, image.depth);
+    case 4:
+      return new Image(
+        image.data.filter((_, i) => i % 4 !== 3),
+        image.width,
+        image.height,
+        3,
+      );
+  }
+}
+
+export function expandToMulticolor<W extends number, H extends number>(
+  image: Image<1, W, H>,
+): Image<3, W, H>;
+export function expandToMulticolor<
+  D extends 3 | 4,
+  W extends number,
+  H extends number,
+>(image: Image<1 | D, W, H>): Image<D, W, H>;
+export function expandToMulticolor<W extends number, H extends number>(
+  image: Image<1 | 3 | 4, W, H>,
+): Image<3 | 4, W, H> {
+  switch (image.depth) {
+    case 1:
+      return new Image(
+        Uint8Array.from(Seq(image.data).flatMap((v) => Repeat(v, 3))),
+        image.width,
+        image.height,
+        3,
+      );
+    case 3:
+      return new Image(image.data, image.width, image.height, image.depth);
+    case 4:
+      return new Image(
+        image.data.filter((_, i) => i % 4 !== 3),
+        image.width,
+        image.height,
+        image.depth,
+      );
+  }
 }
