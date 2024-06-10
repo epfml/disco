@@ -1,4 +1,5 @@
-// TODO use full type to check shape of array
-export type Image = { width: number; height: number; data: Uint8Array };
+import { Image } from "./image.js"
+
+export { Image };
 export type Tabular = Partial<Record<string, string>>;
 export type Text = string;

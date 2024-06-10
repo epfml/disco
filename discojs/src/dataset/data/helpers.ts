@@ -30,7 +30,7 @@ async function intoTFDataset<T extends tf.TensorContainer>(
   return tf.data.array(materialized);
 }
 
-function imageToTensor(image: Image): tf.Tensor3D {
+function imageToTensor(image: Image<3>): tf.Tensor3D {
   return tf.tensor3d(image.data, [image.width, image.height, 3], "int32");
 }
 
@@ -48,9 +48,12 @@ export async function datasetToData(
 ): Promise<Data> {
   switch (t) {
     case "image": {
-      const converted = dataset.map((image) => ({
-        xs: imageToTensor(image),
-      }));
+      const converted = dataset
+        .map(convertors.removeAlpha)
+        .map((image) => convertors.expandToMulticolor(image))
+        .map((image) => ({
+          xs: imageToTensor(image),
+        }));
       return await ImageData.init(await intoTFDataset(converted), task);
     }
     case "tabular": {
@@ -78,7 +81,10 @@ export async function labeledDatasetToData(
       const converted = dataset
         .map(
           ([image, label]) =>
-            [image, convertors.indexInList(label, labels)] as const,
+            [
+              convertors.expandToMulticolor(convertors.removeAlpha(image)),
+              convertors.indexInList(label, labels),
+            ] as const,
         )
         .map(
           ([image, label]) =>
