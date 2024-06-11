@@ -1,3 +1,6 @@
+// speed things up TODO how to avoid the need to import it
+import "@tensorflow/tfjs-node"
+
 import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
 
