@@ -1,5 +1,6 @@
 import { Repeat } from 'immutable'
 import * as path from 'node:path'
+import '@tensorflow/tfjs-node'
 
 import type { Dataset, Image, Task, TypedLabeledDataset } from '@epfml/discojs'
 import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
