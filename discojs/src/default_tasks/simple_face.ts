@@ -1,9 +1,8 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../../index.js'
-import { data, models } from '../../index.js'
-
-import baseModel from './model.js'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { data, models } from '../index.js'
+import baseModel from '../models/mobileNetV2_35_alpha_2_classes.js'
 
 export const simpleFace: TaskProvider = {
   getTask (): Task {
@@ -16,7 +15,7 @@ export const simpleFace: TaskProvider = {
           overview: 'Simple face is a small subset of face_task from Kaggle'
         },
         dataFormatInformation: '',
-        dataExampleText: 'Below you find an example',
+        dataExampleText: 'Below you can find an example',
         dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/simple_face-example.png'
       },
       trainingInformation: {

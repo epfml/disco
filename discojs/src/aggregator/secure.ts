@@ -1,9 +1,9 @@
-import { Map, List, Range } from 'immutable'
-import * as tf from '@tensorflow/tfjs'
+import { Map, List, Range } from "immutable";
+import * as tf from "@tensorflow/tfjs";
 
-import { AggregationStep, Base as Aggregator } from './base.js'
-import type { Model, WeightsContainer, client } from '../index.js'
-import { aggregation } from '../index.js'
+import { AggregationStep, Base as Aggregator } from "./base.js";
+import type { Model, WeightsContainer, client } from "../index.js";
+import { aggregation } from "../index.js";
 
 /**
  * Aggregator implementing secure multi-party computation for decentralized learning.
@@ -13,89 +13,140 @@ import { aggregation } from '../index.js'
  * Finally, nodes are able to average the received partial sums to establish the aggregation result.
  */
 export class SecureAggregator extends Aggregator<WeightsContainer> {
-  constructor (
+  constructor(
     model?: Model,
-    private readonly maxShareValue = 100
+    private readonly maxShareValue = 100,
   ) {
-    super(model, 0, 2)
+    super(model, 0, 2);
   }
 
-  aggregate (): void {
-    this.log(AggregationStep.AGGREGATE)
-    if (this.communicationRound === 0) {
+  override aggregate(): void {
+    this.log(AggregationStep.AGGREGATE);
+
+    switch (this.communicationRound) {
       // Sum the received shares
-      const result = aggregation.sum(this.contributions.get(0)?.values() as Iterable<WeightsContainer>)
-      this.emit(result)
-    } else if (this.communicationRound === 1) {
+      case 0: {
+        const currentContributions = this.contributions.get(0);
+        if (currentContributions === undefined)
+          throw new Error("aggregating without any contribution");
+
+        const result = aggregation.sum(currentContributions.values());
+
+        this.emit(result);
+
+	break
+      }
       // Average the received partial sums
-      const result = aggregation.avg(this.contributions.get(1)?.values() as Iterable<WeightsContainer>)
-      if (this.model !== undefined) {
-        this.model.weights = result
+      case 1: {
+        const currentContributions = this.contributions.get(1);
+        if (currentContributions === undefined)
+          throw new Error("aggregating without any contribution");
+
+        const result = aggregation.avg(currentContributions.values());
+
+        if (this.model !== undefined) this.model.weights = result;
+        this.emit(result);
+
+	break
       }
-      this.emit(result)
-    } else {
-      throw new Error('communication round is out of bounds')
+      default:
+        throw new Error("communication round is out of bounds");
     }
   }
 
-  add (nodeId: client.NodeID, contribution: WeightsContainer, round: number, communicationRound: number): boolean {
-    if (this.nodes.has(nodeId) && this.isWithinRoundCutoff(round)) {
-      this.log(this.contributions.hasIn([communicationRound, nodeId]) ? AggregationStep.UPDATE : AggregationStep.ADD, nodeId)
-      this.contributions = this.contributions.setIn([communicationRound, nodeId], contribution)
-      this.informant?.update()
-      if (this.isFull()) {
-        this.aggregate()
+  override add(
+    nodeId: client.NodeID,
+    contribution: WeightsContainer,
+    round: number,
+    communicationRound?: number,
+  ): boolean {
+    switch (communicationRound) {
+      case 0:
+      case 1:
+        break;
+      default:
+        throw new Error("requires communication round to be 0 or 1");
+    }
+
+    if (!this.nodes.has(nodeId) || !this.isWithinRoundCutoff(round))
+      return false;
+
+    this.log(
+      this.contributions.hasIn([communicationRound, nodeId])
+        ? AggregationStep.UPDATE
+        : AggregationStep.ADD,
+      nodeId,
+    );
+
+    this.contributions = this.contributions.setIn(
+      [communicationRound, nodeId],
+      contribution,
+    );
+
+    this.informant?.update();
+    if (this.isFull()) this.aggregate();
+
+    return true;
+  }
+
+  override isFull(): boolean {
+    return (
+      (this.contributions.get(this.communicationRound)?.size ?? 0) ===
+      this.nodes.size
+    );
+  }
+
+  override makePayloads(
+    weights: WeightsContainer,
+  ): Map<client.NodeID, WeightsContainer> {
+    switch (this.communicationRound) {
+      case 0: {
+        const shares = this.generateAllShares(weights);
+        // Abitrarily assign our shares to the available nodes
+        return Map(
+          List(this.nodes).zip(shares) as List<[string, WeightsContainer]>,
+        );
       }
-      return true
-    }
-    return false
-  }
-
-  isFull (): boolean {
-    const contribs = this.contributions.get(this.communicationRound)
-    if (contribs === undefined) {
-      return false
-    }
-    return contribs.size === this.nodes.size
-  }
-
-  makePayloads (weights: WeightsContainer): Map<client.NodeID, WeightsContainer> {
-    if (this.communicationRound === 0) {
-      const shares = this.generateAllShares(weights)
-      // Abitrarily assign our shares to the available nodes
-      return Map(List(this.nodes).zip(shares) as List<[string, WeightsContainer]>)
-    } else {
       // Send our partial sum to every other nodes
-      return this.nodes.toMap().map(() => weights)
+      case 1:
+        return this.nodes.toMap().map(() => weights);
+      default:
+        throw new Error("communication round is out of bounds");
     }
   }
 
-  /**
-   * Generate N additive shares that aggregate to the secret weights array, where N is the number of peers.
-   */
-  public generateAllShares (secret: WeightsContainer): List<WeightsContainer> {
-    if (this.nodes.size === 0) {
-      throw new Error('too few participants to generate shares')
-    }
+  /** Generate N additive shares that aggregate to the secret weights array, where N is the number of peers. */
+  public generateAllShares(secret: WeightsContainer): List<WeightsContainer> {
+    if (this.nodes.size === 0)
+      throw new Error("too few participants to generate shares");
+
     // Generate N-1 shares
     const shares = Range(0, this.nodes.size - 1)
       .map(() => this.generateRandomShare(secret))
-      .toList()
+      .toList();
+
     // The last share completes the sum
-    return shares.push(secret.sub(aggregation.sum(shares)))
+    return shares.push(secret.sub(aggregation.sum(shares)));
   }
 
   /**
    * Generates one share in the same shape as the secret that is populated with values randomly chosen from
    * a uniform distribution between (-maxShareValue, maxShareValue).
    */
-  public generateRandomShare (secret: WeightsContainer): WeightsContainer {
-    const MAX_SEED_BITS = 47
+  public generateRandomShare(secret: WeightsContainer): WeightsContainer {
+    const MAX_SEED_BITS = 47;
 
-    const random = crypto.getRandomValues(new BigInt64Array(1))[0]
-    const seed = Number(BigInt.asUintN(MAX_SEED_BITS, random))
+    const random = crypto.getRandomValues(new BigInt64Array(1))[0];
+    const seed = Number(BigInt.asUintN(MAX_SEED_BITS, random));
 
     return secret.map((t) =>
-      tf.randomUniform(t.shape, -this.maxShareValue, this.maxShareValue, 'float32', seed))
+      tf.randomUniform(
+        t.shape,
+        -this.maxShareValue,
+        this.maxShareValue,
+        "float32",
+        seed,
+      ),
+    );
   }
 }

@@ -1,9 +1,9 @@
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model, Task, TaskProvider } from '../../index.js'
-import { data, models } from '../../index.js'
+import type { Model, Task, TaskProvider } from '../index.js'
+import { data, models } from '../index.js'
 
-import baseModel from './model.js'
+import baseModel from '../models/mobileNet_v1_025_224.js'
 
 export const cifar10: TaskProvider = {
   getTask (): Task {

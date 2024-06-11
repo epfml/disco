@@ -25,6 +25,7 @@ export abstract class Base<T> {
    * It defines the effective aggregation group, which is possibly a subset
    * of all active nodes, depending on the aggregation scheme.
    */
+  // communication round -> NodeID -> T
   protected contributions: Map<number, Map<client.NodeID, T>>
   /**
    * Emits the aggregation event whenever an aggregation step is performed.

@@ -180,7 +180,6 @@
 <script setup lang="ts">
 import { List } from 'immutable'
 import { computed } from 'vue'
-// @ts-expect-error waiting for vue3-apexcharts#98
 import ApexChart from "vue3-apexcharts";
 import { chartOptions } from '@/charts'
 

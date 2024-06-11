@@ -18,8 +18,6 @@ export enum type {
   SendPayload,
   ReceiveServerMetadata,
   ReceiveServerPayload,
-  RequestServerStatistics,
-  ReceiveServerStatistics,
 }
 
 export interface ClientConnected {

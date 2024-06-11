@@ -29,13 +29,15 @@
           @clear="clearFiles()"
         />
         <!--
-          If the task data type is image then let the user choose between uploading a csv and all images at once
-          or uploading image groups by categories
+          If the task data type is image then let the user choose between connect a csv and all images at once
+          or connecting image groups by categories
         -->
         <div 
           v-else-if="task.trainingInformation.dataType === 'image'"
           class="flex justify-center"
         >
+        <!-- The default data selection mode (connect by group vs connect a csv) depends on task' label number
+        If the task has few labels then the default is to connect by group, otherwise connecting a CSV is the default -->
               <button
                 class="w-40 py-2 uppercase text-lg rounded-l-lg border-2 border-disco-cyan focus:outline-none"
                 :class="connectImagesByGroup ? 'text-white bg-disco-cyan' : 'text-disco-cyan bg-transparent'"
@@ -57,6 +59,7 @@
       v-if="task.trainingInformation.dataType === 'image'"
       class="space-y-4 md:space-y-8 mt-8"
     >
+    <!-- Connecting images by group mode -->
       <div
         v-show="connectImagesByGroup"
         class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8"
@@ -86,6 +89,7 @@
           @clear="clearFiles()"
         />
       </div>
+    <!-- Connecting images by CSV mode -->
       <div
         v-show="!connectImagesByGroup"
         class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8"
@@ -105,7 +109,7 @@
               >
                 <template #text>
                   <b>The CSV file must contain a header with only two columns (filename, label)</b>. The file name must NOT include the file
-                  extension.
+                  extension. You can find an example of how to create a CSV <a class='underline text-primary-dark dark:text-primary-light' href='https://github.com/epfml/disco/blob/develop/docs/examples/dataset_csv_creation.ipynb'>here</a>.
                 </template>
               </FileSelection>
             </template>
@@ -172,7 +176,9 @@ const toaster = useToaster()
 const props = defineProps<Props>()
 
 const csvRows = ref<{ filename: string, label: string }[]>()
-const connectImagesByGroup = ref(true)
+
+const isLabelLengthSmall = (props.task.trainingInformation.LABEL_LIST?.length ?? 0) <= 2
+const connectImagesByGroup = ref(isLabelLengthSmall)
 
 const requireLabels = computed(
   () => props.task.trainingInformation.LABEL_LIST !== undefined
@@ -187,7 +193,7 @@ const readCsv = (files: FileList) => {
     csvRows.value = d3.csvParse(file)
     if (csvRows.value[0].filename == undefined || csvRows.value[0].label == undefined) {
       clearCsv()
-      toaster.error("The CSV file should have a header with the exact column names: filename, label.")
+      toaster.error("The CSV file should have a header with these exact 2 column names: filename, label.")
       throw new Error("Invalid CSV header")
     }
   })
@@ -201,14 +207,14 @@ const addFiles = (files: FileList, label?: string) => {
       props.datasetBuilder.addFiles(filesArray, label)
     } else {
       if (csvRows.value === undefined) {
-        throw new Error('adding files but not CSV rows defined')
+        throw new Error('adding files but no CSV rows defined')
       }
       try {
         csvRows.value.forEach(row => {
           // Match the selected files with the csv file names and label
           const imageFile = filesArray.find(file => row.filename === file.name.split('.').slice(0, -1).join('.'))
           if (imageFile === undefined) {
-            toaster.error("An image was not found in the CSV file, make sure the CSV filenames don't include file extensions.")
+            toaster.error("Some images listed in the CSV file are missing, make sure the CSV filenames don't include file extensions.")
             throw new Error("Image not found in the CSV file")
           } else if (imageFile) {
             props.datasetBuilder.addFiles([imageFile], row.label)
