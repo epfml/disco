@@ -79,12 +79,10 @@ class GPTModel extends tf.LayersModel {
           }
           return tf.losses.softmaxCrossEntropy(ys, logits)
         }
-        let backwardPassMemory = 0
         const lossTensor = tf.tidy(() => {
           const { grads, value: lossTensor } = this.optimizer.computeGradients(lossFn)
           const gradsClipped = clipByGlobalNormObj(grads, 1)
           this.optimizer.applyGradients(gradsClipped)
-          backwardPassMemory = tf.memory().numBytes / 1024 / 1024 / 1024
           return lossTensor
         })
         
