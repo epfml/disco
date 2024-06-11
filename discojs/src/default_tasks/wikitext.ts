@@ -19,17 +19,14 @@ export const wikitext: TaskProvider = {
         dataType: 'text',
         modelID: 'wikitext-103-raw-model',
         preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
-        validationSplit: 0.2, // TODO: is this used somewhere? because train, eval and test are already split in dataset
-        epochs: 5,
         scheme: 'federated',
-        noiseScale: undefined,
-        decentralizedSecure: true,
-        minimumReadyPeers: 3,
-        maxShareValue: 100,
-        roundDuration: 10,
-        batchSize: 16,
+        epochs: 1000,
+        validationSplit: 0, // Unused by wikitext because data already comes split
+        roundDuration: 2,
+        batchSize: 1,
         tokenizer: 'Xenova/gpt2',
-        maxSequenceLength: 128
+        maxSequenceLength: 128,
+        tensorBackend: 'gpt'
       }
     }
   },

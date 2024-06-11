@@ -57,6 +57,8 @@ export interface TrainingInformation {
   // maxSequenceLength: the maximum length of a input string used as input to a GPT model. It is used during preprocessing to
   // truncate strings to a maximum length. The default value is tokenizer.model_max_length
   maxSequenceLength?: number
+  // Tensor framework used by the model
+  tensorBackend: 'tfjs' | 'gpt'
 }
 
 function isStringArray(raw: unknown): raw is string[] {
@@ -95,6 +97,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     validationSplit,
     tokenizer,
     maxSequenceLength,
+    tensorBackend
   }: Partial<Record<keyof TrainingInformation, unknown>> = raw
 
   if (
@@ -143,6 +146,12 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     }
   }
 
+  switch (tensorBackend) {
+    case 'tfjs': break
+    case 'gpt': break
+    default: return false
+  }
+  
   switch (scheme) {
     case 'decentralized': break
     case 'federated': break
@@ -171,7 +180,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     scheme,
     validationSplit,
     tokenizer,
-    maxSequenceLength
+    maxSequenceLength,
+    tensorBackend
   }
   const _correct: TrainingInformation = repack
   const _total: Record<keyof TrainingInformation, unknown> = repack
