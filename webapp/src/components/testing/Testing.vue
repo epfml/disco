@@ -171,7 +171,6 @@ import { CONFIG } from '@/config'
 import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
-import { useToaster } from '@/composables/toaster'
 import Data from '@/components/data/Data.vue'
 import Tester from '@/components/testing/Tester.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
@@ -193,9 +192,6 @@ const currentComponent = computed<[Component, string] | undefined>(() => {
 })
 
 const { step: stepRef, state: stateRef } = storeToRefs(validationStore)
-
-const toaster = useToaster()
-
 const currentTask = shallowRef<Task | undefined>(undefined)
 
 const federatedTasks = computed<List<Task>>(() =>
@@ -262,8 +258,7 @@ const downloadModel = async (task: Task): Promise<void> => {
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
   const taskID = memory.value.getModelInfo(path)?.taskID
   if (taskID === undefined) {
-    toaster.error('Info for path not found')
-    return
+    throw new Error('Model task id for found in memory for path: ' + path)
   }
 
   const selectedTask = tasksStore.tasks.get(taskID)
@@ -273,7 +268,7 @@ const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
     validationStore.step = 1
     validationStore.isOnlyPrediction = isOnlyPrediction
   } else {
-    toaster.error('Model not found')
+    throw new Error('Task not found in the task store for task id: ' + taskID)
   }
 }
 
@@ -282,7 +277,7 @@ const taskTitle = (taskID: string): string | undefined => {
   if (titled !== undefined) {
     return titled.displayInformation.taskTitle
   } else {
-    toaster.error('Task not found')
+    throw new Error('Task title not found for task id: ' + taskID)
   }
 }
 </script>

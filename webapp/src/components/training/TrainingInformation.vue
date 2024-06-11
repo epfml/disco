@@ -42,7 +42,7 @@
       class="flex flex-col md:grid gap-4 md:gap-8"
       :class="hasValidationData ? 'md:grid-cols-2' : ''"
     >
-      <!-- Training Accuracy users chart -->
+      <!-- Training loss users chart -->
       <IconCard>
         <!-- Card header -->
         <template #title>
