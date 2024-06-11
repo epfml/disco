@@ -253,7 +253,8 @@ const downloadModel = async (task: Task): Promise<void> => {
   const source = {
     type: StoredModelType.SAVED,
     taskID: task.id,
-    name: task.trainingInformation.modelID
+    name: task.trainingInformation.modelID,
+    tensorBackend: task.trainingInformation.tensorBackend,
   }
   await memory.value.saveModel(source, model)
   await memoryStore.initModels()

@@ -17,27 +17,28 @@ export class IndexedDB extends Memory {
     if (typeof source === 'string') {
       return source
     }
-
-    if (source.type === undefined || source.taskID === undefined || source.name === undefined) {
+    if (source.type === undefined || source.taskID === undefined ||
+      source.name === undefined || source.tensorBackend === undefined) {
       throw new TypeError('source incomplete')
     }
-
     const version = source.version ?? 0
-
-    return `indexeddb://${source.type}/${source.taskID}/${source.name}@${version}`
+    return `indexeddb://${source.type}/${source.tensorBackend}/${source.taskID}/${source.name}@${version}`
   }
 
   override getModelInfo (source: ModelSource): ModelInfo {
     if (typeof source !== 'string') {
       return source
     }
-    const [stringType, taskID, fullName] = source.split('/').splice(2)
+    const [stringType, tensorBackend, taskID, fullName] = source.split('/').splice(2)
 
     const type = stringType === 'working' ? StoredModelType.WORKING : StoredModelType.SAVED
 
     const [name, versionSuffix] = fullName.split('@')
     const version = versionSuffix === undefined ? 0 : Number(versionSuffix)
-    return { type, taskID, name, version }
+    if (tensorBackend != 'tfjs' && tensorBackend != 'gpt') {
+      throw Error("Unknown tensor backend")
+    }
+    return { type, taskID, name, version, tensorBackend }
   }
 
   async getModelMetadata (source: ModelSource): Promise<tf.io.ModelArtifactsInfo | undefined> {
@@ -54,8 +55,14 @@ export class IndexedDB extends Memory {
     console.log("memory path", this.getModelMemoryPath(source))
     const layersModel = await tf.loadLayersModel(this.getModelMemoryPath(source))
     console.log("layers model", layersModel)
-
-    return new models.TFJS(layersModel)
+    const tensorBackend = this.getModelInfo(source).tensorBackend
+    if (tensorBackend == 'tfjs') {
+      return new models.TFJS(layersModel)
+    } else if (tensorBackend == 'gpt') {
+      return new models.GPT(undefined, layersModel)
+    } else {
+      throw Error("tensor backend unrecognized")
+    }
   }
 
   async deleteModel (source: ModelSource): Promise<void> {
@@ -85,17 +92,20 @@ export class IndexedDB extends Memory {
     if (src.type !== undefined && src.type !== StoredModelType.WORKING) {
       throw new Error('expected working model')
     }
-
-    const indexedDBURL = this.getModelMemoryPath({ ...src, type: StoredModelType.WORKING, version: 0 })
-    if (model instanceof models.TFJS) {
-      await model.extract().save(indexedDBURL, { includeOptimizer: true })
-    } else if (model instanceof models.GPT) { 
-      await model.extract().save(indexedDBURL, { includeOptimizer: false }) // true raises an error
-    } else {
-      throw new Error('unknown model type')
-    }
-
     // Enforce version 0 to always keep a single working model at a time
+    const modelInfo = { ...src, type: StoredModelType.WORKING, version: 0 }
+    let includeOptimizer;
+    if (model instanceof models.TFJS) {
+        modelInfo['tensorBackend'] = 'tfjs'
+        includeOptimizer = true
+      } else if (model instanceof models.GPT) { 
+        modelInfo['tensorBackend'] = 'gpt'
+        includeOptimizer = false // true raises an error
+      } else {
+        throw new Error('unknown model type')
+      }
+      const indexedDBURL = this.getModelMemoryPath(modelInfo)
+      await model.extract().save(indexedDBURL, { includeOptimizer })
   }
 
   /**
@@ -120,14 +130,20 @@ export class IndexedDB extends Memory {
     if (src.type !== undefined && src.type !== StoredModelType.SAVED) {
       throw new Error('expected saved model')
     }
-    const indexedDBURL = this.getModelMemoryPath(await this.duplicateSource({ ...src, type: StoredModelType.SAVED }))
+
+    const modelInfo = await this.duplicateSource({ ...src, type: StoredModelType.SAVED })
+    let includeOptimizer;
     if (model instanceof models.TFJS) {
-      await model.extract().save(indexedDBURL, { includeOptimizer: true })
-    } else if (model instanceof models.GPT) { 
-      await model.extract().save(indexedDBURL, { includeOptimizer: false }) // true raises an error
-    } else {
-      throw new Error('unknown model type')
-    }
+        modelInfo['tensorBackend'] = 'tfjs'
+        includeOptimizer = true
+      } else if (model instanceof models.GPT) { 
+        modelInfo['tensorBackend'] = 'gpt'
+        includeOptimizer = false // true raises an error
+      } else {
+        throw new Error('unknown model type')
+      }
+      const indexedDBURL = this.getModelMemoryPath(modelInfo)
+      await model.extract().save(indexedDBURL, { includeOptimizer })
     return indexedDBURL
   }
 
@@ -147,24 +163,17 @@ export class IndexedDB extends Memory {
     if (typeof source !== 'string') {
       source = this.getModelMemoryPath({ ...source, version: 0 })
     }
-
     // perform a single memory read
     const paths = Map(await tf.io.listModels())
-
     if (!paths.has(source)) {
       return undefined
     }
 
-    const latest = Map(paths)
-      .keySeq()
-      .toList()
-      .map((p) => this.getModelInfo(p).version)
-      .max()
-
+    const latest = Map(paths).keySeq().toList()
+      .map((p) => this.getModelInfo(p).version).max()
     if (latest === undefined) {
       return 0
     }
-
     return latest
   }
 

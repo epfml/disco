@@ -106,7 +106,8 @@ export default {
       return {
         type: StoredModelType.WORKING,
         taskID: this.task.id,
-        name: this.task.trainingInformation.modelID
+        name: this.task.trainingInformation.modelID,
+        tensorBackend: this.task.trainingInformation.tensorBackend,
       }
     }
   },

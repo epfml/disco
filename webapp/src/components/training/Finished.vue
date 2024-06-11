@@ -62,7 +62,8 @@ const modelInfo = computed<ModelInfo>(() => {
   return {
     type: StoredModelType.WORKING,
     taskID: props.task.id,
-    name: props.task.trainingInformation.modelID
+    name: props.task.trainingInformation.modelID,
+    tensorBackend: props.task.trainingInformation.tensorBackend,
   }
 })
 

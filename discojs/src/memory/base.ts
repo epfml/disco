@@ -22,10 +22,14 @@ export interface ModelInfo {
   taskID: TaskID
   // The model's name
   name: string
+  // Tensor framework used by the model
+  tensorBackend: 'gpt'|'tfjs' // onnx in the future
 }
 
 /**
  * A model source uniquely identifies a model stored in memory.
+ * It can be in the form of either a model info object or a Path string 
+ * (one-to-one mapping between the two)
  */
 export type ModelSource = ModelInfo | Path
 
