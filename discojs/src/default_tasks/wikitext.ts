@@ -20,10 +20,12 @@ export const wikitext: TaskProvider = {
         modelID: 'wikitext-103-raw-model',
         preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
         scheme: 'federated',
-        epochs: 1000,
-        validationSplit: 0, // Unused by wikitext because data already comes split
+        epochs: 5,
+        // Unused by wikitext because data already comes split
+        // But if set to 0 then the webapp doesn't display the validation metrics
+        validationSplit: 0.1, 
         roundDuration: 2,
-        batchSize: 1,
+        batchSize: 1, // If set too high (e.g. 16) then firefox raises a WebGL error
         tokenizer: 'Xenova/gpt2',
         maxSequenceLength: 128,
         tensorBackend: 'gpt'

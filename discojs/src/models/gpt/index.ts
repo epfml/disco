@@ -17,9 +17,9 @@ import type { GPTConfig } from './config.js'
 export class GPT extends Model {
   private readonly model: GPTForCausalLM
 
-  constructor (partialConfig?: GPTConfig) {
+  constructor (partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
     super()
-    this.model = new GPTForCausalLM(partialConfig)
+    this.model = new GPTForCausalLM(partialConfig, layersModel)
   }
 
   /**
@@ -56,7 +56,8 @@ export class GPT extends Model {
         epoch,
         peakMemory,
         training: {
-          loss: logs.loss
+          loss: logs.loss,
+          accuracy: logs.acc
         }
       }
 
@@ -120,15 +121,18 @@ export class GPT extends Model {
     return this.model
   }
 
-  [Symbol.dispose](): void{
-    console.log("Disposing model")
+  dispose() {
     if (this.model.optimizer !== undefined) {
       this.model.optimizer.dispose()
     }
-    // Some tensors are not cleaned up when model.dispose is called 
-    // So we dispose them manually
-    this.model.disposeRefs()
-    this.model.dispose()
+    const disposeResults = this.model.dispose()
+    if (disposeResults.refCountAfterDispose > 0) {
+      console.error("The GPT model was not disposed correctly (refcount > 0)", disposeResults)
+    }
+  }
+
+  [Symbol.dispose](): void{
+    this.dispose()
   }
 }
 

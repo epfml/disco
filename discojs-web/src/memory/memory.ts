@@ -51,10 +51,8 @@ export class IndexedDB extends Memory {
   }
 
   override async getModel(source: ModelSource): Promise<Model> {
-    console.log("source", source)
-    console.log("memory path", this.getModelMemoryPath(source))
     const layersModel = await tf.loadLayersModel(this.getModelMemoryPath(source))
-    console.log("layers model", layersModel)
+    
     const tensorBackend = this.getModelInfo(source).tensorBackend
     if (tensorBackend == 'tfjs') {
       return new models.TFJS(layersModel)
@@ -70,7 +68,6 @@ export class IndexedDB extends Memory {
   }
 
   async loadModel(source: ModelSource): Promise<void> {
-    console.log("Loading model")
     const src = this.getModelInfo(source)
     if (src.type === StoredModelType.WORKING) {
       // Model is already loaded
@@ -90,7 +87,7 @@ export class IndexedDB extends Memory {
   override async updateWorkingModel (source: ModelSource, model: Model): Promise<void> {
     const src: ModelInfo = this.getModelInfo(source)
     if (src.type !== undefined && src.type !== StoredModelType.WORKING) {
-      throw new Error('expected working model')
+      throw new Error('expected working type model')
     }
     // Enforce version 0 to always keep a single working model at a time
     const modelInfo = { ...src, type: StoredModelType.WORKING, version: 0 }
@@ -115,7 +112,7 @@ export class IndexedDB extends Memory {
   async saveWorkingModel (source: ModelSource): Promise<Path> {
     const src: ModelInfo = this.getModelInfo(source)
     if (src.type !== undefined && src.type !== StoredModelType.WORKING) {
-      throw new Error('expected working model')
+      throw new Error('expected working type model')
     }
     const dst = this.getModelMemoryPath(await this.duplicateSource({ ...src, type: StoredModelType.SAVED }))
     await tf.io.copyModel(
@@ -128,7 +125,7 @@ export class IndexedDB extends Memory {
   override async saveModel (source: ModelSource, model: Model): Promise<Path> {
     const src: ModelInfo = this.getModelInfo(source)
     if (src.type !== undefined && src.type !== StoredModelType.SAVED) {
-      throw new Error('expected saved model')
+      throw new Error('expected saved type model')
     }
 
     const modelInfo = await this.duplicateSource({ ...src, type: StoredModelType.SAVED })
