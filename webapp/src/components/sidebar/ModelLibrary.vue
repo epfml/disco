@@ -126,15 +126,9 @@ import { List } from "immutable";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-<<<<<<< HEAD
-import type { Path } from '@epfml/discojs'
-import { Memory, EmptyMemory, StoredModelType } from '@epfml/discojs'
-import { IndexedDB } from '@epfml/discojs-web'
-=======
 import type { Path } from "@epfml/discojs";
-import { EmptyMemory, ModelType } from "@epfml/discojs";
+import { EmptyMemory, StoredModelType } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
->>>>>>> develop
 
 import { useToaster } from "@/composables/toaster";
 import type { ModelMetadata } from "@/store/memory";
