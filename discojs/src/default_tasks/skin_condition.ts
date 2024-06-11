@@ -32,7 +32,8 @@ export const skinCondition: TaskProvider = {
         LABEL_LIST: LABELS,
         scheme: 'federated',
         noiseScale: undefined,
-        clippingRadius: undefined
+        clippingRadius: undefined,
+        tensorBackend: 'tfjs'
       }
     }
   },
