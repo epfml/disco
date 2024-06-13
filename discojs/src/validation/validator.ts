@@ -47,7 +47,6 @@ export class Validator {
     }
     const model = await this.getModel()
     let hits = 0
-    let iteration = 1
     const iterator = await data.preprocess().dataset.batch(batchSize).iterator()
     let next = await iterator.next()
     while (next.done !== true) {
@@ -65,7 +64,6 @@ export class Validator {
         .map(([gt, p, f]) => ({ groundTruth: gt, pred: p, features: f }))
         .toArray()
       
-      iteration++
       next = await iterator.next()
     }
     
@@ -80,7 +78,6 @@ export class Validator {
     }
 
     const model = await this.getModel()
-    let iteration = 1
     const iterator = await data.preprocess().dataset.batch(batchSize).iterator()
     let next = await iterator.next()
 
@@ -106,7 +103,6 @@ export class Validator {
         .map(([f, p]) => ({ features: f, pred: p }))
         .toArray()
       
-      iteration++
       next = await iterator.next()
     }
     
