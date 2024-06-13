@@ -5,7 +5,7 @@ import { data } from '@epfml/discojs'
 export class TextLoader extends data.TextLoader<File> {
   loadDatasetFrom (source: File): Promise<data.Dataset> {
     const file = new tf.data.FileDataSource(source)
-    const dataset = new tf.data.TextLineDataset(file).filter(s => s != ' ') // newline creates empty strings
+    const dataset = new tf.data.TextLineDataset(file).filter(s => s !== ' ') // newline creates empty strings
     return Promise.resolve(dataset)
   }
 }

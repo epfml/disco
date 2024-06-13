@@ -16,6 +16,10 @@ export async function getTaskTokenizer(task: Task): Promise<PreTrainedTokenizer>
   let tokenizer = task.trainingInformation.tokenizer
   if (tokenizer === undefined) throw Error('No tokenizer specified in the task training information')
   if (typeof tokenizer == 'string') {
+
+    // Needs to be false in order to prevent transformers.js from reading the local cache 
+    // and triggering an error when running in the browser
+    // Reference: https://medium.com/@GenerationAI/transformers-js-onnx-runtime-webgpu-46c3e58d547c
     env.allowLocalModels = false
     tokenizer = await AutoTokenizer.from_pretrained(tokenizer)
     task.trainingInformation.tokenizer = tokenizer

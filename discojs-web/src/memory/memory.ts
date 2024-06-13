@@ -17,10 +17,6 @@ export class IndexedDB extends Memory {
     if (typeof source === 'string') {
       return source
     }
-    if (source.type === undefined || source.taskID === undefined ||
-      source.name === undefined || source.tensorBackend === undefined) {
-      throw new TypeError('source incomplete')
-    }
     const version = source.version ?? 0
     return `indexeddb://${source.type}/${source.tensorBackend}/${source.taskID}/${source.name}@${version}`
   }
@@ -35,7 +31,7 @@ export class IndexedDB extends Memory {
 
     const [name, versionSuffix] = fullName.split('@')
     const version = versionSuffix === undefined ? 0 : Number(versionSuffix)
-    if (tensorBackend != 'tfjs' && tensorBackend != 'gpt') {
+    if (tensorBackend !== 'tfjs' && tensorBackend !== 'gpt') {
       throw Error("Unknown tensor backend")
     }
     return { type, taskID, name, version, tensorBackend }
@@ -54,12 +50,14 @@ export class IndexedDB extends Memory {
     const layersModel = await tf.loadLayersModel(this.getModelMemoryPath(source))
     
     const tensorBackend = this.getModelInfo(source).tensorBackend
-    if (tensorBackend == 'tfjs') {
-      return new models.TFJS(layersModel)
-    } else if (tensorBackend == 'gpt') {
-      return new models.GPT(undefined, layersModel)
-    } else {
-      throw Error("tensor backend unrecognized")
+    switch (tensorBackend) {
+      case 'tfjs':
+        return new models.TFJS(layersModel)
+      case 'gpt':
+        return new models.GPT(undefined, layersModel)
+      default:
+        const _exhaustiveCheck: never = tensorBackend;
+        return _exhaustiveCheck;
     }
   }
 
@@ -86,23 +84,23 @@ export class IndexedDB extends Memory {
    */
   override async updateWorkingModel (source: ModelSource, model: Model): Promise<void> {
     const src: ModelInfo = this.getModelInfo(source)
-    if (src.type !== undefined && src.type !== StoredModelType.WORKING) {
+    if (src.type !== StoredModelType.WORKING) {
       throw new Error('expected working type model')
     }
     // Enforce version 0 to always keep a single working model at a time
     const modelInfo = { ...src, type: StoredModelType.WORKING, version: 0 }
     let includeOptimizer;
     if (model instanceof models.TFJS) {
-        modelInfo['tensorBackend'] = 'tfjs'
-        includeOptimizer = true
-      } else if (model instanceof models.GPT) { 
-        modelInfo['tensorBackend'] = 'gpt'
-        includeOptimizer = false // true raises an error
-      } else {
-        throw new Error('unknown model type')
-      }
-      const indexedDBURL = this.getModelMemoryPath(modelInfo)
-      await model.extract().save(indexedDBURL, { includeOptimizer })
+      modelInfo['tensorBackend'] = 'tfjs'
+      includeOptimizer = true
+    } else if (model instanceof models.GPT) { 
+      modelInfo['tensorBackend'] = 'gpt'
+      includeOptimizer = false // true raises an error
+    } else {
+      throw new Error('unknown model type')
+    }
+    const indexedDBURL = this.getModelMemoryPath(modelInfo)
+    await model.extract().save(indexedDBURL, { includeOptimizer })
   }
 
   /**
@@ -111,7 +109,7 @@ export class IndexedDB extends Memory {
  */
   async saveWorkingModel (source: ModelSource): Promise<Path> {
     const src: ModelInfo = this.getModelInfo(source)
-    if (src.type !== undefined && src.type !== StoredModelType.WORKING) {
+    if (src.type !== StoredModelType.WORKING) {
       throw new Error('expected working type model')
     }
     const dst = this.getModelMemoryPath(await this.duplicateSource({ ...src, type: StoredModelType.SAVED }))
@@ -124,7 +122,7 @@ export class IndexedDB extends Memory {
 
   override async saveModel (source: ModelSource, model: Model): Promise<Path> {
     const src: ModelInfo = this.getModelInfo(source)
-    if (src.type !== undefined && src.type !== StoredModelType.SAVED) {
+    if (src.type !== StoredModelType.SAVED) {
       throw new Error('expected saved type model')
     }
 

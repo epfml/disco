@@ -13,6 +13,10 @@ import { GPTForCausalLM } from './model.js'
 import type { EpochLogs, Prediction, Sample } from '../model.js'
 import type { GPTConfig } from './config.js'
 
+export type GPTSerialization = {
+  weights: WeightsContainer
+  config?: GPTConfig
+}
 
 export class GPT extends Model {
   private readonly model: GPTForCausalLM
@@ -121,7 +125,7 @@ export class GPT extends Model {
     return this.model
   }
 
-  dispose() {
+  [Symbol.dispose](): void{
     if (this.model.optimizer !== undefined) {
       this.model.optimizer.dispose()
     }
@@ -130,13 +134,4 @@ export class GPT extends Model {
       console.error("The GPT model was not disposed correctly (refcount > 0)", disposeResults)
     }
   }
-
-  [Symbol.dispose](): void{
-    this.dispose()
-  }
-}
-
-export type GPTSerialization = {
-  weights: WeightsContainer
-  config?: GPTConfig
 }

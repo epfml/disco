@@ -32,7 +32,7 @@ interface TokenizedEntry extends tf.TensorContainerObject {
 const leftPadding: PreprocessingFunction = {
   type: TextPreprocessing.LeftPadding,
   apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
-    if (x === undefined || !Array.isArray(x) || x.length == 0 || typeof(x[0] != 'number')) {
+    if (x === undefined || !Array.isArray(x) || x.length == 0 || typeof(x[0] !== 'number')) {
       new Error("The leftPadding preprocessing expects a non empty 1D array of number")
     }
     const { tokens } = await x as TokenizedEntry
@@ -72,7 +72,7 @@ interface TokenizerOutput {
 const tokenize: PreprocessingFunction = {
   type: TextPreprocessing.Tokenize,
   apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<tf.TensorContainer> => {
-    if (typeof x != 'string') {
+    if (typeof x !== 'string') {
       new Error("The tokenize preprocessing expects a string as input")
     }
     const xs = await x as string // tf.TextLineDataset yields strings

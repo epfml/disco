@@ -32,21 +32,11 @@ export const useMemoryStore = defineStore('memory', () => {
   async function initModels () {
     const models = await tf.io.listModels()
     for (const path in models) {
-      // eslint-disable-next-line no-unused-vars
       const [location, _, directory, tensorBackend, task, fullName] = path.split('/')
       if (location !== 'indexeddb:') {
         continue
       }
-      console.log(path, fullName)
-      let name
-      let version
-      if (fullName == undefined) {
-        name = 'akjsd'
-        version = 0
-      } else { 
-       [name, version] = fullName.split('@')
-      }
-
+      const [name, version] = fullName.split('@')
       const metadata = models[path]
       const date = new Date(metadata.dateSaved)
       const zeroPad = (number: number) => String(number).padStart(2, '0')
@@ -66,7 +56,7 @@ export const useMemoryStore = defineStore('memory', () => {
         metadata.weightDataBytes,
       ].reduce((acc: number, v) => acc + (v === undefined ? 0 : v), 0)
 
-      if (tensorBackend != 'tfjs' && tensorBackend != 'gpt') {
+      if (tensorBackend !== 'tfjs' && tensorBackend !== 'gpt') {
         throw new Error("Tensor backend unrecognized: " + tensorBackend)
       }
       addModel(path, {

@@ -2,7 +2,6 @@
 // TODO: replace IO type
 
 import type { Model, TaskID } from '../index.js'
-import type { StoredModelType } from './model_type.js'
 
 /**
  * Model path which uniquely identifies a model in memory.
@@ -10,11 +9,18 @@ import type { StoredModelType } from './model_type.js'
 export type Path = string
 
 /**
+ * Type of models stored in memory. Stored models can either be a model currently
+ * being trained ("working model") or a regular model saved in memory ("saved model").
+ * There can only be a single working model for a given task.
+ */
+export type StoredModelType = 'saved' | 'working'
+
+/**
  * Model information which uniquely identifies a model in memory.
  */
 export interface ModelInfo {
   // The model's type: "working" or "saved" model.
-  type?: StoredModelType
+  type: StoredModelType
   // The model's version, to allow for multiple saved models of a same task without
   // causing id conflicts
   version?: number

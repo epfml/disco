@@ -116,7 +116,7 @@ class GPTModel extends tf.LayersModel {
         next = await iterator.next()
       }
       // Memory leak: If we reached the last iteration rather than the end of the dataset, cleanup the tensors
-      if (next.done != true && iteration > this.config.maxIter) {
+      if (next.done !== true && iteration > this.config.maxIter) {
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
         tf.dispose([xs, ys])
       }
