@@ -2,7 +2,6 @@ export * as data from './dataset/index.js'
 export * as serialization from './serialization/index.js'
 export * as training from './training/index.js'
 export * as privacy from './privacy.js'
-export { GraphInformant } from './informant/index.js'
 
 export * as client from './client/index.js'
 export * as aggregator from './aggregator/index.js'

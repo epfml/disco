@@ -2,12 +2,11 @@ import { List } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
 import type { data, Model, Task, Logger, client as clients, Memory, ModelSource, Features } from '../index.js'
-import { GraphInformant } from '../index.js'
 
 export class Validator {
-  private readonly graphInformant = new GraphInformant()
   private size = 0
   private _confusionMatrix: number[][] | undefined
+  private rollingAccuracy = 0
 
   constructor (
     public readonly task: Task,
@@ -24,10 +23,16 @@ export class Validator {
   private async getLabel(ys: tf.Tensor): Promise<Float32Array | Int32Array | Uint8Array> {
     // Binary classification
     if (ys.shape[1] == 1) {
-      return await ys.greaterEqual(tf.scalar(0.5)).data()
-    // Multi-class classification
-    } else {
-      return await ys.argMax(-1).data()
+      const binaryTensor = ys.greaterEqual(tf.scalar(0.5))
+      const binaryArray = await binaryTensor.data()
+      tf.dispose([binaryTensor])
+      return binaryArray
+      // Multi-class classification
+      } else {
+      const yIdxTensor = ys.argMax(-1)
+      const yIdx = await yIdxTensor.data()
+      tf.dispose([yIdx])
+      return yIdx
     }
     // Multi-label classification is not supported
   }
@@ -41,18 +46,20 @@ export class Validator {
 
     let features: Features[] = []
     const groundTruth: number[] = []
-
     let hits = 0
     // Get model predictions per batch and flatten the result
     // Also build the features and ground truth arrays
     const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
       .mapAsync(async e => {
         if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
+          console.log("0", tf.memory().numTensors, "tensors", (tf.memory().numBytes / 1024 / 1024).toFixed(2), 'GB')
           const xs = e.xs as tf.Tensor
           const ys = await this.getLabel(e.ys as tf.Tensor)
           const pred = await this.getLabel(await model.predict(xs))
-          
           const currentFeatures = await xs.array()
+          tf.dispose([xs, e.ys, e])
+          console.log("1", tf.memory().numTensors, "tensors", (tf.memory().numBytes / 1024 / 1024).toFixed(2), 'GB')
+
           if (Array.isArray(currentFeatures)) {
             features = features.concat(currentFeatures)
           } else {
@@ -61,9 +68,8 @@ export class Validator {
           groundTruth.push(...Array.from(ys))
           this.size += xs.shape[0]
           hits += List(pred).zip(List(ys)).filter(([p, y]) => p === y).size
-          // TODO: Confusion Matrix stats
-          const currentAccuracy = hits / this.size
-          this.graphInformant.updateAccuracy(currentAccuracy)
+          this.rollingAccuracy = hits / this.size
+          console.log("2", tf.memory().numTensors, "tensors", (tf.memory().numBytes / 1024 / 1024).toFixed(2), 'GB')
           return Array.from(pred)
         } else {
           throw new Error('Input data is missing a feature or the label')
@@ -135,12 +141,8 @@ export class Validator {
     throw new Error('Could not load the model')
   }
 
-  get accuracyData (): List<number> {
-    return this.graphInformant.data()
-  }
-
   get accuracy (): number {
-    return this.graphInformant.accuracy()
+    return this.rollingAccuracy
   }
 
   get visitedSamples (): number {

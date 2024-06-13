@@ -1,23 +1,24 @@
 # `Disco.js` under the hood
 
 This guide goes over how the core logic is structured and what are the main abstractions of Disco.js, implemented in `discojs`.
-As described in the [developer guide](../DEV.md), `discojs-node` and `discojs-web` are simple wrappers allowing to use `discojs` code from different platforms and technology, namely, a browser or Node.js. 
+As described in the [developer guide](../DEV.md), `discojs-node` and `discojs-web` are simple wrappers allowing to use `discojs` code from different platforms and technology, namely, a browser or Node.js.
 
 ### Terminology
 
 Many terms are used in DISCO and unfortunately they are not always used in the same ways. Here is an attempt to clarifying and present the main terms and concepts as well as how they relate to each other:
-* A `node` is any relevant machine on the network participating in the distributed learning. Nodes refer to both server and client. Note that `node` in `discojs-node` refers to Node.js. Except for the package name, node (in contrast to Node.js) always refers to a network node.
-* A `client` or a `user` is a node with local data performing local model updates. In other words, a client  refers to any node participating in distributed learning that isn't the server. Note that in Disco.js, a client is represented by multiple abstractions, such as the `Client` and the `Trainer`. Therefore, the `Client` class only implements parts of what everything a `client` does in distributed learning and mostly handles communications with the server or other clients. More specifically, the `Client` class handles communication (creating payloads, websockets, etc.) with peers and the server, while the concept of a distributed learning `client` has to load their local data, train the model, send updates etc.
-* `peer` is synonym to `client` or `user` in decentralized learning, in which case the communication is organized in a peer-to-peer network.
-* The `server` is the node listening to incoming requests from other nodes. There is a single server in a distributed task (but a server may handle multiple tasks concurrently).
-* A `task` refers to the training of one model, whether distributed or not (DISCO also lets one train a model locally). Accordingly, multiple tasks may happen in parallel.
+
+- A `node` is any relevant machine on the network participating in the distributed learning. Nodes refer to both server and client. Note that `node` in `discojs-node` refers to Node.js. Except for the package name, node (in contrast to Node.js) always refers to a network node.
+- A `client` or a `user` is a node with local data performing local model updates. In other words, a client refers to any node participating in distributed learning that isn't the server. Note that in Disco.js, a client is represented by multiple abstractions, such as the `Client` and the `Trainer`. Therefore, the `Client` class only implements parts of what everything a `client` does in distributed learning and mostly handles communications with the server or other clients. More specifically, the `Client` class handles communication (creating payloads, websockets, etc.) with peers and the server, while the concept of a distributed learning `client` has to load their local data, train the model, send updates etc.
+- `peer` is synonym to `client` or `user` in decentralized learning, in which case the communication is organized in a peer-to-peer network.
+- The `server` is the node listening to incoming requests from other nodes. There is a single server in a distributed task (but a server may handle multiple tasks concurrently).
+- A `task` refers to the training of one model, whether distributed or not (DISCO also lets one train a model locally). Accordingly, multiple tasks may happen in parallel.
 
 ### Federated learning
 
 > [!Tip]
 > Some knowledge about distributed learning is necessary to understand Disco.js' implementation. For instance, you can have a look at [this paper](https://arxiv.org/abs/1912.04977), written by the Google researchers that coined the term "Federated Learning", reviewing the advances and open areas of distributed learning at the time of 2019.
 
-For simplicity, we will talk mostly of federated learning. In the relevant cases, we specify how the decentralized scheme differ. The typical scenario of federated learning involves multiple clients and one server. Each client pulls model weights from the server and train the model on their local data. After a few iterations, potentially asynchronously, clients push their new respective weights to the server, which aggregates the weights into a new model after receiving enough updates. The clients then pull the new model weights and start training locally again. In decentralized learning, clients mostly interact with each other but still have communicate with the server, for example to get the list of peers participating in the session. 
+For simplicity, we will talk mostly of federated learning. In the relevant cases, we specify how the decentralized scheme differ. The typical scenario of federated learning involves multiple clients and one server. Each client pulls model weights from the server and train the model on their local data. After a few iterations, potentially asynchronously, clients push their new respective weights to the server, which aggregates the weights into a new model after receiving enough updates. The clients then pull the new model weights and start training locally again. In decentralized learning, clients mostly interact with each other but still have communicate with the server, for example to get the list of peers participating in the session.
 
 See here a schema of the main objects in Disco.js:
 
@@ -31,6 +32,7 @@ flowchart LR
     Client<-->|communicate|Server
 
 ```
+
 The user-facing object of Disco.js is the `Disco` class, which is composed of different classes enabling distributed learning. These classes are the `Trainer` and the `Client`, the former handles training and the latter deals with communication. Since different training and communication schemes are available, these classes are abstract and various inheriting classes exist for the different schemes (e.g., `FederatedClient` for federated communication with a central server).
 Once you understand how these classes work you will have a good grasp of DISCO. The remaining classes mostly deal with building these objects and making them work together.
 
@@ -41,7 +43,7 @@ Once you understand how these classes work you will have a good grasp of DISCO. 
 
 The `Trainer` class is instantiated by client nodes and contains all the code relevant for local training. Its main method is `fit`, which trains a model on a given dataset and is a wrapper around [TensorFlow.js' method](https://js.tensorflow.org/api/latest/#tf.LayersModel.fitDataset). The `Trainer` class is abstract, and requires two callbacks (`onRoundBegin` & `onRoundEnd`) related to distributed learning to be implemented.
 
-A round is measured in epochs, so if we say, "share weights every round" and the `roundDuration` is 5, it means that weights are shared every 5 epochs. 
+A round is measured in epochs, so if we say, "share weights every round" and the `roundDuration` is 5, it means that weights are shared every 5 epochs.
 
 `onRoundBegin` is the perfect place to perform weight sharing, pushing local weights and pulling the new aggregated weights.
 
@@ -49,10 +51,10 @@ The `DistributedTrainer` and `LocalTrainer` classes inheriting from `Trainer` im
 
 ## Client
 
-The `Client` class mostly handles sending and receiving weights from the current client to the server (or other peers in decentralized learning). `Client` is an abstract class that requires the methods such as `onRoundEndCommunication` to be implemented. Currently, the two classes implementing `Client` are the `FederatedClient` and the `DecentralizedClient`. For simplicity, we explain here how the 
+The `Client` class mostly handles sending and receiving weights from the current client to the server (or other peers in decentralized learning). `Client` is an abstract class that requires the methods such as `onRoundEndCommunication` to be implemented. Currently, the two classes implementing `Client` are the `FederatedClient` and the `DecentralizedClient`. For simplicity, we explain here how the
 `FederatedClient` works.
 
-In the federated case, pushing the new weights to the "aggregator" will let the `Trainer` use these weights in the next round without aggregating anything. 
+In the federated case, pushing the new weights to the "aggregator" will let the `Trainer` use these weights in the next round without aggregating anything.
 
 ### Aggregators
 
@@ -65,8 +67,8 @@ There are currently two aggregation strategies. The federated aggregation strate
 The `Disco` object is composed of the `Trainer` and `Client` classes along with some other helper classes. Once it's built you can
 start the magic by calling `disco.fit(data)`!
 
-In the federated case, the `Disco` objet will instantiate a `DistributedTrainer` and a `FederatedClient`. Users start training with `disco.fit()`, 
-for example via a browser UI, the CLI or a Node.js script. In turns, `Disco` calls its `Trainer`'s `fitModel()` method. The `Trainer` and the 
+In the federated case, the `Disco` objet will instantiate a `DistributedTrainer` and a `FederatedClient`. Users start training with `disco.fit()`,
+for example via a browser UI, the CLI or a Node.js script. In turns, `Disco` calls its `Trainer`'s `fitModel()` method. The `Trainer` and the
 `Client` interact between each rounds, to push local weights and pull aggregated weights from the server.
 
 ```mermaid
@@ -85,7 +87,7 @@ Here is the sequence of events between each round:
 flowchart RL
     subgraph Disco
         Client-->|4. pull new weights|Trainer
-        Trainer-->|1. onRoundEnd|Client 
+        Trainer-->|1. onRoundEnd|Client
     end
     subgraph Server
         S[(Buffer)]
@@ -93,6 +95,7 @@ flowchart RL
     Client-.->|2. push local weights|S
     S-.->|3. Pull new weights|Client
 ```
+
 Once the weights have been pushed, the `Client` proceeds to fetch the latest weights if any.
 
 ## Server
@@ -118,16 +121,11 @@ flowchart LR
 
 ### Memory
 
-The `DistributedTrainer` has a `memory` attribute that is used to abstract how trained models are stored by the client. As mentioned in various guides, `discojs` is platform-agnostic and  only what endpoints the memory storage should offer. The actual implementation is in `discojs-web` used by the browser UI and implements the memory via IndexedDB, a browser storage. `discojs` also implements a dummy memory, used by the CLI for example, to benchmark performance metrics without saving any models.
-
-### Training informant
-
-The `TrainingInformant` attribute of the `Trainer` is used to observe and track the state of the trainer (e.g. accuracy, current round, ...), which is used in the browser to display
-training information.
+The `DistributedTrainer` has a `memory` attribute that is used to abstract how trained models are stored by the client. As mentioned in various guides, `discojs` is platform-agnostic and only what endpoints the memory storage should offer. The actual implementation is in `discojs-web` used by the browser UI and implements the memory via IndexedDB, a browser storage. `discojs` also implements a dummy memory, used by the CLI for example, to benchmark performance metrics without saving any models.
 
 ### Developing
 
-Both the server and browser use hot-reloading, this means that they are both *watching* the files for changes,
+Both the server and browser use hot-reloading, this means that they are both _watching_ the files for changes,
 and so whenever you change a server .ts file, then the server will reload (ditto for the browser).
 
 However at the time of writing there is no such mechanism (this could be a fun first contribution!) for discojs.
@@ -136,10 +134,9 @@ which is where discojs is transpiled to (this contains JS code); so if we re-bui
 may sadly on some edge cases prevent new code from being built, so to be sure, it is recommended to remove this
 cache before building.
 
-### Debugging 
+### Debugging
 
-The easiest way to see what is going on is by using `console.log`, often times we want to see what value is inside 
+The easiest way to see what is going on is by using `console.log`, often times we want to see what value is inside
 a variable to make sure what is going on, e.g. `console.log('uniName:', uniName)`, however there is a nice shortcut
 that is good to know: `console.log({uniName})`, by adding curly brackets we put uniName in an object which when printed
-will give the name and contents (e.g. epfl) of the variable: `{uniName: epfl}`. 
-
+will give the name and contents (e.g. epfl) of the variable: `{uniName: epfl}`.
