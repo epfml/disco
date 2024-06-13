@@ -1,25 +1,6 @@
 <template>
   <div>
     <div class="space-y-8">
-      <!-- assess the model -->
-      <!-- <ButtonCard
-        v-if="groundTruth"
-        class="mx-auto mt-10 lg:w-1/2"
-        :button-placement="'center'"
-        @action="testModel()"
-      >
-        <template #title>
-          Test & validate your model
-        </template>
-        <template #text>
-          By clicking the button below, you will be able to validate your model against a chosen dataset of yours.
-          Below, once you assessed the model, you can compare the ground truth and the predicted values
-        </template>
-        <template #button>
-          test
-        </template>
-      </ButtonCard> -->
-
       <IconCard v-if="groundTruth"
         class="mx-auto mt-10 lg:w-1/2" title-placement="left">
         <template #title> Test & validate your model </template>
@@ -384,7 +365,7 @@ async function testModel(): Promise<void> {
 
   toaster.info('Model testing started')
   try {
-    testGenerator.value = validator.value?.assess(testingSet)
+    testGenerator.value = validator.value?.test(testingSet)
     let runningResults: AssessmentResults = [] 
     for await (const assessmentResults of testGenerator.value) {
       runningResults = runningResults.concat(assessmentResults)
