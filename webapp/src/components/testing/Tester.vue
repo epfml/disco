@@ -1,6 +1,7 @@
 <template>
   <div>
     <div class="space-y-8">
+      <!-- Test the model on a data set with labels -->
       <IconCard v-if="groundTruth"
         class="mx-auto mt-10 lg:w-1/2" title-placement="left">
         <template #title> Test & validate your model </template>
@@ -19,23 +20,25 @@
           </div>
         </template>
       </IconCard>
-      <!--only predict using the model -->
-      <ButtonCard
-        v-else
-        class="mx-auto mt-10 lg:w-1/2"
-        :button-placement="'center'"
-        @action="predictUsingModel()"
-      >
-        <template #title>
-          Predict using model
-        </template>
-        <template #text>
+      <!--Run inference using the model (no need for labels) -->
+      <IconCard v-else 
+        class="mx-auto mt-10 lg:w-1/2" title-placement="left">
+        <template #title> Run model inference </template>
+        <template v-if="inferenceGenerator === undefined" #content>
           By clicking the button below, you will be able to predict using the selected model with chosen dataset of yours.
+          
+          <div class="flex justify-center mt-4">
+            <CustomButton @click="modelInference()">
+              predict
+            </CustomButton>
+          </div>
         </template>
-        <template #button>
-          predict
+        <template v-else #content>
+          <div class="flex justify-center">
+            <CustomButton @click="stopInference()"> stop inference </CustomButton>
+          </div>
         </template>
-      </ButtonCard>
+      </IconCard>
 
       <!-- display the evaluation metrics -->
       <div
@@ -52,6 +55,22 @@
             <span class="text-2xl">{{ currentAccuracy }}</span>
             <span class="text-sm">% of test accuracy</span>
           </div>
+          <div class="text-center">
+            <span class="text-2xl">{{ visitedSamples }}</span>
+            <span class="text-sm">&nbsp;samples visited</span>
+          </div>
+        </div>
+      </div>
+      <div
+        v-else
+        class="p-4 mx-auto lg:w-1/2 h-full bg-white rounded-md"
+      >
+        <!-- header -->
+        <h4 class="p-4 border-b text-lg font-semibold text-slate-500">
+          Inference metrics
+        </h4>
+        <!-- stats -->
+        <div class="flex justify-center p-4 font-medium text-slate-500">
           <div class="text-center">
             <span class="text-2xl">{{ visitedSamples }}</span>
             <span class="text-sm">&nbsp;samples visited</span>
@@ -191,7 +210,7 @@ import { IndexedDB } from '@epfml/discojs-web'
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
-import ButtonCard from '@/components/containers/ButtonCard.vue'
+// import ButtonCard from '@/components/containers/ButtonCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import ImageCard from '@/components/containers/ImageCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -277,7 +296,10 @@ function handleDatasetBuildError (e: Error) {
   }
 }
 
-async function predictUsingModel (): Promise<void> {
+type inferenceResults = Array<{ features: Features, pred: number }>
+const inferenceGenerator = ref<AsyncGenerator<inferenceResults, void>>();
+
+async function modelInference (): Promise<void> {
   if (props.datasetBuilder?.size === 0) {
     toaster.error('Upload a dataset first')
     return
@@ -304,26 +326,31 @@ async function predictUsingModel (): Promise<void> {
 
   toaster.info('Model prediction started')
   try {
-    const predictions = await validator.value?.predict(testingSet)
-    switch (props.task.trainingInformation.dataType) {
-      case 'image':
-        dataWithPred.value = List(props.datasetBuilder.sources).zip(List(predictions)).map(([source, prediction]) =>
-          ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred })).toArray()
-        break;
-      case 'tabular':
-        if (props.task.trainingInformation.inputColumns === undefined) {
-          throw new Error("no input columns but CSV needs it")
-        }
-        featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
-        dataWithPred.value = predictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
-        break;
-      case 'text':
-        //TODO add UI results
-        break;
+    let runningPredictions: inferenceResults = []
+    inferenceGenerator.value = validator.value?.inference(testingSet)
+
+    for await (const predictions of inferenceGenerator.value) {
+      runningPredictions = runningPredictions.concat(predictions)
+      switch (props.task.trainingInformation.dataType) {
+        case 'image':
+          dataWithPred.value = List(props.datasetBuilder.sources).zip(List(runningPredictions)).map(([source, prediction]) =>
+            ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred })).toArray()
+          break;
+        case 'tabular':
+          if (props.task.trainingInformation.inputColumns === undefined) {
+            throw new Error("no input columns but CSV needs it")
+          }
+          featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
+          dataWithPred.value = runningPredictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
+          break;
+        case 'text':
+          //TODO add UI results
+          break;
+      }
     }
     toaster.success('Model prediction finished successfully!')
   } catch (e) {
-    let msg = 'unable to test model'
+    let msg = 'unable to run model inference'
     if (e instanceof Error) {
       msg += `: ${e.message}`
     }
@@ -333,8 +360,8 @@ async function predictUsingModel (): Promise<void> {
 }
 
 
-type AssessmentResults = Array<{ groundTruth: number, pred: number, features: Features }>
-const testGenerator = ref<AsyncGenerator<AssessmentResults, void>>();
+type testResults = Array<{ groundTruth: number, pred: number, features: Features }>
+const testGenerator = ref<AsyncGenerator<testResults, void>>();
 
 async function testModel(): Promise<void> {
   testGenerator.value = undefined
@@ -366,7 +393,7 @@ async function testModel(): Promise<void> {
   toaster.info('Model testing started')
   try {
     testGenerator.value = validator.value?.test(testingSet)
-    let runningResults: AssessmentResults = [] 
+    let runningResults: testResults = [] 
     for await (const assessmentResults of testGenerator.value) {
       runningResults = runningResults.concat(assessmentResults)
       switch (props.task.trainingInformation.dataType) {
@@ -416,6 +443,14 @@ async function stopTest(): Promise<void> {
   if (generator === undefined) return;
 
   testGenerator.value = undefined;
+  generator.return();
+}
+
+async function stopInference(): Promise<void> {
+  const generator = inferenceGenerator.value;
+  if (generator === undefined) return;
+
+  inferenceGenerator.value = undefined;
   generator.return();
 }
 

@@ -73,35 +73,44 @@ export class Validator {
     this.logger.success(`Visited ${this.visitedSamples} samples`)
   }
 
-  async predict (data: data.Data): Promise<Array<{ features: Features, pred: number }>> {
+  async *inference (data: data.Data): AsyncGenerator<Array<{ features: Features, pred: number }>, void> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('Batch size is undefined')
     }
 
     const model = await this.getModel()
-    let features: Features[] = []
+    let iteration = 1
+    const iterator = await data.preprocess().dataset.batch(batchSize).iterator()
+    let next = await iterator.next()
 
-    // Get model prediction per batch and flatten the result
-    // Also incrementally build the features array
-    const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
-      .mapAsync(async e => {
-        const xs = e as tf.Tensor
-        const currentFeatures = await xs.array()
-
-        if (Array.isArray(currentFeatures)) {
-          features = features.concat(currentFeatures)
-        } else {
-          throw new TypeError('Data format is incorrect')
-        }
-
-        const pred = await this.getLabel(await model.predict(xs))
-        return Array.from(pred)
-      }).toArray()).flat()
-
-    return List(features).zip(List(predictions))
-      .map(([f, p]) => ({ features: f, pred: p }))
-      .toArray()
+    while (next.done !== true) {
+      let xs: tf.Tensor
+      if (next.value instanceof tf.Tensor) {
+        xs = next.value as tf.Tensor2D
+      } else {
+        const tensors = (next.value as { xs: tf.Tensor2D, ys: tf.Tensor2D })
+        xs = tensors['xs']
+        tf.dispose([tensors['ys']])
+      }
+      const currentFeatures = await xs.array()
+      const yPredTensor = await model.predict(xs)
+      const pred = await this.getLabel(yPredTensor)
+      this.size += pred.length
+      if (!Array.isArray(currentFeatures)) {
+        throw new TypeError('Data format is incorrect')
+      }
+      tf.dispose([xs, yPredTensor])
+      
+      yield List(currentFeatures as number[]).zip(List(pred))
+        .map(([f, p]) => ({ features: f, pred: p }))
+        .toArray()
+      
+      iteration++
+      next = await iterator.next()
+    }
+    
+    this.logger.success(`Visited ${this.visitedSamples} samples`)
   }
 
   async getModel (): Promise<Model> {
