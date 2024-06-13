@@ -4,7 +4,7 @@
       <!-- Test the model on a data set with labels -->
       <IconCard v-if="groundTruth"
         class="mx-auto mt-10 lg:w-1/2" title-placement="left">
-        <template #title> Test & validate your model </template>
+        <template #title> Test &amp; validate your model </template>
         <template v-if="testGenerator === undefined" #content>
           By clicking the button below, you will be able to validate your model against a chosen dataset of yours.
           Below, once you assessed the model, you can compare the ground truth and the predicted values
@@ -210,7 +210,6 @@ import { IndexedDB } from '@epfml/discojs-web'
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
-// import ButtonCard from '@/components/containers/ButtonCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import ImageCard from '@/components/containers/ImageCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -247,6 +246,12 @@ const dataWithPred = ref<DataWithPrediction[] | undefined>(undefined)
 const validator = ref<Validator | undefined>(undefined)
 const numberOfClasses = computed<number>(() =>
   props.task.trainingInformation.LABEL_LIST?.length ?? 2)
+
+type inferenceResults = Array<{ features: Features, pred: number }>
+const inferenceGenerator = ref<AsyncGenerator<inferenceResults, void>>();
+
+type testResults = Array<{ groundTruth: number, pred: number, features: Features }>
+const testGenerator = ref<AsyncGenerator<testResults, void>>();
 
 function getLabelName(labelIndex: number | undefined): string {
   if (labelIndex === undefined) {
@@ -296,9 +301,6 @@ function handleDatasetBuildError (e: Error) {
   }
 }
 
-type inferenceResults = Array<{ features: Features, pred: number }>
-const inferenceGenerator = ref<AsyncGenerator<inferenceResults, void>>();
-
 async function modelInference (): Promise<void> {
   if (props.datasetBuilder?.size === 0) {
     toaster.error('Upload a dataset first')
@@ -324,7 +326,7 @@ async function modelInference (): Promise<void> {
     return
   }
 
-  toaster.info('Model prediction started')
+  toaster.info('Model inference started')
   try {
     let runningPredictions: inferenceResults = []
     inferenceGenerator.value = validator.value?.inference(testingSet)
@@ -348,7 +350,7 @@ async function modelInference (): Promise<void> {
           break;
       }
     }
-    toaster.success('Model prediction finished successfully!')
+    toaster.success('Model inference finished successfully!')
   } catch (e) {
     let msg = 'unable to run model inference'
     if (e instanceof Error) {
@@ -358,10 +360,6 @@ async function modelInference (): Promise<void> {
     toaster.error('Something went wrong during model inference')
   }
 }
-
-
-type testResults = Array<{ groundTruth: number, pred: number, features: Features }>
-const testGenerator = ref<AsyncGenerator<testResults, void>>();
 
 async function testModel(): Promise<void> {
   testGenerator.value = undefined
