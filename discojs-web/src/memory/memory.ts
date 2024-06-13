@@ -57,9 +57,10 @@ export class IndexedDB extends Memory {
         return new models.TFJS(layersModel)
       case 'gpt':
         return new models.GPT(undefined, layersModel)
-      default:
-        const _exhaustiveCheck: never = tensorBackend;
-        return _exhaustiveCheck;
+      default: {
+        const _: never = tensorBackend
+        throw new Error('should never happen')
+      }
     }
   }
 
