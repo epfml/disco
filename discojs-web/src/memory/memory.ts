@@ -10,7 +10,7 @@ import { Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
 import type { Path, Model, ModelInfo, ModelSource } from '@epfml/discojs'
-import { Memory, StoredModelType, models } from '@epfml/discojs'
+import { Memory, models } from '@epfml/discojs'
 
 export class IndexedDB extends Memory {
   override getModelMemoryPath (source: ModelSource): Path {
@@ -25,9 +25,11 @@ export class IndexedDB extends Memory {
     if (typeof source !== 'string') {
       return source
     }
-    const [stringType, tensorBackend, taskID, fullName] = source.split('/').splice(2)
+    const [type, tensorBackend, taskID, fullName] = source.split('/').splice(2)
 
-    const type = stringType === 'working' ? StoredModelType.WORKING : StoredModelType.SAVED
+    if (type !== 'working' && type !== 'saved') {
+      throw Error("Unknown memory model type")
+    }
 
     const [name, versionSuffix] = fullName.split('@')
     const version = versionSuffix === undefined ? 0 : Number(versionSuffix)
@@ -67,13 +69,13 @@ export class IndexedDB extends Memory {
 
   async loadModel(source: ModelSource): Promise<void> {
     const src = this.getModelInfo(source)
-    if (src.type === StoredModelType.WORKING) {
+    if (src.type === 'working') {
       // Model is already loaded
       return
     }
     await tf.io.copyModel(
       this.getModelMemoryPath(src),
-      this.getModelMemoryPath({ ...src, type: StoredModelType.WORKING, version: 0 })
+      this.getModelMemoryPath({ ...src, type: 'working', version: 0 })
     )
   }
 
@@ -84,11 +86,11 @@ export class IndexedDB extends Memory {
    */
   override async updateWorkingModel (source: ModelSource, model: Model): Promise<void> {
     const src: ModelInfo = this.getModelInfo(source)
-    if (src.type !== StoredModelType.WORKING) {
+    if (src.type !== 'working') {
       throw new Error('expected working type model')
     }
     // Enforce version 0 to always keep a single working model at a time
-    const modelInfo = { ...src, type: StoredModelType.WORKING, version: 0 }
+    const modelInfo = { ...src, type: 'working' as const, version: 0 }
     let includeOptimizer;
     if (model instanceof models.TFJS) {
       modelInfo['tensorBackend'] = 'tfjs'
@@ -109,12 +111,12 @@ export class IndexedDB extends Memory {
  */
   async saveWorkingModel (source: ModelSource): Promise<Path> {
     const src: ModelInfo = this.getModelInfo(source)
-    if (src.type !== StoredModelType.WORKING) {
+    if (src.type !== 'working') {
       throw new Error('expected working type model')
     }
-    const dst = this.getModelMemoryPath(await this.duplicateSource({ ...src, type: StoredModelType.SAVED }))
+    const dst = this.getModelMemoryPath(await this.duplicateSource({ ...src, type: 'saved' }))
     await tf.io.copyModel(
-      this.getModelMemoryPath({ ...src, type: StoredModelType.WORKING }),
+      this.getModelMemoryPath({ ...src, type: 'working' }),
       dst
     )
     return dst
@@ -122,11 +124,11 @@ export class IndexedDB extends Memory {
 
   override async saveModel (source: ModelSource, model: Model): Promise<Path> {
     const src: ModelInfo = this.getModelInfo(source)
-    if (src.type !== StoredModelType.SAVED) {
+    if (src.type !== 'saved') {
       throw new Error('expected saved type model')
     }
 
-    const modelInfo = await this.duplicateSource({ ...src, type: StoredModelType.SAVED })
+    const modelInfo = await this.duplicateSource({ ...src, type: 'saved' })
     let includeOptimizer;
     if (model instanceof models.TFJS) {
         modelInfo['tensorBackend'] = 'tfjs'

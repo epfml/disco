@@ -13,7 +13,7 @@ export type Path = string
  * being trained ("working model") or a regular model saved in memory ("saved model").
  * There can only be a single working model for a given task.
  */
-export type StoredModelType = 'saved' | 'working'
+type StoredModelType = 'saved' | 'working'
 
 /**
  * Model information which uniquely identifies a model in memory.

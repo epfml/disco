@@ -39,6 +39,7 @@ export class DistributedTrainer extends Trainer {
     }
 
     await this.memory.updateWorkingModel({
+      type: 'working',
       taskID: this.task.id,
       name: this.task.trainingInformation.modelID,
       tensorBackend: this.task.trainingInformation.tensorBackend

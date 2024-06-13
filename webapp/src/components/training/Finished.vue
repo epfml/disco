@@ -40,7 +40,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import type { Task, ModelInfo } from '@epfml/discojs'
-import { EmptyMemory, Memory, StoredModelType } from '@epfml/discojs'
+import { EmptyMemory, Memory } from '@epfml/discojs'
 import { IndexedDB } from '@epfml/discojs-web'
 
 import { useMemoryStore } from '@/store/memory'
@@ -60,7 +60,7 @@ const props = defineProps<Props>()
 const memory = computed<Memory>(() => memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory())
 const modelInfo = computed<ModelInfo>(() => {
   return {
-    type: StoredModelType.WORKING,
+    type: 'working',
     taskID: props.task.id,
     name: props.task.trainingInformation.modelID,
     tensorBackend: props.task.trainingInformation.tensorBackend,

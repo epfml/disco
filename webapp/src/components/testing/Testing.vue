@@ -46,7 +46,7 @@
                           <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
                         </p>
                         <p class="contents">
-                          <span>Type:</span><span>{{ metadata.type === StoredModelType.SAVED ? 'Saved' : 'Cached' }}</span>
+                          <span>Type:</span><span>{{ metadata.type === 'saved' ? 'Saved' : 'Cached' }}</span>
                         </p>
                       </div>
                     </template>
@@ -164,7 +164,7 @@ import { storeToRefs } from 'pinia'
 import { List } from 'immutable'
 
 import type { Path, Task } from '@epfml/discojs'
-import { EmptyMemory, Memory, data, StoredModelType, client as clients, aggregator } from '@epfml/discojs'
+import { EmptyMemory, Memory, data, client as clients, aggregator } from '@epfml/discojs'
 import { IndexedDB, WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs-web'
 
 import { CONFIG } from '@/config'
@@ -247,7 +247,7 @@ const downloadModel = async (task: Task): Promise<void> => {
   const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
   const model = await client.getLatestModel()
   const source = {
-    type: StoredModelType.SAVED,
+    type: 'saved' as const,
     taskID: task.id,
     name: task.trainingInformation.modelID,
     tensorBackend: task.trainingInformation.tensorBackend,

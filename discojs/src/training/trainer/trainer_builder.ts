@@ -1,5 +1,4 @@
 import type { client as clients, Model, Task, ModelInfo, Memory } from '../../index.js'
-import { StoredModelType } from '../../index.js'
 import { DistributedTrainer } from './distributed_trainer.js'
 import { LocalTrainer } from './local_trainer.js'
 import type { Trainer } from './trainer.js'
@@ -49,7 +48,7 @@ export class TrainerBuilder {
     }
 
     const info: ModelInfo = {
-      type: StoredModelType.WORKING,
+      type: 'working',
       taskID: this.task.id,
       name: modelID,
       tensorBackend: 'gpt'

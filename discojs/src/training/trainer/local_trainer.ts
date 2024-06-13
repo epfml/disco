@@ -20,6 +20,7 @@ export class LocalTrainer extends Trainer {
 
   override async onRoundEnd(): Promise<void> {
     await this.memory.updateWorkingModel({
+      type: 'working',
       taskID: this.task.id,
       name: this.task.trainingInformation.modelID,
       tensorBackend: this.task.trainingInformation.tensorBackend

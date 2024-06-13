@@ -10,7 +10,7 @@ export * as aggregator from './aggregator/index.js'
 export { WeightsContainer, aggregation } from './weights/index.js'
 export { AsyncInformant } from './async_informant.js'
 export { Logger, ConsoleLogger } from './logging/index.js'
-export { Memory, StoredModelType, type ModelInfo, type Path, type ModelSource, Empty as EmptyMemory } from './memory/index.js'
+export { Memory, type ModelInfo, type Path, type ModelSource, Empty as EmptyMemory } from './memory/index.js'
 export { Disco, RoundLogs } from './training/index.js'
 export { Validator } from './validation/index.js'
 

@@ -127,7 +127,7 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import type { Path } from "@epfml/discojs";
-import { EmptyMemory, StoredModelType } from "@epfml/discojs";
+import { EmptyMemory } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
 import { useToaster } from "@/composables/toaster";
@@ -182,7 +182,7 @@ function openTesting(path: Path) {
   if (modelInfo === undefined) {
     throw new Error('not such model')
   }
-  if (modelInfo.type !== StoredModelType.WORKING) {
+   if (modelInfo.type !== 'working') {
     try {
       await memory.loadModel(path)
       await memoryStore.initModels()
