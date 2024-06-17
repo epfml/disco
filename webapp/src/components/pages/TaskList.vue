@@ -2,21 +2,17 @@
   <div class="space-y-8 mt-8 md:mt-16">
     <div class="flex flex-col gap-4 mt-8">
       <!-- In case no tasks were retrieved, suggest reloading the page -->
-      <ButtonCard
+      <ButtonsCard
         v-if="tasks.size === 0"
+        :buttons="List.of(['reload page', () => router.go(0)])"
         class="mx-auto"
-        @action="() => { router.go(0) }"
       >
         <template #title>
           Tasks could not be retrieved
         </template>
-        <template #text>
-          Please press the button below to reload the app. Please ensure the Disco server is up and running.
-        </template>
-        <template #button>
-          reload page
-        </template>
-      </ButtonCard>
+
+        Please press the button below to reload the app. Please ensure the Disco server is up and running.
+      </ButtonsCard>
 
       <!-- Tasks could be retrieved, display them alphabetically -->
       <div
@@ -47,20 +43,16 @@
           :id="task.id"
           :key="task.id"
         >
-          <ButtonCard
-            button-placement="left"
-            @action="() => toTask(task)"
+          <ButtonsCard
+            buttons-justify="start"
+            :buttons="List.of(['participate', () => toTask(task)])"
           >
             <template #title>
               {{ task.displayInformation.taskTitle }} - {{ task.trainingInformation.scheme }}
             </template>
-            <template #text>
-              <div v-html="task.displayInformation.summary.preview" />
-            </template>
-            <template #button>
-              participate
-            </template>
-          </ButtonCard>
+
+            <div v-html="task.displayInformation.summary.preview" />
+          </ButtonsCard>
         </div>
       </div>
     </div>
@@ -72,11 +64,13 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
+import { List } from "immutable";
+
 import type { Task } from '@epfml/discojs'
 
 import { useTasksStore } from '@/store/tasks'
 import { useTrainingStore } from '@/store/training'
-import ButtonCard from '@/components/containers/ButtonCard.vue'
+import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import Tasks from '@/assets/svg/Tasks.vue'
 

@@ -1,55 +1,66 @@
 <template>
-  <div class="grid grid-cols-1 gap-8 md:mx-20 lg:gap-16 lg:grid-cols-3 items-stretch">
-     <!-- Model testing -->
-    <ButtonCard
-      title-placement="center"
-      @action="goToDiscoInformation()"
+  <div
+    class="grid grid-cols-1 gap-8 md:mx-20 lg:gap-16 lg:grid-cols-3 items-stretch"
+  >
+    <!-- Model testing -->
+    <ButtonsCard
+      title-align="center"
+      :buttons="List.of(['more info', goToDiscoInformation])"
     >
       <template #title>
-        Learn more about <span class="font-disco text-disco-cyan">DISCO</span> and distributed learning fundamentals
+        Learn more about
+        <span class="font-disco text-disco-cyan">DISCO</span> and distributed
+        learning fundamentals
       </template>
-      <template #button>
-        more info
-      </template>
-    </ButtonCard>
+    </ButtonsCard>
+
     <!-- List of tasks -->
-    <ButtonCard
-      title-placement="center"
-      @action="goToTaskList()"
+    <ButtonsCard
+      title-align="center"
+      :buttons="List.of(['train', goToTaskList])"
     >
       <template #title>
-        Train a model on existing <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
-          class="font-disco text-disco-cyan"
-        >DISCO</span>llaboratives</span>
+        Train a model on existing
+        <span
+          title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"
+          ><span class="font-disco text-disco-cyan">DISCO</span
+          >llaboratives</span
+        >
       </template>
-      <template #button>
-        train
-      </template>
-    </ButtonCard>
+    </ButtonsCard>
+
     <!-- Task creation -->
-    <ButtonCard
-      title-placement="center"
-      @action="goToNewTaskCreationForm()"
+    <ButtonsCard
+      title-align="center"
+      :buttons="List.of(['create', goToNewTaskCreationForm])"
     >
       <template #title>
-        Add your own ML task to the <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
-          class="font-disco text-disco-cyan"
-        >DISCO</span>llaboratives</span>
+        Add your own ML task to the
+        <span
+          title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"
+          ><span class="font-disco text-disco-cyan">DISCO</span
+          >llaboratives</span
+        >
       </template>
-      <template #button>
-        create
-      </template>
-    </ButtonCard>
+    </ButtonsCard>
   </div>
 </template>
 <script lang="ts" setup>
-import { useRouter } from 'vue-router'
+import { useRouter } from "vue-router";
 
-import ButtonCard from '@/components/containers/ButtonCard.vue'
+import { List } from "immutable";
 
-const router = useRouter()
+import ButtonsCard from "@/components/containers/ButtonsCard.vue";
 
-const goToTaskList = (): void => { router.push({ path: '/list' }) }
-const goToNewTaskCreationForm = (): void => { router.push({ path: '/create' }) }
-const goToDiscoInformation = (): void => { router.push({ path: '/information' }) }
+const router = useRouter();
+
+function goToTaskList(): void {
+  router.push({ path: "/list" });
+}
+function goToNewTaskCreationForm(): void {
+  router.push({ path: "/create" });
+}
+function goToDiscoInformation(): void {
+  router.push({ path: "/information" });
+}
 </script>
