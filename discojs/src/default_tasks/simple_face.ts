@@ -31,7 +31,8 @@ export const simpleFace: TaskProvider = {
         LABEL_LIST: ['child', 'adult'],
         scheme: 'federated', // secure aggregation not yet implemented for federated
         noiseScale: undefined,
-        clippingRadius: undefined
+        clippingRadius: undefined,
+        tensorBackend: 'tfjs'
       }
     }
   },

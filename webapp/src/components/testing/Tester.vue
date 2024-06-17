@@ -1,41 +1,44 @@
 <template>
   <div>
     <div class="space-y-8">
-      <!-- assess the model -->
-      <ButtonCard
-        v-if="groundTruth"
-        class="mx-auto mt-10 lg:w-1/2"
-        :button-placement="'center'"
-        @action="assessModel()"
-      >
-        <template #title>
-          Test & validate your model
-        </template>
-        <template #text>
+      <!-- Test the model on a data set with labels -->
+      <IconCard v-if="groundTruth"
+        class="mx-auto mt-10 lg:w-1/2" title-placement="left">
+        <template #title> Test &amp; validate your model </template>
+        <template v-if="testGenerator === undefined" #content>
           By clicking the button below, you will be able to validate your model against a chosen dataset of yours.
           Below, once you assessed the model, you can compare the ground truth and the predicted values
+          <div class="flex justify-center mt-4">
+            <CustomButton @click="testModel()">
+              test
+            </CustomButton>
+          </div>
         </template>
-        <template #button>
-          test
+        <template v-else #content>
+          <div class="flex justify-center">
+            <CustomButton @click="stopTest()"> stop testing </CustomButton>
+          </div>
         </template>
-      </ButtonCard>
-      <!--only predict using the model -->
-      <ButtonCard
-        v-else
-        class="mx-auto mt-10 lg:w-1/2"
-        :button-placement="'center'"
-        @action="predictUsingModel()"
-      >
-        <template #title>
-          Predict using model
-        </template>
-        <template #text>
+      </IconCard>
+      <!--Run inference using the model (no need for labels) -->
+      <IconCard v-else 
+        class="mx-auto mt-10 lg:w-1/2" title-placement="left">
+        <template #title> Run model inference </template>
+        <template v-if="inferenceGenerator === undefined" #content>
           By clicking the button below, you will be able to predict using the selected model with chosen dataset of yours.
+          
+          <div class="flex justify-center mt-4">
+            <CustomButton @click="modelInference()">
+              predict
+            </CustomButton>
+          </div>
         </template>
-        <template #button>
-          predict
+        <template v-else #content>
+          <div class="flex justify-center">
+            <CustomButton @click="stopInference()"> stop inference </CustomButton>
+          </div>
         </template>
-      </ButtonCard>
+      </IconCard>
 
       <!-- display the evaluation metrics -->
       <div
@@ -58,6 +61,22 @@
           </div>
         </div>
       </div>
+      <div
+        v-else
+        class="p-4 mx-auto lg:w-1/2 h-full bg-white rounded-md"
+      >
+        <!-- header -->
+        <h4 class="p-4 border-b text-lg font-semibold text-slate-500">
+          Inference metrics
+        </h4>
+        <!-- stats -->
+        <div class="flex justify-center p-4 font-medium text-slate-500">
+          <div class="text-center">
+            <span class="text-2xl">{{ visitedSamples }}</span>
+            <span class="text-sm">&nbsp;samples visited</span>
+          </div>
+        </div>
+      </div>
 
       <div v-if="dataWithPred !== undefined">
         <div class="mx-auto lg:w-1/2 text-center pb-8">
@@ -68,7 +87,7 @@
         </div>
         <!-- Image prediction gallery -->
         <div
-          v-if="isImageTaskType"
+          v-if="props.task.trainingInformation.dataType === 'image'"
           class="grid grid-cols-6 gap-6"
         >
           <ImageCard
@@ -92,13 +111,19 @@
           </imagecard>
         </div>
         <div
-          v-else
+          v-else-if="props.task.trainingInformation.dataType === 'tabular'"
           class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
         >
           <TableLayout
             :columns="featuresNames"
             :rows="dataWithPred.map(pred => pred.data)"
           />
+        </div>
+        <div
+          v-else-if="props.task.trainingInformation.dataType === 'text'"
+          class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        >
+          <!-- Display nothing for now -->
         </div>
       </div>
     </div>
@@ -178,14 +203,13 @@
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 
-import type { Task } from '@epfml/discojs'
+import type { Task, Features } from '@epfml/discojs'
 import { data, ConsoleLogger, EmptyMemory, Memory, Validator } from '@epfml/discojs'
 import { IndexedDB } from '@epfml/discojs-web'
 
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
-import ButtonCard from '@/components/containers/ButtonCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import ImageCard from '@/components/containers/ImageCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
@@ -220,12 +244,14 @@ const featuresNames = ref<String[]>([])
 const dataWithPred = ref<DataWithPrediction[] | undefined>(undefined)
 
 const validator = ref<Validator | undefined>(undefined)
-
 const numberOfClasses = computed<number>(() =>
   props.task.trainingInformation.LABEL_LIST?.length ?? 2)
 
-const isImageTaskType = computed<boolean>(() =>
-  props.task.trainingInformation.dataType === 'image')
+type inferenceResults = Array<{ features: Features, pred: number }>
+const inferenceGenerator = ref<AsyncGenerator<inferenceResults, void>>();
+
+type testResults = Array<{ groundTruth: number, pred: number, features: Features }>
+const testGenerator = ref<AsyncGenerator<testResults, void>>();
 
 function getLabelName(labelIndex: number | undefined): string {
   if (labelIndex === undefined) {
@@ -275,7 +301,7 @@ function handleDatasetBuildError (e: Error) {
   }
 }
 
-async function predictUsingModel (): Promise<void> {
+async function modelInference (): Promise<void> {
   if (props.datasetBuilder?.size === 0) {
     toaster.error('Upload a dataset first')
     return
@@ -300,23 +326,43 @@ async function predictUsingModel (): Promise<void> {
     return
   }
 
-  toaster.info('Model prediction started')
-  const predictions = await validator.value?.predict(testingSet)
+  toaster.info('Model inference started')
+  try {
+    let runningPredictions: inferenceResults = []
+    inferenceGenerator.value = validator.value?.inference(testingSet)
 
-  if (isImageTaskType.value) {
-    dataWithPred.value = List(props.datasetBuilder.sources).zip(List(predictions)).map(([source, prediction]) =>
-      ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred })).toArray()
-  } else {
-    if (props.task.trainingInformation.inputColumns === undefined) {
-      throw new Error("no input columns but CSV needs it")
+    for await (const predictions of inferenceGenerator.value) {
+      runningPredictions = runningPredictions.concat(predictions)
+      switch (props.task.trainingInformation.dataType) {
+        case 'image':
+          dataWithPred.value = List(props.datasetBuilder.sources).zip(List(runningPredictions)).map(([source, prediction]) =>
+            ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred })).toArray()
+          break;
+        case 'tabular':
+          if (props.task.trainingInformation.inputColumns === undefined) {
+            throw new Error("no input columns but CSV needs it")
+          }
+          featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
+          dataWithPred.value = runningPredictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
+          break;
+        case 'text':
+          //TODO add UI results
+          break;
+      }
     }
-    featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
-    dataWithPred.value = predictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
+    toaster.success('Model inference finished successfully!')
+  } catch (e) {
+    let msg = 'unable to run model inference'
+    if (e instanceof Error) {
+      msg += `: ${e.message}`
+    }
+    console.error(msg)
+    toaster.error('Something went wrong during model inference')
   }
-  toaster.success('Model prediction finished successfully!')
 }
 
-async function assessModel (): Promise<void> {
+async function testModel(): Promise<void> {
+  testGenerator.value = undefined
   if (props.datasetBuilder?.size === 0) {
     toaster.error('Upload a dataset first')
     return
@@ -344,26 +390,66 @@ async function assessModel (): Promise<void> {
 
   toaster.info('Model testing started')
   try {
-    const assessmentResults = await validator.value?.assess(testingSet)
-
-    if (isImageTaskType.value) {
-      dataWithPred.value = List(props.datasetBuilder.sources).zip(List(assessmentResults)).map(([source, prediction]) =>
-        ({ data: { name: source.name, url: URL.createObjectURL(source) }, prediction: prediction.pred, groundTruth: prediction.groundTruth })).toArray()
-    } else {
-      if (props.task.trainingInformation.inputColumns === undefined) {
-        throw new Error("no input columns but CSV needs it")
+    testGenerator.value = validator.value?.test(testingSet)
+    let runningResults: testResults = [] 
+    for await (const assessmentResults of testGenerator.value) {
+      runningResults = runningResults.concat(assessmentResults)
+      switch (props.task.trainingInformation.dataType) {
+        case 'image':
+          dataWithPred.value = List(props.datasetBuilder.sources)
+            .zip(List(runningResults))
+            .map(([source, prediction]) => ({
+              data: {
+                name: source.name,
+                url: URL.createObjectURL(source)
+              },
+              prediction: prediction.pred,
+              groundTruth: prediction.groundTruth
+            })).toArray()
+          break;
+        case 'tabular':
+          if (props.task.trainingInformation.inputColumns === undefined) {
+            throw new Error("no input columns but CSV needs it")
+          }
+          featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns, 'Target_' + props.task.trainingInformation.outputColumns]
+          dataWithPred.value = runningResults.map(pred => ({
+            data: [...(pred.features as number[]),
+            pred.pred, pred.groundTruth]
+          }))
+          break;
+        case 'text':
+          //TODO add UI results
+          break;
       }
-      featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns, 'Target_' + props.task.trainingInformation.outputColumns]
-      dataWithPred.value = assessmentResults.map(pred => ({ data: [...(pred.features as number[]), pred.pred, pred.groundTruth] }))
     }
+
     toaster.success('Model testing finished successfully!')
   } catch (e) {
-    let msg = 'unable to assess model'
+    let msg = 'unable to test model'
     if (e instanceof Error) {
       msg += `: ${e.message}`
     }
-    toaster.error(msg)
-  }
+    console.error(msg)
+    toaster.error('Something went wrong during model testing')
+    } finally {
+      testGenerator.value = undefined;
+    }
+}
+
+async function stopTest(): Promise<void> {
+  const generator = testGenerator.value;
+  if (generator === undefined) return;
+
+  testGenerator.value = undefined;
+  generator.return();
+}
+
+async function stopInference(): Promise<void> {
+  const generator = inferenceGenerator.value;
+  if (generator === undefined) return;
+
+  inferenceGenerator.value = undefined;
+  generator.return();
 }
 
 function saveCsv () {
@@ -376,7 +462,7 @@ function saveCsv () {
   }
 
   let csvData: string
-  if (isImageTaskType.value) {
+  if (props.task.trainingInformation.dataType === 'image') {
     if (props.groundTruth) {
       const rows = dataWithPred.value.map(el => [(el.data as ImageWithUrl).name, String(el.prediction), String(el.groundTruth)])
       csvData = d3.csvFormatRows([['Filename', 'Prediction', 'Ground Truth'], ...rows])

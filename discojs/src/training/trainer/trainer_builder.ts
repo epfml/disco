@@ -1,5 +1,4 @@
 import type { client as clients, Model, Task, ModelInfo, Memory } from '../../index.js'
-import { ModelType } from '../../index.js'
 import { DistributedTrainer } from './distributed_trainer.js'
 import { LocalTrainer } from './local_trainer.js'
 import type { Trainer } from './trainer.js'
@@ -42,14 +41,18 @@ export class TrainerBuilder {
    * If a model exists in memory, load it, otherwise load model from server
    * @returns
    */
-  private async getModel (client: clients.Client): Promise<Model> {
+  private async getModel(client: clients.Client): Promise<Model> {
     const modelID = this.task.trainingInformation?.modelID
     if (modelID === undefined) {
       throw new TypeError('model ID is undefined')
     }
 
-    const info: ModelInfo = { type: ModelType.WORKING, taskID: this.task.id, name: modelID }
-
+    const info: ModelInfo = {
+      type: 'working',
+      taskID: this.task.id,
+      name: modelID,
+      tensorBackend: 'gpt'
+    }
     const model = await (
       await this.memory.contains(info) ? this.memory.getModel(info) : client.getLatestModel()
     )

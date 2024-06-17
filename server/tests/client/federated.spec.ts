@@ -49,6 +49,7 @@ describe("federated client", function () {
           batchSize: 1,
           scheme: "federated",
           dataType: "tabular",
+          tensorBackend: 'tfjs'
         },
       },
       new aggregators.MeanAggregator(),

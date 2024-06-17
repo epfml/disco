@@ -76,7 +76,7 @@ export abstract class ImageLoader<Source> extends DataLoader<Source> {
       const numberOfClasses = labelList.length
       // Map label strings to integer
       const label_to_int = new Map(labelList.map((label_name, idx) => [label_name, idx]))
-      if (label_to_int.size != numberOfClasses) {
+      if (label_to_int.size !== numberOfClasses) {
         throw new Error("Input labels aren't matching the task LABEL_LIST")
       }
 

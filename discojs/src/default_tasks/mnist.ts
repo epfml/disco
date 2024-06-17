@@ -34,7 +34,8 @@ export const mnist: TaskProvider = {
         clippingRadius: 20,
         decentralizedSecure: true,
         minimumReadyPeers: 3,
-        maxShareValue: 100
+        maxShareValue: 100,
+        tensorBackend: 'tfjs'
       }
     }
   },

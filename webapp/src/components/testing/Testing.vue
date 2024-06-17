@@ -46,7 +46,7 @@
                           <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
                         </p>
                         <p class="contents">
-                          <span>Type:</span><span>{{ metadata.type === ModelType.SAVED ? 'Saved' : 'Cached' }}</span>
+                          <span>Type:</span><span>{{ metadata.type === 'saved' ? 'Saved' : 'Cached' }}</span>
                         </p>
                       </div>
                     </template>
@@ -164,14 +164,13 @@ import { storeToRefs } from 'pinia'
 import { List } from 'immutable'
 
 import type { Path, Task } from '@epfml/discojs'
-import { EmptyMemory, Memory, data, ModelType, client as clients, aggregator } from '@epfml/discojs'
-import { IndexedDB, WebImageLoader, WebTabularLoader } from '@epfml/discojs-web'
+import { EmptyMemory, Memory, data, client as clients, aggregator } from '@epfml/discojs'
+import { IndexedDB, WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs-web'
 
 import { CONFIG } from '@/config'
 import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
-import { useToaster } from '@/composables/toaster'
 import Data from '@/components/data/Data.vue'
 import Tester from '@/components/testing/Tester.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
@@ -193,9 +192,6 @@ const currentComponent = computed<[Component, string] | undefined>(() => {
 })
 
 const { step: stepRef, state: stateRef } = storeToRefs(validationStore)
-
-const toaster = useToaster()
-
 const currentTask = shallowRef<Task | undefined>(undefined)
 
 const federatedTasks = computed<List<Task>>(() =>
@@ -216,8 +212,11 @@ const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
     case 'image':
       dataLoader = new WebImageLoader(currentTask.value)
       break
+    case 'text':
+      dataLoader = new WebTextLoader(currentTask.value)
+      break
     default:
-      throw new Error('not implemented')
+      throw new Error(`Browser data loader for data type ${currentTask.value.trainingInformation.dataType} is not implemented`)
   }
   return new data.DatasetBuilder(dataLoader, currentTask.value)
 })
@@ -248,18 +247,18 @@ const downloadModel = async (task: Task): Promise<void> => {
   const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
   const model = await client.getLatestModel()
   const source = {
-    type: ModelType.SAVED,
+    type: 'saved' as const,
     taskID: task.id,
-    name: task.trainingInformation.modelID
+    name: task.trainingInformation.modelID,
+    tensorBackend: task.trainingInformation.tensorBackend,
   }
   await memory.value.saveModel(source, model)
   await memoryStore.initModels()
 }
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
-  const taskID = memory.value.infoFor(path)?.taskID
+  const taskID = memory.value.getModelInfo(path)?.taskID
   if (taskID === undefined) {
-    toaster.error('Info for path not found')
-    return
+    throw new Error('Model task id for found in memory for path: ' + path)
   }
 
   const selectedTask = tasksStore.tasks.get(taskID)
@@ -269,7 +268,7 @@ const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
     validationStore.step = 1
     validationStore.isOnlyPrediction = isOnlyPrediction
   } else {
-    toaster.error('Model not found')
+    throw new Error('Task not found in the task store for task id: ' + taskID)
   }
 }
 
@@ -278,7 +277,7 @@ const taskTitle = (taskID: string): string | undefined => {
   if (titled !== undefined) {
     return titled.displayInformation.taskTitle
   } else {
-    toaster.error('Task not found')
+    throw new Error('Task title not found for task id: ' + taskID)
   }
 }
 </script>

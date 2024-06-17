@@ -19,17 +19,16 @@ export const wikitext: TaskProvider = {
         dataType: 'text',
         modelID: 'wikitext-103-raw-model',
         preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
-        validationSplit: 0.2, // TODO: is this used somewhere? because train, eval and test are already split in dataset
-        epochs: 5,
         scheme: 'federated',
-        noiseScale: undefined,
-        decentralizedSecure: true,
-        minimumReadyPeers: 3,
-        maxShareValue: 100,
-        roundDuration: 10,
-        batchSize: 16,
+        epochs: 5,
+        // Unused by wikitext because data already comes split
+        // But if set to 0 then the webapp doesn't display the validation metrics
+        validationSplit: 0.1, 
+        roundDuration: 2,
+        batchSize: 1, // If set too high (e.g. 16) then firefox raises a WebGL error
         tokenizer: 'Xenova/gpt2',
-        maxSequenceLength: 128
+        maxSequenceLength: 128,
+        tensorBackend: 'gpt'
       }
     }
   },

@@ -38,9 +38,11 @@ export class DistributedTrainer extends Trainer {
       this.model.weights = this.aggregator.model.weights;
     }
 
-    await this.memory.updateWorkingModel(
-      { taskID: this.task.id, name: this.task.trainingInformation.modelID },
-      this.model,
-    );
+    await this.memory.updateWorkingModel({
+      type: 'working',
+      taskID: this.task.id,
+      name: this.task.trainingInformation.modelID,
+      tensorBackend: this.task.trainingInformation.tensorBackend
+      }, this.model);
   }
 }

@@ -61,7 +61,7 @@ import { mapStores } from 'pinia'
 import type { PropType } from 'vue'
 
 import type { ModelInfo, Task } from '@epfml/discojs'
-import { EmptyMemory, Memory, ModelType, isTask } from '@epfml/discojs'
+import { EmptyMemory, Memory, isTask } from '@epfml/discojs'
 import { IndexedDB } from '@epfml/discojs-web'
 
 import { useToaster } from '@/composables/toaster'
@@ -104,9 +104,10 @@ export default {
     },
     modelInfo (): ModelInfo {
       return {
-        type: ModelType.WORKING,
+        type: 'working',
         taskID: this.task.id,
-        name: this.task.trainingInformation.modelID
+        name: this.task.trainingInformation.modelID,
+        tensorBackend: this.task.trainingInformation.tensorBackend,
       }
     }
   },

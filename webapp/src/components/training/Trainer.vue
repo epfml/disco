@@ -128,7 +128,7 @@ async function startTraining(distributed: boolean): Promise<void> {
   });
 
   try {
-    displayModelCaching.value= false // hide model caching buttons during training
+    displayModelCaching.value = false // hide model caching buttons during training
     trainingGenerator.value = disco.fit(dataset);
     logs.value = List<RoundLogs & { participants: number }>();
     for await (const roundLogs of trainingGenerator.value)
@@ -139,7 +139,13 @@ async function startTraining(distributed: boolean): Promise<void> {
       return;
     }
   } catch (e) {
-    toaster.error("An error occurred during training");
+    if (e instanceof Error && e.message.includes("greater than WebGL maximum on this browser")) {
+      toaster.error("Unfortunately your browser doesn't support training this task.<br/>If you are on Firefox try using Chrome instead.")
+    } else if (e instanceof Error && e.message.includes("loss is undefined or nan")) {
+      toaster.error("Training is not converging. Data potentially needs better preprocessing.")
+    } else {
+      toaster.error("An error occurred during training");
+    }
     console.error(e);
     return
   } finally {

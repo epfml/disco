@@ -2,12 +2,11 @@ import { List } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
 import type { data, Model, Task, Logger, client as clients, Memory, ModelSource, Features } from '../index.js'
-import { GraphInformant } from '../index.js'
 
 export class Validator {
-  private readonly graphInformant = new GraphInformant()
   private size = 0
   private _confusionMatrix: number[][] | undefined
+  private rollingAccuracy = 0
 
   constructor (
     public readonly task: Task,
@@ -24,103 +23,90 @@ export class Validator {
   private async getLabel(ys: tf.Tensor): Promise<Float32Array | Int32Array | Uint8Array> {
     // Binary classification
     if (ys.shape[1] == 1) {
-      return await ys.greaterEqual(tf.scalar(0.5)).data()
-    // Multi-class classification
-    } else {
-      return await ys.argMax(-1).data()
+      const threshold = tf.scalar(0.5)
+      const binaryTensor = ys.greaterEqual(threshold)
+      const binaryArray = await binaryTensor.data()
+      tf.dispose([binaryTensor, threshold])
+      return binaryArray
+      // Multi-class classification
+      } else {
+      const yIdxTensor = ys.argMax(-1)
+      const yIdx = await yIdxTensor.data()
+      tf.dispose([yIdxTensor])
+      return yIdx
     }
     // Multi-label classification is not supported
   }
 
-  async assess (data: data.Data, useConfusionMatrix: boolean = false): Promise<Array<{ groundTruth: number, pred: number, features: Features }>> {
+  // test assumes data comes with labels while predict doesn't
+  async *test(data: data.Data):
+    AsyncGenerator<Array<{ groundTruth: number, pred: number, features: Features }>, void> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('Batch size is undefined')
     }
     const model = await this.getModel()
-
-    let features: Features[] = []
-    const groundTruth: number[] = []
-
     let hits = 0
-    // Get model predictions per batch and flatten the result
-    // Also build the features and ground truth arrays
-    const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
-      .mapAsync(async e => {
-        if (typeof e === 'object' && 'xs' in e && 'ys' in e) {
-          const xs = e.xs as tf.Tensor
-          const ys = await this.getLabel(e.ys as tf.Tensor)
-          const pred = await this.getLabel(await model.predict(xs))
-          
-          const currentFeatures = await xs.array()
-          if (Array.isArray(currentFeatures)) {
-            features = features.concat(currentFeatures)
-          } else {
-            throw new TypeError('Data format is incorrect')
-          }
-          groundTruth.push(...Array.from(ys))
-          this.size += xs.shape[0]
-          hits += List(pred).zip(List(ys)).filter(([p, y]) => p === y).size
-          // TODO: Confusion Matrix stats
-          const currentAccuracy = hits / this.size
-          this.graphInformant.updateAccuracy(currentAccuracy)
-          return Array.from(pred)
-        } else {
-          throw new Error('Input data is missing a feature or the label')
-        }
-      }).toArray()).flat()
+    const iterator = await data.preprocess().dataset.batch(batchSize).iterator()
+    let next = await iterator.next()
+    while (next.done !== true) {
+      const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
+      const ysLabel = await this.getLabel(ys)
+      const yPredTensor = await model.predict(xs)
+      const pred = await this.getLabel(yPredTensor)
+      const currentFeatures = await xs.array()
+      this.size += ysLabel.length
+      hits += List(pred).zip(List(ysLabel)).filter(([p, y]) => p === y).size
+      this.rollingAccuracy = hits / this.size
+      tf.dispose([xs, ys, yPredTensor])
+
+      yield (List(ysLabel).zip(List(pred), List(currentFeatures)) as List<[number, number, Features]>)
+        .map(([gt, p, f]) => ({ groundTruth: gt, pred: p, features: f }))
+        .toArray()
+      
+      next = await iterator.next()
+    }
     
     this.logger.success(`Obtained validation accuracy of ${this.accuracy}`)
     this.logger.success(`Visited ${this.visitedSamples} samples`)
-
-    if (useConfusionMatrix) {
-      try {
-        this._confusionMatrix = tf.math.confusionMatrix(
-          [],
-          [],
-          0
-        ).arraySync()
-      } catch (e) {
-        console.error(e instanceof Error ? e.message : e)
-        throw new Error('Failed to compute the confusion matrix')
-      }
-    }
-
-    return (List(groundTruth)
-      .zip(List(predictions), List(features)) as List<[number, number, Features]>)
-      .map(([gt, p, f]) => ({ groundTruth: gt, pred: p, features: f }))
-      .toArray()
   }
 
-  async predict (data: data.Data): Promise<Array<{ features: Features, pred: number }>> {
+  async *inference (data: data.Data): AsyncGenerator<Array<{ features: Features, pred: number }>, void> {
     const batchSize = this.task.trainingInformation?.batchSize
     if (batchSize === undefined) {
       throw new TypeError('Batch size is undefined')
     }
 
     const model = await this.getModel()
-    let features: Features[] = []
+    const iterator = await data.preprocess().dataset.batch(batchSize).iterator()
+    let next = await iterator.next()
 
-    // Get model prediction per batch and flatten the result
-    // Also incrementally build the features array
-    const predictions: number[] = (await data.preprocess().dataset.batch(batchSize)
-      .mapAsync(async e => {
-        const xs = e as tf.Tensor
-        const currentFeatures = await xs.array()
-
-        if (Array.isArray(currentFeatures)) {
-          features = features.concat(currentFeatures)
-        } else {
-          throw new TypeError('Data format is incorrect')
-        }
-
-        const pred = await this.getLabel(await model.predict(xs))
-        return Array.from(pred)
-      }).toArray()).flat()
-
-    return List(features).zip(List(predictions))
-      .map(([f, p]) => ({ features: f, pred: p }))
-      .toArray()
+    while (next.done !== true) {
+      let xs: tf.Tensor
+      if (next.value instanceof tf.Tensor) {
+        xs = next.value as tf.Tensor2D
+      } else {
+        const tensors = (next.value as { xs: tf.Tensor2D, ys: tf.Tensor2D })
+        xs = tensors['xs']
+        tf.dispose([tensors['ys']])
+      }
+      const currentFeatures = await xs.array()
+      const yPredTensor = await model.predict(xs)
+      const pred = await this.getLabel(yPredTensor)
+      this.size += pred.length
+      if (!Array.isArray(currentFeatures)) {
+        throw new TypeError('Data format is incorrect')
+      }
+      tf.dispose([xs, yPredTensor])
+      
+      yield List(currentFeatures as number[]).zip(List(pred))
+        .map(([f, p]) => ({ features: f, pred: p }))
+        .toArray()
+      
+      next = await iterator.next()
+    }
+    
+    this.logger.success(`Visited ${this.visitedSamples} samples`)
   }
 
   async getModel (): Promise<Model> {
@@ -135,12 +121,8 @@ export class Validator {
     throw new Error('Could not load the model')
   }
 
-  get accuracyData (): List<number> {
-    return this.graphInformant.data()
-  }
-
   get accuracy (): number {
-    return this.graphInformant.accuracy()
+    return this.rollingAccuracy
   }
 
   get visitedSamples (): number {

@@ -64,9 +64,8 @@ class CausalSelfAttention extends tf.layers.Layer {
   cProjKernel?: tf.LayerVariable
   cProjBias?: tf.LayerVariable
 
-  constructor (private readonly config: CausalSelfAttentionConfig, disposalRefs: tf.TensorContainer[], private peakMemory: {value: number}) {
+  constructor (private readonly config: CausalSelfAttentionConfig) {
     super(config)
-
     this.nEmbd = config.nEmbd
     this.nHead = config.nHead
     this.dropout = config.dropout
@@ -76,7 +75,6 @@ class CausalSelfAttention extends tf.layers.Layer {
     // calling bandPart zero out the upper triangular part of the all-ones matrix
     // from the doc: tf.linalg.band_part(input, -1, 0) ==> Lower triangular part
     this.mask = tf.linalg.bandPart(tf.ones([config.blockSize, config.blockSize]), -1, 0)
-    disposalRefs.push(this.mask) // Push a reference to dispose this matrix later
   }
 
   build (): void {
@@ -188,10 +186,6 @@ class CausalSelfAttention extends tf.layers.Layer {
       y = tf.reshape(y, [B, T, C])
       y = dense(y, this.cProjKernel, this.cProjBias)
       y = kwargs.training === true ? tf.dropout(y, this.dropout) : y
-      const memoryAllocated = tf.memory().numBytes / 1024 / 1024 / 1024 // GB
-      if (memoryAllocated > this.peakMemory.value) {
-        this.peakMemory.value = memoryAllocated
-      }
       return y
     })
   }
@@ -234,25 +228,26 @@ class GELU extends tf.layers.Layer {
 }
 tf.serialization.registerClass(GELU)
 
-type MLPConfig = Required<ModelSize> & Record<'blockSize' | 'residDrop', number>
+type MLPConfig = ConstructorParameters<typeof tf.layers.Layer>[0] &
+  Required<ModelSize> & Record<'blockSize' | 'residDrop', number>
 
-function MLP (config: MLPConfig): tf.LayersModel {
+function MLP(config: MLPConfig): tf.LayersModel {
   return tf.sequential({ layers: [
     tf.layers.dense({
-      name: 'mlp/c_fc',
+      name: config.name + `/mlp/c_fc`,
       units: 4 * config.nEmbd,
       inputDim: config.nEmbd,
       inputShape: [config.blockSize, config.nEmbd]
     }),
     new GELU(),
   tf.layers.dense({
-      name: 'mlp/c_proj',
+      name: config.name + '/mlp/c_proj',
       units: config.nEmbd,
       inputDim: 4 * config.nEmbd,
       inputShape: [config.blockSize, 4 * config.nEmbd]
     }),
     tf.layers.dropout({
-      name: 'mlp/drop',
+      name: config.name + '/mlp/drop',
       rate: config.residDrop
     }),
   ]})
@@ -260,7 +255,7 @@ function MLP (config: MLPConfig): tf.LayersModel {
 
 type BlockConfig = CausalSelfAttentionConfig & MLPConfig & { debug: boolean }
 
-function TransformerBlock (conf: BlockConfig, disposalRefs: tf.TensorContainer[], peakMemory: {value: number}): tf.LayersModel {
+function TransformerBlock (conf: BlockConfig): tf.LayersModel {
   const config = Object.assign({ name: 'h' }, conf)
   const inputs = tf.input({ shape: [config.blockSize, config.nEmbd] })
   let x1, x2
@@ -273,8 +268,6 @@ function TransformerBlock (conf: BlockConfig, disposalRefs: tf.TensorContainer[]
   // self attention layer
   x1 = new CausalSelfAttention(
     Object.assign({}, config, { name: config.name + '/attn' }),
-    disposalRefs,
-    peakMemory
   ).apply(x1)
   // Residual connection
   x1 = tf.layers.add().apply([inputs, x1 as tf.SymbolicTensor])
@@ -284,7 +277,7 @@ function TransformerBlock (conf: BlockConfig, disposalRefs: tf.TensorContainer[]
     .apply(x1)
   
   // MLP 
-  x2 = MLP(Object.assign({}, config, { name: config.name + '/mlp' })).apply(x2)
+  x2 = MLP(Object.assign({}, config, { name: config.name })).apply(x2)
   // add attention output to mlp output
   x2 = tf.layers.add().apply([x1 as tf.SymbolicTensor, x2 as tf.SymbolicTensor])
 
@@ -300,10 +293,7 @@ function TransformerBlock (conf: BlockConfig, disposalRefs: tf.TensorContainer[]
  * @param conf GPTConfig
  * @returns model, tf.LayersModel, which supports model(inputs), model.predict and model.apply
  */
-export function GPTArchitecture(
-  config: Required<GPTConfig>,
-  disposalRefs: tf.TensorContainer[],
-  peakMemory: {value: number }): tf.LayersModel {
+export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
   const inputs = tf.input({ shape: [null] })
 
   //Token embedding
@@ -343,8 +333,6 @@ export function GPTArchitecture(
   for (let i = 0; i < config.nLayer; i++) {
     x = TransformerBlock(
       Object.assign({}, config, { name: config.name + '/h/' + i }),
-      disposalRefs,
-      peakMemory
     ).apply(x)
   }
   // Normalization

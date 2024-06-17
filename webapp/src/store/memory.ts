@@ -5,7 +5,6 @@ import { Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
 import type { ModelInfo, Path } from '@epfml/discojs'
-import { ModelType } from '@epfml/discojs'
 
 export interface ModelMetadata extends ModelInfo {
   date: string
@@ -32,13 +31,11 @@ export const useMemoryStore = defineStore('memory', () => {
   async function initModels () {
     const models = await tf.io.listModels()
     for (const path in models) {
-      // eslint-disable-next-line no-unused-vars
-      const [location, _, directory, task, fullName] = path.split('/')
+      const [location, _, directory, tensorBackend, task, fullName] = path.split('/')
       if (location !== 'indexeddb:') {
         continue
       }
       const [name, version] = fullName.split('@')
-
       const metadata = models[path]
       const date = new Date(metadata.dateSaved)
       const zeroPad = (number: number) => String(number).padStart(2, '0')
@@ -58,10 +55,14 @@ export const useMemoryStore = defineStore('memory', () => {
         metadata.weightDataBytes,
       ].reduce((acc: number, v) => acc + (v === undefined ? 0 : v), 0)
 
+      if (tensorBackend !== 'tfjs' && tensorBackend !== 'gpt') {
+        throw new Error("Tensor backend unrecognized: " + tensorBackend)
+      }
       addModel(path, {
         name,
+        tensorBackend,
         taskID: task,
-        type: directory === 'working' ? ModelType.WORKING : ModelType.SAVED,
+        type: directory !== 'working' ? 'saved' : 'working',
         date: dateSaved,
         hours: hourSaved,
         fileSize: Math.round(size / 1024),

@@ -127,7 +127,7 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import type { Path } from "@epfml/discojs";
-import { EmptyMemory, ModelType } from "@epfml/discojs";
+import { EmptyMemory } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
 import { useToaster } from "@/composables/toaster";
@@ -177,29 +177,32 @@ function openTesting(path: Path) {
   router.push({ path: "/evaluate" });
 }
 
-async function loadModel(path: Path) {
-  const modelInfo = memory.infoFor(path);
-  if (modelInfo === undefined) throw new Error("not such model");
-  if (modelInfo.type === ModelType.WORKING) {
-    toaster.error("Model is already loaded");
-    return;
+ async function loadModel(path: Path) {
+  const modelInfo = memory.getModelInfo(path)
+  if (modelInfo === undefined) {
+    throw new Error('not such model')
   }
-
-  try {
-    await memory.loadModel(path);
-    await memoryStore.initModels();
-    toaster.success(
-      `Loaded ${modelInfo.name}, ready for next training session.`,
-    );
-  } catch (e) {
-    let msg = "unable to load model";
-    if (e instanceof Error) msg += `: ${e.message}`;
-    toaster.error(msg);
+   if (modelInfo.type !== 'working') {
+    try {
+      await memory.loadModel(path)
+      await memoryStore.initModels()
+    } catch (e) {
+      let msg = 'unable to load model'
+      if (e instanceof Error) {
+        msg += `: ${e.message}`
+      }
+      toaster.error(msg)
+    }
+    toaster.success(`Loaded ${modelInfo.name}, ready for next training session.`)
+  } else {
+    toaster.error('Model is already loaded')
   }
 }
+
 async function downloadModel(path: Path) {
   await memory.downloadModel(path);
 }
+
 async function deleteModel(path: Path): Promise<void> {
   try {
     await memoryStore.deleteModel(path);

@@ -13,13 +13,17 @@ import { GPTForCausalLM } from './model.js'
 import type { EpochLogs, Prediction, Sample } from '../model.js'
 import type { GPTConfig } from './config.js'
 
+export type GPTSerialization = {
+  weights: WeightsContainer
+  config?: GPTConfig
+}
 
 export class GPT extends Model {
   private readonly model: GPTForCausalLM
 
-  constructor (partialConfig?: GPTConfig) {
+  constructor (partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
     super()
-    this.model = new GPTForCausalLM(partialConfig)
+    this.model = new GPTForCausalLM(partialConfig, layersModel)
   }
 
   /**
@@ -56,14 +60,15 @@ export class GPT extends Model {
         epoch,
         peakMemory,
         training: {
-          loss: logs.loss
+          loss: logs.loss,
+          accuracy: logs.acc
         }
       }
 
       if (validationData !== undefined) {
         if(val_loss === undefined || isNaN(val_loss) ||
           val_acc === undefined || isNaN(val_acc)) {
-          throw new Error("Invalid validation logs");
+          throw new Error("Validation accuracy or loss is undefined or nan");
         }
         structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
       }
@@ -116,20 +121,17 @@ export class GPT extends Model {
       config: this.config
     }
   }
+  extract (): tf.LayersModel {
+    return this.model
+  }
 
   [Symbol.dispose](): void{
-    console.log("Disposing model")
     if (this.model.optimizer !== undefined) {
       this.model.optimizer.dispose()
     }
-    // Some tensors are not cleaned up when model.dispose is called 
-    // So we dispose them manually
-    this.model.disposeRefs()
-    this.model.dispose()
+    const disposeResults = this.model.dispose()
+    if (disposeResults.refCountAfterDispose > 0) {
+      console.error("The GPT model was not disposed correctly (refcount > 0)", disposeResults)
+    }
   }
-}
-
-export type GPTSerialization = {
-  weights: WeightsContainer
-  config?: GPTConfig
 }

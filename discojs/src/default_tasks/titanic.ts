@@ -65,7 +65,8 @@ export const titanic: TaskProvider = {
         ],
         scheme: 'federated', // secure aggregation not yet implemented for FeAI
         noiseScale: undefined,
-        clippingRadius: undefined
+        clippingRadius: undefined,
+        tensorBackend: 'tfjs'
       }
     }
   },

@@ -24,34 +24,21 @@ export declare abstract class Dataset<T> {
  */
 class GPTModel extends tf.LayersModel {
   protected readonly config: Required<GPTConfig>
-  private readonly disposalRefs: tf.TensorContainer[] // Array to store tensor to dispose manually
-  // Object to pass down to layers to store max memory allocated
-  // This is an object rather than a primitive to pass the reference
-  protected peakMemory: { value: number }
 
-  constructor(partialConfig?: GPTConfig) {
+  constructor(partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
     // Fill missing config parameters with default values
     let completeConfig: Required<GPTConfig> = { ...DEFAULT_CONFIG, ...partialConfig }
     // Add layer sizes depending on which model has been specified
     completeConfig = { ...completeConfig, ...getModelSizes(completeConfig.modelType) }
 
-    // Init the tf.LayersModel and assign it to this
-    const disposalRefs: tf.TensorContainer[] = []
-    const peakMemory: { value: number } = {value: 0}
-    const gpt = GPTArchitecture(completeConfig, disposalRefs, peakMemory)
-    const { inputs, outputs, name } = gpt
-    super({ inputs, outputs, name })
-    this.config = completeConfig
-    this.disposalRefs = disposalRefs
-    this.peakMemory = peakMemory
-  }
-
-  // Some tensors are not cleaned up when model.dispose is called 
-  // So we dispose them manually
-  disposeRefs() {
-    for (const tensorContainer of this.disposalRefs) {
-      tf.dispose([tensorContainer])
+    if (layersModel !== undefined) {
+      super({ inputs: layersModel.inputs, outputs: layersModel.outputs,name: layersModel.name })
+    } else {
+      const gpt = GPTArchitecture(completeConfig)
+      const { inputs, outputs, name } = gpt
+      super({ inputs, outputs, name })
     }
+    this.config = completeConfig
   }
 
   get getGPTConfig() {
@@ -62,7 +49,6 @@ class GPTModel extends tf.LayersModel {
     this.optimizer = this.config.weightDecay !== 0
       ? getCustomAdam(this, this.config.lr, this.config.weightDecay)
       : tf.train.adam(this.config.lr) 
-    this.peakMemory.value = 0
   }
 
   async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
@@ -72,6 +58,7 @@ class GPTModel extends tf.LayersModel {
     
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let averageLoss = 0
+      let peakMemory = 0
       let iteration = 1
       const iterator = await dataset.iterator()
       let preprocessingTime = performance.now()
@@ -92,25 +79,17 @@ class GPTModel extends tf.LayersModel {
           }
           return tf.losses.softmaxCrossEntropy(ys, logits)
         }
-        let backwardPassMemory = 0
         const lossTensor = tf.tidy(() => {
           const { grads, value: lossTensor } = this.optimizer.computeGradients(lossFn)
           const gradsClipped = clipByGlobalNormObj(grads, 1)
           this.optimizer.applyGradients(gradsClipped)
-          backwardPassMemory = tf.memory().numBytes / 1024 / 1024 / 1024
           return lossTensor
         })
         
         const loss = await lossTensor.array()
         averageLoss += loss
         weightUpdateTime = performance.now() - weightUpdateTime
-        // Probably never the case. Empirically the attention mechanism always allocates
-        // more memory than the backward pass
-        if (backwardPassMemory > this.peakMemory.value) {
-          this.peakMemory.value = backwardPassMemory
-        }
         tf.dispose([xs, ys, lossTensor])
-
         
         if (
           evalDataset !== undefined &&
@@ -120,11 +99,15 @@ class GPTModel extends tf.LayersModel {
           const iterationLogs = await evaluate(this, evalDataset, this.config.maxEvalBatches)
           console.log(iterationLogs)
         }
+        const memory = tf.memory().numBytes / 1024 / 1024 / 1024
+        if (memory > peakMemory) {
+          peakMemory = memory
+        }
         console.log(
           `Epoch: ${epoch}`,
           `\tStep: ${iteration} / ${this.config.maxIter}`,
           `\tLoss: ${loss.toFixed(3)}`,
-          `\tPeak memory: ${this.peakMemory.value.toFixed(2)} GB`,
+          `\tMemory: ${memory.toFixed(2)} GB`,
           `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
           `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
           `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
@@ -133,21 +116,19 @@ class GPTModel extends tf.LayersModel {
         next = await iterator.next()
       }
       // Memory leak: If we reached the last iteration rather than the end of the dataset, cleanup the tensors
-      if (next.done != true && iteration > this.config.maxIter) {
+      if (next.done !== true && iteration > this.config.maxIter) {
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
         tf.dispose([xs, ys])
       }
       let logs: tf.Logs = {
         'loss': averageLoss / iteration,
-        'peakMemory': this.peakMemory.value
+        'peakMemory': peakMemory
       }
       if (evalDataset !== undefined) {
         logs = { ...logs, ...await evaluate(this, evalDataset, this.config.maxEvalBatches) }
-        console.log(logs)
       }
       await callbacks.onEpochEnd?.(epoch, logs)
     }
-
     await callbacks.onTrainEnd?.()
     return new tf.History()
   }

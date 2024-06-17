@@ -4,7 +4,8 @@
       v-if="scheme !== undefined && displayTitle"
       class="flex flex-wrap font-disco text-3xl justify-center"
     >
-      <span class="text-disco-blue">{{ scheme }}</span><span class="text-disco-cyan">&nbsp;Learning</span>
+      <span class="text-disco-blue" style="text-transform: capitalize">{{ scheme }}</span>
+      <span class="text-disco-cyan">&nbsp;Learning</span>
     </div>
     <div
       v-else

@@ -48,7 +48,7 @@ describe('validator', function () {
     )
 
     // Read data and predict with an untrained model
-    await validator.assess(data)
+    for await (const _ of validator.test(data));
     const size = data.size ?? -1
     if (size === -1) {
       console.log('data.size was undefined')
@@ -75,7 +75,7 @@ describe('validator', function () {
     const client = new clients.Local(url, titanicTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(titanicTask, new ConsoleLogger(), new EmptyMemory(), undefined, client)
-    await validator.assess(data)
+    for await (const _ of validator.test(data));
     // data.size is undefined because tfjs handles dataset lazily
     // instead we count the dataset size manually
     let size = 0
@@ -122,7 +122,7 @@ describe('validator', function () {
     )
 
     // Assert random initialization metrics
-    await validator.assess(data)
+    for await (const _ of validator.test(data));
     const size = data.size ?? -1
     if (size === -1) {
       console.log('data.size was undefined')

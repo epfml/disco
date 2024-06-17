@@ -10,62 +10,73 @@ import { Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
 import type { Path, Model, ModelInfo, ModelSource } from '@epfml/discojs'
-import { Memory, ModelType, models } from '@epfml/discojs'
+import { Memory, models } from '@epfml/discojs'
 
 export class IndexedDB extends Memory {
-  override pathFor (source: ModelSource): Path {
+  override getModelMemoryPath (source: ModelSource): Path {
     if (typeof source === 'string') {
       return source
     }
-
-    if (source.type === undefined || source.taskID === undefined || source.name === undefined) {
-      throw new TypeError('source incomplete')
-    }
-
     const version = source.version ?? 0
-
-    return `indexeddb://${source.type}/${source.taskID}/${source.name}@${version}`
+    return `indexeddb://${source.type}/${source.tensorBackend}/${source.taskID}/${source.name}@${version}`
   }
 
-  override infoFor (source: ModelSource): ModelInfo {
+  override getModelInfo (source: ModelSource): ModelInfo {
     if (typeof source !== 'string') {
       return source
     }
-    const [stringType, taskID, fullName] = source.split('/').splice(2)
+    const [type, tensorBackend, taskID, fullName] = source.split('/').splice(2)
 
-    const type = stringType === 'working' ? ModelType.WORKING : ModelType.SAVED
+    if (type !== 'working' && type !== 'saved') {
+      throw Error("Unknown memory model type")
+    }
 
     const [name, versionSuffix] = fullName.split('@')
     const version = versionSuffix === undefined ? 0 : Number(versionSuffix)
-    return { type, taskID, name, version }
+    if (tensorBackend !== 'tfjs' && tensorBackend !== 'gpt') {
+      throw Error("Unknown tensor backend")
+    }
+    return { type, taskID, name, version, tensorBackend }
   }
 
   async getModelMetadata (source: ModelSource): Promise<tf.io.ModelArtifactsInfo | undefined> {
     const models = await tf.io.listModels()
-    return models[this.pathFor(source)]
+    return models[this.getModelMemoryPath(source)]
   }
 
   async contains (source: ModelSource): Promise<boolean> {
     return await this.getModelMetadata(source) !== undefined
   }
 
-  override async getModel (source: ModelSource): Promise<Model> {
-    return new models.TFJS(await tf.loadLayersModel(this.pathFor(source)))
+  override async getModel(source: ModelSource): Promise<Model> {
+    const layersModel = await tf.loadLayersModel(this.getModelMemoryPath(source))
+    
+    const tensorBackend = this.getModelInfo(source).tensorBackend
+    switch (tensorBackend) {
+      case 'tfjs':
+        return new models.TFJS(layersModel)
+      case 'gpt':
+        return new models.GPT(undefined, layersModel)
+      default: {
+        const _: never = tensorBackend
+        throw new Error('should never happen')
+      }
+    }
   }
 
   async deleteModel (source: ModelSource): Promise<void> {
-    await tf.io.removeModel(this.pathFor(source))
+    await tf.io.removeModel(this.getModelMemoryPath(source))
   }
 
-  async loadModel (source: ModelSource): Promise<void> {
-    const src = this.infoFor(source)
-    if (src.type === ModelType.WORKING) {
+  async loadModel(source: ModelSource): Promise<void> {
+    const src = this.getModelInfo(source)
+    if (src.type === 'working') {
       // Model is already loaded
       return
     }
     await tf.io.copyModel(
-      this.pathFor(src),
-      this.pathFor({ ...src, type: ModelType.WORKING, version: 0 })
+      this.getModelMemoryPath(src),
+      this.getModelMemoryPath({ ...src, type: 'working', version: 0 })
     )
   }
 
@@ -75,18 +86,24 @@ export class IndexedDB extends Memory {
    * @param model the model
    */
   override async updateWorkingModel (source: ModelSource, model: Model): Promise<void> {
-    const src: ModelInfo = this.infoFor(source)
-    if (src.type !== undefined && src.type !== ModelType.WORKING) {
-      throw new Error('expected working model')
+    const src: ModelInfo = this.getModelInfo(source)
+    if (src.type !== 'working') {
+      throw new Error('expected working type model')
     }
-
+    // Enforce version 0 to always keep a single working model at a time
+    const modelInfo = { ...src, type: 'working' as const, version: 0 }
+    let includeOptimizer;
     if (model instanceof models.TFJS) {
-      await model.extract().save(this.pathFor({ ...src, type: ModelType.WORKING, version: 0 }), { includeOptimizer: true })
+      modelInfo['tensorBackend'] = 'tfjs'
+      includeOptimizer = true
+    } else if (model instanceof models.GPT) { 
+      modelInfo['tensorBackend'] = 'gpt'
+      includeOptimizer = false // true raises an error
     } else {
       throw new Error('unknown model type')
     }
-
-    // Enforce version 0 to always keep a single working model at a time
+    const indexedDBURL = this.getModelMemoryPath(modelInfo)
+    await model.extract().save(indexedDBURL, { includeOptimizer })
   }
 
   /**
@@ -94,30 +111,38 @@ export class IndexedDB extends Memory {
  * @param source the source
  */
   async saveWorkingModel (source: ModelSource): Promise<Path> {
-    const src: ModelInfo = this.infoFor(source)
-    if (src.type !== undefined && src.type !== ModelType.WORKING) {
-      throw new Error('expected working model')
+    const src: ModelInfo = this.getModelInfo(source)
+    if (src.type !== 'working') {
+      throw new Error('expected working type model')
     }
-    const dst = this.pathFor(await this.duplicateSource({ ...src, type: ModelType.SAVED }))
+    const dst = this.getModelMemoryPath(await this.duplicateSource({ ...src, type: 'saved' }))
     await tf.io.copyModel(
-      this.pathFor({ ...src, type: ModelType.WORKING }),
+      this.getModelMemoryPath({ ...src, type: 'working' }),
       dst
     )
     return dst
   }
 
   override async saveModel (source: ModelSource, model: Model): Promise<Path> {
-    const src: ModelInfo = this.infoFor(source)
-    if (src.type !== undefined && src.type !== ModelType.SAVED) {
-      throw new Error('expected saved model')
+    const src: ModelInfo = this.getModelInfo(source)
+    if (src.type !== 'saved') {
+      throw new Error('expected saved type model')
     }
-    const dst = this.pathFor(await this.duplicateSource({ ...src, type: ModelType.SAVED }))
+
+    const modelInfo = await this.duplicateSource({ ...src, type: 'saved' })
+    let includeOptimizer;
     if (model instanceof models.TFJS) {
-      await model.extract().save(dst, { includeOptimizer: true })
-    } else {
-      throw new Error('unknown model type')
-    }
-    return dst
+        modelInfo['tensorBackend'] = 'tfjs'
+        includeOptimizer = true
+      } else if (model instanceof models.GPT) { 
+        modelInfo['tensorBackend'] = 'gpt'
+        includeOptimizer = false // true raises an error
+      } else {
+        throw new Error('unknown model type')
+      }
+      const indexedDBURL = this.getModelMemoryPath(modelInfo)
+      await model.extract().save(indexedDBURL, { includeOptimizer })
+    return indexedDBURL
   }
 
   /**
@@ -125,41 +150,34 @@ export class IndexedDB extends Memory {
  * @param source the source
  */
   async downloadModel (source: ModelSource): Promise<void> {
-    const src: ModelInfo = this.infoFor(source)
+    const src: ModelInfo = this.getModelInfo(source)
     await tf.io.copyModel(
-      this.pathFor(source),
+      this.getModelMemoryPath(source),
       `downloads://${src.taskID}_${src.name}`
     )
   }
 
   async latestDuplicate (source: ModelSource): Promise<number | undefined> {
     if (typeof source !== 'string') {
-      source = this.pathFor({ ...source, version: 0 })
+      source = this.getModelMemoryPath({ ...source, version: 0 })
     }
-
     // perform a single memory read
     const paths = Map(await tf.io.listModels())
-
     if (!paths.has(source)) {
       return undefined
     }
 
-    const latest = Map(paths)
-      .keySeq()
-      .toList()
-      .map((p) => this.infoFor(p).version)
-      .max()
-
+    const latest = Map(paths).keySeq().toList()
+      .map((p) => this.getModelInfo(p).version).max()
     if (latest === undefined) {
       return 0
     }
-
     return latest
   }
 
   async duplicateSource (source: ModelSource): Promise<ModelInfo> {
     const latestDuplicate = await this.latestDuplicate(source)
-    source = this.infoFor(source)
+    source = this.getModelInfo(source)
 
     if (latestDuplicate === undefined) {
       return source

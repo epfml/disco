@@ -23,6 +23,7 @@ describe('text preprocessing', function () {
         scheme: 'local',
         dataType: 'text',
         tokenizer: 'Xenova/gpt2',
+        tensorBackend: 'gpt'
       }}
     }
     
