@@ -39,10 +39,10 @@ ___
 DISCO aims to enable open-access and easy-use distributed training which is
 - :tornado: efficient ([R1](https://github.com/epfml/powergossip), [R2](https://github.com/epfml/ChocoSGD)) 
 - :lock: privacy-preserving ([R3](https://eprint.iacr.org/2017/281.pdf), [R4](https://arxiv.org/abs/2006.04747))
-- :hammer_and_wrench: fault-tolerant and dynamic over time ([R5](https://arxiv.org/abs/1910.12308))
-- :ninja: robust to malicious actors and data poisoning ([R6](https://arxiv.org/abs/2012.10333), [R7](https://arxiv.org/abs/2006.09365))
-- :apple: :banana: interpretable in imperfectly interoperable data distributions ([R8](https://arxiv.org/abs/2107.06580))
-- :mirror: personalizable  ([R9](https://arxiv.org/abs/2103.00710))
+- :hammer_and_wrench: fault-tolerant and dynamic over time ([R5](https://arxiv.org/abs/2106.06639), [R6](https://arxiv.org/abs/2206.08307))
+- :ninja: robust to malicious actors and data poisoning ([R7](https://arxiv.org/abs/2012.10333), [R8](https://arxiv.org/abs/2006.09365))
+- :apple: :banana: interpretable in imperfectly interoperable data distributions ([R9](https://arxiv.org/abs/2107.06580))
+- :mirror: personalizable  ([R10](https://arxiv.org/abs/2103.00710))
 - :carrot: fairly incentivize participation
 
 
