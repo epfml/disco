@@ -2,7 +2,7 @@
   <h1>DISCO <code>developer guide</code></h1>
   <p>
     <a href="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml"><img src="https://github.com/epfml/disco/actions/workflows/lint-test-build.yml/badge.svg" alt="build status" /></a>
-    <a href="https://github.com/epfml/disco/actions/workflows/deploy-server.yml"><img src="https://github.com/epfml/disco/actions/workflows/deploy-server.yml/badge.svg" alt="build status" /></a>
+    <a href="https://github.com/epfml/disco/actions/workflows/deploy-server.yml"><img src="https://github.com/epfml/disco/actions/workflows/publish-deploy.yml/badge.svg" alt="build status" /></a>
   </p>
   </br>
 
@@ -27,7 +27,7 @@ Here is a summary diagram:
 
 ```mermaid
 flowchart LR
-  subgraph discojs
+  subgraph "discojs library"
     discojs-node-->|extends|discojs;
     discojs-web-->|extends|discojs;
   end
