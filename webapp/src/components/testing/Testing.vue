@@ -18,45 +18,39 @@
                   :key="path"
                   class="contents"
                 >
-                  <ButtonCard
-                    :button-placement="'left'"
+                  <ButtonsCard
+                    :buttons="List.of(
+                      ['test', () => selectModel(path, false)],
+                      ['predict', () => selectModel(path, true)],
+                    )"
                     class="shadow shadow-disco-cyan"
-                    @action="() => selectModel(path, false)"
-                    @alt-action="() => selectModel(path, true)"
                   >
                     <template #title>
                       {{ taskTitle(metadata.taskID) }}
                     </template>
-                    <template #text>
-                      <div class="grid grid-cols-2 justify-items-between">
-                        <p class="contents">
-                          <span>Model:</span>
-                          <span>
-                            {{ metadata.name.slice(0, 20) }}
-                            <span v-if="metadata.version !== undefined && metadata.version !== 0">
-                              ({{ metadata.version }})
-                            </span>
+
+                    <div class="grid grid-cols-2 justify-items-between">
+                      <p class="contents">
+                        <span>Model:</span>
+                        <span>
+                          {{ metadata.name.slice(0, 20) }}
+                          <span v-if="metadata.version !== undefined && metadata.version !== 0">
+                            ({{ metadata.version }})
                           </span>
-                        </p>
-                        <p class="contents">
-                          <span>Date:</span>
-                          <span>{{ metadata.date }} at {{ metadata.hours }}</span>
-                        </p>
-                        <p class="contents">
-                          <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
-                        </p>
-                        <p class="contents">
-                          <span>Type:</span><span>{{ metadata.type === 'saved' ? 'Saved' : 'Cached' }}</span>
-                        </p>
-                      </div>
-                    </template>
-                    <template #button>
-                      test
-                    </template>
-                    <template #altButton>
-                      Predict
-                    </template>
-                  </ButtonCard>
+                        </span>
+                      </p>
+                      <p class="contents">
+                        <span>Date:</span>
+                        <span>{{ metadata.date }} at {{ metadata.hours }}</span>
+                      </p>
+                      <p class="contents">
+                        <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
+                      </p>
+                      <p class="contents">
+                        <span>Type:</span><span>{{ metadata.type === 'saved' ? 'Saved' : 'Cached' }}</span>
+                      </p>
+                    </div>
+                  </ButtonsCard>
                 </div>
               </div>
             </template>
@@ -94,21 +88,16 @@
                   :key="task.id"
                   class="contents"
                 >
-                  <ButtonCard
-                    :button-placement="'left'"
+                  <ButtonsCard
+                    :buttons="List.of(['download', () => downloadModel(task)])"
                     class="shadow shadow-disco-cyan"
-                    @click="() => downloadModel(task)"
                   >
                     <template #title>
                       {{ task.displayInformation.taskTitle }}
                     </template>
-                    <template #text>
-                      Download the latest {{ task.displayInformation.taskTitle }} model available on the remote server.
-                    </template>
-                    <template #button>
-                      download
-                    </template>
-                  </ButtonCard>
+
+                    Download the latest {{ task.displayInformation.taskTitle }} model available on the remote server.
+                  </ButtonsCard>
                 </div>
               </div>
             </template>
@@ -172,7 +161,7 @@ import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
 import Data from '@/components/data/Data.vue'
 import Tester from '@/components/testing/Tester.vue'
-import ButtonCard from '@/components/containers/ButtonCard.vue'
+import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 
 const validationStore = useValidationStore()

@@ -1,43 +1,32 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 items-stretch">
     <!-- Save the model -->
-    <ButtonCard
-      :button-placement="'center'"
-      @action="testModel()"
-    >
+    <ButtonsCard :buttons="List.of(['test model', testModel])">
       <template #title>
         Test the model
       </template>
-      <template #text>
-        Check the performance of your DISCOllaboratively trained model
-        by testing it on new data (that was not used in training).
-      </template>
-      <template #button>
-        test model
-      </template>
-    </ButtonCard>
+
+      Check the performance of your DISCOllaboratively trained model
+      by testing it on new data (that was not used in training).
+    </ButtonsCard>
+
     <!-- Test the model -->
-    <ButtonCard
-      :button-placement="'center'"
-      @action="saveModel()"
-    >
+    <ButtonsCard :buttons="List.of(['save model', saveModel])">
       <template #title>
         Save the model
       </template>
-      <template #text>
-        Saving the model will allow you to access it later
-        to update training in a new DISCOllaborative.
-      </template>
-      <template #button>
-        save model
-      </template>
-    </ButtonCard>
+
+      Saving the model will allow you to access it later
+      to update training in a new DISCOllaborative.
+    </ButtonsCard>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { List } from "immutable";
 
 import type { Task, ModelInfo } from '@epfml/discojs'
 import { EmptyMemory, Memory } from '@epfml/discojs'
@@ -46,7 +35,7 @@ import { IndexedDB } from '@epfml/discojs-web'
 import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
-import ButtonCard from '@/components/containers/ButtonCard.vue'
+import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 
 interface Props { task: Task }
 
