@@ -1,34 +1,31 @@
 <template>
   <div class="flex">
-    <ButtonCard
+    <ButtonsCard
       class="mx-auto"
-      @action="getStarted()"
+      :buttons="List.of(['get started', () => emit('click')])"
     >
       <template #title>
         <div class="flex justify-center">
-        Build collaborative AI without sharing any data
-      </div>
+          Build collaborative AI without sharing any data
+        </div>
       </template>
-      <template #text>
-          <p>✅ &nbsp;Data stays private and offline</p>
-          <p>✅ &nbsp;Code-free and installation-free</p>
-          <p>✅ &nbsp;Collaborative training via federated and decentralized learning</p>
-      </template>
-      <template #button>
-        get started
-      </template>
-    </ButtonCard>
+
+      <ul style="list-style: &quot;✅&quot;">
+        <li class="pl-2">Data stays private and offline</li>
+        <li class="pl-2">Code-free and installation-free</li>
+        <li class="pl-2">
+          Collaborative training via federated and decentralized learning
+        </li>
+      </ul>
+    </ButtonsCard>
   </div>
 </template>
 <script lang="ts" setup>
-import ButtonCard from '@/components/containers/ButtonCard.vue'
+import { List } from "immutable";
 
-interface Emits {
-  (e: 'got-started'): void
-}
-const emit = defineEmits<Emits>()
+import ButtonsCard from "@/components/containers/ButtonsCard.vue";
 
-const getStarted = (): void => {
-  emit('got-started')
-}
+const emit = defineEmits<{
+  click: [];
+}>();
 </script>
