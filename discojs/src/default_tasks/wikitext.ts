@@ -4,11 +4,11 @@ import { data, models } from '../index.js'
 export const wikitext: TaskProvider = {
   getTask (): Task {
     return {
-      id: 'wikitext-103',
+      id: 'llm-task',
       displayInformation: {
-        taskTitle: 'Language modelling on wikitext',
+        taskTitle: 'LLM',
         summary: {
-          preview: 'In this challenge, we ask you to do next word prediction on a dataset of Wikipedia articles.',
+          preview: 'Train a large language model from scratch in your browser and collaboratively.',
           overview: 'Wikitext-103-raw is a dataset comprising unprocessed text excerpts from Wikipedia articles, designed for tasks related to natural language processing and language modeling.'
         },
         dataFormatInformation: 'The dataset is organized as a large text file, with each line representing a segment of raw text from Wikipedia articles.',
@@ -17,7 +17,7 @@ export const wikitext: TaskProvider = {
       },
       trainingInformation: {
         dataType: 'text',
-        modelID: 'wikitext-103-raw-model',
+        modelID: 'llm-raw-model',
         preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
         scheme: 'federated',
         epochs: 5,
@@ -25,7 +25,7 @@ export const wikitext: TaskProvider = {
         // But if set to 0 then the webapp doesn't display the validation metrics
         validationSplit: 0.1, 
         roundDuration: 2,
-        batchSize: 1, // If set too high (e.g. 16) then firefox raises a WebGL error
+        batchSize: 1, // If set too high (e.g. 16) firefox raises a WebGL error
         tokenizer: 'Xenova/gpt2',
         maxSequenceLength: 128,
         tensorBackend: 'gpt'
