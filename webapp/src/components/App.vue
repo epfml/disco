@@ -1,7 +1,10 @@
 <template>
   <div v-if="loading">
-    <div class="flex h-screen w-screen justify-center items-center">
+    <div class="flex flex-col h-screen w-screen justify-center items-center">
       <VueSpinner size="50" color="#6096BA"/>
+      <div class="mt-10">
+        <p class="text-disco-blue">Loading DISCO</p>
+      </div>
     </div>
   </div>
   <div v-else>
@@ -63,13 +66,13 @@ import { useMemoryStore } from '@/store/memory'
 import BaseLayout from './containers/BaseLayout.vue'
 import SidebarMain from '@/components/sidebar/Sidebar.vue'
 import { VueSpinner } from 'vue3-spinners';
-const loading = ref(true)
 
 const tasksStore = useTasksStore()
 const memoryStore = useMemoryStore()
 
+const loading = ref(true)
 tasksStore.initTasks()
-  .then(() => { loading.value = false })
+  .then(() => { loading.value = true }) // Remove the loading indicator if even if it failed
   .catch(console.error)
 
 onMounted(() => {

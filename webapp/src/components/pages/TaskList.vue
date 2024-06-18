@@ -39,7 +39,7 @@
             class="text-blue-400"
             @click="goToCreateTask()"
           >creating a new DISCOllaborative</button>.
-          <br/><br/> <b>The data you connect is never uploaded or shared with anyone and always stays on your computer.</b>
+          <br/><br/> <b>The data you connect only read and is never uploaded or shared with anyone. Data always stays on your device.</b>
           </template>
         </IconCard>
         <div
