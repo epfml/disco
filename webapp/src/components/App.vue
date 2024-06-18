@@ -72,7 +72,7 @@ const memoryStore = useMemoryStore()
 
 const loading = ref(true)
 tasksStore.initTasks()
-  .then(() => { loading.value = true }) // Remove the loading indicator if even if it failed
+  .then(() => { loading.value = false }) // Remove the loading indicator if even if it failed
   .catch(console.error)
 
 onMounted(() => {
