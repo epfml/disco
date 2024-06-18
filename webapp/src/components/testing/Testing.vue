@@ -20,8 +20,8 @@
                 >
                   <ButtonsCard
                     :buttons="List.of(
-                      ['test', () => selectModel(path, false)],
-                      ['predict', () => selectModel(path, true)],
+                      ['test', () => selectModel(path, 'test')],
+                      ['predict', () => selectModel(path, 'predict')],
                     )"
                     class="shadow shadow-disco-cyan"
                   >
@@ -119,7 +119,7 @@
     <div v-if="currentTask !== undefined && datasetBuilder !== undefined">
       <!-- Information specific to the validation panel -->
       <IconCard
-        v-if="!validationStore.isOnlyPrediction"
+        v-if="validationStore.evaluationType === 'test'"
         v-show="validationStore.step === 1"
         class="mb-4 md:mb-8"
       >
@@ -135,12 +135,12 @@
         <Data v-if="validationStore.step === 1"
           :task="currentTask"
           :dataset-builder="datasetBuilder"
-          :is-only-prediction="validationStore.isOnlyPrediction"
+          :is-only-prediction="validationStore.evaluationType === 'predict'"
         />
         <Tester v-else-if="validationStore.step === 2"
           :task="currentTask"
           :dataset-builder="datasetBuilder"
-          :ground-truth="!validationStore.isOnlyPrediction"
+          :ground-truth="validationStore.evaluationType === 'test'"
         />
       </KeepAlive>
     </div>
@@ -160,6 +160,7 @@ import { IndexedDB, WebImageLoader, WebTabularLoader, WebTextLoader } from '@epf
 import { CONFIG } from '@/config'
 import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
+import type { EvaluationType } from '@/store/validation'
 import { useValidationStore } from '@/store/validation'
 import Data from '@/components/data/Data.vue'
 import Tester from '@/components/testing/Tester.vue'
@@ -200,27 +201,7 @@ const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
   return new data.DatasetBuilder(dataLoader, currentTask.value)
 })
 
-watch(stateRef, () => {
-  if (validationStore.model !== undefined) {
-    selectModel(validationStore.model, false)
-  }
-})
-watch(stepRef, async (v) => {
-  if (v === 0) {
-    await memoryStore.initModels()
-  }
-})
-
-onMounted(async () => {
-  await memoryStore.initModels()
-  // can't watch before mount
-  if (validationStore.model !== undefined) {
-    selectModel(validationStore.model, false)
-  }
-})
-onActivated(async () => {
-  await memoryStore.initModels()
-})
+onActivated(() => memoryStore.initModels())
 
 const downloadModel = async (task: Task): Promise<void> => {
   const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
@@ -234,21 +215,19 @@ const downloadModel = async (task: Task): Promise<void> => {
   await memory.value.saveModel(source, model)
   await memoryStore.initModels()
 }
-const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
-  const taskID = memory.value.getModelInfo(path)?.taskID
-  if (taskID === undefined) {
-    throw new Error('Model task id for found in memory for path: ' + path)
-  }
+async function selectModel(path: Path, evaluationType: EvaluationType): Promise<void> {
+  const taskID = memory.value.getModelInfo(path)?.taskID;
+  if (taskID === undefined)
+    throw new Error(`Model task id for found in memory for path: ${path}`);
 
-  const selectedTask = tasksStore.tasks.get(taskID)
-  if (selectedTask !== undefined) {
-    currentTask.value = selectedTask
-    validationStore.model = path
-    validationStore.step = 1
-    validationStore.isOnlyPrediction = isOnlyPrediction
-  } else {
-    throw new Error('Task not found in the task store for task id: ' + taskID)
-  }
+  const selectedTask = tasksStore.tasks.get(taskID);
+  if (selectedTask === undefined)
+    throw new Error(`Task not found in the task store for task id: ${taskID}`);
+
+  currentTask.value = selectedTask;
+  validationStore.model = path;
+  validationStore.step = 1;
+  validationStore.evaluationType = evaluationType;
 }
 
 const taskTitle = (taskID: string): string | undefined => {
