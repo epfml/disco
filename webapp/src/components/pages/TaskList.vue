@@ -8,10 +8,10 @@
         @action="() => { router.go(0) }"
       >
         <template #title>
-          Tasks could not be retrieved
+          The server is unreachable
         </template>
         <template #text>
-          Please press the button below to reload the app. Please ensure the Disco server is up and running.
+          Please reload the app and make sure you are connected to internet. If the error persists please <a class='underline text-primary-dark dark:text-primary-light' href='https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw'>reach out on Slack</a>.
         </template>
         <template #button>
           reload page

@@ -37,7 +37,6 @@
     "@vue/eslint-config-typescript": "13",
     "@vue/test-utils": "2",
     "@vue/tsconfig": "0.5",
-    "autoprefixer": "10",
     "eslint-plugin-cypress": "3",
     "jsdom": "24",
     "postcss": "8",
@@ -47,6 +46,7 @@
     "vite": "5",
     "vite-plugin-node-polyfills": "0.22",
     "vitest": "1",
-    "vue-tsc": "2"
+    "vue-tsc": "2",
+    "vue3-spinners": "^1.2.2"
   }
 }

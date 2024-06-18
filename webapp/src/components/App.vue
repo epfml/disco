@@ -1,5 +1,10 @@
 <template>
-  <div v-if="!loading">
+  <div v-if="loading">
+    <div class="flex h-screen w-screen justify-center items-center">
+      <VueSpinner size="50" color="#6096BA"/>
+    </div>
+  </div>
+  <div v-else>
     <!-- Global container for the screen -->
     <div
       class="
@@ -57,7 +62,7 @@ import { useTasksStore } from '@/store/tasks'
 import { useMemoryStore } from '@/store/memory'
 import BaseLayout from './containers/BaseLayout.vue'
 import SidebarMain from '@/components/sidebar/Sidebar.vue'
-
+import { VueSpinner } from 'vue3-spinners';
 const loading = ref(true)
 
 const tasksStore = useTasksStore()
