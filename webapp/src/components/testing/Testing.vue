@@ -116,7 +116,7 @@
         </div>
       </div>
     </div>
-    <div v-if="currentTask !== undefined">
+    <div v-if="currentTask !== undefined && datasetBuilder !== undefined">
       <!-- Information specific to the validation panel -->
       <IconCard
         v-if="!validationStore.isOnlyPrediction"
@@ -132,14 +132,15 @@
         </template>
       </IconCard>
       <KeepAlive>
-        <component
-          :is="currentComponent[0]"
-          v-if="currentComponent !== undefined"
-          :key="validationStore.model + currentComponent[1]"
+        <Data v-if="validationStore.step === 1"
+          :task="currentTask"
+          :dataset-builder="datasetBuilder"
+          :is-only-prediction="validationStore.isOnlyPrediction"
+        />
+        <Tester v-else-if="validationStore.step === 2"
           :task="currentTask"
           :dataset-builder="datasetBuilder"
           :ground-truth="!validationStore.isOnlyPrediction"
-          :is-only-prediction="validationStore.isOnlyPrediction"
         />
       </KeepAlive>
     </div>
@@ -168,17 +169,6 @@ import IconCard from '@/components/containers/IconCard.vue'
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
-
-const currentComponent = computed<[Component, string] | undefined>(() => {
-  switch (stepRef.value) {
-    case 1:
-      return [Data, 'data']
-    case 2:
-      return [Tester, 'tester']
-    default:
-      return undefined
-  }
-})
 
 const { step: stepRef, state: stateRef } = storeToRefs(validationStore)
 const currentTask = shallowRef<Task | undefined>(undefined)
