@@ -16,6 +16,8 @@ export interface DisplayInformation {
   dataExampleImage?: string
   // URL to download a dataset for the task, is displayed in the UI when asking to connect data
   sampleDatasetLink?: string
+  // Instructions to download, unzip, and connect the right file of the sample dataset
+  sampleDatasetInstructions?: string
 }
 
 export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
@@ -29,6 +31,7 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataExampleText,
     dataFormatInformation,
     sampleDatasetLink,
+    sampleDatasetInstructions,
     headers,
     model,
     summary,
@@ -41,7 +44,8 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     (sampleDatasetLink !== undefined && typeof sampleDatasetLink !== 'string') ||
     (dataFormatInformation !== undefined && typeof dataFormatInformation !== 'string') ||
     (model !== undefined && typeof model !== 'string') ||
-    (dataExampleImage !== undefined && typeof dataExampleImage !== 'string')
+    (dataExampleImage !== undefined && typeof dataExampleImage !== 'string') ||
+    (sampleDatasetInstructions !== undefined && typeof sampleDatasetInstructions !== 'string')
   ) {
     return false
   }
@@ -85,6 +89,7 @@ export function isDisplayInformation (raw: unknown): raw is DisplayInformation {
     dataExampleText,
     dataFormatInformation,
     sampleDatasetLink,
+    sampleDatasetInstructions,
     headers,
     model,
     summary,

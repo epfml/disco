@@ -95,7 +95,7 @@
             v-if="selectedFiles?.length"
             class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue">
             <span v-if="isMultiple">Number of selected files: <span class="pl-1 text-xl">{{ selectedFiles?.length ?? 0 }}</span></span>
-            <span v-else>Selected file: <span class="pl-1">{{ selectedFiles?.item(0)?.name ?? 'none' }}</span></span>
+            <span v-else>File connected: <span class="pl-1">{{ selectedFiles?.item(0)?.name ?? 'none' }}</span></span>
           </div>
           <CustomButton @click="clearFiles">
             clear file{{ isMultiple ? 's' : '' }}

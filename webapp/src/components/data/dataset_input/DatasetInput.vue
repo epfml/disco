@@ -14,19 +14,27 @@
         <Upload />
       </template>
       <template #content>
-        <div  class="mb-5 text-left" v-show="props.task.displayInformation.sampleDatasetLink !== undefined">
-            <b>Don't have any data?</b> You can download a dataset <a  class='underline' :href="props.task.displayInformation.sampleDatasetLink">here</a>.
-          </div>
-          <div class="mb-5 text-left">
-            Disco needs to know where your data is located to train models. You can connect them by selecting the location of each data category or by submitting a csv file.
-            Models are trained on your local data and are periodically aggregated with other users' models.
-            <br/><br/><b>Your data stays private and is never uploaded online.</b>
-          </div>
+        <div class="mb-5 text-left" v-show="props.task.displayInformation.sampleDatasetLink !== undefined">
+            <b>Don't have any data?</b> You can download an example dataset <a  class='underline' :href="props.task.displayInformation.sampleDatasetLink">here</a>.
+            <br/> {{ props.task.displayInformation.sampleDatasetInstructions?? '' }}
+        </div>
+        <div class="mb-5 text-left">
+          Disco needs to know where your data is located on your device in order to read it (<b>not</b> upload it!) and train models.
+          Models are trained on your local data and are periodically aggregated with other users' models if any.
+          <br/><br/><b>Your data stays on your device and data is never uploaded anywhere.</b>
+        </div>
+        <div 
+          v-if="task.trainingInformation.dataType === 'image' "
+          class="mb-5 text-left"
+        >
+          You can connect images by selecting the location of each data category ("Group") or by submitting a csv file ("CSV").
+        </div>
         <!-- If the task data type is tabular, text or if we are doing inference only, then display a single drag and drop box -->
         <FileSelection
           v-if="['tabular', 'text'].includes(task.trainingInformation.dataType) || isOnlyPrediction"
           @input="addFiles($event)"
           @clear="clearFiles()"
+          :is-multiple="false"
         />
         <!--
           If the task data type is image then let the user choose between connect a csv and all images at once
