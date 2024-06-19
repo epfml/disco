@@ -2,7 +2,7 @@
   <div>
     <div v-show="validationStore.step === 0">
       <div class="flex flex-col gap-16">
-        <div v-if="memoryStore.models.size > 0">
+        <div v-if="models.size > 0">
           <IconCard title-placement="center">
             <template #title>
               Model Library — <span class="italic">Locally Available and Ready to Test</span>
@@ -14,15 +14,12 @@
               Note that these models are currently stored within your browser's memory.
               <div class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8">
                 <div
-                  v-for="[path, metadata] in memoryStore.models"
+                  v-for="[path, [metadata, buttons]] in models"
                   :key="path"
                   class="contents"
                 >
                   <ButtonsCard
-                    :buttons="List.of(
-                      ['test', () => selectModel(path, 'test')],
-                      ['predict', () => selectModel(path, 'predict')],
-                    )"
+                    :buttons="buttons"
                     class="shadow shadow-disco-cyan"
                   >
                     <template #title>
@@ -132,28 +129,42 @@
         </template>
       </IconCard>
       <KeepAlive>
-        <Data v-if="validationStore.step === 1"
-          :task="currentTask"
-          :dataset-builder="datasetBuilder"
-          :is-only-prediction="validationStore.evaluationType === 'predict'"
-        />
-        <Tester v-else-if="validationStore.step === 2"
-          :task="currentTask"
-          :dataset-builder="datasetBuilder"
-          :ground-truth="validationStore.evaluationType === 'test'"
-        />
+        <template v-if="validationStore.step === 1">
+          <span v-if="validationStore.evaluationType === 'chat'">
+            no data to connect, move to next step to chat
+          </span>
+          <Data
+            v-else
+            :task="currentTask"
+            :dataset-builder="datasetBuilder"
+            :is-only-prediction="validationStore.evaluationType === 'predict'"
+          />
+        </template>
+        <template v-else-if="validationStore.step === 2">
+          <TextInput
+            v-if="validationStore.evaluationType === 'chat'"
+            :task="currentTask"
+            :model="currentModel"
+          />
+          <Tester
+            v-else
+            :task="currentTask"
+            :dataset-builder="datasetBuilder"
+            :ground-truth="validationStore.evaluationType === 'test'"
+          />
+        </template>
       </KeepAlive>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
 import type { Component } from 'vue'
-import { watch, computed, shallowRef, onActivated, onMounted } from 'vue'
+import { watch, computed, ref, shallowRef, onActivated } from 'vue'
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { List } from 'immutable'
+import { List, Map } from 'immutable'
 
-import type { Path, Task } from '@epfml/discojs'
+import type { Model, Path, Task } from '@epfml/discojs'
 import { EmptyMemory, Memory, data, client as clients, aggregator } from '@epfml/discojs'
 import { IndexedDB, WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs-web'
 
@@ -166,6 +177,7 @@ import Data from '@/components/data/Data.vue'
 import Tester from '@/components/testing/Tester.vue'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
+import TextInput from "./TextInput.vue";
 
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
@@ -173,12 +185,28 @@ const tasksStore = useTasksStore()
 
 const { step: stepRef, state: stateRef } = storeToRefs(validationStore)
 const currentTask = shallowRef<Task | undefined>(undefined)
+const currentModel = ref<Model>()
 
 const federatedTasks = computed<List<Task>>(() =>
   tasksStore.tasks.filter((t) => t.trainingInformation.scheme === 'federated').toList())
 
 const memory = computed<Memory>(() =>
   memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory())
+const models = computed(() =>
+  memoryStore.models.map((meta, path) => {
+    const type = tasksStore.tasks.get(meta.taskID)?.trainingInformation
+      .dataType;
+    const buttons = List.of<[string, () => void]>(
+      ["test", () => selectModel(path, "test")],
+      ["predict", () => selectModel(path, "predict")],
+    ).concat(
+      type === "text"
+        ? [["chat", () => selectModel(path, "chat")] as const]
+        : [],
+    );
+    return [meta, buttons] as const;
+  }),
+);
 
 const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
   if (currentTask.value === undefined) {
@@ -225,6 +253,7 @@ async function selectModel(path: Path, evaluationType: EvaluationType): Promise<
     throw new Error(`Task not found in the task store for task id: ${taskID}`);
 
   currentTask.value = selectedTask;
+  currentModel.value = await memory.value.getModel(path)
   validationStore.model = path;
   validationStore.step = 1;
   validationStore.evaluationType = evaluationType;

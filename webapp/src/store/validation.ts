@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 import type { Path } from '@epfml/discojs'
 
-export type EvaluationType = 'predict' | 'test'
+export type EvaluationType = 'predict' | 'test' | 'chat'
 
 export const useValidationStore = defineStore('validation', () => {
   const state = ref(false)
