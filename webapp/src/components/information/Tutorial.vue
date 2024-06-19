@@ -6,7 +6,7 @@
       </template>
       <template #content>
         <div class="mb-4">
-          <b>Step 1: Select a DISCOllaborative</b><br>
+          <b>Step 1: Select a <DISCOllaborative /></b><br>
           Choose different tasks and datasets for training, ranging from tabular data to images, and from binary classification to class-wise prediction. Or you can define your own task.
         </div>
         <div class="mb-4">
@@ -27,7 +27,7 @@
         </div>
       <div class="flex flex-wrap items-center justify-center space-x-8">
         <CustomButton @click="router.push('/list')" class="mb-2">
-          explore DISCOllaboratives
+          explore <DISCOllaborative />
         </CustomButton>
         <CustomButton @click="router.push('/create')" class="mb-2">
           create your own task
@@ -45,6 +45,7 @@ import { useRouter } from 'vue-router'
 import { useInformationStore } from '@/store/information'
 import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
 
 const router = useRouter()
 const informationStore = useInformationStore()

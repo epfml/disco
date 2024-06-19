@@ -6,7 +6,7 @@
         Test the model
       </template>
 
-      Check the performance of your DISCOllaboratively trained model
+      Check the performance of your <DISCOllaborative /> trained model
       by testing it on new data (that was not used in training).
     </ButtonsCard>
 
@@ -17,7 +17,7 @@
       </template>
 
       Saving the model will allow you to access it later
-      to update training in a new DISCOllaborative.
+      to update training in a new <DISCOllaborative />.
     </ButtonsCard>
   </div>
 </template>
@@ -36,6 +36,7 @@ import { useMemoryStore } from '@/store/memory'
 import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
+import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
 
 interface Props { task: Task }
 
