@@ -4,9 +4,9 @@
     <div class="flex flex-col justify-center mb-[8%] space-y-10">
       <DiscoGIF class="mx-auto" />
       <span class="text-4xl text-center text-slate-600">
-        <span class="text-disco-blue font-disco font-semibold">[DIS]</span
+        <span class="font-disco text-disco-cyan font-semibold">[DIS]</span
         >tributed
-        <span class="text-disco-cyan font-disco font-semibold">[CO]</span
+        <span class="font-disco text-disco-blue font-semibold">[CO]</span
         >llaborative Learning
       </span>
     </div>

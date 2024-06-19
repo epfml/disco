@@ -9,8 +9,7 @@
     >
       <template #title>
         Learn more about
-        <span class="font-disco text-disco-cyan">DISCO</span> and collaborative
-        fundamentals
+        <DISCO /> and collaborative fundamentals
       </template>
     </ButtonsCard>
 
@@ -43,8 +42,9 @@ import { useRouter } from "vue-router";
 
 import { List } from "immutable";
 
-import ButtonsCard from "@/components/containers/ButtonsCard.vue";
+import DISCO from "@/components/simple/DISCO.vue";
 import DISCOllaborative from "@/components/simple/DISCOllaborative.vue";
+import ButtonsCard from "@/components/containers/ButtonsCard.vue";
 
 const router = useRouter();
 

@@ -24,7 +24,7 @@
         </div>
         <div class="mb-4">
             <b>Foundation technology</b>
-            <br/>DISCO uses a public model-private data approach.
+            <br/><DISCO /> uses a public model-private data approach.
             The models are trained on the web app via
             <a
               class="text-blue-400"
@@ -37,7 +37,7 @@
         </div>
         <div class="mb-4">
             <b>Research-focused design</b>
-            <br/>DISCO aims to enable decentralized training of
+            <br/><DISCO /> aims to enable decentralized training of
             machine learning algorithms, which is (i) efficient (<a
               class="text-blue-400"
               href="https://github.com/epfml/powergossip"
@@ -68,6 +68,7 @@ import { onActivated } from 'vue'
 
 import { useInformationStore } from '@/store/information'
 import IconCard from '@/components/containers/IconCard.vue'
+import DISCO from '@/components/simple/DISCO.vue'
 
 const informationStore = useInformationStore()
 onActivated(() => { informationStore.step = 3 })

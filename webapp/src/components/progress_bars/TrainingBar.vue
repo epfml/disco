@@ -11,7 +11,7 @@
       v-else
       class="flex flex-wrap text-3xl text-slate-600 justify-center"
     >
-      <DISCOllaborative/>
+      <DISCOllaborative />
     </div>
     <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
@@ -180,7 +180,6 @@ import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
-
 
 const router = useRouter()
 const route = useRoute()

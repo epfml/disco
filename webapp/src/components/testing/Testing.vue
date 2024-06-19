@@ -74,8 +74,7 @@
         <div v-if="federatedTasks.size > 0">
           <IconCard title-placement="center">
             <template #title>
-              <span class="font-disco font-normal text-xl text-disco-cyan">DIS</span>
-              <span class="font-disco font-normal text-xl text-disco-blue">CO</span>
+              <DISCO />
               Model Repository — <span class="italic">Download and Test</span>
             </template>
             <template #content>
@@ -160,6 +159,7 @@ import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
 import Data from '@/components/data/Data.vue'
+import DISCO from "@/components/simple/DISCO.vue";
 import Tester from '@/components/testing/Tester.vue'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'

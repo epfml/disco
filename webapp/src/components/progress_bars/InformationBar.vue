@@ -1,7 +1,7 @@
 <template>
   <div class="mb-8 md:mb-16 space-y-4 md:space-y-8">
-     <div class="flex flex-wrap text-3xl text-slate-600 justify-center">
-      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>
+    <div class="flex flex-wrap text-3xl text-slate-600 justify-center">
+      <DISCO />
     </div>
     <div class="hidden md:inline-block w-full">
       <div class="flex">
@@ -140,6 +140,7 @@ import { useRouter } from 'vue-router'
 import { useInformationStore } from '@/store/information'
 import ProgressIcon from './ProgressIcon.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import DISCO from '@/components/simple/DISCO.vue'
 
 const router = useRouter()
 const informationStore = useInformationStore()

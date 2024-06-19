@@ -24,11 +24,7 @@
         "
           @click="goToHome"
         >
-          <span
-            class="text-disco-cyan"
-          >DIS</span><span
-            class="text-disco-blue"
-          >CO</span>
+        <DISCO />
         </a>
       </div>
       <!-- Mini Sidebar content-->
@@ -161,6 +157,7 @@ import EvaluateIcon from '@/assets/svg/EvaluateIcon.vue'
 import InfoIcon from '@/assets/svg/InfoIcon.vue'
 import FileIcon from '@/assets/svg/FileIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
+import DISCO from '@/components/simple/DISCO.vue'
 
 const isMenuOpen = ref(false)
 const router = useRouter()
