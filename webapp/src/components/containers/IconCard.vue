@@ -38,8 +38,6 @@
 
 <script setup lang="ts">
 
-import { withDefaults } from 'vue'
-
 interface Props {
   withContent?: boolean
   titlePlacement?: 'left' | 'center' | 'right'

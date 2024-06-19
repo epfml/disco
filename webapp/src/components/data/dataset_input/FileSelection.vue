@@ -95,12 +95,12 @@
 
         <!-- If no preview of the selected file, display the nbr. of uploaded files -->
         <div v-if="selectedFiles?.length" class="pt-4 flex flex-col items-center pb-5">
-          <div 
+          <div
             class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue">
             <span v-if="isMultiple">Number of selected files: <span class="pl-1 text-xl">{{ selectedFiles?.length ?? 0 }}</span></span>
             <span v-else class="pl-1">{{ selectedFiles?.item(0)?.name ?? 'none' }}</span>
           </div>
-          <div>  
+          <div>
             <CustomButton @click="clearFiles">
               clear file{{ isMultiple ? 's' : '' }}
             </CustomButton>
@@ -112,7 +112,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, withDefaults, computed } from 'vue'
+import { ref, computed } from 'vue'
 import * as d3 from 'd3'
 
 import CustomButton from '@/components/simple/CustomButton.vue'
@@ -125,7 +125,7 @@ const toaster = useToaster()
 
 type CSV = { filename: string, label: string }[] | undefined
 
-interface Emits { 
+interface Emits {
   (e: 'csv', csvRows: CSV): void
 }
 
@@ -160,7 +160,7 @@ const hideConnectField = ref(false)
 const fileType = computed(() => {
   if (props.expectCsvMapping === true || props.task.trainingInformation.dataType === 'tabular') {
     return 'CSV'
-  } 
+  }
   return props.task.trainingInformation.dataType === 'image' ? 'image' : 'file'
 })
 const requireLabels = computed(
