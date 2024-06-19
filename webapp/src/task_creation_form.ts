@@ -1,6 +1,6 @@
 import * as yup from 'yup'
 
-export interface FormElement {
+interface FormElement {
   key: string
   default: string
 }
@@ -38,7 +38,7 @@ const otherReq = (req: any) => {
   }
 }
 
-export const generalInformation: FormSection = {
+const generalInformation: FormSection = {
   id: 'generalInformation',
   title: 'General Information',
   fields: [
@@ -70,7 +70,8 @@ export const generalInformation: FormSection = {
     }
   ]
 }
-export const displayInformation: FormSection = {
+
+const displayInformation: FormSection = {
   id: 'displayInformation',
   title: 'Task & Model Description',
   fields: [
@@ -359,7 +360,7 @@ export const privacyParameters: FormSection = {
   ]
 }
 
-export const modelFiles: FormSection = {
+const modelFiles: FormSection = {
   id: 'modelFiles',
   title: 'Model Files',
   fields: [
@@ -401,7 +402,3 @@ export const sections: FormSection[] = [
   privacyParameters,
   modelFiles
 ]
-
-export interface FormProps {
-  section: FormSection
-}
