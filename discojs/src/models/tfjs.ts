@@ -1,10 +1,12 @@
+import { List, Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
 import { WeightsContainer } from '../index.js'
-
-import { Model } from './index.js'
-import type { EpochLogs, Prediction, Sample } from './model.js'
 import type { Dataset } from '../dataset/index.js'
+
+import { BatchLogs, EpochLogs } from './index.js'
+import { Model } from './index.js'
+import type { Prediction, Sample } from './model.js'
 
 /** TensorFlow JavaScript model with standard training */
 export class TFJS extends Model {
@@ -30,52 +32,87 @@ export class TFJS extends Model {
   override async *train(
     trainingData: Dataset,
     validationData?: Dataset,
-    epochs = 1,
-  ): AsyncGenerator<EpochLogs> {
-    for (let epoch = 0; epoch < epochs; epoch++) {
-      let logs: tf.Logs | undefined;
-      let peakMemory = 0
-      await this.model.fitDataset(trainingData, {
-        epochs: 1,
-        validationData,
-        callbacks: {
-          onBatchEnd: (_) => { 
-            const currentMemory = tf.memory().numBytes / 1024 / 1024 / 1024 // GB
-            if (currentMemory > peakMemory) {
-              peakMemory = currentMemory
-            }
-          },
-          onEpochEnd: (_, cur) => { logs = cur }
-        },
-      });
+  ): AsyncGenerator<BatchLogs, EpochLogs> {
+    const batches = await trainingData.iterator(); // tf.LazyIterator isn't an AsyncGenerator
+    let batchesLogs = List<BatchLogs>();
+    for (let batchNumber = 0; true; batchNumber++) {
+      const iteration = await batches.next();
+      if (iteration.done) break;
+      const batch = iteration.value;
 
-      if (logs === undefined) {
-        throw new Error("Epoch didn't gave any logs");
-      }
-      const { loss, acc, val_acc, val_loss } = logs;
-      if (loss === undefined || isNaN(loss) || acc === undefined || isNaN(acc)) {
-        throw new Error("Training loss is undefined or nan");
-      }
-      const structuredLogs: EpochLogs = {
-        epoch,
-        peakMemory,
-        training: {
-          loss: logs.loss,
-          accuracy: logs.acc,
-         }
-      }
-      if (validationData !== undefined) {
-        if(val_loss === undefined || isNaN(val_loss) ||
-          val_acc === undefined || isNaN(val_acc)) {
-          throw new Error("Invalid validation logs");
-        }
-        structuredLogs.validation = {
-          accuracy: logs.val_acc,
-          loss: logs.val_loss
-        }
-      }
-      yield structuredLogs
+      const batchLogs = {
+        batch: batchNumber,
+        ...(await this.#runBatch(batch)),
+      };
+      tf.dispose(batch);
+
+      yield batchLogs;
+      batchesLogs = batchesLogs.push(batchLogs);
     }
+
+    const validation = validationData && (await this.#evaluate(validationData));
+    return new EpochLogs(batchesLogs, validation);
+  }
+
+  async #runBatch(
+    batch: tf.TensorContainer,
+  ): Promise<Omit<BatchLogs, "batch">> {
+    let logs: tf.Logs | undefined;
+    await this.model.fitDataset(tf.data.array([batch]), {
+      epochs: 1,
+      verbose: 0, // don't pollute
+      callbacks: {
+        onEpochEnd: (_, cur) => {
+          logs = cur;
+        },
+      },
+    });
+    if (logs === undefined) throw new Error("batch didn't gave any logs");
+
+    const { loss, acc: accuracy } = logs;
+    if (loss === undefined || isNaN(loss))
+      throw new Error("training loss is undefined or NaN");
+
+    return {
+      accuracy,
+      loss,
+      memoryUsage: tf.memory().numBytes / 1024 / 1024 / 1024,
+    };
+  }
+
+  async #evaluate(
+    dataset: Dataset,
+  ): Promise<Record<"accuracy" | "loss", number>> {
+    const evaluation = await this.model.evaluateDataset(
+      dataset.map((t) => {
+        switch (t) {
+          case null:
+          case undefined:
+            throw new Error("nullish value in dataset");
+          default:
+            return t as Exclude<tf.TensorContainer, void>;
+        }
+      }),
+    );
+    const metricToValue = Map(
+      List(this.model.metricsNames).zip(
+        Array.isArray(evaluation)
+          ? List(await Promise.all(evaluation.map((t) => t.data())))
+          : List.of(await evaluation.data()),
+      ),
+    ).map((values) => {
+      if (values.length !== 1) throw new Error("more than one metric value");
+      return values[0];
+    });
+
+    const [accuracy, loss] = [
+      metricToValue.get("acc"),
+      metricToValue.get("loss"),
+    ];
+    if (accuracy === undefined || loss === undefined)
+      throw new Error("some needed metrics are missing");
+
+    return { accuracy, loss };
   }
 
   override predict (input: Sample): Promise<Prediction> {

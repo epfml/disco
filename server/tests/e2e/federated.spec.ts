@@ -7,7 +7,8 @@ import { assert, expect } from 'chai'
 import type { RoundLogs, WeightsContainer } from '@epfml/discojs'
 import {
   Disco, client as clients, data,
-  aggregator as aggregators, defaultTasks
+  aggregator as aggregators, defaultTasks,
+  async_iterator
 } from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/discojs-node'
 
@@ -52,7 +53,7 @@ describe("end-to-end federated", function () {
     const files = [DATASET_DIR + 'titanic_train.csv']
 
     const titanicTask = defaultTasks.titanic.getTask()
-    titanicTask.trainingInformation.epochs = 5
+    titanicTask.trainingInformation.epochs = titanicTask.trainingInformation.roundDuration = 5
     const data = await (new NodeTabularLoader(titanicTask, ',').loadAll(
       files,
       {
@@ -68,7 +69,10 @@ describe("end-to-end federated", function () {
 
     let logs = List<RoundLogs>()
     for await (const round of disco.fit(data)) {
-      logs = logs.push(round)
+      const [roundGen, roundLogs] = async_iterator.split(round)
+      for await (const epoch of roundGen)
+        for await (const _ of epoch);
+      logs = logs.push(await roundLogs)
     }
     await disco.close()
 
@@ -99,7 +103,10 @@ describe("end-to-end federated", function () {
 
     let logs = List<RoundLogs>()
     for await (const round of disco.fit(dataSplit)) {
-      logs = logs.push(round)
+      const [roundGen, roundLogs] = async_iterator.split(round)
+      for await (const epoch of roundGen)
+        for await (const _ of epoch);
+      logs = logs.push(await roundLogs)
     }
     await disco.close()
 
@@ -120,7 +127,8 @@ describe("end-to-end federated", function () {
     const negativeLabels = files[1].map(_ => 'COVID-Negative')
     const labels = positiveLabels.concat(negativeLabels)
     const lusCovidTask = defaultTasks.lusCovid.getTask()
-    lusCovidTask.trainingInformation.epochs = 15
+    lusCovidTask.trainingInformation.epochs = 16
+    lusCovidTask.trainingInformation.roundDuration = 4
 
     const data = await new NodeImageLoader(lusCovidTask)
       .loadAll(files.flat(), { labels, channels: 3 })
@@ -131,7 +139,10 @@ describe("end-to-end federated", function () {
 
     let logs = List<RoundLogs>()
     for await (const round of disco.fit(data)) {
-      logs = logs.push(round)
+      const [roundGen, roundLogs] = async_iterator.split(round)
+      for await (const epoch of roundGen)
+        for await (const _ of epoch);
+      logs = logs.push(await roundLogs)
     }
     await disco.close()
 

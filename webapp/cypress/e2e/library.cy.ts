@@ -19,7 +19,7 @@ describe("model library", () => {
   function setupForTask(taskProvider: TaskProvider): void {
     cy.intercept({ hostname: "server", pathname: "/tasks" }, (req) => {
       const task = taskProvider.getTask();
-      task.trainingInformation.epochs = 3;
+      task.trainingInformation.epochs = task.trainingInformation.roundDuration = 3;
       req.reply([task]);
     });
 
@@ -105,7 +105,7 @@ describe("model library", () => {
     cy.contains("button", "train alone").click();
     cy.contains("h6", "current round")
       .next({ timeout: 10_000 })
-      .should("have.text", "3");
+      .should("have.text", "1");
     cy.contains("button", "next").click();
 
     // TODO do not save by default, only via "save model" button

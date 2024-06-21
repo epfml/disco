@@ -1,7 +1,10 @@
-import type { data, Logger, Memory, Task, TrainingInformation } from '../index.js'
+import { List } from 'immutable'
+
+import { BatchLogs, data, EpochLogs, Logger, Memory, Task, TrainingInformation } from '../index.js'
 import { client as clients, EmptyMemory, ConsoleLogger } from '../index.js'
 import type { Aggregator } from '../aggregator/index.js'
 import { MeanAggregator } from '../aggregator/mean.js'
+import { enumerate, split } from '../utils/async_iterator.js'
 
 import type { RoundLogs, Trainer } from './trainer/trainer.js'
 import { TrainerBuilder } from './trainer/trainer_builder.js'
@@ -85,7 +88,14 @@ export class Disco {
    * @param dataTuple The data tuple
    */
   // TODO RoundLogs should contain number of participants but Trainer doesn't need client
-  async *fit(dataTuple: data.DataSplit): AsyncGenerator<RoundLogs & { participants: number }> {
+  async *fit(
+    dataTuple: data.DataSplit,
+  ): AsyncGenerator<
+    AsyncGenerator<
+      AsyncGenerator<BatchLogs, EpochLogs>,
+      RoundLogs & { participants: number }
+    >
+  > {
     this.logger.success("Training started.");
 
     const trainData = dataTuple.train.preprocess().batch();
@@ -94,25 +104,39 @@ export class Disco {
     await this.client.connect();
     const trainer = await this.trainer;
 
-    for await (const roundLogs of trainer.fitModel(trainData.dataset, validationData.dataset)) {
-      let msg = `Round: ${roundLogs.round}\n`
-      for (const epochLogs of roundLogs.epochs.values()) {
-        msg += `    Epoch: ${epochLogs.epoch}\n`
-        msg += `        Training loss: ${epochLogs.training.loss}\n`
-        if (epochLogs.training.accuracy !== undefined) {
-          msg += `        Training accuracy: ${epochLogs.training.accuracy}\n`
-        }
-        if (epochLogs.validation !== undefined) {
-          msg += `        Validation loss: ${epochLogs.validation.loss}\n`
-          msg += `        Validation accuracy: ${epochLogs.validation.accuracy}\n`
-        }
-      }
-      this.logger.success(msg)
+    for await (const [round, epochs] of enumerate(
+      trainer.fitModel(trainData.dataset, validationData.dataset),
+    )) {
+      yield async function* (this: Disco) {
+        let epochsLogs = List<EpochLogs>();
+        for await (const [epoch, batches] of enumerate(epochs)) {
+          const [gen, returnedEpochLogs] = split(batches);
 
-      yield {
-        ...roundLogs,
-        participants: this.client.nodes.size + 1 // add ourself
-      }
+          yield gen;
+          const epochLogs = await returnedEpochLogs;
+          epochsLogs = epochsLogs.push(epochLogs);
+
+          this.logger.success(
+            [
+              `Round: ${round}`,
+              `  Epoch: ${epoch}`,
+              `    Training loss: ${epochLogs.training.loss}`,
+              `    Training accuracy: ${epochLogs.training.accuracy}`,
+              epochLogs.validation !== undefined
+                ? `    Validation loss: ${epochLogs.validation.loss}`
+                : "",
+              epochLogs.validation !== undefined
+                ? `    Validation accuracy: ${epochLogs.validation.accuracy}`
+                : "",
+            ].join("\n"),
+          );
+        }
+
+        return {
+          epochs: epochsLogs,
+          participants: this.client.nodes.size + 1, // add ourself
+        };
+      }.bind(this)();
     }
 
     this.logger.success("Training finished.");

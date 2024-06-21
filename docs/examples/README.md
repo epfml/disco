@@ -22,7 +22,9 @@ As you can see in `training.ts` a client is represented by a `Disco` object:
 
 ```js
 const disco = new Disco(task, { url, scheme: "federated" });
-await disco.fit(dataset); // Start training on the dataset
+for await (const round of disco.fit(dataset))
+  for await (const epoch of round)
+    for await (const batch of epoch);
 await disco.close();
 ```
 

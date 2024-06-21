@@ -3,18 +3,7 @@ import type tf from "@tensorflow/tfjs";
 import type { WeightsContainer } from "../index.js";
 import type { Dataset } from "../dataset/index.js";
 
-export interface EpochLogs {
-  epoch: number; // first epoch is zero
-  training: {
-    loss: number,
-    accuracy?: number
-  };
-  validation?: {
-    loss: number,
-    accuracy: number
-  };
-  peakMemory: number;
-}
+import type { BatchLogs, EpochLogs } from "./logs.js";
 
 // TODO still bound to tfjs
 export type Prediction = tf.Tensor;
@@ -26,7 +15,7 @@ export type Sample = tf.Tensor;
  * Allow for various implementation of models (various train function, tensor-library, ...)
  **/
 // TODO make it typesafe: same shape of data/input/weights
-export abstract class Model implements Disposable{
+export abstract class Model implements Disposable {
   // TODO don't allow external access but upgrade train to return weights on every epoch
   /** Return training state */
   abstract get weights(): WeightsContainer;
@@ -45,13 +34,11 @@ export abstract class Model implements Disposable{
   abstract train(
     trainingData: Dataset,
     validationData?: Dataset,
-    epochs?: number,
-  ): AsyncGenerator<EpochLogs, void>;
+  ): AsyncGenerator<BatchLogs, EpochLogs>;
 
   /** Predict likely values */
   // TODO extract in separated TrainedModel?
   abstract predict(input: Sample): Promise<Prediction>;
-
 
   /**
    * This method is automatically called to cleanup the memory occupied by the model

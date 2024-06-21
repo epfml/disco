@@ -57,6 +57,7 @@ class GPTModel extends tf.LayersModel {
     await callbacks.onTrainBegin?.()
     
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
+      let accuracyFraction: [number, number] = [0, 0];
       let averageLoss = 0
       let peakMemory = 0
       let iteration = 1
@@ -69,18 +70,34 @@ class GPTModel extends tf.LayersModel {
         let weightUpdateTime = performance.now()
         await callbacks.onEpochBegin?.(epoch)
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
-        const lossFn: () => tf.Scalar = () => {
+
+        // TODO include as a tensor inside the model
+        const accTensor = tf.tidy(() => {
           const logits = this.apply(xs)
-          if (Array.isArray(logits)) {
+          if (Array.isArray(logits))
             throw new Error('model outputs too many tensor')
-          }
-          if (logits instanceof tf.SymbolicTensor) {
+          if (logits instanceof tf.SymbolicTensor)
             throw new Error('model outputs symbolic tensor')
-          }
-          return tf.losses.softmaxCrossEntropy(ys, logits)
-        }
+          return tf.metrics.categoricalAccuracy(ys, logits)
+        })
+        const accSize = accTensor.shape.reduce((l, r) => l * r, 1)
+        const accSumTensor = accTensor.sum()
+        const accSum = await accSumTensor.array()
+        tf.dispose(accSumTensor)
+        if (typeof accSum !== 'number')
+          throw new Error('got multiple accuracy sum')
+        accuracyFraction = [accuracyFraction[0] + accSum, accuracyFraction[1] + accSize];
+	tf.dispose([accTensor])
+
         const lossTensor = tf.tidy(() => {
-          const { grads, value: lossTensor } = this.optimizer.computeGradients(lossFn)
+          const { grads, value: lossTensor } = this.optimizer.computeGradients(() => {
+            const logits = this.apply(xs)
+            if (Array.isArray(logits))
+              throw new Error('model outputs too many tensor')
+            if (logits instanceof tf.SymbolicTensor)
+              throw new Error('model outputs symbolic tensor')
+            return tf.losses.softmaxCrossEntropy(ys, logits)
+          })
           const gradsClipped = clipByGlobalNormObj(grads, 1)
           this.optimizer.applyGradients(gradsClipped)
           return lossTensor
@@ -89,6 +106,7 @@ class GPTModel extends tf.LayersModel {
         const loss = await lossTensor.array()
         averageLoss += loss
         weightUpdateTime = performance.now() - weightUpdateTime
+
         tf.dispose([xs, ys, lossTensor])
         
         if (
@@ -122,6 +140,7 @@ class GPTModel extends tf.LayersModel {
       }
       let logs: tf.Logs = {
         'loss': averageLoss / iteration,
+        'acc': accuracyFraction[0] / accuracyFraction[1],
         'peakMemory': peakMemory
       }
       if (evalDataset !== undefined) {
