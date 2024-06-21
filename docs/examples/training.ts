@@ -12,9 +12,13 @@ import { startServer } from 'server'
 async function runUser (url: URL, task: Task, dataset: data.DataSplit): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
   const disco = new Disco(task, { url, scheme: 'federated' })
-  for await (const _ of disco.fit(dataset)); // Start training on the dataset
 
-  // Stop training and disconnect from the remote server
+  // Run training on the dataset
+  for await (const round of disco.fit(dataset))
+    for await (const epoch of round)
+      for await (const _ of epoch);
+
+  // Disconnect from the remote server
   await disco.close()
 }
 

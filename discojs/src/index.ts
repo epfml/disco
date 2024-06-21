@@ -13,10 +13,11 @@ export { Memory, type ModelInfo, type Path, type ModelSource, Empty as EmptyMemo
 export { Disco, RoundLogs } from './training/index.js'
 export { Validator } from './validation/index.js'
 
-export { Model, EpochLogs } from './models/index.js'
+export { Model, BatchLogs, EpochLogs, ValidationMetrics } from './models/index.js'
 export * as models from './models/index.js'
 
 export * from './task/index.js'
 export * as defaultTasks from './default_tasks/index.js'
 
 export * from './types.js'
+export * as async_iterator from "./utils/async_iterator.js"

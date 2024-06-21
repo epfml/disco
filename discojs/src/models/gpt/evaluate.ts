@@ -9,7 +9,7 @@ export default async function evaluate (
   model: tf.LayersModel,
   dataset: tf.data.Dataset<DataPoint>,
   maxEvalBatches: number
-): Promise<Record<'acc' | 'val_acc' | 'val_loss' | 'val_perplexity', number>> {
+): Promise<Record<'val_acc' | 'val_loss' | 'val_perplexity', number>> {
   let datasetSize = 0
   let totalLoss = 0
   const acc: [number, number] = [0, 0]
@@ -53,7 +53,6 @@ export default async function evaluate (
   return {
     val_loss: loss,
     val_perplexity: Math.exp(loss),
-    acc: acc[0] / acc[1],
     val_acc: acc[0] / acc[1]
   }
 }
