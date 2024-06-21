@@ -4,7 +4,21 @@
     <div class="flex flex-wrap justify-center gap-4 md:gap-8">
       <IconCardSmall
         header="current round"
-        :text="`${(logs.last()?.round ?? 0) + 1}`"
+        :text="`${roundsCount}`"
+        class="w-72 shrink-0"
+      >
+        <Timer />
+      </IconCardSmall>
+      <IconCardSmall
+        header="current epoch"
+        :text="`${epochsCount}`"
+        class="w-72 shrink-0"
+      >
+        <Timer />
+      </IconCardSmall>
+      <IconCardSmall
+        header="current batch"
+        :text="`${batchesCount}`"
         class="w-72 shrink-0"
       >
         <Timer />
@@ -34,12 +48,10 @@
       <!-- Training loss users chart -->
       <IconCard>
         <!-- Card header -->
-        <template #title>
-          Training Loss of the Model
-        </template>
+        <template #title> Training Loss of the Model </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
-            {{ (latestEpoch?.training.loss ?? 0).toFixed(2) }}
+            {{ (lastEpoch?.training.loss ?? 0).toFixed(2) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
             training loss
@@ -56,16 +68,12 @@
       </IconCard>
 
       <!-- Validation Loss users chart -->
-      <IconCard
-        v-if="hasValidationData"
-      >
+      <IconCard v-if="hasValidationData">
         <!-- Card header -->
-        <template #title>
-          Validation Loss of the Model
-        </template>
+        <template #title> Validation Loss of the Model </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
-            {{ (latestEpoch?.validation?.loss ?? 0).toFixed(2) }}
+            {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
             validation loss
@@ -89,38 +97,34 @@
       <!-- Training Accuracy users chart -->
       <IconCard>
         <!-- Card header -->
-        <template #title>
-          Training Accuracy of the Model
-        </template>
+        <template #title> Training Accuracy of the Model </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
-            {{ percent(latestEpoch?.training.accuracy ?? 0) }}
+            {{ percent(lastEpoch?.training.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
-             % of training accuracy
+            % of training accuracy
           </span>
           <!-- Chart -->
           <ApexChart
             width="100%"
             height="200"
             type="area"
-            :options="options"
-            :series="[{ name: 'Training accuracy', data: accuracySeries.training }]"
+            :options="accuracyChartsOptions"
+            :series="[
+              { name: 'Training accuracy', data: accuracySeries.training },
+            ]"
           />
         </template>
       </IconCard>
 
       <!-- Validation Accuracy users chart -->
-      <IconCard
-        v-if="hasValidationData"
-      >
+      <IconCard v-if="hasValidationData">
         <!-- Card header -->
-        <template #title>
-          Validation Accuracy of the Model
-        </template>
+        <template #title> Validation Accuracy of the Model </template>
         <template #content>
           <span class="text-2xl font-medium text-slate-500">
-            {{ percent(latestEpoch?.validation?.accuracy ?? 0) }}
+            {{ percent(lastEpoch?.validation?.accuracy ?? 0) }}
           </span>
           <span class="text-sm font-medium text-slate-500">
             % of validation accuracy
@@ -130,8 +134,10 @@
             width="100%"
             height="200"
             type="area"
-            :options="options"
-            :series="[{ name: 'Validation accuracy', data: accuracySeries.validation }]"
+            :options="accuracyChartsOptions"
+            :series="[
+              { name: 'Validation accuracy', data: accuracySeries.validation },
+            ]"
           />
         </template>
       </IconCard>
@@ -139,9 +145,7 @@
 
     <!-- Training logs -->
     <IconCard>
-      <template #title>
-        Training Logs
-      </template>
+      <template #title> Training Logs </template>
       <template #icon>
         <Contact />
       </template>
@@ -157,7 +161,9 @@
               <span
                 style="white-space: pre-line"
                 class="text-sm text-slate-500"
-              >{{ message }}</span>
+              >
+                {{ message }}
+              </span>
             </li>
           </ul>
         </div>
@@ -167,92 +173,141 @@
 </template>
 
 <script setup lang="ts">
-import { List } from 'immutable'
-import { computed } from 'vue'
+import { List } from "immutable";
+import { computed } from "vue";
 import ApexChart from "vue3-apexcharts";
-import { chartOptions } from '@/charts'
 
-import type { RoundLogs } from '@epfml/discojs'
+import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
 
-import IconCardSmall from '@/components/containers/IconCardSmall.vue'
-import IconCard from '@/components/containers/IconCard.vue'
-import Timer from '@/assets/svg/Timer.vue'
-import People from '@/assets/svg/People.vue'
-import Contact from '@/assets/svg/Contact.vue'
+import IconCardSmall from "@/components/containers/IconCardSmall.vue";
+import IconCard from "@/components/containers/IconCard.vue";
+import Timer from "@/assets/svg/Timer.vue";
+import People from "@/assets/svg/People.vue";
+import Contact from "@/assets/svg/Contact.vue";
 
 const props = defineProps<{
-  logs: List<RoundLogs & { participants: number }>
-  hasValidationData: boolean // TODO infer from logs
-  messages: List<string> // TODO why do we want messages?
-}>()
+  rounds: List<RoundLogs & { participants: number }>;
+  epochsOfRound: List<EpochLogs>;
+  batchesOfEpoch: List<BatchLogs>;
+  hasValidationData: boolean; // TODO infer from logs
+  messages: List<string>; // TODO why do we want messages?
+}>();
 
-const options = chartOptions
+const participants = computed(() => ({
+  current: props.rounds.last()?.participants ?? 0,
+  average:
+    props.rounds.size > 0
+      ? props.rounds.reduce((acc, round) => acc + round.participants, 0) /
+        props.rounds.size
+      : 0,
+}));
 
-const participants = computed(() => {
-  const average = props.logs.size > 0
-    ? props.logs.reduce((acc, logs) => acc + logs.participants, 0) / props.logs.size
-    : 0
-  return {
-    current: props.logs.last()?.participants ?? 0,
-    average
-  }
-})
+const batchesCount = computed(() => props.batchesOfEpoch.size);
+const epochsCount = computed(() => props.epochsOfRound.size);
+const roundsCount = computed(() => props.rounds.size);
 
-const latestEpoch = computed(() => props.logs.last()?.epochs.last())
+const allEpochs = computed(() =>
+  props.rounds.flatMap((round) => round.epochs).concat(props.epochsOfRound),
+);
+const lastEpoch = computed(() => allEpochs.value.last());
 
-const accuracySeries = computed(() => props.logs
-  .flatMap((round) =>
-    round.epochs.map((epoch) => { return {
-      training: (epoch.training.accuracy ?? 0) * 100,
+const accuracySeries = computed(() =>
+  allEpochs.value
+    .map((epoch) => ({
+      training: epoch.training.accuracy * 100,
       validation: (epoch.validation?.accuracy ?? 0) * 100,
-    }})
-  )
-  .reduce(({ training, validation }, cur) => { return {
-    training: training.concat([cur.training]),
-    validation: validation.concat([cur.validation]),
-  }}, {
-    training: [] as number[],
-    validation: [] as number[],
-  })
-)
-const lossSeries = computed(() => props.logs
-  .flatMap((round) =>
-    round.epochs.map((epoch) => { return {
+    }))
+    .reduce(
+      ({ training, validation }, cur) => ({
+        training: training.concat([cur.training]),
+        validation: validation.concat([cur.validation]),
+      }),
+      {
+        training: [] as number[],
+        validation: [] as number[],
+      },
+    ),
+);
+const lossSeries = computed(() =>
+  allEpochs.value
+    .map((epoch) => ({
       training: epoch.training.loss,
-      validation: (epoch.validation?.loss ?? 0),
-    }})
-  )
-  .reduce(({ training, validation }, cur) => { return {
-    training: training.concat([cur.training]),
-    validation: validation.concat([cur.validation]),
-  }}, {
-    training: [] as number[],
-    validation: [] as number[],
-  })
-)
+      validation: epoch.validation?.loss ?? 0,
+    }))
+    .reduce(
+      ({ training, validation }, cur) => ({
+        training: training.concat([cur.training]),
+        validation: validation.concat([cur.validation]),
+      }),
+      {
+        training: [] as number[],
+        validation: [] as number[],
+      },
+    ),
+);
 
-const yAxisMax = computed(() => {
-  let maxVal = Math.max(...lossSeries.value.training, ...lossSeries.value.validation)
-  return (maxVal > 0) ? maxVal : 10 // if Math.max returns -inf or 0, set the max to 10 arbitrarily
-})
+const commonChartsOptions = {
+  chart: {
+    animations: {
+      enabled: true,
+      easing: "linear",
+      dynamicAnimation: { speed: 1000 },
+    },
+    toolbar: { show: false },
+    zoom: { enabled: false },
+  },
+  dataLabels: { enabled: false },
+  colors: ["#6096BA"],
+  fill: {
+    colors: ["#E2E8F0"],
+    type: "solid",
+    opacity: 0.6,
+  },
+  stroke: { curve: "smooth" },
+  markers: { size: 0.5 },
+  grid: {
+    xaxis: { lines: { show: false } },
+    yaxis: { lines: { show: false } },
+  },
+  xaxis: { labels: { show: false } },
+  legend: { show: false },
+  tooltip: { enabled: true },
+};
+
+const accuracyChartsOptions = {
+  ...commonChartsOptions,
+  yaxis: {
+    max: 100,
+    min: 0,
+    labels: {
+      show: true,
+      formatter: (value: number) => value.toFixed(0),
+    },
+  },
+};
 
 const lossChartsOptions = computed(() => {
+  const maxVal = Math.max(
+    lossSeries.value.training.reduce((max, e) => Math.max(max, e), 0),
+    lossSeries.value.validation.reduce((max, e) => Math.max(max, e), 0),
+  );
+  // if Math.max returns -inf or 0, set the max to 10 arbitrarily
+  const yAxisMax = maxVal > 0 ? maxVal : 10;
+
   return {
-    ...options,
+    ...commonChartsOptions,
     yaxis: {
-      max: () => yAxisMax.value,
+      max: yAxisMax,
       min: 0,
       labels: {
         show: true,
-        formatter: function (value: number) {
-          return value.toFixed(2);
-        }
-      }
-    }
-  }
-})
+        formatter: (n: number) => n.toFixed(2),
+      },
+    },
+  };
+});
 
 function percent(n: number): string {
-  return (n * 100).toFixed(2)
+  return (n * 100).toFixed(2);
 }
 </script>

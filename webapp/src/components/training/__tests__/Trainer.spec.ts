@@ -60,11 +60,11 @@ it("increases accuracy when training alone", async () => {
 
   await wrapper.get("button").trigger("click");
   const infos = wrapper.getComponent(TrainingInformation);
-  while (infos.props("logs").isEmpty()) {
+  while (infos.props("epochsOfRound").isEmpty()) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   expect(
-    infos.props("logs").last()?.epochs.last()?.training.accuracy,
+    infos.props("epochsOfRound").last()?.training.accuracy,
   ).toBeGreaterThan(0);
 });

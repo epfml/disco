@@ -57,8 +57,8 @@ describe("training page", () => {
 
     cy.contains("button", "train alone").click();
     cy.contains("h6", "current round")
-      .next({ timeout: 30_000 })
-      .should("have.text", "20");
+      .next({ timeout: 40_000 })
+      .should("have.text", "2");
     cy.contains("button", "next").click();
 
     cy.contains("button", "test model").click();
