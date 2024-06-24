@@ -9,7 +9,7 @@
         Learn more about <span class="font-disco text-disco-cyan">DISCO</span> and collaborative learning fundamentals
       </template>
       <template #button>
-        more info
+        learn more
       </template>
     </ButtonCard>
     <!-- List of tasks -->
@@ -18,10 +18,10 @@
       @action="goToTaskList()"
     >
       <template #title>
-        Train a model on existing <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><DISCOllaborative/></span>
+        Train a model with existing <span title="Click Explore to learn more on DISCOllaboratives"><DISCOllaborative/>s</span>
       </template>
       <template #button>
-        train
+        explore
       </template>
     </ButtonCard>
     <!-- Task creation -->
@@ -30,9 +30,7 @@
       @action="goToNewTaskCreationForm()"
     >
       <template #title>
-        Add your own ML task to the <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model">
-          <DISCOllaborative/>
-        </span>
+        Add your own ML problem to the list of <DISCOllaborative/>s
       </template>
       <template #button>
         create

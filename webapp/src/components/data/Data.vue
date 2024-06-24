@@ -19,7 +19,7 @@ import DataHarmonization from '@/components/data/DataHarmonization.vue'
 interface Props {
   task: Task
   datasetBuilder: data.DatasetBuilder<File>
-  isOnlyPrediction: Boolean
+  isOnlyPrediction: boolean
 }
 const props = defineProps<Props>()
 </script>

@@ -24,7 +24,7 @@
           @click="toStep(0)"
         >
           <template #text>
-            Choose Task
+            Task Selection
           </template>
           <template #icon>
             <svg
@@ -103,7 +103,7 @@
           @click="toStep(3)"
         >
           <template #text>
-            Train Your Model
+            Model Training
           </template>
           <template #icon>
             <svg
@@ -128,7 +128,7 @@
           @click="toStep(4)"
         >
           <template #text>
-            Evaluate Your Model
+            Model Evaluation
           </template>
           <template #icon>
             <svg
