@@ -50,7 +50,7 @@ describe("training page", () => {
     cy.contains("button", "participate").click();
     cy.contains("button", "next").click();
 
-    cy.contains("label", "select file").selectFile(
+    cy.contains("label", "select CSV").selectFile(
       "../datasets/titanic_train.csv",
     );
     cy.contains("button", "next").click();

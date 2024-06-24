@@ -97,7 +97,7 @@ describe("model library", () => {
     cy.visit("/#/titanic");
     cy.contains("button", "next").click();
 
-    cy.contains("label", "select file").selectFile(
+    cy.contains("label", "select CSV").selectFile(
       "../datasets/titanic_train.csv",
     );
     cy.contains("button", "next").click();
