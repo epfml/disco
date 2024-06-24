@@ -6,7 +6,7 @@
       @action="goToDiscoInformation()"
     >
       <template #title>
-        Learn more about <span class="font-disco text-disco-cyan">DISCO</span> and collaborative learning fundamentals
+        Learn more about <span class="font-disco text-disco-cyan">DISCO</span> and collaborative fundamentals
       </template>
       <template #button>
         learn more
@@ -18,7 +18,7 @@
       @action="goToTaskList()"
     >
       <template #title>
-        Train a model with existing <span title="Click Explore to learn more on DISCOllaboratives"><DISCOllaborative/>s</span>
+        Train a model and contribute to existing <span title="Click Explore to learn more on DISCOllaboratives"><DISCOllaborative/>s</span>
       </template>
       <template #button>
         explore

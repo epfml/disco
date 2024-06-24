@@ -11,7 +11,7 @@
         Connect your data
       </template>
       <template #icon>
-        <Upload />
+        <PlugIcon />
       </template>
       <template #content>
         <div class="mb-5 text-left" v-show="props.task.displayInformation.sampleDatasetLink !== undefined">
@@ -27,7 +27,7 @@
           v-if="task.trainingInformation.dataType === 'image' "
           class="mb-5 text-left"
         >
-          You can connect images by selecting the location of each data category ("Group") or by submitting a csv file ("CSV").
+          You can connect images by selecting the location of each data category (Group) or by submitting a csv file (CSV).
         </div>
         <!-- If the task data type is tabular, text or if we are doing inference only, then display a single drag and drop box -->
         <FileSelection
@@ -189,7 +189,7 @@ import { computed, ref } from 'vue'
 import type { Task } from '@epfml/discojs'
 import { data } from '@epfml/discojs'
 
-import Upload from '@/assets/svg/Upload.vue'
+import PlugIcon from '@/assets/svg/PlugIcon.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import FileSelection from './FileSelection.vue'
 

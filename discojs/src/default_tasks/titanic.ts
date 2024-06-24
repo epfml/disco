@@ -43,11 +43,13 @@ export const titanic: TaskProvider = {
           'Cabin',
           'Embarked',
           'Pclass'
-        ]
+        ],
+        sampleDatasetLink: "https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/titanic_train.csv",
+        sampleDatasetInstructions: 'Opening the link should start downloading a CSV file which you can drag and drop in the field below.'
       },
       trainingInformation: {
         modelID: 'titanic-model',
-        epochs: 20,
+        epochs: 40,
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 30,
