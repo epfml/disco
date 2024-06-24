@@ -2,38 +2,27 @@
   <div class="space-y-4 md:space-y-8">
     <!-- Fancy training statistics -->
     <div class="flex flex-wrap justify-center gap-4 md:gap-8">
-      <IconCardSmall class="w-72 shrink-0">
-        <template #header>
-          current round
-        </template>
-        <template #text>
-          {{ (logs.last()?.round ?? 0) + 1 }}
-        </template>
-        <template #icon>
-          <Timer />
-        </template>
+      <IconCardSmall
+        header="current round"
+        :text="`${(logs.last()?.round ?? 0) + 1}`"
+        class="w-72 shrink-0"
+      >
+        <Timer />
       </IconCardSmall>
-      <IconCardSmall class="w-72 shrink-0">
-        <template #header>
-          current # of participants
-        </template>
-        <template #text>
-          {{ participants.current }}
-        </template>
-        <template #icon>
-          <People />
-        </template>
+
+      <IconCardSmall
+        header="current # of participants"
+        :text="`${participants.current}`"
+        class="w-72 shrink-0"
+      >
+        <People />
       </IconCardSmall>
-      <IconCardSmall class="w-72 shrink-0">
-        <template #header>
-          average # of participants
-        </template>
-        <template #text>
-          {{ participants.average }}
-        </template>
-        <template #icon>
-          <People />
-        </template>
+      <IconCardSmall
+        header="average # of participants"
+        :text="`${participants.average}`"
+        class="w-72 shrink-0"
+      >
+        <People />
       </IconCardSmall>
     </div>
 
