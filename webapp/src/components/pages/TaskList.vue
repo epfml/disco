@@ -26,19 +26,19 @@
       >
         <IconCard class="justify-self-center w-full">
         <template #title>
-          What are DISCOllaboratives?
+          What are <DISCOllaborative/>?
         </template>
           <template #icon>
             <Tasks/>
           </template>
           <template #content>
-          DISCOllaboratives are machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that users can join to train on their own respective data. Some are already pre-defined
-          along with some example data to let you get a sense of how to use DISCO.
+          <DISCOllaborative/> are machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that users can join to train and contribute to with their own data. To give you an example of how DISCO can be used, we pre-defined some tasks
+          along with some example data to give you a sense of DISCO. The end goal is for users to create their own custom <DISCOllaborative/> and collaboratively train machine learning models.
           By participating, you can either choose to train a model on your own data or join a collaborative training session with other users.
           If you want to bring your own collaborative task into DISCO, you can do so by <button
             class="text-blue-400"
             @click="goToCreateTask()"
-          >creating a new DISCOllaborative</button>.
+          >creating a new <DISCOllaborative/></button>.
           <br/><br/> <b>The data you connect only read and is never uploaded or shared with anyone. Data always stays on your device.</b>
           </template>
         </IconCard>
@@ -79,6 +79,7 @@ import { useTrainingStore } from '@/store/training'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import Tasks from '@/assets/svg/Tasks.vue'
+import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
 
 
 const router = useRouter()

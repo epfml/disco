@@ -11,7 +11,8 @@
       v-else
       class="flex flex-wrap text-3xl text-slate-600 justify-center"
     >
-      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives
+      <DISCOllaborative/>  
+    <!-- <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives -->
     </div>
     <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
@@ -179,6 +180,8 @@ import { useTrainingStore } from '@/store/training'
 import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
+
 
 const router = useRouter()
 const route = useRoute()

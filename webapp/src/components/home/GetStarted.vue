@@ -6,7 +6,7 @@
       @action="goToDiscoInformation()"
     >
       <template #title>
-        Learn more about <span class="font-disco text-disco-cyan">DISCO</span> and distributed learning fundamentals
+        Learn more about <span class="font-disco text-disco-cyan">DISCO</span> and collaborative learning fundamentals
       </template>
       <template #button>
         more info
@@ -18,9 +18,7 @@
       @action="goToTaskList()"
     >
       <template #title>
-        Train a model on existing <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
-          class="font-disco text-disco-cyan"
-        >DISCO</span>llaboratives</span>
+        Train a model on existing <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><DISCOllaborative/></span>
       </template>
       <template #button>
         train
@@ -32,9 +30,9 @@
       @action="goToNewTaskCreationForm()"
     >
       <template #title>
-        Add your own ML task to the <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
-          class="font-disco text-disco-cyan"
-        >DISCO</span>llaboratives</span>
+        Add your own ML task to the <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model">
+          <DISCOllaborative/>
+        </span>
       </template>
       <template #button>
         create
@@ -44,6 +42,7 @@
 </template>
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
+import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
 
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 
