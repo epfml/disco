@@ -8,7 +8,7 @@ import { Task, Path, Digest, TaskProvider, isTask } from '@epfml/discojs'
 import { Model, defaultTasks, models, serialization } from '@epfml/discojs'
 
 
-const TASK_TO_FILTER_OUT = ['simple_face', 'cifar10']
+const TASKS_TO_FILTER_OUT = ['simple_face', 'cifar10']
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks
 // TODO save and load from disk
@@ -28,7 +28,7 @@ export class TasksAndModels {
   async loadDefaultTasks (): Promise<void> {
     const tasks = Object.values<TaskProvider>(defaultTasks)
     await Promise.all(
-      tasks.filter((t: TaskProvider) => !TASK_TO_FILTER_OUT.includes(t.getTask().id))
+      tasks.filter((t: TaskProvider) => !TASKS_TO_FILTER_OUT.includes(t.getTask().id))
         .map(async (t: TaskProvider) => await this.addTaskAndModel(t))
     )
   }

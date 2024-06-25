@@ -52,7 +52,17 @@
             @action="() => toTask(task)"
           >
             <template #title>
-              {{ task.displayInformation.taskTitle }} - {{ task.trainingInformation.scheme }}
+              <div class="flex flex-row justify-between">
+                <div>{{ task.displayInformation.taskTitle }}</div>
+                <div class="flex flex-col items-end gap-1">
+                  <div class="p-1 rounded-md" :class="getSchemeColor(task)">
+                    <div class="text-xs font-semibold text-slate-500">{{ task.trainingInformation.scheme.toUpperCase() }}</div>
+                  </div>
+                  <div class="p-1 rounded-md" :class="getDataTypeColor(task)">
+                    <div class="text-xs font-semibold text-slate-500">{{ task.trainingInformation.dataType.toUpperCase() }}</div>
+                  </div>
+                </div>
+              </div>
             </template>
             <template #text>
               <div v-html="task.displayInformation.summary.preview" />
@@ -81,7 +91,6 @@ import IconCard from '@/components/containers/IconCard.vue'
 import Tasks from '@/assets/svg/Tasks.vue'
 import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
 
-
 const router = useRouter()
 const trainingStore = useTrainingStore()
 const { tasks } = storeToRefs(useTasksStore())
@@ -89,6 +98,27 @@ const { tasks } = storeToRefs(useTasksStore())
 const sortedTasks = computed(() => [...tasks.value.values()].sort(
   (task1, task2) => task1.displayInformation.taskTitle.localeCompare(task2.displayInformation.taskTitle)
 ))
+
+function getSchemeColor(task: Task) {
+  switch (task.trainingInformation.scheme) {
+    case 'decentralized':
+      return 'bg-yellow-200'
+    case 'federated':
+      return 'bg-purple-200'
+    case 'local':
+      return 'bg-blue-200'
+  }
+}
+function getDataTypeColor(task: Task) {
+  switch (task.trainingInformation.dataType) {
+    case 'image':
+      return 'bg-blue-200'
+    case 'tabular':
+      return 'bg-orange-200'
+    case 'text':
+      return 'bg-green-200'
+  }
+}
 
 const toTask = (task: Task): void => {
   trainingStore.setTask(task.id)
