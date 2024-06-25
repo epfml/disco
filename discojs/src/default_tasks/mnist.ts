@@ -8,7 +8,7 @@ export const mnist: TaskProvider = {
     return {
       id: 'mnist',
       displayInformation: {
-        taskTitle: 'MNIST',
+        taskTitle: 'Handwritten Digit Recognition',
         summary: {
           preview: "The MNIST handwritten digit classification problem is a traditional dataset used in computer vision and deep learning. The objective is to classify handwritten digits from 28x28 pixel images.",
           overview: "Download the classic MNIST dataset of hand-written numbers <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/scolianni/mnistasjpg'>here</a>. You can also find a sample dataset at the next step."

@@ -9,6 +9,8 @@ import { useToaster } from '@/composables/toaster'
 import { CONFIG } from '@/config'
 import { useTrainingStore } from './training'
 
+const TASKS_TO_FILTER_OUT = ['simple_face', 'cifar10']
+
 export const useTasksStore = defineStore('tasks', () => {
   const trainingStore = useTrainingStore()
 
@@ -25,7 +27,8 @@ export const useTasksStore = defineStore('tasks', () => {
 
   async function initTasks (): Promise<void> {
     try {
-      const tasks = await fetchTasks(CONFIG.serverUrl)
+      const tasks = (await fetchTasks(CONFIG.serverUrl)).filter((t: Task) => !TASKS_TO_FILTER_OUT.includes(t.id))
+      console.log(tasks)
       tasks.forEach(addTask)
       loadingAlreadyFailed.value = false
     } catch (e) {

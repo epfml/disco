@@ -52,13 +52,13 @@
             @action="() => toTask(task)"
           >
             <template #title>
-              <div class="flex flex-row justify-between">
+              <div class="flex flex-row justify-between flex-wrap">
                 <div>{{ task.displayInformation.taskTitle }}</div>
-                <div class="flex flex-col items-end gap-1">
-                  <div class="p-1 rounded-md" :class="getSchemeColor(task)">
-                    <div class="text-xs font-semibold text-slate-500">{{ task.trainingInformation.scheme.toUpperCase() }}</div>
+                <div class="flex flex-row shrink-0 justify-end gap-1">
+                  <div class="px-2 py-1 rounded-md flex items-center" :class="getSchemeColor(task)">
+                    <div class="text-xs font-semibold text-slate-500 ">{{ task.trainingInformation.scheme.toUpperCase() }}</div>
                   </div>
-                  <div class="p-1 rounded-md" :class="getDataTypeColor(task)">
+                  <div class="px-2 py-1 rounded-md flex items-center" :class="getDataTypeColor(task)">
                     <div class="text-xs font-semibold text-slate-500">{{ task.trainingInformation.dataType.toUpperCase() }}</div>
                   </div>
                 </div>
@@ -102,7 +102,7 @@ const sortedTasks = computed(() => [...tasks.value.values()].sort(
 function getSchemeColor(task: Task) {
   switch (task.trainingInformation.scheme) {
     case 'decentralized':
-      return 'bg-yellow-200'
+      return 'bg-orange-200'
     case 'federated':
       return 'bg-purple-200'
     case 'local':
@@ -112,9 +112,9 @@ function getSchemeColor(task: Task) {
 function getDataTypeColor(task: Task) {
   switch (task.trainingInformation.dataType) {
     case 'image':
-      return 'bg-blue-200'
+      return 'bg-yellow-200'
     case 'tabular':
-      return 'bg-orange-200'
+      return 'bg-blue-200'
     case 'text':
       return 'bg-green-200'
   }

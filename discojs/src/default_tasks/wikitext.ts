@@ -6,9 +6,9 @@ export const wikitext: TaskProvider = {
     return {
       id: 'llm_task',
       displayInformation: {
-        taskTitle: 'LLM',
+        taskTitle: 'GPT Language Modeling',
         summary: {
-          preview: 'Train a large language model in your browser, from scratch and collaboratively.',
+          preview: 'Train a language model in your browser, from scratch and collaboratively.',
           overview: "You can train a GPT-2 model in your browser and in a collaborative manner on any textual dataset. As an example, you can use the Wikitext-103 dataset, composed of Wikipedia articles, widely used in natural language modeling, which you can download <a class='underline text-primary-dark dark:text-primary-light' href='https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz'>here</a>. More information on how to connect the dataset at the next step."
         },
         model: 'The model follows the exact GPT-2 architecture and is implemented in Tensorflow.js. The tokenizer used for preprocessing is the GPT-2 Byte-Pair encoding tokenizer. The model is trained via an Adam optimizer with unit gradient clipping and softmax cross-entropy loss. To accommodate all devices, the context length is currently kept at 128 and the batch size at 1.',

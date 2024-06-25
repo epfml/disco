@@ -8,7 +8,7 @@ export const titanic: TaskProvider = {
     return {
       id: 'titanic',
       displayInformation: {
-        taskTitle: 'Titanic',
+        taskTitle: 'Titanic Prediction',
         summary: {
           preview: "The Titanic classification problem is one of the main entrypoints into machine learning. Using passenger data (name, age, gender, socio-economic class, etc), the goal is to identify who was more likely to survive the infamous shipwreck.",
           overview: "The original competition can be found on <a  target='_blank' class='underline' href='https://www.kaggle.com/c/titanic'>Kaggle</a> and a link to the training set can be found here <a target='_blank' class='underline' href='https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/titanic_train.csv'>here</a>."
