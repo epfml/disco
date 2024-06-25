@@ -8,16 +8,17 @@ export const lusCovid: TaskProvider = {
     return {
       id: 'lus_covid',
       displayInformation: {
-        taskTitle: 'COVID-19 Lung Ultrasound',
+        taskTitle: 'COVID-19 Diagnosis from Lung Ultrasounds',
         summary: {
-          preview: 'Do you have a data of lung ultrasound images on patients <b>suspected of Lower Respiratory Tract infection (LRTI) during the COVID-19 pandemic</b>? <br> Learn how to discriminate between COVID positive and negative patients by joining this task.',
-          overview: "Don't have a dataset of your own? Download a sample of a few cases <a class='underline' href='https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly' target='_blank'>here</a>."
+          preview: "Medical images are a typical example of data that exists in huge quantity yet that can't be shared due to confidentiality reasons. Medical applications would immensely benefit from all the data currently locked and of its diversity for better generalization and bias mitigation.",
+          overview: "Disco allows data owners to collaboratively train machine learning models using their respective data without any privacy breach. This example problem is about diagnosing whether patients are positive or negative to COVID-19 from lung ultrasounds images. <br>Don't have a dataset of your own? You can find a link to a sample dataset at the next step."
         },
         model: "The model is a simple Convolutional Neural Network composed of two convolutional layers with ReLU activations and max pooling layers, followed by a fully connected output layer. The data preprocessing reshapes images into 100x100 pixels and normalizes values between 0 and 1",
         dataFormatInformation: 'This model takes as input an image dataset. It consists on a set of lung ultrasound images per patient with its corresponding label of COVID positive or negative. Moreover, to identify the images per patient you have to follow the following naming pattern: "patientId_*.png"',
         dataExampleText: 'Below you can find an example of an expected lung image for patient 2 named: 2_QAID_1.masked.reshaped.squared.224.png',
         dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/2_QAID_1.masked.reshaped.squared.224.png',
-        sampleDatasetLink: 'https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly'
+        sampleDatasetLink: 'https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly',
+        sampleDatasetInstructions: 'Opening the link will take you to a Switch Drive folder. You can click on the Download button in the top right corner. Unzip the file and you will get two subfolders: "COVID-" and "COVID+". You can connect the data by using the Group option and selecting each image group in its respective field.'
       },
       trainingInformation: {
         modelID: 'lus-covid-model',

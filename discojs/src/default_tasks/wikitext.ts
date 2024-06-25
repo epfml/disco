@@ -8,9 +8,10 @@ export const wikitext: TaskProvider = {
       displayInformation: {
         taskTitle: 'LLM',
         summary: {
-          preview: 'Train a large language model from scratch in your browser.',
-          overview: "You can train a GPT-2 model in your browser and in a collaborative manner on any textual dataset. As an example, you can use the Wikitext-103 dataset, composed of Wikipedia articles, widely used in natural language modeling, which you can download <a class='underline text-primary-dark dark:text-primary-light' href='https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz'>here</a>. More information on how to connect the dataset at the next step. Datasets are preprocess with the GPT-2 tokenizer."
+          preview: 'Train a large language model in your browser, from scratch and collaboratively.',
+          overview: "You can train a GPT-2 model in your browser and in a collaborative manner on any textual dataset. As an example, you can use the Wikitext-103 dataset, composed of Wikipedia articles, widely used in natural language modeling, which you can download <a class='underline text-primary-dark dark:text-primary-light' href='https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz'>here</a>. More information on how to connect the dataset at the next step."
         },
+        model: 'The model follows the exact GPT-2 architecture and is implemented in Tensorflow.js. The tokenizer used for preprocessing is the GPT-2 Byte-Pair encoding tokenizer. The model is trained via an Adam optimizer with unit gradient clipping and softmax cross-entropy loss. To accommodate all devices, the context length is currently kept at 128 and the batch size at 1.',
         dataFormatInformation: 'The dataset is organized as a large text file, with each line representing a segment of raw text from Wikipedia articles.',
         dataExampleText: 'You can use any natural language dataset you like. An example excerpt from the Wikitext-103 dataset is: <i>"For the first twenty years of its existence , the only staged performances of Parsifal took place in the Bayreuth Festspielhaus , the venue for which Wagner conceived the work ( except eight private performances for Ludwig II at Munich in 1884 and 1885 ) ."</i>',
         sampleDatasetLink: 'https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz',
