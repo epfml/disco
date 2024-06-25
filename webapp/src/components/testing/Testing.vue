@@ -70,7 +70,7 @@
             <template #content>
               Disco failed to find any model stored locally. Please go to the 
               <RouterLink
-                class="underline font-bold"
+                class="underline text-blue-400"
                 to="/list"
               >training page</RouterLink>
               or directly download a model below, from the Disco repository.

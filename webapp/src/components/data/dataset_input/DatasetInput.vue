@@ -14,10 +14,10 @@
         <PlugIcon />
       </template>
       <template #content>
-        <div class="mb-5 text-left" v-show="props.task.displayInformation.sampleDatasetLink !== undefined">
+        <!-- <div class="mb-5 text-left" v-show="props.task.displayInformation.sampleDatasetLink !== undefined">
             <b>Don't have any data?</b> You can download an example dataset <a  class='underline' :href="props.task.displayInformation.sampleDatasetLink">here</a>.
             <br/> {{ props.task.displayInformation.sampleDatasetInstructions?? '' }}
-        </div>
+        </div> -->
         <div class="mb-5 text-left">
           Disco needs to know where your data is located on your device in order to read it (<b>not</b> upload it!) and train models.
           Models are trained on your local data and are periodically aggregated with other users' models if any.
@@ -136,7 +136,7 @@
               >
                 <template #text>
                   <b>The CSV file must contain a header with only two columns (filename, label)</b>. The file name must NOT include the file
-                  extension. You can find an example of how to create a CSV <a class='underline text-primary-dark dark:text-primary-light' href='https://github.com/epfml/disco/blob/develop/docs/examples/dataset_csv_creation.ipynb'>here</a>.
+                  extension. You can find an example of how to create a CSV <a class='underline text-blue-400' target="_blank" href='https://github.com/epfml/disco/blob/develop/docs/examples/dataset_csv_creation.ipynb'>here</a>.
                 </template>
               </FileSelection>
             </template>
