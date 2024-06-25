@@ -5,7 +5,7 @@ describe("tasks page", () => {
     cy.intercept({ hostname: "server", pathname: "tasks" }, [
       defaultTasks.titanic.getTask(),
       defaultTasks.mnist.getTask(),
-      defaultTasks.cifar10.getTask(),
+      defaultTasks.lusCovid.getTask(),
     ]);
     cy.visit("/#/list");
 

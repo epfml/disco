@@ -26,6 +26,7 @@ const LOADERS = {
 }
 
 async function readImageTensor(source: string, channels?: number) {
+  console.log(source)
   return tfNode.decodeImage(await fs.readFile(source), channels) as tf.Tensor3D
 }
 
