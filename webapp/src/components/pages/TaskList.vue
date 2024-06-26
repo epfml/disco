@@ -11,7 +11,7 @@
           The server is unreachable
         </template>
         <template #text>
-          Please reload the app and make sure you are connected to internet. If the error persists please <a class='underline text-blue-400' target="_blank"href='https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw'>reach out on Slack</a>.
+          Please reload the app and make sure you are connected to internet. If the error persists please <a class='underline text-blue-400' target="_blank" href='https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw'>reach out on Slack</a>.
         </template>
         <template #button>
           reload page
