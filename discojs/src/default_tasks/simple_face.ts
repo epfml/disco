@@ -12,7 +12,7 @@ export const simpleFace: TaskProvider = {
         taskTitle: 'Simple Face',
         summary: {
           preview: 'Can you detect if the person in a picture is a child or an adult?',
-          overview: 'Simple face is a small subset of face_task from Kaggle'
+          overview: 'Simple face is a small subset of the public face_task dataset from Kaggle'
         },
         dataFormatInformation: '',
         dataExampleText: 'Below you can find an example',
