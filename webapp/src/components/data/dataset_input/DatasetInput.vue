@@ -14,10 +14,6 @@
         <PlugIcon />
       </template>
       <template #content>
-        <!-- <div class="mb-5 text-left" v-show="props.task.displayInformation.sampleDatasetLink !== undefined">
-            <b>Don't have any data?</b> You can download an example dataset <a  class='underline' :href="props.task.displayInformation.sampleDatasetLink">here</a>.
-            <br/> {{ props.task.displayInformation.sampleDatasetInstructions?? '' }}
-        </div> -->
         <div class="mb-5 text-left">
           Disco needs to know where your data is located on your device in order to read it (<b>not</b> upload it!) and train models.
           Models are trained on your local data and are periodically aggregated with other users' models if any.

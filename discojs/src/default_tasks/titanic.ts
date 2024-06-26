@@ -15,7 +15,7 @@ export const titanic: TaskProvider = {
         },
         model: 'The model is a simple 5-layer feedforward network with ReLU activations. The model is optimized with Adam and binary cross-entropy loss. The preprocessing only fills missing value with a placeholder value (0).',
         dataFormatInformation: 'The expected format is exactly the same as the sample data provided above or in the Kaggle competition. It is a CSV file with 12 columns. The features are general information about the passenger (sex, age, name, etc.) and specific related Titanic data such as the ticket class bought by the passenger, its cabin number, etc.<br>The first line of the CSV contains the header: "PassengerId, Survived, Pclass, Name, Sex, Age, SibSp, Parch, Ticket, Fare, Cabin, Embarked"<br>Each subsequent row contains passenger data.',
-        dataExampleText: "Here's an example of one datapoint:",
+        dataExampleText: "Here's an example of one data point:",
         dataExample: [
           { columnName: 'PassengerId', columnData: '1' },
           { columnName: 'Survived', columnData: '0' },

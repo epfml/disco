@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col space-y-4 md:space-y-8">
-    <DataHarmonization :task="props.task" />
+    <DataDescription :task="props.task" />
     <DatasetInput
       :is-only-prediction="isOnlyPrediction"
       :task="task"
@@ -14,7 +14,7 @@ import type { Task } from '@epfml/discojs'
 import { data } from '@epfml/discojs'
 
 import DatasetInput from '@/components/data/dataset_input/DatasetInput.vue'
-import DataHarmonization from '@/components/data/DataHarmonization.vue'
+import DataDescription from '@/components/data/DataDescription.vue'
 
 interface Props {
   task: Task

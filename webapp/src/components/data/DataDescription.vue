@@ -55,13 +55,5 @@ const props = defineProps<Props>()
         </div>
       </template>
     </DropdownCard>
-    <!-- <DropdownCard v-if="task.displayInformation.dataExampleText !== undefined">
-      <template #title>
-        Example Data
-      </template>
-      <template #content>
-        
-      </template>
-    </DropdownCard> -->
   </div>
 </template>

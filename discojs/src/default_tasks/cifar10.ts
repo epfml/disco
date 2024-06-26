@@ -24,7 +24,7 @@ export const cifar10: TaskProvider = {
       },
       trainingInformation: {
         modelID: 'cifar10-model',
-        epochs: 40,
+        epochs: 10,
         roundDuration: 10,
         validationSplit: 0.2,
         batchSize: 10,

@@ -11,8 +11,7 @@
       v-else
       class="flex flex-wrap text-3xl text-slate-600 justify-center"
     >
-      <DISCOllaborative/>  
-    <!-- <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives -->
+      <DISCOllaborative/>
     </div>
     <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
