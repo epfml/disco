@@ -145,26 +145,26 @@
           </template>
         </ProgressIcon>
       </div>
-      <div
-        v-show="route.fullPath !== '/list'"
-        class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-8 md:mt-12"
+    </div>
+    <div
+      v-show="route.fullPath !== '/list'"
+      class="flex flex-row justify-center gap-4 md:gap-8 mt-8 md:mt-12"
       >
-        <div class="text-center md:text-right">
-          <CustomButton
-            v-show="trainingStore.step !== undefined && trainingStore.step >= 1"
-            @click="prevStepOrList"
-          >
-            previous
-          </CustomButton>
-        </div>
-        <div class="text-center md:text-left">
-          <CustomButton
-            v-show="trainingStore.step !== undefined && trainingStore.step <= 3"
-            @click="nextStep"
-          >
-            next
-          </CustomButton>
-        </div>
+      <div class="text-center md:text-right">
+        <CustomButton
+          v-show="trainingStore.step !== undefined && trainingStore.step >= 1"
+          @click="prevStepOrList"
+        >
+          previous
+        </CustomButton>
+      </div>
+      <div class="text-center md:text-left">
+        <CustomButton
+          v-show="trainingStore.step !== undefined && trainingStore.step <= 3"
+          @click="nextStep"
+        >
+          next
+        </CustomButton>
       </div>
     </div>
   </div>

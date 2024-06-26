@@ -79,7 +79,7 @@
     </div>
     <div
       v-show="showPrev || showNext"
-      class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8"
+      class="flex flex-row justify-center gap-4 md:gap-8"
     >
       <div class="text-center md:text-right">
         <CustomButton

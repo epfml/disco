@@ -108,7 +108,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 py-6">
+    <div class="flex flex-row justify-center gap-4 md:gap-8 py-6">
       <div
         class="text-center md:text-right"
       >
