@@ -34,7 +34,7 @@ export const useTasksStore = defineStore('tasks', () => {
       console.error('Fetching of tasks failed with error', e instanceof Error ? e.message : e)
 
       //Only display UI message once
-      if (loadingAlreadyFailed.value === false) {
+      if (!loadingAlreadyFailed.value) {
         const toaster = useToaster()
         toaster.error('The server is unreachable.\nPlease try again later or reach out on slack.')
         loadingAlreadyFailed.value = true
