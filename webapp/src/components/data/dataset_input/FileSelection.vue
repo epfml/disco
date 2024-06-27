@@ -208,9 +208,8 @@ const addFiles = (files: FileList) => {
           if (imageFile === undefined) {
             toaster.error("Some images listed in the CSV file are missing, make sure the CSV filenames don't include file extensions.")
             throw new Error("Image not found in the CSV file")
-          } else if (imageFile !== undefined) {
-            props.datasetBuilder.addFiles([imageFile], row.label)
           }
+          props.datasetBuilder.addFiles([imageFile], row.label)
         })
       }
       // Otherwise just add the files directly
