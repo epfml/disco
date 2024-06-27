@@ -31,7 +31,7 @@
           focus:outline-none
         "
       >
-        <SidebarMain />
+        <SideBar />
       </aside>
 
       <!-- Main Page -->
@@ -64,7 +64,7 @@ import { RouterView } from 'vue-router'
 import { useTasksStore } from '@/store/tasks'
 import { useMemoryStore } from '@/store/memory'
 import BaseLayout from './containers/BaseLayout.vue'
-import SidebarMain from '@/components/sidebar/Sidebar.vue'
+import SideBar from '@/components/sidebar/SideBar.vue'
 import { VueSpinner } from 'vue3-spinners';
 
 const tasksStore = useTasksStore()

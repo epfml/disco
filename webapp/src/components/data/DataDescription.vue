@@ -55,5 +55,5 @@ import DropdownCard from '@/components/containers/DropdownCard.vue'
 interface Props {
   task: Task
 }
-const props = defineProps<Props>()
+const _ = defineProps<Props>()
 </script>
