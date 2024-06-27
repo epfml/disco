@@ -9,7 +9,7 @@
       px-2
       py-4
       border-r
-    "
+      "
     >
       <!-- Brand -->
       <div class="hidden sm:flex flex-shrink-0">
