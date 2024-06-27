@@ -188,7 +188,7 @@ const dragFiles = (e: DragEvent) => {
 }
 
 const addFiles = (files: FileList) => {
-  if (props.expectCsvMapping === true) {
+  if (props.expectCsvMapping) {
     readCsvImageMapping(files)
     return
   }
