@@ -99,7 +99,7 @@ const sortedTasks = computed(() => [...tasks.value.values()].sort(
   (task1, task2) => task1.displayInformation.taskTitle.localeCompare(task2.displayInformation.taskTitle)
 ))
 
-function getSchemeColor(task: Task) {
+function getSchemeColor(task: Task): string {
   switch (task.trainingInformation.scheme) {
     case 'decentralized':
       return 'bg-orange-200'
