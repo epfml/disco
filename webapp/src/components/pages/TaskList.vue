@@ -109,7 +109,7 @@ function getSchemeColor(task: Task): string {
       return 'bg-blue-200'
   }
 }
-function getDataTypeColor(task: Task) {
+function getDataTypeColor(task: Task): string {
   switch (task.trainingInformation.dataType) {
     case 'image':
       return 'bg-yellow-200'

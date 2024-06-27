@@ -47,7 +47,7 @@
           hover-text="DISCOllaboratives"
           @click="goToTaskList()"
         >
-          <ListIcon />
+          <Tasks customClass="w-6 h-6"/>
         </SidebarButton>
         <!-- Go to custom task creation page -->
         <SidebarButton
@@ -153,7 +153,7 @@ import tippy from 'tippy.js'
 import ModelLibrary from './ModelLibrary.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 import HomeIcon from '@/assets/svg/HomeIcon.vue'
-import ListIcon from '@/assets/svg/ListIcon.vue'
+import Tasks from '@/assets/svg/Tasks.vue'
 import CreateIcon from '@/assets/svg/CreateIcon.vue'
 import EvaluateIcon from '@/assets/svg/EvaluateIcon.vue'
 import InfoIcon from '@/assets/svg/InfoIcon.vue'
@@ -169,18 +169,17 @@ export default {
     EvaluateIcon,
     FileIcon,
     InfoIcon,
-    ListIcon,
+    Tasks,
     CrossIcon,
     SidebarButton
   },
   data () {
     return {
-      loading: false,
       isMenuOpen: false,
     }
   },
   async mounted () {
-    tippy('a', {
+    tippy('.tippy-tooltip', {
       theme: 'custom-dark',
       delay: 0,
       duration: 0,
