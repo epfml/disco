@@ -13,7 +13,7 @@
             <p v-if="memoryStore.useIndexedDB">
               List of trained models that were saved. You can download
               pre-trained models in the
-              <button class="text-blue-600" @click="switchToEvaluate()">
+              <button class="text-blue-400" @click="switchToEvaluate()">
                 Evaluation page</button
               >.
             </p>
@@ -83,7 +83,7 @@
             <span class="text-s">
               Turn on to get storage options for your trained models. This uses
               your browser's own database, namely
-              <button class="text-blue-600">
+              <button class="text-blue-400">
                 <a
                   href="https://en.wikipedia.org/wiki/Indexed_Database_API"
                   target="_blank"

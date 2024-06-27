@@ -11,7 +11,7 @@
       v-else
       class="flex flex-wrap text-3xl text-slate-600 justify-center"
     >
-      <span class="font-disco text-disco-cyan">DIS</span><span class="font-disco text-disco-blue">CO</span>llaboratives
+      <DISCOllaborative/>
     </div>
     <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
@@ -23,7 +23,7 @@
           @click="toStep(0)"
         >
           <template #text>
-            Choose Task
+            Task Selection
           </template>
           <template #icon>
             <svg
@@ -102,7 +102,7 @@
           @click="toStep(3)"
         >
           <template #text>
-            Train Your Model
+            Model Training
           </template>
           <template #icon>
             <svg
@@ -127,7 +127,7 @@
           @click="toStep(4)"
         >
           <template #text>
-            Evaluate Your Model
+            Model Evaluation
           </template>
           <template #icon>
             <svg
@@ -145,26 +145,26 @@
           </template>
         </ProgressIcon>
       </div>
-      <div
-        v-show="route.fullPath !== '/list'"
-        class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-8 md:mt-12"
+    </div>
+    <div
+      v-show="route.fullPath !== '/list'"
+      class="flex flex-row justify-center gap-4 md:gap-8 mt-8 md:mt-12"
       >
-        <div class="text-center md:text-right">
-          <CustomButton
-            v-show="trainingStore.step !== undefined && trainingStore.step >= 1"
-            @click="prevStepOrList"
-          >
-            previous
-          </CustomButton>
-        </div>
-        <div class="text-center md:text-left">
-          <CustomButton
-            v-show="trainingStore.step !== undefined && trainingStore.step <= 3"
-            @click="nextStep"
-          >
-            next
-          </CustomButton>
-        </div>
+      <div class="text-center md:text-right">
+        <CustomButton
+          v-show="trainingStore.step !== undefined && trainingStore.step >= 1"
+          @click="prevStepOrList"
+        >
+          previous
+        </CustomButton>
+      </div>
+      <div class="text-center md:text-left">
+        <CustomButton
+          v-show="trainingStore.step !== undefined && trainingStore.step <= 3"
+          @click="nextStep"
+        >
+          next
+        </CustomButton>
       </div>
     </div>
   </div>
@@ -179,6 +179,8 @@ import { useTrainingStore } from '@/store/training'
 import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
+
 
 const router = useRouter()
 const route = useRoute()

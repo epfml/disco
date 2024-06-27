@@ -27,11 +27,11 @@
             <br/>DISCO uses a public model-private data approach.
             The models are trained on the web app via
             <a
-              class="text-blue-600"
+              class="text-blue-400"
               href="https://www.tensorflow.org/js"
             >TF.js</a>
             Decentralized training uses peer2peer communication (<a
-              class="text-blue-600"
+              class="text-blue-400"
               href="https://peerjs.com/"
             >peerjs</a>).
         </div>
@@ -39,22 +39,22 @@
             <b>Research-focused design</b>
             <br/>DISCO aims to enable decentralized training of
             machine learning algorithms, which is (i) efficient (<a
-              class="text-blue-600"
+              class="text-blue-400"
               href="https://github.com/epfml/powergossip"
             >R1</a>,<a
-              class="text-blue-600"
+              class="text-blue-400"
               href="https://github.com/epfml/ChocoSGD"
             >R2</a>), (ii) privacy-preserving (<a
-              class="text-blue-600"
+              class="text-blue-400"
               href="https://arxiv.org/abs/2006.04747"
             >R3</a>), (iii) fault-tolerant and responsive (<a
-              class="text-blue-600"
+              class="text-blue-400"
               href="https://arxiv.org/abs/1910.12308"
             >R4</a>), (iv) robust to malicious actors (<a
-              class="text-blue-600"
+              class="text-blue-400"
               href="https://arxiv.org/abs/2012.10333"
             >R5</a>,<a
-              class="text-blue-600"
+              class="text-blue-400"
               href="https://arxiv.org/abs/2006.09365"
             >R6</a>), while supporting (iv) fair participation, (v) transparency and (vi) interpretability.
         </div>

@@ -8,7 +8,7 @@ describe("training page", () => {
     cy.visit("/");
 
     cy.contains("button", "get started").click();
-    cy.contains("button", "train").click();
+    cy.contains("button", "explore").click();
     cy.contains("button", "participate").click();
 
     const navigationButtons = 3;
@@ -46,11 +46,11 @@ describe("training page", () => {
     cy.visit("/");
 
     cy.contains("button", "get started").click();
-    cy.contains("button", "train").click();
+    cy.contains("button", "explore").click();
     cy.contains("button", "participate").click();
     cy.contains("button", "next").click();
 
-    cy.contains("label", "select file").selectFile(
+    cy.contains("label", "select CSV").selectFile(
       "../datasets/titanic_train.csv",
     );
     cy.contains("button", "next").click();

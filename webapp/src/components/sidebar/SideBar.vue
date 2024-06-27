@@ -9,7 +9,7 @@
       px-2
       py-4
       border-r
-    "
+      "
     >
       <!-- Brand -->
       <div class="hidden sm:flex flex-shrink-0">
@@ -47,7 +47,7 @@
           hover-text="DISCOllaboratives"
           @click="goToTaskList()"
         >
-          <ListIcon />
+          <Tasks customClass="w-6 h-6"/>
         </SidebarButton>
         <!-- Go to custom task creation page -->
         <SidebarButton
@@ -146,77 +146,64 @@
     </div>
   </div>
 </template>
-<script lang="ts">
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Instance, Props, Placement } from 'tippy.js'
 import tippy from 'tippy.js'
 
 import ModelLibrary from './ModelLibrary.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 import HomeIcon from '@/assets/svg/HomeIcon.vue'
-import ListIcon from '@/assets/svg/ListIcon.vue'
+import Tasks from '@/assets/svg/Tasks.vue'
 import CreateIcon from '@/assets/svg/CreateIcon.vue'
 import EvaluateIcon from '@/assets/svg/EvaluateIcon.vue'
 import InfoIcon from '@/assets/svg/InfoIcon.vue'
 import FileIcon from '@/assets/svg/FileIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
 
-export default {
-  name: 'SidebarMain',
-  components: {
-    ModelLibrary,
-    HomeIcon,
-    CreateIcon,
-    EvaluateIcon,
-    FileIcon,
-    InfoIcon,
-    ListIcon,
-    CrossIcon,
-    SidebarButton
-  },
-  data () {
-    return {
-      loading: false,
-      isMenuOpen: false,
-    }
-  },
-  async mounted () {
-    tippy('a', {
-      theme: 'custom-dark',
-      delay: 0,
-      duration: 0,
-      content: (reference: Element) => reference.getAttribute('data-title') as string,
-      onMount: (instance: Instance<Props>) => {
-        instance.popperInstance?.setOptions({
-          placement: instance.reference.getAttribute('data-placement') as Placement
-        })
-      }
-    })
-  },
-  methods: {
-    openModelLibrary () {
-      this.isMenuOpen = true
-    },
-    closeMenu () {
-      this.isMenuOpen = false
-    },
-    goToHome () {
-      this.$router.push({ path: '/' })
-    },
-    goToTaskList () {
-      this.$router.push({ path: '/list' })
-    },
-    goToNewCustomTask () {
-      this.$router.push({ path: '/create' })
-    },
-    goToEvaluate () {
-      this.$router.push({ path: '/evaluate' })
-    },
-    goToInformation () {
-      this.$router.push({ path: '/information' })
-    },
-    goToAboutUs () {
-      this.$router.push({ path: '/about' })
-    }
-  }
+const isMenuOpen = ref(false)
+const router = useRouter()
+
+function openModelLibrary() {
+  isMenuOpen.value = true
 }
+
+function closeMenu () {
+  isMenuOpen.value = false
+}
+
+function goToHome () {
+  router.push({ path: '/' })
+}
+
+function goToTaskList () {
+  router.push({ path: '/list' })
+}
+
+function goToNewCustomTask () {
+  router.push({ path: '/create' })
+}
+
+function goToEvaluate () {
+  router.push({ path: '/evaluate' })
+}
+
+function goToInformation () {
+  router.push({ path: '/information' })
+}
+
+onMounted(() => {
+  tippy('.tippy-tooltip', {
+    theme: 'custom-dark',
+    delay: 0,
+    duration: 0,
+    content: (reference: Element) => reference.getAttribute('data-title') as string,
+    onMount: (instance: Instance<Props>) => {
+      instance.popperInstance?.setOptions({
+        placement: instance.reference.getAttribute('data-placement') as Placement
+      })
+    }
+  })
+})
 </script>

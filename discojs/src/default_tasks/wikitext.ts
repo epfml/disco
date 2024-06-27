@@ -4,20 +4,22 @@ import { data, models } from '../index.js'
 export const wikitext: TaskProvider = {
   getTask (): Task {
     return {
-      id: 'wikitext-103',
+      id: 'llm_task',
       displayInformation: {
-        taskTitle: 'Language modelling on wikitext',
+        taskTitle: 'GPT Language Modeling',
         summary: {
-          preview: 'In this challenge, we ask you to do next word prediction on a dataset of Wikipedia articles.',
-          overview: 'Wikitext-103-raw is a dataset comprising unprocessed text excerpts from Wikipedia articles, designed for tasks related to natural language processing and language modeling.'
+          preview: 'Train a language model (L)LM in your browser, collaboratively and from scratch.',
+          overview: "You can train a GPT-2 model in your browser and in a collaborative manner on any textual dataset. As an example, you can try the Wikitext-103 dataset, composed of Wikipedia articles, widely used in natural language modeling, which you can download <a class='underline text-blue-400' target='_blank' href='https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz'>here</a>. More information on how to connect the dataset at the next step."
         },
-        dataFormatInformation: 'The dataset is organized as a large text file, with each line representing a segment of raw text from Wikipedia articles.',
-        dataExampleText: 'An example excerpt from the dataset could be: "The history of artificial intelligence dates back to ancient times, with philosophical discussions on the nature of thought and reasoning."',
-        sampleDatasetLink: 'https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz'
+        model: 'The model follows the exact GPT-2 architecture and is implemented in TensorFlow.js. The tokenizer used for preprocessing is the GPT-2 Byte-Pair encoding tokenizer. The model is trained via an Adam optimizer with unit gradient clipping and softmax cross-entropy loss. To accommodate all devices, the context length is currently kept at 128 and the batch size at 1.',
+        dataFormatInformation: 'You can use any natural language (text) dataset you like. For example the Wikitext-103 dataset is organized as a large text file, with each line representing a segment of raw text from Wikipedia articles.',
+        dataExampleText: 'An example excerpt from the dataset is: <i>"For the first twenty years of its existence , the only staged performances of Parsifal took place in the Bayreuth Festspielhaus , the venue for which Wagner conceived the work ( except eight private performances for Ludwig II at Munich in 1884 and 1885 ) ."</i>',
+        sampleDatasetLink: 'https://dax-cdn.cdn.appdomain.cloud/dax-wikitext-103/1.0.1/wikitext-103.tar.gz',
+        sampleDatasetInstructions: 'Opening the link should start downloading a zip file. Unzip it and drag and drop the training set named "wiki.train.tokens" in the field below (or use the "Select File" button). Even though the file extension is ".tokens" it is indeed a text file. You can use "wiki.test.tokens" at the evaluation step after training a language model.'
       },
       trainingInformation: {
         dataType: 'text',
-        modelID: 'wikitext-103-raw-model',
+        modelID: 'llm-raw-model',
         preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
         scheme: 'federated',
         epochs: 5,
@@ -25,7 +27,7 @@ export const wikitext: TaskProvider = {
         // But if set to 0 then the webapp doesn't display the validation metrics
         validationSplit: 0.1, 
         roundDuration: 2,
-        batchSize: 1, // If set too high (e.g. 16) then firefox raises a WebGL error
+        batchSize: 1, // If set too high (e.g. 16) firefox raises a WebGL error
         tokenizer: 'Xenova/gpt2',
         maxSequenceLength: 128,
         tensorBackend: 'gpt'

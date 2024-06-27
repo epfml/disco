@@ -68,13 +68,12 @@
               Empty Model Library
             </template>
             <template #content>
-              Disco failed to find any model stored locally. Please go to the <RouterLink
-                class="underline font-bold"
+              Disco failed to find any model stored locally. Please go to the 
+              <RouterLink
+                class="underline text-blue-400"
                 to="/list"
-              >
-                training page
-              </RouterLink>
-              or directly download a model below, from the Disco respository.
+              >training page</RouterLink>
+              or directly download a model below, from the Disco repository.
             </template>
           </IconCard>
         </div>

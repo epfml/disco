@@ -10,7 +10,7 @@
       type="a"
       :data-title="dataTitle"
       data-placement="right"
-      class="hover:cursor-pointer"
+      class="hover:cursor-pointer tippy-tooltip"
       @click="click()"
     >
       <slot />

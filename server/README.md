@@ -71,7 +71,7 @@ For completeness, note that the Disco clients send the following messages to eac
 | `Shares`      |      | Secure Aggregation: Secret shares sent in first round |
 | `PartialSums` |      | Secure Aggregation: Partial sums sent in second round |
 
-## Deployment
+## Deployment
 
 ### Testing before deploying
 
