@@ -146,7 +146,9 @@
     </div>
   </div>
 </template>
-<script lang="ts">
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Instance, Props, Placement } from 'tippy.js'
 import tippy from 'tippy.js'
 
@@ -160,62 +162,48 @@ import InfoIcon from '@/assets/svg/InfoIcon.vue'
 import FileIcon from '@/assets/svg/FileIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
 
-export default {
-  name: 'SidebarMain',
-  components: {
-    ModelLibrary,
-    HomeIcon,
-    CreateIcon,
-    EvaluateIcon,
-    FileIcon,
-    InfoIcon,
-    Tasks,
-    CrossIcon,
-    SidebarButton
-  },
-  data () {
-    return {
-      isMenuOpen: false,
-    }
-  },
-  async mounted () {
-    tippy('.tippy-tooltip', {
-      theme: 'custom-dark',
-      delay: 0,
-      duration: 0,
-      content: (reference: Element) => reference.getAttribute('data-title') as string,
-      onMount: (instance: Instance<Props>) => {
-        instance.popperInstance?.setOptions({
-          placement: instance.reference.getAttribute('data-placement') as Placement
-        })
-      }
-    })
-  },
-  methods: {
-    openModelLibrary () {
-      this.isMenuOpen = true
-    },
-    closeMenu () {
-      this.isMenuOpen = false
-    },
-    goToHome () {
-      this.$router.push({ path: '/' })
-    },
-    goToTaskList () {
-      this.$router.push({ path: '/list' })
-    },
-    goToNewCustomTask () {
-      this.$router.push({ path: '/create' })
-    },
-    goToEvaluate () {
-      this.$router.push({ path: '/evaluate' })
-    },
-    goToInformation () {
-      this.$router.push({ path: '/information' })
-    },
-    goToAboutUs () {
-      this.$router.push({ path: '/about' })
-    }
-  }
+const isMenuOpen = ref(false)
+const router = useRouter()
+
+function openModelLibrary() {
+  isMenuOpen.value = true
 }
+
+function closeMenu () {
+  isMenuOpen.value = false
+}
+
+function goToHome () {
+  router.push({ path: '/' })
+}
+
+function goToTaskList () {
+  router.push({ path: '/list' })
+}
+
+function goToNewCustomTask () {
+  router.push({ path: '/create' })
+}
+
+function goToEvaluate () {
+  router.push({ path: '/evaluate' })
+}
+
+function goToInformation () {
+  router.push({ path: '/information' })
+}
+
+onMounted(() => {
+  tippy('.tippy-tooltip', {
+    theme: 'custom-dark',
+    delay: 0,
+    duration: 0,
+    content: (reference: Element) => reference.getAttribute('data-title') as string,
+    onMount: (instance: Instance<Props>) => {
+      instance.popperInstance?.setOptions({
+        placement: instance.reference.getAttribute('data-placement') as Placement
+      })
+    }
+  })
+})
 </script>

@@ -1,14 +1,3 @@
-<script setup lang="ts">
-import type { Task } from '@epfml/discojs'
-
-import DropdownCard from '@/components/containers/DropdownCard.vue'
-
-interface Props {
-  task: Task
-}
-const props = defineProps<Props>()
-</script>
-
 <template>
   <div class="space-y-4 md:space-y-8">
     <DropdownCard>
@@ -19,9 +8,9 @@ const props = defineProps<Props>()
         #content
       >
         <!-- Sample dataset link and instructions -->
-         <div class="mb-5 text-left" v-show="props.task.displayInformation.sampleDatasetLink !== undefined">
-            <b>Don't have any data?</b> You can download an example dataset <a target="_blank" class='underline text-blue-400' :href="props.task.displayInformation.sampleDatasetLink">here</a>.
-            <br/><span v-html="props.task.displayInformation.sampleDatasetInstructions"/><br/>
+         <div class="mb-5 text-left" v-show="task.displayInformation.sampleDatasetLink !== undefined">
+            <b>Don't have any data?</b> You can download an example dataset <a target="_blank" class='underline text-blue-400' :href="task.displayInformation.sampleDatasetLink">here</a>.
+            <br/><span v-html="task.displayInformation.sampleDatasetInstructions"/><br/>
         </div>
 
         <div v-if="task.displayInformation.dataFormatInformation !== undefined">
@@ -29,7 +18,7 @@ const props = defineProps<Props>()
         </div>
 
         <!-- Tabular data example -->
-        <div v-if="props.task.displayInformation.dataExampleText !== undefined" >
+        <div v-if="task.displayInformation.dataExampleText !== undefined" >
           <span v-html="task.displayInformation.dataExampleText" /><br>
           <div
             v-if="['tabular', 'text'].includes(task.trainingInformation.dataType)"
@@ -45,11 +34,11 @@ const props = defineProps<Props>()
         </div>
 
         <!-- Image data example -->
-        <div v-if="props.task.displayInformation.dataExampleImage !== undefined">
+        <div v-if="task.displayInformation.dataExampleImage !== undefined">
           <br>
           <img
             class="mx-auto"
-            :src="props.task.displayInformation.dataExampleImage"
+            :src="task.displayInformation.dataExampleImage"
             alt="Error! Image not found"
           >
         </div>
@@ -57,3 +46,14 @@ const props = defineProps<Props>()
     </DropdownCard>
   </div>
 </template>
+
+<script setup lang="ts">
+import type { Task } from '@epfml/discojs'
+
+import DropdownCard from '@/components/containers/DropdownCard.vue'
+
+interface Props {
+  task: Task
+}
+const props = defineProps<Props>()
+</script>

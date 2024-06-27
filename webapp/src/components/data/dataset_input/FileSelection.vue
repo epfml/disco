@@ -23,7 +23,7 @@
             justify-center
             items-center
           "
-          @drop="dragFiles"
+          @drop="async (e: DragEvent) => await dragFiles(e)"
         >
           <div class="flex flex-col
             justify-center
@@ -60,7 +60,7 @@
                 webkitdirectory
                 directory
                 class="hidden"
-                @change="submitDirectory"
+                @change="async () => await submitDirectory()"
               >
               <input
                 v-else
@@ -69,7 +69,7 @@
                 :multiple="isMultiple"
                 :accept="acceptFiles.join(',')"
                 class="hidden"
-                @change="submitFiles"
+                @change="async () => await submitFiles()"
               >
             </label>
           </div>
@@ -167,29 +167,30 @@ const requireLabels = computed(
   () => props.task.trainingInformation.LABEL_LIST !== undefined
 )
 
-const submitFiles = () => {
+async function submitFiles() {
   if (uploadFile.value === undefined) return
   const files = uploadFile.value.files
   if (files === null) return
-  addFiles(files)
+  await addFiles(files)
 }
-const submitDirectory = () => {
+
+async function submitDirectory() {
   if (uploadDirectory.value === undefined) return
   const files = uploadDirectory.value.files
   if (files === null) return
-  addFiles(files)
+  await addFiles(files)
 }
 
-const dragFiles = (e: DragEvent) => {
+async function dragFiles(e: DragEvent) {
   if (e.dataTransfer === null) return
   e.dataTransfer.dropEffect = 'copy'
   const files = e.dataTransfer.files
-  addFiles(files)
+  await addFiles(files)
 }
 
-const addFiles = (files: FileList) => {
+async function addFiles(files: FileList) {
   if (props.expectCsvMapping) {
-    readCsvImageMapping(files)
+    await readCsvImageMapping(files)
     return
   }
   try{
@@ -202,9 +203,14 @@ const addFiles = (files: FileList) => {
         if (props.csvRows === undefined) {
           throw new Error('adding files but no CSV rows defined')
         }
+        // Match the selected files with the csv file names and label
+        // Create a map from filename to file to speed up the search 
+        const filenameToFile = new Map(filesArray.map((file) => {
+          const filename = file.name.split('.').slice(0, -1).join('.');
+          return [filename, file] as const;
+        }))
         props.csvRows.forEach(row => {
-          // Match the selected files with the csv file names and label
-          const imageFile = filesArray.find(file => row.filename === file.name.split('.').slice(0, -1).join('.'))
+          const imageFile = filenameToFile.get(row.filename)
           if (imageFile === undefined) {
             toaster.error("Some images listed in the CSV file are missing, make sure the CSV filenames don't include file extensions.")
             throw new Error("Image not found in the CSV file")
@@ -223,31 +229,29 @@ const addFiles = (files: FileList) => {
   }
 }
 
-const readCsvImageMapping = (files: FileList) => {
-  try {
-    files[0].text().then(file => {
-      const csvRows = d3.csvParse(file) as CSV
-      if (csvRows === undefined) {
-        toaster.error("Unable to read the CSV file.")
-        throw new Error("UndefinedCSV file")
-      } else if (csvRows[0].filename == undefined || csvRows[0].label == undefined) {
-        toaster.error("The CSV file should have a header with these exact 2 column names: filename, label.")
-        throw new Error("Invalid CSV header")
-      }
-      selectedFiles.value = files
-      emit('csv', csvRows)
-      hideConnectField.value = true
-    })
-  } catch {
-    clearFiles()
-  }
+async function readCsvImageMapping(files: FileList) {
+  await files[0].text().then(file => {
+    const csvRows = d3.csvParse(file) as CSV
+    if (csvRows === undefined) {
+      toaster.error("Unable to read the CSV file.")
+      throw new Error("UndefinedCSV file")
+    } else if (csvRows[0].filename == undefined || csvRows[0].label == undefined) {
+      toaster.error("The CSV file should have a header with these exact 2 column names: filename, label.")
+      throw new Error("Invalid CSV header")
+    }
+    selectedFiles.value = files
+    emit('csv', csvRows)
+    hideConnectField.value = true
+  }).catch(() => clearFiles())
 }
 
-const clearFiles = () => {
+function clearFiles() {
   props.datasetBuilder.clearFiles(props.label)
   hideConnectField.value = false
   selectedFiles.value = undefined
-  emit('csv', undefined)
+  if (props.expectCsvMapping) {
+    emit('csv', undefined)
+  }
 }
 
 </script>
