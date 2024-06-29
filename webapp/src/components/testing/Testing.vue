@@ -53,8 +53,14 @@
                     <template #button>
                       test
                     </template>
+                    <template #description>
+                      Data with label
+                    </template>
                     <template #altButton>
                       Predict
+                    </template>
+                    <template #altDescription>
+                      Data without labels
                     </template>
                   </ButtonCard>
                 </div>

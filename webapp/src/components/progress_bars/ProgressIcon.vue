@@ -10,7 +10,8 @@
           class="w-full bg-slate-200 rounded items-center align-middle align-center flex-1"
         >
           <div
-            class="py-1"
+            class="py-1 rounded"
+            :class="props.active ? 'bg-disco-blue' : 'bg-slate-200'"
           />
         </div>
       </div>

@@ -90,7 +90,7 @@ const sortedTasks = computed(() => [...tasks.value.values()].sort(
 ))
 
 const toTask = (task: Task): void => {
-  trainingStore.setTask(task.id)
+  trainingStore.setTask(task.id);
   router.push(`/${task.id}`)
 }
 

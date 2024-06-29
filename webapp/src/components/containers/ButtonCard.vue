@@ -29,6 +29,9 @@
         class="mb-1"
       >
         <slot name="button" />
+        <template #description>
+          <slot name="description" />
+        </template>
       </CustomButton>
       <CustomButton
         v-if="isAltAction"
@@ -36,6 +39,9 @@
         class="mb-1"
       >
         <slot name="altButton" />
+        <template #description>
+          <slot name="altDescription" />
+        </template>
       </CustomButton>
     </div>
   </div>

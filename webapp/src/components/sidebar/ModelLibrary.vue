@@ -26,10 +26,10 @@
             <button
               v-for="[path, metadata] in memoryStore.models"
               :key="path"
-              class="flex items-center justify-between px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800"
+              class="flex items-center justify-between px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800 w-full"
             >
-              <div class="cursor-pointer w-2/3" @click="openTesting(path)">
-                <span>
+              <div class="cursor-pointer w-2/3 flex flex-col justify-start" @click="openTesting(path)">
+                <span class="flex flex-col text-start gap-1">
                   {{ metadata.name.slice(0, 16) }}
                   <span
                     v-if="
@@ -39,6 +39,7 @@
                     ({{ metadata.version }}) </span
                   ><br />
                   <span class="text-xs">
+                    
                     {{ metadata.date }} at {{ metadata.hours }} <br />
                     {{ metadata.fileSize }} kB
                   </span>

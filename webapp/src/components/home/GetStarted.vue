@@ -18,8 +18,8 @@
       @action="goToTaskList()"
     >
       <template #title>
-        Train a model on existing <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
-          class="font-disco text-disco-cyan"
+        Train a model on existing <span class="underline" title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
+          class="font-disco text-disco-cyan underline"
         >DISCO</span>llaboratives</span>
       </template>
       <template #button>
@@ -32,8 +32,8 @@
       @action="goToNewTaskCreationForm()"
     >
       <template #title>
-        Add your own ML task to the <span title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
-          class="font-disco text-disco-cyan"
+        Add your own ML task to the <span class="underline" title="A group of (DIS)tributed users with similar data, (CO)llaborating to train a model"><span
+          class="font-disco text-disco-cyan underline"
         >DISCO</span>llaboratives</span>
       </template>
       <template #button>

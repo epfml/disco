@@ -14,9 +14,15 @@
           <div class="grid grid-cols-2 gap-8">
             <CustomButton @click="startTraining(false)">
               train alone
+              <template #description>
+                Description of Train alone
+              </template>
             </CustomButton>
             <CustomButton @click="startTraining(true)">
               train collaboratively
+              <template #description>
+                Description of Train collaboratively
+              </template>
             </CustomButton>
           </div>
         </template>
