@@ -12,7 +12,7 @@ async function main(): Promise<void> {
   
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
-  const task = tasks.get('wikitext-103')
+  const task = tasks.get('llm_task')
   if (task === undefined) { throw new Error('task not found') }
   
   let model;
