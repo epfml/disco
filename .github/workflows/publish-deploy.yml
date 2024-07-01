@@ -2,6 +2,7 @@ name: publish-deploy
 on:
   push:
     branches: [develop]
+    tags: [v*]
 
 jobs:
   publish-npm:
@@ -18,6 +19,7 @@ jobs:
           scope: "@epfml"
       - run: npm ci
       - run: npm --workspace=discojs{,-node,-web} version prerelease --preid=p`date +%Y%m%d%H%M%S`
+        if: github.ref_type == 'branch'
       - run: npm --workspace=discojs{,-node,-web} run build
       - run: npm --workspace=discojs{,-node,-web} publish --access public
         env:
@@ -68,6 +70,9 @@ jobs:
         id: meta
         with:
           images: ghcr.io/epfml/disco
+          tags: |
+            type=semver,pattern={{version}}
+            type=edge
       - uses: docker/build-push-action@v5
         id: build
         with:
