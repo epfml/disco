@@ -49,7 +49,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
 
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
-  const task = tasks.get('wikitext-103')
+  const task = tasks.get('llm_task')
   if (task === undefined) { throw new Error('task not found') }  
 
   /**
@@ -84,6 +84,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
       const [_, logs] = await async_iterator.gather(model.train(preprocessedDataset))
       epochTime = (performance.now() - epochTime)
       const msPerToken = epochTime / (batchSize * contextLength * iterationsPerEpoch * epochsCounter)
+      console.log(epochTime, batchSize, contextLength ,iterationsPerEpoch ,epochsCounter)
       console.log(`\t\tTraining time: ${msPerToken.toFixed(2)} ms/token <br> ${logs.peakMemory.toFixed(2)} GB`)
     }
 
