@@ -1,6 +1,6 @@
 <template>
-  <div class="space-y-8 mt-8 md:mt-16">
-    <div class="flex flex-col gap-4 mt-8">
+  <div class="space-y-8 mt-4">
+    <div class="flex flex-col gap-4">
       <!-- In case no tasks were retrieved, suggest reloading the page -->
       <ButtonsCard
         v-if="tasks.size === 0"

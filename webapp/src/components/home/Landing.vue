@@ -18,13 +18,6 @@
         </li>
       </ul>
     </ButtonsCard>
-
-    <IconCard title-placement="center" class="mx-auto">
-      <template #title> DEMO </template>
-      <template #content>
-        Training states &amp; custom tasks are not persisted
-      </template>
-    </IconCard>
   </div>
 </template>
 <script lang="ts" setup>

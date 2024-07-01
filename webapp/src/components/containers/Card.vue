@@ -1,7 +1,7 @@
 <template>
   <div
     :class="
-      'group flex-col items-center justify-between p-1 bg-white rounded-md' +
+      'group flex-col items-center justify-between p-1 bg-white rounded-md ' +
         customClass
     "
   >

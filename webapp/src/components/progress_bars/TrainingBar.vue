@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-8 md:mb-16 space-y-4 md:space-y-8">
+  <div class="mb-8 space-y-4 md:space-y-8">
     <div
       v-if="scheme !== undefined && displayTitle"
       class="flex flex-wrap font-disco text-3xl justify-center"
