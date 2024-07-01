@@ -84,7 +84,6 @@ async function main(args: Required<CLIArguments>): Promise<void> {
       const [_, logs] = await async_iterator.gather(model.train(preprocessedDataset))
       epochTime = (performance.now() - epochTime)
       const msPerToken = epochTime / (batchSize * contextLength * iterationsPerEpoch * epochsCounter)
-      console.log(epochTime, batchSize, contextLength ,iterationsPerEpoch ,epochsCounter)
       console.log(`\t\tTraining time: ${msPerToken.toFixed(2)} ms/token <br> ${logs.peakMemory.toFixed(2)} GB`)
     }
 
