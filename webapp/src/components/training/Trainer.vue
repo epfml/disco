@@ -155,17 +155,19 @@ async function startTraining(distributed: boolean): Promise<void> {
       const [roundGen, roundLogs] = async_iterator.split(round)
 
       roundGenerator.value = roundGen
-      epochsOfRoundLogs.value = List<EpochLogs>()
       for await (const epoch of roundGenerator.value) {
         const [epochGen, epochLogs] = async_iterator.split(epoch)
 
         epochGenerator.value = epochGen
-        batchesOfEpochLogs.value = List<BatchLogs>()
         for await (const batch of epochGenerator.value)
           batchesOfEpochLogs.value = batchesOfEpochLogs.value.push(batch);
+
         epochsOfRoundLogs.value = epochsOfRoundLogs.value.push(await epochLogs)
+        batchesOfEpochLogs.value = List<BatchLogs>()
       }
+
       roundsLogs.value = roundsLogs.value.push(await roundLogs)
+      epochsOfRoundLogs.value = List<EpochLogs>()
     }
   } catch (e) {
     if (e === stopper) {
