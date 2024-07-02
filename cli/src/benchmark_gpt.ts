@@ -80,7 +80,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     console.log(`\tmodel type ${modelType} \n\tbatch size ${batchSize} \n\tcontext length ${contextLength}`)
 
     let epochTime = performance.now()
-    for (let epochsCounter = 0; epochsCounter < epochsCount; epochsCounter++) {
+    for (let epochsCounter = 1; epochsCounter <= epochsCount; epochsCounter++) {
       const [_, logs] = await async_iterator.gather(model.train(preprocessedDataset))
       epochTime = (performance.now() - epochTime)
       const msPerToken = epochTime / (batchSize * contextLength * iterationsPerEpoch * epochsCounter)
