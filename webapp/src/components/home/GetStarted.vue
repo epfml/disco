@@ -20,9 +20,9 @@
     >
       <template #title>
         Train a model and contribute to existing
-        <span title="Click Explore to learn more on DISCOllaboratives"
-          ><DISCOllaborative />s</span
-        >
+        <span title="Click Explore to learn more on DISCOllaboratives">
+          <DISCOllaboratives />
+        </span>
       </template>
     </ButtonsCard>
 
@@ -32,7 +32,7 @@
       :buttons="List.of(['create', goToNewTaskCreationForm])"
     >
       <template #title>
-        Add your own ML problem to the list of <DISCOllaborative />s
+        Add your own ML problem to the list of <DISCOllaboratives />
       </template>
     </ButtonsCard>
   </div>
@@ -43,7 +43,7 @@ import { useRouter } from "vue-router";
 import { List } from "immutable";
 
 import DISCO from "@/components/simple/DISCO.vue";
-import DISCOllaborative from "@/components/simple/DISCOllaborative.vue";
+import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
 import ButtonsCard from "@/components/containers/ButtonsCard.vue";
 
 const router = useRouter();
