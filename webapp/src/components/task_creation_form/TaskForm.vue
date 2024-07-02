@@ -4,7 +4,7 @@
     :validation-schema="schema"
   >
     <form
-      class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-1 xl:grid-cols-1"
+      class="grid grid-cols-1 gap-8 lg:grid-cols-1 xl:grid-cols-1"
       @submit="handleSubmit($event, onSubmit)"
     >
       <div

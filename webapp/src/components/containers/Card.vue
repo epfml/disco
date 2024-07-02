@@ -1,9 +1,7 @@
 <template>
   <div
-    :class="
-      'group flex-col items-center justify-between p-1 bg-white rounded-md ' +
-        customClass
-    "
+    class="p-1 rounded-md"
+    :class="customClass"
   >
     <slot />
   </div>
@@ -13,7 +11,7 @@
 export default {
   name: 'CardItem',
   props: {
-    customClass: { default: '', type: String }
+    customClass: { default: 'bg-white', type: String }
   }
 }
 </script>

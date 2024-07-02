@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-8 md:mb-16 space-y-4 md:space-y-8">
+  <div class="mb-4 space-y-4">
     <div class="flex flex-wrap text-3xl text-slate-600 justify-center">
       <DISCO />
     </div>
@@ -108,7 +108,7 @@
       </div>
     </div>
 
-    <div class="flex flex-row justify-center gap-4 md:gap-8 py-6">
+    <div class="flex flex-row justify-center gap-4 py-6">
       <div
         class="text-center md:text-right"
       >

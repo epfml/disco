@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8 mb-8 md:mb-16">
+  <div class="space-y-8 mb-8">
     <h1 class="text-disco-cyan font-disco text-3xl text-center">
       Evaluation
     </h1>

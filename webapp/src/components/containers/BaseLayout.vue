@@ -1,11 +1,9 @@
 <template>
-  <div class="flex flex-col grow h-screen overflow-y-auto">
-    <main class="m-4 md:m-8 mb-auto md:mb-auto">
+  <div class="flex flex-col h-full w-full overflow-y-auto">
+    <main class="m-4 md:m-8 grow">
       <slot />
     </main>
-    <div class="mt-4 md:mt-8">
-      <CustomFooter />
-    </div>
+    <CustomFooter />
   </div>
 </template>
 
