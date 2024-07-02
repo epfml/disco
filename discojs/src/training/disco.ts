@@ -1,6 +1,6 @@
 import { List } from 'immutable'
 
-import { BatchLogs, data, EpochLogs, Logger, Memory, Task, TrainingInformation } from '../index.js'
+import { async_iterator, BatchLogs, data, EpochLogs, Logger, Memory, Task, TrainingInformation } from '../index.js'
 import { client as clients, EmptyMemory, ConsoleLogger } from '../index.js'
 import type { Aggregator } from '../aggregator/index.js'
 import { MeanAggregator } from '../aggregator/mean.js'
@@ -83,12 +83,50 @@ export class Disco {
     this.trainer = trainerBuilder.build(this.client, options.scheme !== 'local')
   }
 
+  /** Train on dataset, yielding logs of every round. */
+  async *trainByRound(
+    dataTuple: data.DataSplit,
+  ): AsyncGenerator<RoundLogs & { participants: number }> {
+    for await (const round of this.train(dataTuple)) {
+      const [roundGen, roundLogs] = async_iterator.split(round);
+      for await (const epoch of roundGen) for await (const _ of epoch);
+      yield await roundLogs;
+    }
+  }
+
+  /** Train on dataset, yielding logs of every epoch. */
+  async *trainByEpoch(dataTuple: data.DataSplit): AsyncGenerator<EpochLogs> {
+    for await (const round of this.train(dataTuple)) {
+      for await (const epoch of round) {
+        const [epochGen, epochLogs] = async_iterator.split(epoch);
+        for await (const _ of epochGen);
+        yield await epochLogs;
+      }
+    }
+  }
+
+  /** Train on dataset, yielding logs of every batch. */
+  async *trainByBatch(dataTuple: data.DataSplit): AsyncGenerator<BatchLogs> {
+    for await (const round of this.train(dataTuple))
+      for await (const epoch of round)
+        yield* epoch;
+  }
+
+  /** Run whole train on dataset. */
+  async trainFully(dataTuple: data.DataSplit): Promise<void> {
+    for await (const round of this.train(dataTuple))
+      for await (const epoch of round)
+        for await (const _ of epoch);
+  }
+
   /**
-   * Starts a training instance for the Disco object's task on the provided data tuple.
-   * @param dataTuple The data tuple
-   */
+  * Train on dataset, yield the nested steps.
+  *
+  * Don't forget to await the yielded generator otherwise nothing will progress.
+  * If you don't care about the whole process, use one of the other train methods.
+  **/
   // TODO RoundLogs should contain number of participants but Trainer doesn't need client
-  async *fit(
+  async *train(
     dataTuple: data.DataSplit,
   ): AsyncGenerator<
     AsyncGenerator<

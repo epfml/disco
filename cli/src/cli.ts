@@ -2,11 +2,18 @@ import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
 
 import type { data, RoundLogs, Task } from '@epfml/discojs'
-import { Disco, aggregator as aggregators, async_iterator, client as clients } from '@epfml/discojs'
+import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 import { startServer } from 'server'
 
 import { getTaskData } from './data.js'
 import { args } from './args.js'
+
+// Array.fromAsync not yet widely used (2024)
+async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
+  const ret: T[] = [];
+  for await (const e of iter) ret.push(e);
+  return ret;
+}
 
 async function runUser(
   task: Task,
@@ -22,14 +29,7 @@ async function runUser(
   // force the federated scheme
   const disco = new Disco(task, { scheme: "federated", client });
 
-  let logs = List<RoundLogs>();
-  for await (const round of disco.fit(data)) {
-    const [roundGen, roundLogs] = async_iterator.split(round)
-    for await (const epoch of roundGen)
-      for await (const _ of epoch);
-    logs = logs.push(await roundLogs);
-  }
-
+  const logs = List(await arrayFromAsync(disco.trainByRound(data)));
   await disco.close();
   return logs;
 }
