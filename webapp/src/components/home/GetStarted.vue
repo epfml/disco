@@ -2,7 +2,7 @@
   <div
     class="grid grid-cols-1 gap-8 md:mx-20 lg:gap-16 lg:grid-cols-3 items-stretch"
   >
-    <!-- Model testing -->
+    <!-- Disco information -->
     <ButtonsCard
       title-align="center"
       :buttons="List.of(['learn more', goToDiscoInformation])"
