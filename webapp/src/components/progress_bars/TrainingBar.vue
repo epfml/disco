@@ -206,13 +206,10 @@ const isActive = (step: number): boolean => {
 
 const toStep = (step: number): void => {
   if (route.fullPath === '/list') {
-    if (trainingStore.task !== undefined) {
-      router.push(trainingStore.task)
-    } else {
-      toaster.error('Please select a task first')
-    }
+    toaster.error('Choose a DISCOllaborative first')
   } else if (step === 0) {
     router.push('/list')
+    trainingStore.resetStore()
   } else {
     trainingStore.setStep(step)
   }

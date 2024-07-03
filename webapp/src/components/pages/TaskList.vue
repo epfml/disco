@@ -117,6 +117,7 @@ function getDataTypeColor(task: Task): string {
 
 const toTask = (task: Task): void => {
   trainingStore.setTask(task.id)
+  trainingStore.setStep(1)
   router.push(`/${task.id}`)
 }
 
