@@ -6,74 +6,44 @@
     <div class="hidden md:flex mx-auto">
       <ProgressIcon
         class="w-1/3"
-        :lined="false"
+        :has-left-line="false"
         :active="true"
+        :current-step="validationStore.step == 0"
         @click="handleRoute(0)"
       >
         <template #text>
           Choose Model
         </template>
         <template #icon>
-          <svg
-            class="w-full fill-current"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path
-              class="heroicon-ui"
-              d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm14 8V5H5v6h14zm0 2H5v6h14v-6zM8 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"
-            />
-          </svg>
+          <ModelIcon custom-class="w-full w-6 w-6" view-box="-6 -6 36 36"/>
         </template>
       </ProgressIcon>
       <ProgressIcon
         class="w-1/3"
-        :lined="true"
+        :has-left-line="true"
         :active="isActive(1)"
+        :current-step="validationStore.step == 1"
         @click="handleRoute(1)"
       >
         <template #text>
           Connect Your Data
         </template>
         <template #icon>
-          <svg
-            class="w-full fill-current"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path
-              class="heroicon-ui"
-              d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm14 8V5H5v6h14zm0 2H5v6h14v-6zM8 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"
-            />
-          </svg>
+          <PlugIcon custom-class="w-full w-5 h-5"/>
         </template>
       </ProgressIcon>
       <ProgressIcon
         class="w-1/3"
-        :lined="true"
+        :has-left-line="true"
         :active="isActive(2)"
+        :current-step="validationStore.step == 2"
         @click="handleRoute(2)"
       >
         <template #text>
           Evaluate Your Model
         </template>
         <template #icon>
-          <svg
-            class="w-full fill-current"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path
-              class="heroicon-ui"
-              d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm14 8V5H5v6h14zm0 2H5v6h14v-6zM8 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"
-            />
-          </svg>
+          <PerformanceIcon custom-class="w-full w-7 h-7" viewBox="2 -4 12 24"/>
         </template>
       </ProgressIcon>
     </div>
@@ -107,6 +77,10 @@ import { useValidationStore } from '@/store/validation'
 import { useMemoryStore } from '@/store/memory'
 import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
+import ModelIcon from '@/assets/svg/ModelIcon.vue'
+import PlugIcon from '@/assets/svg/PlugIcon.vue'
+import PerformanceIcon from '@/assets/svg/PerformanceIcon.vue'
+
 import CustomButton from '@/components/simple/CustomButton.vue'
 
 const toaster = useToaster()

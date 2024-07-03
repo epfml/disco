@@ -24,7 +24,7 @@
           What are <DISCOllaboratives />?
         </template>
           <template #icon>
-            <Tasks/>
+            <TasksIcon/>
           </template>
           <template #content>
             <DISCOllaboratives /> are machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that users can join to train and contribute to with their own data. To give you a sense of <DISCO />, we pre-defined some tasks
@@ -82,7 +82,7 @@ import { useTrainingStore } from '@/store/training'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DISCO from '@/components/simple/DISCO.vue'
-import Tasks from '@/assets/svg/Tasks.vue'
+import TasksIcon from '@/assets/svg/TasksIcon.vue'
 import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
 import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
 
