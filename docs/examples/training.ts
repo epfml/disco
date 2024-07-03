@@ -14,9 +14,7 @@ async function runUser (url: URL, task: Task, dataset: data.DataSplit): Promise<
   const disco = new Disco(task, { url, scheme: 'federated' })
 
   // Run training on the dataset
-  for await (const round of disco.fit(dataset))
-    for await (const epoch of round)
-      for await (const _ of epoch);
+  await disco.trainFully(dataset);
 
   // Disconnect from the remote server
   await disco.close()

@@ -59,17 +59,18 @@ class GPTModel extends tf.LayersModel {
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let accuracyFraction: [number, number] = [0, 0];
       let averageLoss = 0
-      let peakMemory = 0
       let iteration = 1
       const iterator = await dataset.iterator()
-      let preprocessingTime = performance.now()
       let next = await iterator.next()
-      preprocessingTime = performance.now() - preprocessingTime
 
       while (next.done !== true && iteration <= this.config.maxIter) {
         let weightUpdateTime = performance.now()
         await callbacks.onEpochBegin?.(epoch)
         const { xs, ys } = next.value as { xs: tf.Tensor2D, ys: tf.Tensor3D }
+
+        let preprocessingTime = performance.now()
+        await Promise.all([xs.data(), ys.data()])
+        preprocessingTime = performance.now() - preprocessingTime
 
         // TODO include as a tensor inside the model
         const accTensor = tf.tidy(() => {
@@ -118,9 +119,6 @@ class GPTModel extends tf.LayersModel {
           console.log(iterationLogs)
         }
         const memory = tf.memory().numBytes / 1024 / 1024 / 1024
-        if (memory > peakMemory) {
-          peakMemory = memory
-        }
         console.log(
           `Epoch: ${epoch}`,
           `\tStep: ${iteration} / ${this.config.maxIter}`,
@@ -141,7 +139,6 @@ class GPTModel extends tf.LayersModel {
       let logs: tf.Logs = {
         'loss': averageLoss / iteration,
         'acc': accuracyFraction[0] / accuracyFraction[1],
-        'peakMemory': peakMemory
       }
       if (evalDataset !== undefined) {
         logs = { ...logs, ...await evaluate(this, evalDataset, this.config.maxEvalBatches) }

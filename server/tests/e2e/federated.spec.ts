@@ -4,15 +4,21 @@ import type { Server } from 'node:http'
 import { List, Repeat } from 'immutable'
 import { assert, expect } from 'chai'
 
-import type { RoundLogs, WeightsContainer } from '@epfml/discojs'
+import type { WeightsContainer } from '@epfml/discojs'
 import {
   Disco, client as clients, data,
   aggregator as aggregators, defaultTasks,
-  async_iterator
 } from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/discojs-node'
 
 import { startServer } from '../../src/index.js'
+
+// Array.fromAsync not yet widely used (2024)
+async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
+  const ret: T[] = [];
+  for await (const e of iter) ret.push(e);
+  return ret;
+}
 
 describe("end-to-end federated", function () {
   let server: Server;
@@ -40,7 +46,7 @@ describe("end-to-end federated", function () {
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
     const disco = new Disco(cifar10Task, { scheme: 'federated', client })
 
-    for await (const _ of disco.fit(data));
+    await disco.trainFully(data);
     await disco.close()
 
     if (aggregator.model === undefined) {
@@ -67,13 +73,7 @@ describe("end-to-end federated", function () {
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
     const disco = new Disco(titanicTask, { scheme: 'federated', client, aggregator })
 
-    let logs = List<RoundLogs>()
-    for await (const round of disco.fit(data)) {
-      const [roundGen, roundLogs] = async_iterator.split(round)
-      for await (const epoch of roundGen)
-        for await (const _ of epoch);
-      logs = logs.push(await roundLogs)
-    }
+    const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
 
     if (aggregator.model === undefined) {
@@ -101,13 +101,7 @@ describe("end-to-end federated", function () {
     const client = new clients.federated.FederatedClient(url, task, aggregator)
     const disco = new Disco(task, { scheme: 'federated', client, aggregator })
 
-    let logs = List<RoundLogs>()
-    for await (const round of disco.fit(dataSplit)) {
-      const [roundGen, roundLogs] = async_iterator.split(round)
-      for await (const epoch of roundGen)
-        for await (const _ of epoch);
-      logs = logs.push(await roundLogs)
-    }
+    const logs = List(await arrayFromAsync(disco.trainByRound(dataSplit)));
     await disco.close()
 
     expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
@@ -137,13 +131,7 @@ describe("end-to-end federated", function () {
     const client = new clients.federated.FederatedClient(url, lusCovidTask, aggregator)
     const disco = new Disco(lusCovidTask, { scheme: 'federated', client })
 
-    let logs = List<RoundLogs>()
-    for await (const round of disco.fit(data)) {
-      const [roundGen, roundLogs] = async_iterator.split(round)
-      for await (const epoch of roundGen)
-        for await (const _ of epoch);
-      logs = logs.push(await roundLogs)
-    }
+    const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
 
     if (aggregator.model === undefined) {

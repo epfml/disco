@@ -10,7 +10,7 @@
         </div>
       </template>
 
-      <ul style="list-style: &quot;✅&quot;">
+      <ul style="list-style: &quot;✅&quot;" class="ml-5">
         <li class="pl-2">Data stays private and offline</li>
         <li class="pl-2">Code-free and installation-free</li>
         <li class="pl-2">
@@ -24,7 +24,6 @@
 import { List } from "immutable";
 
 import ButtonsCard from "@/components/containers/ButtonsCard.vue";
-import IconCard from "@/components/containers/IconCard.vue";
 
 const emit = defineEmits<{
   click: [];

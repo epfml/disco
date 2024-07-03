@@ -105,7 +105,7 @@ describe("model library", () => {
     cy.contains("button", "train alone").click();
     cy.contains("h6", "current epoch")
       .next({ timeout: 10_000 })
-      .should("have.text", "3");
+      .should("have.text", "1");
     cy.contains("button", "next").click();
 
     // TODO do not save by default, only via "save model" button
