@@ -1,17 +1,18 @@
 <template>
   <div class="mb-8 space-y-4 md:space-y-8">
     <div
-      v-if="scheme !== undefined && displayTitle"
+      v-if="taskTitle !== undefined && displayTitle"
       class="flex flex-wrap font-disco text-3xl justify-center"
     >
-      <span class="text-disco-blue" style="text-transform: capitalize">{{ scheme }}</span>
-      <span class="text-disco-cyan">&nbsp;Learning</span>
+      <span class="text-disco-blue">{{ taskTitle }}</span>
+      <!-- <span class="text-disco-blue" style="text-transform: capitalize">{{ scheme }}</span>
+      <span class="text-disco-cyan">&nbsp;Learning</span> -->
     </div>
     <div
       v-else
       class="flex flex-wrap text-3xl text-slate-600 justify-center"
     >
-      <DISCOllaborative />
+      <DISCOllaboratives />
     </div>
     <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
@@ -145,7 +146,7 @@ import TasksIcon from '@/assets/svg/TasksIcon.vue'
 import PerformanceIcon from '@/assets/svg/PerformanceIcon.vue'
 
 import CustomButton from '@/components/simple/CustomButton.vue'
-import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
+import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -153,10 +154,11 @@ const toaster = useToaster()
 const tasksStore = useTasksStore()
 const trainingStore = useTrainingStore()
 
-const scheme = computed(() => {
+const taskTitle = computed(() => {
   if (trainingStore.task === undefined) return undefined
   const task = tasksStore.tasks.get(trainingStore.task)
-  return task?.trainingInformation?.scheme
+  return task?.displayInformation?.taskTitle
+
 })
 
 const displayTitle = computed(() => route.fullPath !== '/list')
