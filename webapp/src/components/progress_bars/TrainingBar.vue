@@ -20,6 +20,7 @@
           class="w-1/5"
           :active="true"
           :lined="false"
+          :current="isCurrent(0)"
           @click="toStep(0)"
         >
           <template #text>
@@ -45,6 +46,7 @@
           class="w-1/5"
           :active="isActive(1)"
           :lined="true"
+          :current="isCurrent(1)"
           @click="toStep(1)"
         >
           <template #text>
@@ -74,6 +76,7 @@
           class="w-1/5"
           :active="isActive(2)"
           :lined="true"
+          :current="isCurrent(2)"
           @click="toStep(2)"
         >
           <template #text>
@@ -98,6 +101,7 @@
         <ProgressIcon
           class="w-1/5"
           :active="isActive(3)"
+          :current="isCurrent(3)"
           :lined="true"
           @click="toStep(3)"
         >
@@ -124,6 +128,7 @@
           class="w-1/5"
           :active="isActive(4)"
           :lined="true"
+          :current="isCurrent(4)"
           @click="toStep(4)"
         >
           <template #text>
@@ -200,6 +205,16 @@ const isActive = (step: number): boolean => {
     return false
   } else {
     return step <= currentStep
+  }
+}
+
+const isCurrent = (step: number): boolean => {
+  const currentStep = trainingStore.step
+  if (currentStep === undefined || route.fullPath === '/list') {
+    return false
+  } else {
+    console.log(currentStep == step)
+    return step == currentStep
   }
 }
 

@@ -16,8 +16,11 @@
         </div>
       </div>
       <div
-        class="transition duration-400 w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center hover:scale-105 hover:cursor-pointer"
-        :class="props.active ? 'bg-disco-blue' : 'bg-white border-2 border-slate-200'"
+        class="transition duration-400 w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center hover:cursor-pointer"
+        :class="[
+          props.current ? 'scale-125 hover:scale-125' : 'hover:scale-105',
+          props.active ? 'bg-disco-blue' : 'bg-white border-2 border-slate-200',
+        ]"
       >
         <span
           class="text-center w-full"
@@ -38,6 +41,7 @@
 interface Props {
   active: boolean
   lined: boolean
+  current : boolean
 }
 
 const props = defineProps<Props>()

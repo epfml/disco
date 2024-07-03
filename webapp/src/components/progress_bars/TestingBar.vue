@@ -8,6 +8,7 @@
         class="w-1/3"
         :lined="false"
         :active="true"
+        :current="isCurrent(0)"
         @click="handleRoute(0)"
       >
         <template #text>
@@ -32,6 +33,7 @@
         class="w-1/3"
         :lined="true"
         :active="isActive(1)"
+        :current="isCurrent(1)"
         @click="handleRoute(1)"
       >
         <template #text>
@@ -56,6 +58,7 @@
         class="w-1/3"
         :lined="true"
         :active="isActive(2)"
+        :current="isCurrent(2)"
         @click="handleRoute(2)"
       >
         <template #text>
@@ -120,6 +123,7 @@ const showNext = computed<boolean>(() =>
   validationStore.step > 0 && validationStore.step < 2)
 
 const isActive = (step: number): boolean => step <= validationStore.step
+const isCurrent = (step: number): boolean => step == validationStore.step
 
 const handleRoute = (step: number): void => {
   if (memoryStore.models.size === 0) {
