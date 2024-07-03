@@ -246,6 +246,14 @@ const downloadModel = async (task: Task): Promise<void> => {
     await memory.value.saveModel(source, model)
     await memoryStore.initModels()
     toaster.success("Model successfully downloaded!")
+    const scrollableDiv = document.getElementById('scrollable-div')
+    if (scrollableDiv !== null) {
+      scrollableDiv.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
+    }
   } catch (e) {
     toaster.error("Something went wrong, please try again later.")
     console.error(e)

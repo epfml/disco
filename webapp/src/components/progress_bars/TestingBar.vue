@@ -96,10 +96,8 @@ const showNext = computed<boolean>(() =>
 const isActive = (step: number): boolean => step <= validationStore.step
 
 const handleRoute = (step: number): void => {
-  if (memoryStore.models.size === 0) {
-    toaster.error('Please train a model beforehand')
-  } else if (validationStore.model === undefined) {
-    toaster.error('Please select a model')
+  if (memoryStore.models.size === 0 || validationStore.model === undefined) {
+    toaster.error('Select a model to evaluate beforehand')
   } else {
     validationStore.step = step
   }

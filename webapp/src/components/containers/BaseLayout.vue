@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full w-full overflow-y-auto">
+  <div id="scrollable-div" class="flex flex-col h-full w-full overflow-y-auto">
     <main class="m-4 md:m-8 grow">
       <slot />
     </main>

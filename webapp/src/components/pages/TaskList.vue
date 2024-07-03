@@ -119,6 +119,10 @@ const toTask = (task: Task): void => {
   trainingStore.setTask(task.id)
   trainingStore.setStep(1)
   router.push(`/${task.id}`)
+  const scrollableDiv = document.getElementById('scrollable-div')
+  if (scrollableDiv !== null) {
+    scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
+  }
 }
 
 const goToCreateTask = (): void => {
