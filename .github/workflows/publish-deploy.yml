@@ -1,7 +1,7 @@
 name: publish-deploy
 on:
   push:
-    branches: [develop]
+    branches: [NAN-prerelease-test-tharvik]
     tags: [v*]
 
 jobs:
@@ -74,7 +74,7 @@ jobs:
           images: ghcr.io/epfml/disco
           tags: |
             type=semver,pattern={{version}}
-            type=edge
+            type=edge,branch=NAN-prerelease-test-tharvik
       - uses: docker/build-push-action@v5
         id: build
         with:
