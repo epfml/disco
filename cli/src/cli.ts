@@ -2,7 +2,7 @@ import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
 
 import type { data, RoundLogs, Task } from '@epfml/discojs'
-import { Disco, aggregator as aggregators, async_iterator, client as clients } from '@epfml/discojs'
+import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 import { startServer } from 'server'
 
 import { getTaskData } from './data.js'
