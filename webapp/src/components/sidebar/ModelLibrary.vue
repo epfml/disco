@@ -13,9 +13,8 @@
             <p v-if="memoryStore.useIndexedDB">
               List of trained models that were saved. You can download
               pre-trained models in the
-              <button class="text-blue-600" @click="switchToEvaluate()">
-                Evaluation page</button
-              >.
+              <span class="text-blue-600 hover:cursor-pointer" @click="switchToEvaluate()">
+                Evaluation page</span>.
             </p>
             <p v-else>
               The model library is currently unavailable. You can turn it on in
@@ -49,7 +48,7 @@
                 <ModelButton
                   event="delete-model"
                   hover="Delete"
-                  @delete-model="deleteModel(path)"
+                  @delete-model="deleteModelConfirm(path)"
                 >
                   <Bin2Icon />
                 </ModelButton>
@@ -98,7 +97,7 @@
 
             <div class="flex items-center justify-center">
               <button
-                class="flex items-center justify-center px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800"
+                class="flex items-center justify-center px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md text-slate-600 hover:text-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-disco-cyan transition duration-200 group hover:-translate-y--1 hover:scale-[101%] hover:outline-disco-cyan hover:cursor-pointer"
                 @click="toggleIndexedDB()"
               >
                 <span class="text-s"> Use model library </span>
@@ -202,6 +201,13 @@ function openTesting(path: Path) {
 
 async function downloadModel(path: Path) {
   await memory.downloadModel(path);
+}
+
+function deleteModelConfirm(path : Path){
+  let i = 5;
+  const toasterRef = toaster.default(`Click here to confirm you want to delete the model (this message will go in 5 seconds)`, {
+    onClick: () => deleteModel(path),
+  });
 }
 
 async function deleteModel(path: Path): Promise<void> {

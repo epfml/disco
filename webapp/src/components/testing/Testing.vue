@@ -177,6 +177,7 @@ import { CONFIG } from '@/config'
 import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
+import { useToaster } from '@/composables/toaster'
 import Data from '@/components/data/Data.vue'
 import Tester from '@/components/testing/Tester.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
@@ -185,6 +186,7 @@ import IconCard from '@/components/containers/IconCard.vue'
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
+const toaster = useToaster()
 
 const currentComponent = computed<[Component, string] | undefined>(() => {
   switch (stepRef.value) {
@@ -250,16 +252,40 @@ onActivated(async () => {
 })
 
 const downloadModel = async (task: Task): Promise<void> => {
-  const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
-  const model = await client.getLatestModel()
-  const source = {
-    type: 'saved' as const,
-    taskID: task.id,
-    name: task.trainingInformation.modelID,
-    tensorBackend: task.trainingInformation.tensorBackend,
+  try{
+    if(!useMemoryStore().useIndexedDB){
+      toaster.error('Please enable the model library to download models')
+      return
+    }
+    // Create a promise that can be rejected on click
+    let cancelDownload: () => void;
+    const toasterInfo = toaster.info('Downloading, please wait...', {
+      duration: 0,
+      dismissible: true,
+      onClick: () => {
+        toasterInfo.dismiss();
+        cancelDownload(); //for the future, to cancel the download
+      },
+    });
+    const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
+    const model = await client.getLatestModel()
+    const source = {
+      type: 'saved' as const,
+      taskID: task.id,
+      name: task.trainingInformation.modelID,
+      tensorBackend: task.trainingInformation.tensorBackend,
+    }
+    await memory.value.saveModel(source, model)
+    await memoryStore.initModels()
+    toasterInfo.dismiss()
+    toaster.success('Successfully downloaded')
+  } catch (err : any) {
+    if(err.message === 'Download cancelled'){
+      toaster.error('Download cancelled')
+    } else {
+      toaster.error('Failed to download model ' + err.message)
+    }
   }
-  await memory.value.saveModel(source, model)
-  await memoryStore.initModels()
 }
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
   const taskID = memory.value.getModelInfo(path)?.taskID
