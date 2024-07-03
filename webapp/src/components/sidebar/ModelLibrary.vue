@@ -23,7 +23,7 @@
           </span>
           <div v-if="memoryStore.useIndexedDB" class="space-y-4">
             <button
-              v-for="[path, metadata] in memoryStore.models"
+              v-for="[path, metadata] in memoryStore.models.sort((a : ModelMetadata, b : ModelMetadata) => sortModels(a, b))"
               :key="path"
               class="flex items-center justify-between px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800 w-full"
             >
@@ -126,7 +126,7 @@ import { List } from "immutable";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-import type { Path } from "@epfml/discojs";
+import type { Model, Path } from "@epfml/discojs";
 import { EmptyMemory } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
@@ -197,6 +197,18 @@ function openTesting(path: Path) {
   } else {
     toaster.error('Model is already loaded')
   }
+}
+
+function sortModels(a: ModelMetadata, b: ModelMetadata): number {
+    // Convert date and time strings into a Date object for comparison
+    let [day, month, year] = a.date.split("/");
+    let time = a.hours.replace("h", ":")
+    const dateA = new Date(`${year}-${month}-${day}T${time}`);
+    [day, month, year] = b.date.split("/");
+    time = b.hours.replace("h", ":")
+    const dateB = new Date(`${year}-${month}-${day}T${time}`);
+    console.log(dateA, dateB)
+    return dateB.getTime() - dateA.getTime() // Sort in ascending order
 }
 
 async function downloadModel(path: Path) {
