@@ -26,7 +26,7 @@
           >
             <i class="fa-brands fa-github" />
           </a>          
-          &emsp; We're open source! Feel free to see the code on our
+          <span class="ml-5">We're open source! Feel free to see the code on our</span>
           <a
             href="https://github.com/epfml/disco"
             target="_blank"
@@ -40,7 +40,7 @@
           >
             <i class="fa-solid fa-hat-wizard" />
           </a>
-          &emsp; If you want to run Disco locally or want to contribute, please go to the
+          <span class="ml-5">If you want to run Disco locally or want to contribute, please go to the</span>
           <a
             href="https://github.com/epfml/disco/blob/develop/DEV.md"
             target="_blank"
@@ -54,7 +54,7 @@
           >
             <i class="fa-brands fa-slack" />
           </a>
-          &emsp; Finally, you can join our
+          <span class="ml-5">Finally, you can join our</span>
           <a
             href="https:/disco-decentralized.slack.com/"
             target="_blank"
