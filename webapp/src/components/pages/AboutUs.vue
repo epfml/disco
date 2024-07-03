@@ -2,7 +2,7 @@
   <div class="flex justify-center">
     <IconCard class="justify-self-center w-full lg:w-4/5">
       <template #title>
-        <span class="text-2xl">About Us</span>
+        <span class="text-2xl font-disco">About Us</span>
       </template>
       <template #content>
         <p class="text-base">
