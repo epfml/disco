@@ -163,11 +163,13 @@ import DISCO from "@/components/simple/DISCO.vue";
 import Tester from '@/components/testing/Tester.vue'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
+import { useToaster } from '@/composables/toaster'
 
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
 
+const toaster = useToaster()
 const currentComponent = computed<[Component, string] | undefined>(() => {
   switch (stepRef.value) {
     case 1:
@@ -232,16 +234,23 @@ onActivated(async () => {
 })
 
 const downloadModel = async (task: Task): Promise<void> => {
-  const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
-  const model = await client.getLatestModel()
-  const source = {
-    type: 'saved' as const,
-    taskID: task.id,
-    name: task.trainingInformation.modelID,
-    tensorBackend: task.trainingInformation.tensorBackend,
+  try {
+    const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
+    const model = await client.getLatestModel()
+    const source = {
+      type: 'saved' as const,
+      taskID: task.id,
+      name: task.trainingInformation.modelID,
+      tensorBackend: task.trainingInformation.tensorBackend,
+    }
+    await memory.value.saveModel(source, model)
+    await memoryStore.initModels()
+    toaster.success("Model successfully downloaded!")
+  } catch (e) {
+    toaster.error("Something went wrong, please try again later.")
+    console.error(e)
   }
-  await memory.value.saveModel(source, model)
-  await memoryStore.initModels()
+  
 }
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
   const taskID = memory.value.getModelInfo(path)?.taskID
