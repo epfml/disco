@@ -2,28 +2,44 @@
   <div class="flex justify-center">
     <IconCard class="justify-self-center w-full lg:w-4/5">
       <template #title>
-        About Us
+        <span class="text-2xl">About Us</span>
       </template>
       <template #content>
-        <img src="../../assets/images/mlologo.png">
-        This app was developed in the Machine Learning and Optimization Laboratory at EPFL.
-        <ul>
+        <p class="text-base">
+          This app was developed in the Machine Learning and Optimization Laboratory at EPFL.
+          <br/>
           Visit the our
           <a
             href="https://www.epfl.ch/labs/mlo/"
-            target="_blank"
-            class="text-blue-500 hover:underline"
-          >page</a> to learn more about our lab and projects.
-          <br><br>
-          <i class="fa-brands fa-github" />
-          &emsp; The source code of the app can be found on the
+          target="_blank"
+          class="text-blue-500 hover:underline"
+          >
+          page
+          </a> 
+          to learn more about our lab and projects.
+        </p>
+        <ul class="text-base mt-5">
+          <a 
+            href="https://github.com/epfml/disco" 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            <i class="fa-brands fa-github" />
+          </a>          
+          &emsp; We're open source! Feel free to see the code on our
           <a
             href="https://github.com/epfml/disco"
             target="_blank"
             class="text-blue-500 hover:underline"
-          >Disco Github</a> page.
+          >Github page</a>.
           <br>
-          <i class="fa-solid fa-hat-wizard" />
+          <a
+            href="https://github.com/epfml/disco/blob/develop/DEV.md"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fa-solid fa-hat-wizard" />
+          </a>
           &emsp; If you want to run Disco locally or want to contribute, please go to the
           <a
             href="https://github.com/epfml/disco/blob/develop/DEV.md"
@@ -31,7 +47,13 @@
             class="text-blue-500 hover:underline"
           >Developer section</a>.
           <br>
-          <i class="fa-brands fa-slack" />
+          <a
+            href="https://disco-decentralized.slack.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fa-brands fa-slack" />
+          </a>
           &emsp; Finally, you can join our
           <a
             href="https:/disco-decentralized.slack.com/"
@@ -40,6 +62,9 @@
           >Slack</a>
           page to discuss the app.
         </ul>
+        <a href="https://www.epfl.ch/labs/mlo/" target="_blank">
+          <img src="../../assets/images/mlologo.png" class="w-48 h-auto mt-10">
+        </a>
       </template>
     </IconCard>
   </div>
