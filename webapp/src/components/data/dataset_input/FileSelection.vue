@@ -133,12 +133,12 @@ interface Props {
   task: Task
   datasetBuilder: data.DatasetBuilder<File>
   csvRows: CSV,
-  label?: string,
-  isDirectory?: boolean,
-  acceptFiles?: string[],
-  isMultiple?: boolean,
+  isDirectory?: boolean, // is this input field accepts a directory
+  acceptFiles?: string[], // file formated accepted
+  isMultiple?: boolean, // is this input field accepting one or multiple files
   infoText?: boolean,
-  expectCsvMapping?: boolean
+  label?: string, // for connecting images by category, for which category this input field is
+  expectCsvMapping?: boolean // for connecting images via a CSV mapping images to labels
 }
 const props = withDefaults(defineProps<Props>(), {
   isDirectory: false,
