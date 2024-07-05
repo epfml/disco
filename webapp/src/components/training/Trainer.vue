@@ -28,6 +28,13 @@
       </IconCard>
     </div>
     <!-- Training Board -->
+     <div v-if="props.task.id === 'llm_task'">
+        <div class="flex justify-center items-center">
+          <span class="shrink-0 py-4 px-4 bg-orange-100 rounded-md">
+            <p class="text-slate-600 text-xs">For demo purposes, we have limited the number of batches per epoch to 10.</p>
+          </span>
+        </div>
+    </div>
     <div>
       <TrainingInformation
         :rounds="roundsLogs"

@@ -4,6 +4,15 @@
     <div class="flex flex-wrap justify-center gap-4 md:gap-8">
       <IconCardSmall
         data-placement="top"
+        data-title="The number of times the model has been updated with collaborators' contributions"
+        header="Collaborative model sharing"
+        :text="`${roundsCount}`"
+        class="w-72 shrink-0 tippy-tooltip hover:cursor-pointer"
+      >
+        <ModelExchangeIcon custom-class="text-gray-300 w-9 h-9" />
+      </IconCardSmall>
+      <IconCardSmall
+        data-placement="top"
         data-title="The number of complete passes through the training dataset"
         header="epochs"
         :text="`${allEpochs.size} / ${numberOfEpochs}`"
@@ -12,21 +21,23 @@
         <Timer />
       </IconCardSmall>
       <IconCardSmall
-      data-placement="top"
+        data-placement="top"
         data-title="The number of times the model has been updated during the current epoch"
         header="current batch"
         :text="`${batchesCount}`"
         class="w-72 shrink-0 tippy-tooltip hover:cursor-pointer"
       >
-        <Timer />
+        <ModelUpdateIcon />
       </IconCardSmall>
 
       <IconCardSmall
+        data-placement="top"
+        data-title="Collaborators concurrently training a model and sharing model updates"
         header="number of participants"
         :text="`${participants.current}`"
-        class="w-72 shrink-0"
+        class="w-72 shrink-0  tippy-tooltip hover:cursor-pointer"
       >
-        <People />
+        <PeopleIcon />
       </IconCardSmall>
     </div>
 
@@ -174,7 +185,9 @@ import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
 import IconCardSmall from "@/components/containers/IconCardSmall.vue";
 import IconCard from "@/components/containers/IconCard.vue";
 import Timer from "@/assets/svg/Timer.vue";
-import People from "@/assets/svg/People.vue";
+import ModelExchangeIcon from "@/assets/svg/ModelExchangeIcon.vue";
+import ModelUpdateIcon from "@/assets/svg/ModelUpdateIcon.vue";
+import PeopleIcon from "@/assets/svg/PeopleIcon.vue";
 import Contact from "@/assets/svg/Contact.vue";
 
 onMounted(() => {
@@ -222,6 +235,7 @@ const participants = computed(() => {
 });
 
 const batchesCount = computed(() => props.batchesOfEpoch.size);
+const roundsCount = computed(() => props.rounds.size);
 
 const allEpochs = computed(() =>
   props.rounds.flatMap((round) => round.epochs).concat(props.epochsOfRound),
