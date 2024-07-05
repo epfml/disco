@@ -33,7 +33,7 @@ export const mnist: TaskProvider = {
         LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         scheme: 'decentralized',
         noiseScale: undefined,
-        clippingRadius: 20,
+        clippingRadius: undefined,
         decentralizedSecure: true,
         minimumReadyPeers: 3,
         maxShareValue: 100,
