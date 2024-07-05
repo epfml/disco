@@ -32,6 +32,7 @@
       <TrainingInformation
         :rounds="roundsLogs"
         :epochs-of-round="epochsOfRoundLogs"
+        :number-of-epochs="task.trainingInformation.epochs"
         :batches-of-epoch="batchesOfEpochLogs"
         :has-validation-data="hasValidationData"
         :messages="messages"

@@ -3,37 +3,27 @@
     <!-- Fancy training statistics -->
     <div class="flex flex-wrap justify-center gap-4 md:gap-8">
       <IconCardSmall
-        header="current round"
-        :text="`${roundsCount}`"
-        class="w-72 shrink-0"
+        data-placement="top"
+        data-title="The number of complete passes through the training dataset"
+        header="epochs"
+        :text="`${allEpochs.size} / ${numberOfEpochs}`"
+        class="w-72 shrink-0 tippy-tooltip hover:cursor-pointer"
       >
         <Timer />
       </IconCardSmall>
       <IconCardSmall
-        header="current epoch"
-        :text="`${epochsCount}`"
-        class="w-72 shrink-0"
-      >
-        <Timer />
-      </IconCardSmall>
-      <IconCardSmall
+      data-placement="top"
+        data-title="The number of times the model has been updated during the current epoch"
         header="current batch"
         :text="`${batchesCount}`"
-        class="w-72 shrink-0"
+        class="w-72 shrink-0 tippy-tooltip hover:cursor-pointer"
       >
         <Timer />
       </IconCardSmall>
 
       <IconCardSmall
-        header="current # of participants"
+        header="number of participants"
         :text="`${participants.current}`"
-        class="w-72 shrink-0"
-      >
-        <People />
-      </IconCardSmall>
-      <IconCardSmall
-        header="average # of participants"
-        :text="`${participants.average}`"
         class="w-72 shrink-0"
       >
         <People />
@@ -174,8 +164,10 @@
 
 <script setup lang="ts">
 import { List } from "immutable";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import ApexChart from "vue3-apexcharts";
+import tippy from 'tippy.js'
+import type { Instance, Props, Placement } from 'tippy.js'
 
 import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
 
@@ -185,26 +177,51 @@ import Timer from "@/assets/svg/Timer.vue";
 import People from "@/assets/svg/People.vue";
 import Contact from "@/assets/svg/Contact.vue";
 
+onMounted(() => {
+  tippy('.tippy-tooltip', {
+    theme: 'custom-dark',
+    delay: 0,
+    duration: 0,
+    content: (reference: Element) => reference.getAttribute('data-title') as string,
+    onMount: (instance: Instance<Props>) => {
+      instance.popperInstance?.setOptions({
+        placement: instance.reference.getAttribute('data-placement') as Placement
+      })
+    }
+  })
+})
+
 const props = defineProps<{
   rounds: List<RoundLogs & { participants: number }>;
   epochsOfRound: List<EpochLogs>;
+  numberOfEpochs: number;
   batchesOfEpoch: List<BatchLogs>;
   hasValidationData: boolean; // TODO infer from logs
   messages: List<string>; // TODO why do we want messages?
 }>();
 
-const participants = computed(() => ({
-  current: props.rounds.last()?.participants ?? 0,
-  average:
-    props.rounds.size > 0
-      ? props.rounds.reduce((acc, round) => acc + round.participants, 0) /
+const participants = computed(() => {
+  const roundParticipants = props.rounds.last()?.participants
+  let nbOfParticipants;
+  if (roundParticipants !== undefined) {
+    nbOfParticipants = roundParticipants
+  } else {
+    // 1 if started training (potentially in local) otherwise 0
+    nbOfParticipants = props.messages.size > 0 ? 1 : 0
+  }
+  
+  
+  return {
+    current: nbOfParticipants,
+    average:
+      props.rounds.size > 0
+        ? props.rounds.reduce((acc, round) => acc + round.participants, 0) /
         props.rounds.size
-      : 0,
-}));
+        : 0,
+  }
+});
 
 const batchesCount = computed(() => props.batchesOfEpoch.size);
-const epochsCount = computed(() => props.epochsOfRound.size);
-const roundsCount = computed(() => props.rounds.size);
 
 const allEpochs = computed(() =>
   props.rounds.flatMap((round) => round.epochs).concat(props.epochsOfRound),
