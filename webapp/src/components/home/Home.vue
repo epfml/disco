@@ -17,9 +17,9 @@
     <div class="flex flex-col justify-center mb-8 space-y-4">
       <DiscoGIF class="mx-auto" />
       <span class="text-xl text-center text-slate-600">
-        <span class="font-disco text-disco-cyan font-semibold">[DIS]</span
+        <span class="font-disco text-disco-cyan font-semibold">DIS</span
         >tributed
-        <span class="font-disco text-disco-blue font-semibold">[CO]</span
+        <span class="font-disco text-disco-blue font-semibold">CO</span
         >llaborative Learning
       </span>
     </div>
