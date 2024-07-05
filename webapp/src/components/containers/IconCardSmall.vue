@@ -12,7 +12,7 @@
         {{ text }}
       </span>
     </div>
-    <div>
+    <div class="ml-2">
       <span>
         <slot />
       </span>

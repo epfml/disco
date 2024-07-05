@@ -129,6 +129,13 @@
           As such, please ensure your dataset of choice was not used during the training phase of your model.
         </template>
       </IconCard>
+      <div v-if="currentTask.id === 'llm_task' && validationStore.isOnlyPrediction">
+        <div class="flex justify-center items-center mb-4">
+          <span class="shrink-0 py-4 px-4 bg-orange-100 rounded-md">
+            <p class="text-slate-600 text-xs">Prompting a language model will be available soon!</p>
+          </span>
+        </div>
+      </div>
       <KeepAlive>
         <component
           :is="currentComponent[0]"
@@ -257,9 +264,9 @@ const downloadModel = async (task: Task): Promise<void> => {
   } catch (e) {
     toaster.error("Something went wrong, please try again later.")
     console.error(e)
-  }
-  
+  }  
 }
+
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
   const taskID = memory.value.getModelInfo(path)?.taskID
   if (taskID === undefined) {
