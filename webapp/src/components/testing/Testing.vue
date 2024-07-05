@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-show="validationStore.step === 0">
-      <div class="flex flex-col gap-16">
+      <div class="flex flex-col gap-8">
         <div v-if="memoryStore.models.size > 0">
           <IconCard title-placement="center">
             <template #title>
@@ -129,7 +129,11 @@
           As such, please ensure your dataset of choice was not used during the training phase of your model.
         </template>
       </IconCard>
-      <div v-if="currentTask.id === 'llm_task' && validationStore.isOnlyPrediction">
+      <!-- Language model prompting is currently unavailable   -->
+      <div 
+        v-if="currentTask.id === 'llm_task' && validationStore.isOnlyPrediction"
+        v-show="validationStore.step !== 0"
+      >
         <div class="flex justify-center items-center mb-4">
           <span class="shrink-0 py-4 px-4 bg-orange-100 rounded-md">
             <p class="text-slate-600 text-xs">Prompting a language model will be available soon!</p>

@@ -4,9 +4,9 @@
     <div class="flex flex-wrap justify-center gap-4 md:gap-8">
       <IconCardSmall
         data-placement="top"
-        data-title="The number of times the model has been updated with collaborators' contributions"
+        data-title="The number of times the model has been updated with the collaborators' models. No data is shared."
         header="Collaborative model sharing"
-        :text="`${roundsCount}`"
+        :text="`${modelSharingRounds}`"
         class="w-72 shrink-0 tippy-tooltip hover:cursor-pointer"
       >
         <ModelExchangeIcon custom-class="text-gray-300 w-9 h-9" />
@@ -235,7 +235,16 @@ const participants = computed(() => {
 });
 
 const batchesCount = computed(() => props.batchesOfEpoch.size);
-const roundsCount = computed(() => props.rounds.size);
+
+// Force the collaborative model sharing to 0 if training alone
+// otherwise show the current number of rounds
+const modelSharingRounds = computed(() => {
+  if (participants.value.average <= 1) {
+    return 0
+  } else {
+    return props.rounds.size
+  }
+});
 
 const allEpochs = computed(() =>
   props.rounds.flatMap((round) => round.epochs).concat(props.epochsOfRound),
