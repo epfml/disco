@@ -12,7 +12,7 @@
 </template>
 <script lang="ts">
 export default {
-  name: 'ModelExchange',
+  name: 'ModelExchangeIcon',
   props: {
     customClass: { default: 'w-9 h-9', type: String },
     viewBox: { default: '0 0 24 24', type: String }

@@ -28,18 +28,19 @@
       </IconCard>
     </div>
     <!-- Demo warning -->
-    <div class="flex flex-row flex-wrap justify-between gap-x-4 items-center mb-5 py-4 px-4 bg-purple-100 rounded-md">
-      <p class="text-slate-600 text-xs">In this live demo, the model you are training is a newly initialized one. 
-        In a real use case you would start training with the latest model resulting from all users' collaborative training. 
-        To persist collaborative models, you can launch your own DISCO instance following
-        <a
-        class='underline text-blue-400 font-bold'
-        target="_blank"
-        href="https://github.com/epfml/disco/blob/develop/DEV.md"
-        >these steps.</a>
-        <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
-        <span v-if="props.task.id === 'llm_task'" class="text-slate-600 text-xs"> Additionally, when training language models we have limited the number of batches per epoch to 10.</span>
-      </p>
+    <div class="flex flex-row justify-between gap-x-4 items-center mb-5 py-4 px-4 bg-purple-100 rounded-md">
+        <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6 text-slate-600"/>
+        <p class="text-slate-600 text-xs pt-0.5">In this live demo, the model you are training is a newly initialized one. 
+          In a real use case you would start training with the latest model resulting from all users' collaborative training. 
+          To persist collaborative models, you can launch your own DISCO instance following
+          <a
+          class='underline text-blue-400 font-bold'
+          target="_blank"
+          href="https://github.com/epfml/disco/blob/develop/DEV.md"
+          >these steps.</a>
+          <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
+          <span v-if="props.task.id === 'llm_task'" class="text-slate-600 text-xs"> Additionally, when training language models we have limited the number of batches per epoch to 10.</span>
+        </p>
     </div>
     <!-- Training Board -->
     <div>
@@ -70,6 +71,7 @@ import ModelCaching from './ModelCaching.vue'
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
+import InfoIcon from "@/assets/svg/InfoIcon.vue";
 
 const toaster = useToaster();
 const memoryStore = useMemoryStore();
