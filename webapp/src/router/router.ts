@@ -103,7 +103,7 @@ const router = createRouter({
       component: NotFound
     }
   ],
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, _savedPosition) {
     // always scroll to top
     return { top: 0 }
   },

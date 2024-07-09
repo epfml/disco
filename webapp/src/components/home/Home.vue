@@ -1,18 +1,16 @@
 <template>
   <div class="flex flex-col justify-between h-full">
-    <Card custom-class="mb-5 py-2 px-4 bg-orange-100">
-      <div class="flex flex-row flex-wrap justify-between gap-x-4 items-center">
-        <p class="text-slate-600 text-xs">This website a proof-of-concept. For demo purposes, trained models are not persisted and are reset before every training sessions.</p>
+      <div class="flex flex-row flex-wrap justify-between gap-x-4 items-center mb-5 py-2 px-4 bg-purple-200 rounded-md">
+        <p class="text-slate-600 text-xs">DISCO is 100% open-source. Use this live demo site to explore and test how it works.</p>
         <a target="_blank"
         href="https://framaforms.org/disco-feedback-form-1718716636"
         >
-          <div class="flex flex-row flex-wrap items-center gap-x-2 justify-end">
-            <p class="text-disco-blue font-bold text-xs hover:underline hover:text-disco-cyan text-end">Give us some feedback</p>
-            <FeedbackIcon custom-class="min-w-8 min-h-8 w-8 h-8"/>
-          </div>
-        </a>
-      </div>
-    </Card>
+        <div class="flex flex-row flex-wrap shrink-0 items-center gap-x-2 justify-end">
+          <p class="text-disco-blue font-bold text-xs hover:underline hover:text-disco-cyan text-end">Give us some feedback</p>
+          <FeedbackIcon custom-class="min-w-8 min-h-8 w-8 h-8"/>
+        </div>
+      </a>
+  </div>
     <!-- Disco logo -->
     <div class="flex flex-col justify-center mb-8 space-y-4">
       <DiscoGIF class="mx-auto" />
@@ -35,7 +33,6 @@ import { ref } from "vue";
 import DiscoGIF from "@/assets/gif/DiscoGIF.vue";
 import Landing from "@/components/home/Landing.vue";
 import GetStarted from "@/components/home/GetStarted.vue";
-import Card from "@/components/containers/Card.vue";
 import FeedbackIcon from "@/assets/svg/FeedbackIcon.vue";
 
 const started = ref(false);

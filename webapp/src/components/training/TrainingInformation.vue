@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- Fancy training statistics -->
-    <div class="flex flex-wrap justify-center gap-4 md:gap-8">
+    <div class="flex flex-wrap justify-center 2xl:justify-between gap-4 md:gap-8">
       <IconCardSmall
         data-placement="top"
         data-title="The number of times the model has been updated with the collaborators' models. No data is shared."
