@@ -20,7 +20,7 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
   describe(`${name} implements Aggregator contract`, () => {
     it("starts at round zero", () => {
       const aggregator = new Aggregator();
-
+      
       expect(aggregator.round).to.equal(0);
     });
 
