@@ -77,7 +77,7 @@ npm ci
 
 **4.** Build the projects
 
-Then we need to builds the packages meaning compile TypeScript into JavaScript.
+Then we need to build the packages, which means to compile TypeScript into JavaScript.
 
 Disco is split in multiple packages, called workspaces in NPM, which are described in the [Structure Section](#structure).
 You can add `--workspaces` (or shorter as `-ws`) to many `npm` commands to act on all packages.
