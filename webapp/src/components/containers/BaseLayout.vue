@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col grow h-screen overflow-y-auto">
+  <div class="flex flex-col grow h-screen overflow-y-auto" id="main-page">
     <main class="m-4 mb-auto md:m-8 md:mb-auto">
       <slot />
     </main>

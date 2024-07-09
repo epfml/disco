@@ -160,6 +160,8 @@
         />
       </KeepAlive>
     </div>
+    <div class="mt-8"/>
+    <TestingButtons v-show="currentTask !== undefined" />
   </div>
 </template>
 <script lang="ts" setup>
@@ -182,6 +184,7 @@ import Data from '@/components/data/Data.vue'
 import Tester from '@/components/testing/Tester.vue'
 import ButtonCard from '@/components/containers/ButtonCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
+import TestingButtons from '../progress_bars/TestingButtons.vue'
 
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
@@ -287,6 +290,13 @@ const downloadModel = async (task: Task): Promise<void> => {
     }
   }
 }
+const scrollToTop = ():void => {
+  const appElement = document.getElementById('main-page');
+  if (appElement) {
+    appElement.scrollTop = 0;
+  }
+}
+
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
   const taskID = memory.value.getModelInfo(path)?.taskID
   if (taskID === undefined) {
@@ -299,6 +309,7 @@ const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
     validationStore.model = path
     validationStore.step = 1
     validationStore.isOnlyPrediction = isOnlyPrediction
+    scrollToTop();
   } else {
     throw new Error('Task not found in the task store for task id: ' + taskID)
   }

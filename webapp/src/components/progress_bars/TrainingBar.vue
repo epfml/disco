@@ -150,7 +150,7 @@
           </template>
         </ProgressIcon>
       </div>
-      <div
+      <!-- <div
         v-show="route.fullPath !== '/list'"
         class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-8 md:mt-12"
       >
@@ -170,7 +170,8 @@
             next
           </CustomButton>
         </div>
-      </div>
+      </div> -->
+      <TrainingButtons />
     </div>
   </div>
 </template>
@@ -184,6 +185,7 @@ import { useTrainingStore } from '@/store/training'
 import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import TrainingButtons from './TrainingButtons.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -213,7 +215,6 @@ const isCurrent = (step: number): boolean => {
   if (currentStep === undefined || route.fullPath === '/list') {
     return false
   } else {
-    console.log(currentStep == step)
     return step == currentStep
   }
 }

@@ -80,27 +80,7 @@
         </template>
       </ProgressIcon>
     </div>
-    <div
-      v-show="showPrev || showNext"
-      class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8"
-    >
-      <div class="text-center md:text-right">
-        <CustomButton
-          v-show="showPrev"
-          @click="prevStep"
-        >
-          previous
-        </CustomButton>
-      </div>
-      <div class="text-center md:text-left">
-        <CustomButton
-          v-show="showNext"
-          @click="nextStep"
-        >
-          next
-        </CustomButton>
-      </div>
-    </div>
+    <TestingButtons />
   </div>
 </template>
 <script setup lang="ts">
@@ -110,7 +90,7 @@ import { useValidationStore } from '@/store/validation'
 import { useMemoryStore } from '@/store/memory'
 import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
-import CustomButton from '@/components/simple/CustomButton.vue'
+import TestingButtons from './TestingButtons.vue'
 
 const toaster = useToaster()
 const validationStore = useValidationStore()

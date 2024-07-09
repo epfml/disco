@@ -89,9 +89,17 @@ const sortedTasks = computed(() => [...tasks.value.values()].sort(
   (task1, task2) => task1.displayInformation.taskTitle.localeCompare(task2.displayInformation.taskTitle)
 ))
 
+const scrollToTop = () => {
+  const appElement = document.getElementById('main-page');
+  if (appElement) {
+    appElement.scrollTop = 0;
+  }
+}
+
 const toTask = (task: Task): void => {
   trainingStore.setTask(task.id);
   router.push(`/${task.id}`)
+  scrollToTop()
 }
 
 const goToCreateTask = (): void => {

@@ -207,7 +207,6 @@ function sortModels(a: ModelMetadata, b: ModelMetadata): number {
     [day, month, year] = b.date.split("/");
     time = b.hours.replace("h", ":")
     const dateB = new Date(`${year}-${month}-${day}T${time}`);
-    console.log(dateA, dateB)
     return dateB.getTime() - dateA.getTime() // Sort in ascending order
 }
 

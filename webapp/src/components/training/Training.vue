@@ -20,6 +20,7 @@
       :task="task"
     />
   </div>
+  <TrainingButtons />
 </template>
 
 <script lang="ts" setup>
@@ -36,6 +37,7 @@ import Description from '@/components/training/Description.vue'
 import Trainer from '@/components/training/Trainer.vue'
 import Finished from '@/components/training/Finished.vue'
 import Data from '@/components/data/Data.vue'
+import TrainingButtons from '@/components/progress_bars/TrainingButtons.vue'
 
 const router = useRouter()
 const trainingStore = useTrainingStore()
