@@ -6,6 +6,7 @@ describe("tasks page", () => {
       defaultTasks.titanic.getTask(),
       defaultTasks.mnist.getTask(),
       defaultTasks.lusCovid.getTask(),
+      defaultTasks.wikitext.getTask(),
     ]);
     cy.visit("/#/list");
 
