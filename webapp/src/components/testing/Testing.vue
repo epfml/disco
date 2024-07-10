@@ -173,6 +173,7 @@
   </div>
 </template>
 <script lang="ts" setup>
+import createDebug from "debug";
 import { watch, computed, shallowRef, onActivated, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
@@ -199,10 +200,10 @@ import IconCard from '@/components/containers/IconCard.vue'
 import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
 import { useToaster } from '@/composables/toaster'
 
+const debug = createDebug("webapp:Tester");
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
-
 const toaster = useToaster()
 
 const { step: stepRef, state: stateRef } = storeToRefs(validationStore)
@@ -279,8 +280,8 @@ const downloadModel = async (task: Task): Promise<void> => {
       });
     }
   } catch (e) {
+    debug("while downloading model: %o", e);
     toaster.error("Something went wrong, please try again later.")
-    console.error(e)
   }
 }
 

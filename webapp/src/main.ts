@@ -1,5 +1,7 @@
+import createDebug from "debug";
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import * as tf from "@tensorflow/tfjs";
 
 import App from '@/components/App.vue'
 import { router } from '@/router'
@@ -8,14 +10,14 @@ import { useToaster } from './composables/toaster'
 import '@/assets/css/tailwind.css'
 import '@/assets/css/styles.css'
 
-import * as tf from '@tensorflow/tfjs'
+const debug = createDebug("webapp");
 
 import { plugin as VueTippy } from 'vue-tippy'
 import 'tippy.js/dist/tippy.css' // optional for styling
 
 tf.ready()
-  .then(() => console.log(`Loaded ${tf.getBackend()} backend`))
-  .catch(console.error)
+  .then(() => debug(`loaded TFJS' ${tf.getBackend()} backend`))
+  .catch((e) => debug("while loading TFJS's backend: %o", e))
 
 // create vue app
 const app = createApp(App)
@@ -30,7 +32,7 @@ app.config.errorHandler = (err, instance, info) => {
     // Unknown error
     toaster.error('Something went wrong. Please try again later or reach out on slack.')
   }
-  console.error(err, instance, info)
+  debug("%s info=%s throwed %o", err, info, instance?.$options.name)
 }
 
 app

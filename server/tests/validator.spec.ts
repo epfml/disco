@@ -49,9 +49,6 @@ describe('validator', function () {
     // Read data and predict with an untrained model
     for await (const _ of validator.test(data));
     const size = data.size ?? -1
-    if (size === -1) {
-      console.log('data.size was undefined')
-    }
     assert(
       validator.visitedSamples === data.size,
       `Expected ${size} visited samples but got ${validator.visitedSamples}`
@@ -121,9 +118,6 @@ describe('validator', function () {
     // Assert random initialization metrics
     for await (const _ of validator.test(data));
     const size = data.size ?? -1
-    if (size === -1) {
-      console.log('data.size was undefined')
-    }
     assert(
       validator.visitedSamples === data.size,
       `Expected ${size} visited samples but got ${validator.visitedSamples}`

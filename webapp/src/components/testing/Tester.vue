@@ -201,6 +201,7 @@
   </div>
 </template>
 <script lang="ts" setup>
+import createDebug from "debug";
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -218,6 +219,7 @@ import TableLayout from '@/components/containers/TableLayout.vue'
 import { List } from 'immutable'
 import * as d3 from 'd3'
 
+const debug = createDebug("webapp:Tester");
 const { useIndexedDB } = storeToRefs(useMemoryStore())
 const toaster = useToaster()
 const validationStore = useValidationStore()
@@ -292,7 +294,6 @@ async function getValidator (): Promise<Validator | undefined> {
 }
 
 function handleDatasetBuildError (e: Error) {
-  console.log(e.message)
   if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
     // missing field is specified between two "quotes"
     const missingFields: String = e.message.split('"')[1].split('"')[0]
@@ -319,11 +320,8 @@ async function modelInference (): Promise<void> {
   try {
     testingSet = (await props.datasetBuilder.build({ inference: true })).train
   } catch (e) {
-    if (e instanceof Error) {
-      handleDatasetBuildError(e)
-    } else {
-      console.error(e)
-    }
+    debug("while building dataset: %o", e);
+    if (e instanceof Error) handleDatasetBuildError(e)
     return
   }
 
@@ -353,12 +351,8 @@ async function modelInference (): Promise<void> {
     }
     toaster.success('Model inference finished successfully!')
   } catch (e) {
-    let msg = 'unable to run model inference'
-    if (e instanceof Error) {
-      msg += `: ${e.message}`
-    }
-    console.error(msg)
-    toaster.error('Something went wrong during model inference')
+    debug("while infering: %o", e);
+    toaster.error("Something went wrong during model inference");
   }
 }
 
@@ -381,11 +375,8 @@ async function testModel(): Promise<void> {
   try {
     testingSet = (await props.datasetBuilder.build()).train
   } catch (e) {
-    if (e instanceof Error) {
-      handleDatasetBuildError(e)
-    } else {
-      console.error(e)
-    }
+    debug("while building dataset: %o", e);
+    if (e instanceof Error) handleDatasetBuildError(e)
     return
   }
 
@@ -426,15 +417,11 @@ async function testModel(): Promise<void> {
 
     toaster.success('Model testing finished successfully!')
   } catch (e) {
-    let msg = 'unable to test model'
-    if (e instanceof Error) {
-      msg += `: ${e.message}`
-    }
-    console.error(msg)
-    toaster.error('Something went wrong during model testing')
-    } finally {
-      testGenerator.value = undefined;
-    }
+    debug("while testing: %o", e);
+    toaster.error("Something went wrong during model testing");
+  } finally {
+    testGenerator.value = undefined;
+  }
 }
 
 async function stopTest(): Promise<void> {

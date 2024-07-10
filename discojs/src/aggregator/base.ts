@@ -1,8 +1,11 @@
+import createDebug from "debug";
 import { Map, Set } from 'immutable'
 
 import type { client } from '../index.js'
 
 import { EventEmitter } from '../utils/event_emitter.js'
+
+const debug = createDebug("discojs:aggregator");
 
 export enum AggregationStep {
   ADD,
@@ -98,17 +101,16 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
   log (step: AggregationStep, from?: client.NodeID): void {
     switch (step) {
       case AggregationStep.ADD:
-        console.log(`Adding contribution from node ${from ?? '"unknown"'} for round (${this.communicationRound}, ${this.round})`)
+        debug(`adding contribution from node ${from ?? '"unknown"'} for round (${this.communicationRound}, ${this.round})`);
         break
       case AggregationStep.UPDATE:
         if (from === undefined) {
           return
         }
-        console.log(`> Updating contribution from node ${from} for round (${this.communicationRound}, ${this.round})`)
+        debug(`updating contribution from node ${from ?? '"unknown"'} for round (${this.communicationRound}, ${this.round})`)
         break
       case AggregationStep.AGGREGATE:
-        console.log('*'.repeat(80))
-        console.log(`Buffer is full. Aggregating weights for round (${this.communicationRound}, ${this.round})\n`)
+        debug(`buffer full, aggregating weights for round (${this.communicationRound}, ${this.round})`)
         break
       default: {
         const _: never = step

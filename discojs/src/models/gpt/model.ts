@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import * as tf from '@tensorflow/tfjs'
 
 import type { GPTConfig } from './config.js'
@@ -5,6 +6,8 @@ import { getModelSizes, DEFAULT_CONFIG } from './config.js'
 import { getCustomAdam, clipByGlobalNormObj } from './optimizers.js'
 import evaluate from './evaluate.js'
 import { GPTArchitecture } from './layers.js'
+
+const debug = createDebug("discojs:models:gpt");
 
 /**
  * tfjs does not export LazyIterator and Dataset...
@@ -116,18 +119,18 @@ class GPTModel extends tf.LayersModel {
           iteration % this.config.evaluateEvery == 0
         ){
           const iterationLogs = await evaluate(this, evalDataset, this.config.maxEvalBatches)
-          console.log(iterationLogs)
+          debug('evaluation metrics: %O', iterationLogs);
         }
         const memory = tf.memory().numBytes / 1024 / 1024 / 1024
-        console.log(
-          `Epoch: ${epoch}`,
-          `\tStep: ${iteration} / ${this.config.maxIter}`,
-          `\tLoss: ${loss.toFixed(3)}`,
-          `\tMemory: ${memory.toFixed(2)} GB`,
-          `\tNumber of tensors allocated: ${tf.memory().numTensors}`,
-          `\tPreprocessing time: ${preprocessingTime.toFixed(0)} ms`,
-          `\tWeight update time: ${weightUpdateTime.toFixed(0)} ms`
-        )
+        debug("training metrics: %O", {
+          epoch,
+          iteration,
+          loss,
+          memory,
+          allocated: tf.memory().numTensors,
+          preprocessingTime,
+          weightUpdateTime,
+        });
         iteration++
         next = await iterator.next()
       }

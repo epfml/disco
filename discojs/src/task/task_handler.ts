@@ -1,4 +1,5 @@
 import axios from 'axios'
+import createDebug from "debug";
 import { Map } from 'immutable'
 
 import type { Model } from '../index.js'
@@ -6,6 +7,8 @@ import { serialization } from '../index.js'
 
 import type { Task, TaskID } from './task.js'
 import { isTask } from './task.js'
+
+const debug = createDebug("discojs:task:handlers");
 
 const TASK_ENDPOINT = 'tasks'
 
@@ -33,7 +36,7 @@ export async function fetchTasks (url: URL): Promise<Map<TaskID, Task>> {
   } else if (!tasks.every(isTask)) {
     for (const task of tasks) {
       if (!isTask(task)) {
-        console.error("task has invalid format:", task)  
+        debug("task has invalid format: :O", task)  
       }
     }
     throw new Error('invalid tasks response, the task object received is not well formatted')

@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import express from 'express'
 import type expressWS from 'express-ws'
 
@@ -7,6 +8,8 @@ import type { TasksAndModels } from '../tasks.js'
 import { Federated } from './federated/index.js'
 import { Decentralized } from './decentralized/index.js'
 import { Tasks } from './tasks.js'
+
+const debug = createDebug("server:router");
 
 export class Router {
   // TODO choose between federated and/or decentralized
@@ -28,7 +31,7 @@ export class Router {
     process.nextTick(() =>
       wsApplier.getWss().on('connection', (ws, req) => {
         if (!federated.isValidUrl(req.url) && !decentralized.isValidUrl(req.url)) {
-          console.log('Connection refused')
+          debug("connection refused on %s", req.url);
           ws.terminate()
           ws.close()
         }

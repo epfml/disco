@@ -142,6 +142,7 @@
 </template>
 
 <script lang="ts" setup>
+import createDebug from "debug";
 import * as yup from 'yup'
 import { ref, shallowRef } from 'vue'
 import { Form as VeeForm, ErrorMessage } from 'vee-validate'
@@ -167,6 +168,7 @@ import NumberContainer from './containers/NumberContainer.vue'
 import FloatContainer from './containers/FloatContainer.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
+const debug = createDebug("webapp:TaskForm");
 const toaster = useToaster()
 
 // Maps sections to a form-wide yup schema object composed of labelled yup fields.
@@ -252,9 +254,9 @@ const onSubmit = async (rawTask: any): Promise<void> => {
   let model
   try {
     model = new models.TFJS(await tf.loadLayersModel(tf.io.browserFiles(modelFiles.value.toArray())))
-  } catch (error) {
-    console.error(error)
-    toaster.error('Model loading failed')
+  } catch (e) {
+    debug("while loading model:%o", e);
+    toaster.error('Model loading failed');
     return
   }
 
@@ -262,7 +264,7 @@ const onSubmit = async (rawTask: any): Promise<void> => {
     await pushTask(CONFIG.serverUrl, task, model)
   } catch (e) {
     toaster.error('An error occured server-side')
-    console.error(e instanceof Error ? e.message : e)
+    debug("while pushing task to server: %o", e);
     return
   }
   toaster.success('Task successfully submitted')
