@@ -73,7 +73,6 @@ class AdamW extends tf.AdamOptimizer {
     excludeFromWeightDecay?: string[]
     gradientClipNorm?: number
   }) {
-    console.log('Using custom AdamW optimizer')
     const defaultParams = {
       learningRate: 0.1,
       beta1: 0.9,

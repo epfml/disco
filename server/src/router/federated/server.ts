@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
 import { List, Map } from 'immutable'
@@ -20,6 +21,8 @@ import messages = client.federated.messages
 import AssignNodeID = client.messages.AssignNodeID
 
 import MessageTypes = client.messages.type
+
+const debug = createDebug("server:router:federated")
 
 /**
  * Represents a log entry for a given request. Consists of:
@@ -145,7 +148,7 @@ export class Federated extends Server {
         }
         ws.send(msgpack.encode(msg))
       })
-      .catch(console.error)
+      .catch((e) => debug("while waiting for weights: %o", e))
   }
 
   protected handle (task: Task, ws: WebSocket): void {
@@ -162,13 +165,13 @@ export class Federated extends Server {
     ws.on('message', (data: Buffer) => {
       const msg: unknown = msgpack.decode(data)
       if (!client.federated.messages.isMessageFederated(msg)) {
-        console.error('invalid federated message received on WebSocket')
+        debug("invalid federated message received on WebSocket: %o", msg);
         return // TODO send back error
       }
 
       if (msg.type === MessageTypes.ClientConnected) {
         this.logsAppend(task.id, clientId, MessageTypes.ClientConnected, 0)
-        console.info('client', clientId, 'joined', task.id)
+        debug(`client ${clientId} joined ${task.id}`)
 
         const msg: AssignNodeID = {
           type: MessageTypes.AssignNodeID,
@@ -185,7 +188,7 @@ export class Federated extends Server {
 
         // TODO support multiple communication round
         if (!aggregator.add(clientId, weights, round, 0)) {
-          console.info(`dropped contribution from client ${clientId} for round ${round}`)
+          debug(`dropped contribution from client ${clientId} for round ${round}`);
           return // TODO what to answer?
         }
       }

@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import { defineStore } from 'pinia'
 import { shallowRef, ref } from 'vue'
 import { Map } from 'immutable'
@@ -9,11 +10,13 @@ import { useToaster } from '@/composables/toaster'
 import { CONFIG } from '@/config'
 import { useTrainingStore } from './training'
 
+const debug = createDebug("webapp:store");
+
 export const useTasksStore = defineStore('tasks', () => {
   const trainingStore = useTrainingStore()
 
   const tasks = shallowRef<Map<TaskID, Task>>(Map())
-  
+
   // 3-state variable used to test whether the tasks have been retrieved successfully,
   // if the retrieving failed, or if they are currently being loaded
   const status = ref<'success' | 'failed' | 'loading'>('loading')
@@ -34,7 +37,7 @@ export const useTasksStore = defineStore('tasks', () => {
       tasks.forEach(addTask)
       status.value = 'success'
     } catch (e) {
-      console.error('Fetching of tasks failed with error', e instanceof Error ? e.message : e)
+      debug("while fetching tasks: %o", e);
 
       //Only display UI message once
       if (status.value !== 'failed') {

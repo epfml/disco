@@ -59,7 +59,6 @@ export class Disco {
         }
       })
     )
-    console.log()
 
     return server
   }

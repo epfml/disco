@@ -50,6 +50,7 @@
 </template>
 
 <script lang="ts" setup>
+import createDebug from "debug";
 import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 
@@ -58,10 +59,12 @@ import { useMemoryStore } from '@/store/memory'
 import BaseLayout from './containers/BaseLayout.vue'
 import SideBar from '@/components/sidebar/SideBar.vue'
 
+const debug = createDebug("webapp:App");
+
 const tasksStore = useTasksStore()
 const memoryStore = useMemoryStore()
 
-tasksStore.initTasks().catch(console.error)
+tasksStore.initTasks().catch((e) => debug("while init tasks: %o", e));
 
 onMounted(() => {
   memoryStore.setIndexedDB(!!window.indexedDB)

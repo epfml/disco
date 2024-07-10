@@ -21,9 +21,8 @@ export class TabularData extends Data {
     // load/read the tabular file's lines on training.
     try {
       await dataset.iterator()
-    } catch (e) {
-      console.error('Data input format is not compatible with the chosen task.')
-      throw (e)
+    } catch (cause) {
+      throw new Error('data input format not compatible with chosen task', { cause })
     }
 
     return new TabularData(dataset, task, size)

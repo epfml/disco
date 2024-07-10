@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import { List, Set } from 'immutable'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs/promises'
@@ -7,6 +8,7 @@ import '@tensorflow/tfjs-node'
 import { Task, Path, Digest, TaskProvider, isTask } from '@epfml/discojs'
 import { Model, defaultTasks, models, serialization } from '@epfml/discojs'
 
+const debug = createDebug("server:tasks");
 
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks
@@ -59,7 +61,7 @@ export class TasksAndModels {
       try {
         await this.checkDigest(discoTask.digest, modelPath)
       } catch (e) {
-        console.warn('removing model files at', modelPath)
+        debug("removing model files at %s", modelPath)
         await fs.rm(modelPath, { recursive: true, force: true })
         throw e
       }
@@ -102,10 +104,10 @@ export class TasksAndModels {
 
     const computedDigest = hash.digest('base64')
     if (computedDigest !== digest.value) {
-      console.warn(`digest was\n ${computedDigest}\nbut expected\n${digest.value}`)
+      debug(`computed digest was %s but expected %s`, computedDigest, digest.value);
       throw new Error('digest mismatch')
     } else {
-      console.info('digest verified')
+      debug("digest verified");
     }
   }
 

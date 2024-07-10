@@ -1,12 +1,16 @@
-import WebSocket from 'isomorphic-ws'
+import createDebug from "debug";
+import WebSocket from "isomorphic-ws";
+import msgpack from "msgpack-lite";
+
 import type { Peer, SignalData } from './decentralized/peer.js'
 import { type NodeID } from './types.js'
-import msgpack from 'msgpack-lite'
 import * as decentralizedMessages from './decentralized/messages.js'
 import { type, type NarrowMessage, type Message } from './messages.js'
 import { timeout } from './utils.js'
 
 import { EventEmitter } from '../utils/event_emitter.js'
+
+const debug = createDebug("discojs:client:connections");
 
 export interface EventConnection {
   on: <K extends type>(type: K, handler: (event: NarrowMessage<K>) => void) => void
@@ -61,7 +65,9 @@ export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K>
       this.emit(msg.type, msg)
     })
 
-    this.peer.on('close', () => { console.warn('From', this._ownId, ': peer', this.peer.id, 'closed connection') })
+    this.peer.on("close", () => {
+      debug(`[${this._ownId}] peer ${this.peer.id} closed connection`);
+    });
 
     await new Promise<void>((resolve) => {
       this.peer.on('connect', resolve)
