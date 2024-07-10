@@ -1,8 +1,8 @@
 import tf from '@tensorflow/tfjs'
 
 import type { TaskProvider } from '@epfml/discojs'
-import { models } from '@epfml/discojs'
-import { Disco as DiscoServer } from 'server'
+import { defaultTasks, models } from '@epfml/discojs'
+import { Server as DiscoServer } from 'server'
 
 // Define your own task provider (task definition + model)
 const customTask: TaskProvider = {
@@ -62,11 +62,13 @@ const customTask: TaskProvider = {
 }
 
 async function runServer (): Promise<void> {
-  const server = new DiscoServer()
-  // Add default tasks provided by the server
-  await server.addDefaultTasks()
-  // Add your own custom task
-  await server.addTask(customTask)
+  // Create server
+  const server = await DiscoServer.of(
+    // with some tasks provided by Disco
+    defaultTasks.titanic,
+    // or your own custom task
+    customTask,
+  )
 
   // You can also provide your own task object containing the URL of the model
 
@@ -85,7 +87,7 @@ async function runServer (): Promise<void> {
   // await server.addTask(customTask.getTask(), new URL('https://example.com/path/to/your/model.json'))
 
   // Start the server
-  server.serve()
+  await server.serve()
 }
 
 runServer().catch(console.error)

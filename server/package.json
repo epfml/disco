@@ -3,12 +3,9 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
-  "bin": {
-    "disco-server": "./dist/run_server.js"
-  },
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec npm run",
-    "start": "npm run build && node dist/run_server.js",
+    "start": "npm run build && node dist/main.js",
     "build": "tsc",
     "lint": "npx eslint .",
     "test": "mocha"

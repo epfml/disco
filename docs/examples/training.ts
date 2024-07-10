@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import type { data, Task } from '@epfml/discojs'
 import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
-import { startServer } from 'server'
+import { Server } from 'server'
 
 /**
  * Example of discojs API, we load data, build the appropriate loggers, the disco object
@@ -25,7 +25,8 @@ async function main (): Promise<void> {
   const NAME: string = 'titanic'
 
   // Launch a server instance
-  const [server, url] = await startServer()
+  const discoServer = await Server.of(defaultTasks.simpleFace, defaultTasks.titanic)
+  const [server, url] = await discoServer.serve()
 
   // Get all pre-defined tasks
   const tasks = await fetchTasks(url)
