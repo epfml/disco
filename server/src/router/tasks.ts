@@ -6,7 +6,6 @@ import { Set } from 'immutable'
 import type { Model, Task, TaskID } from '@epfml/discojs'
 import { serialization, isTask } from '@epfml/discojs'
 
-import type { Config } from '../config.js'
 import type { TasksAndModels } from '../tasks.js'
 
 const debug = createDebug("server:router:tasks");
@@ -16,10 +15,7 @@ export class Tasks {
 
   private tasksAndModels = Set<[Task, Model]>()
 
-  constructor (
-    private readonly config: Config,
-    tasksAndModels: TasksAndModels
-  ) {
+  constructor (tasksAndModels: TasksAndModels) {
     this.ownRouter = express.Router()
 
     this.ownRouter.get('/', (_, res) => {

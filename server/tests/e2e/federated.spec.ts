@@ -1,8 +1,8 @@
+import { assert, expect } from "chai";
+import { List, Repeat } from "immutable";
 import fs from 'node:fs/promises'
-import path from 'node:path'
-import type { Server } from 'node:http'
-import { List, Repeat } from 'immutable'
-import { assert, expect } from 'chai'
+import type * as http from "node:http";
+import path from "node:path";
 
 import type { WeightsContainer } from '@epfml/discojs'
 import {
@@ -11,7 +11,7 @@ import {
 } from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader, NodeTextLoader } from '@epfml/discojs-node'
 
-import { startServer } from '../../src/index.js'
+import { Server } from "../../src/index.js";
 
 // Array.fromAsync not yet widely used (2024)
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -20,12 +20,17 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
   return ret;
 }
 
-describe("end-to-end federated", function () {
-  let server: Server;
+describe("end-to-end federated", () => {
+  let server: http.Server;
   let url: URL;
   beforeEach(async function () {
     this.timeout("5s");
-    [server, url] = await startServer();
+    [server, url] = await Server.of(
+      defaultTasks.cifar10,
+      defaultTasks.lusCovid,
+      defaultTasks.titanic,
+      defaultTasks.wikitext,
+    ).then((s) => s.serve());
   });
   afterEach(() => {
     server?.close();

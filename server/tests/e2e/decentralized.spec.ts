@@ -1,4 +1,4 @@
-import type { Server } from 'node:http'
+import type * as http from 'node:http'
 import { List } from 'immutable'
 import { expect } from 'chai'
 
@@ -9,7 +9,7 @@ import {
   WeightsContainer,
 } from "@epfml/discojs";
 
-import { startServer } from '../../src/index.js'
+import { Server } from '../../src/index.js'
 
 async function WSIntoList(ws: WeightsContainer): Promise<List<List<number>>> {
   return List((await Promise.all(ws.weights.map(async (w) => await w.data()))).map(
@@ -33,9 +33,12 @@ async function expectWSToBeClose(
 describe('end-to-end decentralized', function () {
   this.timeout(30_000)
 
-  let server: Server
+  let server: http.Server
   let url: URL
-  beforeEach(async () => { [server, url] = await startServer() })
+  beforeEach(async () => {
+    const disco = await Server.of(defaultTasks.cifar10);
+    [server, url] = await disco.serve();
+  });
   afterEach(() => { server?.close() })
 
   /**

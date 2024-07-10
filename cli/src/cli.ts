@@ -1,9 +1,9 @@
 import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
 
-import type { data, RoundLogs, Task } from '@epfml/discojs'
+import type { data, RoundLogs, Task, TaskProvider } from '@epfml/discojs'
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
-import { startServer } from 'server'
+import { Server } from 'server'
 
 import { getTaskData } from './data.js'
 import { args } from './args.js'
@@ -31,10 +31,13 @@ async function runUser(
   return logs;
 }
 
-async function main (task: Task, numberOfUsers: number): Promise<void> {
+async function main (provider: TaskProvider, numberOfUsers: number): Promise<void> {
+  const task = provider.getTask()
   console.log(`Started ${task.trainingInformation.scheme} training of ${task.id}`)
   console.log({ args })
-  const [server, url] = await startServer()
+
+  const discoServer = await Server.of(provider)
+  const [server, url] = await discoServer.serve()
 
   const data = await getTaskData(task)
 
@@ -53,4 +56,4 @@ async function main (task: Task, numberOfUsers: number): Promise<void> {
   })
 }
 
-main(args.task, args.numberOfUsers).catch(console.error)
+main(args.provider, args.numberOfUsers).catch(console.error)

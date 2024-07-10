@@ -1,8 +1,10 @@
-import { parse } from 'ts-command-line-args';
+import { parse } from "ts-command-line-args";
+
 import type { Task } from '@epfml/discojs'
-import { fetchTasks, data, models, async_iterator } from '@epfml/discojs'
+import { fetchTasks, data, models, async_iterator, defaultTasks } from "@epfml/discojs";
 import { NodeTextLoader, loadModelFromDisk } from '@epfml/discojs-node'
-import { startServer } from 'server'
+
+import { Server } from "server";
 
 interface CLIArguments{
   modelType?: string; // 'gpt-nano', 'gpt-micro', 'gpt-mini', 'gpt2'
@@ -43,9 +45,8 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     contextLength, batchSize, modelPath } = args
 
   // Launch a server instance
-  const [server, url] = await startServer()
-
-  // const url = new URL('http://localhost:8080')
+  const disco = await Server.of(defaultTasks.wikitext);
+  const [server, url] = await disco.serve();
 
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)

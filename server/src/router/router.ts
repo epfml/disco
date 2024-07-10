@@ -2,7 +2,6 @@ import createDebug from "debug";
 import express from 'express'
 import type expressWS from 'express-ws'
 
-import type { Config } from '../config.js'
 import type { TasksAndModels } from '../tasks.js'
 
 import { Federated } from './federated/index.js'
@@ -19,9 +18,8 @@ export class Router {
   constructor (
     wsApplier: expressWS.Instance,
     private readonly tasksAndModels: TasksAndModels,
-    private readonly config: Config
   ) {
-    const tasks = new Tasks(this.config, this.tasksAndModels)
+    const tasks = new Tasks(this.tasksAndModels)
     const federated = new Federated(wsApplier, this.tasksAndModels)
     const decentralized = new Decentralized(wsApplier, this.tasksAndModels)
 
