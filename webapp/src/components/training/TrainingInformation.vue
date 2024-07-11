@@ -2,13 +2,15 @@
   <div class="space-y-4 md:space-y-8">
     <!-- Fancy training statistics -->
     <div class="flex flex-wrap justify-center 2xl:justify-between gap-4 md:gap-8">
+      <!-- Hide the communication rounds when training alone -->
       <IconCardSmall
+      v-if="!isTrainingAlone"
       v-tippy="{
-        content: 'The number of times the model has been updated with the collaborators\' models. No data is shared.',
+        content: 'The number of times the model has been updated with models shared by collaborators. No data is shared.',
         placement: 'top'
       }"
       header="Collaborative model sharing"
-      :text="`${modelSharingRounds}`"
+      :text="`${rounds.size}`"
       class="w-72 shrink-0 hover:cursor-pointer"
       >
         <ModelExchangeIcon custom-class="text-gray-300 w-9 h-9" />
@@ -203,40 +205,23 @@ const props = defineProps<{
   batchesOfEpoch: List<BatchLogs>;
   hasValidationData: boolean; // TODO infer from logs
   messages: List<string>; // TODO why do we want messages?
+  isTrainingAlone: boolean // Should be set to True if using the training scheme 'local'
+  isTraining: boolean // Is the user currently training a model
 }>();
 
-const participants = computed(() => {
-  const roundParticipants = props.rounds.last()?.participants
-  let nbOfParticipants;
-  if (roundParticipants !== undefined) {
-    nbOfParticipants = roundParticipants
-  } else {
-    // 1 if started training (potentially in local) otherwise 0
-    nbOfParticipants = props.messages.size > 0 ? 1 : 0
-  }
-  
-  
-  return {
-    current: nbOfParticipants,
-    average:
-      props.rounds.size > 0
-        ? props.rounds.reduce((acc, round) => acc + round.participants, 0) /
-        props.rounds.size
-        : 0,
-  }
-});
+const participants = computed(() => ({
+  // if the number of participants is not defined, default to
+  // 0 if not currently training
+  // or 1 if training or before the 1st communication round)
+  current: props.rounds.last()?.participants ?? (props.isTraining ? 1 : 0),
+  average:
+    props.rounds.size > 0
+      ? props.rounds.reduce((acc, round) => acc + round.participants, 0) /
+      props.rounds.size
+      : 0,
+}));
 
 const batchesCount = computed(() => props.batchesOfEpoch.size);
-
-// Force the collaborative model sharing to 0 if training alone
-// otherwise show the current number of rounds
-const modelSharingRounds = computed(() => {
-  if (participants.value.average <= 1) {
-    return 0
-  } else {
-    return props.rounds.size
-  }
-});
 
 const allEpochs = computed(() =>
   props.rounds.flatMap((round) => round.epochs).concat(props.epochsOfRound),
