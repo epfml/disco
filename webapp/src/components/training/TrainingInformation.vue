@@ -223,9 +223,16 @@ const participants = computed(() => ({
 
 const batchesCount = computed(() => props.batchesOfEpoch.size);
 
-const allEpochs = computed(() =>
-  props.rounds.flatMap((round) => round.epochs).concat(props.epochsOfRound),
-);
+const allEpochs = computed<List<EpochLogs>>((oldValue) => {
+  const ret = props.rounds
+    .flatMap((round) => round.epochs)
+    .concat(props.epochsOfRound);
+
+  // avoid recomputing dependencies such as when finishing round
+  if (oldValue !== undefined && ret.equals(oldValue)) return oldValue;
+
+  return ret;
+});
 const lastEpoch = computed(() => allEpochs.value.last());
 
 const accuracySeries = computed(() =>
