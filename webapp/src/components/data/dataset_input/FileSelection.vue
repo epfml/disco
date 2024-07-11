@@ -16,7 +16,7 @@
       <!-- scroll area -->
       <section>
         <header
-           v-if="!hideConnectField"
+          v-if="!hideConnectField"
           class="
             border-dashed rounded-xl border-2 border-disco-cyan
             flex flex-col
@@ -73,7 +73,11 @@
               >
             </label>
           </div>
+          
         </header>
+        <div class="flex justify-end items-center mt-1">
+          <span ><i class="fa fa-lock mr-1" /> secure</span>
+        </div>
 
         <div
           v-if="infoText && selectedFiles === undefined"
