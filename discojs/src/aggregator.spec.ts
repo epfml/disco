@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Map, Range, Set } from "immutable";
-
+import { mock, instance, when, anything } from 'ts-mockito';
 import { Model, WeightsContainer } from "./index.js";
 import {
   Aggregator,
@@ -24,6 +24,49 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
       expect(aggregator.round).to.equal(0);
     });
 
+    it("starts with no contributions", () => {
+      const aggregator = new Aggregator();
+
+      expect(aggregator.size).to.equal(0);
+    })
+
+    it("model correctly initialized", async () => {
+      const aggregator = new Aggregator();
+
+      const model = mock(Model);
+
+      aggregator.setModel(instance(model));
+      expect(aggregator.model).to.equal(instance(model));
+    });
+
+    it("is full when created with no nodes", () => {
+      const aggregator = new Aggregator();
+
+      expect(aggregator.isFull());
+    });
+
+    it("is not full when created with more than no nodes and empty", () => {
+      const aggregator = new Aggregator();
+      aggregator.setNodes(Set.of("client 0"));
+
+      expect(aggregator.isFull()).to.be.false;
+    });
+
+
+
+    it("is full when enough contributions", () => {
+      const aggregator = new Aggregator();
+      aggregator.setNodes(Set.of("client 0", "client 1", "client 2"));
+
+      for (let i = 0; i < 3; i++)
+        for (let r = 0; r < aggregator.communicationRounds; r++)
+          aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r);
+
+      expect(aggregator.isFull()).to.be.true;
+    });
+
+
+
     it("moves forward with enough contributions", async () => {
       const aggregator = new Aggregator();
       aggregator.setNodes(Set.of("client 0", "client 1", "client 2"));
@@ -35,8 +78,34 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
           aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r);
 
       await results; // nothing to test
-
+    
       expect(aggregator.round).to.equal(1);
+    });
+
+    it("does not move forward with not enough contributions", async () => {
+      const aggregator = new Aggregator();
+      aggregator.setNodes(Set.of("client 0", "client 1", "client 2"));
+
+      const results = aggregator.receiveResult();
+
+      for (let i = 0; i < 2; i++)
+        for (let r = 0; r < aggregator.communicationRounds; r++)
+          aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r);
+
+      await results; 
+
+      expect(aggregator.round).to.equal(0);
+    });
+
+    it("Adding at the wrong round does not count", () => {
+      const aggregator = new Aggregator();
+      aggregator.setNodes(Set.of("client 0", "client 1", "client 2"));
+
+      for (let i = 0; i < 3; i++)
+        for (let r = 0; r < aggregator.communicationRounds; r++)
+          aggregator.add(`client ${i}`, WeightsContainer.of([i]), aggregator.round+1, r);
+
+      expect(aggregator.size).to.equal(0);
     });
 
     it("gives same results on each node", async () => {
