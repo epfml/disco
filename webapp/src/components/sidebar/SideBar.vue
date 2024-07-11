@@ -61,6 +61,7 @@
         </SidebarButton>
         <!-- Display Model Library panel -->
         <SidebarButton
+          id="model-library-btn"
           hover-text="Model Library"
           @click="openModelLibrary()"
         >

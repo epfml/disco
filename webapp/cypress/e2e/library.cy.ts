@@ -85,7 +85,7 @@ describe("model library", () => {
     cy.visit("/#/evaluate");
     cy.contains("button", "download").click();
 
-    cy.get('[data-title="Model Library"]').click();
+    cy.get('#model-library-btn').click();
     cy.contains("titanic-model").get('button[title="Download"]').click();
 
     expectDownloadOfTFJSModelIsTrainable("titanic_titanic-model");
@@ -113,7 +113,7 @@ describe("model library", () => {
     // TODO be reactive
     cy.visit("/#/evaluate"); // force refresh
 
-    cy.get('[data-title="Model Library"]').click();
+    cy.get('#model-library-btn').click();
     cy.contains("titanic-model").get('button[title="Download"]').click();
 
     expectDownloadOfTFJSModelIsTrainable("titanic_titanic-model");
