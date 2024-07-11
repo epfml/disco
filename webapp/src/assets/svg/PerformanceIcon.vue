@@ -15,15 +15,16 @@
     />
   </svg>
 </template>
-<script lang="ts">
-export default {
-  name: 'PerformanceIcon',
-  props: {
-    customClass: {
-      default: 'w-12 h-12 text-gray-300 dark:text-primary-dark',
-      type: String
-    },
-    viewBox: { default: '-6 -3 24 24', type: String }
-  }
-}
+
+<script setup lang="ts">
+const _ = withDefaults(
+  defineProps<{
+    customClass?: string;
+    viewBox?: string;
+  }>(),
+  {
+    customClass: " 'w-12 h-12 text-gray-300",
+    viewBox: "-6 -3 24 24",
+  },
+);
 </script>
