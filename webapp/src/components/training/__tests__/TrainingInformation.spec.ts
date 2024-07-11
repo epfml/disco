@@ -16,6 +16,8 @@ it("shows messages", async () => {
       batchesOfEpoch: List<BatchLogs>(),
       messages: List.of<string>("a", "b", "c"),
       hasValidationData: false,
+      isTraining: true,
+      isTrainingAlone: false
     },
   });
 
