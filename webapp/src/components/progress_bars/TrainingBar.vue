@@ -18,7 +18,7 @@
         <ProgressIcon
           class="w-1/5"
           :active="true"
-          :current-step="trainingStore.step == 0"
+          :current-step="(trainingStore.step?? 0) == 0"
           :has-left-line="false"
           @click="toStep(0)"
         >
