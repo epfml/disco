@@ -131,7 +131,7 @@
       </IconCard>
       <!-- Language model prompting is currently unavailable   -->
       <div 
-        v-if="currentTask.id === 'llm_task' && validationStore.isOnlyPrediction"
+        v-if="currentTask.trainingInformation.dataType === 'text' && validationStore.isOnlyPrediction"
         v-show="validationStore.step !== 0"
       >
         <div class="flex justify-center items-center mb-4">
