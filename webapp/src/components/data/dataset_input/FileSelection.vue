@@ -76,7 +76,12 @@
           
         </header>
         <div class="flex justify-end items-center mt-1">
-          <span ><i class="fa fa-lock mr-1" /> secure</span>
+          <span 
+          class="hover:cursor-pointer"
+          v-tippy="{ content: 'Data always stays on your device and is never shared.' }"
+          >
+            <i class="fa fa-lock mr-1" />
+          </span>
         </div>
 
         <div
