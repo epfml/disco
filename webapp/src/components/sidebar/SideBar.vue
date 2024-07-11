@@ -143,10 +143,8 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import type { Instance, Props, Placement } from 'tippy.js'
-import tippy from 'tippy.js'
 
 import ModelLibrary from './ModelLibrary.vue'
 import SidebarButton from './containers/SidebarButton.vue'
@@ -190,17 +188,4 @@ function goToInformation () {
   router.push({ path: '/information' })
 }
 
-onMounted(() => {
-  tippy('.tippy-tooltip', {
-    theme: 'custom-dark',
-    delay: 0,
-    duration: 0,
-    content: (reference: Element) => reference.getAttribute('data-title') as string,
-    onMount: (instance: Instance<Props>) => {
-      instance.popperInstance?.setOptions({
-        placement: instance.reference.getAttribute('data-placement') as Placement
-      })
-    }
-  })
-})
 </script>

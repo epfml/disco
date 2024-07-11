@@ -8,19 +8,19 @@
 
 .tippy-box[data-theme~="custom-dark"][data-placement^="top"]
   > .tippy-arrow::before {
-  border-top-color: #26323d;
+  border-top-color: #6f7174;
 }
 .tippy-box[data-theme~="custom-dark"][data-placement^="bottom"]
   > .tippy-arrow::before {
-  border-bottom-color: #26323d;
+  border-bottom-color: #6f7174;
 }
 .tippy-box[data-theme~="custom-dark"][data-placement^="left"]
   > .tippy-arrow::before {
-  border-left-color: #26323d;
+  border-left-color: #6f7174;
 }
 .tippy-box[data-theme~="custom-dark"][data-placement^="right"]
   > .tippy-arrow::before {
-  border-right-color: #26323d;
+  border-right-color: #6f7174;
 }
 
 @font-face {

@@ -3,39 +3,47 @@
     <!-- Fancy training statistics -->
     <div class="flex flex-wrap justify-center 2xl:justify-between gap-4 md:gap-8">
       <IconCardSmall
-        data-placement="top"
-        data-title="The number of times the model has been updated with the collaborators' models. No data is shared."
-        header="Collaborative model sharing"
-        :text="`${modelSharingRounds}`"
-        class="w-72 shrink-0 tippy-tooltip hover:cursor-pointer"
+      v-tippy="{
+        content: 'The number of times the model has been updated with the collaborators\' models. No data is shared.',
+        placement: 'top'
+      }"
+      header="Collaborative model sharing"
+      :text="`${modelSharingRounds}`"
+      class="w-72 shrink-0 hover:cursor-pointer"
       >
         <ModelExchangeIcon custom-class="text-gray-300 w-9 h-9" />
       </IconCardSmall>
       <IconCardSmall
-        data-placement="top"
-        data-title="The number of complete passes through the training dataset"
+        v-tippy="{
+          content: 'The number of complete passes through the training dataset.',
+          placement: 'top'
+        }"
         header="epochs"
         :text="`${allEpochs.size} / ${numberOfEpochs}`"
-        class="w-72 shrink-0 tippy-tooltip hover:cursor-pointer"
+        class="w-72 shrink-0 hover:cursor-pointer"
       >
         <Timer />
       </IconCardSmall>
       <IconCardSmall
-        data-placement="top"
-        data-title="The number of times the model has been updated during the current epoch"
+        v-tippy="{
+          content: 'The number of times the model has been updated during the current epoch.',
+          placement: 'top'
+        }"
         header="current batch"
         :text="`${batchesCount}`"
-        class="w-72 shrink-0 tippy-tooltip hover:cursor-pointer"
+        class="w-72 shrink-0 hover:cursor-pointer"
       >
         <ModelUpdateIcon />
       </IconCardSmall>
 
       <IconCardSmall
-        data-placement="top"
-        data-title="Collaborators concurrently training a model and sharing model updates"
+        v-tippy="{
+          content: 'Number of collaborators concurrently training a model and sharing model updates.',
+          placement: 'top'
+        }"
         header="number of participants"
         :text="`${participants.current}`"
-        class="w-72 shrink-0  tippy-tooltip hover:cursor-pointer"
+        class="w-72 shrink-0 hover:cursor-pointer"
       >
         <PeopleIcon />
       </IconCardSmall>
@@ -175,10 +183,8 @@
 
 <script setup lang="ts">
 import { List } from "immutable";
-import { computed, onMounted } from "vue";
+import { computed } from "vue";
 import ApexChart from "vue3-apexcharts";
-import tippy from 'tippy.js'
-import type { Instance, Props, Placement } from 'tippy.js'
 
 import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
 
@@ -189,20 +195,6 @@ import ModelExchangeIcon from "@/assets/svg/ModelExchangeIcon.vue";
 import ModelUpdateIcon from "@/assets/svg/ModelUpdateIcon.vue";
 import PeopleIcon from "@/assets/svg/PeopleIcon.vue";
 import Contact from "@/assets/svg/Contact.vue";
-
-onMounted(() => {
-  tippy('.tippy-tooltip', {
-    theme: 'custom-dark',
-    delay: 0,
-    duration: 0,
-    content: (reference: Element) => reference.getAttribute('data-title') as string,
-    onMount: (instance: Instance<Props>) => {
-      instance.popperInstance?.setOptions({
-        placement: instance.reference.getAttribute('data-placement') as Placement
-      })
-    }
-  })
-})
 
 const props = defineProps<{
   rounds: List<RoundLogs & { participants: number }>;
