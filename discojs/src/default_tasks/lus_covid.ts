@@ -32,11 +32,6 @@ export const lusCovid: TaskProvider = {
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
         dataType: 'image',
         scheme: 'federated',
-        noiseScale: undefined,
-        clippingRadius: 20,
-        decentralizedSecure: true,
-        minimumReadyPeers: 2,
-        maxShareValue: 100,
         tensorBackend: 'tfjs'
       }
     }

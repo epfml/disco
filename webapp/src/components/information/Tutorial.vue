@@ -27,7 +27,8 @@
         </div>
       <div class="flex flex-wrap items-center justify-center space-x-8">
         <CustomButton @click="router.push('/list')" class="mb-2">
-          explore <DISCOllaboratives />
+          <!-- Not using <DISCOllaboratives/> because of the cyan background -->
+          explore DISCOllaboratives
         </CustomButton>
         <CustomButton @click="router.push('/create')" class="mb-2">
           create your own task
@@ -46,7 +47,6 @@ import { useInformationStore } from '@/store/information'
 import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
-import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
 
 const router = useRouter()
 const informationStore = useInformationStore()

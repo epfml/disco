@@ -27,14 +27,38 @@
         </template>
       </IconCard>
     </div>
+    <!-- Demo warning -->
+    <div class="flex flex-row justify-between gap-x-4 items-center mb-5 py-4 px-4 bg-purple-100 rounded-md">
+        <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6 text-slate-600"/>
+        <p class="text-slate-600 text-xs pt-0.5">In this live demo, the model you are training is a newly initialized one. 
+          In a real use case you would start training with the latest model resulting from all users' collaborative training. 
+          To persist collaborative models, you can launch your own DISCO instance following
+          <a
+          class='underline text-blue-400 font-bold'
+          target="_blank"
+          href="https://github.com/epfml/disco/blob/develop/DEV.md"
+          >these steps.</a>
+          <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
+          <span 
+            v-if="props.task.trainingInformation.dataType === 'text'" 
+            class="text-slate-600 text-xs"
+          >
+          <!-- Leading space is important -->
+           Additionally, when training language models we have limited the number of batches per epoch to 10.
+          </span>
+        </p>
+    </div>
     <!-- Training Board -->
     <div>
       <TrainingInformation
         :rounds="roundsLogs"
         :epochs-of-round="epochsOfRoundLogs"
+        :number-of-epochs="task.trainingInformation.epochs"
         :batches-of-epoch="batchesOfEpochLogs"
         :has-validation-data="hasValidationData"
         :messages="messages"
+        :is-training="isTraining"
+        :is-training-alone="isTrainingAlone"
       />
     </div>
   </div>
@@ -55,6 +79,7 @@ import ModelCaching from './ModelCaching.vue'
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
+import InfoIcon from "@/assets/svg/InfoIcon.vue";
 
 const toaster = useToaster();
 const memoryStore = useMemoryStore();
@@ -92,9 +117,15 @@ const hasValidationData = computed(
   () => props.task.trainingInformation.validationSplit > 0,
 );
 
+const isTraining = ref(false)
+const isTrainingAlone = ref(false)
+
 const stopper = new Error("stop training")
 
 async function startTraining(distributed: boolean): Promise<void> {
+  isTraining.value = true
+  isTrainingAlone.value = !distributed
+  console.log(isTraining.value, isTrainingAlone.value)
   // Reset training information before starting a new training
   trainingGenerator.value = undefined
   roundsLogs.value = List<RoundLogs & { participants: number }>()
@@ -124,6 +155,7 @@ async function startTraining(distributed: boolean): Promise<void> {
         "Incorrect data format. Please check the expected format at the previous step.",
       );
     }
+    isTraining.value = false
     return;
   }
 
@@ -185,6 +217,7 @@ async function startTraining(distributed: boolean): Promise<void> {
   } finally {
     displayModelCaching.value = true // show model caching buttons again after training
     trainingGenerator.value = undefined;
+    isTraining.value = false
   }
 
   toaster.success("Training successfully completed");

@@ -154,6 +154,6 @@ For now a template that shows how to create tasks can be found.
 | ---------------------------------------------------------------------------- | :-------------: | :--------------------------------------------------------------- |
 | [vee-validate](https://vee-validate.logaretm.com/v4/)                        |     `Form`      | Form Validation for Vue.js                                       |
 | [vue-toast-notification](https://github.com/ankurk91/vue-toast-notification) | `Notifications` | Toast notification plugin for Vue.js                             |
-| [tippy](https://atomiks.github.io/tippyjs/)                                  |     `Menu`      | Plugin to build menu / side bars                                 |
+| [vue-tippy](https://vue-tippy.netlify.app/)                                  |    `Tooltip`    | Show tooltip text on hover                                       |
 | [vue-router](https://router.vuejs.org/)                                      |    `Routing`    | Official router plugin for Vue.js                                |
 | [yup](https://github.com/jquense/yup)                                        |     `Form`      | Schema builder for runtime value parsing and validation (forms). |

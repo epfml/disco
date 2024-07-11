@@ -4,9 +4,6 @@
       <template #title>
         {{ props.task.displayInformation.taskTitle }}
       </template>
-      <template #icon>
-        <Tasks />
-      </template>
       <template
         v-if="overviewText !== undefined"
         #content
@@ -28,7 +25,7 @@
         The Model
       </template>
       <template #icon>
-        <Model />
+        <ModelIcon />
       </template>
       <template #content>
         <div v-html="task.displayInformation.model" />
@@ -80,8 +77,7 @@ import type { FormDependency, FormField, FormSection } from '@/task_creation_for
 import { trainingInformation, privacyParameters } from '@/task_creation_form'
 import IconCard from '@/components/containers/IconCard.vue'
 import DropdownCard from '@/components/containers/DropdownCard.vue'
-import Tasks from '@/assets/svg/Tasks.vue'
-import Model from '@/assets/svg/Model.vue'
+import ModelIcon from '@/assets/svg/ModelIcon.vue'
 
 interface Props {
   task: Task

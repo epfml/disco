@@ -96,7 +96,6 @@ export class Decentralized extends Server {
               throw new Error(`task ${task.id} doesn't exist in ready buffer`)
             }
             this.readyNodes = this.readyNodes.set(task.id, peers)
-
             if (peers.size >= minimumReadyPeers) {
               this.readyNodes = this.readyNodes.set(task.id, Set())
 

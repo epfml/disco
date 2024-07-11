@@ -6,11 +6,12 @@ describe("tasks page", () => {
       defaultTasks.titanic.getTask(),
       defaultTasks.mnist.getTask(),
       defaultTasks.lusCovid.getTask(),
+      defaultTasks.wikitext.getTask(),
     ]);
     cy.visit("/#/list");
 
-    // Length 4 = 3 tasks and 1 div for text description
-    cy.get('div[id="tasks"]').children().should("have.length", 4);
+    // Length 5 = 4 tasks and 1 div for text description
+    cy.get('div[id="tasks"]').children().should("have.length", 5);
   });
 
   it("redirects to training", () => {

@@ -10,6 +10,9 @@ import '@/assets/css/styles.css'
 
 import * as tf from '@tensorflow/tfjs'
 
+import { plugin as VueTippy } from 'vue-tippy'
+import 'tippy.js/dist/tippy.css' // optional for styling
+
 tf.ready()
   .then(() => console.log(`Loaded ${tf.getBackend()} backend`))
   .catch(console.error)
@@ -33,4 +36,16 @@ app.config.errorHandler = (err, instance, info) => {
 app
   .use(createPinia())
   .use(router)
-  .mount('#app')
+  .use(VueTippy,
+    {
+      directive: 'tippy', // => v-tippy
+      component: 'tippy', // => <tippy/>
+      componentSingleton: 'tippy-singleton', // => <tippy-singleton/>,
+      defaultProps: {
+        theme: 'custom-dark',
+        placement: 'auto-end',
+        allowHTML: true,
+        delay: 0,
+      },
+    }
+  ).mount('#app')

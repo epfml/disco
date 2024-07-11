@@ -1,42 +1,53 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- Fancy training statistics -->
-    <div class="flex flex-wrap justify-center gap-4 md:gap-8">
+    <div class="flex flex-wrap justify-center 2xl:justify-between gap-4 md:gap-8">
+      <!-- Hide the communication rounds when training alone -->
       <IconCardSmall
-        header="current round"
-        :text="`${roundsCount}`"
-        class="w-72 shrink-0"
+      v-if="!isTrainingAlone"
+      v-tippy="{
+        content: 'The number of times the model has been updated with models shared by collaborators. No data is shared.',
+        placement: 'top'
+      }"
+      header="Collaborative model sharing"
+      :text="`${rounds.size}`"
+      class="w-72 shrink-0 hover:cursor-pointer"
+      >
+        <ModelExchangeIcon custom-class="text-gray-300 w-9 h-9" />
+      </IconCardSmall>
+      <IconCardSmall
+        v-tippy="{
+          content: 'The number of complete passes through the training dataset.',
+          placement: 'top'
+        }"
+        header="epochs"
+        :text="`${allEpochs.size} / ${numberOfEpochs}`"
+        class="w-72 shrink-0 hover:cursor-pointer"
       >
         <Timer />
       </IconCardSmall>
       <IconCardSmall
-        header="current epoch"
-        :text="`${epochsCount}`"
-        class="w-72 shrink-0"
-      >
-        <Timer />
-      </IconCardSmall>
-      <IconCardSmall
+        v-tippy="{
+          content: 'The number of times the model has been updated during the current epoch.',
+          placement: 'top'
+        }"
         header="current batch"
         :text="`${batchesCount}`"
-        class="w-72 shrink-0"
+        class="w-72 shrink-0 hover:cursor-pointer"
       >
-        <Timer />
+        <ModelUpdateIcon />
       </IconCardSmall>
 
       <IconCardSmall
-        header="current # of participants"
+        v-tippy="{
+          content: 'Number of collaborators concurrently training a model and sharing model updates.',
+          placement: 'top'
+        }"
+        header="number of participants"
         :text="`${participants.current}`"
-        class="w-72 shrink-0"
+        class="w-72 shrink-0 hover:cursor-pointer"
       >
-        <People />
-      </IconCardSmall>
-      <IconCardSmall
-        header="average # of participants"
-        :text="`${participants.average}`"
-        class="w-72 shrink-0"
-      >
-        <People />
+        <PeopleIcon />
       </IconCardSmall>
     </div>
 
@@ -182,29 +193,35 @@ import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
 import IconCardSmall from "@/components/containers/IconCardSmall.vue";
 import IconCard from "@/components/containers/IconCard.vue";
 import Timer from "@/assets/svg/Timer.vue";
-import People from "@/assets/svg/People.vue";
+import ModelExchangeIcon from "@/assets/svg/ModelExchangeIcon.vue";
+import ModelUpdateIcon from "@/assets/svg/ModelUpdateIcon.vue";
+import PeopleIcon from "@/assets/svg/PeopleIcon.vue";
 import Contact from "@/assets/svg/Contact.vue";
 
 const props = defineProps<{
   rounds: List<RoundLogs & { participants: number }>;
   epochsOfRound: List<EpochLogs>;
+  numberOfEpochs: number;
   batchesOfEpoch: List<BatchLogs>;
   hasValidationData: boolean; // TODO infer from logs
   messages: List<string>; // TODO why do we want messages?
+  isTrainingAlone: boolean // Should be set to True if using the training scheme 'local'
+  isTraining: boolean // Is the user currently training a model
 }>();
 
 const participants = computed(() => ({
-  current: props.rounds.last()?.participants ?? 0,
+  // if the number of participants is not defined, default to
+  // 0 if not currently training
+  // or 1 if training or before the 1st communication round)
+  current: props.rounds.last()?.participants ?? (props.isTraining ? 1 : 0),
   average:
     props.rounds.size > 0
       ? props.rounds.reduce((acc, round) => acc + round.participants, 0) /
-        props.rounds.size
+      props.rounds.size
       : 0,
 }));
 
 const batchesCount = computed(() => props.batchesOfEpoch.size);
-const epochsCount = computed(() => props.epochsOfRound.size);
-const roundsCount = computed(() => props.rounds.size);
 
 const allEpochs = computed(() =>
   props.rounds.flatMap((round) => round.epochs).concat(props.epochsOfRound),

@@ -12,9 +12,12 @@ it("shows messages", async () => {
     props: {
       rounds: List<RoundLogs & { participants: number }>(),
       epochsOfRound: List<EpochLogs>(),
+      numberOfEpochs: 30,
       batchesOfEpoch: List<BatchLogs>(),
       messages: List.of<string>("a", "b", "c"),
       hasValidationData: false,
+      isTraining: true,
+      isTrainingAlone: false
     },
   });
 

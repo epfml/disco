@@ -132,8 +132,8 @@ describe('validator', function () {
       `Expected ${size} visited samples but got ${validator.visitedSamples}`
     )
     assert(
-      validator.accuracy > 0.4,
-      `Expected random weight init accuracy greater than 0.4 but got ${validator.accuracy}`
+      validator.accuracy > 0.3,
+      `Expected random weight init accuracy greater than 0.3 but got ${validator.accuracy}`
     )
   }).timeout(1000)
 

@@ -29,7 +29,9 @@ export const useTrainingStore = defineStore('training', () => {
   function prevStep (): void {
     const s = step.value
     if (s === undefined) throw new Error('current step is undefined')
-    setStep(s - 1)
+    if (s > 0) {
+      setStep(s - 1)
+    }
   }
   function nextStep (): void {
     const s = step.value
@@ -37,5 +39,10 @@ export const useTrainingStore = defineStore('training', () => {
     setStep(s + 1)
   }
 
-  return { task, step, setTask, prevStep, nextStep, setStep }
+  function resetStore(): void {
+    setStep(0)
+    task.value = undefined
+  }
+
+  return { task, step, setTask, prevStep, nextStep, setStep, resetStore }
 })
