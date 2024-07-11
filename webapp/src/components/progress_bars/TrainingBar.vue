@@ -5,8 +5,6 @@
       class="flex flex-wrap font-disco text-3xl justify-center"
     >
       <span class="text-disco-blue">{{ taskTitle }}</span>
-      <!-- <span class="text-disco-blue" style="text-transform: capitalize">{{ scheme }}</span>
-      <span class="text-disco-cyan">&nbsp;Learning</span> -->
     </div>
     <div
       v-else
@@ -28,7 +26,7 @@
             Task Selection
           </template>
           <template #icon>
-            <TasksIcon  customClass="w-full w-7 h-7" view-box="-4 -4 24 24"/>
+            <TasksIcon customClass="w-full w-7 h-7" view-box="-4 -4 24 24"/>
           </template>
         </ProgressIcon>
         <!-- Step 2 -->
