@@ -1,17 +1,16 @@
 <template>
-  <div class="mb-8 md:mb-16 space-y-4 md:space-y-8">
+  <div class="mb-8 space-y-4 md:space-y-8">
     <div
-      v-if="scheme !== undefined && displayTitle"
+      v-if="taskTitle !== undefined && displayTitle"
       class="flex flex-wrap font-disco text-3xl justify-center"
     >
-      <span class="text-disco-blue" style="text-transform: capitalize">{{ scheme }}</span>
-      <span class="text-disco-cyan">&nbsp;Learning</span>
+      <span class="text-disco-blue">{{ taskTitle }}</span>
     </div>
     <div
       v-else
       class="flex flex-wrap text-3xl text-slate-600 justify-center"
     >
-      <DISCOllaborative />
+      <DISCOllaboratives />
     </div>
     <div class="hidden md:inline-block w-full py-6">
       <div class="flex">
@@ -19,32 +18,23 @@
         <ProgressIcon
           class="w-1/5"
           :active="true"
-          :lined="false"
+          :current-step="(trainingStore.step?? 0) == 0"
+          :has-left-line="false"
           @click="toStep(0)"
         >
           <template #text>
             Task Selection
           </template>
           <template #icon>
-            <svg
-              class="w-full fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path
-                class="heroicon-ui"
-                d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2zm14 8V5H5v6h14zm0 2H5v6h14v-6zM8 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"
-              />
-            </svg>
+            <TasksIcon customClass="w-full w-7 h-7" view-box="-4 -4 24 24"/>
           </template>
         </ProgressIcon>
         <!-- Step 2 -->
         <ProgressIcon
           class="w-1/5"
           :active="isActive(1)"
-          :lined="true"
+          :current-step="trainingStore.step == 1"
+          :has-left-line="true"
           @click="toStep(1)"
         >
           <template #text>
@@ -73,75 +63,45 @@
         <ProgressIcon
           class="w-1/5"
           :active="isActive(2)"
-          :lined="true"
+          :current-step="trainingStore.step == 2"
+          :has-left-line="true"
           @click="toStep(2)"
         >
           <template #text>
             Connect Your Data
           </template>
           <template #icon>
-            <svg
-              class="w-full fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path
-                class="heroicon-ui"
-                d="M9 4.58V4c0-1.1.9-2 2-2h2a2 2 0 0 1 2 2v.58a8 8 0 0 1 1.92 1.11l.5-.29a2 2 0 0 1 2.74.73l1 1.74a2 2 0 0 1-.73 2.73l-.5.29a8.06 8.06 0 0 1 0 2.22l.5.3a2 2 0 0 1 .73 2.72l-1 1.74a2 2 0 0 1-2.73.73l-.5-.3A8 8 0 0 1 15 19.43V20a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-.58a8 8 0 0 1-1.92-1.11l-.5.29a2 2 0 0 1-2.74-.73l-1-1.74a2 2 0 0 1 .73-2.73l.5-.29a8.06 8.06 0 0 1 0-2.22l-.5-.3a2 2 0 0 1-.73-2.72l1-1.74a2 2 0 0 1 2.73-.73l.5.3A8 8 0 0 1 9 4.57zM7.88 7.64l-.54.51-1.77-1.02-1 1.74 1.76 1.01-.17.73a6.02 6.02 0 0 0 0 2.78l.17.73-1.76 1.01 1 1.74 1.77-1.02.54.51a6 6 0 0 0 2.4 1.4l.72.2V20h2v-2.04l.71-.2a6 6 0 0 0 2.41-1.4l.54-.51 1.77 1.02 1-1.74-1.76-1.01.17-.73a6.02 6.02 0 0 0 0-2.78l-.17-.73 1.76-1.01-1-1.74-1.77 1.02-.54-.51a6 6 0 0 0-2.4-1.4l-.72-.2V4h-2v2.04l-.71.2a6 6 0 0 0-2.41 1.4zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
-              />
-            </svg>
+            <PlugIcon custom-class="w-full w-5 h-5"/>
           </template>
         </ProgressIcon>
         <!-- Step 4 -->
         <ProgressIcon
           class="w-1/5"
           :active="isActive(3)"
-          :lined="true"
+          :current-step="trainingStore.step == 3"
+          :has-left-line="true"
           @click="toStep(3)"
         >
           <template #text>
             Model Training
           </template>
           <template #icon>
-            <svg
-              class="w-full fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path
-                class="heroicon-ui"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
+            <ModelIcon custom-class="w-full w-6 w-6" view-box="-6 -6 36 36"/>
           </template>
         </ProgressIcon>
         <!-- Step 5 -->
         <ProgressIcon
           class="w-1/5"
           :active="isActive(4)"
-          :lined="true"
+          :current-step="trainingStore.step == 4"
+          :has-left-line="true"
           @click="toStep(4)"
         >
           <template #text>
             Model Evaluation
           </template>
           <template #icon>
-            <svg
-              class="w-full fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path
-                class="heroicon-ui"
-                d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-2.3-8.7l1.3 1.29 3.3-3.3a1 1 0 0 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-2-2a1 1 0 0 1 1.4-1.42z"
-              />
-            </svg>
+            <PerformanceIcon custom-class="w-full w-7 h-7" viewBox="2 -4 12 24"/>
           </template>
         </ProgressIcon>
       </div>
@@ -178,8 +138,13 @@ import { useTasksStore } from '@/store/tasks'
 import { useTrainingStore } from '@/store/training'
 import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
+import PlugIcon from '@/assets/svg/PlugIcon.vue'
+import ModelIcon from '@/assets/svg/ModelIcon.vue'
+import TasksIcon from '@/assets/svg/TasksIcon.vue'
+import PerformanceIcon from '@/assets/svg/PerformanceIcon.vue'
+
 import CustomButton from '@/components/simple/CustomButton.vue'
-import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
+import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -187,10 +152,11 @@ const toaster = useToaster()
 const tasksStore = useTasksStore()
 const trainingStore = useTrainingStore()
 
-const scheme = computed(() => {
+const taskTitle = computed(() => {
   if (trainingStore.task === undefined) return undefined
   const task = tasksStore.tasks.get(trainingStore.task)
-  return task?.trainingInformation?.scheme
+  return task?.displayInformation?.taskTitle
+
 })
 
 const displayTitle = computed(() => route.fullPath !== '/list')
@@ -206,13 +172,10 @@ const isActive = (step: number): boolean => {
 
 const toStep = (step: number): void => {
   if (route.fullPath === '/list') {
-    if (trainingStore.task !== undefined) {
-      router.push(trainingStore.task)
-    } else {
-      toaster.error('Please select a task first')
-    }
+    toaster.error('Choose a DISCOllaborative first')
   } else if (step === 0) {
     router.push('/list')
+    trainingStore.setStep(0)
   } else {
     trainingStore.setStep(step)
   }
@@ -221,6 +184,7 @@ const toStep = (step: number): void => {
 const prevStepOrList = (): void => {
   if (trainingStore.step === 1) {
     router.push({ path: '/list' })
+    trainingStore.setStep(0)
   } else {
     trainingStore.prevStep()
   }

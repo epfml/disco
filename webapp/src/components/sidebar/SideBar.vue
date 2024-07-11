@@ -43,7 +43,7 @@
           hover-text="DISCOllaboratives"
           @click="goToTaskList()"
         >
-          <Tasks customClass="w-6 h-6"/>
+          <TasksIcon customClass="w-6 h-6"/>
         </SidebarButton>
         <!-- Go to custom task creation page -->
         <SidebarButton
@@ -61,6 +61,7 @@
         </SidebarButton>
         <!-- Display Model Library panel -->
         <SidebarButton
+          id="model-library-btn"
           hover-text="Model Library"
           @click="openModelLibrary()"
         >
@@ -143,15 +144,13 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import type { Instance, Props, Placement } from 'tippy.js'
-import tippy from 'tippy.js'
 
 import ModelLibrary from './ModelLibrary.vue'
 import SidebarButton from './containers/SidebarButton.vue'
 import HomeIcon from '@/assets/svg/HomeIcon.vue'
-import Tasks from '@/assets/svg/Tasks.vue'
+import TasksIcon from '@/assets/svg/TasksIcon.vue'
 import CreateIcon from '@/assets/svg/CreateIcon.vue'
 import EvaluateIcon from '@/assets/svg/EvaluateIcon.vue'
 import InfoIcon from '@/assets/svg/InfoIcon.vue'
@@ -190,17 +189,4 @@ function goToInformation () {
   router.push({ path: '/information' })
 }
 
-onMounted(() => {
-  tippy('.tippy-tooltip', {
-    theme: 'custom-dark',
-    delay: 0,
-    duration: 0,
-    content: (reference: Element) => reference.getAttribute('data-title') as string,
-    onMount: (instance: Instance<Props>) => {
-      instance.popperInstance?.setOptions({
-        placement: instance.reference.getAttribute('data-placement') as Placement
-      })
-    }
-  })
-})
 </script>

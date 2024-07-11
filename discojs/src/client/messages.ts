@@ -8,7 +8,6 @@ export enum type {
 
   // Decentralized
   SignalForPeer,
-
   PeerIsReady,
   PeersForRound,
 

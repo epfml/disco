@@ -27,7 +27,7 @@
         </div>
         <!-- If the task data type is tabular, text or if we are doing inference only, then display a single drag and drop box -->
         <FileSelection
-          v-if="task.trainingInformation.dataType === 'text' || isOnlyPrediction"
+          v-if="isOnlyPrediction"
           @csv="setCsv($event)"
           :is-multiple="false"
           :dataset-builder="props.datasetBuilder"
@@ -35,7 +35,15 @@
           :csv-rows="csvRows"
         />
         <FileSelection
-          v-if="task.trainingInformation.dataType === 'tabular' || isOnlyPrediction"
+          v-else-if="task.trainingInformation.dataType === 'text'"
+          @csv="setCsv($event)"
+          :is-multiple="false"
+          :dataset-builder="props.datasetBuilder"
+          :task="props.task"
+          :csv-rows="csvRows"
+        />
+        <FileSelection
+          v-else-if="task.trainingInformation.dataType === 'tabular'"
           @csv="setCsv($event)"
           :is-multiple="false"
           :dataset-builder="props.datasetBuilder"
@@ -109,7 +117,7 @@
           @csv="setCsv($event)"
         />
       </div>
-    <!-- Connecting images by CSV mode -->
+      <!-- Connecting images by CSV mode -->
       <div
         v-show="!connectImagesByGroup"
         class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8"
@@ -192,7 +200,7 @@ import FileSelection from './FileSelection.vue'
 interface Props {
   task: Task
   datasetBuilder: data.DatasetBuilder<File>
-  isOnlyPrediction: boolean //TODO: seems to always be false
+  isOnlyPrediction: boolean //is true when predicting with a trained model
 }
 
 const props = defineProps<Props>()

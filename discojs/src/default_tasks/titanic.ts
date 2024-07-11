@@ -49,8 +49,8 @@ export const titanic: TaskProvider = {
       },
       trainingInformation: {
         modelID: 'titanic-model',
-        epochs: 40,
-        roundDuration: 10,
+        epochs: 10,
+        roundDuration: 2,
         validationSplit: 0.2,
         batchSize: 30,
         preprocessingFunctions: [data.TabularPreprocessing.Sanitize],

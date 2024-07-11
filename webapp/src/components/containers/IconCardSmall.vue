@@ -1,10 +1,10 @@
 <template>
   <div
-    class="flex items-center justify-between p-4 bg-white rounded-md dark:bg-darker"
+    class="flex items-center justify-between p-4 bg-white rounded-md"
   >
     <div>
       <h6
-        class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase dark:text-primary-light"
+        class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase"
       >
         {{ header }}
       </h6>
@@ -12,7 +12,7 @@
         {{ text }}
       </span>
     </div>
-    <div>
+    <div class="ml-2">
       <span>
         <slot />
       </span>

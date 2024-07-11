@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-show="validationStore.step === 0">
-      <div class="flex flex-col gap-16">
+      <div class="flex flex-col gap-8">
         <div v-if="memoryStore.models.size > 0">
           <IconCard title-placement="center">
             <template #title>
@@ -129,6 +129,17 @@
           As such, please ensure your dataset of choice was not used during the training phase of your model.
         </template>
       </IconCard>
+      <!-- Language model prompting is currently unavailable   -->
+      <div 
+        v-if="currentTask.trainingInformation.dataType === 'text' && validationStore.isOnlyPrediction"
+        v-show="validationStore.step !== 0"
+      >
+        <div class="flex justify-center items-center mb-4">
+          <span class="shrink-0 py-4 px-4 bg-orange-100 rounded-md">
+            <p class="text-slate-600 text-xs">Prompting a language model will be available soon!</p>
+          </span>
+        </div>
+      </div>
       <KeepAlive>
         <component
           :is="currentComponent[0]"
@@ -163,11 +174,13 @@ import DISCO from "@/components/simple/DISCO.vue";
 import Tester from '@/components/testing/Tester.vue'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
+import { useToaster } from '@/composables/toaster'
 
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
 
+const toaster = useToaster()
 const currentComponent = computed<[Component, string] | undefined>(() => {
   switch (stepRef.value) {
     case 1:
@@ -232,17 +245,32 @@ onActivated(async () => {
 })
 
 const downloadModel = async (task: Task): Promise<void> => {
-  const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
-  const model = await client.getLatestModel()
-  const source = {
-    type: 'saved' as const,
-    taskID: task.id,
-    name: task.trainingInformation.modelID,
-    tensorBackend: task.trainingInformation.tensorBackend,
-  }
-  await memory.value.saveModel(source, model)
-  await memoryStore.initModels()
+  try {
+    const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
+    const model = await client.getLatestModel()
+    const source = {
+      type: 'saved' as const,
+      taskID: task.id,
+      name: task.trainingInformation.modelID,
+      tensorBackend: task.trainingInformation.tensorBackend,
+    }
+    await memory.value.saveModel(source, model)
+    await memoryStore.initModels()
+    toaster.success("Model successfully downloaded!")
+    const scrollableDiv = document.getElementById('scrollable-div')
+    if (scrollableDiv !== null) {
+      scrollableDiv.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
+    }
+  } catch (e) {
+    toaster.error("Something went wrong, please try again later.")
+    console.error(e)
+  }  
 }
+
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
   const taskID = memory.value.getModelInfo(path)?.taskID
   if (taskID === undefined) {
