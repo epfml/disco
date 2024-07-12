@@ -272,11 +272,6 @@ const lossSeries = computed(() =>
 
 const commonChartsOptions = {
   chart: {
-    animations: {
-      enabled: true,
-      easing: "linear",
-      dynamicAnimation: { speed: 1000 },
-    },
     toolbar: { show: false },
     zoom: { enabled: false },
   },
@@ -288,14 +283,9 @@ const commonChartsOptions = {
     opacity: 0.6,
   },
   stroke: { curve: "smooth" },
-  markers: { size: 0.5 },
-  grid: {
-    xaxis: { lines: { show: false } },
-    yaxis: { lines: { show: false } },
-  },
+  grid: { show: false },
   xaxis: { labels: { show: false } },
   legend: { show: false },
-  tooltip: { enabled: true },
 };
 
 const accuracyChartsOptions = {
@@ -303,10 +293,7 @@ const accuracyChartsOptions = {
   yaxis: {
     max: 100,
     min: 0,
-    labels: {
-      show: true,
-      formatter: (value: number) => value.toFixed(0),
-    },
+    labels: { formatter: (value: number) => value.toFixed(0) },
   },
 };
 
@@ -323,10 +310,7 @@ const lossChartsOptions = computed(() => {
     yaxis: {
       max: yAxisMax,
       min: 0,
-      labels: {
-        show: true,
-        formatter: (n: number) => n.toFixed(2),
-      },
+      labels: { formatter: (n: number) => n.toFixed(2) },
     },
   };
 });
