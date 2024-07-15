@@ -1,6 +1,7 @@
 import { Map, Set } from 'immutable'
 
-import { type WeightsContainer, serialization } from '../../index.js'
+import type { WeightsContainer } from "../../index.js";
+import { serialization } from "../../index.js";
 import { Client, type NodeID } from '../index.js'
 import { type, type ClientConnected } from '../messages.js'
 import { timeout } from '../utils.js'
@@ -199,13 +200,14 @@ export class Base extends Client {
     weights: WeightsContainer,
     round: number,
   ): Promise<void> {
-    let result = weights
+    weights = await this.applyPrivacy(weights);
 
     // Perform the required communication rounds. Each communication round consists in sending our local payload,
     // followed by an aggregation step triggered by the receipt of other payloads, and handled by the aggregator.
     // A communication round's payload is the aggregation result of the previous communication round. The first
     // communication round simply sends our training result, i.e. model weights updates. This scheme allows for
     // the aggregator to define any complex multi-round aggregation mechanism.
+    let result = weights;
     for (let r = 0; r < this.aggregator.communicationRounds; r++) {
       // Generate our payloads for this communication round and send them to all ready connected peers
       if (this.connections !== undefined) {

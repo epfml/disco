@@ -1,7 +1,8 @@
 import axios from 'axios'
+import * as tf from "@tensorflow/tfjs";
 
 import type { Model, Task, WeightsContainer } from '../index.js'
-import { serialization } from '../index.js'
+import { privacy, serialization } from '../index.js'
 import type { NodeID } from './types.js'
 import type { EventConnection } from './event_connection.js'
 import type { Aggregator } from '../aggregator/index.js'
@@ -23,6 +24,8 @@ export abstract class Base {
    * The aggregator's result produced after aggregation.
    */
   protected aggregationResult?: Promise<WeightsContainer>
+
+  #previousRoundWeights?: WeightsContainer;
 
   constructor (
     /**
@@ -104,5 +107,28 @@ export abstract class Base {
       throw new Error('server undefined, not connected')
     }
     return this._server
+  }
+
+  protected async applyPrivacy(
+    ws: WeightsContainer,
+  ): Promise<WeightsContainer> {
+    if (this.task.trainingInformation.privacy === undefined) return ws;
+
+    const { clippingRadius, noiseScale } =
+      this.task.trainingInformation.privacy;
+
+    const previousRoundWeights =
+      this.#previousRoundWeights ?? ws.map((w) => tf.zerosLike(w));
+    const weightsProgress = ws.sub(previousRoundWeights);
+    this.#previousRoundWeights = ws;
+
+    let ret = ws;
+    if (clippingRadius !== undefined)
+      ret = previousRoundWeights.add(
+        await privacy.clipNorm(clippingRadius, weightsProgress),
+      );
+    if (noiseScale !== undefined) ret = privacy.addNoise(noiseScale, ret);
+
+    return ret;
   }
 }

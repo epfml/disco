@@ -1,46 +1,39 @@
-import * as tf from '@tensorflow/tfjs'
+import * as tf from "@tensorflow/tfjs";
 
-import type { Task, WeightsContainer } from './index.js'
+import type { WeightsContainer } from "./index.js";
+
+async function frobeniusNorm(weights: WeightsContainer): Promise<number> {
+  const squared = await weights
+    .map((w) => w.square().sum())
+    .reduce((a, b) => a.add(b))
+    .data();
+  if (squared.length !== 1) throw new Error("unexcepted weights shape");
+
+  return Math.sqrt(squared[0]);
+}
+
+/** Scramble weights */
+export function addNoise(
+  weights: WeightsContainer,
+  deviation: number,
+): WeightsContainer {
+  const variance = Math.pow(deviation, 2);
+  return weights.map((w) => w.add(tf.randomNormal(w.shape, 0, variance)));
+}
 
 /**
- * Add task-parametrized Gaussian noise to and clip the weights update between the previous and current rounds.
- * The previous round's weights are the last weights pulled from server/peers.
- * The current round's weights are obtained after a single round of training, from the previous round's weights.
- * @param updatedWeights weights from the current round
- * @param staleWeights weights from the previous round
- * @param task the task
- * @returns the noised weights for the current round
- */
-export function addDifferentialPrivacy (updatedWeights: WeightsContainer, staleWeights: WeightsContainer, task: Task): WeightsContainer {
-  const noiseScale = task.trainingInformation?.noiseScale
-  const clippingRadius = task.trainingInformation?.clippingRadius
+ * Keep weights' norm within radius
+ *
+ * @param radius maximum norm
+ **/
+export async function clipNorm(
+  weights: WeightsContainer,
+  radius: number,
+): Promise<WeightsContainer> {
+  if (radius <= 0) throw new Error("invalid radius");
 
-  const weightsDiff = updatedWeights.sub(staleWeights)
-  let newWeightsDiff: WeightsContainer
+  const norm = await frobeniusNorm(weights);
+  const scaling = Math.max(1, norm / radius);
 
-  if (clippingRadius !== undefined) {
-    // Frobenius norm
-    const norm = weightsDiff.frobeniusNorm()
-
-    newWeightsDiff = weightsDiff.map((w) => {
-      const clipped = w.div(Math.max(1, norm / clippingRadius))
-      if (noiseScale !== undefined) {
-        // Add clipping and noise
-        const noise = tf.randomNormal(w.shape, 0, (noiseScale * noiseScale) * (clippingRadius * clippingRadius))
-        return clipped.add(noise)
-      } else {
-        // Add clipping without any noise
-        return clipped
-      }
-    })
-  } else {
-    if (noiseScale !== undefined) {
-      // Add noise without any clipping
-      newWeightsDiff = weightsDiff.map((w) => tf.randomNormal(w.shape, 0, (noiseScale * noiseScale)))
-    } else {
-      return updatedWeights
-    }
-  }
-
-  return staleWeights.add(newWeightsDiff)
+  return weights.map((w) => w.div(scaling));
 }

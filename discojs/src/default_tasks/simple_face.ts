@@ -32,8 +32,6 @@ export const simpleFace: TaskProvider = {
         IMAGE_W: 200,
         LABEL_LIST: ['child', 'adult'],
         scheme: 'federated', // secure aggregation not yet implemented for federated
-        noiseScale: undefined,
-        clippingRadius: undefined,
         tensorBackend: 'tfjs'
       }
     }
