@@ -105,6 +105,8 @@ export class Base extends Client {
     weights: WeightsContainer,
     round: number,
   ): Promise<void> {
+    weights = await this.applyPrivacy(weights)
+
     // NB: For now, we suppose a fully-federated setting.
 
     if (this.aggregationResult === undefined) {

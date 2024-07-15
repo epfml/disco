@@ -33,8 +33,6 @@ export const mnist: TaskProvider = {
         preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         scheme: 'decentralized',
-        noiseScale: undefined,
-        clippingRadius: undefined,
         decentralizedSecure: true,
         minimumReadyPeers: 3,
         maxShareValue: 100,

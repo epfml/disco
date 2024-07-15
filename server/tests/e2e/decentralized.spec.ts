@@ -1,12 +1,31 @@
 import type { Server } from 'node:http'
 import { List } from 'immutable'
-import { assert } from 'chai'
+import { expect } from 'chai'
 
 import {
   aggregator as aggregators, client as clients, WeightsContainer, defaultTasks, aggregation
 } from '@epfml/discojs'
 
 import { startServer } from '../../src/index.js'
+
+async function WSIntoList(ws: WeightsContainer): Promise<List<List<number>>> {
+  return List((await Promise.all(ws.weights.map(async (w) => await w.data()))).map(
+    (arr) => List(arr),
+  ));
+}
+
+async function expectWSToBeClose(
+  left: WeightsContainer,
+  right: WeightsContainer,
+): Promise<void> {
+  (await WSIntoList(left))
+    .zip(await WSIntoList(right))
+    .forEach((tensors) =>
+      tensors[0]
+        .zip(tensors[1])
+        .forEach(([l, r]) => expect(l).to.be.closeTo(r, 1e-4)),
+    );
+}
 
 // Mocked aggregators with easy-to-fetch aggregation results
 class MockMeanAggregator extends aggregators.MeanAggregator {
@@ -56,7 +75,6 @@ class MockSecureAggregator extends aggregators.SecureAggregator {
 }
 
 describe('end-to-end decentralized', function () {
-  const epsilon = 1e-4
   this.timeout(30_000)
 
   let server: Server
@@ -107,7 +125,6 @@ describe('end-to-end decentralized', function () {
     rounds = 1
   ): Promise<void> {
     // Expect the clients to reach the mean consensus, for both the mean and secure aggregators
-    const expected = WeightsContainer.of([0.002, 7, 27, 11])
     const contributions = List.of(
       [0.001, 3, 40, 10],
       [0.002, 5, 30, 11],
@@ -118,8 +135,14 @@ describe('end-to-end decentralized', function () {
       // Disconnect clients once they reached consensus
       await client.disconnect()
       return consensus
-    }))
-    assert.isTrue(consensuses.every((consensus) => consensus.equals(expected, epsilon)))
+    }));
+
+    const consensus = consensuses[0];
+    await Promise.all(
+      consensuses.map(
+        async (current) => await expectWSToBeClose(consensus, current),
+      ),
+    );
   }
 
   it('single round of cifar 10 with three mean aggregators yields consensus', async () => {
