@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Map, Range, Set } from "immutable";
-import { mock, instance, when, anything } from 'ts-mockito';
+import { mock, instance } from 'ts-mockito';
 import { Model, WeightsContainer } from "./index.js";
 import {
   Aggregator,
@@ -30,7 +30,7 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
       expect(aggregator.size).to.equal(0);
     })
 
-    it("model correctly initialized", async () => {
+    it("model correctly initialized", () => {
       const aggregator = new Aggregator();
 
       const model = mock(Model);
