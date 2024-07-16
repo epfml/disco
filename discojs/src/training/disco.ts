@@ -28,7 +28,7 @@ export class Disco {
   public readonly logger: Logger
   public readonly memory: Memory
   private readonly client: clients.Client
-  private readonly trainer: Promise<Trainer>
+  private readonly trainerPromise: Promise<Trainer>
 
   constructor (
     task: Task,
@@ -37,12 +37,20 @@ export class Disco {
     if (options.scheme === undefined) {
       options.scheme = task.trainingInformation.scheme
     }
-    if (options.aggregator === undefined) {
-      options.aggregator = new MeanAggregator()
-    }
     if (options.client === undefined) {
       if (options.url === undefined) {
         throw new Error('could not determine client from given parameters')
+      }
+      if (options.aggregator === undefined) {
+        if (options.scheme === 'decentralized') {
+          // By default we expect a contribution from all peers, so we set the threshold to 100%
+          options.aggregator = new MeanAggregator(undefined, undefined, 1, 'relative') 
+        } else {
+          // If federated then we only expect the server's contribution at each round 
+          // so we set the aggregation threshold to 1 contribution
+          // If training locally then we only expect our own contribution
+          options.aggregator = new MeanAggregator(undefined, undefined, 1, 'absolute') 
+        }
       }
 
       if (typeof options.url === 'string') {
@@ -80,7 +88,7 @@ export class Disco {
     this.logger = options.logger
 
     const trainerBuilder = new TrainerBuilder(this.memory, this.task)
-    this.trainer = trainerBuilder.build(this.client, options.scheme !== 'local')
+    this.trainerPromise = trainerBuilder.build(this.client, options.scheme !== 'local')
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -140,7 +148,7 @@ export class Disco {
     const validationData =
       dataTuple.validation?.preprocess().batch() ?? trainData;
     await this.client.connect();
-    const trainer = await this.trainer;
+    const trainer = await this.trainerPromise;
 
     for await (const [round, epochs] of enumerate(
       trainer.fitModel(trainData.dataset, validationData.dataset),
@@ -172,7 +180,7 @@ export class Disco {
 
         return {
           epochs: epochsLogs,
-          participants: this.client.nodes.size + 1, // add ourself
+          participants: this.client.nbOfParticipants, // already includes ourselves
         };
       }.bind(this)();
     }
@@ -184,7 +192,7 @@ export class Disco {
    * Stops the ongoing training instance without disconnecting the client.
    */
   async pause (): Promise<void> {
-    const trainer = await this.trainer
+    const trainer = await this.trainerPromise
     await trainer.stopTraining()
   }
 

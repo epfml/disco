@@ -151,6 +151,7 @@ export abstract class Base<T> {
    * peer/client within the network, whom we are communicating with during this aggregation
    * round.
    * @param nodeId The node to be added
+   * @returns True is the node wasn't already in the list of nodes, False if already included
    */
   registerNode (nodeId: client.NodeID): boolean {
     if (!this.nodes.has(nodeId)) {

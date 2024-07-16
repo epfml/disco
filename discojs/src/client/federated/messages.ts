@@ -18,8 +18,11 @@ export interface SendPayload {
 export interface ReceiveServerPayload {
   type: type.ReceiveServerPayload
   payload: weights.Encoded
-  round: number
+  round: number,
+  nbOfParticipants: number // number of peers contributing to a federated training
 }
+
+// TODO: never used
 export interface ReceiveServerMetadata {
   type: type.ReceiveServerMetadata
   nodeId: client.NodeID

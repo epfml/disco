@@ -4,33 +4,51 @@ import { AggregationStep, Base as Aggregator } from "./base.js";
 import type { Model, WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
 
-/** Mean aggregator whose aggregation step consists in computing the mean of the received weights. */
+type ThresholdType = 'relative' | 'absolute'
+
+/** 
+ * Mean aggregator whose aggregation step consists in computing the mean of the received weights. 
+ * 
+ */
 export class MeanAggregator extends Aggregator<WeightsContainer> {
   readonly #threshold: number;
+  readonly #thresholdType: ThresholdType;
 
   /**
+   * @param roundCutoff - from how many past rounds do we still accept contributions. 
+   * If 0 then only accept contributions from the current round, 
+   * if 1 then the current round and the previous one, etc.
    * @param threshold - how many contributions for trigger an aggregation step.
-   *   - relative: 0 < t <= 1, thus requiring t * |nodes| contributions
-   *   - absolute: t > 1, thus requiring t contributions
+   *   - relative: 0 < t < 1, requiring t * |nodes| contributions
+   *   - absolute: t >= 1, requiring t contributions
+   * @param thresholdType 'relative' or 'absolute', is only used to clarify the case when threshold = 1, 
+   * If threshold != 1 then the specifying thresholdType is ignored and overwritten
+   * If thresholdType = 'absolute' and then threshold = 1 means waiting for 1 contribution
+   * if thresholdType = 'relative' then threshold = 1 means 100% of the contributions, 
+   * i.e., waiting for a contribution from every nodes
    */
-  // TODO no way to require a single contribution
-  constructor(model?: Model, roundCutoff = 0, threshold = 1) {
-    if (threshold <= 0) throw new Error("threshold must be striclty positive");
-    if (threshold > 1 && !Number.isInteger(threshold))
-      throw new Error("absolute thresholds must be integeral");
+  constructor(model?: Model, roundCutoff = 0, threshold = 1, thresholdType: ThresholdType = 'absolute') {
+    if (threshold <= 0) throw new Error("threshold must be strictly positive");
+    if (threshold > 1 && (!Number.isInteger(threshold) || thresholdType != 'absolute'))
+      throw new Error("absolute thresholds must be integral");
 
+  
     super(model, roundCutoff, 1);
     this.#threshold = threshold;
+    
+    if (threshold < 1) this.#thresholdType = 'relative'
+    else if (threshold > 1) this.#thresholdType = 'absolute'
+    else this.#thresholdType = thresholdType;
   }
 
   /** Checks whether the contributions buffer is full. */
   override isFull(): boolean {
-    const actualThreshold =
-      this.#threshold <= 1
+    const thresholdValue =
+      this.#thresholdType == 'relative'
         ? this.#threshold * this.nodes.size
         : this.#threshold;
 
-    return (this.contributions.get(0)?.size ?? 0) >= actualThreshold;
+    return (this.contributions.get(0)?.size ?? 0) >= thresholdValue;
   }
 
   override add(
