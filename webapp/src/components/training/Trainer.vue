@@ -125,7 +125,6 @@ const stopper = new Error("stop training")
 async function startTraining(distributed: boolean): Promise<void> {
   isTraining.value = true
   isTrainingAlone.value = !distributed
-  console.log(isTraining.value, isTrainingAlone.value)
   // Reset training information before starting a new training
   trainingGenerator.value = undefined
   roundsLogs.value = List<RoundLogs & { participants: number }>()
