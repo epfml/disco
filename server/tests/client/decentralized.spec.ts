@@ -7,7 +7,7 @@ import { startServer } from '../../src/index.js'
 import { WeightsContainer } from '@epfml/discojs/dist/index.js'
 import { List } from 'immutable'
 
-const TASK = defaultTasks.titanic.getTask()
+const TASK = defaultTasks.mnist.getTask()
 
 function test(
   name: string,
@@ -41,7 +41,6 @@ function test(
       try {
         await Promise.all(clients.map(async (c) => await c.connect()))
 
-        // Ensure the weights are properly typed as WeightsContainer instances
         const wss = List.of(
           WeightsContainer.of([0]),
           WeightsContainer.of([1]),
@@ -57,7 +56,20 @@ function test(
             .toArray()
         )
 
-        clients.forEach((client) => expect(clients.size).to.eq(client.nodes.size))
+        // send contribution to peers that are waiting: is done via onRoundEndCommunication:
+        // 
+        
+
+        clients.forEach((client) => expect(clients.size, 'all nodes should be connected to each other').to.eq(client.nodes.size))
+
+        await Promise.all(
+          clients.zip(wss)
+            .map(async ([c, ws]) => await c.onRoundEndCommunication(ws as WeightsContainer, 0))
+            .toArray()
+        )
+
+        clients.forEach((client) => expect(0, 'all nodes should be disconnected at the end of a round').to.eq(client.nodes.size))
+
       } finally {
         await Promise.all(clients.map(async (c) => await c.disconnect()))
       }

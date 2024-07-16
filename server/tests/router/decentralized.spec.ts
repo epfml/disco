@@ -1,41 +1,44 @@
 // import { agent as request } from 'supertest'
 
+import { WeightsContainer } from "@epfml/discojs"
+
 // import { serialization, WeightsContainer } from '@epfml/discojs-web'
 
 // import { getApp } from '../../src/get_server'
 
-// const platformID = 'deai'
-// const clients = {
-//   one: 'one',
-//   two: 'two'
-// }
-// const task = 'titanic'
+const platformID = 'deai'
+const clients = {
+   one: 'one',
+   two: 'two'
+ }
+ const task = 'titanic'
 
-// const weights = WeightsContainer.of([1, 1], [1, 1])
+ const weights = WeightsContainer.of([1, 1], [1, 1])
 
-// const newRound = 1
+ const newRound = 1
 
-// function connectHeader (
-//   platformID: string,
-//   taskID: string,
-//   clientID: string
-// ): string {
-//   return `/${platformID}/connect/${taskID}/${clientID}`
-// }
+function connectHeader (
+   platformID: string,
+   taskID: string,
+   clientID: string
+ ): string {
+   return `/${platformID}/connect/${taskID}/${clientID}`
+ }
 
-// function disconnectHeader (
-//   platformID: string,
-//   taskID: string,
-//   clientID: string
-// ): string {
-//   return `/${platformID}/disconnect/${taskID}/${clientID}`
-// }
+function disconnectHeader (
+   platformID: string,
+   taskID: string,
+   clientID: string
+ ): string {
+   return `/${platformID}/disconnect/${taskID}/${clientID}`
+ }
 
-// describe(`${platformID} simple connection tests`, function () {
-//   this.timeout(30_000)
+describe(`${platformID} simple connection tests`, function () {
+   this.timeout(30_000)
 
-//   it('connect and then disconnect to valid task', async () => {
+   it('connect and then disconnect to valid task', async () => {
 //     const app = await getApp()
+         
 
 //     await request(app)
 //       .get(connectHeader(platformID, task, clients.one))
@@ -43,7 +46,7 @@
 //     await request(app)
 //       .get(disconnectHeader(platformID, task, clients.one))
 //       .expect(200)
-//   })
+   })
 
 //   it('connect to non existing task', async () => {
 //     // the single test
@@ -80,4 +83,5 @@
 //   })
 
 //   // TODO: Add a test with a whole round, etc
-// })
+})
+
