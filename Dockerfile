@@ -1,5 +1,5 @@
 # waiting for nodejs/docker-node#2081
-FROM node:20.12 as builder
+FROM node:22.4 as builder
 
 COPY package*.json .
 COPY isomorphic-wrtc/package.json isomorphic-wrtc/
@@ -17,7 +17,7 @@ RUN npm --workspace=discojs --workspace=discojs-node run build
 COPY server/ server/
 RUN cd server/ && npm run build
 
-FROM node:20.12-slim as runner
+FROM node:22.4-slim as runner
 
 COPY --link --from=builder package*.json .
 COPY --link --from=builder isomorphic-wrtc/package.json isomorphic-wrtc/
