@@ -75,7 +75,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=edge
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         id: build
         with:
           push: true
