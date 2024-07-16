@@ -223,9 +223,16 @@ const participants = computed(() => ({
 
 const batchesCount = computed(() => props.batchesOfEpoch.size);
 
-const allEpochs = computed(() =>
-  props.rounds.flatMap((round) => round.epochs).concat(props.epochsOfRound),
-);
+const allEpochs = computed<List<EpochLogs>>((oldValue) => {
+  const ret = props.rounds
+    .flatMap((round) => round.epochs)
+    .concat(props.epochsOfRound);
+
+  // avoid recomputing dependencies such as when finishing round
+  if (oldValue !== undefined && ret.equals(oldValue)) return oldValue;
+
+  return ret;
+});
 const lastEpoch = computed(() => allEpochs.value.last());
 
 const accuracySeries = computed(() =>
@@ -265,11 +272,6 @@ const lossSeries = computed(() =>
 
 const commonChartsOptions = {
   chart: {
-    animations: {
-      enabled: true,
-      easing: "linear",
-      dynamicAnimation: { speed: 1000 },
-    },
     toolbar: { show: false },
     zoom: { enabled: false },
   },
@@ -281,14 +283,9 @@ const commonChartsOptions = {
     opacity: 0.6,
   },
   stroke: { curve: "smooth" },
-  markers: { size: 0.5 },
-  grid: {
-    xaxis: { lines: { show: false } },
-    yaxis: { lines: { show: false } },
-  },
+  grid: { show: false },
   xaxis: { labels: { show: false } },
   legend: { show: false },
-  tooltip: { enabled: true },
 };
 
 const accuracyChartsOptions = {
@@ -296,10 +293,7 @@ const accuracyChartsOptions = {
   yaxis: {
     max: 100,
     min: 0,
-    labels: {
-      show: true,
-      formatter: (value: number) => value.toFixed(0),
-    },
+    labels: { formatter: (value: number) => value.toFixed(0) },
   },
 };
 
@@ -316,10 +310,7 @@ const lossChartsOptions = computed(() => {
     yaxis: {
       max: yAxisMax,
       min: 0,
-      labels: {
-        show: true,
-        formatter: (n: number) => n.toFixed(2),
-      },
+      labels: { formatter: (n: number) => n.toFixed(2) },
     },
   };
 });
