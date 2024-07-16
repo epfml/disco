@@ -38,7 +38,6 @@ const showNext = computed<boolean>(() =>
 
   const scrollToTop = ():void => {
   const appElement = document.getElementById('main-page');
-  console.log(appElement)
   if (appElement) {
     appElement.scrollTop = 0;
   }

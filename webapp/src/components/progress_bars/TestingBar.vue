@@ -37,7 +37,7 @@
         @click="handleRoute(1)"
       >
         <template #text>
-          Connect Your Data
+          Connect Your Data ({{ testing }})
         </template>
         <template #icon>
           <svg
@@ -62,7 +62,7 @@
         @click="handleRoute(2)"
       >
         <template #text>
-          Evaluate Your Model
+          Evaluate Your Model ({{ testing }})
         </template>
         <template #icon>
           <svg
@@ -84,8 +84,8 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed } from 'vue'
 
+import { computed } from 'vue'
 import { useValidationStore } from '@/store/validation'
 import { useMemoryStore } from '@/store/memory'
 import { useToaster } from '@/composables/toaster'
@@ -96,11 +96,8 @@ const toaster = useToaster()
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 
-const showPrev = computed<boolean>(() =>
-  validationStore.step > 0)
+const testing = computed(() => validationStore.isOnlyPrediction ? 'Prediction' : 'Testing')
 
-const showNext = computed<boolean>(() =>
-  validationStore.step > 0 && validationStore.step < 2)
 
 const isActive = (step: number): boolean => step <= validationStore.step
 const isCurrent = (step: number): boolean => step == validationStore.step
@@ -115,7 +112,4 @@ const handleRoute = (step: number): void => {
   }
 }
 
-const prevStep = (): void => { validationStore.step-- }
-
-const nextStep = (): void => { validationStore.step++ }
 </script>

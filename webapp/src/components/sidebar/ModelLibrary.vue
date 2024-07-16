@@ -29,14 +29,17 @@
             >
               <div class="cursor-pointer w-2/3 flex flex-col justify-start" @click="openTesting(path)">
                 <span class="flex flex-col text-start gap-1">
-                  {{ metadata.name.slice(0, 16) }}
+                  <span>
+                    {{ metadata.name.slice(0, 16) }}
+                  
                   <span
-                    v-if="
+                v-if="
                       metadata.version !== undefined && metadata.version !== 0
-                    "
+                      "
                   >
-                    ({{ metadata.version }}) </span
-                  ><br />
+                ({{ metadata.version }}) </span
+              ><br />
+              </span>
                   <span class="text-xs">
                     
                     {{ metadata.date }} at {{ metadata.hours }} <br />
@@ -46,29 +49,29 @@
               </div>
               <div class="w-1/9">
                 <ModelButton
-                  event="delete-model"
-                  hover="Delete"
-                  @delete-model="deleteModelConfirm(path)"
-                >
-                  <Bin2Icon />
-                </ModelButton>
-              </div>
-              <div class="w-1/9">
-                <ModelButton
-                  event="download-model"
-                  hover="Download"
-                  @download-model="downloadModel(path)"
+                event="download-model"
+                hover="Download"
+                @download-model="downloadModel(path)"
                 >
                   <Download2Icon />
                 </ModelButton>
               </div>
               <div class="w-1/9">
                 <ModelButton
-                  event="load-model"
-                  hover="Load for next training"
-                  @load-model="loadModel(path)"
+                event="load-model"
+                hover="Load for next training"
+                @load-model="loadModel(path)"
                 >
                   <LoadIcon />
+                </ModelButton>
+              </div>
+              <div class="w-1/9">
+                <ModelButton
+                  event="delete-model"
+                  hover="Delete"
+                  @delete-model="deleteModelConfirm(path)"
+                >
+                  <Bin2Icon />
                 </ModelButton>
               </div>
             </button>

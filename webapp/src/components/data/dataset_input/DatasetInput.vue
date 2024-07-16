@@ -199,8 +199,17 @@ const readCsv = (files: FileList) => {
   })
 }
 
+const isFile = (fileItem : File) => {
+  return fileItem.type !== ""
+}
+
 const addFiles = (files: FileList, label?: string) => {
-  const filesArray = Array.from(files)
+  const filesArray = Array.from(files).filter(isFile)
+
+  if(filesArray.length === 0) {
+    toaster.error("You selected a folder, please select the data inside the folder.")
+    return
+  }
 
   if (props.task.trainingInformation.dataType === 'image' && requireLabels.value && !props.isOnlyPrediction) {
     if (label) {

@@ -15,13 +15,13 @@
             <CustomButton @click="startTraining(false)">
               train alone
               <template #description>
-                Description of Train alone
+                Train on your own
               </template>
             </CustomButton>
             <CustomButton @click="startTraining(true)">
               train collaboratively
               <template #description>
-                Description of Train collaboratively
+                Share the model's weights with other participants
               </template>
             </CustomButton>
           </div>
