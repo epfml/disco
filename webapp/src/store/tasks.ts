@@ -9,8 +9,6 @@ import { useToaster } from '@/composables/toaster'
 import { CONFIG } from '@/config'
 import { useTrainingStore } from './training'
 
-const TASKS_TO_FILTER_OUT = ['simple_face', 'cifar10']
-
 export const useTasksStore = defineStore('tasks', () => {
   const trainingStore = useTrainingStore()
 
@@ -24,6 +22,8 @@ export const useTasksStore = defineStore('tasks', () => {
     trainingStore.setStep(0);
     tasks.value = tasks.value.set(task.id, task)
   }
+
+  const TASKS_TO_FILTER_OUT = ['simple_face', 'cifar10']
 
   async function initTasks (): Promise<void> {
     try {

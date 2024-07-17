@@ -28,8 +28,15 @@ export async function fetchTasks (url: URL): Promise<Map<TaskID, Task>> {
   const response = await axios.get(new URL(TASK_ENDPOINT, url).href)
   const tasks: unknown = response.data
 
-  if (!(Array.isArray(tasks) && tasks.every(isTask))) {
-    throw new Error('invalid tasks response')
+  if (!Array.isArray(tasks)) {
+    throw new Error('Expected to receive an array of Tasks when fetching tasks')
+  } else if (!tasks.every(isTask)) {
+    for (const task of tasks) {
+      if (!isTask(task)) {
+        console.error("task has invalid format:", task)  
+      }
+    }
+    throw new Error('invalid tasks response, the task object received is not well formatted')
   }
 
   return Map(tasks.map((t) => [t.id, t]))
