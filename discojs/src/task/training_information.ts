@@ -1,4 +1,3 @@
-import type { AggregatorChoice } from '../aggregator/get.js'
 import type { Preprocessing } from '../dataset/data/preprocessing/index.js'
 import { PreTrainedTokenizer } from '@xenova/transformers';
 
@@ -7,8 +6,8 @@ export interface TrainingInformation {
   modelID: string
   // epochs: number of epochs to run training for
   epochs: number
-  // roundDuration: number of batches between each weight sharing round, e.g. if 3 then after every
-  // 3 batches we share weights (in the distributed setting).
+  // roundDuration: number of epochs between each weight sharing round. 
+  // e.g.if 3 then weights are shared every 3 epochs (in the distributed setting).
   roundDuration: number
   // validationSplit: fraction of data to keep for validation, note this only works for image data
   validationSplit: number
@@ -50,7 +49,7 @@ export interface TrainingInformation {
   minimumReadyPeers?: number
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
-  aggregator?: AggregatorChoice
+  aggregator?: 'mean' | 'secure' // TODO: never used
   // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'. 
   // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
   tokenizer?: string | PreTrainedTokenizer
@@ -109,7 +108,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof validationSplit !== 'number' ||
     (tokenizer !== undefined && typeof tokenizer !== 'string' && !(tokenizer instanceof PreTrainedTokenizer)) ||
     (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
-    (aggregator !== undefined && typeof aggregator !== 'number') ||
+    (aggregator !== undefined && typeof aggregator !== 'string') ||
     (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
     (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
     (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
@@ -123,6 +122,14 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     (preprocessingFunctions !== undefined && !Array.isArray(preprocessingFunctions))
   ) {
     return false
+  }
+
+  if (aggregator !== undefined) {
+    switch (aggregator) {
+      case 'mean': break
+      case 'secure': break
+      default: return false
+    }
   }
 
   switch (dataType) {
