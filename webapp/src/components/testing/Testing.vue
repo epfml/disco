@@ -20,8 +20,8 @@
                 >
                   <ButtonsCard
                     :buttons="List.of(
-                      ['test', () => selectModel(path, false)],
-                      ['predict', () => selectModel(path, true)],
+                      ['test', () => selectModel(path, false), 'Data with labels'],
+                      ['predict', () => selectModel(path, true), 'Data without labels'],
                     )"
                     class="shadow shadow-disco-cyan"
                   >
