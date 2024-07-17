@@ -69,10 +69,9 @@ import { List } from "immutable";
 import { ref, computed } from "vue";
 
 import type { BatchLogs, EpochLogs, RoundLogs, Task } from "@epfml/discojs";
-import { async_iterator, data, EmptyMemory, Disco } from "@epfml/discojs";
+import { async_iterator, data, EmptyMemory, Disco, aggregator as aggregators, client as clients } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
-import { getClient } from '@/clients'
 import { useMemoryStore } from "@/store/memory";
 import { useToaster } from "@/composables/toaster";
 import ModelCaching from './ModelCaching.vue'
@@ -80,6 +79,7 @@ import TrainingInformation from "@/components/training/TrainingInformation.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
+import { CONFIG } from '../../config'
 
 const toaster = useToaster();
 const memoryStore = useMemoryStore();
@@ -125,7 +125,6 @@ const stopper = new Error("stop training")
 async function startTraining(distributed: boolean): Promise<void> {
   isTraining.value = true
   isTrainingAlone.value = !distributed
-  console.log(isTraining.value, isTrainingAlone.value)
   // Reset training information before starting a new training
   trainingGenerator.value = undefined
   roundsLogs.value = List<RoundLogs & { participants: number }>()
@@ -162,7 +161,8 @@ async function startTraining(distributed: boolean): Promise<void> {
   toaster.info("Model training started");
 
   const scheme = distributed ? props.task.trainingInformation.scheme : "local";
-  const client = getClient(scheme, props.task)
+  const aggregator = aggregators.getAggregator(props.task, scheme)
+  const client = clients.getClient(scheme, CONFIG.serverUrl, props.task, aggregator)
 
   const disco = new Disco(props.task, {
     logger: {

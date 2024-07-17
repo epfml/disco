@@ -2,8 +2,7 @@ import { List } from 'immutable'
 
 import { async_iterator, BatchLogs, data, EpochLogs, Logger, Memory, Task, TrainingInformation } from '../index.js'
 import { client as clients, EmptyMemory, ConsoleLogger } from '../index.js'
-import type { Aggregator } from '../aggregator/index.js'
-import { MeanAggregator } from '../aggregator/mean.js'
+import {getAggregator, type Aggregator } from '../aggregator/index.js'
 import { enumerate, split } from '../utils/async_iterator.js'
 
 import type { RoundLogs, Trainer } from './trainer/trainer.js'
@@ -34,6 +33,7 @@ export class Disco {
     task: Task,
     options: DiscoOptions
   ) {
+    // Fill undefined options with default values
     if (options.scheme === undefined) {
       options.scheme = task.trainingInformation.scheme
     }
@@ -42,35 +42,13 @@ export class Disco {
         throw new Error('could not determine client from given parameters')
       }
       if (options.aggregator === undefined) {
-        if (options.scheme === 'decentralized') {
-          // By default we expect a contribution from all peers, so we set the threshold to 100%
-          options.aggregator = new MeanAggregator(undefined, undefined, 1, 'relative') 
-        } else {
-          // If federated then we only expect the server's contribution at each round 
-          // so we set the aggregation threshold to 1 contribution
-          // If training locally then we only expect our own contribution
-          options.aggregator = new MeanAggregator(undefined, undefined, 1, 'absolute') 
-        }
+        options.aggregator = getAggregator(task, options.scheme)
       }
 
       if (typeof options.url === 'string') {
         options.url = new URL(options.url)
       }
-      switch (options.scheme) {
-        case 'federated':
-          options.client = new clients.federated.FederatedClient(options.url, task, options.aggregator)
-          break
-        case 'decentralized':
-          options.client = new clients.decentralized.DecentralizedClient(options.url, task, options.aggregator)
-          break
-        case 'local':
-          options.client = new clients.Local(options.url, task, options.aggregator)
-          break
-        default: {
-          const _: never = options.scheme
-          throw new Error('should never happen')
-        }
-      }
+      options.client = clients.getClient(options.scheme, options.url, task, options.aggregator)
     }
     if (options.logger === undefined) {
       options.logger = new ConsoleLogger()
