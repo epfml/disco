@@ -28,8 +28,8 @@ ___
 
 ___
 :question: **DISCO TECHNOLOGY** 
-- DISCO supports arbitrary deep learning tasks and model architectures, via [TF.js](https://www.tensorflow.org/js)
-- :sparkles: relies on [peer2peer](https://peerjs.com/) communication
+- DISCO supports arbitrary deep learning tasks and model architectures in your browser via [TF.js](https://www.tensorflow.org/js)
+- Decentralized learning :sparkles: relies on [peer2peer](https://peerjs.com/) communication
 - Have a look at how DISCO ensures privacy and confidentiality [HERE](docs/PRIVACY.md)
 
 ___
@@ -50,16 +50,12 @@ ___
 
 
 :checkered_flag: **HOW TO USE DISCO**
-- Start by exploring our example *DISCOllaboratives* in the [`Tasks` page](https://discolab.ai/#/list). 
-- The example models are based on popular datasets such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python)
-- It is also possible to create your own task without coding on the [custom training page](https://discolab.ai/#/create):
+- Start by exploring our examples tasks in the [`DISCOllaboratives` page](https://discolab.ai/#/list). 
+- The example DISCOllaboratives are based on popular datasets such as [Titanic](https://www.kaggle.com/c/titanic), [MNIST](https://www.kaggle.com/c/digit-recognizer) or [CIFAR-10](https://www.kaggle.com/pankrzysiu/cifar10-python)
+- It is also possible to create your own DISCOllaboratives without coding on the [custom training page](https://discolab.ai/#/create):
 	- Upload the initial model
-	- You can choose from several existing dataloaders
 	- Choose between federated and decentralized for your DISCO training scheme ... connect your data and... done! :bar_chart:
 	- For more details on ML tasks and custom training have a look at [this guide](./docs/TASK.md)
-
-> **Note**: Currently only `CSV` and `Image` data types are supported. Adding new data types, preprocessing code or dataloaders, is accessible in developer mode (see [developer guide](https://github.com/epfml/disco/blob/develop/DEV.md)).
-
 __
 
 **JOIN US** 
