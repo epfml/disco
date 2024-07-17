@@ -47,27 +47,7 @@
         </template>
       </ProgressIcon>
     </div>
-    <div
-      v-show="showPrev || showNext"
-      class="flex flex-row justify-center gap-4 md:gap-8"
-    >
-      <div class="text-center md:text-right">
-        <CustomButton
-          v-show="showPrev"
-          @click="prevStep"
-        >
-          previous
-        </CustomButton>
-      </div>
-      <div class="text-center md:text-left">
-        <CustomButton
-          v-show="showNext"
-          @click="nextStep"
-        >
-          next
-        </CustomButton>
-      </div>
-    </div>
+    <TestingButtons/>
   </div>
 </template>
 <script setup lang="ts">
@@ -82,6 +62,7 @@ import PlugIcon from '@/assets/svg/PlugIcon.vue'
 import PerformanceIcon from '@/assets/svg/PerformanceIcon.vue'
 
 import CustomButton from '@/components/simple/CustomButton.vue'
+import TestingButtons from './TestingButtons.vue'
 
 const toaster = useToaster()
 const validationStore = useValidationStore()

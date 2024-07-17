@@ -177,12 +177,10 @@ import DISCO from "@/components/simple/DISCO.vue";
 import Tester from '@/components/testing/Tester.vue'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
-import { useToaster } from '@/composables/toaster'
 
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
-const toaster = useToaster()
 
 const toaster = useToaster()
 const currentComponent = computed<[Component, string] | undefined>(() => {
@@ -287,7 +285,6 @@ const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
     validationStore.model = path
     validationStore.step = 1
     validationStore.isOnlyPrediction = isOnlyPrediction
-    scrollToTop();
   } else {
     throw new Error('Task not found in the task store for task id: ' + taskID)
   }
