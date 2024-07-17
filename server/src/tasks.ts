@@ -7,6 +7,7 @@ import '@tensorflow/tfjs-node'
 import { Task, Path, Digest, TaskProvider, isTask } from '@epfml/discojs'
 import { Model, defaultTasks, models, serialization } from '@epfml/discojs'
 
+
 // default tasks and added ones
 // register 'taskAndModel' event to get tasks
 // TODO save and load from disk
@@ -25,9 +26,9 @@ export class TasksAndModels {
 
   async loadDefaultTasks (): Promise<void> {
     const tasks = Object.values<TaskProvider>(defaultTasks)
-    await Promise.all(tasks.map(async (t: TaskProvider) => {
-      await this.addTaskAndModel(t)
-    }))
+    await Promise.all(
+      tasks.map(async (t: TaskProvider) => await this.addTaskAndModel(t))
+    )
   }
 
   // Returns already saved model in priority, then the model from the task definition

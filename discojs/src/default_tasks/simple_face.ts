@@ -12,11 +12,13 @@ export const simpleFace: TaskProvider = {
         taskTitle: 'Simple Face',
         summary: {
           preview: 'Can you detect if the person in a picture is a child or an adult?',
-          overview: 'Simple face is a small subset of face_task from Kaggle'
+          overview: 'Simple face is a small subset of the public face_task dataset from Kaggle'
         },
         dataFormatInformation: '',
         dataExampleText: 'Below you can find an example',
-        dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/simple_face-example.png'
+        dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/simple_face-example.png',
+        sampleDatasetLink: "https://storage.googleapis.com/deai-313515.appspot.com/example_training_data.tar.gz",
+        sampleDatasetInstructions: 'Opening the link should start downloading a zip file which you can unzip. Inside the "example_training_data" directory you should find the "simple_face" folder which contains the "adult" and "child" folders. To connect the data, select the Group option below and connect adults and children image groups.'
       },
       trainingInformation: {
         modelID: 'simple_face-model',

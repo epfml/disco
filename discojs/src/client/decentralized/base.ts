@@ -37,7 +37,7 @@ export class Base extends Client {
 
     // Wait for peers to be connected before sending any update information
     try {
-      const receivedMessage = await waitMessageWithTimeout(this.server, type.PeersForRound)
+      const receivedMessage = await waitMessageWithTimeout(this.server, type.PeersForRound, undefined, "Timeout waiting for the round's peer list")
       if (this.nodes.size > 0) {
         throw new Error('got new peer list from server but was already received for this round')
       }
@@ -190,14 +190,16 @@ export class Base extends Client {
           throw new Error('error while sending weights')
         }
       }
-
       if (this.aggregationResult === undefined) {
         throw new TypeError('aggregation result promise is undefined')
       }
 
       // Wait for aggregation before proceeding to the next communication round.
       // The current result will be used as payload for the eventual next communication round.
-      result = await Promise.race([this.aggregationResult, timeout()])
+      result = await Promise.race([
+        this.aggregationResult,
+        timeout(undefined, "Timeout waiting on the aggregation result promise to resolve")
+      ])
 
       // There is at least one communication round remaining
       if (r < this.aggregator.communicationRounds - 1) {
@@ -216,14 +218,15 @@ export class Base extends Client {
       let receivedPayloads = 0
       do {
         try {
-          const message = await waitMessageWithTimeout(connection, type.Payload)
+          const message = await waitMessageWithTimeout(connection, type.Payload,
+            undefined, "Timeout waiting for a contribution from peer " + peerId)
           const decoded = serialization.weights.decode(message.payload)
 
           if (!this.aggregator.add(peerId, decoded, round, message.round)) {
             console.warn(`[${this.ownId}] Failed to add contribution from peer ${peerId}`)
           }
         } catch (e) {
-          console.warn(e instanceof Error ? e.message : e)
+          console.error(e instanceof Error ? e.message : e)
         }
       } while (++receivedPayloads < this.aggregator.communicationRounds)
     })

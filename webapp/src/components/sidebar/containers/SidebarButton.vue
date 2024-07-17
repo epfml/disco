@@ -8,8 +8,12 @@
     <span class="sr-only">{{ hoverText }}</span>
     <a
       type="a"
-      :data-title="dataTitle"
-      data-placement="right"
+      v-tippy="{
+        content: dataTitle,
+        placement: 'right',
+        delay: 0,
+        animation: 0
+      }"
       class="hover:cursor-pointer"
       @click="click()"
     >

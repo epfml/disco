@@ -102,7 +102,11 @@ const router = createRouter({
       name: 'not-found',
       component: NotFound
     }
-  ]
+  ],
+  scrollBehavior(_to, _from, _savedPosition) {
+    // always scroll to top
+    return { top: 0 }
+  },
 })
 
 // Handle router errors

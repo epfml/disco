@@ -11,22 +11,45 @@
         Connect your data
       </template>
       <template #icon>
-        <Upload />
+        <PlugIcon />
       </template>
       <template #content>
-        <div  class="mb-5 text-left" v-show="props.task.displayInformation.sampleDatasetLink !== undefined">
-            <b>Don't have any data?</b> You can download a dataset <a  class='underline' :href="props.task.displayInformation.sampleDatasetLink">here</a>.
-          </div>
-          <div class="mb-5 text-left">
-            Disco needs to know where your data is located to train models. You can connect them by selecting the location of each data category or by submitting a csv file.
-            Models are trained on your local data and are periodically aggregated with other users' models.
-            <br/><br/><b>Your data stays private and is never uploaded online.</b>
-          </div>
+        <div class="mb-5 text-left">
+          Disco needs to know where your data is located on your device in order to read it (<b>not</b> upload it!) and train models.
+          Models are trained on your local data and are periodically aggregated with other users' models if any.
+          <br/><br/><b>Your data stays on your device and data is never uploaded anywhere.</b>
+        </div>
+        <div 
+          v-if="task.trainingInformation.dataType === 'image' "
+          class="mb-5 text-left"
+        >
+          You can connect images by selecting the location of each data category (Group) or by submitting a csv file (CSV).
+        </div>
         <!-- If the task data type is tabular, text or if we are doing inference only, then display a single drag and drop box -->
         <FileSelection
-          v-if="['tabular', 'text'].includes(task.trainingInformation.dataType) || isOnlyPrediction"
-          @input="addFiles($event)"
-          @clear="clearFiles()"
+          v-if="isOnlyPrediction"
+          @csv="setCsv($event)"
+          :is-multiple="false"
+          :dataset-builder="props.datasetBuilder"
+          :task="props.task"
+          :csv-rows="csvRows"
+        />
+        <FileSelection
+          v-else-if="task.trainingInformation.dataType === 'text'"
+          @csv="setCsv($event)"
+          :is-multiple="false"
+          :dataset-builder="props.datasetBuilder"
+          :task="props.task"
+          :csv-rows="csvRows"
+        />
+        <FileSelection
+          v-else-if="task.trainingInformation.dataType === 'tabular'"
+          @csv="setCsv($event)"
+          :is-multiple="false"
+          :dataset-builder="props.datasetBuilder"
+          :task="props.task"
+          :csv-rows="csvRows"
+          :expect-csv-mapping="false"
         />
         <!--
           If the task data type is image then let the user choose between connect a csv and all images at once
@@ -77,19 +100,24 @@
             </template>
             <template #content>
               <FileSelection
-                @input="addFiles($event, label)"
-                @clear="clearFiles(label)"
+                :label="label"
+                :dataset-builder="props.datasetBuilder"
+                :task="props.task"
+                :csv-rows="csvRows"
+                @csv="setCsv($event)"
               />
             </template>
           </IconCard>
         </div>
         <FileSelection
           v-else
-          @input="addFiles($event)"
-          @clear="clearFiles()"
+          :dataset-builder="props.datasetBuilder"
+          :task="props.task"
+          :csv-rows="csvRows"
+          @csv="setCsv($event)"
         />
       </div>
-    <!-- Connecting images by CSV mode -->
+      <!-- Connecting images by CSV mode -->
       <div
         v-show="!connectImagesByGroup"
         class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8"
@@ -97,19 +125,22 @@
         <div v-if="requireLabels">
           <IconCard title-placement="center">
             <template #title>
-              Load the CSV file containing a mapping between images and labels
+              Connect the CSV file containing a mapping between images and labels
             </template>
             <template #content>
               <FileSelection
                 :accept-files="['.csv']"
                 :is-multiple="false"
                 :info-text="true"
-                @input="readCsv($event)"
-                @clear="clearCsv()"
+                :dataset-builder="props.datasetBuilder"
+                :task="props.task"
+                :csv-rows="csvRows"
+                :expect-csv-mapping="true"
+                @csv="setCsv($event)"
               >
                 <template #text>
                   <b>The CSV file must contain a header with only two columns (filename, label)</b>. The file name must NOT include the file
-                  extension. You can find an example of how to create a CSV <a class='underline text-primary-dark dark:text-primary-light' href='https://github.com/epfml/disco/blob/develop/docs/examples/dataset_csv_creation.ipynb'>here</a>.
+                  extension. You can find an example of how to create a CSV <a class='underline text-blue-400' target="_blank" href='https://github.com/epfml/disco/blob/develop/docs/examples/dataset_csv_creation.ipynb'>here</a>.
                 </template>
               </FileSelection>
             </template>
@@ -133,17 +164,19 @@
             :class="{'opacity-10': cannotUploadFiles}"
           >
             <template #title>
-              Load the folder containing all images
+              Connect the images
             </template>
             <template #content>
               <FileSelection
                 :is-directory="true"
                 :info-text="true"
-                @input="addFiles($event)"
-                @clear="clearFiles()"
+                :dataset-builder="props.datasetBuilder"
+                :task="props.task"
+                :csv-rows="csvRows"
+                @csv="setCsv($event)"
               >
                 <template #text>
-                  Select a folder containing all images contained in the selected CSV file.
+                  Either drag and drop the <b>images</b> directly or select the <b>folder</b> containing all the images referenced in the connected CSV file.
                 </template>
               </FileSelection>
             </template>
@@ -156,22 +189,19 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
-import * as d3 from 'd3'
 
 import type { Task } from '@epfml/discojs'
 import { data } from '@epfml/discojs'
 
-import Upload from '@/assets/svg/Upload.vue'
+import PlugIcon from '@/assets/svg/PlugIcon.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import FileSelection from './FileSelection.vue'
-import { useToaster } from '@/composables/toaster'
 
 interface Props {
   task: Task
   datasetBuilder: data.DatasetBuilder<File>
-  isOnlyPrediction: Boolean //TODO: seems to always be false
+  isOnlyPrediction: boolean //is true when predicting with a trained model
 }
-const toaster = useToaster()
 
 const props = defineProps<Props>()
 
@@ -188,59 +218,8 @@ const cannotUploadFiles = computed(
   () => requireLabels.value && !csvRows.value
 )
 
-const readCsv = (files: FileList) => {
-  files[0].text().then(file => {
-    csvRows.value = d3.csvParse(file)
-    if (csvRows.value[0].filename == undefined || csvRows.value[0].label == undefined) {
-      clearCsv()
-      toaster.error("The CSV file should have a header with these exact 2 column names: filename, label.")
-      throw new Error("Invalid CSV header")
-    }
-  })
+function setCsv(csv: { filename: string, label: string }[] | undefined) {
+  csvRows.value = csv
 }
 
-const isFile = (fileItem : File) => {
-  return fileItem.type !== ""
-}
-
-const addFiles = (files: FileList, label?: string) => {
-  const filesArray = Array.from(files).filter(isFile)
-
-  if(filesArray.length === 0) {
-    toaster.error("You selected a folder, please select the data inside the folder.")
-    return
-  }
-
-  if (props.task.trainingInformation.dataType === 'image' && requireLabels.value && !props.isOnlyPrediction) {
-    if (label) {
-      props.datasetBuilder.addFiles(filesArray, label)
-    } else {
-      if (csvRows.value === undefined) {
-        throw new Error('adding files but no CSV rows defined')
-      }
-      try {
-        csvRows.value.forEach(row => {
-          // Match the selected files with the csv file names and label
-          const imageFile = filesArray.find(file => row.filename === file.name.split('.').slice(0, -1).join('.'))
-          if (imageFile === undefined) {
-            toaster.error("Some images listed in the CSV file are missing, make sure the CSV filenames don't include file extensions.")
-            throw new Error("Image not found in the CSV file")
-          } else if (imageFile) {
-            props.datasetBuilder.addFiles([imageFile], row.label)
-          }
-        })
-      } catch (e){
-        console.error(e)
-      }
-    }
-  } else {
-    props.datasetBuilder.addFiles(filesArray)
-  }
-}
-
-const clearCsv = () => {
-  csvRows.value = undefined
-}
-
-const clearFiles = (label?: string) => props.datasetBuilder.clearFiles(label)
 </script>

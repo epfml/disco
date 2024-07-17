@@ -8,10 +8,13 @@ import { PreTrainedTokenizer } from '@xenova/transformers';
 import { WeightsContainer } from '../../index.js'
 import type { Dataset } from '../../dataset/index.js'
 
-import { Model } from '../model.js'
+import { BatchLogs, Model, EpochLogs } from "../index.js";
+import type { Prediction, Sample } from '../model.js'
+
 import { GPTForCausalLM } from './model.js'
-import type { EpochLogs, Prediction, Sample } from '../model.js'
-import type { GPTConfig } from './config.js'
+import { DEFAULT_CONFIG, type GPTConfig } from './config.js'
+import evaluate from './evaluate.js';
+import { List } from 'immutable';
 
 export type GPTSerialization = {
   weights: WeightsContainer
@@ -21,9 +24,13 @@ export type GPTSerialization = {
 export class GPT extends Model {
   private readonly model: GPTForCausalLM
 
+  readonly #maxBatchCount: number
+
   constructor (partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
     super()
+
     this.model = new GPTForCausalLM(partialConfig, layersModel)
+    this.#maxBatchCount = partialConfig?.maxIter ?? DEFAULT_CONFIG.maxIter
   }
 
   /**
@@ -38,51 +45,90 @@ export class GPT extends Model {
   override async *train(
     trainingData: Dataset,
     validationData?: Dataset,
-    epochs = 1,
-  ): AsyncGenerator<EpochLogs, void> {
-    this.model.compile()
-    let logs: tf.Logs | undefined;
-    const trainingArgs: tf.ModelFitDatasetArgs<tf.TensorContainer> = {
-      epochs: 1, // force fitDataset to do only one epoch because it is wrapped in a for loop
-      validationData,
-      callbacks: { onEpochEnd: (_, cur) => { logs = cur }},
-    };
-    for (let epoch = 0; epoch < epochs; epoch++) {
-      await this.model.fitDataset(trainingData, trainingArgs);
-      if (logs === undefined) {
-        throw new Error("Epoch didn't gave any logs");
-      }
-      const { loss, val_acc, val_loss, peakMemory } = logs;
-      if (loss === undefined || isNaN(loss)) {
-        throw new Error("Training loss is undefined or nan");
-      }
-      const structuredLogs: EpochLogs = {
-        epoch,
-        peakMemory,
-        training: {
-          loss: logs.loss,
-          accuracy: logs.acc
-        }
-      }
+  ): AsyncGenerator<BatchLogs, EpochLogs> {
+    this.model.compile();
 
-      if (validationData !== undefined) {
-        if(val_loss === undefined || isNaN(val_loss) ||
-          val_acc === undefined || isNaN(val_acc)) {
-          throw new Error("Validation accuracy or loss is undefined or nan");
-        }
-        structuredLogs.validation = { accuracy: logs.val_acc, loss: logs.val_loss}
-      }
-      yield structuredLogs
+    const batches = await trainingData.iterator(); // tf.LazyIterator isn't an AsyncGenerator
+    let batchesLogs = List<BatchLogs>();
+    for (
+      let batchNumber = 0;
+      batchNumber < this.#maxBatchCount;
+      batchNumber++
+    ) {
+      const iteration = await batches.next();
+      if (iteration.done) break;
+      const batch = iteration.value;
+
+      const batchLogs = await this.#runBatch(batch);
+      tf.dispose(batch);
+
+      yield batchLogs;
+      batchesLogs = batchesLogs.push(batchLogs);
     }
+
+    const validation = validationData && (await this.#evaluate(validationData));
+    return new EpochLogs(batchesLogs, validation);
   }
 
-  override predict (input: Sample): Promise<Prediction> {
-    const ret = this.model.predict(input)
+  async #runBatch(
+    batch: tf.TensorContainer,
+  ): Promise<BatchLogs> {
+    let logs: tf.Logs | undefined;
+    await this.model.fitDataset(tf.data.array([batch]), {
+      epochs: 1,
+      verbose: 0, // don't pollute
+      callbacks: {
+        onEpochEnd: (_, cur) => {
+          logs = cur;
+        },
+      },
+    });
+    if (logs === undefined) throw new Error("batch didn't gave any logs");
+
+    const { loss, acc: accuracy } = logs;
+    if (loss === undefined || isNaN(loss))
+      throw new Error("training loss is undefined or NaN");
+
+    return {
+      accuracy,
+      loss,
+      memoryUsage: tf.memory().numBytes / 1024 / 1024 / 1024,
+    };
+  }
+
+  async #evaluate(
+    dataset: Dataset,
+  ): Promise<Record<"accuracy" | "loss", number>> {
+    const evaluation = await evaluate(
+      this.model,
+      dataset.map((t) => {
+        switch (t) {
+          case null:
+          case undefined:
+            throw new Error("nullish value in dataset");
+          default:
+            // TODO unsafe cast
+            return t as { xs: tf.Tensor2D; ys: tf.Tensor3D };
+        }
+      }),
+      this.config.maxEvalBatches,
+    );
+
+    return {
+      accuracy: evaluation.val_acc,
+      loss: evaluation.val_loss,
+    };
+  }
+
+  override predict(input: Sample): Promise<Prediction> {
+    const ret = this.model.predict(input);
     if (Array.isArray(ret)) {
-      throw new Error('prediction yield many Tensors but should have only returned one')
+      throw new Error(
+        "prediction yield many Tensors but should have only returned one",
+      );
     }
 
-    return Promise.resolve(ret)
+    return Promise.resolve(ret);
   }
 
   async generate(input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {

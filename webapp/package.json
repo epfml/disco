@@ -18,10 +18,10 @@
     "d3": "7",
     "immutable": "4",
     "pinia": "2",
-    "tippy.js": "6",
     "vee-validate": "4",
     "vue": "3",
     "vue-router": "4",
+    "vue-tippy": "6",
     "vue-toast-notification": "3",
     "vue3-apexcharts": "1",
     "yup": "1"
@@ -46,7 +46,8 @@
     "typescript": "5",
     "vite": "5",
     "vite-plugin-node-polyfills": "0.22",
-    "vitest": "1",
-    "vue-tsc": "2"
+    "vitest": "2",
+    "vue-tsc": "2",
+    "vue3-spinners": "1"
   }
 }

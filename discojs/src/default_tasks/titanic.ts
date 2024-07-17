@@ -8,14 +8,14 @@ export const titanic: TaskProvider = {
     return {
       id: 'titanic',
       displayInformation: {
-        taskTitle: 'Titanic',
+        taskTitle: 'Titanic Prediction',
         summary: {
-          preview: "Test our platform by using a publicly available <b>tabular</b> dataset. <br><br> Download the passenger list from the Titanic shipwreck here: <a class='underline text-primary-dark dark:text-primary-light' href='https://github.com/epfml/disco/raw/develop/example_training_data/titanic_train.csv'>titanic_train.csv</a> (more info <a class='underline text-primary-dark dark:text-primary-light' href='https://www.kaggle.com/c/titanic'>here</a>). <br> This model predicts the type of person most likely to survive/die in the historic ship accident, based on their characteristics (sex, age, class etc.).",
-          overview: 'We all know the unfortunate story of the Titanic: this flamboyant new transatlantic boat that sunk in 1912 in the North Atlantic Ocean. Today, we revist this tragedy by trying to predict the survival odds of the passenger given some basic features.'
+          preview: "The Titanic classification task is one of the main entrypoints into machine learning. Using passenger data (name, age, gender, socio-economic class, etc), the goal is to identify who was more likely to survive the infamous shipwreck.",
+          overview: "The original competition can be found on <a  target='_blank' class='underline text-blue-400' href='https://www.kaggle.com/c/titanic'>Kaggle</a> and a link to the training set can be found here <a target='_blank' class='underline text-blue-400' href='https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/titanic_train.csv'>here</a>."
         },
-        model: 'The current model does not normalize the given data and applies only a very simple pre-processing of the data.',
-        dataFormatInformation: 'This model takes as input a CSV file with 12 columns. The features are general information about the passenger (sex, age, name, etc.) and specific related Titanic data such as the ticket class bought by the passenger, its cabin number, etc.<br><br>pclass: A proxy for socio-economic status (SES)<br>1st = Upper<br>2nd = Middle<br>3rd = Lower<br><br>age: Age is fractional if less than 1. If the age is estimated, it is in the form of xx.5<br><br>sibsp: The dataset defines family relations in this way:<br>Sibling = brother, sister, stepbrother, stepsister<br>Spouse = husband, wife (mistresses and fiancés were ignored)<br><br>parch: The dataset defines family relations in this way:<br>Parent = mother, father<br>Child = daughter, son, stepdaughter, stepson<br>Some children travelled only with a nanny, therefore parch=0 for them.<br><br>The first line of the CSV contains the header:<br> PassengerId, Survived, Pclass, Name, Sex, Age, SibSp, Parch, Ticket, Fare, Cabin, Embarked<br><br>Each susequent row contains the corresponding data.',
-        dataExampleText: 'Below one can find an example of a datapoint taken as input by our model. In this datapoint, the person is young man named Owen Harris that unfortunnalty perished with the Titanic. He boarded the boat in South Hamptons and was a 3rd class passenger. On the testing & validation page, the data should not contain the label column (Survived).',
+        model: 'The model is a simple 5-layer feedforward network with ReLU activations. The model is optimized with Adam and binary cross-entropy loss. The preprocessing only fills missing value with a placeholder value (0).',
+        dataFormatInformation: 'The expected format for the tabular dataset is exactly the same as the sample data provided above or in the Kaggle competition. It is a CSV file with 12 columns. The features are general information about the passenger (sex, age, name, etc.) and specific related Titanic data such as the ticket class bought by the passenger, its cabin number, etc.<br>The first line of the CSV contains the header: "PassengerId, Survived, Pclass, Name, Sex, Age, SibSp, Parch, Ticket, Fare, Cabin, Embarked"<br>Each subsequent row contains passenger data.',
+        dataExampleText: "Here's an example of one data point:",
         dataExample: [
           { columnName: 'PassengerId', columnData: '1' },
           { columnName: 'Survived', columnData: '0' },
@@ -43,12 +43,14 @@ export const titanic: TaskProvider = {
           'Cabin',
           'Embarked',
           'Pclass'
-        ]
+        ],
+        sampleDatasetLink: "https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/titanic_train.csv",
+        sampleDatasetInstructions: 'Opening the link should start downloading a CSV file which you can drag and drop in the field below.'
       },
       trainingInformation: {
         modelID: 'titanic-model',
-        epochs: 20,
-        roundDuration: 10,
+        epochs: 10,
+        roundDuration: 2,
         validationSplit: 0.2,
         batchSize: 30,
         preprocessingFunctions: [data.TabularPreprocessing.Sanitize],
@@ -87,7 +89,7 @@ export const titanic: TaskProvider = {
     model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }))
 
     model.compile({
-      optimizer: tf.train.sgd(0.001),
+      optimizer: 'adam',
       loss: 'binaryCrossentropy',
       metrics: ['accuracy']
     })

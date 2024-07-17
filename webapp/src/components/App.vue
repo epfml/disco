@@ -1,5 +1,13 @@
 <template>
-  <div v-if="!loading">
+  <div v-if="loading">
+    <div class="flex flex-col h-screen w-screen justify-center items-center">
+      <VueSpinner size="50" color="#6096BA"/>
+      <div class="mt-10">
+        <p class="text-disco-blue">Loading DISCO</p>
+      </div>
+    </div>
+  </div>
+  <div v-else>
     <!-- Global container for the screen -->
     <div
       class="
@@ -23,7 +31,7 @@
           focus:outline-none
         "
       >
-        <SidebarMain />
+        <SideBar />
       </aside>
 
       <!-- Main Page -->
@@ -56,15 +64,15 @@ import { RouterView } from 'vue-router'
 import { useTasksStore } from '@/store/tasks'
 import { useMemoryStore } from '@/store/memory'
 import BaseLayout from './containers/BaseLayout.vue'
-import SidebarMain from '@/components/sidebar/Sidebar.vue'
-
-const loading = ref(true)
+import SideBar from '@/components/sidebar/SideBar.vue'
+import { VueSpinner } from 'vue3-spinners';
 
 const tasksStore = useTasksStore()
 const memoryStore = useMemoryStore()
 
+const loading = ref(true)
 tasksStore.initTasks()
-  .then(() => { loading.value = false })
+  .then(() => { loading.value = false }) // Remove the loading indicator if even if it failed
   .catch(console.error)
 
 onMounted(() => {

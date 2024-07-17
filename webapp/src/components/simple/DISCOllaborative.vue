@@ -1,5 +1,7 @@
 <template>
-  <span>
-    <span class="font-disco text-disco-cyan">DIS</span>
-    <span class="font-disco text-disco-blue">CO</span>llaborative</span>
+  <DISCO /><span class="font-disco">llaborative</span>
 </template>
+
+<script setup lang="ts">
+import DISCO from "./DISCO.vue";
+</script>

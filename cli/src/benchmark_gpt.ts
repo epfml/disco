@@ -1,6 +1,6 @@
 import { parse } from 'ts-command-line-args';
 import type { Task } from '@epfml/discojs'
-import { fetchTasks, data, models } from '@epfml/discojs'
+import { fetchTasks, data, models, async_iterator } from '@epfml/discojs'
 import { NodeTextLoader, loadModelFromDisk } from '@epfml/discojs-node'
 import { startServer } from 'server'
 
@@ -49,7 +49,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
 
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
-  const task = tasks.get('wikitext-103')
+  const task = tasks.get('llm_task')
   if (task === undefined) { throw new Error('task not found') }  
 
   /**
@@ -57,7 +57,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
    */
   if (!benchmarkInference) {
     // Benchmark parameters
-    const epoch = 1
+    const epochsCount = 1
     const iterationsPerEpoch = 10
 
     const config: models.GPTConfig = {
@@ -80,10 +80,10 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     console.log(`\tmodel type ${modelType} \n\tbatch size ${batchSize} \n\tcontext length ${contextLength}`)
 
     let epochTime = performance.now()
-    const logGenerator = model.train(preprocessedDataset, undefined, epoch)
-    for await (const logs of logGenerator) {
+    for (let epochsCounter = 1; epochsCounter <= epochsCount; epochsCounter++) {
+      const [_, logs] = await async_iterator.gather(model.train(preprocessedDataset))
       epochTime = (performance.now() - epochTime)
-      const msPerToken = epochTime / (batchSize * contextLength * iterationsPerEpoch * epoch)
+      const msPerToken = epochTime / (batchSize * contextLength * iterationsPerEpoch * epochsCounter)
       console.log(`\t\tTraining time: ${msPerToken.toFixed(2)} ms/token <br> ${logs.peakMemory.toFixed(2)} GB`)
     }
 

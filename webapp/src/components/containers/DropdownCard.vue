@@ -6,7 +6,7 @@ import IconCard from '@/components/containers/IconCard.vue'
 import UpArrow from '@/assets/svg/UpArrow.vue'
 import DownArrow from '@/assets/svg/DownArrow.vue'
 
-const displayed = ref(false)
+const displayed = ref(true)
 const toggle = () => { displayed.value = !displayed.value }
 
 </script>
@@ -14,7 +14,12 @@ const toggle = () => { displayed.value = !displayed.value }
 <template>
   <IconCard :with-content="displayed">
     <template #title>
-      <slot name="title" />
+        <button
+          class="focus:outline-none"
+          @click="toggle"
+        >
+          <slot name="title" />
+        </button>
     </template>
     <template #icon>
       <div class="flex">

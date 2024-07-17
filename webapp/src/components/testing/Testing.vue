@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-show="validationStore.step === 0">
-      <div class="flex flex-col gap-16">
+      <div class="flex flex-col gap-8">
         <div v-if="memoryStore.models.size > 0">
           <IconCard title-placement="center">
             <template #title>
@@ -18,51 +18,39 @@
                   :key="path"
                   class="contents"
                 >
-                  <ButtonCard
-                    :button-placement="'left'"
+                  <ButtonsCard
+                    :buttons="List.of(
+                      ['test', () => selectModel(path, false)],
+                      ['predict', () => selectModel(path, true)],
+                    )"
                     class="shadow shadow-disco-cyan"
-                    @action="() => selectModel(path, false)"
-                    @alt-action="() => selectModel(path, true)"
                   >
                     <template #title>
                       {{ taskTitle(metadata.taskID) }}
                     </template>
-                    <template #text>
-                      <div class="grid grid-cols-2 justify-items-between">
-                        <p class="contents">
-                          <span>Model:</span>
-                          <span>
-                            {{ metadata.name.slice(0, 20) }}
-                            <span v-if="metadata.version !== undefined && metadata.version !== 0">
-                              ({{ metadata.version }})
-                            </span>
+
+                    <div class="grid grid-cols-2 justify-items-between">
+                      <p class="contents">
+                        <span>Model:</span>
+                        <span>
+                          {{ metadata.name.slice(0, 20) }}
+                          <span v-if="metadata.version !== undefined && metadata.version !== 0">
+                            ({{ metadata.version }})
                           </span>
-                        </p>
-                        <p class="contents">
-                          <span>Date:</span>
-                          <span>{{ metadata.date }} at {{ metadata.hours }}</span>
-                        </p>
-                        <p class="contents">
-                          <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
-                        </p>
-                        <p class="contents">
-                          <span>Type:</span><span>{{ metadata.type === 'saved' ? 'Saved' : 'Cached' }}</span>
-                        </p>
-                      </div>
-                    </template>
-                    <template #button>
-                      test
-                    </template>
-                    <template #description>
-                      Data with label
-                    </template>
-                    <template #altButton>
-                      Predict
-                    </template>
-                    <template #altDescription>
-                      Data without labels
-                    </template>
-                  </ButtonCard>
+                        </span>
+                      </p>
+                      <p class="contents">
+                        <span>Date:</span>
+                        <span>{{ metadata.date }} at {{ metadata.hours }}</span>
+                      </p>
+                      <p class="contents">
+                        <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
+                      </p>
+                      <p class="contents">
+                        <span>Type:</span><span>{{ metadata.type === 'saved' ? 'Saved' : 'Cached' }}</span>
+                      </p>
+                    </div>
+                  </ButtonsCard>
                 </div>
               </div>
             </template>
@@ -74,21 +62,19 @@
               Empty Model Library
             </template>
             <template #content>
-              Disco failed to find any model stored locally. Please go to the <RouterLink
-                class="underline font-bold"
+              Disco failed to find any model stored locally. Please go to the 
+              <RouterLink
+                class="underline text-blue-400"
                 to="/list"
-              >
-                training page
-              </RouterLink>
-              or directly download a model below, from the Disco respository.
+              >training page</RouterLink>
+              or directly download a model below, from the Disco repository.
             </template>
           </IconCard>
         </div>
         <div v-if="federatedTasks.size > 0">
           <IconCard title-placement="center">
             <template #title>
-              <span class="font-disco font-normal text-xl text-disco-cyan">DIS</span>
-              <span class="font-disco font-normal text-xl text-disco-blue">CO</span>
+              <DISCO />
               Model Repository — <span class="italic">Download and Test</span>
             </template>
             <template #content>
@@ -101,21 +87,16 @@
                   :key="task.id"
                   class="contents"
                 >
-                  <ButtonCard
-                    :button-placement="'left'"
+                  <ButtonsCard
+                    :buttons="List.of(['download', () => downloadModel(task)])"
                     class="shadow shadow-disco-cyan"
-                    @click="() => downloadModel(task)"
                   >
                     <template #title>
                       {{ task.displayInformation.taskTitle }}
                     </template>
-                    <template #text>
-                      Download the latest {{ task.displayInformation.taskTitle }} model available on the remote server.
-                    </template>
-                    <template #button>
-                      download
-                    </template>
-                  </ButtonCard>
+
+                    Download the latest {{ task.displayInformation.taskTitle }} model available on the remote server.
+                  </ButtonsCard>
                 </div>
               </div>
             </template>
@@ -148,6 +129,17 @@
           As such, please ensure your dataset of choice was not used during the training phase of your model.
         </template>
       </IconCard>
+      <!-- Language model prompting is currently unavailable   -->
+      <div 
+        v-if="currentTask.trainingInformation.dataType === 'text' && validationStore.isOnlyPrediction"
+        v-show="validationStore.step !== 0"
+      >
+        <div class="flex justify-center items-center mb-4">
+          <span class="shrink-0 py-4 px-4 bg-orange-100 rounded-md">
+            <p class="text-slate-600 text-xs">Prompting a language model will be available soon!</p>
+          </span>
+        </div>
+      </div>
       <KeepAlive>
         <component
           :is="currentComponent[0]"
@@ -181,16 +173,18 @@ import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
 import { useToaster } from '@/composables/toaster'
 import Data from '@/components/data/Data.vue'
+import DISCO from "@/components/simple/DISCO.vue";
 import Tester from '@/components/testing/Tester.vue'
-import ButtonCard from '@/components/containers/ButtonCard.vue'
+import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
-import TestingButtons from '../progress_bars/TestingButtons.vue'
+import { useToaster } from '@/composables/toaster'
 
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 const tasksStore = useTasksStore()
 const toaster = useToaster()
 
+const toaster = useToaster()
 const currentComponent = computed<[Component, string] | undefined>(() => {
   switch (stepRef.value) {
     case 1:
@@ -255,21 +249,7 @@ onActivated(async () => {
 })
 
 const downloadModel = async (task: Task): Promise<void> => {
-  try{
-    if(!useMemoryStore().useIndexedDB){
-      toaster.error('Please enable the model library to download models')
-      return
-    }
-    // Create a promise that can be rejected on click
-    let cancelDownload: () => void;
-    const toasterInfo = toaster.info('Downloading, please wait...', {
-      duration: 0,
-      dismissible: true,
-      onClick: () => {
-        toasterInfo.dismiss();
-        cancelDownload(); //for the future, to cancel the download
-      },
-    });
+  try {
     const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
     const model = await client.getLatestModel()
     const source = {
@@ -280,21 +260,19 @@ const downloadModel = async (task: Task): Promise<void> => {
     }
     await memory.value.saveModel(source, model)
     await memoryStore.initModels()
-    toasterInfo.dismiss()
-    toaster.success('Successfully downloaded')
-  } catch (err : any) {
-    if(err.message === 'Download cancelled'){
-      toaster.error('Download cancelled')
-    } else {
-      toaster.error('Failed to download model ' + err.message)
+    toaster.success("Model successfully downloaded!")
+    const scrollableDiv = document.getElementById('scrollable-div')
+    if (scrollableDiv !== null) {
+      scrollableDiv.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
     }
-  }
-}
-const scrollToTop = ():void => {
-  const appElement = document.getElementById('main-page');
-  if (appElement) {
-    appElement.scrollTop = 0;
-  }
+  } catch (e) {
+    toaster.error("Something went wrong, please try again later.")
+    console.error(e)
+  }  
 }
 
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {

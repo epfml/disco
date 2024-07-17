@@ -12,7 +12,7 @@ async function main(): Promise<void> {
   
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
-  const task = tasks.get('wikitext-103')
+  const task = tasks.get('llm_task')
   if (task === undefined) { throw new Error('task not found') }
   
   let model;
@@ -29,7 +29,7 @@ async function main(): Promise<void> {
     const aggregator = new aggregators.MeanAggregator()
     const client = new clients.federated.FederatedClient(url, task, aggregator)
     const disco = new Disco(task, { scheme: 'federated', client, aggregator })
-    for await (const _ of disco.fit(dataset));
+    await disco.trainFully(dataset);
   
     // Get the model and complete the prompt
     if (aggregator.model === undefined) {

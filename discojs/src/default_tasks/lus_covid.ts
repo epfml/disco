@@ -8,16 +8,17 @@ export const lusCovid: TaskProvider = {
     return {
       id: 'lus_covid',
       displayInformation: {
-        taskTitle: 'COVID Lung Ultrasound',
+        taskTitle: 'COVID-19 Diagnosis from Lung Ultrasounds',
         summary: {
-          preview: 'Do you have a data of lung ultrasound images on patients <b>suspected of Lower Respiratory Tract infection (LRTI) during the COVID pandemic</b>? <br> Learn how to discriminate between COVID positive and negative patients by joining this task.',
-          overview: "Don't have a dataset of your own? Download a sample of a few cases <a class='underline' href='https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly' target='_blank'>here</a>."
+          preview: "Medical images are a typical example of data that exists in huge quantity yet that can't be shared due to confidentiality reasons. Medical applications would immensely benefit from training on data currently locked. More data diversity leads to better generalization and bias mitigation.",
+          overview: "Disco allows data owners to collaboratively train machine learning models using their respective data without any privacy breach. This example problem is about diagnosing whether patients are positive or negative to COVID-19 from lung ultrasounds images. <br>Don't have a dataset of your own? You can find a link to a sample dataset at the next step."
         },
-        model: "We use a simplified* version of the <b>DeepChest model</b>: A deep learning model developed in our lab (<a class='underline' href='https://www.epfl.ch/labs/mlo/igh-intelligent-global-health/'>intelligent Global Health</a>.). On a cohort of 400 Swiss patients suspected of LRTI, the model obtained over 90% area under the ROC curve for this task. <br><br>*Simplified to ensure smooth running on your browser, the performance is minimally affected. Details of the adaptations are below <br>- <b>Removed</b>: positional embedding (i.e. we don’t take the anatomic position into consideration). Rather, the model now does mean pooling over the feature vector of the images for each patient <br>- <b>Replaced</b>: ResNet18 by Mobilenet",
-        dataFormatInformation: 'This model takes as input an image dataset. It consists on a set of lung ultrasound images per patient with its corresponding label of covid positive or negative. Moreover, to identify the images per patient you have to follow the follwing naming pattern: "patientId_*.png"',
-        dataExampleText: 'Below you can find an example of an expected lung image for patient 2 named: 2_QAID_1.masked.reshaped.squared.224.png',
+        model: "The model is a simple Convolutional Neural Network composed of two convolutional layers with ReLU activations and max pooling layers, followed by a fully connected output layer. The data preprocessing reshapes images into 100x100 pixels and normalizes values between 0 and 1",
+        dataFormatInformation: 'This model takes as input an image dataset of lung ultrasounds. The images are resized automatically.',
+        dataExampleText: 'Below you can find an example of an expected lung image.',
         dataExampleImage: 'https://storage.googleapis.com/deai-313515.appspot.com/example_training_data/2_QAID_1.masked.reshaped.squared.224.png',
-        sampleDatasetLink: 'https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly'
+        sampleDatasetLink: 'https://drive.switch.ch/index.php/s/zM5ZrUWK3taaIly',
+        sampleDatasetInstructions: 'Opening the link will take you to a Switch Drive folder. You can click on the Download button in the top right corner. Unzip the file and you will get two subfolders: "COVID-" and "COVID+". You can connect the data by using the Group option and selecting each image group in its respective field.'
       },
       trainingInformation: {
         modelID: 'lus-covid-model',
@@ -31,11 +32,6 @@ export const lusCovid: TaskProvider = {
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
         dataType: 'image',
         scheme: 'federated',
-        noiseScale: undefined,
-        clippingRadius: 20,
-        decentralizedSecure: true,
-        minimumReadyPeers: 2,
-        maxShareValue: 100,
         tensorBackend: 'tfjs'
       }
     }

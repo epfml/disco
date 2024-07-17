@@ -2,11 +2,10 @@ import type tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 
 import type { Model, Task } from "../../index.js";
-
-import { EpochLogs } from "../../models/model.js";
+import * as async_iterator from "../../utils/async_iterator.js";
+import { BatchLogs, EpochLogs } from "../../models/index.js";
 
 export interface RoundLogs {
-  round: number;
   epochs: List<EpochLogs>;
 }
 
@@ -22,7 +21,10 @@ export abstract class Trainer {
   readonly #roundDuration: number;
   readonly #epochs: number;
 
-  private training?: AsyncGenerator<EpochLogs, void>;
+  private training?: AsyncGenerator<
+    AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
+    void
+  >;
 
   constructor(
     task: Task,
@@ -30,6 +32,9 @@ export abstract class Trainer {
   ) {
     this.#roundDuration = task.trainingInformation.roundDuration;
     this.#epochs = task.trainingInformation.epochs;
+
+    if (!Number.isInteger(this.#epochs / this.#roundDuration))
+      throw new Error(`round duration doesn't divide epochs`);
   }
 
   protected abstract onRoundBegin(round: number): Promise<void>;
@@ -49,34 +54,52 @@ export abstract class Trainer {
   async *fitModel(
     dataset: tf.data.Dataset<tf.TensorContainer>,
     valDataset: tf.data.Dataset<tf.TensorContainer>,
-  ): AsyncGenerator<RoundLogs> {
-    if (this.training !== undefined) {
+  ): AsyncGenerator<
+    AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
+    void
+  > {
+    if (this.training !== undefined)
       throw new Error(
         "training already running, cancel it before launching a new one",
       );
+
+    try {
+      this.training = this.#runRounds(dataset, valDataset);
+      yield* this.training;
+    } finally {
+      this.training = undefined;
+    }
+  }
+
+  async *#runRounds(
+    dataset: tf.data.Dataset<tf.TensorContainer>,
+    valDataset: tf.data.Dataset<tf.TensorContainer>,
+  ): AsyncGenerator<
+    AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
+    void
+  > {
+    const totalRound = Math.trunc(this.#epochs / this.#roundDuration);
+    for (let round = 0; round < totalRound; round++) {
+      await this.onRoundBegin(round);
+      yield this.#runRound(dataset, valDataset);
+      await this.onRoundEnd(round);
+    }
+  }
+
+  async *#runRound(
+    dataset: tf.data.Dataset<tf.TensorContainer>,
+    valDataset: tf.data.Dataset<tf.TensorContainer>,
+  ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
+    let epochsLogs = List<EpochLogs>();
+    for (let epoch = 0; epoch < this.#roundDuration; epoch++) {
+      const [gen, epochLogs] = async_iterator.split(
+        this.model.train(dataset, valDataset),
+      );
+
+      yield gen;
+      epochsLogs = epochsLogs.push(await epochLogs);
     }
 
-    await this.onRoundBegin(0);
-
-    this.training = this.model.train(dataset, valDataset, this.#epochs);
-
-    for await (const logs of this.training) {
-      // for now, round (sharing on network) == epoch (full pass over local data)
-      yield {
-        round: logs.epoch,
-        epochs: List.of(logs),
-      };
-
-      if (logs.epoch % this.#roundDuration === 0) {
-        const round = Math.trunc(logs.epoch / this.#roundDuration);
-        await this.onRoundEnd(round);
-        await this.onRoundBegin(round);
-      }
-    }
-
-    const round = Math.trunc(this.#epochs / this.#roundDuration);
-    await this.onRoundEnd(round);
-
-    this.training = undefined;
+    return { epochs: epochsLogs };
   }
 }

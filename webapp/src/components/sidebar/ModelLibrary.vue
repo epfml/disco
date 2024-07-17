@@ -86,7 +86,7 @@
             <span class="text-s">
               Turn on to get storage options for your trained models. This uses
               your browser's own database, namely
-              <button class="text-blue-600">
+              <button class="text-blue-400">
                 <a
                   href="https://en.wikipedia.org/wiki/Indexed_Database_API"
                   target="_blank"

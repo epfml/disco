@@ -1,7 +1,6 @@
 {
   "name": "server",
   "private": true,
-  "version": "2.1.1",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -25,7 +24,7 @@
     "express-ws": "5",
     "immutable": "4",
     "msgpack-lite": "0.1",
-    "uuid": "9"
+    "uuid": "10"
   },
   "devDependencies": {
     "@types/chai": "4",

@@ -19,7 +19,7 @@ describe("model library", () => {
   function setupForTask(taskProvider: TaskProvider): void {
     cy.intercept({ hostname: "server", pathname: "/tasks" }, (req) => {
       const task = taskProvider.getTask();
-      task.trainingInformation.epochs = 3;
+      task.trainingInformation.epochs = task.trainingInformation.roundDuration = 3;
       req.reply([task]);
     });
 
@@ -85,7 +85,7 @@ describe("model library", () => {
     cy.visit("/#/evaluate");
     cy.contains("button", "download").click();
 
-    cy.get('[data-title="Model Library"]').click();
+    cy.get('#model-library-btn').click();
     cy.contains("titanic-model").get('button[title="Download"]').click();
 
     expectDownloadOfTFJSModelIsTrainable("titanic_titanic-model");
@@ -97,15 +97,15 @@ describe("model library", () => {
     cy.visit("/#/titanic");
     cy.contains("button", "next").click();
 
-    cy.contains("label", "select file").selectFile(
+    cy.contains("label", "select CSV").selectFile(
       "../datasets/titanic_train.csv",
     );
     cy.contains("button", "next").click();
 
     cy.contains("button", "train alone").click();
-    cy.contains("h6", "current round")
+    cy.contains("h6", "epochs")
       .next({ timeout: 10_000 })
-      .should("have.text", "3");
+      .should("have.text", "3 / 3");
     cy.contains("button", "next").click();
 
     // TODO do not save by default, only via "save model" button
@@ -113,7 +113,7 @@ describe("model library", () => {
     // TODO be reactive
     cy.visit("/#/evaluate"); // force refresh
 
-    cy.get('[data-title="Model Library"]').click();
+    cy.get('#model-library-btn').click();
     cy.contains("titanic-model").get('button[title="Download"]').click();
 
     expectDownloadOfTFJSModelIsTrainable("titanic_titanic-model");

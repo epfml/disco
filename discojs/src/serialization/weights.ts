@@ -23,8 +23,8 @@ function isSerialized (raw: unknown): raw is Serialized {
   }
 
   const _: Serialized = {
-    shape: shape as number[],
-    data: data as number[],
+    shape: shape,
+    data: data,
   }
 
   return true

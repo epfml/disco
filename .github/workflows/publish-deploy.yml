@@ -2,6 +2,7 @@ name: publish-deploy
 on:
   push:
     branches: [develop]
+    tags: [v*]
 
 jobs:
   publish-npm:
@@ -18,12 +19,14 @@ jobs:
           scope: "@epfml"
       - run: npm ci
       - run: npm --workspace=discojs{,-node,-web} version prerelease --preid=p`date +%Y%m%d%H%M%S`
+        if: github.ref_type == 'branch'
       - run: npm --workspace=discojs{,-node,-web} run build
       - run: npm --workspace=discojs{,-node,-web} publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   build-webapp:
+    if: github.ref_type == 'branch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,6 +43,7 @@ jobs:
           path: webapp/dist
   deploy-pages:
     needs: build-webapp
+    if: github.ref_type == 'branch'
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -68,7 +72,10 @@ jobs:
         id: meta
         with:
           images: ghcr.io/epfml/disco
-      - uses: docker/build-push-action@v5
+          tags: |
+            type=semver,pattern={{version}}
+            type=edge
+      - uses: docker/build-push-action@v6
         id: build
         with:
           push: true
@@ -77,6 +84,7 @@ jobs:
 
   deploy-server:
     needs: [publish-github-container]
+    if: github.ref_type == 'branch'
     runs-on: ubuntu-latest
     permissions:
       contents: read

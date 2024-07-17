@@ -20,7 +20,7 @@ The application runs the following architecture:
   - **The task list component** is called `TaskList.vue`. It's the default component used to fill this space. It shows which ML tasks are open for collaborative training.
   - **Task-related Components** are components used to display the interface associated with a particular task. The UI components for an ML task come in a parent-child relation: one global component (called `[taskName]_model.vue`) is used to implement a sidebar that allows the user to navigate through the different components associated with a task. On the right side of this global component, the following components are used to create a task (and note that all of them need to be created for each task):
     - **Description of the task** under the name `[taskName]\_description.vue`. It gives an overview of the task.
-    - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train a model, either collaboratively using p2p communication, or alone by local training. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When a user reaches for the first time the training components, the component is created, and only then the NN model is created and stored in the browser's indexdb database. The training is done in a separated script. To start training, the function named `join_training`is called. This function applies the task specific pre-processing function to the data and then trains the model using the shared `train` function.
+    - **Training of the task** under the name `[taskName]_training.vue`. Allows the users to train a model, either collaboratively using p2p communication, or alone by local training. As a side note, components are created only when they are called by the user. Meaning that until the user reaches the training page of the task, the `[taskName]_training.vue`is not created. When a user reaches for the first time the training components, the component is created, and only then the NN model is created and stored in the browser's indexedDB database. The training is done in a separated script. To start training, the function named `join_training`is called. This function applies the task specific pre-processing function to the data and then trains the model using the shared `train` function.
 
 ## Root pages description
 
@@ -88,11 +88,24 @@ The following types are available :
 | `IconCard`      | a `Card` having a header section with a title and an icon on the right |
 | `IconCardSmall` | Smaller version of `IconCard` (e.g. used in `TrainingInformant.vue`)   |
 
-Examples images:
+Example images:
 
 <img width="768" alt="Screenshot 2022-01-04 at 16 45 12" src="https://user-images.githubusercontent.com/43466781/148085060-02c761cb-b622-4920-9e2a-94192600ff68.png">
 <img width="746" alt="Screenshot 2022-01-04 at 16 45 49" src="https://user-images.githubusercontent.com/43466781/148085151-2a22235a-3a37-47fd-a225-1f033e23f843.png">
 <img width="738" alt="Screenshot 2022-01-04 at 16 46 22" src="https://user-images.githubusercontent.com/43466781/148085246-b139e648-bba6-439e-bd8b-5d8865da302b.png">
+
+## Icons
+
+Icons can be found in `src/assets/svg` as `.vue` files. Potential sources of svg icons are https://www.svgrepo.com/ or https://icons.getbootstrap.com/ which allow downloading icons as SVG files directly. Be sure to respect the icon license. The svg path can then be copy-pasted in a Vue.js file following the same format as other icons:
+
+```html
+<svg fill="currentColor" :class="customClass" :viewBox="viewBox">
+  <!-- The SVG path -->
+  <path d="..." />
+</svg>
+```
+
+You may need to play around with the size and viewbox to display it correctly.
 
 ## Code guidelines
 
@@ -141,6 +154,6 @@ For now a template that shows how to create tasks can be found.
 | ---------------------------------------------------------------------------- | :-------------: | :--------------------------------------------------------------- |
 | [vee-validate](https://vee-validate.logaretm.com/v4/)                        |     `Form`      | Form Validation for Vue.js                                       |
 | [vue-toast-notification](https://github.com/ankurk91/vue-toast-notification) | `Notifications` | Toast notification plugin for Vue.js                             |
-| [tippy](https://atomiks.github.io/tippyjs/)                                  |     `Menu`      | Plugin to build menu / side bars                                 |
+| [vue-tippy](https://vue-tippy.netlify.app/)                                  |    `Tooltip`    | Show tooltip text on hover                                       |
 | [vue-router](https://router.vuejs.org/)                                      |    `Routing`    | Official router plugin for Vue.js                                |
 | [yup](https://github.com/jquense/yup)                                        |     `Form`      | Schema builder for runtime value parsing and validation (forms). |

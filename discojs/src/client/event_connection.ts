@@ -24,8 +24,12 @@ export async function waitMessage<T extends type> (connection: EventConnection, 
   })
 }
 
-export async function waitMessageWithTimeout<T extends type> (connection: EventConnection, type: T, timeoutMs?: number): Promise<NarrowMessage<T>> {
-  return await Promise.race([waitMessage(connection, type), timeout(timeoutMs)])
+export async function waitMessageWithTimeout<T extends type>(
+  connection: EventConnection,
+  type: T, timeoutMs?: number,
+  errorMsg: string = 'timeout'): Promise<NarrowMessage<T>> {
+  
+  return await Promise.race([waitMessage(connection, type), timeout(timeoutMs, errorMsg)])
 }
 
 export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K> }> implements EventConnection {

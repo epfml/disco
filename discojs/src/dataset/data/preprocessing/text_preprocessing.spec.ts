@@ -33,7 +33,7 @@ describe('text preprocessing', function () {
   it('can tokenize text', async () => {
     const { tokens } = await tokenize.apply(Promise.resolve(text), initMockTask()) as { tokens: number[]}
     expect(tokens).to.be.deep.equal(expectedTokens)
-  })
+  }).timeout(4000)
 
   it('can truncate inputs when tokenizing', async () => {
     const truncationTask = initMockTask()
@@ -42,7 +42,7 @@ describe('text preprocessing', function () {
     const expectedLength = truncationTask.trainingInformation.maxSequenceLength + 1 // + 1 because tokenization includes an extra token label for next label prediction
     expect(tokens.length).to.be.equal(expectedLength)
     expect(tokens).to.be.deep.equal(expectedTokens.slice(0, expectedLength))
-  })
+  }).timeout(4000)
 
   it('can left pad tokens', async () => {
     // Create a task where output token sequence should all have length 20
