@@ -75,7 +75,10 @@
           </div>
           
         </header>
-        <div class="flex justify-end items-center mt-1">
+        <div 
+          v-if="selectedFiles === undefined"
+          class="flex justify-end items-center mt-1"
+        >
           <span 
           class="hover:cursor-pointer"
           v-tippy="{ content: 'Data always stays on your device and is never shared.' }"
