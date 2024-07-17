@@ -60,6 +60,7 @@ export class Federated extends Server {
    * Stored by task id, round number, node id and metadata key.
   */
   private metadataMap = Map<TaskID, Map<number, Map<client.NodeID, Map<MetadataKey, MetadataValue>>>>()
+  
   // TODO use real log system
   /**
   * Logs of successful requests made to the server.
@@ -141,7 +142,7 @@ export class Federated extends Server {
 
     // Wait for aggregation result to resolve with timeout, giving the network a time window
     // to contribute to the model
-    void Promise.race([promisedResult, client.utils.timeout()])
+    void Promise.race([promisedResult, client.timeout()]) //TODO: it doesn't make sense that the server is using the client utils' timeout 
       .then((result) =>
       // Reply with round - 1 because the round number should match the round at which the client sent its weights
       // After the server aggregated the weights it also incremented the round so the server replies with round - 1
@@ -152,7 +153,8 @@ export class Federated extends Server {
         const msg: messages.ReceiveServerPayload = {
           type: MessageTypes.ReceiveServerPayload,
           round,
-          payload: serialized
+          payload: serialized,
+          nbOfParticipants: aggregator.nodes.size
         }
         ws.send(msgpack.encode(msg))
       })
@@ -192,13 +194,13 @@ export class Federated extends Server {
         const { payload, round } = msg
         const weights = serialization.weights.decode(payload)
 
-	this.createPromiseForWeights(task.id, aggregator, ws)
+        this.createPromiseForWeights(task.id, aggregator, ws)
 
-	// TODO support multiple communication round
+        // TODO support multiple communication round
         if (!aggregator.add(clientId, weights, round, 0)) {
           console.info(`dropped contribution from client ${clientId} for round ${round}`)
           return // TODO what to answer?
-	}
+        }
       } else if (msg.type === MessageTypes.ReceiveServerMetadata) {
         const { key, round } = msg
 
