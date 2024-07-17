@@ -96,15 +96,7 @@ export class Peer {
     if (this.bufferSize === undefined) {
       throw new Error('chunk without known buffer size')
     }
-
-    // in the perfect world of bug-free implementations
-    // we would return this.bufferSize
-    // sadly, we are not there yet
-    //
-    // based on MDN, taking 16K seems to be a pretty safe
-    // and widely supported buffer size
-
-    return 16 * (1 << 10)
+    return this.bufferSize
   }
 
   private chunk (b: Buffer): Seq.Indexed<Buffer> {
@@ -129,7 +121,8 @@ export class Peer {
 
     const totalChunkCount = 1 + tail.count()
     if (totalChunkCount > 0xFF) {
-      throw new Error('too big message to even chunk it')
+      throw new Error(`The payload is too big: ${totalChunkCount * this.maxChunkSize} bytes > 255,` +
+        ' consider reducing the model size or increasing the chunk size')
     }
 
     const firstChunk = Buffer.alloc(
@@ -164,7 +157,7 @@ export class Peer {
   }
 
   signal (signal: SignalData): void {
-    // extract max buffer size
+    // extract max buffer size from the signal
     if (signal.type === 'offer' || signal.type === 'answer') {
       if (signal.sdp === undefined) {
         throw new Error('signal answer|offer without session description')
@@ -201,9 +194,8 @@ export class Peer {
       if (!Buffer.isBuffer(data) || data.length < HEADER_SIZE) {
         throw new Error('received invalid message type')
       }
-
-      const messageID: MessageID = data.readUint16BE()
-      const chunkID: ChunkID = data.readUint8(2)
+      const messageID: MessageID = data.readUInt16BE() //readUint16BE (case sensitive) fails at runtime
+      const chunkID: ChunkID = data.readUInt8(2) // same for readUint8
 
       const received = this.receiving.get(messageID, {
         total: undefined,
@@ -228,7 +220,7 @@ export class Peer {
           throw new Error('first header received twice')
         }
 
-        const readTotal = data.readUint8(3)
+        const readTotal = data.readUInt8(3)
         total = readTotal
         chunk = Buffer.alloc(data.length - FIRST_HEADER_SIZE)
         data.copy(chunk, 0, FIRST_HEADER_SIZE)

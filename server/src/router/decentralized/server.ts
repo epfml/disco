@@ -62,9 +62,11 @@ export class Decentralized extends Server {
         }
 
         switch (msg.type) {
-          // A new peer joins the network
+          // A new peer joins the network for a task
           case MessageTypes.ClientConnected: {
             this.connections = this.connections.set(peerId, ws)
+
+            // Answer with client id in an AssignNodeID message
             const msg: AssignNodeID = {
               type: MessageTypes.AssignNodeID,
               id: peerId
@@ -79,17 +81,8 @@ export class Decentralized extends Server {
             ws.send(msgpack.encode(msg), { binary: true })
             break
           }
-
-          // Forwards a peer's message to another destination peer
-          case MessageTypes.SignalForPeer: {
-            const forward: messages.SignalForPeer = {
-              type: MessageTypes.SignalForPeer,
-              peer: peerId,
-              signal: msg.signal
-            }
-            this.connections.get(msg.peer)?.send(msgpack.encode(forward))
-            break
-          }
+          // Send by peers at the beginning of each training round to get the list
+          // of active peers for this round.
           case MessageTypes.PeerIsReady: {
             const peers = this.readyNodes.get(task.id)?.add(peerId)
             if (peers === undefined) {
@@ -117,6 +110,18 @@ export class Decentralized extends Server {
                 }).forEach(([conn, encoded]) => { conn.send(encoded) }
                 )
             }
+            break
+          }
+          // Forwards a peer's message to another destination peer
+          // Used to exchange peer's information and establish a direct
+          // WebRTC connection between them
+          case MessageTypes.SignalForPeer: {
+            const forward: messages.SignalForPeer = {
+              type: MessageTypes.SignalForPeer,
+              peer: peerId,
+              signal: msg.signal
+            }
+            this.connections.get(msg.peer)?.send(msgpack.encode(forward))
             break
           }
           default: {
