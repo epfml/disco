@@ -27,7 +27,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
     task: { type: String, alias: 't', description: 'Task: titanic, simple_face, cifar10 or lus_covid', defaultValue: 'simple_face' },
     numberOfUsers: { type: Number, alias: 'u', description: 'Number of users', defaultValue: 1 },
     epochs: { type: Number, alias: 'e', description: 'Number of epochs', defaultValue: 10 },
-    roundDuration: { type: Number, alias: 'r', description: 'Round duration', defaultValue: 10 },
+    roundDuration: { type: Number, alias: 'r', description: 'Round duration', defaultValue: 2 },
     batchSize: { type: Number, alias: 'b', description: 'Training batch size', defaultValue: 10 },
     save: { type: Boolean, alias: 's', description: 'Save logs of benchmark', defaultValue: false },
     help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide' }
