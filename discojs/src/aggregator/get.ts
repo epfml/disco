@@ -11,11 +11,17 @@ type AggregatorOptions = {
 
 /**
  * Initializes an aggregator according to the task definition, the training scheme and the specified options.
- * The aggregator type specified in the task's training information has the first priority. 
- * If no aggregator is specified in the task then we fallback on the training scheme.
- * Decentralized learning defaults to a mean aggregator that waits for contributions from every single peers
- * Federated and local training default to a mean aggregator that waits for a single contribution 
- * (the server for federated or ourselves if training locally)
+ * Here is the ordered list of parameters used to define the aggregator's default behavior:
+ * task.trainingInformation.aggregator > scheme > task.trainingInformation.scheme
+ * 
+ * If `task.trainingInformation.aggregator` is defined, we initialize the chosen aggregator with `options`.
+ * 
+ * Otherwise, if `scheme` is defined, we initialize a MeanAggregator for both training schemes:
+ * For federated learning or local training the aggregator waits for a single contribution to trigger a model update.
+ * (the server's model update for federated learning or our own contribution if training locally)
+ * For decentralized learning the aggregator waits for every nodes' contribution to trigger a model update.
+ * 
+ * If `scheme` is undefined, we rely on task.trainingInformation.scheme to infer `scheme`.
  * 
  * @param task The task object associated with the current training session
  * @param scheme The training scheme. If not specified, the task training information scheme is used

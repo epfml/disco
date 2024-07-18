@@ -26,7 +26,7 @@ describe("federated client", function () {
     const client = new clients.federated.FederatedClient(
       url,
       TASK,
-      new aggregators.MeanAggregator(),
+      aggregators.getAggregator(TASK),
     );
     await client.connect();
     await client.disconnect();
@@ -52,7 +52,7 @@ describe("federated client", function () {
           tensorBackend: 'tfjs'
         },
       },
-      new aggregators.MeanAggregator(),
+      aggregators.getAggregator(TASK),
     );
 
     try {

@@ -15,30 +15,66 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
   readonly #thresholdType: ThresholdType;
 
   /**
+   * Create a mean aggregator that averages all weight updates received when a specified threshold is met.
+   * By default, initializes an aggregator that waits for 100% of the nodes' contributions and that
+   * only accepts contributions from the current round (drops contributions from previous rounds).
+   * 
+   * @param threshold - how many contributions trigger an aggregation step.
+   * It can be relative (a proportion): 0 < t <= 1, requiring t * |nodes| contributions. 
+   * Important: to specify 100% of the nodes, set `threshold = 1` and `thresholdType = 'relative'`.
+   * It can be an absolute number, if t >=1 (then t has to be an integer), the aggregator waits fot t contributions
+   * Note, to specify waiting for a single contribution (such as a federated client only waiting for the server weight update),
+   * set `threshold = 1` and `thresholdType = 'absolute'`
+   * @param thresholdType 'relative' or 'absolute', defaults to 'relative'. Is only used to clarify the case when threshold = 1, 
+   * If `threshold != 1` then the specified thresholdType is ignored and overwritten
+   * If `thresholdType = 'absolute'` then `threshold = 1` means waiting for 1 contribution
+   * if `thresholdType = 'relative'` then `threshold = 1`` means 100% of this.nodes' contributions, 
    * @param roundCutoff - from how many past rounds do we still accept contributions. 
    * If 0 then only accept contributions from the current round, 
    * if 1 then the current round and the previous one, etc.
-   * @param threshold - how many contributions for trigger an aggregation step.
-   *   - relative: 0 < t < 1, requiring t * |nodes| contributions
-   *   - absolute: t >= 1, requiring t contributions
-   * @param thresholdType 'relative' or 'absolute', is only used to clarify the case when threshold = 1, 
-   * If threshold != 1 then the specifying thresholdType is ignored and overwritten
-   * If thresholdType = 'absolute' and then threshold = 1 means waiting for 1 contribution
-   * if thresholdType = 'relative' then threshold = 1 means 100% of the contributions, 
-   * i.e., waiting for a contribution from every nodes
    */
-  constructor(model?: Model, roundCutoff = 0, threshold = 1, thresholdType: ThresholdType = 'absolute') {
+  constructor(model?: Model, roundCutoff = 0, threshold = 1, thresholdType?: ThresholdType) {
     if (threshold <= 0) throw new Error("threshold must be strictly positive");
-    if (threshold > 1 && (!Number.isInteger(threshold) || thresholdType != 'absolute'))
+    if (threshold > 1 && (!Number.isInteger(threshold)))
       throw new Error("absolute thresholds must be integral");
-
-  
+    
+    
     super(model, roundCutoff, 1);
     this.#threshold = threshold;
-    
-    if (threshold < 1) this.#thresholdType = 'relative'
-    else if (threshold > 1) this.#thresholdType = 'absolute'
-    else this.#thresholdType = thresholdType;
+
+    if (threshold < 1) {
+      // Print a warning if threshold and thresholdType are conflicting
+      if (thresholdType === 'absolute') {
+        console.warn(
+          "[WARN] Changing the aggregator's thresholdType from 'absolute' to 'relative' because threshold < 1. " +
+          `Make sure that the aggregator is indeed only expecting ${threshold * 100}% of the node's contributions.`
+        )
+      }
+      this.#thresholdType = 'relative'
+    }
+    else if (threshold > 1) {
+      // Print a warning if threshold and thresholdType are conflicting
+      if (thresholdType === 'relative') {
+        console.warn(
+          "[WARN] Changing the aggregator's thresholdType from 'absolute' to 'relative' because threshold < 1 " +
+          `Make sure that the aggregator is indeed only expecting ${threshold} contributions.`
+        )
+      }
+      this.#thresholdType = 'absolute'
+    }
+    // remaining case: threshold == 1
+    else {
+      // Print a warning regarding the default behavior when thresholdType is not specified
+      if (thresholdType === undefined) {
+        console.warn(
+          "[WARN] Setting the aggregator's threshold to 100% of the nodes' contributions by default. " +
+          "To instead wait for a single contribution, set thresholdType = 'absolute'"
+        )
+        this.#thresholdType = 'relative'
+      } else {
+        this.#thresholdType = thresholdType
+      }
+    }
   }
 
   /** Checks whether the contributions buffer is full. */

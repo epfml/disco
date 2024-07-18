@@ -109,8 +109,9 @@ export class Federated extends Server {
     void this.storeAggregationResult(task, aggregator)
   }
 
-  protected initTask (task: TaskID, model: Model): void {
-    const aggregator = new aggregators.MeanAggregator(model)
+  protected initTask(task: TaskID, model: Model): void {
+    // The server waits for 100% of the nodes to send their contributions before aggregating the updates
+    const aggregator = new aggregators.MeanAggregator(model, undefined, 1, 'relative')
 
     this.aggregators = this.aggregators.set(task, aggregator)
     this.informants = this.informants.set(task, new AsyncInformant(aggregator))

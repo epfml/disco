@@ -4,7 +4,7 @@ import type { Server } from 'node:http'
 
 import {
   Validator, ConsoleLogger, EmptyMemory, client as clients,
-  aggregator, defaultTasks, data
+  aggregator as aggregators, defaultTasks, data
 } from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
 import { startServer } from '../src/index.js'
@@ -30,17 +30,17 @@ describe('validator', function () {
     const adultLabels = files[1].map(_ => 'adult')
     const labels = childLabels.concat(adultLabels)
 
-    const simplefaceTask = defaultTasks.simpleFace.getTask()
+    const simpleFaceTask = defaultTasks.simpleFace.getTask()
 
-    const data = (await new NodeImageLoader(simplefaceTask)
+    const data = (await new NodeImageLoader(simpleFaceTask)
       .loadAll(files.flat(), { labels, channels: undefined })).train
     
     // Init a validator instance
-    const meanAggregator = new aggregator.MeanAggregator()
-    const client = new clients.Local(url, simplefaceTask, meanAggregator)
+    const meanAggregator = aggregators.getAggregator(simpleFaceTask, 'local')
+    const client = new clients.Local(url, simpleFaceTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(
-      simplefaceTask,
+      simpleFaceTask,
       new ConsoleLogger(),
       new EmptyMemory(),
       undefined,
@@ -71,7 +71,7 @@ describe('validator', function () {
       labels: titanicTask.trainingInformation.outputColumns,
       shuffle: false
     })).train
-    const meanAggregator = new aggregator.MeanAggregator()
+    const meanAggregator = aggregators.getAggregator(titanicTask, 'local')
     const client = new clients.Local(url, titanicTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(titanicTask, new ConsoleLogger(), new EmptyMemory(), undefined, client)
@@ -109,7 +109,7 @@ describe('validator', function () {
       .loadAll(files.flat(), { labels, channels: 3 })).train
     
     // Initialize a validator instance
-    const meanAggregator = new aggregator.MeanAggregator()
+    const meanAggregator = aggregators.getAggregator(lusCovidTask, 'local')
     const client = new clients.Local(url, lusCovidTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
 
