@@ -18,14 +18,18 @@ type AggregatorOptions = {
  * (the server for federated or ourselves if training locally)
  * 
  * @param task The task object associated with the current training session
- * @param scheme The training scheme
+ * @param scheme The training scheme. If not specified, the task training information scheme is used
  * @param options Options passed down to the aggregator's constructor
  * @returns The aggregator
  */
-export function getAggregator(task: Task, scheme: Required<Task['trainingInformation']['scheme']>,
+export function getAggregator(task: Task, scheme?: Required<Task['trainingInformation']['scheme']>,
   options?: AggregatorOptions): aggregator.Aggregator {
   if (options === undefined) {
     options = {} // init empty arguments if not specified
+  }
+
+  if (scheme == undefined) {
+    scheme = task.trainingInformation.scheme
   }
 
   switch (task.trainingInformation.aggregator) {

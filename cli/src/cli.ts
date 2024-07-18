@@ -21,7 +21,7 @@ async function runUser(
   data: data.DataSplit,
 ): Promise<List<RoundLogs>> {
   const trainingScheme = task.trainingInformation.scheme
-  const aggregator = aggregators.getAggregator(task, trainingScheme)
+  const aggregator = aggregators.getAggregator(task)
   const client = clients.getClient(trainingScheme, url, task, aggregator) 
   const disco = new Disco(task, { scheme: trainingScheme, client });
 
