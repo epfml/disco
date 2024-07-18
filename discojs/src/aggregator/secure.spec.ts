@@ -58,7 +58,7 @@ describe("secret shares test", function () {
 describe("secure aggregator", () => {
   it("behaves as mean aggregator", async () => {
     const secureNetwork = setupNetwork(SecureAggregator)
-    const meanNetwork = setupNetwork(MeanAggregator)
+    const meanNetwork = setupNetwork(MeanAggregator)  // waits for 100% of the nodes' contributions by default
 
     const meanResults = await communicate(
       Map(
