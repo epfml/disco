@@ -31,10 +31,10 @@ async function lusCovidData (lusCovid: Task): Promise<data.DataSplit> {
   const dir = '../datasets/lus_covid/'
   const covid_pos = dir + 'COVID+'
   const covid_neg = dir + 'COVID-'
-  const files_pos = (await fs.readdir(covid_pos)).map(file => path.join(covid_pos, file))
+  const files_pos = (await fs.readdir(covid_pos)).filter(file => file.endsWith('.png')).map(file => path.join(covid_pos, file))
   const label_pos = Range(0, files_pos.length).map(_ => 'COVID-Positive')
 
-  const files_neg = (await fs.readdir(covid_neg)).map(file => path.join(covid_neg, file))
+  const files_neg = (await fs.readdir(covid_neg)).filter(file => file.endsWith('.png')).map(file => path.join(covid_neg, file))
   const label_neg = Range(0, files_neg.length).map(_ => 'COVID-Negative')
   
   const files = files_pos.concat(files_neg)
