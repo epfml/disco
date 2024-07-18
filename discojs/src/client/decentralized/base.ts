@@ -20,6 +20,9 @@ export class Base extends Client {
    */
   private pool?: PeerPool
   private connections?: Map<NodeID, PeerConnection>
+  // set True when disconnected is called
+  // Used to handle timeouts and promise resolving after calling disconnect
+  private disconnected = false
 
   /**
    * Public method called by disco.ts when starting training. This method sends
@@ -58,6 +61,7 @@ export class Base extends Client {
     }
     this._ownId = peerIdMsg.id
     this.pool = new PeerPool(peerIdMsg.id)
+    this.disconnected = false
   }
 
   /**
@@ -88,12 +92,12 @@ export class Base extends Client {
       const peers = this.connections.keySeq().toSet()
       this.aggregator.setNodes(this.aggregator.nodes.subtract(peers))
     }
-
     // Disconnect from server
     await this.server?.disconnect()
     this._server = undefined
     this._ownId = undefined
-
+    
+    this.disconnected = true
     return Promise.resolve()
   }
 
@@ -188,6 +192,9 @@ export class Base extends Client {
             console.warn(`[${this.ownId}] Failed to add contribution from peer ${peerId}`)
           }
         } catch (e) {
+          if (this.disconnected) {
+            return
+          }
           console.error(e instanceof Error ? e.message : e)
         }
       } while (++currentCommunicationRounds < this.aggregator.communicationRounds)
@@ -237,10 +244,17 @@ export class Base extends Client {
       }
       // Wait for aggregation before proceeding to the next communication round.
       // The current result will be used as payload for the eventual next communication round.
-      result = await Promise.race([
-        this.aggregationResult,
-        timeout(undefined, "Timeout waiting on the aggregation result promise to resolve")
-      ])
+      try { 
+        result = await Promise.race([
+          this.aggregationResult,
+          timeout(undefined, "Timeout waiting on the aggregation result promise to resolve")
+        ])
+      } catch (e) {
+        if (this.disconnected) {
+          return
+        }
+        console.error(e instanceof Error ? e.message : e)
+      }
 
       // There is at least one communication round remaining
       if (r < this.aggregator.communicationRounds - 1) {

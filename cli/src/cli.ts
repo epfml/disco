@@ -26,6 +26,7 @@ async function runUser(
   const disco = new Disco(task, { scheme: trainingScheme, client });
 
   const logs = List(await arrayFromAsync(disco.trainByRound(data)));
+  await new Promise((res, _) => setTimeout(() => res('timeout'), 1000)) // Wait for other peers to finish
   await disco.close();
   return logs;
 }

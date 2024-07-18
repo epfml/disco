@@ -61,7 +61,7 @@ export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K>
       this.emit(msg.type, msg)
     })
 
-    this.peer.on('close', () => { console.warn('peer', this.peer.id, 'closed connection') })
+    this.peer.on('close', () => { console.warn('From', this._ownId, ': peer', this.peer.id, 'closed connection') })
 
     await new Promise<void>((resolve) => {
       this.peer.on('connect', resolve)
@@ -79,8 +79,11 @@ export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K>
     this.peer.send(msgpack.encode(msg))
   }
 
-  async disconnect (): Promise<void> {
-    await this.peer.destroy()
+  async disconnect(): Promise<void> {
+    await Promise.race([
+      this.peer.destroy(),
+      new Promise((res, _) => setTimeout(() => res('PeerConnection disconnection timed out'), 3000))
+    ])
   }
 }
 
