@@ -1,2 +1,2 @@
 export { Disco } from './disco.js'
-export { RoundLogs } from './trainer/trainer.js'
+export { RoundLogs, Trainer } from './trainer.js'
