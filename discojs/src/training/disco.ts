@@ -69,6 +69,11 @@ export class Disco {
     this.trainerPromise = trainerBuilder.build(this.client, options.scheme !== 'local')
   }
 
+  // TODO have it as a field or upgrade Disco to be a Trainer
+  async getTrainer(): Promise<Trainer> {
+    return this.trainerPromise
+  }
+
   /** Train on dataset, yielding logs of every round. */
   async *trainByRound(
     dataTuple: data.DataSplit,

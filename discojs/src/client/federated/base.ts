@@ -96,7 +96,7 @@ export class Base extends Client {
 
   override onRoundBeginCommunication(): Promise<void> {
     // Prepare the result promise for the incoming round
-    this.aggregationResult = this.aggregator.receiveResult();
+    this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
 
     return Promise.resolve();
   }
@@ -104,7 +104,7 @@ export class Base extends Client {
   override async onRoundEndCommunication(
     weights: WeightsContainer,
     round: number,
-  ): Promise<void> {
+  ): Promise<WeightsContainer> {
     weights = await this.applyPrivacy(weights)
 
     // NB: For now, we suppose a fully-federated setting.
@@ -133,6 +133,8 @@ export class Base extends Client {
       );
       this.aggregator.nextRound();
     }
+
+    return await this.aggregationResult
   }
 
   /**

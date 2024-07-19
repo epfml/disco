@@ -12,7 +12,7 @@ async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {
 
 describe("mean aggregator", () => {
   it("updates only within round cutoff", () => {
-    const aggregator = new MeanAggregator(undefined, 1, 3);
+    const aggregator = new MeanAggregator(1, 3);
     aggregator.setNodes(
       Set.of("first client", "second client", "third client"),
     );
@@ -39,10 +39,12 @@ describe("mean aggregator", () => {
   });
 
   it("returns the mean of the weights", async () => {
-    const aggregator = new MeanAggregator(undefined, 0, 2);
+    const aggregator = new MeanAggregator(0, 2);
     aggregator.setNodes(Set.of("first client", "second client"));
 
-    const results = aggregator.receiveResult();
+    const results = new Promise<WeightsContainer>((resolve) =>
+      aggregator.once("aggregation", resolve),
+    );
 
     aggregator.add("first client", WeightsContainer.of([0], [1]), 0);
     aggregator.add("second client", WeightsContainer.of([2], [3]), 0);

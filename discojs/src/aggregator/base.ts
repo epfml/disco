@@ -1,6 +1,6 @@
 import { Map, Set } from 'immutable'
 
-import type { client, Model, AsyncInformant } from '../index.js'
+import type { client, AsyncInformant } from '../index.js'
 
 import { EventEmitter } from '../utils/event_emitter.js'
 
@@ -13,8 +13,11 @@ export enum AggregationStep {
 /**
  * Main, abstract, aggregator class whose role is to buffer contributions and to produce
  * a result based off their aggregation, whenever some defined condition is met.
+ *
+ * Emits an event whenever an aggregation step is performed.
+ * Users wait for this event to fetch the aggregation result.
  */
-export abstract class Base<T> {
+export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
   /**
    * Contains the ids of all active nodes, i.e. members of the aggregation group at
    * a given round. It is a subset of all the nodes available in the network.
@@ -27,20 +30,9 @@ export abstract class Base<T> {
    */
   // communication round -> NodeID -> T
   protected contributions: Map<number, Map<client.NodeID, T>>
-  /**
-   * Emits the aggregation event whenever an aggregation step is performed.
-   * Triggers the resolve of the result promise and the preparation for the
-   * next aggregation round.
-   */
-  private readonly eventEmitter = new EventEmitter<{ 'aggregation': T }>()
 
   protected informant?: AsyncInformant<T>
-  /**
-   * The result promise which, on resolve, will contain the current aggregation result.
-   * This promise should be fetched by any object making use of an aggregator, in order
-   * to await upon aggregation.
-   */
-  protected result: Promise<T>
+
   /**
    * The current aggregation round, used for assessing whether a node contribution is recent enough
    * or not.
@@ -56,10 +48,6 @@ export abstract class Base<T> {
 
   constructor (
     /**
-     * The Model whose weights are updated on aggregation.
-     */
-    protected _model?: Model,
-    /**
      * The round cut-off for contributions.
      */
     protected readonly roundCutoff = 0,
@@ -68,17 +56,14 @@ export abstract class Base<T> {
      */
     public readonly communicationRounds = 1
   ) {
+    super()
+
     this.contributions = Map()
     this._nodes = Set()
 
-    // Make the initial result promise
-    this.result = this.makeResult()
-
     // On every aggregation, update the object's state to match the current aggregation
     // and communication rounds.
-    this.eventEmitter.on('aggregation', () => {
-      this.nextRound()
-    })
+    this.on('aggregation', () => this.nextRound())
   }
 
   /**
@@ -139,14 +124,6 @@ export abstract class Base<T> {
   }
 
   /**
-   * Sets the aggregator's model.
-   * @param model The new model
-   */
-  setModel (model: Model): void {
-    this._model = model
-  }
-
-  /**
    * Adds a node's id to the set of active nodes. A node represents an active neighbor
    * peer/client within the network, whom we are communicating with during this aggregation
    * round.
@@ -191,15 +168,6 @@ export abstract class Base<T> {
   }
 
   /**
-   * Emits the event containing the aggregation result, which allows the result
-   * promise to resolve and for the next aggregation round to take place.
-   * @param aggregated The aggregation result
-   */
-  protected emit (aggregated: T): void {
-    this.eventEmitter.emit('aggregation', aggregated)
-  }
-
-  /**
    * Updates the aggregator's state to proceed to the next communication round.
    * If all communication rounds were performed, proceeds to the next aggregation round
    * and empties the collection of stored contributions.
@@ -210,27 +178,7 @@ export abstract class Base<T> {
       this._round++
       this.contributions = Map()
     }
-    this.result = this.makeResult()
     this.informant?.update()
-  }
-
-  private async makeResult (): Promise<T> {
-    return await new Promise((resolve) => {
-      this.eventEmitter.once('aggregation', (w) => {
-        resolve(w)
-      })
-    })
-  }
-
-  /**
-   * Aggregation steps are performed asynchronously, yet can be awaited upon when required.
-   * This function gives access to the current aggregation result's promise, which will
-   * eventually resolve and contain the result of the very next aggregation step, at the
-   * time of the function call.
-   * @returns The promise containing the aggregation result
-   */
-  async receiveResult (): Promise<T> {
-    return await this.result
   }
 
   /**
@@ -264,13 +212,6 @@ export abstract class Base<T> {
       .valueSeq()
       .map((m) => m.size)
       .reduce((totalSize: number, size) => totalSize + size) ?? 0
-  }
-
-  /**
-   * The aggregator's current model.
-   */
-  get model (): Model | undefined {
-    return this._model
   }
 
   /**

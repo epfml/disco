@@ -38,7 +38,6 @@ describe('validator', function () {
     // Init a validator instance
     const meanAggregator = aggregators.getAggregator(simpleFaceTask, {scheme: 'local'})
     const client = new clients.Local(url, simpleFaceTask, meanAggregator)
-    meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(
       simpleFaceTask,
       new ConsoleLogger(),
@@ -73,7 +72,6 @@ describe('validator', function () {
     })).train
     const meanAggregator = aggregators.getAggregator(titanicTask, {scheme: 'local'})
     const client = new clients.Local(url, titanicTask, meanAggregator)
-    meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(titanicTask, new ConsoleLogger(), new EmptyMemory(), undefined, client)
     for await (const _ of validator.test(data));
     // data.size is undefined because tfjs handles dataset lazily
@@ -111,7 +109,6 @@ describe('validator', function () {
     // Initialize a validator instance
     const meanAggregator = aggregators.getAggregator(lusCovidTask, {scheme: 'local'})
     const client = new clients.Local(url, lusCovidTask, meanAggregator)
-    meanAggregator.setModel(await client.getLatestModel())
 
     const validator = new Validator(
       lusCovidTask,

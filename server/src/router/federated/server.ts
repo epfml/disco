@@ -4,7 +4,6 @@ import { List, Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 
 import type {
-  Model,
   Task,
   TaskID,
   WeightsContainer,
@@ -89,7 +88,7 @@ export class Federated extends Server {
    */
   private async storeAggregationResult (task: TaskID, aggregator: aggregators.Aggregator): Promise<void> {
     // Create a promise on the future aggregated weights
-    const result = aggregator.receiveResult()
+    const result = new Promise<WeightsContainer>((resolve) => aggregator.once('aggregation', resolve))
     // Store the promise such that it is accessible from other methods
     this.results = this.results.set(task, result)
     // The promise resolves once the server received enough contributions (through the handle method)
@@ -102,9 +101,9 @@ export class Federated extends Server {
     void this.storeAggregationResult(task, aggregator)
   }
 
-  protected initTask(task: TaskID, model: Model): void {
+  protected initTask(task: TaskID): void {
     // The server waits for 100% of the nodes to send their contributions before aggregating the updates
-    const aggregator = new aggregators.MeanAggregator(model, undefined, 1, 'relative')
+    const aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
 
     this.aggregators = this.aggregators.set(task, aggregator)
     this.informants = this.informants.set(task, new AsyncInformant(aggregator))
