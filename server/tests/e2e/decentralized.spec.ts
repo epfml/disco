@@ -3,8 +3,11 @@ import { List } from 'immutable'
 import { expect } from 'chai'
 
 import {
-  aggregator as aggregators, client as clients, WeightsContainer, defaultTasks, aggregation
-} from '@epfml/discojs'
+  aggregator as aggregators,
+  client as clients,
+  defaultTasks,
+  WeightsContainer,
+} from "@epfml/discojs";
 
 import { startServer } from '../../src/index.js'
 
@@ -27,53 +30,6 @@ async function expectWSToBeClose(
     );
 }
 
-// Mocked aggregators with easy-to-fetch aggregation results
-class MockMeanAggregator extends aggregators.MeanAggregator {
-  public outcome?: WeightsContainer
-
-  aggregate (): void {
-    this.log(aggregators.AggregationStep.AGGREGATE)
-    const result = aggregation.avg(this.contributions.get(0)?.values() as Iterable<WeightsContainer>)
-    this.emit(result)
-    this.outcome = result
-  }
-
-  add (nodeId: clients.NodeID, contribution: WeightsContainer, round: number): boolean {
-    if (round > this.round) {
-      throw new Error('received contribution is too recent')
-    }
-    return super.add(nodeId, contribution, round)
-  }
-}
-
-class MockSecureAggregator extends aggregators.SecureAggregator {
-  public outcome?: WeightsContainer
-  public id?: string
-
-  aggregate (): void {
-    this.log(aggregators.AggregationStep.AGGREGATE)
-    if (this.communicationRound === 0) {
-      // Sum the received shares
-      const result = aggregation.sum(this.contributions.get(0)?.values() as Iterable<WeightsContainer>)
-      this.emit(result)
-    } else if (this.communicationRound === 1) {
-      // Average the received partial sums
-      const result = aggregation.avg(this.contributions.get(1)?.values() as Iterable<WeightsContainer>)
-      this.emit(result)
-      this.outcome = result
-    } else {
-      throw new Error('communication round out of bounds')
-    }
-  }
-
-  add (nodeId: clients.NodeID, contribution: WeightsContainer, round: number, communicationRound: number): boolean {
-    if (round > this.round) {
-      throw new Error('received contribution is too recent')
-    }
-    return super.add(nodeId, contribution, round, communicationRound)
-  }
-}
-
 describe('end-to-end decentralized', function () {
   this.timeout(30_000)
 
@@ -93,27 +49,22 @@ describe('end-to-end decentralized', function () {
     rounds: number
   ): Promise<[WeightsContainer, clients.Client]> {
     const task = defaultTasks.cifar10.getTask()
-    const inputWeights = WeightsContainer.of(input)
     const aggregator = aggregatorType == 'mean' ? 
-      new MockMeanAggregator(undefined, undefined, 1, 'relative')
-      : new MockSecureAggregator()
+      new aggregators.MeanAggregator(0, 1, 'relative')
+      : new aggregators.SecureAggregator()
 
     const client = new clients.decentralized.DecentralizedClient(url, task, aggregator)
-
-    aggregator.outcome = inputWeights
-
     await client.connect()
 
     // Perform multiple training rounds
+    let weights = WeightsContainer.of(input)
     for (let r = 0; r < rounds; r++) {
-      await client.onRoundBeginCommunication(aggregator.outcome, aggregator.round)
-      await new Promise((resolve) => {
-        setTimeout(resolve, 1_000)
-      })
-      await client.onRoundEndCommunication(aggregator.outcome, aggregator.round)
+      await client.onRoundBeginCommunication(weights, aggregator.round)
+      await new Promise((resolve) => setTimeout(resolve, 1_000))
+      weights = await client.onRoundEndCommunication(weights, aggregator.round)
     }
 
-    return [aggregator.outcome, client]
+    return [weights, client]
   }
 
   /**

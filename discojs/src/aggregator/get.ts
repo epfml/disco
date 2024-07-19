@@ -1,9 +1,7 @@
 import type { Task } from '../index.js'
 import { aggregator } from '../index.js'
-import type { Model } from "../index.js";
 
 type AggregatorOptions = Partial<{
-  model: Model,
   scheme: Task['trainingInformation']['scheme'], // if undefined, fallback on task.trainingInformation.scheme
   roundCutOff: number, // MeanAggregator
   threshold: number, // MeanAggregator
@@ -37,7 +35,7 @@ export function getAggregator(task: Task, options: AggregatorOptions = {}): aggr
       if (scheme === 'decentralized') {
         // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%
         options = {
-          model: undefined, roundCutOff: undefined, threshold: 1, thresholdType: 'relative',
+          roundCutOff: undefined, threshold: 1, thresholdType: 'relative',
           ...options
         }
       } else {
@@ -45,15 +43,15 @@ export function getAggregator(task: Task, options: AggregatorOptions = {}): aggr
         // so we set the aggregation threshold to 1 contribution
         // If scheme == 'local' then we only expect our own contribution
         options = {
-          model: undefined, roundCutOff: undefined, threshold: 1, thresholdType: 'absolute',
+          roundCutOff: undefined, threshold: 1, thresholdType: 'absolute',
           ...options
         }
       }
-      return new aggregator.MeanAggregator(options.model, options.roundCutOff, options.threshold, options.thresholdType)
+      return new aggregator.MeanAggregator(options.roundCutOff, options.threshold, options.thresholdType)
     case 'secure':
       if (scheme !== 'decentralized') {
         throw new Error('secure aggregation is currently supported for decentralized only')
       }
-      return new aggregator.SecureAggregator(options.model, task.trainingInformation.maxShareValue)
+      return new aggregator.SecureAggregator(task.trainingInformation.maxShareValue)
   }
 }

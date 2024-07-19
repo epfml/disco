@@ -81,11 +81,12 @@ export abstract class Base {
    * Communication callback called the end of every training round.
    * @param _weights The most recent local weight updates
    * @param _round The current training round
+   * @returns aggregated weights or the local weights upon error
    */
-  async onRoundEndCommunication(
+  abstract onRoundEndCommunication(
     _weights: WeightsContainer,
     _round: number,
-  ): Promise<void> {}
+  ): Promise<WeightsContainer>;
 
   // Number of contributors to a collaborative session
   // If decentralized, it should be the number of peers
@@ -125,9 +126,9 @@ export abstract class Base {
     let ret = ws;
     if (clippingRadius !== undefined)
       ret = previousRoundWeights.add(
-        await privacy.clipNorm(clippingRadius, weightsProgress),
+        await privacy.clipNorm(weightsProgress, clippingRadius),
       );
-    if (noiseScale !== undefined) ret = privacy.addNoise(noiseScale, ret);
+    if (noiseScale !== undefined) ret = privacy.addNoise(ret, noiseScale);
 
     return ret;
   }

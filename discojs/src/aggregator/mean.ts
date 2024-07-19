@@ -1,7 +1,7 @@
 import type { Map } from "immutable";
 
 import { AggregationStep, Base as Aggregator } from "./base.js";
-import type { Model, WeightsContainer, client } from "../index.js";
+import type { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
 
 type ThresholdType = 'relative' | 'absolute'
@@ -33,13 +33,13 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
    * If 0 then only accept contributions from the current round, 
    * if 1 then the current round and the previous one, etc.
    */
-  constructor(model?: Model, roundCutoff = 0, threshold = 1, thresholdType?: ThresholdType) {
+  constructor(roundCutoff = 0, threshold = 1, thresholdType?: ThresholdType) {
     if (threshold <= 0) throw new Error("threshold must be strictly positive");
     if (threshold > 1 && (!Number.isInteger(threshold)))
       throw new Error("absolute thresholds must be integral");
     
     
-    super(model, roundCutoff, 1);
+    super(roundCutoff, 1);
     this.#threshold = threshold;
 
     if (threshold < 1) {
@@ -119,9 +119,7 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
     this.log(AggregationStep.AGGREGATE);
 
     const result = aggregation.avg(currentContributions.values());
-
-    if (this.model !== undefined) this.model.weights = result;
-    this.emit(result);
+    this.emit('aggregation', result);
   }
 
   override makePayloads(

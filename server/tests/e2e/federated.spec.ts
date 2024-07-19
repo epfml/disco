@@ -50,10 +50,8 @@ describe("end-to-end federated", function () {
     await disco.trainFully(data);
     await disco.close()
 
-    if (aggregator.model === undefined) {
-      throw new Error('model was not set')
-    }
-    return aggregator.model.weights
+    const trainer = await disco.getTrainer()
+    return trainer.model.weights
   }
 
   async function titanicUser (): Promise<WeightsContainer> {
@@ -78,16 +76,15 @@ describe("end-to-end federated", function () {
     const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
 
-    if (aggregator.model === undefined) {
-      throw new Error('model was not set')
-    }
     expect(logs.last()?.epochs.last()?.training.accuracy).to.be.greaterThan(0.6)
     if (logs.last()?.epochs.last()?.validation === undefined) {
       throw new Error('No validation logs while validation dataset was specified')
     } 
     const validationLogs = logs.last()?.epochs.last()?.validation
     expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
-    return aggregator.model.weights
+
+    const trainer = await disco.getTrainer()
+    return trainer.model.weights
   }
 
   async function wikitextUser(): Promise<void> {
@@ -141,12 +138,11 @@ describe("end-to-end federated", function () {
     const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
 
-    if (aggregator.model === undefined) {
-      throw new Error('model was not set')
-    }
     const validationLogs = logs.last()?.epochs.last()?.validation
     expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
-    return aggregator.model.weights
+
+    const trainer = await disco.getTrainer()
+    return trainer.model.weights
   }
 
   it("three cifar10 users reach consensus", async function () {

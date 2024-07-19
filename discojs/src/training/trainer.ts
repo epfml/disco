@@ -49,8 +49,6 @@ export class Trainer {
       throw new Error(
         `round duration ${this.#roundDuration} doesn't divide number of epochs ${this.#epochs}`,
       );
-
-    this.client?.aggregator?.setModel(model)
   }
 
   /**
@@ -97,8 +95,7 @@ export class Trainer {
 
       yield this.#runRound(dataset, valDataset);
 
-      await this.client?.onRoundEndCommunication(this.model.weights, round);
-      const weights = this.client?.aggregator?.model?.weights;
+      const weights = await this.client?.onRoundEndCommunication(this.model.weights, round);
       if (weights !== undefined) this.model.weights = weights;
 
       await this.#updateWorkingModel();
