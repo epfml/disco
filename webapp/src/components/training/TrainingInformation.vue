@@ -199,7 +199,7 @@ import PeopleIcon from "@/assets/svg/PeopleIcon.vue";
 import Contact from "@/assets/svg/Contact.vue";
 
 const props = defineProps<{
-  rounds: List<RoundLogs & { participants: number }>;
+  rounds: List<RoundLogs>;
   epochsOfRound: List<EpochLogs>;
   numberOfEpochs: number;
   batchesOfEpoch: List<BatchLogs>;

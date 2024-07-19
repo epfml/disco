@@ -10,7 +10,7 @@ it("shows messages", async () => {
   const wrapper = mount(TrainingInformation, {
     global: { stubs: { apexchart: true } },
     props: {
-      rounds: List<RoundLogs & { participants: number }>(),
+      rounds: List<RoundLogs>(),
       epochsOfRound: List<EpochLogs>(),
       numberOfEpochs: 30,
       batchesOfEpoch: List<BatchLogs>(),
