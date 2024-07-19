@@ -5,8 +5,8 @@ import { client as clients, EmptyMemory, ConsoleLogger } from '../index.js'
 import {getAggregator, type Aggregator } from '../aggregator/index.js'
 import { enumerate, split } from '../utils/async_iterator.js'
 
-import type { RoundLogs, Trainer } from './trainer/trainer.js'
-import { TrainerBuilder } from './trainer/trainer_builder.js'
+import type { RoundLogs, Trainer } from './trainer.js'
+import { TrainerBuilder } from './trainer_builder.js'
 
 export interface DiscoOptions {
   client?: clients.Client

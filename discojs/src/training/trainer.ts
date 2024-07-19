@@ -1,44 +1,57 @@
 import type tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 
-import type { Model, Task } from "../../index.js";
-import * as async_iterator from "../../utils/async_iterator.js";
-import { BatchLogs, EpochLogs } from "../../models/index.js";
+import type { BatchLogs, EpochLogs, Memory, Model, Task } from "../index.js";
+import { Client } from "../client/index.js";
+import * as async_iterator from "../utils/async_iterator.js";
 
 export interface RoundLogs {
   epochs: List<EpochLogs>;
 }
 
-/** Abstract class whose role is to train a model with a given dataset. This can be either done
- * locally (alone) or in a distributed way with collaborators.
- *
- * 1. Call `fitModel(dataset)` to start training.
- * 2. which will then call onRoundEnd once the round has ended.
- *
- * The onRoundEnd needs to be implemented to specify what actions to do when the round has ended, such as a communication step with collaborators.
- */
-export abstract class Trainer {
+/** Train a model and exchange with others */
+export class Trainer {
   readonly #roundDuration: number;
   readonly #epochs: number;
+
+  // small helper to avoid keeping Task & Memory around
+  readonly #updateWorkingModel: () => Promise<void>;
 
   private training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
   >;
 
+  /**
+   * @param client how to communicate with others, undefined if local-only training
+   */
   constructor(
     task: Task,
+    memory: Memory,
     public readonly model: Model,
+    private readonly client?: Client,
   ) {
     this.#roundDuration = task.trainingInformation.roundDuration;
     this.#epochs = task.trainingInformation.epochs;
 
-    if (!Number.isInteger(this.#epochs / this.#roundDuration))
-      throw new Error(`round duration ${this.#roundDuration} doesn't divide number of epochs ${this.#epochs}`);
-  }
+    this.#updateWorkingModel = () =>
+      memory.updateWorkingModel(
+        {
+          type: "working",
+          taskID: task.id,
+          name: task.trainingInformation.modelID,
+          tensorBackend: task.trainingInformation.tensorBackend,
+        },
+        this.model,
+      );
 
-  protected abstract onRoundBegin(round: number): Promise<void>;
-  protected abstract onRoundEnd(round: number): Promise<void>;
+    if (!Number.isInteger(this.#epochs / this.#roundDuration))
+      throw new Error(
+        `round duration ${this.#roundDuration} doesn't divide number of epochs ${this.#epochs}`,
+      );
+
+    this.client?.aggregator?.setModel(model)
+  }
 
   /**
    * Request stop training to be used from the Disco instance or any class that is taking care of the trainer.
@@ -80,9 +93,15 @@ export abstract class Trainer {
   > {
     const totalRound = Math.trunc(this.#epochs / this.#roundDuration);
     for (let round = 0; round < totalRound; round++) {
-      await this.onRoundBegin(round);
+      await this.client?.onRoundBeginCommunication(this.model.weights, round);
+
       yield this.#runRound(dataset, valDataset);
-      await this.onRoundEnd(round);
+
+      await this.client?.onRoundEndCommunication(this.model.weights, round);
+      const weights = this.client?.aggregator?.model?.weights;
+      if (weights !== undefined) this.model.weights = weights;
+
+      await this.#updateWorkingModel();
     }
   }
 
