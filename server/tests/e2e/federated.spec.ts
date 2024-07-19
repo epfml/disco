@@ -45,13 +45,12 @@ describe("end-to-end federated", function () {
 
     const aggregator = aggregators.getAggregator(cifar10Task, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
-    const disco = new Disco(cifar10Task, { scheme: trainingScheme, client })
+    const disco = await Disco.fromTask(cifar10Task, client, { scheme: trainingScheme })
 
     await disco.trainFully(data);
     await disco.close()
 
-    const trainer = await disco.getTrainer()
-    return trainer.model.weights
+    return disco.trainer.model.weights
   }
 
   async function titanicUser (): Promise<WeightsContainer> {
@@ -71,7 +70,7 @@ describe("end-to-end federated", function () {
     ))
     const aggregator = aggregators.getAggregator(titanicTask, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
-    const disco = new Disco(titanicTask, { scheme: trainingScheme, client, aggregator })
+    const disco = await Disco.fromTask(titanicTask, client, { scheme: trainingScheme })
 
     const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
@@ -83,8 +82,7 @@ describe("end-to-end federated", function () {
     const validationLogs = logs.last()?.epochs.last()?.validation
     expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
 
-    const trainer = await disco.getTrainer()
-    return trainer.model.weights
+    return disco.trainer.model.weights
   }
 
   async function wikitextUser(): Promise<void> {
@@ -100,7 +98,7 @@ describe("end-to-end federated", function () {
 
     const aggregator = aggregators.getAggregator(task, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, task, aggregator)
-    const disco = new Disco(task, { scheme: trainingScheme, client, aggregator })
+    const disco = await Disco.fromTask(task, client, { scheme: trainingScheme })
 
     const logs = List(await arrayFromAsync(disco.trainByRound(dataSplit)));
     await disco.close()
@@ -133,7 +131,7 @@ describe("end-to-end federated", function () {
 
     const aggregator = aggregators.getAggregator(lusCovidTask, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, lusCovidTask, aggregator)
-    const disco = new Disco(lusCovidTask, { scheme: trainingScheme, client })
+    const disco = await Disco.fromTask(lusCovidTask, client, { scheme: trainingScheme })
 
     const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
@@ -141,8 +139,7 @@ describe("end-to-end federated", function () {
     const validationLogs = logs.last()?.epochs.last()?.validation
     expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
 
-    const trainer = await disco.getTrainer()
-    return trainer.model.weights
+    return disco.trainer.model.weights
   }
 
   it("three cifar10 users reach consensus", async function () {

@@ -30,8 +30,8 @@
     <!-- Demo warning -->
     <div class="flex flex-row justify-between gap-x-4 items-center mb-5 py-4 px-4 bg-purple-100 rounded-md">
         <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6 text-slate-600"/>
-        <p class="text-slate-600 text-xs pt-0.5">In this live demo, the model you are training is a newly initialized one. 
-          In a real use case you would start training with the latest model resulting from all users' collaborative training. 
+        <p class="text-slate-600 text-xs pt-0.5">In this live demo, the model you are training is a newly initialized one.
+          In a real use case you would start training with the latest model resulting from all users' collaborative training.
           To persist collaborative models, you can launch your own DISCO instance following
           <a
           class='underline text-blue-400 font-bold'
@@ -39,8 +39,8 @@
           href="https://github.com/epfml/disco/blob/develop/DEV.md"
           >these steps.</a>
           <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
-          <span 
-            v-if="props.task.trainingInformation.dataType === 'text'" 
+          <span
+            v-if="props.task.trainingInformation.dataType === 'text'"
             class="text-slate-600 text-xs"
           >
           <!-- Leading space is important -->
@@ -69,7 +69,7 @@ import { List } from "immutable";
 import { ref, computed } from "vue";
 
 import type { BatchLogs, EpochLogs, RoundLogs, Task } from "@epfml/discojs";
-import { async_iterator, data, EmptyMemory, Disco, aggregator as aggregators, client as clients } from "@epfml/discojs";
+import { async_iterator, data, EmptyMemory, Disco } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
 import { useMemoryStore } from "@/store/memory";
@@ -96,7 +96,7 @@ const trainingGenerator =
     AsyncGenerator<
       AsyncGenerator<
         AsyncGenerator<BatchLogs, EpochLogs>,
-        RoundLogs & { participants: number }
+        RoundLogs
       >
     >
   >();
@@ -104,11 +104,11 @@ const roundGenerator =
   ref<
       AsyncGenerator<
         AsyncGenerator<BatchLogs, EpochLogs>,
-        RoundLogs & { participants: number }
+        RoundLogs
       >
   >();
 const epochGenerator = ref<AsyncGenerator<BatchLogs, EpochLogs>>();
-const roundsLogs = ref(List<RoundLogs & { participants: number }>());
+const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
 const messages = ref(List<string>());
@@ -127,7 +127,7 @@ async function startTraining(distributed: boolean): Promise<void> {
   isTrainingAlone.value = !distributed
   // Reset training information before starting a new training
   trainingGenerator.value = undefined
-  roundsLogs.value = List<RoundLogs & { participants: number }>()
+  roundsLogs.value = List<RoundLogs>()
   epochsOfRoundLogs.value = List<EpochLogs>()
   batchesOfEpochLogs.value = List<BatchLogs>()
   messages.value = List()
@@ -160,11 +160,7 @@ async function startTraining(distributed: boolean): Promise<void> {
 
   toaster.info("Model training started");
 
-  const scheme = distributed ? props.task.trainingInformation.scheme : "local";
-  const aggregator = aggregators.getAggregator(props.task, { scheme }) // overwrite the training information scheme
-  const client = clients.getClient(scheme, CONFIG.serverUrl, props.task, aggregator)
-
-  const disco = new Disco(props.task, {
+  const disco = await Disco.fromTask(props.task, CONFIG.serverUrl, {
     logger: {
       success: (msg: string) => {
         messages.value = messages.value.push(msg);
@@ -174,15 +170,14 @@ async function startTraining(distributed: boolean): Promise<void> {
       },
     },
     memory: memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory(),
-    scheme,
-    client,
+    scheme: distributed ? props.task.trainingInformation.scheme : "local",
   });
 
   try {
     displayModelCaching.value = false // hide model caching buttons during training
     trainingGenerator.value = disco.train(dataset);
 
-    roundsLogs.value = List<RoundLogs & { participants: number }>()
+    roundsLogs.value = List<RoundLogs>()
     for await (const round of trainingGenerator.value) {
       const [roundGen, roundLogs] = async_iterator.split(round)
 
