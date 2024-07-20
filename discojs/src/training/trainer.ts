@@ -1,7 +1,14 @@
-import type tf from "@tensorflow/tfjs";
+import * as tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 
-import type { BatchLogs, EpochLogs, Model, Task } from "../index.js";
+import type {
+  BatchLogs,
+  EpochLogs,
+  Model,
+  Task,
+  WeightsContainer,
+} from "../index.js";
+import { privacy } from "../index.js";
 import { Client } from "../client/index.js";
 import * as async_iterator from "../utils/async_iterator.js";
 
@@ -15,6 +22,7 @@ export class Trainer {
   readonly #client: Client;
   readonly #roundDuration: number;
   readonly #epochs: number;
+  readonly #privacy: Task["trainingInformation"]["privacy"];
 
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
@@ -29,6 +37,7 @@ export class Trainer {
     this.#client = client;
     this.#roundDuration = task.trainingInformation.roundDuration;
     this.#epochs = task.trainingInformation.epochs;
+    this.#privacy = task.trainingInformation.privacy;
 
     if (!Number.isInteger(this.#epochs / this.#roundDuration))
       throw new Error(
@@ -68,13 +77,26 @@ export class Trainer {
     void
   > {
     const totalRound = Math.trunc(this.#epochs / this.#roundDuration);
+    let previousRoundWeights: WeightsContainer | undefined;
     for (let round = 0; round < totalRound; round++) {
       await this.#client.onRoundBeginCommunication(this.model.weights, round);
 
       yield this.#runRound(dataset, valDataset);
 
-      const weights = await this.#client.onRoundEndCommunication(this.model.weights, round);
-      if (weights !== undefined) this.model.weights = weights;
+      let localWeights = this.model.weights;
+      if (this.#privacy !== undefined)
+        localWeights = await applyPrivacy(
+          previousRoundWeights,
+          localWeights,
+          this.#privacy,
+        );
+
+      const networkWeights = await this.#client.onRoundEndCommunication(
+        localWeights,
+        round,
+      );
+
+      this.model.weights = previousRoundWeights = networkWeights;
     }
   }
 
@@ -97,4 +119,25 @@ export class Trainer {
       participants: this.#client.nbOfParticipants,
     };
   }
+}
+
+async function applyPrivacy(
+  previous: WeightsContainer | undefined,
+  current: WeightsContainer,
+  options: Exclude<Task["trainingInformation"]["privacy"], undefined>,
+): Promise<WeightsContainer> {
+  let ret = current;
+
+  if (options.clippingRadius !== undefined) {
+    const previousRoundWeights = previous ?? current.map((w) => tf.zerosLike(w));
+    const weightsProgress = current.sub(previousRoundWeights);
+    ret = previousRoundWeights.add(
+      await privacy.clipNorm(weightsProgress, options.clippingRadius),
+    );
+  }
+
+  if (options.noiseScale !== undefined)
+    ret = privacy.addNoise(ret, options.noiseScale);
+
+  return ret;
 }
