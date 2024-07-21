@@ -75,7 +75,6 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
       contribution,
     );
 
-    this.informant?.update();
     if (this.isFull()) this.aggregate();
 
     return true;
