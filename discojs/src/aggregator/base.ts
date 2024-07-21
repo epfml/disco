@@ -1,6 +1,6 @@
 import { Map, Set } from 'immutable'
 
-import type { client, AsyncInformant } from '../index.js'
+import type { client } from '../index.js'
 
 import { EventEmitter } from '../utils/event_emitter.js'
 
@@ -30,8 +30,6 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
    */
   // communication round -> NodeID -> T
   protected contributions: Map<number, Map<client.NodeID, T>>
-
-  protected informant?: AsyncInformant<T>
 
   /**
    * The current aggregation round, used for assessing whether a node contribution is recent enough
@@ -81,10 +79,6 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
    * Must store the aggregation's result in the aggregator's result promise.
    */
   abstract aggregate (): void
-
-  registerObserver (informant: AsyncInformant<T>): void {
-    this.informant = informant
-  }
 
   /**
    * Returns whether the given round is recent enough, dependent on the
@@ -178,7 +172,6 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
       this._round++
       this.contributions = Map()
     }
-    this.informant?.update()
   }
 
   /**

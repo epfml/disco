@@ -9,10 +9,9 @@ import type {
   WeightsContainer,
 } from '@epfml/discojs'
 import {
+  aggregator as aggregators,
   client,
   serialization,
-  AsyncInformant,
-  aggregator as aggregators,
 } from '@epfml/discojs'
 
 import { Server } from '../server.js'
@@ -48,10 +47,6 @@ export class Federated extends Server {
    * with the most recent result.
    */
   private results = Map<TaskID, Promise<WeightsContainer>>()
-  /**
-   * Training informants for each hosted task.
-   */
-  private informants = Map<TaskID, AsyncInformant<WeightsContainer>>()
   
   // TODO use real log system
   /**
@@ -106,7 +101,6 @@ export class Federated extends Server {
     const aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
 
     this.aggregators = this.aggregators.set(task, aggregator)
-    this.informants = this.informants.set(task, new AsyncInformant(aggregator))
     this.rounds = this.rounds.set(task, 0)
 
     void this.storeAggregationResult(task, aggregator)

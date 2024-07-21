@@ -105,7 +105,6 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
 
     this.contributions = this.contributions.setIn([0, nodeId], contribution);
 
-    this.informant?.update();
     if (this.isFull()) this.aggregate();
 
     return true;
