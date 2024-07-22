@@ -11,7 +11,8 @@
     "webapp"
   ],
   "dependencies": {
-    "immutable": "4"
+    "immutable": "4",
+    "ts-mockito": "^2.6.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "7",

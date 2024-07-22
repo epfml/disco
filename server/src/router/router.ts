@@ -23,15 +23,17 @@ export class Router {
     const decentralized = new Decentralized(wsApplier, this.tasksAndModels)
 
     this.ownRouter = express.Router()
-    wsApplier.applyTo(this.ownRouter)
+    wsApplier.applyTo(this.ownRouter) 
 
     process.nextTick(() =>
       wsApplier.getWss().on('connection', (ws, req) => {
         if (!federated.isValidUrl(req.url) && !decentralized.isValidUrl(req.url)) {
           console.log('Connection refused')
+          ws.send('404')
           ws.terminate()
           ws.close()
         }
+        ws.send('200')
       })
     )
 

@@ -31,14 +31,37 @@ export class Decentralized extends Server {
   public isValidUrl (url: string | undefined): boolean {
     const splittedUrl = url?.split('/')
 
-    return (
-      splittedUrl !== undefined &&
-      splittedUrl.length === 3 &&
-      splittedUrl[0] === '' &&
-      this.isValidTask(splittedUrl[1]) &&
-      this.isValidWebSocket(splittedUrl[2])
-    )
-  }
+    // Assuming this code is inside a method of a class
+    console.log("Evaluating URL validation...");
+
+    if (splittedUrl === undefined) {
+      console.log("Failure: URL is undefined.");
+      return false;
+    }
+
+    if (splittedUrl.length !== 3) {
+      console.log(`Failure: URL does not have exactly 3 segments. Found ${splittedUrl.length} segments: ${splittedUrl}`);
+      return false;
+    }
+
+    if (splittedUrl[0] !== '') {
+      console.log("Failure: URL does not start with a '/'.");
+      return false;
+    }
+
+    if (!this.isValidTask(splittedUrl[1])) {
+      console.log(`Failure: '${splittedUrl[1]}' is not a valid task.`);
+      return false;
+    }
+
+    if (!this.isValidWebSocket(splittedUrl[2])) {
+      console.log(`Failure: '${splittedUrl[2]}' is not a valid WebSocket.`);
+      return false;
+    }
+
+    console.log("URL is valid.");
+    return true;
+    }
 
   protected initTask (): void {}
 
