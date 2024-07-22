@@ -1,12 +1,7 @@
-import { Map } from "immutable";
-
 import {
   serialization,
-  type MetadataKey,
-  type MetadataValue,
   type WeightsContainer,
 } from "../../index.js";
-import { type NodeID } from "../types.js";
 import { Base as Client } from "../base.js";
 import { type, type ClientConnected } from "../messages.js";
 import {
@@ -27,10 +22,6 @@ export class Base extends Client {
    * by this client class, the server is the only node which we are communicating with.
    */
   public static readonly SERVER_NODE_ID = "federated-server-node-id";
-  /**
-   * Map of metadata values for each node id.
-   */
-  private metadataMap?: Map<NodeID, MetadataValue>; // TODO: unused
   
   // Total number of other federated contributors, including this client, excluding the server
   // E.g., if 3 users are training a federated model, nbOfParticipants is 3
@@ -101,42 +92,6 @@ export class Base extends Client {
     this.aggregator.setNodes(this.aggregator.nodes.delete(Base.SERVER_NODE_ID));
 
     return Promise.resolve();
-  }
-
-  /**
-   * Fetch the metadata values maintained by the federated server, for a given metadata key.
-   * The values are indexed by node id.
-   * @param key The metadata key
-   * @returns The map of node id to metadata value
-   */
-  async receiveMetadataMap( // TODO: never used
-    key: MetadataKey,
-  ): Promise<Map<NodeID, MetadataValue> | undefined> {
-    this.metadataMap = undefined;
-
-    const msg: messages.ReceiveServerMetadata = {
-      type: type.ReceiveServerMetadata,
-      taskId: this.task.id,
-      nodeId: this.ownId,
-      round: this.aggregator.round,
-      key,
-    };
-
-    this.server.send(msg);
-
-    const received = await waitMessageWithTimeout(
-      this.server,
-      type.ReceiveServerMetadata,
-    );
-    if (received.metadataMap !== undefined) {
-      this.metadataMap = Map(
-        received.metadataMap.filter(([_, v]) => v !== undefined) as Array<
-          [NodeID, MetadataValue]
-        >,
-      );
-    }
-
-    return this.metadataMap;
   }
 
   override onRoundBeginCommunication(): Promise<void> {

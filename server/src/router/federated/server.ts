@@ -8,8 +8,6 @@ import type {
   Task,
   TaskID,
   WeightsContainer,
-  MetadataKey,
-  MetadataValue
 } from '@epfml/discojs'
 import {
   client,
@@ -55,11 +53,6 @@ export class Federated extends Server {
    * Training informants for each hosted task.
    */
   private informants = Map<TaskID, AsyncInformant<WeightsContainer>>()
-  /**
-   * Contains metadata used for training by clients for a given task and round.
-   * Stored by task id, round number, node id and metadata key.
-  */
-  private metadataMap = Map<TaskID, Map<number, Map<client.NodeID, Map<MetadataKey, MetadataValue>>>>()
   
   // TODO use real log system
   /**
@@ -201,39 +194,6 @@ export class Federated extends Server {
         if (!aggregator.add(clientId, weights, round, 0)) {
           console.info(`dropped contribution from client ${clientId} for round ${round}`)
           return // TODO what to answer?
-        }
-      } else if (msg.type === MessageTypes.ReceiveServerMetadata) {
-        const { key, round } = msg
-
-        const taskMetadata = this.metadataMap.get(task.id)
-
-        if (!Number.isNaN(round) && round >= 0 && taskMetadata !== undefined) {
-          // Find the most recent entry round-wise for the given task (upper bounded
-          // by the given round). Allows for sporadic entries in the metadata map.
-          const latestRound = taskMetadata.keySeq().max() ?? round
-
-          // Fetch the required metadata from the general metadata structure stored
-          // server-side and construct the queried metadata's map accordingly. This
-          // essentially creates a "ID -> metadata" single-layer map.
-          const queriedMetadataMap = Map(
-            taskMetadata
-              .get(latestRound, Map<string, Map<string, string>>())
-              .filter((entries) => entries.has(key))
-              .mapEntries(([id, entries]) => [id, entries.get(key)])
-          )
-
-          this.logsAppend(task.id, clientId, MessageTypes.ReceiveServerMetadata, round)
-
-          const msg: messages.ReceiveServerMetadata = {
-            type: MessageTypes.ReceiveServerMetadata,
-            taskId: task.id,
-            nodeId: clientId,
-            key,
-            round,
-            metadataMap: Array.from(queriedMetadataMap)
-          }
-
-          ws.send(msgpack.encode(msg))
         }
       }
     })

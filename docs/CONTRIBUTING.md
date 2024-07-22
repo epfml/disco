@@ -185,7 +185,7 @@ git push -u origin 202-train-bug-nacho
 
 - TypeScript files should be written in snake_case, lowercase words separated by underscores, e.g. `event_connection.ts`
 - Vue.js files should be written in PascalCase (capitalized words including the first), e.g. `DatasetInput.vue`
-- Classes and types should also be written in PascalCase. For example class `AsyncInformant` and type `MetadataValue`
+- Classes, interfaces and types should also be written in PascalCase. For example class `MeanAggregator` and interface `EventConnection`
 - Functions and variable names should be written in camelCase, starting with a lowercase letter: function `isWithinRoundCutoff` and variable `roundCutoff`
 
 #### Docstring
@@ -201,8 +201,7 @@ Test the newly implemented features locally by following instructions in the [Co
 Once you have added a minimum number of content to your branch, you can create a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/). Create a pull request to merge your branch (e.g., `202-train-bug-nacho`) into the `develop` branch. `develop` should always be functional and up to date with new working features. It is the equivalent of the `main`or `master` branch in DISCO.
 It is important to give a good description to your PR as this makes it easier for other people to go through it.
 
-> [!TIP]
-> [This PR](https://github.com/epfml/disco/pull/176) is a good example.
+> [!TIP] > [This PR](https://github.com/epfml/disco/pull/176) is a good example.
 
 ### 5. Before requesting a review
 
