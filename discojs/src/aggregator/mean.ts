@@ -43,22 +43,16 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
     this.#threshold = threshold;
 
     if (threshold < 1) {
-      // Print a warning if threshold and thresholdType are conflicting
+      // Throw exception if threshold and thresholdType are conflicting
       if (thresholdType === 'absolute') {
-        console.warn(
-          "[WARN] Changing the aggregator's thresholdType from 'absolute' to 'relative' because threshold < 1. " +
-          `Make sure that the aggregator is indeed only expecting ${threshold * 100}% of the node's contributions.`
-        )
+        throw new Error(`thresholdType has been set to 'absolute' but choosing threshold=${threshold} implies that thresholdType should be 'relative'.`)
       }
       this.#thresholdType = 'relative'
     }
     else if (threshold > 1) {
-      // Print a warning if threshold and thresholdType are conflicting
+      // Throw exception if threshold and thresholdType are conflicting
       if (thresholdType === 'relative') {
-        console.warn(
-          "[WARN] Changing the aggregator's thresholdType from 'absolute' to 'relative' because threshold < 1 " +
-          `Make sure that the aggregator is indeed only expecting ${threshold} contributions.`
-        )
+        throw new Error(`thresholdType has been set to 'relative' but choosing threshold=${threshold} implies that thresholdType should be 'absolute'.`)
       }
       this.#thresholdType = 'absolute'
     }

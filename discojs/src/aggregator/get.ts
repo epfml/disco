@@ -2,59 +2,58 @@ import type { Task } from '../index.js'
 import { aggregator } from '../index.js'
 import type { Model } from "../index.js";
 
-type AggregatorOptions = {
-  model?: Model,
-  roundCutOff?: number, // MeanAggregator
-  threshold?: number, // MeanAggregator
-  thresholdType?: 'relative' | 'absolute', // MeanAggregator
-}
+type AggregatorOptions = Partial<{
+  model: Model,
+  scheme: Task['trainingInformation']['scheme'], // if undefined, fallback on task.trainingInformation.scheme
+  roundCutOff: number, // MeanAggregator
+  threshold: number, // MeanAggregator
+  thresholdType: 'relative' | 'absolute', // MeanAggregator
+}>
 
 /**
- * Initializes an aggregator according to the task definition, the training scheme and the specified options.
- * Here is the ordered list of parameters used to define the aggregator's default behavior:
- * task.trainingInformation.aggregator > scheme > task.trainingInformation.scheme
+ * Initializes an aggregator according to the task definition, the training scheme and the aggregator parameters.
+ * Here is the ordered list of parameters used to define the aggregator and its default behavior:
+ * task.trainingInformation.aggregator > options.scheme > task.trainingInformation.scheme
  * 
- * If `task.trainingInformation.aggregator` is defined, we initialize the chosen aggregator with `options`.
+ * If `task.trainingInformation.aggregator` is defined, we initialize the chosen aggregator with `options` parameter values.
+ * Otherwise, we default to a MeanAggregator for both training schemes.
  * 
- * Otherwise, if `scheme` is defined, we initialize a MeanAggregator for both training schemes:
- * For federated learning or local training the aggregator waits for a single contribution to trigger a model update.
+ * For the MeanAggregator we rely on `options.scheme` and fallback on `task.trainingInformation.scheme` to infer default values.
+ * Unless specified otherwise, for federated learning or local training the aggregator default to waiting
+ * for a single contribution to trigger a model update. 
  * (the server's model update for federated learning or our own contribution if training locally)
- * For decentralized learning the aggregator waits for every nodes' contribution to trigger a model update.
- * 
- * If `scheme` is undefined, we rely on task.trainingInformation.scheme to infer `scheme`.
+ * For decentralized learning the aggregator defaults to waiting for every nodes' contribution to trigger a model update.
  * 
  * @param task The task object associated with the current training session
- * @param scheme The training scheme. If not specified, the task training information scheme is used
  * @param options Options passed down to the aggregator's constructor
  * @returns The aggregator
  */
-export function getAggregator(task: Task, scheme?: Required<Task['trainingInformation']['scheme']>,
-  options?: AggregatorOptions): aggregator.Aggregator {
-  if (options === undefined) {
-    options = {} // init empty arguments if not specified
-  }
-
-  if (scheme == undefined) {
-    scheme = task.trainingInformation.scheme
-  }
-
-  switch (task.trainingInformation.aggregator) {
+export function getAggregator(task: Task, options: AggregatorOptions = {}): aggregator.Aggregator {
+  const aggregatorType = task.trainingInformation.aggregator ?? 'mean'
+  const scheme = options.scheme ?? task.trainingInformation.scheme
+  
+  switch (aggregatorType) {
     case 'mean':
+      if (scheme === 'decentralized') {
+        // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%
+        options = {
+          model: undefined, roundCutOff: undefined, threshold: 1, thresholdType: 'relative',
+          ...options
+        }
+      } else {
+        // If scheme == 'federated' then we only expect the server's contribution at each round 
+        // so we set the aggregation threshold to 1 contribution
+        // If scheme == 'local' then we only expect our own contribution
+        options = {
+          model: undefined, roundCutOff: undefined, threshold: 1, thresholdType: 'absolute',
+          ...options
+        }
+      }
       return new aggregator.MeanAggregator(options.model, options.roundCutOff, options.threshold, options.thresholdType)
     case 'secure':
       if (scheme !== 'decentralized') {
         throw new Error('secure aggregation is currently supported for decentralized only')
       }
       return new aggregator.SecureAggregator(options.model, task.trainingInformation.maxShareValue)
-    default:
-      if (scheme === 'decentralized') {
-        // By default we expect a contribution from all peers, so we set the threshold to 100%
-        return new aggregator.MeanAggregator(undefined, undefined, 1, 'relative') 
-      } else {
-        // If scheme == 'federated' then we only expect the server's contribution at each round 
-        // so we set the aggregation threshold to 1 contribution
-        // If scheme == 'local' then we only expect our own contribution
-        return new aggregator.MeanAggregator(undefined, undefined, 1, 'absolute') 
-      }
   }
 }
