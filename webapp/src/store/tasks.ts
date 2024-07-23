@@ -13,8 +13,10 @@ export const useTasksStore = defineStore('tasks', () => {
   const trainingStore = useTrainingStore()
 
   const tasks = shallowRef<Map<TaskID, Task>>(Map())
-
-  // Used to not display duplicate toaster messages
+  
+  // used to display loading indicator in the webapp when loading tasks
+  const loading = ref(false)
+  // used to not display duplicate toaster messages
   const loadingAlreadyFailed = ref(false)
 
   function addTask (task: Task): void {
@@ -27,7 +29,10 @@ export const useTasksStore = defineStore('tasks', () => {
 
   async function initTasks (): Promise<void> {
     try {
+      loading.value = true
+      await new Promise((res,_) => setTimeout(res, 7000))
       const tasks = (await fetchTasks(CONFIG.serverUrl)).filter((t: Task) => !TASKS_TO_FILTER_OUT.includes(t.id))
+
       tasks.forEach(addTask)
       loadingAlreadyFailed.value = false
     } catch (e) {
@@ -39,8 +44,10 @@ export const useTasksStore = defineStore('tasks', () => {
         toaster.error('The server is unreachable.\nPlease try again later or reach out on slack.')
         loadingAlreadyFailed.value = true
       }
+    } finally {
+      loading.value = false
     }
   }
 
-  return { tasks, initTasks, addTask }
+  return { tasks, initTasks, addTask, loading, loadingAlreadyFailed }
 })
