@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 
 import { useTasksStore } from '@/store/tasks'
