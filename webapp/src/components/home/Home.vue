@@ -17,9 +17,9 @@
     <!-- Disco logo -->
     <div class="flex flex-col justify-center items-center mb-8 space-y-4">
       <div class="md:max-w-md lg:max-w-lg">
-        <DiscoGIF class="mx-auto" />
+        <DiscoGIF/>
       </div>
-      <span class="text-lg md:text-3xl text-center text-slate-600">
+      <span class="text-lg md:text-2xl lg:text-3xl text-center text-slate-600">
         <span class="font-disco text-disco-cyan font-semibold">DIS</span
         >tributed
         <span class="font-disco text-disco-blue font-semibold">CO</span
