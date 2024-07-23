@@ -30,7 +30,6 @@ export const useTasksStore = defineStore('tasks', () => {
   async function initTasks (): Promise<void> {
     try {
       loading.value = true
-      await new Promise((res,_) => setTimeout(res, 7000))
       const tasks = (await fetchTasks(CONFIG.serverUrl)).filter((t: Task) => !TASKS_TO_FILTER_OUT.includes(t.id))
 
       tasks.forEach(addTask)
