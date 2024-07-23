@@ -14,9 +14,13 @@ export class PeerPool {
   ) {}
 
   async shutdown (): Promise<void> {
-    console.info(`[${this.id}] shutdown their peers`)
+    console.info(`[${this.id}] is shutting down all its connections`)
 
-    await Promise.all(this.peers.valueSeq().map((peer) => peer.disconnect()))
+    // Add a timeout o.w. the promise hangs forever if the other peer is already disconnected
+    await Promise.race([
+      Promise.all(this.peers.valueSeq().map((peer) => peer.disconnect())),
+      new Promise((res, _) => setTimeout(res, 1000)) // Wait for other peers to finish
+    ])
     this.peers = Map()
   }
 
