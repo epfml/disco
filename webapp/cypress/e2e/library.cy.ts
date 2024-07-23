@@ -93,6 +93,8 @@ describe("model library", () => {
 
   it("store trained model", () => {
     setupForTask(defaultTasks.titanic);
+    // Wait for tasks to load
+    cy.visit("/#/list").contains("button", "participate", { timeout: 5000 })
 
     cy.visit("/#/titanic");
     cy.contains("button", "next").click();
