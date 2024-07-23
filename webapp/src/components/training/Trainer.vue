@@ -15,7 +15,13 @@
             <CustomButton @click="startTraining(false)">
               train alone
             </CustomButton>
-            <CustomButton @click="startTraining(true)">
+            <CustomButton 
+              v-tippy="{
+                content: 'Note that if you are the only participant the training will not be collaborative. You can open multiple tabs to emulate different participants by yourself.',
+                placement: 'right'
+              }"
+              @click="startTraining(true)"
+            >
               train collaboratively
             </CustomButton>
           </div>
