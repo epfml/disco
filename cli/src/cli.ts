@@ -20,22 +20,19 @@ async function runUser(
   url: URL,
   data: data.DataSplit,
 ): Promise<List<RoundLogs>> {
-  const client = new clients.federated.FederatedClient(
-    url,
-    task,
-    new aggregators.MeanAggregator(),
-  );
-
-  // force the federated scheme
-  const disco = new Disco(task, { scheme: "federated", client });
+  const trainingScheme = task.trainingInformation.scheme
+  const aggregator = aggregators.getAggregator(task)
+  const client = clients.getClient(trainingScheme, url, task, aggregator) 
+  const disco = new Disco(task, { scheme: trainingScheme, client });
 
   const logs = List(await arrayFromAsync(disco.trainByRound(data)));
+  await new Promise((res, _) => setTimeout(() => res('timeout'), 1000)) // Wait for other peers to finish
   await disco.close();
   return logs;
 }
 
 async function main (task: Task, numberOfUsers: number): Promise<void> {
-  console.log(`Started federated training of ${task.id}`)
+  console.log(`Started ${task.trainingInformation.scheme} training of ${task.id}`)
   console.log({ args })
   const [server, url] = await startServer()
 

@@ -2,8 +2,7 @@ import { List } from 'immutable'
 
 import { async_iterator, BatchLogs, data, EpochLogs, Logger, Memory, Task, TrainingInformation } from '../index.js'
 import { client as clients, EmptyMemory, ConsoleLogger } from '../index.js'
-import type { Aggregator } from '../aggregator/index.js'
-import { MeanAggregator } from '../aggregator/mean.js'
+import {getAggregator, type Aggregator } from '../aggregator/index.js'
 import { enumerate, split } from '../utils/async_iterator.js'
 
 import type { RoundLogs, Trainer } from './trainer/trainer.js'
@@ -28,41 +27,28 @@ export class Disco {
   public readonly logger: Logger
   public readonly memory: Memory
   private readonly client: clients.Client
-  private readonly trainer: Promise<Trainer>
+  private readonly trainerPromise: Promise<Trainer>
 
   constructor (
     task: Task,
     options: DiscoOptions
   ) {
+    // Fill undefined options with default values
     if (options.scheme === undefined) {
       options.scheme = task.trainingInformation.scheme
-    }
-    if (options.aggregator === undefined) {
-      options.aggregator = new MeanAggregator()
     }
     if (options.client === undefined) {
       if (options.url === undefined) {
         throw new Error('could not determine client from given parameters')
       }
+      if (options.aggregator === undefined) {
+        options.aggregator = getAggregator(task, { scheme: options.scheme })
+      }
 
       if (typeof options.url === 'string') {
         options.url = new URL(options.url)
       }
-      switch (options.scheme) {
-        case 'federated':
-          options.client = new clients.federated.FederatedClient(options.url, task, options.aggregator)
-          break
-        case 'decentralized':
-          options.client = new clients.decentralized.DecentralizedClient(options.url, task, options.aggregator)
-          break
-        case 'local':
-          options.client = new clients.Local(options.url, task, options.aggregator)
-          break
-        default: {
-          const _: never = options.scheme
-          throw new Error('should never happen')
-        }
-      }
+      options.client = clients.getClient(options.scheme, options.url, task, options.aggregator)
     }
     if (options.logger === undefined) {
       options.logger = new ConsoleLogger()
@@ -80,7 +66,7 @@ export class Disco {
     this.logger = options.logger
 
     const trainerBuilder = new TrainerBuilder(this.memory, this.task)
-    this.trainer = trainerBuilder.build(this.client, options.scheme !== 'local')
+    this.trainerPromise = trainerBuilder.build(this.client, options.scheme !== 'local')
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -140,7 +126,7 @@ export class Disco {
     const validationData =
       dataTuple.validation?.preprocess().batch() ?? trainData;
     await this.client.connect();
-    const trainer = await this.trainer;
+    const trainer = await this.trainerPromise;
 
     for await (const [round, epochs] of enumerate(
       trainer.fitModel(trainData.dataset, validationData.dataset),
@@ -172,7 +158,7 @@ export class Disco {
 
         return {
           epochs: epochsLogs,
-          participants: this.client.nodes.size + 1, // add ourself
+          participants: this.client.nbOfParticipants, // already includes ourselves
         };
       }.bind(this)();
     }
@@ -184,7 +170,7 @@ export class Disco {
    * Stops the ongoing training instance without disconnecting the client.
    */
   async pause (): Promise<void> {
-    const trainer = await this.trainer
+    const trainer = await this.trainerPromise
     await trainer.stopTraining()
   }
 

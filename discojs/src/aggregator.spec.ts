@@ -11,7 +11,7 @@ import { NodeID } from "./client/types.js";
 
 const AGGREGATORS: Set<[name: string, new () => Aggregator]> = Set.of<
   new (model?: Model) => Aggregator
->(MeanAggregator, SecureAggregator).map((Aggregator) => [
+>(MeanAggregator, SecureAggregator).map((Aggregator) => [ // MeanAggregator waits for 100% of the node's contributions by default
   Aggregator.name,
   Aggregator,
 ]);

@@ -26,7 +26,7 @@ async function main(): Promise<void> {
     const dataset = await loadWikitextData(task)
   
     // Initialize a Disco instance and start training a language model
-    const aggregator = new aggregators.MeanAggregator()
+    const aggregator = aggregators.getAggregator(task)
     const client = new clients.federated.FederatedClient(url, task, aggregator)
     const disco = new Disco(task, { scheme: 'federated', client, aggregator })
     await disco.trainFully(dataset);

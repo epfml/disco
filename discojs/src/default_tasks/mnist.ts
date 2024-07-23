@@ -23,13 +23,14 @@ export const mnist: TaskProvider = {
       trainingInformation: {
         modelID: 'mnist-model',
         epochs: 20,
-        roundDuration: 10,
+        roundDuration: 2,
         validationSplit: 0.2,
-        batchSize: 30,
+        batchSize: 64,
         dataType: 'image',
         IMAGE_H: 28,
         IMAGE_W: 28,
-        preprocessingFunctions: [data.ImagePreprocessing.Normalize],
+        // Images should already be at the right size but resizing just in case
+        preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         scheme: 'decentralized',
         noiseScale: undefined,
@@ -42,31 +43,30 @@ export const mnist: TaskProvider = {
     }
   },
 
-  getModel (): Promise<Model> {
+  getModel(): Promise<Model> {
+    // Architecture from the PyTorch MNIST example (I made it slightly smaller, 650kB instead of 5MB)
+    // https://github.com/pytorch/examples/blob/main/mnist/main.py
     const model = tf.sequential()
 
     model.add(
       tf.layers.conv2d({
         inputShape: [28, 28, 3],
-        kernelSize: 3,
-        filters: 16,
-        activation: 'relu'
+        kernelSize: 5,
+        filters: 8,
+        activation: 'relu',
       })
     )
+    model.add(tf.layers.conv2d({ kernelSize: 5, filters: 16, activation: 'relu' }))
     model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }))
-    model.add(
-      tf.layers.conv2d({ kernelSize: 3, filters: 32, activation: 'relu' })
-    )
-    model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }))
-    model.add(
-      tf.layers.conv2d({ kernelSize: 3, filters: 32, activation: 'relu' })
-    )
-    model.add(tf.layers.flatten({}))
-    model.add(tf.layers.dense({ units: 64, activation: 'relu' }))
+    model.add(tf.layers.dropout({ rate: 0.25 }))
+
+    model.add(tf.layers.flatten())
+    model.add(tf.layers.dense({ units: 32, activation: 'relu' }))
+    model.add(tf.layers.dropout({rate:0.25}))
     model.add(tf.layers.dense({ units: 10, activation: 'softmax' }))
 
     model.compile({
-      optimizer: 'rmsprop',
+      optimizer: 'adam',
       loss: 'categoricalCrossentropy',
       metrics: ['accuracy']
     })

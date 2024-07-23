@@ -119,7 +119,7 @@ export abstract class Base<T> {
   log (step: AggregationStep, from?: client.NodeID): void {
     switch (step) {
       case AggregationStep.ADD:
-        console.log(`> Adding contribution from node ${from ?? '"unknown"'} for round (${this.communicationRound}, ${this.round})`)
+        console.log(`Adding contribution from node ${from ?? '"unknown"'} for round (${this.communicationRound}, ${this.round})`)
         break
       case AggregationStep.UPDATE:
         if (from === undefined) {
@@ -139,8 +139,8 @@ export abstract class Base<T> {
   }
 
   /**
-   * Sets the aggregator's TF.js model.
-   * @param model The new TF.js model
+   * Sets the aggregator's model.
+   * @param model The new model
    */
   setModel (model: Model): void {
     this._model = model
@@ -151,6 +151,7 @@ export abstract class Base<T> {
    * peer/client within the network, whom we are communicating with during this aggregation
    * round.
    * @param nodeId The node to be added
+   * @returns True is the node wasn't already in the list of nodes, False if already included
    */
   registerNode (nodeId: client.NodeID): boolean {
     if (!this.nodes.has(nodeId)) {

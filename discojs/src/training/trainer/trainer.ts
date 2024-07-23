@@ -34,7 +34,7 @@ export abstract class Trainer {
     this.#epochs = task.trainingInformation.epochs;
 
     if (!Number.isInteger(this.#epochs / this.#roundDuration))
-      throw new Error(`round duration doesn't divide epochs`);
+      throw new Error(`round duration ${this.#roundDuration} doesn't divide number of epochs ${this.#epochs}`);
   }
 
   protected abstract onRoundBegin(round: number): Promise<void>;

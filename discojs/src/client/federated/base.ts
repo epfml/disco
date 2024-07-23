@@ -1,12 +1,7 @@
-import { Map } from "immutable";
-
 import {
   serialization,
-  type MetadataKey,
-  type MetadataValue,
   type WeightsContainer,
 } from "../../index.js";
-import { type NodeID } from "../types.js";
 import { Base as Client } from "../base.js";
 import { type, type ClientConnected } from "../messages.js";
 import {
@@ -27,10 +22,15 @@ export class Base extends Client {
    * by this client class, the server is the only node which we are communicating with.
    */
   public static readonly SERVER_NODE_ID = "federated-server-node-id";
-  /**
-   * Map of metadata values for each node id.
-   */
-  private metadataMap?: Map<NodeID, MetadataValue>;
+  
+  // Total number of other federated contributors, including this client, excluding the server
+  // E.g., if 3 users are training a federated model, nbOfParticipants is 3
+  #nbOfParticipants: number = 1;
+
+  // the number of participants excluding the server
+  override get nbOfParticipants(): number {
+    return this.#nbOfParticipants
+  }
 
   /**
    * Opens a new WebSocket connection with the server and listens to new messages over the channel
@@ -94,86 +94,6 @@ export class Base extends Client {
     return Promise.resolve();
   }
 
-  /**
-   * Send a message containing our local weight updates to the federated server.
-   * And waits for the server to reply with the most recent aggregated weights
-   * @param payload The weight updates to send
-   */
-  private async sendPayloadAndReceiveResult(
-    payload: WeightsContainer,
-  ): Promise<WeightsContainer | undefined> {
-    const msg: messages.SendPayload = {
-      type: type.SendPayload,
-      payload: await serialization.weights.encode(payload),
-      round: this.aggregator.round,
-    };
-    this.server.send(msg);
-    // It is important than the client immediately awaits the server result or it may miss it
-    return await this.receiveResult();
-  }
-
-  /**
-   * Waits for the server's result for its current (most recent) round and add it to our aggregator.
-   * Updates the aggregator's round if it's behind the server's.
-   */
-  private async receiveResult(): Promise<WeightsContainer | undefined> {
-    try {
-      const { payload, round } = await waitMessageWithTimeout(
-        this.server,
-        type.ReceiveServerPayload,
-      );
-      const serverRound = round;
-
-      // Store the server result only if it is not stale
-      if (this.aggregator.round <= round) {
-        const serverResult = serialization.weights.decode(payload);
-        // Update the local round to match the server's
-        if (this.aggregator.round < serverRound) {
-          this.aggregator.setRound(serverRound);
-        }
-        return serverResult;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  /**
-   * Fetch the metadata values maintained by the federated server, for a given metadata key.
-   * The values are indexed by node id.
-   * @param key The metadata key
-   * @returns The map of node id to metadata value
-   */
-  async receiveMetadataMap(
-    key: MetadataKey,
-  ): Promise<Map<NodeID, MetadataValue> | undefined> {
-    this.metadataMap = undefined;
-
-    const msg: messages.ReceiveServerMetadata = {
-      type: type.ReceiveServerMetadata,
-      taskId: this.task.id,
-      nodeId: this.ownId,
-      round: this.aggregator.round,
-      key,
-    };
-
-    this.server.send(msg);
-
-    const received = await waitMessageWithTimeout(
-      this.server,
-      type.ReceiveServerMetadata,
-    );
-    if (received.metadataMap !== undefined) {
-      this.metadataMap = Map(
-        received.metadataMap.filter(([_, v]) => v !== undefined) as Array<
-          [NodeID, MetadataValue]
-        >,
-      );
-    }
-
-    return this.metadataMap;
-  }
-
   override onRoundBeginCommunication(): Promise<void> {
     // Prepare the result promise for the incoming round
     this.aggregationResult = this.aggregator.receiveResult();
@@ -210,6 +130,46 @@ export class Base extends Client {
         `[${this.ownId}] Server result is either stale or not received`,
       );
       this.aggregator.nextRound();
+    }
+  }
+
+  /**
+   * Send a message containing our local weight updates to the federated server.
+   * And waits for the server to reply with the most recent aggregated weights
+   * @param payload The weight updates to send
+   */
+  private async sendPayloadAndReceiveResult(
+    payload: WeightsContainer,
+  ): Promise<WeightsContainer | undefined> {
+    const msg: messages.SendPayload = {
+      type: type.SendPayload,
+      payload: await serialization.weights.encode(payload),
+      round: this.aggregator.round,
+    };
+    this.server.send(msg);
+
+    // Waits for the server's result for its current (most recent) round and add it to our aggregator.
+    // Updates the aggregator's round if it's behind the server's.
+    try {
+      // It is important than the client immediately awaits the server result or it may miss it
+      const { payload, round, nbOfParticipants } = await waitMessageWithTimeout(
+        this.server,
+        type.ReceiveServerPayload,
+      );
+      const serverRound = round;
+      this.#nbOfParticipants = nbOfParticipants // Save the current participants
+
+      // Store the server result only if it is not stale
+      if (this.aggregator.round <= round) {
+        const serverResult = serialization.weights.decode(payload);
+        // Update the local round to match the server's
+        if (this.aggregator.round < serverRound) {
+          this.aggregator.setRound(serverRound);
+        }
+        return serverResult;
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 }
