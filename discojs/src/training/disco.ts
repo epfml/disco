@@ -42,7 +42,7 @@ export class Disco {
         throw new Error('could not determine client from given parameters')
       }
       if (options.aggregator === undefined) {
-        options.aggregator = getAggregator(task, options.scheme)
+        options.aggregator = getAggregator(task, { scheme: options.scheme })
       }
 
       if (typeof options.url === 'string') {

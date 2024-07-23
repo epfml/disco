@@ -36,7 +36,7 @@ describe('validator', function () {
       .loadAll(files.flat(), { labels, channels: undefined })).train
     
     // Init a validator instance
-    const meanAggregator = aggregators.getAggregator(simpleFaceTask, 'local')
+    const meanAggregator = aggregators.getAggregator(simpleFaceTask, {scheme: 'local'})
     const client = new clients.Local(url, simpleFaceTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(
@@ -71,7 +71,7 @@ describe('validator', function () {
       labels: titanicTask.trainingInformation.outputColumns,
       shuffle: false
     })).train
-    const meanAggregator = aggregators.getAggregator(titanicTask, 'local')
+    const meanAggregator = aggregators.getAggregator(titanicTask, {scheme: 'local'})
     const client = new clients.Local(url, titanicTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
     const validator = new Validator(titanicTask, new ConsoleLogger(), new EmptyMemory(), undefined, client)
@@ -109,7 +109,7 @@ describe('validator', function () {
       .loadAll(files.flat(), { labels, channels: 3 })).train
     
     // Initialize a validator instance
-    const meanAggregator = aggregators.getAggregator(lusCovidTask, 'local')
+    const meanAggregator = aggregators.getAggregator(lusCovidTask, {scheme: 'local'})
     const client = new clients.Local(url, lusCovidTask, meanAggregator)
     meanAggregator.setModel(await client.getLatestModel())
 

@@ -161,7 +161,7 @@ async function startTraining(distributed: boolean): Promise<void> {
   toaster.info("Model training started");
 
   const scheme = distributed ? props.task.trainingInformation.scheme : "local";
-  const aggregator = aggregators.getAggregator(props.task, scheme) // overwrite the training information scheme
+  const aggregator = aggregators.getAggregator(props.task, { scheme }) // overwrite the training information scheme
   const client = clients.getClient(scheme, CONFIG.serverUrl, props.task, aggregator)
 
   const disco = new Disco(props.task, {

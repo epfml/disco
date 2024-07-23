@@ -43,7 +43,7 @@ describe("end-to-end federated", function () {
     cifar10Task.trainingInformation.scheme = trainingScheme
     const data = await new NodeImageLoader(cifar10Task).loadAll(files, { labels, shuffle: false })
 
-    const aggregator = aggregators.getAggregator(cifar10Task, trainingScheme)
+    const aggregator = aggregators.getAggregator(cifar10Task, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
     const disco = new Disco(cifar10Task, { scheme: trainingScheme, client })
 
@@ -71,7 +71,7 @@ describe("end-to-end federated", function () {
         shuffle: false
       }
     ))
-    const aggregator = aggregators.getAggregator(titanicTask, trainingScheme)
+    const aggregator = aggregators.getAggregator(titanicTask, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
     const disco = new Disco(titanicTask, { scheme: trainingScheme, client, aggregator })
 
@@ -101,7 +101,7 @@ describe("end-to-end federated", function () {
       validation: await data.TextData.init(await loader.load(DATASET_DIR + 'wikitext/wiki.valid.tokens'), task)
     }
 
-    const aggregator = aggregators.getAggregator(task, trainingScheme)
+    const aggregator = aggregators.getAggregator(task, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, task, aggregator)
     const disco = new Disco(task, { scheme: trainingScheme, client, aggregator })
 
@@ -134,7 +134,7 @@ describe("end-to-end federated", function () {
     const data = await new NodeImageLoader(lusCovidTask)
       .loadAll(files.flat(), { labels, channels: 3 })
 
-    const aggregator = aggregators.getAggregator(lusCovidTask, trainingScheme)
+    const aggregator = aggregators.getAggregator(lusCovidTask, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, lusCovidTask, aggregator)
     const disco = new Disco(lusCovidTask, { scheme: trainingScheme, client })
 
