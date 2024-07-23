@@ -20,10 +20,12 @@ export class Base extends Client {
    */
   private pool?: PeerPool
   private connections?: Map<NodeID, PeerConnection>
-  // set True when disconnected is called
+  
   // Used to handle timeouts and promise resolving after calling disconnect
-  private disconnected = false
-
+  private get isDisconnected() : boolean {
+    return this._server === undefined
+  }
+  
   /**
    * Public method called by disco.ts when starting training. This method sends
    * a message to the server asking to join the task and be assigned a client ID.
@@ -61,7 +63,6 @@ export class Base extends Client {
     }
     this._ownId = peerIdMsg.id
     this.pool = new PeerPool(peerIdMsg.id)
-    this.disconnected = false
   }
 
   /**
@@ -97,7 +98,6 @@ export class Base extends Client {
     this._server = undefined
     this._ownId = undefined
     
-    this.disconnected = true
     return Promise.resolve()
   }
 
@@ -113,6 +113,11 @@ export class Base extends Client {
     _: WeightsContainer,
     round: number,
   ): Promise<void> {
+    if (this.server === undefined) {
+      throw new Error("peer's server is undefined, make sure to call `client.connect()` first")
+    } if (this.pool === undefined) {
+        throw new Error('peer pool is undefined, make sure to call `client.connect()` first')
+    }
     // Reset peers list at each round of training to make sure client works with an updated peers
     // list, maintained by the server. Adds any received weights to the aggregator.
     // this.connections = await this.waitForPeers(round)
@@ -120,9 +125,6 @@ export class Base extends Client {
     // Tell the server we are ready for the next round
     const readyMessage: messages.PeerIsReady = { type: type.PeerIsReady }
 
-    if (this.server === undefined) {
-      throw new Error('server undefined, could not connect peers')
-    }
     this.server.send(readyMessage)
 
     // Wait for the server to answer with the list of peers for the round
@@ -132,10 +134,6 @@ export class Base extends Client {
         "Timeout waiting for the round's peer list"
       )
       
-      if (this.nbOfParticipants > 0) {
-        throw new Error('got new peer list from server but was already received for this round')
-      }
-
       const peers = Set(receivedMessage.peers)
 
       if (this.ownId !== undefined && peers.has(this.ownId)) {
@@ -143,10 +141,6 @@ export class Base extends Client {
       }
       // Store the list of peers for the current round including ourselves
       this.aggregator.setNodes(peers.add(this.ownId))
-
-      if (this.pool === undefined) {
-        throw new Error('waiting for peers but peer pool is undefined')
-      }
 
       // Initiate peer to peer connections with each peer
       // When connected, create a promise waiting for each peer's round contribution
@@ -192,7 +186,7 @@ export class Base extends Client {
             console.warn(`[${this.ownId}] Failed to add contribution from peer ${peerId}`)
           }
         } catch (e) {
-          if (this.disconnected) {
+          if (this.isDisconnected) {
             return
           }
           console.error(e instanceof Error ? e.message : e)
@@ -224,13 +218,13 @@ export class Base extends Client {
               const peer = this.connections?.get(id)
               if (peer !== undefined) {
                 const encoded = await serialization.weights.encode(payload)
-                const msg = {
+                const msg: messages.PeerMessage = {
                   type: type.Payload,
                   peer: id,
                   round: r,
                   payload: encoded
                 }
-                peer.send(msg as messages.PeerMessage)
+                peer.send(msg)
                 console.log(`[${this.ownId}] send weight update to peer`, msg.peer, msg)
               }
             }
@@ -250,10 +244,11 @@ export class Base extends Client {
           timeout(undefined, "Timeout waiting on the aggregation result promise to resolve")
         ])
       } catch (e) {
-        if (this.disconnected) {
+        if (this.isDisconnected) {
           return
         }
-        console.error(e instanceof Error ? e.message : e)
+        console.error(e)
+        break
       }
 
       // There is at least one communication round remaining

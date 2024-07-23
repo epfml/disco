@@ -90,8 +90,11 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
     if (currentContributions !== 0)
       throw new Error("only a single communication round");
 
-    if (!this.nodes.has(nodeId) || !this.isWithinRoundCutoff(round))
-      return false;
+    if (!this.nodes.has(nodeId) || !this.isWithinRoundCutoff(round)) {
+      if (!this.nodes.has(nodeId)) console.warn("Contribution rejected because node id is not registered")
+      if (!this.isWithinRoundCutoff(round)) console.warn(`Contribution rejected because round ${round} is not within round cutoff`)
+      return false;  
+    }
 
     this.log(
       this.contributions.hasIn([0, nodeId])

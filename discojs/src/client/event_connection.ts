@@ -80,10 +80,7 @@ export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K>
   }
 
   async disconnect(): Promise<void> {
-    await Promise.race([
-      this.peer.destroy(),
-      new Promise((res, _) => setTimeout(() => res('PeerConnection disconnection timed out'), 3000))
-    ])
+    await this.peer.destroy()
   }
 }
 
