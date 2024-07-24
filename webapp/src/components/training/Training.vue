@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import type { TaskID } from '@epfml/discojs'
@@ -46,6 +46,10 @@ const tasksStore = useTasksStore()
 interface Props { id: TaskID }
 const props = defineProps<Props>()
 
+function setupTrainingStore() {
+  trainingStore.setTask(route.params.id as string) // more reliable than props.id
+  trainingStore.setStep(1)
+}
 // Init the task once the taskStore has been loaded successfully
 // If it is not we redirect to the task list
 const task = computed(() => {
@@ -59,6 +63,16 @@ const task = computed(() => {
   }
   return undefined
 })
+
+// Addresses the case when users enter a url manually
+// Force the training store to synch with the task specified in the url
+watch(() => route.fullPath, () => {
+  if (route.fullPath !== '/list' && (trainingStore.step == 0 || route.params.id !== props.id)) {
+    setupTrainingStore()
+  }
+})
+
+onMounted(setupTrainingStore)
 
 const datasetBuilder = computed(() => {
   if (task.value === undefined) return
