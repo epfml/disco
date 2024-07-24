@@ -8,7 +8,7 @@ describe("training page", () => {
     cy.visit("/");
 
     cy.contains("button", "get started").click();
-    cy.contains("button", "explore").click();
+    cy.contains("button", "participate").click();
     cy.contains("button", "participate").click();
 
     const navigationButtons = 3;
@@ -46,7 +46,7 @@ describe("training page", () => {
     cy.visit("/");
 
     cy.contains("button", "get started").click();
-    cy.contains("button", "explore").click();
+    cy.contains("button", "participate").click();
     cy.contains("button", "participate").click();
     cy.contains("button", "next").click();
 
