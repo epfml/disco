@@ -50,9 +50,7 @@ const props = defineProps<Props>()
 // If it is not we redirect to the task list
 const task = computed(() => {
   if (tasksStore.loadedSuccessfully) {
-    const task = tasksStore.tasks.get(props.id)
-    console.log("loadedSuccessfully", props.id, task)
-    return task
+    return tasksStore.tasks.get(props.id)
   }
   // Redirect to the task list if not loaded yet
   // This happens when refreshing the page, every task are reset when fetched
