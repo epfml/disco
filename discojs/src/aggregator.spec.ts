@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Map, Range, Set } from "immutable";
 
-import { Model, WeightsContainer } from "./index.js";
+import { WeightsContainer } from "./index.js";
 import {
   Aggregator,
   MeanAggregator,
@@ -10,8 +10,9 @@ import {
 import { NodeID } from "./client/types.js";
 
 const AGGREGATORS: Set<[name: string, new () => Aggregator]> = Set.of<
-  new (model?: Model) => Aggregator
+  new () => Aggregator
 >(MeanAggregator, SecureAggregator).map((Aggregator) => [
+  // MeanAggregator waits for 100% of the node's contributions by default
   Aggregator.name,
   Aggregator,
 ]);
@@ -28,7 +29,9 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
       const aggregator = new Aggregator();
       aggregator.setNodes(Set.of("client 0", "client 1", "client 2"));
 
-      const results = aggregator.receiveResult();
+      const results = new Promise((resolve) =>
+        aggregator.on("aggregation", resolve),
+      );
 
       for (let i = 0; i < 3; i++)
         for (let r = 0; r < aggregator.communicationRounds; r++)
@@ -106,7 +109,7 @@ export async function communicate<A extends Aggregator>(
       .entrySeq()
       .map<Promise<[NodeID, WeightsContainer]>>(async ([id, agg]) => [
         id,
-        await agg.receiveResult(),
+        await new Promise((resolve) => agg.on("aggregation", resolve)),
       ])
       .toArray();
 

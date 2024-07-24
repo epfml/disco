@@ -4,18 +4,14 @@ import { List, Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 
 import type {
-  Model,
   Task,
   TaskID,
   WeightsContainer,
-  MetadataKey,
-  MetadataValue
 } from '@epfml/discojs'
 import {
+  aggregator as aggregators,
   client,
   serialization,
-  AsyncInformant,
-  aggregator as aggregators,
 } from '@epfml/discojs'
 
 import { Server } from '../server.js'
@@ -51,15 +47,7 @@ export class Federated extends Server {
    * with the most recent result.
    */
   private results = Map<TaskID, Promise<WeightsContainer>>()
-  /**
-   * Training informants for each hosted task.
-   */
-  private informants = Map<TaskID, AsyncInformant<WeightsContainer>>()
-  /**
-   * Contains metadata used for training by clients for a given task and round.
-   * Stored by task id, round number, node id and metadata key.
-  */
-  private metadataMap = Map<TaskID, Map<number, Map<client.NodeID, Map<MetadataKey, MetadataValue>>>>()
+  
   // TODO use real log system
   /**
   * Logs of successful requests made to the server.
@@ -95,7 +83,7 @@ export class Federated extends Server {
    */
   private async storeAggregationResult (task: TaskID, aggregator: aggregators.Aggregator): Promise<void> {
     // Create a promise on the future aggregated weights
-    const result = aggregator.receiveResult()
+    const result = new Promise<WeightsContainer>((resolve) => aggregator.once('aggregation', resolve))
     // Store the promise such that it is accessible from other methods
     this.results = this.results.set(task, result)
     // The promise resolves once the server received enough contributions (through the handle method)
@@ -108,11 +96,11 @@ export class Federated extends Server {
     void this.storeAggregationResult(task, aggregator)
   }
 
-  protected initTask (task: TaskID, model: Model): void {
-    const aggregator = new aggregators.MeanAggregator(model)
+  protected initTask(task: TaskID): void {
+    // The server waits for 100% of the nodes to send their contributions before aggregating the updates
+    const aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
 
     this.aggregators = this.aggregators.set(task, aggregator)
-    this.informants = this.informants.set(task, new AsyncInformant(aggregator))
     this.rounds = this.rounds.set(task, 0)
 
     void this.storeAggregationResult(task, aggregator)
@@ -141,7 +129,7 @@ export class Federated extends Server {
 
     // Wait for aggregation result to resolve with timeout, giving the network a time window
     // to contribute to the model
-    void Promise.race([promisedResult, client.utils.timeout()])
+    void Promise.race([promisedResult, client.timeout()]) //TODO: it doesn't make sense that the server is using the client utils' timeout 
       .then((result) =>
       // Reply with round - 1 because the round number should match the round at which the client sent its weights
       // After the server aggregated the weights it also incremented the round so the server replies with round - 1
@@ -152,7 +140,8 @@ export class Federated extends Server {
         const msg: messages.ReceiveServerPayload = {
           type: MessageTypes.ReceiveServerPayload,
           round,
-          payload: serialized
+          payload: serialized,
+          nbOfParticipants: aggregator.nodes.size
         }
         ws.send(msgpack.encode(msg))
       })
@@ -192,45 +181,12 @@ export class Federated extends Server {
         const { payload, round } = msg
         const weights = serialization.weights.decode(payload)
 
-	this.createPromiseForWeights(task.id, aggregator, ws)
+        this.createPromiseForWeights(task.id, aggregator, ws)
 
-	// TODO support multiple communication round
+        // TODO support multiple communication round
         if (!aggregator.add(clientId, weights, round, 0)) {
           console.info(`dropped contribution from client ${clientId} for round ${round}`)
           return // TODO what to answer?
-	}
-      } else if (msg.type === MessageTypes.ReceiveServerMetadata) {
-        const { key, round } = msg
-
-        const taskMetadata = this.metadataMap.get(task.id)
-
-        if (!Number.isNaN(round) && round >= 0 && taskMetadata !== undefined) {
-          // Find the most recent entry round-wise for the given task (upper bounded
-          // by the given round). Allows for sporadic entries in the metadata map.
-          const latestRound = taskMetadata.keySeq().max() ?? round
-
-          // Fetch the required metadata from the general metadata structure stored
-          // server-side and construct the queried metadata's map accordingly. This
-          // essentially creates a "ID -> metadata" single-layer map.
-          const queriedMetadataMap = Map(
-            taskMetadata
-              .get(latestRound, Map<string, Map<string, string>>())
-              .filter((entries) => entries.has(key))
-              .mapEntries(([id, entries]) => [id, entries.get(key)])
-          )
-
-          this.logsAppend(task.id, clientId, MessageTypes.ReceiveServerMetadata, round)
-
-          const msg: messages.ReceiveServerMetadata = {
-            type: MessageTypes.ReceiveServerMetadata,
-            taskId: task.id,
-            nodeId: clientId,
-            key,
-            round,
-            metadataMap: Array.from(queriedMetadataMap)
-          }
-
-          ws.send(msgpack.encode(msg))
         }
       }
     })

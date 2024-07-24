@@ -1,4 +1,3 @@
-import { type client, type MetadataKey, type MetadataValue } from '../../index.js'
 import { type weights } from '../../serialization/index.js'
 
 import { type, hasMessageType, type AssignNodeID, type ClientConnected } from '../messages.js'
@@ -7,7 +6,6 @@ export type MessageFederated =
   ClientConnected |
   SendPayload |
   ReceiveServerPayload |
-  ReceiveServerMetadata |
   AssignNodeID
 
 export interface SendPayload {
@@ -18,15 +16,8 @@ export interface SendPayload {
 export interface ReceiveServerPayload {
   type: type.ReceiveServerPayload
   payload: weights.Encoded
-  round: number
-}
-export interface ReceiveServerMetadata {
-  type: type.ReceiveServerMetadata
-  nodeId: client.NodeID
-  taskId: string
-  round: number
-  key: MetadataKey
-  metadataMap?: Array<[client.NodeID, MetadataValue | undefined]>
+  round: number,
+  nbOfParticipants: number // number of peers contributing to a federated training
 }
 
 export function isMessageFederated (raw: unknown): raw is MessageFederated {
@@ -38,7 +29,6 @@ export function isMessageFederated (raw: unknown): raw is MessageFederated {
     case type.ClientConnected:
     case type.SendPayload:
     case type.ReceiveServerPayload:
-    case type.ReceiveServerMetadata:
     case type.AssignNodeID:
       return true
   }

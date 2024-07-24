@@ -1,8 +1,5 @@
 import type { Task } from '@epfml/discojs'
-import {
-  Disco, fetchTasks, data, client as clients,
-  aggregator as aggregators, models
-} from '@epfml/discojs'
+import { Disco, fetchTasks, data, models } from '@epfml/discojs'
 import { NodeTextLoader, saveModelToDisk, loadModelFromDisk } from '@epfml/discojs-node'
 
 
@@ -26,17 +23,11 @@ async function main(): Promise<void> {
     const dataset = await loadWikitextData(task)
   
     // Initialize a Disco instance and start training a language model
-    const aggregator = new aggregators.MeanAggregator()
-    const client = new clients.federated.FederatedClient(url, task, aggregator)
-    const disco = new Disco(task, { scheme: 'federated', client, aggregator })
+    const disco = await Disco.fromTask(task, url, { scheme: 'federated' })
     await disco.trainFully(dataset);
   
-    // Get the model and complete the prompt
-    if (aggregator.model === undefined) {
-      throw new Error('model was not set')
-    }
-    // Save the trained model
-    model = aggregator.model as models.GPT
+    // Get the model and save the trained model
+    model = disco.trainer.model as models.GPT
     await saveModelToDisk(model, modelFolder, modelFileName)
     await disco.close()
   } else {

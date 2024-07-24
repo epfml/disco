@@ -1,4 +1,4 @@
-import type tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 import type { List } from 'immutable'
 
 import type { Task } from '../../index.js'
@@ -83,11 +83,20 @@ export abstract class Data {
     if (applyPreprocessing.size === 0) {
       return x => Promise.resolve(x)
     }
-    
-    const preprocessingChain = applyPreprocessing.reduce((acc, fn) =>
-      x => fn(acc(x), this.task), (x: Promise<tf.TensorContainer>) => x)
-    
-    return x => preprocessingChain(Promise.resolve(x))
+
+    const preprocessingChain = async (input: Promise<tf.TensorContainer>) => {
+      let currentContainer = await input;  // Start with the initial tensor container
+      for (const fn of applyPreprocessing) {
+          const newContainer = await fn(Promise.resolve(currentContainer), this.task);
+          if (currentContainer !== newContainer) {
+              tf.dispose(currentContainer);  // Dispose of the old container
+          }
+          currentContainer = newContainer;
+      }
+      return currentContainer; // Return the final tensor container
+    };
+  
+    return async (entry) =>  await preprocessingChain(Promise.resolve(entry));
   }
 
   /**

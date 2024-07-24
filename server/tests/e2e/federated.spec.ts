@@ -38,27 +38,27 @@ describe("end-to-end federated", function () {
     const files = (await fs.readdir(dir)).map((file) => path.join(dir, file))
     const labels = Repeat('cat', 24).toArray() // TODO read labels in csv
 
+    const trainingScheme = 'federated'
     const cifar10Task = defaultTasks.cifar10.getTask()
-
+    cifar10Task.trainingInformation.scheme = trainingScheme
     const data = await new NodeImageLoader(cifar10Task).loadAll(files, { labels, shuffle: false })
 
-    const aggregator = new aggregators.MeanAggregator()
+    const aggregator = aggregators.getAggregator(cifar10Task, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
-    const disco = new Disco(cifar10Task, { scheme: 'federated', client })
+    const disco = await Disco.fromTask(cifar10Task, client, { scheme: trainingScheme })
 
     await disco.trainFully(data);
     await disco.close()
 
-    if (aggregator.model === undefined) {
-      throw new Error('model was not set')
-    }
-    return aggregator.model.weights
+    return disco.trainer.model.weights
   }
 
   async function titanicUser (): Promise<WeightsContainer> {
     const files = [DATASET_DIR + 'titanic_train.csv']
 
+    const trainingScheme = 'federated'
     const titanicTask = defaultTasks.titanic.getTask()
+    titanicTask.trainingInformation.scheme = trainingScheme
     titanicTask.trainingInformation.epochs = titanicTask.trainingInformation.roundDuration = 5
     const data = await (new NodeTabularLoader(titanicTask, ',').loadAll(
       files,
@@ -68,28 +68,27 @@ describe("end-to-end federated", function () {
         shuffle: false
       }
     ))
-
-    const aggregator = new aggregators.MeanAggregator()
+    const aggregator = aggregators.getAggregator(titanicTask, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
-    const disco = new Disco(titanicTask, { scheme: 'federated', client, aggregator })
+    const disco = await Disco.fromTask(titanicTask, client, { scheme: trainingScheme })
 
     const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
 
-    if (aggregator.model === undefined) {
-      throw new Error('model was not set')
-    }
     expect(logs.last()?.epochs.last()?.training.accuracy).to.be.greaterThan(0.6)
     if (logs.last()?.epochs.last()?.validation === undefined) {
       throw new Error('No validation logs while validation dataset was specified')
     } 
     const validationLogs = logs.last()?.epochs.last()?.validation
     expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
-    return aggregator.model.weights
+
+    return disco.trainer.model.weights
   }
 
-  async function wikitextUser (): Promise<void> {
+  async function wikitextUser(): Promise<void> {
+    const trainingScheme = 'federated'
     const task = defaultTasks.wikitext.getTask()
+    task.trainingInformation.scheme = trainingScheme
     task.trainingInformation.epochs = 2
     const loader = new NodeTextLoader(task)
     const dataSplit: data.DataSplit = {
@@ -97,9 +96,9 @@ describe("end-to-end federated", function () {
       validation: await data.TextData.init(await loader.load(DATASET_DIR + 'wikitext/wiki.valid.tokens'), task)
     }
 
-    const aggregator = new aggregators.MeanAggregator()
+    const aggregator = aggregators.getAggregator(task, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, task, aggregator)
-    const disco = new Disco(task, { scheme: 'federated', client, aggregator })
+    const disco = await Disco.fromTask(task, client, { scheme: trainingScheme })
 
     const logs = List(await arrayFromAsync(disco.trainByRound(dataSplit)));
     await disco.close()
@@ -120,26 +119,27 @@ describe("end-to-end federated", function () {
     const positiveLabels = files[0].map(_ => 'COVID-Positive')
     const negativeLabels = files[1].map(_ => 'COVID-Negative')
     const labels = positiveLabels.concat(negativeLabels)
+
+    const trainingScheme = 'federated'
     const lusCovidTask = defaultTasks.lusCovid.getTask()
+    lusCovidTask.trainingInformation.scheme = trainingScheme
     lusCovidTask.trainingInformation.epochs = 16
     lusCovidTask.trainingInformation.roundDuration = 4
 
     const data = await new NodeImageLoader(lusCovidTask)
       .loadAll(files.flat(), { labels, channels: 3 })
 
-    const aggregator = new aggregators.MeanAggregator()
+    const aggregator = aggregators.getAggregator(lusCovidTask, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, lusCovidTask, aggregator)
-    const disco = new Disco(lusCovidTask, { scheme: 'federated', client })
+    const disco = await Disco.fromTask(lusCovidTask, client, { scheme: trainingScheme })
 
     const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
 
-    if (aggregator.model === undefined) {
-      throw new Error('model was not set')
-    }
     const validationLogs = logs.last()?.epochs.last()?.validation
     expect(validationLogs?.accuracy).to.be.greaterThan(0.6)
-    return aggregator.model.weights
+
+    return disco.trainer.model.weights
   }
 
   it("three cifar10 users reach consensus", async function () {

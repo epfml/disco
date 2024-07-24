@@ -1,5 +1,4 @@
 import axios from 'axios'
-import type { Set } from 'immutable'
 
 import type { Model, Task, WeightsContainer } from '../index.js'
 import { serialization } from '../index.js'
@@ -79,14 +78,19 @@ export abstract class Base {
    * Communication callback called the end of every training round.
    * @param _weights The most recent local weight updates
    * @param _round The current training round
+   * @returns aggregated weights or the local weights upon error
    */
-  async onRoundEndCommunication(
+  abstract onRoundEndCommunication(
     _weights: WeightsContainer,
     _round: number,
-  ): Promise<void> {}
+  ): Promise<WeightsContainer>;
 
-  get nodes (): Set<NodeID> {
-    return this.aggregator.nodes
+  // Number of contributors to a collaborative session
+  // If decentralized, it should be the number of peers
+  // If federated, it should the number of participants excluding the server
+  // If local it should be 1
+  get nbOfParticipants(): number {
+    return this.aggregator.nodes.size // overriden by the federated client
   }
 
   get ownId(): NodeID {

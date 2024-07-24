@@ -2,7 +2,7 @@ import { Map, List, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
 import { AggregationStep, Base as Aggregator } from "./base.js";
-import type { Model, WeightsContainer, client } from "../index.js";
+import type { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
 
 /**
@@ -13,11 +13,8 @@ import { aggregation } from "../index.js";
  * Finally, nodes are able to average the received partial sums to establish the aggregation result.
  */
 export class SecureAggregator extends Aggregator<WeightsContainer> {
-  constructor(
-    model?: Model,
-    private readonly maxShareValue = 100,
-  ) {
-    super(model, 0, 2);
+  constructor(private readonly maxShareValue = 100) {
+    super(0, 2);
   }
 
   override aggregate(): void {
@@ -31,9 +28,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
           throw new Error("aggregating without any contribution");
 
         const result = aggregation.sum(currentContributions.values());
-
-        this.emit(result);
-
+        this.emit('aggregation', result);
 	break
       }
       // Average the received partial sums
@@ -43,10 +38,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
           throw new Error("aggregating without any contribution");
 
         const result = aggregation.avg(currentContributions.values());
-
-        if (this.model !== undefined) this.model.weights = result;
-        this.emit(result);
-
+        this.emit('aggregation', result);
 	break
       }
       default:
@@ -83,7 +75,6 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
       contribution,
     );
 
-    this.informant?.update();
     if (this.isFull()) this.aggregate();
 
     return true;

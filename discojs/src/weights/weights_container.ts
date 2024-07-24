@@ -92,14 +92,6 @@ export class WeightsContainer {
     return this._weights.get(index)
   }
 
-  /**
-   * Computes the weights container's Frobenius norm
-   * @returns The Frobenius norm
-   */
-  frobeniusNorm (): number {
-    return Math.sqrt(this.map((w) => w.square().sum()).reduce((a, b) => a.add(b)).dataSync()[0])
-  }
-
   concat (other: WeightsContainer): WeightsContainer {
     return WeightsContainer.of(
       ...this.weights,

@@ -1,21 +1,25 @@
-import { List } from 'immutable'
+import {
+  async_iterator,
+  data,
+  BatchLogs,
+  EpochLogs,
+  Logger,
+  Memory,
+  Model,
+  Task,
+  TrainingInformation,
+} from "../index.js";
+import { client as clients, ConsoleLogger, EmptyMemory } from "../index.js";
+import type { Aggregator } from "../aggregator/index.js";
+import { getAggregator } from "../aggregator/index.js";
+import { enumerate, split } from "../utils/async_iterator.js";
 
-import { async_iterator, BatchLogs, data, EpochLogs, Logger, Memory, Task, TrainingInformation } from '../index.js'
-import { client as clients, EmptyMemory, ConsoleLogger } from '../index.js'
-import type { Aggregator } from '../aggregator/index.js'
-import { MeanAggregator } from '../aggregator/mean.js'
-import { enumerate, split } from '../utils/async_iterator.js'
+import { RoundLogs, Trainer } from "./trainer.js";
 
-import type { RoundLogs, Trainer } from './trainer/trainer.js'
-import { TrainerBuilder } from './trainer/trainer_builder.js'
-
-export interface DiscoOptions {
-  client?: clients.Client
-  aggregator?: Aggregator
-  url?: string | URL
-  scheme?: TrainingInformation['scheme']
-  logger?: Logger
-  memory?: Memory
+interface Config {
+  scheme: TrainingInformation["scheme"];
+  logger: Logger;
+  memory: Memory;
 }
 
 /**
@@ -24,69 +28,91 @@ export interface DiscoOptions {
  * communication with nodes, logs and model memory.
  */
 export class Disco {
-  public readonly task: Task
-  public readonly logger: Logger
-  public readonly memory: Memory
-  private readonly client: clients.Client
-  private readonly trainer: Promise<Trainer>
+  readonly #client: clients.Client;
+  readonly #logger: Logger;
 
-  constructor (
+  // small helper to avoid keeping Task & Memory around
+  readonly #updateWorkingModel: (_: Model) => Promise<void>;
+
+  private constructor(
+    public readonly trainer: Trainer,
     task: Task,
-    options: DiscoOptions
+    client: clients.Client,
+    memory: Memory,
+    logger: Logger,
   ) {
-    if (options.scheme === undefined) {
-      options.scheme = task.trainingInformation.scheme
-    }
-    if (options.aggregator === undefined) {
-      options.aggregator = new MeanAggregator()
-    }
-    if (options.client === undefined) {
-      if (options.url === undefined) {
-        throw new Error('could not determine client from given parameters')
-      }
+    this.#client = client;
+    this.#logger = logger;
 
-      if (typeof options.url === 'string') {
-        options.url = new URL(options.url)
-      }
-      switch (options.scheme) {
-        case 'federated':
-          options.client = new clients.federated.FederatedClient(options.url, task, options.aggregator)
-          break
-        case 'decentralized':
-          options.client = new clients.decentralized.DecentralizedClient(options.url, task, options.aggregator)
-          break
-        case 'local':
-          options.client = new clients.Local(options.url, task, options.aggregator)
-          break
-        default: {
-          const _: never = options.scheme
-          throw new Error('should never happen')
-        }
-      }
-    }
-    if (options.logger === undefined) {
-      options.logger = new ConsoleLogger()
-    }
-    if (options.memory === undefined) {
-      options.memory = new EmptyMemory()
-    }
-    if (options.client.task !== task) {
-      throw new Error('client not setup for given task')
-    }
+    this.#updateWorkingModel = () =>
+      memory.updateWorkingModel(
+        {
+          type: "working",
+          taskID: task.id,
+          name: task.trainingInformation.modelID,
+          tensorBackend: task.trainingInformation.tensorBackend,
+        },
+        this.trainer.model,
+      );
+  }
 
-    this.task = task
-    this.client = options.client
-    this.memory = options.memory
-    this.logger = options.logger
+  /**
+   * Connect to the given task and get ready to train.
+   *
+   * Will load the model from memory if available or fetch it from the server.
+   *
+   * @param clientConfig client to connect with or parameters on how to create one.
+   **/
+  static async fromTask(
+    task: Task,
+    clientConfig: clients.Client | URL | { aggregator: Aggregator; url: URL },
+    config: Partial<Config>,
+  ): Promise<Disco> {
+    const { scheme, logger, memory } = {
+      scheme: task.trainingInformation.scheme,
+      logger: new ConsoleLogger(),
+      memory: new EmptyMemory(),
+      ...config,
+    };
 
-    const trainerBuilder = new TrainerBuilder(this.memory, this.task)
-    this.trainer = trainerBuilder.build(this.client, options.scheme !== 'local')
+    let client;
+    if (clientConfig instanceof clients.Client) {
+      client = clientConfig;
+    } else {
+      let url, aggregator;
+      if (clientConfig instanceof URL) {
+        url = clientConfig;
+        aggregator = getAggregator(task, { scheme });
+      } else {
+        ({ url, aggregator } = clientConfig);
+      }
+      client = clients.getClient(scheme, url, task, aggregator);
+    }
+    if (client.task !== task)
+      throw new Error("client not setup for given task");
+
+    let model;
+    const memoryInfo = {
+      type: "working" as const,
+      taskID: task.id,
+      name: task.trainingInformation.modelID,
+      tensorBackend: task.trainingInformation.tensorBackend,
+    };
+    if (await memory.contains(memoryInfo))
+      model = await memory.getModel(memoryInfo);
+    else model = await client.getLatestModel();
+
+    return new Disco(
+      new Trainer(task, model, client),
+      task,
+      client,
+      memory,
+      logger,
+    );
   }
 
   /** Train on dataset, yielding logs of every round. */
-  async *trainByRound(
-    dataTuple: data.DataSplit,
-  ): AsyncGenerator<RoundLogs & { participants: number }> {
+  async *trainByRound(dataTuple: data.DataSplit): AsyncGenerator<RoundLogs> {
     for await (const round of this.train(dataTuple)) {
       const [roundGen, roundLogs] = async_iterator.split(round);
       for await (const epoch of roundGen) for await (const _ of epoch);
@@ -108,53 +134,45 @@ export class Disco {
   /** Train on dataset, yielding logs of every batch. */
   async *trainByBatch(dataTuple: data.DataSplit): AsyncGenerator<BatchLogs> {
     for await (const round of this.train(dataTuple))
-      for await (const epoch of round)
-        yield* epoch;
+      for await (const epoch of round) yield* epoch;
   }
 
   /** Run whole train on dataset. */
   async trainFully(dataTuple: data.DataSplit): Promise<void> {
     for await (const round of this.train(dataTuple))
-      for await (const epoch of round)
-        for await (const _ of epoch);
+      for await (const epoch of round) for await (const _ of epoch);
   }
 
   /**
-  * Train on dataset, yield the nested steps.
-  *
-  * Don't forget to await the yielded generator otherwise nothing will progress.
-  * If you don't care about the whole process, use one of the other train methods.
-  **/
-  // TODO RoundLogs should contain number of participants but Trainer doesn't need client
+   * Train on dataset, yield the nested steps.
+   *
+   * Don't forget to await the yielded generator otherwise nothing will progress.
+   * If you don't care about the whole process, use one of the other train methods.
+   **/
   async *train(
     dataTuple: data.DataSplit,
   ): AsyncGenerator<
-    AsyncGenerator<
-      AsyncGenerator<BatchLogs, EpochLogs>,
-      RoundLogs & { participants: number }
-    >
+    AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
-    this.logger.success("Training started.");
+    this.#logger.success("Training started.");
 
     const trainData = dataTuple.train.preprocess().batch();
     const validationData =
       dataTuple.validation?.preprocess().batch() ?? trainData;
-    await this.client.connect();
-    const trainer = await this.trainer;
+    await this.#client.connect();
 
     for await (const [round, epochs] of enumerate(
-      trainer.fitModel(trainData.dataset, validationData.dataset),
+      this.trainer.train(trainData.dataset, validationData.dataset),
     )) {
       yield async function* (this: Disco) {
-        let epochsLogs = List<EpochLogs>();
-        for await (const [epoch, batches] of enumerate(epochs)) {
+        const [gen, returnedRoundLogs] = split(epochs);
+        for await (const [epoch, batches] of enumerate(gen)) {
           const [gen, returnedEpochLogs] = split(batches);
 
           yield gen;
           const epochLogs = await returnedEpochLogs;
-          epochsLogs = epochsLogs.push(epochLogs);
 
-          this.logger.success(
+          this.#logger.success(
             [
               `Round: ${round}`,
               `  Epoch: ${epoch}`,
@@ -170,22 +188,20 @@ export class Disco {
           );
         }
 
-        return {
-          epochs: epochsLogs,
-          participants: this.client.nodes.size + 1, // add ourself
-        };
+        return await returnedRoundLogs;
       }.bind(this)();
+
+      await this.#updateWorkingModel(this.trainer.model);
     }
 
-    this.logger.success("Training finished.");
+    this.#logger.success("Training finished.");
   }
 
   /**
    * Stops the ongoing training instance without disconnecting the client.
    */
-  async pause (): Promise<void> {
-    const trainer = await this.trainer
-    await trainer.stopTraining()
+  async pause(): Promise<void> {
+    await this.trainer.stopTraining();
   }
 
   /**
@@ -193,6 +209,6 @@ export class Disco {
    */
   async close(): Promise<void> {
     await this.pause();
-    await this.client.disconnect();
+    await this.#client.disconnect();
   }
 }

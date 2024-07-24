@@ -3,7 +3,7 @@
     <div class="flex flex-col gap-4">
       <!-- In case no tasks were retrieved, suggest reloading the page -->
       <ButtonsCard
-        v-if="tasks.size === 0"
+        v-if="taskStore.loadingAlreadyFailed"
         :buttons="List.of(['reload page', () => router.go(0)])"
         class="mx-auto"
       >
@@ -37,7 +37,18 @@
           <br/><br/> <b>The data you connect is only used locally and is never uploaded or shared with anyone. Data always stays on your device.</b>
           </template>
         </IconCard>
+        <div 
+          v-if="taskStore.loading"
+          class="my-10 flex flex-col justify-center items-center"
+        >
+          <VueSpinner size="50" color="#6096BA"/>
+          <div class="mt-10 flex flex-col justify-center items-center">
+            <p class="text-disco-blue">Loading <DISCOllaboratives /></p>
+            <p class="text-disco-blue text-xs">This can take a few seconds</p>
+          </div>
+        </div>
         <div
+          v-else
           v-for="task in sortedTasks"
           :id="task.id"
           :key="task.id"
@@ -72,6 +83,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { VueSpinner } from 'vue3-spinners';
 
 import { List } from "immutable";
 
@@ -88,7 +100,8 @@ import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
 
 const router = useRouter()
 const trainingStore = useTrainingStore()
-const { tasks } = storeToRefs(useTasksStore())
+const taskStore = useTasksStore()
+const { tasks } = storeToRefs(taskStore)
 
 // For the moment, I only manage to sort the task by doing an iterator, which is forbidden by EsLint and the version
 // An easy way to fix it is to add a flag to disable the rule in the .eslintrc.js file but I will not do it, because

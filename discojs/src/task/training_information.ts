@@ -1,14 +1,20 @@
-import type { AggregatorChoice } from '../aggregator/get.js'
 import type { Preprocessing } from '../dataset/data/preprocessing/index.js'
 import { PreTrainedTokenizer } from '@xenova/transformers';
+
+interface Privacy {
+  // maximum weights difference between each round
+  clippingRadius?: number;
+  // variance of the Gaussian noise added to the shared weights.
+  noiseScale?: number;
+}
 
 export interface TrainingInformation {
   // modelID: unique ID for the model
   modelID: string
   // epochs: number of epochs to run training for
   epochs: number
-  // roundDuration: number of batches between each weight sharing round, e.g. if 3 then after every
-  // 3 batches we share weights (in the distributed setting).
+  // roundDuration: number of epochs between each weight sharing round. 
+  // e.g.if 3 then weights are shared every 3 epochs (in the distributed setting).
   roundDuration: number
   // validationSplit: fraction of data to keep for validation, note this only works for image data
   validationSplit: number
@@ -31,13 +37,10 @@ export interface TrainingInformation {
   LABEL_LIST?: string[]
   // scheme: Distributed training scheme, i.e. Federated and Decentralized
   scheme: 'decentralized' | 'federated' | 'local'
-  // noiseScale: Differential Privacy (DP): Affects the variance of the Gaussian noise added to the models / model updates.
-  // Number or undefined. If undefined, then no noise will be added.
-  noiseScale?: number
-  // clippingRadius: Privacy (DP and Secure Aggregation):
-  // Number or undefined. If undefined, then no model updates will be clipped.
-  // If number, then model updates will be scaled down if their norm exceeds clippingRadius.
-  clippingRadius?: number
+
+  // use Differential Privacy, reduce training accuracy and improve privacy.
+  privacy?: Privacy;
+
   // decentralizedSecure: Secure Aggregation on/off:
   // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
   decentralizedSecure?: boolean
@@ -50,7 +53,7 @@ export interface TrainingInformation {
   minimumReadyPeers?: number
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
-  aggregator?: AggregatorChoice
+  aggregator?: 'mean' | 'secure' // TODO: never used
   // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'. 
   // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
   tokenizer?: string | PreTrainedTokenizer
@@ -70,6 +73,30 @@ function isStringArray(raw: unknown): raw is string[] {
   return arr.every((e) => typeof e === 'string')
 }
 
+function isPrivacy(raw: unknown): raw is Privacy {
+  if (typeof raw !== "object" || raw === null) {
+    return false;
+  }
+
+  const {
+    clippingRadius,
+    noiseScale,
+  }: Partial<Record<keyof Privacy, unknown>> = raw;
+
+  if (
+    (clippingRadius !== undefined && typeof clippingRadius !== "number") ||
+    (noiseScale !== undefined && typeof noiseScale !== "number")
+  )
+    return false;
+
+  const _: Privacy = {
+    clippingRadius,
+    noiseScale,
+  } satisfies Record<keyof Privacy, unknown>;
+
+  return true;
+}
+
 export function isTrainingInformation (raw: unknown): raw is TrainingInformation {
   if (typeof raw !== 'object' || raw === null) {
     return false
@@ -81,15 +108,14 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     LABEL_LIST,
     aggregator,
     batchSize,
-    clippingRadius,
     dataType,
     decentralizedSecure,
+    privacy,
     epochs,
     inputColumns,
     maxShareValue,
     minimumReadyPeers,
     modelID,
-    noiseScale,
     outputColumns,
     preprocessingFunctions,
     roundDuration,
@@ -109,12 +135,11 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof validationSplit !== 'number' ||
     (tokenizer !== undefined && typeof tokenizer !== 'string' && !(tokenizer instanceof PreTrainedTokenizer)) ||
     (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
-    (aggregator !== undefined && typeof aggregator !== 'number') ||
-    (clippingRadius !== undefined && typeof clippingRadius !== 'number') ||
+    (aggregator !== undefined && typeof aggregator !== 'string') ||
     (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
+    (privacy !== undefined && !isPrivacy(privacy)) ||
     (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
     (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number') ||
-    (noiseScale !== undefined && typeof noiseScale !== 'number') ||
     (IMAGE_H !== undefined && typeof IMAGE_H !== 'number') ||
     (IMAGE_W !== undefined && typeof IMAGE_W !== 'number') ||
     (LABEL_LIST !== undefined && !isStringArray(LABEL_LIST)) ||
@@ -123,6 +148,14 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     (preprocessingFunctions !== undefined && !Array.isArray(preprocessingFunctions))
   ) {
     return false
+  }
+
+  if (aggregator !== undefined) {
+    switch (aggregator) {
+      case 'mean': break
+      case 'secure': break
+      default: return false
+    }
   }
 
   switch (dataType) {
@@ -165,15 +198,14 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     LABEL_LIST,
     aggregator,
     batchSize,
-    clippingRadius,
     dataType,
     decentralizedSecure,
+    privacy,
     epochs,
     inputColumns,
     maxShareValue,
     minimumReadyPeers,
     modelID,
-    noiseScale,
     outputColumns,
     preprocessingFunctions,
     roundDuration,
