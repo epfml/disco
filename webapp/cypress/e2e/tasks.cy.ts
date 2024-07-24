@@ -8,7 +8,7 @@ describe("tasks page", () => {
       defaultTasks.lusCovid.getTask(),
       defaultTasks.wikitext.getTask(),
     ]);
-    cy.visit("/#/list");
+    cy.visit("/#/list").contains("button", "participate");
 
     // Length 5 = 4 tasks and 1 div for text description
     cy.get('div[id="tasks"]').children().should("have.length", 5);
@@ -18,7 +18,7 @@ describe("tasks page", () => {
     cy.intercept({ hostname: "server", pathname: "tasks" }, [
       defaultTasks.titanic.getTask(),
     ]);
-    cy.visit("/#/list");
+    cy.visit("/#/list").contains("button", "participate");
 
     cy.get(`div[id="titanic"]`).find("button").click();
     cy.url().should("eq", `${Cypress.config().baseUrl}#/titanic`);
