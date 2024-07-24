@@ -3,7 +3,7 @@
     <div class="flex flex-col gap-4">
       <!-- In case no tasks were retrieved, suggest reloading the page -->
       <ButtonsCard
-        v-if="taskStore.loadingAlreadyFailed"
+        v-if="taskStore.loadingFailed"
         :buttons="List.of(['reload page', () => router.go(0)])"
         class="mx-auto"
       >

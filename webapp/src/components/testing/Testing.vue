@@ -294,7 +294,7 @@ const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
 }
 
 const taskTitle = (taskID: string): string | undefined => {
-  if (!tasksStore.loading && !tasksStore.loadingAlreadyFailed) {
+  if (tasksStore.loadedSuccessfully) {
     const titled = tasksStore.tasks.get(taskID)
     if (titled !== undefined) {
       return titled.displayInformation.taskTitle

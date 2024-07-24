@@ -23,8 +23,8 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 import type { TaskID } from '@epfml/discojs'
 import { data } from '@epfml/discojs'
@@ -38,6 +38,7 @@ import Finished from '@/components/training/Finished.vue'
 import Data from '@/components/data/Data.vue'
 
 const router = useRouter()
+const route = useRoute()
 const trainingStore = useTrainingStore()
 const tasksStore = useTasksStore()
 
@@ -45,13 +46,20 @@ const tasksStore = useTasksStore()
 interface Props { id: TaskID }
 const props = defineProps<Props>()
 
+// Init the task once the taskStore has been loaded successfully
+// If it is not we redirect to the task list
 const task = computed(() => {
-  const task = tasksStore.tasks.get(props.id)
-  if (task === undefined) {
-    router.replace({ name: 'not-found' })
-    return
+  if (tasksStore.loadedSuccessfully) {
+    const task = tasksStore.tasks.get(props.id)
+    console.log("loadedSuccessfully", props.id, task)
+    return task
   }
-  return task
+  // Redirect to the task list if not loaded yet
+  // This happens when refreshing the page, every task are reset when fetched
+  if (route.name !== 'task-list') {
+    router.replace({ name: 'task-list' })
+  }
+  return undefined
 })
 
 const datasetBuilder = computed(() => {
@@ -72,10 +80,5 @@ const datasetBuilder = computed(() => {
       throw new Error('not implemented')
   }
   return new data.DatasetBuilder(dataLoader, task.value)
-})
-
-onMounted(() => {
-  trainingStore.setTask(props.id)
-  trainingStore.setStep(1)
 })
 </script>
