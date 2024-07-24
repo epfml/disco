@@ -32,8 +32,8 @@
             >TF.js</a>
             Decentralized training uses peer2peer communication (<a
               class="text-blue-400"
-              href="https://peerjs.com/"
-            >peerjs</a>).
+              href="https://github.com/feross/simple-peer"
+            >simple-peer</a>, or peerJS).
         </div>
         <div class="mb-4">
             <b>Research-focused design</b>

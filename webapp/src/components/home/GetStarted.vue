@@ -16,11 +16,11 @@
     <!-- List of tasks -->
     <ButtonsCard
       title-align="center"
-      :buttons="List.of(['explore', goToTaskList])"
+      :buttons="List.of(['participate', goToTaskList])"
     >
       <template #title>
         Train a model and contribute to existing
-        <span title="Click Explore to learn more on DISCOllaboratives">
+        <span title="Click Participate to learn more on DISCOllaboratives">
           <DISCOllaboratives />
         </span>
       </template>

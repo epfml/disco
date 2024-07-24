@@ -9,7 +9,7 @@
 </div>
 
 Welcome to the DISCO developer guide.
-Here you will have a first overview of the project, how to install and run an instance of DISCO and links to further documentation.
+Here you will have a first overview of the project, how to install and run an instance of DISCO and links to further documentation. All DISCO code is in JavaScript/TypeScript.
 
 ## Structure
 

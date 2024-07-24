@@ -2,7 +2,7 @@
 
 DISCO currently allows learning of arbitrary machine learning tasks, where tasks can be defined in three possible ways:
 
-1. **Predefined tasks**: As examples, DISCO already hosts several pre-defined popular tasks such as [Titanic](../discojs/src/tasks/titanic.ts), [CIFAR-10](../discojs/src/tasks/cifar10.ts), and [MNIST](../discojs/src/tasks/mnist.ts) among others.
+1. **Predefined tasks**: As examples, DISCO already hosts several pre-defined popular tasks such as [GPT2](../discojs/src/default_tasks/wikitext.ts), [Titanic](../discojs/src/default_tasks/titanic.ts), [CIFAR-10](../discojs/src/default_tasks/cifar10.ts), and [MNIST](../discojs/src/default_tasks/mnist.ts) among others.
 2. **Task creation UI**: new tasks can be defined via the [**task creation form**](https://discolab.ai/#/create)
 3. **Implementing custom tasks**: tasks too specific for the UI form need to be implemented in the repository directly.
 
