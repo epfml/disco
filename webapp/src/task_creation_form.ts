@@ -56,7 +56,7 @@ const generalInformation: FormSection = {
       yup: yup.string().required(),
       as: 'input',
       type: 'select',
-      options: ['Image (.png, .jpg)', 'Tabular (.csv)'],
+      options: ['Image (.png, .jpg)', 'Tabular (.csv)', 'Text (.txt)'],
       default: 'Image (.png, .jpg)'
     },
     {
