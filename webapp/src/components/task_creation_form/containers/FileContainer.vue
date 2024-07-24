@@ -73,6 +73,14 @@
               hidden
               @change="onChange"
             >
+            <!-- Clear Button -->
+            <div
+              v-if="fileName"
+              @click="clearInput"
+              class="mt-2 p-2 rounded-sm text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors duration-200"
+            >
+              Clear
+            </div>
           </div>
         </div>
       </div>
@@ -81,13 +89,13 @@
       class="flex justify-between items-center text-gray-400"
     >
       <span>Accepted file type: {{ field.extension }} only</span>
-      <span class="flex items-center"><i class="fa fa-lock mr-1" /> secure</span>
-    </div>
+      <span class="flex items-center" title="Your files will stay in the browser, on your computer"><i class="fa fa-lock mr-1" /> secure</span>    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { useToast } from 'vue-toast-notification';
 import { Field as VeeField } from 'vee-validate'
 
 import type { FormField } from '@/task_creation_form'
@@ -110,8 +118,10 @@ const emit = defineEmits<Emits>()
 
 const fileName = ref('')
 const upload = ref<HTMLInputElement>()
+  const toast = useToast()
 
 function onChange(): void {
+  showUploadingToast()
   if (upload.value === undefined) return
   const files = upload.value.files
   if (files === null) return
@@ -119,6 +129,7 @@ function onChange(): void {
   // fill in the vee-field to trigger yup validation
   fileName.value = (files.length > 0) ? files[0].name : ''
   emit('input', files)
+  toast.success("Upload complete")
 }
 function onDragOver(event: DragEvent): void {
   // Optional: Add visual feedback
@@ -126,12 +137,29 @@ function onDragOver(event: DragEvent): void {
 
 function onDrop(event: DragEvent): void {
   if (!available) return;
+  showUploadingToast()
 
   const files = event.dataTransfer?.files;
   if (files && files.length > 0) {
     // Process the files
     fileName.value = files[0].name;
+    toast.success("Upload complete")
     emit('input', files);
+  } else {
+    toast.error("Upload failed, please try again")
   }
+}
+
+function showUploadingToast() {
+  toast.info("Uploading your data in the browser (your data stays on your computer)")
+}
+
+// clearInput method
+function clearInput(): void {
+  fileName.value = ''
+  if (upload.value) {
+    upload.value.value = '' // Clear the file input for browsers that support it
+  }
+  toast.info("Selection cleared")
 }
 </script>
