@@ -87,6 +87,7 @@
         v-show="connectImagesByGroup"
         class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8"
       >
+      <!-- If we are training or evaluating and need labels -->
         <div
           v-if="requireLabels"
           class="contents"
@@ -101,6 +102,8 @@
             <template #content>
               <FileSelection
                 :label="label"
+                :is-multiple="true"
+                :info-text="true"
                 :dataset-builder="props.datasetBuilder"
                 :task="props.task"
                 :csv-rows="csvRows"
@@ -109,6 +112,7 @@
             </template>
           </IconCard>
         </div>
+        <!-- If it's for inference and we don't need labels -->
         <FileSelection
           v-else
           :dataset-builder="props.datasetBuilder"
@@ -176,7 +180,8 @@
                 @csv="setCsv($event)"
               >
                 <template #text>
-                  Either drag and drop the <b>images</b> directly or select the <b>folder</b> containing all the images referenced in the connected CSV file.
+                  Drag and drop or browse for the images referenced in the connected CSV file. 
+                  <br/>{{ browsingTip }}
                 </template>
               </FileSelection>
             </template>
@@ -202,9 +207,9 @@ interface Props {
   datasetBuilder: data.DatasetBuilder<File>
   isOnlyPrediction: boolean //is true when predicting with a trained model
 }
-
 const props = defineProps<Props>()
 
+const browsingTip = "Tip: when browsing files you can use the keyboard shortcut Ctrl + A to select all images."
 const csvRows = ref<{ filename: string, label: string }[]>()
 
 const isLabelLengthSmall = (props.task.trainingInformation.LABEL_LIST?.length ?? 0) <= 2
