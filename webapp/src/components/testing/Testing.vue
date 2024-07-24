@@ -180,7 +180,6 @@ import Tester from '@/components/testing/Tester.vue'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
-import { useToaster } from '@/composables/toaster'
 
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
