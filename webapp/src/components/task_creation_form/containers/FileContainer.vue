@@ -2,6 +2,8 @@
   <div>
     <div
       class="h-72 my-3"
+      @dragover.prevent="onDragOver"
+      @drop.prevent="onDrop"
     >
       <div
         class="
@@ -102,5 +104,19 @@ function onChange(): void {
   // fill in the vee-field to trigger yup validation
   fileName.value = (files.length > 0) ? files[0].name : ''
   emit('input', files)
+}
+function onDragOver(event: DragEvent): void {
+  // Optional: Add visual feedback
+}
+
+function onDrop(event: DragEvent): void {
+  if (!available) return;
+
+  const files = event.dataTransfer?.files;
+  if (files && files.length > 0) {
+    // Process the files
+    fileName.value = files[0].name;
+    emit('input', files);
+  }
 }
 </script>
