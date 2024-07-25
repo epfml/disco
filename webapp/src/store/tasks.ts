@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { shallowRef, ref, computed } from 'vue'
+import { shallowRef, ref } from 'vue'
 import { Map } from 'immutable'
 
 import type { TaskID, Task } from '@epfml/discojs'
@@ -29,7 +29,6 @@ export const useTasksStore = defineStore('tasks', () => {
   async function initTasks (): Promise<void> {
     try {
       status.value = 'loading'
-      await new Promise((res, _) => setTimeout(res, 5000))
       const tasks = (await fetchTasks(CONFIG.serverUrl)).filter((t: Task) => !TASKS_TO_FILTER_OUT.includes(t.id))
 
       tasks.forEach(addTask)

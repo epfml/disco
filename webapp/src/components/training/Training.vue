@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 import type { TaskID } from '@epfml/discojs'
 import { data } from '@epfml/discojs'
