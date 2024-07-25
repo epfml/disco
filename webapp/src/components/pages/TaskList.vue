@@ -3,7 +3,7 @@
     <div class="flex flex-col gap-4">
       <!-- In case no tasks were retrieved, suggest reloading the page -->
       <ButtonsCard
-        v-if="taskStore.loadingAlreadyFailed"
+        v-if="taskStore.status == 'failed'"
         :buttons="List.of(['reload page', () => router.go(0)])"
         class="mx-auto"
       >
@@ -38,7 +38,7 @@
           </template>
         </IconCard>
         <div 
-          v-if="taskStore.loading"
+          v-if="taskStore.status == 'loading'"
           class="my-10 flex flex-col justify-center items-center"
         >
           <VueSpinner size="50" color="#6096BA"/>

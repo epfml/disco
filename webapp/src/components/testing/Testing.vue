@@ -78,7 +78,7 @@
           </template>
           <template #content>
             <div 
-              v-if="tasksStore.loading"
+              v-if="tasksStore.status == 'loading'"
               class="my-10 flex flex-col justify-center items-center"
             >
               <VueSpinner size="50" color="#6096BA"/>
@@ -294,7 +294,7 @@ const selectModel = (path: Path, isOnlyPrediction: boolean): void => {
 }
 
 const taskTitle = (taskID: string): string | undefined => {
-  if (!tasksStore.loading && !tasksStore.loadingAlreadyFailed) {
+  if (tasksStore.status == 'success') {
     const titled = tasksStore.tasks.get(taskID)
     if (titled !== undefined) {
       return titled.displayInformation.taskTitle

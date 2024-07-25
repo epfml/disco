@@ -1,126 +1,89 @@
 <template>
-  <!-- Upload File Card-->
-  <div>
-    <article
-      aria-label="File Upload Model"
-      class="
-        h-full
-        flex flex-col
-        bg-white
-        rounded-lg
-      "
-      @drop.prevent
-      @dragover.prevent
-      @dragenter.prevent
-    >
-      <!-- scroll area -->
-      <section>
-        <header
-          v-if="!hideConnectField"
-          class="
-            border-dashed rounded-xl border-2 border-disco-cyan
-            flex flex-col
-            justify-center
-            items-center
-          "
-          @drop="async (e: DragEvent) => await dragFiles(e)"
-        >
-          <div class="flex flex-col
-            justify-center
-            items-center">
-            <p
-              class="
-                p-4
-                text-lg
-                text-disco-blue
-                flex-wrap
-                justify-center
-              "
-            >
-              <span>Drag and drop the</span>&nbsp;<span> {{ fileType }}{{ isMultiple ? 's' : '' }} or</span>
-            </p>
-            <label class="mb-6">
-              <span
-                class="
-                    px-4 py-2 min-w-[8rem]
-                    text-lg uppercase text-white
-                    bg-disco-cyan
-                    rounded duration-200
-                    hover:bg-white hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan
-                    hover:cursor-pointer
-                  "
-              >
-                select {{ isDirectory ? 'folder' : (fileType + (isMultiple ? 's' : ''))}}
-              </span>
-              <input
-                v-if="isDirectory"
-                ref="uploadDirectory"
-                type="file"
-                multiple
-                webkitdirectory
-                directory
-                class="hidden"
-                @change="async () => await submitDirectory()"
-              >
-              <input
-                v-else
-                ref="uploadFile"
-                type="file"
-                :multiple="isMultiple"
-                :accept="acceptFiles.join(',')"
-                class="hidden"
-                @change="async () => await submitFiles()"
-              >
-            </label>
-          </div>
-          
-        </header>
-        <div 
-          v-if="selectedFiles === undefined"
-          class="flex justify-end items-center mt-1"
-        >
-          <span 
-          class="hover:cursor-pointer"
-          v-tippy="{ content: 'Data always stays on your device and is never shared.' }"
-          >
-            <i class="fa fa-lock mr-1" />
-          </span>
-        </div>
-
-        <div
-          v-if="infoText && selectedFiles === undefined"
-          class="flex justify-center mt-5"
-        >
-          <p class="text-slate-500 text-sm">
-            <span><slot name="text" /></span>
+  <article
+    aria-label="File Upload Model"
+    class="h-full flex flex-col bg-white rounded-lg"
+    @drop.prevent
+    @dragover.prevent
+    @dragenter.prevent
+  >
+    <section>
+      <!-- Hide the file input field when already submitted-->
+      <div
+        v-if="!hideConnectField"
+        class="
+          border-dashed rounded-xl border-disco-cyan
+          flex flex-col justify-center items-center
+          min-h-48
+        "
+        :class="isDragHoverActive ? 'bg-blue-100 opacity-75 border-8' : 'border-2'"
+        @dragenter="onDragEnter" 
+        @dragleave="onDragLeave"
+        @drop="async (e: DragEvent) => await dragFiles(e)"
+      >
+          <p class="p-4 text-lg text-disco-blue flex-wrap justify-center">
+            <span>Drag and drop the</span>&nbsp;<span> {{ fileType }}{{ isMultiple ? 's' : '' }} or</span>
           </p>
+          <label class="mb-6">
+            <span
+              class="
+                  px-4 py-2 min-w-[8rem]
+                  text-lg uppercase text-white
+                  bg-disco-cyan
+                  rounded duration-200
+                  hover:bg-white hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan
+                  hover:cursor-pointer
+                "
+            >
+              select {{ fileType + (isMultiple ? 's' : '') }}
+            </span>
+            <input
+              ref="inputFileElement"
+              type="file"
+              :multiple="isMultiple"
+              :accept="acceptFiles.join(',')"
+              class="hidden"
+              @change="async () => await submitFiles()"
+            >
+          </label>
+      </div>
+      <!-- Display what has been connected -->
+      <div 
+        v-if="selectedFiles === undefined"
+        class="flex justify-end items-center mt-1"
+      >
+        <span 
+        class="hover:cursor-pointer"
+        v-tippy="{ content: 'Data always stays on your device and is never shared.' }"
+        >
+          <i class="fa fa-lock mr-1" />
+        </span>
+      </div>
+
+      <!-- Display some text if specified -->
+      <div
+        v-if="infoText && selectedFiles === undefined"
+        class="flex justify-center mt-5"
+      >
+        <p class="text-slate-500 text-sm">
+          <span><slot name="text" /></span>
+        </p>
+      </div>
+
+      <!-- If only one file is connected, display its name, if multiple display the number of files -->
+      <div v-if="selectedFiles?.length" class="pt-4 flex flex-col items-center pb-5">
+        <div
+          class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue">
+          <span v-if="isMultiple">Number of selected files: <span class="pl-1 text-xl">{{ selectedFiles?.length ?? 0 }}</span></span>
+          <span v-else class="pl-1">{{ selectedFiles?.item(0)?.name ?? 'none' }}</span>
         </div>
-
-        <!-- If preview of the selected file, display of small preview of selected files -->
-
-        <!-- TODO: There is a recursion issue with preview-gallery -->
-        <!-- <div v-if="preview">
-          <preview-gallery :fileUploadManager="fileUploadManager" />
-          <div v-else>
-            ...
-        </div> -->
-
-        <!-- If no preview of the selected file, display the nbr. of uploaded files -->
-        <div v-if="selectedFiles?.length" class="pt-4 flex flex-col items-center pb-5">
-          <div
-            class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue">
-            <span v-if="isMultiple">Number of selected files: <span class="pl-1 text-xl">{{ selectedFiles?.length ?? 0 }}</span></span>
-            <span v-else class="pl-1">{{ selectedFiles?.item(0)?.name ?? 'none' }}</span>
-          </div>
-          <div>
-            <CustomButton @click="clearFiles">
-              clear file{{ isMultiple ? 's' : '' }}
-            </CustomButton>
-          </div>
+        <div>
+          <CustomButton @click="clearFiles">
+            clear file{{ isMultiple ? 's' : '' }}
+          </CustomButton>
         </div>
-      </section>
-    </article>
-  </div>
+      </div>
+    </section>
+  </article>
 </template>
 
 <script lang="ts" setup>
@@ -134,7 +97,6 @@ import { useToaster } from '@/composables/toaster'
 
 const toaster = useToaster()
 
-
 type CSV = { filename: string, label: string }[] | undefined
 
 interface Emits {
@@ -145,29 +107,31 @@ interface Props {
   task: Task
   datasetBuilder: data.DatasetBuilder<File>
   csvRows: CSV,
-  isDirectory?: boolean, // is this input field accepts a directory
-  acceptFiles?: string[], // file formated accepted
+  acceptFiles?: string[], // file formats accepted
   isMultiple?: boolean, // is this input field accepting one or multiple files
   infoText?: boolean,
   label?: string, // for connecting images by category, for which category this input field is
   expectCsvMapping?: boolean // for connecting images via a CSV mapping images to labels
 }
 const props = withDefaults(defineProps<Props>(), {
-  isDirectory: false,
   isMultiple: true,
   acceptFiles: () => ['*'],
   infoText: false,
   label: undefined,
-  expectCsvMapping:false
+  expectCsvMapping: false
 })
 
 const emit = defineEmits<Emits>()
 const selectedFiles = ref<FileList>()
+const inputFileElement = ref<HTMLInputElement>()
 
-const uploadFile = ref<HTMLInputElement>()
-const uploadDirectory = ref<HTMLInputElement>()
-
+// true when files are already connected
 const hideConnectField = ref(false)
+
+// we use an event counter to test whether the user is dragging a file over the field
+// because events are triggered multiple times when hovering of children elements (such as button or text) 
+const dragEventCount = ref(0)
+const isDragHoverActive = computed(() => dragEventCount.value > 0)
 
 const fileType = computed(() => {
   if (props.expectCsvMapping === true || props.task.trainingInformation.dataType === 'tabular') {
@@ -180,32 +144,35 @@ const requireLabels = computed(
 )
 
 async function submitFiles() {
-  if (uploadFile.value === undefined) return
-  const files = uploadFile.value.files
-  if (files === null) return
-  await addFiles(files)
-}
-
-async function submitDirectory() {
-  if (uploadDirectory.value === undefined) return
-  const files = uploadDirectory.value.files
+  if (inputFileElement.value === undefined) return
+  const files = inputFileElement.value.files
   if (files === null) return
   await addFiles(files)
 }
 
 async function dragFiles(e: DragEvent) {
+  dragEventCount.value = 0
   if (e.dataTransfer === null) return
   e.dataTransfer.dropEffect = 'copy'
   const files = e.dataTransfer.files
   await addFiles(files)
 }
 
+function onDragEnter() {
+  dragEventCount.value++
+}
+
+function onDragLeave() {
+  dragEventCount.value--
+}
+
+
 async function addFiles(files: FileList) {
   if (props.expectCsvMapping) {
     await readCsvImageMapping(files)
     return
   }
-  try{
+  try {
     const filesArray = Array.from(files)
     // If the task is an image task with labels specified
     if (props.task.trainingInformation.dataType === 'image' && requireLabels.value) {
