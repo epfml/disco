@@ -108,7 +108,11 @@
                 :task="props.task"
                 :csv-rows="csvRows"
                 @csv="setCsv($event)"
-              />
+              >
+                <template #text>
+                  {{ browsingTip }}
+                </template>
+              </FileSelection>
             </template>
           </IconCard>
         </div>
