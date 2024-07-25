@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute, onBeforeRouteUpdate } from 'vue-router'
 
 import type { TaskID } from '@epfml/discojs'
 import { data } from '@epfml/discojs'
@@ -53,7 +53,7 @@ function setupTrainingStore() {
 // Init the task once the taskStore has been loaded successfully
 // If it is not we redirect to the task list
 const task = computed(() => {
-  if (tasksStore.loadedSuccessfully) {
+  if (tasksStore.status == 'success') {
     return tasksStore.tasks.get(props.id)
   }
   // Redirect to the task list if not loaded yet
@@ -66,10 +66,11 @@ const task = computed(() => {
 
 // Addresses the case when users enter a url manually
 // Force the training store to synch with the task specified in the url
+// Watching route.fullPath triggers onMount (while route.name would not)
 watch(() => route.fullPath, () => {
-  if (route.fullPath !== '/list' && (trainingStore.step == 0 || route.params.id !== props.id)) {
-    setupTrainingStore()
-  }
+  if (route.name === "task-list") return; // don't do anything if already in the task page
+  if (trainingStore.step !== 0 && route.params.id === props.id) return; // check that params are consistent
+  setupTrainingStore(); // if inconsistent, go back to the list page and reset params
 })
 
 onMounted(setupTrainingStore)
