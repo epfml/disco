@@ -68,9 +68,9 @@ const task = computed(() => {
 // Force the training store to synch with the task specified in the url
 // Watching route.fullPath triggers onMount (while route.name would not)
 watch(() => route.fullPath, () => {
-  if (route.name === "task-list") return; // don't do anything if already in the task page
+  if (route.params.id === undefined) return; // don't do anything if not on a task page
   if (trainingStore.step !== 0 && route.params.id === props.id) return; // check that params are consistent
-  setupTrainingStore(); // if inconsistent, go back to the list page and reset params
+  setupTrainingStore(); // if inconsistent, force sync the training store
 })
 
 onMounted(setupTrainingStore)
