@@ -141,13 +141,24 @@
     </div>
 
     <KeepAlive>
-      <Data
-        v-if="stepRef === 1"
-        :task="currentTask"
-        :dataset-builder="datasetBuilder"
-        :ground-truth="!validationStore.isOnlyPrediction"
-        :is-only-prediction="validationStore.isOnlyPrediction"
-      />
+      <div v-if="stepRef === 1">
+        <DataDescription :task="currentTask" />
+
+        <ImageDatasetInput
+          v-if="currentTask.trainingInformation.dataType === 'image'"
+          :task="currentTask"
+          :dataset-builder="datasetBuilder"
+        />
+        <TabularDatasetInput
+          v-if="currentTask.trainingInformation.dataType === 'tabular'"
+          :task="currentTask"
+          :dataset-builder="datasetBuilder"
+        />
+        <TextDatasetInput
+          v-if="currentTask.trainingInformation.dataType === 'text'"
+          :dataset-builder="datasetBuilder"
+        />
+      </div>
     </KeepAlive>
 
     <KeepAlive>
@@ -176,7 +187,11 @@ import { CONFIG } from '@/config'
 import { useMemoryStore } from '@/store/memory'
 import { useTasksStore } from '@/store/tasks'
 import { useValidationStore } from '@/store/validation'
-import Data from '@/components/data/Data.vue'
+
+import DataDescription from "@/components/dataset_input/DataDescription.vue";
+import ImageDatasetInput from "@/components/dataset_input/LabeledImageDatasetInput/index.vue";
+import TabularDatasetInput from "@/components/dataset_input/TabularDatasetInput.vue";
+import TextDatasetInput from "@/components/dataset_input/TextDatasetInput.vue";
 import DISCO from "@/components/simple/DISCO.vue";
 import Tester from '@/components/testing/Tester.vue'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
