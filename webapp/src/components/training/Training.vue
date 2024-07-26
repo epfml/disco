@@ -4,17 +4,35 @@
       v-show="trainingStore.step === 1"
       :task="task"
     />
-    <Data
+
+    <div
       v-show="trainingStore.step === 2"
-      :task="task"
-      :dataset-builder="datasetBuilder"
-      :is-only-prediction="false"
-    />
+      class="flex flex-col space-y-4 md:space-y-8"
+    >
+      <DataDescription :task="task" />
+
+      <LabeledImageDatasetInput
+        v-if="task.trainingInformation.dataType === 'image'"
+        :task="task"
+        :dataset-builder="datasetBuilder"
+      />
+      <TabularDatasetInput
+        v-if="task.trainingInformation.dataType === 'tabular'"
+        :task="task"
+        :dataset-builder="datasetBuilder"
+      />
+      <TextDatasetInput
+        v-if="task.trainingInformation.dataType === 'text'"
+        :dataset-builder="datasetBuilder"
+      />
+    </div>
+
     <Trainer
       v-show="trainingStore.step === 3"
       :task="task"
       :dataset-builder="datasetBuilder"
     />
+
     <Finished
       v-show="trainingStore.step === 4"
       :task="task"
@@ -32,10 +50,13 @@ import { WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs-
 
 import { useTrainingStore } from '@/store/training'
 import { useTasksStore } from '@/store/tasks'
+import DataDescription from "@/components/dataset_input/DataDescription.vue";
 import Description from '@/components/training/Description.vue'
 import Trainer from '@/components/training/Trainer.vue'
 import Finished from '@/components/training/Finished.vue'
-import Data from '@/components/data/Data.vue'
+import LabeledImageDatasetInput from "@/components/dataset_input/LabeledImageDatasetInput/index.vue";
+import TabularDatasetInput from "@/components/dataset_input/TabularDatasetInput.vue";
+import TextDatasetInput from "@/components/dataset_input/TextDatasetInput.vue";
 
 const router = useRouter()
 const route = useRoute()
