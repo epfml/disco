@@ -4,116 +4,114 @@
       <div v-if="memoryStore.models.size > 0">
         <IconCard title-placement="center">
           <template #title>
-            Model Library — <span class="italic">Locally Available and Ready to Test</span>
+            Model Library —
+            <span class="italic">Locally Available and Ready to Test</span>
           </template>
-          <template #content>
-            Test any model below against a validation dataset.
-            The models listed were downloaded from the remote server.
-            Perhaps you even contributed to their training!
-            Note that these models are currently stored within your browser's memory.
-            <div class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8">
-              <div
-                v-for="[path, metadata] in memoryStore.models"
-                :key="path"
-                class="contents"
-              >
-                <ButtonsCard
-                  :buttons="List.of(
-                    ['test', () => selectModel(path, false)],
-                    ['predict', () => selectModel(path, true)],
-                  )"
-                  class="shadow shadow-disco-cyan"
-                >
-                  <template #title>
-                    {{ taskTitle(metadata.taskID) }}
-                  </template>
 
-                  <div class="grid grid-cols-2 justify-items-between">
-                    <p class="contents">
-                      <span>Model:</span>
-                      <span>
-                        {{ metadata.name.slice(0, 20) }}
-                        <span v-if="metadata.version !== undefined && metadata.version !== 0">
-                          ({{ metadata.version }})
-                        </span>
+          Test any model below against a validation dataset.
+          The models listed were downloaded from the remote server.
+          Perhaps you even contributed to their training!
+          Note that these models are currently stored within your browser's memory.
+
+          <div class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8">
+            <div
+              v-for="[path, metadata] in memoryStore.models"
+              :key="path"
+              class="contents"
+            >
+              <ButtonsCard
+                :buttons="List.of(
+                  ['test', () => selectModel(path, false)],
+                  ['predict', () => selectModel(path, true)],
+                )"
+                class="shadow shadow-disco-cyan"
+              >
+                <template #title>
+                  {{ taskTitle(metadata.taskID) }}
+                </template>
+
+                <div class="grid grid-cols-2 justify-items-between">
+                  <p class="contents">
+                    <span>Model:</span>
+                    <span>
+                      {{ metadata.name.slice(0, 20) }}
+                      <span v-if="metadata.version !== undefined && metadata.version !== 0">
+                        ({{ metadata.version }})
                       </span>
-                    </p>
-                    <p class="contents">
-                      <span>Date:</span>
-                      <span>{{ metadata.date }} at {{ metadata.hours }}</span>
-                    </p>
-                    <p class="contents">
-                      <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
-                    </p>
-                    <p class="contents">
-                      <span>Type:</span><span>{{ metadata.type === 'saved' ? 'Saved' : 'Cached' }}</span>
-                    </p>
-                  </div>
-                </ButtonsCard>
-              </div>
+                    </span>
+                  </p>
+                  <p class="contents">
+                    <span>Date:</span>
+                    <span>{{ metadata.date }} at {{ metadata.hours }}</span>
+                  </p>
+                  <p class="contents">
+                    <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
+                  </p>
+                  <p class="contents">
+                    <span>Type:</span><span>{{ metadata.type === 'saved' ? 'Saved' : 'Cached' }}</span>
+                  </p>
+                </div>
+              </ButtonsCard>
             </div>
-          </template>
+          </div>
         </IconCard>
       </div>
       <div v-else>
         <IconCard>
-          <template #title>
-            Empty Model Library
-          </template>
-          <template #content>
-            Disco failed to find any model stored locally. Please go to the 
-            <RouterLink
-              class="underline text-blue-400"
-              to="/list"
-            >training page</RouterLink>
-            or directly download a model below, from the Disco repository.
-          </template>
+          <template #title> Empty Model Library </template>
+
+          Disco failed to find any model stored locally. Please go to the
+          <RouterLink
+            class="underline text-blue-400"
+            to="/list"
+          >training page</RouterLink>
+          or directly download a model below, from the Disco repository.
         </IconCard>
       </div>
+
       <div>
         <IconCard title-placement="center">
           <template #title>
             <DISCO />
             Model Repository — <span class="italic">Download and Test</span>
           </template>
-          <template #content>
-            <div 
-              v-if="tasksStore.status == 'loading'"
-              class="my-10 flex flex-col justify-center items-center"
-            >
-              <VueSpinner size="50" color="#6096BA"/>
-              <div class="mt-10 flex flex-col justify-center items-center">
-                <p class="text-disco-blue">Loading <DISCOllaboratives/></p>
-                <p class="text-disco-blue text-xs">This can take a few seconds</p>
-              </div>
-            </div>
-            <div v-else-if="federatedTasks.size > 0">
-              Select any model below to download it. For federated tasks only.
-              The models listed are not currently stored in your browser's memory,
-              but are available and downloadable from the remote Disco server.
-              <div class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8">
-                <div
-                  v-for="task in federatedTasks.toArray()"
-                  :key="task.id"
-                  class="contents"
-                >
-                  <ButtonsCard
-                    :buttons="List.of(['download', () => downloadModel(task)])"
-                    class="shadow shadow-disco-cyan"
-                  >
-                    <template #title>
-                      {{ task.displayInformation.taskTitle }}
-                    </template>
 
-                    Download the latest {{ task.displayInformation.taskTitle }} model available on the remote server.
-                  </ButtonsCard>
-                </div>
+          <div
+            v-if="tasksStore.status == 'loading'"
+            class="my-10 flex flex-col justify-center items-center"
+          >
+            <VueSpinner size="50" color="#6096BA"/>
+            <div class="mt-10 flex flex-col justify-center items-center">
+              <p class="text-disco-blue">Loading <DISCOllaboratives/></p>
+              <p class="text-disco-blue text-xs">This can take a few seconds</p>
+            </div>
+          </div>
+          <div v-else-if="federatedTasks.size > 0">
+            Select any model below to download it. For federated tasks only.
+            The models listed are not currently stored in your browser's memory,
+            but are available and downloadable from the remote Disco server.
+            <div class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8">
+              <div
+                v-for="task in federatedTasks.toArray()"
+                :key="task.id"
+                class="contents"
+              >
+                <ButtonsCard
+                  :buttons="List.of(['download', () => downloadModel(task)])"
+                  class="shadow shadow-disco-cyan"
+                >
+                  <template #title>
+                    {{ task.displayInformation.taskTitle }}
+                  </template>
+
+                  Download the latest {{ task.displayInformation.taskTitle }} model available on the remote server.
+                </ButtonsCard>
               </div>
             </div>
+          </div>
           <div v-else>
             A problem occurred while fetching <DISCOllaboratives/>
           </div>
-          </template>
         </IconCard>
       </div>
     </div>
@@ -125,16 +123,13 @@
       v-show="validationStore.step === 1"
       class="mb-4 md:mb-8"
     >
-      <template #title>
-        Model Validation
-      </template>
-      <template #content>
-        It is very important that your model is tested against <b class="uppercase">unseen data</b>.
-        As such, please ensure your dataset of choice was not used during the training phase of your model.
-      </template>
+      <template #title> Model Validation </template>
+
+      It is very important that your model is tested against <b class="uppercase">unseen data</b>.
+      As such, please ensure your dataset of choice was not used during the training phase of your model.
     </IconCard>
     <!-- Language model prompting is currently unavailable   -->
-    <div 
+    <div
       v-if="currentTask.trainingInformation.dataType === 'text' && validationStore.isOnlyPrediction"
       v-show="validationStore.step !== 0"
     >
@@ -273,7 +268,7 @@ const downloadModel = async (task: Task): Promise<void> => {
   } catch (e) {
     toaster.error("Something went wrong, please try again later.")
     console.error(e)
-  }  
+  }
 }
 
 const selectModel = (path: Path, isOnlyPrediction: boolean): void => {

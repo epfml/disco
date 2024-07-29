@@ -16,12 +16,9 @@
           "
         >
           <IconCard>
-            <template #title>
-              404 - Page Not Found
-            </template>
-            <template #content>
-              The page you're looking for does not exist.
-            </template>
+            <template #title> 404 - Page Not Found </template>
+
+            The page you're looking for does not exist.
           </IconCard>
         </div>
       </div>

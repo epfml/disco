@@ -58,48 +58,45 @@
     >
       <!-- Training loss users chart -->
       <IconCard>
-        <!-- Card header -->
         <template #title> Training Loss of the Model </template>
-        <template #content>
-          <span class="text-2xl font-medium text-slate-500">
-            {{ (lastEpoch?.training.loss ?? 0).toFixed(2) }}
-          </span>
-          <span class="text-sm font-medium text-slate-500">
-            training loss
-          </span>
-          <!-- Chart -->
-          <ApexChart
-            width="100%"
-            height="200"
-            type="area"
-            :options="lossChartsOptions"
-            :series="[{ name: 'Training loss', data: lossSeries.training }]"
-          />
-        </template>
+
+        <span class="text-2xl font-medium text-slate-500">
+          {{ (lastEpoch?.training.loss ?? 0).toFixed(2) }}
+        </span>
+        <span class="text-sm font-medium text-slate-500">
+          training loss
+        </span>
+
+        <ApexChart
+          width="100%"
+          height="200"
+          type="area"
+          :options="lossChartsOptions"
+          :series="[{ name: 'Training loss', data: lossSeries.training }]"
+        />
       </IconCard>
 
       <!-- Validation Loss users chart -->
       <IconCard v-if="hasValidationData">
-        <!-- Card header -->
         <template #title> Validation Loss of the Model </template>
-        <template #content>
-          <span class="text-2xl font-medium text-slate-500">
-            {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
-          </span>
-          <span class="text-sm font-medium text-slate-500">
-            validation loss
-          </span>
-          <!-- Chart -->
-          <ApexChart
-            width="100%"
-            height="200"
-            type="area"
-            :options="lossChartsOptions"
-            :series="[{ name: 'Validation loss', data: lossSeries.validation }]"
-          />
-        </template>
+
+        <span class="text-2xl font-medium text-slate-500">
+          {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
+        </span>
+        <span class="text-sm font-medium text-slate-500">
+          validation loss
+        </span>
+
+        <ApexChart
+          width="100%"
+          height="200"
+          type="area"
+          :options="lossChartsOptions"
+          :series="[{ name: 'Validation loss', data: lossSeries.validation }]"
+        />
       </IconCard>
     </div>
+
     <!-- Training and validation accuracy charts -->
     <div
       class="flex flex-col md:grid gap-4 md:gap-8"
@@ -107,78 +104,70 @@
     >
       <!-- Training Accuracy users chart -->
       <IconCard>
-        <!-- Card header -->
         <template #title> Training Accuracy of the Model </template>
-        <template #content>
-          <span class="text-2xl font-medium text-slate-500">
-            {{ percent(lastEpoch?.training.accuracy ?? 0) }}
-          </span>
-          <span class="text-sm font-medium text-slate-500">
-            % of training accuracy
-          </span>
-          <!-- Chart -->
-          <ApexChart
-            width="100%"
-            height="200"
-            type="area"
-            :options="accuracyChartsOptions"
-            :series="[
-              { name: 'Training accuracy', data: accuracySeries.training },
-            ]"
-          />
-        </template>
+
+        <span class="text-2xl font-medium text-slate-500">
+          {{ percent(lastEpoch?.training.accuracy ?? 0) }}
+        </span>
+        <span class="text-sm font-medium text-slate-500">
+          % of training accuracy
+        </span>
+
+        <ApexChart
+          width="100%"
+          height="200"
+          type="area"
+          :options="accuracyChartsOptions"
+          :series="[
+            { name: 'Training accuracy', data: accuracySeries.training },
+          ]"
+        />
       </IconCard>
 
       <!-- Validation Accuracy users chart -->
       <IconCard v-if="hasValidationData">
-        <!-- Card header -->
         <template #title> Validation Accuracy of the Model </template>
-        <template #content>
-          <span class="text-2xl font-medium text-slate-500">
-            {{ percent(lastEpoch?.validation?.accuracy ?? 0) }}
-          </span>
-          <span class="text-sm font-medium text-slate-500">
-            % of validation accuracy
-          </span>
-          <!-- Chart -->
-          <ApexChart
-            width="100%"
-            height="200"
-            type="area"
-            :options="accuracyChartsOptions"
-            :series="[
-              { name: 'Validation accuracy', data: accuracySeries.validation },
-            ]"
-          />
-        </template>
+
+        <span class="text-2xl font-medium text-slate-500">
+          {{ percent(lastEpoch?.validation?.accuracy ?? 0) }}
+        </span>
+        <span class="text-sm font-medium text-slate-500">
+          % of validation accuracy
+        </span>
+
+        <ApexChart
+          width="100%"
+          height="200"
+          type="area"
+          :options="accuracyChartsOptions"
+          :series="[
+            { name: 'Validation accuracy', data: accuracySeries.validation },
+          ]"
+        />
       </IconCard>
     </div>
 
-    <!-- Training logs -->
     <IconCard>
       <template #title> Training Logs </template>
-      <template #icon>
-        <Contact />
-      </template>
-      <template #content>
-        <!-- Scrollable training logs -->
-        <div id="mapHeader" class="max-h-80 overflow-y-auto">
-          <ul class="grid grid-cols-1">
-            <li
-              v-for="(message, index) in props.messages"
-              :key="index"
-              class="border-slate-400"
+      <template #icon> <Contact /> </template>
+
+      <!-- Scrollable training logs -->
+      <div id="mapHeader" class="max-h-80 overflow-y-auto">
+        <ul class="grid grid-cols-1">
+          <li
+            v-for="(message, index) in props.messages"
+            :key="index"
+            class="border-slate-400"
+          >
+            <span
+              style="white-space: pre-line"
+              class="text-sm text-slate-500"
             >
-              <span
-                style="white-space: pre-line"
-                class="text-sm text-slate-500"
-              >
-                {{ message }}
-              </span>
-            </li>
-          </ul>
-        </div>
-      </template>
+              {{ message }}
+            </span>
+          </li>
+        </ul>
+      </div>
     </IconCard>
   </div>
 </template>

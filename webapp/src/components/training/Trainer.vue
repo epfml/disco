@@ -10,12 +10,13 @@
     <div class="flex justify-center">
       <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
-        <template v-if="trainingGenerator === undefined" #content>
+
+        <div v-if="trainingGenerator === undefined">
           <div class="grid grid-cols-2 gap-8">
             <CustomButton @click="startTraining(false)">
               train alone
             </CustomButton>
-            <CustomButton 
+            <CustomButton
               v-tippy="{
                 content: 'Note that if you are the only participant the training will not be collaborative. You can open multiple tabs to emulate different participants by yourself.',
                 placement: 'right'
@@ -25,12 +26,12 @@
               train collaboratively
             </CustomButton>
           </div>
-        </template>
-        <template v-else #content>
+        </div>
+        <div v-else>
           <div class="flex justify-center">
             <CustomButton @click="stopTraining()"> stop training </CustomButton>
           </div>
-        </template>
+        </div>
       </IconCard>
     </div>
     <!-- Demo warning -->

@@ -12,111 +12,108 @@
         :key="section.id"
       >
         <IconCard>
-          <template #title>
-            {{ section.title }}
-          </template>
-          <template #content>
-            <div class="space-y-10">
+          <template #title> {{ section.title }} </template>
+
+          <div class="space-y-10">
+            <div
+              v-for="field in section.fields"
+              :key="field.id"
+            >
               <div
-                v-for="field in section.fields"
-                :key="field.id"
+                v-if="isFieldVisible(
+                  field,
+                  {
+                    dataType,
+                    scheme,
+                    decentralizedSecure
+                  }
+                )"
               >
-                <div
-                  v-if="isFieldVisible(
-                    field,
-                    {
-                      dataType,
-                      scheme,
-                      decentralizedSecure
-                    }
-                  )"
+                <label
+                  :for="field.id"
+                  class="
+                    inline
+                    text-slate-600
+                    font-bold
+                    md:text-right
+                    mb-1
+                    md:mb-0
+                    pr-4
+                  "
                 >
-                  <label
-                    :for="field.id"
-                    class="
-                      inline
-                      text-slate-600
-                      font-bold
-                      md:text-right
-                      mb-1
-                      md:mb-0
-                      pr-4
-                    "
-                  >
-                    <span
-                      v-if="field.description !== undefined"
-                      v-html="field.description"
-                    />
-                    <span
-                      v-else
-                      v-html="field.name"
-                    />
-                  </label>
-                  <ErrorMessage
-                    class="text-red-600"
-                    :name="field.id"
+                  <span
+                    v-if="field.description !== undefined"
+                    v-html="field.description"
                   />
+                  <span
+                    v-else
+                    v-html="field.name"
+                  />
+                </label>
+                <ErrorMessage
+                  class="text-red-600"
+                  :name="field.id"
+                />
+                <SelectContainer
+                  v-if="field.id === 'dataType'"
+                  v-model="dataType"
+                  :field="field"
+                />
+                <SelectContainer
+                  v-else-if="field.id === 'scheme'"
+                  v-model="scheme"
+                  :field="field"
+                />
+                <CheckboxContainer
+                  v-else-if="field.id === 'decentralizedSecure'"
+                  :field="field"
+                  @clicked="setDecentralizedSecure($event)"
+                />
+                <TextContainer
+                  v-else-if="field.id === 'modelURL'"
+                  v-model="modelURL"
+                  :field="field"
+                  :available="modelFiles.size === 0"
+                />
+                <div v-else>
                   <SelectContainer
-                    v-if="field.id === 'dataType'"
-                    v-model="dataType"
+                    v-if="['select', 'select-multiple'].includes(field.type)"
                     :field="field"
                   />
-                  <SelectContainer
-                    v-else-if="field.id === 'scheme'"
-                    v-model="scheme"
+                  <FileContainer
+                    v-else-if="field.type === 'file'"
+                    :field="field"
+                    :available="!modelURL"
+                    @input="handleModelFiles($event)"
+                  />
+                  <ArrayContainer
+                    v-else-if="field.type === 'array'"
+                    :field="field"
+                  />
+                  <ObjectArrayContainer
+                    v-else-if="field.type === 'arrayObject'"
+                    :field="field"
+                  />
+                  <TextContainer
+                    v-else-if="field.type === 'text'"
                     :field="field"
                   />
                   <CheckboxContainer
-                    v-else-if="field.id === 'decentralizedSecure'"
+                    v-else-if="field.type === 'checkbox'"
                     :field="field"
-                    @clicked="setDecentralizedSecure($event)"
                   />
-                  <TextContainer
-                    v-else-if="field.id === 'modelURL'"
-                    v-model="modelURL"
+                  <NumberContainer
+                    v-else-if="field.type === 'number'"
                     :field="field"
-                    :available="modelFiles.size === 0"
                   />
-                  <div v-else>
-                    <SelectContainer
-                      v-if="['select', 'select-multiple'].includes(field.type)"
-                      :field="field"
-                    />
-                    <FileContainer
-                      v-else-if="field.type === 'file'"
-                      :field="field"
-                      :available="!modelURL"
-                      @input="handleModelFiles($event)"
-                    />
-                    <ArrayContainer
-                      v-else-if="field.type === 'array'"
-                      :field="field"
-                    />
-                    <ObjectArrayContainer
-                      v-else-if="field.type === 'arrayObject'"
-                      :field="field"
-                    />
-                    <TextContainer
-                      v-else-if="field.type === 'text'"
-                      :field="field"
-                    />
-                    <CheckboxContainer
-                      v-else-if="field.type === 'checkbox'"
-                      :field="field"
-                    />
-                    <NumberContainer
-                      v-else-if="field.type === 'number'"
-                      :field="field"
-                    />
-                    <FloatContainer
-                      v-else-if="field.type === 'float'"
-                      :field="field"
-                    />
-                  </div>
+                  <FloatContainer
+                    v-else-if="field.type === 'float'"
+                    :field="field"
+                  />
                 </div>
               </div>
             </div>
-          </template>
+          </div>
         </IconCard>
       </div>
       <div class="flex flex-wrap justify-center gap-8 my-2">
