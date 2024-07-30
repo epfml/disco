@@ -1,4 +1,5 @@
 import { expect, it, vi } from "vitest";
+import { directive as Tippy } from "vue-tippy";
 import { mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import * as fs from "node:fs/promises";
@@ -43,9 +44,8 @@ async function setupForTask() {
 
   return mount(Trainer, {
     global: {
-      stubs: {
-        apexchart: true,
-      },
+      directives: { Tippy },
+      stubs: { apexchart: true },
       plugins: [createTestingPinia({ createSpy: vi.fn })],
     },
     props: {

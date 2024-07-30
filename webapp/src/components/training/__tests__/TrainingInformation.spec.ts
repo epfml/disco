@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { directive as Tippy } from "vue-tippy";
 import { mount } from "@vue/test-utils";
 import { List } from "immutable";
 
@@ -8,7 +9,10 @@ import TrainingInformation from "../TrainingInformation.vue";
 
 it("shows messages", async () => {
   const wrapper = mount(TrainingInformation, {
-    global: { stubs: { apexchart: true } },
+    global: {
+      directives: { Tippy },
+      stubs: { apexchart: true },
+    },
     props: {
       rounds: List<RoundLogs>(),
       epochsOfRound: List<EpochLogs>(),
