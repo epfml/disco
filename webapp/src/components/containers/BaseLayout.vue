@@ -3,10 +3,30 @@
     <main class="m-4 md:m-8 grow">
       <slot />
     </main>
-    <CustomFooter />
+
+    <footer class="flex items-center p-4 bg-white border-t text-slate-500">
+      <div class="flex mx-auto space-x-6 items-center">
+        <a
+          class="fa-brands fa-github fa-xl"
+          href="https://github.com/epfml/disco"
+          target="_blank"
+        />
+
+        <a
+          class="fa-brands fa-slack fa-xl"
+          href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
+          target="_blank"
+        />
+
+        <RouterLink
+          title="About Us"
+          class="text-disco-cyan font-bold text-xs"
+          to="/about"
+        >
+          MLO &amp;<br />
+          LiGHT
+        </RouterLink>
+      </div>
+    </footer>
   </div>
 </template>
-
-<script lang="ts" setup>
-import CustomFooter from '@/components/simple/CustomFooter.vue'
-</script>
