@@ -1,47 +1,83 @@
 <template>
-  <div class="flex justify-center">
-    <IconCard class="justify-self-center w-full lg:w-4/5">
-      <template #title> About Us </template>
+  <div class="space-y-8 mb-8">
+    <h1 class="text-disco-cyan font-disco text-3xl text-center">Who we are</h1>
 
-      <img src="../../assets/images/mlologo.png">
-      This app was developed in the Machine Learning and Optimization Laboratory at EPFL.
-      <ul>
-        Visit the our
-        <a
-          href="https://www.epfl.ch/labs/mlo/"
-          target="_blank"
-          class="text-blue-500 hover:underline"
-        >page</a> to learn more about our lab and projects.
-        <br><br>
-        <i class="fa-brands fa-github" />
-        &emsp; The source code of the app can be found on the
+    <IconCard>
+      <template #title> EPFL and Yale </template>
+
+      <p>Disco is being developed by two universities using public funds.</p>
+
+      <ul class="list-disc list-inside">
+        <li>
+          <a
+            href="https://www.epfl.ch/"
+            class="text-blue-500 hover:underline"
+            target="_blank"
+            >Ecole Polytechnique Fédérale of Lausanne</a
+          >
+          (EPFL), in Switzerland, Europa
+        </li>
+        <li>
+          <a
+            href="https://www.yale.edu/"
+            class="text-blue-500 hover:underline"
+            target="_blank"
+            >Yale University</a
+          >, in the USA, North America
+        </li>
+      </ul>
+
+      <p>
+        Its source code is open and can be found on
         <a
           href="https://github.com/epfml/disco"
-          target="_blank"
           class="text-blue-500 hover:underline"
-        >Disco Github</a> page.
-        <br>
-        <i class="fa-solid fa-hat-wizard" />
-        &emsp; If you want to run Disco locally or want to contribute, please go to the
+          target="_blank"
+          >Github</a
+        >. You can also join our
         <a
-          href="https://github.com/epfml/disco/blob/develop/DEV.md"
-          target="_blank"
+          href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
           class="text-blue-500 hover:underline"
-        >Developer section</a>.
-        <br>
-        <i class="fa-brands fa-slack" />
-        &emsp; Finally, you can join our
-        <a
-          href="https:/disco-decentralized.slack.com/"
           target="_blank"
-          class="text-blue-500 hover:underline"
-        >Slack</a>
-        page to discuss the app.
-      </ul>
+          >Slack channel</a
+        >
+        to discuss with us.
+        <br />
+        We do need you support and feedback to improve it. Feel welcome in
+        asking any question.
+      </p>
     </IconCard>
+
+    <IconCardHeader class="bg-white rounded-xl">
+      <template #title>
+        <a
+          class="hover:underline"
+          href="https://www.epfl.ch/labs/mlo/"
+          target="_blank"
+        >
+          Machine Learning and Optimization Laboratory @ EPFL
+        </a>
+      </template>
+      <template #icon> <img src="@/assets/images/mlologo.png" /> </template>
+    </IconCardHeader>
+
+    <IconCardHeader class="bg-white rounded-xl">
+      <template #title>
+        <a
+          class="hover:underline"
+          href="https://www.yale-light.org/"
+          target="_blank"
+        >
+          Laboratory for Intelligent Global Health & Humanitarian Response
+          Technologies @ Yale
+        </a>
+      </template>
+      <template #icon> <img src="@/assets/images/LiGHT.gif" /> </template>
+    </IconCardHeader>
   </div>
 </template>
 
 <script lang="ts" setup>
-import IconCard from '@/components/containers/IconCard.vue'
+import IconCard from "@/components/containers/IconCard.vue";
+import IconCardHeader from "@/components/containers/IconCardHeader.vue";
 </script>
