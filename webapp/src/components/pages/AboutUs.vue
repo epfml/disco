@@ -13,9 +13,9 @@
             href="https://www.epfl.ch/"
             class="text-blue-500 hover:underline"
             target="_blank"
-            >Ecole Polytechnique Fédérale of Lausanne</a
+            >EPFL</a
           >
-          (EPFL), in Switzerland, Europa
+          , Switzerland, Europe
         </li>
         <li>
           <a
@@ -23,7 +23,7 @@
             class="text-blue-500 hover:underline"
             target="_blank"
             >Yale University</a
-          >, in the USA, North America
+          >, USA, North America
         </li>
       </ul>
 
@@ -34,16 +34,16 @@
           class="text-blue-500 hover:underline"
           target="_blank"
           >Github</a
-        >. You can also join our
+        >. Please also join our
         <a
           href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
           class="text-blue-500 hover:underline"
           target="_blank"
-          >Slack channel</a
+          >Slack</a
         >
         to discuss with us.
         <br />
-        We do need you support and feedback to improve it. Feel welcome in
+        We do need your support and feedback to improve it. Feel welcome in
         asking any question.
       </p>
     </IconCard>
