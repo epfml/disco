@@ -86,39 +86,10 @@
         </div>
       </div>
     </IconCard>
-
-    <!-- <IconCardHeader class="bg-white rounded-xl">
-      <template #title>
-        <a
-          class="hover:underline"
-          href="https://www.epfl.ch/labs/mlo/"
-          target="_blank"
-        >
-          Machine Learning and Optimization Laboratory @ EPFL
-        </a>
-      </template>
-      <template #icon> <img src="@/assets/images/mlologo.png" /> </template>
-    </IconCardHeader>
-
-    <IconCardHeader class="bg-white rounded-xl">
-      <template #title>
-        <a
-          class="hover:underline"
-          href="https://www.yale-light.org/"
-          target="_blank"
-        >
-          Laboratory for Intelligent Global Health & Humanitarian Response
-          Technologies @ Yale
-        </a>
-      </template>
-      <template #icon> <img src="@/assets/images/LiGHT.gif" /> </template>
-    </IconCardHeader> -->
   </div>
 </template>
 
 <script lang="ts" setup>
 import DISCO from "@/components/simple/DISCO.vue";
-import Card from '@/components/containers/Card.vue'
 import IconCard from "@/components/containers/IconCard.vue";
-import IconCardHeader from "@/components/containers/IconCardHeader.vue";
 </script>
