@@ -1,54 +1,93 @@
 <template>
   <div class="space-y-8 mb-8">
-    <h1 class="text-disco-cyan font-disco text-3xl text-center">Who we are</h1>
+    <h1 class="text-disco-cyan font-disco text-3xl text-center">The <DISCO/> team</h1>
 
     <IconCard>
-      <template #title> EPFL and Yale </template>
-
-      <p>Disco is being developed by two universities using public funds.</p>
+      <template #title> About Us </template>
+      <p><DISCO/> is the result of a collaboration between two research labs:</p>
 
       <ul class="list-disc list-inside">
         <li>
+          <a
+          class="text-blue-500 hover:underline"
+          href="https://www.epfl.ch/labs/mlo/"
+          target="_blank"
+          >
+            MLO
+          </a>
+          (Machine Learning and Optimization Laboratory) at
           <a
             href="https://www.epfl.ch/"
             class="text-blue-500 hover:underline"
             target="_blank"
             >EPFL</a
-          >
-          , Switzerland, Europe
+          >, Switzerland
         </li>
         <li>
+          <a
+            class="text-blue-500 hover:underline"
+            href="https://www.yale-light.org/"
+            target="_blank"
+          >
+          LiGHT
+          </a>
+          (Laboratory for Intelligent Global Health & Humanitarian Response
+          Technologies) at 
           <a
             href="https://www.yale.edu/"
             class="text-blue-500 hover:underline"
             target="_blank"
-            >Yale University</a
-          >, USA, North America
+            >Yale</a
+          >, US
         </li>
       </ul>
 
+      <br/>
       <p>
-        Its source code is open and can be found on
+        <DISCO/> relies on public funds and its code is open-source and accessible on
         <a
           href="https://github.com/epfml/disco"
           class="text-blue-500 hover:underline"
           target="_blank"
           >Github</a
-        >. Please also join our
+        >. Feel welcome to join our
         <a
           href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
           class="text-blue-500 hover:underline"
           target="_blank"
           >Slack</a
         >
-        to discuss with us.
+        to discuss with us or ask questions.
         <br />
-        We do need your support and feedback to improve it. Feel welcome in
-        asking any question.
+        Your support and feedback would be greatly appreciated.
       </p>
+
+      <!-- Lab logos -->
+      <div class="grid gap-8 p-4 sm:grid-cols-2 items-end">
+        <!-- MLO logo -->
+        <div class="flex flex-col items-center">
+          <a
+            class="hover:cursor-pointer"
+            href="https://www.epfl.ch/labs/mlo/"
+            target="_blank"
+          >
+          <img class="max-h-52 w-full max-w-3xl" src="@/assets/images/mlologo.png"/>
+        </a>
+        </div>
+        <!-- LiGHT logo -->
+        <div class="flex flex-col items-center mb-1">
+          <a
+            class="hover:mouse-pointer"
+            href="https://www.yale-light.org/"
+            target="_blank"
+          >
+            <img class="max-h-52 w-full max-w-3xl" src="@/assets/images/LiGHT.gif" />
+            </a>
+        </div>
+      </div>
     </IconCard>
 
-    <IconCardHeader class="bg-white rounded-xl">
+    <!-- <IconCardHeader class="bg-white rounded-xl">
       <template #title>
         <a
           class="hover:underline"
@@ -73,11 +112,13 @@
         </a>
       </template>
       <template #icon> <img src="@/assets/images/LiGHT.gif" /> </template>
-    </IconCardHeader>
+    </IconCardHeader> -->
   </div>
 </template>
 
 <script lang="ts" setup>
+import DISCO from "@/components/simple/DISCO.vue";
+import Card from '@/components/containers/Card.vue'
 import IconCard from "@/components/containers/IconCard.vue";
 import IconCardHeader from "@/components/containers/IconCardHeader.vue";
 </script>

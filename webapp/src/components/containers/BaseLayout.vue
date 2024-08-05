@@ -19,7 +19,7 @@
         />
 
         <RouterLink
-          title="About Us"
+          title="The DISCO team"
           class="text-disco-cyan font-bold text-xs"
           to="/about"
         >
