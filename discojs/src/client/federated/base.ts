@@ -105,9 +105,15 @@ export class Base extends Client {
     return Promise.resolve();
   }
 
+  /**
+   * 
+   * @param weights Local weights sent to the server at the end of the local training round
+   * @param _round The trainer's aggregation round, which can be different from the server's round if the participant joined late
+   * @returns the new global weights sent by the server
+   */
   override async onRoundEndCommunication(
     weights: WeightsContainer,
-    round: number,
+    _round: number,
   ): Promise<WeightsContainer> {
     // NB: For now, we suppose a fully-federated setting.
 
@@ -123,17 +129,16 @@ export class Base extends Client {
 
     if (
       serverResult !== undefined &&
-      this.aggregator.add(Base.SERVER_NODE_ID, serverResult, round, 0)
+      this.aggregator.add(Base.SERVER_NODE_ID, serverResult, this.aggregator.round) // the aggregator's round is the one matching the server's round
     ) {
       // Regular case: the server sends us its aggregation result which will serve our
       // own aggregation result.
     } else {
       // Unexpected case: for some reason, the server result is stale.
       // We proceed to the next round without its result.
-      debug(`[${this.ownId}] server result is either stale or not received`);
+      debug(`[${this.ownId}] server result for round ${this.aggregator.round} is undefined or stale`);
       this.aggregator.nextRound();
     }
-
     return await this.aggregationResult
   }
 
@@ -156,15 +161,16 @@ export class Base extends Client {
     // Updates the aggregator's round if it's behind the server's.
     try {
       // It is important than the client immediately awaits the server result or it may miss it
-      const { payload, round, nbOfParticipants } = await waitMessageWithTimeout(
+      const { payload, round: serverRound, nbOfParticipants } = await waitMessageWithTimeout(
         this.server,
         type.ReceiveServerPayload,
+        undefined,
+        "Timeout while waiting for the server's model update"
       );
-      const serverRound = round;
-      this.#nbOfParticipants = nbOfParticipants // Save the current participants
-
+      
       // Store the server result only if it is not stale
-      if (this.aggregator.round <= round) {
+      if (this.aggregator.round <= serverRound) {
+        this.#nbOfParticipants = nbOfParticipants // Save the current participants
         const serverResult = serialization.weights.decode(payload);
         // Update the local round to match the server's
         if (this.aggregator.round < serverRound) {

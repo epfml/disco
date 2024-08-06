@@ -50,6 +50,11 @@ export class Federated extends Server {
    * with the most recent result.
    */
   private results = Map<TaskID, Promise<WeightsContainer>>()
+  /**
+   * Map containing the latest global model of each task. The model is already serialized and 
+   * can be sent to participants joining mid-training or contributing to previous rounds
+   */
+  private latestGlobalModels = Map<TaskID, serialization.weights.Encoded>()
   
   // TODO use real log system
   /**
@@ -86,12 +91,15 @@ export class Federated extends Server {
    */
   private async storeAggregationResult (task: TaskID, aggregator: aggregators.Aggregator): Promise<void> {
     // Create a promise on the future aggregated weights
-    const result = new Promise<WeightsContainer>((resolve) => aggregator.once('aggregation', resolve))
+    const resultPromise = new Promise<WeightsContainer>((resolve) => aggregator.once('aggregation', resolve))
     // Store the promise such that it is accessible from other methods
-    this.results = this.results.set(task, result)
+    this.results = this.results.set(task, resultPromise)
     // The promise resolves once the server received enough contributions (through the handle method)
     // and the aggregator aggregated the weights.
-    await result
+    const globalModel = await resultPromise
+    const serializedModel =  await serialization.weights.encode(globalModel)
+    this.latestGlobalModels = this.latestGlobalModels.set(task, serializedModel)
+
     // Update the server round with the aggregator round
     this.rounds = this.rounds.set(task, aggregator.round)
     // Create a new promise for the next round
@@ -132,8 +140,10 @@ export class Federated extends Server {
 
     // Wait for aggregation result to resolve with timeout, giving the network a time window
     // to contribute to the model
-    void Promise.race([promisedResult, client.timeout()]) //TODO: it doesn't make sense that the server is using the client utils' timeout 
-      .then((result) =>
+    void Promise.race([
+      promisedResult,
+      client.timeout(10000, "Timeout while waiting for enough participant contributions") //TODO: it doesn't make sense that the server is using the client utils' timeout 
+      ]).then((result) =>
       // Reply with round - 1 because the round number should match the round at which the client sent its weights
       // After the server aggregated the weights it also incremented the round so the server replies with round - 1
         [result, aggregator.round - 1] as [WeightsContainer, number])
@@ -182,14 +192,32 @@ export class Federated extends Server {
         this.logsAppend(task.id, clientId, MessageTypes.SendPayload, msg.round)
 
         const { payload, round } = msg
-        const weights = serialization.weights.decode(payload)
-
-        this.createPromiseForWeights(task.id, aggregator, ws)
-
-        // TODO support multiple communication round
-        if (!aggregator.add(clientId, weights, round, 0)) {
-          debug(`dropped contribution from client ${clientId} for round ${round}`);
-          return // TODO what to answer?
+        if (aggregator.isValidContribution(clientId, round)) {
+          // We need to create a promise waiting for the global model before adding the contribution to the aggregator
+          // (so that the aggregation and sending the global model to participants
+          // doesn't happen before the promise is created)
+          this.createPromiseForWeights(task.id, aggregator, ws)
+          // This is assuming that the federated server's aggregator
+          // always works with a single communication round
+          const weights = serialization.weights.decode(payload)
+          const addedSuccessfully = aggregator.add(clientId, weights, round)
+          if (!addedSuccessfully) throw new Error("Aggregator's isValidContribution returned true but failed to add the contribution")
+        } else {
+          // If the client sent an invalid or outdated contribution
+          // the server answers with the current round and last global model update
+          debug(`Dropped contribution from client ${clientId} for round ${round}. Sending last global model from round ${aggregator.round - 1}`)
+          const latestSerializedModel = this.latestGlobalModels.get(task.id)
+          // no latest model at the first round
+          console.log(latestSerializedModel === undefined)
+          if (latestSerializedModel === undefined) return
+          
+          const msg: messages.ReceiveServerPayload = {
+            type: MessageTypes.ReceiveServerPayload,
+            round: aggregator.round - 1, // send the model from the previous round
+            payload: latestSerializedModel,
+            nbOfParticipants: aggregator.nodes.size
+          }
+          ws.send(msgpack.encode(msg))
         }
       }
     })
