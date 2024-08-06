@@ -76,7 +76,7 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
    * @param nodeId The node's id
    * @param contribution The node's contribution
    * @param round aggregation round of the contribution was made
-   * @param communicationRound communication round the contribution was made within the aggreagtion round
+   * @param communicationRound communication round the contribution was made within the aggregation round
    * @returns boolean, true if the contribution has been successfully taken into account or False if it has been rejected
    */
   abstract add (nodeId: client.NodeID, contribution: T, round: number, communicationRound?: number): boolean
@@ -86,10 +86,13 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
    * the boolean returned by `this.add` is obtained via `this.isValidContribution`
    */
   isValidContribution(nodeId: client.NodeID, round: number): boolean {
-    if (!this.nodes.has(nodeId) || !this.isWithinRoundCutoff(round)) {
-      if (!this.nodes.has(nodeId)) console.warn("Contribution rejected because node id is not registered")
-      if (!this.isWithinRoundCutoff(round)) console.warn(`Contribution rejected because round ${round} is not within round cutoff`)
-      return false;  
+    if (!this.nodes.has(nodeId)) {
+      console.warn("Contribution rejected because node id is not registered")
+      return false;
+    }
+    if (!this.isWithinRoundCutoff(round)) {
+      console.warn(`Contribution rejected because round ${round} is not within round cutoff`)
+      return false;
     }
     return true
   }
