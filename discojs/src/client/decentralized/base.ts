@@ -113,10 +113,7 @@ export class Base extends Client {
    * and waits for it to resolve.
    * 
    */
-  override async onRoundBeginCommunication (
-    _: WeightsContainer,
-    round: number,
-  ): Promise<void> {
+  override async onRoundBeginCommunication (): Promise<void> {
     if (this.server === undefined) {
       throw new Error("peer's server is undefined, make sure to call `client.connect()` first")
     } if (this.pool === undefined) {
@@ -154,10 +151,10 @@ export class Base extends Client {
         // Init receipt of peers weights
         // this awaits the peer's weight update and adds it to 
         // our aggregator upon reception
-        (conn) => { this.receivePayloads(conn, round) }
+        (conn) => { this.receivePayloads(conn, this.aggregator.round) }
       )
 
-      debug(`[${this.ownId}] received peers for round ${round}: %o`, connections.keySeq().toJS());
+      debug(`[${this.ownId}] received peers for round ${this.aggregator.round}: %o`, connections.keySeq().toJS());
       this.connections = connections
     } catch (e) {
       debug(`[${this.ownId}] while beginning round: %o`, e);
@@ -199,10 +196,7 @@ export class Base extends Client {
     })
   }
 
-  override async onRoundEndCommunication (
-    weights: WeightsContainer,
-    round: number,
-  ): Promise<WeightsContainer> {
+  override async onRoundEndCommunication (weights: WeightsContainer): Promise<WeightsContainer> {
     if (this.aggregationResult === undefined) {
       throw new TypeError('aggregation result promise is undefined')
     }
@@ -220,7 +214,7 @@ export class Base extends Client {
         try {
           await Promise.all(payloads.map(async (payload, id) => {
             if (id === this.ownId) {
-              this.aggregator.add(this.ownId, payload, round, r)
+              this.aggregator.add(this.ownId, payload, this.aggregator.round, r)
             } else {
               const peer = this.connections?.get(id)
               if (peer !== undefined) {

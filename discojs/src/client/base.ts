@@ -66,24 +66,15 @@ export abstract class Base {
 
   /**
    * Communication callback called at the beginning of every training round.
-   * @param _weights The most recent local weight updates
-   * @param _round The current training round
    */
-  async onRoundBeginCommunication(
-    _weights: WeightsContainer,
-    _round: number,
-  ): Promise<void> {}
+  async onRoundBeginCommunication(): Promise<void> {}
 
   /**
    * Communication callback called the end of every training round.
-   * @param _weights The most recent local weight updates
-   * @param _round The current training round
+   * @param weights The local weight update resulting for the current local training round
    * @returns aggregated weights or the local weights upon error
    */
-  abstract onRoundEndCommunication(
-    _weights: WeightsContainer,
-    _round: number,
-  ): Promise<WeightsContainer>;
+  abstract onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer>;
 
   // Number of contributors to a collaborative session
   // If decentralized, it should be the number of peers

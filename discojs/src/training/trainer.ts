@@ -79,7 +79,7 @@ export class Trainer {
     const totalRound = Math.trunc(this.#epochs / this.#roundDuration);
     let previousRoundWeights: WeightsContainer | undefined;
     for (let round = 0; round < totalRound; round++) {
-      await this.#client.onRoundBeginCommunication(this.model.weights, round);
+      await this.#client.onRoundBeginCommunication();
 
       yield this.#runRound(dataset, valDataset);
 
@@ -92,8 +92,7 @@ export class Trainer {
         );
 
       const networkWeights = await this.#client.onRoundEndCommunication(
-        localWeights,
-        round,
+        localWeights
       );
 
       this.model.weights = previousRoundWeights = networkWeights;

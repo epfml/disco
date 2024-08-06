@@ -101,20 +101,17 @@ export class Base extends Client {
   override onRoundBeginCommunication(): Promise<void> {
     // Prepare the result promise for the incoming round
     this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
-
     return Promise.resolve();
   }
 
   /**
    * 
    * @param weights Local weights sent to the server at the end of the local training round
-   * @param _round The trainer's aggregation round, which can be different from the server's round if the participant joined late
+   * @param _round The trainer's aggregation round, which can be different from 
+   * the server's round if the participant joined late
    * @returns the new global weights sent by the server
    */
-  override async onRoundEndCommunication(
-    weights: WeightsContainer,
-    _round: number,
-  ): Promise<WeightsContainer> {
+  override async onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer> {
     // NB: For now, we suppose a fully-federated setting.
 
     if (this.aggregationResult === undefined) {
