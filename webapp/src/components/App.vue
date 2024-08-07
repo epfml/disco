@@ -40,7 +40,7 @@
           <KeepAlive>
             <Component
               :is="Component"
-              :key="$route.fullPath"
+              :key="route.fullPath"
             />
           </KeepAlive>
         </RouterView>
@@ -52,7 +52,7 @@
 <script lang="ts" setup>
 import createDebug from "debug";
 import { onMounted } from 'vue'
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 
 import { useTasksStore } from '@/store/tasks'
 import { useMemoryStore } from '@/store/memory'
@@ -61,6 +61,7 @@ import SideBar from '@/components/sidebar/SideBar.vue'
 
 const debug = createDebug("webapp:App");
 
+const route = useRoute()
 const tasksStore = useTasksStore()
 const memoryStore = useMemoryStore()
 
