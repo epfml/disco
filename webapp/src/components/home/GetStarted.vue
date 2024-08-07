@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid grid-cols-1 gap-8 md:mx-20 lg:gap-16 lg:grid-cols-3 items-stretch"
+    class="grid grid-cols-1 gap-8 md:mx-20 lg:gap-16 xl:grid-cols-3 items-stretch"
   >
     <!-- Disco information -->
     <ButtonsCard
