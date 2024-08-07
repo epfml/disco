@@ -198,17 +198,9 @@ export class Disco {
   }
 
   /**
-   * Stops the ongoing training instance without disconnecting the client.
-   */
-  async pause(): Promise<void> {
-    await this.trainer.stopTraining();
-  }
-
-  /**
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
-    await this.pause();
     await this.#client.disconnect();
   }
 }

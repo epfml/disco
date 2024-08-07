@@ -5,7 +5,7 @@ import {
   type WeightsContainer,
 } from "../../index.js";
 import { Base as Client } from "../base.js";
-import { type, type ClientConnected } from "../messages.js";
+import { type, type ClientConnected, type ClientDisconnected } from "../messages.js";
 import {
   type EventConnection,
   waitMessageWithTimeout,
@@ -89,6 +89,10 @@ export class Base extends Client {
    * Disconnection process when user quits the task.
    */
   override async disconnect(): Promise<void> {
+    const msg: ClientDisconnected = {
+      type: type.ClientDisconnected,
+    };
+    this.server.send(msg); // notify the server we are disconnecting but don't wait for an answer
     await this.server.disconnect();
     this._server = undefined;
     this._ownId = undefined;

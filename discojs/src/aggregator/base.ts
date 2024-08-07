@@ -155,6 +155,16 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
   }
 
   /**
+   * Remove a node's id from the set of active nodes.
+   * @param nodeId The node to be removed
+   */
+  removeNode (nodeId: client.NodeID): void{
+    if (this.nodes.has(nodeId)) {
+      this._nodes = this._nodes.delete(nodeId)
+    }
+  }
+
+  /**
    * Overwrites the current set of active nodes with the given one. A node represents
    * an active neighbor peer/client within the network, whom we are communicating with
    * during this aggregation round.

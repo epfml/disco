@@ -9,6 +9,8 @@ export enum type {
   // When a user joins a task with a ClientConnected message, the server
   // answers with an AssignNodeID message with its peer id.
   AssignNodeID,
+  // Sent to the server when a participant leaves a session
+  ClientDisconnected,
 
   /* Decentralized */
   // Message forwarded by the server from a client to another client
@@ -21,6 +23,10 @@ export enum type {
   // Federated
   SendPayload,
   ReceiveServerPayload,
+}
+
+export interface ClientDisconnected {
+  type: type.ClientDisconnected
 }
 
 export interface ClientConnected {

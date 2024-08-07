@@ -138,6 +138,16 @@ export class Federated extends Server {
       .catch((e) => debug("while waiting for weights: %o", e))
   }
 
+  /**
+   * This is the main logic of the federated server. This method is called only for every
+   * websocket connection (i.e. each participant) along with the associated task.
+   * It registers what the server will do upon receiving messages from the participant.
+   * Note that `this.handle` is only called once to setup the logic. It is `ws.on()`
+   * that is called upon receiving messages (and not `this.handle`)
+   * 
+   * @param task the task associated with the current websocket (= participant)
+   * @param ws the websocket connection through which the participant and the server communicate
+   */
   protected handle (task: Task, ws: WebSocket): void {
     const aggregator = this.aggregators.get(task.id)
     if (aggregator === undefined)
@@ -164,6 +174,10 @@ export class Federated extends Server {
           id: clientId
         }
         ws.send(msgpack.encode(msg))
+      } else if (msg.type === MessageTypes.ClientDisconnected) {
+        console.info('client', clientId, 'left', task.id)
+
+        aggregator.removeNode(clientId)
       } else if (msg.type === MessageTypes.SendPayload) {
 
         const { payload, round } = msg

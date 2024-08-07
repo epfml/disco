@@ -219,6 +219,7 @@ async function startTraining(distributed: boolean): Promise<void> {
     debug("while training: %o", e);
     return;
   } finally {
+    await disco.close()
     displayModelCaching.value = true // show model caching buttons again after training
     trainingGenerator.value = undefined;
     isTraining.value = false

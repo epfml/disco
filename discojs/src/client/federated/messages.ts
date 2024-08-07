@@ -1,9 +1,10 @@
 import { type weights } from '../../serialization/index.js'
 
-import { type, hasMessageType, type AssignNodeID, type ClientConnected } from '../messages.js'
+import { type, hasMessageType, type AssignNodeID, type ClientConnected, type ClientDisconnected } from '../messages.js'
 
 export type MessageFederated =
   ClientConnected |
+  ClientDisconnected |
   SendPayload |
   ReceiveServerPayload |
   AssignNodeID
@@ -27,6 +28,7 @@ export function isMessageFederated (raw: unknown): raw is MessageFederated {
 
   switch (raw.type) {
     case type.ClientConnected:
+    case type.ClientDisconnected:
     case type.SendPayload:
     case type.ReceiveServerPayload:
     case type.AssignNodeID:
