@@ -13,7 +13,9 @@ updates:
 
   - package-ecosystem: npm
     # support monorepo dependabot/dependabot-core#4993
-    directory: /
+    directories:
+      - /
+      - /docs/examples
     schedule:
       interval: weekly
     versioning-strategy: increase
