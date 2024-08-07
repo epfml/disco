@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
-import { List, Map } from 'immutable'
+import { Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 
 import type {
@@ -19,26 +19,7 @@ import { Server } from '../server.js'
 
 import messages = client.federated.messages
 import AssignNodeID = client.messages.AssignNodeID
-
 import MessageTypes = client.messages.type
-
-const debug = createDebug("server:router:federated")
-
-/**
- * Represents a log entry for a given request. Consists of:
- * - the request type corresponding to the exchanged message
- * - the node id who made the request
- * - the task id for which the request was made
- * - the round for which the request was made
- * - the timestamp at which the request was made
- */
-interface Log {
-  timestamp: Date
-  task: TaskID
-  round: number
-  nodeId: client.NodeID
-  type: MessageTypes
-}
 
 export class Federated extends Server {
   /**
@@ -55,13 +36,9 @@ export class Federated extends Server {
    * can be sent to participants joining mid-training or contributing to previous rounds
    */
   private latestGlobalModels = Map<TaskID, serialization.weights.Encoded>()
-  
-  // TODO use real log system
   /**
-  * Logs of successful requests made to the server.
-  */
-  private logs = List<Log>()
-
+   * Mapping between tasks and their current round.
+   */
   private rounds = Map<TaskID, number>()
 
   protected readonly description = 'Disco Federated Server'
@@ -180,7 +157,6 @@ export class Federated extends Server {
       }
 
       if (msg.type === MessageTypes.ClientConnected) {
-        this.logsAppend(task.id, clientId, MessageTypes.ClientConnected, 0)
         debug(`client ${clientId} joined ${task.id}`)
 
         const msg: AssignNodeID = {
@@ -189,7 +165,6 @@ export class Federated extends Server {
         }
         ws.send(msgpack.encode(msg))
       } else if (msg.type === MessageTypes.SendPayload) {
-        this.logsAppend(task.id, clientId, MessageTypes.SendPayload, msg.round)
 
         const { payload, round } = msg
         if (aggregator.isValidContribution(clientId, round)) {
@@ -220,32 +195,6 @@ export class Federated extends Server {
           ws.send(msgpack.encode(msg))
         }
       }
-    })
-  }
-
-  /**
-   * Appends a request to the logs.
-   * @param task The task id for which the request was made
-   * @param nodeId The node id who made the request
-   * @param type The request type
-   * @param round The round for which the request was made
-   */
-  private logsAppend (
-    task: TaskID,
-    nodeId: client.NodeID,
-    type: MessageTypes,
-    round: number | undefined = undefined
-  ): void {
-    if (round === undefined) {
-      return
-    }
-
-    this.logs = this.logs.push({
-      timestamp: new Date(),
-      task,
-      round,
-      nodeId,
-      type
     })
   }
 }
