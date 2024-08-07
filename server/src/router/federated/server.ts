@@ -119,7 +119,7 @@ export class Federated extends Server {
     // to contribute to the model
     void Promise.race([
       promisedResult,
-      client.timeout(10000, "Timeout while waiting for enough participant contributions") //TODO: it doesn't make sense that the server is using the client utils' timeout 
+      client.timeout(30_000, "Timeout while waiting for enough participant contributions") //TODO: it doesn't make sense that the server is using the client utils' timeout 
       ]).then((result) =>
       // Reply with round - 1 because the round number should match the round at which the client sent its weights
       // After the server aggregated the weights it also incremented the round so the server replies with round - 1
@@ -183,7 +183,6 @@ export class Federated extends Server {
           debug(`Dropped contribution from client ${clientId} for round ${round}. Sending last global model from round ${aggregator.round - 1}`)
           const latestSerializedModel = this.latestGlobalModels.get(task.id)
           // no latest model at the first round
-          console.log(latestSerializedModel === undefined)
           if (latestSerializedModel === undefined) return
           
           const msg: messages.ReceiveServerPayload = {
