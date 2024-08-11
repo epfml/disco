@@ -43,7 +43,6 @@
                     {{ metadata.date }} at {{ metadata.hours }} <br />
                     {{ metadata.fileSize }} kB
                   </span>
-                </span>
               </div>
               <div class="w-1/9">
                 <ModelButton
@@ -76,7 +75,7 @@
                 <ModelButton
                   event="delete-model"
                   hover="Delete"
-                  @delete-model="deleteModelConfirm(path)"
+                  @delete-model="deleteModelConfirm(id)"
                 >
                   <Bin2Icon />
                 </ModelButton>
@@ -133,9 +132,10 @@
 </template>
 <script lang="ts" setup>
 import { List } from "immutable";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, type ShallowRef } from "vue";
 import { useRouter } from "vue-router";
 
+import type { Model, Path } from "@epfml/discojs";
 import { EmptyMemory } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
@@ -217,6 +217,14 @@ function sortModels(a: ModelMetadata, b: ModelMetadata): number {
     time = b.hours.replace("h", ":")
     const dateB = new Date(`${year}-${month}-${day}T${time}`);
     return dateB.getTime() - dateA.getTime() // Sort in ascending order
+}
+
+
+function deleteModelConfirm(modelID: string){
+  let i = 5;
+  const toasterRef = toaster.default(`Click here to confirm you want to delete the model (this message will go in 5 seconds)`, {
+    onClick: () => deleteModel(modelID),
+  });
 }
 
 async function deleteModel(modelID: string): Promise<void> {
