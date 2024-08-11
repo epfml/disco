@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import TrainingBar from '@/components/progress_bars/TrainingBar.vue'
@@ -14,6 +15,8 @@ import Features from '@/components/information/Features.vue'
 import Tutorial from '@/components/information/Tutorial.vue'
 import Further from '@/components/information/Further.vue'
 import AboutUs from '@/components/pages/AboutUs.vue'
+
+const debug = createDebug("webapp:router");
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -112,7 +115,7 @@ const router = createRouter({
 // Handle router errors
 router.onError((err) => {
   // Handle the router error here
-  console.error('Router error:', err)
+  debug("router error: %o", err);
   // Add code for reporting or other error handling logic
   void router.push({ path: '/not-found' })
 })

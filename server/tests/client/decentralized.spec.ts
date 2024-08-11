@@ -3,9 +3,9 @@ import type * as http from 'http'
 import type { Task } from '@epfml/discojs'
 import { aggregator as aggregators, client as clients, defaultTasks } from '@epfml/discojs'
 
-import { startServer } from '../../src/index.js'
+import { Server } from '../../src/index.js'
 
-const TASK = defaultTasks.titanic.getTask()
+const TASK = defaultTasks.titanic;
 
 function test (
   name: string,
@@ -13,16 +13,17 @@ function test (
   Aggregator: new () => aggregators.Aggregator
 ): void {
   describe(`decentralized ${name} client`, function () {
-    this.timeout(30_000)
-
     let server: http.Server
     let url: URL
-    beforeEach(async () => { [server, url] = await startServer() })
+    beforeEach(async () => {
+      const disco = await Server.of(TASK);
+      [server, url] = await disco.serve();
+    });
     afterEach(() => { server?.close() })
 
     it('connect and disconnect from valid task', async () => {
       const aggregator = new Aggregator()
-      const client = new Client(url, TASK, aggregator)
+      const client = new Client(url, TASK.getTask(), aggregator)
 
       await client.connect()
       await client.disconnect()

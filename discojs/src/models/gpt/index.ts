@@ -2,6 +2,8 @@
  * this code is taken from gpt-tfjs with modifications from @peacefulotter and @lukemovement
  **/
 
+import createDebug from "debug";
+import { List } from 'immutable';
 import * as tf from '@tensorflow/tfjs'
 import { PreTrainedTokenizer } from '@xenova/transformers';
 
@@ -14,7 +16,8 @@ import type { Prediction, Sample } from '../model.js'
 import { GPTForCausalLM } from './model.js'
 import { DEFAULT_CONFIG, type GPTConfig } from './config.js'
 import evaluate from './evaluate.js';
-import { List } from 'immutable';
+
+const debug = createDebug("discojs:models:gpt");
 
 export type GPTSerialization = {
   weights: WeightsContainer
@@ -43,8 +46,8 @@ export class GPT extends Model {
    * @param tracker
    */
   override async *train(
-    trainingData: Dataset,
-    validationData?: Dataset,
+    trainingData: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
+    validationData?: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     this.model.compile();
 
@@ -176,8 +179,7 @@ export class GPT extends Model {
       this.model.optimizer.dispose()
     }
     const disposeResults = this.model.dispose()
-    if (disposeResults.refCountAfterDispose > 0) {
-      console.error("The GPT model was not disposed correctly (refcount > 0)", disposeResults)
-    }
+    if (disposeResults.refCountAfterDispose > 0)
+      debug("model not disposed correctly: %o", disposeResults);
   }
 }

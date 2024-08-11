@@ -11,9 +11,11 @@
     "webapp"
   ],
   "dependencies": {
+    "debug": "4",
     "immutable": "4"
   },
   "devDependencies": {
+    "@types/debug": "4",
     "@typescript-eslint/eslint-plugin": "7",
     "eslint": "8",
     "typescript": "5",

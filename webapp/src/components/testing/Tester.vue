@@ -2,10 +2,14 @@
   <div>
     <div class="space-y-8">
       <!-- Test the model on a data set with labels -->
-      <IconCard v-if="groundTruth"
-        class="mx-auto mt-10 lg:w-1/2" title-placement="left">
+      <IconCard
+        v-if="groundTruth"
+        class="mx-auto mt-10 lg:w-1/2"
+        title-placement="left"
+      >
         <template #title> Test &amp; validate your model </template>
-        <template v-if="testGenerator === undefined" #content>
+
+        <div v-if="testGenerator === undefined">
           By clicking the button below, you will be able to validate your model against a chosen dataset of yours.
           Below, once you assessed the model, you can compare the ground truth and the predicted values
           <div class="flex justify-center mt-4">
@@ -13,31 +17,33 @@
               test
             </CustomButton>
           </div>
-        </template>
-        <template v-else #content>
+        </div>
+        <div v-else>
           <div class="flex justify-center">
             <CustomButton @click="stopTest()"> stop testing </CustomButton>
           </div>
-        </template>
+        </div>
       </IconCard>
+
       <!--Run inference using the model (no need for labels) -->
-      <IconCard v-else 
+      <IconCard v-else
         class="mx-auto mt-10 lg:w-1/2" title-placement="left">
         <template #title> Run model inference </template>
-        <template v-if="inferenceGenerator === undefined" #content>
+
+        <div v-if="inferenceGenerator === undefined">
           By clicking the button below, you will be able to predict using the selected model with chosen dataset of yours.
-          
+
           <div class="flex justify-center mt-4">
             <CustomButton @click="modelInference()">
               predict
             </CustomButton>
           </div>
-        </template>
-        <template v-else #content>
+        </div>
+        <div v-else>
           <div class="flex justify-center">
             <CustomButton @click="stopInference()"> stop inference </CustomButton>
           </div>
-        </template>
+        </div>
       </IconCard>
 
       <!-- display the evaluation metrics -->
@@ -134,76 +140,72 @@
       <IconCard
         class="w-full lg:w-3/5 mx-auto"
       >
-        <template #title>
-          Confusion Matrix ({{ numberOfClasses }}x{{ numberOfClasses }})
-        </template>
-        <template #content>
-          <table class="auto border-collapse w-full">
-            <thead>
-              <tr>
-                <td />
-                <td
-                  v-for="(_, i) in validator.confusionMatrix"
-                  :key="i"
-                  class="
-                      text-center text-disco-cyan text-lg font-normal
-                      p-3 border-l-2 border-disco-cyan
-                    "
-                >
-                  {{ task.trainingInformation.LABEL_LIST === undefined ? 'undefined' : task.trainingInformation.LABEL_LIST[i] }}
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(row, i) in validator.confusionMatrix"
+        <template #title> Confusion Matrix ({{ numberOfClasses }}x{{ numberOfClasses }}) </template>
+
+        <table class="auto border-collapse w-full">
+          <thead>
+            <tr>
+              <td />
+              <td
+                v-for="(_, i) in validator.confusionMatrix"
                 :key="i"
+                class="
+                    text-center text-disco-cyan text-lg font-normal
+                    p-3 border-l-2 border-disco-cyan
+                  "
               >
-                <th class="text-center text-disco-cyan text-lg font-normal border-t-2 border-disco-cyan">
-                  {{ task.trainingInformation.LABEL_LIST === undefined ? 'undefined' : task.trainingInformation.LABEL_LIST[i] }}
-                </th>
-                <td
-                  v-for="(predictions, j) in row"
-                  :key="j"
-                  class="text-center text-lg p-3 border-l-2 border-t-2 border-disco-cyan"
-                >
-                  {{ predictions }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
+                {{ task.trainingInformation.LABEL_LIST === undefined ? 'undefined' : task.trainingInformation.LABEL_LIST[i] }}
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(row, i) in validator.confusionMatrix"
+              :key="i"
+            >
+              <th class="text-center text-disco-cyan text-lg font-normal border-t-2 border-disco-cyan">
+                {{ task.trainingInformation.LABEL_LIST === undefined ? 'undefined' : task.trainingInformation.LABEL_LIST[i] }}
+              </th>
+              <td
+                v-for="(predictions, j) in row"
+                :key="j"
+                class="text-center text-lg p-3 border-l-2 border-t-2 border-disco-cyan"
+              >
+                {{ predictions }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </IconCard>
+
       <IconCard
         v-if="numberOfClasses === 2"
         class="w-full lg:w-3/5 mx-auto"
       >
-        <template #title>
-          Evaluation Metrics
-        </template>
-        <template #content>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <h3 class="font-bold">
-                Sensitivity
-              </h3><span>{{ validator.confusionMatrix[0] }}</span>
-            </div>
-            <div>
-              <h3 class="font-bold">
-                Specificity
-              </h3><span>{{ validator.confusionMatrix[1] }}</span>
-            </div>
+        <template #title> Evaluation Metrics </template>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <h3 class="font-bold">
+              Sensitivity
+            </h3><span>{{ validator.confusionMatrix[0] }}</span>
           </div>
-        </template>
+          <div>
+            <h3 class="font-bold">
+              Specificity
+            </h3><span>{{ validator.confusionMatrix[1] }}</span>
+          </div>
+        </div>
       </IconCard>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
+import createDebug from "debug";
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 
-import type { Task, Features } from '@epfml/discojs'
+import type { Task } from '@epfml/discojs'
 import { data, ConsoleLogger, EmptyMemory, Memory, Validator } from '@epfml/discojs'
 import { IndexedDB } from '@epfml/discojs-web'
 
@@ -217,6 +219,7 @@ import TableLayout from '@/components/containers/TableLayout.vue'
 import { List } from 'immutable'
 import * as d3 from 'd3'
 
+const debug = createDebug("webapp:Tester");
 const { useIndexedDB } = storeToRefs(useMemoryStore())
 const toaster = useToaster()
 const validationStore = useValidationStore()
@@ -247,10 +250,10 @@ const validator = ref<Validator | undefined>(undefined)
 const numberOfClasses = computed<number>(() =>
   props.task.trainingInformation.LABEL_LIST?.length ?? 2)
 
-type inferenceResults = Array<{ features: Features, pred: number }>
+type inferenceResults = Array<{ features: number[], pred: number }>
 const inferenceGenerator = ref<AsyncGenerator<inferenceResults, void>>();
 
-type testResults = Array<{ groundTruth: number, pred: number, features: Features }>
+type testResults = Array<{ groundTruth: number, pred: number, features: number[] }>
 const testGenerator = ref<AsyncGenerator<testResults, void>>();
 
 function getLabelName(labelIndex: number | undefined): string {
@@ -291,7 +294,6 @@ async function getValidator (): Promise<Validator | undefined> {
 }
 
 function handleDatasetBuildError (e: Error) {
-  console.log(e.message)
   if (e.message.includes('provided in columnConfigs does not match any of the column names')) {
     // missing field is specified between two "quotes"
     const missingFields: String = e.message.split('"')[1].split('"')[0]
@@ -318,11 +320,8 @@ async function modelInference (): Promise<void> {
   try {
     testingSet = (await props.datasetBuilder.build({ inference: true })).train
   } catch (e) {
-    if (e instanceof Error) {
-      handleDatasetBuildError(e)
-    } else {
-      console.error(e)
-    }
+    debug("while building dataset: %o", e);
+    if (e instanceof Error) handleDatasetBuildError(e)
     return
   }
 
@@ -343,7 +342,7 @@ async function modelInference (): Promise<void> {
             throw new Error("no input columns but CSV needs it")
           }
           featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns]
-          dataWithPred.value = runningPredictions.map(pred => ({ data: [...(pred.features as number[]), pred.pred] }))
+          dataWithPred.value = runningPredictions.map(pred => ({ data: [...pred.features, pred.pred] }))
           break;
         case 'text':
           //TODO add UI results
@@ -352,12 +351,8 @@ async function modelInference (): Promise<void> {
     }
     toaster.success('Model inference finished successfully!')
   } catch (e) {
-    let msg = 'unable to run model inference'
-    if (e instanceof Error) {
-      msg += `: ${e.message}`
-    }
-    console.error(msg)
-    toaster.error('Something went wrong during model inference')
+    debug("while infering: %o", e);
+    toaster.error("Something went wrong during model inference");
   }
 }
 
@@ -380,18 +375,15 @@ async function testModel(): Promise<void> {
   try {
     testingSet = (await props.datasetBuilder.build()).train
   } catch (e) {
-    if (e instanceof Error) {
-      handleDatasetBuildError(e)
-    } else {
-      console.error(e)
-    }
+    debug("while building dataset: %o", e);
+    if (e instanceof Error) handleDatasetBuildError(e)
     return
   }
 
   toaster.info('Model testing started')
   try {
     testGenerator.value = validator.value?.test(testingSet)
-    let runningResults: testResults = [] 
+    let runningResults: testResults = []
     for await (const assessmentResults of testGenerator.value) {
       runningResults = runningResults.concat(assessmentResults)
       switch (props.task.trainingInformation.dataType) {
@@ -413,8 +405,7 @@ async function testModel(): Promise<void> {
           }
           featuresNames.value = [...props.task.trainingInformation.inputColumns, 'Predicted_' + props.task.trainingInformation.outputColumns, 'Target_' + props.task.trainingInformation.outputColumns]
           dataWithPred.value = runningResults.map(pred => ({
-            data: [...(pred.features as number[]),
-            pred.pred, pred.groundTruth]
+            data: [...pred.features, pred.pred, pred.groundTruth]
           }))
           break;
         case 'text':
@@ -425,15 +416,11 @@ async function testModel(): Promise<void> {
 
     toaster.success('Model testing finished successfully!')
   } catch (e) {
-    let msg = 'unable to test model'
-    if (e instanceof Error) {
-      msg += `: ${e.message}`
-    }
-    console.error(msg)
-    toaster.error('Something went wrong during model testing')
-    } finally {
-      testGenerator.value = undefined;
-    }
+    debug("while testing: %o", e);
+    toaster.error("Something went wrong during model testing");
+  } finally {
+    testGenerator.value = undefined;
+  }
 }
 
 async function stopTest(): Promise<void> {

@@ -1,8 +1,11 @@
+import createDebug from "debug";
 import type { Map } from "immutable";
 
 import { AggregationStep, Base as Aggregator } from "./base.js";
 import type { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
+
+const debug = createDebug("discojs:aggregator:mean");
 
 type ThresholdType = 'relative' | 'absolute'
 
@@ -60,7 +63,8 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
     else {
       // Print a warning regarding the default behavior when thresholdType is not specified
       if (thresholdType === undefined) {
-        console.warn(
+	// TODO enforce validity by splitting features instead of warning
+        debug(
           "[WARN] Setting the aggregator's threshold to 100% of the nodes' contributions by default. " +
           "To instead wait for a single contribution, set thresholdType = 'absolute'"
         )
@@ -91,8 +95,8 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
       throw new Error("only a single communication round");
 
     if (!this.nodes.has(nodeId) || !this.isWithinRoundCutoff(round)) {
-      if (!this.nodes.has(nodeId)) console.warn("Contribution rejected because node id is not registered")
-      if (!this.isWithinRoundCutoff(round)) console.warn(`Contribution rejected because round ${round} is not within round cutoff`)
+      if (!this.nodes.has(nodeId)) debug(`contribution rejected because node ${nodeId} is not registered`);
+      if (!this.isWithinRoundCutoff(round)) debug(`contribution rejected because round ${round} is not within cutoff`);
       return false;  
     }
 

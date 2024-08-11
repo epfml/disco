@@ -12,113 +12,108 @@
         :key="section.id"
       >
         <IconCard>
-          <template #title>
-            {{ section.title }}
-          </template>
-          <template #content>
-            <div class="space-y-10">
+          <template #title> {{ section.title }} </template>
+
+          <div class="space-y-10">
+            <div
+              v-for="field in section.fields"
+              :key="field.id"
+            >
               <div
-                v-for="field in section.fields"
-                :key="field.id"
+                v-if="isFieldVisible(
+                  field,
+                  {
+                    dataType,
+                    scheme,
+                    decentralizedSecure
+                  }
+                )"
               >
-                <div
-                  class=""
-                  :class="field.id === 'decentralizedSecure' ? 'flex' : ''"
-                  v-if="isFieldVisible(
-                    field,
-                    {
-                      dataType,
-                      scheme,
-                      decentralizedSecure
-                    }
-                  )"
+                <label
+                  :for="field.id"
+                  class="
+                    inline
+                    text-slate-600
+                    font-bold
+                    md:text-right
+                    mb-1
+                    md:mb-0
+                    pr-4
+                  "
                 >
-                  <label
-                    :for="field.id"
-                    class="
-                      inline
-                      text-slate-600
-                      font-bold
-                      md:text-right
-                      mb-1
-                      md:mb-0
-                      pr-4
-                    "
-                  >
-                    <span
-                      v-if="field.description !== undefined"
-                      v-html="field.description"
-                    />
-                    <span
-                      v-else
-                      v-html="field.name"
-                    />
-                  </label>
-                  <ErrorMessage
-                    class="text-red-600"
-                    :name="field.id"
+                  <span
+                    v-if="field.description !== undefined"
+                    v-html="field.description"
                   />
+                  <span
+                    v-else
+                    v-html="field.name"
+                  />
+                </label>
+                <ErrorMessage
+                  class="text-red-600"
+                  :name="field.id"
+                />
+                <SelectContainer
+                  v-if="field.id === 'dataType'"
+                  v-model="dataType"
+                  :field="field"
+                />
+                <SelectContainer
+                  v-else-if="field.id === 'scheme'"
+                  v-model="scheme"
+                  :field="field"
+                />
+                <CheckboxContainer
+                  v-else-if="field.id === 'decentralizedSecure'"
+                  :field="field"
+                  @clicked="setDecentralizedSecure($event)"
+                />
+                <TextContainer
+                  v-else-if="field.id === 'modelURL'"
+                  v-model="modelURL"
+                  :field="field"
+                  :available="modelFiles.size === 0"
+                />
+                <div v-else>
                   <SelectContainer
-                    v-if="field.id === 'dataType'"
-                    v-model="dataType"
+                    v-if="['select', 'select-multiple'].includes(field.type)"
                     :field="field"
                   />
-                  <SelectContainer
-                    v-else-if="field.id === 'scheme'"
-                    v-model="scheme"
+                  <FileContainer
+                    v-else-if="field.type === 'file'"
+                    :field="field"
+                    :available="!modelURL"
+                    @input="handleModelFiles($event)"
+                  />
+                  <ArrayContainer
+                    v-else-if="field.type === 'array'"
+                    :field="field"
+                  />
+                  <ObjectArrayContainer
+                    v-else-if="field.type === 'arrayObject'"
+                    :field="field"
+                  />
+                  <TextContainer
+                    v-else-if="field.type === 'text'"
                     :field="field"
                   />
                   <CheckboxContainer
-                    v-else-if="field.id === 'decentralizedSecure'"
+                    v-else-if="field.type === 'checkbox'"
                     :field="field"
-                    @clicked="setDecentralizedSecure($event)"
                   />
-                  <TextContainer
-                    v-else-if="field.id === 'modelURL'"
-                    v-model="modelURL"
+                  <NumberContainer
+                    v-else-if="field.type === 'number'"
                     :field="field"
-                    :available="modelFiles.size === 0"
                   />
-                  <div v-else>
-                    <SelectContainer
-                      v-if="['select', 'select-multiple'].includes(field.type)"
-                      :field="field"
-                    />
-                    <FileContainer
-                      v-else-if="field.type === 'file'"
-                      :field="field"
-                      :available="!modelURL"
-                      @input="handleModelFiles($event)"
-                    />
-                    <ArrayContainer
-                      v-else-if="field.type === 'array'"
-                      :field="field"
-                    />
-                    <ObjectArrayContainer
-                      v-else-if="field.type === 'arrayObject'"
-                      :field="field"
-                    />
-                    <TextContainer
-                      v-else-if="field.type === 'text'"
-                      :field="field"
-                    />
-                    <CheckboxContainer
-                      v-else-if="field.type === 'checkbox'"
-                      :field="field"
-                    />
-                    <NumberContainer
-                      v-else-if="field.type === 'number'"
-                      :field="field"
-                    />
-                    <FloatContainer
-                      v-else-if="field.type === 'float'"
-                      :field="field"
-                    />
-                  </div>
+                  <FloatContainer
+                    v-else-if="field.type === 'float'"
+                    :field="field"
+                  />
                 </div>
               </div>
             </div>
-          </template>
+          </div>
         </IconCard>
       </div>
       <div class="flex flex-wrap justify-center gap-8 my-2">
@@ -148,6 +143,7 @@
 </template>
 
 <script lang="ts" setup>
+import createDebug from "debug";
 import * as yup from 'yup'
 import { ref, shallowRef } from 'vue'
 import { Form as VeeForm, ErrorMessage } from 'vee-validate'
@@ -173,6 +169,7 @@ import NumberContainer from './containers/NumberContainer.vue'
 import FloatContainer from './containers/FloatContainer.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 
+const debug = createDebug("webapp:TaskForm");
 const toaster = useToaster()
 
 // Maps sections to a form-wide yup schema object composed of labelled yup fields.
@@ -258,9 +255,9 @@ const onSubmit = async (rawTask: any): Promise<void> => {
   let model
   try {
     model = new models.TFJS(await tf.loadLayersModel(tf.io.browserFiles(modelFiles.value.toArray())))
-  } catch (error) {
-    console.error(error)
-    toaster.error('Model loading failed')
+  } catch (e) {
+    debug("while loading model:%o", e);
+    toaster.error('Model loading failed');
     return
   }
 
@@ -268,7 +265,7 @@ const onSubmit = async (rawTask: any): Promise<void> => {
     await pushTask(CONFIG.serverUrl, task, model)
   } catch (e) {
     toaster.error('An error occured server-side')
-    console.error(e instanceof Error ? e.message : e)
+    debug("while pushing task to server: %o", e);
     return
   }
   toaster.success('Task successfully submitted')

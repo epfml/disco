@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import { defineStore } from 'pinia'
 import { shallowRef, ref } from 'vue'
 import { Map } from 'immutable'
@@ -9,15 +10,16 @@ import { useToaster } from '@/composables/toaster'
 import { CONFIG } from '@/config'
 import { useTrainingStore } from './training'
 
+const debug = createDebug("webapp:store");
+
 export const useTasksStore = defineStore('tasks', () => {
   const trainingStore = useTrainingStore()
 
   const tasks = shallowRef<Map<TaskID, Task>>(Map())
-  
-  // used to display loading indicator in the webapp when loading tasks
-  const loading = ref(false)
-  // used to not display duplicate toaster messages
-  const loadingAlreadyFailed = ref(false)
+
+  // 3-state variable used to test whether the tasks have been retrieved successfully,
+  // if the retrieving failed, or if they are currently being loaded
+  const status = ref<'success' | 'failed' | 'loading'>('loading')
 
   function addTask (task: Task): void {
     trainingStore.setTask(task.id);
@@ -29,24 +31,22 @@ export const useTasksStore = defineStore('tasks', () => {
 
   async function initTasks (): Promise<void> {
     try {
-      loading.value = true
+      status.value = 'loading'
       const tasks = (await fetchTasks(CONFIG.serverUrl)).filter((t: Task) => !TASKS_TO_FILTER_OUT.includes(t.id))
 
       tasks.forEach(addTask)
-      loadingAlreadyFailed.value = false
+      status.value = 'success'
     } catch (e) {
-      console.error('Fetching of tasks failed with error', e instanceof Error ? e.message : e)
+      debug("while fetching tasks: %o", e);
 
       //Only display UI message once
-      if (!loadingAlreadyFailed.value) {
+      if (status.value !== 'failed') {
         const toaster = useToaster()
         toaster.error('The server is unreachable.\nPlease try again later or reach out on slack.')
-        loadingAlreadyFailed.value = true
+        status.value = 'failed'
       }
-    } finally {
-      loading.value = false
     }
   }
 
-  return { tasks, initTasks, addTask, loading, loadingAlreadyFailed }
+  return { tasks, initTasks, addTask, status }
 })

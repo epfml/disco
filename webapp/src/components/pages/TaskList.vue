@@ -3,7 +3,7 @@
     <div class="flex flex-col gap-4">
       <!-- In case no tasks were retrieved, suggest reloading the page -->
       <ButtonsCard
-        v-if="taskStore.loadingAlreadyFailed"
+        v-if="taskStore.status == 'failed'"
         :buttons="List.of(['reload page', () => router.go(0)])"
         class="mx-auto"
       >
@@ -20,14 +20,10 @@
         v-else
       >
         <IconCard class="justify-self-center w-full">
-        <template #title>
-          What are <DISCOllaboratives />?
-        </template>
-          <template #icon>
-            <TasksIcon/>
-          </template>
-          <template #content>
-            <DISCOllaboratives /> are machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that users can join to train and contribute to with their own data. To give you a sense of <DISCO />, we pre-defined some tasks
+        <template #title> What are <DISCOllaboratives />? </template>
+          <template #icon> <TasksIcon/> </template>
+
+          <DISCOllaboratives /> are machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that users can join to train and contribute to with their own data. To give you a sense of <DISCO />, we pre-defined some tasks
           along with some example datasets. The end goal is for users to create their own custom <DISCOllaborative /> and collaboratively train machine learning models.
           <br>By participating to a task, you can either choose to train a model with your own data only or join a collaborative training session with other users.
           If you want to bring your own collaborative task into <DISCO />, you can do so by <button
@@ -35,10 +31,9 @@
             @click="goToCreateTask()"
           >creating a new <DISCOllaborative /></button>.
           <br/><br/> <b>The data you connect is only used locally and is never uploaded or shared with anyone. Data always stays on your device.</b>
-          </template>
         </IconCard>
-        <div 
-          v-if="taskStore.loading"
+        <div
+          v-if="taskStore.status == 'loading'"
           class="my-10 flex flex-col justify-center items-center"
         >
           <VueSpinner size="50" color="#6096BA"/>

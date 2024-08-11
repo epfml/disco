@@ -23,15 +23,13 @@
           </span>
           <div v-if="memoryStore.useIndexedDB" class="space-y-4">
             <button
-              v-for="[path, metadata] in memoryStore.models.sort((a : ModelMetadata, b : ModelMetadata) => sortModels(a, b))"
-              :key="path"
-              class="flex items-center justify-between px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800 w-full"
+              v-for="[id, metadata] in memoryStore.models.sort((a : ModelMetadata, b : ModelMetadata) => sortModels(a, b))"
+              :key="id"
+              class="flex items-center justify-between px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800"
             >
-              <div class="cursor-pointer w-2/3 flex flex-col justify-start" @click="openTesting(path)">
-                <span class="flex flex-col text-start gap-1">
-                  <span>
-                    {{ metadata.name.slice(0, 16) }}
-                  
+              <div class="cursor-pointer w-2/3" @click="openTesting(id)">
+                <span>
+                  {{ metadata.name.slice(0, 16) }}
                   <span
                 v-if="
                       metadata.version !== undefined && metadata.version !== 0
@@ -49,18 +47,27 @@
               </div>
               <div class="w-1/9">
                 <ModelButton
-                event="download-model"
-                hover="Download"
-                @download-model="downloadModel(path)"
+                  event="delete-model"
+                  hover="Delete"
+                  @delete-model="deleteModel(id)"
+                >
+                  <Bin2Icon />
+                </ModelButton>
+              </div>
+              <div class="w-1/9">
+                <ModelButton
+                  event="download-model"
+                  hover="Download"
+                  @download-model="memory.downloadModel(id)"
                 >
                   <Download2Icon />
                 </ModelButton>
               </div>
               <div class="w-1/9">
                 <ModelButton
-                event="load-model"
-                hover="Load for next training"
-                @load-model="loadModel(path)"
+                  event="load-model"
+                  hover="Load for next training"
+                  @load-model="loadModel(id)"
                 >
                   <LoadIcon />
                 </ModelButton>
@@ -129,7 +136,6 @@ import { List } from "immutable";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-import type { Model, Path } from "@epfml/discojs";
 import { EmptyMemory } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
@@ -175,19 +181,19 @@ function switchToEvaluate(): void {
   router.push({ path: "/evaluate" });
   emit("close-panel");
 }
-function openTesting(path: Path) {
-  validationStore.setModel(path);
+function openTesting(modelID: string) {
+  validationStore.setModel(modelID);
   router.push({ path: "/evaluate" });
 }
 
- async function loadModel(path: Path) {
-  const modelInfo = memory.getModelInfo(path)
+ async function loadModel(modelID: string) {
+  const modelInfo = memory.getModelInfo(modelID)
   if (modelInfo === undefined) {
     throw new Error('not such model')
   }
    if (modelInfo.type !== 'working') {
     try {
-      await memory.loadModel(path)
+      await memory.loadModel(modelID)
       await memoryStore.initModels()
     } catch (e) {
       let msg = 'unable to load model'
@@ -213,21 +219,10 @@ function sortModels(a: ModelMetadata, b: ModelMetadata): number {
     return dateB.getTime() - dateA.getTime() // Sort in ascending order
 }
 
-async function downloadModel(path: Path) {
-  await memory.downloadModel(path);
-}
-
-function deleteModelConfirm(path : Path){
-  let i = 5;
-  const toasterRef = toaster.default(`Click here to confirm you want to delete the model (this message will go in 5 seconds)`, {
-    onClick: () => deleteModel(path),
-  });
-}
-
-async function deleteModel(path: Path): Promise<void> {
+async function deleteModel(modelID: string): Promise<void> {
   try {
-    await memoryStore.deleteModel(path);
-    await memory.deleteModel(path);
+    await memoryStore.deleteModel(modelID);
+    await memory.deleteModel(modelID);
     toaster.success("Successfully deleted the model");
   } catch (e) {
     let msg = "unable to delete model";

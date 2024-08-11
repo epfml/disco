@@ -10,7 +10,8 @@
     <div class="flex justify-center">
       <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
-        <template v-if="trainingGenerator === undefined" #content>
+
+        <div v-if="trainingGenerator === undefined">
           <div class="grid grid-cols-2 gap-8">
             <CustomButton @click="startTraining(false)">
               train alone
@@ -18,7 +19,7 @@
                 Train on your own
               </template>
             </CustomButton>
-            <CustomButton 
+            <CustomButton
               v-tippy="{
                 content: 'Note that if you are the only participant the training will not be collaborative. You can open multiple tabs to emulate different participants by yourself.',
                 placement: 'right'
@@ -31,12 +32,12 @@
               </template>
             </CustomButton>
           </div>
-        </template>
-        <template v-else #content>
+        </div>
+        <div v-else>
           <div class="flex justify-center">
             <CustomButton @click="stopTraining()"> stop training </CustomButton>
           </div>
-        </template>
+        </div>
       </IconCard>
     </div>
     <!-- Demo warning -->
@@ -77,6 +78,7 @@
 </template>
 
 <script lang="ts" setup>
+import createDebug from "debug";
 import { List } from "immutable";
 import { ref, computed } from "vue";
 
@@ -93,6 +95,7 @@ import IconCard from "@/components/containers/IconCard.vue";
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import { CONFIG } from '../../config'
 
+const debug = createDebug("webapp:training:Trainer");
 const toaster = useToaster();
 const memoryStore = useMemoryStore();
 
@@ -151,7 +154,7 @@ async function startTraining(distributed: boolean): Promise<void> {
       validationSplit: props.task.trainingInformation.validationSplit,
     });
   } catch (e) {
-    console.error(e);
+    debug("while building dataset: %o", e);
     if (
       e instanceof Error &&
       e.message.includes("provided in columnConfigs does not match any of the column names")
@@ -219,8 +222,8 @@ async function startTraining(distributed: boolean): Promise<void> {
     } else {
       toaster.error("An error occurred during training");
     }
-    console.error(e);
-    return
+    debug("while training: %o", e);
+    return;
   } finally {
     displayModelCaching.value = true // show model caching buttons again after training
     trainingGenerator.value = undefined;

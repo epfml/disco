@@ -24,7 +24,7 @@
     "@tensorflow/tfjs-node": "4"
   },
   "devDependencies": {
-    "@types/node": "20",
+    "@types/node": "22",
     "nodemon": "3",
     "ts-node": "10"
   }

@@ -1,69 +1,55 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <IconCard>
-      <template #title>
-        {{ props.task.displayInformation.taskTitle }}
-      </template>
-      <template
-        v-if="overviewText !== undefined"
-        #content
-      >
+      <template #title> {{ props.task.displayInformation.taskTitle }} </template>
+
+      <div v-if="overviewText !== undefined">
         <div v-html="overviewText" />
-      </template>
-      <template
-        v-else
-        #content
-      >
+      </div>
+      <div v-else>
         <span class="italic">
           No task description was provided by the task's author.
         </span>
-      </template>
+      </div>
     </IconCard>
 
     <IconCard v-if="task.displayInformation.model !== undefined">
-      <template #title>
-        The Model
-      </template>
-      <template #icon>
-        <ModelIcon />
-      </template>
-      <template #content>
-        <div v-html="task.displayInformation.model" />
-      </template>
+      <template #title> The Model </template>
+      <template #icon> <ModelIcon /> </template>
+
+      <div v-html="task.displayInformation.model" />
     </IconCard>
+
     <DropdownCard>
-      <template #title>
-        Training Parameters
-      </template>
-      <template #content>
+      <template #title> Training Parameters </template>
+
+      <div
+        v-for="section in [trainingInformation, privacyParameters]"
+        :key="section.id"
+        class="py-4 first:py-0 last:py-0"
+      >
+        <span class="text-slate-600 font-bold text-left">
+          {{ section.title }}
+        </span>
         <div
-          v-for="section in [trainingInformation, privacyParameters]"
-          :key="section.id"
-          class="py-4 first:py-0 last:py-0"
+          v-for="field in section.fields"
+          :key="field.id"
         >
-          <span class="text-slate-600 font-bold text-left">
-            {{ section.title }}
-          </span>
           <div
-            v-for="field in section.fields"
-            :key="field.id"
+            v-if="field.id in task.trainingInformation ||
+              displayField(section, field)
+            "
+            class="grid grid-cols-3 gap-4"
           >
-            <div
-              v-if="field.id in task.trainingInformation ||
-                displayField(section, field)
-              "
-              class="grid grid-cols-3 gap-4"
-            >
-              <span>{{ field.description ?? field.name }}</span>
-              <div class="col-span-2">
-                <span>
-                  {{ prettifyField(field, task.trainingInformation, false) }}
-                </span>
-              </div>
+            <span>{{ field.description ?? field.name }}</span>
+            <div class="col-span-2">
+              <span>
+                {{ prettifyField(field, task.trainingInformation, false) }}
+              </span>
             </div>
           </div>
         </div>
-      </template>
+      </div>
     </DropdownCard>
   </div>
 </template>

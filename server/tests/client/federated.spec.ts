@@ -6,17 +6,17 @@ import {
   defaultTasks,
 } from "@epfml/discojs";
 
-import { startServer } from "../../src/index.js";
+import { Server } from "../../src/index.js";
 
-const TASK = defaultTasks.titanic.getTask();
+const TASK_PROVIDER = defaultTasks.titanic;
+const TASK = TASK_PROVIDER.getTask();
 
-describe("federated client", function () {
-  this.timeout(60_000);
-
+describe("federated client", () => {
   let server: http.Server;
   let url: URL;
   beforeEach(async () => {
-    [server, url] = await startServer();
+    const disco = await Server.of(TASK_PROVIDER);
+    [server, url] = await disco.serve();
   });
   afterEach(() => {
     server?.close();
@@ -62,5 +62,5 @@ describe("federated client", function () {
     }
 
     throw new Error("connect didn't fail");
-  });
+  }).timeout(30_000); // TODO shouldn't fail by timeout
 });

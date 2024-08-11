@@ -1,11 +1,11 @@
 import { parse } from 'ts-command-line-args'
-import { Map } from 'immutable'
+import { Map, Set } from 'immutable'
 
-import type { Task } from '@epfml/discojs'
+import type { TaskProvider } from '@epfml/discojs'
 import { defaultTasks } from '@epfml/discojs'
 
 interface BenchmarkArguments {
-  task: Task
+  provider: TaskProvider
   numberOfUsers: number
   epochs: number
   roundDuration: number
@@ -13,9 +13,7 @@ interface BenchmarkArguments {
   save: boolean
 }
 
-type BenchmarkUnsafeArguments = {
-  [K in keyof BenchmarkArguments as Exclude<K, 'task'>]: BenchmarkArguments[K]
-} & {
+type BenchmarkUnsafeArguments = Omit<BenchmarkArguments, 'provider'> & {
   task: string
   help?: boolean
 }
@@ -38,27 +36,37 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
   }
 )
 
-let supportedTasks: Map<string, Task> = Map()
-supportedTasks = supportedTasks.set(defaultTasks.simpleFace.getTask().id, defaultTasks.simpleFace.getTask())
-supportedTasks = supportedTasks.set(defaultTasks.titanic.getTask().id, defaultTasks.titanic.getTask())
-supportedTasks = supportedTasks.set(defaultTasks.cifar10.getTask().id, defaultTasks.cifar10.getTask())
-supportedTasks = supportedTasks.set(defaultTasks.lusCovid.getTask().id, defaultTasks.lusCovid.getTask())
+const supportedTasks = Map(
+  Set.of(
+    defaultTasks.cifar10,
+    defaultTasks.lusCovid,
+    defaultTasks.simpleFace,
+    defaultTasks.titanic,
+  ).map((t) => [t.getTask().id, t]),
+);
 
-const task = supportedTasks.get(unsafeArgs.task)
-if (task === undefined) {
+const provider = supportedTasks.get(unsafeArgs.task);
+if (provider === undefined) {
   throw Error(`${unsafeArgs.task} not implemented.`)
 }
 
-// Override training information
-if (task.trainingInformation !== undefined) {
-  task.trainingInformation.batchSize = unsafeArgs.batchSize
-  task.trainingInformation.roundDuration = unsafeArgs.roundDuration
-  task.trainingInformation.epochs = unsafeArgs.epochs
-  // For DP
-  // TASK.trainingInformation.clippingRadius = 10000000
-  // TASK.trainingInformation.noiseScale = 0
-} else {
-  throw new Error("Task training information is undefined")
-}
+export const args: BenchmarkArguments = {
+  ...unsafeArgs,
+  provider: {
+    getTask() {
+      const task = provider.getTask();
 
-export const args: BenchmarkArguments = { ...unsafeArgs, task }
+      // Override training information
+      task.trainingInformation.batchSize = unsafeArgs.batchSize;
+      task.trainingInformation.roundDuration = unsafeArgs.roundDuration;
+      task.trainingInformation.epochs = unsafeArgs.epochs;
+
+      // For DP
+      // TASK.trainingInformation.clippingRadius = 10000000
+      // TASK.trainingInformation.noiseScale = 0
+
+      return task;
+    },
+    getModel: provider.getModel,
+  },
+};

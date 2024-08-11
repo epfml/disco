@@ -1,57 +1,52 @@
-<!-- 
+<!--
   This component is only displayed if the model library is enabled and a cached model exists.
   It informs users that the cached model will be used by default during the next training, and let
-  them choose whether they would like to delete it and start with a new model and if they want to 
+  them choose whether they would like to delete it and start with a new model and if they want to
   save the cached model to library.
  -->
 <template>
   <!-- Card to load a model-->
   <div v-if="memoryStore.useIndexedDB && cachedModelExistsOnMount">
     <IconCard>
-      <template #title>
-        Re-using a Cached Model
-      </template>
-      <template #icon>
-        <Clock />
-      </template>
-      <template #content>
-        <!-- Restore Model -->
-        <div v-if="cachedModelExists && !isNewModelCreated">
-          <div class="text-sm text-gray-500 dark:text-light">
-            Disco has cached and will re-use the last model you trained, which was last updated the
-            <span class="text-primary-dark dark:text-primary-light">
-              {{ dateSaved }}
-            </span>
-            at
-            <span class="text-primary-dark dark:text-primary-light">
-              {{ hourSaved }}.
-            </span><br>
-            By default this model will be reused when training but you can choose to delete it and start with an untrained one.
-            You may want to save the cached model to the model library beforehand.
-            
-          </div>
-          <!-- Buttons row container -->
-          <div class="flex items-center justify-start pt-4 space-x-4">
-            <CustomButton @click="saveModel()">
-              <span>save to library</span>
-            </CustomButton>
-            <CustomButton @click="deleteModel()">
-              <span>delete cached model</span>
-            </CustomButton>
-          </div>
+      <template #title> Re-using a Cached Model </template>
+      <template #icon> <Clock /> </template>
+
+      <!-- Restore Model -->
+      <div v-if="cachedModelExists && !isNewModelCreated">
+        <div class="text-sm text-gray-500 dark:text-light">
+          Disco has cached and will re-use the last model you trained, which was last updated the
+          <span class="text-primary-dark dark:text-primary-light">
+            {{ dateSaved }}
+          </span>
+          at
+          <span class="text-primary-dark dark:text-primary-light">
+            {{ hourSaved }}.
+          </span><br>
+          By default this model will be reused when training but you can choose to delete it and start with an untrained one.
+          You may want to save the cached model to the model library beforehand.
+
         </div>
-        <div
-          v-else
-          class="text-sm text-gray-500"
-        >
-          <div v-if="memoryStore.useIndexedDB && isNewModelCreated">
-            A new model has been created.
-          </div>
-          <div v-else>
-            The cached model has been deleted.
-          </div>
+        <!-- Buttons row container -->
+        <div class="flex items-center justify-start pt-4 space-x-4">
+          <CustomButton @click="saveModel()">
+            <span>save to library</span>
+          </CustomButton>
+          <CustomButton @click="deleteModel()">
+            <span>delete cached model</span>
+          </CustomButton>
         </div>
-      </template>
+      </div>
+      <div
+        v-else
+        class="text-sm text-gray-500"
+      >
+        <div v-if="memoryStore.useIndexedDB && isNewModelCreated">
+          A new model has been created.
+        </div>
+        <div v-else>
+          The cached model has been deleted.
+        </div>
+      </div>
     </IconCard>
   </div>
 </template>

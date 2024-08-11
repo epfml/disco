@@ -1,21 +1,28 @@
-import { assert } from 'chai'
-import fs from 'fs'
-import type { Server } from 'node:http'
+import * as fs from 'node:fs'
+import { assert } from 'chai';
+import type * as http from "node:http";
 
 import {
   Validator, ConsoleLogger, EmptyMemory, client as clients,
   aggregator as aggregators, defaultTasks, data
 } from '@epfml/discojs'
 import { NodeImageLoader, NodeTabularLoader } from '@epfml/discojs-node'
-import { startServer } from '../src/index.js'
+
+import { Server } from "../src/index.js";
 
 describe('validator', function () {
-  this.timeout(10_000)
+  this.timeout(10_000);
 
-  let server: Server
-  let url: URL
-  beforeEach(async () => { [server, url] = await startServer() })
-  afterEach(() => { server?.close() })
+  let server: http.Server;
+  let url: URL;
+  beforeEach(async () => {
+    [server, url] = await Server.of(
+      defaultTasks.simpleFace,
+      defaultTasks.lusCovid,
+      defaultTasks.titanic,
+    ).then((s) => s.serve());
+  });
+  afterEach(() => server?.close());
 
   it('can read and predict randomly on simple_face', async () => {
     // Load the data
@@ -49,9 +56,6 @@ describe('validator', function () {
     // Read data and predict with an untrained model
     for await (const _ of validator.test(data));
     const size = data.size ?? -1
-    if (size === -1) {
-      console.log('data.size was undefined')
-    }
     assert(
       validator.visitedSamples === data.size,
       `Expected ${size} visited samples but got ${validator.visitedSamples}`
@@ -121,9 +125,6 @@ describe('validator', function () {
     // Assert random initialization metrics
     for await (const _ of validator.test(data));
     const size = data.size ?? -1
-    if (size === -1) {
-      console.log('data.size was undefined')
-    }
     assert(
       validator.visitedSamples === data.size,
       `Expected ${size} visited samples but got ${validator.visitedSamples}`

@@ -9,7 +9,7 @@ export const useTrainingStore = defineStore('training', () => {
   const task = ref<TaskID>()
 
   const step = computed(() => {
-    const id = task.value
+    const id = task?.value
     if (id === undefined) return undefined
     const t = steps.value.get(id)
     if (t === undefined) throw new Error("id doesn't match any task")

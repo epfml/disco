@@ -3,12 +3,9 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
-  "bin": {
-    "disco-server": "./dist/run_server.js"
-  },
   "scripts": {
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch . --exec npm run",
-    "start": "npm run build && node dist/run_server.js",
+    "start": "npm run build && node dist/main.js",
     "build": "tsc",
     "lint": "npx eslint .",
     "test": "mocha"
@@ -32,6 +29,7 @@
     "@types/express-ws": "3",
     "@types/mocha": "10",
     "@types/msgpack-lite": "0.1",
+    "@types/node": "22",
     "@types/uuid": "10",
     "chai": "5",
     "mocha": "10",

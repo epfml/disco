@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
@@ -5,18 +6,16 @@ import { Set } from 'immutable'
 import type { Model, Task, TaskID } from '@epfml/discojs'
 import { serialization, isTask } from '@epfml/discojs'
 
-import type { Config } from '../config.js'
 import type { TasksAndModels } from '../tasks.js'
+
+const debug = createDebug("server:router:tasks");
 
 export class Tasks {
   private readonly ownRouter: express.Router
 
   private tasksAndModels = Set<[Task, Model]>()
 
-  constructor (
-    private readonly config: Config,
-    tasksAndModels: TasksAndModels
-  ) {
+  constructor (tasksAndModels: TasksAndModels) {
     this.ownRouter = express.Router()
 
     this.ownRouter.get('/', (_, res) => {
@@ -30,10 +29,10 @@ export class Tasks {
       if (typeof raw !== 'object' || raw === null) {
 	return res.status(400)
       }
-      const { model, newTask }: Partial<Record<'model' | 'newTask', unknown>> = raw
+      const { model: encoded, newTask }: Partial<Record<'model' | 'newTask', unknown>> = raw
 
       if (!(
-        model !== undefined &&
+        encoded !== undefined &&
         newTask !== undefined &&
         isTask(newTask)
       )) {
@@ -41,12 +40,14 @@ export class Tasks {
         return
       }
 
-      serialization.model.decode(model)
-        .then(async (model) => {
-          await tasksAndModels.addTaskAndModel(newTask, model)
-        })
-        .then(() => res.status(200).end('Successful task upload'))
-        .catch(console.error)
+      serialization.model
+        .decode(encoded)
+        .then((model) => tasksAndModels.addTaskAndModel(newTask, model))
+        .then(() => res.status(200).end("Successful task upload"))
+        .catch((e) => {
+          debug("while adding model: %o", e);
+          res.status(500);
+        });
     })
 
     // delay listening
@@ -93,6 +94,6 @@ export class Tasks {
     const encoded = await serialization.model.encode(taskAndModel[1])
 
     response.status(200).send(encoded)
-    console.log(`${file} download for task ${id} succeeded`)
+    debug(`${file} download for task ${id} succeeded`)
   }
 }

@@ -136,7 +136,6 @@ cache before building.
 
 ### Debugging
 
-The easiest way to see what is going on is by using `console.log`, often times we want to see what value is inside
-a variable to make sure what is going on, e.g. `console.log('uniName:', uniName)`, however there is a nice shortcut
-that is good to know: `console.log({uniName})`, by adding curly brackets we put uniName in an object which when printed
-will give the name and contents (e.g. epfl) of the variable: `{uniName: epfl}`.
+To debug a specific module, use the [`debug` package](https://www.npmjs.com/package/debug).
+You can see the module's logs by setting the environnement variable `DEBUG=discojs:name_of_your_module`,
+or if you want to see all the logs of discojs, you can use `DEBUG=discojs:*`.

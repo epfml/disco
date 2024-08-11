@@ -1,3 +1,4 @@
+import createDebug from "debug";
 import { v4 as randomUUID } from 'uuid'
 import msgpack from 'msgpack-lite'
 import type WebSocket from 'ws'
@@ -11,6 +12,8 @@ import { Server } from '../server.js'
 import messages = client.decentralized.messages
 import AssignNodeID = client.messages.AssignNodeID
 import MessageTypes = client.messages.type
+
+const debug = createDebug("server:router:decentralized")
 
 export class Decentralized extends Server {
   /**
@@ -56,10 +59,8 @@ export class Decentralized extends Server {
     ws.on('message', (data: Buffer) => {
       try {
         const msg: unknown = msgpack.decode(data)
-        if (!messages.isMessageToServer(msg)) {
-          console.warn('invalid message received:', msg)
-          return
-        }
+        if (!messages.isMessageToServer(msg))
+          return debug("invalid message received: %o", msg);
 
         switch (msg.type) {
           // A new peer joins the network for a task
@@ -71,7 +72,7 @@ export class Decentralized extends Server {
               type: MessageTypes.AssignNodeID,
               id: peerId
             }
-            console.info('Peer', peerId, 'joined', task.id)
+            debug("peer ${peerId} joined ${task.id}");
 
             // Add the new task and its set of nodes
             if (!this.readyNodes.has(task.id)) {
@@ -130,7 +131,7 @@ export class Decentralized extends Server {
           }
         }
       } catch (e) {
-        console.error('when processing WebSocket message:', e)
+        debug("when processing WebSocket message: %o", e);
       }
     })
   }

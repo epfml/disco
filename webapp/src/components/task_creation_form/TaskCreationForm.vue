@@ -6,26 +6,24 @@
         <p class="text-slate-600 text-xs pt-1">Adding custom tasks is not available in this live demo.</p>
       </div>
     </div>
+
     <IconCard>
-      <template #title>
-        Create your own <DISCOllaborative/>
-      </template>
-      <template #content>
-        <div>
-          Fill in the fields below to create your own <DISCOllaborative />, and bring a new (arbitrary) ML task into Disco.
-          Other users using the Disco client will be able to join your <DISCOllaborative />
-          and contribute to its model, while keeping their data local and private.
+      <template #title> Create your own <DISCOllaborative/> </template>
+
+      <div>
+        Fill in the fields below to create your own <DISCOllaborative />, and bring a new (arbitrary) ML task into Disco.
+        Other users using the Disco client will be able to join your <DISCOllaborative />
+        and contribute to its model, while keeping their data local and private.
+      </div>
+      <div>
+        A <DISCOllaborative/> is made of two main elements:
+        <div class="flex justify-left ml-10">
+          <p>
+            1. the <span class="font-bold">model</span>, any ML model built to be trained<br>
+            2. the <span class="font-bold">task</span>, which defines how Disco will work with the model
+          </p>
         </div>
-        <div>
-          A <DISCOllaborative/> is made of two main elements:
-          <div class="flex justify-left ml-10">
-            <p>
-              1. the <span class="font-bold">model</span>, any ML model built to be trained<br>
-              2. the <span class="font-bold">task</span>, which defines how Disco will work with the model
-            </p>
-          </div>
-        </div>
-      </template>
+      </div>
     </IconCard>
     <TaskForm />
   </div>
