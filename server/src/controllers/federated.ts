@@ -1,3 +1,4 @@
+
 import createDebug from "debug";
 import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
@@ -15,15 +16,16 @@ import {
   serialization,
 } from '@epfml/discojs'
 
-import { TrainingRouter } from './base.js'
+import { TrainingController } from "./base.js";
 
 import messages = client.federated.messages
 import AssignNodeID = client.messages.AssignNodeID
 import MessageTypes = client.messages.type
 
-const debug = createDebug("server:router:federated")
+const debug = createDebug("server:controllers:federated")
 
-export class FederatedRouter extends TrainingRouter {
+
+export class FederatedController extends TrainingController {
   /**
    * Aggregators for each hosted task.
    */
@@ -42,8 +44,6 @@ export class FederatedRouter extends TrainingRouter {
    * Mapping between tasks and their current round.
    */
   private rounds = Map<TaskID, number>()
-
-  protected readonly description = 'Disco Federated Server'
 
   /**
    * Loop creating an aggregation result promise at each round.
@@ -70,7 +70,7 @@ export class FederatedRouter extends TrainingRouter {
     void this.storeAggregationResult(task, aggregator)
   }
 
-  protected initTask(task: TaskID): void {
+  initTask(task: TaskID): void {
     // The server waits for 100% of the nodes to send their contributions before aggregating the updates
     const aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
 
@@ -134,7 +134,7 @@ export class FederatedRouter extends TrainingRouter {
    * @param task the task associated with the current websocket (= participant)
    * @param ws the websocket connection through which the participant and the server communicate
    */
-  protected handle (task: Task, ws: WebSocket): void {
+  handle(task: Task, ws: WebSocket): void {
     const aggregator = this.aggregators.get(task.id)
     if (aggregator === undefined)
       throw new Error(`no aggregator for task ${task.id}`)
@@ -155,7 +155,7 @@ export class FederatedRouter extends TrainingRouter {
       if (msg.type === MessageTypes.ClientConnected) {
         debug(`client ${clientId} joined ${task.id}`)
         // at least two participants in federated
-        const waitForMoreParticipants = aggregator.nodes.size < 2 
+        const waitForMoreParticipants = aggregator.nodes.size < 2
         const msg: AssignNodeID = {
           type: MessageTypes.AssignNodeID,
           id: clientId,

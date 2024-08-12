@@ -7,15 +7,15 @@ import { Map, Set } from 'immutable'
 import type { Task, TaskID } from '@epfml/discojs'
 import { client } from '@epfml/discojs'
 
-import { TrainingRouter } from './base.js'
+import { TrainingController } from './base.js'
 
 import messages = client.decentralized.messages
 import AssignNodeID = client.messages.AssignNodeID
 import MessageTypes = client.messages.type
 
-const debug = createDebug("server:router:decentralized")
+const debug = createDebug("server:routes:decentralized")
 
-export class DecentralizedRouter extends TrainingRouter {
+export class DecentralizedController extends TrainingController {
   /**
    * Map associating task ids to their sets of nodes who have contributed.
    */
@@ -25,11 +25,9 @@ export class DecentralizedRouter extends TrainingRouter {
    */
   private connections: Map<client.NodeID, WebSocket> = Map()
 
-  protected readonly description = 'Disco Decentralized Server'
+  initTask (): void {}
 
-  protected initTask (): void {}
-
-  protected handle (task: Task, ws: WebSocket): void {
+  handle (task: Task, ws: WebSocket): void {
     // TODO @s314cy: add to task definition, to be used as threshold in aggregator
     const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
 

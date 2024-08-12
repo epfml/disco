@@ -1,24 +1,36 @@
 import express from 'express'
 import type expressWS from 'express-ws'
-import type WebSocket from 'ws'
+// import type WebSocket from 'ws'
 
 import type { Model, Task, TaskID } from '@epfml/discojs'
 
-import type { TasksAndModels } from '../../tasks.js'
+import type { TasksAndModels } from '../tasks.js'
+import { TrainingController, FederatedController, DecentralizedController } from '../controllers/index.js'
 
-export abstract class TrainingRouter {
+/**
+ * The TrainingRouter handles client requests related the federated
+ * and decentralized training.
+ * Handles websocket setup but the actual logic is deferred to the controller
+ */
+export class TrainingRouter {
   private readonly ownRouter: expressWS.Router
 
-  private readonly tasks: string[] = new Array<string>()
+  private readonly tasks = new Set<string>()
   private readonly UUIDRegexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi
 
-  protected abstract readonly description: string
+  protected readonly description: string
+  // The controller handles the actual logic of collaborative training
+  // in its `handle` method
+  protected readonly controller: TrainingController
 
-  constructor (wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels) {
+  constructor (wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels, scheme: 'federated' | 'decentralized') {
     this.ownRouter = express.Router()
     wsApplier.applyTo(this.ownRouter)
 
     this.ownRouter.get('/', (_, res) => res.send(this.description + '\n'))
+
+    this.description = `Disco ${scheme} server`
+    this.controller = scheme == 'federated' ? new FederatedController() : new DecentralizedController()
 
     // delay listener because this (object) isn't fully constructed yet. The lambda function inside process.nextTick is executed after the current operation on the JS stack runs to completion and before the event loop is allowed to continue.
     /* this.onNewTask is registered as a listener to tasksAndModels, which has 2 consequences:
@@ -35,13 +47,16 @@ export abstract class TrainingRouter {
     return this.ownRouter
   }
 
+  // Register the task and setup the controller to handle
+  // websocket connections
   private onNewTask (task: Task, model: Model): void {
-    this.tasks.push(task.id)
-    this.initTask(task.id, model)
+    this.tasks.add(task.id)
+    this.controller.initTask(task.id, model)
 
+    // Setup a websocket route which calls the controller's `handle` method
     this.ownRouter.ws(this.buildRoute(task.id), (ws, req) => {
       if (this.isValidUrl(req.url)) {
-        this.handle(task, ws, model, req)
+        this.controller.handle(task, ws, model, req)
       } else {
         ws.terminate()
         ws.close()
@@ -50,7 +65,7 @@ export abstract class TrainingRouter {
   }
 
   protected isValidTask (id: string): boolean {
-    return this.tasks.filter(e => e === id).length === 1
+    return this.tasks.has(id)
   }
 
   protected isValidClientId (clientId: string): boolean {
@@ -76,13 +91,4 @@ export abstract class TrainingRouter {
       this.isValidWebSocket(splittedUrl[2])
     )
   }
-
-  protected abstract initTask (task: TaskID, model: Model): void
-
-  protected abstract handle (
-    task: Task,
-    ws: WebSocket,
-    model: Model,
-    req: express.Request,
-  ): void
 }

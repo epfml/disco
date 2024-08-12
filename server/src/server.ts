@@ -6,17 +6,19 @@ import type * as http from "http";
 
 import type { TaskProvider } from "@epfml/discojs";
 
-import { TaskRouter, FederatedRouter, DecentralizedRouter } from './routes/index.js'
+import { TaskRouter, TrainingRouter } from './routes/index.js'
 import { TasksAndModels } from "./tasks.js";
 
 const debug = createDebug("server");
 
 /**
- * The Disco Server, a wrapper of the Express app
+ * The Disco Server, initializing an Express app
  * Its main goal is to provide the available tasks (DISCOllaboratives)
  * and tasks' base models to clients. 
  * New tasks can be added via the `addTask` method.
- * Most of the logic is deferred to the Router abstraction. 
+ * 
+ * More info on Express apps:
+ * https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/Introduction
  */
 export class Server {
   readonly #tasksAndModels = new TasksAndModels();
@@ -49,8 +51,8 @@ export class Server {
     app.use(express.urlencoded({ limit: "50mb", extended: false }));
 
     const taskRouter = new TaskRouter(this.#tasksAndModels)
-    const federatedRouter = new FederatedRouter(wsApplier, this.#tasksAndModels)
-    const decentralizedRouter = new DecentralizedRouter(wsApplier, this.#tasksAndModels)
+    const federatedRouter = new TrainingRouter(wsApplier, this.#tasksAndModels, 'federated')
+    const decentralizedRouter = new TrainingRouter(wsApplier, this.#tasksAndModels, 'decentralized')
 
     process.nextTick(() =>
       wsApplier.getWss().on('connection', (ws, req) => {
