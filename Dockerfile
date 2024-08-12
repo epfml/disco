@@ -39,4 +39,4 @@ COPY --link --from=builder /disco/discojs-node/dist/ discojs-node/dist/
 COPY --link --from=builder /disco/server/dist/ server/dist/
 
 WORKDIR server
-CMD ["node", "dist/run_server.js"]
+CMD ["node", "dist/main.js"]
