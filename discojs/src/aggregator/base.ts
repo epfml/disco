@@ -69,13 +69,30 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
 
   /**
    * Adds a node's contribution to the aggregator for the given aggregation and communication rounds.
+   * The aggregation round is increased whenever a new global model is obtained and local models are updated.
+   * Within one aggregation round there may be multiple communication rounds (such as for the decentralized secure aggregation
+   *  which requires multiple steps to obtain a global model)
    * The contribution will be aggregated during the next aggregation step.
    * @param nodeId The node's id
    * @param contribution The node's contribution
-   * @param round For which aggregation round the contribution was made
-   * @param communicationRound For which communication round the contribution was made
+   * @param round aggregation round of the contribution was made
+   * @param communicationRound communication round the contribution was made within the aggreagtion round
+   * @returns boolean, true if the contribution has been successfully taken into account or False if it has been rejected
    */
   abstract add (nodeId: client.NodeID, contribution: T, round: number, communicationRound?: number): boolean
+
+  /**
+   * Evaluates whether a given participant contribution can be used in the current aggregation round
+   * the boolean returned by `this.add` is obtained via `this.isValidContribution`
+   */
+  isValidContribution(nodeId: client.NodeID, round: number): boolean {
+    if (!this.nodes.has(nodeId) || !this.isWithinRoundCutoff(round)) {
+      if (!this.nodes.has(nodeId)) console.warn("Contribution rejected because node id is not registered")
+      if (!this.isWithinRoundCutoff(round)) console.warn(`Contribution rejected because round ${round} is not within round cutoff`)
+      return false;  
+    }
+    return true
+  }
 
   /**
    * Performs an aggregation step over the received node contributions.
@@ -101,16 +118,16 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
   log (step: AggregationStep, from?: client.NodeID): void {
     switch (step) {
       case AggregationStep.ADD:
-        debug(`adding contribution from node ${from ?? '"unknown"'} for round (${this.communicationRound}, ${this.round})`);
+        debug(`Adding contribution from node ${from ?? '"unknown"'} for aggregation round ${this.round} and communication round ${this.communicationRound}`);
         break
       case AggregationStep.UPDATE:
         if (from === undefined) {
           return
         }
-        debug(`updating contribution from node ${from ?? '"unknown"'} for round (${this.communicationRound}, ${this.round})`)
+        debug(`Updating contribution from node ${from} for aggregation round ${this.round} and communication round ${this.communicationRound}`)
         break
       case AggregationStep.AGGREGATE:
-        debug(`buffer full, aggregating weights for round (${this.communicationRound}, ${this.round})`)
+        debug(`Buffer is full. Aggregating weights for round aggregation round ${this.round} and communication round ${this.communicationRound}`)
         break
       default: {
         const _: never = step
