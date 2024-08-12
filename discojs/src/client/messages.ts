@@ -8,7 +8,12 @@ export enum type {
   ClientConnected,  
   // When a user joins a task with a ClientConnected message, the server
   // answers with an AssignNodeID message with its peer id.
+  // The message also tells the client whether we are waiting
+  // for more participants before starting training
   AssignNodeID,
+  // Message sent by server to notify clients that there are now enough
+  // participants to start training collaboratively
+  EnoughParticipants,
   // Sent to the server when a participant leaves a session
   ClientDisconnected,
 
@@ -36,6 +41,7 @@ export interface ClientConnected {
 export interface AssignNodeID {
   type: type.AssignNodeID
   id: NodeID
+  waitForMoreParticipants: boolean
 }
 
 export type Message =

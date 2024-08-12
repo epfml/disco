@@ -139,7 +139,7 @@ export class Federated extends Server {
   }
 
   /**
-   * This is the main logic of the federated server. This method is called only for every
+   * This is the main logic of the federated server. This method is called only once per
    * websocket connection (i.e. each participant) along with the associated task.
    * It registers what the server will do upon receiving messages from the participant.
    * Note that `this.handle` is only called once to setup the logic. It is `ws.on()`
@@ -168,10 +168,12 @@ export class Federated extends Server {
 
       if (msg.type === MessageTypes.ClientConnected) {
         debug(`client ${clientId} joined ${task.id}`)
-
+        // at least two participants in federated
+        const waitForMoreParticipants = aggregator.nodes.size < 2 
         const msg: AssignNodeID = {
           type: MessageTypes.AssignNodeID,
-          id: clientId
+          id: clientId,
+          waitForMoreParticipants
         }
         ws.send(msgpack.encode(msg))
       } else if (msg.type === MessageTypes.ClientDisconnected) {

@@ -70,7 +70,8 @@ export class Decentralized extends Server {
             // Answer with client id in an AssignNodeID message
             const msg: AssignNodeID = {
               type: MessageTypes.AssignNodeID,
-              id: peerId
+              id: peerId,
+              waitForMoreParticipants: (this.readyNodes.get(task.id)?.size ?? 0) < minimumReadyPeers
             }
             debug("peer ${peerId} joined ${task.id}");
 
