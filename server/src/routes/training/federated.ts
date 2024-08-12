@@ -15,13 +15,15 @@ import {
   serialization,
 } from '@epfml/discojs'
 
-import { Server } from '../server.js'
+import { TrainingRouter } from './base.js'
 
 import messages = client.federated.messages
 import AssignNodeID = client.messages.AssignNodeID
 import MessageTypes = client.messages.type
 
-export class Federated extends Server {
+const debug = createDebug("server:router:federated")
+
+export class FederatedRouter extends TrainingRouter {
   /**
    * Aggregators for each hosted task.
    */
@@ -42,22 +44,6 @@ export class Federated extends Server {
   private rounds = Map<TaskID, number>()
 
   protected readonly description = 'Disco Federated Server'
-
-  protected buildRoute (task: TaskID): string {
-    return `/${task}`
-  }
-
-  public isValidUrl (url: string | undefined): boolean {
-    const splittedUrl = url?.split('/')
-
-    return (
-      splittedUrl !== undefined &&
-      splittedUrl.length === 3 &&
-      splittedUrl[0] === '' &&
-      this.isValidTask(splittedUrl[1]) &&
-      this.isValidWebSocket(splittedUrl[2])
-    )
-  }
 
   /**
    * Loop creating an aggregation result promise at each round.

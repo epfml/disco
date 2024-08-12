@@ -10,7 +10,7 @@ import type { TasksAndModels } from '../tasks.js'
 
 const debug = createDebug("server:router:tasks");
 
-export class Tasks {
+export class TaskRouter {
   private readonly ownRouter: express.Router
 
   private tasksAndModels = Set<[Task, Model]>()

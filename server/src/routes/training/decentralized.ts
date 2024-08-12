@@ -7,7 +7,7 @@ import { Map, Set } from 'immutable'
 import type { Task, TaskID } from '@epfml/discojs'
 import { client } from '@epfml/discojs'
 
-import { Server } from '../server.js'
+import { TrainingRouter } from './base.js'
 
 import messages = client.decentralized.messages
 import AssignNodeID = client.messages.AssignNodeID
@@ -15,7 +15,7 @@ import MessageTypes = client.messages.type
 
 const debug = createDebug("server:router:decentralized")
 
-export class Decentralized extends Server {
+export class DecentralizedRouter extends TrainingRouter {
   /**
    * Map associating task ids to their sets of nodes who have contributed.
    */
@@ -26,22 +26,6 @@ export class Decentralized extends Server {
   private connections: Map<client.NodeID, WebSocket> = Map()
 
   protected readonly description = 'Disco Decentralized Server'
-
-  protected buildRoute (task: TaskID): string {
-    return `/${task}`
-  }
-
-  public isValidUrl (url: string | undefined): boolean {
-    const splittedUrl = url?.split('/')
-
-    return (
-      splittedUrl !== undefined &&
-      splittedUrl.length === 3 &&
-      splittedUrl[0] === '' &&
-      this.isValidTask(splittedUrl[1]) &&
-      this.isValidWebSocket(splittedUrl[2])
-    )
-  }
 
   protected initTask (): void {}
 

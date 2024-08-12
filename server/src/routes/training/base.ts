@@ -4,13 +4,15 @@ import type WebSocket from 'ws'
 
 import type { Model, Task, TaskID } from '@epfml/discojs'
 
-import type { TasksAndModels } from '../tasks.js'
+import type { TasksAndModels } from '../../tasks.js'
 
-export abstract class Server {
+export abstract class TrainingRouter {
   private readonly ownRouter: expressWS.Router
 
   private readonly tasks: string[] = new Array<string>()
   private readonly UUIDRegexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi
+
+  protected abstract readonly description: string
 
   constructor (wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels) {
     this.ownRouter = express.Router()
@@ -59,11 +61,21 @@ export abstract class Server {
     return urlEnd === '.websocket'
   }
 
-  public abstract isValidUrl (url?: string): boolean
+  protected buildRoute (task: TaskID): string {
+    return `/${task}`
+  }
 
-  protected abstract readonly description: string
+  public isValidUrl (url: string | undefined): boolean {
+    const splittedUrl = url?.split('/')
 
-  protected abstract buildRoute (task: TaskID): string
+    return (
+      splittedUrl !== undefined &&
+      splittedUrl.length === 3 &&
+      splittedUrl[0] === '' &&
+      this.isValidTask(splittedUrl[1]) &&
+      this.isValidWebSocket(splittedUrl[2])
+    )
+  }
 
   protected abstract initTask (task: TaskID, model: Model): void
 

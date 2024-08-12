@@ -10,9 +10,15 @@ import { Model, models, serialization } from '@epfml/discojs'
 
 const debug = createDebug("server:tasks");
 
-// default tasks and added ones
-// register 'taskAndModel' event to get tasks
-// TODO save and load from disk
+/**
+ * The TasksAndModels is essentially a set of the tasks (DISCOllaboratives)
+ * and associated their base models. The set of tasks is populated via the
+ * `addTaskAndModel` method.
+ * 
+ * Whenever a new task-model pair is added, an `taskAndModel` event is emitted,
+ * which can be subscribed to via the `on` method
+ * 
+ */
 export class TasksAndModels {
   private listeners = List<(t: Task, m: Model) => void>()
   tasksAndModels = Set<[Task, Model]>()
@@ -24,6 +30,32 @@ export class TasksAndModels {
 
   emit (_: 'taskAndModel', task: Task, model: Model): void {
     this.listeners.forEach((listener) => { listener(task, model) })
+  }
+
+  async addTaskAndModel (task: Task | TaskProvider, model?: Model | URL): Promise<void> {
+    // get the task
+    let discoTask: Task
+    if (isTask(task)) {
+      discoTask = task
+    } else {
+      discoTask = task.getTask()
+    }
+
+    // get the model
+    let tfModel: Model
+    if (model === undefined) {
+      tfModel = await this.loadModelFromTask(task)
+    } else if (model instanceof Model) {
+      tfModel = model
+    } else if (model instanceof URL) {
+      tfModel = new models.TFJS(await tf.loadLayersModel(model.href))
+    } else {
+      throw new Error('invalid model')
+    }
+
+    // Add the task-model pair to the set
+    this.tasksAndModels = this.tasksAndModels.add([discoTask, tfModel])
+    this.emit('taskAndModel', discoTask, tfModel)
   }
 
   // Returns already saved model in priority, then the model from the task definition
@@ -102,28 +134,5 @@ export class TasksAndModels {
     } else {
       debug("digest verified");
     }
-  }
-
-  async addTaskAndModel (task: Task | TaskProvider, model?: Model | URL): Promise<void> {
-    let discoTask: Task
-    if (isTask(task)) {
-      discoTask = task
-    } else {
-      discoTask = task.getTask()
-    }
-
-    let tfModel: Model
-    if (model === undefined) {
-      tfModel = await this.loadModelFromTask(task)
-    } else if (model instanceof Model) {
-      tfModel = model
-    } else if (model instanceof URL) {
-      tfModel = new models.TFJS(await tf.loadLayersModel(model.href))
-    } else {
-      throw new Error('invalid model')
-    }
-
-    this.tasksAndModels = this.tasksAndModels.add([discoTask, tfModel])
-    this.emit('taskAndModel', discoTask, tfModel)
   }
 }
