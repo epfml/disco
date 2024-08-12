@@ -66,8 +66,8 @@ export class Server {
       res.send('The DISCO Server\n')
       next()
     })
-    app.use('/feai', federatedRouter.router)
-    app.use('/deai', decentralizedRouter.router)
+    app.use('/federated', federatedRouter.router)
+    app.use('/decentralized', decentralizedRouter.router)
     app.use('/tasks', taskRouter.router)
 
     const server = await new Promise<http.Server>((resolve, reject) => {

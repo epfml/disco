@@ -50,7 +50,7 @@ export class Base extends Client {
       default:
         throw new Error(`unknown protocol: ${this.url.protocol}`)
     }
-    serverURL.pathname += `deai/${this.task.id}`
+    serverURL.pathname += `decentralized/${this.task.id}`
 
     this._server = await this.connectServer(serverURL)
 

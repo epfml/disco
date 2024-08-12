@@ -4,7 +4,7 @@
 
 // import { getApp } from '../../src/get_server'
 
-// const platformID = 'deai'
+// const platformID = 'decentralized'
 // const clients = {
 //   one: 'one',
 //   two: 'two'

@@ -9,7 +9,7 @@ import { type, type ClientConnected, type ClientDisconnected } from "../messages
 import {
   type EventConnection,
   waitMessageWithTimeout,
-  waitMessage,
+  // waitMessage,
   WebSocketServer,
 } from "../event_connection.js";
 import * as messages from "./messages.js";
@@ -68,7 +68,7 @@ export class Base extends Client {
         throw new Error(`unknown protocol: ${this.url.protocol}`);
     }
 
-    serverURL.pathname += `feai/${this.task.id}`;
+    serverURL.pathname += `federated/${this.task.id}`;
 
     this._server = await this.connectServer(serverURL);
     this.aggregator.registerNode(Base.SERVER_NODE_ID);

@@ -41,7 +41,7 @@ Adding a new task server-side can be done in several ways. See [TASK.md](https:/
 
 The server receives model weight updates from participants (clients), but never receives any training data. For every task, it keeps track of connected clients and weight updates, and periodically aggregates and serves the most recent weight updates.
 
-All endpoints listed below are implemented as messages on a WebSocket, mounted on the `/feai/:taskID/:clientID/` route. It means the endpoints trigger their actions for task `taskID` as client `clientID`.
+All endpoints listed below are implemented as messages on a WebSocket, mounted on the `/federated/:taskID/:clientID/` route. It means the endpoints trigger their actions for task `taskID` as client `clientID`.
 
 | Message               | From   | To     | Body                 | Action                                                  |
 | --------------------- | ------ | ------ | -------------------- | ------------------------------------------------------- |
@@ -53,7 +53,7 @@ All endpoints listed below are implemented as messages on a WebSocket, mounted o
 
 The server receives neither weight updates nor data, but keeps a list of available tasks and participants (clients) available for each task.
 
-All endpoints listed below are implemented as messages on a WebSocket, mounted on the `/deai/:taskID/:clientID/` route. It means the endpoints trigger their actions for task `taskID` as client `clientID`.
+All endpoints listed below are implemented as messages on a WebSocket, mounted on the `/decentralized/:taskID/:clientID/` route. It means the endpoints trigger their actions for task `taskID` as client `clientID`.
 
 | Message           | From   | To     | Body | Action                                     |
 | ----------------- | ------ | ------ | ---- | ------------------------------------------ |
