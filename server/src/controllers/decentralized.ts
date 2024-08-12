@@ -4,7 +4,6 @@ import msgpack from 'msgpack-lite'
 import type WebSocket from 'ws'
 import { Map, Set } from 'immutable'
 
-import type { Task, TaskID } from '@epfml/discojs'
 import { client } from '@epfml/discojs'
 
 import { TrainingController } from './base.js'
@@ -17,9 +16,9 @@ const debug = createDebug("server:routes:decentralized")
 
 export class DecentralizedController extends TrainingController {
   /**
-   * Map associating task ids to their sets of nodes who have contributed.
+   * Set of nodes who have contributed.
    */
-  private readyNodes: Map<TaskID, Set<client.NodeID>> = Map()
+  private readyNodes = Set<client.NodeID>()
   /**
    * Map associating node ids to their open WebSocket connections.
    */
@@ -27,9 +26,9 @@ export class DecentralizedController extends TrainingController {
 
   initTask (): void {}
 
-  handle (task: Task, ws: WebSocket): void {
+  handle (ws: WebSocket): void {
     // TODO @s314cy: add to task definition, to be used as threshold in aggregator
-    const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
+    const minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
 
     // Peer id of the message sender
     let peerId = randomUUID()
@@ -53,14 +52,9 @@ export class DecentralizedController extends TrainingController {
             const msg: AssignNodeID = {
               type: MessageTypes.AssignNodeID,
               id: peerId,
-              waitForMoreParticipants: (this.readyNodes.get(task.id)?.size ?? 0) < minimumReadyPeers
+              waitForMoreParticipants: this.readyNodes.size  < minimumReadyPeers
             }
             debug("peer ${peerId} joined ${task.id}");
-
-            // Add the new task and its set of nodes
-            if (!this.readyNodes.has(task.id)) {
-              this.readyNodes = this.readyNodes.set(task.id, Set())
-            }
 
             ws.send(msgpack.encode(msg), { binary: true })
             break
@@ -68,13 +62,9 @@ export class DecentralizedController extends TrainingController {
           // Send by peers at the beginning of each training round to get the list
           // of active peers for this round.
           case MessageTypes.PeerIsReady: {
-            const peers = this.readyNodes.get(task.id)?.add(peerId)
-            if (peers === undefined) {
-              throw new Error(`task ${task.id} doesn't exist in ready buffer`)
-            }
-            this.readyNodes = this.readyNodes.set(task.id, peers)
+            const peers = this.readyNodes.add(peerId)
             if (peers.size >= minimumReadyPeers) {
-              this.readyNodes = this.readyNodes.set(task.id, Set())
+              this.readyNodes = Set()
 
               peers
                 .map((id) => {
@@ -93,6 +83,8 @@ export class DecentralizedController extends TrainingController {
                   return [conn, encoded] as [WebSocket, Buffer]
                 }).forEach(([conn, encoded]) => { conn.send(encoded) }
                 )
+            } else {
+              this.readyNodes = peers
             }
             break
           }

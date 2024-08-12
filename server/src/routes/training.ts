@@ -19,19 +19,15 @@ export class TrainingRouter {
   private readonly UUIDRegexExp = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi
 
   protected readonly description: string
-  // The controller handles the actual logic of collaborative training
-  // in its `handle` method
-  protected readonly controller: TrainingController
-
-  constructor (wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels, scheme: 'federated' | 'decentralized') {
+  
+  constructor(private readonly trainingScheme: 'federated' | 'decentralized',
+    wsApplier: expressWS.Instance, tasksAndModels: TasksAndModels) {
     this.ownRouter = express.Router()
     wsApplier.applyTo(this.ownRouter)
 
     this.ownRouter.get('/', (_, res) => res.send(this.description + '\n'))
 
-    this.description = `Disco ${scheme} server`
-    this.controller = scheme == 'federated' ? new FederatedController() : new DecentralizedController()
-
+    this.description = `Disco ${this.trainingScheme} server`
     // delay listener because this (object) isn't fully constructed yet. The lambda function inside process.nextTick is executed after the current operation on the JS stack runs to completion and before the event loop is allowed to continue.
     /* this.onNewTask is registered as a listener to tasksAndModels, which has 2 consequences:
         - this.onNewTask is executed on all the default tasks (which are already loaded in tasksAndModels)
@@ -47,16 +43,26 @@ export class TrainingRouter {
     return this.ownRouter
   }
 
+  private initController(task: Task): TrainingController {
+    return this.trainingScheme == 'federated' ?
+      new FederatedController(task)
+      : new DecentralizedController(task)
+  }
+
   // Register the task and setup the controller to handle
   // websocket connections
   private onNewTask (task: Task, model: Model): void {
     this.tasks.add(task.id)
-    this.controller.initTask(task.id, model)
+    // The controller handles the actual logic of collaborative training
+    // in its `handle` method. Each task has a dedicated controller which
+    // handles the training logic of this task only
+    const taskController = this.initController(task)
+    taskController.initTask(model)
 
     // Setup a websocket route which calls the controller's `handle` method
     this.ownRouter.ws(this.buildRoute(task.id), (ws, req) => {
       if (this.isValidUrl(req.url)) {
-        this.controller.handle(task, ws, model, req)
+        taskController.handle(ws, model, req)
       } else {
         ws.terminate()
         ws.close()

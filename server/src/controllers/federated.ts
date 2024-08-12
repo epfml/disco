@@ -2,14 +2,9 @@
 import createDebug from "debug";
 import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
-import { Map } from 'immutable'
 import msgpack from 'msgpack-lite'
 
-import type {
-  Task,
-  TaskID,
-  WeightsContainer,
-} from '@epfml/discojs'
+import type { WeightsContainer } from '@epfml/discojs'
 import {
   aggregator as aggregators,
   client,
@@ -28,22 +23,20 @@ const debug = createDebug("server:controllers:federated")
 export class FederatedController extends TrainingController {
   /**
    * Aggregators for each hosted task.
+    By default the server waits for 100% of the nodes to send their contributions before aggregating the updates
+   * 
    */
-  private aggregators = Map<TaskID, aggregators.Aggregator>()
+  private aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
   /**
    * Promises containing the current round's results. To be awaited on when providing clients
    * with the most recent result.
    */
-  private results = Map<TaskID, Promise<WeightsContainer>>()
+  private result: Promise<WeightsContainer> | undefined = undefined
   /**
    * Map containing the latest global model of each task. The model is already serialized and 
    * can be sent to participants joining mid-training or contributing to previous rounds
    */
-  private latestGlobalModels = Map<TaskID, serialization.weights.Encoded>()
-  /**
-   * Mapping between tasks and their current round.
-   */
-  private rounds = Map<TaskID, number>()
+  private latestGlobalModel: serialization.weights.Encoded | undefined = undefined
 
   /**
    * Loop creating an aggregation result promise at each round.
@@ -52,32 +45,24 @@ export class FederatedController extends TrainingController {
    * one resolved and awaits until it resolves. The promise is used in createPromiseForWeights.
    * @param aggregator The aggregation handler
    */
-  private async storeAggregationResult (task: TaskID, aggregator: aggregators.Aggregator): Promise<void> {
+  private async storeAggregationResult (): Promise<void> {
     // Create a promise on the future aggregated weights
-    const resultPromise = new Promise<WeightsContainer>((resolve) => aggregator.once('aggregation', resolve))
     // Store the promise such that it is accessible from other methods
-    this.results = this.results.set(task, resultPromise)
+    this.result = new Promise<WeightsContainer>((resolve) => this.aggregator.once('aggregation', resolve))
     // The promise resolves once the server received enough contributions (through the handle method)
     // and the aggregator aggregated the weights.
-    const globalModel = await resultPromise
+    const globalModel = await this.result
     const serializedModel =  await serialization.weights.encode(globalModel)
-    this.latestGlobalModels = this.latestGlobalModels.set(task, serializedModel)
+    this.latestGlobalModel = serializedModel
 
-    // Update the server round with the aggregator round
-    this.rounds = this.rounds.set(task, aggregator.round)
     // Create a new promise for the next round
     // TODO weird usage, should be handled inside of aggregator
-    void this.storeAggregationResult(task, aggregator)
+    void this.storeAggregationResult()
   }
 
-  initTask(task: TaskID): void {
-    // The server waits for 100% of the nodes to send their contributions before aggregating the updates
-    const aggregator = new aggregators.MeanAggregator(undefined, 1, 'relative')
-
-    this.aggregators = this.aggregators.set(task, aggregator)
-    this.rounds = this.rounds.set(task, 0)
-
-    void this.storeAggregationResult(task, aggregator)
+  initTask(): void {
+    // start the perpetual promise loop
+    void this.storeAggregationResult()
   }
 
   /**
@@ -92,13 +77,10 @@ export class FederatedController extends TrainingController {
    * @param aggregator the server aggregator, in order to access the current round
    * @param ws the websocket through which send the aggregated weights
    */
-  private createPromiseForWeights (
-    task: TaskID,
-    aggregator: aggregators.Aggregator,
-    ws: WebSocket): void {
-    const promisedResult = this.results.get(task)
+  private createPromiseForWeights (ws: WebSocket): void {
+    const promisedResult = this.result
     if (promisedResult === undefined) {
-      throw new Error(`result promise was not set for task ${task}`)
+      throw new Error(`result promise was not set`)
     }
 
     // Wait for aggregation result to resolve with timeout, giving the network a time window
@@ -109,7 +91,7 @@ export class FederatedController extends TrainingController {
       ]).then((result) =>
       // Reply with round - 1 because the round number should match the round at which the client sent its weights
       // After the server aggregated the weights it also incremented the round so the server replies with round - 1
-        [result, aggregator.round - 1] as [WeightsContainer, number])
+        [result, this.aggregator.round - 1] as [WeightsContainer, number])
       .then(async ([result, round]) =>
         [await serialization.weights.encode(result), round] as [serialization.weights.Encoded, number])
       .then(([serialized, round]) => {
@@ -117,7 +99,7 @@ export class FederatedController extends TrainingController {
           type: MessageTypes.ReceiveServerPayload,
           round,
           payload: serialized,
-          nbOfParticipants: aggregator.nodes.size
+          nbOfParticipants: this.aggregator.nodes.size
         }
         ws.send(msgpack.encode(msg))
       })
@@ -134,14 +116,13 @@ export class FederatedController extends TrainingController {
    * @param task the task associated with the current websocket (= participant)
    * @param ws the websocket connection through which the participant and the server communicate
    */
-  handle(task: Task, ws: WebSocket): void {
-    const aggregator = this.aggregators.get(task.id)
-    if (aggregator === undefined)
-      throw new Error(`no aggregator for task ${task.id}`)
+  handle( ws: WebSocket): void {
+    if (this.aggregator === undefined)
+      throw new Error(`no aggregator for task ${this.task.id}`)
 
     // Client id of the message sender
     let clientId = randomUUID()
-    while (!aggregator.registerNode(clientId)) {
+    while (!this.aggregator.registerNode(clientId)) {
       clientId = randomUUID()
     }
 
@@ -153,9 +134,9 @@ export class FederatedController extends TrainingController {
       }
 
       if (msg.type === MessageTypes.ClientConnected) {
-        debug(`client ${clientId} joined ${task.id}`)
+        debug(`client ${clientId} joined ${this.task.id}`)
         // at least two participants in federated
-        const waitForMoreParticipants = aggregator.nodes.size < 2
+        const waitForMoreParticipants = this.aggregator.nodes.size < 2
         const msg: AssignNodeID = {
           type: MessageTypes.AssignNodeID,
           id: clientId,
@@ -163,35 +144,35 @@ export class FederatedController extends TrainingController {
         }
         ws.send(msgpack.encode(msg))
       } else if (msg.type === MessageTypes.ClientDisconnected) {
-        console.info('client', clientId, 'left', task.id)
+        debug(`client ${clientId} left ${this.task.id}`)
 
-        aggregator.removeNode(clientId)
+        this.aggregator.removeNode(clientId)
       } else if (msg.type === MessageTypes.SendPayload) {
 
         const { payload, round } = msg
-        if (aggregator.isValidContribution(clientId, round)) {
+        if (this.aggregator.isValidContribution(clientId, round)) {
           // We need to create a promise waiting for the global model before adding the contribution to the aggregator
           // (so that the aggregation and sending the global model to participants
           // doesn't happen before the promise is created)
-          this.createPromiseForWeights(task.id, aggregator, ws)
+          this.createPromiseForWeights(ws)
           // This is assuming that the federated server's aggregator
           // always works with a single communication round
           const weights = serialization.weights.decode(payload)
-          const addedSuccessfully = aggregator.add(clientId, weights, round)
+          const addedSuccessfully = this.aggregator.add(clientId, weights, round)
           if (!addedSuccessfully) throw new Error("Aggregator's isValidContribution returned true but failed to add the contribution")
         } else {
           // If the client sent an invalid or outdated contribution
           // the server answers with the current round and last global model update
-          debug(`Dropped contribution from client ${clientId} for round ${round}. Sending last global model from round ${aggregator.round - 1}`)
-          const latestSerializedModel = this.latestGlobalModels.get(task.id)
+          debug(`Dropped contribution from client ${clientId} for round ${round}` +
+            `Sending last global model from round ${this.aggregator.round - 1}`)
           // no latest model at the first round
-          if (latestSerializedModel === undefined) return
+          if (this.latestGlobalModel === undefined) return
           
           const msg: messages.ReceiveServerPayload = {
             type: MessageTypes.ReceiveServerPayload,
-            round: aggregator.round - 1, // send the model from the previous round
-            payload: latestSerializedModel,
-            nbOfParticipants: aggregator.nodes.size
+            round: this.aggregator.round - 1, // send the model from the previous round
+            payload: this.latestGlobalModel,
+            nbOfParticipants: this.aggregator.nodes.size
           }
           ws.send(msgpack.encode(msg))
         }

@@ -51,8 +51,8 @@ export class Server {
     app.use(express.urlencoded({ limit: "50mb", extended: false }));
 
     const taskRouter = new TaskRouter(this.#tasksAndModels)
-    const federatedRouter = new TrainingRouter(wsApplier, this.#tasksAndModels, 'federated')
-    const decentralizedRouter = new TrainingRouter(wsApplier, this.#tasksAndModels, 'decentralized')
+    const federatedRouter = new TrainingRouter('federated', wsApplier, this.#tasksAndModels)
+    const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#tasksAndModels)
 
     process.nextTick(() =>
       wsApplier.getWss().on('connection', (ws, req) => {

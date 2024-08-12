@@ -1,7 +1,7 @@
 import express from 'express'
 import type WebSocket from 'ws'
 
-import type { Model, Task, TaskID } from '@epfml/discojs'
+import type { Model, Task } from '@epfml/discojs'
 
 /**
  * The Controller abstraction is commonly used in Express
@@ -14,12 +14,17 @@ import type { Model, Task, TaskID } from '@epfml/discojs'
  * and what happens when receiving messages from participants
  * of a training session.
  * 
+ * More info on controllers:
+ * https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/routes
+ * 
  */
 export abstract class TrainingController {
-  abstract initTask (task: TaskID, model: Model): void
 
-  abstract handle (
-    task: Task,
+  constructor(protected readonly task: Task) { }
+
+  abstract initTask (model: Model): void
+
+  abstract handle(
     ws: WebSocket,
     model: Model,
     req: express.Request,
