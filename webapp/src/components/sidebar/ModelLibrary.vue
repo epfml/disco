@@ -27,7 +27,7 @@
               :key="id"
               class="flex items-center justify-between px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800"
             >
-              <div class="cursor-pointer w-2/3" @click="openTesting(id)">
+              <div class="cursor-pointer w-2/3 text-left" @click="openTesting(id)">
                 <span>
                   {{ metadata.name.slice(0, 16) }}
                   <span
@@ -38,7 +38,7 @@
                 ({{ metadata.version }}) </span
               ><br />
               </span>
-                  <span class="text-xs">
+                  <span class="text-xs flex flex-col text-left mt-1">
                     
                     {{ metadata.date }} at {{ metadata.hours }} <br />
                     {{ metadata.fileSize }} kB
@@ -48,7 +48,7 @@
                 <ModelButton
                   event="delete-model"
                   hover="Delete"
-                  @delete-model="deleteModel(id)"
+                  @delete-model="deleteModelConfirm(id)"
                 >
                   <Bin2Icon />
                 </ModelButton>
@@ -69,15 +69,6 @@
                   @load-model="loadModel(id)"
                 >
                   <LoadIcon />
-                </ModelButton>
-              </div>
-              <div class="w-1/9">
-                <ModelButton
-                  event="delete-model"
-                  hover="Delete"
-                  @delete-model="deleteModelConfirm(id)"
-                >
-                  <Bin2Icon />
                 </ModelButton>
               </div>
             </button>
@@ -135,7 +126,7 @@ import { List } from "immutable";
 import { onMounted, ref, type ShallowRef } from "vue";
 import { useRouter } from "vue-router";
 
-import type { Model, Path } from "@epfml/discojs";
+import type { Model } from "@epfml/discojs";
 import { EmptyMemory } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 

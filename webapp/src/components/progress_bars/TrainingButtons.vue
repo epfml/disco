@@ -38,7 +38,6 @@ const route = useRoute()
 
 const scrollToTop = ():void => {
   const appElement = document.getElementById('scrollable-div');
-  console.log(appElement)
   if (appElement) {
     appElement.scrollTop = 0;
   }
