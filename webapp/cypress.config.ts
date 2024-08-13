@@ -5,7 +5,6 @@ import * as fs from "node:fs/promises";
 export default defineConfig({
   e2e: {
     baseUrl: "http://localhost:8081/",
-    supportFile: false,
     setupNodeEvents(on) {
       on("task", {
         readdir: async (p: string) =>

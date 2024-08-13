@@ -1,40 +1,18 @@
-import type { Task, TrainingInformation } from "@epfml/discojs";
+import { basicTask, setupServerWith } from "../support/e2e";
 
 // TODO move to components testing
 // upstream doesn't yet allow that vuejs/test-utils#2468
 
-function basicTask(
-  info: Partial<TrainingInformation> & Pick<TrainingInformation, "dataType">,
-): Task {
-  return {
-    id: "task",
-    trainingInformation: {
-      ...info,
-      modelID: "task",
-      epochs: 1,
-      batchSize: 1,
-      roundDuration: 1,
-      validationSplit: 1,
-      tensorBackend: "tfjs",
-      scheme: "local",
-    },
-    displayInformation: {
-      taskTitle: "task",
-      summary: { preview: "preview", overview: "overview" },
-    },
-  };
-}
-
 describe("image dataset input by group", () => {
   it("shows passed labels", () => {
-    cy.intercept({ hostname: "server", pathname: "tasks" }, [
+    setupServerWith(
       basicTask({
         dataType: "image",
         LABEL_LIST: ["first", "second", "third"],
         IMAGE_H: 100,
         IMAGE_W: 100,
       }),
-    ]);
+    );
 
     cy.visit("/#/list");
     cy.get("button").contains("participate").click();
@@ -49,14 +27,14 @@ describe("image dataset input by group", () => {
   });
 
   it("allows to input images", () => {
-    cy.intercept({ hostname: "server", pathname: "tasks" }, [
+    setupServerWith(
       basicTask({
         dataType: "image",
         LABEL_LIST: ["label"],
         IMAGE_H: 100,
         IMAGE_W: 100,
       }),
-    ]);
+    );
 
     cy.visit("/#/list");
     cy.get("button").contains("participate").click();
@@ -76,14 +54,14 @@ describe("image dataset input by group", () => {
 
 describe("image dataset input by csv", () => {
   it("allows to input CSV then images", () => {
-    cy.intercept({ hostname: "server", pathname: "tasks" }, [
+    setupServerWith(
       basicTask({
         dataType: "image",
         LABEL_LIST: ["label"],
         IMAGE_H: 100,
         IMAGE_W: 100,
       }),
-    ]);
+    );
 
     cy.visit("/#/list");
     cy.get("button").contains("participate").click();
@@ -113,11 +91,7 @@ describe("image dataset input by csv", () => {
 
 describe("tabular dataset input", () => {
   it("allows to input CSV", () => {
-    cy.intercept({ hostname: "server", pathname: "tasks" }, [
-      basicTask({
-        dataType: "tabular",
-      }),
-    ]);
+    setupServerWith(basicTask({ dataType: "tabular" }));
 
     cy.visit("/#/list");
     cy.get("button").contains("participate").click();
