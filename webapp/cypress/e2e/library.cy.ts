@@ -8,15 +8,6 @@ import { setupServerWith } from "../support/e2e.ts";
 // we can't test via component stubs as it requires IndexedDB
 
 describe("model library", () => {
-  beforeEach(
-    () =>
-      new Promise((resolve, reject) => {
-        const req = window.indexedDB.deleteDatabase("tensorflowjs");
-        req.onerror = reject;
-        req.onsuccess = resolve;
-      }),
-  );
-
   /** Ensure that downloaded model is TFJS and trainable */
   function expectDownloadOfTFJSModelIsTrainable(modelName: string): void {
     const folder = Cypress.config("downloadsFolder");
