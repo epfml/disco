@@ -1,11 +1,11 @@
-import type { TaskProvider } from "@epfml/discojs";
-import { defaultTasks, serialization } from "@epfml/discojs";
+import { defaultTasks } from "@epfml/discojs";
+
+import { setupServerWith } from "../support/e2e";
 
 describe("training page", () => {
   it("is navigable", () => {
-    cy.intercept({ hostname: "server", pathname: "tasks" }, [
-      defaultTasks.titanic.getTask(),
-    ]);
+    setupServerWith(defaultTasks.titanic);
+
     cy.visit("/");
 
     cy.contains("button", "get started").click();
@@ -21,32 +21,8 @@ describe("training page", () => {
     }
   });
 
-  function setupServertWith(tp: TaskProvider): void {
-    const id = tp.getTask().id;
-
-    cy.intercept({ hostname: "server", pathname: "tasks" }, [tp.getTask()]);
-
-    // cypress really wants to JSON encode our buffer.
-    // to avoid that, we are replacing it directly in the response
-    cy.intercept(
-      { hostname: "server", pathname: `/tasks/${id}/model.json` },
-      { statusCode: 200 },
-    );
-    cy.wrap<Promise<serialization.model.Encoded>, serialization.model.Encoded>(
-      tp.getModel().then(serialization.model.encode),
-    ).then((encoded) =>
-      cy.intercept(
-        { hostname: "server", pathname: `/tasks/${id}/model.json` },
-        (req) =>
-          req.on("response", (res) => {
-            res.body = encoded;
-          }),
-      ),
-    );
-  }
-
   it("can train titanic", () => {
-    setupServertWith(defaultTasks.titanic);
+    setupServerWith(defaultTasks.titanic);
 
     cy.visit("/");
 
@@ -70,7 +46,7 @@ describe("training page", () => {
   });
 
   it("can start and stop training of lus_covid", () => {
-    setupServertWith(defaultTasks.lusCovid);
+    setupServerWith(defaultTasks.lusCovid);
 
     // throwing to stop training
     cy.on("uncaught:exception", (e) => !e.message.includes("stop training"));
