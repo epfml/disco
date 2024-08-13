@@ -437,7 +437,8 @@ async function testModel(): Promise<void> {
           break;
         }
         case "text":
-          throw new Error("TODO implement tester");
+          // TODO nothing to show for now
+          dataWithPred.value = []
       }
     }
 

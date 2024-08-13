@@ -289,7 +289,7 @@ watch(tabularDataset, async (dataset) => {
   const wantedColumns = Set(currentTask.value.trainingInformation.inputColumns);
 
   try {
-    for await (const [columns, i] of dataset
+    for await (const [columns, i] of toRaw(dataset)
       .map((row) => Set(Object.keys(row)))
       .zip(Range(1)))
       if (!columns.isSuperset(wantedColumns))
