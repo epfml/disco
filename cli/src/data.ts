@@ -5,7 +5,7 @@ import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 
 async function loadSimpleFaceData(): Promise<Dataset<[Image, string]>> {
-  const folder = "../datasets/simple_face";
+  const folder = path.join("..", "datasets", "simple_face");
 
   const [adults, childs]: Dataset<[Image, string]>[] = [
     (await loadImagesInDir(path.join(folder, "adult"))).zip(Repeat("adult")),
@@ -16,7 +16,7 @@ async function loadSimpleFaceData(): Promise<Dataset<[Image, string]>> {
 }
 
 async function loadLusCovidData(): Promise<Dataset<[Image, string]>> {
-  const folder = "../datasets/lus_covid";
+  const folder = path.join("..", "datasets", "lus_covid");
 
   const [positive, negative]: Dataset<[Image, string]>[] = [
     (await loadImagesInDir(path.join(folder, "COVID+"))).zip(
@@ -35,7 +35,10 @@ export async function getTaskData(task: Task): Promise<TypedLabeledDataset> {
     case "simple_face":
       return ["image", await loadSimpleFaceData()];
     case "titanic":
-      return ["tabular", loadCSV("../datasets/titanic_train.csv")];
+      return [
+        "tabular",
+        loadCSV(path.join("..", "datasets", "titanic_train.csv")),
+      ];
     case "cifar10":
       return [
         "image",
