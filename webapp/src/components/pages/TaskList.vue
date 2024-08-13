@@ -20,7 +20,7 @@
         v-else
       >
         <IconCard class="justify-self-center w-full">
-        <template #title> What are <DISCOllaboratives />? </template>
+        <template #title> What are&nbsp;<DISCOllaboratives />? </template>
           <template #icon> <TasksIcon/> </template>
 
           <DISCOllaboratives /> are machine learning tasks, such as diagnosing COVID from ultrasounds or classifying hand written digits, that users can join to train and contribute to with their own data. To give you a sense of <DISCO />, we pre-defined some tasks
