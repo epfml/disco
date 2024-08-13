@@ -197,7 +197,15 @@
 
 <script lang="ts" setup>
 import createDebug from "debug";
-import { watch, computed, ref, shallowRef, onActivated, onMounted } from "vue";
+import {
+  watch,
+  computed,
+  ref,
+  shallowRef,
+  toRaw,
+  onActivated,
+  onMounted,
+} from "vue";
 import { RouterLink } from "vue-router";
 import { storeToRefs } from "pinia";
 import { List, Range, Set } from "immutable";
@@ -263,10 +271,12 @@ const dataset = computed<TypedNamedLabeledDataset | undefined>(() => {
   )
     throw new Error("multiple dataset entered");
 
-  if (imageDataset.value !== undefined) return ["image", imageDataset.value];
+  if (imageDataset.value !== undefined)
+    return ["image", toRaw(imageDataset.value)];
   if (tabularDataset.value !== undefined)
-    return ["tabular", tabularDataset.value];
-  if (textDataset.value !== undefined) return ["text", textDataset.value];
+    return ["tabular", toRaw(tabularDataset.value)];
+  if (textDataset.value !== undefined)
+    return ["text", toRaw(textDataset.value)];
 
   return undefined;
 });

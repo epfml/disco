@@ -121,7 +121,7 @@ const dataset = computed<TypedLabeledDataset | undefined>(() => {
   if (imageDataset.value !== undefined)
     return [
       "image",
-      toRaw(imageDataset.value.map(({ image, label }) => [image, label])),
+      toRaw(imageDataset.value).map(({ image, label }) => [image, label]),
     ];
   if (tabularDataset.value !== undefined)
     return ["tabular", toRaw(tabularDataset.value)];
