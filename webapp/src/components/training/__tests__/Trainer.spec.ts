@@ -57,8 +57,8 @@ async function setupForTask() {
 
 it("increases accuracy when training alone", async () => {
   const wrapper = await setupForTask();
-
-  await wrapper.get("button").trigger("click");
+  await wrapper.get("#training-locally-bttn").trigger("click");
+  await wrapper.get("#start-training-bttn").trigger("click");
   const infos = wrapper.getComponent(TrainingInformation);
   while (infos.props("epochsOfRound").isEmpty()) {
     await new Promise((resolve) => setTimeout(resolve, 100));

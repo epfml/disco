@@ -15,6 +15,7 @@
             <!-- Toggle buttons between training collaboratively and locally -->
             <div class="flex justify-center">
               <button
+                id="train-collaboratively-bttn"
                 class="w-60 py-1 uppercase text-lg rounded-l-lg border-2 border-disco-cyan focus:outline-none"
                 :class="isTrainingAlone ? 'text-disco-cyan bg-transparent' : 'text-white bg-disco-cyan'"
                 @click="isTrainingAlone = false"
@@ -26,6 +27,7 @@
                 collaboratively
               </button>
               <button
+                id="training-locally-bttn"
                 class="w-60 py-1 uppercase text-lg rounded-r-lg border-2 border-disco-cyan focus:outline-none"
                 :class="isTrainingAlone ? 'text-white bg-disco-cyan': 'text-disco-cyan bg-transparent'"
                 @click="isTrainingAlone = true"
@@ -36,6 +38,7 @@
             <!-- Start training button -->
             <div class="flex justify-center">
               <button
+                id="start-training-bttn"
                 type="button"
                 @click="startTraining()"
                 class="
@@ -159,7 +162,12 @@ const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
 const messages = ref(List<string>());
-const trainingStatus = ref<TrainingStatus | undefined>();
+const trainingStatus = ref<TrainingStatus>();
+/**
+ * Store the training cleanup function to make sure it can be ran if users
+ * manually stop the training.
+ */
+const cleanupTrainingSessionFn = ref<() => Promise<void>>();
 
 const hasValidationData = computed(
   () => props.task.trainingInformation.validationSplit > 0,
@@ -217,6 +225,15 @@ async function startTraining(): Promise<void> {
     scheme: isTrainingAlone.value ? "local": props.task.trainingInformation.scheme,
   });
 
+  // Store the cleanup function such that it can be ran if users
+  // manually interrupt the training
+  cleanupTrainingSessionFn.value = async () => {
+    await disco.close()
+    displayModelCaching.value = true // show model caching buttons again after training
+    trainingGenerator.value = undefined;
+    isTraining.value = false
+  }
+
   try {
     displayModelCaching.value = false // hide model caching buttons during training
     trainingGenerator.value = disco.train(dataset);
@@ -254,13 +271,22 @@ async function startTraining(): Promise<void> {
     debug("while training: %o", e);
     return;
   } finally {
-    await disco.close()
-    displayModelCaching.value = true // show model caching buttons again after training
-    trainingGenerator.value = undefined;
-    isTraining.value = false
+    cleanupTrainingSession()
   }
 
   toaster.success("Training successfully completed");
+}
+
+/**
+ * 
+ */
+async function cleanupTrainingSession() {
+  // check if the function has been initialized
+  if (cleanupTrainingSessionFn.value === undefined) return
+  // Calling the cleanup function returns a promise
+  // awaiting the promise notifies the network that we are disconnecting
+  await cleanupTrainingSessionFn.value()
+  cleanupTrainingSessionFn.value = undefined
 }
 
 async function stopTraining(): Promise<void> {
@@ -272,5 +298,9 @@ async function stopTraining(): Promise<void> {
 
   epochGenerator.value?.throw(stopper);
   epochGenerator.value = undefined;
+
+  // Cleanup the session, potentially already done if the
+  // stopper error was caught
+  cleanupTrainingSession()
 }
 </script>
