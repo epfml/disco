@@ -20,7 +20,7 @@ const debug = createDebug("discojs:client:federated");
  * Client class that communicates with a centralized, federated server, when training
  * a specific task in the federated setting.
  */
-export class Base extends Client {
+export class FederatedClient extends Client {
   /**
    * Arbitrary node id assigned to the federated server which we are communicating with.
    * Indeed, the server acts as a node within the network. In the federated setting described
@@ -90,7 +90,7 @@ export class Base extends Client {
         this.#promiseForMoreParticipants = this.waitForMoreParticipants()
       })
 
-    this.aggregator.registerNode(Base.SERVER_NODE_ID);
+    this.aggregator.registerNode(FederatedClient.SERVER_NODE_ID);
 
     const msg: ClientConnected = {
       type: type.ClientConnected,
@@ -145,7 +145,7 @@ export class Base extends Client {
     this._server = undefined;
     this._ownId = undefined;
 
-    this.aggregator.setNodes(this.aggregator.nodes.delete(Base.SERVER_NODE_ID));
+    this.aggregator.setNodes(this.aggregator.nodes.delete(FederatedClient.SERVER_NODE_ID));
 
     return Promise.resolve();
   }
@@ -196,7 +196,7 @@ export class Base extends Client {
 
     if (
       serverResult !== undefined &&
-      this.aggregator.add(Base.SERVER_NODE_ID, serverResult, this.aggregator.round)
+      this.aggregator.add(FederatedClient.SERVER_NODE_ID, serverResult, this.aggregator.round)
     ) {
       // Regular case: the server sends us its aggregation result which will serve our
       // own aggregation result.
