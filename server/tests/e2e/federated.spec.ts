@@ -90,7 +90,7 @@ describe("end-to-end federated", () => {
     return disco.trainer.model.weights
   }
 
-  async function wikitextUser(): Promise<void> {
+  async function wikitextUser(): Promise<WeightsContainer> {
     const trainingScheme = 'federated'
     const task = defaultTasks.wikitext.getTask()
     task.trainingInformation.scheme = trainingScheme
@@ -111,6 +111,7 @@ describe("end-to-end federated", () => {
     expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
       logs.last()?.epochs.last()?.training.loss as number,
     );
+    return disco.trainer.model.weights
   }
 
   async function lusCovidUser (): Promise<WeightsContainer> {
@@ -166,10 +167,11 @@ describe("end-to-end federated", () => {
     const [m1, m2] = await Promise.all([lusCovidUser(), lusCovidUser()]);
     assert.isTrue(m1.equals(m2))
   });
-
-  it("trains wikitext", async function () {
+  
+  it("two wikitext reach consensus", async function () {
     this.timeout("3m");
-
-    await wikitextUser();
+    
+    const [m1, m2] = await Promise.all([wikitextUser(), wikitextUser()]);
+    assert.isTrue(m1.equals(m2))
   });
 })
