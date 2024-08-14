@@ -8,30 +8,67 @@
     </div>
     <!-- Train Button -->
     <div class="flex justify-center">
-      <IconCard title-placement="center">
+      <IconCard title-placement="center" :fill-space="true">
         <template #title> Control the Training Flow </template>
-
-        <div v-if="trainingGenerator === undefined">
-          <div class="grid grid-cols-2 gap-8">
-            <CustomButton @click="startTraining(false)">
-              train alone
-            </CustomButton>
-            <CustomButton
-              v-tippy="{
-                content: 'Note that if you are the only participant the training will not be collaborative. You can open multiple tabs to emulate different participants by yourself.',
-                placement: 'right'
-              }"
-              @click="startTraining(true)"
-            >
-              train collaboratively
-            </CustomButton>
+          <!-- If we are not currently training -->
+          <div v-if="trainingGenerator === undefined" class="flex flex-col gap-y-4">
+            <!-- Toggle buttons between training collaboratively and locally -->
+            <div class="flex justify-center">
+              <button
+                class="w-60 py-1 uppercase text-lg rounded-l-lg border-2 border-disco-cyan focus:outline-none"
+                :class="isTrainingAlone ? 'text-disco-cyan bg-transparent' : 'text-white bg-disco-cyan'"
+                @click="isTrainingAlone = false"
+                v-tippy="{
+                  content: 'Note that if you are the only participant the training will not be collaborative. You can open multiple tabs to emulate different participants by yourself.',
+                  placement: 'left'
+                }"
+              >
+                collaboratively
+              </button>
+              <button
+                class="w-60 py-1 uppercase text-lg rounded-r-lg border-2 border-disco-cyan focus:outline-none"
+                :class="isTrainingAlone ? 'text-white bg-disco-cyan': 'text-disco-cyan bg-transparent'"
+                @click="isTrainingAlone = true"
+              >
+                locally
+              </button>
+            </div>
+            <!-- Start training button -->
+            <div class="flex justify-center">
+              <button
+                type="button"
+                @click="startTraining()"
+                class="
+                mt-4 px-6 py-2 min-w-[8rem]
+                text-xl uppercase text-white
+                bg-orange-400 rounded duration-200
+                hover:bg-white hover:outline hover:outline-orange-400 hover:outline-2 hover:text-orange-400"
+              >
+                start training
+              </button>
+            </div>
           </div>
-        </div>
-        <div v-else>
-          <div class="flex justify-center">
-            <CustomButton @click="stopTraining()"> stop training </CustomButton>
+          <!-- If we are currently training -->
+          <div v-else class="flex flex-col justify-center items-center gap-y-4">
+            <!-- Display the training status if defined -->
+            <div v-if="trainingStatus !== undefined && trainingStatus.length > 0">
+              <span class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase">Status</span>
+              <span class="ml-5 font-mono text-md font-medium leading-none tracking-wider text-gray-600">{{ trainingStatus }}</span>
+            </div>
+            <!-- Display an activity indicator depending on the training status -->
+            <div class="min-h-9">
+              <div v-if="trainingStatus === 'Waiting for more participants'">
+                <VueSpinnerPuff size="30" color="#6096BA"/>
+              </div>
+              <div v-else>
+                <VueSpinnerGears size="30" color="#6096BA"/>
+              </div>
+            </div>
+            <!-- Stop training button -->
+            <div>
+              <CustomButton @click="stopTraining()"> stop training </CustomButton>
+            </div>
           </div>
-        </div>
       </IconCard>
     </div>
     <!-- Demo warning -->
@@ -44,7 +81,7 @@
           class='underline text-blue-400 font-bold'
           target="_blank"
           href="https://github.com/epfml/disco/blob/develop/DEV.md"
-          >these steps.</a>
+          >these steps</a>.
           <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
           <span
             v-if="props.task.trainingInformation.dataType === 'text'"
@@ -76,7 +113,7 @@ import createDebug from "debug";
 import { List } from "immutable";
 import { ref, computed } from "vue";
 
-import type { BatchLogs, EpochLogs, RoundLogs, Task } from "@epfml/discojs";
+import type { BatchLogs, EpochLogs, RoundLogs, Task, TrainingStatus } from "@epfml/discojs";
 import { async_iterator, data, EmptyMemory, Disco } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
@@ -88,6 +125,7 @@ import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import { CONFIG } from '../../config'
+import { VueSpinnerPuff, VueSpinnerGears } from 'vue3-spinners';
 
 const debug = createDebug("webapp:training:Trainer");
 const toaster = useToaster();
@@ -121,6 +159,7 @@ const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
 const messages = ref(List<string>());
+const trainingStatus = ref<TrainingStatus | undefined>();
 
 const hasValidationData = computed(
   () => props.task.trainingInformation.validationSplit > 0,
@@ -131,9 +170,8 @@ const isTrainingAlone = ref(false)
 
 const stopper = new Error("stop training")
 
-async function startTraining(distributed: boolean): Promise<void> {
+async function startTraining(): Promise<void> {
   isTraining.value = true
-  isTrainingAlone.value = !distributed
   // Reset training information before starting a new training
   trainingGenerator.value = undefined
   roundsLogs.value = List<RoundLogs>()
@@ -171,15 +209,12 @@ async function startTraining(distributed: boolean): Promise<void> {
 
   const disco = await Disco.fromTask(props.task, CONFIG.serverUrl, {
     logger: {
-      success: (msg: string) => {
-        messages.value = messages.value.push(msg);
-      },
-      error: (msg: string) => {
-        messages.value = messages.value.push(msg);
-      },
+      success: (msg: string) => messages.value = messages.value.push(msg),
+      error: (msg: string) => messages.value = messages.value.push(msg),
+      setStatus: (status: TrainingStatus) => trainingStatus.value = status
     },
     memory: memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory(),
-    scheme: distributed ? props.task.trainingInformation.scheme : "local",
+    scheme: isTrainingAlone.value ? "local": props.task.trainingInformation.scheme,
   });
 
   try {
