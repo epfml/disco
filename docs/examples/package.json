@@ -21,6 +21,6 @@
   "devDependencies": {
     "eslint": "8",
     "typescript": "5",
-    "typescript-eslint": "7"
+    "typescript-eslint": "8"
   }
 }
