@@ -7,7 +7,7 @@ export * as client from './client/index.js'
 export * as aggregator from './aggregator/index.js'
 
 export { WeightsContainer, aggregation } from './weights/index.js'
-export { Logger, ConsoleLogger, TrainingStatus } from './logging/index.js'
+export { Logger, ConsoleLogger, MockLogger, TrainingStatus } from './logging/index.js'
 export { Memory, type ModelInfo, type ModelSource, Empty as EmptyMemory } from './memory/index.js'
 export { Disco, RoundLogs } from './training/index.js'
 export { Validator } from './validation/index.js'

@@ -11,7 +11,7 @@ export async function timeout (ms = MAX_WAIT_PER_ROUND, errorMsg: string = 'time
 }
 
 export function getClient(trainingScheme: Required<Task['trainingInformation']['scheme']>,
-  serverURL: URL, task: Task, aggregator: aggregator.Aggregator, logger: Logger): clients.Client {
+  serverURL: URL, task: Task, aggregator: aggregator.Aggregator, logger?: Logger): clients.Client {
 
   switch (trainingScheme) {
     case 'decentralized':
