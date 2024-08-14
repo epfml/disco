@@ -1,4 +1,4 @@
-export { Base as Client } from './base.js'
+export { Client } from './client.js'
 
 export * from './types.js'
 

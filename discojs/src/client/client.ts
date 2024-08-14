@@ -10,7 +10,7 @@ import type { Aggregator } from '../aggregator/index.js'
  * Main, abstract, class representing a Disco client in a network, which handles
  * communication with other nodes, be it peers or a server.
  */
-export abstract class Base {
+export abstract class Client {
   /**
    * Own ID provided by the network's server.
    */

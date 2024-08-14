@@ -4,7 +4,7 @@ import {
   serialization,
   type WeightsContainer,
 } from "../../index.js";
-import { Base as Client } from "../base.js";
+import { Client } from "../client.js";
 import { type, type ClientConnected, type ClientDisconnected } from "../messages.js";
 import {
   type EventConnection,

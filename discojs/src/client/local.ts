@@ -1,7 +1,7 @@
 import { WeightsContainer } from "../weights/weights_container.js";
-import { Base } from "./base.js";
+import { Client } from "./client.js";
 
-export class Local extends Base {
+export class Local extends Client {
   onRoundEndCommunication(
     weights: WeightsContainer,
   ): Promise<WeightsContainer> {
