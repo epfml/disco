@@ -29,6 +29,7 @@
                   }
                 )"
               >
+              <div class="flex">
                 <label
                   :for="field.id"
                   class="
@@ -38,7 +39,7 @@
                     md:text-right
                     mb-1
                     md:mb-0
-                    pr-4
+                    pr-2
                   "
                 >
                   <span
@@ -50,10 +51,21 @@
                     v-html="field.name"
                   />
                 </label>
+                <div>
+                <span
+                  class="hover:cursor-pointer"
+                  v-tippy="{
+                    content: getContent(field),
+                  }"
+                >
+                  <i class="fa fa-question mr-1" />
+                </span>
+                </div>
                 <ErrorMessage
-                  class="text-red-600"
+                  class="text-red-600 pl-2"
                   :name="field.id"
                 />
+                </div>
                 <SelectContainer
                   v-if="field.id === 'dataType'"
                   v-model="dataType"
@@ -281,5 +293,9 @@ const isFieldVisible = (
   }
   const potentialDependencies: Array<keyof FormDependency> = ['dataType', 'scheme', 'decentralizedSecure']
   return potentialDependencies.every((key) => fieldDeps[key] !== dependencies[key])
+}
+
+const getContent = (field: FormField): string => {
+  return "Expected type : " + field.type
 }
 </script>
