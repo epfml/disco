@@ -11,7 +11,7 @@ import {
   serialization,
 } from '@epfml/discojs'
 
-import { TrainingController } from "./base.js";
+import { TrainingController } from "./training_controller.js";
 
 import Messages = client.messages
 import MessageTypes = Messages.type

@@ -6,7 +6,7 @@ import { Map, Set } from 'immutable'
 
 import { client } from '@epfml/discojs'
 
-import { TrainingController } from './base.js'
+import { TrainingController } from './training_controller.js'
 
 import messages = client.decentralized.messages
 import AssignNodeID = client.messages.AssignNodeID
