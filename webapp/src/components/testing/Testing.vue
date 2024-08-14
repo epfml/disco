@@ -171,6 +171,8 @@
       />
     </KeepAlive>
   </div>
+  <TestingButtons class="mt-5"/>
+
 </template>
 <script lang="ts" setup>
 import createDebug from "debug";
@@ -200,6 +202,7 @@ import Tester from '@/components/testing/Tester.vue'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
+import TestingButtons from "../progress_bars/TestingButtons.vue";
 
 const debug = createDebug("webapp:Tester");
 const validationStore = useValidationStore()

@@ -133,8 +133,8 @@
         <div>
           <p>
             After submitting the form, others will be able to join the task by going into the
-            DISCOllaborative page, and uploading their private data. You can simulate multiple
-            personn by opening a new tab in your browser you can have a detailed explanation About
+            <span @click="goToDiscollaborative()" class="underline font-bold cursor-pointer">DISCOllaborative page</span>, and uploading their private data. You can simulate multiple
+            people by opening a new tab in your browser you can have a detailed explanation About
             how Disco works <span @click="goToInformation()" class="underline font-bold	cursor-pointer">here</span>.
           </p>
         </div>
@@ -312,11 +312,20 @@ const isFieldVisible = (
 const getContent = (field: FormField): string => {
   return "Expected type : " + field.type
 }
+
 function goToInformation () {
   const scrollableDiv = document.getElementById('scrollable-div');
   if (scrollableDiv !== null) {
     scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
   }
   router.push({ path: '/information' })
+}
+
+function goToDiscollaborative () {
+  const scrollableDiv = document.getElementById('scrollable-div');
+  if (scrollableDiv !== null) {
+    scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
+  }
+  router.push({ path: '/list' })
 }
 </script>

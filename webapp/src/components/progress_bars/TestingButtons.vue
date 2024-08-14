@@ -37,7 +37,7 @@ const showNext = computed<boolean>(() =>
   validationStore.step > 0 && validationStore.step < 2)
 
   const scrollToTop = ():void => {
-  const appElement = document.getElementById('main-page');
+  const appElement = document.getElementById('scrollable-div');
   if (appElement) {
     appElement.scrollTop = 0;
   }
