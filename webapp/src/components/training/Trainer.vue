@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- If a cached model exists, display it -->
-    <div v-if="displayModelCaching">
+    <div v-if="!isTraining">
       <ModelCaching :task="task" />
     </div>
     <!-- Train Button -->
@@ -9,7 +9,7 @@
       <IconCard title-placement="center">
         <template #title> Control the Training Flow </template>
 
-        <div v-if="trainingGenerator === undefined">
+        <div v-if="!isTraining">
           <div class="grid grid-cols-2 gap-8">
             <CustomButton @click="startTraining(false)">
               train alone
@@ -112,8 +112,6 @@ const props = defineProps<{
   dataset?: TypedLabeledDataset;
 }>();
 
-const displayModelCaching = ref(true);
-
 const trainingGenerator =
   ref<
     AsyncGenerator<
@@ -135,6 +133,8 @@ const hasValidationData = computed(
 const isTraining = computed(() => trainingGenerator.value !== undefined);
 const isTrainingAlone = ref(false);
 
+// value to throw in generator to stop training
+// TODO better to use an AbortController but if the training fails somehow, it never returns
 const stopper = new Error("stop training");
 
 async function startTraining(distributed: boolean): Promise<void> {
@@ -169,7 +169,6 @@ async function startTraining(distributed: boolean): Promise<void> {
   });
 
   try {
-    displayModelCaching.value = false; // hide model caching buttons during training
     trainingGenerator.value = disco.train(dataset);
 
     roundsLogs.value = List<RoundLogs>();
@@ -215,7 +214,6 @@ async function startTraining(distributed: boolean): Promise<void> {
     debug("while training: %o", e);
     return;
   } finally {
-    displayModelCaching.value = true; // show model caching buttons again after training
     trainingGenerator.value = undefined;
   }
 
