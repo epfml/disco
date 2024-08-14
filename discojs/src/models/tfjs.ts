@@ -104,6 +104,7 @@ export class TFJS extends Model {
       if (values.length !== 1) throw new Error("more than one metric value");
       return values[0];
     });
+    tf.dispose(evaluation)
 
     const [accuracy, loss] = [
       metricToValue.get("acc"),

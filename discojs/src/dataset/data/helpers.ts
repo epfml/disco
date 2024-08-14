@@ -15,19 +15,13 @@ import { convertors } from "../../index.js";
 import { Data, ImageData, TabularData, TextData } from "./index.js";
 import { DataSplit } from "./data_split.js";
 
-// Array.fromAsync not yet widely used (2024)
-async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
-  const ret: T[] = [];
-  for await (const e of iter) ret.push(e);
-  return ret;
-}
-
-async function intoTFDataset<T extends tf.TensorContainer>(
+function intoTFDataset<T extends tf.TensorContainer>(
   iter: AsyncIterable<T>,
-): Promise<tf.data.Dataset<T>> {
-  // tf doesn't like having changing tensors
-  const materialized = await arrayFromAsync(iter);
-  return tf.data.array(materialized);
+): tf.data.Dataset<T> {
+  // @ts-expect-error generator
+  return tf.data.generator(async function* () {
+    yield* iter;
+  });
 }
 
 function imageToTensor(image: Image<3>): tf.Tensor3D {
@@ -54,7 +48,7 @@ export async function datasetToData(
         .map((image) => ({
           xs: imageToTensor(image),
         }));
-      return await ImageData.init(await intoTFDataset(converted), task);
+      return await ImageData.init(intoTFDataset(converted), task);
     }
     case "tabular": {
       const inputColumns = task.trainingInformation.inputColumns;
@@ -63,10 +57,10 @@ export async function datasetToData(
       const converted = dataset.map((row) => ({
         xs: tabularToNumbers(inputColumns, row),
       }));
-      return await TabularData.init(await intoTFDataset(converted), task);
+      return await TabularData.init(intoTFDataset(converted), task);
     }
     case "text":
-      return await TextData.init(await intoTFDataset(dataset), task);
+      return await TextData.init(intoTFDataset(dataset), task);
   }
 }
 
@@ -74,10 +68,9 @@ export async function labeledDatasetToData(
   task: Task,
   [t, dataset]: TypedLabeledDataset,
 ): Promise<Data> {
-  const labels = List(task.trainingInformation.LABEL_LIST);
-
   switch (t) {
     case "image": {
+      const labels = List(task.trainingInformation.LABEL_LIST);
       const converted = dataset
         .map(
           ([image, label]) =>
@@ -96,7 +89,7 @@ export async function labeledDatasetToData(
               ys: tf.Tensor1D;
             },
         );
-      return await ImageData.init(await intoTFDataset(converted), task);
+      return await ImageData.init(intoTFDataset(converted), task);
     }
     case "tabular": {
       const { inputColumns, outputColumns } = task.trainingInformation;
@@ -112,10 +105,10 @@ export async function labeledDatasetToData(
             ys: tf.Tensor1D;
           },
       );
-      return await TabularData.init(await intoTFDataset(converted), task);
+      return await TabularData.init(intoTFDataset(converted), task);
     }
     case "text":
-      return await TextData.init(await intoTFDataset(dataset), task);
+      return await TextData.init(intoTFDataset(dataset), task);
   }
 }
 
