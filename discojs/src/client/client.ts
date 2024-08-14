@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import type { Model, Task, WeightsContainer } from '../index.js'
+import type { Logger, Model, Task, WeightsContainer } from '../index.js'
 import { serialization } from '../index.js'
 import type { NodeID } from './types.js'
 import type { EventConnection } from './event_connection.js'
@@ -25,18 +25,10 @@ export abstract class Client {
   protected aggregationResult?: Promise<WeightsContainer>
 
   constructor (
-    /**
-     * The network server's URL to connect to.
-     */
-    public readonly url: URL,
-    /**
-     * The client's corresponding task.
-     */
-    public readonly task: Task,
-    /**
-     * The client's aggregator.
-     */
-    public readonly aggregator: Aggregator
+    public readonly url: URL, // The network server's URL to connect to
+    public readonly task: Task, // The client's corresponding task
+    public readonly aggregator: Aggregator,
+    protected readonly logger: Logger
   ) {}
 
   /**

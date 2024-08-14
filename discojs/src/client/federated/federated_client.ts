@@ -176,9 +176,11 @@ export class FederatedClient extends Client {
         
       // wait for the promise to resolve, which takes as long as it takes for new participants to join
       debug("Awaiting the promise for more participants")
+      this.logger.setStatus("Waiting for more participants")
       await this.#promiseForMoreParticipants 
       debug("Promise resolved")
     }
+    this.logger.setStatus("Updating the model with other participants' models")
 
     // Send our local contribution to the server
     // and receive the most recent weights as an answer to our contribution

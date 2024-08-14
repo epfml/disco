@@ -86,7 +86,7 @@ export class Disco {
       } else {
         ({ url, aggregator } = clientConfig);
       }
-      client = clients.getClient(scheme, url, task, aggregator);
+      client = clients.getClient(scheme, url, task, aggregator, logger);
     }
     if (client.task !== task)
       throw new Error("client not setup for given task");
@@ -103,7 +103,7 @@ export class Disco {
     else model = await client.getLatestModel();
 
     return new Disco(
-      new Trainer(task, model, client),
+      new Trainer(task, model, client, logger),
       task,
       client,
       memory,
@@ -154,7 +154,7 @@ export class Disco {
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
-    this.#logger.success("Training started.");
+    this.#logger.success("Training started");
 
     const trainData = dataTuple.train.preprocess().batch();
     const validationData =
@@ -194,7 +194,7 @@ export class Disco {
       await this.#updateWorkingModel(this.trainer.model);
     }
 
-    this.#logger.success("Training finished.");
+    this.#logger.success("Training finished");
   }
 
   /**
