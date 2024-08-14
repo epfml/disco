@@ -11,21 +11,29 @@ export enum type {
   // The message also tells the client whether we are waiting
   // for more participants before starting training
   AssignNodeID,
-  // Message sent by server to notify clients that there are now enough
-  // participants to start training collaboratively
-  EnoughParticipants,
   // Sent to the server when a participant leaves a session
   ClientDisconnected,
-
+  
   /* Decentralized */
   // Message forwarded by the server from a client to another client
   // to establish a peer-to-peer (WebRTC) connection
   SignalForPeer,
+  // Message sent by nodes to server signaling they are ready to 
+  // start the next round
   PeerIsReady,
+  // Sent by the server to participating peers containing the list
+  // of peers for the round
   PeersForRound,
+  // The weight update
   Payload,
-
-  // Federated
+  
+  /* Federated */
+  // Message sent by server to notify clients that there are not enough
+  // participants to continue training
+  WaitingForMoreParticipants,
+  // Message sent by server to notify clients that there are now enough
+  // participants to start training collaboratively
+  EnoughParticipants,
   SendPayload,
   ReceiveServerPayload,
 }
