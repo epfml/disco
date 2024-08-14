@@ -249,7 +249,7 @@ export const trainingInformation: FormSection = {
       type: 'arrayObject',
       elements: [
         {
-          key: 'trainingParameter',
+          key: 'Training Parameter',
           default: 'epochs'
         },
         {

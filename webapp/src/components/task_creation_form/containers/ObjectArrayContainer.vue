@@ -67,7 +67,12 @@
             <button
               type="button"
               class="
-                inline-flex
+                h-7
+                w-7
+                flex
+                justify-center
+                items-center
+                mt-1
                 transition-colors
                 duration-150
                 bg-transparent
