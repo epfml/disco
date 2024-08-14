@@ -128,6 +128,17 @@
           </div>
         </IconCard>
       </div>
+      <IconCard>
+        <template #title> How to join after ?</template>
+        <div>
+          <p>
+            After submitting the form, others will be able to join the task by going into the
+            DISCOllaborative page, and uploading their private data. You can simulate multiple
+            personn by opening a new tab in your browser you can have a detailed explanation About
+            how Disco works <span @click="goToInformation()" class="underline font-bold	cursor-pointer">here</span>.
+          </p>
+        </div>
+      </IconCard>
       <div class="flex flex-wrap justify-center gap-8 my-2">
         <CustomButton
           type="submit"
@@ -180,6 +191,9 @@ import CheckboxContainer from './containers/CheckboxContainer.vue'
 import NumberContainer from './containers/NumberContainer.vue'
 import FloatContainer from './containers/FloatContainer.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import { useRouter } from "vue-router";
+
+const router = useRouter()
 
 const debug = createDebug("webapp:TaskForm");
 const toaster = useToaster()
@@ -297,5 +311,12 @@ const isFieldVisible = (
 
 const getContent = (field: FormField): string => {
   return "Expected type : " + field.type
+}
+function goToInformation () {
+  const scrollableDiv = document.getElementById('scrollable-div');
+  if (scrollableDiv !== null) {
+    scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
+  }
+  router.push({ path: '/information' })
 }
 </script>
