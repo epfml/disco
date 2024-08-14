@@ -78,20 +78,31 @@ export abstract class Data {
     const applyPreprocessing = this.availablePreprocessing
     .filter((e) => e.type in taskPreprocessing)
     .map((e) => e.apply)
-    
-    if (applyPreprocessing.size === 0) {
-      return x => Promise.resolve(x)
-    }
 
     const preprocessingChain = async (input: Promise<tf.TensorContainer>) => {
       let currentContainer = await input;  // Start with the initial tensor container
       for (const fn of applyPreprocessing) {
-          const newContainer = await fn(Promise.resolve(currentContainer), this.task);
-          if (currentContainer !== newContainer) {
-              tf.dispose(currentContainer);  // Dispose of the old container
+          const next = await fn(Promise.resolve(currentContainer), this.task);
+
+          // dirty but kinda working way to dispose of converted tensors
+          if (typeof currentContainer === "object" && typeof next === "object") {
+            if (
+              "xs" in currentContainer &&
+              "xs" in next &&
+              currentContainer.xs !== next.xs
+            )
+              tf.dispose(currentContainer.xs);
+            if (
+              "ys" in currentContainer &&
+              "ys" in next &&
+              currentContainer.ys !== next.ys
+            )
+              tf.dispose(currentContainer.ys);
           }
-          currentContainer = newContainer;
+
+          currentContainer = next
       }
+
       return currentContainer; // Return the final tensor container
     };
   

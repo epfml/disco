@@ -93,22 +93,28 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     // TODO will be easier when preproccessing is redone
     const preprocessedDataset = intoTFGenerator(
       dataset
-        .map((line) => convertors.tokenizeAndLeftPad(line, tokenizer, maxLength))
+        .map((line) =>
+          convertors.tokenizeAndLeftPad(line, tokenizer, maxLength),
+        )
         .batch(batchSize)
-        .map((batch) => ({
-          xs: tf.tensor2d(batch.map((tokens) => tokens.slice(0, -1)).toArray()),
-          ys: tf.stack(
-            batch
-              .map(
-                (tokens) =>
-                  tf.oneHot(
-                    tokens.slice(1),
-                    tokenizer.model.vocab.length + 1,
-                  ) as tf.Tensor2D,
-              )
-              .toArray(),
-          ) as tf.Tensor3D,
-        })),
+        .map((batch) =>
+          tf.tidy(() => ({
+            xs: tf.tensor2d(
+              batch.map((tokens) => tokens.slice(0, -1)).toArray(),
+            ),
+            ys: tf.stack(
+              batch
+                .map(
+                  (tokens) =>
+                    tf.oneHot(
+                      tokens.slice(1),
+                      tokenizer.model.vocab.length + 1,
+                    ) as tf.Tensor2D,
+                )
+                .toArray(),
+            ) as tf.Tensor3D,
+          })),
+        ),
     );
     
     // Init and train the model
