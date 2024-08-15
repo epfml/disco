@@ -2,7 +2,7 @@ import { parse } from "ts-command-line-args";
 import * as tf from "@tensorflow/tfjs"
 import { AutoTokenizer } from "@xenova/transformers";
 
-import { fetchTasks, models, async_iterator, defaultTasks, convertors } from "@epfml/discojs";
+import { fetchTasks, models, async_iterator, defaultTasks, processing } from "@epfml/discojs";
 import { loadModelFromDisk, loadText } from '@epfml/discojs-node'
 
 import { Server } from "server";
@@ -94,7 +94,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     const preprocessedDataset = intoTFGenerator(
       dataset
         .map((line) =>
-          convertors.tokenizeAndLeftPad(line, tokenizer, maxLength),
+          processing.tokenizeAndLeftPad(line, tokenizer, maxLength),
         )
         .batch(batchSize)
         .map((batch) =>

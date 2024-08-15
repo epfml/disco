@@ -10,7 +10,7 @@ import type {
   TypedDataset,
   TypedLabeledDataset,
 } from "../../index.js";
-import { convertors } from "../../index.js";
+import { processing } from "../../index.js";
 
 import { Data, ImageData, TabularData, TextData } from "./index.js";
 import { DataSplit } from "./data_split.js";
@@ -30,9 +30,9 @@ function imageToTensor(image: Image<3>): tf.Tensor3D {
 
 function tabularToNumbers(columns: Iterable<string>, row: Tabular): number[] {
   return List(columns)
-    .map((column) => convertors.extractColumn(row, column))
+    .map((column) => processing.extractColumn(row, column))
     .map((v) => (v !== "" ? v : "0")) // TODO how to specify defaults?
-    .map(convertors.convertToNumber)
+    .map(processing.convertToNumber)
     .toArray();
 }
 
@@ -43,8 +43,8 @@ export async function datasetToData(
   switch (t) {
     case "image": {
       const converted = dataset
-        .map(convertors.removeAlpha)
-        .map((image) => convertors.expandToMulticolor(image))
+        .map(processing.removeAlpha)
+        .map((image) => processing.expandToMulticolor(image))
         .map((image) => ({
           xs: imageToTensor(image),
         }));
@@ -75,8 +75,8 @@ export async function labeledDatasetToData(
         .map(
           ([image, label]) =>
             [
-              convertors.expandToMulticolor(convertors.removeAlpha(image)),
-              convertors.indexInList(label, labels),
+              processing.expandToMulticolor(processing.removeAlpha(image)),
+              processing.indexInList(label, labels),
             ] as const,
         )
         .map(
