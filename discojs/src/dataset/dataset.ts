@@ -7,7 +7,7 @@ type DatasetLike<T> =
   | (() => AsyncIterator<T, void>)
   | (() => Iterator<T, void>);
 
-/** Immutable serie of data */
+/** Immutable series of data */
 export class Dataset<T> implements AsyncIterable<T> {
   readonly #content: () => AsyncIterator<T, void, undefined>;
 

@@ -1,4 +1,7 @@
-// TODO rm when fully generic
+/** Internal functions to help with Dataset to Data/DataSplit conversion
+ *
+ * @todo rm when fully using Dataset
+ */
 
 import { List } from "immutable";
 import * as tf from "@tensorflow/tfjs";

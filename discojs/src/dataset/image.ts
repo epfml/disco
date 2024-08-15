@@ -1,3 +1,10 @@
+/**
+ * Raw image with type level dimensions.
+ *
+ * @typeParam D depth of the image
+ * @typeParam W width, positive and integral
+ * @typeParam H height, positive and integral
+ */
 export class Image<
   D extends 1 | 3 | 4 = 1 | 3 | 4,
   W extends number = number,
