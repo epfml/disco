@@ -61,7 +61,6 @@ import ModelIcon from '@/assets/svg/ModelIcon.vue'
 import PlugIcon from '@/assets/svg/PlugIcon.vue'
 import PerformanceIcon from '@/assets/svg/PerformanceIcon.vue'
 
-import CustomButton from '@/components/simple/CustomButton.vue'
 import TestingButtons from './TestingButtons.vue'
 
 const toaster = useToaster()
@@ -72,7 +71,6 @@ const testing = computed(() => validationStore.isOnlyPrediction ? 'Prediction' :
 
 
 const isActive = (step: number): boolean => step <= validationStore.step
-const isCurrent = (step: number): boolean => step == validationStore.step
 
 const handleRoute = (step: number): void => {
   if (memoryStore.models.size === 0 || validationStore.model === undefined) {

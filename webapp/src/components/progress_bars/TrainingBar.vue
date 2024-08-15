@@ -170,15 +170,6 @@ const isActive = (step: number): boolean => {
   }
 }
 
-const isCurrent = (step: number): boolean => {
-  const currentStep = trainingStore.step
-  if (currentStep === undefined || route.fullPath === '/list') {
-    return false
-  } else {
-    return step == currentStep
-  }
-}
-
 const toStep = (step: number): void => {
   if (route.fullPath === '/list') {
     toaster.error('Choose a DISCOllaborative first')

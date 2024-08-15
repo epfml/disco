@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick } from 'vue'
+import { nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 

@@ -123,10 +123,9 @@
 </template>
 <script lang="ts" setup>
 import { List } from "immutable";
-import { onMounted, ref, type ShallowRef } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-import type { Model } from "@epfml/discojs";
 import { EmptyMemory } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
@@ -212,8 +211,7 @@ function sortModels(a: ModelMetadata, b: ModelMetadata): number {
 
 
 function deleteModelConfirm(modelID: string){
-  let i = 5;
-  const toasterRef = toaster.default(`Click here to confirm you want to delete the model (this message will go in 5 seconds)`, {
+  toaster.default(`Click here to confirm you want to delete the model (this message will go in 5 seconds)`, {
     onClick: () => deleteModel(modelID),
   });
 }
