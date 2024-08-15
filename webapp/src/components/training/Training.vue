@@ -30,8 +30,6 @@
     />
 
     <Finished v-show="trainingStore.step === 4" :task="task" />
-
-    <Finished v-show="trainingStore.step === 4" :task="task" />
   </div>
   <TrainingButtons />
 </template>
