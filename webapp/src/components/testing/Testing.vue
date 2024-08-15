@@ -162,7 +162,7 @@
     </div>
 
     <KeepAlive>
-      <div v-if="stepRef === 1">
+      <div v-if="stepRef === 1" class="flex flex-col space-y-4 md:space-y-8">
         <DataDescription :task="currentTask" />
 
         <LabeledImageDatasetInput
