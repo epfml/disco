@@ -24,8 +24,8 @@
               <ButtonsCard
                 :buttons="
                   List.of(
-                    ['test', () => selectModel(id, false)],
-                    ['predict', () => selectModel(id, true)],
+                    ['test', () => selectModel(id, 'test')],
+                    ['predict', () => selectModel(id, 'predict')],
                   )
                 "
                 class="shadow shadow-disco-cyan"
@@ -135,14 +135,14 @@
   <div v-if="selection !== undefined">
     <div v-if="validationStore.step !== 0">
       <TestSteps
-        v-if="selection.type === 'test'"
+        v-if="selection.mode === 'test'"
         :task="selection.task"
-        :modelID="selection.modelID"
+        :model="selection.model"
       />
       <PredictSteps
-        v-if="selection.type === 'predict'"
+        v-if="selection.mode === 'predict'"
         :task="selection.task"
-        :modelID="selection.modelID"
+        :model="selection.model"
       />
     </div>
   </div>
@@ -157,7 +157,7 @@ import { computed, ref, onActivated } from "vue";
 import { RouterLink } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 
-import type { Task } from "@epfml/discojs";
+import type { Model, Task } from "@epfml/discojs";
 import { EmptyMemory, client as clients, aggregator } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
@@ -183,10 +183,10 @@ const tasksStore = useTasksStore();
 const toaster = useToaster();
 
 const selection = ref<{
-  type: "predict" | "test";
+  mode: "predict" | "test";
   task: Task;
   // same as in validation store but not undef
-  modelID: string;
+  model: Model;
 }>();
 
 const federatedTasks = computed(() =>
@@ -204,7 +204,7 @@ onActivated(async () => {
   // handle test after training or from library
   // TODO encode model ID inside the URL instead of relying on store
   if (validationStore.modelID !== undefined)
-    selectModel(validationStore.modelID, false);
+    selectModel(validationStore.modelID, "test");
 });
 
 async function downloadModel(task: Task): Promise<void> {
@@ -243,25 +243,24 @@ async function downloadModel(task: Task): Promise<void> {
     });
 }
 
-function selectModel(modelID: string, isOnlyPrediction: boolean): void {
+async function selectModel(
+  modelID: string,
+  mode: "predict" | "test",
+): Promise<void> {
   const taskID = memory.value.getModelInfo(modelID)?.taskID;
-  if (taskID === undefined)
-    throw new Error(
-      `Model task id for found in memory for model id: ${modelID}`,
-    );
+  if (taskID === undefined) throw new Error("task ID for model ID not found");
 
   const task = tasksStore.tasks.get(taskID);
-  if (task === undefined)
-    throw new Error("Task not found in the task store for task id: " + taskID);
+  if (task === undefined) throw new Error("task not found");
 
-  selection.value = {
-    type: isOnlyPrediction ? "predict" : "test",
-    task,
-    modelID,
-  };
+  if (!(await memory.value.contains(modelID)))
+    throw new Error("model ID not present in memory");
+  const model = await memory.value.getModel(modelID);
+
+  selection.value = { mode, model, task };
+  validationStore.mode = mode;
+  validationStore.modelID = modelID;
   validationStore.step = 1;
-  validationStore.modelID = selection.value.modelID;
-  validationStore.mode = selection.value.type;
 }
 
 function taskTitle(taskID: string): string | undefined {

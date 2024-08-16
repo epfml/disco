@@ -12,18 +12,9 @@
       </tr>
     </thead>
 
-    <tbody
-      class="flex flex-col overflow-y-scroll w-full h-128 px-2"
-    >
-      <tr
-        v-for="(row, i) in rows"
-        :key="i"
-      >
-        <td
-          v-for="(value, j) in row"
-          :key="j"
-          class="min-w-[200px]"
-        >
+    <tbody class="flex flex-col overflow-y-scroll w-full h-128 px-2">
+      <tr v-for="(row, i) in rows" :key="i">
+        <td v-for="(value, j) in row" :key="j" class="min-w-[200px]">
           {{ value }}
         </td>
       </tr>
@@ -31,14 +22,11 @@
   </table>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
+import { List } from "immutable";
 
-export default defineComponent({
-  name: 'TableLayout',
-  props: {
-    columns: { default: () => {}, type: Array },
-    rows: { default: () => {}, type: Array }
-  }
-})
+defineProps<{
+  columns: List<string>;
+  rows: List<List<string>>;
+}>();
 </script>

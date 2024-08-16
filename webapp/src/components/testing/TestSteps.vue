@@ -17,7 +17,7 @@
     <LabeledImageDatasetInput
       v-if="task.trainingInformation.dataType === 'image'"
       v-model="imageDataset"
-      :labels="labels"
+      :labels="imageLabels"
     />
     <TabularDatasetInput
       v-if="task.trainingInformation.dataType === 'tabular'"
@@ -34,12 +34,12 @@
     <IconCard class="mx-auto mt-10 lg:w-1/2" title-placement="left">
       <template #title> Test &amp; validate your model </template>
 
-      <div v-if="testGenerator === undefined">
+      <div v-if="generator === undefined">
         By clicking the button below, you will be able to validate your model
         against a chosen dataset of yours. Below, once you assessed the model,
         you can compare the ground truth and the predicted values
         <div class="flex justify-center mt-4">
-          <CustomButton @click="testModel()"> test </CustomButton>
+          <CustomButton @click="startTest()"> test </CustomButton>
         </div>
       </div>
       <div v-else>
@@ -68,53 +68,48 @@
       </div>
     </div>
 
-    <div v-if="dataWithPred !== undefined">
+    <div v-if="tested !== undefined">
       <div class="mx-auto lg:w-1/2 text-center pb-8">
         <CustomButton @click="saveCsv()"> download as csv </CustomButton>
-        <a ref="downloadLink" class="hidden" />
       </div>
-      <!-- Image prediction gallery -->
-      <div v-if="dataset?.[0] === 'image'" class="grid grid-cols-6 gap-6">
+
+      <!-- Image gallery -->
+      <div v-if="tested.type === 'image'" class="grid grid-cols-6 gap-6">
         <ImageCard
-          v-for="(value, key) in dataWithPred"
+          v-for="(result, key) in tested.results"
           :key="key"
-          :image="(value.data as ImageWithUrl).image"
+          :image="result.input.image"
         >
           <template #title>
             <p
               class="font-bold"
-              :class="
-                value.prediction !== value.groundTruth
-                  ? 'text-red-700'
-                  : 'text-green-500'
-              "
+              :class="result.output.correct ? 'text-red-700' : 'text-green-500'"
             >
-              {{ getLabelName(value.prediction) }}
-            </p>
-          </template>
-          <template #subtitle>
-            <p
-              v-if="value.groundTruth !== value.prediction"
-              class="text-disco-blue"
-            >
-              <span class="font-bold">{{
-                getLabelName(value.groundTruth)
-              }}</span>
+              {{ result.output.truth }}
             </p>
           </template>
         </ImageCard>
       </div>
+
       <div
-        v-else-if="task.trainingInformation.dataType === 'tabular'"
+        v-else-if="tested.type === 'tabular'"
         class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
-          :columns="featuresNames"
-          :rows="dataWithPred.map((pred) => pred.data)"
+          :columns="
+            tested.labels.input
+              .concat(tested.labels.output.truth)
+              .push(tested.labels.output.correct)
+          "
+          :rows="
+            tested.results.map(({ input, output }) =>
+              input.concat(output.truth).push(output.correct.toString()),
+            )
+          "
         />
       </div>
       <div
-        v-else-if="task.trainingInformation.dataType === 'text'"
+        v-else-if="tested.type === 'text'"
         class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
       >
         <!-- Display nothing for now -->
@@ -126,21 +121,11 @@
 import * as d3 from "d3";
 import createDebug from "debug";
 import { List, Range, Set } from "immutable";
-import { storeToRefs } from "pinia";
 import { computed, ref, toRaw, watch } from "vue";
 
-import type {
-  Dataset,
-  Tabular,
-  Task,
-  Text,
-  TypedDataset,
-  TypedLabeledDataset,
-} from "@epfml/discojs";
-import { ConsoleLogger, EmptyMemory, Validator } from "@epfml/discojs";
-import { IndexedDB } from "@epfml/discojs-web";
+import type { Dataset, Model, Tabular, Task, Text } from "@epfml/discojs";
+import { Validator } from "@epfml/discojs";
 
-import { useMemoryStore } from "@/store/memory";
 import { useToaster } from "@/composables/toaster";
 import { useValidationStore } from "@/store/validation";
 
@@ -158,28 +143,55 @@ import type {
   TypedNamedLabeledDataset,
 } from "@/components/dataset_input/types.js";
 
-const debug = createDebug("webapp:Tester");
-const { useIndexedDB } = storeToRefs(useMemoryStore());
+const debug = createDebug("webapp:testing:TestSteps");
 const toaster = useToaster();
 const validationStore = useValidationStore();
 
 const props = defineProps<{
   task: Task;
-  modelID: string;
+  model: Model;
 }>();
 
-interface ImageWithUrl {
-  filename: string;
-  image: ImageData;
-}
+type Results =
+  | {
+      type: "image";
+      results: List<{
+        input: {
+          filename: string;
+          image: ImageData;
+        };
+        output: {
+          truth: string;
+          correct: boolean;
+        };
+      }>;
+    }
+  | {
+      type: "tabular";
+      labels: {
+        input: List<string>;
+        output: {
+          truth: List<string>;
+          correct: string;
+        };
+      };
+      results: List<{
+        input: List<string>;
+        output: {
+          truth: List<string>;
+          correct: boolean;
+        };
+      }>;
+    }
+  | {
+      type: "text";
+      // TODO what to show?
+      results: List<{ output: { correct: boolean } }>;
+    };
 
-interface DataWithPrediction {
-  data: ImageWithUrl | number[];
-  prediction?: number;
-  groundTruth?: number;
-}
-
-const labels = computed(() => Set(props.task.trainingInformation.LABEL_LIST));
+const imageLabels = computed(() =>
+  Set(props.task.trainingInformation.LABEL_LIST),
+);
 const imageDataset = ref<NamedLabeledImageDataset>();
 const tabularDataset = ref<Dataset<Tabular>>();
 const textDataset = ref<Dataset<Text>>();
@@ -202,6 +214,30 @@ const dataset = computed<TypedNamedLabeledDataset | undefined>(() => {
 
   return undefined;
 });
+
+const tested = ref<Results>();
+const visitedSamples = computed(() => tested.value?.results.size ?? 0);
+const currentAccuracy = computed(() => {
+  if (tested.value === undefined) return "0";
+
+  let hits: number | undefined;
+  switch (tested.value.type) {
+    case "image":
+      hits = tested.value.results.filter(({ output }) => output.correct).size;
+      break;
+    case "tabular":
+      hits = tested.value.results.filter(({ output }) => output.correct).size;
+      break;
+    case "text":
+      hits = tested.value.results.filter(({ output }) => output.correct).size;
+      break;
+  }
+  const accuracy = hits / tested.value.results.size;
+
+  return (accuracy * 100).toFixed(2);
+});
+
+const generator = ref<AsyncGenerator<boolean, void>>();
 
 watch(tabularDataset, async (dataset) => {
   if (dataset === undefined) return;
@@ -229,61 +265,7 @@ watch(tabularDataset, async (dataset) => {
   }
 });
 
-const featuresNames = ref<string[]>([]);
-const dataWithPred = ref<DataWithPrediction[]>();
-const downloadLink = ref<HTMLAnchorElement>();
-
-const validator = computed(() => {
-  return new Validator(
-    props.task,
-    new ConsoleLogger(),
-    memory.value,
-    props.modelID,
-  );
-});
-const memory = computed(() =>
-  useIndexedDB ? new IndexedDB() : new EmptyMemory(),
-);
-
-type TestResults = Array<{
-  groundTruth: number;
-  pred: number;
-  features: number[];
-}>;
-const testGenerator = ref<AsyncGenerator<TestResults, void>>();
-
-const currentAccuracy = computed(() => {
-  const r = validator.value?.accuracy;
-  return r !== undefined ? (r * 100).toFixed(2) : "0";
-});
-const visitedSamples = computed(() => validator.value?.visitedSamples ?? 0);
-
-function getLabelName(labelIndex: number | undefined): string {
-  if (labelIndex === undefined) return "";
-
-  const labelList = props.task.trainingInformation.LABEL_LIST;
-  if (labelList !== undefined && labelList.length > labelIndex)
-    return labelList[labelIndex];
-
-  return labelIndex.toString();
-}
-
-function dropName(dataset: TypedNamedLabeledDataset): TypedLabeledDataset {
-  switch (dataset[0]) {
-    case "image":
-      return ["image", dataset[1].map(({ image, label }) => [image, label])];
-    default:
-      return dataset;
-  }
-}
-
-async function testModel(): Promise<void> {
-  const v = validator.value;
-  if (v === undefined) {
-    toaster.error("No model found");
-    return;
-  }
-
+async function startTest(): Promise<void> {
   if (dataset.value === undefined) {
     toaster.error("Upload a dataset first");
     return;
@@ -291,120 +273,170 @@ async function testModel(): Promise<void> {
 
   toaster.info("Model testing started");
   try {
-    const generator = v.test(dropName(toRaw(dataset.value)));
-    testGenerator.value = generator;
-    let runningResults: TestResults = [];
-    for await (const assessmentResults of generator) {
-      runningResults = runningResults.concat(assessmentResults);
-      switch (dataset.value[0]) {
-        case "image":
-          dataWithPred.value = List(
-            await arrayFromAsync(toRaw(dataset.value[1])),
-          )
-            .zip(List(runningResults))
-            .map(([{ filename, image }, prediction]) => ({
-              data: {
-                filename,
-                image: new ImageData(
-                  new Uint8ClampedArray(image.data),
-                  image.width,
-                  image.height,
-                ),
-              },
-              prediction: prediction.pred,
-              groundTruth: prediction.groundTruth,
-            }))
-            .toArray();
-          break;
-        case "tabular": {
-          const { inputColumns, outputColumns } =
-            props.task.trainingInformation;
-          if (inputColumns === undefined || outputColumns === undefined)
-            throw new Error("no input and output columns but CSV needs it");
-          featuresNames.value = [
-            ...inputColumns,
-            ...outputColumns.map((c) => `Predicted_${c}`),
-            ...outputColumns.map((c) => `Target_${c}`),
-          ];
-          dataWithPred.value = runningResults.map((pred) => ({
-            data: [...pred.features, pred.pred, pred.groundTruth],
-          }));
-          break;
-        }
-        case "text":
-          // TODO nothing to show for now
-          dataWithPred.value = [];
-      }
+    switch (dataset.value[0]) {
+      case "image":
+        await startImageTest(toRaw(dataset.value)[1]);
+        break;
+      case "tabular":
+        await startTabularTest(toRaw(dataset.value)[1]);
+        break;
+      case "text":
+        startTextTest(toRaw(dataset.value)[1]);
+        break;
     }
 
     toaster.success("Model testing finished successfully!");
   } catch (e) {
     debug("while testing: %o", e);
     toaster.error("Something went wrong during model testing");
+  }
+}
+
+async function startImageTest(
+  dataset: NamedLabeledImageDataset,
+): Promise<void> {
+  const validator = new Validator(props.task, toRaw(props.model));
+  let results: (Results & { type: "image" })["results"] = List();
+
+  try {
+    generator.value = validator.test([
+      "image",
+      dataset.map(({ image, label }) => [image, label]),
+    ]);
+    for await (const [{ filename, image, label }, correct] of dataset.zip(
+      toRaw(generator.value),
+    )) {
+      results = results.push({
+        input: {
+          filename,
+          image: new ImageData(
+            new Uint8ClampedArray(image.data),
+            image.width,
+            image.height,
+          ),
+        },
+        output: {
+          truth: label,
+          correct,
+        },
+      });
+
+      tested.value = { type: "image", results };
+    }
   } finally {
-    testGenerator.value = undefined;
+    generator.value = undefined;
+  }
+}
+
+async function startTabularTest(dataset: Dataset<Tabular>): Promise<void> {
+  const { inputColumns, outputColumns } = props.task.trainingInformation;
+  if (inputColumns === undefined || outputColumns === undefined)
+    throw new Error("no input and output columns but CSV needs it");
+  const labels = {
+    input: List(inputColumns),
+    output: {
+      truth: List(outputColumns).map((c) => `Truth_${c}`),
+      correct: "Correct",
+    },
+  };
+  const validator = new Validator(props.task, toRaw(props.model));
+
+  let results: (Results & { type: "tabular" })["results"] = List();
+  try {
+    generator.value = validator.test(["tabular", dataset]);
+    for await (const [row, correct] of dataset.zip(toRaw(generator.value))) {
+      // TODO we only really support a single output, change Task to reflect that
+      const truth = List(outputColumns).map((column) => {
+        const ret = row[column];
+        if (ret === undefined)
+          throw new Error("row doesn't have expected output column");
+        return ret;
+      });
+
+      results = results.push({
+        input: labels.input.map((label) => {
+          const ret = row[label];
+          if (ret === undefined)
+            throw new Error("row doesn't have expected label");
+          return ret;
+        }),
+        output: {
+          truth,
+          correct,
+        },
+      });
+
+      tested.value = { type: "tabular", labels, results };
+    }
+  } finally {
+    generator.value = undefined;
+  }
+}
+
+async function startTextTest(dataset: Dataset<Text>): Promise<void> {
+  const validator = new Validator(props.task, toRaw(props.model));
+  let results: (Results & { type: "text" })["results"] = List();
+
+  try {
+    generator.value = validator.test(["text", dataset]);
+    for await (const correct of toRaw(generator.value)) {
+      results = results.push({ output: { correct } });
+      tested.value = { type: "text", results };
+    }
+  } finally {
+    generator.value = undefined;
   }
 }
 
 async function stopTest(): Promise<void> {
-  const generator = testGenerator.value;
-  if (generator === undefined) return;
+  const g = generator.value;
+  if (g === undefined) return;
 
-  generator.return();
+  generator.value = undefined;
+  g.return();
 }
 
-function saveCsv() {
-  if (downloadLink.value === undefined)
-    throw new Error("asked to download CSV but page yet rendered");
-  if (dataWithPred.value === undefined)
-    throw new Error("asked to save CSV without having training results");
-  if (dataset.value === undefined) {
-    toaster.error("Upload a dataset first");
-    return;
-  }
+function saveCsv(): void {
+  if (tested.value === undefined)
+    throw new Error("asked to save CSV without testing results");
 
-  const csvData = format(dataset.value[0], dataWithPred.value);
+  const csvData = format(tested.value);
   const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-  downloadLink.value.setAttribute("href", URL.createObjectURL(blob));
-  downloadLink.value.setAttribute(
+  const downloadLink = document.createElement("a");
+  downloadLink.setAttribute("href", URL.createObjectURL(blob));
+  downloadLink.setAttribute(
     "download",
-    `predictions_${props.task.id}_${Date.now()}.csv`,
+    `tests_${props.task.id}_${Date.now()}.csv`,
   );
-  downloadLink.value.click();
+  downloadLink.click();
 
-  function format(
-    datasetType: TypedDataset[0],
-    dataWithPred: DataWithPrediction[],
-  ): string {
-    switch (datasetType) {
-      case "image": {
-        const rows = dataWithPred.map((el) => [
-          (el.data as ImageWithUrl).filename,
-          String(el.prediction),
-          String(el.groundTruth),
-        ]);
+  function format(tested: Results): string {
+    switch (tested.type) {
+      case "image":
         return d3.csvFormatRows([
-          ["Filename", "Prediction", "Ground Truth"],
-          ...rows,
+          ["Filename", "Truth", "Correct"],
+          ...tested.results.map(({ input, output }) => [
+            input.filename,
+            output.truth,
+            output.correct.toString(),
+          ]),
         ]);
-      }
-      case "tabular": {
-        const featureNames = Object.values(featuresNames.value) as string[];
-        const predictionsWithLabels = dataWithPred.map((el) =>
-          Object.values(el.data).map(String),
-        );
-        return d3.csvFormatRows([featureNames, ...predictionsWithLabels]);
-      }
-      case "text":
-        throw new Error("TODO implement formatter");
+      case "tabular":
+        return d3.csvFormatRows([
+          tested.labels.input
+            .concat(tested.labels.output.truth)
+            .push(tested.labels.output.correct)
+            .toArray(),
+          ...tested.results.map((result) =>
+            result.input
+              .concat(result.output.truth)
+              .push(result.output.correct.toString())
+              .toArray(),
+          ),
+        ]);
     }
-  }
-}
 
-// Array.fromAsync not yet widely used (2024)
-async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
-  const ret: T[] = [];
-  for await (const e of iter) ret.push(e);
-  return ret;
+    throw new Error("TODO implement formatter");
+  }
 }
 </script>

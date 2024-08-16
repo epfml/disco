@@ -39,12 +39,12 @@
     <IconCard class="mx-auto mt-10 lg:w-1/2" title-placement="left">
       <template #title> Run model inference </template>
 
-      <div v-if="inferenceGenerator === undefined">
+      <div v-if="generator === undefined">
         By clicking the button below, you will be able to predict using the
         selected model with chosen dataset of yours.
 
         <div class="flex justify-center mt-4">
-          <CustomButton @click="modelInference()"> predict </CustomButton>
+          <CustomButton @click="startInference()"> predict </CustomButton>
         </div>
       </div>
       <div v-else>
@@ -62,46 +62,42 @@
       <!-- stats -->
       <div class="flex justify-center p-4 font-medium text-slate-500">
         <div class="text-center">
-          <span class="text-2xl">{{ visitedSamples }}</span>
+          <span class="text-2xl">
+            {{ predictions?.results.size ?? 0 }}
+          </span>
           <span class="text-sm">&nbsp;samples visited</span>
         </div>
       </div>
     </div>
 
-    <div v-if="dataWithPred !== undefined">
+    <div v-if="predictions !== undefined">
       <div class="mx-auto lg:w-1/2 text-center pb-8">
         <CustomButton @click="saveCsv()"> download as csv </CustomButton>
-        <a ref="downloadLink" class="hidden" />
       </div>
 
-      <!-- Image prediction gallery -->
-      <div v-if="dataset?.[0] === 'image'" class="grid grid-cols-6 gap-6">
+      <!-- Image gallery -->
+      <div v-if="predictions.type === 'image'" class="grid grid-cols-6 gap-6">
         <ImageCard
-          v-for="(value, key) in dataWithPred"
-          :key="key"
-          :image="(value.data as ImageWithUrl).image"
+          v-for="(result, index) in predictions.results"
+          :key="index"
+          :image="result.input.image"
         >
           <template #title>
-            <span class="font-bold">{{ getLabelName(value.prediction) }}</span>
+            <span class="font-bold">{{ result.output }}</span>
           </template>
         </ImageCard>
       </div>
 
       <div
-        v-else-if="props.task.trainingInformation.dataType === 'tabular'"
+        v-else-if="predictions.type === 'tabular'"
         class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
-          :columns="featuresNames"
-          :rows="dataWithPred.map((pred) => pred.data)"
+          :columns="predictions.labels.input.concat(predictions.labels.output)"
+          :rows="
+            predictions.results.map(({ input, output }) => input.push(output))
+          "
         />
-      </div>
-
-      <div
-        v-else-if="props.task.trainingInformation.dataType === 'text'"
-        class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
-      >
-        <!-- Display nothing for now -->
       </div>
     </div>
   </div>
@@ -109,22 +105,13 @@
 <script lang="ts" setup>
 import * as d3 from "d3";
 import createDebug from "debug";
-import { Set } from "immutable";
-import { storeToRefs } from "pinia";
-import { computed, ref, toRaw } from "vue";
+import { List, Range, Set } from "immutable";
+import { computed, ref, toRaw, watch } from "vue";
 
-import type {
-  Dataset,
-  Tabular,
-  Task,
-  Text,
-  TypedDataset,
-} from "@epfml/discojs";
-import { ConsoleLogger, EmptyMemory, Validator } from "@epfml/discojs";
-import { IndexedDB } from "@epfml/discojs-web";
+import type { Dataset, Model, Tabular, Task, Text } from "@epfml/discojs";
+import { Validator } from "@epfml/discojs";
 
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
-import { useMemoryStore } from "@/store/memory";
 import { useToaster } from "@/composables/toaster";
 import { useValidationStore } from "@/store/validation";
 
@@ -142,25 +129,31 @@ import type {
   TypedNamedDataset,
 } from "@/components/dataset_input/types.js";
 
-const debug = createDebug("webapp:Tester");
-const { useIndexedDB } = storeToRefs(useMemoryStore());
+const debug = createDebug("webapp:testing:PredictSteps");
 const toaster = useToaster();
 const validationStore = useValidationStore();
 
 const props = defineProps<{
   task: Task;
-  modelID: string;
+  model: Model;
 }>();
 
-interface ImageWithUrl {
-  filename: string;
-  image: ImageData;
-}
-
-interface DataWithPrediction {
-  data: ImageWithUrl | number[];
-  prediction?: number;
-}
+type Results =
+  | {
+      type: "image";
+      results: List<{
+        input: {
+          filename: string;
+          image: ImageData;
+        };
+        output: string;
+      }>;
+    }
+  | {
+      type: "tabular";
+      labels: { input: List<string>; output: List<string> };
+      results: List<{ input: List<string>; output: string }>;
+    };
 
 const imageDataset = ref<NamedImageDataset>();
 const tabularDataset = ref<Dataset<Tabular>>();
@@ -185,53 +178,36 @@ const dataset = computed<TypedNamedDataset | undefined>(() => {
   return undefined;
 });
 
-const featuresNames = ref<string[]>([]);
-const dataWithPred = ref<DataWithPrediction[]>();
-const downloadLink = ref<HTMLAnchorElement>();
+const generator = ref<AsyncGenerator<number, void>>();
+const predictions = ref<Results>();
 
-const validator = computed(() => {
-  return new Validator(
-    props.task,
-    new ConsoleLogger(),
-    memory.value,
-    props.modelID,
-  );
-});
-const memory = computed(() =>
-  useIndexedDB ? new IndexedDB() : new EmptyMemory(),
-);
+watch(tabularDataset, async (dataset) => {
+  if (dataset === undefined) return;
 
-type InferenceResults = Array<{ features: number[]; pred: number }>;
-const inferenceGenerator = ref<AsyncGenerator<InferenceResults, void>>();
+  const { inputColumns } = props.task.trainingInformation;
+  if (inputColumns === undefined)
+    throw new Error("tabular task without input columns");
+  const wantedColumns = Set(inputColumns);
 
-const visitedSamples = computed(() => validator.value?.visitedSamples ?? 0);
+  try {
+    for await (const [columns, i] of toRaw(dataset)
+      .map((row) => Set(Object.keys(row)))
+      .zip(Range(1)))
+      if (!columns.isSuperset(wantedColumns))
+        throw new Error(
+          `row ${i} is missing columns ${wantedColumns.subtract(columns).join(", ")}`,
+        );
+  } catch (e) {
+    let msg = "Error when loading CSV";
+    if (e instanceof Error) msg = `${msg}: ${e.message}`;
+    toaster.error(msg);
 
-function getLabelName(labelIndex: number | undefined): string {
-  if (labelIndex === undefined) return "";
-
-  const labelList = props.task.trainingInformation.LABEL_LIST;
-  if (labelList !== undefined && labelList.length > labelIndex)
-    return labelList[labelIndex];
-
-  return labelIndex.toString();
-}
-
-function dropName(dataset: TypedNamedDataset): TypedDataset {
-  switch (dataset[0]) {
-    case "image":
-      return ["image", dataset[1].map(({ image }) => image)];
-    default:
-      return dataset;
-  }
-}
-
-async function modelInference(): Promise<void> {
-  const v = validator.value;
-  if (v === undefined) {
-    toaster.error("No model found");
+    tabularDataset.value = undefined;
     return;
   }
+});
 
+async function startInference(): Promise<void> {
   if (dataset.value === undefined) {
     toaster.error("Upload a dataset first");
     return;
@@ -239,112 +215,131 @@ async function modelInference(): Promise<void> {
 
   toaster.info("Model inference started");
   try {
-    const generator = await v.inference(dropName(toRaw(dataset.value)));
-    inferenceGenerator.value = generator;
-
-    let runningPredictions: InferenceResults = [];
-    for await (const predictions of generator) {
-      runningPredictions = runningPredictions.concat(predictions);
-      switch (dataset.value[0]) {
-        case "image":
-          dataWithPred.value = await arrayFromAsync(
-            toRaw(dataset.value[1])
-              .zip(runningPredictions)
-              .map(([{ filename, image }, prediction]) => ({
-                data: {
-                  filename,
-                  image: new ImageData(
-                    new Uint8ClampedArray(image.data),
-                    image.width,
-                    image.height,
-                  ),
-                },
-                prediction: prediction.pred,
-              })),
-          );
-          break;
-        case "tabular": {
-          const { inputColumns, outputColumns } =
-            props.task.trainingInformation;
-          if (inputColumns === undefined || outputColumns === undefined)
-            throw new Error("no input and output columns but CSV needs it");
-          featuresNames.value = [
-            ...inputColumns,
-            ...outputColumns.map((c) => `Predicted_${c}`),
-          ];
-          dataWithPred.value = runningPredictions.map((pred) => ({
-            data: [...pred.features, pred.pred],
-          }));
-          break;
-        }
-        case "text":
-          throw new Error("TODO implement");
-      }
+    switch (dataset.value[0]) {
+      case "image":
+        await startImageInference(toRaw(dataset.value)[1]);
+        break;
+      case "tabular":
+        await startTabularInference(toRaw(dataset.value)[1]);
+        break;
+      case "text":
+        throw new Error("disabled dataset type");
     }
+
     toaster.success("Model inference finished successfully!");
   } catch (e) {
     debug("while infering: %o", e);
     toaster.error("Something went wrong during model inference");
+  }
+}
+
+async function startImageInference(dataset: NamedImageDataset): Promise<void> {
+  const labels = List(props.task.trainingInformation.LABEL_LIST);
+  const validator = new Validator(props.task, toRaw(props.model));
+
+  let results: (Results & { type: "image" })["results"] = List();
+  try {
+    generator.value = await validator.infer([
+      "image",
+      dataset.map(({ image }) => image),
+    ]);
+    for await (const [{ filename, image }, prediction] of dataset.zip(
+      toRaw(generator.value),
+    )) {
+      results = results.push({
+        input: {
+          filename,
+          image: new ImageData(
+            new Uint8ClampedArray(image.data),
+            image.width,
+            image.height,
+          ),
+        },
+        output: labels.get(prediction) ?? prediction.toString(),
+      });
+
+      predictions.value = { type: "image", results };
+    }
   } finally {
-    inferenceGenerator.value = undefined;
+    generator.value = undefined;
+  }
+}
+
+async function startTabularInference(dataset: Dataset<Tabular>): Promise<void> {
+  const { inputColumns, outputColumns } = props.task.trainingInformation;
+  if (inputColumns === undefined || outputColumns === undefined)
+    throw new Error("no input and output columns but tabular task needs it");
+  const labels = {
+    input: List(inputColumns),
+    output: List(outputColumns).map((c) => `Predicted_${c}`),
+  };
+  const validator = new Validator(props.task, toRaw(props.model));
+
+  let results: (Results & { type: "tabular" })["results"] = List();
+  try {
+    generator.value = await validator.infer(["tabular", dataset]);
+    for await (const [input, prediction] of dataset.zip(
+      toRaw(generator.value),
+    )) {
+      results = results.push({
+        input: labels.input.map((label) => {
+          const ret = input[label];
+          if (ret === undefined)
+            throw new Error("row doesn't have expected label");
+          return ret;
+        }),
+        output: prediction.toString(),
+      });
+
+      predictions.value = { type: "tabular", labels, results };
+    }
+  } finally {
+    generator.value = undefined;
   }
 }
 
 async function stopInference(): Promise<void> {
-  const generator = inferenceGenerator.value;
-  if (generator === undefined) return;
+  const g = generator.value;
+  if (g === undefined) return;
 
-  generator.return();
+  generator.value = undefined;
+  g.return();
 }
 
 function saveCsv() {
-  if (downloadLink.value === undefined)
-    throw new Error("asked to download CSV but page yet rendered");
-  if (dataWithPred.value === undefined)
-    throw new Error("asked to save CSV without having training results");
-  if (dataset.value === undefined) {
-    toaster.error("Upload a dataset first");
-    return;
-  }
+  if (predictions.value === undefined)
+    throw new Error("asked to save CSV without predictions results");
 
-  const csvData = format(dataset.value[0], dataWithPred.value);
+  const csvData = format(predictions.value);
   const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-  downloadLink.value.setAttribute("href", URL.createObjectURL(blob));
-  downloadLink.value.setAttribute(
+  const downloadLink = document.createElement("a");
+  downloadLink.setAttribute("href", URL.createObjectURL(blob));
+  downloadLink.setAttribute(
     "download",
     `predictions_${props.task.id}_${Date.now()}.csv`,
   );
-  downloadLink.value.click();
+  downloadLink.click();
 
-  function format(
-    datasetType: TypedDataset[0],
-    dataWithPred: DataWithPrediction[],
-  ): string {
-    switch (datasetType) {
+  function format(predictions: Results): string {
+    switch (predictions.type) {
       case "image": {
-        const rows = dataWithPred.map((el) => [
-          (el.data as ImageWithUrl).filename,
-          String(el.prediction),
+        return d3.csvFormatRows([
+          ["Filename", "Prediction"],
+          ...predictions.results.map(({ input, output }) => [
+            input.filename,
+            output,
+          ]),
         ]);
-        return d3.csvFormatRows([["Filename", "Prediction"], ...rows]);
       }
       case "tabular": {
-        const featureNames = Object.values(featuresNames.value) as string[];
-        const predictionsWithLabels = dataWithPred.map((el) =>
-          Object.values(el.data).map(String),
-        );
-        return d3.csvFormatRows([featureNames, ...predictionsWithLabels]);
+        return d3.csvFormatRows([
+          predictions.labels.input.concat(predictions.labels.output).toArray(),
+          ...predictions.results.map(({ input, output }) =>
+            input.push(output).toArray(),
+          ),
+        ]);
       }
-      case "text":
-        throw new Error("TODO implement formatter");
     }
   }
-}
-
-// Array.fromAsync not yet widely used (2024)
-async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
-  const ret: T[] = [];
-  for await (const e of iter) ret.push(e);
-  return ret;
 }
 </script>
