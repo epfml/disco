@@ -131,65 +131,15 @@
       </div>
     </div>
   </div>
+
   <div v-if="currentTask !== undefined">
-    <!-- Information specific to the validation panel -->
-    <IconCard
-      v-if="!validationStore.isOnlyPrediction"
-      v-show="validationStore.step === 1"
-      class="mb-4 md:mb-8"
-    >
-      <template #title> Model Validation </template>
-
-      It is very important that your model is tested against
-      <b class="uppercase">unseen data</b>. As such, please ensure your dataset
-      of choice was not used during the training phase of your model.
-    </IconCard>
-    <!-- Language model prompting is currently unavailable   -->
-    <div
-      v-if="
-        currentTask.trainingInformation.dataType === 'text' &&
-        validationStore.isOnlyPrediction
-      "
-      v-show="validationStore.step !== 0"
-    >
-      <div class="flex justify-center items-center mb-4">
-        <span class="shrink-0 py-4 px-4 bg-orange-100 rounded-md">
-          <p class="text-slate-600 text-xs">
-            Prompting a language model will be available soon!
-          </p>
-        </span>
-      </div>
-    </div>
-
-    <KeepAlive>
-      <div v-if="stepRef === 1" class="flex flex-col space-y-4 md:space-y-8">
-        <DataDescription :task="currentTask" />
-
-        <LabeledImageDatasetInput
-          v-if="currentTask.trainingInformation.dataType === 'image'"
-          v-model="imageDataset"
-          :labels="labels"
-        />
-        <TabularDatasetInput
-          v-if="currentTask.trainingInformation.dataType === 'tabular'"
-          v-model="tabularDataset"
-        />
-        <TextDatasetInput
-          v-if="currentTask.trainingInformation.dataType === 'text'"
-          v-model="textDataset"
-        />
-      </div>
-    </KeepAlive>
-
-    <KeepAlive>
-      <Tester
-        v-if="stepRef === 2"
+    <div v-if="stepRef > 0">
+      <TestSteps v-if="!validationStore.isOnlyPrediction" :task="currentTask" />
+      <PredictSteps
+        v-if="validationStore.isOnlyPrediction"
         :task="currentTask"
-        :dataset="dataset"
-        :ground-truth="!validationStore.isOnlyPrediction"
-        :is-only-prediction="validationStore.isOnlyPrediction"
       />
-    </KeepAlive>
+    </div>
   </div>
 
   <TestingButtons class="mt-5" />
@@ -197,21 +147,13 @@
 
 <script lang="ts" setup>
 import createDebug from "debug";
-import {
-  watch,
-  computed,
-  ref,
-  shallowRef,
-  toRaw,
-  onActivated,
-  onMounted,
-} from "vue";
-import { RouterLink } from "vue-router";
+import { List } from "immutable";
 import { storeToRefs } from "pinia";
-import { List, Range, Set } from "immutable";
+import { watch, computed, shallowRef, onActivated, onMounted } from "vue";
+import { RouterLink } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 
-import type { Dataset, Tabular, Task, Text } from "@epfml/discojs";
+import type { Task } from "@epfml/discojs";
 import { EmptyMemory, client as clients, aggregator } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
@@ -223,21 +165,14 @@ import { useValidationStore } from "@/store/validation";
 
 import ButtonsCard from "@/components/containers/ButtonsCard.vue";
 import IconCard from "@/components/containers/IconCard.vue";
-import type {
-  NamedLabeledImageDataset,
-  TypedNamedLabeledDataset,
-} from "@/components/dataset_input/types.js";
-import DataDescription from "@/components/dataset_input/DataDescription.vue";
-import TextDatasetInput from "@/components/dataset_input/TextDatasetInput.vue";
-import LabeledImageDatasetInput from "@/components/dataset_input/LabeledImageDatasetInput/index.vue";
-import TabularDatasetInput from "@/components/dataset_input/TabularDatasetInput.vue";
 import TestingButtons from "@/components/progress_bars/TestingButtons.vue";
 import DISCO from "@/components/simple/DISCO.vue";
 import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
 
-import Tester from "./Tester.vue";
+import TestSteps from "./TestSteps.vue";
+import PredictSteps from "./PredictSteps.vue";
 
-const debug = createDebug("webapp:Tester");
+const debug = createDebug("webapp:Testing");
 const validationStore = useValidationStore();
 const memoryStore = useMemoryStore();
 const tasksStore = useTasksStore();
@@ -251,60 +186,9 @@ const federatedTasks = computed(() =>
     .filter((t) => t.trainingInformation.scheme === "federated")
     .toList(),
 );
-const labels = computed(() =>
-  Set(currentTask.value?.trainingInformation.LABEL_LIST),
-);
 const memory = computed(() =>
   memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory(),
 );
-
-const imageDataset = ref<NamedLabeledImageDataset>();
-const tabularDataset = ref<Dataset<Tabular>>();
-const textDataset = ref<Dataset<Text>>();
-const dataset = computed<TypedNamedLabeledDataset | undefined>(() => {
-  if (
-    Set.of<unknown>(
-      imageDataset.value,
-      tabularDataset.value,
-      textDataset.value,
-    ).filter((d) => d !== undefined).size > 1
-  )
-    throw new Error("multiple dataset entered");
-
-  if (imageDataset.value !== undefined)
-    return ["image", toRaw(imageDataset.value)];
-  if (tabularDataset.value !== undefined)
-    return ["tabular", toRaw(tabularDataset.value)];
-  if (textDataset.value !== undefined)
-    return ["text", toRaw(textDataset.value)];
-
-  return undefined;
-});
-
-watch(tabularDataset, async (dataset) => {
-  if (dataset === undefined) return;
-  if (currentTask.value === undefined)
-    throw new Error("dataset entered but no task");
-
-  const wantedColumns = Set(currentTask.value.trainingInformation.inputColumns);
-
-  try {
-    for await (const [columns, i] of toRaw(dataset)
-      .map((row) => Set(Object.keys(row)))
-      .zip(Range(1)))
-      if (!columns.isSuperset(wantedColumns))
-        throw new Error(
-          `row ${i} is missing columns ${wantedColumns.subtract(columns).join(", ")}`,
-        );
-  } catch (e) {
-    let msg = "Error when loading CSV";
-    if (e instanceof Error) msg = `${msg}: ${e.message}`;
-    toaster.error(msg);
-
-    tabularDataset.value = undefined;
-    return;
-  }
-});
 
 watch(stateRef, () => {
   if (validationStore.model !== undefined)
