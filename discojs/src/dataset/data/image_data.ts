@@ -32,8 +32,8 @@ export class ImageData extends Data {
       }
 
       let shape
-      if ('xs' in sample && 'ys' in sample) {
-        shape = (sample as { xs: tf.Tensor, ys: number[] }).xs.shape
+      if ('xs' in sample) {
+        shape = (sample as { xs: tf.Tensor }).xs.shape
       } else {
         shape = (sample as tf.Tensor3D).shape
       }
