@@ -189,7 +189,9 @@ function goToNewCustomTask () {
 function goToEvaluate () {
   // Reset the store
   validationStore.step = 0
-  validationStore.model = undefined;
+  validationStore.modelID = undefined;
+  validationStore.mode = undefined;
+
   router.push({ path: '/evaluate' })
 }
 

@@ -172,7 +172,7 @@ function switchToEvaluate(): void {
   emit("close-panel");
 }
 function openTesting(modelID: string) {
-  validationStore.setModel(modelID);
+  validationStore.modelID = modelID;
   router.push({ path: "/evaluate" });
 }
 
