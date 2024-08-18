@@ -149,6 +149,7 @@ const validationStore = useValidationStore();
 
 const props = defineProps<{
   task: Task;
+  modelID: string;
 }>();
 
 interface ImageWithUrl {
@@ -189,13 +190,11 @@ const dataWithPred = ref<DataWithPrediction[]>();
 const downloadLink = ref<HTMLAnchorElement>();
 
 const validator = computed(() => {
-  if (validationStore.model === undefined) return undefined;
-
   return new Validator(
     props.task,
     new ConsoleLogger(),
     memory.value,
-    validationStore.model,
+    props.modelID,
   );
 });
 const memory = computed(() =>

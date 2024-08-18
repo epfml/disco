@@ -60,7 +60,7 @@ const modelInfo = computed<ModelInfo>(() => {
 async function testModel () {
   const path = memory.value.getModelMemoryPath(modelInfo.value)
   if (await memory.value.contains(modelInfo.value) && path !== undefined) {
-    validationStore.setModel(path)
+    validationStore.modelID = path
     router.push({ path: '/evaluate' })
   } else {
     toast.error('Model was not trained!')
