@@ -41,7 +41,6 @@ const scrollToTop = ():void => {
   }
 }
 
-
 const prevStepOrList = async (): Promise<void> => {
     if (trainingStore.step === 1) {
         await router.push({ path: '/list' });
