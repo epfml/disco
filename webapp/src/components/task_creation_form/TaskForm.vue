@@ -51,7 +51,7 @@
                     v-html="field.name"
                   />
                 </label>
-                <div>
+                <div v-if="field.type !== 'select' && field.type !== 'text'">
                 <span
                   class="hover:cursor-pointer"
                   v-tippy="{
