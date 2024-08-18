@@ -211,8 +211,9 @@ function sortModels(a: ModelMetadata, b: ModelMetadata): number {
 
 
 function deleteModelConfirm(modelID: string){
-  toaster.default(`Click here to confirm you want to delete the model (this message will go in 5 seconds)`, {
+  toaster.default(`Click here to confirm the model deletion`, {
     onClick: () => deleteModel(modelID),
+    duration: 10000,
   });
 }
 
