@@ -106,27 +106,7 @@
         </ProgressIcon>
       </div>
     </div>
-    <div
-      v-show="route.fullPath !== '/list'"
-      class="flex flex-row justify-center gap-4 md:gap-8 mt-8 md:mt-12"
-      >
-      <div class="text-center md:text-right">
-        <CustomButton
-          v-show="trainingStore.step !== undefined && trainingStore.step >= 1"
-          @click="prevStepOrList"
-        >
-          previous
-        </CustomButton>
-      </div>
-      <div class="text-center md:text-left">
-        <CustomButton
-          v-show="trainingStore.step !== undefined && trainingStore.step <= 3"
-          @click="nextStep"
-        >
-          next
-        </CustomButton>
-      </div>
-    </div>
+    <TrainingButtons />
   </div>
 </template>
 
@@ -145,6 +125,7 @@ import PerformanceIcon from '@/assets/svg/PerformanceIcon.vue'
 
 import CustomButton from '@/components/simple/CustomButton.vue'
 import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
+import TrainingButtons from './TrainingButtons.vue'
 
 const router = useRouter()
 const route = useRoute()
