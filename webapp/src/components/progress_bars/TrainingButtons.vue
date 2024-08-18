@@ -34,8 +34,6 @@ const router = useRouter()
 const trainingStore = useTrainingStore()
 const route = useRoute()
 
-
-
 const scrollToTop = ():void => {
   const appElement = document.getElementById('scrollable-div');
   if (appElement) {
