@@ -131,9 +131,10 @@ function onChange(): void {
   emit('input', files)
   toast.success("Upload complete")
 }
-// function onDragOver(event: DragEvent): void {
-//   // Optional: Add visual feedback
-// }
+
+function onDragOver(event: DragEvent): void {
+  // Optional: Add visual feedback
+}
 
 function onDrop(event: DragEvent): void {
   if (!available) return;
@@ -154,7 +155,6 @@ function showUploadingToast() {
   toast.info("Uploading your data in the browser (your data stays on your computer)")
 }
 
-// clearInput method
 function clearInput(): void {
   fileName.value = ''
   if (upload.value) {
