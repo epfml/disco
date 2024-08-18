@@ -98,9 +98,6 @@ const trainingStore = useTrainingStore()
 const taskStore = useTasksStore()
 const { tasks } = storeToRefs(taskStore)
 
-// For the moment, I only manage to sort the task by doing an iterator, which is forbidden by EsLint and the version
-// An easy way to fix it is to add a flag to disable the rule in the .eslintrc.js file but I will not do it, because
-// It is a "too big" change to the project I think.
 const sortedTasks = computed(() => [...tasks.value.values()].sort(
   (task1, task2) => task1.displayInformation.taskTitle.localeCompare(task2.displayInformation.taskTitle)
 ))
