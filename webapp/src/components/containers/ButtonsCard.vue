@@ -43,7 +43,7 @@ import CustomButton from "@/components/simple/CustomButton.vue";
 const props = withDefaults(
   defineProps<{
     titleAlign?: "left" | "center" | "right";
-    buttons: List<readonly [string, () => void, string?]>;
+    buttons: List<readonly [string, () => void, string?]>; // button text, on click function, optional description
     buttonsJustify?: "start" | "center" | "end";
   }>(),
   {
