@@ -25,7 +25,7 @@
             >
               train collaboratively
               <template #description>
-                Share the model's weights with other participants
+                Exchange model updates with other participants
               </template>
             </CustomButton>
           </div>
