@@ -133,6 +133,7 @@ function onChange(): void {
 }
 
 function onDragOver(event: DragEvent): void {
+  event.preventDefault();
   // Optional: Add visual feedback
 }
 

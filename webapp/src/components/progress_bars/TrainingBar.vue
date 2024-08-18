@@ -123,7 +123,6 @@ import ModelIcon from '@/assets/svg/ModelIcon.vue'
 import TasksIcon from '@/assets/svg/TasksIcon.vue'
 import PerformanceIcon from '@/assets/svg/PerformanceIcon.vue'
 
-import CustomButton from '@/components/simple/CustomButton.vue'
 import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
 import TrainingButtons from './TrainingButtons.vue'
 
@@ -162,16 +161,4 @@ const toStep = (step: number): void => {
   }
 }
 
-const prevStepOrList = (): void => {
-  if (trainingStore.step === 1) {
-    router.push({ path: '/list' })
-    trainingStore.setStep(0)
-  } else {
-    trainingStore.prevStep()
-  }
-}
-
-const nextStep = (): void => {
-  trainingStore.nextStep()
-}
 </script>
