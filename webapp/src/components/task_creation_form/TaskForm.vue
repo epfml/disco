@@ -132,10 +132,9 @@
         <template #title> How to join after ?</template>
         <div>
           <p>
-            After submitting the form, others will be able to join the task by going into the
-            <span @click="goToDiscollaborative()" class="underline font-bold cursor-pointer">DISCOllaborative page</span>, and uploading their private data. You can simulate multiple
-            people by opening a new tab in your browser you can have a detailed explanation About
-            how Disco works <span @click="goToInformation()" class="underline font-bold	cursor-pointer">here</span>.
+            After submitting the form, others will be able to join the task from the
+            <span @click="goToDiscollaborative()" class="underline font-bold cursor-pointer">DISCOllaborative page</span>. You can find more explanations about
+            Disco in the <span @click="goToInformation()" class="underline font-bold cursor-pointer">Information page</span>.
           </p>
         </div>
       </IconCard>
