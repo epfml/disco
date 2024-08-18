@@ -1,7 +1,8 @@
 <template>
   <div class="space-y-8 mb-8">
+    <!-- Display Model Evaluation for testing, and Model prediction for prediction -->
     <h1 class="text-disco-cyan font-disco text-3xl text-center">
-      Evaluation
+      Model ({{ testing }})
     </h1>
     <div class="hidden md:flex mx-auto">
       <ProgressIcon
@@ -26,7 +27,7 @@
         @click="handleRoute(1)"
       >
         <template #text>
-          Connect Your Data ({{ testing }})
+          Connect Your Data
         </template>
         <template #icon>
           <PlugIcon custom-class="w-full w-5 h-5"/>
