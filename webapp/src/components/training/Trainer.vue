@@ -15,9 +15,6 @@
           <div class="grid grid-cols-2 gap-8">
             <CustomButton @click="startTraining(false)">
               train alone
-              <template #description>
-                Train on your own
-              </template>
             </CustomButton>
             <CustomButton
               v-tippy="{
