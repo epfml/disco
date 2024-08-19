@@ -15,33 +15,36 @@ import * as messages from "./messages.js";
 
 const debug = createDebug("discojs:client:federated");
 
+/**
+ * Arbitrary node id assigned to the federated server which we are communicating with.
+ * Indeed, the server acts as a node within the network. In the federated setting described
+ * by this client class, the server is the only node which we are communicating with.
+*/
 const SERVER_NODE_ID = "federated-server-node-id";
 
 /**
  * Client class that communicates with a centralized, federated server, when training
  * a specific task in the federated setting.
  */
-export class FederatedClient extends Client {
-  /**
-   * Arbitrary node id assigned to the federated server which we are communicating with.
-   * Indeed, the server acts as a node within the network. In the federated setting described
-   * by this client class, the server is the only node which we are communicating with.
-   */
-  
+export class FederatedClient extends Client {  
   // Total number of other federated contributors, including this client, excluding the server
   // E.g., if 3 users are training a federated model, nbOfParticipants is 3
   #nbOfParticipants: number = 1;
   
   /**
-   * Flag set by the server to tell clients to pause and wait until more
-   * participants join the session
-   */
-  #waitingForMoreParticipants = false;
-  /**
-   * Along with the boolean flag, we also use a promise to wait
-   * until the server signals that we can resume the training
+   * When the server notifies clients to pause and wait until more
+   * participants join, we rely on this promise to wait
+   * until the server signals that the training can resume
    */
   #promiseForMoreParticipants: Promise<void> | undefined = undefined;
+
+   /**
+   * Whether the client should wait until more
+   * participants join the session, i.e. a promise has been created
+   */
+  get #waitingForMoreParticipants(): boolean {
+    return this.#promiseForMoreParticipants !== undefined 
+  }
 
   // the number of participants excluding the server
   override get nbOfParticipants(): number {
@@ -84,11 +87,13 @@ export class FederatedClient extends Client {
     
     // Setup an event callback if the server signals that we should 
     // wait for more participants
-    this.server.on(type.WaitingForMoreParticipants,
-      () => {
-        debug("Received WaitingForMoreParticipants")
-        this.#promiseForMoreParticipants = this.waitForMoreParticipants()
-      })
+    this.server.on(type.WaitingForMoreParticipants, () => {
+      debug("Received WaitingForMoreParticipants message from server")
+      // Upon receiving a WaitingForMoreParticipants message,
+      // the client will await for this promise to resolve before sending its 
+      // local weight update
+      this.#promiseForMoreParticipants = this.waitForMoreParticipants()
+    })
 
     this.aggregator.registerNode(SERVER_NODE_ID);
 
@@ -107,7 +112,7 @@ export class FederatedClient extends Client {
     // which indicates whether there are enough participants or not
     if (received.waitForMoreParticipants) {
       // Create a promise that resolves when enough participants join
-      // The client awaits this promise before sending its local weight update
+      // The client will await this promise before sending its local weight update
       this.#promiseForMoreParticipants = this.waitForMoreParticipants()
     }
     debug("Upon connecting, wait for participant flag %o", this.#waitingForMoreParticipants)
@@ -116,18 +121,15 @@ export class FederatedClient extends Client {
   /**
    * Method called when the server notifies the client that there aren't enough 
    * participants (anymore) to start/continue training
-   * The method sets waitingForMoreParticipants to true and creates
-   * a promise that will resolve once the server notifies the client that the
-   * training can resume
+   * The method creates a promise that will resolve once the server notifies 
+   * the client that the training can resume via a subsequent EnoughParticipants message
    * @returns a promise which resolves when enough participants joined the session
    */
   private async waitForMoreParticipants(): Promise<void> {
-    this.#waitingForMoreParticipants = true
     return new Promise<void>((resolve) => {
       // "once" is important because we can't resolve the same promise multiple times
       this.server.once(type.EnoughParticipants, () => {
         debug("Received EnoughParticipants message from server")
-        this.#waitingForMoreParticipants = false
         resolve()
       })
     })
@@ -166,13 +168,12 @@ export class FederatedClient extends Client {
 
     // First we check if we are waiting for more participants before sending our weight update
     if (this.#waitingForMoreParticipants) {
-      if (this.#promiseForMoreParticipants === undefined) throw new Error("Promise should not be undefined")
-        
       // wait for the promise to resolve, which takes as long as it takes for new participants to join
       debug("Awaiting the promise for more participants")
       this.logger.setStatus("Waiting for more participants")
       await this.#promiseForMoreParticipants 
-      debug("Promise resolved")
+      // Make sure to set the promise back to undefined once resolved
+      this.#promiseForMoreParticipants = undefined 
     }
     this.logger.setStatus("Updating the model with other participants' models")
 
