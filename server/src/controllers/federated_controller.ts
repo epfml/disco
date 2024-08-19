@@ -175,16 +175,6 @@ export class FederatedController extends TrainingController {
           }
         }
         this.#waitingForMoreParticipants = waitForMoreParticipants // update the attribute
-
-      /* 
-      * A participant leaves the task 
-      */
-      } else if (msg.type === MessageTypes.ClientDisconnected) {
-        debug(`client ${clientId} left ${this.task.id}`)
-
-        this.#participants.delete(clientId)
-        this.#aggregator.removeNode(clientId)
-
       /* 
       * A client sends a weight update to the server
       */
@@ -222,7 +212,6 @@ export class FederatedController extends TrainingController {
     // Setup callback for client leaving the session
     ws.on('close', () => {
       // Remove the participant when the websocket is closed
-      // Potentially already done if the client sent a Disconnect message
       this.#participants.delete(clientId)
       this.#aggregator.removeNode(clientId)
       debug("client leaving: %o", clientId)

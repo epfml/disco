@@ -5,7 +5,7 @@ import {
   type WeightsContainer,
 } from "../../index.js";
 import { Client } from "../client.js";
-import { type, type ClientConnected, type ClientDisconnected } from "../messages.js";
+import { type, type ClientConnected } from "../messages.js";
 import {
   type EventConnection,
   waitMessageWithTimeout,
@@ -14,6 +14,8 @@ import {
 import * as messages from "./messages.js";
 
 const debug = createDebug("discojs:client:federated");
+
+const SERVER_NODE_ID = "federated-server-node-id";
 
 /**
  * Client class that communicates with a centralized, federated server, when training
@@ -25,7 +27,6 @@ export class FederatedClient extends Client {
    * Indeed, the server acts as a node within the network. In the federated setting described
    * by this client class, the server is the only node which we are communicating with.
    */
-  public static readonly SERVER_NODE_ID = "federated-server-node-id";
   
   // Total number of other federated contributors, including this client, excluding the server
   // E.g., if 3 users are training a federated model, nbOfParticipants is 3
@@ -89,7 +90,7 @@ export class FederatedClient extends Client {
         this.#promiseForMoreParticipants = this.waitForMoreParticipants()
       })
 
-    this.aggregator.registerNode(FederatedClient.SERVER_NODE_ID);
+    this.aggregator.registerNode(SERVER_NODE_ID);
 
     const msg: ClientConnected = {
       type: type.ClientConnected,
@@ -136,17 +137,11 @@ export class FederatedClient extends Client {
    * Disconnection process when user quits the task.
    */
   override async disconnect(): Promise<void> {
-    const msg: ClientDisconnected = {
-      type: type.ClientDisconnected,
-    };
-    this.server.send(msg); // notify the server we are disconnecting but don't wait for an answer
     await this.server.disconnect();
     this._server = undefined;
     this._ownId = undefined;
 
-    this.aggregator.setNodes(this.aggregator.nodes.delete(FederatedClient.SERVER_NODE_ID));
-
-    return Promise.resolve();
+    this.aggregator.setNodes(this.aggregator.nodes.delete(SERVER_NODE_ID));
   }
 
   override onRoundBeginCommunication(): Promise<void> {
@@ -197,7 +192,7 @@ export class FederatedClient extends Client {
 
     if (
       serverResult !== undefined &&
-      this.aggregator.add(FederatedClient.SERVER_NODE_ID, serverResult, this.aggregator.round)
+      this.aggregator.add(SERVER_NODE_ID, serverResult, this.aggregator.round)
     ) {
       // Regular case: the server sends us its aggregation result which will serve our
       // own aggregation result.

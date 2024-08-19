@@ -11,8 +11,6 @@ export enum type {
   // The message also tells the client whether we are waiting
   // for more participants before starting training
   AssignNodeID,
-  // Sent to the server when a participant leaves a session
-  ClientDisconnected,
   
   /* Decentralized */
   // Message forwarded by the server from a client to another client
@@ -36,10 +34,6 @@ export enum type {
   EnoughParticipants,
   SendPayload,
   ReceiveServerPayload,
-}
-
-export interface ClientDisconnected {
-  type: type.ClientDisconnected
 }
 
 export interface ClientConnected {
