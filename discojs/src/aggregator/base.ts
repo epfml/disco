@@ -87,11 +87,11 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
    */
   isValidContribution(nodeId: client.NodeID, round: number): boolean {
     if (!this.nodes.has(nodeId)) {
-      console.warn("Contribution rejected because node id is not registered")
+      debug("Contribution rejected because node id is not registered")
       return false;
     }
     if (!this.isWithinRoundCutoff(round)) {
-      console.warn(`Contribution rejected because round ${round} is not within round cutoff`)
+      debug(`Contribution rejected because round ${round} is not within round cutoff`)
       return false;
     }
     return true
@@ -159,9 +159,7 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
    * @param nodeId The node to be removed
    */
   removeNode (nodeId: client.NodeID): void{
-    if (this.nodes.has(nodeId)) {
-      this._nodes = this._nodes.delete(nodeId)
-    }
+    this._nodes = this._nodes.delete(nodeId)
   }
 
   /**
