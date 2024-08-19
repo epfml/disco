@@ -130,7 +130,7 @@ export class WebSocketServer extends EventEmitter<{ [K in type]: NarrowMessage<K
   disconnect(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.socket.onclose = () => resolve()
-      this.socket.onerror = () => reject()
+      this.socket.onerror = (e) => reject(e.message)
       this.socket.close()
     })
   }
