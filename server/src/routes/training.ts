@@ -62,7 +62,7 @@ export class TrainingRouter {
     // Setup a websocket route which calls the controller's `handle` method
     this.ownRouter.ws(this.buildRoute(task.id), (ws, req) => {
       if (this.isValidUrl(req.url)) {
-        taskController.handle(ws, model, req)
+        taskController.handle(ws)
       } else {
         ws.terminate()
         ws.close()

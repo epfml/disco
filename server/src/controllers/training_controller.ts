@@ -1,4 +1,3 @@
-import express from 'express'
 import type WebSocket from 'ws'
 
 import type { Model, Task } from '@epfml/discojs'
@@ -25,8 +24,6 @@ export abstract class TrainingController {
   abstract initTask (model: Model): void
 
   abstract handle(
-    ws: WebSocket,
-    model: Model,
-    req: express.Request,
+    ws: WebSocket
   ): void
 }
