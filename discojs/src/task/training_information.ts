@@ -48,9 +48,9 @@ export interface TrainingInformation {
   // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
   maxShareValue?: number
-  // minimumReadyPeers: Decentralized Learning: minimum number of peers who must be ready to participate in aggregation before model updates are shared between clients
-  // default is 3, range is [3, totalNumberOfPeersParticipating]
-  minimumReadyPeers?: number
+  // minNbOfParticipants: minimum number of participants required to train collaboratively
+  // In decentralized Learning the default is 3, in federated learning it is 2
+  minNbOfParticipants: number
   // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
   // default is 'average', other options include for instance 'bandit'
   aggregator?: 'mean' | 'secure' // TODO: never used
@@ -114,7 +114,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     epochs,
     inputColumns,
     maxShareValue,
-    minimumReadyPeers,
+    minNbOfParticipants,
     modelID,
     outputColumns,
     preprocessingFunctions,
@@ -133,13 +133,13 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof batchSize !== 'number' ||
     typeof roundDuration !== 'number' ||
     typeof validationSplit !== 'number' ||
+    typeof minNbOfParticipants !== 'number' ||
     (tokenizer !== undefined && typeof tokenizer !== 'string' && !(tokenizer instanceof PreTrainedTokenizer)) ||
     (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
     (aggregator !== undefined && typeof aggregator !== 'string') ||
     (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
     (privacy !== undefined && !isPrivacy(privacy)) ||
     (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
-    (minimumReadyPeers !== undefined && typeof minimumReadyPeers !== 'number') ||
     (IMAGE_H !== undefined && typeof IMAGE_H !== 'number') ||
     (IMAGE_W !== undefined && typeof IMAGE_W !== 'number') ||
     (LABEL_LIST !== undefined && !isStringArray(LABEL_LIST)) ||
@@ -204,7 +204,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     epochs,
     inputColumns,
     maxShareValue,
-    minimumReadyPeers,
+    minNbOfParticipants,
     modelID,
     outputColumns,
     preprocessingFunctions,

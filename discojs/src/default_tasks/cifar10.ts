@@ -36,7 +36,7 @@ export const cifar10: TaskProvider = {
         scheme: 'decentralized',
         privacy: { clippingRadius: 20, noiseScale: 1 },
         decentralizedSecure: true,
-        minimumReadyPeers: 3,
+        minNbOfParticipants: 3,
         maxShareValue: 100,
         tensorBackend: 'tfjs'
       }

@@ -65,7 +65,8 @@ export const titanic: TaskProvider = {
         outputColumns: [
           'Survived'
         ],
-        scheme: 'federated', // secure aggregation not yet implemented for federated
+        scheme: 'federated',
+        minNbOfParticipants: 2,
         tensorBackend: 'tfjs'
       }
     }

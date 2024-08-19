@@ -27,8 +27,7 @@ export class DecentralizedController extends TrainingController {
   initTask (): void {}
 
   handle (ws: WebSocket): void {
-    // TODO @s314cy: add to task definition, to be used as threshold in aggregator
-    const minimumReadyPeers = this.task.trainingInformation?.minimumReadyPeers ?? 3
+    const minimumReadyPeers = this.task.trainingInformation.minNbOfParticipants
 
     // Peer id of the message sender
     let peerId = randomUUID()

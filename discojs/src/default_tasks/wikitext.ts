@@ -28,6 +28,7 @@ export const wikitext: TaskProvider = {
         modelID: 'llm-raw-model',
         preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
         scheme: 'federated',
+        minNbOfParticipants: 2,
         epochs: 6,
         // Unused by wikitext because data already comes split
         // But if set to 0 then the webapp doesn't display the validation metrics
