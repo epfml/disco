@@ -8,7 +8,7 @@
     </div>
     <!-- Train Button -->
     <div class="flex justify-center">
-      <IconCard title-placement="center" :fill-space="true">
+      <IconCard title-placement="center" fill-space>
         <template #title> Control the Training Flow </template>
           <!-- If we are not currently training -->
           <div v-if="trainingGenerator === undefined" class="flex flex-col gap-y-4">
