@@ -12,7 +12,7 @@ import messages = client.decentralized.messages
 import AssignNodeID = client.messages.AssignNodeID
 import MessageTypes = client.messages.type
 
-const debug = createDebug("server:routes:decentralized")
+const debug = createDebug("server:controllers:decentralized")
 
 export class DecentralizedController extends TrainingController {
   /**
