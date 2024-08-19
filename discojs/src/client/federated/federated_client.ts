@@ -9,7 +9,6 @@ import { type, type ClientConnected, type ClientDisconnected } from "../messages
 import {
   type EventConnection,
   waitMessageWithTimeout,
-  // waitMessage,
   WebSocketServer,
 } from "../event_connection.js";
 import * as messages from "./messages.js";
