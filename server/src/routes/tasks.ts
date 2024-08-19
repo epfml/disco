@@ -50,7 +50,7 @@ export class TaskRouter {
         });
     })
 
-    // delay listening
+    // delay listener because `this` (object) isn't fully constructed yet
     process.nextTick(() => {
       tasksAndModels.on('taskAndModel', (t, m) => { this.onNewTask(t, m) })
     })
