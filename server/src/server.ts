@@ -54,15 +54,13 @@ export class Server {
     const federatedRouter = new TrainingRouter('federated', wsApplier, this.#tasksAndModels)
     const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#tasksAndModels)
 
-    process.nextTick(() =>
-      wsApplier.getWss().on('connection', (ws, req) => {
-        if (!federatedRouter.isValidUrl(req.url) && !decentralizedRouter.isValidUrl(req.url)) {
-          debug("connection refused on %s", req.url);
-          ws.terminate()
-          ws.close()
-        }
-      })
-    )
+    wsApplier.getWss().on('connection', (ws, req) => {
+      if (!federatedRouter.isValidUrl(req.url) && !decentralizedRouter.isValidUrl(req.url)) {
+        debug("connection refused on %s", req.url);
+        ws.terminate()
+        ws.close()
+      }
+    })
 
     app.get('/', (_, res, next) => {
       res.send('The DISCO Server\n')
