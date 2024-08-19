@@ -3,6 +3,7 @@ import createDebug from "debug";
 import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
 import msgpack from 'msgpack-lite'
+import { Map } from 'immutable'
 
 import type { WeightsContainer } from '@epfml/discojs'
 import {
@@ -19,9 +20,6 @@ import FederatedMessages = client.federated.messages
 
 const debug = createDebug("server:controllers:federated")
 
-// Arbitrarily set a minimum of two participants in a federated training
-const MIN_PARTICIPANTS = 2
-
 export class FederatedController extends TrainingController {
   /**
    * Aggregators for each hosted task.
@@ -34,10 +32,10 @@ export class FederatedController extends TrainingController {
    */
   #result: Promise<WeightsContainer> | undefined = undefined
   /**
-   * The last global model aggregated. The model is already serialized and 
+   * The last global model aggregated. The model weights are already serialized and 
    * can be sent to participants joining mid-training or contributing to previous rounds
    */
-  #latestGlobalModel: serialization.weights.Encoded | undefined = undefined
+  #latestGlobalWeights: serialization.weights.Encoded | undefined = undefined
   /**
    * Boolean used to know if we have enough participants to train or if 
    * we should be waiting for more
@@ -48,7 +46,8 @@ export class FederatedController extends TrainingController {
    * the list allows updating participants about the training status 
    * i.e. waiting for more participants or resuming training
    */
-  #participants = new Map<string, WebSocket>()
+  #participants = Map<string, WebSocket>()
+
   /**
    * Loop creating an aggregation result promise at each round.
    * Because clients contribute to the round asynchronously, a promise is used to let them wait
@@ -63,8 +62,8 @@ export class FederatedController extends TrainingController {
     // The promise resolves once the server received enough contributions (through the handle method)
     // and the aggregator aggregated the weights.
     const globalModel = await this.#result
-    const serializedModel =  await serialization.weights.encode(globalModel)
-    this.#latestGlobalModel = serializedModel
+    const serializedWeights =  await serialization.weights.encode(globalModel)
+    this.#latestGlobalWeights = serializedWeights
 
     // Create a new promise for the next round
     // TODO weird usage, should be handled inside of aggregator
@@ -128,15 +127,14 @@ export class FederatedController extends TrainingController {
    * @param ws the websocket connection through which the participant and the server communicate
    */
   handle(ws: WebSocket): void {
-    if (this.#aggregator === undefined)
-      throw new Error(`no aggregator for task ${this.task.id}`)
-
+    const minNbOfParticipants = this.task.trainingInformation.minNbOfParticipants
     // Try generating a new Client id until there no collision with existing ones
     let clientId = randomUUID()
     while (!this.#aggregator.registerNode(clientId)) {
       clientId = randomUUID()
     }
 
+    // Setup callbacks triggered upon receiving the different client messages
     ws.on('message', (data: Buffer) => {
       const msg: unknown = msgpack.decode(data)
       if (!FederatedMessages.isMessageFederated(msg)) {
@@ -144,92 +142,105 @@ export class FederatedController extends TrainingController {
         return // TODO send back error
       }
 
-      /* 
-      * A new participant joins the task 
-      */
-      if (msg.type === MessageTypes.ClientConnected) {
-        debug(`client ${clientId} joined ${this.task.id}`)
-        this.#participants.set(clientId, ws) // add the new client
+      // Currently expect two types of messages from clients: 
+      // - a client connects to the task
+      // - a client sends a weight update
+      switch (msg.type) {
+        /* 
+        * A new participant joins the task 
+        */
+        case MessageTypes.ClientConnected: {
+          debug(`client ${clientId} joined ${this.task.id}`)
+          this.#participants = this.#participants.set(clientId, ws) // add the new client
 
-        const waitForMoreParticipants = this.#participants.size < MIN_PARTICIPANTS
-        const msg: Messages.AssignNodeID = {
-          type: MessageTypes.AssignNodeID,
-          id: clientId,
-          waitForMoreParticipants
-        }
-        ws.send(msgpack.encode(msg))
-
-        debug("Wait for more participant flag: %o", waitForMoreParticipants)
-        
-        // If we were previously waiting for more participants to join and we now have enough,
-        // broadcast to previously waiting participants that the training can start
-        if (this.#waitingForMoreParticipants && !waitForMoreParticipants) {
-          for (const [participantId, participantWs] of this.#participants.entries()) {
-            if (participantId !== clientId) {
-              debug("Sending enough-participant message to client: %o", participantId)
-              const msg: FederatedMessages.EnoughParticipants = {
-                type: MessageTypes.EnoughParticipants
-              }
-              participantWs.send(msgpack.encode(msg))
-            }
-          }
-        }
-        this.#waitingForMoreParticipants = waitForMoreParticipants // update the attribute
-      /* 
-      * A client sends a weight update to the server
-      */
-      } else if (msg.type === MessageTypes.SendPayload) {
-
-        const { payload, round } = msg
-        if (this.#aggregator.isValidContribution(clientId, round)) {
-          // We need to create a promise waiting for the global model before adding the contribution to the aggregator
-          // (so that the aggregation and sending the global model to participants
-          // doesn't happen before the promise is created)
-          this.createPromiseForWeights(ws)
-          // This is assuming that the federated server's aggregator
-          // always works with a single communication round
-          const weights = serialization.weights.decode(payload)
-          const addedSuccessfully = this.#aggregator.add(clientId, weights, round)
-          if (!addedSuccessfully) throw new Error("Aggregator's isValidContribution returned true but failed to add the contribution")
-        } else {
-          // If the client sent an invalid or outdated contribution
-          // the server answers with the current round and last global model update
-          debug(`Dropped contribution from client ${clientId} for round ${round}` +
-            `Sending last global model from round ${this.#aggregator.round - 1}`)
-          // no latest model at the first round
-          if (this.#latestGlobalModel === undefined) return
-          
-          const msg: FederatedMessages.ReceiveServerPayload = {
-            type: MessageTypes.ReceiveServerPayload,
-            round: this.#aggregator.round - 1, // send the model from the previous round
-            payload: this.#latestGlobalModel,
-            nbOfParticipants: this.#participants.size
+          const waitForMoreParticipants = this.#participants.size < minNbOfParticipants
+          const msg: Messages.AssignNodeID = {
+            type: MessageTypes.AssignNodeID,
+            id: clientId,
+            waitForMoreParticipants
           }
           ws.send(msgpack.encode(msg))
+
+          debug("Wait for more participant flag: %o", waitForMoreParticipants)
+          
+          // If we were previously waiting for more participants to join and we now have enough,
+          // broadcast to previously waiting participants that the training can start
+          if (this.#waitingForMoreParticipants && !waitForMoreParticipants) {
+            this.#participants
+              // filter out the client that just joined as 
+              // it already knows via the AssignNodeID message
+              .filter((_, id) => id !== clientId)
+              .forEach((participantWs, participantId) => {
+                debug("Sending enough-participant message to client: %o", participantId)
+                const msg: FederatedMessages.EnoughParticipants = {
+                  type: MessageTypes.EnoughParticipants
+                }
+                participantWs.send(msgpack.encode(msg))
+              })
+          }
+          this.#waitingForMoreParticipants = waitForMoreParticipants // update the attribute
+          break
+        }
+        /* 
+        * A client sends a weight update to the server
+        */
+        case MessageTypes.SendPayload: {
+          const { payload, round } = msg
+          if (this.#aggregator.isValidContribution(clientId, round)) {
+            // We need to create a promise waiting for the global model before adding the contribution to the aggregator
+            // (so that the aggregation and sending the global model to participants
+            // doesn't happen before the promise is created)
+            this.createPromiseForWeights(ws)
+            // This is assuming that the federated server's aggregator
+            // always works with a single communication round
+            const weights = serialization.weights.decode(payload)
+            const addedSuccessfully = this.#aggregator.add(clientId, weights, round)
+            if (!addedSuccessfully) throw new Error("Aggregator's isValidContribution returned true but failed to add the contribution")
+            debug(`Successfully added contribution from client ${clientId} for round ${round}`)
+          } else {
+            // If the client sent an invalid or outdated contribution
+            // the server answers with the current round and last global model update
+            debug(`Dropped contribution from client ${clientId} for round ${round} ` +
+              `Sending last global model from round ${this.#aggregator.round - 1}`)
+            // no latest model at the first round
+            if (this.#latestGlobalWeights === undefined) return
+            
+            const msg: FederatedMessages.ReceiveServerPayload = {
+              type: MessageTypes.ReceiveServerPayload,
+              round: this.#aggregator.round - 1, // send the model from the previous round
+              payload: this.#latestGlobalWeights,
+              nbOfParticipants: this.#participants.size
+            }
+            ws.send(msgpack.encode(msg))
+          }
+          break
         }
       }
     })
+
     // Setup callback for client leaving the session
     ws.on('close', () => {
       // Remove the participant when the websocket is closed
-      this.#participants.delete(clientId)
+      this.#participants = this.#participants.delete(clientId)
       this.#aggregator.removeNode(clientId)
       debug("client leaving: %o", clientId)
 
-      // Check if we dropped below the minimum number of participant required 
-      if (this.#participants.size >= MIN_PARTICIPANTS) return
+      // Check if we dropped below the minimum number of participant required
+      // or if we are already waiting for new participants to join
+      if (this.#participants.size >= minNbOfParticipants ||
+        this.#waitingForMoreParticipants
+      ) return
 
       this.#waitingForMoreParticipants = true
       // Tell remaining participants to wait until more participants join
-      for (const [participantId, participantWs] of this.#participants.entries()) {
-        if (participantId !== clientId) {
+      this.#participants
+        .forEach((participantWs, participantId) => {
           debug("Telling remaining clients to wait for participants: %o", participantId)
           const msg: FederatedMessages.WaitingForMoreParticipants = {
             type: MessageTypes.WaitingForMoreParticipants
           }
           participantWs.send(msgpack.encode(msg))
-        }
-      }
+        })
     }) 
   }
 }
