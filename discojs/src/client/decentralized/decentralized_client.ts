@@ -119,17 +119,17 @@ export class DecentralizedClient extends Client {
     } if (this.pool === undefined) {
         throw new Error('peer pool is undefined, make sure to call `client.connect()` first')
     }
+    this.emit("status", "Retrieving peers' information")
     // Reset peers list at each round of training to make sure client works with an updated peers
     // list, maintained by the server. Adds any received weights to the aggregator.
-    // this.connections = await this.waitForPeers(round)
 
     // Tell the server we are ready for the next round
     const readyMessage: messages.PeerIsReady = { type: type.PeerIsReady }
-
     this.server.send(readyMessage)
 
     // Wait for the server to answer with the list of peers for the round
     try {
+      debug(`[${this.ownId}] is waiting for peer list for round ${this.aggregator.round}`);
       const receivedMessage = await waitMessageWithTimeout(
         this.server, type.PeersForRound, undefined,
         "Timeout waiting for the round's peer list"
@@ -157,7 +157,7 @@ export class DecentralizedClient extends Client {
       debug(`[${this.ownId}] received peers for round ${this.aggregator.round}: %o`, connections.keySeq().toJS());
       this.connections = connections
     } catch (e) {
-      debug(`[${this.ownId}] while beginning round: %o`, e);
+      debug(`Error for [${this.ownId}] while beginning round: %o`, e);
       this.aggregator.setNodes(Set(this.ownId))
       this.connections = Map()
     }
@@ -165,6 +165,7 @@ export class DecentralizedClient extends Client {
     // Store the promise for the current round's aggregation result.
     // We will await for it to resolve at the end of the round when exchanging weight updates.
     this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
+    this.emit("status", "Training the model on the data you connected")
   }
 
   /**
@@ -187,10 +188,8 @@ export class DecentralizedClient extends Client {
             debug(`[${this.ownId}] failed to add contribution from peer ${peerId}`);
           }
         } catch (e) {
-          if (this.isDisconnected) {
-            return
-          }
-          debug(`[${this.ownId}] while receiving payloads: %o`, e);
+          if (this.isDisconnected) return
+          debug(`Error for [${this.ownId}] while receiving payloads: %o`, e);
         }
       } while (++currentCommunicationRounds < this.aggregator.communicationRounds)
     })
@@ -200,6 +199,7 @@ export class DecentralizedClient extends Client {
     if (this.aggregationResult === undefined) {
       throw new TypeError('aggregation result promise is undefined')
     }
+    this.emit("status", "Updating the model with other participants' models")
 
     // Perform the required communication rounds. Each communication round consists in sending our local payload,
     // followed by an aggregation step triggered by the receipt of other payloads, and handled by the aggregator.

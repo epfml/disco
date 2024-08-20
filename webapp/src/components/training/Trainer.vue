@@ -60,7 +60,9 @@
             </div>
             <!-- Display an activity indicator depending on the training status -->
             <div class="min-h-9">
-              <div v-if="roundStatus === 'Waiting for more participants'">
+              <div v-if="roundStatus === 'Waiting for more participants' ||
+                roundStatus === 'Retrieving peers\' information'"
+              >
                 <VueSpinnerPuff size="30" color="#6096BA"/>
               </div>
               <div v-else>

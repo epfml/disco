@@ -25,6 +25,7 @@ interface DiscoConfig {
 
 export type RoundStatus =
   "Waiting for more participants" |
+  "Retrieving peers' information" |
   "Updating the model with other participants' models" |
   "Training the model on the data you connected"
 
