@@ -51,7 +51,7 @@ export class DecentralizedController extends TrainingController {
             const msg: AssignNodeID = {
               type: MessageTypes.AssignNodeID,
               id: peerId,
-              waitForMoreParticipants: this.readyNodes.size  < minimumReadyPeers
+              waitForMoreParticipants: this.readyNodes.size  < minimumReadyPeers // ground work for #718
             }
             debug("peer ${peerId} joined ${task.id}");
 
