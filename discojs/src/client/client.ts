@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 import type { Logger, Model, Task, WeightsContainer } from '../index.js'
-import { serialization, MockLogger } from '../index.js'
+import { serialization, DummyLogger } from '../index.js'
 import type { NodeID } from './types.js'
 import type { EventConnection } from './event_connection.js'
 import type { Aggregator } from '../aggregator/index.js'
@@ -28,7 +28,7 @@ export abstract class Client {
     public readonly url: URL, // The network server's URL to connect to
     public readonly task: Task, // The client's corresponding task
     public readonly aggregator: Aggregator,
-    protected readonly logger: Logger = new MockLogger() // Default logger doesn't do anything
+    protected readonly logger: Logger = new DummyLogger() // Default logger doesn't do anything
   ) {}
 
   /**
