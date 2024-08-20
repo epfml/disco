@@ -8,4 +8,4 @@ export * as federated from './federated/index.js'
 export * as messages from './messages.js'
 export { getClient, timeout } from './utils.js'
 
-export { Local } from './local.js'
+export { LocalClient } from './local_client.js'

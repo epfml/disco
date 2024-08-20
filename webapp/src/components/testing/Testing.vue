@@ -260,7 +260,7 @@ onActivated(async () => {
 
 const downloadModel = async (task: Task): Promise<void> => {
   try {
-    const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
+    const client = new clients.LocalClient(CONFIG.serverUrl, task, aggregator.getAggregator(task))
     const model = await client.getLatestModel()
     const source = {
       type: 'saved' as const,
