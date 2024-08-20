@@ -6,16 +6,16 @@ import { Set } from 'immutable'
 import type { Model, Task, TaskID } from '@epfml/discojs'
 import { serialization, isTask } from '@epfml/discojs'
 
-import type { TasksAndModelsStore } from '../task_store.js'
+import type { TaskInitializer } from '../task_initializer.js'
 
-const debug = createDebug("server:router:tasks");
+const debug = createDebug("server:router:task_router");
 
 export class TaskRouter {
   readonly #expressRouter: express.Router
 
   #tasksAndModels = Set<[Task, Model]>()
 
-  constructor (tasksAndModelsStore: TasksAndModelsStore) {
+  constructor (taskInitializer: TaskInitializer) {
     this.#expressRouter = express.Router()
 
     // Return available tasks upon GET requests
@@ -42,7 +42,7 @@ export class TaskRouter {
 
       serialization.model
         .decode(encoded)
-        .then((model) => tasksAndModelsStore.addTaskAndModel(newTask, model))
+        .then((model) => taskInitializer.addTask(newTask, model))
         .then(() => res.status(200).end("Successful task upload"))
         .catch((e) => {
           debug("while adding model: %o", e);
@@ -52,9 +52,8 @@ export class TaskRouter {
 
     // delay listener because `this` (object) isn't fully constructed yet
     process.nextTick(() => {
-      // a 'taskAndModel' event is emitted when the new task has been added 
-      // to the Task
-      tasksAndModelsStore.on('taskAndModel', (t, m) => { this.onNewTask(t, m) })
+      // a 'newTask' event is emitted when a new task is added 
+      taskInitializer.on('newTask', (t, m) => { this.onNewTask(t, m) })
     })
   }
 
