@@ -8,6 +8,7 @@ import { Client } from "../client.js";
 import { type, type ClientConnected } from "../messages.js";
 import {
   type EventConnection,
+  waitMessage,
   waitMessageWithTimeout,
   WebSocketServer,
 } from "../event_connection.js";
@@ -153,15 +154,16 @@ export class FederatedClient extends Client {
   }
 
   /**
+   * Send the local weight update to the server and waits (indefinitely) for the server global update
    * 
+   * If the waitingForMoreParticipants flag is set, we first wait (also indefinitely) until the 
+   * server notifies us that the training can resume.
+   * 
+  // NB: For now, we suppose a fully-federated setting.
    * @param weights Local weights sent to the server at the end of the local training round
-   * @param _round The trainer's aggregation round, which can be different from 
-   * the server's round if the participant joined late
    * @returns the new global weights sent by the server
    */
   override async onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer> {
-    // NB: For now, we suppose a fully-federated setting.
-
     if (this.aggregationResult === undefined) {
       throw new Error("local aggregation result was not set");
     }
@@ -178,65 +180,29 @@ export class FederatedClient extends Client {
     this.logger.setStatus("Updating the model with other participants' models")
 
     // Send our local contribution to the server
-    // and receive the most recent weights as an answer to our contribution
-    const payload: WeightsContainer = this.aggregator.makePayloads(weights).first()
+    // and receive the server global update for this round as an answer to our contribution
+    const payloadToServer: WeightsContainer = this.aggregator.makePayloads(weights).first()
     const msg: messages.SendPayload = {
       type: type.SendPayload,
-      payload: await serialization.weights.encode(payload),
+      payload: await serialization.weights.encode(payloadToServer),
       round: this.aggregator.round,
     };
 
     // Need to await the resulting global model right after sending our local contribution
     // to make sure we don't miss it
+    debug(`[${this.ownId}] sent its local update to the server for round ${this.aggregator.round}`);
     this.server.send(msg);
-    const serverResult = await this.receiveServerResult();
+    debug(`[${this.ownId}] is waiting for server update for round ${this.aggregator.round}`);
+    const {
+      payload: payloadFromServer,
+      round: serverRound,
+      nbOfParticipants
+    } = await waitMessage( this.server, type.ReceiveServerPayload); // Wait indefinitely for the server update
+    
+    this.#nbOfParticipants = nbOfParticipants // Save the current participants
+    const serverResult = serialization.weights.decode(payloadFromServer);
+    this.aggregator.setRound(serverRound);
 
-    if (
-      serverResult !== undefined &&
-      this.aggregator.add(SERVER_NODE_ID, serverResult, this.aggregator.round)
-    ) {
-      // Regular case: the server sends us its aggregation result which will serve our
-      // own aggregation result.
-    } else {
-      // Unexpected case: for some reason, the server result is stale.
-      debug(`[${this.ownId}] server result for round ${this.aggregator.round} is undefined or stale`);
-      // We proceed to the next round without its result.
-      this.aggregator.nextRound();
-    }
-    return await this.aggregationResult
-  }
-
-  /**
-   * Wait for the server to reply with the most recent aggregated weights
-   * after having sent out local weight update to the federated server
-   */
-  private async receiveServerResult(): Promise<WeightsContainer | undefined> {
-    // Try receiving the latest update multiple times in case we receive outdated updates
-    const MAX_NB_OF_TRIES = 3
-    for (let nbOfTries = 0; nbOfTries < MAX_NB_OF_TRIES; nbOfTries++) {
-      try {
-        const { payload, round: serverRound, nbOfParticipants } = await waitMessageWithTimeout(
-          this.server,
-          type.ReceiveServerPayload,
-          undefined,
-          "Timeout while waiting for the server's model update"
-        );
-        
-        // Store the server result only if it is not stale
-        if (this.aggregator.round <= serverRound) {
-          this.#nbOfParticipants = nbOfParticipants // Save the current participants
-          const serverResult = serialization.weights.decode(payload);
-          // Updates the aggregator's round if it's behind the server's.
-          if (this.aggregator.round < serverRound) {
-            this.aggregator.setRound(serverRound);
-          }
-          return serverResult;
-        }
-      } catch (e) {
-        debug(`Error during try ${nbOfTries} of receiving server result: %o`, e);
-      }
-    }
-    console.error(`Failed to receive server result in ${MAX_NB_OF_TRIES} tries`)
-    return undefined // don't return anything if we failed
+    return serverResult
   }
 }
