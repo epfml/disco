@@ -18,9 +18,13 @@
 
 <script setup lang="ts">
 import IconCardHeader from "./IconCardHeader.vue";
-
-defineProps<{
-  titlePlacement?: "left" | "center" | "right";
-  fillSpace?: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    titlePlacement?: "left" | "center" | "right";
+    fillSpace?: boolean;
+  }>(),
+  {
+    fillSpace: false,
+  },
+);
 </script>
