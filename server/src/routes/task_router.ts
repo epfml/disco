@@ -6,29 +6,29 @@ import { Set } from 'immutable'
 import type { Model, Task, TaskID } from '@epfml/discojs'
 import { serialization, isTask } from '@epfml/discojs'
 
-import type { TasksAndModels } from '../tasks.js'
+import type { TasksAndModelsStore } from '../task_store.js'
 
 const debug = createDebug("server:router:tasks");
 
 export class TaskRouter {
-  private readonly ownRouter: express.Router
+  readonly #expressRouter: express.Router
 
-  private tasksAndModels = Set<[Task, Model]>()
+  #tasksAndModels = Set<[Task, Model]>()
 
-  constructor (tasksAndModels: TasksAndModels) {
-    this.ownRouter = express.Router()
+  constructor (tasksAndModelsStore: TasksAndModelsStore) {
+    this.#expressRouter = express.Router()
 
-    this.ownRouter.get('/', (_, res) => {
+    // Return available tasks upon GET requests
+    this.#expressRouter.get('/', (_, res) => {
       res
         .status(200)
-        .send(this.tasksAndModels.map(([t, _]) => t).toArray())
+        .send(this.#tasksAndModels.map(([t, _]) => t).toArray())
     })
 
-    this.ownRouter.post('/', (req, res) => {
+    // POST request to add a new task
+    this.#expressRouter.post('/', (req, res) => {
       const raw: unknown = req.body
-      if (typeof raw !== 'object' || raw === null) {
-	return res.status(400)
-      }
+      if (typeof raw !== 'object' || raw === null) return res.status(400)
       const { model: encoded, newTask }: Partial<Record<'model' | 'newTask', unknown>> = raw
 
       if (!(
@@ -42,7 +42,7 @@ export class TaskRouter {
 
       serialization.model
         .decode(encoded)
-        .then((model) => tasksAndModels.addTaskAndModel(newTask, model))
+        .then((model) => tasksAndModelsStore.addTaskAndModel(newTask, model))
         .then(() => res.status(200).end("Successful task upload"))
         .catch((e) => {
           debug("while adding model: %o", e);
@@ -52,20 +52,23 @@ export class TaskRouter {
 
     // delay listener because `this` (object) isn't fully constructed yet
     process.nextTick(() => {
-      tasksAndModels.on('taskAndModel', (t, m) => { this.onNewTask(t, m) })
+      // a 'taskAndModel' event is emitted when the new task has been added 
+      // to the Task
+      tasksAndModelsStore.on('taskAndModel', (t, m) => { this.onNewTask(t, m) })
     })
   }
 
   public get router (): express.Router {
-    return this.ownRouter
+    return this.#expressRouter
   }
 
-  onNewTask (task: Task, model: Model): void {
-    this.ownRouter.get(`/${task.id}/:file`, (req, res, next) => {
+  // Register a new GET request for the new task
+  onNewTask(task: Task, model: Model): void {
+    this.#expressRouter.get(`/${task.id}/:file`, (req, res, next) => {
       this.getLatestModel(task.id, req, res).catch(next)
     })
 
-    this.tasksAndModels = this.tasksAndModels.add([task, model])
+    this.#tasksAndModels = this.#tasksAndModels.add([task, model])
   }
 
   /**
@@ -85,7 +88,7 @@ export class TaskRouter {
       response.status(404)
       return
     }
-    const taskAndModel = this.tasksAndModels.find(([t, _]) => t.id === id)
+    const taskAndModel = this.#tasksAndModels.find(([t, _]) => t.id === id)
     if (taskAndModel === undefined) {
       response.status(404)
       return

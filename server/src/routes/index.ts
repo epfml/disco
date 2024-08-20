@@ -1,2 +1,2 @@
-export { TaskRouter } from "./tasks.js";
-export { TrainingRouter } from "./training.js";
+export { TaskRouter } from "./task_router.js";
+export { TrainingRouter } from "./training_router.js";
