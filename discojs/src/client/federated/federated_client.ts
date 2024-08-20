@@ -150,6 +150,7 @@ export class FederatedClient extends Client {
   override onRoundBeginCommunication(): Promise<void> {
     // Prepare the result promise for the incoming round
     this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
+    this.emit("status", "Training the model on the data you connected")
     return Promise.resolve();
   }
 
@@ -172,12 +173,12 @@ export class FederatedClient extends Client {
     if (this.#waitingForMoreParticipants) {
       // wait for the promise to resolve, which takes as long as it takes for new participants to join
       debug("Awaiting the promise for more participants")
-      this.logger.setStatus("Waiting for more participants")
+      this.emit("status", "Waiting for more participants")
       await this.#promiseForMoreParticipants 
       // Make sure to set the promise back to undefined once resolved
       this.#promiseForMoreParticipants = undefined 
     }
-    this.logger.setStatus("Updating the model with other participants' models")
+    this.emit("status", "Updating the model with other participants' models")
 
     // Send our local contribution to the server
     // and receive the server global update for this round as an answer to our contribution

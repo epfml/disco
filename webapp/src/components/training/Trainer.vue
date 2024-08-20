@@ -54,13 +54,13 @@
           <!-- If we are currently training -->
           <div v-else class="flex flex-col justify-center items-center gap-y-4">
             <!-- Display the training status if defined -->
-            <div v-if="trainingStatus !== undefined && trainingStatus.length > 0">
+            <div v-if="roundStatus !== undefined && roundStatus.length > 0">
               <span class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase">Status</span>
-              <span class="ml-5 font-mono text-md font-medium leading-none tracking-wider text-gray-600">{{ trainingStatus }}</span>
+              <span class="ml-5 font-mono text-md font-medium leading-none tracking-wider text-gray-600">{{ roundStatus }}</span>
             </div>
             <!-- Display an activity indicator depending on the training status -->
             <div class="min-h-9">
-              <div v-if="trainingStatus === 'Waiting for more participants'">
+              <div v-if="roundStatus === 'Waiting for more participants'">
                 <VueSpinnerPuff size="30" color="#6096BA"/>
               </div>
               <div v-else>
@@ -116,7 +116,7 @@ import createDebug from "debug";
 import { List } from "immutable";
 import { ref, computed } from "vue";
 
-import type { BatchLogs, EpochLogs, RoundLogs, Task, TrainingStatus } from "@epfml/discojs";
+import type { BatchLogs, EpochLogs, RoundLogs, Task, RoundStatus } from "@epfml/discojs";
 import { async_iterator, data, EmptyMemory, Disco } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
@@ -162,7 +162,7 @@ const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
 const messages = ref(List<string>());
-const trainingStatus = ref<TrainingStatus>();
+const roundStatus = ref<RoundStatus>();
 /**
  * Store the training cleanup function to make sure it can be ran if users
  * manually stop the training.
@@ -218,12 +218,13 @@ async function startTraining(): Promise<void> {
   const disco = await Disco.fromTask(props.task, CONFIG.serverUrl, {
     logger: {
       success: (msg: string) => messages.value = messages.value.push(msg),
-      error: (msg: string) => messages.value = messages.value.push(msg),
-      setStatus: (status: TrainingStatus) => trainingStatus.value = status
+      error: (msg: string) => messages.value = messages.value.push(msg)
     },
     memory: memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory(),
     scheme: isTrainingAlone.value ? "local": props.task.trainingInformation.scheme,
   });
+  // set the round status displayed to the status emitted by the disco object
+  disco.on("status", status => roundStatus.value = status)
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training
@@ -277,16 +278,16 @@ async function startTraining(): Promise<void> {
   toaster.success("Training successfully completed");
 }
 
-/**
- * 
- */
 async function cleanupTrainingSession() {
   // check if the function has been initialized
   if (cleanupTrainingSessionFn.value === undefined) return
+  // create a local copy and set cleanupTrainingSessionFn to undefined
+  // to make sure we only call the cleanup function once
+  const cleanup = cleanupTrainingSessionFn.value
+  cleanupTrainingSessionFn.value = undefined
   // Calling the cleanup function returns a promise
   // awaiting the promise notifies the network that we are disconnecting
-  await cleanupTrainingSessionFn.value()
-  cleanupTrainingSessionFn.value = undefined
+  await cleanup() 
 }
 
 async function stopTraining(): Promise<void> {

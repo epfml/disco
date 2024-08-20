@@ -13,21 +13,27 @@ import { client as clients, ConsoleLogger, EmptyMemory } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
 import { enumerate, split } from "../utils/async_iterator.js";
+import { EventEmitter } from "../utils/event_emitter.js";
 
 import { RoundLogs, Trainer } from "./trainer.js";
 
-interface Config {
+interface DiscoConfig {
   scheme: TrainingInformation["scheme"];
   logger: Logger;
   memory: Memory;
 }
+
+export type RoundStatus =
+  "Waiting for more participants" |
+  "Updating the model with other participants' models" |
+  "Training the model on the data you connected"
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be
  * a convenient object providing a reduced yet complete API that wraps model training,
  * communication with nodes, logs and model memory.
  */
-export class Disco {
+export class Disco extends EventEmitter<{'status': RoundStatus}>{
   readonly #client: clients.Client;
   readonly #logger: Logger;
 
@@ -41,8 +47,11 @@ export class Disco {
     memory: Memory,
     logger: Logger,
   ) {
-    this.#client = client;
+    super()
     this.#logger = logger;
+    this.#client = client;
+    // Simply propagate the training status events emitted by the client
+    this.#client.on('status', status => this.emit('status', status))
 
     this.#updateWorkingModel = () =>
       memory.updateWorkingModel(
@@ -66,7 +75,7 @@ export class Disco {
   static async fromTask(
     task: Task,
     clientConfig: clients.Client | URL | { aggregator: Aggregator; url: URL },
-    config: Partial<Config>,
+    config: Partial<DiscoConfig>,
   ): Promise<Disco> {
     const { scheme, logger, memory } = {
       scheme: task.trainingInformation.scheme,
@@ -86,7 +95,7 @@ export class Disco {
       } else {
         ({ url, aggregator } = clientConfig);
       }
-      client = clients.getClient(scheme, url, task, aggregator, logger);
+      client = clients.getClient(scheme, url, task, aggregator);
     }
     if (client.task !== task)
       throw new Error("client not setup for given task");
@@ -103,7 +112,7 @@ export class Disco {
     else model = await client.getLatestModel();
 
     return new Disco(
-      new Trainer(task, model, client, logger),
+      new Trainer(task, model, client),
       task,
       client,
       memory,

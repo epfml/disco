@@ -1,16 +1,17 @@
 import axios from 'axios'
 
-import type { Logger, Model, Task, WeightsContainer } from '../index.js'
-import { serialization, DummyLogger } from '../index.js'
+import type { Model, Task, WeightsContainer, RoundStatus } from '../index.js'
+import { serialization } from '../index.js'
 import type { NodeID } from './types.js'
 import type { EventConnection } from './event_connection.js'
 import type { Aggregator } from '../aggregator/index.js'
+import { EventEmitter } from '../utils/event_emitter.js'
 
 /**
  * Main, abstract, class representing a Disco client in a network, which handles
  * communication with other nodes, be it peers or a server.
  */
-export abstract class Client {
+export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
   /**
    * Own ID provided by the network's server.
    */
@@ -28,8 +29,9 @@ export abstract class Client {
     public readonly url: URL, // The network server's URL to connect to
     public readonly task: Task, // The client's corresponding task
     public readonly aggregator: Aggregator,
-    protected readonly logger: Logger = new DummyLogger() // Default logger doesn't do anything
-  ) {}
+  ) {
+    super()
+  }
 
   /**
    * Handles the connection process from the client to any sort of network server.
@@ -59,7 +61,7 @@ export abstract class Client {
   /**
    * Communication callback called at the beginning of every training round.
    */
-  async onRoundBeginCommunication(): Promise<void> {}
+  abstract onRoundBeginCommunication(): Promise<void>;
 
   /**
    * Communication callback called the end of every training round.
