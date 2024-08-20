@@ -48,6 +48,7 @@ describe("federated client", () => {
           validationSplit: 0,
           batchSize: 1,
           scheme: "federated",
+          minNbOfParticipants: 2,
           dataType: "tabular",
           tensorBackend: 'tfjs'
         },

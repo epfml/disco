@@ -30,6 +30,7 @@ const customTask: TaskProvider = {
           'Output'
         ],
         scheme: 'federated',
+        minNbOfParticipants: 2,
         tensorBackend: 'tfjs',
         noiseScale: undefined,
         clippingRadius: undefined
