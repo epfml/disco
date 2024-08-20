@@ -166,10 +166,10 @@ const batchesOfEpochLogs = ref(List<BatchLogs>());
 const messages = ref(List<string>());
 const roundStatus = ref<RoundStatus>();
 /**
- * Store the training cleanup function to make sure it can be ran if users
+ * Store a disco cleanup callback to make sure it can be ran if users
  * manually stop the training.
  */
-const cleanupTrainingSessionFn = ref<() => Promise<void>>();
+const cleanupDisco = ref<() => Promise<void>>();
 
 const hasValidationData = computed(
   () => props.task.trainingInformation.validationSplit > 0,
@@ -230,7 +230,7 @@ async function startTraining(): Promise<void> {
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training
-  cleanupTrainingSessionFn.value = async () => {
+  cleanupDisco.value = async () => {
     await disco.close()
     displayModelCaching.value = true // show model caching buttons again after training
     trainingGenerator.value = undefined;
@@ -281,12 +281,12 @@ async function startTraining(): Promise<void> {
 }
 
 async function cleanupTrainingSession() {
-  // check if the function has been initialized
-  if (cleanupTrainingSessionFn.value === undefined) return
+  // check if a cleanup callback has been initialized
+  if (cleanupDisco.value === undefined) return
   // create a local copy and set cleanupTrainingSessionFn to undefined
   // to make sure we only call the cleanup function once
-  const cleanup = cleanupTrainingSessionFn.value
-  cleanupTrainingSessionFn.value = undefined
+  const cleanup = cleanupDisco.value
+  cleanupDisco.value = undefined
   // Calling the cleanup function returns a promise
   // awaiting the promise notifies the network that we are disconnecting
   await cleanup() 
