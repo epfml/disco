@@ -2,12 +2,8 @@ import * as tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 
 import type {
-  BatchLogs,
-  EpochLogs,
-  Logger,
-  Model,
-  Task,
-  WeightsContainer,
+  BatchLogs, EpochLogs, Model, Task,
+  WeightsContainer
 } from "../index.js";
 import { privacy } from "../index.js";
 import { Client } from "../client/index.js";
@@ -24,8 +20,6 @@ export class Trainer {
   readonly #roundDuration: number;
   readonly #epochs: number;
   readonly #privacy: Task["trainingInformation"]["privacy"];
-  readonly #logger: Logger;
-
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
@@ -35,13 +29,11 @@ export class Trainer {
     task: Task,
     public readonly model: Model,
     client: Client,
-    logger: Logger
   ) {
     this.#client = client;
     this.#roundDuration = task.trainingInformation.roundDuration;
     this.#epochs = task.trainingInformation.epochs;
     this.#privacy = task.trainingInformation.privacy;
-    this.#logger = logger
 
     if (!Number.isInteger(this.#epochs / this.#roundDuration))
       throw new Error(
@@ -107,8 +99,6 @@ export class Trainer {
     dataset: tf.data.Dataset<tf.TensorContainer>,
     valDataset: tf.data.Dataset<tf.TensorContainer>,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
-    this.#logger.setStatus("Training the model on the data you connected")
-    
     let epochsLogs = List<EpochLogs>();
     for (let epoch = 0; epoch < this.#roundDuration; epoch++) {
       const [gen, epochLogs] = async_iterator.split(

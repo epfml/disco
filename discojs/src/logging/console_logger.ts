@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { Logger, TrainingStatus } from "./logger.js";
+import { Logger } from "./logger.js";
 
 /**
  * Same properties as Toaster but on the console
@@ -21,12 +21,5 @@ export class ConsoleLogger implements Logger {
    */
   error(message: string): void {
     console.error(chalk.red(message));
-  }
-  /**
-   * Logs the training status on the console (in blue)
-   * @param message - status to be displayed
-   */
-  setStatus(status: TrainingStatus): void {
-    console.log("Training status:", chalk.blue(status));
   }
 }
