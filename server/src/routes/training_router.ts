@@ -1,7 +1,8 @@
 import express from 'express'
 import type expressWS from 'express-ws'
 import { Set } from 'immutable'
-import type { Model, Task } from '@epfml/discojs'
+import type { Task, EncodedModel } from '@epfml/discojs'
+import { serialization } from '@epfml/discojs'
 
 import type { TaskInitializer } from '../task_initializer.js'
 import { TrainingController, FederatedController, DecentralizedController } from '../controllers/index.js'
@@ -33,7 +34,7 @@ export class TrainingRouter {
     * For every task and model, this.onNewTask creates a path /taskID and routes it to this.handle.
     */
     process.nextTick(() => {
-      taskInitializer.on('newTask', (t, m) => { this.onNewTask(t, m) })
+      taskInitializer.on('newTask', async (t, m) => { await this.onNewTask(t, m) })
     })
   }
 
@@ -44,15 +45,22 @@ export class TrainingRouter {
 
   // Register the task and setup the controller to handle
   // websocket connections
-  private onNewTask (task: Task, model: Model): void {
+  private async onNewTask (task: Task, encodedModel: EncodedModel): Promise<void> {
     this.#tasks = this.#tasks.add(task.id)
     // The controller handles the actual logic of collaborative training
     // in its `handle` method. Each task has a dedicated controller which
     // handles the training logic of this task only
-    const taskController: TrainingController = this.trainingScheme == 'federated' ?
-      new FederatedController(task)
-      : new DecentralizedController(task)
-    taskController.initTask(model)
+    let taskController: TrainingController;
+    if (this.trainingScheme == 'federated') {
+      // The federated controller takes the initial model weights at initialization
+      // so that it can send it to new clients
+      const model = serialization.model.decode(encodedModel)
+      const encodedWeights = await serialization.weights.encode((await model).weights)
+      taskController = new FederatedController(task, encodedWeights)
+    } else {
+      // In decentralized learning, the server (i.e. controller) never handles model weights
+      taskController = new DecentralizedController(task)
+    } 
 
     // Setup a websocket route which calls the controller's `handle` method
     this.#expressRouter.ws(`/${task.id}`, (ws, req) => {

@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
 
-import type { Model, Task, TaskID } from '@epfml/discojs'
+import type { Task, TaskID, EncodedModel } from '@epfml/discojs'
 import { serialization, isTask } from '@epfml/discojs'
 
 import type { TaskInitializer } from '../task_initializer.js'
@@ -13,7 +13,7 @@ const debug = createDebug("server:router:task_router");
 export class TaskRouter {
   readonly #expressRouter: express.Router
 
-  #tasksAndModels = Set<[Task, Model]>()
+  #tasksAndModels = Set<[Task, EncodedModel]>()
 
   constructor (taskInitializer: TaskInitializer) {
     this.#expressRouter = express.Router()
@@ -40,9 +40,10 @@ export class TaskRouter {
         return
       }
 
-      serialization.model
-        .decode(encoded)
-        .then((model) => taskInitializer.addTask(newTask, model))
+      if (!serialization.model.isEncoded(encoded))
+        throw new Error("could not recognize model encoding")
+
+      taskInitializer.addTask(newTask, encoded)
         .then(() => res.status(200).end("Successful task upload"))
         .catch((e) => {
           debug("while adding model: %o", e);
@@ -53,7 +54,10 @@ export class TaskRouter {
     // delay listener because `this` (object) isn't fully constructed yet
     process.nextTick(() => {
       // a 'newTask' event is emitted when a new task is added 
-      taskInitializer.on('newTask', (t, m) => { this.onNewTask(t, m) })
+      taskInitializer.on('newTask', (t, m) => {
+        this.onNewTask(t, m)
+        return Promise.resolve()
+      })
     })
   }
 
@@ -62,11 +66,11 @@ export class TaskRouter {
   }
 
   // Register a new GET request for the new task
-  onNewTask(task: Task, model: Model): void {
+  onNewTask(task: Task, model: EncodedModel): void {
     this.#expressRouter.get(`/${task.id}/:file`, (req, res, next) => {
-      this.getLatestModel(task.id, req, res).catch(next)
+      this.getLatestModel(task.id, req, res)
+      next()
     })
-
     this.#tasksAndModels = this.#tasksAndModels.add([task, model])
   }
 
@@ -79,7 +83,7 @@ export class TaskRouter {
    * @param request received from client
    * @param response sent to client
    */
-  private async getLatestModel (id: TaskID, request: Request, response: Response): Promise<void> {
+  private getLatestModel (id: TaskID, request: Request, response: Response): void {
     const validModelFiles = Set.of('model.json', 'weights.bin')
 
     const file = request.params.file
@@ -92,10 +96,7 @@ export class TaskRouter {
       response.status(404)
       return
     }
-
-    const encoded = await serialization.model.encode(taskAndModel[1])
-
-    response.status(200).send(encoded)
+    response.status(200).send(taskAndModel[1])
     debug(`${file} download for task ${id} succeeded`)
   }
 }
