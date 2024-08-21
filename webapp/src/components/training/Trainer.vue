@@ -230,12 +230,7 @@ async function startTraining(): Promise<void> {
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training
-  cleanupDisco.value = async () => {
-    await disco.close()
-    displayModelCaching.value = true // show model caching buttons again after training
-    trainingGenerator.value = undefined;
-    isTraining.value = false
-  }
+  cleanupDisco.value = disco.close
 
   try {
     displayModelCaching.value = false // hide model caching buttons during training
@@ -281,6 +276,9 @@ async function startTraining(): Promise<void> {
 }
 
 async function cleanupTrainingSession() {
+  displayModelCaching.value = true // show model caching buttons again after training
+  trainingGenerator.value = undefined;
+  isTraining.value = false
   // check if a cleanup callback has been initialized
   if (cleanupDisco.value === undefined) return
   // create a local copy and set cleanupTrainingSessionFn to undefined
@@ -289,7 +287,7 @@ async function cleanupTrainingSession() {
   cleanupDisco.value = undefined
   // Calling the cleanup function returns a promise
   // awaiting the promise notifies the network that we are disconnecting
-  await cleanup() 
+  await cleanup()
 }
 
 async function stopTraining(): Promise<void> {
