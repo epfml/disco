@@ -20,14 +20,23 @@ export class Trainer {
   readonly #roundDuration: number;
   readonly #epochs: number;
   readonly #privacy: Task["trainingInformation"]["privacy"];
+  #model: Model | undefined;
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
   >;
+  
+  public get model(): Model {
+    if (this.#model === undefined) throw new Error("trainer's model has not been set")
+    return this.#model
+  }
+
+  public set model(model: Model) {
+    this.#model = model
+  }
 
   constructor(
     task: Task,
-    public readonly model: Model,
     client: Client,
   ) {
     this.#client = client;

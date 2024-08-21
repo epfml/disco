@@ -35,49 +35,24 @@ export type RoundStatus =
  * communication with nodes, logs and model memory.
  */
 export class Disco extends EventEmitter<{'status': RoundStatus}>{
+  public readonly trainer: Trainer;
   readonly #client: clients.Client;
   readonly #logger: Logger;
-
   // small helper to avoid keeping Task & Memory around
   readonly #updateWorkingModel: (_: Model) => Promise<void>;
 
-  private constructor(
-    public readonly trainer: Trainer,
-    task: Task,
-    client: clients.Client,
-    memory: Memory,
-    logger: Logger,
-  ) {
-    super()
-    this.#logger = logger;
-    this.#client = client;
-    // Simply propagate the training status events emitted by the client
-    this.#client.on('status', status => this.emit('status', status))
-
-    this.#updateWorkingModel = () =>
-      memory.updateWorkingModel(
-        {
-          type: "working",
-          taskID: task.id,
-          name: task.trainingInformation.modelID,
-          tensorBackend: task.trainingInformation.tensorBackend,
-        },
-        this.trainer.model,
-      );
-  }
-
   /**
    * Connect to the given task and get ready to train.
-   *
-   * Will load the model from memory if available or fetch it from the server.
-   *
+   * 
+   * @param task 
    * @param clientConfig client to connect with or parameters on how to create one.
-   **/
-  static async fromTask(
-    task: Task,
+   * @param config the DiscoConfig
+   */
+  constructor(task: Task,
     clientConfig: clients.Client | URL | { aggregator: Aggregator; url: URL },
-    config: Partial<DiscoConfig>,
-  ): Promise<Disco> {
+    config: Partial<DiscoConfig>
+  ) {
+    super()
     const { scheme, logger, memory } = {
       scheme: task.trainingInformation.scheme,
       logger: new ConsoleLogger(),
@@ -101,24 +76,22 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
     if (client.task !== task)
       throw new Error("client not setup for given task");
 
-    let model;
-    const memoryInfo = {
-      type: "working" as const,
-      taskID: task.id,
-      name: task.trainingInformation.modelID,
-      tensorBackend: task.trainingInformation.tensorBackend,
-    };
-    if (await memory.contains(memoryInfo))
-      model = await memory.getModel(memoryInfo);
-    else model = await client.getLatestModel();
+    this.#logger = logger;
+    this.#client = client;
+    this.trainer = new Trainer(task, client)
+    // Simply propagate the training status events emitted by the client
+    this.#client.on('status', status => this.emit('status', status))
 
-    return new Disco(
-      new Trainer(task, model, client),
-      task,
-      client,
-      memory,
-      logger,
-    );
+    this.#updateWorkingModel = () =>
+      memory.updateWorkingModel(
+        {
+          type: "working",
+          taskID: task.id,
+          name: task.trainingInformation.modelID,
+          tensorBackend: task.trainingInformation.tensorBackend,
+        },
+        this.trainer.model,
+      );
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -169,7 +142,8 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
     const trainData = dataTuple.train.preprocess().batch();
     const validationData =
       dataTuple.validation?.preprocess().batch() ?? trainData;
-    await this.#client.connect();
+    // the client fetches the latest weights upon connection
+    this.trainer.model = await this.#client.connect();
 
     for await (const [round, epochs] of enumerate(
       this.trainer.train(trainData.dataset, validationData.dataset),
@@ -188,6 +162,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
               `  Epoch: ${epoch}`,
               `    Training loss: ${epochLogs.training.loss}`,
               `    Training accuracy: ${epochLogs.training.accuracy}`,
+              `    Peak memory: ${epochLogs.peakMemory}`,
               epochLogs.validation !== undefined
                 ? `    Validation loss: ${epochLogs.validation.loss}`
                 : "",
