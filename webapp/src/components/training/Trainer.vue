@@ -217,7 +217,7 @@ async function startTraining(): Promise<void> {
 
   toaster.info("Model training started");
 
-  const disco = await Disco.fromTask(props.task, CONFIG.serverUrl, {
+  const disco = new Disco(props.task, CONFIG.serverUrl, {
     logger: {
       success: (msg: string) => messages.value = messages.value.push(msg),
       error: (msg: string) => messages.value = messages.value.push(msg)

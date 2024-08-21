@@ -50,7 +50,7 @@ describe("end-to-end federated", () => {
 
     const aggregator = aggregators.getAggregator(cifar10Task, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, cifar10Task, aggregator)
-    const disco = await Disco.fromTask(cifar10Task, client, { scheme: trainingScheme })
+    const disco = new Disco(cifar10Task, client, { scheme: trainingScheme })
 
     await disco.trainFully(data);
     await disco.close()
@@ -75,7 +75,7 @@ describe("end-to-end federated", () => {
     ))
     const aggregator = aggregators.getAggregator(titanicTask, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, titanicTask, aggregator)
-    const disco = await Disco.fromTask(titanicTask, client, { scheme: trainingScheme })
+    const disco = new Disco(titanicTask, client, { scheme: trainingScheme })
 
     const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
@@ -103,7 +103,7 @@ describe("end-to-end federated", () => {
 
     const aggregator = aggregators.getAggregator(task, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, task, aggregator)
-    const disco = await Disco.fromTask(task, client, { scheme: trainingScheme })
+    const disco = new Disco(task, client, { scheme: trainingScheme })
 
     const logs = List(await arrayFromAsync(disco.trainByRound(dataSplit)));
     await disco.close()
@@ -137,7 +137,7 @@ describe("end-to-end federated", () => {
 
     const aggregator = aggregators.getAggregator(lusCovidTask, {scheme: trainingScheme})
     const client = new clients.federated.FederatedClient(url, lusCovidTask, aggregator)
-    const disco = await Disco.fromTask(lusCovidTask, client, { scheme: trainingScheme })
+    const disco = new Disco(lusCovidTask, client, { scheme: trainingScheme })
 
     const logs = List(await arrayFromAsync(disco.trainByRound(data)));
     await disco.close()
