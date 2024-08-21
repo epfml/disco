@@ -1,4 +1,4 @@
-import { WeightsContainer } from "../weights/weights_container.js";
+import { WeightsContainer } from "../index.js";
 import { Client } from "./client.js";
 
 /**
