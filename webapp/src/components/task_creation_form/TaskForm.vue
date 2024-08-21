@@ -131,10 +131,7 @@
       <IconCard>
         <template #title> How to join after ?</template>
         <div>
-          <p>
             After submitting the form, others will be able to join the task from the
-            <span @click="goToDiscollaborative()" class="underline font-bold cursor-pointer">DISCOllaborative page</span>. You can find more explanations about
-            Disco in the <span @click="goToInformation()" class="underline font-bold cursor-pointer">Information page</span>.
             <span @click="goToDiscollaborative()" class="underline text-blue-400 cursor-pointer"><DISCOllaboratives /> page</span>. You can find more explanations about
             <DISCO /> in the <span @click="goToInformation()" class="underline text-blue-400 cursor-pointer">Information page</span>.
         </div>
@@ -192,6 +189,8 @@ import NumberContainer from './containers/NumberContainer.vue'
 import FloatContainer from './containers/FloatContainer.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import { useRouter } from "vue-router";
+import DISCO from "@/components/simple/DISCO.vue";
+import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
 
 const router = useRouter()
 
