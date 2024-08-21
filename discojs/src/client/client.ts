@@ -35,8 +35,12 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
 
   /**
    * Handles the connection process from the client to any sort of network server.
+   * This method is overriden by the federated and decentralized clients
+   * By default, it fetches and returns the server's base model
    */
-  async connect (): Promise<void> {}
+  async connect(): Promise<Model> {
+    return this.getLatestModel()
+  }
 
   /**
    * Handles the disconnection process of the client from any sort of network server.

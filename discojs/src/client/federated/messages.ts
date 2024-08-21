@@ -1,17 +1,26 @@
 import { type weights } from '../../serialization/index.js'
+import { type NodeID } from '..//types.js'
 
 import {
-  type, hasMessageType, type AssignNodeID, type ClientConnected
+  type, hasMessageType, type ClientConnected
  } from '../messages.js'
 
  // See ../messages.ts for doc
 export type MessageFederated =
   ClientConnected |
+  NewFederatedNodeInfo |
   SendPayload |
   ReceiveServerPayload |
   WaitingForMoreParticipants |
-  EnoughParticipants |
-  AssignNodeID
+  EnoughParticipants
+
+export interface NewFederatedNodeInfo {
+  type: type.NewFederatedNodeInfo
+  id: NodeID
+  waitForMoreParticipants: boolean
+  payload: weights.Encoded
+  round: number
+}
 
 export interface SendPayload {
   type: type.SendPayload
@@ -40,9 +49,9 @@ export function isMessageFederated (raw: unknown): raw is MessageFederated {
 
   switch (raw.type) {
     case type.ClientConnected:
+    case type.NewFederatedNodeInfo:
     case type.SendPayload:
     case type.ReceiveServerPayload:
-    case type.AssignNodeID:
     case type.WaitingForMoreParticipants:
     case type.EnoughParticipants:
       return true
