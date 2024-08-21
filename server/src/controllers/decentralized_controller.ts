@@ -9,7 +9,6 @@ import { client } from '@epfml/discojs'
 import { TrainingController } from './training_controller.js'
 
 import messages = client.decentralized.messages
-import AssignNodeID = client.messages.AssignNodeID
 import MessageTypes = client.messages.type
 
 const debug = createDebug("server:controllers:decentralized")
@@ -23,8 +22,6 @@ export class DecentralizedController extends TrainingController {
    * Map associating node ids to their open WebSocket connections.
    */
   private connections: Map<client.NodeID, WebSocket> = Map()
-
-  initTask (): void {}
 
   handle (ws: WebSocket): void {
     const minimumReadyPeers = this.task.trainingInformation.minNbOfParticipants
@@ -47,9 +44,9 @@ export class DecentralizedController extends TrainingController {
           case MessageTypes.ClientConnected: {
             this.connections = this.connections.set(peerId, ws)
 
-            // Answer with client id in an AssignNodeID message
-            const msg: AssignNodeID = {
-              type: MessageTypes.AssignNodeID,
+            // Answer with client id in an NewNodeInfo message
+            const msg: messages.NewDecentralizedNodeInfo = {
+              type: MessageTypes.NewDecentralizedNodeInfo,
               id: peerId,
               waitForMoreParticipants: this.readyNodes.size  < minimumReadyPeers // ground work for #718
             }
