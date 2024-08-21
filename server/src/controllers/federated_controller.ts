@@ -5,7 +5,7 @@ import { v4 as randomUUID } from 'uuid'
 import msgpack from 'msgpack-lite'
 import { Map } from 'immutable'
 
-import type { WeightsContainer } from '@epfml/discojs'
+import type { EncodedWeights, Task, WeightsContainer } from '@epfml/discojs'
 import {
   aggregator as aggregators,
   client,
@@ -14,8 +14,7 @@ import {
 
 import { TrainingController } from "./training_controller.js";
 
-import Messages = client.messages
-import MessageTypes = Messages.type
+import MessageTypes = client.messages.type
 import FederatedMessages = client.federated.messages
 
 const debug = createDebug("server:controllers:federated")
@@ -32,10 +31,11 @@ export class FederatedController extends TrainingController {
    */
   #result: Promise<WeightsContainer> | undefined = undefined
   /**
-   * The last global model aggregated. The model weights are already serialized and 
-   * can be sent to participants joining mid-training or contributing to previous rounds
+   * The most up to date global weights. The model weights are already serialized and 
+   * can be sent to participants, before starting training, or when joining mid-training 
+   * or staled participants
    */
-  #latestGlobalWeights: serialization.weights.Encoded | undefined = undefined
+  #latestGlobalWeights: EncodedWeights
   /**
    * Boolean used to know if we have enough participants to train or if 
    * we should be waiting for more
@@ -48,6 +48,12 @@ export class FederatedController extends TrainingController {
    */
   #participants = Map<string, WebSocket>()
 
+  constructor(task: Task, initialWeights: EncodedWeights) {
+    super(task)
+    this.#latestGlobalWeights = initialWeights
+    // start the perpetual promise loop
+    void this.storeAggregationResult()
+  }
   /**
    * Loop creating an aggregation result promise at each round.
    * Because clients contribute to the round asynchronously, a promise is used to let them wait
@@ -67,11 +73,6 @@ export class FederatedController extends TrainingController {
 
     // Create a new promise for the next round
     // TODO weird usage, should be handled inside of aggregator
-    void this.storeAggregationResult()
-  }
-
-  initTask(): void {
-    // start the perpetual promise loop
     void this.storeAggregationResult()
   }
 
@@ -150,14 +151,16 @@ export class FederatedController extends TrainingController {
         * A new participant joins the task 
         */
         case MessageTypes.ClientConnected: {
-          debug(`client ${clientId} joined ${this.task.id}`)
+          debug(`client ${clientId.slice(0, 4)} joined ${this.task.id}`)
           this.#participants = this.#participants.set(clientId, ws) // add the new client
 
           const waitForMoreParticipants = this.#participants.size < minNbOfParticipants
-          const msg: Messages.AssignNodeID = {
-            type: MessageTypes.AssignNodeID,
+          const msg: FederatedMessages.NewFederatedNodeInfo = {
+            type: MessageTypes.NewFederatedNodeInfo,
             id: clientId,
-            waitForMoreParticipants
+            waitForMoreParticipants,
+            payload: this.#latestGlobalWeights,
+            round: this.#aggregator.round
           }
           ws.send(msgpack.encode(msg))
 
@@ -168,10 +171,10 @@ export class FederatedController extends TrainingController {
           if (this.#waitingForMoreParticipants && !waitForMoreParticipants) {
             this.#participants
               // filter out the client that just joined as 
-              // it already knows via the AssignNodeID message
+              // it already knows via the NewFederatedNodeInfo message
               .filter((_, id) => id !== clientId)
               .forEach((participantWs, participantId) => {
-                debug("Sending enough-participant message to client: %o", participantId)
+                debug("Sending enough-participant message to client: %o", participantId.slice(0, 4))
                 const msg: FederatedMessages.EnoughParticipants = {
                   type: MessageTypes.EnoughParticipants
                 }
@@ -196,11 +199,11 @@ export class FederatedController extends TrainingController {
             const weights = serialization.weights.decode(payload)
             const addedSuccessfully = this.#aggregator.add(clientId, weights, round)
             if (!addedSuccessfully) throw new Error("Aggregator's isValidContribution returned true but failed to add the contribution")
-            debug(`Successfully added contribution from client ${clientId} for round ${round}`)
+            debug(`Successfully added contribution from client ${clientId.slice(0, 4)} for round ${round}`)
           } else {
             // If the client sent an invalid or outdated contribution
             // the server answers with the current round and last global model update
-            debug(`Dropped contribution from client ${clientId} for round ${round} ` +
+            debug(`Dropped contribution from client ${clientId.slice(0, 4)} for round ${round} ` +
               `Sending last global model from round ${this.#aggregator.round - 1}`)
             // no latest model at the first round
             if (this.#latestGlobalWeights === undefined) return
@@ -223,7 +226,7 @@ export class FederatedController extends TrainingController {
       // Remove the participant when the websocket is closed
       this.#participants = this.#participants.delete(clientId)
       this.#aggregator.removeNode(clientId)
-      debug("client leaving: %o", clientId)
+      debug("client leaving: %o", clientId.slice(0, 4))
 
       // Check if we dropped below the minimum number of participant required
       // or if we are already waiting for new participants to join
@@ -235,7 +238,7 @@ export class FederatedController extends TrainingController {
       // Tell remaining participants to wait until more participants join
       this.#participants
         .forEach((participantWs, participantId) => {
-          debug("Telling remaining clients to wait for participants: %o", participantId)
+          debug("Telling remaining clients to wait for participants: %o", participantId.slice(0, 4))
           const msg: FederatedMessages.WaitingForMoreParticipants = {
             type: MessageTypes.WaitingForMoreParticipants
           }
