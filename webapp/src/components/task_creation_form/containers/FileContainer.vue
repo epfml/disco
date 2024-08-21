@@ -2,6 +2,8 @@
   <div>
     <div
       class="h-72 my-3"
+      @dragover.prevent="onDragOver"
+      @drop.prevent="onDrop"
     >
       <div
         class="
@@ -21,8 +23,21 @@
             >
               <path
                 d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z"
-              /></svg><span class="block text-gray-400 font-normal">Drag and drop your file anywhere</span>
-            <span class="block text-gray-400 font-normal">or</span>
+              />
+            </svg>
+            <span
+              v-if="!fileName"
+              class="block text-gray-400 font-normal"
+            >
+              Drag and drop your file anywhere
+            </span>
+            <span
+              v-else
+              class="block text-gray-600 font-normal"
+            >
+              {{ fileName }}
+            </span>
+            <span v-if="!fileName" class="block text-gray-400 font-normal">or</span>
             <label
               :for="`hidden_${field.id}`"
               class="
@@ -37,7 +52,9 @@
                 focus:outline-none
               "
               :class="available ? 'hover:cursor-pointer hover:text-disco-cyan' : 'hover:cursor-not-allowed'"
-            >select file</label>
+            >
+              {{ fileName ? 'Change file' : 'Select file' }}
+            </label>
             <VeeField
               :id="field.id"
               v-model="fileName"
@@ -56,6 +73,14 @@
               hidden
               @change="onChange"
             >
+            <!-- Clear Button -->
+            <div
+              v-if="fileName"
+              @click="clearInput"
+              class="mt-2 p-2 rounded-sm text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors duration-200"
+            >
+              Clear
+            </div>
           </div>
         </div>
       </div>
@@ -64,13 +89,13 @@
       class="flex justify-between items-center text-gray-400"
     >
       <span>Accepted file type: {{ field.extension }} only</span>
-      <span class="flex items-center"><i class="fa fa-lock mr-1" /> secure</span>
-    </div>
+      <span class="flex items-center" title="Your files will stay in the browser, on your computer"><i class="fa fa-lock mr-1" /> secure</span>    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { useToast } from 'vue-toast-notification';
 import { Field as VeeField } from 'vee-validate'
 
 import type { FormField } from '@/task_creation_form'
@@ -93,8 +118,10 @@ const emit = defineEmits<Emits>()
 
 const fileName = ref('')
 const upload = ref<HTMLInputElement>()
+  const toast = useToast()
 
 function onChange(): void {
+  showUploadingToast()
   if (upload.value === undefined) return
   const files = upload.value.files
   if (files === null) return
@@ -102,5 +129,38 @@ function onChange(): void {
   // fill in the vee-field to trigger yup validation
   fileName.value = (files.length > 0) ? files[0].name : ''
   emit('input', files)
+  toast.success("Upload complete")
+}
+
+function onDragOver(event: DragEvent): void {
+  event.preventDefault();
+  // Optional: Add visual feedback
+}
+
+function onDrop(event: DragEvent): void {
+  if (!available) return;
+  showUploadingToast()
+
+  const files = event.dataTransfer?.files;
+  if (files && files.length > 0) {
+    // Process the files
+    fileName.value = files[0].name;
+    toast.success("Upload complete")
+    emit('input', files);
+  } else {
+    toast.error("Upload failed, please try again")
+  }
+}
+
+function showUploadingToast() {
+  toast.info("Uploading your data in the browser (your data stays on your computer)")
+}
+
+function clearInput(): void {
+  fileName.value = ''
+  if (upload.value) {
+    upload.value.value = '' // Clear the file input for browsers that support it
+  }
+  toast.info("Selection cleared")
 }
 </script>

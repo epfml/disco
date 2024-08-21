@@ -1,7 +1,8 @@
 <template>
   <div class="space-y-8 mb-8">
+    <!-- Display Model Evaluation for testing, and Model prediction for prediction -->
     <h1 class="text-disco-cyan font-disco text-3xl text-center">
-      Evaluation
+      Model ({{ testing }})
     </h1>
     <div class="hidden md:flex mx-auto">
       <ProgressIcon
@@ -40,39 +41,19 @@
         @click="handleRoute(2)"
       >
         <template #text>
-          Evaluate Your Model
+          Evaluate Your Model ({{ testing }})
         </template>
         <template #icon>
           <PerformanceIcon custom-class="w-full w-7 h-7" viewBox="2 -4 12 24"/>
         </template>
       </ProgressIcon>
     </div>
-    <div
-      v-show="showPrev || showNext"
-      class="flex flex-row justify-center gap-4 md:gap-8"
-    >
-      <div class="text-center md:text-right">
-        <CustomButton
-          v-show="showPrev"
-          @click="prevStep"
-        >
-          previous
-        </CustomButton>
-      </div>
-      <div class="text-center md:text-left">
-        <CustomButton
-          v-show="showNext"
-          @click="nextStep"
-        >
-          next
-        </CustomButton>
-      </div>
-    </div>
+    <TestingButtons/>
   </div>
 </template>
 <script setup lang="ts">
-import { computed } from 'vue'
 
+import { computed } from 'vue'
 import { useValidationStore } from '@/store/validation'
 import { useMemoryStore } from '@/store/memory'
 import { useToaster } from '@/composables/toaster'
@@ -81,17 +62,14 @@ import ModelIcon from '@/assets/svg/ModelIcon.vue'
 import PlugIcon from '@/assets/svg/PlugIcon.vue'
 import PerformanceIcon from '@/assets/svg/PerformanceIcon.vue'
 
-import CustomButton from '@/components/simple/CustomButton.vue'
+import TestingButtons from './TestingButtons.vue'
 
 const toaster = useToaster()
 const validationStore = useValidationStore()
 const memoryStore = useMemoryStore()
 
-const showPrev = computed<boolean>(() =>
-  validationStore.step > 0)
+const testing = computed(() => validationStore.isOnlyPrediction ? 'Prediction' : 'Testing')
 
-const showNext = computed<boolean>(() =>
-  validationStore.step > 0 && validationStore.step < 2)
 
 const isActive = (step: number): boolean => step <= validationStore.step
 
@@ -103,7 +81,4 @@ const handleRoute = (step: number): void => {
   }
 }
 
-const prevStep = (): void => { validationStore.step-- }
-
-const nextStep = (): void => { validationStore.step++ }
 </script>

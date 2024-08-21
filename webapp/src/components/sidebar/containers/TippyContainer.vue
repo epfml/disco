@@ -22,7 +22,7 @@
       </h2>
     </div>
     <!-- Content -->
-    <div class="flex-1 overflow-hidden hover:overflow-y-auto">
+    <div class="flex-1 overflow-y-auto">
       <slot name="content" />
     </div>
   </div>

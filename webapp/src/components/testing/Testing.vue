@@ -171,6 +171,8 @@
       />
     </KeepAlive>
   </div>
+  <TestingButtons class="mt-5"/>
+
 </template>
 <script lang="ts" setup>
 import createDebug from "debug";
@@ -179,6 +181,8 @@ import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { List } from 'immutable'
 import { VueSpinner } from 'vue3-spinners';
+import { useToaster } from "@/composables/toaster";
+
 
 import type { Task } from '@epfml/discojs'
 import { EmptyMemory, Memory, data, client as clients, aggregator } from '@epfml/discojs'
@@ -198,7 +202,7 @@ import Tester from '@/components/testing/Tester.vue'
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
-import { useToaster } from '@/composables/toaster'
+import TestingButtons from "../progress_bars/TestingButtons.vue";
 
 const debug = createDebug("webapp:Tester");
 const validationStore = useValidationStore()
@@ -260,6 +264,7 @@ onActivated(async () => {
 
 const downloadModel = async (task: Task): Promise<void> => {
   try {
+    toaster.info("Downloading model...")
     const client = new clients.Local(CONFIG.serverUrl, task, aggregator.getAggregator(task))
     const model = await client.getLatestModel()
     const source = {

@@ -29,6 +29,7 @@
                   }
                 )"
               >
+              <div class="flex">
                 <label
                   :for="field.id"
                   class="
@@ -38,7 +39,7 @@
                     md:text-right
                     mb-1
                     md:mb-0
-                    pr-4
+                    pr-2
                   "
                 >
                   <span
@@ -50,10 +51,21 @@
                     v-html="field.name"
                   />
                 </label>
+                <div v-if="field.type !== 'select' && field.type !== 'text'">
+                <span
+                  class="hover:cursor-pointer"
+                  v-tippy="{
+                    content: getContent(field),
+                  }"
+                >
+                  <i class="fa fa-question mr-1" />
+                </span>
+                </div>
                 <ErrorMessage
-                  class="text-red-600"
+                  class="text-red-600 pl-2"
                   :name="field.id"
                 />
+                </div>
                 <SelectContainer
                   v-if="field.id === 'dataType'"
                   v-model="dataType"
@@ -116,6 +128,14 @@
           </div>
         </IconCard>
       </div>
+      <IconCard>
+        <template #title> How to join after ?</template>
+        <div>
+            After submitting the form, others will be able to join the task from the
+            <span @click="goToDiscollaborative()" class="underline text-blue-400 cursor-pointer"><DISCOllaboratives /> page</span>. You can find more explanations about
+            <DISCO /> in the <span @click="goToInformation()" class="underline text-blue-400 cursor-pointer">Information page</span>.
+        </div>
+      </IconCard>
       <div class="flex flex-wrap justify-center gap-8 my-2">
         <CustomButton
           type="submit"
@@ -132,6 +152,7 @@
         <CustomButton
           type="button"
           href=""
+          onclick="window.open('https://app.slack.com/client/T017JNQJW3A/C0177GH9WGZ', '_blank')"
           class="basis-48"
         >
           request help on slack
@@ -167,6 +188,11 @@ import CheckboxContainer from './containers/CheckboxContainer.vue'
 import NumberContainer from './containers/NumberContainer.vue'
 import FloatContainer from './containers/FloatContainer.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
+import { useRouter } from "vue-router";
+import DISCO from "@/components/simple/DISCO.vue";
+import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
+
+const router = useRouter()
 
 const debug = createDebug("webapp:TaskForm");
 const toaster = useToaster()
@@ -280,5 +306,25 @@ const isFieldVisible = (
   }
   const potentialDependencies: Array<keyof FormDependency> = ['dataType', 'scheme', 'decentralizedSecure']
   return potentialDependencies.every((key) => fieldDeps[key] !== dependencies[key])
+}
+
+const getContent = (field: FormField): string => {
+  return "Expected type : " + field.type
+}
+
+function goToInformation () {
+  const scrollableDiv = document.getElementById('scrollable-div');
+  if (scrollableDiv !== null) {
+    scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
+  }
+  router.push({ path: '/information' })
+}
+
+function goToDiscollaborative () {
+  const scrollableDiv = document.getElementById('scrollable-div');
+  if (scrollableDiv !== null) {
+    scrollableDiv.scrollTo(0, 0) // doesn't work with behavior: 'smooth'
+  }
+  router.push({ path: '/list' })
 }
 </script>

@@ -38,6 +38,7 @@
       :task="task"
     />
   </div>
+  <TrainingButtons />
 </template>
 
 <script lang="ts" setup>
@@ -57,6 +58,8 @@ import Finished from '@/components/training/Finished.vue'
 import LabeledImageDatasetInput from "@/components/dataset_input/LabeledImageDatasetInput/index.vue";
 import TabularDatasetInput from "@/components/dataset_input/TabularDatasetInput.vue";
 import TextDatasetInput from "@/components/dataset_input/TextDatasetInput.vue";
+import TrainingButtons from '@/components/progress_bars/TrainingButtons.vue'
+
 
 const router = useRouter()
 const route = useRoute()

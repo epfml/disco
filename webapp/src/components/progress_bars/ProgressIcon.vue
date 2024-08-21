@@ -8,11 +8,9 @@
       >
         <div
           class="w-full rounded items-center align-middle align-center flex-1  transition duration-400"
-          :class="props.active ? 'bg-slate-500' : 'bg-slate-200'" 
+          :class="props.active ? 'bg-disco-blue' : 'bg-slate-200'" 
         >
-          <div
-            class="py-1"
-          />
+          <div class="py-1" />
         </div>
       </div>
       <div

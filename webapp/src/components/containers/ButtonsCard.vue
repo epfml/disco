@@ -24,6 +24,10 @@
         class="mb-1"
       >
         {{ button.text }}
+        <template #description>
+          {{ button.description }}
+        </template>
+
       </CustomButton>
     </div>
   </div>
@@ -39,7 +43,7 @@ import CustomButton from "@/components/simple/CustomButton.vue";
 const props = withDefaults(
   defineProps<{
     titleAlign?: "left" | "center" | "right";
-    buttons: List<readonly [string, () => void]>;
+    buttons: List<readonly [string, () => void, string?]>; // button text, on click function, optional description
     buttonsJustify?: "start" | "center" | "end";
   }>(),
   {
@@ -49,6 +53,6 @@ const props = withDefaults(
 );
 
 const buttons = computed(() =>
-  props.buttons.map(([text, action]) => ({ text, action })),
+  props.buttons.map(([text, action, description]) => ({ text, action, description })),
 );
 </script>

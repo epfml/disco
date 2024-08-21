@@ -24,6 +24,9 @@
               @click="startTraining(true)"
             >
               train collaboratively
+              <template #description>
+                Exchange model updates with other participants
+              </template>
             </CustomButton>
           </div>
         </div>
