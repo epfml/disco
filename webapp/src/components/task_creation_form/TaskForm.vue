@@ -135,7 +135,8 @@
             After submitting the form, others will be able to join the task from the
             <span @click="goToDiscollaborative()" class="underline font-bold cursor-pointer">DISCOllaborative page</span>. You can find more explanations about
             Disco in the <span @click="goToInformation()" class="underline font-bold cursor-pointer">Information page</span>.
-          </p>
+            <span @click="goToDiscollaborative()" class="underline text-blue-400 cursor-pointer"><DISCOllaboratives /> page</span>. You can find more explanations about
+            <DISCO /> in the <span @click="goToInformation()" class="underline text-blue-400 cursor-pointer">Information page</span>.
         </div>
       </IconCard>
       <div class="flex flex-wrap justify-center gap-8 my-2">
