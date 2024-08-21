@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 
-import type { TaskProvider } from "@epfml/discojs";
+import type { TaskProvider, EncodedModel } from "@epfml/discojs";
 import { defaultTasks, serialization } from "@epfml/discojs";
 import { expect } from "chai";
 
@@ -28,7 +28,7 @@ describe("model library", () => {
       { hostname: "server", pathname: "/tasks/titanic/model.json" },
       { statusCode: 200 },
     );
-    cy.wrap<Promise<serialization.model.Encoded>, serialization.model.Encoded>(
+    cy.wrap<Promise<EncodedModel>, EncodedModel>(
       taskProvider.getModel().then(serialization.model.encode),
     ).then((encoded) =>
       cy.intercept(

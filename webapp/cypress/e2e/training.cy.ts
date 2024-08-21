@@ -1,4 +1,5 @@
 import { defaultTasks, serialization } from "@epfml/discojs";
+import type { EncodedModel } from "@epfml/discojs";
 
 describe("training page", () => {
   it("is navigable", () => {
@@ -31,7 +32,7 @@ describe("training page", () => {
       { hostname: "server", pathname: "/tasks/titanic/model.json" },
       { statusCode: 200 },
     );
-    cy.wrap<Promise<serialization.model.Encoded>, serialization.model.Encoded>(
+    cy.wrap<Promise<EncodedModel>, EncodedModel>(
       defaultTasks.titanic.getModel().then(serialization.model.encode),
     ).then((encoded) =>
       cy.intercept(
