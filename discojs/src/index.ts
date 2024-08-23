@@ -26,4 +26,4 @@ export { Dataset } from "./dataset/index.js";
 export * from "./dataset/types.js"; // TODO merge with above
 export * from "./types.js";
 
-export * as processing from "./processing.js";
+export * as processing from "./processing/index.js";

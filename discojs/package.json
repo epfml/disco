@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
+    "@jimp/core": "1",
+    "@jimp/plugin-resize": "1",
     "@tensorflow/tfjs": "4",
     "@xenova/transformers": "2",
     "axios": "1",
