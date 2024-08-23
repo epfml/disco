@@ -99,7 +99,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
         .map((batch) =>
           tf.tidy(() => ({
             xs: tf.tensor2d(
-              batch.map((tokens) => tokens.slice(0, -1)).toArray(),
+              batch.map((tokens) => tokens.slice(0, -1).toArray()).toArray(),
             ),
             ys: tf.stack(
               batch

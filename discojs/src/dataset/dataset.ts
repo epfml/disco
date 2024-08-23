@@ -1,5 +1,7 @@
 import { List } from "immutable";
 
+import type { Batched } from "../index.js";
+
 type DatasetLike<T> =
   | AsyncIterable<T>
   | Iterable<T>
@@ -117,7 +119,7 @@ export class Dataset<T> implements AsyncIterable<T> {
    *
    * @param size count of element per chunk
    */
-  batch(size: number): Dataset<List<T>> {
+  batch(size: number): Dataset<Batched<T>> {
     if (size <= 0 || !Number.isInteger(size)) throw new Error("invalid size");
 
     const content = {
