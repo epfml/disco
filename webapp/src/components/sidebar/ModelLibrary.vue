@@ -126,7 +126,7 @@ import { List } from "immutable";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
-import { EmptyMemory } from "@epfml/discojs";
+import { EmptyMemory, Model } from "@epfml/discojs";
 import { IndexedDB } from "@epfml/discojs-web";
 
 import { useToaster } from "@/composables/toaster";
@@ -156,6 +156,8 @@ memoryStore.$subscribe((_, state) => {
 });
 
 const memory = memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory();
+
+let tempDeletedModel : { id : string; model : Model, metadata : ModelMetadata} | undefined;
 
 onMounted(async () => {
   await memoryStore.initModels();
@@ -210,11 +212,34 @@ function sortModels(a: ModelMetadata, b: ModelMetadata): number {
 }
 
 
-function deleteModelConfirm(modelID: string){
-  toaster.default(`Click here to confirm the model deletion`, {
-    onClick: () => deleteModel(modelID),
-    duration: 10000,
-  });
+async function deleteModelConfirm(modelID: string){
+  const modelInfo = models.value.find(([id]) => id === modelID);
+  const model = await memory.getModel(modelID);
+  if (!modelInfo) return
+
+  deleteModel(modelID).then(() => {
+    console.log("ici")
+    tempDeletedModel = { id : modelID, model : model, metadata : modelInfo[1]};
+    toaster.info("Model deleted. Click here to undo", { 
+      onClick: () => undoDeleteModel(),
+      duration : 10000,
+    });
+  })
+}
+
+async function undoDeleteModel() {
+  try {
+    if (!tempDeletedModel) throw new Error("No model to restore");
+    memoryStore.addModel(tempDeletedModel.id, tempDeletedModel.metadata);
+    await memory.saveModel(tempDeletedModel.id, tempDeletedModel.model);
+    toaster.success("Successfully restored the model");
+  } catch (e) {
+    let msg = "Unable to restore model";
+    if (e instanceof Error) msg += `: ${e.message}`;
+    toaster.error(msg);
+  } finally {
+    tempDeletedModel = undefined;
+  }
 }
 
 async function deleteModel(modelID: string): Promise<void> {
