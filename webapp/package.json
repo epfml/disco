@@ -39,7 +39,7 @@
     "@vue/tsconfig": "0.5",
     "autoprefixer": "10",
     "eslint-plugin-cypress": "3",
-    "jsdom": "24",
+    "jsdom": "25",
     "postcss": "8",
     "start-server-and-test": "2",
     "tailwindcss": "3",
