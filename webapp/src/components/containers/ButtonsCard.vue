@@ -2,11 +2,15 @@
   <div
     class="flex flex-col p-7 gap-4 bg-white rounded-lg transition duration-200 group hover:-translate-y-1 hover:scale-[101%] hover:outline hover:outline-2 hover:outline-disco-cyan hover:cursor-pointer"
   >
-    <div
-      class="text-xl text-disco-blue group-hover:text-disco-cyan"
-      :class="`text-${titleAlign}`"
-    >
-      <slot name="title" />
+    <div class="flex flex-row">
+      <div
+        class="grow text-xl text-disco-blue group-hover:text-disco-cyan"
+        :class="`text-${titleAlign}`"
+      >
+        <slot name="title" />
+      </div>
+
+      <div><slot name="icon" /></div>
     </div>
 
     <div class="text-slate-500">
@@ -27,7 +31,6 @@
         <template #description>
           {{ button.description }}
         </template>
-
       </CustomButton>
     </div>
   </div>
@@ -53,6 +56,10 @@ const props = withDefaults(
 );
 
 const buttons = computed(() =>
-  props.buttons.map(([text, action, description]) => ({ text, action, description })),
+  props.buttons.map(([text, action, description]) => ({
+    text,
+    action,
+    description,
+  })),
 );
 </script>
