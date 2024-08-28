@@ -44,6 +44,8 @@ describe("training page", () => {
     cy.contains("button", "next").click();
 
     cy.contains("button", "test model").click();
+
+    cy.contains("Titanic Prediction");
   });
 
   it("can start and stop training of lus_covid", () => {
