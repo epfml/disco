@@ -1,7 +1,7 @@
 <template>
   <div v-show="validationStore.step === 0">
     <div class="flex flex-col gap-8">
-      <div v-if="memoryStore.models.size > 0">
+      <div v-if="!models.infos.isEmpty()">
         <IconCard title-placement="center">
           <template #title>
             Model Library —
@@ -17,7 +17,7 @@
             class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8"
           >
             <div
-              v-for="[id, metadata] in memoryStore.models"
+              v-for="[id, infos] in sortedModelsInfos"
               :key="id"
               class="contents"
             >
@@ -30,39 +30,23 @@
                 "
                 class="shadow shadow-disco-cyan"
               >
-                <template #title>
-                  {{ taskTitle(metadata.taskID) }}
+                <template #title> {{ taskTitle(infos.taskID) }} </template>
+                <template #icon>
+                  <button @click="removeModel(id)"><Bin2Icon /></button>
                 </template>
 
-                <div class="grid grid-cols-2 justify-items-between">
-                  <p class="contents">
-                    <span>Model:</span>
-                    <span>
-                      {{ metadata.name.slice(0, 20) }}
-                      <span
-                        v-if="
-                          metadata.version !== undefined &&
-                          metadata.version !== 0
-                        "
-                      >
-                        ({{ metadata.version }})
-                      </span>
-                    </span>
-                  </p>
-                  <p class="contents">
-                    <span>Date:</span>
-                    <span>{{ metadata.date }} at {{ metadata.hours }}</span>
-                  </p>
-                  <p class="contents">
-                    <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
-                  </p>
-                  <p class="contents">
-                    <span>Type:</span
-                    ><span>{{
-                      metadata.type === "saved" ? "Saved" : "Cached"
-                    }}</span>
-                  </p>
-                </div>
+                <table class="w-full">
+                  <tbody>
+                    <tr>
+                      <td>Saved date</td>
+                      <td>{{ infos.dateSaved }}</td>
+                    </tr>
+                    <tr>
+                      <td>Storage size</td>
+                      <td>{{ infos.storageSize }}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </ButtonsCard>
             </div>
           </div>
@@ -158,12 +142,13 @@ import { RouterLink } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 
 import type { Model, Task } from "@epfml/discojs";
-import { EmptyMemory, client as clients, aggregator } from "@epfml/discojs";
-import { IndexedDB } from "@epfml/discojs-web";
+import { client as clients, aggregator } from "@epfml/discojs";
 
+import Bin2Icon from "@/assets/svg/Bin2Icon.vue";
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
-import { useMemoryStore } from "@/store/memory";
+import type { ModelID } from "@/store/models";
+import { useModelsStore } from "@/store/models";
 import { useTasksStore } from "@/store/tasks";
 import { useValidationStore } from "@/store/validation";
 
@@ -178,7 +163,7 @@ import PredictSteps from "./PredictSteps.vue";
 
 const debug = createDebug("webapp:Testing");
 const validationStore = useValidationStore();
-const memoryStore = useMemoryStore();
+const models = useModelsStore();
 const tasksStore = useTasksStore();
 const toaster = useToaster();
 
@@ -194,13 +179,38 @@ const federatedTasks = computed(() =>
     .filter((t) => t.trainingInformation.scheme === "federated")
     .toList(),
 );
-const memory = computed(() =>
-  memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory(),
-);
 
-onActivated(async () => {
-  await memoryStore.initModels();
+const sortedModelsInfos = computed(() => {
+  const shortDate = new Intl.DateTimeFormat(undefined, {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
 
+  return models.infos
+    .sortBy((infos) => infos.dateSaved)
+    .map(({ taskID, dateSaved, storageSize }) => ({
+      taskID,
+      dateSaved: shortDate.format(dateSaved),
+      storageSize: formatByteSize(storageSize),
+    }))
+    .reverse();
+});
+
+function formatByteSize(size: number): string {
+  let unit;
+  for (unit of ["byte", "kilobyte", "megabyte", "gigabyte"]) {
+    if (size < 1024) break;
+    size /= 1024;
+  }
+
+  return new Intl.NumberFormat(undefined, {
+    style: "unit",
+    unit,
+    maximumFractionDigits: 0,
+  }).format(size);
+}
+
+onActivated(() => {
   // handle test after training or from library
   // TODO encode model ID inside the URL instead of relying on store
   if (validationStore.modelID !== undefined)
@@ -218,14 +228,7 @@ async function downloadModel(task: Task): Promise<void> {
     );
     const model = await client.getLatestModel();
 
-    const source = {
-      type: "saved" as const,
-      taskID: task.id,
-      name: task.trainingInformation.modelID,
-      tensorBackend: task.trainingInformation.tensorBackend,
-    };
-    await memory.value.saveModel(source, model);
-    await memoryStore.initModels();
+    await models.add(task.id, model);
   } catch (e) {
     debug("while downloading model: %o", e);
     toaster.error("Something went wrong, please try again later.");
@@ -244,23 +247,28 @@ async function downloadModel(task: Task): Promise<void> {
 }
 
 async function selectModel(
-  modelID: string,
+  modelID: ModelID,
   mode: "predict" | "test",
 ): Promise<void> {
-  const taskID = memory.value.getModelInfo(modelID)?.taskID;
-  if (taskID === undefined) throw new Error("task ID for model ID not found");
+  const model = await models.get(modelID);
+  if (model === undefined) throw new Error("model ID not present in store");
 
+  const taskID = models.infos.get(modelID)?.taskID;
+  if (taskID === undefined) throw new Error("task ID for model ID not found");
   const task = tasksStore.tasks.get(taskID);
   if (task === undefined) throw new Error("task not found");
-
-  if (!(await memory.value.contains(modelID)))
-    throw new Error("model ID not present in memory");
-  const model = await memory.value.getModel(modelID);
 
   selection.value = { mode, model, task };
   validationStore.mode = mode;
   validationStore.modelID = modelID;
   validationStore.step = 1;
+}
+
+async function removeModel(modelID: ModelID): Promise<void> {
+  toaster.default("Click here to confirm the model deletion", {
+    onClick: () => models.remove(modelID),
+    duration: 10000,
+  });
 }
 
 function taskTitle(taskID: string): string | undefined {

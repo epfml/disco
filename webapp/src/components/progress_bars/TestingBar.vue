@@ -50,7 +50,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useValidationStore } from "@/store/validation";
-import { useMemoryStore } from "@/store/memory";
 import { useToaster } from "@/composables/toaster";
 import ProgressIcon from "./ProgressIcon.vue";
 import ModelIcon from "@/assets/svg/ModelIcon.vue";
@@ -61,7 +60,6 @@ import TestingButtons from "./TestingButtons.vue";
 
 const toaster = useToaster();
 const validationStore = useValidationStore();
-const memoryStore = useMemoryStore();
 
 const testing = computed(() => {
   switch (validationStore.mode) {
@@ -82,7 +80,7 @@ function isActive(step: number): boolean {
 }
 
 function handleRoute(step: 0 | 1 | 2): void {
-  if (memoryStore.models.size === 0 || validationStore.modelID === undefined) {
+  if (validationStore.modelID === undefined) {
     toaster.error("Select a model to evaluate beforehand");
     return;
   }

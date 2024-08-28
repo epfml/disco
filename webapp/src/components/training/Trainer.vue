@@ -1,9 +1,5 @@
 <template>
   <div class="space-y-4 md:space-y-8">
-    <!-- If a cached model exists, display it -->
-    <div v-if="!isTraining">
-      <ModelCaching :task="task" />
-    </div>
     <!-- Train Button -->
     <div class="flex justify-center">
       <IconCard title-placement="center" fill-space>
@@ -128,17 +124,15 @@ import { computed, ref, toRaw } from "vue";
 import type {
   BatchLogs,
   EpochLogs,
+  Model,
   RoundLogs,
   RoundStatus,
   Task,
   TypedLabeledDataset,
 } from "@epfml/discojs";
-import { async_iterator, EmptyMemory, Disco } from "@epfml/discojs";
-import { IndexedDB } from "@epfml/discojs-web";
+import { async_iterator, Disco } from "@epfml/discojs";
 
-import { useMemoryStore } from "@/store/memory";
 import { useToaster } from "@/composables/toaster";
-import ModelCaching from "./ModelCaching.vue";
 import TrainingInformation from "@/components/training/TrainingInformation.vue";
 import CustomButton from "@/components/simple/CustomButton.vue";
 import IconCard from "@/components/containers/IconCard.vue";
@@ -147,12 +141,14 @@ import { CONFIG } from '../../config'
 import { VueSpinnerPuff, VueSpinnerGears } from 'vue3-spinners';
 
 const debug = createDebug("webapp:training:Trainer");
-const memoryStore = useMemoryStore();
 const toaster = useToaster();
 
 const props = defineProps<{
   task: Task;
   dataset?: TypedLabeledDataset;
+}>();
+const emit = defineEmits<{
+  model: [Model];
 }>();
 
 const trainingGenerator =
@@ -208,7 +204,6 @@ async function startTraining(): Promise<void> {
       success: (msg: string) => messages.value = messages.value.push(msg),
       error: (msg: string) => messages.value = messages.value.push(msg)
     },
-    memory: memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory(),
     scheme: isTrainingAlone.value ? "local": props.task.trainingInformation.scheme,
   });
   // set the round status displayed to the status emitted by the disco object
@@ -266,6 +261,7 @@ async function startTraining(): Promise<void> {
     await cleanupTrainingSession()
   }
 
+  emit("model", disco.trainer.model);
   toaster.success("Training successfully completed");
 }
 

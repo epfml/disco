@@ -10,7 +10,6 @@ export * as aggregator from './aggregator/index.js'
 
 export { WeightsContainer, aggregation } from './weights/index.js'
 export { Logger, ConsoleLogger } from './logging/index.js'
-export { Memory, type ModelInfo, type ModelSource, Empty as EmptyMemory } from './memory/index.js'
 export { Disco, RoundLogs, RoundStatus } from './training/index.js'
 export { Validator } from './validation/index.js'
 

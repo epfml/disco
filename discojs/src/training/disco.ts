@@ -4,9 +4,7 @@ import {
   BatchLogs,
   ConsoleLogger,
   EpochLogs,
-  EmptyMemory,
   Logger,
-  Memory,
   Task,
   TrainingInformation,
 } from "../index.js";
@@ -22,7 +20,6 @@ import { labeledDatasetToDataSplit } from "../dataset/data/helpers.js";
 interface DiscoConfig {
   scheme: TrainingInformation["scheme"];
   logger: Logger;
-  memory: Memory;
 }
 
 export type RoundStatus =
@@ -33,14 +30,13 @@ export type RoundStatus =
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be
- * a convenient object providing a reduced yet complete API that wraps model training,
- * communication with nodes, logs and model memory.
+ * a convenient object providing a reduced yet complete API that wraps model training and
+ * communication with nodes.
  */
 export class Disco extends EventEmitter<{'status': RoundStatus}>{
   public readonly trainer: Trainer;
   readonly #client: clients.Client;
   readonly #logger: Logger;
-  readonly #memory: Memory;
   readonly #task: Task;
 
   /**
@@ -55,10 +51,9 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
     config: Partial<DiscoConfig>
   ) {
     super()
-    const { scheme, logger, memory } = {
+    const { scheme, logger } = {
       scheme: task.trainingInformation.scheme,
       logger: new ConsoleLogger(),
-      memory: new EmptyMemory(),
       ...config,
     };
 
@@ -80,7 +75,6 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
 
     this.#logger = logger;
     this.#client = client;
-    this.#memory = memory;
     this.#task = task;
     this.trainer = new Trainer(task, client)
     // Simply propagate the training status events emitted by the client
@@ -171,16 +165,6 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
 
         return await returnedRoundLogs;
       }.bind(this)();
-
-      await this.#memory.updateWorkingModel(
-        {
-          type: "working",
-          taskID: this.#task.id,
-          name: this.#task.trainingInformation.modelID,
-          tensorBackend: this.#task.trainingInformation.tensorBackend,
-        },
-        this.trainer.model,
-      );
     }
     this.#logger.success("Training finished");
   }
