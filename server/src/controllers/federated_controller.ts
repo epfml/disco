@@ -100,15 +100,14 @@ export class FederatedController extends TrainingController {
       promisedResult,
       client.timeout(30_000, "Timeout while waiting for enough participant contributions") //TODO: it doesn't make sense that the server is using the client utils' timeout 
       ]).then((result) =>
-      // Reply with round - 1 because the round number should match the round at which the client sent its weights
-      // After the server aggregated the weights it also incremented the round so the server replies with round - 1
-        [result, this.#aggregator.round - 1] as [WeightsContainer, number])
-      .then(async ([result, round]) =>
-        [await serialization.weights.encode(result), round] as [serialization.weights.Encoded, number])
-      .then(([serialized, round]) => {
+        [result, this.#aggregator.round] as [WeightsContainer, number])
+        .then(async ([result, round]) =>
+          [await serialization.weights.encode(result), round] as [serialization.weights.Encoded, number])
+        .then(([serialized, round]) => {
+          debug("Sending global weights for round %o", round)
         const msg: FederatedMessages.ReceiveServerPayload = {
           type: MessageTypes.ReceiveServerPayload,
-          round,
+          round, // send the current round number after aggregation
           payload: serialized,
           nbOfParticipants: this.#participants.size
         }
