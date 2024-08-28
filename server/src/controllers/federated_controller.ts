@@ -150,7 +150,7 @@ export class FederatedController extends TrainingController {
         * A new participant joins the task 
         */
         case MessageTypes.ClientConnected: {
-          debug(`client ${clientId.slice(0, 4)} joined ${this.task.id}`)
+          debug(`client [%s] joined ${this.task.id}`, clientId.slice(0, 4))
           this.#participants = this.#participants.set(clientId, ws) // add the new client
 
           const waitForMoreParticipants = this.#participants.size < minNbOfParticipants
@@ -173,7 +173,7 @@ export class FederatedController extends TrainingController {
               // it already knows via the NewFederatedNodeInfo message
               .filter((_, id) => id !== clientId)
               .forEach((participantWs, participantId) => {
-                debug("Sending enough-participant message to client: %o", participantId.slice(0, 4))
+                debug("Sending enough-participant message to client [%s]", participantId.slice(0, 4))
                 const msg: FederatedMessages.EnoughParticipants = {
                   type: MessageTypes.EnoughParticipants
                 }
@@ -198,12 +198,12 @@ export class FederatedController extends TrainingController {
             const weights = serialization.weights.decode(payload)
             const addedSuccessfully = this.#aggregator.add(clientId, weights, round)
             if (!addedSuccessfully) throw new Error("Aggregator's isValidContribution returned true but failed to add the contribution")
-            debug(`Successfully added contribution from client ${clientId.slice(0, 4)} for round ${round}`)
+            debug(`Successfully added contribution from client [%s] for round ${round}`, clientId.slice(0, 4))
           } else {
             // If the client sent an invalid or outdated contribution
             // the server answers with the current round and last global model update
-            debug(`Dropped contribution from client ${clientId.slice(0, 4)} for round ${round} ` +
-              `Sending last global model from round ${this.#aggregator.round - 1}`)
+            debug(`Dropped contribution from client [%s] for round ${round} ` +
+              `Sending last global model from round ${this.#aggregator.round - 1}`, clientId.slice(0, 4))
             // no latest model at the first round
             if (this.#latestGlobalWeights === undefined) return
             
@@ -225,7 +225,7 @@ export class FederatedController extends TrainingController {
       // Remove the participant when the websocket is closed
       this.#participants = this.#participants.delete(clientId)
       this.#aggregator.removeNode(clientId)
-      debug("client leaving: %o", clientId.slice(0, 4))
+      debug("client [%s] left", clientId.slice(0, 4))
 
       // Check if we dropped below the minimum number of participant required
       // or if we are already waiting for new participants to join
@@ -237,7 +237,7 @@ export class FederatedController extends TrainingController {
       // Tell remaining participants to wait until more participants join
       this.#participants
         .forEach((participantWs, participantId) => {
-          debug("Telling remaining clients to wait for participants: %o", participantId.slice(0, 4))
+          debug("Telling remaining client [%s] to wait for participants", participantId.slice(0, 4))
           const msg: FederatedMessages.WaitingForMoreParticipants = {
             type: MessageTypes.WaitingForMoreParticipants
           }
