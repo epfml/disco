@@ -158,8 +158,13 @@ import FileIcon from '@/assets/svg/FileIcon.vue'
 import CrossIcon from '@/assets/svg/CrossIcon.vue'
 import DISCO from '@/components/simple/DISCO.vue'
 
+import { useValidationStore } from '@/store/validation'
+
 const isMenuOpen = ref(false)
 const router = useRouter()
+
+const validationStore = useValidationStore()
+
 
 function openModelLibrary() {
   isMenuOpen.value = true
@@ -182,6 +187,11 @@ function goToNewCustomTask () {
 }
 
 function goToEvaluate () {
+  // Reset the store
+  validationStore.step = 0
+  validationStore.modelID = undefined;
+  validationStore.mode = undefined;
+
   router.push({ path: '/evaluate' })
 }
 

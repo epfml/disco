@@ -1,13 +1,16 @@
 import { defaultTasks } from "@epfml/discojs";
 
+import { setupServerWith } from "../support/e2e.ts";
+
 describe("tasks page", () => {
   it("displays tasks", () => {
-    cy.intercept({ hostname: "server", pathname: "tasks" }, [
-      defaultTasks.titanic.getTask(),
-      defaultTasks.mnist.getTask(),
-      defaultTasks.lusCovid.getTask(),
-      defaultTasks.wikitext.getTask(),
-    ]);
+    setupServerWith(
+      defaultTasks.titanic,
+      defaultTasks.mnist,
+      defaultTasks.lusCovid,
+      defaultTasks.wikitext,
+    );
+
     cy.visit("/#/list").contains("button", "participate");
 
     // Length 5 = 4 tasks and 1 div for text description
@@ -15,9 +18,8 @@ describe("tasks page", () => {
   });
 
   it("redirects to training", () => {
-    cy.intercept({ hostname: "server", pathname: "tasks" }, [
-      defaultTasks.titanic.getTask(),
-    ]);
+    setupServerWith(defaultTasks.titanic);
+
     cy.visit("/#/list").contains("button", "participate");
 
     cy.get(`div[id="titanic"]`).find("button").click();

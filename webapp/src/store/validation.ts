@@ -1,15 +1,10 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-export const useValidationStore = defineStore('validation', () => {
-  const state = ref(false)
-  const step = ref(0)
-  const model = ref<string>()
-  const isOnlyPrediction = ref(false)
+export const useValidationStore = defineStore("validation", () => {
+  const step = ref<0 | 1 | 2>(0);
+  const mode = ref<"predict" | "test">();
+  const modelID = ref<string>();
 
-  const setModel = (id: string): void => {
-    model.value = id
-    state.value = !state.value
-  }
-  return { state, step, model, isOnlyPrediction, setModel }
-})
+  return { step, mode, modelID };
+});

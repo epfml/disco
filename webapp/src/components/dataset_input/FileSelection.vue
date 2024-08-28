@@ -88,7 +88,7 @@
 
 <script lang="ts" setup>
 import { Set } from "immutable";
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 
 import CustomButton from "@/components/simple/CustomButton.vue";
 
@@ -112,12 +112,12 @@ const fileType = computed(() => {
   const name = (() => {
     // need function wrap vuejs/eslint-plugin-vue#2142
     switch (props.type) {
-      case "tabular":
-        return "CSV";
       case "image":
         return "image";
+      case "tabular":
+        return "CSV";
       case "text":
-        return "text";
+        return "text file";
     }
   })();
 
@@ -125,10 +125,10 @@ const fileType = computed(() => {
 });
 const acceptFilter = computed(() => {
   switch (props.type) {
-    case "tabular":
-      return ".csv";
     case "image":
       return "image/*";
+    case "tabular":
+      return ".csv";
     case "text":
       return "text/plain";
   }

@@ -8,22 +8,26 @@
             <span class="italic">Locally Available and Ready to Test</span>
           </template>
 
-          Test any model below against a validation dataset.
-          The models listed were downloaded from the remote server.
-          Perhaps you even contributed to their training!
-          Note that these models are currently stored within your browser's memory.
+          Test any model below against a validation dataset. The models listed
+          were downloaded from the remote server. Perhaps you even contributed
+          to their training! Note that these models are currently stored within
+          your browser's memory.
 
-          <div class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8">
+          <div
+            class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8"
+          >
             <div
               v-for="[id, metadata] in memoryStore.models"
               :key="id"
               class="contents"
             >
               <ButtonsCard
-                :buttons="List.of(
-                  ['test', () => selectModel(id, false)],
-                  ['predict', () => selectModel(id, true)],
-                )"
+                :buttons="
+                  List.of(
+                    ['test', () => selectModel(id, 'test')],
+                    ['predict', () => selectModel(id, 'predict')],
+                  )
+                "
                 class="shadow shadow-disco-cyan"
               >
                 <template #title>
@@ -35,7 +39,12 @@
                     <span>Model:</span>
                     <span>
                       {{ metadata.name.slice(0, 20) }}
-                      <span v-if="metadata.version !== undefined && metadata.version !== 0">
+                      <span
+                        v-if="
+                          metadata.version !== undefined &&
+                          metadata.version !== 0
+                        "
+                      >
                         ({{ metadata.version }})
                       </span>
                     </span>
@@ -48,7 +57,10 @@
                     <span>Size:</span><span>{{ metadata.fileSize }} kB</span>
                   </p>
                   <p class="contents">
-                    <span>Type:</span><span>{{ metadata.type === 'saved' ? 'Saved' : 'Cached' }}</span>
+                    <span>Type:</span
+                    ><span>{{
+                      metadata.type === "saved" ? "Saved" : "Cached"
+                    }}</span>
                   </p>
                 </div>
               </ButtonsCard>
@@ -61,10 +73,9 @@
           <template #title> Empty Model Library </template>
 
           Disco failed to find any model stored locally. Please go to the
-          <RouterLink
-            class="underline text-blue-400"
-            to="/list"
-          >training page</RouterLink>
+          <RouterLink class="underline text-blue-400" to="/list"
+            >training page</RouterLink
+          >
           or directly download a model below, from the Disco repository.
         </IconCard>
       </div>
@@ -80,17 +91,19 @@
             v-if="tasksStore.status == 'loading'"
             class="my-10 flex flex-col justify-center items-center"
           >
-            <VueSpinner size="50" color="#6096BA"/>
+            <VueSpinner size="50" color="#6096BA" />
             <div class="mt-10 flex flex-col justify-center items-center">
-              <p class="text-disco-blue">Loading <DISCOllaboratives/></p>
+              <p class="text-disco-blue">Loading <DISCOllaboratives /></p>
               <p class="text-disco-blue text-xs">This can take a few seconds</p>
             </div>
           </div>
           <div v-else-if="federatedTasks.size > 0">
-            Select any model below to download it. For federated tasks only.
-            The models listed are not currently stored in your browser's memory,
-            but are available and downloadable from the remote Disco server.
-            <div class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8">
+            Select any model below to download it. For federated tasks only. The
+            models listed are not currently stored in your browser's memory, but
+            are available and downloadable from the remote Disco server.
+            <div
+              class="grid gris-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch gap-8 mt-8"
+            >
               <div
                 v-for="task in federatedTasks.toArray()"
                 :key="task.id"
@@ -104,213 +117,159 @@
                     {{ task.displayInformation.taskTitle }}
                   </template>
 
-                  Download the latest {{ task.displayInformation.taskTitle }} model available on the remote server.
+                  Download the latest
+                  {{ task.displayInformation.taskTitle }} model available on the
+                  remote server.
                 </ButtonsCard>
               </div>
             </div>
           </div>
           <div v-else>
-            A problem occurred while fetching <DISCOllaboratives/>
+            A problem occurred while fetching <DISCOllaboratives />
           </div>
         </IconCard>
       </div>
     </div>
   </div>
-  <div v-if="currentTask !== undefined && datasetBuilder !== undefined">
-    <!-- Information specific to the validation panel -->
-    <IconCard
-      v-if="!validationStore.isOnlyPrediction"
-      v-show="validationStore.step === 1"
-      class="mb-4 md:mb-8"
-    >
-      <template #title> Model Validation </template>
 
-      It is very important that your model is tested against <b class="uppercase">unseen data</b>.
-      As such, please ensure your dataset of choice was not used during the training phase of your model.
-    </IconCard>
-    <!-- Language model prompting is currently unavailable   -->
-    <div
-      v-if="currentTask.trainingInformation.dataType === 'text' && validationStore.isOnlyPrediction"
-      v-show="validationStore.step !== 0"
-    >
-      <div class="flex justify-center items-center mb-4">
-        <span class="shrink-0 py-4 px-4 bg-orange-100 rounded-md">
-          <p class="text-slate-600 text-xs">Prompting a language model will be available soon!</p>
-        </span>
-      </div>
-    </div>
-
-    <KeepAlive>
-      <div v-if="stepRef === 1">
-        <DataDescription :task="currentTask" />
-
-        <ImageDatasetInput
-          v-if="currentTask.trainingInformation.dataType === 'image'"
-          :task="currentTask"
-          :dataset-builder="datasetBuilder"
-        />
-        <TabularDatasetInput
-          v-if="currentTask.trainingInformation.dataType === 'tabular'"
-          :task="currentTask"
-          :dataset-builder="datasetBuilder"
-        />
-        <TextDatasetInput
-          v-if="currentTask.trainingInformation.dataType === 'text'"
-          :dataset-builder="datasetBuilder"
-        />
-      </div>
-    </KeepAlive>
-
-    <KeepAlive>
-      <Tester
-        v-if="stepRef === 2"
-        :task="currentTask"
-        :dataset-builder="datasetBuilder"
-        :ground-truth="!validationStore.isOnlyPrediction"
-        :is-only-prediction="validationStore.isOnlyPrediction"
+  <div v-if="selection !== undefined">
+    <div v-if="validationStore.step !== 0">
+      <TestSteps
+        v-if="selection.mode === 'test'"
+        :task="selection.task"
+        :model="selection.model"
       />
-    </KeepAlive>
+      <PredictSteps
+        v-if="selection.mode === 'predict'"
+        :task="selection.task"
+        :model="selection.model"
+      />
+    </div>
   </div>
+
+  <TestingButtons class="mt-5" />
 </template>
+
 <script lang="ts" setup>
 import createDebug from "debug";
-import { watch, computed, shallowRef, onActivated, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { List } from 'immutable'
-import { VueSpinner } from 'vue3-spinners';
+import { List } from "immutable";
+import { computed, ref, onActivated } from "vue";
+import { RouterLink } from "vue-router";
+import { VueSpinner } from "vue3-spinners";
 
-import type { Task } from '@epfml/discojs'
-import { EmptyMemory, Memory, data, client as clients, aggregator } from '@epfml/discojs'
-import { IndexedDB, WebImageLoader, WebTabularLoader, WebTextLoader } from '@epfml/discojs-web'
+import type { Model, Task } from "@epfml/discojs";
+import { EmptyMemory, client as clients, aggregator } from "@epfml/discojs";
+import { IndexedDB } from "@epfml/discojs-web";
 
-import { CONFIG } from '@/config'
-import { useMemoryStore } from '@/store/memory'
-import { useTasksStore } from '@/store/tasks'
-import { useValidationStore } from '@/store/validation'
+import { useToaster } from "@/composables/toaster";
+import { CONFIG } from "@/config";
+import { useMemoryStore } from "@/store/memory";
+import { useTasksStore } from "@/store/tasks";
+import { useValidationStore } from "@/store/validation";
 
-import DataDescription from "@/components/dataset_input/DataDescription.vue";
-import ImageDatasetInput from "@/components/dataset_input/LabeledImageDatasetInput/index.vue";
-import TabularDatasetInput from "@/components/dataset_input/TabularDatasetInput.vue";
-import TextDatasetInput from "@/components/dataset_input/TextDatasetInput.vue";
+import ButtonsCard from "@/components/containers/ButtonsCard.vue";
+import IconCard from "@/components/containers/IconCard.vue";
+import TestingButtons from "@/components/progress_bars/TestingButtons.vue";
 import DISCO from "@/components/simple/DISCO.vue";
-import Tester from '@/components/testing/Tester.vue'
-import ButtonsCard from '@/components/containers/ButtonsCard.vue'
-import IconCard from '@/components/containers/IconCard.vue'
-import DISCOllaboratives from '@/components/simple/DISCOllaboratives.vue'
-import { useToaster } from '@/composables/toaster'
+import DISCOllaboratives from "@/components/simple/DISCOllaboratives.vue";
 
-const debug = createDebug("webapp:Tester");
-const validationStore = useValidationStore()
-const memoryStore = useMemoryStore()
-const tasksStore = useTasksStore()
-const toaster = useToaster()
+import TestSteps from "./TestSteps.vue";
+import PredictSteps from "./PredictSteps.vue";
 
-const { step: stepRef, state: stateRef } = storeToRefs(validationStore)
-const currentTask = shallowRef<Task | undefined>(undefined)
+const debug = createDebug("webapp:Testing");
+const validationStore = useValidationStore();
+const memoryStore = useMemoryStore();
+const tasksStore = useTasksStore();
+const toaster = useToaster();
 
-const federatedTasks = computed<List<Task>>(() =>
-  tasksStore.tasks?.filter((t) => t.trainingInformation.scheme === 'federated').toList())
+const selection = ref<{
+  mode: "predict" | "test";
+  task: Task;
+  // same as in validation store but not undef
+  model: Model;
+}>();
 
-const memory = computed<Memory>(() =>
-  memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory())
+const federatedTasks = computed(() =>
+  tasksStore.tasks
+    .filter((t) => t.trainingInformation.scheme === "federated")
+    .toList(),
+);
+const memory = computed(() =>
+  memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory(),
+);
 
-const datasetBuilder = computed<data.DatasetBuilder<File> | undefined>(() => {
-  if (currentTask.value === undefined) {
-    return undefined
-  }
-  let dataLoader: data.DataLoader<File>
-  switch (currentTask.value.trainingInformation.dataType) {
-    case 'tabular':
-      dataLoader = new WebTabularLoader(currentTask.value, ',')
-      break
-    case 'image':
-      dataLoader = new WebImageLoader(currentTask.value)
-      break
-    case 'text':
-      dataLoader = new WebTextLoader(currentTask.value)
-      break
-    default:
-      throw new Error(`Browser data loader for data type ${currentTask.value.trainingInformation.dataType} is not implemented`)
-  }
-  return new data.DatasetBuilder(dataLoader, currentTask.value)
-})
-
-watch(stateRef, () => {
-  if (validationStore.model !== undefined) {
-    selectModel(validationStore.model, false)
-  }
-})
-watch(stepRef, async (v) => {
-  if (v === 0) {
-    await memoryStore.initModels()
-  }
-})
-
-onMounted(async () => {
-  await memoryStore.initModels()
-  // can't watch before mount
-  if (validationStore.model !== undefined) {
-    selectModel(validationStore.model, false)
-  }
-})
 onActivated(async () => {
-  await memoryStore.initModels()
-})
+  await memoryStore.initModels();
 
-const downloadModel = async (task: Task): Promise<void> => {
+  // handle test after training or from library
+  // TODO encode model ID inside the URL instead of relying on store
+  if (validationStore.modelID !== undefined)
+    selectModel(validationStore.modelID, "test");
+});
+
+async function downloadModel(task: Task): Promise<void> {
   try {
-    const client = new clients.LocalClient(CONFIG.serverUrl, task, aggregator.getAggregator(task))
-    const model = await client.getLatestModel()
+    toaster.info("Downloading model...");
+
+    const client = new clients.LocalClient(
+      CONFIG.serverUrl,
+      task,
+      aggregator.getAggregator(task),
+    );
+    const model = await client.getLatestModel();
+
     const source = {
-      type: 'saved' as const,
+      type: "saved" as const,
       taskID: task.id,
       name: task.trainingInformation.modelID,
       tensorBackend: task.trainingInformation.tensorBackend,
-    }
-    await memory.value.saveModel(source, model)
-    await memoryStore.initModels()
-    toaster.success("Model successfully downloaded!")
-    const scrollableDiv = document.getElementById('scrollable-div')
-    if (scrollableDiv !== null) {
-      scrollableDiv.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "smooth",
-      });
-    }
+    };
+    await memory.value.saveModel(source, model);
+    await memoryStore.initModels();
   } catch (e) {
     debug("while downloading model: %o", e);
-    toaster.error("Something went wrong, please try again later.")
+    toaster.error("Something went wrong, please try again later.");
+    return;
   }
+
+  toaster.success("Model successfully downloaded!");
+
+  const scrollableDiv = document.getElementById("scrollable-div");
+  if (scrollableDiv !== null)
+    scrollableDiv.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
 }
 
-function selectModel(modelID: string, isOnlyPrediction: boolean): void {
-  const taskID = memory.value.getModelInfo(modelID)?.taskID
-  if (taskID === undefined) {
-    throw new Error(`Model task id for found in memory for model id: ${modelID}`)
-  }
+async function selectModel(
+  modelID: string,
+  mode: "predict" | "test",
+): Promise<void> {
+  const taskID = memory.value.getModelInfo(modelID)?.taskID;
+  if (taskID === undefined) throw new Error("task ID for model ID not found");
 
-  const selectedTask = tasksStore.tasks.get(taskID)
-  if (selectedTask !== undefined) {
-    currentTask.value = selectedTask
-    validationStore.model = modelID
-    validationStore.step = 1
-    validationStore.isOnlyPrediction = isOnlyPrediction
-  } else {
-    throw new Error('Task not found in the task store for task id: ' + taskID)
-  }
+  const task = tasksStore.tasks.get(taskID);
+  if (task === undefined) throw new Error("task not found");
+
+  if (!(await memory.value.contains(modelID)))
+    throw new Error("model ID not present in memory");
+  const model = await memory.value.getModel(modelID);
+
+  selection.value = { mode, model, task };
+  validationStore.mode = mode;
+  validationStore.modelID = modelID;
+  validationStore.step = 1;
 }
 
-const taskTitle = (taskID: string): string | undefined => {
-  if (tasksStore.status == 'success') {
-    const titled = tasksStore.tasks.get(taskID)
-    if (titled !== undefined) {
-      return titled.displayInformation.taskTitle
-    } else {
-      throw new Error('Task title not found for task id: ' + taskID)
-    }
-  }
-  return undefined
+function taskTitle(taskID: string): string | undefined {
+  if (tasksStore.status !== "success") return undefined;
+
+  const titled = tasksStore.tasks.get(taskID);
+  if (titled === undefined)
+    throw new Error("Task title not found for task id: " + taskID);
+
+  return titled.displayInformation.taskTitle;
 }
 </script>

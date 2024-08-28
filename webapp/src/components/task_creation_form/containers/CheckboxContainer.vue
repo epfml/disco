@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-center">
+  <div class="flex justify-left">
     <VeeField
       :id="props.field.id"
       v-model="validationValue"

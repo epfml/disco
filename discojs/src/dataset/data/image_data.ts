@@ -1,7 +1,6 @@
-import type tf from '@tensorflow/tfjs'
+import * as tf from '@tensorflow/tfjs'
 
 import type { Task } from '../../index.js'
-import type { Dataset } from '../dataset.js'
 
 import { Data } from './data.js'
 import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing/index.js'
@@ -13,7 +12,7 @@ export class ImageData extends Data {
   public readonly availablePreprocessing = IMAGE_PREPROCESSING
 
   static async init (
-    dataset: Dataset,
+    dataset: tf.data.Dataset<tf.TensorContainer>,
     task: Task,
     size?: number
   ): Promise<Data> {
@@ -22,7 +21,10 @@ export class ImageData extends Data {
     // cause an error during training, because of the lazy aspect of the dataset; we only
     // verify the first sample.
     if (task.trainingInformation.preprocessingFunctions?.includes(ImagePreprocessing.Resize) !== true) {
-      const sample = (await dataset.take(1).toArray())[0]
+      const iteration = await dataset.iterator().then((iter) => iter.next())
+      if (iteration.done === true) throw new Error("empty dataset")
+      const sample = iteration.value
+
       // TODO: We suppose the presence of labels
       // TODO: Typing (discojs-node/src/dataset/data_loader/image_loader.spec.ts)
       if (typeof sample !== 'object' || sample === null  || sample === undefined) {
@@ -30,8 +32,8 @@ export class ImageData extends Data {
       }
 
       let shape
-      if ('xs' in sample && 'ys' in sample) {
-        shape = (sample as { xs: tf.Tensor, ys: number[] }).xs.shape
+      if ('xs' in sample) {
+        shape = (sample as { xs: tf.Tensor }).xs.shape
       } else {
         shape = (sample as tf.Tensor3D).shape
       }
@@ -40,11 +42,13 @@ export class ImageData extends Data {
         (shape[0] !== IMAGE_W || shape[1] !== IMAGE_H)) {
           throw new Error(`Image doesn't have the dimensions specified in the task's training information. Expected ${IMAGE_H}x${IMAGE_W} but got ${shape[0]}x${shape[1]}.`)
       }
+
+      tf.dispose(sample)
     }
     return new ImageData(dataset, task, size)
   }
 
-  protected create (dataset: Dataset, task: Task, size: number): ImageData {
+  protected create (dataset: tf.data.Dataset<tf.TensorContainer>, task: Task, size: number): ImageData {
     return new ImageData(dataset, task, size)
   }
 }

@@ -5,6 +5,9 @@
     "isolatedModules": false,
     "target": "es2022",
     "lib": ["es2022", "dom"],
-    "types": ["cypress"]
+    "types": ["cypress"],
+
+    // for importing support files
+    "allowImportingTsExtensions": true
   }
 }

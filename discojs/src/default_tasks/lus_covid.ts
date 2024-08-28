@@ -8,7 +8,7 @@ export const lusCovid: TaskProvider = {
     return {
       id: 'lus_covid',
       displayInformation: {
-        taskTitle: 'COVID-19 Diagnosis from Lung Ultrasounds',
+        taskTitle: 'Lung Ultrasound Image Classification',
         summary: {
           preview: "Medical images are a typical example of data that exists in huge quantity yet that can't be shared due to confidentiality reasons. Medical applications would immensely benefit from training on data currently locked. More data diversity leads to better generalization and bias mitigation.",
           overview: "Disco allows data owners to collaboratively train machine learning models using their respective data without any privacy breach. This example problem is about diagnosing whether patients are positive or negative to COVID-19 from lung ultrasounds images. <br>Don't have a dataset of your own? You can find a link to a sample dataset at the next step."

@@ -9,6 +9,10 @@
     hover:bg-white hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan"
   >
     <slot />
+    <!-- Optional description slot -->
+    <div v-if="$slots.description" class="normal-case text-xs opacity-70 mt">
+      <slot name="description" />
+    </div>
   </button>
 </template>
 

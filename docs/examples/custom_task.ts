@@ -1,4 +1,4 @@
-import tf from '@tensorflow/tfjs'
+import tf from '@tensorflow/tfjs-node'
 
 import type { TaskProvider } from '@epfml/discojs'
 import { defaultTasks, models } from '@epfml/discojs'

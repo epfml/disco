@@ -10,25 +10,29 @@
 import { Set } from "immutable";
 import { ref, watch } from "vue";
 
-import { data } from "@epfml/discojs";
+import type { Dataset, Tabular } from "@epfml/discojs";
+import { loadCSV } from "@epfml/discojs-web";
 
 import DatasetInput from "./DatasetInput.vue";
 import FileSelection from "./FileSelection.vue";
 
-// TODO do not pass DatasetBuilder around but upgrade to v-model
-
-const props = defineProps<{
-  datasetBuilder: data.DatasetBuilder<File>;
-}>();
+const dataset = defineModel<Dataset<Tabular>>();
+watch(dataset, (dataset: Dataset<Tabular> | undefined) => {
+  if (dataset === undefined) files.value = undefined;
+});
 
 const files = ref<Set<File>>();
-
-watch(files, (files) => {
+watch(files, (files: Set<File> | undefined) => {
   if (files === undefined) {
-    props.datasetBuilder.clearFiles();
+    dataset.value = files;
     return;
   }
 
-  props.datasetBuilder.addFiles(files.toArray());
+  const file = files.first();
+  if (file === undefined || files.size > 1)
+    // enforced by <FileSelection multiple=false />
+    throw new Error("excepted a single file");
+
+  dataset.value = loadCSV(file);
 });
 </script>

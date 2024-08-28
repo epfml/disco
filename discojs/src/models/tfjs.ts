@@ -2,11 +2,11 @@ import { List, Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
 import { WeightsContainer } from '../index.js'
-import type { Dataset } from '../dataset/index.js'
 
-import { BatchLogs, EpochLogs } from './index.js'
+import { BatchLogs } from './index.js'
 import { Model } from './index.js'
-import type { Prediction, Sample } from './model.js'
+import { Prediction, Sample } from './model.js'
+import { EpochLogs } from './logs.js'
 
 /** TensorFlow JavaScript model with standard training */
 export class TFJS extends Model {
@@ -30,8 +30,8 @@ export class TFJS extends Model {
   }
 
   override async *train(
-    trainingData: Dataset,
-    validationData?: Dataset,
+    trainingData: tf.data.Dataset<tf.TensorContainer>,
+    validationData?: tf.data.Dataset<tf.TensorContainer>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     const batches = await trainingData.iterator(); // tf.LazyIterator isn't an AsyncGenerator
     let batchesLogs = List<BatchLogs>();
@@ -81,7 +81,7 @@ export class TFJS extends Model {
   }
 
   async #evaluate(
-    dataset: Dataset,
+    dataset: tf.data.Dataset<tf.TensorContainer>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await this.model.evaluateDataset(
       dataset.map((t) => {
@@ -104,6 +104,7 @@ export class TFJS extends Model {
       if (values.length !== 1) throw new Error("more than one metric value");
       return values[0];
     });
+    tf.dispose(evaluation)
 
     const [accuracy, loss] = [
       metricToValue.get("acc"),

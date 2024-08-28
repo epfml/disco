@@ -21,5 +21,5 @@ export default defineConfig({
       "simple-peer": "simple-peer/simplepeer.min.js",
     },
   },
-  cacheDir: "../node_modules/.vite",
+  cacheDir: "../node_modules/.vite/webapp",
 });

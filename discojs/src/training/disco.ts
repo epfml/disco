@@ -1,21 +1,23 @@
 import {
   async_iterator,
-  data,
+  client as clients,
   BatchLogs,
+  ConsoleLogger,
   EpochLogs,
+  EmptyMemory,
   Logger,
   Memory,
-  Model,
   Task,
   TrainingInformation,
 } from "../index.js";
-import { client as clients, ConsoleLogger, EmptyMemory } from "../index.js";
+import type { TypedLabeledDataset } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
 import { enumerate, split } from "../utils/async_iterator.js";
 import { EventEmitter } from "../utils/event_emitter.js";
 
 import { RoundLogs, Trainer } from "./trainer.js";
+import { labeledDatasetToDataSplit } from "../dataset/data/helpers.js";
 
 interface DiscoConfig {
   scheme: TrainingInformation["scheme"];
@@ -38,9 +40,30 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   public readonly trainer: Trainer;
   readonly #client: clients.Client;
   readonly #logger: Logger;
-  // small helper to avoid keeping Task & Memory around
-  readonly #updateWorkingModel: (_: Model) => Promise<void>;
+  readonly #memory: Memory;
+  readonly #task: Task;
+// <<<<<<< HEAD
+//   // small helper to avoid keeping Task & Memory around
+//   readonly #updateWorkingModel: (_: Model) => Promise<void>;
 
+// =======
+//   readonly #memory: Memory;
+//   readonly #task: Task;
+
+//   private constructor(
+//     public readonly trainer: Trainer,
+//     task: Task,
+//     client: clients.Client,
+//     memory: Memory,
+//     logger: Logger,
+//   ) {
+//     this.#client = client;
+//     this.#logger = logger;
+//     this.#memory = memory;
+//     this.#task = task;
+//   }
+
+// >>>>>>> develop
   /**
    * Connect to the given task and get ready to train.
    * 
@@ -78,25 +101,30 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
 
     this.#logger = logger;
     this.#client = client;
+    // this.#client = client;
+    // this.#logger = logger;
+    this.#memory = memory;
+    this.#task = task;
     this.trainer = new Trainer(task, client)
     // Simply propagate the training status events emitted by the client
     this.#client.on('status', status => this.emit('status', status))
 
-    this.#updateWorkingModel = () =>
-      memory.updateWorkingModel(
-        {
-          type: "working",
-          taskID: task.id,
-          name: task.trainingInformation.modelID,
-          tensorBackend: task.trainingInformation.tensorBackend,
-        },
-        this.trainer.model,
-      );
+    // this.#updateWorkingModel = () =>
+    //   memory.updateWorkingModel(
+    //     {
+    //       type: "working",
+    //       taskID: task.id,
+    //       name: task.trainingInformation.modelID,
+    //       tensorBackend: task.trainingInformation.tensorBackend,
+    //     },
+    //     this.trainer.model,
+    //   );
+    console.log("Disco constructed")
   }
 
   /** Train on dataset, yielding logs of every round. */
-  async *trainByRound(dataTuple: data.DataSplit): AsyncGenerator<RoundLogs> {
-    for await (const round of this.train(dataTuple)) {
+  async *trainByRound(dataset: TypedLabeledDataset): AsyncGenerator<RoundLogs> {
+    for await (const round of this.train(dataset)) {
       const [roundGen, roundLogs] = async_iterator.split(round);
       for await (const epoch of roundGen) for await (const _ of epoch);
       yield await roundLogs;
@@ -104,8 +132,8 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   /** Train on dataset, yielding logs of every epoch. */
-  async *trainByEpoch(dataTuple: data.DataSplit): AsyncGenerator<EpochLogs> {
-    for await (const round of this.train(dataTuple)) {
+  async *trainByEpoch(dataset: TypedLabeledDataset): AsyncGenerator<EpochLogs> {
+    for await (const round of this.train(dataset)) {
       for await (const epoch of round) {
         const [epochGen, epochLogs] = async_iterator.split(epoch);
         for await (const _ of epochGen);
@@ -115,13 +143,15 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   /** Train on dataset, yielding logs of every batch. */
-  async *trainByBatch(dataTuple: data.DataSplit): AsyncGenerator<BatchLogs> {
+  async *trainByBatch(
+    dataTuple: TypedLabeledDataset,
+  ): AsyncGenerator<BatchLogs> {
     for await (const round of this.train(dataTuple))
       for await (const epoch of round) yield* epoch;
   }
 
   /** Run whole train on dataset. */
-  async trainFully(dataTuple: data.DataSplit): Promise<void> {
+  async trainFully(dataTuple: TypedLabeledDataset): Promise<void> {
     for await (const round of this.train(dataTuple))
       for await (const epoch of round) for await (const _ of epoch);
   }
@@ -133,20 +163,28 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
    * If you don't care about the whole process, use one of the other train methods.
    **/
   async *train(
-    dataTuple: data.DataSplit,
+    dataset: TypedLabeledDataset,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
     this.#logger.success("Training started");
 
-    const trainData = dataTuple.train.preprocess().batch();
+    const data = await labeledDatasetToDataSplit(this.#task, dataset);
+    const trainData = data.train.preprocess().batch().dataset;
     const validationData =
-      dataTuple.validation?.preprocess().batch() ?? trainData;
+// <<<<<<< HEAD
+      // dataTuple.validation?.preprocess().batch() ?? trainData;
+      data.validation?.preprocess().batch().dataset ?? trainData;
     // the client fetches the latest weights upon connection
+    console.log("Getting the model")
     this.trainer.model = await this.#client.connect();
+// =======
+
+    // await this.#client.connect();
+// >>>>>>> develop
 
     for await (const [round, epochs] of enumerate(
-      this.trainer.train(trainData.dataset, validationData.dataset),
+      this.trainer.train(trainData, validationData),
     )) {
       yield async function* (this: Disco) {
         const [gen, returnedRoundLogs] = split(epochs);
@@ -176,7 +214,15 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
         return await returnedRoundLogs;
       }.bind(this)();
 
-      await this.#updateWorkingModel(this.trainer.model);
+      await this.#memory.updateWorkingModel(
+        {
+          type: "working",
+          taskID: this.#task.id,
+          name: this.#task.trainingInformation.modelID,
+          tensorBackend: this.#task.trainingInformation.tensorBackend,
+        },
+        this.trainer.model,
+      );
     }
 
     this.#logger.success("Training finished");
@@ -186,6 +232,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
-    await this.#client.disconnect();
+    if (this !== undefined && this.#client !== undefined)
+      await this.#client.disconnect();
   }
 }

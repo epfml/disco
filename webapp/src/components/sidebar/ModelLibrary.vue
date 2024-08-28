@@ -13,9 +13,8 @@
             <p v-if="memoryStore.useIndexedDB">
               List of trained models that were saved. You can download
               pre-trained models in the
-              <button class="text-blue-400" @click="switchToEvaluate()">
-                Evaluation page</button
-              >.
+              <span class="text-blue-600 hover:cursor-pointer" @click="switchToEvaluate()">
+                Evaluation page</span>.
             </p>
             <p v-else>
               The model library is currently unavailable. You can turn it on in
@@ -24,31 +23,32 @@
           </span>
           <div v-if="memoryStore.useIndexedDB" class="space-y-4">
             <button
-              v-for="[id, metadata] in memoryStore.models"
+              v-for="[id, metadata] in memoryStore.models.sort((a : ModelMetadata, b : ModelMetadata) => sortModels(a, b))"
               :key="id"
               class="flex items-center justify-between px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800"
             >
-              <div class="cursor-pointer w-2/3" @click="openTesting(id)">
+              <div class="cursor-pointer w-2/3 text-left" @click="openTesting(id)">
                 <span>
                   {{ metadata.name.slice(0, 16) }}
                   <span
-                    v-if="
+                v-if="
                       metadata.version !== undefined && metadata.version !== 0
-                    "
+                      "
                   >
-                    ({{ metadata.version }}) </span
-                  ><br />
-                  <span class="text-xs">
+                ({{ metadata.version }}) </span
+              ><br />
+              </span>
+                  <span class="text-xs flex flex-col text-left mt-1">
+                    
                     {{ metadata.date }} at {{ metadata.hours }} <br />
                     {{ metadata.fileSize }} kB
                   </span>
-                </span>
               </div>
               <div class="w-1/9">
                 <ModelButton
                   event="delete-model"
                   hover="Delete"
-                  @delete-model="deleteModel(id)"
+                  @delete-model="deleteModelConfirm(id)"
                 >
                   <Bin2Icon />
                 </ModelButton>
@@ -97,7 +97,7 @@
 
             <div class="flex items-center justify-center">
               <button
-                class="flex items-center justify-center px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md transition-colors duration-200 text-slate-600 hover:text-slate-800 hover:outline-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-800"
+                class="flex items-center justify-center px-4 py-2 space-x-4 outline outline-1 outline-slate-300 rounded-md text-slate-600 hover:text-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-disco-cyan transition duration-200 group hover:-translate-y--1 hover:scale-[101%] hover:outline-disco-cyan hover:cursor-pointer"
                 @click="toggleIndexedDB()"
               >
                 <span class="text-s"> Use model library </span>
@@ -172,7 +172,7 @@ function switchToEvaluate(): void {
   emit("close-panel");
 }
 function openTesting(modelID: string) {
-  validationStore.setModel(modelID);
+  validationStore.modelID = modelID;
   router.push({ path: "/evaluate" });
 }
 
@@ -198,6 +198,25 @@ function openTesting(modelID: string) {
   }
 }
 
+function sortModels(a: ModelMetadata, b: ModelMetadata): number {
+    // Convert date and time strings into a Date object for comparison
+    let [day, month, year] = a.date.split("/");
+    let time = a.hours.replace("h", ":")
+    const dateA = new Date(`${year}-${month}-${day}T${time}`);
+    [day, month, year] = b.date.split("/");
+    time = b.hours.replace("h", ":")
+    const dateB = new Date(`${year}-${month}-${day}T${time}`);
+    return dateB.getTime() - dateA.getTime() // Sort in ascending order
+}
+
+
+function deleteModelConfirm(modelID: string){
+  toaster.default(`Click here to confirm the model deletion`, {
+    onClick: () => deleteModel(modelID),
+    duration: 10000,
+  });
+}
+
 async function deleteModel(modelID: string): Promise<void> {
   try {
     await memoryStore.deleteModel(modelID);
@@ -209,4 +228,5 @@ async function deleteModel(modelID: string): Promise<void> {
     toaster.error(msg);
   }
 }
+ 
 </script>

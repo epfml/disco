@@ -13,8 +13,30 @@ export enum TextPreprocessing {
   LeftPadding
 }
 
-interface TokenizedEntry extends tf.TensorContainerObject {
+interface TokenizedEntry {
   tokens: number []
+}
+
+function isNumberArray(raw: unknown): raw is number[] {
+  if (!Array.isArray(raw)) return false;
+  const arr: unknown[] = raw; // isArray is unsafely guarding with any[]
+
+  return arr.every((e) => typeof e === "number");
+}
+
+function isTokenizedEntry(raw: unknown): raw is TokenizedEntry {
+  if (typeof raw !== "object" || raw === null) return false;
+
+  const { tokens }: Partial<Record<keyof TokenizedEntry, unknown>> = raw;
+
+  if (!isNumberArray(tokens)) return false;
+
+  const _: TokenizedEntry = { tokens } satisfies Record<
+    keyof TokenizedEntry,
+    unknown
+  >;
+
+  return true;
 }
 
 /**
@@ -31,11 +53,12 @@ interface TokenizedEntry extends tf.TensorContainerObject {
  */
 const leftPadding: PreprocessingFunction = {
   type: TextPreprocessing.LeftPadding,
-  apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<{ xs: tf.Tensor1D, ys: tf.Tensor2D }> => {
-    if (x === undefined || !Array.isArray(x) || x.length == 0 || typeof(x[0] !== 'number')) {
-      new Error("The leftPadding preprocessing expects a non empty 1D array of number")
-    }
-    const { tokens } = await x as TokenizedEntry
+  apply: async (input: Promise<tf.TensorContainer>, task: Task): Promise<{ xs: tf.Tensor1D, ys: tf.Tensor2D }> => {
+    const x = await input
+    if (!isTokenizedEntry(x))
+      throw new Error("The leftPadding preprocessing expects a non empty 1D array of number")
+    const { tokens } = x
+
     const tokenizer = await models.getTaskTokenizer(task)
     return tf.tidy(() => {
       // maxLength is the final length of xs
@@ -73,10 +96,10 @@ interface TokenizerOutput {
 const tokenize: PreprocessingFunction = {
   type: TextPreprocessing.Tokenize,
   apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<{ tokens: number[] }> => {
-    if (typeof x !== 'string') {
-      new Error("The tokenize preprocessing expects a string as input")
-    }
-    const xs = await x as string // tf.TextLineDataset yields strings
+    const xs = await x
+    if (typeof xs !== 'string')
+      throw new Error("The tokenize preprocessing expects a string as input")
+
     const tokenizer = await models.getTaskTokenizer(task)
     // Add plus one to include the next token label of the last token in the input sequence
     // The inputs are truncated down to exactly maxSequenceLength in leftPadding

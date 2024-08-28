@@ -1,6 +1,6 @@
 <template>
   <DatasetInput>
-    <FileSelection type="image" v-model="images" />
+    <FileSelection type="image" v-model="files" multiple />
   </DatasetInput>
 </template>
 
@@ -8,22 +8,33 @@
 import { Set } from "immutable";
 import { ref, watch } from "vue";
 
-import type { data } from "@epfml/discojs";
+import type { Image } from "@epfml/discojs";
+import { Dataset } from "@epfml/discojs";
+import { loadImage } from "@epfml/discojs-web";
 
 import DatasetInput from "./DatasetInput.vue";
 import FileSelection from "./FileSelection.vue";
 
-const props = defineProps<{
-  datasetBuilder: data.DatasetBuilder<File>;
-}>();
+export type NamedImageDataset = Dataset<{
+  image: Image;
+  filename: string;
+}>;
 
-const images = ref<Set<File>>();
-watch(images, (images) => {
-  if (images === undefined) {
-    props.datasetBuilder.clearFiles();
+const dataset = defineModel<NamedImageDataset>();
+watch(dataset, (dataset: NamedImageDataset | undefined) => {
+  if (dataset === undefined) files.value = undefined;
+});
+
+const files = ref<Set<File>>();
+watch(files, (files) => {
+  if (files === undefined) {
+    dataset.value = undefined;
     return;
   }
 
-  props.datasetBuilder.addFiles(images.toArray());
+  dataset.value = new Dataset(files).map(async (file) => ({
+    image: await loadImage(file),
+    filename: file.name,
+  }));
 });
 </script>
