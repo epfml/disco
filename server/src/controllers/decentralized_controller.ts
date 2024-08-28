@@ -50,7 +50,7 @@ export class DecentralizedController extends TrainingController {
               id: peerId,
               waitForMoreParticipants: this.readyNodes.size  < minimumReadyPeers // ground work for #718
             }
-            debug("peer ${peerId} joined ${task.id}");
+            debug(`peer ${peerId} joined ${this.task.id}`);
 
             ws.send(msgpack.encode(msg), { binary: true })
             break
