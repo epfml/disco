@@ -96,7 +96,7 @@ export class TaskRouter {
       response.status(404)
       return
     }
-    response.status(200).send(taskAndModel[1])
+    response.status(200).send(Buffer.from(taskAndModel[1]))
     debug(`${file} download for task ${id} succeeded`)
   }
 }

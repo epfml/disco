@@ -16,19 +16,27 @@ export function isEncoded (raw: unknown): raw is Encoded {
   return raw instanceof Uint8Array
 }
 
-export async function encode (model: Model): Promise<Encoded> {
-  if (model instanceof models.TFJS) {
-    const serialized = await model.serialize()
-    return msgpack.encode([Type.TFJS, serialized])
+export async function encode(model: Model): Promise<Encoded> {
+  let encoded;
+  switch (true) {
+    case model instanceof models.TFJS: {
+      const serialized = await model.serialize();
+      encoded = msgpack.encode([Type.TFJS, serialized]);
+      break;
+    }
+    case model instanceof models.GPT: {
+      const { weights, config } = model.serialize();
+      const serializedWeights = await serialization.weights.encode(weights);
+      encoded = msgpack.encode([Type.GPT, serializedWeights, config]);
+      break;
+    }
+    default:
+      throw new Error("unknown model type");
   }
 
-  if (model instanceof models.GPT) {
-    const { weights, config } = model.serialize()
-    const serializedWeights = await serialization.weights.encode(weights)
-    return msgpack.encode([Type.GPT, serializedWeights, config])
-  }
-
-  throw new Error('unknown model type')
+  // Node's Buffer extends Node's Uint8Array, which might not be the same
+  // as the browser's Uint8Array. we ensure here that it is.
+  return new Uint8Array(encoded);
 }
 
 export async function decode (encoded: unknown): Promise<Model> {
