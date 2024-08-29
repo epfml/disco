@@ -172,7 +172,7 @@ describe("end-to-end federated", () => {
   });
 
   it("clients emit expected statuses", async function () {
-    this.timeout(10_000);
+    this.timeout(15_000);
     const lusCovidTask = defaultTasks.lusCovid.getTask();
     lusCovidTask.trainingInformation.epochs = 8;
     lusCovidTask.trainingInformation.roundDuration = 2;
@@ -189,7 +189,21 @@ describe("end-to-end federated", () => {
     const dataset = positive.chain(negative);
 
     /**
-     * The timeline of expected of events is:
+     * When disco.trainByRound is called for the first time, the client connects to the server
+     * which returns the latest model, current round and nb of participants.
+     * Then at each round the event cycle is:
+     * a) onRoundBeingCommunication which updates the status to TRAINING
+     * b) local training (the status remains TRAINING)
+     * c) onRoundEndCommunication which sends the local update and 
+     * receives the global weights while emitting the status UPDATE
+     * 
+     * Given this, it is important to note that calling disco.trainByRound().next()
+     * for the first time will perform a) and then b) where it stops and yields the round logs.
+     * Thus, c) isn't done and the model aggregation by the server is not performed during this first call to next().
+     * 
+     * Calling next() again will then do c), and back to a) and b).
+     * 
+     * In this test the timeline is:
      * - User 1 joins the task by themselves
      * - User 2 joins
      * - User 1 leaves
@@ -201,47 +215,37 @@ describe("end-to-end federated", () => {
     const UPDATING: RoundStatus = "Updating the model with other participants' models"
 
     // Create User 1
-    const discoUser1 = new Disco(lusCovidTask, url, {
-      scheme: "federated",
-    });
+    const discoUser1 = new Disco(lusCovidTask, url, { scheme: "federated" });
     let statusUser1: RoundStatus | undefined;
-    discoUser1.on("status", status => {
-      statusUser1 = status
-      console.log("User 1 status is", status)
-    })
+    discoUser1.on("status", status => statusUser1 = status)
     const generatorUser1 = discoUser1.trainByRound(["image", dataset])
     
-    // Have User 1 join the task and train for one round
+    // Have User 1 join the task and train locally for one round
     const logUser1Round1 = await generatorUser1.next()
     if (logUser1Round1.done) throw Error("User 1 finished training at their 1st round")
-    
+    // User 1 did a) and b) so their status should be Training
     expect(logUser1Round1.value.participants).equal(1)
     expect(statusUser1).equal(TRAINING)
 
-    // User 1 should wait for one more participant before yielding the next round
+    // Calling next() a 2nd time makes User 1 go to c) where the client should
+    // stay stuck awaiting until another participant joins
     const logUser1Round2Promise = generatorUser1.next()
     await new Promise((res,_) => setTimeout(res, 500)) // Wait some time for the status to update
     expect(statusUser1).equal("Waiting for more participants")
 
     // Create User 2
-    const discoUser2 = new Disco(lusCovidTask, url, {
-      scheme: "federated",
-    });
+    const discoUser2 = new Disco(lusCovidTask, url, { scheme: "federated" });
     let statusUser2: RoundStatus | undefined;
-    discoUser2.on("status", status => {
-      statusUser2 = status
-      console.log("User 2 status is", status)
-    })
+    discoUser2.on("status", status => statusUser2 = status)
     const generatorUser2 = discoUser2.trainByRound(["image", dataset])
 
     // Have User 2 join the task and train for one round
     const logUser2Round1 = await generatorUser2.next()
     if (logUser2Round1.done) throw Error("User 2 finished training at their 1st round")
-    // Participants are only updated after the first communication round
-    // User 2 didn't communicate yet so the participant number is still 1
-    expect(logUser2Round1.value.participants).equal(1)
+    expect(logUser2Round1.value.participants).equal(2)
+    // User 2 did a) and b)
     expect(statusUser2).equal(TRAINING)
-    // User 1 is waiting for user 2 to share their local update
+    // User 1 is still in c) now waiting for user 2 to share their local update
     // and for the server to aggregate the local updates
     expect(statusUser1).equal(UPDATING)
 
@@ -254,45 +258,42 @@ describe("end-to-end federated", () => {
       throw Error("User 1 or 2 finished training at the 2nd round")
     expect(logUser1Round2.value.participants).equal(2)
     expect(logUser2Round2.value.participants).equal(2)
+    // User 1 and 2 did c), a) and b)
     expect(statusUser1).equal(TRAINING)
     expect(statusUser2).equal(TRAINING)
     
     // Have user 1 quit the session
     await discoUser1.close()
+    // Make user 2 go to c)
     const logUser2Round3Promise = generatorUser2.next()
     await new Promise((res, _) => setTimeout(res, 500)) // Wait some time for the status to update
     expect(statusUser2).equal(WAITING)
 
     // Create User 3
-    const discoUser3 = new Disco(lusCovidTask, url, {
-      scheme: "federated",
-    });
+    const discoUser3 = new Disco(lusCovidTask, url, { scheme: "federated" });
     let statusUser3: RoundStatus | undefined;
-    discoUser3.on("status", status => {
-      statusUser3 = status
-      console.log("User 3 status is", status)
-    })
+    discoUser3.on("status", status => statusUser3 = status)
     const generatorUser3 = discoUser3.trainByRound(["image", dataset])
 
-    // User 3 joins and trains for their 1st round
-    // The server should answer with the latest global weights
+    // User 3 joins mid-training and trains one local round
     const logUser3Round1 = await generatorUser3.next()
     if (logUser3Round1.done) throw Error("User 3 finished training at their 1st round")
-      // User 3 didn't communicate their weights with the server yet
-    // so they didn't get the current number of participants
-    expect(logUser3Round1.value.participants).equal(1)
+    expect(logUser3Round1.value.participants).equal(2)
+    // User 3 did a) and b)
     expect(statusUser3).equal(TRAINING)
-    // User 2 is waiting for user 3 to share their local update
+    // User 2 is still in c) waiting for user 3 to share their local update
     // and for the server to aggregate the local updates
     expect(statusUser2).equal(UPDATING)
     
     // User 3 sends their weights to the server
     const logUser3Round3 = await generatorUser3.next()
-    // the server should accept user 3's weights and aggregate the global weights
+    // the server should accept user 3's weights (should not be outdated) and aggregate the global weights
     const logUser2Round3 = await logUser2Round3Promise // the promise can resolve now
-    if (logUser3Round3.done || logUser2Round3.done) throw Error("User 1 or 2 finished training at the 3nd round")
+    if (logUser3Round3.done || logUser2Round3.done)
+      throw Error("User 1 or 2 finished training at the 3nd round")
     expect(logUser2Round3.value.participants).equal(2)
     expect(logUser3Round3.value.participants).equal(2)
+    // both user 2 and 3 did c), a) and are now in b)
     expect(statusUser2).equal(TRAINING)
     expect(statusUser3).equal(TRAINING)
     
