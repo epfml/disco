@@ -213,7 +213,7 @@ describe("end-to-end federated", () => {
     const TRAINING: RoundStatus = "Training the model on the data you connected"
     const WAITING: RoundStatus = "Waiting for more participants"
     const UPDATING: RoundStatus = "Updating the model with other participants' models"
-    const statusUpdateTime = 2000
+    const statusUpdateTime = 500
 
     // Create User 1
     const discoUser1 = new Disco(lusCovidTask, url, { scheme: "federated" });
@@ -269,10 +269,10 @@ describe("end-to-end federated", () => {
     expect(statusUser1).equal(TRAINING)
     expect(statusUser2).equal(TRAINING)
     
-    // Make user 2 go to c)
-    const logUser2Round3Promise = generatorUser2.next()
     // Have user 1 quit the session
     await discoUser1.close()
+    // Make user 2 go to c)
+    const logUser2Round3Promise = generatorUser2.next()
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(statusUser2).equal(WAITING)
 
