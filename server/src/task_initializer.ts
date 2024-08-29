@@ -85,7 +85,10 @@ export class TaskInitializer {
         tfModel = await this.loadModelFromTask(taskOrProvider)
       } else if (model instanceof URL) {
         // Downloading the model if a URL is given
-        tfModel = new models.TFJS(await tf.loadLayersModel(model.href))
+        tfModel = new models.TFJS(
+          task.trainingInformation.dataType,
+          await tf.loadLayersModel(model.href),
+        )
       } else if (model instanceof Model) {
         // Don't do anything if the model is already specified
         tfModel = model

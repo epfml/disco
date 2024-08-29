@@ -42,7 +42,7 @@ export const cifar10: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
+  async getModel (): Promise<Model<'image'>> {
     const mobilenet = await tf.loadLayersModel({
       load: async () => Promise.resolve(baseModel),
     })
@@ -64,6 +64,6 @@ export const cifar10: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return new models.TFJS('image', model)
   }
 }

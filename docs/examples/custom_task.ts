@@ -57,7 +57,7 @@ const customTask: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return Promise.resolve(new models.TFJS(model))
+    return Promise.resolve(new models.TFJS('tabular', model))
   }
 }
 

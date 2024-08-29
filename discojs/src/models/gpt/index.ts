@@ -3,11 +3,17 @@
  **/
 
 import createDebug from "debug";
-import { List } from 'immutable';
+import { List, Range } from "immutable";
 import * as tf from '@tensorflow/tfjs'
 import { PreTrainedTokenizer } from '@xenova/transformers';
 
-import { WeightsContainer } from '../../index.js'
+import {
+  Batched,
+  Dataset,
+  DataTypeToBatchedPreprocessedLabeledDataset,
+  DataTypeToPreprocessedLabeled,
+  WeightsContainer,
+} from "../../index.js";
 
 import { BatchLogs, Model, EpochLogs } from "../index.js";
 import type { Prediction, Sample } from '../model.js'
@@ -23,16 +29,21 @@ export type GPTSerialization = {
   config?: GPTConfig
 }
 
-export class GPT extends Model {
+export class GPT extends Model<"text"> {
   private readonly model: GPTForCausalLM
 
   readonly #maxBatchCount: number
+  readonly #vocabSize: number
 
   constructor (partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
     super()
 
-    this.model = new GPTForCausalLM(partialConfig, layersModel)
+    const model = new GPTForCausalLM(partialConfig, layersModel)
+    model.compile();
+    this.model = model;
+
     this.#maxBatchCount = partialConfig?.maxIter ?? DEFAULT_CONFIG.maxIter
+    this.#vocabSize = partialConfig?.vocabSize ?? DEFAULT_CONFIG.vocabSize
   }
 
   /**
@@ -45,38 +56,33 @@ export class GPT extends Model {
    * @param tracker
    */
   override async *train(
-    trainingData: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
-    validationData?: tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>,
+    trainingDataset: Dataset<Batched<DataTypeToPreprocessedLabeled["text"]>>,
+    validationDataset?: Dataset<Batched<DataTypeToPreprocessedLabeled["text"]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
-    this.model.compile();
-
-    const batches = await trainingData.iterator(); // tf.LazyIterator isn't an AsyncGenerator
     let batchesLogs = List<BatchLogs>();
-    for (
-      let batchNumber = 0;
-      batchNumber < this.#maxBatchCount;
-      batchNumber++
-    ) {
-      const iteration = await batches.next();
-      if (iteration.done) break;
-      const batch = iteration.value;
 
+    for await (const [batch, _] of trainingDataset.zip(
+      Range(0, this.#maxBatchCount),
+    )) {
       const batchLogs = await this.#runBatch(batch);
-      tf.dispose(batch);
 
       yield batchLogs;
       batchesLogs = batchesLogs.push(batchLogs);
     }
 
-    const validation = validationData && (await this.#evaluate(validationData));
+    const validation =
+      validationDataset && (await this.#evaluate(validationDataset));
+
     return new EpochLogs(batchesLogs, validation);
   }
 
   async #runBatch(
-    batch: tf.TensorContainer,
+    batch: Batched<DataTypeToPreprocessedLabeled["text"]>,
   ): Promise<BatchLogs> {
+    const tfBatch = this.#batchToTF(batch);
+
     let logs: tf.Logs | undefined;
-    await this.model.fitDataset(tf.data.array([batch]), {
+    await this.model.fitDataset(tf.data.array([tfBatch]), {
       epochs: 1,
       verbose: 0, // don't pollute
       callbacks: {
@@ -85,6 +91,7 @@ export class GPT extends Model {
         },
       },
     });
+    tf.dispose(tfBatch);
     if (logs === undefined) throw new Error("batch didn't gave any logs");
 
     const { loss, acc: accuracy } = logs;
@@ -99,20 +106,11 @@ export class GPT extends Model {
   }
 
   async #evaluate(
-    dataset: tf.data.Dataset<tf.TensorContainer>,
+    dataset: DataTypeToBatchedPreprocessedLabeledDataset["text"],
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await evaluate(
       this.model,
-      dataset.map((t) => {
-        switch (t) {
-          case null:
-          case undefined:
-            throw new Error("nullish value in dataset");
-          default:
-            // TODO unsafe cast
-            return t as { xs: tf.Tensor2D; ys: tf.Tensor3D };
-        }
-      }),
+      intoTFDataset(dataset.map((batch) => this.#batchToTF(batch))),
       this.config.maxEvalBatches,
     );
 
@@ -120,6 +118,22 @@ export class GPT extends Model {
       accuracy: evaluation.val_acc,
       loss: evaluation.val_loss,
     };
+  }
+
+  #batchToTF(batch: Batched<DataTypeToPreprocessedLabeled["text"]>): {
+    xs: tf.Tensor2D;
+    ys: tf.Tensor3D;
+  } {
+    return tf.tidy(() => ({
+      xs: tf.stack(
+        batch.map(([line]) => tf.tensor1d(line.toArray(), "int32")).toArray(),
+      ) as tf.Tensor2D, // cast as stack doesn't type
+      ys: tf.stack(
+        batch
+          .map(([_, next]) => tf.oneHot(next.toArray(), this.#vocabSize))
+          .toArray(),
+      ) as tf.Tensor3D, // cast as oneHot/stack doesn't type
+    }));
   }
 
   override predict(input: Sample): Promise<Prediction> {
@@ -157,7 +171,7 @@ export class GPT extends Model {
     this.model.setWeights(ws.weights)
   }
 
-  static deserialize (data: GPTSerialization): Model {
+  static deserialize (data: GPTSerialization): Model<'text'> {
     const model = new GPT(data.config)
     model.weights = data.weights
     return model
@@ -181,4 +195,13 @@ export class GPT extends Model {
     if (disposeResults.refCountAfterDispose > 0)
       debug("model not disposed correctly: %o", disposeResults);
   }
+}
+
+function intoTFDataset<T extends tf.TensorContainer>(
+  iter: AsyncIterable<T>,
+): tf.data.Dataset<T> {
+  // @ts-expect-error generator
+  return tf.data.generator(async function* () {
+    yield* iter;
+  });
 }
