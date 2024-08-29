@@ -213,7 +213,7 @@ describe("end-to-end federated", () => {
     const TRAINING: RoundStatus = "Training the model on the data you connected"
     const WAITING: RoundStatus = "Waiting for more participants"
     const UPDATING: RoundStatus = "Updating the model with other participants' models"
-    const statusUpdateTime = 1000
+    const statusUpdateTime = 2000
 
     // Create User 1
     const discoUser1 = new Disco(lusCovidTask, url, { scheme: "federated" });
