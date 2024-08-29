@@ -213,6 +213,7 @@ describe("end-to-end federated", () => {
     const TRAINING: RoundStatus = "Training the model on the data you connected"
     const WAITING: RoundStatus = "Waiting for more participants"
     const UPDATING: RoundStatus = "Updating the model with other participants' models"
+    const statusUpdateTime = 1000
 
     // Create User 1
     const discoUser1 = new Disco(lusCovidTask, url, { scheme: "federated" });
@@ -230,7 +231,7 @@ describe("end-to-end federated", () => {
     // Calling next() a 2nd time makes User 1 go to c) where the client should
     // stay stuck awaiting until another participant joins
     const logUser1Round2Promise = generatorUser1.next()
-    await new Promise((res,_) => setTimeout(res, 500)) // Wait some time for the status to update
+    await new Promise((res,_) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(statusUser1).equal("Waiting for more participants")
 
     // Create User 2
@@ -266,7 +267,7 @@ describe("end-to-end federated", () => {
     await discoUser1.close()
     // Make user 2 go to c)
     const logUser2Round3Promise = generatorUser2.next()
-    await new Promise((res, _) => setTimeout(res, 500)) // Wait some time for the status to update
+    await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(statusUser2).equal(WAITING)
 
     // Create User 3
@@ -298,7 +299,7 @@ describe("end-to-end federated", () => {
     expect(statusUser3).equal(TRAINING)
     
     await discoUser2.close()
-    await new Promise((res, _) => setTimeout(res, 500)) // Wait some time for the status to update
+    await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(statusUser3).equal(WAITING)
     await discoUser3.close()
   });
