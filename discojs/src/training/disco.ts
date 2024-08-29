@@ -189,9 +189,6 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
-    // close can be called after the disco object has been GC'ed
-    // so we check that it is still defined
-    if (this !== undefined && this.#client !== undefined)
-      await this.#client.disconnect();
+    await this.#client.disconnect();
   }
 }

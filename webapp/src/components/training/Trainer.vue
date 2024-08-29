@@ -216,7 +216,7 @@ async function startTraining(): Promise<void> {
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training
-  cleanupDisco.value = disco.close
+  cleanupDisco.value = async () => await disco.close()
 
   try {
     trainingGenerator.value = disco.train(dataset);
