@@ -16,6 +16,7 @@ type ThresholdType = 'relative' | 'absolute'
 export class MeanAggregator extends Aggregator<WeightsContainer> {
   readonly #threshold: number;
   readonly #thresholdType: ThresholdType;
+  #minNbOfParticipants: number | undefined;
 
   /**
    * Create a mean aggregator that averages all weight updates received when a specified threshold is met.
@@ -77,12 +78,21 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
 
   /** Checks whether the contributions buffer is full. */
   override isFull(): boolean {
+    // Make sure that we are over the minimum number of participants
+    // if specified
+    if (this.#minNbOfParticipants !== undefined &&
+      this.nodes.size < this.#minNbOfParticipants) return false
+
     const thresholdValue =
       this.#thresholdType == 'relative'
         ? this.#threshold * this.nodes.size
         : this.#threshold;
 
     return (this.contributions.get(0)?.size ?? 0) >= thresholdValue;
+  }
+
+  set minNbOfParticipants(minNbOfParticipants: number) {
+    this.#minNbOfParticipants = minNbOfParticipants
   }
 
   override add(
