@@ -236,7 +236,7 @@ export class FederatedClient extends Client {
 
     // Need to await the resulting global model right after sending our local contribution
     // to make sure we don't miss it
-    debug(`[${this.ownId.slice(0, 4)}] sent its local update to the server for round ${this.aggregator.round + 1}`);
+    debug(`[${this.ownId.slice(0, 4)}] sent its local update to the server for round ${this.aggregator.round}`);
     this.server.send(msg);
     debug(`[${this.ownId.slice(0, 4)}] is waiting for server update for round ${this.aggregator.round + 1}`);
     const {

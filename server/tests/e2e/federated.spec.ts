@@ -269,10 +269,10 @@ describe("end-to-end federated", () => {
     expect(statusUser1).equal(TRAINING)
     expect(statusUser2).equal(TRAINING)
     
-    // Have user 1 quit the session
-    await discoUser1.close()
     // Make user 2 go to c)
     const logUser2Round3Promise = generatorUser2.next()
+    // Have user 1 quit the session
+    await discoUser1.close()
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(statusUser2).equal(WAITING)
 
