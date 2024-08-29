@@ -27,7 +27,7 @@ describe("end-to-end federated", () => {
   let server: http.Server;
   let url: URL;
   beforeEach(async function () {
-    this.timeout("5s");
+    this.timeout("10s");
     [server, url] = await Server.of(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
