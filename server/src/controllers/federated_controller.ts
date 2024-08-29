@@ -189,7 +189,13 @@ export class FederatedController extends TrainingController {
         */
         case MessageTypes.SendPayload: {
           const { payload, round } = msg
-          if (this.#aggregator.isValidContribution(clientId, round)) {
+          // We have to be careful of the case when a WaitForMoreParticipants message
+          // has been sent, but the client already sent their local contribution
+          // in this case we treat it as an outdated contribution
+          // TODO: the server should be able to receive contribution and store them
+          // even when their isn't enough participants.
+          if (this.#aggregator.isValidContribution(clientId, round) &&
+            this.#participants.size >= minNbOfParticipants) {
             // We need to create a promise waiting for the global model before adding the contribution to the aggregator
             // (so that the aggregation and sending the global model to participants
             // doesn't happen before the promise is created)
