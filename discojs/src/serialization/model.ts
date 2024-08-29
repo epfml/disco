@@ -1,6 +1,6 @@
 import type tf from '@tensorflow/tfjs'
 
-import type { Model } from '../index.js'
+import type { DataType, Model } from '../index.js'
 import { models, serialization } from '../index.js'
 import { GPTConfig } from '../models/index.js'
 
@@ -16,7 +16,7 @@ export async function encode(model: Model): Promise<Encoded> {
   switch (true) {
     case model instanceof models.TFJS: {
       const serialized = await model.serialize();
-      return coder.encode([Type.TFJS, serialized]);
+      return coder.encode([Type.TFJS, ...serialized]);
     }
     case model instanceof models.GPT: {
       const { weights, config } = model.serialize();
@@ -42,12 +42,32 @@ export async function decode (encoded: unknown): Promise<Model> {
   }
   const rawModel = raw[1] as unknown
   switch (type) {
-    case Type.TFJS:
-      if (raw.length !== 2) {
-        throw new Error('invalid encoding, TFJS model encoding should be an array of length 2')
+    case Type.TFJS: {
+      if (raw.length !== 3)
+        throw new Error(
+          "invalid TFJS model encoding: should be an array of length 3",
+        );
+      const [rawDatatype, rawModel] = raw.slice(1) as unknown[];
+
+      let datatype: DataType;
+      switch (rawDatatype) {
+        case "image":
+        case "tabular":
+        case "text":
+          datatype = rawDatatype;
+          break;
+        default:
+          throw new Error(
+            "invalid TFJS model encoding: invalid DataType",
+          );
       }
-      // TODO totally unsafe casting
-      return await models.TFJS.deserialize(rawModel as tf.io.ModelArtifacts)
+
+      return await models.TFJS.deserialize([
+        datatype,
+        // TODO totally unsafe casting
+        rawModel as tf.io.ModelArtifacts,
+      ]);
+    }
     case Type.GPT: {  
       let config
       if (raw.length == 2) {

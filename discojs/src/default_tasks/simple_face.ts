@@ -38,7 +38,7 @@ export const simpleFace: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
+  async getModel (): Promise<Model<'image'>> {
     const model = await tf.loadLayersModel({
       load: async () => Promise.resolve(baseModel),
     });
@@ -49,6 +49,6 @@ export const simpleFace: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return new models.TFJS('image', model)
   }
 }

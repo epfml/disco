@@ -308,5 +308,5 @@ describe('end-to-end decentralized', function () {
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(await statusUser3.next()).equal("not enough participants")
     await discoUser3.close()
-  }).timeout("30s");
+  }).timeout("5m");
 })

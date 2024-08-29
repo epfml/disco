@@ -1,17 +1,26 @@
-import { List, Map } from 'immutable'
+import { List, Map, Range } from "immutable";
 import * as tf from '@tensorflow/tfjs'
 
-import { WeightsContainer } from '../index.js'
+import {
+  Batched,
+  Dataset,
+  DataType,
+  DataTypeToPreprocessedLabeled,
+  WeightsContainer,
+} from "../index.js";
 
 import { BatchLogs } from './index.js'
 import { Model } from './index.js'
 import { Prediction, Sample } from './model.js'
 import { EpochLogs } from './logs.js'
 
+type Serialized<D extends DataType = DataType> = [D, tf.io.ModelArtifacts]
+
 /** TensorFlow JavaScript model with standard training */
-export class TFJS extends Model {
+export class TFJS<D extends DataType = DataType> extends Model<D> {
   /** Wrap the given trainable model */
   constructor (
+    public readonly datatype: D,
     private readonly model: tf.LayersModel
   ) {
     super()
@@ -30,69 +39,58 @@ export class TFJS extends Model {
   }
 
   override async *train(
-    trainingData: tf.data.Dataset<tf.TensorContainer>,
-    validationData?: tf.data.Dataset<tf.TensorContainer>,
+    trainingDataset: Dataset<Batched<DataTypeToPreprocessedLabeled[D]>>,
+    validationDataset?: Dataset<Batched<DataTypeToPreprocessedLabeled[D]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
-    const batches = await trainingData.iterator(); // tf.LazyIterator isn't an AsyncGenerator
     let batchesLogs = List<BatchLogs>();
-    for (let batchNumber = 0; true; batchNumber++) {
-      const iteration = await batches.next();
-      if (iteration.done) break;
-      const batch = iteration.value;
+    for await (const [batch, batchNumber] of trainingDataset.zip(Range())) {
 
       const batchLogs = {
         batch: batchNumber,
         ...(await this.#runBatch(batch)),
       };
-      tf.dispose(batch);
 
       yield batchLogs;
       batchesLogs = batchesLogs.push(batchLogs);
     }
 
-    const validation = validationData && (await this.#evaluate(validationData));
+    const validation = validationDataset && (await this.#evaluate(validationDataset));
     return new EpochLogs(batchesLogs, validation);
   }
 
   async #runBatch(
-    batch: tf.TensorContainer,
+    batch: Batched<DataTypeToPreprocessedLabeled[D]>,
   ): Promise<Omit<BatchLogs, "batch">> {
-    let logs: tf.Logs | undefined;
-    await this.model.fitDataset(tf.data.array([batch]), {
+    const { xs, ys } = this.#batchToTF(batch);
+
+    const { history } = await this.model.fit(xs, ys, {
       epochs: 1,
       verbose: 0, // don't pollute
-      callbacks: {
-        onEpochEnd: (_, cur) => {
-          logs = cur;
-        },
-      },
     });
-    if (logs === undefined) throw new Error("batch didn't gave any logs");
 
-    const { loss, acc: accuracy } = logs;
-    if (loss === undefined || isNaN(loss))
-      throw new Error("training loss is undefined or NaN");
+    const { loss: losses, acc: accuracies } = history;
+    if (
+      losses === undefined ||
+      accuracies === undefined ||
+      typeof losses[0] !== "number" ||
+      typeof accuracies[0] !== "number" ||
+      isNaN(losses[0]) ||
+      isNaN(accuracies[0])
+    )
+      throw new Error("training loss or accuracy is undefined or NaN");
 
     return {
-      accuracy,
-      loss,
+      accuracy: accuracies[0],
+      loss: losses[0],
       memoryUsage: tf.memory().numBytes / 1024 / 1024 / 1024,
     };
   }
 
   async #evaluate(
-    dataset: tf.data.Dataset<tf.TensorContainer>,
+    dataset: Dataset<Batched<DataTypeToPreprocessedLabeled[D]>>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await this.model.evaluateDataset(
-      dataset.map((t) => {
-        switch (t) {
-          case null:
-          case undefined:
-            throw new Error("nullish value in dataset");
-          default:
-            return t as Exclude<tf.TensorContainer, void>;
-        }
-      }),
+      intoTFDataset(dataset.map((batch) => this.#batchToTF(batch))),
     );
     const metricToValue = Map(
       List(this.model.metricsNames).zip(
@@ -125,13 +123,20 @@ export class TFJS extends Model {
     return Promise.resolve(ret)
   }
 
-  static async deserialize (raw: tf.io.ModelArtifacts): Promise<Model> {
-    return new this(await tf.loadLayersModel({
-      load: () => Promise.resolve(raw)
-    }))
+  static async deserialize<D extends DataType = DataType>([
+    datatype,
+    artifacts,
+  ]: Serialized<D>): Promise<TFJS<D>> {
+    return new this(
+      datatype,
+      await tf.loadLayersModel({
+        load: () => Promise.resolve(artifacts),
+      }),
+    );
   }
 
-  async serialize (): Promise<tf.io.ModelArtifacts> {
+
+  async serialize (): Promise<Serialized<D>> {
     let resolveArtifacts: (_: tf.io.ModelArtifacts) => void
     const ret = new Promise<tf.io.ModelArtifacts>((resolve) => { resolveArtifacts = resolve })
 
@@ -149,7 +154,7 @@ export class TFJS extends Model {
       includeOptimizer: true // keep model compiled
     })
 
-    return await ret
+    return [this.datatype, await ret]
   }
 
   [Symbol.dispose](): void{
@@ -164,4 +169,84 @@ export class TFJS extends Model {
   extract (): tf.LayersModel {
     return this.model
   }
+
+  #batchToTF(
+    batch: Batched<DataTypeToPreprocessedLabeled[D]>,
+  ): Record<"xs" | "ys", tf.Tensor> {
+    const outputSize = tf.util.sizeFromShape(
+      this.model.outputShape.map((dim) => {
+        if (Array.isArray(dim))
+          throw new Error("TODO support multiple outputs");
+        return dim ?? 1;
+      }),
+    );
+
+    switch (this.datatype) {
+      case "image": {
+        // cast as typescript doesn't reduce generic type
+        const b = batch as Batched<DataTypeToPreprocessedLabeled["image"]>;
+
+        return tf.tidy(() => ({
+          xs: tf.stack(
+            b
+              .map(([image]) =>
+                tf.tensor3d(
+                  image.data,
+                  [image.width, image.height, 3],
+                  "float32",
+                ),
+              )
+              .toArray(),
+          ),
+          ys: tf.stack(
+            b
+              .map(([_, label]) =>
+                tf.oneHot(label, outputSize, 1, 0, "int32"),
+              )
+              .toArray(),
+          ),
+        }));
+      }
+      case "tabular": {
+        // cast as typescript doesn't reduce generic type
+        const b = batch as Batched<DataTypeToPreprocessedLabeled["tabular"]>;
+
+        return {
+          xs: tf.stack(
+            b.map(([inputs]) => tf.tensor1d(inputs.toArray())).toArray(),
+          ),
+          ys: tf.stack(
+            b.map(([_, outputs]) => tf.tensor1d(outputs.toArray())).toArray(),
+          ),
+        };
+      }
+      case "text": {
+        // cast as typescript doesn't reduce generic type
+        const b = batch as Batched<DataTypeToPreprocessedLabeled["text"]>;
+
+        return {
+          xs: tf.stack(
+            b.map(([line]) => tf.tensor1d(line.toArray())).toArray(),
+          ),
+          ys: tf.stack(
+            b
+              .map(([_, next]) => tf.oneHot(next.toArray(), outputSize))
+              .toArray(),
+          ),
+        };
+      }
+    }
+
+    const _: never = this.datatype;
+    throw new Error("should never happen");
+  }
+}
+
+function intoTFDataset<T extends tf.TensorContainer>(
+  iter: AsyncIterable<T>,
+): tf.data.Dataset<T> {
+  // @ts-expect-error generator
+  return tf.data.generator(async function* () {
+    yield* iter;
+  });
 }

@@ -40,7 +40,7 @@ export const mnist: TaskProvider = {
     }
   },
 
-  getModel(): Promise<Model> {
+  getModel(): Promise<Model<'image'>> {
     // Architecture from the PyTorch MNIST example (I made it slightly smaller, 650kB instead of 5MB)
     // https://github.com/pytorch/examples/blob/main/mnist/main.py
     const model = tf.sequential()
@@ -68,6 +68,6 @@ export const mnist: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return Promise.resolve(new models.TFJS(model))
+    return Promise.resolve(new models.TFJS('image', model))
   }
 }
