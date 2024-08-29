@@ -2,8 +2,12 @@ import * as tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 
 import type {
-  BatchLogs, EpochLogs, Model, Task,
-  WeightsContainer
+  BatchLogs,
+  EpochLogs,
+  Model,
+  Task,
+  TypedBatchedPreprocessedLabeledDataset,
+  WeightsContainer,
 } from "../index.js";
 import { privacy } from "../index.js";
 import { Client } from "../client/index.js";
@@ -55,8 +59,8 @@ export class Trainer {
   }
 
   async *train(
-    dataset: tf.data.Dataset<tf.TensorContainer>,
-    valDataset: tf.data.Dataset<tf.TensorContainer>,
+    dataset: TypedBatchedPreprocessedLabeledDataset,
+    valDataset?: TypedBatchedPreprocessedLabeledDataset,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
@@ -75,8 +79,8 @@ export class Trainer {
   }
 
   async *#runRounds(
-    dataset: tf.data.Dataset<tf.TensorContainer>,
-    valDataset: tf.data.Dataset<tf.TensorContainer>,
+    dataset: TypedBatchedPreprocessedLabeledDataset,
+    valDataset?: TypedBatchedPreprocessedLabeledDataset,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
@@ -105,13 +109,14 @@ export class Trainer {
   }
 
   async *#runRound(
-    dataset: tf.data.Dataset<tf.TensorContainer>,
-    valDataset: tf.data.Dataset<tf.TensorContainer>,
+    dataset: TypedBatchedPreprocessedLabeledDataset,
+    valDataset?: TypedBatchedPreprocessedLabeledDataset,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
     for (let epoch = 0; epoch < this.#roundDuration; epoch++) {
       const [gen, epochLogs] = async_iterator.split(
-        this.model.train(dataset, valDataset),
+        // TODO check that dataset is of valid type for model
+        this.model.train(dataset[1], valDataset?.[1]),
       );
 
       yield gen;

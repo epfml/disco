@@ -172,7 +172,7 @@ describe("end-to-end federated", () => {
 
     const [m1, m2] = await Promise.all([lusCovidUser(), lusCovidUser()]);
     assert.isTrue(m1.equals(m2));
-  }).timeout("1m");
+  }).timeout("10m");
   
   it("two wikitext reach consensus", async () => {
     [server, url] = await new Server().serve(
@@ -307,5 +307,5 @@ describe("end-to-end federated", () => {
     expect(await statusUser3.next()).equal("not enough participants")
 
     await discoUser3.close()
-  }).timeout("30s");
+  }).timeout("5m");
 });

@@ -7,15 +7,18 @@ import {
   Logger,
   Task,
   TrainingInformation,
+  processing,
 } from "../index.js";
-import type { TypedLabeledDataset } from "../index.js";
+import type {
+  TypedBatchedPreprocessedLabeledDataset,
+  TypedLabeledDataset,
+} from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
 import { enumerate, split } from "../utils/async_iterator.js";
 import { EventEmitter } from "../utils/event_emitter.js";
 
 import { RoundLogs, Trainer } from "./trainer.js";
-import { labeledDatasetToDataSplit } from "../dataset/data/helpers.js";
 
 interface DiscoConfig {
   scheme: TrainingInformation["scheme"];
@@ -127,15 +130,14 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   > {
     this.#logger.success("Training started");
 
-    const data = await labeledDatasetToDataSplit(this.#task, dataset);
-    const trainData = data.train.preprocess().batch().dataset;
-    const validationData =
-      data.validation?.preprocess().batch().dataset ?? trainData;
+    const [trainingDataset, validationDataset] =
+      await this.#preprocessBatchAndSplit(dataset);
+
     // the client fetches the latest weights upon connection
     this.trainer.model = await this.#client.connect();
 
     for await (const [round, epochs] of enumerate(
-      this.trainer.train(trainData, validationData),
+      this.trainer.train(trainingDataset, validationDataset),
     )) {
       yield async function* (this: Disco) {
         const [gen, returnedRoundLogs] = split(epochs);
@@ -173,5 +175,46 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
    */
   async close(): Promise<void> {
     await this.#client.disconnect();
+  }
+
+  async #preprocessBatchAndSplit(
+    dataset: TypedLabeledDataset,
+  ): Promise<
+    [
+      TypedBatchedPreprocessedLabeledDataset,
+      TypedBatchedPreprocessedLabeledDataset,
+    ]
+  > {
+    const preprocessed = await processing.preprocess(this.#task, dataset);
+    const { batchSize, validationSplit } = this.#task.trainingInformation;
+    switch (preprocessed[0]) {
+      case "image": {
+        const [training, validation] = preprocessed[1]
+          .split(validationSplit)
+          .map((d) => d.batch(batchSize).cached());
+        return [
+          ["image", training],
+          ["image", validation],
+        ];
+      }
+      case "tabular": {
+        const [training, validation] = preprocessed[1]
+          .split(validationSplit)
+          .map((d) => d.batch(batchSize).cached());
+        return [
+          ["tabular", training],
+          ["tabular", validation],
+        ];
+      }
+      case "text": {
+        const [training, validation] = preprocessed[1]
+          .split(validationSplit)
+          .map((d) => d.batch(batchSize).cached());
+        return [
+          ["text", training],
+          ["text", validation],
+        ];
+      }
+    }
   }
 }
