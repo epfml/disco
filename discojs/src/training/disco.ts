@@ -42,28 +42,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   readonly #logger: Logger;
   readonly #memory: Memory;
   readonly #task: Task;
-// <<<<<<< HEAD
-//   // small helper to avoid keeping Task & Memory around
-//   readonly #updateWorkingModel: (_: Model) => Promise<void>;
 
-// =======
-//   readonly #memory: Memory;
-//   readonly #task: Task;
-
-//   private constructor(
-//     public readonly trainer: Trainer,
-//     task: Task,
-//     client: clients.Client,
-//     memory: Memory,
-//     logger: Logger,
-//   ) {
-//     this.#client = client;
-//     this.#logger = logger;
-//     this.#memory = memory;
-//     this.#task = task;
-//   }
-
-// >>>>>>> develop
   /**
    * Connect to the given task and get ready to train.
    * 
@@ -101,25 +80,11 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
 
     this.#logger = logger;
     this.#client = client;
-    // this.#client = client;
-    // this.#logger = logger;
     this.#memory = memory;
     this.#task = task;
     this.trainer = new Trainer(task, client)
     // Simply propagate the training status events emitted by the client
     this.#client.on('status', status => this.emit('status', status))
-
-    // this.#updateWorkingModel = () =>
-    //   memory.updateWorkingModel(
-    //     {
-    //       type: "working",
-    //       taskID: task.id,
-    //       name: task.trainingInformation.modelID,
-    //       tensorBackend: task.trainingInformation.tensorBackend,
-    //     },
-    //     this.trainer.model,
-    //   );
-    console.log("Disco constructed")
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -172,16 +137,9 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
     const data = await labeledDatasetToDataSplit(this.#task, dataset);
     const trainData = data.train.preprocess().batch().dataset;
     const validationData =
-// <<<<<<< HEAD
-      // dataTuple.validation?.preprocess().batch() ?? trainData;
       data.validation?.preprocess().batch().dataset ?? trainData;
     // the client fetches the latest weights upon connection
-    console.log("Getting the model")
     this.trainer.model = await this.#client.connect();
-// =======
-
-    // await this.#client.connect();
-// >>>>>>> develop
 
     for await (const [round, epochs] of enumerate(
       this.trainer.train(trainData, validationData),
@@ -224,7 +182,6 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
         this.trainer.model,
       );
     }
-
     this.#logger.success("Training finished");
   }
 
@@ -232,6 +189,8 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
+    // close can be called after the disco object has been GC'ed
+    // so we check that it is still defined
     if (this !== undefined && this.#client !== undefined)
       await this.#client.disconnect();
   }
