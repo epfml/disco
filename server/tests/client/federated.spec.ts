@@ -1,5 +1,5 @@
 import type * as http from "http";
-
+import {expect} from 'chai'
 import {
   aggregator as aggregators,
   client as clients,
@@ -28,7 +28,8 @@ describe("federated client", () => {
       TASK,
       aggregators.getAggregator(TASK),
     );
-    await client.connect();
+    const model = await client.connect();
+    expect(model).does.not.equal(undefined)
     await client.disconnect();
   });
 
@@ -56,9 +57,11 @@ describe("federated client", () => {
       aggregators.getAggregator(TASK),
     );
 
+    let model
     try {
-      await client.connect();
+      model = await client.connect();
     } catch {
+      expect(model).equal(undefined)
       return;
     }
 
