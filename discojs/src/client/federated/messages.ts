@@ -20,6 +20,7 @@ export interface NewFederatedNodeInfo {
   waitForMoreParticipants: boolean
   payload: weights.Encoded
   round: number
+  nbOfParticipants: number
 }
 
 export interface SendPayload {

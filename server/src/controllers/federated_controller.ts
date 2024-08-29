@@ -159,7 +159,8 @@ export class FederatedController extends TrainingController {
             id: clientId,
             waitForMoreParticipants,
             payload: this.#latestGlobalWeights,
-            round: this.#aggregator.round
+            round: this.#aggregator.round,
+            nbOfParticipants: this.#participants.size
           }
           ws.send(msgpack.encode(msg))
 

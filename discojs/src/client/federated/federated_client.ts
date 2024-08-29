@@ -106,7 +106,7 @@ export class FederatedClient extends Client {
       this.#promiseForMoreParticipants = this.waitForMoreParticipants()
     })
 
-    // Assuming we need at least 2 participants to train,
+    // As an example assume we need at least 2 participants to train,
     // When two participants join almost at the same time, the server
     // sends a NewFederatedNodeInfo with waitForMoreParticipants=true to the first participant
     // and directly follows with an EnoughParticipants message when the 2nd participant joins
@@ -127,10 +127,11 @@ export class FederatedClient extends Client {
     };
     this.server.send(msg);
 
-    const {id, waitForMoreParticipants, payload, round} = await waitMessageWithTimeout(
-      this.server,
-      type.NewFederatedNodeInfo,
-    );
+    const {
+      id, waitForMoreParticipants, payload,
+      round, nbOfParticipants
+    } = await waitMessageWithTimeout(this.server, type.NewFederatedNodeInfo);
+    
     // This should come right after receiving the message to make sure
     // we don't miss a subsequent message from the server
     // We check if the server is telling us to wait for more participants
@@ -147,6 +148,7 @@ export class FederatedClient extends Client {
     this._ownId = id;
     debug(`[${id.slice(0, 4)}] joined session at round ${round} `);
     this.aggregator.setRound(round)
+    this.#nbOfParticipants = nbOfParticipants
     // Upon connecting, the server answers with a boolean
     // which indicates whether there are enough participants or not
     debug(`[${this.ownId.slice(0, 4)}] upon connecting, wait for participant flag %o`, this.#waitingForMoreParticipants)
