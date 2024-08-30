@@ -218,7 +218,6 @@ async function deleteModelConfirm(modelID: string){
   if (!modelInfo) return
 
   deleteModel(modelID).then(() => {
-    console.log("ici")
     tempDeletedModel = { id : modelID, model : model, metadata : modelInfo[1]};
     toaster.info("Model deleted. Click here to undo", { 
       onClick: () => undoDeleteModel(),
