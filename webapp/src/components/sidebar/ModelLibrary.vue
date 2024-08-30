@@ -228,7 +228,7 @@ async function deleteModelConfirm(modelID: string){
 
 async function undoDeleteModel() {
   try {
-    if (!tempDeletedModel) throw new Error("No model to restore");
+    if (tempDeletedModel === undefined) throw new Error("No model to restore");
     memoryStore.addModel(tempDeletedModel.id, tempDeletedModel.metadata);
     await memory.saveModel(tempDeletedModel.id, tempDeletedModel.model);
     toaster.success("Successfully restored the model");
