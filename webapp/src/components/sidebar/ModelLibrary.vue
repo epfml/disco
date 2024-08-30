@@ -215,7 +215,7 @@ function sortModels(a: ModelMetadata, b: ModelMetadata): number {
 async function deleteModelConfirm(modelID: string){
   const modelInfo = models.value.find(id => id === modelID);
   const model = await memory.getModel(modelID);
-  if (!modelInfo) return
+  if (modelInfo === undefined) return
 
   deleteModel(modelID).then(() => {
     tempDeletedModel = { id : modelID, model : model, metadata : modelInfo[1]};
