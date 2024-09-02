@@ -31,7 +31,9 @@ import CustomButton from "@/components/simple/CustomButton.vue";
 const validationStore = useValidationStore();
 
 const showPrev = computed(() => validationStore.step > 0);
-const showNext = computed(() => validationStore.step < 2);
+const showNext = computed(
+  () => validationStore.step > 0 && validationStore.step < 2,
+);
 
 function setStep(index: number): void {
   switch (index) {
