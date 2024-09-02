@@ -32,7 +32,12 @@
               >
                 <template #title> {{ taskTitle(infos.taskID) }} </template>
                 <template #icon>
-                  <button @click="removeModel(id)"><Bin2Icon /></button>
+                  <button
+                    @click="removeModel(id)"
+                    class="hover:text-red-500 transition duration-200"
+                  >
+                    <Bin2Icon />
+                  </button>
                 </template>
 
                 <table class="w-full">
