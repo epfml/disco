@@ -218,7 +218,7 @@ describe("end-to-end federated", () => {
     // Create User 1
     const discoUser1 = new Disco(lusCovidTask, url, { scheme: "federated" });
     let statusUser1: RoundStatus | undefined;
-    discoUser1.on("status", status => statusUser1 = status)
+    discoUser1.on("status", status => { statusUser1 = status })
     const generatorUser1 = discoUser1.trainByRound(["image", dataset])
     
     // Have User 1 join the task and train locally for one round
@@ -236,7 +236,7 @@ describe("end-to-end federated", () => {
     // Create User 2
     const discoUser2 = new Disco(lusCovidTask, url, { scheme: "federated" });
     let statusUser2: RoundStatus | undefined;
-    discoUser2.on("status", status => statusUser2 = status)
+    discoUser2.on("status", status => { statusUser2 = status })
     const generatorUser2 = discoUser2.trainByRound(["image", dataset])
 
     // Have User 2 join the task and train for one round
@@ -272,7 +272,7 @@ describe("end-to-end federated", () => {
     // Create User 3
     const discoUser3 = new Disco(lusCovidTask, url, { scheme: "federated" });
     let statusUser3: RoundStatus | undefined;
-    discoUser3.on("status", status => statusUser3 = status)
+    discoUser3.on("status", status => { statusUser3 = status })
     const generatorUser3 = discoUser3.trainByRound(["image", dataset])
 
     // User 3 joins mid-training and trains one local round
