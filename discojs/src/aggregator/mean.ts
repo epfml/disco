@@ -128,7 +128,7 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
     this.log(AggregationStep.AGGREGATE);
 
     const result = aggregation.avg(currentContributions.values());
-    this._round++
+    // Emitting the event runs the superclass' callback to increment the round
     this.emit('aggregation', result);
   }
 
