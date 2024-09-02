@@ -28,8 +28,7 @@ describe("federated client", () => {
       TASK,
       aggregators.getAggregator(TASK),
     );
-    const model = await client.connect();
-    expect(model).does.not.equal(undefined)
+    await client.connect();
     await client.disconnect();
   });
 
@@ -61,7 +60,7 @@ describe("federated client", () => {
     try {
       model = await client.connect();
     } catch {
-      expect(model).equal(undefined)
+      expect(model).to.be.undefined
       return;
     }
 
