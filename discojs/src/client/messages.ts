@@ -1,6 +1,5 @@
 import type * as decentralized from './decentralized/messages.js'
 import type * as federated from './federated/messages.js'
-// import { type NodeID } from './types.js'
 
 export enum type {
   // Sent from client to server as first point of contact to join a task. 
