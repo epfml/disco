@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
 
-import type { Task, TaskID, EncodedModel } from '@epfml/discojs'
+import type { Task, TaskID } from '@epfml/discojs'
 import { serialization, isTask } from '@epfml/discojs'
 
 import type { TaskInitializer } from '../task_initializer.js'
@@ -12,17 +12,17 @@ const debug = createDebug("server:router:task_router");
 
 export class TaskRouter {
   readonly #expressRouter: express.Router
+  readonly #taskInitializer: TaskInitializer
 
-  #tasksAndModels = Set<[Task, EncodedModel]>()
-
-  constructor (taskInitializer: TaskInitializer) {
+  constructor(taskInitializer: TaskInitializer) {
+    this.#taskInitializer = taskInitializer
     this.#expressRouter = express.Router()
 
     // Return available tasks upon GET requests
     this.#expressRouter.get('/', (_, res) => {
       res
         .status(200)
-        .send(this.#tasksAndModels.map(([t, _]) => t).toArray())
+        .send(this.#taskInitializer.tasks.map(([t, _]) => t).toArray())
     })
 
     // POST request to add a new task
@@ -43,7 +43,7 @@ export class TaskRouter {
       if (!serialization.model.isEncoded(encoded))
         throw new Error("could not recognize model encoding")
 
-      taskInitializer.addTask(newTask, encoded)
+      this.#taskInitializer.addTask(newTask, encoded)
         .then(() => res.status(200).end("Successful task upload"))
         .catch((e) => {
           debug("while adding model: %o", e);
@@ -54,8 +54,8 @@ export class TaskRouter {
     // delay listener because `this` (object) isn't fully constructed yet
     process.nextTick(() => {
       // a 'newTask' event is emitted when a new task is added 
-      taskInitializer.on('newTask', (t, m) => {
-        this.onNewTask(t, m)
+      this.#taskInitializer.on('newTask', (t, _) => {
+        this.onNewTask(t)
         return Promise.resolve()
       })
     })
@@ -65,13 +65,13 @@ export class TaskRouter {
     return this.#expressRouter
   }
 
-  // Register a new GET request for the new task
-  onNewTask(task: Task, model: EncodedModel): void {
+  // When a task has been initialized, 
+  // register its GET endpoint
+  onNewTask(task: Task): void {
     this.#expressRouter.get(`/${task.id}/:file`, (req, res, next) => {
       this.getLatestModel(task.id, req, res)
       next()
     })
-    this.#tasksAndModels = this.#tasksAndModels.add([task, model])
   }
 
   /**
@@ -91,7 +91,7 @@ export class TaskRouter {
       response.status(404)
       return
     }
-    const taskAndModel = this.#tasksAndModels.find(([t, _]) => t.id === id)
+    const taskAndModel = this.#taskInitializer.tasks.find(([t, _]) => t.id === id)
     if (taskAndModel === undefined) {
       response.status(404)
       return
