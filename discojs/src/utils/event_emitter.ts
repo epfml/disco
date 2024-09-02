@@ -2,7 +2,7 @@
 
 import { List } from 'immutable'
 
-type Listener<T> = (_: T) => void
+type Listener<T> = (_: T) => void | Promise<void>
 
 /**
  * Call handlers on given events
@@ -62,8 +62,8 @@ export class EventEmitter<I extends Record<string, unknown>> {
     const eventListeners = this.listeners[event] ?? List()
     this.listeners[event] = eventListeners.filterNot(([once]) => once)
 
-    eventListeners.forEach(([_, listener]) => {
-      listener(value)
+    eventListeners.forEach(async ([_, listener]) => {
+      await listener(value)
     })
   }
 }
