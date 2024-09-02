@@ -51,7 +51,7 @@ export class TaskInitializer {
 
   // Emit a 'newTask' event, 
   // It runs all the registered callbacks with the new task and model
-  emit(_: 'newTask', task: Task, model: EncodedModel): void {
+  #emit(_: 'newTask', task: Task, model: EncodedModel): void {
     // Run all the callbacks on the newly added task
     this.listeners.forEach(async (listener) => { await listener(task, model) })
   }
@@ -97,7 +97,7 @@ export class TaskInitializer {
 
     // Add the task-model pair to the set
     this.#initializedTasks = this.#initializedTasks.add([task, encodedModel])
-    this.emit('newTask', task, encodedModel)
+    this.#emit('newTask', task, encodedModel)
   }
 
   /**
