@@ -36,15 +36,19 @@ const debug = createDebug("server:task_initializer");
  * the 'newTask' event to run callbacks whenever a new Task and EncodedModel are initialized.
  */
 export class TaskInitializer {
-  // Keep track of previously initialized task-model pairs
-  #initializedTasks = Set<[Task, EncodedModel]>()
   // List of callback to apply to future task-model pairs added
   private listeners = List<(t: Task, m: EncodedModel) => Promise<void>>()
+  // Keep track of previously initialized task-model pairs
+  #tasks = Set<[Task, EncodedModel]>()
+
+  get tasks(): Set<[Task, EncodedModel]> {
+    return this.#tasks
+  }
 
   // Register a callback to be ran on all tasks
   on(_: 'newTask', callback: (t: Task, m: EncodedModel) => Promise<void>): void {
     // Apply the callback to already initialized task-model pairs
-    this.#initializedTasks.forEach(async ([t, m]) => { await callback(t, m) })
+    this.#tasks.forEach(async ([t, m]) => { await callback(t, m) })
     // Register the callback that will be ran when new tasks are added
     this.listeners = this.listeners.push(callback)
   }
@@ -96,7 +100,7 @@ export class TaskInitializer {
     }
 
     // Add the task-model pair to the set
-    this.#initializedTasks = this.#initializedTasks.add([task, encodedModel])
+    this.#tasks = this.#tasks.add([task, encodedModel])
     this.#emit('newTask', task, encodedModel)
   }
 
