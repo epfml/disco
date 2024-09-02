@@ -1,9 +1,7 @@
 <template>
   <div class="space-y-8 mb-8">
-    <!-- Display Model Evaluation for testing, and Model prediction for prediction -->
-    <h1 class="text-disco-cyan font-disco text-3xl text-center">
-      Model ({{ testing }})
-    </h1>
+    <h1 class="text-disco-cyan font-disco text-3xl text-center">{{ title }}</h1>
+
     <div class="hidden md:flex mx-auto">
       <ProgressIcon
         class="w-1/3"
@@ -17,6 +15,7 @@
           <ModelIcon custom-class="w-full w-6 w-6" view-box="-6 -6 36 36" />
         </template>
       </ProgressIcon>
+
       <ProgressIcon
         class="w-1/3"
         :has-left-line="true"
@@ -29,6 +28,7 @@
           <PlugIcon custom-class="w-full w-5 h-5" />
         </template>
       </ProgressIcon>
+
       <ProgressIcon
         class="w-1/3"
         :has-left-line="true"
@@ -36,7 +36,7 @@
         :current-step="validationStore.step == 2"
         @click="handleRoute(2)"
       >
-        <template #text> Evaluate Your Model ({{ testing }}) </template>
+        <template #text> {{ lastStepTitle }} </template>
         <template #icon>
           <PerformanceIcon custom-class="w-full w-7 h-7" viewBox="2 -4 12 24" />
         </template>
@@ -61,14 +61,30 @@ import TestingButtons from "./TestingButtons.vue";
 const toaster = useToaster();
 const validationStore = useValidationStore();
 
-const testing = computed(() => {
+const title = computed(() => {
+  if (validationStore.step === 0 || validationStore.mode === undefined)
+    return "Model Evaluation";
+
   switch (validationStore.mode) {
     case "predict":
-      return "Prediction";
+      return "Model Prediction";
     case "test":
-      return "Testing";
-    case undefined:
-      return undefined;
+      return "Model Testing";
+  }
+
+  const _: never = validationStore.mode;
+  throw new Error("should never happen");
+});
+
+const lastStepTitle = computed(() => {
+  if (validationStore.step === 0 || validationStore.mode === undefined)
+    return "Evaluate Your Model";
+
+  switch (validationStore.mode) {
+    case "predict":
+      return "Predict With Your Model";
+    case "test":
+      return "Test Your Model";
   }
 
   const _: never = validationStore.mode;
