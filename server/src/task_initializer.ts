@@ -1,17 +1,13 @@
-import createDebug from "debug";
 import { List, Set } from 'immutable'
-import { createHash } from 'node:crypto'
 import fs from 'node:fs/promises'
 import tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
 import {
-  Task, Digest, TaskProvider, isTask,
+  Task, TaskProvider, isTask,
   serialization, models, Model
 } from '@epfml/discojs'
 import type { EncodedModel } from '@epfml/discojs'
-
-const debug = createDebug("server:task_initializer");
 
 /**
  * The TaskInitializer essentially handles initializing a Task and 
@@ -27,7 +23,7 @@ const debug = createDebug("server:task_initializer");
  * to clients. Since the server doesn't need to use the Model, we
  * simply leave it already encoded and ready to be sent to clients
  * 
- * Due to its asynchronous nature, TaskInitializer acts like an EventEmitter, 
+ * Due to the asynchronous nature of `addTask`, TaskInitializer is an EventEmitter, 
  * by registering callbacks on new tasks and emitting a 'newTask' event 
  * when a new task has been added.
  * 
@@ -136,59 +132,6 @@ export class TaskInitializer {
     const encoded = await serialization.model.encode(model)
     await fs.writeFile(`${modelPath}/model.json`, encoded)
     
-    // Check digest if provided
-    if (task.digest !== undefined) {
-      try {
-        await this.checkDigest(task.digest, modelPath)
-      } catch (e) {
-        debug("removing model files at %s", modelPath)
-        await fs.rm(modelPath, { recursive: true, force: true })
-        throw e
-      }
-    }
-    
     return model
-  }
-
-  // TODO: never used, seems that no task ever provide a digest
-  private async checkDigest (digest: Digest, modelPath: string): Promise<void> {
-    const hash = createHash(digest.algorithm)
-    const modelConfigRaw = await fs.readFile(`${modelPath}/model.json`)
-
-    const parsedModelConfig: unknown = JSON.parse(modelConfigRaw.toString())
-
-    if (typeof parsedModelConfig !== 'object' || parsedModelConfig === null) {
-      throw new Error('invalid model config')
-    }
-    const { weightsManifest }: Partial<Record<'weightsManifest', unknown>> = parsedModelConfig
-
-    if (!Array.isArray(weightsManifest) || weightsManifest.length === 0) {
-      throw new Error('invalid weights manifest')
-    }
-    const manifest: unknown = weightsManifest[0]
-
-    if (typeof manifest !== 'object' || manifest === null) {
-      throw new Error('invalid weight manifest')
-    }
-    const { paths: weightsFiles }: Partial<{ paths: unknown }> = manifest
-
-    if (!(
-      Array.isArray(weightsFiles) &&
-      typeof weightsFiles[0] === 'string'
-    )) {
-      throw new Error("invalid weights files")
-    }
-    await Promise.all(weightsFiles.map(async (file: string) => {
-      const data = await fs.readFile(`${modelPath}/${file}`)
-      hash.update(data)
-    }))
-
-    const computedDigest = hash.digest('base64')
-    if (computedDigest !== digest.value) {
-      debug(`computed digest was %s but expected %s`, computedDigest, digest.value);
-      throw new Error('digest mismatch')
-    } else {
-      debug("digest verified");
-    }
   }
 }
