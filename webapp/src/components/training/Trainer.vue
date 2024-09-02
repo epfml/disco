@@ -258,10 +258,10 @@ async function startTraining(): Promise<void> {
     }
     debug("while training: %o", e);
   } finally {
+    emit("model", disco.trainer.model);
     await cleanupTrainingSession()
   }
 
-  emit("model", disco.trainer.model);
   toaster.success("Training successfully completed");
 }
 
