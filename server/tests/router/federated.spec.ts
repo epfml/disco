@@ -4,7 +4,7 @@
 
 // import { getApp } from '../../src/get_server'
 
-// const platformID = 'feai'
+// const platformID = 'federated'
 // const clients = {
 //   one: 'one',
 //   two: 'two'

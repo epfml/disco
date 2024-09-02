@@ -1,16 +1,17 @@
 import axios from 'axios'
 
-import type { Model, Task, WeightsContainer } from '../index.js'
+import type { Model, Task, WeightsContainer, RoundStatus } from '../index.js'
 import { serialization } from '../index.js'
 import type { NodeID } from './types.js'
 import type { EventConnection } from './event_connection.js'
 import type { Aggregator } from '../aggregator/index.js'
+import { EventEmitter } from '../utils/event_emitter.js'
 
 /**
  * Main, abstract, class representing a Disco client in a network, which handles
  * communication with other nodes, be it peers or a server.
  */
-export abstract class Base {
+export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
   /**
    * Own ID provided by the network's server.
    */
@@ -25,24 +26,21 @@ export abstract class Base {
   protected aggregationResult?: Promise<WeightsContainer>
 
   constructor (
-    /**
-     * The network server's URL to connect to.
-     */
-    public readonly url: URL,
-    /**
-     * The client's corresponding task.
-     */
-    public readonly task: Task,
-    /**
-     * The client's aggregator.
-     */
-    public readonly aggregator: Aggregator
-  ) {}
+    public readonly url: URL, // The network server's URL to connect to
+    public readonly task: Task, // The client's corresponding task
+    public readonly aggregator: Aggregator,
+  ) {
+    super()
+  }
 
   /**
    * Handles the connection process from the client to any sort of network server.
+   * This method is overriden by the federated and decentralized clients
+   * By default, it fetches and returns the server's base model
    */
-  async connect (): Promise<void> {}
+  async connect(): Promise<Model> {
+    return this.getLatestModel()
+  }
 
   /**
    * Handles the disconnection process of the client from any sort of network server.
@@ -66,24 +64,15 @@ export abstract class Base {
 
   /**
    * Communication callback called at the beginning of every training round.
-   * @param _weights The most recent local weight updates
-   * @param _round The current training round
    */
-  async onRoundBeginCommunication(
-    _weights: WeightsContainer,
-    _round: number,
-  ): Promise<void> {}
+  abstract onRoundBeginCommunication(): Promise<void>;
 
   /**
    * Communication callback called the end of every training round.
-   * @param _weights The most recent local weight updates
-   * @param _round The current training round
+   * @param weights The local weight update resulting for the current local training round
    * @returns aggregated weights or the local weights upon error
    */
-  abstract onRoundEndCommunication(
-    _weights: WeightsContainer,
-    _round: number,
-  ): Promise<WeightsContainer>;
+  abstract onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer>;
 
   // Number of contributors to a collaborative session
   // If decentralized, it should be the number of peers

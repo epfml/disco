@@ -58,6 +58,7 @@ export function basicTask(
       validationSplit: 1,
       tensorBackend: "tfjs",
       scheme: "local",
+      minNbOfParticipants: 1,
     },
     displayInformation: {
       taskTitle: "task",

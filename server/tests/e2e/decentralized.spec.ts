@@ -62,9 +62,9 @@ describe('end-to-end decentralized', function () {
     // Perform multiple training rounds
     let weights = WeightsContainer.of(input)
     for (let r = 0; r < rounds; r++) {
-      await client.onRoundBeginCommunication(weights, aggregator.round)
+      await client.onRoundBeginCommunication()
       await new Promise((resolve) => setTimeout(resolve, 1_000))
-      weights = await client.onRoundEndCommunication(weights, aggregator.round)
+      weights = await client.onRoundEndCommunication(weights)
     }
 
     return [weights, client]

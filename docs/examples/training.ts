@@ -13,7 +13,7 @@ import { Server } from 'server'
  */
 async function runUser (url: URL, task: Task, dataset: TypedLabeledDataset): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
-  const disco = await Disco.fromTask(task, url, { scheme: 'federated' })
+  const disco = new Disco(task, url, { scheme: 'federated' })
 
   // Run training on the dataset
   await disco.trainFully(dataset);

@@ -21,6 +21,7 @@ describe('text preprocessing', function () {
         validationSplit: 0,
         batchSize: 8,
         scheme: 'local',
+        minNbOfParticipants: 1,
         dataType: 'text',
         tokenizer: 'Xenova/gpt2',
         tensorBackend: 'gpt'

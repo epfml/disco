@@ -36,7 +36,8 @@ describe("training page", () => {
     );
     cy.contains("button", "next").click();
 
-    cy.contains("button", "train alone").click();
+    cy.contains("button", "locally").click();
+    cy.contains("button", "start training").click();
     cy.contains("h6", "epochs")
       .next({ timeout: 40_000 })
       .should("have.text", "10 / 10");
@@ -76,7 +77,8 @@ describe("training page", () => {
     );
     cy.contains("button", "next").click();
 
-    cy.contains("button", "train alone").click();
+    cy.contains("button", "locally").click();
+    cy.contains("button", "start training").click();
     cy.contains("h6", "current batch")
       .next({ timeout: 40_000 })
       .should("have.text", "2");

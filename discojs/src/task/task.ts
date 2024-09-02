@@ -1,12 +1,10 @@
 import { isDisplayInformation, type DisplayInformation } from './display_information.js'
 import { isTrainingInformation, type TrainingInformation } from './training_information.js'
-import { isDigest, type Digest } from './digest.js'
 
 export type TaskID = string
 
 export interface Task {
   id: TaskID
-  digest?: Digest
   displayInformation: DisplayInformation
   trainingInformation: TrainingInformation
 }
@@ -20,18 +18,17 @@ export function isTask (raw: unknown): raw is Task {
     return false
   }
 
-  const { id, digest, displayInformation, trainingInformation }:
+  const { id, displayInformation, trainingInformation }:
     Partial<Record<keyof Task, unknown>> = raw
 
   if (!isTaskID(id) ||
-      (digest !== undefined && !isDigest(digest)) ||
       !isDisplayInformation(displayInformation) ||
       !isTrainingInformation(trainingInformation)
   ) {
     return false
   }
 
-  const repack = { id, digest, displayInformation, trainingInformation }
+  const repack = { id, displayInformation, trainingInformation }
   const _correct: Task = repack
   const _total: Record<keyof Task, unknown> = repack
 

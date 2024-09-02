@@ -7,10 +7,13 @@
  * The working model is loaded from IndexedDB for training (model.fit) only.
  */
 import { Map } from 'immutable'
+import createDebug from "debug"
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model, ModelInfo, ModelSource } from '@epfml/discojs'
 import { Memory, models } from '@epfml/discojs'
+
+const debug = createDebug('discojs-web:memory')
 
 export class IndexedDB extends Memory {
   override getModelMemoryPath (source: ModelSource): string {
@@ -100,7 +103,8 @@ export class IndexedDB extends Memory {
       modelInfo['tensorBackend'] = 'gpt'
       includeOptimizer = false // true raises an error
     } else {
-      throw new Error('unknown model type')
+      debug('unknown working model type %o', model)
+      throw new Error(`unknown model type while updating working model`)
     }
     const indexedDBURL = this.getModelMemoryPath(modelInfo)
     await model.extract().save(indexedDBURL, { includeOptimizer })
@@ -137,8 +141,9 @@ export class IndexedDB extends Memory {
       } else if (model instanceof models.GPT) { 
         modelInfo['tensorBackend'] = 'gpt'
         includeOptimizer = false // true raises an error
-      } else {
-        throw new Error('unknown model type')
+    } else {
+        debug('unknown saved model type %o', model)
+        throw new Error('unknown model type while saving model')
       }
       const indexedDBURL = this.getModelMemoryPath(modelInfo)
       await model.extract().save(indexedDBURL, { includeOptimizer })

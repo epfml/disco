@@ -46,7 +46,7 @@ it("can test lus_covid", () => {
   cy.contains("button", "download as csv", { timeout: 10_000 });
 });
 
-it("can start and stop training of wikitext", () => {
+it("can start and stop testing of wikitext", () => {
   setupServerWith(defaultTasks.wikitext);
 
   cy.visit("/#/evaluate");

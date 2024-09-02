@@ -26,7 +26,7 @@ async function runUser(
   const trainingScheme = task.trainingInformation.scheme
   const aggregator = aggregators.getAggregator(task)
   const client = clients.getClient(trainingScheme, url, task, aggregator) 
-  const disco = await Disco.fromTask(task, client, { scheme: trainingScheme });
+  const disco = new Disco(task, client, { scheme: trainingScheme });
 
   const logs = List(await arrayFromAsync(disco.trainByRound(data)));
   await new Promise((res, _) => setTimeout(() => res('timeout'), 1000)) // Wait for other peers to finish

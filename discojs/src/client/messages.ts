@@ -1,35 +1,45 @@
 import type * as decentralized from './decentralized/messages.js'
 import type * as federated from './federated/messages.js'
-import { type NodeID } from './types.js'
 
 export enum type {
   // Sent from client to server as first point of contact to join a task. 
-  // The server answers with an node id in a AssignNodeID message
+  // The server answers with an node id in a NewFederatedNodeInfo
+  // or NewDecentralizedNodeInfo message
   ClientConnected,  
-  // When a user joins a task with a ClientConnected message, the server
-  // answers with an AssignNodeID message with its peer id.
-  AssignNodeID,
-
+  
   /* Decentralized */
+  // When a user joins a task with a ClientConnected message, the server
+  // answers with  its peer id and also tells the client whether we are waiting
+  // for more participants before starting training
+  NewDecentralizedNodeInfo,
   // Message forwarded by the server from a client to another client
   // to establish a peer-to-peer (WebRTC) connection
   SignalForPeer,
+  // Message sent by nodes to server signaling they are ready to 
+  // start the next round
   PeerIsReady,
+  // Sent by the server to participating peers containing the list
+  // of peers for the round
   PeersForRound,
+  // The weight update
   Payload,
-
-  // Federated
+  
+  /* Federated */
+  // The server answers the ClientConnected message with the necessary information
+  // to start training: node id, latest model global weights, current round etc
+  NewFederatedNodeInfo,
+  // Message sent by server to notify clients that there are not enough
+  // participants to continue training
+  WaitingForMoreParticipants,
+  // Message sent by server to notify clients that there are now enough
+  // participants to start training collaboratively
+  EnoughParticipants,
   SendPayload,
   ReceiveServerPayload,
 }
 
 export interface ClientConnected {
   type: type.ClientConnected
-}
-
-export interface AssignNodeID {
-  type: type.AssignNodeID
-  id: NodeID
 }
 
 export type Message =

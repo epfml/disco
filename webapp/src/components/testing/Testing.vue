@@ -211,7 +211,7 @@ async function downloadModel(task: Task): Promise<void> {
   try {
     toaster.info("Downloading model...");
 
-    const client = new clients.Local(
+    const client = new clients.LocalClient(
       CONFIG.serverUrl,
       task,
       aggregator.getAggregator(task),
