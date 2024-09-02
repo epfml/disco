@@ -288,7 +288,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm --workspace={discojs,discojs-node} run build
-      - run: DEBUG='server:controllers:federated|discojs:client:federated' npm --workspace=server test
+      - run: npm --workspace=server test
 
   test-webapp:
     needs: [build-lib, build-lib-web, download-datasets]
