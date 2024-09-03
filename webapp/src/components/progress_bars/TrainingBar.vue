@@ -26,7 +26,7 @@
             Task Selection
           </template>
           <template #icon>
-            <TasksIcon customClass="w-full w-7 h-7" view-box="-4 -4 24 24"/>
+            <TasksIcon class="w-full w-7 h-7" view-box="-4 -4 24 24"/>
           </template>
         </ProgressIcon>
         <!-- Step 2 -->

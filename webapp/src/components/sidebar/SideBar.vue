@@ -17,7 +17,7 @@
         <SidebarButton to="/" text="Home"> <HomeIcon /> </SidebarButton>
 
         <SidebarButton to="/list" text="DISCOllaboratives">
-          <TasksIcon customClass="w-6 h-6" />
+          <TasksIcon class="w-6 h-6" />
         </SidebarButton>
 
         <SidebarButton to="/create" text="Create a new DISCOllaborative">
