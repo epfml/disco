@@ -21,7 +21,6 @@ export const mnist: TaskProvider = {
         sampleDatasetInstructions: 'Opening the link should start downloading a zip file which you can unzip. You can connect the data with the CSV option below using the CSV file named "mnist_labels.csv". After selecting in the CSV file, you will be able to connect the data under in the "images" folder.'
       },
       trainingInformation: {
-        modelID: 'mnist-model',
         epochs: 20,
         roundDuration: 2,
         validationSplit: 0.2,

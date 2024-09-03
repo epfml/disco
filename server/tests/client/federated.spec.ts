@@ -42,7 +42,6 @@ describe("federated client", () => {
           summary: { overview: '', preview: '' }
         },
         trainingInformation: {
-          modelID: "irrelevant",
           epochs: 1,
           roundDuration: 1,
           validationSplit: 0,

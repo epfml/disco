@@ -166,7 +166,6 @@ export const customTask: TaskProvider = {
         ...
       },
       trainingInformation: {
-        modelID: 'my_new_task-model',
         epochs: 50,
         roundDuration: 1,
         validationSplit: 0.2,

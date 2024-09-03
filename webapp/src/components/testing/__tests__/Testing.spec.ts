@@ -23,7 +23,6 @@ const TASK: Task = {
     tensorBackend: "gpt",
     scheme: "federated",
     minNbOfParticipants: 1,
-    modelID: "nah", // TODO rm
     epochs: 1,
     batchSize: 1,
     roundDuration: 1,
