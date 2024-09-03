@@ -2,7 +2,6 @@
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="currentColor"
-    :class="customClass"
     :viewBox="viewBox"
   >
     <path
@@ -10,12 +9,12 @@
     />
   </svg>
 </template>
-<script lang="ts">
-export default {
-  name: 'TasksIcon',
-  props: {
-    customClass: { default: 'bi bi-ui-checks w-7 h-7 text-disco-cyan', type: String },
-    viewBox: { default: '0 0 16 16', type: String }
-  }
-}
+
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    viewBox?: string;
+  }>(),
+  { viewBox: "0 0 16 16" },
+);
 </script>
