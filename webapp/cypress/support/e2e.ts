@@ -51,7 +51,6 @@ export function basicTask(
     id: "task",
     trainingInformation: {
       ...info,
-      modelID: "task",
       epochs: 1,
       batchSize: 1,
       roundDuration: 1,

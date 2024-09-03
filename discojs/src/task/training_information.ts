@@ -9,8 +9,6 @@ interface Privacy {
 }
 
 export interface TrainingInformation {
-  // modelID: unique ID for the model
-  modelID: string
   // epochs: number of epochs to run training for
   epochs: number
   // roundDuration: number of epochs between each weight sharing round. 
@@ -115,7 +113,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     inputColumns,
     maxShareValue,
     minNbOfParticipants,
-    modelID,
     outputColumns,
     preprocessingFunctions,
     roundDuration,
@@ -128,7 +125,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
 
   if (
     typeof dataType !== 'string' ||
-    typeof modelID !== 'string' ||
     typeof epochs !== 'number' ||
     typeof batchSize !== 'number' ||
     typeof roundDuration !== 'number' ||
@@ -205,7 +201,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     inputColumns,
     maxShareValue,
     minNbOfParticipants,
-    modelID,
     outputColumns,
     preprocessingFunctions,
     roundDuration,

@@ -21,7 +21,6 @@ export const lusCovid: TaskProvider = {
         sampleDatasetInstructions: 'Opening the link will take you to a Switch Drive folder. You can click on the Download button in the top right corner. Unzip the file and you will get two subfolders: "COVID-" and "COVID+". You can connect the data by using the Group option and selecting each image group in its respective field.'
       },
       trainingInformation: {
-        modelID: 'lus-covid-model',
         epochs: 50,
         roundDuration: 2,
         validationSplit: 0.2,

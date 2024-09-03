@@ -181,14 +181,6 @@ export const trainingInformation: FormSection = {
   title: 'Training Parameters',
   fields: [
     {
-      id: 'modelID',
-      name: 'Model IDentifier',
-      yup: yup.string().required(),
-      as: 'input',
-      type: 'text',
-      default: 'mnist-model'
-    },
-    {
       id: 'epochs',
       name: 'Epochs',
       yup: yup.number().integer().positive().required(),

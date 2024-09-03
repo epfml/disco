@@ -25,7 +25,6 @@ export const wikitext: TaskProvider = {
       },
       trainingInformation: {
         dataType: 'text',
-        modelID: 'llm-raw-model',
         preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
         scheme: 'federated',
         minNbOfParticipants: 2,

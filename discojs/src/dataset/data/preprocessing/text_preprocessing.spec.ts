@@ -15,7 +15,6 @@ describe('text preprocessing', function () {
       summary: { overview: '', preview: '' }
     },
       trainingInformation: {
-        modelID: 'model-id',
         epochs: 1,
         roundDuration: 1,
         validationSplit: 0,
