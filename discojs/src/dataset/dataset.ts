@@ -1,5 +1,5 @@
 import createDebug from "debug";
-import { List } from "immutable";
+import { List, Range } from "immutable";
 
 import type { Batched } from "../index.js";
 
@@ -128,18 +128,23 @@ export class Dataset<T> implements AsyncIterable<T> {
     };
 
     return new Dataset(async function* () {
-      let batch = List<T>();
+      const iter = content[Symbol.asyncIterator]();
 
-      for await (const e of content) {
-        batch = batch.push(e);
+      for (;;) {
+        const batch = List(
+          await Promise.all(Range(0, size).map(() => iter.next())),
+        ).flatMap((res) => {
+          if (res.done) return [];
+          else return [res.value];
+        });
 
-        if (batch.size === size) {
-          yield batch;
-          batch = List();
-        }
+        if (batch.isEmpty()) break;
+
+        yield batch;
+
+        // iterator couldn't generate more
+        if (batch.size < size) break;
       }
-
-      if (!batch.isEmpty()) yield batch;
     });
   }
 
