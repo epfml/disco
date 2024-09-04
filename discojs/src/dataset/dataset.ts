@@ -1,6 +1,9 @@
+import createDebug from "debug";
 import { List } from "immutable";
 
 import type { Batched } from "../index.js";
+
+const debug = createDebug("discojs:dataset");
 
 type DatasetLike<T> =
   | AsyncIterable<T>
@@ -173,5 +176,64 @@ export class Dataset<T> implements AsyncIterable<T> {
     let ret = 0;
     for await (const _ of this) ret++;
     return ret;
+  }
+
+  /** Try to keep generated elements to avoid recomputing
+   *
+   * Drops everything when memory pressure is applied.
+   */
+  cached(): Dataset<T> {
+    return new CachingDataset(this.#content);
+  }
+}
+
+/**
+ * Avoid recomputing the parent dataset, without hogging memory
+ *
+ * As dataset operations can be time-consuming, this keeps a weak reference to
+ * the generated elements so that a second iteration might yield theses directly.
+ **/
+class CachingDataset<T> extends Dataset<T> {
+  // potential reference to all elements
+  // tristate: undefined == empty, [false, _] == filling, [true, _] == filled
+  #cache = new WeakRef<[filled: boolean, List<T>]>([false, List()]);
+
+  override [Symbol.asyncIterator](): AsyncIterator<T> {
+    const cached = this.#cache.deref();
+
+    if (cached !== undefined && cached[0]) {
+      debug("valid cache, reading from it");
+
+      // eslint-disable-next-line @typescript-eslint/require-await
+      return (async function* () {
+        yield* cached[1];
+      })();
+    }
+
+    debug("cache invalid, recomputing");
+
+    this.#cache = new WeakRef([false, List()]);
+    const cache = this.#cache;
+
+    const content = {
+      [Symbol.asyncIterator]: () => super[Symbol.asyncIterator](),
+    };
+    return (async function* () {
+      for await (const e of content) {
+        yield e;
+
+        const caching = cache.deref();
+        if (caching !== undefined) caching[1] = caching[1].push(e);
+      }
+
+      const caching = cache.deref();
+      if (caching === undefined) {
+        debug("cache evicted while filling");
+        return;
+      }
+
+      debug("cache filled");
+      caching[0] = true;
+    })();
   }
 }
