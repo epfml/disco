@@ -44,7 +44,7 @@ export class Dataset<T> implements AsyncIterable<T> {
    */
   map<U>(mapper: (_: T) => U | Promise<U>): Dataset<U> {
     const content = {
-      [Symbol.asyncIterator]: () => this.#content(),
+      [Symbol.asyncIterator]: () => this[Symbol.asyncIterator](),
     };
 
     return new Dataset(async function* () {
@@ -59,9 +59,7 @@ export class Dataset<T> implements AsyncIterable<T> {
   chain(other: Dataset<T> | DatasetLike<T>): Dataset<T> {
     if (!(other instanceof Dataset)) other = new Dataset(other);
 
-    const self = {
-      [Symbol.asyncIterator]: () => this.#content(),
-    };
+    const self = { [Symbol.asyncIterator]: () => this[Symbol.asyncIterator]() };
 
     return new Dataset(async function* () {
       yield* self;
@@ -77,7 +75,7 @@ export class Dataset<T> implements AsyncIterable<T> {
     if (ratio < 0 || ratio > 1) throw new Error("ratio out of range");
 
     const content = {
-      [Symbol.asyncIterator]: () => this.#content(),
+      [Symbol.asyncIterator]: () => this[Symbol.asyncIterator](),
     };
 
     // to avoid using random sampling or knowing the size beforehand,
@@ -123,7 +121,7 @@ export class Dataset<T> implements AsyncIterable<T> {
     if (size <= 0 || !Number.isInteger(size)) throw new Error("invalid size");
 
     const content = {
-      [Symbol.asyncIterator]: () => this.#content(),
+      [Symbol.asyncIterator]: () => this[Symbol.asyncIterator](),
     };
 
     return new Dataset(async function* () {
@@ -152,7 +150,7 @@ export class Dataset<T> implements AsyncIterable<T> {
     if (!(other instanceof Dataset)) other = new Dataset(other);
 
     const content = {
-      [Symbol.asyncIterator]: () => this.#content(),
+      [Symbol.asyncIterator]: () => this[Symbol.asyncIterator](),
     };
 
     return new Dataset(async function* () {
