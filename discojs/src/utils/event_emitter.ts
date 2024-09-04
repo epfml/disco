@@ -62,9 +62,7 @@ export class EventEmitter<I extends Record<string, unknown>> {
     const eventListeners = this.listeners[event] ?? List()
     this.listeners[event] = eventListeners.filterNot(([once]) => once)
 
-    eventListeners.forEach(([_, listener]) => {
-      listener(value)
-    })
+    eventListeners.forEach(([_, listener]) => { listener(value) })
   }
 }
 

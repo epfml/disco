@@ -21,7 +21,6 @@ export const simpleFace: TaskProvider = {
         sampleDatasetInstructions: 'Opening the link should start downloading a zip file which you can unzip. Inside the "example_training_data" directory you should find the "simple_face" folder which contains the "adult" and "child" folders. To connect the data, select the Group option below and connect adults and children image groups.'
       },
       trainingInformation: {
-        modelID: 'simple_face-model',
         epochs: 50,
         roundDuration: 1,
         validationSplit: 0.2,
@@ -31,7 +30,8 @@ export const simpleFace: TaskProvider = {
         IMAGE_H: 200,
         IMAGE_W: 200,
         LABEL_LIST: ['child', 'adult'],
-        scheme: 'federated', // secure aggregation not yet implemented for federated
+        scheme: 'federated',
+        minNbOfParticipants: 2,
         tensorBackend: 'tfjs'
       }
     }

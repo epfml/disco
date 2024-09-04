@@ -48,7 +48,6 @@ export const titanic: TaskProvider = {
         sampleDatasetInstructions: 'Opening the link should start downloading a CSV file which you can drag and drop in the field below.'
       },
       trainingInformation: {
-        modelID: 'titanic-model',
         epochs: 10,
         roundDuration: 2,
         validationSplit: 0.2,
@@ -65,7 +64,8 @@ export const titanic: TaskProvider = {
         outputColumns: [
           'Survived'
         ],
-        scheme: 'federated', // secure aggregation not yet implemented for FeAI
+        scheme: 'federated',
+        minNbOfParticipants: 2,
         tensorBackend: 'tfjs'
       }
     }

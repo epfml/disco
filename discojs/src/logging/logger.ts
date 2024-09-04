@@ -1,6 +1,6 @@
 export interface Logger {
   /**
-   * Logs sucess message (in green)
+   * Logs success message (in green)
    * @param message - message to be displayed
    */
   success(message: string): void;

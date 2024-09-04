@@ -19,7 +19,7 @@ export function getClient(trainingScheme: Required<Task['trainingInformation']['
     case 'federated':
       return new clients.federated.FederatedClient(serverURL, task, aggregator)
     case 'local':
-      return new clients.Local(serverURL, task, aggregator)
+      return new clients.LocalClient(serverURL, task, aggregator)
     default: {
       const _: never = trainingScheme
       throw new Error('should never happen')

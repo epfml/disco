@@ -60,8 +60,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
         throw new Error("requires communication round to be 0 or 1");
     }
 
-    if (!this.nodes.has(nodeId) || !this.isWithinRoundCutoff(round))
-      return false;
+    if (!this.isValidContribution(nodeId, round)) return false
 
     this.log(
       this.contributions.hasIn([communicationRound, nodeId])

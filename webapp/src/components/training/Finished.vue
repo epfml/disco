@@ -1,86 +1,77 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 items-stretch">
     <!-- Save the model -->
-    <ButtonsCard :buttons="List.of(['test model', testModel])">
-      <template #title>
-        Test the model
-      </template>
+    <ButtonsCard :buttons="List.of(['test model', onTestModel])">
+      <template #title> Test the model </template>
 
-      Check the performance of your <DISCOllaborative /> trained model
-      by testing it on new data (that was not used in training).
+      Check the performance of your <DISCOllaborative /> trained model by
+      testing it on new data (that was not used in training).
     </ButtonsCard>
 
     <!-- Test the model -->
-    <ButtonsCard :buttons="List.of(['save model', saveModel])">
-      <template #title>
-        Save the model
-      </template>
+    <ButtonsCard :buttons="List.of(['save model', onSaveModel])">
+      <template #title> Save the model </template>
 
-      Saving the model will allow you to access it later
-      to update training in a new <DISCOllaborative />.
+      Saving the model will allow you to access it later to update training in a
+      new <DISCOllaborative />.
     </ButtonsCard>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-
 import { List } from "immutable";
+import { ref, toRaw, watch } from "vue";
+import { useRouter } from "vue-router";
 
-import type { Task, ModelInfo } from '@epfml/discojs'
-import { EmptyMemory, Memory } from '@epfml/discojs'
-import { IndexedDB } from '@epfml/discojs-web'
+import type { Model, Task } from "@epfml/discojs";
 
-import { useMemoryStore } from '@/store/memory'
-import { useValidationStore } from '@/store/validation'
-import { useToaster } from '@/composables/toaster'
-import ButtonsCard from '@/components/containers/ButtonsCard.vue'
-import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'
+import { useToaster } from "@/composables/toaster";
+import type { ModelID } from "@/store/models";
+import { useModelsStore } from "@/store/models";
+import { useValidationStore } from "@/store/validation";
 
-interface Props { task: Task }
+import ButtonsCard from "@/components/containers/ButtonsCard.vue";
+import DISCOllaborative from "@/components/simple/DISCOllaborative.vue";
 
-const memoryStore = useMemoryStore()
-const validationStore = useValidationStore()
-const router = useRouter()
-const toast = useToaster() // TODO: use this.$toaster
+const modelsStore = useModelsStore();
+const validationStore = useValidationStore();
+const router = useRouter();
+const toaster = useToaster();
 
-const props = defineProps<Props>()
+const props = defineProps<{
+  task: Task;
+  model?: Model;
+}>();
 
-const memory = computed<Memory>(() => memoryStore.useIndexedDB ? new IndexedDB() : new EmptyMemory())
-const modelInfo = computed<ModelInfo>(() => {
-  return {
-    type: 'working',
-    taskID: props.task.id,
-    name: props.task.trainingInformation.modelID,
-    tensorBackend: props.task.trainingInformation.tensorBackend,
+const saved = ref<ModelID>();
+watch(props, () => (saved.value = undefined));
+
+/** add model to store */
+async function saveModel(): Promise<void> {
+  if (props.model === undefined) {
+    toaster.error("Model was not trained");
+    return;
   }
-})
 
-async function testModel () {
-  const path = memory.value.getModelMemoryPath(modelInfo.value)
-  if (await memory.value.contains(modelInfo.value) && path !== undefined) {
-    validationStore.modelID = path
-    router.push({ path: '/evaluate' })
-  } else {
-    toast.error('Model was not trained!')
-  }
+  // avoid multiple save
+  if (saved.value !== undefined) return;
+  saved.value = await modelsStore.add(props.task.id, toRaw(props.model));
 }
 
-async function saveModel () {
-  if (!(memory.value instanceof EmptyMemory)) {
-    if (await memory.value.contains(modelInfo.value)) {
-      await memory.value.saveWorkingModel(modelInfo.value)
-      toast.success(
-        `The current ${props.task.displayInformation.taskTitle} model has been saved.`
-      )
-    } else {
-      toast.error('A model needs to be trained!')
-    }
-  } else {
-    toast.error(
-      'The model library is currently turned off. Go to the model library settings to turn it one.'
-    )
-  }
+async function onSaveModel(): Promise<void> {
+  await saveModel();
+  if (saved.value === undefined) return; // error toast already shown
+
+  toaster.success(
+    `The trained ${props.task.displayInformation.taskTitle} model has been saved.`,
+  );
+}
+
+async function onTestModel() {
+  await saveModel();
+  if (saved.value === undefined) return; // error toast already shown
+
+  validationStore.modelID = saved.value;
+  router.push({ path: "/evaluate" });
 }
 </script>

@@ -4,9 +4,7 @@ import {
   BatchLogs,
   ConsoleLogger,
   EpochLogs,
-  EmptyMemory,
   Logger,
-  Memory,
   Task,
   TrainingInformation,
 } from "../index.js";
@@ -14,56 +12,48 @@ import type { TypedLabeledDataset } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
 import { enumerate, split } from "../utils/async_iterator.js";
+import { EventEmitter } from "../utils/event_emitter.js";
 
 import { RoundLogs, Trainer } from "./trainer.js";
 import { labeledDatasetToDataSplit } from "../dataset/data/helpers.js";
 
-interface Config {
+interface DiscoConfig {
   scheme: TrainingInformation["scheme"];
   logger: Logger;
-  memory: Memory;
 }
+
+export type RoundStatus =
+  "Waiting for more participants" |
+  "Retrieving peers' information" |
+  "Updating the model with other participants' models" |
+  "Training the model on the data you connected"
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be
- * a convenient object providing a reduced yet complete API that wraps model training,
- * communication with nodes, logs and model memory.
+ * a convenient object providing a reduced yet complete API that wraps model training and
+ * communication with nodes.
  */
-export class Disco {
+export class Disco extends EventEmitter<{'status': RoundStatus}>{
+  public readonly trainer: Trainer;
   readonly #client: clients.Client;
   readonly #logger: Logger;
-  readonly #memory: Memory;
   readonly #task: Task;
-
-  private constructor(
-    public readonly trainer: Trainer,
-    task: Task,
-    client: clients.Client,
-    memory: Memory,
-    logger: Logger,
-  ) {
-    this.#client = client;
-    this.#logger = logger;
-    this.#memory = memory;
-    this.#task = task;
-  }
 
   /**
    * Connect to the given task and get ready to train.
-   *
-   * Will load the model from memory if available or fetch it from the server.
-   *
+   * 
+   * @param task 
    * @param clientConfig client to connect with or parameters on how to create one.
-   **/
-  static async fromTask(
-    task: Task,
+   * @param config the DiscoConfig
+   */
+  constructor(task: Task,
     clientConfig: clients.Client | URL | { aggregator: Aggregator; url: URL },
-    config: Partial<Config>,
-  ): Promise<Disco> {
-    const { scheme, logger, memory } = {
+    config: Partial<DiscoConfig>
+  ) {
+    super()
+    const { scheme, logger } = {
       scheme: task.trainingInformation.scheme,
       logger: new ConsoleLogger(),
-      memory: new EmptyMemory(),
       ...config,
     };
 
@@ -83,24 +73,12 @@ export class Disco {
     if (client.task !== task)
       throw new Error("client not setup for given task");
 
-    let model;
-    const memoryInfo = {
-      type: "working" as const,
-      taskID: task.id,
-      name: task.trainingInformation.modelID,
-      tensorBackend: task.trainingInformation.tensorBackend,
-    };
-    if (await memory.contains(memoryInfo))
-      model = await memory.getModel(memoryInfo);
-    else model = await client.getLatestModel();
-
-    return new Disco(
-      new Trainer(task, model, client),
-      task,
-      client,
-      memory,
-      logger,
-    );
+    this.#logger = logger;
+    this.#client = client;
+    this.#task = task;
+    this.trainer = new Trainer(task, client)
+    // Simply propagate the training status events emitted by the client
+    this.#client.on('status', status => this.emit('status', status))
   }
 
   /** Train on dataset, yielding logs of every round. */
@@ -148,14 +126,14 @@ export class Disco {
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
-    this.#logger.success("Training started.");
+    this.#logger.success("Training started");
 
     const data = await labeledDatasetToDataSplit(this.#task, dataset);
     const trainData = data.train.preprocess().batch().dataset;
     const validationData =
       data.validation?.preprocess().batch().dataset ?? trainData;
-
-    await this.#client.connect();
+    // the client fetches the latest weights upon connection
+    this.trainer.model = await this.#client.connect();
 
     for await (const [round, epochs] of enumerate(
       this.trainer.train(trainData, validationData),
@@ -174,6 +152,7 @@ export class Disco {
               `  Epoch: ${epoch}`,
               `    Training loss: ${epochLogs.training.loss}`,
               `    Training accuracy: ${epochLogs.training.accuracy}`,
+              `    Peak memory: ${epochLogs.peakMemory}`,
               epochLogs.validation !== undefined
                 ? `    Validation loss: ${epochLogs.validation.loss}`
                 : "",
@@ -186,33 +165,14 @@ export class Disco {
 
         return await returnedRoundLogs;
       }.bind(this)();
-
-      await this.#memory.updateWorkingModel(
-        {
-          type: "working",
-          taskID: this.#task.id,
-          name: this.#task.trainingInformation.modelID,
-          tensorBackend: this.#task.trainingInformation.tensorBackend,
-        },
-        this.trainer.model,
-      );
     }
-
-    this.#logger.success("Training finished.");
-  }
-
-  /**
-   * Stops the ongoing training instance without disconnecting the client.
-   */
-  async pause(): Promise<void> {
-    await this.trainer.stopTraining();
+    this.#logger.success("Training finished");
   }
 
   /**
    * Completely stops the ongoing training instance.
    */
   async close(): Promise<void> {
-    await this.pause();
     await this.#client.disconnect();
   }
 }

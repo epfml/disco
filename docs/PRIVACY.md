@@ -68,10 +68,10 @@ Values far outside this interval are insufficiently protected, and the aggregate
 
 ### User Input
 
-`minimumReadyPeers`
+`minNbOfParticipants`
 
 The user can specify the minimum number of clients that must participate in any secure aggregation procedure. This minimum should be greater than 2, because the participating clients can otherwise reconstruct each other's model updates by subtracting their own from the aggregated model update.
-The value is set to 3 by default and can be changed by modifying `minimumReadyPeers` in each task's trainingInformation. More information on the set-up of a task and task personalization
+The value can be changed by modifying `minNbOfParticipants` in each task's trainingInformation. More information on the set-up of a task and task personalization
 can be found [HERE](TASK.md).
 
 `maxShareValue`

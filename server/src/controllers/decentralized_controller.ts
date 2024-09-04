@@ -4,50 +4,27 @@ import msgpack from 'msgpack-lite'
 import type WebSocket from 'ws'
 import { Map, Set } from 'immutable'
 
-import type { Task, TaskID } from '@epfml/discojs'
 import { client } from '@epfml/discojs'
 
-import { Server } from '../server.js'
+import { TrainingController } from './training_controller.js'
 
 import messages = client.decentralized.messages
-import AssignNodeID = client.messages.AssignNodeID
 import MessageTypes = client.messages.type
 
-const debug = createDebug("server:router:decentralized")
+const debug = createDebug("server:controllers:decentralized")
 
-export class Decentralized extends Server {
+export class DecentralizedController extends TrainingController {
   /**
-   * Map associating task ids to their sets of nodes who have contributed.
+   * Set of nodes who have contributed.
    */
-  private readyNodes: Map<TaskID, Set<client.NodeID>> = Map()
+  private readyNodes = Set<client.NodeID>()
   /**
    * Map associating node ids to their open WebSocket connections.
    */
   private connections: Map<client.NodeID, WebSocket> = Map()
 
-  protected readonly description = 'Disco Decentralized Server'
-
-  protected buildRoute (task: TaskID): string {
-    return `/${task}`
-  }
-
-  public isValidUrl (url: string | undefined): boolean {
-    const splittedUrl = url?.split('/')
-
-    return (
-      splittedUrl !== undefined &&
-      splittedUrl.length === 3 &&
-      splittedUrl[0] === '' &&
-      this.isValidTask(splittedUrl[1]) &&
-      this.isValidWebSocket(splittedUrl[2])
-    )
-  }
-
-  protected initTask (): void {}
-
-  protected handle (task: Task, ws: WebSocket): void {
-    // TODO @s314cy: add to task definition, to be used as threshold in aggregator
-    const minimumReadyPeers = task.trainingInformation?.minimumReadyPeers ?? 3
+  handle (ws: WebSocket): void {
+    const minimumReadyPeers = this.task.trainingInformation.minNbOfParticipants
 
     // Peer id of the message sender
     let peerId = randomUUID()
@@ -67,17 +44,13 @@ export class Decentralized extends Server {
           case MessageTypes.ClientConnected: {
             this.connections = this.connections.set(peerId, ws)
 
-            // Answer with client id in an AssignNodeID message
-            const msg: AssignNodeID = {
-              type: MessageTypes.AssignNodeID,
-              id: peerId
+            // Answer with client id in an NewNodeInfo message
+            const msg: messages.NewDecentralizedNodeInfo = {
+              type: MessageTypes.NewDecentralizedNodeInfo,
+              id: peerId,
+              waitForMoreParticipants: this.readyNodes.size  < minimumReadyPeers // ground work for #718
             }
-            debug("peer ${peerId} joined ${task.id}");
-
-            // Add the new task and its set of nodes
-            if (!this.readyNodes.has(task.id)) {
-              this.readyNodes = this.readyNodes.set(task.id, Set())
-            }
+            debug(`peer ${peerId} joined ${this.task.id}`);
 
             ws.send(msgpack.encode(msg), { binary: true })
             break
@@ -85,13 +58,9 @@ export class Decentralized extends Server {
           // Send by peers at the beginning of each training round to get the list
           // of active peers for this round.
           case MessageTypes.PeerIsReady: {
-            const peers = this.readyNodes.get(task.id)?.add(peerId)
-            if (peers === undefined) {
-              throw new Error(`task ${task.id} doesn't exist in ready buffer`)
-            }
-            this.readyNodes = this.readyNodes.set(task.id, peers)
+            const peers = this.readyNodes.add(peerId)
             if (peers.size >= minimumReadyPeers) {
-              this.readyNodes = this.readyNodes.set(task.id, Set())
+              this.readyNodes = Set()
 
               peers
                 .map((id) => {
@@ -110,6 +79,8 @@ export class Decentralized extends Server {
                   return [conn, encoded] as [WebSocket, Buffer]
                 }).forEach(([conn, encoded]) => { conn.send(encoded) }
                 )
+            } else {
+              this.readyNodes = peers
             }
             break
           }

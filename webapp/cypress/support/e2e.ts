@@ -51,13 +51,13 @@ export function basicTask(
     id: "task",
     trainingInformation: {
       ...info,
-      modelID: "task",
       epochs: 1,
       batchSize: 1,
       roundDuration: 1,
       validationSplit: 1,
       tensorBackend: "tfjs",
       scheme: "local",
+      minNbOfParticipants: 1,
     },
     displayInformation: {
       taskTitle: "task",

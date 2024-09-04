@@ -181,14 +181,6 @@ export const trainingInformation: FormSection = {
   title: 'Training Parameters',
   fields: [
     {
-      id: 'modelID',
-      name: 'Model IDentifier',
-      yup: yup.string().required(),
-      as: 'input',
-      type: 'text',
-      default: 'mnist-model'
-    },
-    {
       id: 'epochs',
       name: 'Epochs',
       yup: yup.number().integer().positive().required(),
@@ -213,7 +205,7 @@ export const trainingInformation: FormSection = {
       default: '30'
     },
     {
-      id: 'minimumReadyPeers',
+      id: 'minNbOfParticipants',
       name: 'Minimum # of Peers',
       description: 'Minimum # of Ready Peers before Aggregation',
       yup: yup
@@ -222,10 +214,7 @@ export const trainingInformation: FormSection = {
         .positive(),
       as: 'input',
       type: 'number',
-      default: '3',
-      dependencies: {
-        scheme: 'Decentralized'
-      }
+      default: '3'
     },
     {
       id: 'modelTrainData',

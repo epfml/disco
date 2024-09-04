@@ -2,11 +2,8 @@ import * as tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 
 import type {
-  BatchLogs,
-  EpochLogs,
-  Model,
-  Task,
-  WeightsContainer,
+  BatchLogs, EpochLogs, Model, Task,
+  WeightsContainer
 } from "../index.js";
 import { privacy } from "../index.js";
 import { Client } from "../client/index.js";
@@ -23,15 +20,23 @@ export class Trainer {
   readonly #roundDuration: number;
   readonly #epochs: number;
   readonly #privacy: Task["trainingInformation"]["privacy"];
-
+  #model: Model | undefined;
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
   >;
+  
+  public get model(): Model {
+    if (this.#model === undefined) throw new Error("trainer's model has not been set")
+    return this.#model
+  }
+
+  public set model(model: Model) {
+    this.#model = model
+  }
 
   constructor(
     task: Task,
-    public readonly model: Model,
     client: Client,
   ) {
     this.#client = client;
@@ -79,7 +84,7 @@ export class Trainer {
     const totalRound = Math.trunc(this.#epochs / this.#roundDuration);
     let previousRoundWeights: WeightsContainer | undefined;
     for (let round = 0; round < totalRound; round++) {
-      await this.#client.onRoundBeginCommunication(this.model.weights, round);
+      await this.#client.onRoundBeginCommunication();
 
       yield this.#runRound(dataset, valDataset);
 
@@ -92,8 +97,7 @@ export class Trainer {
         );
 
       const networkWeights = await this.#client.onRoundEndCommunication(
-        localWeights,
-        round,
+        localWeights
       );
 
       this.model.weights = previousRoundWeights = networkWeights;

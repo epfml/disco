@@ -7,8 +7,7 @@ it("can test titanic", () => {
 
   cy.visit("/#/evaluate");
   cy.contains("button", "download").click();
-
-  cy.contains("titanic-model").parents().contains("button", "test").click();
+  cy.contains("button", "test").click();
 
   cy.contains("label", "select CSV").selectFile(
     "../datasets/titanic_train.csv",
@@ -29,8 +28,7 @@ it("can test lus_covid", () => {
 
   cy.visit("/#/evaluate");
   cy.contains("button", "download").click();
-
-  cy.contains("lus-covid-model").parents().contains("button", "test").click();
+  cy.contains("button", "test").click();
 
   cy.task<string[]>("readdir", "../datasets/lus_covid/COVID+/").then((files) =>
     cy.contains("label", "select images").selectFile(files),
@@ -46,13 +44,12 @@ it("can test lus_covid", () => {
   cy.contains("button", "download as csv", { timeout: 10_000 });
 });
 
-it("can start and stop training of wikitext", () => {
+it("can start and stop testing of wikitext", () => {
   setupServerWith(defaultTasks.wikitext);
 
   cy.visit("/#/evaluate");
   cy.contains("button", "download").click();
-
-  cy.contains("llm-raw-model").parents().contains("button", "test").click();
+  cy.contains("button", "test").click();
 
   cy.contains("label", "select text").selectFile(
     "../datasets/wikitext/wiki.test.tokens",

@@ -16,6 +16,7 @@ type ThresholdType = 'relative' | 'absolute'
 export class MeanAggregator extends Aggregator<WeightsContainer> {
   readonly #threshold: number;
   readonly #thresholdType: ThresholdType;
+  #minNbOfParticipants: number | undefined;
 
   /**
    * Create a mean aggregator that averages all weight updates received when a specified threshold is met.
@@ -77,12 +78,21 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
 
   /** Checks whether the contributions buffer is full. */
   override isFull(): boolean {
+    // Make sure that we are over the minimum number of participants
+    // if specified
+    if (this.#minNbOfParticipants !== undefined &&
+      this.nodes.size < this.#minNbOfParticipants) return false
+
     const thresholdValue =
       this.#thresholdType == 'relative'
         ? this.#threshold * this.nodes.size
         : this.#threshold;
 
     return (this.contributions.get(0)?.size ?? 0) >= thresholdValue;
+  }
+
+  set minNbOfParticipants(minNbOfParticipants: number) {
+    this.#minNbOfParticipants = minNbOfParticipants
   }
 
   override add(
@@ -94,11 +104,7 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
     if (currentContributions !== 0)
       throw new Error("only a single communication round");
 
-    if (!this.nodes.has(nodeId) || !this.isWithinRoundCutoff(round)) {
-      if (!this.nodes.has(nodeId)) debug(`contribution rejected because node ${nodeId} is not registered`);
-      if (!this.isWithinRoundCutoff(round)) debug(`contribution rejected because round ${round} is not within cutoff`);
-      return false;  
-    }
+    if (!this.isValidContribution(nodeId, round)) return false
 
     this.log(
       this.contributions.hasIn([0, nodeId])
@@ -122,6 +128,7 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
     this.log(AggregationStep.AGGREGATE);
 
     const result = aggregation.avg(currentContributions.values());
+    // Emitting the event runs the superclass' callback to increment the round
     this.emit('aggregation', result);
   }
 

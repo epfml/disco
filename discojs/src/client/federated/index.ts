@@ -1,2 +1,2 @@
-export { Base as FederatedClient } from './base.js'
+export { FederatedClient } from './federated_client.js'
 export * as messages from './messages.js'

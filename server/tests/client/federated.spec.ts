@@ -1,5 +1,5 @@
 import type * as http from "http";
-
+import {expect} from 'chai'
 import {
   aggregator as aggregators,
   client as clients,
@@ -42,12 +42,12 @@ describe("federated client", () => {
           summary: { overview: '', preview: '' }
         },
         trainingInformation: {
-          modelID: "irrelevant",
           epochs: 1,
           roundDuration: 1,
           validationSplit: 0,
           batchSize: 1,
           scheme: "federated",
+          minNbOfParticipants: 2,
           dataType: "tabular",
           tensorBackend: 'tfjs'
         },
@@ -55,9 +55,11 @@ describe("federated client", () => {
       aggregators.getAggregator(TASK),
     );
 
+    let model
     try {
-      await client.connect();
+      model = await client.connect();
     } catch {
+      expect(model).to.be.undefined
       return;
     }
 

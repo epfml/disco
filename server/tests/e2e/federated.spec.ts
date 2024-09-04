@@ -3,7 +3,7 @@ import { List, Repeat } from "immutable";
 import type * as http from "node:http";
 import path from "node:path";
 
-import type { WeightsContainer } from "@epfml/discojs";
+import type { RoundLogs, RoundStatus, WeightsContainer } from "@epfml/discojs";
 import { Disco, defaultTasks } from "@epfml/discojs";
 import { loadCSV, loadImagesInDir, loadText } from "@epfml/discojs-node";
 
@@ -27,7 +27,7 @@ describe("end-to-end federated", () => {
   let server: http.Server;
   let url: URL;
   beforeEach(async function () {
-    this.timeout("5s");
+    this.timeout("10s");
     [server, url] = await Server.of(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
@@ -48,10 +48,9 @@ describe("end-to-end federated", () => {
       await loadImagesInDir(path.join(DATASET_DIR, "CIFAR10"))
     ).zip(Repeat("cat"));
 
-    const disco = await Disco.fromTask(defaultTasks.cifar10.getTask(), url, {
-      scheme: "federated",
-    });
-
+    const disco = new Disco(defaultTasks.cifar10.getTask(), url, {
+      scheme: "federated"
+    })
     await disco.trainFully(["image", dataset]);
     await disco.close();
 
@@ -68,7 +67,7 @@ describe("end-to-end federated", () => {
     const titanicTask = defaultTasks.titanic.getTask();
     titanicTask.trainingInformation.epochs =
       titanicTask.trainingInformation.roundDuration = 5;
-    const disco = await Disco.fromTask(titanicTask, url, {
+    const disco = new Disco(titanicTask, url, {
       scheme: "federated",
     });
 
@@ -90,7 +89,7 @@ describe("end-to-end federated", () => {
     return disco.trainer.model.weights;
   }
 
-  async function wikitextUser(): Promise<void> {
+  async function wikitextUser(): Promise<WeightsContainer> {
     const task = defaultTasks.wikitext.getTask();
     task.trainingInformation.epochs = 2;
 
@@ -98,7 +97,7 @@ describe("end-to-end federated", () => {
       path.join(DATASET_DIR, "wikitext", "wiki.train.tokens"),
     ).chain(loadText(path.join(DATASET_DIR, "wikitext", "wiki.valid.tokens")));
 
-    const disco = await Disco.fromTask(task, url, { scheme: "federated" });
+    const disco = new Disco(task, url, { scheme: "federated" });
 
     const logs = List(
       await arrayFromAsync(disco.trainByRound(["text", dataset])),
@@ -108,6 +107,7 @@ describe("end-to-end federated", () => {
     expect(logs.first()?.epochs.first()?.training.loss).to.be.above(
       logs.last()?.epochs.last()?.training.loss as number,
     );
+    return disco.trainer.model.weights
   }
 
   async function lusCovidUser(): Promise<WeightsContainer> {
@@ -125,7 +125,7 @@ describe("end-to-end federated", () => {
     ];
     const dataset = positive.chain(negative);
 
-    const disco = await Disco.fromTask(lusCovidTask, url, {
+    const disco = new Disco(lusCovidTask, url, {
       scheme: "federated",
     });
 
@@ -152,7 +152,7 @@ describe("end-to-end federated", () => {
   });
 
   it("two titanic users reach consensus", async function () {
-    this.timeout(30_000);
+    this.timeout(5_000);
 
     const [m1, m2] = await Promise.all([titanicUser(), titanicUser()]);
     assert.isTrue(m1.equals(m2));
@@ -163,10 +163,143 @@ describe("end-to-end federated", () => {
     const [m1, m2] = await Promise.all([lusCovidUser(), lusCovidUser()]);
     assert.isTrue(m1.equals(m2));
   });
-
-  it("trains wikitext", async function () {
+  
+  it("two wikitext reach consensus", async function () {
     this.timeout("3m");
+    
+    const [m1, m2] = await Promise.all([wikitextUser(), wikitextUser()]);
+    assert.isTrue(m1.equals(m2))
+  });
 
-    await wikitextUser();
+  it("clients emit expected statuses", async function () {
+    this.timeout(15_000);
+    const lusCovidTask = defaultTasks.lusCovid.getTask();
+    lusCovidTask.trainingInformation.epochs = 8;
+    lusCovidTask.trainingInformation.roundDuration = 2;
+    lusCovidTask.trainingInformation.minNbOfParticipants = 2;
+
+    const [positive, negative] = [
+      (
+        await loadImagesInDir(path.join(DATASET_DIR, "lus_covid", "COVID+"))
+      ).zip(Repeat("COVID-Positive")),
+      (
+        await loadImagesInDir(path.join(DATASET_DIR, "lus_covid", "COVID-"))
+      ).zip(Repeat("COVID-Negative")),
+    ];
+    const dataset = positive.chain(negative);
+
+    /**
+     * When disco.trainByRound is called for the first time, the client connects to the server
+     * which returns the latest model, current round and nb of participants.
+     * Then at each round the event cycle is:
+     * a) onRoundBeingCommunication which updates the status to TRAINING
+     * b) local training (the status remains TRAINING)
+     * c) onRoundEndCommunication which sends the local update and 
+     * receives the global weights while emitting the status UPDATE
+     * 
+     * Given this, it is important to note that calling disco.trainByRound().next()
+     * for the first time will perform a) and then b) where it stops and yields the round logs.
+     * Thus, c) isn't done and the model aggregation by the server is not performed during this first call to next().
+     * 
+     * Calling next() again will then do c), and back to a) and b).
+     * 
+     * In this test the timeline is:
+     * - User 1 joins the task by themselves
+     * - User 2 joins
+     * - User 1 leaves
+     * - User 3 joins
+     * - User 2 & 3 leave
+     */
+    const TRAINING: RoundStatus = "Training the model on the data you connected"
+    const WAITING: RoundStatus = "Waiting for more participants"
+    const UPDATING: RoundStatus = "Updating the model with other participants' models"
+    const statusUpdateTime = 500
+
+    // Create User 1
+    const discoUser1 = new Disco(lusCovidTask, url, { scheme: "federated" });
+    let statusUser1: RoundStatus | undefined;
+    discoUser1.on("status", status => { statusUser1 = status })
+    const generatorUser1 = discoUser1.trainByRound(["image", dataset])
+    
+    // Have User 1 join the task and train locally for one round
+    const logUser1Round1 = await generatorUser1.next()
+    expect(logUser1Round1.done).to.be.false
+    // User 1 did a) and b) so their status should be Training
+    expect((logUser1Round1.value as RoundLogs).participants).equal(1)
+
+    // Calling next() a 2nd time makes User 1 go to c) where the client should
+    // stay stuck awaiting until another participant joins
+    const logUser1Round2Promise = generatorUser1.next()
+    await new Promise((res,_) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
+    expect(statusUser1).equal(WAITING)
+
+    // Create User 2
+    const discoUser2 = new Disco(lusCovidTask, url, { scheme: "federated" });
+    let statusUser2: RoundStatus | undefined;
+    discoUser2.on("status", status => { statusUser2 = status })
+    const generatorUser2 = discoUser2.trainByRound(["image", dataset])
+
+    // Have User 2 join the task and train for one round
+    const logUser2Round1 = await generatorUser2.next()
+    expect(logUser2Round1.done).to.be.false
+    expect((logUser2Round1.value as RoundLogs).participants).equal(2)
+    // User 2 did a) and b)
+    expect(statusUser2).equal(TRAINING)
+    // User 1 is still in c) now waiting for user 2 to share their local update
+    // and for the server to aggregate the local updates
+    expect(statusUser1).equal(UPDATING)
+
+    // Proceed with round 2
+    // the server should answer with the new global weights
+    // and users should train locally on the new weights
+    const logUser2Round2 = await generatorUser2.next()
+    const logUser1Round2 = await logUser1Round2Promise // the promise can resolve now
+    expect(logUser1Round2.done).to.be.false
+    expect(logUser2Round2.done).to.be.false
+    expect((logUser1Round2.value as RoundLogs).participants).equal(2)
+    expect((logUser2Round2.value as RoundLogs).participants).equal(2)
+    // User 1 and 2 did c), a) and b)
+    expect(statusUser1).equal(TRAINING)
+    expect(statusUser2).equal(TRAINING)
+    
+    // Have user 1 quit the session
+    await discoUser1.close()
+    // Make user 2 go to c)
+    const logUser2Round3Promise = generatorUser2.next()
+    await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
+    expect(statusUser2).equal(WAITING)
+
+    // Create User 3
+    const discoUser3 = new Disco(lusCovidTask, url, { scheme: "federated" });
+    let statusUser3: RoundStatus | undefined;
+    discoUser3.on("status", status => { statusUser3 = status })
+    const generatorUser3 = discoUser3.trainByRound(["image", dataset])
+
+    // User 3 joins mid-training and trains one local round
+    const logUser3Round1 = await generatorUser3.next()
+    expect(logUser3Round1.done).to.be.false
+    expect((logUser3Round1.value as RoundLogs).participants).equal(2)
+    // User 3 did a) and b)
+    expect(statusUser3).equal(TRAINING)
+    // User 2 is still in c) waiting for user 3 to share their local update
+    // and for the server to aggregate the local updates
+    expect(statusUser2).equal(UPDATING)
+    
+    // User 3 sends their weights to the server
+    const logUser3Round3 = await generatorUser3.next()
+    // the server should accept user 3's weights (should not be outdated) and aggregate the global weights
+    const logUser2Round3 = await logUser2Round3Promise // the promise can resolve now
+    if (logUser3Round3.done || logUser2Round3.done)
+      throw Error("User 1 or 2 finished training at the 3nd round")
+    expect(logUser2Round3.value.participants).equal(2)
+    expect(logUser3Round3.value.participants).equal(2)
+    // both user 2 and 3 did c), a) and are now in b)
+    expect(statusUser2).equal(TRAINING)
+    expect(statusUser3).equal(TRAINING)
+    
+    await discoUser2.close()
+    await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
+    expect(statusUser3).equal(WAITING)
+    await discoUser3.close()
   });
 });

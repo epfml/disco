@@ -27,9 +27,14 @@
       v-show="trainingStore.step === 3"
       :task="task"
       :dataset="dataset"
+      @model="(m) => (trainedModel = m)"
     />
 
-    <Finished v-show="trainingStore.step === 4" :task="task" />
+    <Finished
+      v-show="trainingStore.step === 4"
+      :task="task"
+      :model="trainedModel"
+    />
   </div>
   <TrainingButtons />
 </template>
@@ -41,6 +46,7 @@ import { useRouter, useRoute } from "vue-router";
 
 import type {
   Dataset,
+  Model,
   Tabular,
   TaskID,
   Text,
@@ -128,4 +134,6 @@ const dataset = computed<TypedLabeledDataset | undefined>(() => {
 
   return undefined;
 });
+
+const trainedModel = ref<Model>();
 </script>

@@ -23,7 +23,6 @@ export const cifar10: TaskProvider = {
         sampleDatasetInstructions: 'Opening the link should start downloading a zip file which you can unzip. To connect the data, use the CSV option below and select the file named "cifar10-labels.csv". You can now connect the images located in the "CIFAR10" folder. Note that there are only 24 images in this sample dataset which is far too few to successfully train a machine learning model.'
       },
       trainingInformation: {
-        modelID: 'cifar10-model',
         epochs: 10,
         roundDuration: 10,
         validationSplit: 0.2,
@@ -36,7 +35,7 @@ export const cifar10: TaskProvider = {
         scheme: 'decentralized',
         privacy: { clippingRadius: 20, noiseScale: 1 },
         decentralizedSecure: true,
-        minimumReadyPeers: 3,
+        minNbOfParticipants: 3,
         maxShareValue: 100,
         tensorBackend: 'tfjs'
       }

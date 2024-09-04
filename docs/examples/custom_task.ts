@@ -17,7 +17,6 @@ const customTask: TaskProvider = {
         }
       },
       trainingInformation: {
-        modelID: 'custom-model',
         epochs: 5,
         roundDuration: 10,
         validationSplit: 0,
@@ -30,6 +29,7 @@ const customTask: TaskProvider = {
           'Output'
         ],
         scheme: 'federated',
+        minNbOfParticipants: 2,
         tensorBackend: 'tfjs',
         noiseScale: undefined,
         clippingRadius: undefined
@@ -75,7 +75,6 @@ async function runServer (): Promise<void> {
   // await disco.addTask({
   //   ...
   //   trainingInformation: {
-  //       modelID: 'test-model',
   //       epochs: 5,
   //       modelURL: 'https://example.com/path/to/your/model.json',
   //   }

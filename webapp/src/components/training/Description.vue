@@ -70,9 +70,6 @@ interface Props {
 }
 const props = defineProps<Props>()
 
-// filter the fields we do not wish to display
-trainingInformation.fields = trainingInformation.fields.filter((field) => field.id !== 'modelID')
-
 const overviewText = computed(() => {
   if (props.task.displayInformation.summary === undefined) {
     return undefined

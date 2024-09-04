@@ -25,7 +25,7 @@ async function main(): Promise<void> {
     );
   
     // Initialize a Disco instance and start training a language model
-    const disco = await Disco.fromTask(task, url, { scheme: 'federated' })
+    const disco = new Disco(task, url, { scheme: 'federated' })
     await disco.trainFully(["text", dataset]);
   
     // Get the model and save the trained model

@@ -15,12 +15,12 @@ describe('text preprocessing', function () {
       summary: { overview: '', preview: '' }
     },
       trainingInformation: {
-        modelID: 'model-id',
         epochs: 1,
         roundDuration: 1,
         validationSplit: 0,
         batchSize: 8,
         scheme: 'local',
+        minNbOfParticipants: 1,
         dataType: 'text',
         tokenizer: 'Xenova/gpt2',
         tensorBackend: 'gpt'

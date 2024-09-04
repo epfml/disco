@@ -36,13 +36,16 @@ describe("training page", () => {
     );
     cy.contains("button", "next").click();
 
-    cy.contains("button", "train alone").click();
+    cy.contains("button", "locally").click();
+    cy.contains("button", "start training").click();
     cy.contains("h6", "epochs")
       .next({ timeout: 40_000 })
       .should("have.text", "10 / 10");
     cy.contains("button", "next").click();
 
     cy.contains("button", "test model").click();
+
+    cy.contains("Titanic Prediction");
   });
 
   it("can start and stop training of lus_covid", () => {
@@ -76,7 +79,8 @@ describe("training page", () => {
     );
     cy.contains("button", "next").click();
 
-    cy.contains("button", "train alone").click();
+    cy.contains("button", "locally").click();
+    cy.contains("button", "start training").click();
     cy.contains("h6", "current batch")
       .next({ timeout: 40_000 })
       .should("have.text", "2");

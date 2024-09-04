@@ -1,9 +1,15 @@
 import { weights } from '../../serialization/index.js'
 import { type SignalData } from './peer.js'
 import { isNodeID, type NodeID } from '../types.js'
-import { type, type ClientConnected, type AssignNodeID, hasMessageType } from '../messages.js'
+import { type, type ClientConnected, hasMessageType } from '../messages.js'
+
 
 /// Phase 0 communication (between server and peers)
+export interface NewDecentralizedNodeInfo {
+  type: type.NewDecentralizedNodeInfo
+  id: NodeID
+  waitForMoreParticipants: boolean
+}
 
 // WebRTC signal to forward to other node
 export interface SignalForPeer {
@@ -35,7 +41,7 @@ export interface Payload {
 /// Phase 2 communication (between peers)
 
 export type MessageFromServer =
-  AssignNodeID |
+  NewDecentralizedNodeInfo |
   SignalForPeer |
   PeersForRound
 
@@ -52,8 +58,10 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
   }
 
   switch (o.type) {
-    case type.AssignNodeID:
-      return 'id' in o && isNodeID(o.id)
+    case type.NewDecentralizedNodeInfo:
+      return 'id' in o && isNodeID(o.id) &&
+        'waitForMoreParticipants' in o &&
+        typeof o.waitForMoreParticipants === 'boolean'
     case type.SignalForPeer:
       return 'peer' in o && isNodeID(o.peer) &&
         'signal' in o // TODO check signal content?
