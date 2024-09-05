@@ -68,7 +68,9 @@
               </div>
             </template>
 
-            <div v-html="task.displayInformation.summary.preview" />
+            <div>
+              {{ task.displayInformation.summary.preview }}
+            </div>
           </ButtonsCard>
         </div>
       </div>
