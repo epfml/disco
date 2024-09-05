@@ -8,8 +8,10 @@ import {
   Task,
   TrainingInformation,
   processing,
+  Dataset,
 } from "../index.js";
 import type {
+  Batched,
   TypedBatchedPreprocessedLabeledDataset,
   TypedLabeledDataset,
 } from "../index.js";
@@ -23,6 +25,9 @@ import { RoundLogs, Trainer } from "./trainer.js";
 interface DiscoConfig {
   scheme: TrainingInformation["scheme"];
   logger: Logger;
+
+  // keep preprocessed dataset in memory while training
+  preprocessOnce: boolean;
 }
 
 export type RoundStatus = 'not enough participants' | // Server notification to wait for more participants
@@ -40,6 +45,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   readonly #client: clients.Client;
   readonly #logger: Logger;
   readonly #task: Task;
+  readonly #preprocessOnce: boolean;
 
   /**
    * Connect to the given task and get ready to train.
@@ -52,10 +58,11 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
     clientConfig: clients.Client | URL | { aggregator: Aggregator; url: URL },
     config: Partial<DiscoConfig>
   ) {
-    super()
-    const { scheme, logger } = {
+    super();
+    const { scheme, logger, preprocessOnce } = {
       scheme: task.trainingInformation.scheme,
       logger: new ConsoleLogger(),
+      preprocessOnce: false,
       ...config,
     };
 
@@ -76,6 +83,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
       throw new Error("client not setup for given task");
 
     this.#logger = logger;
+    this.#preprocessOnce = preprocessOnce;
     this.#client = client;
     this.#task = task;
     this.trainer = new Trainer(task, client)
@@ -131,7 +139,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
     this.#logger.success("Training started");
 
     const [trainingDataset, validationDataset] =
-      await this.#preprocessBatchAndSplit(dataset);
+      await this.#preprocessSplitAndBatch(dataset);
 
     // the client fetches the latest weights upon connection
     this.trainer.model = await this.#client.connect();
@@ -177,7 +185,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
     await this.#client.disconnect();
   }
 
-  async #preprocessBatchAndSplit(
+  async #preprocessSplitAndBatch(
     dataset: TypedLabeledDataset,
   ): Promise<
     [
@@ -185,31 +193,39 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
       TypedBatchedPreprocessedLabeledDataset,
     ]
   > {
+    const splitAndBatch = async <T>(
+      d: Dataset<T>,
+    ): Promise<[Dataset<Batched<T>>, Dataset<Batched<T>>]> => {
+      const [training, validation] = (
+        this.#preprocessOnce ? new Dataset(await arrayFromAsync(d)) : d
+      ).split(validationSplit);
+
+      return [
+        training.batch(batchSize).cached(),
+        validation.batch(batchSize).cached(),
+      ];
+    };
+
     const preprocessed = await processing.preprocess(this.#task, dataset);
+
     const { batchSize, validationSplit } = this.#task.trainingInformation;
     switch (preprocessed[0]) {
       case "image": {
-        const [training, validation] = preprocessed[1]
-          .split(validationSplit)
-          .map((d) => d.batch(batchSize).cached());
+        const [training, validation] = await splitAndBatch(preprocessed[1]);
         return [
           ["image", training],
           ["image", validation],
         ];
       }
       case "tabular": {
-        const [training, validation] = preprocessed[1]
-          .split(validationSplit)
-          .map((d) => d.batch(batchSize).cached());
+        const [training, validation] = await splitAndBatch(preprocessed[1]);
         return [
           ["tabular", training],
           ["tabular", validation],
         ];
       }
       case "text": {
-        const [training, validation] = preprocessed[1]
-          .split(validationSplit)
-          .map((d) => d.batch(batchSize).cached());
+        const [training, validation] = await splitAndBatch(preprocessed[1]);
         return [
           ["text", training],
           ["text", validation],
@@ -217,4 +233,11 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
       }
     }
   }
+}
+
+// Array.fromAsync not yet widely used (2024)
+async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
+  const ret: T[] = [];
+  for await (const e of iter) ret.push(e);
+  return ret;
 }

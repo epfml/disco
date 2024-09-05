@@ -202,7 +202,7 @@ describe('end-to-end decentralized', function () {
     const statusUpdateTime = 500 // allow some time for the client to update their status
 
     // Create User 1
-    const discoUser1 = new Disco(lusCovidTask, url, { });
+    const discoUser1 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser1 = new Queue<RoundStatus>();
     discoUser1.on("status", status => { statusUser1.put(status) })
     const generatorUser1 = discoUser1.trainByRound(["image", dataset])
@@ -225,7 +225,7 @@ describe('end-to-end decentralized', function () {
     expect(await statusUser1.next()).equal("not enough participants") // but has to wait for more participants
 
     // Create User 2
-    const discoUser2 = new Disco(lusCovidTask, url, { });
+    const discoUser2 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser2 = new Queue<RoundStatus>();
     discoUser2.on("status", status => { statusUser2.put(status) })
     const generatorUser2 = discoUser2.trainByRound(["image", dataset])
@@ -271,7 +271,7 @@ describe('end-to-end decentralized', function () {
     expect(await statusUser2.next()).equal("not enough participants")
 
     // Create User 3
-    const discoUser3 = new Disco(lusCovidTask, url, { });
+    const discoUser3 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser3 = new Queue<RoundStatus>();
     discoUser3.on("status", status => { statusUser3.put(status) })
     const generatorUser3 = discoUser3.trainByRound(["image", dataset])
@@ -308,5 +308,5 @@ describe('end-to-end decentralized', function () {
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(await statusUser3.next()).equal("not enough participants")
     await discoUser3.close()
-  }).timeout("5m");
+  }).timeout("1m");
 })
