@@ -71,7 +71,8 @@ describe("end-to-end federated", () => {
     ).zip(Repeat("cat"));
 
     const disco = new Disco(defaultTasks.cifar10.getTask(), url, {
-      scheme: "federated"
+      scheme: "federated",
+      preprocessOnce: true,
     })
     await disco.trainFully(["image", dataset]);
     await disco.close();
@@ -149,6 +150,7 @@ describe("end-to-end federated", () => {
 
     const disco = new Disco(lusCovidTask, url, {
       scheme: "federated",
+      preprocessOnce: true,
     });
 
     const logs = List(
@@ -238,7 +240,10 @@ describe("end-to-end federated", () => {
     const UPDATING: RoundStatus = "Updating the model with other participants' models"
 
     // Create User 1
-    const discoUser1 = new Disco(lusCovidTask, url, { scheme: "federated" });
+    const discoUser1 = new Disco(lusCovidTask, url, {
+      scheme: "federated",
+      preprocessOnce: true,
+    });
     const statusUser1 = new Queue<RoundStatus>();
     discoUser1.on("status", (status) => statusUser1.put(status))
     const generatorUser1 = discoUser1.trainByRound(["image", dataset])
@@ -255,7 +260,10 @@ describe("end-to-end federated", () => {
     expect(await statusUser1.next()).equal(WAITING)
 
     // Create User 2
-    const discoUser2 = new Disco(lusCovidTask, url, { scheme: "federated" });
+    const discoUser2 = new Disco(lusCovidTask, url, {
+      scheme: "federated",
+      preprocessOnce: true,
+    });
     const statusUser2 = new Queue<RoundStatus>();
     discoUser2.on("status", (status) => statusUser2.put(status))
     const generatorUser2 = discoUser2.trainByRound(["image", dataset])
@@ -294,7 +302,10 @@ describe("end-to-end federated", () => {
     expect(await statusUser2.next()).equal(WAITING)
 
     // Create User 3
-    const discoUser3 = new Disco(lusCovidTask, url, { scheme: "federated" });
+    const discoUser3 = new Disco(lusCovidTask, url, {
+      scheme: "federated",
+      preprocessOnce: true,
+    });
     const statusUser3 = new Queue<RoundStatus>();
     discoUser3.on("status", (status) => statusUser3.put(status))
     const generatorUser3 = discoUser3.trainByRound(["image", dataset])
