@@ -5,11 +5,8 @@ import type {
   Task,
   TypedRawDataset,
   TypedRawWithoutLabelDataset,
-} from "../index.js";
-import {
-  datasetToData,
-  labeledDatasetToData,
-} from "../dataset/data/helpers.js";
+} from "./index.js";
+import { datasetToData, labeledDatasetToData } from "./dataset/data/helpers.js";
 
 function intoTFDataset<T extends tf.TensorContainer>(
   iter: AsyncIterable<T>,

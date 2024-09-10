@@ -11,7 +11,7 @@ export * as aggregator from './aggregator/index.js'
 export { WeightsContainer, aggregation } from './weights/index.js'
 export { Logger, ConsoleLogger } from './logging/index.js'
 export { Disco, RoundLogs, RoundStatus } from './training/index.js'
-export { Validator } from './validation/index.js'
+export { Validator } from './validator.js'
 
 export { Model, BatchLogs, EpochLogs, ValidationMetrics } from './models/index.js'
 export * as models from './models/index.js'
