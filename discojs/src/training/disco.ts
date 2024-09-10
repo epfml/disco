@@ -5,15 +5,15 @@ import {
   ConsoleLogger,
   EpochLogs,
   Logger,
-  Task,
   TrainingInformation,
   processing,
   Dataset,
 } from "../index.js";
 import type {
   Batched,
-  TypedBatchedPreprocessedLabeledDataset,
-  TypedLabeledDataset,
+  Task,
+  TypedBatchedModelEncodedDataset,
+  TypedRawDataset,
 } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
@@ -92,7 +92,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   /** Train on dataset, yielding logs of every round. */
-  async *trainByRound(dataset: TypedLabeledDataset): AsyncGenerator<RoundLogs> {
+  async *trainByRound(dataset: TypedRawDataset): AsyncGenerator<RoundLogs> {
     for await (const round of this.train(dataset)) {
       const [roundGen, roundLogs] = async_iterator.split(round);
       for await (const epoch of roundGen) for await (const _ of epoch);
@@ -101,7 +101,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   /** Train on dataset, yielding logs of every epoch. */
-  async *trainByEpoch(dataset: TypedLabeledDataset): AsyncGenerator<EpochLogs> {
+  async *trainByEpoch(dataset: TypedRawDataset): AsyncGenerator<EpochLogs> {
     for await (const round of this.train(dataset)) {
       for await (const epoch of round) {
         const [epochGen, epochLogs] = async_iterator.split(epoch);
@@ -112,15 +112,13 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   /** Train on dataset, yielding logs of every batch. */
-  async *trainByBatch(
-    dataTuple: TypedLabeledDataset,
-  ): AsyncGenerator<BatchLogs> {
+  async *trainByBatch(dataTuple: TypedRawDataset): AsyncGenerator<BatchLogs> {
     for await (const round of this.train(dataTuple))
       for await (const epoch of round) yield* epoch;
   }
 
   /** Run whole train on dataset. */
-  async trainFully(dataTuple: TypedLabeledDataset): Promise<void> {
+  async trainFully(dataTuple: TypedRawDataset): Promise<void> {
     for await (const round of this.train(dataTuple))
       for await (const epoch of round) for await (const _ of epoch);
   }
@@ -132,7 +130,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
    * If you don't care about the whole process, use one of the other train methods.
    **/
   async *train(
-    dataset: TypedLabeledDataset,
+    dataset: TypedRawDataset,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
@@ -186,11 +184,11 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   async #preprocessSplitAndBatch(
-    dataset: TypedLabeledDataset,
+    dataset: TypedRawDataset,
   ): Promise<
     [
-      TypedBatchedPreprocessedLabeledDataset,
-      TypedBatchedPreprocessedLabeledDataset,
+      TypedBatchedModelEncodedDataset,
+      TypedBatchedModelEncodedDataset,
     ]
   > {
     const splitAndBatch = async <T>(

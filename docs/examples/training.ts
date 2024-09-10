@@ -2,7 +2,7 @@ import { Repeat } from 'immutable'
 import * as path from 'node:path'
 import '@tensorflow/tfjs-node'
 
-import type { Dataset, Image, Task, TypedLabeledDataset } from '@epfml/discojs'
+import type { Dataset, Image, Task, TypedRawDataset } from '@epfml/discojs'
 import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
 import { loadCSV, loadImagesInDir } from '@epfml/discojs-node'
 import { Server } from 'server'
@@ -11,7 +11,7 @@ import { Server } from 'server'
  * Example of discojs API, we load data, build the appropriate loggers, the disco object
  * and finally start training.
  */
-async function runUser (url: URL, task: Task, dataset: TypedLabeledDataset): Promise<void> {
+async function runUser (url: URL, task: Task, dataset: TypedRawDataset): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
   const disco = new Disco(task, url, { scheme: 'federated' })
 
@@ -35,7 +35,7 @@ async function main (): Promise<void> {
   // Choose the task and load local data
   // Make sure you first ran ./get_training_data
   let task: Task | undefined
-  let dataset: TypedLabeledDataset
+  let dataset: TypedRawDataset
   switch (NAME) {
     case 'titanic': {
       task = tasks.get('titanic')

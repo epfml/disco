@@ -4,7 +4,7 @@ import type {
   Batched,
   Dataset,
   DataType,
-  DataTypeToPreprocessedLabeled,
+  ModelEncoded,
   WeightsContainer,
 } from "../index.js";
 
@@ -37,8 +37,8 @@ export abstract class Model<D extends DataType = DataType>
    * @yields on every epoch, training can be stop by `return`ing or `throw`ing it
    */
   abstract train(
-    trainingDataset: Dataset<Batched<DataTypeToPreprocessedLabeled[D]>>,
-    validationDataset?: Dataset<Batched<DataTypeToPreprocessedLabeled[D]>>,
+    trainingDataset: Dataset<Batched<ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<ModelEncoded[D]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs>;
 
   /** Predict likely values */

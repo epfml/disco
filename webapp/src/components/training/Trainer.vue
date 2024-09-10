@@ -128,7 +128,7 @@ import type {
   RoundLogs,
   RoundStatus,
   Task,
-  TypedLabeledDataset,
+  TypedRawDataset,
 } from "@epfml/discojs";
 import { async_iterator, Disco } from "@epfml/discojs";
 
@@ -145,7 +145,7 @@ const toaster = useToaster();
 
 const props = defineProps<{
   task: Task;
-  dataset?: TypedLabeledDataset;
+  dataset?: TypedRawDataset;
 }>();
 const emit = defineEmits<{
   model: [Model];
