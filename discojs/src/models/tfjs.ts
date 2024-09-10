@@ -5,7 +5,7 @@ import {
   Batched,
   Dataset,
   DataType,
-  DataTypeToPreprocessedLabeled,
+  ModelEncoded,
   WeightsContainer,
 } from "../index.js";
 
@@ -39,8 +39,8 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
   }
 
   override async *train(
-    trainingDataset: Dataset<Batched<DataTypeToPreprocessedLabeled[D]>>,
-    validationDataset?: Dataset<Batched<DataTypeToPreprocessedLabeled[D]>>,
+    trainingDataset: Dataset<Batched<ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<ModelEncoded[D]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
     for await (const [batch, batchNumber] of trainingDataset.zip(Range())) {
@@ -59,7 +59,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
   }
 
   async #runBatch(
-    batch: Batched<DataTypeToPreprocessedLabeled[D]>,
+    batch: Batched<ModelEncoded[D]>,
   ): Promise<Omit<BatchLogs, "batch">> {
     const { xs, ys } = this.#batchToTF(batch);
 
@@ -87,7 +87,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
   }
 
   async #evaluate(
-    dataset: Dataset<Batched<DataTypeToPreprocessedLabeled[D]>>,
+    dataset: Dataset<Batched<ModelEncoded[D]>>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await this.model.evaluateDataset(
       intoTFDataset(dataset.map((batch) => this.#batchToTF(batch))),
@@ -171,7 +171,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
   }
 
   #batchToTF(
-    batch: Batched<DataTypeToPreprocessedLabeled[D]>,
+    batch: Batched<ModelEncoded[D]>,
   ): Record<"xs" | "ys", tf.Tensor> {
     const outputSize = tf.util.sizeFromShape(
       this.model.outputShape.map((dim) => {
@@ -184,7 +184,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
     switch (this.datatype) {
       case "image": {
         // cast as typescript doesn't reduce generic type
-        const b = batch as Batched<DataTypeToPreprocessedLabeled["image"]>;
+        const b = batch as Batched<ModelEncoded["image"]>;
 
         return tf.tidy(() => ({
           xs: tf.stack(
@@ -209,7 +209,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
       }
       case "tabular": {
         // cast as typescript doesn't reduce generic type
-        const b = batch as Batched<DataTypeToPreprocessedLabeled["tabular"]>;
+        const b = batch as Batched<ModelEncoded["tabular"]>;
 
         return {
           xs: tf.stack(
@@ -222,7 +222,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
       }
       case "text": {
         // cast as typescript doesn't reduce generic type
-        const b = batch as Batched<DataTypeToPreprocessedLabeled["text"]>;
+        const b = batch as Batched<ModelEncoded["text"]>;
 
         return {
           xs: tf.stack(

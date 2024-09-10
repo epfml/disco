@@ -3,8 +3,8 @@ import * as tf from "@tensorflow/tfjs";
 import type {
   Model,
   Task,
-  TypedDataset,
-  TypedLabeledDataset,
+  TypedRawDataset,
+  TypedRawWithoutLabelDataset,
 } from "../index.js";
 import {
   datasetToData,
@@ -31,7 +31,7 @@ export class Validator {
   }
 
   /** infer every line of the dataset and check that it is as labeled */
-  async *test(dataset: TypedLabeledDataset): AsyncGenerator<boolean> {
+  async *test(dataset: TypedRawDataset): AsyncGenerator<boolean> {
     const preprocessed = (
       await labeledDatasetToData(this.task, dataset)
     ).preprocess();
@@ -69,7 +69,9 @@ export class Validator {
   }
 
   /** use the model to predict every line of the dataset */
-  async *infer(dataset: TypedDataset): AsyncGenerator<number, void> {
+  async *infer(
+    dataset: TypedRawWithoutLabelDataset,
+  ): AsyncGenerator<number, void> {
     const data = await datasetToData(this.task, dataset);
 
     const batched = data.preprocess().batch().dataset;

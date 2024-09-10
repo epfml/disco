@@ -46,11 +46,12 @@ import { useRouter, useRoute } from "vue-router";
 
 import type {
   Dataset,
+  Image,
   Model,
   Tabular,
   TaskID,
   Text,
-  TypedLabeledDataset,
+  TypedRawDataset,
 } from "@epfml/discojs";
 
 import { useTrainingStore } from "@/store/training";
@@ -112,7 +113,7 @@ const labels = computed(() => Set(task.value?.trainingInformation.LABEL_LIST));
 const imageDataset = ref<NamedLabeledImageDataset>();
 const tabularDataset = ref<Dataset<Tabular>>();
 const textDataset = ref<Dataset<Text>>();
-const dataset = computed<TypedLabeledDataset | undefined>(() => {
+const dataset = computed<TypedRawDataset | undefined>(() => {
   if (
     Set.of<unknown>(
       imageDataset.value,
@@ -125,7 +126,9 @@ const dataset = computed<TypedLabeledDataset | undefined>(() => {
   if (imageDataset.value !== undefined)
     return [
       "image",
-      toRaw(imageDataset.value).map(({ image, label }) => [image, label]),
+      toRaw(imageDataset.value).map(
+        ({ image, label }) => [image, label] as [Image, string],
+      ),
     ];
   if (tabularDataset.value !== undefined)
     return ["tabular", toRaw(tabularDataset.value)];

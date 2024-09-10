@@ -7,13 +7,8 @@ import { List, Range } from "immutable";
 import * as tf from '@tensorflow/tfjs'
 import { PreTrainedTokenizer } from '@xenova/transformers';
 
-import {
-  Batched,
-  Dataset,
-  DataTypeToBatchedPreprocessedLabeledDataset,
-  DataTypeToPreprocessedLabeled,
-  WeightsContainer,
-} from "../../index.js";
+import type { Batched, Dataset, ModelEncoded } from "../../index.js";
+import { WeightsContainer } from "../../index.js";
 
 import { BatchLogs, Model, EpochLogs } from "../index.js";
 import type { Prediction, Sample } from '../model.js'
@@ -56,8 +51,8 @@ export class GPT extends Model<"text"> {
    * @param tracker
    */
   override async *train(
-    trainingDataset: Dataset<Batched<DataTypeToPreprocessedLabeled["text"]>>,
-    validationDataset?: Dataset<Batched<DataTypeToPreprocessedLabeled["text"]>>,
+    trainingDataset: Dataset<Batched<ModelEncoded["text"]>>,
+    validationDataset?: Dataset<Batched<ModelEncoded["text"]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
 
@@ -76,9 +71,7 @@ export class GPT extends Model<"text"> {
     return new EpochLogs(batchesLogs, validation);
   }
 
-  async #runBatch(
-    batch: Batched<DataTypeToPreprocessedLabeled["text"]>,
-  ): Promise<BatchLogs> {
+  async #runBatch(batch: Batched<ModelEncoded["text"]>): Promise<BatchLogs> {
     const tfBatch = this.#batchToTF(batch);
 
     let logs: tf.Logs | undefined;
@@ -106,7 +99,7 @@ export class GPT extends Model<"text"> {
   }
 
   async #evaluate(
-    dataset: DataTypeToBatchedPreprocessedLabeledDataset["text"],
+    dataset: Dataset<Batched<ModelEncoded["text"]>>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await evaluate(
       this.model,
@@ -120,7 +113,7 @@ export class GPT extends Model<"text"> {
     };
   }
 
-  #batchToTF(batch: Batched<DataTypeToPreprocessedLabeled["text"]>): {
+  #batchToTF(batch: Batched<ModelEncoded["text"]>): {
     xs: tf.Tensor2D;
     ys: tf.Tensor3D;
   } {
