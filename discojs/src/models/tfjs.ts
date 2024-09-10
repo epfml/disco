@@ -230,7 +230,9 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
           ),
           ys: tf.stack(
             b
-              .map(([_, next]) => tf.oneHot(next.toArray(), outputSize))
+              .map(([line, next]) =>
+                tf.oneHot(line.shift().push(next).toArray(), outputSize),
+              )
               .toArray(),
           ),
         };

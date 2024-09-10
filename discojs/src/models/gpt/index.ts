@@ -123,7 +123,9 @@ export class GPT extends Model<"text"> {
       ) as tf.Tensor2D, // cast as stack doesn't type
       ys: tf.stack(
         batch
-          .map(([_, next]) => tf.oneHot(next.toArray(), this.#vocabSize))
+          .map(([line, next]) =>
+            tf.oneHot(line.shift().push(next).toArray(), this.#vocabSize),
+          )
           .toArray(),
       ) as tf.Tensor3D, // cast as oneHot/stack doesn't type
     }));
