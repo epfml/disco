@@ -1,14 +1,18 @@
 /** Dataset shapers, convenient to map with */
 
-import { List } from "immutable";
-import { AutoTokenizer } from "@xenova/transformers";
+import { List, Map } from "immutable";
 
 import type {
   Tabular,
   Task,
+  TypedInferredDataset,
   TypedModelEncodedDataset,
+  TypedModelEncodedOnlyWithLabelDataset,
+  TypedModelEncodedWithoutLabelDataset,
   TypedRawDataset,
+  TypedRawWithoutLabelDataset,
 } from "../index.js";
+import { models } from "../index.js";
 
 import * as processing from "./index.js";
 
@@ -48,18 +52,13 @@ export async function preprocess(
       return [
         "tabular",
         dataset.map((row) => [
-          tabularToNumbers(inputColumns, row),
-          tabularToNumbers(outputColumns, row),
+          extractToNumbers(inputColumns, row),
+          extractToNumbers(outputColumns, row),
         ]),
       ];
     }
     case "text": {
-      const tokenizerName = task.trainingInformation.tokenizer;
-      if (typeof tokenizerName !== "string")
-        throw Error(
-          "no tokenizer name specified in the task training information",
-        );
-      const tokenizer = await AutoTokenizer.from_pretrained(tokenizerName);
+      const tokenizer = await models.getTaskTokenizer(task);
       const totalTokenCount =
         task.trainingInformation.maxSequenceLength ??
         (tokenizer.model_max_length as number);
@@ -76,10 +75,93 @@ export async function preprocess(
   }
 }
 
-function tabularToNumbers(
-  columns: Iterable<string>,
-  row: Tabular,
-): List<number> {
+export async function preprocessWithoutLabel(
+  task: Task,
+  [t, dataset]: TypedRawWithoutLabelDataset,
+): Promise<TypedModelEncodedWithoutLabelDataset> {
+  switch (t) {
+    case "image": {
+      const { IMAGE_H, IMAGE_W } = task.trainingInformation;
+      if (IMAGE_H === undefined || IMAGE_W === undefined)
+        throw new Error("task is missing fields for image dataset");
+
+      return [
+        "image",
+        dataset.map((image) =>
+          processing.normalize(
+            processing.removeAlpha(processing.resize(IMAGE_W, IMAGE_H, image)),
+          ),
+        ),
+      ];
+    }
+    case "tabular": {
+      const { inputColumns } = task.trainingInformation;
+      if (inputColumns === undefined)
+        throw new Error("tabular task without input columns");
+
+      return [
+        "tabular",
+        dataset.map((row) => extractToNumbers(inputColumns, row)),
+      ];
+    }
+    case "text": {
+      const tokenizer = await models.getTaskTokenizer(task);
+      const totalTokenCount =
+        task.trainingInformation.maxSequenceLength ??
+        (tokenizer.model_max_length as number);
+
+      return [
+        "text",
+        dataset
+          .map((line) =>
+            processing.tokenizeAndLeftPad(line, tokenizer, totalTokenCount),
+          )
+          .map((tokens) => tokens.pop()),
+      ];
+    }
+  }
+}
+
+export async function postprocess(
+  task: Task,
+  [t, dataset]: TypedModelEncodedOnlyWithLabelDataset,
+): Promise<TypedInferredDataset> {
+  switch (t) {
+    case "image": {
+      const { LABEL_LIST } = task.trainingInformation;
+      if (LABEL_LIST === undefined)
+        throw new Error("task is missing fields for image dataset");
+      const labels = List(LABEL_LIST);
+
+      return [
+        "image",
+        dataset.map((index) => {
+          const v = labels.get(index);
+          if (v === undefined) throw new Error("index not found in labels");
+          return v;
+        }),
+      ];
+    }
+    case "tabular": {
+      const { outputColumns } = task.trainingInformation;
+      if (outputColumns === undefined)
+        throw new Error("tabular task without input columns");
+      const output = List(outputColumns);
+
+      return ["tabular", dataset.map((row) => Map(output.zip(row)).toObject())];
+    }
+    case "text": {
+      const tokenizer = await models.getTaskTokenizer(task);
+
+      return [
+        "text",
+        dataset.map((tokens) => tokenizer.decode(tokens.toArray())),
+      ];
+    }
+  }
+}
+
+function extractToNumbers(columns: Iterable<string>, row: Tabular) {
   return (
     List(columns)
       .map((column) => processing.extractColumn(row, column))
