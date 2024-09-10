@@ -6,7 +6,7 @@ import type {
   EpochLogs,
   Model,
   Task,
-  TypedBatchedPreprocessedLabeledDataset,
+  TypedBatchedModelEncodedDataset,
   WeightsContainer,
 } from "../index.js";
 import { privacy } from "../index.js";
@@ -59,8 +59,8 @@ export class Trainer {
   }
 
   async *train(
-    dataset: TypedBatchedPreprocessedLabeledDataset,
-    valDataset?: TypedBatchedPreprocessedLabeledDataset,
+    dataset: TypedBatchedModelEncodedDataset,
+    valDataset?: TypedBatchedModelEncodedDataset,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
@@ -79,8 +79,8 @@ export class Trainer {
   }
 
   async *#runRounds(
-    dataset: TypedBatchedPreprocessedLabeledDataset,
-    valDataset?: TypedBatchedPreprocessedLabeledDataset,
+    dataset: TypedBatchedModelEncodedDataset,
+    valDataset?: TypedBatchedModelEncodedDataset,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
@@ -109,8 +109,8 @@ export class Trainer {
   }
 
   async *#runRound(
-    dataset: TypedBatchedPreprocessedLabeledDataset,
-    valDataset?: TypedBatchedPreprocessedLabeledDataset,
+    dataset: TypedBatchedModelEncodedDataset,
+    valDataset?: TypedBatchedModelEncodedDataset,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
     for (let epoch = 0; epoch < this.#roundDuration; epoch++) {

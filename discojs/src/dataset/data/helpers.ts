@@ -10,8 +10,8 @@ import type {
   Image,
   Tabular,
   Task,
-  TypedDataset,
-  TypedLabeledDataset,
+  TypedRawDataset,
+  TypedRawWithoutLabelDataset,
 } from "../../index.js";
 import { processing } from "../../index.js";
 
@@ -41,7 +41,7 @@ function tabularToNumbers(columns: Iterable<string>, row: Tabular): number[] {
 
 export async function datasetToData(
   task: Task,
-  [t, dataset]: TypedDataset,
+  [t, dataset]: TypedRawWithoutLabelDataset,
 ): Promise<Data> {
   switch (t) {
     case "image": {
@@ -69,7 +69,7 @@ export async function datasetToData(
 
 export async function labeledDatasetToData(
   task: Task,
-  [t, dataset]: TypedLabeledDataset,
+  [t, dataset]: TypedRawDataset,
 ): Promise<Data> {
   switch (t) {
     case "image": {
@@ -117,7 +117,7 @@ export async function labeledDatasetToData(
 
 export async function labeledDatasetToDataSplit(
   task: Task,
-  [t, dataset]: TypedLabeledDataset,
+  [t, dataset]: TypedRawDataset,
 ): Promise<DataSplit> {
   const split = task.trainingInformation.validationSplit;
 

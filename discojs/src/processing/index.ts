@@ -6,8 +6,8 @@ import { AutoTokenizer } from "@xenova/transformers";
 import type {
   Tabular,
   Task,
-  TypedLabeledDataset,
-  TypedPreprocessedLabeledDataset,
+  TypedModelEncodedDataset,
+  TypedRawDataset,
 } from "../index.js";
 
 import * as processing from "./index.js";
@@ -18,8 +18,8 @@ export * from "./text.js";
 
 export async function preprocess(
   task: Task,
-  [t, dataset]: TypedLabeledDataset,
-): Promise<TypedPreprocessedLabeledDataset> {
+  [t, dataset]: TypedRawDataset,
+): Promise<TypedModelEncodedDataset> {
   switch (t) {
     case "image": {
       const { LABEL_LIST, IMAGE_H, IMAGE_W } = task.trainingInformation;

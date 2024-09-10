@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import type { Dataset, Image, Task, TypedLabeledDataset } from "@epfml/discojs";
+import type { Dataset, Image, Task, TypedRawDataset } from "@epfml/discojs";
 import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 
@@ -30,7 +30,7 @@ async function loadLusCovidData(): Promise<Dataset<[Image, string]>> {
   return positive.chain(negative);
 }
 
-export async function getTaskData(task: Task): Promise<TypedLabeledDataset> {
+export async function getTaskData(task: Task): Promise<TypedRawDataset> {
   switch (task.id) {
     case "simple_face":
       return ["image", await loadSimpleFaceData()];

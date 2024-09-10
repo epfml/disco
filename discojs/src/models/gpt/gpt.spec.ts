@@ -2,7 +2,7 @@ import { expect } from "chai";
 import "@tensorflow/tfjs-node"; // speed up
 import { AutoTokenizer } from "@xenova/transformers";
 
-import { Dataset, DataTypeToPreprocessedLabeled } from "../../index.js";
+import { Dataset, ModelEncoded } from "../../index.js";
 
 import { GPT } from "./index.js";
 import type { GPTConfig } from "./config.js";
@@ -26,7 +26,7 @@ describe("gpt-tfjs", function () {
 
     const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
     const tokenDataset = new Dataset(Repeat(data))
-      .map<DataTypeToPreprocessedLabeled["text"]>((text) => {
+      .map<ModelEncoded["text"]>((text) => {
         const { input_ids: tokens } = tokenizer(text, {
           padding: true,
           truncation: true,
