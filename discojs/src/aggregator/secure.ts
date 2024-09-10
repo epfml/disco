@@ -1,7 +1,7 @@
 import { Map, List, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import { AggregationStep, Base as Aggregator } from "./base.js";
+import { AggregationStep, Aggregator } from "./aggregator.js";
 import type { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
 
@@ -12,12 +12,12 @@ import { aggregation } from "../index.js";
  * - then, they sum their received shares and communicate the result.
  * Finally, nodes are able to average the received partial sums to establish the aggregation result.
  */
-export class SecureAggregator extends Aggregator<WeightsContainer> {
+export class SecureAggregator extends Aggregator {
   constructor(private readonly maxShareValue = 100) {
     super(0, 2);
   }
 
-  override aggregate(): void {
+  override aggregate(): WeightsContainer {
     this.log(AggregationStep.AGGREGATE);
 
     switch (this.communicationRound) {
@@ -27,9 +27,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
         if (currentContributions === undefined)
           throw new Error("aggregating without any contribution");
 
-        const result = aggregation.sum(currentContributions.values());
-        this.emit('aggregation', result);
-	break
+        return aggregation.sum(currentContributions.values());
       }
       // Average the received partial sums
       case 1: {
@@ -37,9 +35,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
         if (currentContributions === undefined)
           throw new Error("aggregating without any contribution");
 
-        const result = aggregation.avg(currentContributions.values());
-        this.emit('aggregation', result);
-	break
+        return aggregation.avg(currentContributions.values());
       }
       default:
         throw new Error("communication round is out of bounds");
@@ -49,9 +45,8 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
   override add(
     nodeId: client.NodeID,
     contribution: WeightsContainer,
-    round: number,
-    communicationRound?: number,
-  ): boolean {
+    communicationRound: number,
+  ): Promise<WeightsContainer> {
     switch (communicationRound) {
       case 0:
       case 1:
@@ -60,12 +55,9 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
         throw new Error("requires communication round to be 0 or 1");
     }
 
-    if (!this.isValidContribution(nodeId, round)) return false
-
     this.log(
-      this.contributions.hasIn([communicationRound, nodeId])
-        ? AggregationStep.UPDATE
-        : AggregationStep.ADD,
+      this.contributions.hasIn([communicationRound, nodeId]) ?
+        AggregationStep.UPDATE : AggregationStep.ADD,
       nodeId,
     );
 
@@ -73,10 +65,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
       [communicationRound, nodeId],
       contribution,
     );
-
-    if (this.isFull()) this.aggregate();
-
-    return true;
+    return this.createAggregationPromise()
   }
 
   override isFull(): boolean {
@@ -92,7 +81,7 @@ export class SecureAggregator extends Aggregator<WeightsContainer> {
     switch (this.communicationRound) {
       case 0: {
         const shares = this.generateAllShares(weights);
-        // Abitrarily assign our shares to the available nodes
+        // Arbitrarily assign our shares to the available nodes
         return Map(
           List(this.nodes).zip(shares) as List<[string, WeightsContainer]>,
         );

@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { Map, Set } from 'immutable'
 
-import type { client } from '../index.js'
+import type { client, WeightsContainer } from '../index.js'
 
 import { EventEmitter } from '../utils/event_emitter.js'
 
@@ -20,7 +20,7 @@ export enum AggregationStep {
  * Emits an event whenever an aggregation step is performed.
  * Users wait for this event to fetch the aggregation result.
  */
-export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
+export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsContainer }> {
   /**
    * Contains the ids of all active nodes, i.e. members of the aggregation group at
    * a given round. It is a subset of all the nodes available in the network.
@@ -31,8 +31,8 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
    * It defines the effective aggregation group, which is possibly a subset
    * of all active nodes, depending on the aggregation scheme.
    */
-  // communication round -> NodeID -> T
-  protected contributions: Map<number, Map<client.NodeID, T>>
+  // communication round -> NodeID -> WeightsContainer
+  protected contributions: Map<number, Map<client.NodeID, WeightsContainer>>
 
   /**
    * The current aggregation round, used for assessing whether a node contribution is recent enough
@@ -62,24 +62,53 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
     this.contributions = Map()
     this._nodes = Set()
 
-    // On every aggregation, update the object's state to match the current aggregation
-    // and communication rounds.
-    this.on('aggregation', () => this.nextRound())
+    // On each aggregation, increment
+    // updates the aggregator's state to proceed to the next communication round.
+    // If all communication rounds were performed, proceeds to the next aggregation round
+    // and empties the collection of stored contributions.
+    this.on('aggregation', () => {
+      if (++this._communicationRound === this.communicationRounds) {
+        this._communicationRound = 0
+        this._round++
+        this.contributions = Map()
+      }
+    })
   }
 
   /**
    * Adds a node's contribution to the aggregator for the given aggregation and communication rounds.
    * The aggregation round is increased whenever a new global model is obtained and local models are updated.
    * Within one aggregation round there may be multiple communication rounds (such as for the decentralized secure aggregation
-   *  which requires multiple steps to obtain a global model)
+   * which requires multiple steps to obtain a global model)
    * The contribution will be aggregated during the next aggregation step.
    * @param nodeId The node's id
    * @param contribution The node's contribution
-   * @param round aggregation round of the contribution was made
    * @param communicationRound communication round the contribution was made within the aggregation round
-   * @returns boolean, true if the contribution has been successfully taken into account or False if it has been rejected
+   * @returns undefined, if the contribution is invalid, o.w. a promise for the weight update
    */
-  abstract add (nodeId: client.NodeID, contribution: T, round: number, communicationRound?: number): boolean
+  abstract add(nodeId: client.NodeID, contribution: WeightsContainer, communicationRound?: number): Promise<WeightsContainer>
+  
+  /**
+   * Create a promise which resolves when enough contributions are received and 
+   * local updates are aggregated. 
+   * If the aggregator has enough contribution then we can aggregate the weights
+   * directly (and emit the 'aggregation' event)
+   * Otherwise we wait for the 'aggregation' event which will be emitted once 
+   * enough contributions are received
+   * 
+   * @returns a promise for the aggregated weights
+   */
+  protected createAggregationPromise(): Promise<WeightsContainer> {
+    if (this.isFull()) {
+      const aggregatedWeights = this.aggregate()
+      // Emitting the 'aggregation' communicates the aggregation to other clients and
+      // takes care of incrementing the round
+      this.emit('aggregation', aggregatedWeights)
+      return Promise.resolve(aggregatedWeights);
+    }
+    // Wait for the aggregation event to be emitted
+    return new Promise<WeightsContainer>((resolve) => this.once('aggregation', resolve))
+  }
 
   /**
    * Evaluates whether a given participant contribution can be used in the current aggregation round
@@ -101,7 +130,7 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
    * Performs an aggregation step over the received node contributions.
    * Must store the aggregation's result in the aggregator's result promise.
    */
-  abstract aggregate (): void
+  abstract aggregate (): WeightsContainer
 
   /**
    * Returns whether the given round is recent enough, dependent on the
@@ -192,23 +221,10 @@ export abstract class Base<T> extends EventEmitter<{'aggregation': T }> {
   }
 
   /**
-   * Updates the aggregator's state to proceed to the next communication round.
-   * If all communication rounds were performed, proceeds to the next aggregation round
-   * and empties the collection of stored contributions.
-   */
-  public nextRound (): void {
-    if (++this._communicationRound === this.communicationRounds) {
-      this._communicationRound = 0
-      this._round++
-      this.contributions = Map()
-    }
-  }
-
-  /**
    * Constructs the payloads sent to other nodes as contribution.
    * @param base Object from which the payload is computed
    */
-  abstract makePayloads (base: T): Map<client.NodeID, T>
+  abstract makePayloads (base: WeightsContainer): Map<client.NodeID, WeightsContainer>
 
   abstract isFull (): boolean
 

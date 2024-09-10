@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import type { Map } from "immutable";
 
-import { AggregationStep, Base as Aggregator } from "./base.js";
+import { AggregationStep, Aggregator } from "./aggregator.js";
 import type { WeightsContainer, client } from "../index.js";
 import { aggregation } from "../index.js";
 
@@ -13,7 +13,7 @@ type ThresholdType = 'relative' | 'absolute'
  * Mean aggregator whose aggregation step consists in computing the mean of the received weights. 
  * 
  */
-export class MeanAggregator extends Aggregator<WeightsContainer> {
+export class MeanAggregator extends Aggregator {
   readonly #threshold: number;
   readonly #thresholdType: ThresholdType;
   #minNbOfParticipants: number | undefined;
@@ -98,29 +98,18 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
   override add(
     nodeId: client.NodeID,
     contribution: WeightsContainer,
-    round: number,
-    currentContributions: number = 0,
-  ): boolean {
-    if (currentContributions !== 0)
-      throw new Error("only a single communication round");
-
-    if (!this.isValidContribution(nodeId, round)) return false
+  ): Promise<WeightsContainer> {
 
     this.log(
-      this.contributions.hasIn([0, nodeId])
-        ? AggregationStep.UPDATE
-        : AggregationStep.ADD,
+      this.contributions.hasIn([0, nodeId]) ? AggregationStep.UPDATE : AggregationStep.ADD,
       nodeId,
     );
 
     this.contributions = this.contributions.setIn([0, nodeId], contribution);
-
-    if (this.isFull()) this.aggregate();
-
-    return true;
+    return this.createAggregationPromise()
   }
 
-  override aggregate(): void {
+  override aggregate(): WeightsContainer {
     const currentContributions = this.contributions.get(0);
     if (currentContributions === undefined)
       throw new Error("aggregating without any contribution");
@@ -128,8 +117,7 @@ export class MeanAggregator extends Aggregator<WeightsContainer> {
     this.log(AggregationStep.AGGREGATE);
 
     const result = aggregation.avg(currentContributions.values());
-    // Emitting the event runs the superclass' callback to increment the round
-    this.emit('aggregation', result);
+    return result;
   }
 
   override makePayloads(

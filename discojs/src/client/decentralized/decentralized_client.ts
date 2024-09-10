@@ -154,7 +154,7 @@ export class DecentralizedClient extends Client {
         // Init receipt of peers weights
         // this awaits the peer's weight update and adds it to 
         // our aggregator upon reception
-        (conn) => { this.receivePayloads(conn, this.aggregator.round) }
+        (conn) => this.receivePayloads(conn)
       )
 
       debug(`[${this.ownId}] received peers for round ${this.aggregator.round}: %o`, connections.keySeq().toJS());
@@ -177,7 +177,7 @@ export class DecentralizedClient extends Client {
    * @param connections 
    * @param round 
    */
-  private receivePayloads (connections: Map<NodeID, PeerConnection>, round: number): void {
+  private receivePayloads (connections: Map<NodeID, PeerConnection>): void {
     connections.forEach(async (connection, peerId) => {
       let currentCommunicationRounds = 0
       debug(`waiting for peer ${peerId}`);
@@ -187,9 +187,9 @@ export class DecentralizedClient extends Client {
             60_000, "Timeout waiting for a contribution from peer " + peerId)
           const decoded = serialization.weights.decode(message.payload)
 
-          if (!this.aggregator.add(peerId, decoded, round, message.round)) {
+          if (!this.aggregator.isValidContribution(peerId, message.round))
             debug(`[${this.ownId}] failed to add contribution from peer ${peerId}`);
-          }
+          else await this.aggregator.add(peerId, decoded, currentCommunicationRounds)
         } catch (e) {
           if (this.isDisconnected) return
           debug(`Error for [${this.ownId}] while receiving payloads: %o`, e);
@@ -216,21 +216,20 @@ export class DecentralizedClient extends Client {
         const payloads = this.aggregator.makePayloads(result)
         try {
           await Promise.all(payloads.map(async (payload, id) => {
-            if (id === this.ownId) {
-              this.aggregator.add(this.ownId, payload, this.aggregator.round, r)
-            } else {
-              const peer = this.connections?.get(id)
-              if (peer !== undefined) {
-                const encoded = await serialization.weights.encode(payload)
-                const msg: messages.PeerMessage = {
-                  type: type.Payload,
-                  peer: id,
-                  round: r,
-                  payload: encoded
-                }
-                peer.send(msg)
-                debug(`[${this.ownId}] send weight update to peer ${msg.peer}: %O`, msg);
+            if (id === this.ownId)
+              return this.aggregator.add(this.ownId, payload, r)
+            
+            const peer = this.connections?.get(id)
+            if (peer !== undefined) {
+              const encoded = await serialization.weights.encode(payload)
+              const msg: messages.PeerMessage = {
+                type: type.Payload,
+                peer: id,
+                round: r,
+                payload: encoded
               }
+              peer.send(msg)
+              debug(`[${this.ownId}] send weight update to peer ${msg.peer}: %O`, msg);
             }
           }))
         } catch (cause) {
