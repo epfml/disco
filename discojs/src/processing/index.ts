@@ -69,7 +69,7 @@ export async function preprocess(
           .map((line) =>
             processing.tokenizeAndLeftPad(line, tokenizer, totalTokenCount),
           )
-          .map((tokens) => [tokens.pop(), tokens.shift()]),
+          .map((tokens) => [tokens.pop(), tokens.last()]),
       ];
     }
   }
@@ -153,10 +153,7 @@ export async function postprocess(
     case "text": {
       const tokenizer = await models.getTaskTokenizer(task);
 
-      return [
-        "text",
-        dataset.map((tokens) => tokenizer.decode(tokens.toArray())),
-      ];
+      return ["text", dataset.map((token) => tokenizer.decode([token]))];
     }
   }
 }

@@ -34,7 +34,7 @@ describe("gpt-tfjs", function () {
           max_length: config.blockSize + 1,
         }) as { input_ids: number[] };
 
-        return [List(tokens.slice(0, config.blockSize)), List(tokens.slice(1))];
+        return [List(tokens.slice(0, config.blockSize)), tokens[config.blockSize]];
       })
       .batch(64);
 
