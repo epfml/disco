@@ -35,7 +35,7 @@ type Token = number;
 export interface ModelEncoded {
   image: [processing.NormalizedImage<3>, number];
   tabular: [List<number>, List<number>];
-  text: [List<Token>, List<Token>];
+  text: [List<Token>, Token];
 }
 export type ModelEncodedWithoutLabel = { [D in DataType]: ModelEncoded[D][0] };
 export type ModelEncodedOnlyWithLabel = { [D in DataType]: ModelEncoded[D][1] };

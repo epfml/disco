@@ -82,7 +82,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     const maxLength = task.trainingInformation.maxSequenceLength ?? (tokenizer.model_max_length as number) + 1
     const preprocessedDataset = dataset
       .map((line) => processing.tokenizeAndLeftPad(line, tokenizer, maxLength))
-      .map((tokens) => [tokens.pop(), tokens.shift()] as [List<number>, List<number>])
+      .map((tokens) => [tokens.pop(), tokens.last()] as [List<number>, number])
       .batch(batchSize);
     
     // Init and train the model
