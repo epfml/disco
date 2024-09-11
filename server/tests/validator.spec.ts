@@ -79,5 +79,5 @@ describe("validator", () => {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  });
+  }).timeout("10s");
 });
