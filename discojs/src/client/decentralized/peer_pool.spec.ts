@@ -45,7 +45,8 @@ describe('peer pool', function () {
       type: type.Payload,
       peer: id,
       payload: [1, 2, 3],
-      round: 0
+      aggregationRound: 0,
+      communicationRound: 0
     }
   }
 
