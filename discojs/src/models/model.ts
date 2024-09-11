@@ -1,5 +1,3 @@
-import type tf from "@tensorflow/tfjs";
-
 import type {
   Batched,
   Dataset,
@@ -9,10 +7,6 @@ import type {
 } from "../index.js";
 
 import type { BatchLogs, EpochLogs } from "./logs.js";
-
-// TODO still bound to tfjs
-export type Prediction = tf.Tensor;
-export type Sample = tf.Tensor;
 
 /**
  * Trainable predictor
@@ -43,7 +37,9 @@ export abstract class Model<D extends DataType = DataType>
 
   /** Predict likely values */
   // TODO extract in separated TrainedModel?
-  abstract predict(input: Sample): Promise<Prediction>;
+  abstract predict(
+    batch: Batched<ModelEncoded[D][0]>,
+  ): Promise<Batched<ModelEncoded[D][1]>>;
 
   /**
    * This method is automatically called to cleanup the memory occupied by the model
