@@ -22,11 +22,10 @@ interface DiscoConfig {
   logger: Logger;
 }
 
-export type RoundStatus =
-  "Waiting for more participants" |
-  "Retrieving peers' information" |
-  "Updating the model with other participants' models" |
-  "Training the model on the data you connected"
+export type RoundStatus = 'NOT ENOUGH PARTICIPANTS' | // Server notification to wait for more participants
+  'UPDATING MODEL' | // fetching/aggregating local updates into a global model
+  'TRAINING' | // Training the model locally
+  'RETRIEVING PEERS' // for decentralized only, fetch the server's list of participating peers
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be

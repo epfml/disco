@@ -118,7 +118,7 @@
 
 <script lang="ts" setup>
 import createDebug from "debug";
-import { List } from "immutable";
+import { List, Map } from "immutable";
 import { computed, ref, toRaw } from "vue";
 
 import type {
@@ -164,7 +164,7 @@ const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
 const messages = ref(List<string>());
-const roundStatus = ref<RoundStatus>();
+const roundStatus = ref<string>();
 /**
  * Store a disco cleanup callback to make sure it can be ran if users
  * manually stop the training.
@@ -207,7 +207,13 @@ async function startTraining(): Promise<void> {
     scheme: isTrainingAlone.value ? "local": props.task.trainingInformation.scheme,
   });
   // set the round status displayed to the status emitted by the disco object
-  disco.on("status", status => roundStatus.value = status)
+  const discoStatusMessage = Map<RoundStatus, string>({
+    'NOT ENOUGH PARTICIPANTS': "Waiting for more participants",
+    'RETRIEVING PEERS': "Retrieving peers' information",
+    'UPDATING MODEL': "Updating the model with other participants' models",
+    'TRAINING': "Training the model on the data you connected"
+  })
+  disco.on("status", status => roundStatus.value = discoStatusMessage.get(status))
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training

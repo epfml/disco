@@ -210,9 +210,6 @@ describe("end-to-end federated", () => {
      * - User 3 joins
      * - User 2 & 3 leave
      */
-    const TRAINING: RoundStatus = "Training the model on the data you connected"
-    const WAITING: RoundStatus = "Waiting for more participants"
-    const UPDATING: RoundStatus = "Updating the model with other participants' models"
     const statusUpdateTime = 500
 
     // Create User 1
@@ -231,7 +228,7 @@ describe("end-to-end federated", () => {
     // stay stuck awaiting until another participant joins
     const logUser1Round2Promise = generatorUser1.next()
     await new Promise((res,_) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
-    expect(statusUser1).equal(WAITING)
+    expect(statusUser1).equal("NOT ENOUGH PARTICIPANTS")
 
     // Create User 2
     const discoUser2 = new Disco(lusCovidTask, url, { scheme: "federated" });
@@ -244,10 +241,10 @@ describe("end-to-end federated", () => {
     expect(logUser2Round1.done).to.be.false
     expect((logUser2Round1.value as RoundLogs).participants).equal(2)
     // User 2 did a) and b)
-    expect(statusUser2).equal(TRAINING)
+    expect(statusUser2).equal("TRAINING")
     // User 1 is still in c) now waiting for user 2 to share their local update
     // and for the server to aggregate the local updates
-    expect(statusUser1).equal(UPDATING)
+    expect(statusUser1).equal("UPDATING MODEL")
 
     // Proceed with round 2
     // the server should answer with the new global weights
@@ -259,15 +256,15 @@ describe("end-to-end federated", () => {
     expect((logUser1Round2.value as RoundLogs).participants).equal(2)
     expect((logUser2Round2.value as RoundLogs).participants).equal(2)
     // User 1 and 2 did c), a) and b)
-    expect(statusUser1).equal(TRAINING)
-    expect(statusUser2).equal(TRAINING)
+    expect(statusUser1).equal("TRAINING")
+    expect(statusUser2).equal("TRAINING")
     
     // Have user 1 quit the session
     await discoUser1.close()
     // Make user 2 go to c)
     const logUser2Round3Promise = generatorUser2.next()
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
-    expect(statusUser2).equal(WAITING)
+    expect(statusUser2).equal("NOT ENOUGH PARTICIPANTS")
 
     // Create User 3
     const discoUser3 = new Disco(lusCovidTask, url, { scheme: "federated" });
@@ -280,10 +277,10 @@ describe("end-to-end federated", () => {
     expect(logUser3Round1.done).to.be.false
     expect((logUser3Round1.value as RoundLogs).participants).equal(2)
     // User 3 did a) and b)
-    expect(statusUser3).equal(TRAINING)
+    expect(statusUser3).equal("TRAINING")
     // User 2 is still in c) waiting for user 3 to share their local update
     // and for the server to aggregate the local updates
-    expect(statusUser2).equal(UPDATING)
+    expect(statusUser2).equal("UPDATING MODEL")
     
     // User 3 sends their weights to the server
     const logUser3Round3 = await generatorUser3.next()
@@ -294,12 +291,12 @@ describe("end-to-end federated", () => {
     expect(logUser2Round3.value.participants).equal(2)
     expect(logUser3Round3.value.participants).equal(2)
     // both user 2 and 3 did c), a) and are now in b)
-    expect(statusUser2).equal(TRAINING)
-    expect(statusUser3).equal(TRAINING)
+    expect(statusUser2).equal("TRAINING")
+    expect(statusUser3).equal("TRAINING")
     
     await discoUser2.close()
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
-    expect(statusUser3).equal(WAITING)
+    expect(statusUser3).equal("NOT ENOUGH PARTICIPANTS")
     await discoUser3.close()
   });
 });

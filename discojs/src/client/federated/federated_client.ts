@@ -99,7 +99,7 @@ export class FederatedClient extends Client {
     this.server.on(type.WaitingForMoreParticipants, () => {
       debug(`[${id.slice(0, 4)}] received WaitingForMoreParticipants message from server`)
       // Display the waiting status right away
-      this.emit("status", "Waiting for more participants")
+      this.emit("status", "NOT ENOUGH PARTICIPANTS")
       // Upon receiving a WaitingForMoreParticipants message,
       // the client will await for this promise to resolve before sending its
       // local weight update
@@ -191,7 +191,7 @@ export class FederatedClient extends Client {
     this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
     // Save the status in case participants leave and we switch to waiting for more participants
     // Once enough new participants join we can display the previous status again
-    this.#previousStatus = "Training the model on the data you connected"
+    this.#previousStatus = "TRAINING"
     this.emit("status", this.#previousStatus)
     return Promise.resolve();
   }
@@ -215,14 +215,14 @@ export class FederatedClient extends Client {
     if (this.#waitingForMoreParticipants) {
       // wait for the promise to resolve, which takes as long as it takes for new participants to join
       debug(`[${this.ownId.slice(0, 4)}] is awaiting the promise for more participants`)
-      this.emit("status", "Waiting for more participants")
+      this.emit("status", "NOT ENOUGH PARTICIPANTS")
       await this.#promiseForMoreParticipants 
       // Make sure to set the promise back to undefined once resolved
       this.#promiseForMoreParticipants = undefined 
     }
     // Save the status in case participants leave and we switch to waiting for more participants
     // Once enough new participants join we can display the previous status again
-    this.#previousStatus = "Updating the model with other participants' models"
+    this.#previousStatus = "UPDATING MODEL"
     this.emit("status", this.#previousStatus)
 
     // Send our local contribution to the server

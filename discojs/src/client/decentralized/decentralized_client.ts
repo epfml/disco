@@ -126,7 +126,7 @@ export class DecentralizedClient extends Client {
     } if (this.pool === undefined) {
         throw new Error('peer pool is undefined, make sure to call `client.connect()` first')
     }
-    this.emit("status", "Retrieving peers' information")
+    this.emit("status", "RETRIEVING PEERS")
     // Reset peers list at each round of training to make sure client works with an updated peers
     // list, maintained by the server. Adds any received weights to the aggregator.
 
@@ -172,7 +172,7 @@ export class DecentralizedClient extends Client {
     // Store the promise for the current round's aggregation result.
     // We will await for it to resolve at the end of the round when exchanging weight updates.
     this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
-    this.emit("status", "Training the model on the data you connected")
+    this.emit("status", "TRAINING")
   }
 
   /**
@@ -214,7 +214,7 @@ export class DecentralizedClient extends Client {
     if (this.aggregationResult === undefined) {
       throw new TypeError('aggregation result promise is undefined')
     }
-    this.emit("status", "Updating the model with other participants' models")
+    this.emit("status", "UPDATING MODEL")
 
     // Perform the required communication rounds. Each communication round consists in sending our local payload,
     // followed by an aggregation step triggered by the receipt of other payloads, and handled by the aggregator.
