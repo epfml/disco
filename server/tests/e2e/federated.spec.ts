@@ -35,8 +35,11 @@ describe("end-to-end federated", () => {
       defaultTasks.wikitext,
     ).then((s) => s.serve());
   });
-  afterEach(() => {
-    server?.close();
+  afterEach(async function () {
+    await new Promise<void>((resolve) => {
+      if (server !== undefined) server.close(() => resolve());
+      else resolve();
+    });
   });
 
   const DATASET_DIR = path.join("..", "datasets");
