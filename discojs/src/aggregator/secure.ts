@@ -58,7 +58,7 @@ export class SecureAggregator extends Aggregator {
     this.log(
       this.contributions.hasIn([communicationRound, nodeId]) ?
         AggregationStep.UPDATE : AggregationStep.ADD,
-      nodeId,
+      nodeId.slice(0, 4),
     );
 
     this.contributions = this.contributions.setIn(
