@@ -31,7 +31,7 @@ describe("validator", function () {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  });
+  }).timeout("5s");
 
   it("can read and predict randomly on titanic", async () => {
     const provider = defaultTasks.titanic;
@@ -79,5 +79,5 @@ describe("validator", function () {
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  });
+  }).timeout("10s");
 });

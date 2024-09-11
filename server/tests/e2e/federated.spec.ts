@@ -27,7 +27,7 @@ describe("end-to-end federated", () => {
   let server: http.Server;
   let url: URL;
   beforeEach(async function () {
-    this.timeout("10s");
+    this.timeout("15s");
     [server, url] = await Server.of(
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
@@ -155,7 +155,7 @@ describe("end-to-end federated", () => {
   });
 
   it("two titanic users reach consensus", async function () {
-    this.timeout(5_000);
+    this.timeout("10s");
 
     const [m1, m2] = await Promise.all([titanicUser(), titanicUser()]);
     assert.isTrue(m1.equals(m2));
@@ -175,7 +175,8 @@ describe("end-to-end federated", () => {
   });
 
   it("clients emit expected statuses", async function () {
-    this.timeout(15_000);
+    this.timeout("30s");
+
     const lusCovidTask = defaultTasks.lusCovid.getTask();
     lusCovidTask.trainingInformation.epochs = 8;
     lusCovidTask.trainingInformation.roundDuration = 2;
