@@ -34,7 +34,8 @@ export interface PeersForRound {
 export interface Payload {
   type: type.Payload
   peer: NodeID
-  round: number
+  aggregationRound: number
+  communicationRound: number
   payload: weights.Encoded
 }
 
