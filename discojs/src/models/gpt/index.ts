@@ -11,7 +11,6 @@ import type { Batched, Dataset, ModelEncoded } from "../../index.js";
 import { WeightsContainer } from "../../index.js";
 
 import { BatchLogs, Model, EpochLogs } from "../index.js";
-import type { Prediction, Sample } from '../model.js'
 
 import { GPTForCausalLM } from './model.js'
 import { DEFAULT_CONFIG, type GPTConfig } from './config.js'
@@ -131,17 +130,27 @@ export class GPT extends Model<"text"> {
     }));
   }
 
-  override predict(input: Sample): Promise<Prediction> {
-    const ret = this.model.predict(input);
-    if (Array.isArray(ret)) {
-      throw new Error(
-        "prediction yield many Tensors but should have only returned one",
-      );
-    }
+  override async predict(
+    batch: Batched<ModelEncoded["text"][0]>,
+  ): Promise<Batched<ModelEncoded["text"][1]>> {
+    const predictNext = async (tokens: List<number>) => {
+      const generated = await this.model.generate(tokens.toArray(), {
+        maxNewTokens: 1,
+        temperature: 1.0,
+        doSample: false,
+      });
+      if (generated.length !== 1 && generated[0].length !== 1)
+        throw new Error(
+          "generation returned many tokens but should have only returned one",
+        );
 
-    return Promise.resolve(ret);
+      return generated[0][0];
+    };
+
+    return List(await Promise.all(batch.map(predictNext).toArray()))
   }
 
+  /** @deprecated use predict instead and pre/post process the values */
   async generate(input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
     const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as { input_ids: number[] }
 

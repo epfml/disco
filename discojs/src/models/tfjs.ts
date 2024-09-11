@@ -11,7 +11,6 @@ import {
 
 import { BatchLogs } from './index.js'
 import { Model } from './index.js'
-import { Prediction, Sample } from './model.js'
 import { EpochLogs } from './logs.js'
 
 type Serialized<D extends DataType = DataType> = [D, tf.io.ModelArtifacts]
@@ -28,6 +27,8 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
     if (model.loss === undefined) {
       throw new Error('TFJS models need to be compiled to be used')
     }
+    if (model.outputs.length !== 1)
+      throw new Error("only support single output model")
   }
 
   override get weights (): WeightsContainer {
@@ -114,13 +115,61 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
     return { accuracy, loss };
   }
 
-  override predict (input: Sample): Promise<Prediction> {
-    const ret = this.model.predict(input)
-    if (Array.isArray(ret)) {
-      throw new Error('prediction yield many Tensors but should have only returned one')
+  override async predict(
+    batch: Batched<ModelEncoded[D][0]>,
+  ): Promise<Batched<ModelEncoded[D][1]>> {
+    async function cleanupPredicted(y: tf.Tensor1D): Promise<number> {
+      if (y.shape[0] === 1) {
+        // Binary classification
+        const threshold = tf.scalar(0.5);
+        const binaryTensor = y.greaterEqual(threshold);
+
+        const binaryArray = await binaryTensor.data();
+        tf.dispose([y, binaryTensor, threshold]);
+
+        return binaryArray[0];
+      }
+
+      // Multi-class classification
+      const indexTensor = y.argMax();
+
+      const indexArray = await indexTensor.data();
+      tf.dispose([y, indexTensor]);
+
+      return indexArray[0];
+
+      // Multi-label classification is not supported
     }
 
-    return Promise.resolve(ret)
+    const xs = this.#batchWithoutLabelToTF(batch);
+
+    const prediction = this.model.predict(xs);
+    if (Array.isArray(prediction))
+      throw new Error(
+        "prediction yield many Tensors but should have only returned one",
+      );
+    tf.dispose(xs);
+
+    if (prediction.rank !== 2)
+      throw new Error("unexpected batched prediction shape");
+
+    const ret = List(
+      await Promise.all(
+        tf.unstack(prediction).map((y) =>
+          cleanupPredicted(
+            // cast as unstack reduce by one the rank
+            y as tf.Tensor1D,
+          ),
+        ),
+      ),
+    );
+    prediction.dispose();
+
+    // TODO flatten tabular
+    if (this.datatype === 'tabular')
+      return ret.map((v) => List.of(v));
+    else
+      return ret;
   }
 
   static async deserialize<D extends DataType = DataType>([
@@ -170,9 +219,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
     return this.model
   }
 
-  #batchToTF(
-    batch: Batched<ModelEncoded[D]>,
-  ): Record<"xs" | "ys", tf.Tensor> {
+  #batchToTF(batch: Batched<ModelEncoded[D]>): Record<"xs" | "ys", tf.Tensor> {
     const outputSize = tf.util.sizeFromShape(
       this.model.outputShape.map((dim) => {
         if (Array.isArray(dim))
@@ -200,9 +247,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
           ),
           ys: tf.stack(
             b
-              .map(([_, label]) =>
-                tf.oneHot(label, outputSize, 1, 0, "int32"),
-              )
+              .map(([_, label]) => tf.oneHot(label, outputSize, 1, 0, "int32"))
               .toArray(),
           ),
         }));
@@ -211,14 +256,14 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
         // cast as typescript doesn't reduce generic type
         const b = batch as Batched<ModelEncoded["tabular"]>;
 
-        return {
+        return tf.tidy(() => ({
           xs: tf.stack(
-            b.map(([inputs]) => tf.tensor1d(inputs.toArray())).toArray(),
+            b.map(([inputs, _]) => tf.tensor1d(inputs.toArray())).toArray(),
           ),
           ys: tf.stack(
             b.map(([_, outputs]) => tf.tensor1d(outputs.toArray())).toArray(),
           ),
-        };
+        }));
       }
       case "text": {
         // cast as typescript doesn't reduce generic type
@@ -236,6 +281,49 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
               .toArray(),
           ),
         };
+      }
+    }
+
+    const _: never = this.datatype;
+    throw new Error("should never happen");
+  }
+
+  #batchWithoutLabelToTF(batch: Batched<ModelEncoded[D][0]>): tf.Tensor {
+    switch (this.datatype) {
+      case "image": {
+        // cast as typescript doesn't reduce generic type
+        const b = batch as Batched<ModelEncoded["image"][0]>;
+
+        return tf.tidy(() => tf.stack(
+            b
+              .map((image) =>
+                tf.tensor3d(
+                  image.data,
+                  [image.width, image.height, 3],
+                  "float32",
+                ),
+              )
+              .toArray(),
+          ),
+        );
+      }
+      case "tabular": {
+        // cast as typescript doesn't reduce generic type
+        const b = batch as Batched<ModelEncoded["tabular"][0]>;
+
+        return tf.tidy(() =>
+          tf.stack(
+            b.map((inputs) => tf.tensor1d(inputs.toArray())).toArray(),
+          ),
+        );
+      }
+      case "text": {
+        // cast as typescript doesn't reduce generic type
+        const b = batch as Batched<ModelEncoded["text"][0]>;
+
+        return tf.stack(
+            b.map((line) => tf.tensor1d(line.toArray())).toArray(),
+          )
       }
     }
 

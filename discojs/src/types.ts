@@ -37,8 +37,6 @@ export interface ModelEncoded {
   tabular: [List<number>, List<number>];
   text: [List<Token>, Token];
 }
-export type ModelEncodedWithoutLabel = { [D in DataType]: ModelEncoded[D][0] };
-export type ModelEncodedOnlyWithLabel = { [D in DataType]: ModelEncoded[D][1] };
 
 export interface Inferred {
   image: string;
@@ -62,10 +60,12 @@ export type TypedModelEncodedDataset =
   | ["image", Dataset<ModelEncoded["image"]>]
   | ["tabular", Dataset<ModelEncoded["tabular"]>]
   | ["text", Dataset<ModelEncoded["text"]>];
+type ModelEncodedOnlyWithLabel = { [D in DataType]: ModelEncoded[D][1] };
 export type TypedBatchedModelEncodedDataset =
   | ["image", Dataset<Batched<ModelEncoded["image"]>>]
   | ["tabular", Dataset<Batched<ModelEncoded["tabular"]>>]
   | ["text", Dataset<Batched<ModelEncoded["text"]>>];
+type ModelEncodedWithoutLabel = { [D in DataType]: ModelEncoded[D][0] };
 export type TypedModelEncodedWithoutLabelDataset =
   | ["image", Dataset<ModelEncodedWithoutLabel["image"]>]
   | ["tabular", Dataset<ModelEncodedWithoutLabel["tabular"]>]

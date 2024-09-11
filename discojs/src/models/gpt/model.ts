@@ -218,7 +218,7 @@ export class GPTForCausalLM extends GPTModel {
 
       const output = model.predict(idx)
       if (Array.isArray(output)) throw new Error('The model outputs too multiple values')
-      if (output.shape.length !== 3) throw new Error('The model outputs wrong shape')
+      if (output.rank !== 3) throw new Error('The model outputs wrong shape')
       const logits = output as tf.Tensor3D
         
       const logitsScaled = logits

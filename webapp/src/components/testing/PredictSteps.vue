@@ -239,7 +239,7 @@ async function startImageInference(dataset: NamedImageDataset): Promise<void> {
 
   let results: (Results & { type: "image" })["results"] = List();
   try {
-    generator.value = await validator.infer([
+    generator.value = validator.infer([
       "image",
       dataset.map(({ image }) => image),
     ]);
@@ -277,7 +277,7 @@ async function startTabularInference(dataset: Dataset<Tabular>): Promise<void> {
 
   let results: (Results & { type: "tabular" })["results"] = List();
   try {
-    generator.value = await validator.infer(["tabular", dataset]);
+    generator.value = validator.infer(["tabular", dataset]);
     for await (const [input, prediction] of dataset.zip(
       toRaw(generator.value),
     )) {

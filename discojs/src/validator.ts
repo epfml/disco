@@ -1,21 +1,10 @@
-import * as tf from "@tensorflow/tfjs";
-
 import type {
   Model,
   Task,
   TypedRawDataset,
   TypedRawWithoutLabelDataset,
 } from "./index.js";
-import { datasetToData, labeledDatasetToData } from "./dataset/data/helpers.js";
-
-function intoTFDataset<T extends tf.TensorContainer>(
-  iter: AsyncIterable<T>,
-): tf.data.Dataset<T> {
-  // @ts-expect-error generator
-  return tf.data.generator(async function* () {
-    yield* iter;
-  });
-}
+import { processing } from "./index.js";
 
 export class Validator {
   readonly #model: Model;
@@ -28,40 +17,45 @@ export class Validator {
   }
 
   /** infer every line of the dataset and check that it is as labeled */
-  async *test(dataset: TypedRawDataset): AsyncGenerator<boolean> {
-    const preprocessed = (
-      await labeledDatasetToData(this.task, dataset)
-    ).preprocess();
-    const batched = preprocessed.batch().dataset;
+  async *test(dataset: TypedRawDataset): AsyncGenerator<boolean, void> {
+    const preprocessed = await processing.preprocess(this.task, dataset);
 
-    const iterator = await tf.data
-      .zip<[tf.Tensor1D | tf.Tensor2D, number]>([
-        preprocessed.dataset.map((t) => {
-          if (
-            typeof t !== "object" ||
-            !("ys" in t) ||
-            !(t.ys instanceof tf.Tensor) ||
-            !(t.ys.rank === 1 || t.ys.rank === 2)
-          )
-            throw new Error("unexpected preprocessed dataset");
-          if ("xs" in t) tf.dispose(t.xs);
-          return t.ys;
-        }),
-        intoTFDataset(this.#inferOnBatchedData(batched)),
-      ])
-      .iterator();
-    for (
-      let iter = await iterator.next();
-      iter.done !== true;
-      iter = await iterator.next()
-    ) {
-      const zipped = iter.value;
+    const { batchSize } = this.task.trainingInformation;
+    switch (preprocessed[0]) {
+      case "image": {
+        // TODO unsafe cast, will get solved when fully generic
+        const model = this.#model as Model<"image">;
 
-      const label = await getLabel(zipped[0]);
-      tf.dispose(zipped[0]);
-      const infered = zipped[1];
+        const results = preprocessed[1]
+          .batch(batchSize)
+          .map(async (batch) =>
+            (await model.predict(batch.map(([image, _]) => image)))
+              .zip(batch.map(([_, label]) => label))
+              .map(([infered, truth]) => infered === truth),
+          );
 
-      yield label === infered;
+        for await (const batch of results) for (const e of batch) yield e;
+
+        break;
+      }
+      case "tabular": {
+        // TODO unsafe cast, will get solved when fully generic
+        const model = this.#model as Model<"tabular">;
+
+        const results = preprocessed[1]
+          .batch(batchSize)
+          .map(async (batch) =>
+            (await model.predict(batch.map(([inputs, _]) => inputs)))
+              .zip(batch.map(([_, outputs]) => outputs))
+              .map(([infered, truth]) => infered.equals(truth)),
+          );
+
+        for await (const batch of results) for (const e of batch) yield e;
+
+        break;
+      }
+      case "text":
+        throw new Error("TODO implement");
     }
   }
 
@@ -69,96 +63,40 @@ export class Validator {
   async *infer(
     dataset: TypedRawWithoutLabelDataset,
   ): AsyncGenerator<number, void> {
-    const data = await datasetToData(this.task, dataset);
+    const preprocessed = await processing.preprocessWithoutLabel(this.task, dataset);
 
-    const batched = data.preprocess().batch().dataset;
+    const { batchSize } = this.task.trainingInformation;
+    switch (preprocessed[0]) {
+      case "image": {
+        // TODO unsafe cast, will get solved when fully generic
+        const model = this.#model as Model<"image">;
 
-    yield* this.#inferOnBatchedData(batched);
-  }
+        const gen = preprocessed[1]
+          .batch(batchSize)
+          .map((batch) => model.predict(batch));
 
-  async *#inferOnBatchedData(
-    batched: tf.data.Dataset<tf.TensorContainer>,
-  ): AsyncGenerator<number, void> {
-    const iterator = await batched.iterator();
-    for (
-      let iter = await iterator.next();
-      iter.done !== true;
-      iter = await iterator.next()
-    ) {
-      const row = iter.value;
-      if (
-        typeof row !== "object" ||
-        !("xs" in row) ||
-        !(row.xs instanceof tf.Tensor)
-      )
-        throw new Error("unexpected shape of dataset");
+        for await (const batch of gen) for await (const e of batch) yield e;
 
-      const prediction = await this.#model.predict(row.xs);
-      tf.dispose(row);
-      let predictions: number[];
-      switch (prediction.rank) {
-        case 2:
-        case 3:
-          predictions = await getLabels(
-            // cast as rank was just checked
-            prediction as tf.Tensor2D | tf.Tensor3D,
-          );
-          prediction.dispose();
-          break;
-        default:
-          throw new Error("unexpected batched prediction shape");
+        break;
       }
-      prediction.dispose();
+      case "tabular": {
+        // TODO unsafe cast, will get solved when fully generic
+        const model = this.#model as Model<"tabular">;
 
-      for (const prediction of predictions) yield prediction;
-    }
-  }
-}
+        const gen = preprocessed[1]
+          .batch(batchSize)
+          .map((batch) => model.predict(batch));
 
-async function getLabels(ys: tf.Tensor2D | tf.Tensor3D): Promise<number[]> {
-  // cast as unstack drop a dimension and tfjs doesn't type correctly
-  return Promise.all(
-    tf.unstack(ys).map((y) => {
-      const ret = getLabel(y as tf.Tensor1D | tf.Tensor2D);
-      y.dispose();
-      return ret;
-    }),
-  );
-}
+        for await (const batch of gen)
+          for await (const e of batch) {
+            // TODO mutliple output tabular isn't supported, update types to reflect that
+            yield e.first();
+          }
 
-async function getLabel(ys: tf.Tensor1D | tf.Tensor2D): Promise<number> {
-  switch (ys.rank) {
-    case 1: {
-      if (ys.shape[0] == 1) {
-        // Binary classification
-        const threshold = tf.scalar(0.5);
-        const binaryTensor = ys.greaterEqual(threshold);
-
-        const binaryArray = await binaryTensor.data();
-        tf.dispose([binaryTensor, threshold]);
-
-        return binaryArray[0];
+        break;
       }
-
-      // Multi-class classification
-      const indexTensor = ys.argMax();
-
-      const indexArray = await indexTensor.data();
-      tf.dispose([indexTensor]);
-
-      return indexArray[0];
-
-      // Multi-label classification is not supported
+      case "text":
+        throw new Error("TODO implement");
     }
-    case 2: {
-      // it's LLM, we only extract the next token
-      const firstToken = tf.tidy(() => ys.gather([0]).squeeze().argMax());
-      const raw = await firstToken.data();
-      firstToken.dispose();
-
-      return raw[0];
-    }
-    default:
-      throw new Error("unexpected tensor rank");
   }
 }

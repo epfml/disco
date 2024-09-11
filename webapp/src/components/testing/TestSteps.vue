@@ -123,7 +123,14 @@ import createDebug from "debug";
 import { List, Range, Set } from "immutable";
 import { computed, ref, toRaw, watch } from "vue";
 
-import type { Dataset, Model, Tabular, Task, Text } from "@epfml/discojs";
+import type {
+  Dataset,
+  Image,
+  Model,
+  Tabular,
+  Task,
+  Text,
+} from "@epfml/discojs";
 import { Validator } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
@@ -301,7 +308,7 @@ async function startImageTest(
   try {
     generator.value = validator.test([
       "image",
-      dataset.map(({ image, label }) => [image, label]),
+      dataset.map(({ image, label }) => [image, label] as [Image, string]),
     ]);
     for await (const [{ filename, image, label }, correct] of dataset.zip(
       toRaw(generator.value),
