@@ -5,7 +5,7 @@ import { v4 as randomUUID } from 'uuid'
 import msgpack from 'msgpack-lite'
 import { Map } from 'immutable'
 
-import type { EncodedWeights, Task, WeightsContainer } from '@epfml/discojs'
+import type { EncodedWeights, Task } from '@epfml/discojs'
 import {
   aggregator as aggregators,
   client,
@@ -134,16 +134,13 @@ export class FederatedController extends TrainingController {
             const weights = serialization.weights.decode(payload)
 
             // Send the aggregated weight to the client when enough contributions are received
-            Promise.race([this.#aggregator.add(clientId, weights)])
-              .then((result) => [result, this.#aggregator.round] as [WeightsContainer, number])
-              .then(async ([result, round]) =>
-                [await serialization.weights.encode(result), round] as [serialization.weights.Encoded, number])
-              .then(([serialized, round]) => {
-                debug("Sending global weights for round %o to client [%s]", round, shortId)
+            this.#aggregator.add(clientId, weights)
+              .then(async (weightUpdate) => {
+                debug("Sending global weights for round %o to client [%s]", this.#aggregator.round, shortId)
                 const msg: FederatedMessages.ReceiveServerPayload = {
                   type: MessageTypes.ReceiveServerPayload,
-                  round, // send the current round number after aggregation
-                  payload: serialized,
+                  round: this.#aggregator.round, // send the current round number after aggregation
+                  payload: await serialization.weights.encode(weightUpdate),
                   nbOfParticipants: this.#participants.size
                 }
                 ws.send(msgpack.encode(msg))
