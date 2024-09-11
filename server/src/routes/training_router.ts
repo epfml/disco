@@ -34,7 +34,9 @@ export class TrainingRouter {
     * For every task and model, this.onNewTask creates a path /taskID and routes it to this.handle.
     */
     process.nextTick(() => {
-      taskInitializer.on('newTask', async (t, m) => { await this.onNewTask(t, m) })
+      taskInitializer.on('newTask',
+        async ({ task, encodedModel }) => { await this.onNewTask(task, encodedModel) },
+        true) // true to run the callback on already emitted tasks
     })
   }
 
