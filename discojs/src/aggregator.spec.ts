@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Map, Range, Set } from "immutable";
+import { Map, Range, Set, List } from "immutable";
 
 import { WeightsContainer } from "./index.js";
 import {
@@ -32,11 +32,12 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
       const results = new Promise((resolve) =>
         aggregator.on("aggregation", resolve),
       );
-
+      
+      let promises = List<Promise<WeightsContainer>>()
       for (let i = 0; i < 3; i++)
         for (let r = 0; r < aggregator.communicationRounds; r++)
-          aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r);
-
+          promises = promises.push(aggregator.add(`client ${i}`, WeightsContainer.of([i]), r))
+      await Promise.all(promises)
       await results; // nothing to test
 
       expect(aggregator.round).to.equal(1);
@@ -125,7 +126,7 @@ export async function communicate<A extends Aggregator>(
         agg
           .makePayloads(contrib)
           .entrySeq()
-          .forEach(([to, payload]) => network.get(to)?.add(id, payload, 0, r)),
+          .forEach(([to, payload]) => network.get(to)?.add(id, payload, r)),
       );
 
     contributions = Map(await Promise.all(nextContributions));
