@@ -64,7 +64,7 @@ export class MeanAggregator extends Aggregator {
     else {
       // Print a warning regarding the default behavior when thresholdType is not specified
       if (thresholdType === undefined) {
-	// TODO enforce validity by splitting features instead of warning
+        // TODO enforce validity by splitting the different threshold types into separate classes instead of warning
         debug(
           "[WARN] Setting the aggregator's threshold to 100% of the nodes' contributions by default. " +
           "To instead wait for a single contribution, set thresholdType = 'absolute'"
