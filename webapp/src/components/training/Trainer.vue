@@ -213,7 +213,7 @@ async function startTraining(): Promise<void> {
     'UPDATING MODEL': "Updating the model with other participants' models",
     'TRAINING': "Training the model on the data you connected"
   })
-  disco.on("status", status => roundStatus.value = discoStatusMessage.get(status))
+  disco.on("status", status => { roundStatus.value = discoStatusMessage.get(status) })
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training
