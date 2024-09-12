@@ -1,7 +1,8 @@
 import { weights } from '../../serialization/index.js'
 import { type SignalData } from './peer.js'
 import { isNodeID, type NodeID } from '../types.js'
-import { type, type ClientConnected, hasMessageType } from '../messages.js'
+import { type, hasMessageType } from '../messages.js'
+import type { ClientConnected, WaitingForMoreParticipants, EnoughParticipants } from '../messages.js'
 
 
 /// Phase 0 communication (between server and peers)
@@ -44,7 +45,9 @@ export interface Payload {
 export type MessageFromServer =
   NewDecentralizedNodeInfo |
   SignalForPeer |
-  PeersForRound
+  PeersForRound |
+  WaitingForMoreParticipants |
+  EnoughParticipants
 
 export type MessageToServer =
   ClientConnected |
@@ -68,6 +71,9 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
         'signal' in o // TODO check signal content?
     case type.PeersForRound:
       return 'peers' in o && Array.isArray(o.peers) && o.peers.every(isNodeID)
+    case type.WaitingForMoreParticipants:
+    case type.EnoughParticipants:
+          return true
   }
 
   return false

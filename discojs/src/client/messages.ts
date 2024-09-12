@@ -42,6 +42,14 @@ export interface ClientConnected {
   type: type.ClientConnected
 }
 
+export interface EnoughParticipants {
+  type: type.EnoughParticipants
+}
+
+export interface WaitingForMoreParticipants {
+  type: type.WaitingForMoreParticipants
+}
+
 export type Message =
   decentralized.MessageFromServer |
   decentralized.MessageToServer |
