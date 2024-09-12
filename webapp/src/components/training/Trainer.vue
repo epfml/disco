@@ -59,7 +59,7 @@
             <!-- Display an activity indicator depending on the training status -->
             <div class="min-h-9">
               <div v-if="roundStatus === 'Waiting for more participants' ||
-                roundStatus === 'Retrieving peers\' information'"
+                roundStatus === 'Establishing peer-to-peer connections'"
               >
                 <VueSpinnerPuff size="30" color="#6096BA"/>
               </div>
@@ -209,7 +209,7 @@ async function startTraining(): Promise<void> {
   // set the round status displayed to the status emitted by the disco object
   const discoStatusMessage = Map<RoundStatus, string>({
     'NOT ENOUGH PARTICIPANTS': "Waiting for more participants",
-    'RETRIEVING PEERS': "Retrieving peers' information",
+    'RETRIEVING PEERS': "Establishing peer-to-peer connections",
     'UPDATING MODEL': "Updating the model with other participants' models",
     'TRAINING': "Training the model on the data you connected"
   })
