@@ -1,6 +1,12 @@
+import createDebug from "debug";
 import type WebSocket from 'ws'
+import { Map } from 'immutable'
+import msgpack from 'msgpack-lite'
 
+import { client } from '@epfml/discojs'
 import type { Task } from '@epfml/discojs'
+
+const debug = createDebug("server:controllers")
 
 /**
  * The Controller abstraction is commonly used in Express
@@ -18,10 +24,40 @@ import type { Task } from '@epfml/discojs'
  * 
  */
 export abstract class TrainingController {
+  /**
+   * Boolean used to know if we have enough participants to train or if 
+   * we should be waiting for more
+   */
+  protected waitingForMoreParticipants = true
+  /**
+   * List of active participants along with their websockets
+   * the list allows updating participants about the training status 
+   * i.e. waiting for more participants or resuming training
+   */
+  protected connections = Map<client.NodeID, WebSocket>()
 
   constructor(protected readonly task: Task) { }
 
   abstract handle(
     ws: WebSocket
   ): void
+
+  protected checkIfEnoughParticipants(waitForMoreParticipants: boolean, currentId: client.NodeID) {
+    // If we were previously waiting for more participants to join and we now have enough,
+    // broadcast to previously waiting participants that the training can start
+    if (this.waitingForMoreParticipants && !waitForMoreParticipants) {
+      this.connections
+        // filter out the client that just joined as 
+        // it already knows via the NewFederatedNodeInfo message
+        .filter((_, id) => id !== currentId)
+        .forEach((participantWs, participantId) => {
+          debug("Sending enough-participant message to client [%s]", participantId.slice(0, 4))
+          const msg: client.messages.EnoughParticipants = {
+            type: client.messages.type.EnoughParticipants
+          }
+          participantWs.send(msgpack.encode(msg))
+        })
+    }
+    this.waitingForMoreParticipants = waitForMoreParticipants // update the attribute
+  }
 }

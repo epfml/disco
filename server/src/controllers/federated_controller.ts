@@ -1,9 +1,7 @@
-
 import createDebug from "debug";
 import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
 import msgpack from 'msgpack-lite'
-import { Map } from 'immutable'
 
 import type { EncodedWeights, Task } from '@epfml/discojs'
 import {
@@ -31,17 +29,7 @@ export class FederatedController extends TrainingController {
    * or staled participants
    */
   #latestGlobalWeights: EncodedWeights
-  /**
-   * Boolean used to know if we have enough participants to train or if 
-   * we should be waiting for more
-   */
-  #waitingForMoreParticipants = true
-  /**
-   * List of active participants along with their websockets
-   * the list allows updating participants about the training status 
-   * i.e. waiting for more participants or resuming training
-   */
-  #participants = Map<string, WebSocket>()
+  
 
   constructor(task: Task, initialWeights: EncodedWeights) {
     super(task)
@@ -92,37 +80,22 @@ export class FederatedController extends TrainingController {
         */
         case MessageTypes.ClientConnected: {
           debug(`client [%s] joined ${this.task.id}`, shortId)
-          this.#participants = this.#participants.set(clientId, ws) // add the new client
+          this.connections = this.connections.set(clientId, ws) // add the new client
 
-          const waitForMoreParticipants = this.#participants.size < minNbOfParticipants
+          const waitForMoreParticipants = this.connections.size < minNbOfParticipants
           const msg: FederatedMessages.NewFederatedNodeInfo = {
             type: MessageTypes.NewFederatedNodeInfo,
             id: clientId,
             waitForMoreParticipants,
             payload: this.#latestGlobalWeights,
             round: this.#aggregator.round,
-            nbOfParticipants: this.#participants.size
+            nbOfParticipants: this.connections.size
           }
           ws.send(msgpack.encode(msg))
 
           debug("Wait for more participant flag: %o", waitForMoreParticipants)
-          
-          // If we were previously waiting for more participants to join and we now have enough,
-          // broadcast to previously waiting participants that the training can start
-          if (this.#waitingForMoreParticipants && !waitForMoreParticipants) {
-            this.#participants
-              // filter out the client that just joined as 
-              // it already knows via the NewFederatedNodeInfo message
-              .filter((_, id) => id !== clientId)
-              .forEach((participantWs, participantId) => {
-                debug("Sending enough-participant message to client [%s]", participantId.slice(0, 4))
-                const msg: FederatedMessages.EnoughParticipants = {
-                  type: MessageTypes.EnoughParticipants
-                }
-                participantWs.send(msgpack.encode(msg))
-              })
-          }
-          this.#waitingForMoreParticipants = waitForMoreParticipants // update the attribute
+          // Send an update to participants if we can start/resume training
+          this.checkIfEnoughParticipants(waitForMoreParticipants, clientId)
           break
         }
         /* 
@@ -141,7 +114,7 @@ export class FederatedController extends TrainingController {
                   type: MessageTypes.ReceiveServerPayload,
                   round: this.#aggregator.round, // send the current round number after aggregation
                   payload: await serialization.weights.encode(weightUpdate),
-                  nbOfParticipants: this.#participants.size
+                  nbOfParticipants: this.connections.size
                 }
                 ws.send(msgpack.encode(msg))
               })
@@ -159,7 +132,7 @@ export class FederatedController extends TrainingController {
               type: MessageTypes.ReceiveServerPayload,
               round: this.#aggregator.round - 1, // send the model from the previous round
               payload: this.#latestGlobalWeights,
-              nbOfParticipants: this.#participants.size
+              nbOfParticipants: this.connections.size
             }
             ws.send(msgpack.encode(msg))
           }
@@ -171,26 +144,26 @@ export class FederatedController extends TrainingController {
     // Setup callback for client leaving the session
     ws.on('close', () => {
       // Remove the participant when the websocket is closed
-      this.#participants = this.#participants.delete(clientId)
+      this.connections = this.connections.delete(clientId)
       this.#aggregator.removeNode(clientId)
       debug("client [%s] left", shortId)
 
       // Check if we dropped below the minimum number of participant required
       // or if we are already waiting for new participants to join
-      if (this.#participants.size >= minNbOfParticipants ||
-        this.#waitingForMoreParticipants
+      if (this.connections.size >= minNbOfParticipants ||
+        this.waitingForMoreParticipants
       ) return
 
-      this.#waitingForMoreParticipants = true
+      this.waitingForMoreParticipants = true
       // Tell remaining participants to wait until more participants join
-      this.#participants
+      this.connections
         .forEach((participantWs, participantId) => {
           debug("Telling remaining client [%s] to wait for participants", participantId.slice(0, 4))
-          const msg: FederatedMessages.WaitingForMoreParticipants = {
+          const msg: client.messages.WaitingForMoreParticipants = {
             type: MessageTypes.WaitingForMoreParticipants
           }
           participantWs.send(msgpack.encode(msg))
         })
-    }) 
+    })
   }
 }
