@@ -3,8 +3,8 @@ import * as tf from '@tensorflow/tfjs'
 import type { Model, Task, TaskProvider } from '../index.js'
 import { models } from '../index.js'
 
-export const titanic: TaskProvider = {
-  getTask (): Task {
+export const titanic: TaskProvider<'tabular'> = {
+  getTask (): Task<'tabular'> {
     return {
       id: 'titanic',
       displayInformation: {

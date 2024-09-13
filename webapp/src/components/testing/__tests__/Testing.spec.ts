@@ -20,6 +20,7 @@ const TASK: Task = {
   },
   trainingInformation: {
     dataType: "text",
+    tokenizer: "Xenova/gpt2",
     tensorBackend: "gpt",
     scheme: "federated",
     minNbOfParticipants: 1,

@@ -4,8 +4,8 @@ import type { Model, Task, TaskProvider } from '../index.js'
 import { models } from '../index.js'
 import baseModel from '../models/mobileNetV2_35_alpha_2_classes.js'
 
-export const simpleFace: TaskProvider = {
-  getTask (): Task {
+export const simpleFace: TaskProvider<'image'> = {
+  getTask (): Task<'image'> {
     return {
       id: 'simple_face',
       displayInformation: {

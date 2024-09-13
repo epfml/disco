@@ -1,7 +1,7 @@
-import type { Model, Task } from '../index.js'
+import type { DataType, Model, Task } from "../index.js";
 
-export interface TaskProvider {
-  getTask: () => Task
+export interface TaskProvider<D extends DataType = DataType> {
+  getTask(): Task<D>;
   // Create the corresponding model ready for training (compiled)
-  getModel: () => Promise<Model>
+  getModel(): Promise<Model<D>>;
 }

@@ -1,6 +1,7 @@
 import { Seq } from "immutable";
 
 import type {
+  DataType,
   Model,
   Task,
   TaskProvider,
@@ -44,13 +45,23 @@ export function setupServerWith(...providers: (Task | TaskProvider)[]): void {
   });
 }
 
-export function basicTask(
-  info: Partial<TrainingInformation> & Pick<TrainingInformation, "dataType">,
-): Task {
+type BasicKeys =
+  | "epochs"
+  | "batchSize"
+  | "roundDuration"
+  | "validationSplit"
+  | "tensorBackend"
+  | "scheme"
+  | "minNbOfParticipants";
+export function basicTask<D extends DataType>(
+  info: {
+    [K in DataType]: Omit<TrainingInformation<K>, BasicKeys> &
+      Partial<Pick<TrainingInformation<K>, BasicKeys>>;
+  }[D],
+): Task<D> {
   return {
     id: "task",
     trainingInformation: {
-      ...info,
       epochs: 1,
       batchSize: 1,
       roundDuration: 1,
@@ -58,6 +69,7 @@ export function basicTask(
       tensorBackend: "tfjs",
       scheme: "local",
       minNbOfParticipants: 1,
+      ...info,
     },
     displayInformation: {
       taskTitle: "task",

@@ -37,7 +37,7 @@ const unsafeArgs = parse<BenchmarkUnsafeArguments>(
 )
 
 const supportedTasks = Map(
-  Set.of(
+  Set.of<TaskProvider<"image"> | TaskProvider<"tabular">>(
     defaultTasks.cifar10,
     defaultTasks.lusCovid,
     defaultTasks.simpleFace,
@@ -67,6 +67,6 @@ export const args: BenchmarkArguments = {
 
       return task;
     },
-    getModel: provider.getModel,
+    getModel: () => provider.getModel(),
   },
 };

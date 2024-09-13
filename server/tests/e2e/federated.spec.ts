@@ -74,7 +74,7 @@ describe("end-to-end federated", () => {
       scheme: "federated",
       preprocessOnce: true,
     })
-    await disco.trainFully(["image", dataset]);
+    await disco.trainFully(dataset);
     await disco.close();
 
     return disco.trainer.model.weights;
@@ -95,7 +95,7 @@ describe("end-to-end federated", () => {
     });
 
     const logs = List(
-      await arrayFromAsync(disco.trainByRound(["tabular", dataset])),
+      await arrayFromAsync(disco.trainByRound(dataset)),
     );
     await disco.close();
 
@@ -123,7 +123,7 @@ describe("end-to-end federated", () => {
     const disco = new Disco(task, url, { scheme: "federated" });
 
     const logs = List(
-      await arrayFromAsync(disco.trainByRound(["text", dataset])),
+      await arrayFromAsync(disco.trainByRound(dataset)),
     );
     await disco.close();
 
@@ -154,7 +154,7 @@ describe("end-to-end federated", () => {
     });
 
     const logs = List(
-      await arrayFromAsync(disco.trainByRound(["image", dataset])),
+      await arrayFromAsync(disco.trainByRound(dataset)),
     );
     await disco.close();
 
@@ -246,7 +246,7 @@ describe("end-to-end federated", () => {
     });
     const statusUser1 = new Queue<RoundStatus>();
     discoUser1.on("status", (status) => statusUser1.put(status))
-    const generatorUser1 = discoUser1.trainByRound(["image", dataset])
+    const generatorUser1 = discoUser1.trainByRound(dataset)
     
     // Have User 1 join the task and train locally for one round
     const logUser1Round1 = await generatorUser1.next()
@@ -266,7 +266,7 @@ describe("end-to-end federated", () => {
     });
     const statusUser2 = new Queue<RoundStatus>();
     discoUser2.on("status", (status) => statusUser2.put(status))
-    const generatorUser2 = discoUser2.trainByRound(["image", dataset])
+    const generatorUser2 = discoUser2.trainByRound(dataset)
 
     // Have User 2 join the task and train for one round
     const logUser2Round1 = await generatorUser2.next()
@@ -308,7 +308,7 @@ describe("end-to-end federated", () => {
     });
     const statusUser3 = new Queue<RoundStatus>();
     discoUser3.on("status", (status) => statusUser3.put(status))
-    const generatorUser3 = discoUser3.trainByRound(["image", dataset])
+    const generatorUser3 = discoUser3.trainByRound(dataset)
 
     // User 3 joins mid-training and trains one local round
     const logUser3Round1 = await generatorUser3.next()
