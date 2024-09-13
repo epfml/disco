@@ -2,7 +2,7 @@ import { List } from "immutable";
 import { parse } from "ts-command-line-args";
 import { AutoTokenizer } from "@xenova/transformers";
 
-import { fetchTasks, models, async_iterator, defaultTasks, processing } from "@epfml/discojs";
+import { fetchTasks, models, async_iterator, defaultTasks, processing, Task } from "@epfml/discojs";
 import { loadModelFromDisk, loadText } from '@epfml/discojs-node'
 
 import { Server } from "server";
@@ -50,7 +50,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
 
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
-  const task = tasks.get('llm_task')
+  const task = tasks.get('llm_task') as Task<'text'> | undefined
   if (task === undefined) { throw new Error('task not found') }  
 
   const tokenizerName = task.trainingInformation.tokenizer

@@ -1,29 +1,27 @@
 import type {
+  Dataset,
+  DataType,
   Model,
+  Raw,
+  RawWithoutLabel,
   Task,
-  TypedRawDataset,
-  TypedRawWithoutLabelDataset,
 } from "./index.js";
 import { processing } from "./index.js";
 
-export class Validator {
-  readonly #model: Model;
+export class Validator<D extends DataType = DataType> {
+  readonly #model: Model<D>;
 
   constructor(
-    public readonly task: Task,
-    model: Model,
+    public readonly task: Task<D>,
+    model: Model<D>,
   ) {
     this.#model = model;
   }
 
-  /** infer every line of the dataset and check that it is as labeled */
-  async *test(dataset: TypedRawDataset): AsyncGenerator<boolean, void> {
-    const preprocessed = await processing.preprocess(this.task, dataset);
-
-    const { batchSize } = this.task.trainingInformation;
-
-    const results = preprocessed[1]
-      .batch(batchSize)
+  /** infer every line of the dataset and check that it is as labelled */
+  async *test(dataset: Dataset<Raw[D]>): AsyncGenerator<boolean, void> {
+    const results = (await processing.preprocess(this.task, dataset))
+      .batch(this.task.trainingInformation.batchSize)
       .map(async (batch) =>
         (await this.#model.predict(batch.map(([inputs, _]) => inputs)))
           .zip(batch.map(([_, outputs]) => outputs))
@@ -35,19 +33,14 @@ export class Validator {
 
   /** use the model to predict every line of the dataset */
   async *infer(
-    dataset: TypedRawWithoutLabelDataset,
+    dataset: Dataset<RawWithoutLabel[D]>,
   ): AsyncGenerator<number, void> {
-    const preprocessed = await processing.preprocessWithoutLabel(
-      this.task,
-      dataset,
-    );
-
-    const { batchSize } = this.task.trainingInformation;
-
-    const gen = preprocessed[1]
-      .batch(batchSize)
+    const results = (
+      await processing.preprocessWithoutLabel(this.task, dataset)
+    )
+      .batch(this.task.trainingInformation.batchSize)
       .map((batch) => this.#model.predict(batch));
 
-    for await (const batch of gen) for await (const e of batch) yield e;
+    for await (const batch of results) for await (const e of batch) yield e;
   }
 }

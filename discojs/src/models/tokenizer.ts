@@ -12,7 +12,7 @@ import { AutoTokenizer, PreTrainedTokenizer, env } from '@xenova/transformers';
  * @param task the task object specifying which tokenizer to use
  * @returns an initialized tokenizer object
  */
-export async function getTaskTokenizer(task: Task): Promise<PreTrainedTokenizer> {
+export async function getTaskTokenizer(task: Task<'text'>): Promise<PreTrainedTokenizer> {
   let tokenizer = task.trainingInformation.tokenizer
   if (tokenizer === undefined) throw Error('No tokenizer specified in the task training information')
   if (typeof tokenizer == 'string') {

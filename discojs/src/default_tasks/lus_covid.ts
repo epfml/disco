@@ -3,8 +3,8 @@ import * as tf from '@tensorflow/tfjs'
 import type { Model, Task, TaskProvider } from '../index.js'
 import { models } from '../index.js'
 
-export const lusCovid: TaskProvider = {
-  getTask (): Task {
+export const lusCovid: TaskProvider<'image'> = {
+  getTask (): Task<'image'> {
     return {
       id: 'lus_covid',
       displayInformation: {

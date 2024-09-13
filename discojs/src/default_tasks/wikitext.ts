@@ -1,8 +1,8 @@
 import type { Model, Task, TaskProvider } from '../index.js'
 import { models } from '../index.js'
 
-export const wikitext: TaskProvider = {
-  getTask (): Task {
+export const wikitext: TaskProvider<'text'> = {
+  getTask (): Task<'text'> {
     return {
       id: 'llm_task',
       displayInformation: {

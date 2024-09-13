@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
     <div class="contents">
-      <IconCard v-for="(files, label) in labelToFiles" :key="label">
+      <IconCard v-for="[label, files] in labelsAndFiles" :key="label">
         <template #title> Group label:&nbsp;&nbsp;{{ label }} </template>
 
         <FileSelection type="image" multiple v-model="files.value">
@@ -14,6 +14,7 @@
 
 <script lang="ts" setup>
 import { Map, Set } from "immutable";
+import type { Ref, WatchHandle } from "vue";
 import { computed, ref, watch } from "vue";
 
 import { Dataset } from "@epfml/discojs";
@@ -30,32 +31,51 @@ const props = defineProps<{
   labels: Set<string>;
 }>();
 
-const dataset = defineModel<NamedLabeledImageDataset>();
+const dataset = defineModel<NamedLabeledImageDataset | undefined>();
 watch(dataset, (dataset: NamedLabeledImageDataset | undefined) => {
   if (dataset === undefined)
-    Object.values(labelToFiles.value).forEach((files) => {
+    labelsAndFiles.value.forEach(([_, files]) => {
       files.value = undefined;
     });
 });
 
-// using an object instead of a map as vue needs to update in place
-const labelToFiles = computed(() =>
-  Object.fromEntries(
-    props.labels.map((label) => [label, ref<Set<File>>()] as const),
-  ),
+const labelsAndFiles = computed<Array<[string, Ref<Set<File> | undefined>]>>(
+  (oldArray) => {
+    const old = Map(oldArray);
+
+    return props.labels
+      .valueSeq()
+      .sort()
+      .map(
+        (label) =>
+          [label, old.get(label) ?? ref()] as [
+            string,
+            Ref<Set<File> | undefined>,
+          ],
+      )
+      .toArray();
+  },
 );
 
-watch(Object.values(labelToFiles.value), () => {
-  const labelsAndFiles = Map(Object.entries(labelToFiles.value))
-    .toSeq()
-    .flatMap(
-      (files, label) => files.value?.map((f) => [label, f] as const) ?? [],
-    );
+let watcher: WatchHandle;
+function refreshWatcher() {
+  watcher?.(); // stop old watcher
+  watcher = watch(
+    labelsAndFiles.value.map(([_, files]) => files),
+    () => {
+      const expanded = labelsAndFiles.value.flatMap(
+        ([label, files]) =>
+          files.value?.map((f) => [label, f] as const)?.toArray() ?? [],
+      );
 
-  dataset.value = new Dataset(labelsAndFiles).map(async ([label, file]) => ({
-    filename: file.name,
-    image: await loadImage(file),
-    label,
-  }));
-});
+      dataset.value = new Dataset(expanded).map(async ([label, file]) => ({
+        filename: file.name,
+        image: await loadImage(file),
+        label,
+      }));
+    },
+  );
+}
+refreshWatcher();
+watch(labelsAndFiles, () => refreshWatcher());
 </script>

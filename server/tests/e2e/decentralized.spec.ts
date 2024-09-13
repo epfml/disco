@@ -205,7 +205,7 @@ describe('end-to-end decentralized', function () {
     const discoUser1 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser1 = new Queue<RoundStatus>();
     discoUser1.on("status", status => { statusUser1.put(status) })
-    const generatorUser1 = discoUser1.trainByRound(["image", dataset])
+    const generatorUser1 = discoUser1.trainByRound(dataset)
     
     // Have User 1 join the task and train locally for one round
     const logUser1Round1 = await generatorUser1.next()
@@ -228,7 +228,7 @@ describe('end-to-end decentralized', function () {
     const discoUser2 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser2 = new Queue<RoundStatus>();
     discoUser2.on("status", status => { statusUser2.put(status) })
-    const generatorUser2 = discoUser2.trainByRound(["image", dataset])
+    const generatorUser2 = discoUser2.trainByRound(dataset)
 
     // Have User 2 join the task and train for one round
     const logUser2Round1 = await generatorUser2.next()
@@ -274,7 +274,7 @@ describe('end-to-end decentralized', function () {
     const discoUser3 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser3 = new Queue<RoundStatus>();
     discoUser3.on("status", status => { statusUser3.put(status) })
-    const generatorUser3 = discoUser3.trainByRound(["image", dataset])
+    const generatorUser3 = discoUser3.trainByRound(dataset)
 
     // User 3 joins mid-training and trains one local round
     const logUser3Round1 = await generatorUser3.next()

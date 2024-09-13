@@ -1,12 +1,13 @@
+import { DataType } from '../types.js'
 import { isDisplayInformation, type DisplayInformation } from './display_information.js'
 import { isTrainingInformation, type TrainingInformation } from './training_information.js'
 
 export type TaskID = string
 
-export interface Task {
+export interface Task<D extends DataType = DataType> {
   id: TaskID
   displayInformation: DisplayInformation
-  trainingInformation: TrainingInformation
+  trainingInformation: TrainingInformation<D>
 }
 
 export function isTaskID (obj: unknown): obj is TaskID {

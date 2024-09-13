@@ -1,6 +1,6 @@
 import "@tensorflow/tfjs-node"
 
-import { Disco, fetchTasks, models } from '@epfml/discojs'
+import { Disco, fetchTasks, models, Task } from '@epfml/discojs'
 import { saveModelToDisk, loadModelFromDisk, loadText } from '@epfml/discojs-node'
 
 async function main(): Promise<void> { 
@@ -9,7 +9,7 @@ async function main(): Promise<void> {
   
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
-  const task = tasks.get('llm_task')
+  const task = tasks.get('llm_task') as Task<'text'> | undefined
   if (task === undefined) { throw new Error('task not found') }
   
   let model;
@@ -26,7 +26,7 @@ async function main(): Promise<void> {
   
     // Initialize a Disco instance and start training a language model
     const disco = new Disco(task, url, { scheme: 'federated' })
-    await disco.trainFully(["text", dataset]);
+    await disco.trainFully(dataset);
   
     // Get the model and save the trained model
     model = disco.trainer.model as models.GPT
