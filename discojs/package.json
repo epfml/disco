@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "4",
-    "@types/chai": "4",
+    "@types/chai": "5",
     "@types/mocha": "10",
     "@types/simple-peer": "9",
     "chai": "5",

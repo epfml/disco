@@ -21,7 +21,6 @@ import { DataSplit } from "./data_split.js";
 function intoTFDataset<T extends tf.TensorContainer>(
   iter: AsyncIterable<T>,
 ): tf.data.Dataset<T> {
-  // @ts-expect-error generator
   return tf.data.generator(async function* () {
     yield* iter;
   });

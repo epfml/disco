@@ -24,7 +24,7 @@
     "uuid": "10"
   },
   "devDependencies": {
-    "@types/chai": "4",
+    "@types/chai": "5",
     "@types/cors": "2",
     "@types/express-ws": "3",
     "@types/mocha": "10",

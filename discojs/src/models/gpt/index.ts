@@ -103,7 +103,11 @@ export class GPT extends Model<"text"> {
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await evaluate(
       this.model,
-      intoTFDataset(dataset.map((batch) => this.#batchToTF(batch))),
+      tf.data.generator(
+        async function* (this: GPT) {
+          yield* dataset.map((batch) => this.#batchToTF(batch));
+        }.bind(this),
+      ),
       this.config.maxEvalBatches,
     );
 
@@ -190,13 +194,4 @@ export class GPT extends Model<"text"> {
     if (disposeResults.refCountAfterDispose > 0)
       debug("model not disposed correctly: %o", disposeResults);
   }
-}
-
-function intoTFDataset<T extends tf.TensorContainer>(
-  iter: AsyncIterable<T>,
-): tf.data.Dataset<T> {
-  // @ts-expect-error generator
-  return tf.data.generator(async function* () {
-    yield* iter;
-  });
 }

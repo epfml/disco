@@ -90,7 +90,11 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
     dataset: Dataset<Batched<ModelEncoded[D]>>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await this.model.evaluateDataset(
-      intoTFDataset(dataset.map((batch) => this.#batchToTF(batch))),
+      tf.data.generator(
+        async function* (this: TFJS<D>) {
+          yield* dataset.map((batch) => this.#batchToTF(batch));
+        }.bind(this),
+      ),
     );
     const metricToValue = Map(
       List(this.model.metricsNames).zip(
@@ -242,13 +246,4 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
     const _: never = this.datatype;
     throw new Error("should never happen");
   }
-}
-
-function intoTFDataset<T extends tf.TensorContainer>(
-  iter: AsyncIterable<T>,
-): tf.data.Dataset<T> {
-  // @ts-expect-error generator
-  return tf.data.generator(async function* () {
-    yield* iter;
-  });
 }

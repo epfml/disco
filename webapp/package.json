@@ -18,7 +18,7 @@
     "cypress": "13",
     "d3": "7",
     "immutable": "4",
-    "pinia": "2",
+    "pinia": "<2.2.3",
     "pinia-plugin-persistedstate-2": "2",
     "vee-validate": "4",
     "vue": "3",
@@ -29,7 +29,7 @@
     "yup": "1"
   },
   "devDependencies": {
-    "@pinia/testing": "0.1",
+    "@pinia/testing": "<0.1.6",
     "@tsconfig/node20": "20",
     "@types/d3": "7",
     "@types/jsdom": "21",
