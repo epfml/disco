@@ -25,9 +25,7 @@ const customTask: TaskProvider = {
         inputColumns: [
           'Age'
         ],
-        outputColumns: [
-          'Output'
-        ],
+        outputColumn: 'Output',
         scheme: 'federated',
         minNbOfParticipants: 2,
         tensorBackend: 'tfjs',

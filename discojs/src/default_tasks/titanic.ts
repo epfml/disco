@@ -61,9 +61,7 @@ export const titanic: TaskProvider = {
           'Fare',
           'Pclass'
         ],
-        outputColumns: [
-          'Survived'
-        ],
+        outputColumn: 'Survived',
         scheme: 'federated',
         aggregationStrategy: 'mean',
         minNbOfParticipants: 2,

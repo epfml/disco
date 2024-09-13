@@ -1,6 +1,6 @@
 /** Dataset shapers, convenient to map with */
 
-import { List, Map } from "immutable";
+import { List } from "immutable";
 
 import type {
   Tabular,
@@ -45,16 +45,21 @@ export async function preprocess(
       ];
     }
     case "tabular": {
-      const { inputColumns, outputColumns } = task.trainingInformation;
-      if (inputColumns === undefined || outputColumns === undefined)
+      const { inputColumns, outputColumn } = task.trainingInformation;
+      if (inputColumns === undefined || outputColumn === undefined)
         throw new Error("tabular task without input and output columns");
 
       return [
         "tabular",
-        dataset.map((row) => [
-          extractToNumbers(inputColumns, row),
-          extractToNumbers(outputColumns, row),
-        ]),
+        dataset.map((row) => {
+          const output = processing.extractColumn(row, outputColumn);
+
+          return [
+            extractToNumbers(inputColumns, row),
+            // TODO sanitization doesn't care about column distribution
+            output !== "" ? processing.convertToNumber(output) : 0,
+          ];
+        }),
       ];
     }
     case "text": {
@@ -143,12 +148,14 @@ export async function postprocess(
       ];
     }
     case "tabular": {
-      const { outputColumns } = task.trainingInformation;
-      if (outputColumns === undefined)
+      const { outputColumn } = task.trainingInformation;
+      if (outputColumn === undefined)
         throw new Error("tabular task without input columns");
-      const output = List(outputColumns);
 
-      return ["tabular", dataset.map((row) => Map(output.zip(row)).toObject())];
+      return [
+        "tabular",
+        dataset.map((row) => Object.fromEntries([[outputColumn, row]])),
+      ];
     }
     case "text": {
       const tokenizer = await models.getTaskTokenizer(task);

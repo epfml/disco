@@ -247,7 +247,7 @@ export const trainingInformation: FormSection = {
       ]
     },
     {
-      id: 'outputColumns',
+      id: 'outputColumn',
       name: 'Output Column',
       yup: yup.string().when('dataType', otherReq('tabular')),
       as: 'input',
