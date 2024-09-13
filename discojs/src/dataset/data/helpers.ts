@@ -95,14 +95,14 @@ export async function labeledDatasetToData(
       return await ImageData.init(intoTFDataset(converted), task);
     }
     case "tabular": {
-      const { inputColumns, outputColumns } = task.trainingInformation;
-      if (inputColumns === undefined || outputColumns === undefined)
+      const { inputColumns, outputColumn } = task.trainingInformation;
+      if (inputColumns === undefined || outputColumn === undefined)
         throw new Error("tabular task without input and output columns");
       const converted = dataset.map(
         (row) =>
           ({
             xs: tabularToNumbers(inputColumns, row),
-            ys: tf.tensor1d(tabularToNumbers(outputColumns, row)),
+            ys: tf.tensor1d(tabularToNumbers([outputColumn], row)),
           }) satisfies {
             xs: number[];
             ys: tf.Tensor1D;

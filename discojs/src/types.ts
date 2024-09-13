@@ -34,7 +34,7 @@ export interface RawWithoutLabel {
 type Token = number;
 export interface ModelEncoded {
   image: [processing.NormalizedImage<3>, number];
-  tabular: [List<number>, List<number>];
+  tabular: [List<number>, number];
   text: [List<Token>, Token];
 }
 
