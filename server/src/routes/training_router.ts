@@ -23,7 +23,9 @@ export class TrainingRouter {
     this.#expressRouter = express.Router()
     wsApplier.applyTo(this.#expressRouter)
 
-    this.#expressRouter.get('/', (_, res) => res.send(`Disco ${this.trainingScheme} server \n`))
+    this.#expressRouter.get("/", (_, res) => {
+      res.send(`Disco ${this.trainingScheme} server\n`);
+    });
 
     /* delay listener because `this` (object) isn't fully constructed yet. 
     * The lambda function inside process.nextTick is executed after the current operation 

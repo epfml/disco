@@ -28,7 +28,10 @@ export class TaskRouter {
     // POST request to add a new task
     this.#expressRouter.post('/', (req, res) => {
       const raw: unknown = req.body
-      if (typeof raw !== 'object' || raw === null) return res.status(400)
+      if (typeof raw !== "object" || raw === null) {
+        res.status(400);
+        return;
+      }
       const { model: encoded, newTask }: Partial<Record<'model' | 'newTask', unknown>> = raw
 
       if (!(

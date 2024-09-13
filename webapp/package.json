@@ -18,7 +18,7 @@
     "d3": "7",
     "immutable": "4",
     "pinia": "2",
-    "pinia-plugin-persistedstate": "3",
+    "pinia-plugin-persistedstate": "4",
     "vee-validate": "4",
     "vue": "3",
     "vue-router": "4",
