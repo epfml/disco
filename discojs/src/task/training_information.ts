@@ -1,4 +1,3 @@
-import type { Preprocessing } from '../dataset/data/preprocessing/index.js'
 import { PreTrainedTokenizer } from '@xenova/transformers';
 
 interface Privacy {
@@ -18,8 +17,6 @@ export interface TrainingInformation {
   validationSplit: number
   // batchSize: batch size of training data
   batchSize: number
-  // preprocessingFunctions: preprocessing functions such as resize and normalize
-  preprocessingFunctions?: Preprocessing[]
   // dataType, 'image', 'tabular' or 'text'
   dataType: 'image' | 'tabular' | 'text'
   // inputColumns: for tabular data, the columns to be chosen as input data for the model
@@ -109,7 +106,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     maxShareValue,
     minNbOfParticipants,
     outputColumn,
-    preprocessingFunctions,
     roundDuration,
     scheme,
     validationSplit,
@@ -134,8 +130,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     (IMAGE_W !== undefined && typeof IMAGE_W !== 'number') ||
     (outputColumn !== undefined && typeof outputColumn !== 'string') ||
     (LABEL_LIST !== undefined && !isStringArray(LABEL_LIST)) ||
-    (inputColumns !== undefined && !isStringArray(inputColumns)) ||
-    (preprocessingFunctions !== undefined && !Array.isArray(preprocessingFunctions))
+    (inputColumns !== undefined && !isStringArray(inputColumns))
   ) {
     return false
   }
@@ -193,7 +188,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     maxShareValue,
     minNbOfParticipants,
     outputColumn,
-    preprocessingFunctions,
     roundDuration,
     scheme,
     validationSplit,

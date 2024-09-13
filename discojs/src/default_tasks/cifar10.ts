@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import { models } from '../index.js'
 
 import baseModel from '../models/mobileNet_v1_025_224.js'
 
@@ -28,7 +28,6 @@ export const cifar10: TaskProvider = {
         validationSplit: 0.2,
         batchSize: 10,
         dataType: 'image',
-        preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         IMAGE_H: 224,
         IMAGE_W: 224,
         LABEL_LIST: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],

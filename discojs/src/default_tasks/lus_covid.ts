@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import { models } from '../index.js'
 
 export const lusCovid: TaskProvider = {
   getTask (): Task {
@@ -27,7 +27,6 @@ export const lusCovid: TaskProvider = {
         batchSize: 5,
         IMAGE_H: 100,
         IMAGE_W: 100,
-        preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
         dataType: 'image',
         scheme: 'federated',
