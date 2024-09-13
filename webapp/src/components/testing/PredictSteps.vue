@@ -142,16 +142,13 @@ type Results =
   | {
       type: "image";
       results: List<{
-        input: {
-          filename: string;
-          image: ImageData;
-        };
+        input: { filename: string; image: ImageData };
         output: string;
       }>;
     }
   | {
       type: "tabular";
-      labels: { input: List<string>; output: List<string> };
+      labels: { input: List<string>; output: string };
       results: List<{ input: List<string>; output: string }>;
     };
 
@@ -266,12 +263,12 @@ async function startImageInference(dataset: NamedImageDataset): Promise<void> {
 }
 
 async function startTabularInference(dataset: Dataset<Tabular>): Promise<void> {
-  const { inputColumns, outputColumns } = props.task.trainingInformation;
-  if (inputColumns === undefined || outputColumns === undefined)
+  const { inputColumns, outputColumn } = props.task.trainingInformation;
+  if (inputColumns === undefined || outputColumn === undefined)
     throw new Error("no input and output columns but tabular task needs it");
   const labels = {
     input: List(inputColumns),
-    output: List(outputColumns).map((c) => `Predicted_${c}`),
+    output: `Predicted_${outputColumn}`,
   };
   const validator = new Validator(props.task, toRaw(props.model));
 

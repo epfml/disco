@@ -165,11 +165,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
     );
     prediction.dispose();
 
-    // TODO flatten tabular
-    if (this.datatype === 'tabular')
-      return ret.map((v) => List.of(v));
-    else
-      return ret;
+    return ret
   }
 
   static async deserialize<D extends DataType = DataType>([
@@ -260,9 +256,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
           xs: tf.stack(
             b.map(([inputs, _]) => tf.tensor1d(inputs.toArray())).toArray(),
           ),
-          ys: tf.stack(
-            b.map(([_, outputs]) => tf.tensor1d(outputs.toArray())).toArray(),
-          ),
+          ys: tf.stack(b.map(([_, output]) => tf.tensor1d([output])).toArray()),
         }));
       }
       case "text": {

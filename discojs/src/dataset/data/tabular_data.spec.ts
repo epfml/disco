@@ -12,7 +12,7 @@ describe('tabular data checks', () => {
 
   const dataConfig = {
     features: titanicTask.trainingInformation.inputColumns,
-    labels: titanicTask.trainingInformation.outputColumns
+    labels: [titanicTask.trainingInformation.outputColumn]
   }
 
   const columnConfigs = Map(

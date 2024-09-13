@@ -163,31 +163,19 @@ type Results =
   | {
       type: "image";
       results: List<{
-        input: {
-          filename: string;
-          image: ImageData;
-        };
-        output: {
-          truth: string;
-          correct: boolean;
-        };
+        input: { filename: string; image: ImageData };
+        output: { truth: string; correct: boolean };
       }>;
     }
   | {
       type: "tabular";
       labels: {
         input: List<string>;
-        output: {
-          truth: List<string>;
-          correct: string;
-        };
+        output: { truth: string; correct: string };
       };
       results: List<{
         input: List<string>;
-        output: {
-          truth: List<string>;
-          correct: boolean;
-        };
+        output: { truth: string; correct: boolean };
       }>;
     }
   | {
@@ -249,10 +237,10 @@ const generator = ref<AsyncGenerator<boolean, void>>();
 watch(tabularDataset, async (dataset) => {
   if (dataset === undefined) return;
 
-  const { inputColumns, outputColumns } = props.task.trainingInformation;
-  if (inputColumns === undefined || outputColumns === undefined)
+  const { inputColumns, outputColumn } = props.task.trainingInformation;
+  if (inputColumns === undefined || outputColumn === undefined)
     throw new Error("tabular task without input or output columns");
-  const wantedColumns = Set(inputColumns).union(outputColumns);
+  const wantedColumns = Set(inputColumns).add(outputColumn);
 
   try {
     for await (const [columns, i] of toRaw(dataset)
@@ -336,13 +324,13 @@ async function startImageTest(
 }
 
 async function startTabularTest(dataset: Dataset<Tabular>): Promise<void> {
-  const { inputColumns, outputColumns } = props.task.trainingInformation;
-  if (inputColumns === undefined || outputColumns === undefined)
+  const { inputColumns, outputColumn } = props.task.trainingInformation;
+  if (inputColumns === undefined || outputColumn === undefined)
     throw new Error("no input and output columns but CSV needs it");
   const labels = {
     input: List(inputColumns),
     output: {
-      truth: List(outputColumns).map((c) => `Truth_${c}`),
+      truth: `Truth_${outputColumn}`,
       correct: "Correct",
     },
   };
@@ -352,13 +340,9 @@ async function startTabularTest(dataset: Dataset<Tabular>): Promise<void> {
   try {
     generator.value = validator.test(["tabular", dataset]);
     for await (const [row, correct] of dataset.zip(toRaw(generator.value))) {
-      // TODO we only really support a single output, change Task to reflect that
-      const truth = List(outputColumns).map((column) => {
-        const ret = row[column];
-        if (ret === undefined)
-          throw new Error("row doesn't have expected output column");
-        return ret;
-      });
+      const truth = row[outputColumn];
+      if (truth === undefined)
+        throw new Error("row doesn't have expected output column");
 
       results = results.push({
         input: labels.input.map((label) => {
