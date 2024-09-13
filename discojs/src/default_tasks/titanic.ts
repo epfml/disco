@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import { models } from '../index.js'
 
 export const titanic: TaskProvider = {
   getTask (): Task {
@@ -52,7 +52,6 @@ export const titanic: TaskProvider = {
         roundDuration: 2,
         validationSplit: 0.2,
         batchSize: 30,
-        preprocessingFunctions: [data.TabularPreprocessing.Sanitize],
         dataType: 'tabular',
         inputColumns: [
           'Age',
