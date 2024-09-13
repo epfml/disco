@@ -57,15 +57,12 @@ async function setupForTask() {
     },
     props: {
       task: provider.getTask(),
-      dataset: [
-        "tabular",
-        loadCSV(
-          new File(
-            [await fs.readFile("../datasets/titanic_train.csv")],
-            "titanic_train.csv",
-          ),
+      dataset: loadCSV(
+        new File(
+          [await fs.readFile("../datasets/titanic_train.csv")],
+          "titanic_train.csv",
         ),
-      ],
+      ),
     },
   });
 }

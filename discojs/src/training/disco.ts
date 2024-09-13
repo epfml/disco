@@ -11,9 +11,11 @@ import {
 } from "../index.js";
 import type {
   Batched,
+  DataType,
+  Model,
+  ModelEncoded,
+  Raw,
   Task,
-  TypedBatchedModelEncodedDataset,
-  TypedRawDataset,
 } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
@@ -40,23 +42,26 @@ export type RoundStatus = 'not enough participants' | // Server notification to 
  * a convenient object providing a reduced yet complete API that wraps model training and
  * communication with nodes.
  */
-export class Disco extends EventEmitter<{'status': RoundStatus}>{
-  public readonly trainer: Trainer;
+export class Disco<D extends DataType = DataType> extends EventEmitter<{
+  status: RoundStatus;
+}> {
+  public readonly trainer: Trainer<D>;
   readonly #client: clients.Client;
   readonly #logger: Logger;
-  readonly #task: Task;
+  readonly #task: Task<D>;
   readonly #preprocessOnce: boolean;
 
   /**
    * Connect to the given task and get ready to train.
-   * 
-   * @param task 
+   *
+   * @param task
    * @param clientConfig client to connect with or parameters on how to create one.
    * @param config the DiscoConfig
    */
-  constructor(task: Task,
+  constructor(
+    task: Task<D>,
     clientConfig: clients.Client | URL | { aggregator: Aggregator; url: URL },
-    config: Partial<DiscoConfig>
+    config: Partial<DiscoConfig>,
   ) {
     super();
     const { scheme, logger, preprocessOnce } = {
@@ -86,13 +91,13 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
     this.#preprocessOnce = preprocessOnce;
     this.#client = client;
     this.#task = task;
-    this.trainer = new Trainer(task, client)
+    this.trainer = new Trainer(task, client);
     // Simply propagate the training status events emitted by the client
-    this.#client.on('status', status => this.emit('status', status))
+    this.#client.on("status", (status) => this.emit("status", status));
   }
 
   /** Train on dataset, yielding logs of every round. */
-  async *trainByRound(dataset: TypedRawDataset): AsyncGenerator<RoundLogs> {
+  async *trainByRound(dataset: Dataset<Raw[D]>): AsyncGenerator<RoundLogs> {
     for await (const round of this.train(dataset)) {
       const [roundGen, roundLogs] = async_iterator.split(round);
       for await (const epoch of roundGen) for await (const _ of epoch);
@@ -101,7 +106,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   /** Train on dataset, yielding logs of every epoch. */
-  async *trainByEpoch(dataset: TypedRawDataset): AsyncGenerator<EpochLogs> {
+  async *trainByEpoch(dataset: Dataset<Raw[D]>): AsyncGenerator<EpochLogs> {
     for await (const round of this.train(dataset)) {
       for await (const epoch of round) {
         const [epochGen, epochLogs] = async_iterator.split(epoch);
@@ -112,14 +117,14 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   /** Train on dataset, yielding logs of every batch. */
-  async *trainByBatch(dataTuple: TypedRawDataset): AsyncGenerator<BatchLogs> {
-    for await (const round of this.train(dataTuple))
+  async *trainByBatch(dataset: Dataset<Raw[D]>): AsyncGenerator<BatchLogs> {
+    for await (const round of this.train(dataset))
       for await (const epoch of round) yield* epoch;
   }
 
   /** Run whole train on dataset. */
-  async trainFully(dataTuple: TypedRawDataset): Promise<void> {
-    for await (const round of this.train(dataTuple))
+  async trainFully(dataset: Dataset<Raw[D]>): Promise<void> {
+    for await (const round of this.train(dataset))
       for await (const epoch of round) for await (const _ of epoch);
   }
 
@@ -130,7 +135,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
    * If you don't care about the whole process, use one of the other train methods.
    **/
   async *train(
-    dataset: TypedRawDataset,
+    dataset: Dataset<Raw[D]>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
@@ -140,7 +145,8 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
       await this.#preprocessSplitAndBatch(dataset);
 
     // the client fetches the latest weights upon connection
-    this.trainer.model = await this.#client.connect();
+    // TODO unsafe cast
+    this.trainer.model = (await this.#client.connect()) as Model<D>;
 
     for await (const [round, epochs] of enumerate(
       this.trainer.train(trainingDataset, validationDataset),
@@ -184,52 +190,24 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   async #preprocessSplitAndBatch(
-    dataset: TypedRawDataset,
+    dataset: Dataset<Raw[D]>,
   ): Promise<
-    [
-      TypedBatchedModelEncodedDataset,
-      TypedBatchedModelEncodedDataset,
-    ]
+    [Dataset<Batched<ModelEncoded[D]>>, Dataset<Batched<ModelEncoded[D]>>]
   > {
-    const splitAndBatch = async <T>(
-      d: Dataset<T>,
-    ): Promise<[Dataset<Batched<T>>, Dataset<Batched<T>>]> => {
-      const [training, validation] = (
-        this.#preprocessOnce ? new Dataset(await arrayFromAsync(d)) : d
-      ).split(validationSplit);
-
-      return [
-        training.batch(batchSize).cached(),
-        validation.batch(batchSize).cached(),
-      ];
-    };
+    const { batchSize, validationSplit } = this.#task.trainingInformation;
 
     const preprocessed = await processing.preprocess(this.#task, dataset);
 
-    const { batchSize, validationSplit } = this.#task.trainingInformation;
-    switch (preprocessed[0]) {
-      case "image": {
-        const [training, validation] = await splitAndBatch(preprocessed[1]);
-        return [
-          ["image", training],
-          ["image", validation],
-        ];
-      }
-      case "tabular": {
-        const [training, validation] = await splitAndBatch(preprocessed[1]);
-        return [
-          ["tabular", training],
-          ["tabular", validation],
-        ];
-      }
-      case "text": {
-        const [training, validation] = await splitAndBatch(preprocessed[1]);
-        return [
-          ["text", training],
-          ["text", validation],
-        ];
-      }
-    }
+    const [training, validation] = (
+      this.#preprocessOnce
+        ? new Dataset(await arrayFromAsync(preprocessed))
+        : preprocessed
+    ).split(validationSplit);
+
+    return [
+      training.batch(batchSize).cached(),
+      validation.batch(batchSize).cached(),
+    ];
   }
 }
 

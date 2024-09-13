@@ -6,7 +6,7 @@ import { preprocess } from "./index.js";
 
 describe("preprocess", () => {
   it("throws on missing column in tabular", async () => {
-    const task: Task = {
+    const task: Task<"tabular"> = {
       id: "task",
       displayInformation: {
         taskTitle: "",
@@ -32,8 +32,8 @@ describe("preprocess", () => {
     ]);
 
     try {
-      const preprocessed = await preprocess(task, ["tabular", dataset]);
-      for await (const _ of preprocessed[1]);
+      const preprocessed = await preprocess(task, dataset);
+      for await (const _ of preprocessed);
     } catch {
       return;
     }

@@ -102,7 +102,7 @@ const props = withDefaults(
   },
 );
 
-const files = defineModel<Set<File>>();
+const files = defineModel<Set<File> | undefined>();
 
 const inputFileElement = ref<HTMLInputElement | null>(null);
 
