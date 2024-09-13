@@ -1,7 +1,7 @@
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import { models } from '../index.js'
 import baseModel from '../models/mobileNetV2_35_alpha_2_classes.js'
 
 export const simpleFace: TaskProvider = {
@@ -25,7 +25,6 @@ export const simpleFace: TaskProvider = {
         roundDuration: 1,
         validationSplit: 0.2,
         batchSize: 10,
-        preprocessingFunctions: [data.ImagePreprocessing.Normalize],
         dataType: 'image',
         IMAGE_H: 200,
         IMAGE_W: 200,
