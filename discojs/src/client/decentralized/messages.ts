@@ -19,15 +19,21 @@ export interface SignalForPeer {
   signal: SignalData
 }
 
-// client who sent is ready
+// peer wants to join the next round
+export interface JoinRound {
+  type: type.JoinRound
+}
+
+// peer who sent is ready
 export interface PeerIsReady {
   type: type.PeerIsReady
 }
 
-// server send to client who to connect to
+// server sends to each peer the list of peers to connect to
 export interface PeersForRound {
   type: type.PeersForRound
   peers: NodeID[]
+  aggregationRound: number
 }
 
 /// Phase 1 communication (between peers)
@@ -52,14 +58,13 @@ export type MessageFromServer =
 export type MessageToServer =
   ClientConnected |
   SignalForPeer |
-  PeerIsReady
+  PeerIsReady |
+  JoinRound
 
 export type PeerMessage = Payload
 
 export function isMessageFromServer (o: unknown): o is MessageFromServer {
-  if (!hasMessageType(o)) {
-    return false
-  }
+  if (!hasMessageType(o)) return false
 
   switch (o.type) {
     case type.NewDecentralizedNodeInfo:
@@ -80,9 +85,7 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
 }
 
 export function isMessageToServer (o: unknown): o is MessageToServer {
-  if (!hasMessageType(o)) {
-    return false
-  }
+  if (!hasMessageType(o)) return false
 
   switch (o.type) {
     case type.ClientConnected:
@@ -90,6 +93,7 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
     case type.SignalForPeer:
       return 'peer' in o && isNodeID(o.peer) &&
         'signal' in o // TODO check signal content?
+    case type.JoinRound:
     case type.PeerIsReady:
       return true
   }
@@ -98,9 +102,7 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
 }
 
 export function isPeerMessage (o: unknown): o is PeerMessage {
-  if (!hasMessageType(o)) {
-    return false
-  }
+  if (!hasMessageType(o)) return false
 
   switch (o.type) {
     case type.Payload:
