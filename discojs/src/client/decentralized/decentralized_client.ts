@@ -22,8 +22,8 @@ export class DecentralizedClient extends Client {
   /**
    * The pool of peers to communicate with during the current training round.
    */
-  private pool?: PeerPool
-  private connections?: Map<NodeID, PeerConnection>
+  #pool?: PeerPool
+  #connections?: Map<NodeID, PeerConnection>
   
   // Used to handle timeouts and promise resolving after calling disconnect
   private get isDisconnected() : boolean {
@@ -57,9 +57,9 @@ export class DecentralizedClient extends Client {
     // Upon receiving other peer's information, the clients establish a peer-to-peer WebRTC connection.
     this._server = await WebSocketServer.connect(serverURL, messages.isMessageFromServer, messages.isMessageToServer)
     this.server.on(type.SignalForPeer, (event) => {
-      if (this.pool === undefined) throw new Error('received signal but peer pool is undefined')
+      if (this.#pool === undefined) throw new Error('received signal but peer pool is undefined')
       // Create a WebRTC connection with the peer
-      this.pool.signal(event.peer, event.signal)
+      this.#pool.signal(event.peer, event.signal)
     })
 
     // c.f. setupServerCallbacks doc for explanation
@@ -90,18 +90,18 @@ export class DecentralizedClient extends Client {
       throw new Error('received id from server but was already received')
     }
     this._ownId = id
-    this.pool = new PeerPool(id)
+    this.#pool = new PeerPool(id)
 
     return model
   }
 
   async disconnect (): Promise<void> {
     // Disconnect from peers
-    await this.pool?.shutdown()
-    this.pool = undefined
+    await this.#pool?.shutdown()
+    this.#pool = undefined
 
-    if (this.connections !== undefined) {
-      const peers = this.connections.keySeq().toSet()
+    if (this.#connections !== undefined) {
+      const peers = this.#connections.keySeq().toSet()
       this.aggregator.setNodes(this.aggregator.nodes.subtract(peers))
     }
     // Disconnect from server
@@ -123,7 +123,7 @@ export class DecentralizedClient extends Client {
   override async onRoundBeginCommunication (): Promise<void> {
     if (this.server === undefined) {
       throw new Error("peer's server is undefined, make sure to call `client.connect()` first")
-    } if (this.pool === undefined) {
+    } if (this.#pool === undefined) {
         throw new Error('peer pool is undefined, make sure to call `client.connect()` first')
     }
     // First we check if we are waiting for more participants before sending our weight update
@@ -153,7 +153,7 @@ export class DecentralizedClient extends Client {
 
       // Initiate peer to peer connections with each peer
       // When connected, create a promise waiting for each peer's round contribution
-      const connections = await this.pool.getPeers(
+      const connections = await this.#pool.getPeers(
         peers,
         this.server,
         // Init receipt of peers weights this awaits the peer's
@@ -162,11 +162,11 @@ export class DecentralizedClient extends Client {
       )
 
       debug(`[${this.shortId(this.ownId)}] received peers for round ${this.aggregator.round}: %o`, connections.keySeq().toJS());
-      this.connections = connections
+      this.#connections = connections
     } catch (e) {
       debug(`Error for [${this.shortId(this.ownId)}] while beginning round: %o`, e);
       this.aggregator.setNodes(Set(this.ownId))
-      this.connections = Map()
+      this.#connections = Map()
     }
 
     // Store the promise for the current round's aggregation result.
@@ -227,14 +227,14 @@ export class DecentralizedClient extends Client {
     let result = weights;
     for (let communicationRound = 0; communicationRound < this.aggregator.communicationRounds; communicationRound++) {
       // Generate our payloads for this communication round and send them to all ready connected peers
-      if (this.connections !== undefined) {
+      if (this.#connections !== undefined) {
         const payloads = this.aggregator.makePayloads(result)
         try {
           await Promise.all(payloads.map(async (payload, id) => {
             if (id === this.ownId)
               return this.aggregator.add(this.ownId, payload, communicationRound)
             
-            const peer = this.connections?.get(id)
+            const peer = this.#connections?.get(id)
             if (peer !== undefined) {
               const encoded = await serialization.weights.encode(payload)
               const msg: messages.PeerMessage = {
