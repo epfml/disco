@@ -24,7 +24,7 @@ export class DecentralizedClient extends Client {
    */
   #pool?: PeerPool
   #connections?: Map<NodeID, PeerConnection>
-  
+
   // Used to handle timeouts and promise resolving after calling disconnect
   private get isDisconnected() : boolean {
     return this._server === undefined
@@ -91,7 +91,6 @@ export class DecentralizedClient extends Client {
     }
     this._ownId = id
     this.#pool = new PeerPool(id)
-
     return model
   }
 
@@ -120,14 +119,40 @@ export class DecentralizedClient extends Client {
    * and waits for it to resolve.
    * 
    */
-  override async onRoundBeginCommunication (): Promise<void> {
+  override async onRoundBeginCommunication(): Promise<void> {
+    // Notify the server we want to join the next round so that the server
+    // waits for us to be ready before sending the list of peers for the round
+    this.server.send({ type: type.JoinRound })
+    // Store the promise for the current round's aggregation result.
+    // We will await for it to resolve at the end of the round when exchanging weight updates.
+    this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
+    this.saveAndEmit("TRAINING")
+    return Promise.resolve()
+  }
+
+  override async onRoundEndCommunication (weights: WeightsContainer): Promise<WeightsContainer> {
+    if (this.aggregationResult === undefined) {
+      throw new TypeError('aggregation result promise is undefined')
+    }
+    // First we check if we are waiting for more participants before sending our weight update
+    await this.checkIfWaitForParticipants()
+    // Create peer-to-peer connections with all peers for the round
+    await this.establishPeerConnections()
+    // Exchange weight updates with peers and return aggregated weights
+    return await this.exchangeWeightUpdates(weights)
+  }
+
+  /**
+   * Signal to the server that we are ready to exchange weights.
+   * Once enough peers are ready, the server sends the list of peers for this round
+   * and the peers can establish peer-to-peer connections with each other.
+   */
+  private async establishPeerConnections(): Promise<void> {
     if (this.server === undefined) {
       throw new Error("peer's server is undefined, make sure to call `client.connect()` first")
     } if (this.#pool === undefined) {
         throw new Error('peer pool is undefined, make sure to call `client.connect()` first')
     }
-    // First we check if we are waiting for more participants before sending our weight update
-    await this.checkIfWaitForParticipants()
     // Save the status in case participants leave and we switch to waiting for more participants
     // Once enough new participants join we can display the previous status again
     this.saveAndEmit("RETRIEVING PEERS")
@@ -150,13 +175,14 @@ export class DecentralizedClient extends Client {
       }
       // Store the list of peers for the current round including ourselves
       this.aggregator.setNodes(peers.add(this.ownId))
+      this.aggregator.setRound(receivedMessage.aggregationRound) // the server gives us the round number
 
       // Initiate peer to peer connections with each peer
       // When connected, create a promise waiting for each peer's round contribution
       const connections = await this.#pool.getPeers(
         peers,
         this.server,
-        // Init receipt of peers weights this awaits the peer's
+        // Init receipt of peers weights. this awaits the peer's
         // weight update and adds it to our aggregator upon reception
         (conn) => this.receivePayloads(conn)
       )
@@ -168,11 +194,6 @@ export class DecentralizedClient extends Client {
       this.aggregator.setNodes(Set(this.ownId))
       this.#connections = Map()
     }
-
-    // Store the promise for the current round's aggregation result.
-    // We will await for it to resolve at the end of the round when exchanging weight updates.
-    this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
-    this.saveAndEmit("TRAINING")
   }
 
   /**
@@ -211,14 +232,11 @@ export class DecentralizedClient extends Client {
     })
   }
 
-  override async onRoundEndCommunication (weights: WeightsContainer): Promise<WeightsContainer> {
+  private async exchangeWeightUpdates(weights: WeightsContainer): Promise<WeightsContainer> {
     if (this.aggregationResult === undefined) {
       throw new TypeError('aggregation result promise is undefined')
     }
-    // First we check if we are waiting for more participants before sending our weight update
-    await this.checkIfWaitForParticipants()
     this.saveAndEmit("UPDATING MODEL")
-
     // Perform the required communication rounds. Each communication round consists in sending our local payload,
     // followed by an aggregation step triggered by the receipt of other payloads, and handled by the aggregator.
     // A communication round's payload is the aggregation result of the previous communication round. The first
@@ -274,10 +292,9 @@ export class DecentralizedClient extends Client {
         this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
       }
     }
-
     // Reset the peers list for the next round
     this.aggregator.resetNodes()
-
+ 
     return await this.aggregationResult
   }
 }
