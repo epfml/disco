@@ -18,6 +18,7 @@
           z-20
           flex flex-shrink-0
           bg-white
+          dark:bg-slate-800
           border-r
           md:static
           focus:outline-none
