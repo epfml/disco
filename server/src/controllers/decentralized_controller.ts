@@ -4,7 +4,7 @@ import msgpack from 'msgpack-lite'
 import type WebSocket from 'ws'
 import { Map } from 'immutable'
 
-import { client } from '@epfml/discojs'
+import { client, DataType } from "@epfml/discojs";
 
 import { TrainingController } from './training_controller.js'
 
@@ -13,7 +13,9 @@ import MessageTypes = client.messages.type
 
 const debug = createDebug("server:controllers:decentralized")
 
-export class DecentralizedController extends TrainingController {
+export class DecentralizedController<
+  D extends DataType,
+> extends TrainingController<D> {
   // Map of nodes who want to join the round.
   // The boolean value indicates if the node is ready to exchange weight updates (i.e.
   // the node has already sent a PeerIsReady message)

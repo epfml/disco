@@ -4,7 +4,7 @@ import { isTrainingInformation, type TrainingInformation } from './training_info
 
 export type TaskID = string
 
-export interface Task<D extends DataType = DataType> {
+export interface Task<D extends DataType> {
   id: TaskID
   displayInformation: DisplayInformation
   trainingInformation: TrainingInformation<D>
@@ -14,13 +14,13 @@ export function isTaskID (obj: unknown): obj is TaskID {
   return typeof obj === 'string'
 }
 
-export function isTask (raw: unknown): raw is Task {
+export function isTask (raw: unknown): raw is Task<DataType> {
   if (typeof raw !== 'object' || raw === null) {
     return false
   }
 
   const { id, displayInformation, trainingInformation }:
-    Partial<Record<keyof Task, unknown>> = raw
+    Partial<Record<keyof Task<DataType>, unknown>> = raw
 
   if (!isTaskID(id) ||
       !isDisplayInformation(displayInformation) ||
@@ -29,9 +29,11 @@ export function isTask (raw: unknown): raw is Task {
     return false
   }
 
-  const repack = { id, displayInformation, trainingInformation }
-  const _correct: Task = repack
-  const _total: Record<keyof Task, unknown> = repack
+  const _: Task<DataType> = {
+    id,
+    displayInformation,
+    trainingInformation,
+  } satisfies Record<keyof Task<DataType>, unknown>;
 
   return true
 }

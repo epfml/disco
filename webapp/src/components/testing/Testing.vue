@@ -225,7 +225,7 @@ onActivated(() => {
     selectModel(validationStore.modelID, "test");
 });
 
-async function downloadModel(task: Task): Promise<void> {
+async function downloadModel(task: Task<DataType>): Promise<void> {
   try {
     toaster.info("Downloading model...");
 

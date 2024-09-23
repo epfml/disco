@@ -29,7 +29,14 @@
 import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
-import type { Dataset, DataType, Model, Raw, TaskID } from "@epfml/discojs";
+import type {
+  Dataset,
+  DataType,
+  Model,
+  Raw,
+  Task,
+  TaskID,
+} from "@epfml/discojs";
 
 import { useTrainingStore } from "@/store/training";
 import { useTasksStore } from "@/store/tasks";
@@ -58,7 +65,7 @@ function setupTrainingStore() {
 }
 // Init the task once the taskStore has been loaded successfully
 // If it is not we redirect to the task list
-const task = computed(() => {
+const task = computed<Task<DataType> | undefined>(() => {
   console.log("training: recompute task");
 
   if (tasksStore.status == "success") {

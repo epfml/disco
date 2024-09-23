@@ -43,12 +43,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Task } from '@epfml/discojs'
+import type { DataType, Task } from "@epfml/discojs";
 
 import DropdownCard from '@/components/containers/DropdownCard.vue'
 
 interface Props {
-  task: Task
+  task: Task<DataType>
 }
 const _ = defineProps<Props>()
 </script>

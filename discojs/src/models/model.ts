@@ -14,9 +14,7 @@ import type { BatchLogs, EpochLogs } from "./logs.js";
  * Allow for various implementation of models (various train function, tensor-library, ...)
  **/
 // TODO make it typesafe: same shape of data/input/weights
-export abstract class Model<D extends DataType = DataType>
-  implements Disposable
-{
+export abstract class Model<D extends DataType> implements Disposable {
   // TODO don't allow external access but upgrade train to return weights on every epoch
   /** Return training state */
   abstract get weights(): WeightsContainer;

@@ -16,7 +16,7 @@ export function isEncoded (raw: unknown): raw is Encoded {
   return raw instanceof Uint8Array
 }
 
-export async function encode(model: Model): Promise<Encoded> {
+export async function encode(model: Model<DataType>): Promise<Encoded> {
   let encoded;
   switch (true) {
     case model instanceof models.TFJS: {
@@ -39,7 +39,7 @@ export async function encode(model: Model): Promise<Encoded> {
   return new Uint8Array(encoded);
 }
 
-export async function decode (encoded: unknown): Promise<Model> {
+export async function decode(encoded: unknown): Promise<Model<DataType>> {
   if (!isEncoded(encoded)) {
     throw new Error("Invalid encoding, raw encoding isn't an instance of Uint8Array")
   }

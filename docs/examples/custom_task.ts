@@ -5,7 +5,7 @@ import { defaultTasks, models } from '@epfml/discojs'
 import { Server as DiscoServer } from 'server'
 
 // Define your own task provider (task definition + model)
-const customTask: TaskProvider = {
+const customTask: TaskProvider<"tabular"> = {
   getTask () {
     return {
       id: 'custom-task',

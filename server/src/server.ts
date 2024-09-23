@@ -4,7 +4,7 @@ import express from "express";
 import expressWS from "express-ws";
 import type * as http from "http";
 
-import type { TaskProvider } from "@epfml/discojs";
+import type { DataType, TaskProvider } from "@epfml/discojs";
 
 import { TaskRouter, TrainingRouter } from './routes/index.js'
 import { TaskSet } from "./task_set.js";
@@ -23,7 +23,7 @@ const debug = createDebug("server");
 export class Server {
   readonly #taskSet = new TaskSet();
 
-  async addTask(taskProvider: TaskProvider): Promise<void> {
+  async addTask(taskProvider: TaskProvider<DataType>): Promise<void> {
     await this.#taskSet.addTask(taskProvider);
   }
 
@@ -35,7 +35,10 @@ export class Server {
    * @returns a tuple with the server instance and the URL
    * 
    **/
-  async serve(port?: number, ...tasks: TaskProvider[]): Promise<[http.Server, URL]> {
+  async serve(
+    port?: number,
+    ...tasks: TaskProvider<DataType>[]
+  ): Promise<[http.Server, URL]> {
     const wsApplier = expressWS(express(), undefined, {
       leaveRouterUntouched: true,
     });

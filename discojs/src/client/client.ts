@@ -1,7 +1,13 @@
 import createDebug from "debug";
 import axios from 'axios'
 
-import type { Model, Task, WeightsContainer, RoundStatus } from '../index.js'
+import type {
+  DataType,
+  Model,
+  RoundStatus,
+  Task,
+  WeightsContainer,
+} from "../index.js";
 import { serialization } from '../index.js'
 import type { NodeID } from './types.js'
 import type { EventConnection } from './event_connection.js'
@@ -39,7 +45,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
 
   constructor (
     public readonly url: URL, // The network server's URL to connect to
-    public readonly task: Task, // The client's corresponding task
+    public readonly task: Task<DataType>, // The client's corresponding task
     public readonly aggregator: Aggregator,
   ) {
     super()
@@ -62,7 +68,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
    * This method is overriden by the federated and decentralized clients
    * By default, it fetches and returns the server's base model
    */
-  async connect(): Promise<Model> {
+  async connect(): Promise<Model<DataType>> {
     return this.getLatestModel()
   }
 
@@ -165,7 +171,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
    * Fetches the latest model available on the network's server, for the adequate task.
    * @returns The latest model
    */
-  async getLatestModel (): Promise<Model> {
+  async getLatestModel (): Promise<Model<DataType>> {
     const url = new URL('', this.url.href)
     if (!url.pathname.endsWith('/')) {
       url.pathname += '/'

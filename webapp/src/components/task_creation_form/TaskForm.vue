@@ -158,7 +158,7 @@ import { Form as VeeForm, ErrorMessage } from 'vee-validate'
 import { List, Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import type { Task } from '@epfml/discojs'
+import type { DataType, Task } from "@epfml/discojs";
 import { models, pushTask } from '@epfml/discojs'
 
 import type { FormDependency, FormField, FormSection } from '@/task_creation_form'
@@ -260,7 +260,7 @@ const onSubmit = async (rawTask: any): Promise<void> => {
       .map((section) => formatSection(section, rawTask))
   )
     .set('id', rawTask.taskID)
-    .toObject() as unknown as Task
+    .toObject() as unknown as Task<DataType>
 
   let model
   try {
