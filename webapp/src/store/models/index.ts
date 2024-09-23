@@ -2,7 +2,7 @@ import { Map } from "immutable";
 import { defineStore } from "pinia";
 import { computed, shallowRef, toRaw } from "vue";
 
-import type { Model } from "@epfml/discojs";
+import type { DataType, Model } from "@epfml/discojs";
 import { serialization } from "@epfml/discojs";
 
 import { bestStorage } from "./storage";
@@ -25,14 +25,17 @@ export const useModelsStore = defineStore(
       })),
     );
 
-    async function get(id: ModelID): Promise<Model | undefined> {
+    async function get(id: ModelID): Promise<Model<DataType> | undefined> {
       const infos = idToModel.value.get(id);
       if (infos === undefined) return undefined;
 
       return await serialization.model.decode(toRaw(infos.encoded));
     }
 
-    async function add(taskID: string, model: Model): Promise<ModelID> {
+    async function add(
+      taskID: string,
+      model: Model<DataType>,
+    ): Promise<ModelID> {
       const dateSaved = new Date();
       const id = dateSaved.getTime();
 

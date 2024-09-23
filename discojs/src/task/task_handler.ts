@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { Map } from "immutable";
 
-import type { Model } from "../index.js";
+import type { DataType, Model } from "../index.js";
 import { serialization } from "../index.js";
 
 import type { Task, TaskID } from "./task.js";
@@ -15,10 +15,10 @@ function urlToTasks(base: URL): URL {
   return ret;
 }
 
-export async function pushTask(
+export async function pushTask<D extends DataType>(
   base: URL,
-  task: Task,
-  model: Model,
+  task: Task<D>,
+  model: Model<D>,
 ): Promise<void> {
   await fetch(urlToTasks(base), {
     method: "POST",
@@ -30,7 +30,9 @@ export async function pushTask(
   });
 }
 
-export async function fetchTasks(base: URL): Promise<Map<TaskID, Task>> {
+export async function fetchTasks(
+  base: URL,
+): Promise<Map<TaskID, Task<DataType>>> {
   const response = await fetch(urlToTasks(base));
   const tasks: unknown = await response.json();
 

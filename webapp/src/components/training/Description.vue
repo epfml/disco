@@ -57,7 +57,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 
-import type { Task } from '@epfml/discojs'
+import type { DataType, Task } from "@epfml/discojs";
 
 import type { FormDependency, FormField, FormSection } from '@/task_creation_form'
 import { trainingInformation, privacyParameters } from '@/task_creation_form'
@@ -66,7 +66,7 @@ import DropdownCard from '@/components/containers/DropdownCard.vue'
 import ModelIcon from '@/assets/svg/ModelIcon.vue'
 
 interface Props {
-  task: Task
+  task: Task<DataType>
 }
 const props = defineProps<Props>()
 

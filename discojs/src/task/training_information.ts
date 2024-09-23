@@ -8,7 +8,7 @@ interface Privacy {
   noiseScale?: number;
 }
 
-export type TrainingInformation<D extends DataType = DataType> = {
+export type TrainingInformation<D extends DataType> = {
   // epochs: number of epochs to run training for
   epochs: number;
   // roundDuration: number of epochs between each weight sharing round.
@@ -96,7 +96,7 @@ function isPrivacy(raw: unknown): raw is Privacy {
 
 export function isTrainingInformation(
   raw: unknown,
-): raw is TrainingInformation {
+): raw is TrainingInformation<DataType> {
   if (typeof raw !== "object" || raw === null) {
     return false;
   }
@@ -113,7 +113,7 @@ export function isTrainingInformation(
     scheme,
     validationSplit,
     tensorBackend,
-  }: Partial<Record<keyof TrainingInformation, unknown>> = raw;
+  }: Partial<Record<keyof TrainingInformation<DataType>, unknown>> = raw;
 
   if (
     typeof epochs !== "number" ||
@@ -170,7 +170,7 @@ export function isTrainingInformation(
     case "image": {
       type ImageOnly = Omit<
         TrainingInformation<"image">,
-        keyof TrainingInformation
+        keyof TrainingInformation<DataType>
       >;
 
       const { LABEL_LIST, IMAGE_W, IMAGE_H }: Partial<ImageOnly> = raw;
@@ -198,7 +198,7 @@ export function isTrainingInformation(
     case "tabular": {
       type TabularOnly = Omit<
         TrainingInformation<"tabular">,
-        keyof TrainingInformation
+        keyof TrainingInformation<DataType>
       >;
 
       const { inputColumns, outputColumn }: Partial<TabularOnly> = raw;
@@ -225,8 +225,10 @@ export function isTrainingInformation(
       const {
         maxSequenceLength,
         tokenizer,
-      }: Partial<Omit<TrainingInformation<"text">, keyof TrainingInformation>> =
-        raw;
+      }: Partial<
+        Omit<TrainingInformation<"text">,
+	keyof TrainingInformation<DataType>>
+      > = raw;
 
       if (
         (typeof tokenizer !== "string" &&

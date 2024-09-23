@@ -150,7 +150,7 @@ const props = defineProps<{
   dataset?: Dataset<Raw[D]>;
 }>();
 const emit = defineEmits<{
-  model: [Model];
+  model: [Model<D>];
 }>();
 
 const trainingGenerator =

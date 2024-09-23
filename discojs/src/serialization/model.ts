@@ -12,7 +12,7 @@ const Type = {
   GPT: 1
 } as const
 
-export async function encode(model: Model): Promise<Encoded> {
+export async function encode(model: Model<DataType>): Promise<Encoded> {
   switch (true) {
     case model instanceof models.TFJS: {
       const serialized = await model.serialize();
@@ -28,7 +28,7 @@ export async function encode(model: Model): Promise<Encoded> {
   }
 }
 
-export async function decode (encoded: unknown): Promise<Model> {
+export async function decode(encoded: unknown): Promise<Model<DataType>> {
   if (!isEncoded(encoded))
     throw new Error("Invalid encoding, raw encoding isn't an instance of Uint8Array")
   const raw = coder.decode(encoded)

@@ -1,8 +1,8 @@
-import type { Task } from '../index.js'
+import type { DataType, Task } from '../index.js'
 import { aggregator } from '../index.js'
 
 type AggregatorOptions = Partial<{
-  scheme: Task['trainingInformation']['scheme'], // if undefined, fallback on task.trainingInformation.scheme
+  scheme: Task<DataType>["trainingInformation"]["scheme"]; // if undefined, fallback on task.trainingInformation.scheme
   roundCutOff: number, // MeanAggregator
   threshold: number, // MeanAggregator
   thresholdType: 'relative' | 'absolute', // MeanAggregator
@@ -26,7 +26,10 @@ type AggregatorOptions = Partial<{
  * @param options Options passed down to the aggregator's constructor
  * @returns The aggregator
  */
-export function getAggregator(task: Task, options: AggregatorOptions = {}): aggregator.Aggregator {
+export function getAggregator(
+  task: Task<DataType>,
+  options: AggregatorOptions = {},
+): aggregator.Aggregator {
   const aggregationStrategy = task.trainingInformation.aggregationStrategy ?? 'mean'
   const scheme = options.scheme ?? task.trainingInformation.scheme
   

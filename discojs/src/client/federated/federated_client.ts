@@ -1,7 +1,7 @@
 import createDebug from "debug";
 
 import { serialization } from "../../index.js";
-import type { Model, WeightsContainer } from "../../index.js";
+import type { DataType, Model, WeightsContainer } from "../../index.js";
 import { Client, shortenId } from "../client.js";
 import { type, type ClientConnected } from "../messages.js";
 import {
@@ -39,7 +39,7 @@ export class FederatedClient extends Client {
    * as well as the latest training information: latest global model, current round and
    * whether we are waiting for more participants.
    */
-  override async connect(): Promise<Model> {
+  override async connect(): Promise<Model<DataType>> {
     const model = await super.connect() // Get the server base model
 
     const serverURL = new URL("", this.url.href);

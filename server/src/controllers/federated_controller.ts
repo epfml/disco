@@ -3,7 +3,7 @@ import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
 import * as msgpack from "@msgpack/msgpack";
 
-import type { Task } from '@epfml/discojs'
+import type { DataType, Task } from "@epfml/discojs";
 import {
   aggregator as aggregators,
   client,
@@ -17,7 +17,9 @@ import FederatedMessages = client.federated.messages
 
 const debug = createDebug("server:controllers:federated")
 
-export class FederatedController extends TrainingController {
+export class FederatedController<
+  D extends DataType,
+> extends TrainingController<D> {
   /**
    * Aggregators for each hosted task.
     By default the server waits for 100% of the nodes to send their contributions before aggregating the updates
@@ -30,7 +32,7 @@ export class FederatedController extends TrainingController {
    */
   #latestGlobalWeights: serialization.Encoded;
 
-  constructor(task: Task, initialWeights: serialization.Encoded) {
+  constructor(task: Task<D>, initialWeights: serialization.Encoded) {
     super(task)
     this.#latestGlobalWeights = initialWeights
 
