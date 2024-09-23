@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@types/debug": "4",
-    "@typescript-eslint/eslint-plugin": "7",
+    "@typescript-eslint/eslint-plugin": "8",
     "eslint": "8",
     "typescript": "5",
     "typescript-eslint": "7"
