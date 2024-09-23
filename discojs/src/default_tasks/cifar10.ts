@@ -34,7 +34,6 @@ export const cifar10: TaskProvider = {
         LABEL_LIST: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
         scheme: 'decentralized',
         privacy: { clippingRadius: 20, noiseScale: 1 },
-        decentralizedSecure: true,
         minNbOfParticipants: 3,
         maxShareValue: 100,
         tensorBackend: 'tfjs'

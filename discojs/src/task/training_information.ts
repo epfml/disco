@@ -38,10 +38,6 @@ export interface TrainingInformation {
 
   // use Differential Privacy, reduce training accuracy and improve privacy.
   privacy?: Privacy;
-
-  // decentralizedSecure: Secure Aggregation on/off:
-  // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
-  decentralizedSecure?: boolean
   // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
   // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
@@ -107,7 +103,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     aggregator,
     batchSize,
     dataType,
-    decentralizedSecure,
     privacy,
     epochs,
     inputColumns,
@@ -133,7 +128,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     (tokenizer !== undefined && typeof tokenizer !== 'string' && !(tokenizer instanceof PreTrainedTokenizer)) ||
     (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
     (aggregator !== undefined && typeof aggregator !== 'string') ||
-    (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
     (privacy !== undefined && !isPrivacy(privacy)) ||
     (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
     (IMAGE_H !== undefined && typeof IMAGE_H !== 'number') ||
@@ -195,7 +189,6 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     aggregator,
     batchSize,
     dataType,
-    decentralizedSecure,
     privacy,
     epochs,
     inputColumns,
