@@ -27,6 +27,7 @@ export const wikitext: TaskProvider = {
         dataType: 'text',
         preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
         scheme: 'federated',
+        aggregationStrategy: 'mean',
         minNbOfParticipants: 2,
         epochs: 6,
         // Unused by wikitext because data already comes split

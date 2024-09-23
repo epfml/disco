@@ -45,9 +45,9 @@ export interface TrainingInformation {
   // minNbOfParticipants: minimum number of participants required to train collaboratively
   // In decentralized Learning the default is 3, in federated learning it is 2
   minNbOfParticipants: number
-  // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
-  // default is 'average', other options include for instance 'bandit'
-  aggregator?: 'mean' | 'secure' // TODO: never used
+  // aggregationStrategy:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
+  // default is 'mean'
+  aggregationStrategy?: 'mean' | 'secure'
   // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'. 
   // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
   tokenizer?: string | PreTrainedTokenizer
@@ -100,7 +100,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     IMAGE_H,
     IMAGE_W,
     LABEL_LIST,
-    aggregator,
+    aggregationStrategy,
     batchSize,
     dataType,
     privacy,
@@ -127,7 +127,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof minNbOfParticipants !== 'number' ||
     (tokenizer !== undefined && typeof tokenizer !== 'string' && !(tokenizer instanceof PreTrainedTokenizer)) ||
     (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
-    (aggregator !== undefined && typeof aggregator !== 'string') ||
+    (aggregationStrategy !== undefined && typeof aggregationStrategy !== 'string') ||
     (privacy !== undefined && !isPrivacy(privacy)) ||
     (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
     (IMAGE_H !== undefined && typeof IMAGE_H !== 'number') ||
@@ -140,8 +140,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     return false
   }
 
-  if (aggregator !== undefined) {
-    switch (aggregator) {
+  if (aggregationStrategy !== undefined) {
+    switch (aggregationStrategy) {
       case 'mean': break
       case 'secure': break
       default: return false
@@ -155,7 +155,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     default: return false
   }
 
-  // interdepences on data type
+  // interdependencies on data type
   if (dataType === 'image') {
     if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
       return false
@@ -186,7 +186,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     IMAGE_W,
     IMAGE_H,
     LABEL_LIST,
-    aggregator,
+    aggregationStrategy,
     batchSize,
     dataType,
     privacy,

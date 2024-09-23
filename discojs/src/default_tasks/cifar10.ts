@@ -33,6 +33,7 @@ export const cifar10: TaskProvider = {
         IMAGE_W: 224,
         LABEL_LIST: ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
         scheme: 'decentralized',
+        aggregationStrategy: 'mean',
         privacy: { clippingRadius: 20, noiseScale: 1 },
         minNbOfParticipants: 3,
         maxShareValue: 100,
