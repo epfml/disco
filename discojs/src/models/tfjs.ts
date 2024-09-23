@@ -13,10 +13,10 @@ import { BatchLogs } from './index.js'
 import { Model } from './index.js'
 import { EpochLogs } from './logs.js'
 
-type Serialized<D extends DataType = DataType> = [D, tf.io.ModelArtifacts]
+type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
 
 /** TensorFlow JavaScript model with standard training */
-export class TFJS<D extends DataType = DataType> extends Model<D> {
+export class TFJS<D extends DataType> extends Model<D> {
   /** Wrap the given trainable model */
   constructor (
     public readonly datatype: D,
@@ -168,7 +168,7 @@ export class TFJS<D extends DataType = DataType> extends Model<D> {
     return ret
   }
 
-  static async deserialize<D extends DataType = DataType>([
+  static async deserialize<D extends DataType>([
     datatype,
     artifacts,
   ]: Serialized<D>): Promise<TFJS<D>> {

@@ -1,11 +1,13 @@
 import { assert, expect } from 'chai'
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model } from '../index.js'
+import type { DataType, Model } from "../index.js";
 import type { GPTConfig } from '../models/index.js'
 import { serialization, models } from '../index.js'
 
-async function getRawWeights (model: Model): Promise<Array<[number, Float32Array]>> {
+async function getRawWeights(
+  model: Model<DataType>,
+): Promise<Array<[number, Float32Array]>> {
   return Array.from(
     (await Promise.all(
       model.weights.weights.map(async (w) => await w.data<'float32'>()))
@@ -33,7 +35,7 @@ describe('serialization', () => {
     const decoded = await serialization.model.decode(encoded)
 
     expect(decoded).to.be.an.instanceof(models.TFJS);
-    expect((decoded as models.TFJS).datatype).to.equal("image")
+    expect((decoded as models.TFJS<DataType>).datatype).to.equal("image")
     assert.sameDeepOrderedMembers(
       await getRawWeights(model),
       await getRawWeights(decoded)

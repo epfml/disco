@@ -1,6 +1,6 @@
 import type WebSocket from 'ws'
 
-import type { Task } from '@epfml/discojs'
+import type { DataType, Task } from '@epfml/discojs'
 
 /**
  * The Controller abstraction is commonly used in Express
@@ -17,9 +17,8 @@ import type { Task } from '@epfml/discojs'
  * https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/routes
  * 
  */
-export abstract class TrainingController {
-
-  constructor(protected readonly task: Task) { }
+export abstract class TrainingController<D extends DataType> {
+  constructor(protected readonly task: Task<D>) {}
 
   abstract handle(
     ws: WebSocket

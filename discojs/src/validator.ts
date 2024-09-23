@@ -8,7 +8,7 @@ import type {
 } from "./index.js";
 import { processing } from "./index.js";
 
-export class Validator<D extends DataType = DataType> {
+export class Validator<D extends DataType> {
   readonly #model: Model<D>;
 
   constructor(

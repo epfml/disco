@@ -12,7 +12,7 @@ import { useTasksStore } from "@/store/tasks";
 
 import Testing from "../Testing.vue";
 
-const TASK: Task = {
+const TASK: Task<"text"> = {
   id: "task",
   displayInformation: {
     taskTitle: "task title",

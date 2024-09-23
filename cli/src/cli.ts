@@ -19,7 +19,7 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
 }
 
 async function runUser<D extends DataType>(
-  task: Task,
+  task: Task<D>,
   url: URL,
   data: Dataset<Raw[D]>,
 ): Promise<List<RoundLogs>> {

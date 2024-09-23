@@ -135,8 +135,8 @@ const toaster = useToaster();
 const validationStore = useValidationStore();
 
 const props = defineProps<{
-  task: Task;
-  model: Model;
+  task: Task<D>;
+  model: Model<D>;
 }>();
 
 interface Tested {

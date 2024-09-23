@@ -22,11 +22,11 @@ export interface RoundLogs {
 }
 
 /** Train a model and exchange with others **/
-export class Trainer<D extends DataType = DataType> {
+export class Trainer<D extends DataType> {
   readonly #client: Client;
   readonly #roundDuration: number;
   readonly #epochs: number;
-  readonly #privacy: Task["trainingInformation"]["privacy"];
+  readonly #privacy: Task<DataType>["trainingInformation"]["privacy"];
   #model: Model<D> | undefined;
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
@@ -132,7 +132,7 @@ export class Trainer<D extends DataType = DataType> {
 async function applyPrivacy(
   previous: WeightsContainer | undefined,
   current: WeightsContainer,
-  options: Exclude<Task["trainingInformation"]["privacy"], undefined>,
+  options: Exclude<Task<DataType>["trainingInformation"]["privacy"], undefined>,
 ): Promise<WeightsContainer> {
   let ret = current;
 

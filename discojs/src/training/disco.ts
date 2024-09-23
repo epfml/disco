@@ -25,7 +25,7 @@ import { EventEmitter } from "../utils/event_emitter.js";
 import { RoundLogs, Trainer } from "./trainer.js";
 
 interface DiscoConfig {
-  scheme: TrainingInformation["scheme"];
+  scheme: TrainingInformation<DataType>["scheme"];
   logger: Logger;
 
   // keep preprocessed dataset in memory while training
@@ -43,7 +43,7 @@ export type RoundStatus =
  * a convenient object providing a reduced yet complete API that wraps model training and
  * communication with nodes.
  */
-export class Disco<D extends DataType = DataType> extends EventEmitter<{
+export class Disco<D extends DataType> extends EventEmitter<{
   status: RoundStatus;
 }> {
   public readonly trainer: Trainer<D>;
@@ -152,7 +152,7 @@ export class Disco<D extends DataType = DataType> extends EventEmitter<{
     for await (const [round, epochs] of enumerate(
       this.trainer.train(trainingDataset, validationDataset),
     )) {
-      yield async function* (this: Disco) {
+      yield async function* (this: Disco<D>) {
         const [gen, returnedRoundLogs] = split(epochs);
         for await (const [epoch, batches] of enumerate(gen)) {
           const [gen, returnedEpochLogs] = split(batches);

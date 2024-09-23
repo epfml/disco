@@ -4,7 +4,7 @@ import express from "express";
 import expressWS from "express-ws";
 import type * as http from "http";
 
-import type { TaskProvider } from "@epfml/discojs";
+import type { DataType, TaskProvider } from "@epfml/discojs";
 
 import { TaskRouter, TrainingRouter } from './routes/index.js'
 import { TaskInitializer } from "./task_initializer.js";
@@ -24,13 +24,13 @@ export class Server {
   readonly #taskInitializer = new TaskInitializer();
 
   // Static method to asynchronously init the Server
-  static async of(...tasks: TaskProvider[]): Promise<Server> {
+  static async of(...tasks: TaskProvider<DataType>[]): Promise<Server> {
     const ret = new Server();
     await Promise.all(tasks.map((t) => ret.addTask(t)));
     return ret;
   }
 
-  async addTask(taskProvider: TaskProvider): Promise<void> {
+  async addTask(taskProvider: TaskProvider<DataType>): Promise<void> {
     await this.#taskInitializer.addTask(taskProvider);
   }
 

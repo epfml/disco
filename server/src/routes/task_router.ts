@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
 
-import type { Task, TaskID } from '@epfml/discojs'
+import type { DataType, Task, TaskID } from '@epfml/discojs'
 import { serialization, isTask } from '@epfml/discojs'
 
 import type { TaskInitializer } from '../task_initializer.js'
@@ -70,7 +70,7 @@ export class TaskRouter {
 
   // When a task has been initialized, 
   // register its GET endpoint
-  onNewTask(task: Task): void {
+  onNewTask(task: Task<DataType>): void {
     this.#expressRouter.get(`/${task.id}/:file`, (req, res, next) => {
       this.getLatestModel(task.id, req, res)
       next()

@@ -1,11 +1,11 @@
 import { parse } from 'ts-command-line-args'
 import { Map, Set } from 'immutable'
 
-import type { TaskProvider } from '@epfml/discojs'
+import type { DataType, TaskProvider } from "@epfml/discojs";
 import { defaultTasks } from '@epfml/discojs'
 
 interface BenchmarkArguments {
-  provider: TaskProvider
+  provider: TaskProvider<DataType>
   numberOfUsers: number
   epochs: number
   roundDuration: number

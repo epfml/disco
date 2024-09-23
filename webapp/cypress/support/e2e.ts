@@ -2,19 +2,18 @@ import { Seq } from "immutable";
 
 import type {
   DataType,
-  Model,
   Task,
   TaskProvider,
   TrainingInformation,
 } from "@epfml/discojs";
 import { isTask, serialization } from "@epfml/discojs";
 
-export function setupServerWith(...providers: (Task | TaskProvider)[]): void {
-  const tasksAndModels: Seq.Indexed<[Task, Promise<Model> | undefined]> = Seq(
-    providers,
-  ).map((p) => {
-    if (isTask(p)) return [p, undefined];
-    return [p.getTask(), p.getModel()];
+export function setupServerWith(
+  ...providers: (Task<DataType> | TaskProvider<DataType>)[]
+): void {
+  const tasksAndModels = Seq(providers).map((p) => {
+    if (isTask(p)) return [p, undefined] as const;
+    return [p.getTask(), p.getModel()] as const;
   });
 
   cy.intercept(

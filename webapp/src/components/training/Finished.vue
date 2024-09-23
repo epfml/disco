@@ -18,12 +18,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="D extends DataType">
 import { List } from "immutable";
 import { ref, toRaw, watch } from "vue";
 import { useRouter } from "vue-router";
 
-import type { Model, Task } from "@epfml/discojs";
+import type { DataType, Model, Task } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
 import type { ModelID } from "@/store/models";
@@ -39,8 +39,8 @@ const router = useRouter();
 const toaster = useToaster();
 
 const props = defineProps<{
-  task: Task;
-  model?: Model;
+  task: Task<D>;
+  model?: Model<D>;
 }>();
 
 const saved = ref<ModelID>();
