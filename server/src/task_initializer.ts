@@ -34,8 +34,6 @@ import type { EncodedModel } from '@epfml/discojs'
 export class TaskInitializer extends EventEmitter<{
   "newTask": { task: Task, encodedModel: EncodedModel }
 }>{
-  // List of callback to apply to future task-model pairs added
-  // private listeners = List<(t: Task, m: EncodedModel) => Promise<void>>()
   // Keep track of previously initialized task-model pairs
   #tasks = Set<[Task, EncodedModel]>()
 
