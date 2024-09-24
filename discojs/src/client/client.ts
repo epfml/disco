@@ -181,7 +181,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
   * If local it should be 1
   */
   get nbOfParticipants(): number {
-    return this.aggregator.nodes.size // overriden by the federated client
+    return 1 // overriden by the federated and decentralized clients
   }
 
   get ownId(): NodeID {

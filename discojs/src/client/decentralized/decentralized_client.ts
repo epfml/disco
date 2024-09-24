@@ -24,6 +24,11 @@ export class DecentralizedClient extends Client {
    */
   #pool?: PeerPool
   #connections?: Map<NodeID, PeerConnection>
+  #roundParticipants = 1
+
+  get nbOfParticipants(): number {
+    return this.#roundParticipants
+  }
 
   // Used to handle timeouts and promise resolving after calling disconnect
   private get isDisconnected() : boolean {
@@ -175,6 +180,7 @@ export class DecentralizedClient extends Client {
       }
       // Store the list of peers for the current round including ourselves
       this.aggregator.setNodes(peers.add(this.ownId))
+      this.#roundParticipants = this.aggregator.nodes.size
       this.aggregator.setRound(receivedMessage.aggregationRound) // the server gives us the round number
 
       // Initiate peer to peer connections with each peer
