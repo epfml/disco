@@ -8,8 +8,10 @@
     :multiple="props.field.type === 'select-multiple'"
     class="
       bg-gray-100 rounded-md border p-2 mt-1
+      dark:bg-slate-700 dark:border-slate-400
       block w-full
       text-gray-700
+      dark:text-gray-200
       focus:outline-none focus:border-disco-cyan
     "
   >
