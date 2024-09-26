@@ -6,7 +6,7 @@
     text-lg uppercase text-white
     bg-disco-cyan
     rounded duration-200
-    hover:bg-white hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan"
+    hover:bg-white dark:hover:bg-black hover:outline hover:outline-disco-cyan dark:hover:outline-disco-light-cyan hover:outline-2 hover:text-disco-cyan dark:hover:text-disco-light-cyan"
   >
     <slot />
     <!-- Optional description slot -->

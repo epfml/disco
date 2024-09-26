@@ -13,7 +13,7 @@
       <div><slot name="icon" /></div>
     </div>
 
-    <div class="text-slate-500 dark:text-slate-200">
+    <div class="text-slate-500 dark:text-slate-300">
       <slot />
     </div>
 
