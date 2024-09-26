@@ -13,8 +13,10 @@ const config: Config = {
         disco: {
           cyan: "#6096BA",
           blue: "#274C78",
-          'dark-cyan': "#000000",
+          'dark-cyan': "#1F3A4F",
           'dark-blue': "#12263A", // you just have to do dark: and then put the class you want to have in dark mode
+          'light-cyan': "#8AB9D3",
+          'light-blue': "#4A7CA1",
         },
       },
       spacing: {

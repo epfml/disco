@@ -1,10 +1,10 @@
 <template>
   <div
-    class="flex flex-col p-7 gap-4 bg-white rounded-lg transition duration-200 group hover:-translate-y-1 hover:scale-[101%] hover:outline hover:outline-2 hover:outline-disco-cyan hover:cursor-pointer"
+    class="flex flex-col p-7 gap-4 bg-white dark:bg-slate-950 rounded-lg transition duration-200 group hover:-translate-y-1 hover:scale-[101%] hover:outline hover:outline-2 hover:outline-disco-cyan dark:hover:outline-disco-dark-cyan hover:cursor-pointer"
   >
     <div class="flex flex-row">
       <div
-        class="grow text-xl text-disco-blue group-hover:text-disco-cyan"
+        class="grow text-xl text-disco-blue dark:text-disco-light-blue group-hover:text-disco-cyan dark:group-hover:text-disco-light-cyan"
         :class="`text-${titleAlign}`"
       >
         <slot name="title" />
@@ -13,7 +13,7 @@
       <div><slot name="icon" /></div>
     </div>
 
-    <div class="text-slate-500">
+    <div class="text-slate-500 dark:text-slate-200">
       <slot />
     </div>
 

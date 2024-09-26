@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Mini Sidebar (LHS) -->
-    <nav class="flex flex-col flex-shrink-0 h-full sm:px-4 px-2 py-4 border-r">
+    <nav class="flex flex-col flex-shrink-0 h-full sm:px-4 px-2 py-4 border-r dark:border-black">
       <!-- Brand -->
       <div class="hidden sm:flex flex-shrink-0">
         <RouterLink
@@ -37,7 +37,6 @@
           :text="currentTheme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'" 
           @click="toggleDarkMode"
         >
-          
           <MoonIcon v-if="currentTheme === 'light'"/>
           <SunIcon v-else/>
         </SidebarButton>

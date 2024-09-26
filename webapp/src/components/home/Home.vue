@@ -9,7 +9,7 @@
         href="https://framaforms.org/disco-feedback-form-1718716636"
         >
         <div class="flex flex-row flex-wrap shrink-0 items-center gap-x-2 justify-end">
-            <p class="text-disco-blue font-bold text-xs hover:underline hover:text-disco-cyan text-end">Give us some feedback</p>
+            <p class="text-disco-blue font-bold text-xs hover:underline hover:text-disco-cyan text-end dark:text-disco-dark-cyan">Give us some feedback</p>
           <FeedbackIcon custom-class="min-w-8 min-h-8 w-8 h-8"/>
         </div>
       </a>
