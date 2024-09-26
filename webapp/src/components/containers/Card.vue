@@ -11,7 +11,7 @@
 export default {
   name: 'CardItem',
   props: {
-    customClass: { default: 'bg-white', type: String }
+    customClass: { default: 'bg-white dark:bg-slate-950', type: String }
   }
 }
 </script>

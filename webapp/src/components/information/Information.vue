@@ -1,8 +1,8 @@
 <template>
     <!-- Page Content -->
     <Card class="flex flex-col place-content-center p-4 space-y-6 rounded-xl ">
-      <p class="flex flex-wrap justify-center text-2xl text-slate-400 mt-2">
-        <span><span class="font-disco text-disco-cyan uppercase">dis</span><span>tributed</span>&nbsp;</span>
+      <p class="flex flex-wrap justify-center text-2xl text-slate-400 dark:text-slate-600 mt-2">
+        <span><span class="font-disco text-disco-cyan dark:text-disco-light-cyan uppercase">dis</span><span>tributed</span>&nbsp;</span>
         <span><span class="font-disco text-disco-blue uppercase">co</span><span>llaborative learning platform</span></span>
       </p>
       <div class="grid gap-8 p-4 sm:grid-cols-2 text-slate-500 border-t">
