@@ -1,10 +1,10 @@
 <template>
   <div
-    class="flex items-center justify-between p-4 bg-white rounded-md"
+    class="flex items-center justify-between p-4 bg-white dark:bg-slate-950 rounded-md"
   >
     <div>
       <h6
-        class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase"
+        class="text-xs font-medium leading-none tracking-wider text-gray-500 dark:text-gray-300 uppercase"
       >
         {{ header }}
       </h6>

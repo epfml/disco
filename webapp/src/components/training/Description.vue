@@ -28,7 +28,7 @@
         :key="section.id"
         class="py-4 first:py-0 last:py-0"
       >
-        <span class="text-slate-600 font-bold text-left">
+        <span class="text-slate-600 dark:text-slate-200 font-bold text-left">
           {{ section.title }}
         </span>
         <div
