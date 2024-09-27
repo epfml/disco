@@ -1,7 +1,7 @@
 import express from 'express'
 import type expressWS from 'express-ws'
 import { Set } from 'immutable'
-import type { Task, EncodedModel } from '@epfml/discojs'
+import type { Task } from '@epfml/discojs'
 import { serialization } from '@epfml/discojs'
 
 import type { TaskSet } from '../task_set.js'
@@ -47,7 +47,7 @@ export class TrainingRouter {
 
   // Register the task and setup the controller to handle
   // websocket connections
-  private async onNewTask (task: Task, encodedModel: EncodedModel): Promise<void> {
+  private async onNewTask (task: Task, encodedModel: serialization.Encoded): Promise<void> {
     this.#tasks = this.#tasks.add(task.id)
     // The controller handles the actual logic of collaborative training
     // in its `handle` method. Each task has a dedicated controller which

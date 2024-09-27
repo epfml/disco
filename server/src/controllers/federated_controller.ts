@@ -3,7 +3,7 @@ import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
 import msgpack from 'msgpack-lite'
 
-import type { EncodedWeights, Task } from '@epfml/discojs'
+import type { Task } from '@epfml/discojs'
 import {
   aggregator as aggregators,
   client,
@@ -28,10 +28,9 @@ export class FederatedController extends TrainingController {
    * can be sent to participants, before starting training, or when joining mid-training 
    * or staled participants
    */
-  #latestGlobalWeights: EncodedWeights
-  
+  #latestGlobalWeights: serialization.Encoded;
 
-  constructor(task: Task, initialWeights: EncodedWeights) {
+  constructor(task: Task, initialWeights: serialization.Encoded) {
     super(task)
     this.#latestGlobalWeights = initialWeights
 
