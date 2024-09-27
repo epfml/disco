@@ -12,7 +12,7 @@ interface Infos {
   taskID: string;
   dateSaved: Date;
 }
-type IDToModel = Map<ModelID, Infos & { encoded: serialization.model.Encoded }>;
+type IDToModel = Map<ModelID, Infos & { encoded: serialization.Encoded }>;
 
 type Serialized = Array<
   [ModelID, { taskID: string; dateSaved: number; encoded: string }]

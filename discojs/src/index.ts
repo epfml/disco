@@ -1,7 +1,5 @@
 export * as data from './dataset/index.js'
 export * as serialization from './serialization/index.js'
-export { Encoded as EncodedModel } from './serialization/model.js'
-export { Encoded as EncodedWeights } from './serialization/weights.js'
 export * as training from './training/index.js'
 export * as privacy from './privacy.js'
 
