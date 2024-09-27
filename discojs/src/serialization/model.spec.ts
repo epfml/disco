@@ -29,7 +29,7 @@ describe('serialization', () => {
     const model = new models.TFJS(rawModel)
 
     const encoded = await serialization.model.encode(model)
-    assert.isTrue(serialization.model.isEncoded(encoded))
+    assert.isTrue(serialization.isEncoded(encoded))
     const decoded = await serialization.model.decode(encoded)
 
     assert.sameDeepOrderedMembers(
@@ -51,7 +51,7 @@ describe('serialization', () => {
     const model = new models.GPT(config)
 
     const encoded = await serialization.model.encode(model)
-    assert.isTrue(serialization.model.isEncoded(encoded))
+    assert.isTrue(serialization.isEncoded(encoded))
     const decoded = await serialization.model.decode(encoded)
     
     assert.instanceOf(decoded, models.GPT)

@@ -1,49 +1,37 @@
-import msgpack from 'msgpack-lite'
 import type tf from '@tensorflow/tfjs'
 
 import type { Model } from '../index.js'
 import { models, serialization } from '../index.js'
 import { GPTConfig } from '../models/index.js'
 
+import * as coder from "./coder.js";
+import { Encoded, isEncoded } from "./coder.js";
+
 const Type = {
   TFJS: 0,
   GPT: 1
 } as const
 
-export type Encoded = Uint8Array
-
-export function isEncoded (raw: unknown): raw is Encoded {
-  return raw instanceof Uint8Array
-}
-
 export async function encode(model: Model): Promise<Encoded> {
-  let encoded;
   switch (true) {
     case model instanceof models.TFJS: {
       const serialized = await model.serialize();
-      encoded = msgpack.encode([Type.TFJS, serialized]);
-      break;
+      return coder.encode([Type.TFJS, serialized]);
     }
     case model instanceof models.GPT: {
       const { weights, config } = model.serialize();
       const serializedWeights = await serialization.weights.encode(weights);
-      encoded = msgpack.encode([Type.GPT, serializedWeights, config]);
-      break;
+      return coder.encode([Type.GPT, serializedWeights, config]);
     }
     default:
       throw new Error("unknown model type");
   }
-
-  // Node's Buffer extends Node's Uint8Array, which might not be the same
-  // as the browser's Uint8Array. we ensure here that it is.
-  return new Uint8Array(encoded);
 }
 
 export async function decode (encoded: unknown): Promise<Model> {
-  if (!isEncoded(encoded)) {
+  if (!isEncoded(encoded))
     throw new Error("Invalid encoding, raw encoding isn't an instance of Uint8Array")
-  }
-  const raw: unknown = msgpack.decode(encoded)
+  const raw = coder.decode(encoded)
 
   if (!Array.isArray(raw) || raw.length < 2) {
     throw new Error("invalid encoding, encoding isn't an array or doesn't contain enough values")
@@ -70,15 +58,11 @@ export async function decode (encoded: unknown): Promise<Model> {
         throw new Error('invalid encoding, gpt-tfjs model encoding should be an array of length 2 or 3')
       }
 
-      if (!Array.isArray(rawModel)) {
-        throw new Error('invalid encoding, gpt-tfjs model weights should be an array')
-      }
-      const arr: unknown[] = rawModel
-      if (arr.some((r) => typeof r !== 'number')) {
-        throw new Error("invalid encoding, gpt-tfjs weights should be numbers")
-      }
-      const nums = arr as number[]
-      const weights = serialization.weights.decode(nums)
+      if (!isEncoded(rawModel))
+        throw new Error(
+          "invalid encoding, gpt-tfjs model weights should be an encoding of its weights",
+        );
+      const weights = serialization.weights.decode(rawModel)
       return models.GPT.deserialize({weights, config})
     }
     default:

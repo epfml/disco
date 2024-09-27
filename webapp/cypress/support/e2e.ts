@@ -30,7 +30,7 @@ export function setupServerWith(...providers: (Task | TaskProvider)[]): void {
       { hostname: "server", pathname: `/tasks/${task.id}/model.json` },
       { statusCode: 200 },
     );
-    cy.wrap<Promise<serialization.model.Encoded>, serialization.model.Encoded>(
+    cy.wrap<Promise<serialization.Encoded>, serialization.Encoded>(
       model.then(serialization.model.encode),
     ).then((encoded) =>
       cy.intercept(

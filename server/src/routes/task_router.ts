@@ -40,7 +40,7 @@ export class TaskRouter {
         return
       }
 
-      if (!serialization.model.isEncoded(encoded))
+      if (!serialization.isEncoded(encoded))
         throw new Error("could not recognize model encoding")
 
       this.#taskSet.addTask(newTask, encoded)

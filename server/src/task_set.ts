@@ -7,7 +7,8 @@ import {
   Task, TaskProvider, isTask,
   serialization, models, Model, EventEmitter
 } from '@epfml/discojs'
-import type { EncodedModel } from '@epfml/discojs'
+
+type EncodedModel = serialization.Encoded;
 
 /**
  * The TaskSet essentially handles initializing a Task and 
@@ -61,7 +62,7 @@ export class TaskSet extends EventEmitter<{
 
     // get the model
     let encodedModel: EncodedModel
-    if (serialization.model.isEncoded(model)) {
+    if (serialization.isEncoded(model)) {
       encodedModel = model // don't do anything if already encoded
     } else {
       let tfModel: Model
