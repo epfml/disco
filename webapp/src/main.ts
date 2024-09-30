@@ -28,10 +28,10 @@ app.config.errorHandler = (err, instance, info) => {
   const toaster = useToaster()
   if (err instanceof TypeError) {
     // Implementation bug
-    toaster.error('Sorry, something went wrong on our side. Please reach out on slack.')
+    toaster.error('Sorry, something went wrong on our side. Please let us know via Github.')
   } else {
     // Unknown error
-    toaster.error('Something went wrong. Please try again later or reach out on slack.')
+    toaster.error('Something went wrong. Please try again later.')
   }
   debug("%s info=%s throwed %o", err, info, instance?.$options.name)
 }
