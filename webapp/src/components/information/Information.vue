@@ -20,7 +20,7 @@
           >
             Federated Learning
           </h6>
-          <FederatedGIF class="my-md" />
+          <FederatedGIF class="my-md bg-slate-100 rounded-lg border-slate-300 border-4" />
           <p class="text-sm py-6 text-center">
             The server puts in common local model updates and sends back an aggregated global model. <br/>No data is shared.
           </p>
@@ -39,7 +39,7 @@
           >
             Decentralized Learning
           </h6>
-          <DecentralizedGIF class="my-md" />
+          <DecentralizedGIF class="my-md bg-slate-100 rounded-lg border-slate-300 border-4" />
           <p class="text-sm py-6 text-center">
             Local model aggregation is coordinated between peers without any server.
             <br/> No data is shared.
