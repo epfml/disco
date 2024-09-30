@@ -1,6 +1,6 @@
 <template>
   <div class="mb-4 space-y-4">
-    <div class="flex flex-wrap text-3xl text-slate-600 dark:text-slate-100 justify-center">
+    <div class="flex flex-wrap text-3xl justify-center">
       <DISCO />
     </div>
     <div class="hidden md:inline-block w-full">
