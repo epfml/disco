@@ -4,7 +4,7 @@
       v-if="taskTitle !== undefined && displayTitle"
       class="flex flex-wrap font-disco text-3xl justify-center"
     >
-      <span class="text-disco-blue">{{ taskTitle }}</span>
+      <span class="text-disco-blue dark:text-disco-light-cyan">{{ taskTitle }}</span>
     </div>
     <div
       v-else
