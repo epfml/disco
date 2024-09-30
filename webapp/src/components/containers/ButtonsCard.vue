@@ -4,7 +4,7 @@
   >
     <div class="flex flex-row">
       <div
-        class="grow text-xl text-disco-blue dark:text-disco-light-blue group-hover:text-disco-cyan dark:group-hover:text-disco-light-cyan"
+        class="grow text-xl text-disco-blue dark:text-slate-300 group-hover:text-disco-cyan dark:group-hover:text-disco-light-cyan"
         :class="`text-${titleAlign}`"
       >
         <slot name="title" />
