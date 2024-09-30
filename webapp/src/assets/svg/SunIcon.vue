@@ -1,4 +1,5 @@
 <template>
+  <!-- This SVG came from https://tablericons.com/, a website that provides open source svg -->
     <svg
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
@@ -17,7 +18,7 @@
     name: 'SunIcon',
     props: {
       customClass: {
-        default: 'bi bi-info-circle w-8 h-8',
+        default: 'w-8 h-8',
         type: String
       },
       viewBox: { default: '0 0 24 24', type: String }
