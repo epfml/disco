@@ -15,7 +15,7 @@
       </div>
       <div
         class="transition duration-400 w-10 h-10 mx-auto rounded-full text-lg text-white flex items-center hover:scale-105 hover:cursor-pointer"
-        :class="(props.active ? 'bg-disco-blue dark:bg-disco-light-blue border-4 border-slate-200 dark:border-slate-600' : 'bg-white dark:bg-slate-800 border-4 border-slate-200 dark:border-slate-600') + (isCurrentStep ? ' bg-orange-300' : '') "
+        :class="(props.active ? 'bg-disco-blue dark:bg-disco-light-blue border-4 border-slate-200 dark:border-slate-600' : 'bg-white dark:bg-slate-800 border-4 border-slate-200 dark:border-slate-600') + (isCurrentStep ? ' bg-orange-300 dark:bg-orange-400' : '') "
       >
         <span
           class="text-center w-full"
@@ -26,7 +26,7 @@
       </div>
     </div>
     <!-- Text -->
-    <div class="text-xs text-center md:text-base text-slate-700">
+    <div class="text-xs text-center md:text-base text-slate-700 dark:text-slate-400">
       <slot name="text" />
     </div>
   </div>
