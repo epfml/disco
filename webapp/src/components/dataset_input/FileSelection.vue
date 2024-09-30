@@ -1,7 +1,7 @@
 <template>
   <article
     aria-label="File Upload Model"
-    class="h-full flex flex-col bg-white rounded-lg"
+    class="h-full flex flex-col bg-white dark:bg-slate-950 rounded-lg"
     @drop.prevent
     @dragover.prevent
     @dragenter.prevent
@@ -18,12 +18,12 @@
         @dragleave="onDragLeave"
         @drop="async (e: DragEvent) => await dragFiles(e)"
       >
-        <p class="p-4 text-lg text-disco-blue flex-wrap justify-center">
+        <p class="p-4 text-lg text-disco-blue dark:text-disco-light-blue flex-wrap justify-center">
           <span>Drag and drop the {{ fileType }} or</span>
         </p>
         <label class="mb-6">
           <span
-            class="px-4 py-2 min-w-[8rem] text-lg uppercase text-white bg-disco-cyan rounded duration-200 hover:bg-white hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan hover:cursor-pointer"
+            class="px-4 py-2 min-w-[8rem] text-lg uppercase text-white bg-disco-cyan rounded duration-200 hover:bg-white hover:dark:bg-slate-950 hover:outline hover:outline-disco-cyan hover:outline-2 hover:text-disco-cyan hover:cursor-pointer"
           >
             select {{ fileType }}
           </span>
