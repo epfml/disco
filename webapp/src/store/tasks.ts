@@ -42,7 +42,7 @@ export const useTasksStore = defineStore('tasks', () => {
       //Only display UI message once
       if (status.value !== 'failed') {
         const toaster = useToaster()
-        toaster.error('The server is unreachable.\nPlease try again later or reach out on slack.')
+        toaster.error('The server is unreachable. Please try again later.')
         status.value = 'failed'
       }
     }

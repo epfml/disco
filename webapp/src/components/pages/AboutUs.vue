@@ -42,22 +42,16 @@
         </li>
       </ul>
 
-      <br/>
+      <br />
       <p>
-        <DISCO/> relies on public funds and its code is open-source and accessible on
+        <DISCO /> relies on public funds and its code is open-source and
+        accessible on
         <a
           href="https://github.com/epfml/disco"
           class="text-blue-500 hover:underline"
           target="_blank"
           >Github</a
-        >. Feel welcome to join our
-        <a
-          href="https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw"
-          class="text-blue-500 hover:underline"
-          target="_blank"
-          >Slack</a
-        >
-        to discuss with us or ask questions.
+        >.
         <br />
         Your support and feedback would be greatly appreciated.
       </p>

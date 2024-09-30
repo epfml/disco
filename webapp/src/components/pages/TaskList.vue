@@ -7,10 +7,8 @@
         :buttons="List.of(['reload page', () => router.go(0)])"
         class="mx-auto"
       >
-        <template #title>
-          The server is unreachable
-        </template>
-          Please reload the app and make sure you are connected to internet. If the error persists please <a class='underline text-blue-400' target="_blank" href='https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw'>reach out on Slack</a>.
+        <template #title> The server is unreachable </template>
+        Please reload the app and make sure you are connected to internet.
       </ButtonsCard>
 
       <!-- Tasks could be retrieved, display them alphabetically -->
