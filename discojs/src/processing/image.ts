@@ -43,9 +43,15 @@ function addAlpha<W extends number, H extends number>(
     case 3:
       return new Image(
         Uint8Array.from(
+          // we are adding a channel, so for every 3 byte in the base image,
+          // we need to add a fourth. we choose to "expand" the last channel
+          // to two value, the channel base value and the transparency.
+          // let's say we want to add a byte A to the bytestring RGB
+          // [R, G, B] -> [[R], [G], [B, A]] -> [R, G, B, A]
           Seq(image.data).flatMap((v, i) => {
+            const OPAQUE = 0xff;
             if (i % 3 !== 2) return [v];
-            else return [v, 0xff];
+            else return [v, OPAQUE];
           }),
         ),
         image.width,
