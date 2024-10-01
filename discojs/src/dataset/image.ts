@@ -1,6 +1,11 @@
 /**
  * Raw image with type level dimensions.
  *
+ * Per convention, `data` layout is as follow
+ *  `height` chunk each containing
+ *    `width` chunk each containing
+ *      a chunk of `depth` bytes
+ *
  * @typeParam D depth of the image
  * @typeParam W width, positive and integral
  * @typeParam H height, positive and integral
