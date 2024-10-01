@@ -18,7 +18,7 @@ export class NormalizedImage<
     public readonly depth: D,
   ) {
     if (data.length != width * height * depth)
-      throw new Error("data isn't of excepted size");
+      throw new Error("data isn't of expected size");
   }
 
   static from<
