@@ -50,13 +50,13 @@
     </IconCard>
 
     <!-- display the evaluation metrics -->
-    <div class="p-4 mx-auto lg:w-1/2 h-full bg-white rounded-md">
+    <div class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md">
       <!-- header -->
-      <h4 class="p-4 border-b text-lg font-semibold text-slate-500">
+      <h4 class="p-4 border-b text-lg font-semibold text-slate-500 dark:text-slate-300">
         Test Accuracy
       </h4>
       <!-- stats -->
-      <div class="grid grid-cols-2 p-4 font-medium text-slate-500">
+      <div class="grid grid-cols-2 p-4 font-medium text-slate-500 dark:text-slate-400">
         <div class="text-center">
           <span class="text-2xl">{{ currentAccuracy }}</span>
           <span class="text-sm">% of test accuracy</span>

@@ -60,10 +60,10 @@
       <IconCard>
         <template #title> Training Loss of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500">
+        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
           {{ (lastEpoch?.training.loss ?? 0).toFixed(2) }}
         </span>
-        <span class="text-sm font-medium text-slate-500">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
           training loss
         </span>
 
@@ -80,10 +80,10 @@
       <IconCard v-if="hasValidationData">
         <template #title> Validation Loss of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500">
+        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
           {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
         </span>
-        <span class="text-sm font-medium text-slate-500">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
           validation loss
         </span>
 
@@ -106,10 +106,10 @@
       <IconCard>
         <template #title> Training Accuracy of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500">
+        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
           {{ percent(lastEpoch?.training.accuracy ?? 0) }}
         </span>
-        <span class="text-sm font-medium text-slate-500">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
           % of training accuracy
         </span>
 
@@ -128,10 +128,10 @@
       <IconCard v-if="hasValidationData">
         <template #title> Validation Accuracy of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500">
+        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
           {{ percent(lastEpoch?.validation?.accuracy ?? 0) }}
         </span>
-        <span class="text-sm font-medium text-slate-500">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
           % of validation accuracy
         </span>
 
@@ -161,7 +161,7 @@
           >
             <span
               style="white-space: pre-line"
-              class="text-sm text-slate-500"
+              class="text-sm text-slate-500 dark:text-slate-400"
             >
               {{ message }}
             </span>
@@ -174,7 +174,7 @@
 
 <script setup lang="ts">
 import { List } from "immutable";
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import ApexChart from "vue3-apexcharts";
 
 import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
@@ -258,14 +258,15 @@ const lossSeries = computed(() =>
       },
     ),
 );
-
+const darkMode = ref(localStorage.getItem("theme") === "dark");
+console.log(darkMode);
 const commonChartsOptions = {
   chart: {
     toolbar: { show: false },
     zoom: { enabled: false },
   },
   dataLabels: { enabled: false },
-  colors: ["#6096BA"],
+  colors: [ darkMode ? "#cbd5e1" : "#6096BA"],
   fill: {
     colors: ["#E2E8F0"],
     type: "solid",
