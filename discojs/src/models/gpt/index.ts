@@ -1,5 +1,6 @@
 /**
- * this code is taken from gpt-tfjs with modifications from @peacefulotter and @lukemovement
+ * Source: https://github.com/zemlyansky/gpt-tfjs
+ * With modifications from @peacefulotter and @lukemovement
  **/
 
 import createDebug from "debug";
@@ -139,7 +140,9 @@ export class GPT extends Model {
     const generationConfig = {
       maxNewTokens: newTokens,
       temperature: 1.0,
-      doSample: false
+      doSample: true,
+      seed: 42,
+      topk: 50
     }
     const predictedTokens = await this.model.generate(tokens, generationConfig)
     const generatedWords = tokenizer.decode(predictedTokens[0])
