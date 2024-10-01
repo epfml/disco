@@ -259,7 +259,6 @@ const lossSeries = computed(() =>
     ),
 );
 const darkMode = localStorage.getItem("theme") === "dark";
-console.log(darkMode);
 const commonChartsOptions = {
   chart: {
     toolbar: { show: false },
