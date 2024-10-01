@@ -174,7 +174,7 @@
 
 <script setup lang="ts">
 import { List } from "immutable";
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import ApexChart from "vue3-apexcharts";
 
 import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
