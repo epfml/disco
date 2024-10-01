@@ -14,7 +14,7 @@ describe('gpt-tfjs', function() {
     evaluateEvery:10,
     maxEvalBatches: 10,
     blockSize: 8,
-    vocabSize: 50258
+    vocabSize: 50257
   }
   
   it('can overfit one sentence', async function() {
@@ -30,7 +30,7 @@ describe('gpt-tfjs', function() {
           return_tensor: false,
           max_length: config.blockSize + 1,
       }) as { input_ids: number[] }
-      const ys = tf.oneHot(tokens.slice(1), tokenizer.model.vocab.length + 1)
+      const ys = tf.oneHot(tokens.slice(1), tokenizer.model.vocab.length)
       const xs = tf.tensor(tokens.slice(0, config.blockSize), undefined, 'int32')
       return {xs, ys}
     }).repeat().batch(64) as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>

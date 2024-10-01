@@ -79,7 +79,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
       maxIter: iterationsPerEpoch,
       blockSize: contextLength,
       lr: 0.0001,
-      vocabSize: 50258 // default wikitext task uses the gpt2 tokenizer with vocabSize 50258
+      vocabSize: 50257 // default wikitext task uses the gpt2 tokenizer with vocabSize 50257
     }
 
     // Load the dataset after setting the Task batch size and max sequence length
@@ -107,7 +107,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
                   (tokens) =>
                     tf.oneHot(
                       tokens.slice(1),
-                      tokenizer.model.vocab.length + 1,
+                      tokenizer.model.vocab.length,
                     ) as tf.Tensor2D,
                 )
                 .toArray(),

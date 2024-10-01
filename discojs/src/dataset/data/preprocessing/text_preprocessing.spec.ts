@@ -55,10 +55,10 @@ describe('text preprocessing', function () {
     const xsArray = await xs.array()
     const ysArray = await ys.array()
     
-    // Output sequences should have shape (20) and (20, 50258), 50258 being the size of the vocab for gpt2
+    // Output sequences should have shape (20) and (20, 50257), 50257 being the size of the vocab for gpt2
     expect(xsArray.length).to.be.equal(paddingTask.trainingInformation.maxSequenceLength)
     expect(ysArray.length).to.be.equal(paddingTask.trainingInformation.maxSequenceLength)
-    expect(ysArray[0].length).to.be.equal(50258)
+    expect(ysArray[0].length).to.be.equal(50257)
 
     // xs should be left pad with gpt2's padding token 50256 to be of length 20.
     // We expect the last token of input token sequence (9) to not be included in xs since it doesn't have a next token to be predicted

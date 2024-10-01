@@ -78,7 +78,7 @@ const leftPadding: PreprocessingFunction = {
       
       // ys is a one-hot encoding of the next token (i.e. xs shifted by one)
       // cast because oneHot isn't size-typing its return value
-      const ys = tf.oneHot(fixedLengthTokens.slice([1]), tokenizer.model.vocab.length + 1) as tf.Tensor2D
+      const ys = tf.oneHot(fixedLengthTokens.slice([1]), tokenizer.model.vocab.length) as tf.Tensor2D
       // remove the extra token now that ys is created
       const xs = fixedLengthTokens.slice([0], maxLength) 
       return { xs, ys }

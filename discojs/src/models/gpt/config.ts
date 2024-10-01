@@ -42,7 +42,7 @@ export const DEFAULT_CONFIG: Required<GPTConfig> = {
   maxEvalBatches: 12,
   evaluateEvery: 100,
   blockSize: 128,
-  vocabSize: 50258,
+  vocabSize: 50257,
   bias: true,
   debug: false,
   dropout: 0.2,
