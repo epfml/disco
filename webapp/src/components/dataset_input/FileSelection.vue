@@ -57,7 +57,7 @@
         v-if="$slots.default && files === undefined"
         class="flex justify-center mt-5"
       >
-        <p class="text-slate-500 text-sm">
+        <p class="text-slate-500 dark:text-slate-300 text-sm">
           <span><slot /></span>
         </p>
       </div>
@@ -68,7 +68,7 @@
         class="pt-4 flex flex-col items-center pb-5"
       >
         <div
-          class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue"
+          class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue dark:text-disco-light-cyan"
         >
           <span v-if="multiple"
             >Number of selected files:

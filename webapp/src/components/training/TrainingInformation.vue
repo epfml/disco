@@ -265,24 +265,72 @@ const commonChartsOptions = {
     zoom: { enabled: false },
   },
   dataLabels: { enabled: false },
-  colors: [ darkMode ? "#cbd5e1" : "#6096BA"],
+  colors: [darkMode ? "#cbd5e1" : "#6096BA"],
   fill: {
-    colors: ["#E2E8F0"],
+    colors: [darkMode ? "#1A3A4F" : "#E2E8F0"],
     type: "solid",
     opacity: 0.6,
   },
   stroke: { curve: "smooth" },
   grid: { show: false },
-  xaxis: { labels: { show: false } },
-  legend: { show: false },
+  xaxis: {
+    labels: {
+      show: true,
+      style: {
+        colors: darkMode ? "#ffffff" : "#000000",
+      },
+    },
+    axisBorder: {
+      show: true,
+      colors: darkMode ? "#ffffff" : "#000000",
+    },
+    axisTicks: {
+      show: true,
+      color: darkMode ? "#ffffff" : "#000000",
+    },
+  },
+  yaxis: {
+    labels: {
+      show: true,
+      style: {
+        colors: darkMode ? "#ffffff" : "#000000",
+      },
+    },
+    axisBorder: {
+      show: true,
+      color: darkMode ? "#ffffff" : "#000000",
+    },
+    axisTicks: {
+      show: true,
+      color: darkMode ? "#ffffff" : "#000000",
+    },
+  },
+  legend: {
+    show: true,
+    labels: {
+      colors: darkMode ? "#ffffff" : "#000000",
+    },
+  },
+  tooltip: {
+    theme: darkMode ? 'dark' : 'light',
+    style: {
+      fontSize: '12px',
+      fontFamily: undefined,
+      colors: darkMode ? '#ffffff' : '#000000',
+    },
+  }
 };
 
 const accuracyChartsOptions = {
   ...commonChartsOptions,
   yaxis: {
+    ...commonChartsOptions.yaxis,
     max: 100,
     min: 0,
-    labels: { formatter: (value: number) => value.toFixed(0) },
+    labels: { 
+      ...commonChartsOptions.yaxis.labels,
+      formatter: (value: number) => value.toFixed(0) 
+    },
   },
 };
 
@@ -297,9 +345,13 @@ const lossChartsOptions = computed(() => {
   return {
     ...commonChartsOptions,
     yaxis: {
+      ...commonChartsOptions.yaxis,
       max: yAxisMax,
       min: 0,
-      labels: { formatter: (n: number) => n.toFixed(2) },
+      labels: { 
+        ...commonChartsOptions.yaxis.labels,
+        formatter: (n: number) => n.toFixed(2) 
+      },
     },
   };
 });
