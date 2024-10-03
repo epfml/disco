@@ -6,7 +6,7 @@
   >
     <div class="flex justify-center items-center mb-4">
       <span
-        class="shrink-0 py-4 px-4 bg-purple-100 rounded-md flex flex-row gap-x-4 items-center"
+        class="shrink-0 py-4 px-4 bg-purple-100 dark:text-disco-dark-blue rounded-md flex flex-row gap-x-4 items-center"
       >
         <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6 text-slate-600" />
 
