@@ -186,8 +186,16 @@ export class Dataset<T> implements AsyncIterable<T> {
   }
 }
 
+/**
+ * Avoid recomputing the parent dataset, without hogging memory
+ *
+ * As dataset operations can be time-consuming, this keeps a weak reference to
+ * the generated elements so that a second iteration might yield theses directly.
+ **/
 class CachingDataset<T> extends Dataset<T> {
-  #cache = new WeakRef<[done: boolean, List<T>]>([false, List()]);
+  // potential reference to all elements
+  // tristate: undefined == empty, [false, _] == filling, [true, _] == filled
+  #cache = new WeakRef<[filled: boolean, List<T>]>([false, List()]);
 
   [Symbol.asyncIterator](): AsyncIterator<T> {
     const cached = this.#cache.deref();
