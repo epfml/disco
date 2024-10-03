@@ -93,7 +93,7 @@
 
       <div
         v-else-if="tested.type === 'tabular'"
-        class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        class="mx-auto lg:w-3/4 h-full bg-white dark:text-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
           :columns="
@@ -110,7 +110,7 @@
       </div>
       <div
         v-else-if="tested.type === 'text'"
-        class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        class="mx-auto lg:w-3/4 h-full bg-white dark:text-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
       >
         <!-- Display nothing for now -->
       </div>
