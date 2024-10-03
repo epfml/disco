@@ -33,7 +33,7 @@
             </span>
             <span
               v-else
-              class="block text-gray-600 font-normal"
+              class="block text-gray-600 dark:text-slate-200 font-normal"
             >
               {{ fileName }}
             </span>
