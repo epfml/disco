@@ -61,13 +61,13 @@ export async function preprocess<D extends DataType>(
       const t = task as Task<"text">;
 
       const tokenizer = await models.getTaskTokenizer(t);
-      const maxLength =
-        t.trainingInformation.maxSequenceLength ??
-        (tokenizer.model_max_length as number) + 1;
+      const totalTokenCount =
+        (t.trainingInformation.maxSequenceLength ??
+          (tokenizer.model_max_length as number)) + 1;
 
       return d
         .map((line) =>
-          processing.tokenizeAndLeftPad(line, tokenizer, maxLength),
+          processing.tokenizeAndLeftPad(line, tokenizer, totalTokenCount),
         )
         .map((tokens) => [tokens.pop(), tokens.last()]) as Dataset<
         ModelEncoded[D]
