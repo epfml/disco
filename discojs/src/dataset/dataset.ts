@@ -46,13 +46,11 @@ export class Dataset<T> implements AsyncIterable<T> {
    * @param mapper how to change each element
    */
   map<U>(mapper: (_: T) => U | Promise<U>): Dataset<U> {
-    const content = {
-      [Symbol.asyncIterator]: () => this[Symbol.asyncIterator](),
-    };
-
-    return new Dataset(async function* () {
-      for await (const e of content) yield await mapper(e);
-    });
+    return new Dataset(
+      async function* (this: Dataset<T>) {
+        for await (const e of this) yield await mapper(e);
+      }.bind(this),
+    );
   }
 
   /** Combine with another Dataset.
@@ -62,12 +60,12 @@ export class Dataset<T> implements AsyncIterable<T> {
   chain(other: Dataset<T> | DatasetLike<T>): Dataset<T> {
     if (!(other instanceof Dataset)) other = new Dataset(other);
 
-    const self = { [Symbol.asyncIterator]: () => this[Symbol.asyncIterator]() };
-
-    return new Dataset(async function* () {
-      yield* self;
-      yield* other;
-    });
+    return new Dataset(
+      async function* (this: Dataset<T>) {
+        yield* this;
+        yield* other;
+      }.bind(this),
+    );
   }
 
   /** Divide into two based on given ratio
@@ -77,40 +75,40 @@ export class Dataset<T> implements AsyncIterable<T> {
   split(ratio: number): [Dataset<T>, Dataset<T>] {
     if (ratio < 0 || ratio > 1) throw new Error("ratio out of range");
 
-    const content = {
-      [Symbol.asyncIterator]: () => this[Symbol.asyncIterator](),
-    };
-
     // to avoid using random sampling or knowing the size beforehand,
     // we compute the actual ratio and make it converge towards the wanted one
     return [
-      new Dataset(async function* () {
-        let yielded_by_other = 0;
-        let total_size = 0;
+      new Dataset(
+        async function* (this: Dataset<T>) {
+          let yielded_by_other = 0;
+          let total_size = 0;
 
-        for await (const e of content) {
-          total_size++;
+          for await (const e of this) {
+            total_size++;
 
-          if (yielded_by_other / total_size >= ratio) {
-            yield e;
-          } else {
-            yielded_by_other++;
+            if (yielded_by_other / total_size >= ratio) {
+              yield e;
+            } else {
+              yielded_by_other++;
+            }
           }
-        }
-      }),
-      new Dataset(async function* () {
-        let yielded = 0;
-        let total_size = 0;
+        }.bind(this),
+      ),
+      new Dataset(
+        async function* (this: Dataset<T>) {
+          let yielded = 0;
+          let total_size = 0;
 
-        for await (const e of content) {
-          total_size++;
+          for await (const e of this) {
+            total_size++;
 
-          if (yielded / total_size < ratio) {
-            yielded++;
-            yield e;
+            if (yielded / total_size < ratio) {
+              yielded++;
+              yield e;
+            }
           }
-        }
-      }),
+        }.bind(this),
+      ),
     ];
   }
 
@@ -123,29 +121,27 @@ export class Dataset<T> implements AsyncIterable<T> {
   batch(size: number): Dataset<Batched<T>> {
     if (size <= 0 || !Number.isInteger(size)) throw new Error("invalid size");
 
-    const content = {
-      [Symbol.asyncIterator]: () => this[Symbol.asyncIterator](),
-    };
+    return new Dataset(
+      async function* (this: Dataset<T>) {
+        const iter = this[Symbol.asyncIterator]();
 
-    return new Dataset(async function* () {
-      const iter = content[Symbol.asyncIterator]();
+        for (;;) {
+          const batch = List(
+            await Promise.all(Range(0, size).map(() => iter.next())),
+          ).flatMap((res) => {
+            if (res.done) return [];
+            else return [res.value];
+          });
 
-      for (;;) {
-        const batch = List(
-          await Promise.all(Range(0, size).map(() => iter.next())),
-        ).flatMap((res) => {
-          if (res.done) return [];
-          else return [res.value];
-        });
+          if (batch.isEmpty()) break;
 
-        if (batch.isEmpty()) break;
+          yield batch;
 
-        yield batch;
-
-        // iterator couldn't generate more
-        if (batch.size < size) break;
-      }
-    });
+          // iterator couldn't generate more
+          if (batch.size < size) break;
+        }
+      }.bind(this),
+    );
   }
 
   /** Join side-by-side
@@ -157,20 +153,18 @@ export class Dataset<T> implements AsyncIterable<T> {
   zip<U>(other: Dataset<U> | DatasetLike<U>): Dataset<[T, U]> {
     if (!(other instanceof Dataset)) other = new Dataset(other);
 
-    const content = {
-      [Symbol.asyncIterator]: () => this[Symbol.asyncIterator](),
-    };
+    return new Dataset(
+      async function* (this: Dataset<T>) {
+        const left = this[Symbol.asyncIterator]();
+        const right = other[Symbol.asyncIterator]();
 
-    return new Dataset(async function* () {
-      const left = content[Symbol.asyncIterator]();
-      const right = other[Symbol.asyncIterator]();
-
-      while (true) {
-        const [l, r] = await Promise.all([left.next(), right.next()]);
-        if (l.done || r.done) return;
-        yield [l.value, r.value];
-      }
-    });
+        while (true) {
+          const [l, r] = await Promise.all([left.next(), right.next()]);
+          if (l.done || r.done) return;
+          yield [l.value, r.value] as [T, U];
+        }
+      }.bind(this),
+    );
   }
 
   /** Compute size
@@ -218,20 +212,19 @@ class CachingDataset<T> extends Dataset<T> {
     debug("cache invalid, recomputing");
 
     this.#cache = new WeakRef([false, List()]);
-    const cache = this.#cache;
 
-    const content = {
+    const parentContent = {
       [Symbol.asyncIterator]: () => super[Symbol.asyncIterator](),
     };
-    return (async function* () {
-      for await (const e of content) {
+    return async function* (this: CachingDataset<T>) {
+      for await (const e of parentContent) {
         yield e;
 
-        const caching = cache.deref();
+        const caching = this.#cache.deref();
         if (caching !== undefined) caching[1] = caching[1].push(e);
       }
 
-      const caching = cache.deref();
+      const caching = this.#cache.deref();
       if (caching === undefined) {
         debug("cache evicted while filling");
         return;
@@ -239,6 +232,6 @@ class CachingDataset<T> extends Dataset<T> {
 
       debug("cache filled");
       caching[0] = true;
-    })();
+    }.bind(this)();
   }
 }
