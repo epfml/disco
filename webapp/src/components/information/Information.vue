@@ -39,7 +39,7 @@
           >
             Decentralized Learning
           </h6>
-          <DecentralizedGIF class="my-md bg-slate-100 rounded-lg border-slate-300 border-4" />
+          <DecentralizedGIF class="bg-slate-100 rounded-lg border-slate-300 border-4" />
           <p class="text-sm py-6 text-center">
             Local model aggregation is coordinated between peers without any server.
             <br/> No data is shared.
