@@ -8,7 +8,7 @@
     </div>
     <div
       v-else
-      class="flex flex-wrap text-3xl text-slate-600 justify-center"
+      class="flex flex-wrap text-3xl text-slate-600 dark:text-slate-300 justify-center"
     >
       <DISCOllaboratives />
     </div>
