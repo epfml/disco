@@ -107,15 +107,13 @@ export async function preprocessWithoutLabel<D extends DataType>(
       const t = task as Task<"text">;
 
       const tokenizer = await models.getTaskTokenizer(t);
-      const maxLength =
+      const totalTokenCount =
         t.trainingInformation.maxSequenceLength ??
-        (tokenizer.model_max_length as number) + 1;
+        (tokenizer.model_max_length as number);
 
-      return d
-        .map((line) =>
-          processing.tokenizeAndLeftPad(line, tokenizer, maxLength),
-        )
-        .map((tokens) => tokens.pop());
+      return d.map((line) =>
+        processing.tokenizeAndLeftPad(line, tokenizer, totalTokenCount),
+      );
     }
   }
 }
