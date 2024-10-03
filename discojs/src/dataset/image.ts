@@ -22,6 +22,6 @@ export class Image<
     public readonly depth: D,
   ) {
     if (data.length != width * height * depth)
-      throw new Error("data isn't of excepted size");
+      throw new Error("data isn't of expected size");
   }
 }

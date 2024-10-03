@@ -31,7 +31,7 @@ watch(files, (files: Set<File> | undefined) => {
   const file = files.first();
   if (file === undefined || files.size > 1)
     // enforced by <FileSelection multiple=false />
-    throw new Error("excepted a single file");
+    throw new Error("expected a single file");
 
   dataset.value = loadCSV(file);
 });

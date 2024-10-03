@@ -7,7 +7,7 @@ async function frobeniusNorm(weights: WeightsContainer): Promise<number> {
     .map((w) => w.square().sum())
     .reduce((a, b) => a.add(b))
     .data();
-  if (squared.length !== 1) throw new Error("unexcepted weights shape");
+  if (squared.length !== 1) throw new Error("unexpected weights shape");
 
   return Math.sqrt(squared[0]);
 }

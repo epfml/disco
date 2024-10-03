@@ -24,7 +24,7 @@ export function load(path: string): Dataset<Partial<Record<string, string>>> {
 
     for await (const row of stream) {
       if (!isRecordOfString(row))
-        throw new Error("excepted object of string to string");
+        throw new Error("expected object of string to string");
       yield row;
     }
   });
