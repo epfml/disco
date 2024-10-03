@@ -20,7 +20,7 @@
           >
             Federated Learning
           </h6>
-          <FederatedGIF class="my-md bg-slate-100 rounded-lg border-slate-300 border-4" />
+          <FederatedGIF class="bg-slate-100 rounded-lg border-slate-300 border-4" />
           <p class="text-sm py-6 text-center">
             The server puts in common local model updates and sends back an aggregated global model. <br/>No data is shared.
           </p>
