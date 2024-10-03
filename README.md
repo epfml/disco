@@ -56,7 +56,3 @@ ___
 	- Upload the initial model
 	- Choose between federated and decentralized for your DISCO training scheme ... connect your data and... done! :bar_chart:
 	- For more details on ML tasks and custom training have a look at [this guide](./docs/TASK.md)
-__
-
-**JOIN US** 
-- You are welcome on our [slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw)

@@ -150,14 +150,6 @@
         >
           reset
         </CustomButton>
-        <CustomButton
-          type="button"
-          href=""
-          onclick="window.open('https://app.slack.com/client/T017JNQJW3A/C0177GH9WGZ', '_blank')"
-          class="basis-48"
-        >
-          request help on slack
-        </CustomButton>
       </div>
     </form>
   </VeeForm>

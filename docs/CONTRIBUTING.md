@@ -16,14 +16,14 @@ with both to a certain extent. If not, the following references might be useful:
 - [Federated and Decentralized Learning](https://arxiv.org/pdf/1912.04977)
 
 > [!IMPORTANT]
-> Disco is a big project and some information is probably outdated. It is now _your_ responsibility to add missing information or to let us know on [slack](https://join.slack.com/t/disco-decentralized/shared_invite/zt-fpsb7c9h-1M9hnbaSonZ7lAgJRTyNsw)!
+> Disco is a big project and some information is probably outdated. Let us know by [opening an issue](https://github.com/epfml/disco/issues/new/choose).
 
 ## First steps
 
 DISCO is a complex project composed of the Disco.js library (`discojs`, `discojs-node` and `discojs-web`), a front-end (`webapp`),
 a `server` and a `cli` (e.g., for benchmarking). Depending on what your goal is, you might only use a subset of them, e.g. you won't need an in-depth understanding of the webapp and Vue.js to add a new decentralized learning feature. Instead, you will probably rely on the CLI.
 
-1. If you are going to work, contribute and improve the project, I first recommend you get a good understand of what DISCO does: play around with the [website](https://discolab.ai/#/), train a model from the pre-defined tasks, or even create your own custom task. Feedback is always appreciated, feel free to let us know on slack/in the github issues/in person if you noticed any issues or thought of an improvement.
+1. If you are going to work, contribute and improve the project, I first recommend you get a good understand of what DISCO does: play around with the [website](https://discolab.ai/#/), train a model from the pre-defined tasks, or even create your own custom task. Feedback is always appreciated, feel free to let us know via the github issues/in person if you noticed any issues or thought of an improvement.
 
 2. Then, get a high-level understanding of the different parts of the projects in the [developer guide](../DEV.md), even if you're planning on working on a subset of the project. If you want to know more about a specific part of the project, refer to the table of contents at the end of the DEV guide.
 
