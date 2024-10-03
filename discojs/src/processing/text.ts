@@ -36,12 +36,12 @@ export function tokenizeAndLeftPad(
     !("input_ids" in tokenized) ||
     !isArrayOfNumber(tokenized.input_ids)
   )
-    throw new Error("tokenizer returns unexcepted type");
+    throw new Error("tokenizer returns unexpected type");
   const tokens: Token[] = tokenized.input_ids;
 
   const paddingSize = length - tokens.length;
   if (paddingSize < 0)
-    throw new Error("tokenized returned more token than excepted");
+    throw new Error("tokenized returned more token than expected");
 
   return Repeat(tokenizer.pad_token_id, paddingSize).concat(tokens).toList();
 }
