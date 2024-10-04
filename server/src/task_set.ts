@@ -1,16 +1,9 @@
 import { Set } from 'immutable'
 import fs from 'node:fs/promises'
-import tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
 import type { DataType, Task, TaskProvider } from "@epfml/discojs";
-import {
-  EventEmitter,
-  isTask,
-  Model,
-  models,
-  serialization,
-} from "@epfml/discojs";
+import { EventEmitter, isTask, Model, serialization } from "@epfml/discojs";
 
 type EncodedModel = serialization.Encoded;
 
@@ -61,7 +54,7 @@ export class TaskSet extends EventEmitter<{
    */
   async addTask<D extends DataType>(
     taskOrProvider: Task<D> | TaskProvider<D>,
-    model?: Model<D> | URL | EncodedModel,
+    model?: Model<D> | EncodedModel,
   ): Promise<void> {
     // get the task
     const task = isTask(taskOrProvider) ? taskOrProvider : taskOrProvider.getTask()
@@ -75,12 +68,6 @@ export class TaskSet extends EventEmitter<{
       if (model === undefined) { 
         // Get the model if nothing is provided
         tfModel = await this.loadModelFromTask(taskOrProvider)
-      } else if (model instanceof URL) {
-        // Downloading the model if a URL is given
-        tfModel = new models.TFJS(
-          task.trainingInformation.dataType,
-          await tf.loadLayersModel(model.href),
-        )
       } else if (model instanceof Model) {
         // Don't do anything if the model is already specified
         tfModel = model
