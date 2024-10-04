@@ -104,7 +104,7 @@ import createDebug from "debug";
 import { List } from "immutable";
 import { computed, ref, toRaw } from "vue";
 
-import type { DataType, Model, Task } from "@epfml/discojs";
+import type { DataType, Inferred, Model, Task } from "@epfml/discojs";
 import { Validator } from "@epfml/discojs";
 
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
@@ -141,7 +141,7 @@ interface Results {
 }
 
 const dataset = ref<UnlabeledDataset[D]>();
-const generator = ref<AsyncGenerator<number, void>>();
+const generator = ref<AsyncGenerator<Inferred[D], void>>();
 const predictions = ref<Results[D]>();
 
 const visitedSamples = computed<number>(() => {
@@ -200,15 +200,13 @@ async function startImageInference(
   model: Model<"image">,
   dataset: UnlabeledDataset["image"],
 ): Promise<void> {
-  const labels = List(task.trainingInformation.LABEL_LIST);
   const validator = new Validator(task, model);
 
   let results: Results["image"] = List();
   try {
-    generator.value = validator.infer(dataset.map(({ image }) => image));
-    for await (const [{ filename, image }, prediction] of dataset.zip(
-      toRaw(generator.value),
-    )) {
+    const gen = validator.infer(dataset.map(({ image }) => image));
+    generator.value = gen as AsyncGenerator<Inferred[D], void>;
+    for await (const [{ filename, image }, output] of dataset.zip(toRaw(gen))) {
       results = results.push({
         input: {
           filename,
@@ -218,7 +216,7 @@ async function startImageInference(
             image.height,
           ),
         },
-        output: labels.get(prediction) ?? prediction.toString(),
+        output,
       });
 
       predictions.value = results as Results[D];
@@ -241,10 +239,9 @@ async function startTabularInference(
 
   let results: Results["tabular"]["results"] = List();
   try {
-    generator.value = validator.infer(dataset);
-    for await (const [input, prediction] of dataset.zip(
-      toRaw(generator.value),
-    )) {
+    const gen = validator.infer(dataset);
+    generator.value = gen as AsyncGenerator<Inferred[D], void>;
+    for await (const [input, prediction] of dataset.zip(toRaw(gen))) {
       results = results.push({
         input: labels.input.map((label) => {
           const ret = input[label];

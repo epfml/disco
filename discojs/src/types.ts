@@ -31,8 +31,11 @@ export interface ModelEncoded {
   text: [List<Token>, Token];
 }
 
+/** what get's outputted by the Validator, for humans */
 export interface Inferred {
+  // label of the image
   image: string;
-  tabular: Partial<Record<string, number>>;
+  tabular: number;
+  // next token
   text: string;
 }
