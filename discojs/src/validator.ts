@@ -1,6 +1,7 @@
 import type {
   Dataset,
   DataType,
+  Inferred,
   Model,
   Raw,
   RawWithoutLabel,
@@ -26,21 +27,28 @@ export class Validator<D extends DataType> {
         (await this.#model.predict(batch.map(([inputs, _]) => inputs)))
           .zip(batch.map(([_, outputs]) => outputs))
           .map(([inferred, truth]) => inferred === truth),
-      );
+      )
+      .unbatch();
 
-    for await (const batch of results) for (const e of batch) yield e;
+    for await (const e of results) yield e;
   }
 
   /** use the model to predict every line of the dataset */
   async *infer(
     dataset: Dataset<RawWithoutLabel[D]>,
-  ): AsyncGenerator<number, void> {
-    const results = (
+  ): AsyncGenerator<Inferred[D], void> {
+    const modelPredictions = (
       await processing.preprocessWithoutLabel(this.task, dataset)
     )
       .batch(this.task.trainingInformation.batchSize)
-      .map((batch) => this.#model.predict(batch));
+      .map((batch) => this.#model.predict(batch))
+      .unbatch();
 
-    for await (const batch of results) for await (const e of batch) yield e;
+    const predictions = await processing.postprocess(
+      this.task,
+      modelPredictions,
+    );
+
+    for await (const e of predictions) yield e;
   }
 }
