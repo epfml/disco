@@ -4,40 +4,47 @@
 
 import createDebug from "debug";
 import { List, Range } from "immutable";
-import * as tf from '@tensorflow/tfjs'
-import { PreTrainedTokenizer } from '@xenova/transformers';
+import * as tf from "@tensorflow/tfjs";
 
 import type { Batched, Dataset, ModelEncoded } from "../../index.js";
 import { WeightsContainer } from "../../index.js";
 
 import { BatchLogs, Model, EpochLogs } from "../index.js";
 
-import { GPTForCausalLM } from './model.js'
-import { DEFAULT_CONFIG, type GPTConfig } from './config.js'
-import evaluate from './evaluate.js';
+import { GPTModel } from "./model.js";
+import { DEFAULT_CONFIG, type GPTConfig } from "./config.js";
+import evaluate from "./evaluate.js";
 
 const debug = createDebug("discojs:models:gpt");
 
 export type GPTSerialization = {
-  weights: WeightsContainer
-  config?: GPTConfig
+  weights: WeightsContainer;
+  config?: GPTConfig;
+};
+
+interface PredictConfig {
+  temperature: number;
+  // take random token weighted by its probability instead of taking the most likely
+  doSample: boolean;
 }
 
 export class GPT extends Model<"text"> {
-  private readonly model: GPTForCausalLM
+  private readonly model: GPTModel;
 
-  readonly #maxBatchCount: number
-  readonly #vocabSize: number
+  readonly #blockSize: number;
+  readonly #maxBatchCount: number;
+  readonly #vocabSize: number;
 
-  constructor (partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
-    super()
+  constructor(partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
+    super();
 
-    const model = new GPTForCausalLM(partialConfig, layersModel)
+    const model = new GPTModel(partialConfig, layersModel);
     model.compile();
     this.model = model;
 
-    this.#maxBatchCount = partialConfig?.maxIter ?? DEFAULT_CONFIG.maxIter
-    this.#vocabSize = partialConfig?.vocabSize ?? DEFAULT_CONFIG.vocabSize
+    this.#blockSize = partialConfig?.blockSize ?? DEFAULT_CONFIG.blockSize;
+    this.#maxBatchCount = partialConfig?.maxIter ?? DEFAULT_CONFIG.maxIter;
+    this.#vocabSize = partialConfig?.vocabSize ?? DEFAULT_CONFIG.vocabSize;
   }
 
   /**
@@ -132,70 +139,94 @@ export class GPT extends Model<"text"> {
 
   override async predict(
     batch: Batched<ModelEncoded["text"][0]>,
+    options?: Partial<PredictConfig>,
   ): Promise<Batched<ModelEncoded["text"][1]>> {
-    const predictNext = async (tokens: List<number>) => {
-      const generated = await this.model.generate(tokens.toArray(), {
-        maxNewTokens: 1,
-        temperature: 1.0,
-        doSample: false,
-      });
-      if (generated.length !== 1 && generated[0].length !== 1)
-        throw new Error(
-          "generation returned many tokens but should have only returned one",
-        );
-
-      return generated[0][0];
+    const config = {
+      temperature: 1.0,
+      doSample: false,
+      ...options,
     };
 
-    return List(await Promise.all(batch.map(predictNext).toArray()))
+    return List(
+      await Promise.all(
+        batch.map((tokens) => this.#predictSingle(tokens, config)),
+      ),
+    );
   }
 
-  /** @deprecated use predict instead and pre/post process the values */
-  async generate(input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
-    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as { input_ids: number[] }
+  async #predictSingle(
+    tokens: ModelEncoded["text"][0],
+    config: PredictConfig,
+  ): Promise<ModelEncoded["text"][1]> {
+    // slice input tokens if longer than context length
+    tokens = tokens.slice(-this.#blockSize);
 
-    const generationConfig = {
-      maxNewTokens: newTokens,
-      temperature: 1.0,
-      doSample: false
-    }
-    const predictedTokens = await this.model.generate(tokens, generationConfig)
-    const generatedWords = tokenizer.decode(predictedTokens[0])
-    return generatedWords
+    const input = tf.tidy(() =>
+      tf.tensor1d(tokens.toArray(), "int32").expandDims<tf.Tensor2D>(0),
+    );
+
+    const logits = tf.tidy(() => {
+      const output = this.model.predict(input);
+      if (Array.isArray(output))
+        throw new Error("The model outputs too multiple values");
+      if (output.rank !== 3) throw new Error("The model outputs wrong shape");
+      return output.squeeze<tf.Tensor2D>([0]);
+    });
+    input.dispose();
+
+    const probs = tf.tidy(() =>
+      logits
+        .slice([logits.shape[0] - 1])
+        .squeeze<tf.Tensor1D>([0])
+        .div<tf.Tensor1D>(config.temperature)
+        .softmax(),
+    );
+    logits.dispose();
+
+    const next = tf.tidy(() =>
+      config.doSample
+        ? tf.multinomial(probs, 1).squeeze<tf.Scalar>([0])
+        : probs.argMax<tf.Scalar>(),
+    );
+    probs.dispose()
+
+    const ret = await next.array();
+    next.dispose();
+    return ret;
   }
 
-  get config (): Required<GPTConfig> {
-    return this.model.getGPTConfig
+  get config(): Required<GPTConfig> {
+    return this.model.getGPTConfig;
   }
-  override get weights (): WeightsContainer {
-    return new WeightsContainer(this.model.weights.map((w) => w.read()))
-  }
-
-  override set weights (ws: WeightsContainer) {
-    this.model.setWeights(ws.weights)
+  override get weights(): WeightsContainer {
+    return new WeightsContainer(this.model.weights.map((w) => w.read()));
   }
 
-  static deserialize (data: GPTSerialization): Model<'text'> {
-    const model = new GPT(data.config)
-    model.weights = data.weights
-    return model
+  override set weights(ws: WeightsContainer) {
+    this.model.setWeights(ws.weights);
   }
 
-  serialize (): GPTSerialization {
+  static deserialize(data: GPTSerialization): Model<"text"> {
+    const model = new GPT(data.config);
+    model.weights = data.weights;
+    return model;
+  }
+
+  serialize(): GPTSerialization {
     return {
       weights: this.weights,
-      config: this.config
-    }
+      config: this.config,
+    };
   }
-  extract (): tf.LayersModel {
-    return this.model
+  extract(): tf.LayersModel {
+    return this.model;
   }
 
-  [Symbol.dispose](): void{
+  [Symbol.dispose](): void {
     if (this.model.optimizer !== undefined) {
-      this.model.optimizer.dispose()
+      this.model.optimizer.dispose();
     }
-    const disposeResults = this.model.dispose()
+    const disposeResults = this.model.dispose();
     if (disposeResults.refCountAfterDispose > 0)
       debug("model not disposed correctly: %o", disposeResults);
   }
