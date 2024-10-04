@@ -141,12 +141,8 @@ export async function postprocess<D extends DataType>(
     case "tabular": {
       // cast as typescript doesn't reduce generic type
       const d = dataset as Dataset<ModelEncoded["tabular"][1]>;
-      const { outputColumn } =
-        task.trainingInformation as TrainingInformation<"tabular">;
 
-      return d.map((row) =>
-        Object.fromEntries([[outputColumn, row]]),
-      ) as Dataset<Inferred[D]>;
+      return d as Dataset<Inferred[D]>;
     }
     case "text": {
       // cast as typescript doesn't reduce generic type
