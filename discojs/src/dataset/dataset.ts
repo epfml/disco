@@ -144,6 +144,15 @@ export class Dataset<T> implements AsyncIterable<T> {
     );
   }
 
+  /** Flatten chunks */
+  unbatch<U>(this: Dataset<Batched<U>>): Dataset<U> {
+    return new Dataset(
+      async function* (this: Dataset<Batched<U>>) {
+        for await (const batch of this) yield* batch;
+      }.bind(this),
+    );
+  }
+
   /** Join side-by-side
    *
    * Stops as soon as one runs out
