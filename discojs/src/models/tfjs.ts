@@ -16,7 +16,7 @@ import { EpochLogs } from './logs.js'
 type Serialized<D extends DataType> = [D, tf.io.ModelArtifacts];
 
 /** TensorFlow JavaScript model with standard training */
-export class TFJS<D extends DataType> extends Model<D> {
+export class TFJS<D extends "image" | "tabular"> extends Model<D> {
   /** Wrap the given trainable model */
   constructor (
     public readonly datatype: D,
@@ -168,7 +168,7 @@ export class TFJS<D extends DataType> extends Model<D> {
     return ret
   }
 
-  static async deserialize<D extends DataType>([
+  static async deserialize<D extends "image" | "tabular">([
     datatype,
     artifacts,
   ]: Serialized<D>): Promise<TFJS<D>> {
@@ -259,23 +259,6 @@ export class TFJS<D extends DataType> extends Model<D> {
           ys: tf.stack(b.map(([_, output]) => tf.tensor1d([output])).toArray()),
         }));
       }
-      case "text": {
-        // cast as typescript doesn't reduce generic type
-        const b = batch as Batched<ModelEncoded["text"]>;
-
-        return {
-          xs: tf.stack(
-            b.map(([line]) => tf.tensor1d(line.toArray())).toArray(),
-          ),
-          ys: tf.stack(
-            b
-              .map(([line, next]) =>
-                tf.oneHot(line.shift().push(next).toArray(), outputSize),
-              )
-              .toArray(),
-          ),
-        };
-      }
     }
 
     const _: never = this.datatype;
@@ -310,14 +293,6 @@ export class TFJS<D extends DataType> extends Model<D> {
             b.map((inputs) => tf.tensor1d(inputs.toArray())).toArray(),
           ),
         );
-      }
-      case "text": {
-        // cast as typescript doesn't reduce generic type
-        const b = batch as Batched<ModelEncoded["text"][0]>;
-
-        return tf.stack(
-            b.map((line) => tf.tensor1d(line.toArray())).toArray(),
-          )
       }
     }
 
