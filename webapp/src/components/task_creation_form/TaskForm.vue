@@ -264,10 +264,20 @@ const onSubmit = async (rawTask: any): Promise<void> => {
 
   let model
   try {
-    model = new models.TFJS(
-      task.trainingInformation.dataType,
-      await tf.loadLayersModel(tf.io.browserFiles(modelFiles.value.toArray())),
-    );
+    switch (task.trainingInformation.dataType) {
+      case "image":
+      case "tabular":
+        model = new models.TFJS(
+          task.trainingInformation.dataType,
+          await tf.loadLayersModel(
+            tf.io.browserFiles(modelFiles.value.toArray()),
+          ),
+        );
+        break;
+      case "text":
+        toaster.error("Currently no support of TFJS text model");
+        return;
+    }
   } catch (e) {
     debug("while loading model:%o", e);
     toaster.error('Model loading failed');
