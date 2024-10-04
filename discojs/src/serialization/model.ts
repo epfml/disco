@@ -61,11 +61,10 @@ export async function decode(encoded: unknown): Promise<Model<DataType>> {
         );
       const [rawDatatype, rawModel] = raw.slice(1) as unknown[];
 
-      let datatype: DataType;
+      let datatype;
       switch (rawDatatype) {
         case "image":
         case "tabular":
-        case "text":
           datatype = rawDatatype;
           break;
         default:

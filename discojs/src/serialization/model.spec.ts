@@ -35,7 +35,9 @@ describe('serialization', () => {
     const decoded = await serialization.model.decode(encoded)
 
     expect(decoded).to.be.an.instanceof(models.TFJS);
-    expect((decoded as models.TFJS<DataType>).datatype).to.equal("image")
+    expect((decoded as models.TFJS<"image" | "tabular">).datatype).to.equal(
+      "image",
+    );
     assert.sameDeepOrderedMembers(
       await getRawWeights(model),
       await getRawWeights(decoded)
