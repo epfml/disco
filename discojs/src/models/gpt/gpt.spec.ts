@@ -5,45 +5,44 @@ import { AutoTokenizer } from "@xenova/transformers";
 import { Dataset, ModelEncoded } from "../../index.js";
 
 import { GPT } from "./index.js";
-import type { GPTConfig } from "./config.js";
 import { List, Repeat } from "immutable";
 
 describe("gpt-tfjs", function () {
-  const data = "Lorem ipsum dolor sit";
-
-  const config: GPTConfig = {
-    modelType: "gpt-nano",
-    lr: 0.01,
-    maxIter: 10,
-    evaluateEvery: 10,
-    maxEvalBatches: 10,
-    blockSize: 8,
-    vocabSize: 50258,
-  };
-
   it("can overfit one sentence", async function () {
     this.timeout("2m");
-
     const tokenizer = await AutoTokenizer.from_pretrained("Xenova/gpt2");
-    const tokenDataset = new Dataset(Repeat(data))
-      .map<ModelEncoded["text"]>((text) => {
-        const { input_ids: tokens } = tokenizer(text, {
-          padding: true,
-          truncation: true,
-          return_tensor: false,
-          max_length: config.blockSize + 1,
-        }) as { input_ids: number[] };
 
-        return [List(tokens.slice(0, config.blockSize)), tokens[config.blockSize]];
-      })
-      .batch(64);
+    const data = "Lorem ipsum dolor sit";
+    const dataTokens = List(
+      (tokenizer(data, { return_tensor: false }) as { input_ids: number[] })
+        .input_ids,
+    );
+    const dataset = new Dataset<ModelEncoded["text"]>(
+      Repeat([dataTokens.pop(), dataTokens.last()]),
+    ).batch(64);
 
-    const model = new GPT(config);
+    const model = new GPT({
+      modelType: "gpt-nano",
+      lr: 0.01,
+      maxIter: 10,
+      evaluateEvery: 10,
+      maxEvalBatches: 10,
+      blockSize: 8,
+      vocabSize: 50258,
+    });
     for (let i = 0; i < 5; i++)
-      for await (const _ of model.train(tokenDataset, undefined));
+      for await (const _ of model.train(dataset, undefined));
 
-    const generation = await model.generate("Lorem ipsum dolor", tokenizer, 1);
+    const input = "Lorem ipsum dolor";
+    const inputTokens = List(
+      (tokenizer(input, { return_tensor: false }) as { input_ids: number[] })
+        .input_ids,
+    );
+    const outputToken: number = (
+      await model.predict(List.of(inputTokens))
+    ).first();
+    const output = tokenizer.decode([outputToken]);
 
-    expect(generation).equal(data); // Assert that the model completes 'Lorem ipsum dolor' with 'sit'
+    expect(input + output).equal(data); // Assert that the model completes 'Lorem ipsum dolor' with 'sit'
   });
 });

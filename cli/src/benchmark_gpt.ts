@@ -112,13 +112,20 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     const iterations = 10
     console.log("Generating", nbNewTokens, "new tokens")
 
+    let tokens = List(
+      (tokenizer(prompt, { return_tensor: false }) as { input_ids: number[] })
+        .input_ids,
+    );
+
     let inferenceTime = 0
     for (let i = 0; i < iterations; i++) {
       const timeStart = performance.now()
-      const _ = await model.generate(prompt, tokenizer, nbNewTokens)
+      for (let n = 0; n < nbNewTokens; n++) {
+        const next: number = (await model.predict(List.of(tokens))).first();
+	tokens = tokens.push(next)
+      }
       inferenceTime += performance.now() - timeStart
     }
-    // Overall average includes tokenization, token sampling and de-tokenization
     console.log(`Inference time: ${(inferenceTime/ nbNewTokens / iterations).toFixed(2)} ms/token`)
   }
   await new Promise((resolve, reject) => {
