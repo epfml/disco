@@ -25,7 +25,7 @@ export declare abstract class Dataset<T> {
  * GPTModel extends tf.LayersModel and overrides tfjs' default training loop
  * 
  */
-class GPTModel extends tf.LayersModel {
+export class GPTModel extends tf.LayersModel {
   protected readonly config: Required<GPTConfig>
 
   constructor(partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
@@ -151,87 +151,5 @@ class GPTModel extends tf.LayersModel {
     }
     await callbacks.onTrainEnd?.()
     return new tf.History()
-  }
-}
-
-interface GenerateConfig {
-  maxNewTokens: number
-  temperature: number
-  doSample: boolean
-}
-
-const defaultGenerateConfig: GenerateConfig = {
-  maxNewTokens: 20,
-  temperature: 1.0,
-  doSample: false
-}
-
-function prepareIdx (idx: tf.TensorLike): tf.Tensor2D {
-  return tf.tidy(() => {
-    let ret: tf.Tensor
-    if (idx instanceof tf.Tensor) {
-      ret = idx.clone()
-    } else {
-      ret = tf.tensor(idx)
-    }
-    if (ret.dtype !== 'int32') {
-      ret = ret.toInt()
-    }
-    switch (ret.shape.length) {
-      case 1:
-        return ret.expandDims(0)
-      case 2:
-        return ret as tf.Tensor2D
-      default:
-        throw new Error('unexpected shape')
-    }
-  })
-}
-
-/**
- * GPTForCausalLM stands for GPT model for Causal Language Modeling. Causal because it only looks at past tokens and not future ones
- * This class extends GPTModel and adds supports for text generation
- * 
- */
-export class GPTForCausalLM extends GPTModel {
-  async generate (idxRaw: tf.TensorLike, conf: GenerateConfig): Promise<number[][]> {
-    const config = Object.assign({}, defaultGenerateConfig, conf)
-    let idx = prepareIdx(idxRaw)
-    for (let step = 0; step < config.maxNewTokens; step++) {
-      const idxNext = this.generateOnce(this, idx, config)
-      const idxNew = idx.concat(idxNext, 1)
-      tf.dispose(idx)
-      idx = idxNew
-      tf.dispose(idxNext)
-    }
-    const idxArr = await idx.array()
-    tf.dispose(idx)
-    return idxArr
-  }
-
-  private generateOnce (model: tf.LayersModel, idx: tf.Tensor2D, config: GenerateConfig): tf.Tensor2D {
-    const idxNext = tf.tidy(() => {
-      // slice input tokens if longer than context length
-      const blockSize = this.config.blockSize
-      idx = idx.shape[1] <= blockSize
-      ? idx : idx.slice([0, idx.shape[1] - blockSize])
-
-      const output = model.predict(idx)
-      if (Array.isArray(output)) throw new Error('The model outputs too multiple values')
-      if (output.shape.length !== 3) throw new Error('The model outputs wrong shape')
-      const logits = output as tf.Tensor3D
-        
-      const logitsScaled = logits
-        .slice([0, idx.shape[1] - 1, 0])
-        .reshape([logits.shape[0], logits.shape[2]])
-        .div<tf.Tensor2D>(tf.scalar(config.temperature))
-      const probs = logitsScaled.softmax(-1)
-      if (config.doSample) {
-        return tf.multinomial(probs, 1) as tf.Tensor2D
-      } else {
-        return probs.argMax(-1).expandDims<tf.Tensor2D>(1)
-      }
-    })
-    return idxNext
   }
 }

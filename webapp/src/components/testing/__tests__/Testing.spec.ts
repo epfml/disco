@@ -12,7 +12,7 @@ import { useTasksStore } from "@/store/tasks";
 
 import Testing from "../Testing.vue";
 
-const TASK: Task = {
+const TASK: Task<"text"> = {
   id: "task",
   displayInformation: {
     taskTitle: "task title",
@@ -20,6 +20,7 @@ const TASK: Task = {
   },
   trainingInformation: {
     dataType: "text",
+    tokenizer: "Xenova/gpt2",
     tensorBackend: "gpt",
     scheme: "federated",
     minNbOfParticipants: 1,

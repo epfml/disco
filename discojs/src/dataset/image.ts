@@ -1,6 +1,11 @@
 /**
  * Raw image with type level dimensions.
  *
+ * Per convention, `data` layout is as follow
+ *  `height` chunk each containing
+ *    `width` chunk each containing
+ *      a chunk of `depth` bytes
+ *
  * @typeParam D depth of the image
  * @typeParam W width, positive and integral
  * @typeParam H height, positive and integral
@@ -17,6 +22,6 @@ export class Image<
     public readonly depth: D,
   ) {
     if (data.length != width * height * depth)
-      throw new Error("data isn't of excepted size");
+      throw new Error("data isn't of expected size");
   }
 }

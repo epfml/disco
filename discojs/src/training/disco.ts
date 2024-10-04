@@ -5,55 +5,70 @@ import {
   ConsoleLogger,
   EpochLogs,
   Logger,
-  Task,
   TrainingInformation,
+  processing,
+  Dataset,
 } from "../index.js";
-import type { TypedLabeledDataset } from "../index.js";
+import type {
+  Batched,
+  DataType,
+  Model,
+  ModelEncoded,
+  Raw,
+  Task,
+} from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
 import { getAggregator } from "../aggregator/index.js";
 import { enumerate, split } from "../utils/async_iterator.js";
 import { EventEmitter } from "../utils/event_emitter.js";
 
 import { RoundLogs, Trainer } from "./trainer.js";
-import { labeledDatasetToDataSplit } from "../dataset/data/helpers.js";
 
 interface DiscoConfig {
-  scheme: TrainingInformation["scheme"];
+  scheme: TrainingInformation<DataType>["scheme"];
   logger: Logger;
+
+  // keep preprocessed dataset in memory while training
+  preprocessOnce: boolean;
 }
 
 export type RoundStatus =
-  "Waiting for more participants" |
-  "Retrieving peers' information" |
-  "Updating the model with other participants' models" |
-  "Training the model on the data you connected"
+  | "Waiting for more participants"
+  | "Retrieving peers' information"
+  | "Updating the model with other participants' models"
+  | "Training the model on the data you connected";
 
 /**
  * Top-level class handling distributed training from a client's perspective. It is meant to be
  * a convenient object providing a reduced yet complete API that wraps model training and
  * communication with nodes.
  */
-export class Disco extends EventEmitter<{'status': RoundStatus}>{
-  public readonly trainer: Trainer;
+export class Disco<D extends DataType> extends EventEmitter<{
+  status: RoundStatus;
+}> {
+  public readonly trainer: Trainer<D>;
   readonly #client: clients.Client;
   readonly #logger: Logger;
-  readonly #task: Task;
+  readonly #task: Task<D>;
+  readonly #preprocessOnce: boolean;
 
   /**
    * Connect to the given task and get ready to train.
-   * 
-   * @param task 
+   *
+   * @param task
    * @param clientConfig client to connect with or parameters on how to create one.
    * @param config the DiscoConfig
    */
-  constructor(task: Task,
+  constructor(
+    task: Task<D>,
     clientConfig: clients.Client | URL | { aggregator: Aggregator; url: URL },
-    config: Partial<DiscoConfig>
+    config: Partial<DiscoConfig>,
   ) {
-    super()
-    const { scheme, logger } = {
+    super();
+    const { scheme, logger, preprocessOnce } = {
       scheme: task.trainingInformation.scheme,
       logger: new ConsoleLogger(),
+      preprocessOnce: false,
       ...config,
     };
 
@@ -74,15 +89,16 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
       throw new Error("client not setup for given task");
 
     this.#logger = logger;
+    this.#preprocessOnce = preprocessOnce;
     this.#client = client;
     this.#task = task;
-    this.trainer = new Trainer(task, client)
+    this.trainer = new Trainer(task, client);
     // Simply propagate the training status events emitted by the client
-    this.#client.on('status', status => this.emit('status', status))
+    this.#client.on("status", (status) => this.emit("status", status));
   }
 
   /** Train on dataset, yielding logs of every round. */
-  async *trainByRound(dataset: TypedLabeledDataset): AsyncGenerator<RoundLogs> {
+  async *trainByRound(dataset: Dataset<Raw[D]>): AsyncGenerator<RoundLogs> {
     for await (const round of this.train(dataset)) {
       const [roundGen, roundLogs] = async_iterator.split(round);
       for await (const epoch of roundGen) for await (const _ of epoch);
@@ -91,7 +107,7 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   /** Train on dataset, yielding logs of every epoch. */
-  async *trainByEpoch(dataset: TypedLabeledDataset): AsyncGenerator<EpochLogs> {
+  async *trainByEpoch(dataset: Dataset<Raw[D]>): AsyncGenerator<EpochLogs> {
     for await (const round of this.train(dataset)) {
       for await (const epoch of round) {
         const [epochGen, epochLogs] = async_iterator.split(epoch);
@@ -102,16 +118,14 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   }
 
   /** Train on dataset, yielding logs of every batch. */
-  async *trainByBatch(
-    dataTuple: TypedLabeledDataset,
-  ): AsyncGenerator<BatchLogs> {
-    for await (const round of this.train(dataTuple))
+  async *trainByBatch(dataset: Dataset<Raw[D]>): AsyncGenerator<BatchLogs> {
+    for await (const round of this.train(dataset))
       for await (const epoch of round) yield* epoch;
   }
 
   /** Run whole train on dataset. */
-  async trainFully(dataTuple: TypedLabeledDataset): Promise<void> {
-    for await (const round of this.train(dataTuple))
+  async trainFully(dataset: Dataset<Raw[D]>): Promise<void> {
+    for await (const round of this.train(dataset))
       for await (const epoch of round) for await (const _ of epoch);
   }
 
@@ -122,23 +136,23 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
    * If you don't care about the whole process, use one of the other train methods.
    **/
   async *train(
-    dataset: TypedLabeledDataset,
+    dataset: Dataset<Raw[D]>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
     this.#logger.success("Training started");
 
-    const data = await labeledDatasetToDataSplit(this.#task, dataset);
-    const trainData = data.train.preprocess().batch().dataset;
-    const validationData =
-      data.validation?.preprocess().batch().dataset ?? trainData;
+    const [trainingDataset, validationDataset] =
+      await this.#preprocessSplitAndBatch(dataset);
+
     // the client fetches the latest weights upon connection
-    this.trainer.model = await this.#client.connect();
+    // TODO unsafe cast
+    this.trainer.model = (await this.#client.connect()) as Model<D>;
 
     for await (const [round, epochs] of enumerate(
-      this.trainer.train(trainData, validationData),
+      this.trainer.train(trainingDataset, validationDataset),
     )) {
-      yield async function* (this: Disco) {
+      yield async function* (this: Disco<D>) {
         const [gen, returnedRoundLogs] = split(epochs);
         for await (const [epoch, batches] of enumerate(gen)) {
           const [gen, returnedEpochLogs] = split(batches);
@@ -175,4 +189,32 @@ export class Disco extends EventEmitter<{'status': RoundStatus}>{
   async close(): Promise<void> {
     await this.#client.disconnect();
   }
+
+  async #preprocessSplitAndBatch(
+    dataset: Dataset<Raw[D]>,
+  ): Promise<
+    [Dataset<Batched<ModelEncoded[D]>>, Dataset<Batched<ModelEncoded[D]>>]
+  > {
+    const { batchSize, validationSplit } = this.#task.trainingInformation;
+
+    const preprocessed = await processing.preprocess(this.#task, dataset);
+
+    const [training, validation] = (
+      this.#preprocessOnce
+        ? new Dataset(await arrayFromAsync(preprocessed))
+        : preprocessed
+    ).split(validationSplit);
+
+    return [
+      training.batch(batchSize).cached(),
+      validation.batch(batchSize).cached(),
+    ];
+  }
+}
+
+// Array.fromAsync not yet widely used (2024)
+async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
+  const ret: T[] = [];
+  for await (const e of iter) ret.push(e);
+  return ret;
 }

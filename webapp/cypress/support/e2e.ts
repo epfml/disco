@@ -1,19 +1,19 @@
 import { Seq } from "immutable";
 
 import type {
-  Model,
+  DataType,
   Task,
   TaskProvider,
   TrainingInformation,
 } from "@epfml/discojs";
 import { isTask, serialization } from "@epfml/discojs";
 
-export function setupServerWith(...providers: (Task | TaskProvider)[]): void {
-  const tasksAndModels: Seq.Indexed<[Task, Promise<Model> | undefined]> = Seq(
-    providers,
-  ).map((p) => {
-    if (isTask(p)) return [p, undefined];
-    return [p.getTask(), p.getModel()];
+export function setupServerWith(
+  ...providers: (Task<DataType> | TaskProvider<DataType>)[]
+): void {
+  const tasksAndModels = Seq(providers).map((p) => {
+    if (isTask(p)) return [p, undefined] as const;
+    return [p.getTask(), p.getModel()] as const;
   });
 
   cy.intercept(
@@ -44,13 +44,23 @@ export function setupServerWith(...providers: (Task | TaskProvider)[]): void {
   });
 }
 
-export function basicTask(
-  info: Partial<TrainingInformation> & Pick<TrainingInformation, "dataType">,
-): Task {
+type BasicKeys =
+  | "epochs"
+  | "batchSize"
+  | "roundDuration"
+  | "validationSplit"
+  | "tensorBackend"
+  | "scheme"
+  | "minNbOfParticipants";
+export function basicTask<D extends DataType>(
+  info: {
+    [K in DataType]: Omit<TrainingInformation<K>, BasicKeys> &
+      Partial<Pick<TrainingInformation<K>, BasicKeys>>;
+  }[D],
+): Task<D> {
   return {
     id: "task",
     trainingInformation: {
-      ...info,
       epochs: 1,
       batchSize: 1,
       roundDuration: 1,
@@ -58,6 +68,7 @@ export function basicTask(
       tensorBackend: "tfjs",
       scheme: "local",
       minNbOfParticipants: 1,
+      ...info,
     },
     displayInformation: {
       taskTitle: "task",

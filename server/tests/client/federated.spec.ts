@@ -49,7 +49,9 @@ describe("federated client", () => {
           scheme: "federated",
           minNbOfParticipants: 2,
           dataType: "tabular",
-          tensorBackend: 'tfjs'
+          tensorBackend: 'tfjs',
+          inputColumns: ["in"],
+          outputColumn: "out",
         },
       },
       aggregators.getAggregator(TASK),

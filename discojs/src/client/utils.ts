@@ -1,4 +1,4 @@
-import type { Task } from '../index.js'
+import type { DataType, Task } from '../index.js'
 import { client as clients, type aggregator } from '../index.js'
 
 // Time to wait for the others in milliseconds.
@@ -10,8 +10,12 @@ export async function timeout (ms = MAX_WAIT_PER_ROUND, errorMsg: string = 'time
   })
 }
 
-export function getClient(trainingScheme: Required<Task['trainingInformation']['scheme']>,
-  serverURL: URL, task: Task, aggregator: aggregator.Aggregator): clients.Client {
+export function getClient(
+  trainingScheme: Task<DataType>["trainingInformation"]["scheme"],
+  serverURL: URL,
+  task: Task<DataType>,
+  aggregator: aggregator.Aggregator,
+): clients.Client {
 
   switch (trainingScheme) {
     case 'decentralized':

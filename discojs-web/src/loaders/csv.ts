@@ -30,7 +30,7 @@ export function load(file: File): Dataset<Partial<Record<string, string>>> {
 
           const rows = results.data.map((row) => {
             if (!isRecordOfString(row))
-              throw new Error("excepted object of string to string");
+              throw new Error("expected object of string to string");
 
             return row;
           });

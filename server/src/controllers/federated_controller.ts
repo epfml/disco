@@ -5,7 +5,7 @@ import { v4 as randomUUID } from 'uuid'
 import msgpack from 'msgpack-lite'
 import { Map } from 'immutable'
 
-import type { EncodedWeights, Task, WeightsContainer } from '@epfml/discojs'
+import type { DataType, EncodedWeights, Task, WeightsContainer } from '@epfml/discojs'
 import {
   aggregator as aggregators,
   client,
@@ -19,7 +19,9 @@ import FederatedMessages = client.federated.messages
 
 const debug = createDebug("server:controllers:federated")
 
-export class FederatedController extends TrainingController {
+export class FederatedController<
+  D extends DataType,
+> extends TrainingController<D> {
   /**
    * Aggregators for each hosted task.
     By default the server waits for 100% of the nodes to send their contributions before aggregating the updates
@@ -48,7 +50,7 @@ export class FederatedController extends TrainingController {
    */
   #participants = Map<string, WebSocket>()
 
-  constructor(task: Task, initialWeights: EncodedWeights) {
+  constructor(task: Task<D>, initialWeights: EncodedWeights) {
     super(task)
     this.#latestGlobalWeights = initialWeights
     // start the perpetual promise loop

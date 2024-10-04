@@ -1,10 +1,10 @@
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import { models } from '../index.js'
 
-export const titanic: TaskProvider = {
-  getTask (): Task {
+export const titanic: TaskProvider<'tabular'> = {
+  getTask (): Task<'tabular'> {
     return {
       id: 'titanic',
       displayInformation: {
@@ -52,7 +52,6 @@ export const titanic: TaskProvider = {
         roundDuration: 2,
         validationSplit: 0.2,
         batchSize: 30,
-        preprocessingFunctions: [data.TabularPreprocessing.Sanitize],
         dataType: 'tabular',
         inputColumns: [
           'Age',
@@ -61,9 +60,7 @@ export const titanic: TaskProvider = {
           'Fare',
           'Pclass'
         ],
-        outputColumns: [
-          'Survived'
-        ],
+        outputColumn: 'Survived',
         scheme: 'federated',
         minNbOfParticipants: 2,
         tensorBackend: 'tfjs'
@@ -71,7 +68,7 @@ export const titanic: TaskProvider = {
     }
   },
 
-  getModel (): Promise<Model> {
+  getModel (): Promise<Model<'tabular'>> {
     const model = tf.sequential()
 
     model.add(
@@ -92,6 +89,6 @@ export const titanic: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return Promise.resolve(new models.TFJS(model))
+    return Promise.resolve(new models.TFJS('tabular', model))
   }
 }
