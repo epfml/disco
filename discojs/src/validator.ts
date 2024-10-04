@@ -26,7 +26,7 @@ export class Validator<D extends DataType> {
       .map(async (batch) =>
         (await this.#model.predict(batch.map(([inputs, _]) => inputs)))
           .zip(batch.map(([_, outputs]) => outputs))
-          .map(([infered, truth]) => infered === truth),
+          .map(([inferred, truth]) => inferred === truth),
       )
       .unbatch();
 
