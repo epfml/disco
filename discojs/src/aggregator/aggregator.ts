@@ -82,12 +82,21 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
    * Within one aggregation round there may be multiple communication rounds (such as for the decentralized secure aggregation
    * which requires multiple steps to obtain a global model)
    * The contribution will be aggregated during the next aggregation step.
+   * 
    * @param nodeId The node's id
    * @param contribution The node's contribution
    * @returns a promise for the aggregated weights, or undefined if the contribution is invalid
    */
-  abstract add(nodeId: client.NodeID, contribution: WeightsContainer, communicationRound?: number): Promise<WeightsContainer>
+  async add(nodeId: client.NodeID, contribution: WeightsContainer, communicationRound?: number): Promise<WeightsContainer> {   
+    // Calls the abstract method _add, which is implemented in the subclasses
+    this._add(nodeId, contribution, communicationRound)
+    return this.createAggregationPromise()
+  }
   
+  // Abstract method to be implemented by subclasses
+  // Handles logging and adding the contribution to the list of the current round's contributions
+  protected abstract _add(nodeId: client.NodeID, contribution: WeightsContainer, communicationRound?: number): void
+
   /**
    * Create a promise which resolves when enough contributions are received and 
    * local updates are aggregated. 

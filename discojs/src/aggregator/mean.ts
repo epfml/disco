@@ -95,10 +95,7 @@ export class MeanAggregator extends Aggregator {
     this.#minNbOfParticipants = minNbOfParticipants
   }
 
-  override add(
-    nodeId: client.NodeID,
-    contribution: WeightsContainer,
-  ): Promise<WeightsContainer> {
+  override _add(nodeId: client.NodeID, contribution: WeightsContainer): void {
 
     this.log(
       this.contributions.hasIn([0, nodeId]) ? AggregationStep.UPDATE : AggregationStep.ADD,
@@ -106,7 +103,6 @@ export class MeanAggregator extends Aggregator {
     );
 
     this.contributions = this.contributions.setIn([0, nodeId], contribution);
-    return this.createAggregationPromise()
   }
 
   override aggregate(): WeightsContainer {

@@ -42,11 +42,11 @@ export class SecureAggregator extends Aggregator {
     }
   }
 
-  override add(
+  _add(
     nodeId: client.NodeID,
     contribution: WeightsContainer,
     communicationRound: number,
-  ): Promise<WeightsContainer> {
+  ): void {
     switch (communicationRound) {
       case 0:
       case 1:
@@ -65,7 +65,6 @@ export class SecureAggregator extends Aggregator {
       [communicationRound, nodeId],
       contribution,
     );
-    return this.createAggregationPromise()
   }
 
   override isFull(): boolean {
