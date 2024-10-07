@@ -67,7 +67,8 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
     // If all communication rounds were performed, proceeds to the next aggregation round
     // and empties the collection of stored contributions.
     this.on('aggregation', () => {
-      if (++this._communicationRound === this.communicationRounds) {
+      this._communicationRound++;
+      if (this.communicationRound === this.communicationRounds) {
         this._communicationRound = 0
         this._round++
         this.contributions = Map()
@@ -83,8 +84,7 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
    * The contribution will be aggregated during the next aggregation step.
    * @param nodeId The node's id
    * @param contribution The node's contribution
-   * @param communicationRound communication round the contribution was made within the aggregation round
-   * @returns undefined, if the contribution is invalid, o.w. a promise for the weight update
+   * @returns a promise for the aggregated weights, or undefined if the contribution is invalid
    */
   abstract add(nodeId: client.NodeID, contribution: WeightsContainer, communicationRound?: number): Promise<WeightsContainer>
   
@@ -99,15 +99,17 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
    * @returns a promise for the aggregated weights
    */
   protected createAggregationPromise(): Promise<WeightsContainer> {
+    // Wait for the aggregation event to be emitted
+    const ret = new Promise<WeightsContainer>((resolve) => this.once('aggregation', resolve));
+    
     if (this.isFull()) {
       const aggregatedWeights = this.aggregate()
       // Emitting the 'aggregation' communicates the aggregation to other clients and
       // takes care of incrementing the round
       this.emit('aggregation', aggregatedWeights)
-      return Promise.resolve(aggregatedWeights);
     }
-    // Wait for the aggregation event to be emitted
-    return new Promise<WeightsContainer>((resolve) => this.once('aggregation', resolve))
+    
+    return ret
   }
 
   /**
@@ -130,7 +132,7 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
    * Performs an aggregation step over the received node contributions.
    * Must store the aggregation's result in the aggregator's result promise.
    */
-  abstract aggregate (): WeightsContainer
+  protected abstract aggregate (): WeightsContainer
 
   /**
    * Returns whether the given round is recent enough, dependent on the
