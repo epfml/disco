@@ -13,31 +13,30 @@ async function WSIntoArrays(ws: WeightsContainer): Promise<number[][]> {
 describe("mean aggregator", () => {
   it("updates only within round cutoff", async () => {
     const aggregator = new MeanAggregator(1, 1, 'relative');
-    const [id1, id2, id3] = ["client 1", "client 2", "client 3"]
-    aggregator.setNodes(Set.of(id1));
+    aggregator.setNodes(Set.of("client 1"));
 
     // round 0
     expect(aggregator.round).to.equal(0)
-    expect(aggregator.isValidContribution(id1, 0)).to.be.true;
-    const client1Round0Promise = await aggregator.add(id1, WeightsContainer.of([1]));
+    expect(aggregator.isValidContribution("client 1", 0)).to.be.true;
+    const client1Round0Promise = await aggregator.add("client 1", WeightsContainer.of([1]));
     expect(WeightsContainer.of([1]).equals(client1Round0Promise)).to.be.true
     expect(aggregator.round).to.equal(1)
     
     // round 1
-    aggregator.registerNode(id2);
-    expect(aggregator.isValidContribution(id2, 0)).to.be.true; // round 0 should be within the cutoff
-    void aggregator.add(id1, WeightsContainer.of([1]));
-    const client2Round0Promise = await aggregator.add(id2, WeightsContainer.of([2]));
+    aggregator.registerNode("client 2");
+    expect(aggregator.isValidContribution("client 2", 0)).to.be.true; // round 0 should be within the cutoff
+    void aggregator.add("client 1", WeightsContainer.of([1]));
+    const client2Round0Promise = await aggregator.add("client 2", WeightsContainer.of([2]));
     expect(WeightsContainer.of([1.5]).equals(client2Round0Promise)).to.be.true
     expect(aggregator.round).to.equal(2)
     
     // round 2
-    aggregator.registerNode(id3);
-    expect(aggregator.isValidContribution(id3, 0)).to.be.false; // round 0 is now out of the cutoff
-    expect(aggregator.isValidContribution(id3, 1)).to.be.true;
-    void aggregator.add(id1, WeightsContainer.of([1]));
-    void aggregator.add(id2, WeightsContainer.of([1]));
-    const client3Round2Promise = await aggregator.add(id3, WeightsContainer.of([4]));
+    aggregator.registerNode("client 3");
+    expect(aggregator.isValidContribution("client 3", 0)).to.be.false; // round 0 is now out of the cutoff
+    expect(aggregator.isValidContribution("client 3", 1)).to.be.true;
+    void aggregator.add("client 1", WeightsContainer.of([1]));
+    void aggregator.add("client 2", WeightsContainer.of([1]));
+    const client3Round2Promise = await aggregator.add("client 3", WeightsContainer.of([4]));
     expect(WeightsContainer.of([2]).equals(client3Round2Promise)).to.be.true
     expect(aggregator.round).to.equal(3)
   });
