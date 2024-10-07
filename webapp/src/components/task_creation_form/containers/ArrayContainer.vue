@@ -25,14 +25,18 @@
             class="
               inline
               bg-gray-100
+              dark:bg-slate-700
               appearance-none
               border-0 border-gray-200
               rounded
               py-2
               px-4
               text-gray-700
+              dark:text-gray-200
               leading-tight
-              focus:outline-none focus:bg-white
+              focus:outline-none
+              focus:bg-white
+              dark:focus:bg-slate-900
             "
           />
           <ErrorMessage
@@ -56,6 +60,7 @@
               rounded
               focus:shadow-outline
               hover:bg-red-100
+              dark:hover:bg-red-900
             "
             @click="remove(idx as unknown as number)"
           >
@@ -98,6 +103,7 @@
         rounded
         focus:shadow-outline
         hover:bg-gray-100
+        dark:hover:bg-gray-800
       "
       @click="push('')"
     >

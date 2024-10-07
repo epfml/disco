@@ -8,6 +8,8 @@
         antialiased
         text-slate-900
         bg-slate-100
+        dark:bg-slate-900
+        dark:text-slate-100
       "
     >
       <!-- Sidebar -->
@@ -18,7 +20,9 @@
           z-20
           flex flex-shrink-0
           bg-white
+          dark:bg-slate-800
           border-r
+          dark:border-slate-900
           md:static
           focus:outline-none
         "

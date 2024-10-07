@@ -60,10 +60,10 @@
       <IconCard>
         <template #title> Training Loss of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500">
+        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
           {{ (lastEpoch?.training.loss ?? 0).toFixed(2) }}
         </span>
-        <span class="text-sm font-medium text-slate-500">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
           training loss
         </span>
 
@@ -80,10 +80,10 @@
       <IconCard v-if="hasValidationData">
         <template #title> Validation Loss of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500">
+        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
           {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
         </span>
-        <span class="text-sm font-medium text-slate-500">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
           validation loss
         </span>
 
@@ -106,10 +106,10 @@
       <IconCard>
         <template #title> Training Accuracy of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500">
+        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
           {{ percent(lastEpoch?.training.accuracy ?? 0) }}
         </span>
-        <span class="text-sm font-medium text-slate-500">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
           % of training accuracy
         </span>
 
@@ -128,10 +128,10 @@
       <IconCard v-if="hasValidationData">
         <template #title> Validation Accuracy of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500">
+        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
           {{ percent(lastEpoch?.validation?.accuracy ?? 0) }}
         </span>
-        <span class="text-sm font-medium text-slate-500">
+        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
           % of validation accuracy
         </span>
 
@@ -161,7 +161,7 @@
           >
             <span
               style="white-space: pre-line"
-              class="text-sm text-slate-500"
+              class="text-sm text-slate-500 dark:text-slate-400"
             >
               {{ message }}
             </span>
@@ -258,31 +258,79 @@ const lossSeries = computed(() =>
       },
     ),
 );
-
+const darkMode = localStorage.getItem("theme") === "dark";
 const commonChartsOptions = {
   chart: {
     toolbar: { show: false },
     zoom: { enabled: false },
   },
   dataLabels: { enabled: false },
-  colors: ["#6096BA"],
+  colors: [darkMode ? "#cbd5e1" : "#6096BA"],
   fill: {
-    colors: ["#E2E8F0"],
+    colors: [darkMode ? "#1A3A4F" : "#E2E8F0"],
     type: "solid",
     opacity: 0.6,
   },
   stroke: { curve: "smooth" },
   grid: { show: false },
-  xaxis: { labels: { show: false } },
-  legend: { show: false },
+  xaxis: {
+    labels: {
+      show: true,
+      style: {
+        colors: darkMode ? "#ffffff" : "#000000",
+      },
+    },
+    axisBorder: {
+      show: true,
+      colors: darkMode ? "#ffffff" : "#000000",
+    },
+    axisTicks: {
+      show: true,
+      color: darkMode ? "#ffffff" : "#000000",
+    },
+  },
+  yaxis: {
+    labels: {
+      show: true,
+      style: {
+        colors: darkMode ? "#ffffff" : "#000000",
+      },
+    },
+    axisBorder: {
+      show: true,
+      color: darkMode ? "#ffffff" : "#000000",
+    },
+    axisTicks: {
+      show: true,
+      color: darkMode ? "#ffffff" : "#000000",
+    },
+  },
+  legend: {
+    show: true,
+    labels: {
+      colors: darkMode ? "#ffffff" : "#000000",
+    },
+  },
+  tooltip: {
+    theme: darkMode ? 'dark' : 'light',
+    style: {
+      fontSize: '12px',
+      fontFamily: undefined,
+      colors: darkMode ? '#ffffff' : '#000000',
+    },
+  }
 };
 
 const accuracyChartsOptions = {
   ...commonChartsOptions,
   yaxis: {
+    ...commonChartsOptions.yaxis,
     max: 100,
     min: 0,
-    labels: { formatter: (value: number) => value.toFixed(0) },
+    labels: { 
+      ...commonChartsOptions.yaxis.labels,
+      formatter: (value: number) => value.toFixed(0) 
+    },
   },
 };
 
@@ -297,9 +345,13 @@ const lossChartsOptions = computed(() => {
   return {
     ...commonChartsOptions,
     yaxis: {
+      ...commonChartsOptions.yaxis,
       max: yAxisMax,
       min: 0,
-      labels: { formatter: (n: number) => n.toFixed(2) },
+      labels: { 
+        ...commonChartsOptions.yaxis.labels,
+        formatter: (n: number) => n.toFixed(2) 
+      },
     },
   };
 });

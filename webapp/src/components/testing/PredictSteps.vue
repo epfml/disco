@@ -6,7 +6,7 @@
   >
     <div class="flex justify-center items-center mb-4">
       <span
-        class="shrink-0 py-4 px-4 bg-purple-100 rounded-md flex flex-row gap-x-4 items-center"
+        class="shrink-0 py-4 px-4 bg-purple-100 dark:text-disco-dark-blue rounded-md flex flex-row gap-x-4 items-center"
       >
         <InfoIcon custom-class="min-w-6 min-h-6 w-6 h-6 text-slate-600" />
 
@@ -54,13 +54,13 @@
       </div>
     </IconCard>
 
-    <div class="p-4 mx-auto lg:w-1/2 h-full bg-white rounded-md">
+    <div class="p-4 mx-auto lg:w-1/2 h-full bg-white dark:bg-slate-950 rounded-md">
       <!-- header -->
-      <h4 class="p-4 border-b text-lg font-semibold text-slate-500">
+      <h4 class="p-4 border-b text-lg font-semibold text-slate-500 dark:text-slate-300">
         Inference metrics
       </h4>
       <!-- stats -->
-      <div class="flex justify-center p-4 font-medium text-slate-500">
+      <div class="flex justify-center p-4 font-medium text-slate-500 dark:text-slate-400">
         <div class="text-center">
           <span class="text-2xl">
             {{ predictions?.results.size ?? 0 }}
@@ -90,7 +90,7 @@
 
       <div
         v-else-if="predictions.type === 'tabular'"
-        class="mx-auto lg:w-3/4 h-full bg-white rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
+        class="mx-auto lg:w-3/4 h-full bg-white dark:bg-slate-950 rounded-md max-h-128 overflow-x-scroll overflow-y-hidden"
       >
         <TableLayout
           :columns="predictions.labels.input.concat(predictions.labels.output)"

@@ -8,7 +8,7 @@
     </div>
 
     <IconCard>
-      <template #title> Create your own <DISCOllaborative/> </template>
+      <template #title><span>Create your own <DISCOllaborative /></span></template>
 
       <div>
         Fill in the fields below to create your own <DISCOllaborative />, and bring a new (arbitrary) ML task into Disco.

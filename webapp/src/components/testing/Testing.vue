@@ -72,8 +72,9 @@
       <div>
         <IconCard title-placement="center">
           <template #title>
-            <DISCO />
-            Model Repository — <span class="italic">Download and Test</span>
+            <span><DISCO /> Model Repository — <span class="italic">Download and Test</span></span>
+            
+            
           </template>
 
           <div

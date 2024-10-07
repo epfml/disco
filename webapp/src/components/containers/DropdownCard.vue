@@ -1,6 +1,6 @@
 <template>
   <div class="grid grid-cols-1 space-y-8 lg:gap-8 rounded-xl group/super">
-    <div class="col-span-1 bg-white rounded-xl">
+    <div class="col-span-1 bg-white dark:bg-slate-950 rounded-xl">
       <IconCardHeader>
         <template #title>
           <button class="focus:outline-none" @click="toggle">
@@ -16,7 +16,7 @@
         </template>
       </IconCardHeader>
 
-      <div v-show="opened" class="text-sm text-slate-500 p-8 border-t">
+      <div v-show="opened" class="text-sm text-slate-500 dark:text-slate-300 p-8 border-t">
         <slot />
       </div>
     </div>

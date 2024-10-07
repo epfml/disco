@@ -1,5 +1,5 @@
 <template>
-  <div class="p-2 text-slate-500">
+  <div class="p-2 text-slate-500 dark:text-slate-200">
     <span class="sr-only"> {{ text }} </span>
     <RouterLink
       :to="to"

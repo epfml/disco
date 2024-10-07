@@ -1,11 +1,11 @@
 <template>
     <!-- Page Content -->
     <Card class="flex flex-col place-content-center p-4 space-y-6 rounded-xl ">
-      <p class="flex flex-wrap justify-center text-2xl text-slate-400 mt-2">
-        <span><span class="font-disco text-disco-cyan uppercase">dis</span><span>tributed</span>&nbsp;</span>
+      <p class="flex flex-wrap justify-center text-2xl text-slate-400 dark:text-slate-300 mt-2">
+        <span><span class="font-disco text-disco-cyan dark:text-disco-light-cyan uppercase">dis</span><span>tributed</span>&nbsp;</span>
         <span><span class="font-disco text-disco-blue uppercase">co</span><span>llaborative learning platform</span></span>
       </p>
-      <div class="grid gap-8 p-4 sm:grid-cols-2 text-slate-500 border-t">
+      <div class="grid gap-8 p-4 sm:grid-cols-2 text-slate-400 border-t">
         <!-- Federated insight -->
         <div class="flex flex-col items-center">
           <h6
@@ -20,7 +20,7 @@
           >
             Federated Learning
           </h6>
-          <FederatedGIF class="my-md" />
+          <FederatedGIF class="bg-slate-100 rounded-lg border-slate-300 border-4" />
           <p class="text-sm py-6 text-center">
             The server puts in common local model updates and sends back an aggregated global model. <br/>No data is shared.
           </p>
@@ -39,7 +39,7 @@
           >
             Decentralized Learning
           </h6>
-          <DecentralizedGIF class="my-md" />
+          <DecentralizedGIF class="bg-slate-100 rounded-lg border-slate-300 border-4" />
           <p class="text-sm py-6 text-center">
             Local model aggregation is coordinated between peers without any server.
             <br/> No data is shared.

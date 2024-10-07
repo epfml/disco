@@ -9,7 +9,7 @@
         href="https://framaforms.org/disco-feedback-form-1718716636"
         >
         <div class="flex flex-row flex-wrap shrink-0 items-center gap-x-2 justify-end">
-            <p class="text-disco-blue font-bold text-xs hover:underline hover:text-disco-cyan text-end">Give us some feedback</p>
+            <p class="text-disco-blue font-bold text-xs hover:underline hover:text-disco-cyan text-end dark:text-disco-dark-cyan">Give us some feedback</p>
           <FeedbackIcon custom-class="min-w-8 min-h-8 w-8 h-8"/>
         </div>
       </a>
@@ -17,9 +17,9 @@
     <!-- Disco logo -->
     <div class="flex flex-col justify-center items-center mb-8 space-y-4">
       <div class="md:max-w-md lg:max-w-lg">
-        <DiscoGIF/>
+        <DiscoGIF class="bg-slate-100 rounded-lg pb-8 px-4"/>
       </div>
-      <span class="text-lg md:text-2xl lg:text-3xl text-center text-slate-600">
+      <span class="text-lg md:text-2xl lg:text-3xl text-center text-slate-600 dark:text-slate-300">
         <span class="font-disco text-disco-cyan font-semibold">DIS</span
         >tributed
         <span class="font-disco text-disco-blue font-semibold">CO</span
