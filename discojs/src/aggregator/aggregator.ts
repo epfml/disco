@@ -87,8 +87,12 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
    * @param contribution The node's contribution
    * @returns a promise for the aggregated weights, or undefined if the contribution is invalid
    */
-  async add(nodeId: client.NodeID, contribution: WeightsContainer, communicationRound?: number): Promise<WeightsContainer> {   
-    // Calls the abstract method _add, which is implemented in the subclasses
+  async add(nodeId: client.NodeID, contribution: WeightsContainer,
+    aggregationRound: number, communicationRound?: number): Promise<WeightsContainer> {   
+    if (!this.isValidContribution(nodeId, aggregationRound))
+      throw new Error("Tried adding an invalid contribution. Handle this case before calling add.")
+    
+    // call the abstract method _add, implemented by subclasses
     this._add(nodeId, contribution, communicationRound)
     return this.createAggregationPromise()
   }
@@ -124,6 +128,9 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
   /**
    * Evaluates whether a given participant contribution can be used in the current aggregation round
    * the boolean returned by `this.add` is obtained via `this.isValidContribution`
+   * 
+   * @param nodeId the node id of the contribution to be added
+   * @param round the aggregation round of the contribution to be added
    */
   isValidContribution(nodeId: client.NodeID, round: number): boolean {
     if (!this.nodes.has(nodeId)) {

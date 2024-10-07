@@ -36,7 +36,7 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
       let promises = List<Promise<WeightsContainer>>()
       for (let i = 0; i < 3; i++)
         for (let r = 0; r < aggregator.communicationRounds; r++)
-          promises = promises.push(aggregator.add(`client ${i}`, WeightsContainer.of([i]), r))
+          promises = promises.push(aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r))
       await Promise.all(promises)
       await results; // nothing to test
 
@@ -58,7 +58,7 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
                     id,
                     [agg, WeightsContainer.of([ws])],
                   ]),
-              ),
+              ), 0
             )
           )
             .valueSeq()
@@ -95,6 +95,7 @@ export function setupNetwork<A extends Aggregator>(
 // run all rounds of communication
 export async function communicate<A extends Aggregator>(
   networkWithContributions: Map<NodeID, [A, WeightsContainer]>,
+  aggregationRound: number
 ): Promise<Map<NodeID, WeightsContainer>> {
   const communicationsRound =
     networkWithContributions.first()?.[0].communicationRounds;
@@ -126,7 +127,7 @@ export async function communicate<A extends Aggregator>(
         agg
           .makePayloads(contrib)
           .entrySeq()
-          .forEach(([to, payload]) => network.get(to)?.add(id, payload, r)),
+          .forEach(([to, payload]) => network.get(to)?.add(id, payload, aggregationRound, r)),
       );
 
     contributions = Map(await Promise.all(nextContributions));

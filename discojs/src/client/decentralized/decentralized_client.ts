@@ -224,7 +224,7 @@ export class DecentralizedClient extends Client {
             debug(`[${shortenId(this.ownId)}] received payload from peer ${shortenId(peerId)}` +
               ` for round (%d, %d)`, message.aggregationRound, message.communicationRound);
             // Make sure to not await this promise in order to not miss subsequent messages
-            void this.aggregator.add(peerId, decoded, message.communicationRound)
+            void this.aggregator.add(peerId, decoded, message.aggregationRound, message.communicationRound)
               .then(() =>
                 debug(`[${shortenId(this.ownId)}] aggregated the model` +
                   ` for round (%d, %d)`, message.aggregationRound, message.communicationRound)

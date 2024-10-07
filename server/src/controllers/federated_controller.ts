@@ -102,7 +102,7 @@ export class FederatedController extends TrainingController {
             const weights = serialization.weights.decode(payload)
 
             // Send the aggregated weight to the client when enough contributions are received
-            this.#aggregator.add(clientId, weights)
+            this.#aggregator.add(clientId, weights, round)
               .then(async (weightUpdate) => {
                 debug("Sending global weights for round %o to client [%s]", this.#aggregator.round, shortId)
                 const msg: FederatedMessages.ReceiveServerPayload = {
