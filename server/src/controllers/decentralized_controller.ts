@@ -16,7 +16,7 @@ const debug = createDebug("server:controllers:decentralized")
 export class DecentralizedController extends TrainingController {
   // Map of nodes who want to join the round.
   // The boolean value indicates if the node is ready to exchange weight updates (i.e.
-  // the node has already sent a PeerIsRead message)
+  // the node has already sent a PeerIsReady message)
   // We wait for all peers to be ready to exchange weight updates
   #roundPeers = Map<client.NodeID, boolean>()
   #aggregationRound = 0
@@ -68,7 +68,7 @@ export class DecentralizedController extends TrainingController {
           case MessageTypes.PeerIsReady: {
             this.#roundPeers = this.#roundPeers.set(peerId, true)
             debug("Received peer ready from: %o", shortId)
-            this.checkThenSendPeersForRound()
+            this.sendPeersForRoundIfNeeded()
             break
           }
           // Forwards a peer's message to another destination peer
@@ -104,7 +104,7 @@ export class DecentralizedController extends TrainingController {
       // If no, check if we are still above the minimum number of participant required
       if (this.connections.size >= minNbOfParticipants) {
         // Check if remaining peers are all ready to exchange weight updates
-        this.checkThenSendPeersForRound()
+        this.sendPeersForRoundIfNeeded()
         return
       }
       // If we are below the minimum number of participants
@@ -125,7 +125,7 @@ export class DecentralizedController extends TrainingController {
    * and if all peers that joined the round are ready to exchange weight updates
    * If so, send the list of peers for this round to all participants
    */
-  private checkThenSendPeersForRound(): void {
+  private sendPeersForRoundIfNeeded(): void {
     const minNbOfParticipants = this.task.trainingInformation.minNbOfParticipants
     const nbOfPeersReady = this.#roundPeers.filter(ready => ready).size
     // First check there are enough participants to start the round
