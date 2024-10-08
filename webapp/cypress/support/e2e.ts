@@ -66,11 +66,8 @@ export function basicTask(
   };
 }
 
-beforeEach(
-  () =>
-    new Promise((resolve, reject) => {
-      const req = window.indexedDB.deleteDatabase("tensorflowjs");
-      req.onerror = reject;
-      req.onsuccess = resolve;
-    }),
+beforeEach(() =>
+  navigator.storage
+    .getDirectory()
+    .then((root) => root.removeEntry("models", { recursive: true })),
 );
