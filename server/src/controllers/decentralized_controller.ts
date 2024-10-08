@@ -45,16 +45,14 @@ export class DecentralizedController extends TrainingController {
             this.connections = this.connections.set(peerId, ws)
 
             // Answer with client id in an NewNodeInfo message
-            const waitForMoreParticipants = this.connections.size < minNbOfParticipants
             const msg: messages.NewDecentralizedNodeInfo = {
               type: MessageTypes.NewDecentralizedNodeInfo,
               id: peerId,
-              waitForMoreParticipants
+              waitForMoreParticipants: this.connections.size < minNbOfParticipants
             }
             ws.send(msgpack.encode(msg), { binary: true })
-            debug("Wait for more participant flag: %o", waitForMoreParticipants)
             // Send an update to participants if we can start/resume training
-            this.checkIfEnoughParticipants(waitForMoreParticipants, peerId)
+            this.sendEnoughParticipantsMsgIfNeeded(peerId)
             break
           }
           // Send by peers at the beginning of each training round to notify 

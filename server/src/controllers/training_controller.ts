@@ -42,14 +42,20 @@ export abstract class TrainingController {
     ws: WebSocket
   ): void
 
-  protected checkIfEnoughParticipants(waitForMoreParticipants: boolean, currentId: client.NodeID) {
-    // If we were previously waiting for more participants to join and we now have enough,
+  /**
+   * If enough participants joined, notifies them that the training can start/resume
+   * 
+   * @param currentId the id of the participant that just joined
+   */
+  protected sendEnoughParticipantsMsgIfNeeded(currentId: client.NodeID) {
+    // If we are currently waiting for more participants to join and we now have enough,
     // broadcast to previously waiting participants that the training can start
-    if (this.waitingForMoreParticipants && !waitForMoreParticipants) {
+    if (this.waitingForMoreParticipants &&
+      this.connections.size >= this.task.trainingInformation.minNbOfParticipants) {
       this.connections
         // filter out the client that just joined as 
         // it already knows via the NewFederatedNodeInfo message
-        .filter((_, id) => id !== currentId)
+        .delete(currentId)
         .forEach((participantWs, participantId) => {
           debug("Sending enough-participant message to client [%s]", participantId.slice(0, 4))
           const msg: client.messages.EnoughParticipants = {
@@ -57,8 +63,8 @@ export abstract class TrainingController {
           }
           participantWs.send(msgpack.encode(msg))
         })
+      this.waitingForMoreParticipants = false // update the attribute
     }
-    this.waitingForMoreParticipants = waitForMoreParticipants // update the attribute
   }
 
   /**

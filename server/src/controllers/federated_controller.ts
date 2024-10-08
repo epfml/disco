@@ -80,20 +80,17 @@ export class FederatedController extends TrainingController {
           debug(`client [%s] joined ${this.task.id}`, shortId)
           this.connections = this.connections.set(clientId, ws) // add the new client
 
-          const waitForMoreParticipants = this.connections.size < minNbOfParticipants
           const msg: FederatedMessages.NewFederatedNodeInfo = {
             type: MessageTypes.NewFederatedNodeInfo,
             id: clientId,
-            waitForMoreParticipants,
+            waitForMoreParticipants: this.connections.size < minNbOfParticipants,
             payload: this.#latestGlobalWeights,
             round: this.#aggregator.round,
             nbOfParticipants: this.connections.size
           }
           ws.send(msgpack.encode(msg))
-
-          debug("Wait for more participant flag: %o", waitForMoreParticipants)
           // Send an update to participants if we can start/resume training
-          this.checkIfEnoughParticipants(waitForMoreParticipants, clientId)
+          this.sendEnoughParticipantsMsgIfNeeded(clientId)
           break
         }
         /* 
