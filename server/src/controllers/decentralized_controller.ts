@@ -128,33 +128,33 @@ export class DecentralizedController extends TrainingController {
   private sendPeersForRoundIfNeeded(): void {
     const minNbOfParticipants = this.task.trainingInformation.minNbOfParticipants
     const nbOfPeersReady = this.#roundPeers.filter(ready => ready).size
-    // First check there are enough participants to start the round
+    // First check if there are enough participants to start the round
     // Then check if all peers that wanted to join this round are ready
-    if (nbOfPeersReady >= minNbOfParticipants && nbOfPeersReady == this.#roundPeers.size) {
-      // Once every peer that joined the round is ready, we can start the round
-      this.#roundPeers.keySeq()
-      .map((id) => {
-        const readyPeerIDs: messages.PeersForRound = {
-          type: MessageTypes.PeersForRound,
-          peers: this.#roundPeers.delete(id).keySeq().toArray(),
-          aggregationRound: this.#aggregationRound
-        }
-        debug("Sending peer list to: %o", id.slice(0, 4))
-        
-        const encoded = msgpack.encode(readyPeerIDs)
-        return [id, encoded] as [client.NodeID, Buffer]
-      })
-      .map(([id, encoded]) => {
-        const conn = this.connections.get(id)
-        if (conn === undefined) {
-          throw new Error(`peer ${id} marked as ready but not connection to it`)
-        }
-        return [conn, encoded] as [WebSocket, Buffer]
-      }).forEach(([conn, encoded]) => { conn.send(encoded) })
-      // empty the list of peers for the next round
-      this.#roundPeers = Map()
-      this.#aggregationRound++
-    }
+    if (nbOfPeersReady < minNbOfParticipants
+      || nbOfPeersReady != this.#roundPeers.size) return
+    // Once every peer that joined the round is ready, we can start the round
+    this.#roundPeers.keySeq()
+    .map((id) => {
+      const readyPeerIDs: messages.PeersForRound = {
+        type: MessageTypes.PeersForRound,
+        peers: this.#roundPeers.delete(id).keySeq().toArray(),
+        aggregationRound: this.#aggregationRound
+      }
+      debug("Sending peer list to: %o", id.slice(0, 4))
+      
+      const encoded = msgpack.encode(readyPeerIDs)
+      return [id, encoded] as [client.NodeID, Buffer]
+    })
+    .map(([id, encoded]) => {
+      const conn = this.connections.get(id)
+      if (conn === undefined) {
+        throw new Error(`peer ${id} marked as ready but not connection to it`)
+      }
+      return [conn, encoded] as [WebSocket, Buffer]
+    }).forEach(([conn, encoded]) => { conn.send(encoded) })
+    // empty the list of peers for the next round
+    this.#roundPeers = Map()
+    this.#aggregationRound++
   }
 }
 
