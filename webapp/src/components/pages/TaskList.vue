@@ -86,8 +86,8 @@ import { List } from "immutable";
 
 import type { Task } from '@epfml/discojs'
 
-import { useTasksStore } from '@/store/tasks'
-import { useTrainingStore } from '@/store/training'
+import { useTasksStore } from "@/store";
+import { useTrainingStore } from "@/store";
 import ButtonsCard from '@/components/containers/ButtonsCard.vue'
 import IconCard from '@/components/containers/IconCard.vue'
 import DISCO from '@/components/simple/DISCO.vue'

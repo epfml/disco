@@ -68,7 +68,7 @@
 <script lang="ts" setup>
 import { onActivated } from 'vue'
 
-import { useInformationStore } from '@/store/information'
+import { useInformationStore } from "@/store";
 import IconCard from '@/components/containers/IconCard.vue'
 import DISCO from '@/components/simple/DISCO.vue'
 

@@ -101,7 +101,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { useInformationStore } from '@/store/information'
+import { useInformationStore } from "@/store";
 import ProgressIcon from './ProgressIcon.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import DISCO from '@/components/simple/DISCO.vue'

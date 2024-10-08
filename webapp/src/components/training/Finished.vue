@@ -26,9 +26,9 @@ import { useRouter } from "vue-router";
 import type { Model, Task } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
-import type { ModelID } from "@/store/models";
-import { useModelsStore } from "@/store/models";
-import { useValidationStore } from "@/store/validation";
+import type { ModelID } from "@/store";
+import { useModelsStore } from "@/store";
+import { useValidationStore } from "@/store";
 
 import ButtonsCard from "@/components/containers/ButtonsCard.vue";
 import DISCOllaborative from "@/components/simple/DISCOllaborative.vue";

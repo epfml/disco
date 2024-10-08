@@ -114,8 +114,8 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
-import { useTasksStore } from '@/store/tasks'
-import { useTrainingStore } from '@/store/training'
+import { useTasksStore } from "@/store";
+import { useTrainingStore } from "@/store";
 import { useToaster } from '@/composables/toaster'
 import ProgressIcon from './ProgressIcon.vue'
 import PlugIcon from '@/assets/svg/PlugIcon.vue'
