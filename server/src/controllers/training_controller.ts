@@ -60,4 +60,22 @@ export abstract class TrainingController {
     }
     this.waitingForMoreParticipants = waitForMoreParticipants // update the attribute
   }
+
+  /**
+   * Notifies participant that the number of participants drops below the minimum threshold
+   */
+  protected sendWaitForMoreParticipantsMsg(): void {
+    // If we are below the minimum number of participants
+    // tell remaining participants to wait until more participants join
+    this.waitingForMoreParticipants = true
+    this.connections
+      .forEach((participantWs, participantId) => {
+        debug("Telling remaining client [%s] to wait for participants", participantId.slice(0, 4))
+        const msg: client.messages.WaitingForMoreParticipants = {
+          type: client.messages.type.WaitingForMoreParticipants
+        }
+        participantWs.send(msgpack.encode(msg))
+      })
+  }
+
 }

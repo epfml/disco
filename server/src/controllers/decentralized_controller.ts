@@ -109,15 +109,7 @@ export class DecentralizedController extends TrainingController {
       }
       // If we are below the minimum number of participants
       // tell remaining participants to wait until more participants join
-      this.waitingForMoreParticipants = true
-      this.connections
-        .forEach((participantWs, participantId) => {
-          debug("Telling remaining client [%s] to wait for participants", participantId.slice(0, 4))
-          const msg: client.messages.WaitingForMoreParticipants = {
-            type: MessageTypes.WaitingForMoreParticipants
-          }
-          participantWs.send(msgpack.encode(msg))
-        })
+      this.sendWaitForMoreParticipantsMsg()
     }) 
   }
   /**

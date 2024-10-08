@@ -152,16 +152,8 @@ export class FederatedController extends TrainingController {
         this.waitingForMoreParticipants
       ) return
 
-      this.waitingForMoreParticipants = true
-      // Tell remaining participants to wait until more participants join
-      this.connections
-        .forEach((participantWs, participantId) => {
-          debug("Telling remaining client [%s] to wait for participants", participantId.slice(0, 4))
-          const msg: client.messages.WaitingForMoreParticipants = {
-            type: MessageTypes.WaitingForMoreParticipants
-          }
-          participantWs.send(msgpack.encode(msg))
-        })
+      // tell remaining participants to wait until more participants join
+      this.sendWaitForMoreParticipantsMsg()
     })
   }
 }
