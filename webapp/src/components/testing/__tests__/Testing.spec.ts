@@ -7,8 +7,8 @@ import piniaPersited from "pinia-plugin-persistedstate";
 import type { Task } from "@epfml/discojs";
 import { models as discoModels } from "@epfml/discojs";
 
-import { useModelsStore } from "@/store/models";
-import { useTasksStore } from "@/store/tasks";
+import { useModelsStore } from "@/store";
+import { useTasksStore } from "@/store";
 
 import Testing from "../Testing.vue";
 

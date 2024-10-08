@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useValidationStore } from "@/store/validation";
+import { useValidationStore } from "@/store";
 import { useToaster } from "@/composables/toaster";
 import ProgressIcon from "./ProgressIcon.vue";
 import ModelIcon from "@/assets/svg/ModelIcon.vue";

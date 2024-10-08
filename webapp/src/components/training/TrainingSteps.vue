@@ -53,8 +53,8 @@ import type {
   TypedLabeledDataset,
 } from "@epfml/discojs";
 
-import { useTrainingStore } from "@/store/training";
-import { useTasksStore } from "@/store/tasks";
+import { useTrainingStore } from "@/store";
+import { useTasksStore } from "@/store";
 import Description from "@/components/training/Description.vue";
 import Trainer from "@/components/training/Trainer.vue";
 import Finished from "@/components/training/Finished.vue";

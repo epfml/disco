@@ -113,7 +113,7 @@ import { Validator } from "@epfml/discojs";
 
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
 import { useToaster } from "@/composables/toaster";
-import { useValidationStore } from "@/store/validation";
+import { useValidationStore } from "@/store";
 
 import IconCard from "@/components/containers/IconCard.vue";
 import ImageCard from "@/components/containers/ImageCard.vue";
