@@ -141,7 +141,7 @@ export class DecentralizedClient extends Client {
       throw new TypeError('aggregation result promise is undefined')
     }
     // First we check if we are waiting for more participants before sending our weight update
-    await this.checkIfWaitForParticipants()
+    await this.waitForParticipantsIfNeeded()
     // Create peer-to-peer connections with all peers for the round
     await this.establishPeerConnections()
     // Exchange weight updates with peers and return aggregated weights

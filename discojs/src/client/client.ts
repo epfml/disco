@@ -150,7 +150,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
     })
   }
 
-  protected async checkIfWaitForParticipants(): Promise<void>{
+  protected async waitForParticipantsIfNeeded(): Promise<void>{
     // we check if we are waiting for more participants before sending our weight update
     if (this.waitingForMoreParticipants) {
       // wait for the promise to resolve, which takes as long as it takes for new participants to join

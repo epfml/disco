@@ -135,7 +135,7 @@ export class FederatedClient extends Client {
     }
 
     // First we check if we are waiting for more participants before sending our weight update
-    await this.checkIfWaitForParticipants()
+    await this.waitForParticipantsIfNeeded()
     this.saveAndEmit("UPDATING MODEL")
     // Send our local contribution to the server
     // and receive the server global update for this round as an answer to our contribution
