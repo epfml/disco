@@ -45,7 +45,7 @@
 import { onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { useInformationStore } from '@/store/information'
+import { useInformationStore } from "@/store";
 import IconCard from '@/components/containers/IconCard.vue'
 import CustomButton from '@/components/simple/CustomButton.vue'
 import DISCOllaborative from '@/components/simple/DISCOllaborative.vue'

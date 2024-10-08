@@ -25,7 +25,7 @@
 <script lang="ts" setup>
 import { onActivated } from 'vue'
 
-import { useInformationStore } from '@/store/information'
+import { useInformationStore } from "@/store";
 import IconCard from '@/components/containers/IconCard.vue'
 
 const informationStore = useInformationStore()
