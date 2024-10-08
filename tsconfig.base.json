@@ -9,7 +9,10 @@
     "skipLibCheck": true,
 
     // don't pollute
-    "noEmitOnError": true
+    "noEmitOnError": true,
+
+    // enforce using the override keyword
+    "noImplicitOverride": true
   }
 }
   

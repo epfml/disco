@@ -48,14 +48,14 @@ class GPTModel extends tf.LayersModel {
     return this.config
   }
 
-  compile() {
+  override compile() {
     if (this.optimizer !== undefined) return
     this.optimizer = this.config.weightDecay !== 0
       ? getCustomAdam(this, this.config.lr, this.config.weightDecay)
       : tf.train.adam(this.config.lr) 
   }
 
-  async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
+  override async fitDataset<T>(dataset: Dataset<T>, trainingArgs: tf.ModelFitDatasetArgs<T>): Promise<tf.History> {
     const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs
     const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
     await callbacks.onTrainBegin?.()

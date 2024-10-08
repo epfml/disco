@@ -7,15 +7,15 @@ import { Client } from "./client.js";
  */
 export class LocalClient extends Client {
 
-  getNbOfParticipants(): number {
+  override getNbOfParticipants(): number {
     return 1;
   }
 
-  onRoundBeginCommunication(): Promise<void> {
+  override onRoundBeginCommunication(): Promise<void> {
     return Promise.resolve();
   }
   // Simply return the local weights 
-  onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer> {
+  override onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer> {
     return Promise.resolve(weights);
   }
 }

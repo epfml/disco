@@ -11,7 +11,7 @@ import { ImagePreprocessing, IMAGE_PREPROCESSING } from './preprocessing/index.j
 export class ImageData extends Data {
   public readonly availablePreprocessing = IMAGE_PREPROCESSING
 
-  static async init (
+  static override async init (
     dataset: tf.data.Dataset<tf.TensorContainer>,
     task: Task,
     size?: number

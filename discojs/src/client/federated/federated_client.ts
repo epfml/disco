@@ -39,7 +39,7 @@ export class FederatedClient extends Client {
    * as well as the latest training information: latest global model, current round and
    * whether we are waiting for more participants.
    */
-  async connect(): Promise<Model> {
+  override async connect(): Promise<Model> {
     const model = await super.connect() // Get the server base model
 
     const serverURL = new URL("", this.url.href);

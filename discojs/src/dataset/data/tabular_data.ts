@@ -11,7 +11,7 @@ import { TABULAR_PREPROCESSING } from './preprocessing/index.js'
 export class TabularData extends Data {
   public readonly availablePreprocessing = TABULAR_PREPROCESSING
 
-  static async init (
+  static override async init (
     dataset: tf.data.Dataset<tf.TensorContainer>,
     task: Task,
     size?: number
