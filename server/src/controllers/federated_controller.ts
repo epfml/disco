@@ -36,10 +36,8 @@ export class FederatedController extends TrainingController {
     this.#latestGlobalWeights = initialWeights
 
     // Save the latest weight updates to be able to send it to new or outdated clients
-    this.#aggregator.on('aggregation', (weightUpdate) => {
-      serialization.weights.encode(weightUpdate)
-        .then(serializedWeights => { this.#latestGlobalWeights = serializedWeights })
-        .catch((e) => debug("while encoding latest weight update: %o", e))
+    this.#aggregator.on('aggregation', async (weightUpdate) => {
+      this.#latestGlobalWeights = await serialization.weights.encode(weightUpdate)
     })
   }
 
