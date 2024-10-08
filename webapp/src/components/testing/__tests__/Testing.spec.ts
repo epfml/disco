@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
-import piniaPersited from "pinia-plugin-persistedstate";
+import { createPersistedStatePlugin } from "pinia-plugin-persistedstate-2";
 
 import type { Task } from "@epfml/discojs";
 import { models as discoModels } from "@epfml/discojs";
@@ -37,7 +37,7 @@ it("shows stored models", async () => {
         createTestingPinia({
           createSpy: vi.fn,
           stubActions: false,
-          plugins: [piniaPersited],
+          plugins: [createPersistedStatePlugin({ persist: false })],
         }),
       ],
       stubs: ["RouterLink"],
@@ -72,7 +72,7 @@ it("allows to download server's models", async () => {
         createTestingPinia({
           createSpy: vi.fn,
           stubActions: false,
-          plugins: [piniaPersited],
+          plugins: [createPersistedStatePlugin({ persist: false })],
         }),
       ],
       stubs: ["RouterLink"],
