@@ -120,7 +120,7 @@ export class Trainer {
 
     return {
       epochs: epochsLogs,
-      participants: this.#client.nbOfParticipants,
+      participants: this.#client.getNbOfParticipants(),
     };
   }
 }

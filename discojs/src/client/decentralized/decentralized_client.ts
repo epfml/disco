@@ -26,7 +26,7 @@ export class DecentralizedClient extends Client {
   #pool?: PeerPool
   #connections?: Map<NodeID, PeerConnection>
 
-  get nbOfParticipants(): number {
+  override getNbOfParticipants(): number {
     const nbOfParticipants = this.aggregator.nodes.size
     return nbOfParticipants === 0 ? 1 : nbOfParticipants
   }

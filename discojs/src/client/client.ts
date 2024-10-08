@@ -182,9 +182,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
   * If federated, it should the number of participants excluding the server
   * If local it should be 1
   */
-  get nbOfParticipants(): number {
-    return 1 // overriden by the federated and decentralized clients
-  }
+  abstract getNbOfParticipants(): number;
 
   get ownId(): NodeID {
     if (this._ownId === undefined) {

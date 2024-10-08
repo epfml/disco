@@ -30,7 +30,7 @@ export class FederatedClient extends Client {
   #nbOfParticipants: number = 1;
 
   // the number of participants excluding the server
-  override get nbOfParticipants(): number {
+  override getNbOfParticipants(): number {
     return this.#nbOfParticipants
   }
 
