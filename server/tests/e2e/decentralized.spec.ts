@@ -148,16 +148,16 @@ describe('end-to-end decentralized', function () {
      * Then at each round (each call to `disco.trainByRound`) the event cycle is:
      * a) During onRoundBeingCommunication, 
      *   1. the peer notifies the server that they want to join the next round
-     *   2. finishes by updating the status to TRAINING
+     *   2. finishes by updating the status to "local training"
      * (without waiting for a server answer)
-     * b) local training (the status remains TRAINING)
+     * b) local training (the status remains "local training")
      * c) During onRoundEndCommunication 
      *   1. the peer notifies the server that they are ready to share weights 
-     *      set status to RETRIEVING PEERS
+     *      set status to "connecting to peers"
      *   2. wait for the server to answer with the current round's peers list
      *      this is where the nb of participants is updated
      *   3. establish peer-to-peer connections 
-     *   4. set status to UPDATING MODEL and exchange weight updates
+     *   4. set status to "updating model" and exchange weight updates
      * 
      * Given this, it is important to note that calling disco.trainByRound().next()
      * for the first time will perform a) and then b) where it stops and yields the round logs.

@@ -132,7 +132,7 @@ export class DecentralizedClient extends Client {
     // Store the promise for the current round's aggregation result.
     // We will await for it to resolve at the end of the round when exchanging weight updates.
     this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
-    this.saveAndEmit("TRAINING")
+    this.saveAndEmit("local training")
     return Promise.resolve()
   }
 
@@ -142,7 +142,7 @@ export class DecentralizedClient extends Client {
     }
     // Save the status in case participants leave and we switch to waiting for more participants
     // Once enough new participants join we can display the previous status again
-    this.saveAndEmit("RETRIEVING PEERS")
+    this.saveAndEmit("connecting to peers")
     // First we check if we are waiting for more participants before sending our weight update
     await this.waitForParticipantsIfNeeded()
     // Create peer-to-peer connections with all peers for the round
@@ -242,7 +242,7 @@ export class DecentralizedClient extends Client {
     if (this.aggregationResult === undefined) {
       throw new TypeError('aggregation result promise is undefined')
     }
-    this.saveAndEmit("UPDATING MODEL")
+    this.saveAndEmit("updating model")
     // Perform the required communication rounds. Each communication round consists in sending our local payload,
     // followed by an aggregation step triggered by the receipt of other payloads, and handled by the aggregator.
     // A communication round's payload is the aggregation result of the previous communication round. The first

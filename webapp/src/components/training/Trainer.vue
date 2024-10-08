@@ -208,10 +208,10 @@ async function startTraining(): Promise<void> {
   });
   // set the round status displayed to the status emitted by the disco object
   const discoStatusMessage = Map<RoundStatus, string>({
-    'NOT ENOUGH PARTICIPANTS': "Waiting for more participants",
-    'RETRIEVING PEERS': "Establishing peer-to-peer connections",
-    'UPDATING MODEL': "Updating the model with other participants' models",
-    'TRAINING': "Training the model on the data you connected"
+    'not enough participants': "Waiting for more participants",
+    'connecting to peers': "Establishing peer-to-peer connections",
+    'updating model': "Updating the model with other participants' models",
+    'local training': "Training the model on the data you connected"
   })
   disco.on("status", status => { roundStatus.value = discoStatusMessage.get(status) })
 

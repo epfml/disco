@@ -111,7 +111,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
         throw new Error("Server sent multiple WaitingForMoreParticipants messages")
       debug(`[${shortenId(this.ownId)}] received WaitingForMoreParticipants message from server`)
       // Display the waiting status right away
-      this.emit("status", "NOT ENOUGH PARTICIPANTS")
+      this.emit("status", "not enough participants")
       // Upon receiving a WaitingForMoreParticipants message,
       // the client will await for this promise to resolve before sending its
       // local weight update
@@ -155,7 +155,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
     if (this.waitingForMoreParticipants) {
       // wait for the promise to resolve, which takes as long as it takes for new participants to join
       debug(`[${shortenId(this.ownId)}] is awaiting the promise for more participants`)
-      this.emit("status", "NOT ENOUGH PARTICIPANTS")
+      this.emit("status", "not enough participants")
       await this.promiseForMoreParticipants 
       // Make sure to set the promise back to undefined once resolved
       this.promiseForMoreParticipants = undefined 

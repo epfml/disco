@@ -192,8 +192,8 @@ describe("end-to-end federated", () => {
      * When disco.trainByRound is called for the first time, the client connects to the server
      * which returns the latest model, current round and nb of participants.
      * Then at each round the event cycle is:
-     * a) onRoundBeingCommunication which updates the status to TRAINING
-     * b) local training (the status remains TRAINING)
+     * a) onRoundBeingCommunication which updates the status to "local training"
+     * b) local training (the status remains "local training")
      * c) onRoundEndCommunication which sends the local update and 
      * receives the global weights while emitting the status UPDATE
      * 
@@ -228,7 +228,7 @@ describe("end-to-end federated", () => {
     // stay stuck awaiting until another participant joins
     const logUser1Round2Promise = generatorUser1.next()
     await new Promise((res,_) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
-    expect(statusUser1).equal("NOT ENOUGH PARTICIPANTS")
+    expect(statusUser1).equal("not enough participants")
 
     // Create User 2
     const discoUser2 = new Disco(lusCovidTask, url, { scheme: "federated" });
@@ -241,10 +241,10 @@ describe("end-to-end federated", () => {
     expect(logUser2Round1.done).to.be.false
     expect((logUser2Round1.value as RoundLogs).participants).equal(2)
     // User 2 did a) and b)
-    expect(statusUser2).equal("TRAINING")
+    expect(statusUser2).equal("local training")
     // User 1 is still in c) now waiting for user 2 to share their local update
     // and for the server to aggregate the local updates
-    expect(statusUser1).equal("UPDATING MODEL")
+    expect(statusUser1).equal("updating model")
 
     // Proceed with round 2
     // the server should answer with the new global weights
@@ -256,15 +256,15 @@ describe("end-to-end federated", () => {
     expect((logUser1Round2.value as RoundLogs).participants).equal(2)
     expect((logUser2Round2.value as RoundLogs).participants).equal(2)
     // User 1 and 2 did c), a) and b)
-    expect(statusUser1).equal("TRAINING")
-    expect(statusUser2).equal("TRAINING")
+    expect(statusUser1).equal("local training")
+    expect(statusUser2).equal("local training")
     
     // Have user 1 quit the session
     await discoUser1.close()
     // Make user 2 go to c)
     const logUser2Round3Promise = generatorUser2.next()
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
-    expect(statusUser2).equal("NOT ENOUGH PARTICIPANTS")
+    expect(statusUser2).equal("not enough participants")
 
     // Create User 3
     const discoUser3 = new Disco(lusCovidTask, url, { scheme: "federated" });
@@ -277,10 +277,10 @@ describe("end-to-end federated", () => {
     expect(logUser3Round1.done).to.be.false
     expect((logUser3Round1.value as RoundLogs).participants).equal(2)
     // User 3 did a) and b)
-    expect(statusUser3).equal("TRAINING")
+    expect(statusUser3).equal("local training")
     // User 2 is still in c) waiting for user 3 to share their local update
     // and for the server to aggregate the local updates
-    expect(statusUser2).equal("UPDATING MODEL")
+    expect(statusUser2).equal("updating model")
     
     // User 3 sends their weights to the server
     const logUser3Round3 = await generatorUser3.next()
@@ -291,12 +291,12 @@ describe("end-to-end federated", () => {
     expect(logUser2Round3.value.participants).equal(2)
     expect(logUser3Round3.value.participants).equal(2)
     // both user 2 and 3 did c), a) and are now in b)
-    expect(statusUser2).equal("TRAINING")
-    expect(statusUser3).equal("TRAINING")
+    expect(statusUser2).equal("local training")
+    expect(statusUser3).equal("local training")
     
     await discoUser2.close()
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
-    expect(statusUser3).equal("NOT ENOUGH PARTICIPANTS")
+    expect(statusUser3).equal("not enough participants")
     await discoUser3.close()
   });
 });

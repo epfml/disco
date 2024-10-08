@@ -115,7 +115,7 @@ export class FederatedClient extends Client {
   override onRoundBeginCommunication(): Promise<void> {
     // Prepare the result promise for the incoming round
     this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
-    this.saveAndEmit("TRAINING")
+    this.saveAndEmit("local training")
     return Promise.resolve();
   }
 
@@ -136,7 +136,7 @@ export class FederatedClient extends Client {
 
     // First we check if we are waiting for more participants before sending our weight update
     await this.waitForParticipantsIfNeeded()
-    this.saveAndEmit("UPDATING MODEL")
+    this.saveAndEmit("updating model")
     // Send our local contribution to the server
     // and receive the server global update for this round as an answer to our contribution
     const payloadToServer: WeightsContainer = this.aggregator.makePayloads(weights).first()
