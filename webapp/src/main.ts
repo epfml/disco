@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import piniaPersited from "pinia-plugin-persistedstate";
+import { createPersistedStatePlugin } from "pinia-plugin-persistedstate-2";
 import * as tf from "@tensorflow/tfjs";
 
 import App from '@/components/App.vue'
@@ -37,7 +37,12 @@ app.config.errorHandler = (err, instance, info) => {
 }
 
 app
-  .use(createPinia().use(piniaPersited))
+  .use(
+    createPinia().use(
+      // we don't use pinia-plugin-persistedstate as it doesn't support async storage
+      createPersistedStatePlugin({ persist: false }),
+    ),
+  )
   .use(router)
   .use(VueTippy,
     {
