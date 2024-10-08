@@ -2,7 +2,7 @@ import createDebug from "debug";
 
 import { serialization } from "../../index.js";
 import type { Model, WeightsContainer } from "../../index.js";
-import { Client } from "../client.js";
+import { Client, shortenId } from "../client.js";
 import { type, type ClientConnected } from "../messages.js";
 import {
   waitMessage,
@@ -91,12 +91,12 @@ export class FederatedClient extends Client {
       throw new Error('received id from server but was already received')
     }
     this._ownId = id;
-    debug(`[${this.shortId(id)}] joined session at round ${round} `);
+    debug(`[${shortenId(id)}] joined session at round ${round} `);
     this.aggregator.setRound(round)
     this.#nbOfParticipants = nbOfParticipants
     // Upon connecting, the server answers with a boolean
     // which indicates whether there are enough participants or not
-    debug(`[${this.shortId(this.ownId)}] upon connecting, wait for participant flag %o`, this.waitingForMoreParticipants)
+    debug(`[${shortenId(this.ownId)}] upon connecting, wait for participant flag %o`, this.waitingForMoreParticipants)
     model.weights = serialization.weights.decode(payload)
     return model
   }
@@ -148,9 +148,9 @@ export class FederatedClient extends Client {
 
     // Need to await the resulting global model right after sending our local contribution
     // to make sure we don't miss it
-    debug(`[${this.shortId(this.ownId)}] sent its local update to the server for round ${this.aggregator.round}`);
+    debug(`[${shortenId(this.ownId)}] sent its local update to the server for round ${this.aggregator.round}`);
     this.server.send(msg);
-    debug(`[${this.shortId(this.ownId)}] is waiting for server update for round ${this.aggregator.round + 1}`);
+    debug(`[${shortenId(this.ownId)}] is waiting for server update for round ${this.aggregator.round + 1}`);
     const {
       payload: payloadFromServer,
       round: serverRound,

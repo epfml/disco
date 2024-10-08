@@ -35,7 +35,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
    * we were doing before waiting (training locally or updating our model).
    * We use this attribute to store the status to rollback to when we stop waiting
    */
-  protected previousStatus: RoundStatus | undefined = undefined;
+  private previousStatus: RoundStatus | undefined;
 
   constructor (
     public readonly url: URL, // The network server's URL to connect to
@@ -107,7 +107,9 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
     // Setup an event callback if the server signals that we should 
     // wait for more participants
     this.server.on(type.WaitingForMoreParticipants, () => {
-      debug(`[${this.ownId.slice(0, 4)}] received WaitingForMoreParticipants message from server`)
+      if (this.promiseForMoreParticipants !== undefined)
+        throw new Error("Server sent multiple WaitingForMoreParticipants messages")
+      debug(`[${shortenId(this.ownId)}] received WaitingForMoreParticipants message from server`)
       // Display the waiting status right away
       this.emit("status", "NOT ENOUGH PARTICIPANTS")
       // Upon receiving a WaitingForMoreParticipants message,
@@ -140,7 +142,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
     return new Promise<void>((resolve) => {
       // "once" is important because we can't resolve the same promise multiple times
       this.server.once(type.EnoughParticipants, () => {
-        debug(`[${this.ownId.slice(0, 4)}] received EnoughParticipants message from server`)
+        debug(`[${shortenId(this.ownId)}] received EnoughParticipants message from server`)
         // Emit the last status emitted before waiting if defined
         if (this.previousStatus !== undefined) this.emit("status", this.previousStatus)
         resolve()
@@ -152,7 +154,7 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
     // we check if we are waiting for more participants before sending our weight update
     if (this.waitingForMoreParticipants) {
       // wait for the promise to resolve, which takes as long as it takes for new participants to join
-      debug(`[${this.ownId.slice(0, 4)}] is awaiting the promise for more participants`)
+      debug(`[${shortenId(this.ownId)}] is awaiting the promise for more participants`)
       this.emit("status", "NOT ENOUGH PARTICIPANTS")
       await this.promiseForMoreParticipants 
       // Make sure to set the promise back to undefined once resolved
@@ -205,7 +207,8 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
     return this.promiseForMoreParticipants !== undefined 
   }
 
-  protected shortId(id: string): string{
-    return id.slice(0, 4)
-  }
+}
+
+export function shortenId(id: string): string {
+  return id.slice(0, 4)
 }
