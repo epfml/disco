@@ -27,7 +27,7 @@ import { nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 
-import { useTrainingStore } from '@/store/training'
+import { useTrainingStore } from "@/store";
 import CustomButton from '@/components/simple/CustomButton.vue'
 
 const router = useRouter()

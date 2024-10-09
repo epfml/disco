@@ -127,7 +127,7 @@ import type { Dataset, Model, Tabular, Task, Text } from "@epfml/discojs";
 import { Validator } from "@epfml/discojs";
 
 import { useToaster } from "@/composables/toaster";
-import { useValidationStore } from "@/store/validation";
+import { useValidationStore } from "@/store";
 
 import IconCard from "@/components/containers/IconCard.vue";
 import ImageCard from "@/components/containers/ImageCard.vue";

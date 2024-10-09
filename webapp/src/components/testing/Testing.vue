@@ -153,10 +153,10 @@ import { client as clients, aggregator } from "@epfml/discojs";
 import Bin2Icon from "@/assets/svg/Bin2Icon.vue";
 import { useToaster } from "@/composables/toaster";
 import { CONFIG } from "@/config";
-import type { ModelID } from "@/store/models";
-import { useModelsStore } from "@/store/models";
-import { useTasksStore } from "@/store/tasks";
-import { useValidationStore } from "@/store/validation";
+import type { ModelID } from "@/store";
+import { useModelsStore } from "@/store";
+import { useTasksStore } from "@/store";
+import { useValidationStore } from "@/store";
 
 import ButtonsCard from "@/components/containers/ButtonsCard.vue";
 import IconCard from "@/components/containers/IconCard.vue";

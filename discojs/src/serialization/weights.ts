@@ -1,58 +1,47 @@
-import * as msgpack from 'msgpack-lite'
-import * as tf from '@tensorflow/tfjs'
+import * as tf from "@tensorflow/tfjs";
 
-import { WeightsContainer } from '../index.js'
+import { WeightsContainer } from "../index.js";
+
+import { Encoded } from "./coder.js";
+import * as coder from "./coder.js";
 
 interface Serialized {
-  shape: number[]
-  data: number[]
+  shape: number[];
+  data: Float32Array;
 }
 
-function isSerialized (raw: unknown): raw is Serialized {
-  if (typeof raw !== 'object' || raw === null) {
-    return false
-  }
+function isSerialized(raw: unknown): raw is Serialized {
+  if (typeof raw !== "object" || raw === null) return false;
 
-  const { shape, data }: Partial<Record<'shape' | 'data', unknown>> = raw
+  const { shape, data }: Partial<Record<"shape" | "data", unknown>> = raw;
 
   if (
-    !(Array.isArray(shape) && shape.every((e) => typeof e === 'number')) ||
-    !(Array.isArray(data) && data.every((e) => typeof e === 'number'))
-  ) {
-    return false
-  }
+    !(Array.isArray(shape) && shape.every((e) => typeof e === "number")) ||
+    !(data instanceof Float32Array)
+  )
+    return false;
 
-  const _: Serialized = {
-    shape: shape,
-    data: data,
-  }
+  const _: Serialized = { shape, data };
 
-  return true
+  return true;
 }
 
-export type Encoded = number[]
-
-export function isEncoded (raw: unknown): raw is Encoded {
-  return Array.isArray(raw) && raw.every((e) => typeof e === 'number')
-}
-
-export async function encode (weights: WeightsContainer): Promise<Encoded> {
-  const serialized: Serialized[] = await Promise.all(weights.weights.map(async (t) => {
-    return {
+export async function encode(weights: WeightsContainer): Promise<Encoded> {
+  const serialized: Serialized[] = await Promise.all(
+    weights.weights.map(async (t) => ({
       shape: t.shape as number[],
-      data: [...await t.data<'float32'>()]
-    }
-  }))
+      data: await t.data<"float32">(),
+    })),
+  );
 
-  return [...msgpack.encode(serialized).values()]
+  return coder.encode(serialized);
 }
 
-export function decode (encoded: Encoded): WeightsContainer {
-  const raw: unknown = msgpack.decode(encoded)
+export function decode(encoded: Encoded): WeightsContainer {
+  const raw = coder.decode(encoded);
 
-  if (!(Array.isArray(raw) && raw.every(isSerialized))) {
-    throw new Error('expected to decode an array of serialized weights')
-  }
+  if (!(Array.isArray(raw) && raw.every(isSerialized)))
+    throw new Error("expected to decode an array of serialized weights");
 
-  return new WeightsContainer(raw.map((w) => tf.tensor(w.data, w.shape)))
+  return new WeightsContainer(raw.map((w) => tf.tensor(w.data, w.shape)));
 }

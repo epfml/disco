@@ -7,7 +7,8 @@ import {
   Task, TaskProvider, isTask,
   serialization, models, Model
 } from '@epfml/discojs'
-import type { EncodedModel } from '@epfml/discojs'
+
+type EncodedModel = serialization.Encoded;
 
 /**
  * The TaskInitializer essentially handles initializing a Task and 
@@ -76,7 +77,7 @@ export class TaskInitializer {
 
     // get the model
     let encodedModel: EncodedModel
-    if (serialization.model.isEncoded(model)) {
+    if (serialization.isEncoded(model)) {
       encodedModel = model // don't do anything if already encoded
     } else {
       let tfModel: Model

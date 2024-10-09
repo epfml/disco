@@ -30,7 +30,7 @@ export function setupServerWith(...providers: (Task | TaskProvider)[]): void {
       { hostname: "server", pathname: `/tasks/${task.id}/model.json` },
       { statusCode: 200 },
     );
-    cy.wrap<Promise<serialization.model.Encoded>, serialization.model.Encoded>(
+    cy.wrap<Promise<serialization.Encoded>, serialization.Encoded>(
       model.then(serialization.model.encode),
     ).then((encoded) =>
       cy.intercept(
@@ -66,11 +66,8 @@ export function basicTask(
   };
 }
 
-beforeEach(
-  () =>
-    new Promise((resolve, reject) => {
-      const req = window.indexedDB.deleteDatabase("tensorflowjs");
-      req.onerror = reject;
-      req.onsuccess = resolve;
-    }),
+beforeEach(() =>
+  navigator.storage
+    .getDirectory()
+    .then((root) => root.removeEntry("models", { recursive: true })),
 );
