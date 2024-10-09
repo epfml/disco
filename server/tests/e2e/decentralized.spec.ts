@@ -3,7 +3,7 @@ import { List, Repeat } from 'immutable'
 import { expect } from 'chai'
 import path from "node:path";
 
-import type { RoundLogs, RoundStatus } from "@epfml/discojs";
+import type { RoundStatus } from "@epfml/discojs";
 import { loadImagesInDir } from "@epfml/discojs-node";
 import { Queue } from './utils.js'
 
@@ -124,10 +124,13 @@ describe('end-to-end decentralized', function () {
   it("peers emit expected statuses", async function () {
     this.timeout(15_000);
     const lusCovidTask = defaultTasks.lusCovid.getTask();
-    lusCovidTask.trainingInformation.aggregationStrategy = 'mean';
-    lusCovidTask.trainingInformation.epochs = 8;
-    lusCovidTask.trainingInformation.roundDuration = 2;
-    lusCovidTask.trainingInformation.minNbOfParticipants = 2;
+    lusCovidTask.trainingInformation = {
+      ...lusCovidTask.trainingInformation,
+      scheme: 'decentralized',
+      aggregationStrategy: 'mean',
+      epochs: 8,
+      minNbOfParticipants: 2,
+    }
 
     const DATASET_DIR = path.join("..", "datasets");
 
@@ -202,8 +205,10 @@ describe('end-to-end decentralized', function () {
     // Have User 2 join the task and train for one round
     const logUser2Round1 = await generatorUser2.next()
     expect(logUser2Round1.done).to.be.false
+    if (logUser2Round1.done)
+      throw Error("User 2 finished training at the 1st round")
     // participant list not updated yet (updated at step c))
-    expect((logUser2Round1.value as RoundLogs).participants).equal(1)
+    expect((logUser2Round1.value).participants).equal(1)
     // User 2 did a) and b)
     expect(await statusUser2.next()).equal("local training")
     // User 1 is still in c) now waiting for user 2 to be ready to exchange weight updates
@@ -216,9 +221,11 @@ describe('end-to-end decentralized', function () {
     const logUser1Round2 = await logUser1Round2Promise // the promise can resolve now
     expect(logUser1Round2.done).to.be.false
     expect(logUser2Round2.done).to.be.false
+    if (logUser1Round2.done || logUser2Round2.done)
+      throw Error("User 1 or 2 finished training at the 2nd round")
     // nb of participants should now be updated
-    expect((logUser1Round2.value as RoundLogs).participants).equal(2)
-    expect((logUser2Round2.value as RoundLogs).participants).equal(2)
+    expect((logUser1Round2.value).participants).equal(2)
+    expect((logUser2Round2.value).participants).equal(2)
     // User 1 and 2 did c), a) and b)
     expect(await statusUser1.next()).equal("updating model") // second to last
     expect(await statusUser1.next()).equal("local training")
@@ -244,8 +251,10 @@ describe('end-to-end decentralized', function () {
     // User 3 joins mid-training and trains one local round
     const logUser3Round1 = await generatorUser3.next()
     expect(logUser3Round1.done).to.be.false
+    if (logUser3Round1.done)
+      throw Error("User 3 finished training at the 1st round")
     // participant list not updated yet
-    expect((logUser3Round1.value as RoundLogs).participants).equal(1)
+    expect((logUser3Round1.value).participants).equal(1)
     // User 3 did a) and b)
     expect(await statusUser3.next()).equal("local training")
     // User 2 is still in c) waiting for user 3 to be ready to exchange waits
@@ -256,7 +265,7 @@ describe('end-to-end decentralized', function () {
     const logUser3Round3 = await generatorUser3.next()
     const logUser2Round3 = await logUser2Round3Promise // the promise can resolve now
     if (logUser3Round3.done || logUser2Round3.done)
-      throw Error("User 1 or 2 finished training at the 3nd round")
+      throw Error("User 1 or 2 finished training at the 3rd round")
     expect(logUser2Round3.value.participants).equal(2)
     expect(logUser3Round3.value.participants).equal(2)
     // both user 2 and 3 did c), a) and are now in b)
