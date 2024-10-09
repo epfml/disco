@@ -14,9 +14,6 @@ export class EventEmitter<I extends Record<string, unknown>> {
   #listeners: {
     [E in keyof I]?: List<[once: boolean, _: Listener<I[E]>]>;
   } = {}
-  // Keep a list of the previously emitted events
-  // to allow subscribers to run callbacks on past events if needed
-  #pastEvents: { [E in keyof I]?: List<I[E]> } = {}
 
   /**
    * @param initialListeners object/mapping of event name to listener, as if using `on` on created instance
@@ -36,17 +33,11 @@ export class EventEmitter<I extends Record<string, unknown>> {
 
   /**
    * Register listener to call on event. 
-   * If onPastEvent is set to true, the listener is also ran on previously emitted events
    *
    * @param event event name to listen to
    * @param listener handler to call
-   * @param onPastEvents if true run the listener on already emitted events
    */
-  on<E extends keyof I>(event: E, listener: Listener<I[E]>, onPastEvents = false): void {
-    if (onPastEvents) {
-      const pastEvents = this.#pastEvents[event] ?? List()
-      pastEvents.forEach(async value => await listener(value))
-    }
+  on<E extends keyof I>(event: E, listener: Listener<I[E]>): void {
     const eventListeners = this.#listeners[event] ?? List()
     this.#listeners[event] = eventListeners.push([false, listener])
   }
@@ -73,9 +64,6 @@ export class EventEmitter<I extends Record<string, unknown>> {
     this.#listeners[event] = eventListeners.filterNot(([once]) => once)
 
     eventListeners.forEach(async ([_, listener]) => { await listener(value) })
-    // Save the event and value
-    const pastEvents = this.#pastEvents[event] ?? List()
-    this.#pastEvents[event] = pastEvents.push(value)
   }
 }
 

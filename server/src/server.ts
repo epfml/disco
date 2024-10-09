@@ -49,7 +49,8 @@ export class Server {
     const taskRouter = new TaskRouter(this.#taskSet)
     const federatedRouter = new TrainingRouter('federated', wsApplier, this.#taskSet)
     const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#taskSet)
-    // Add tasks to the server
+    // Important to add the tasks AFTER all the routers are initialized
+    // so that the 'newTask' event is emitted after the routers are ready
     await Promise.all(tasks.map((t) => this.addTask(t)));
 
     wsApplier.getWss().on('connection', (ws, req) => {

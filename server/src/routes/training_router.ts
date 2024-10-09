@@ -35,8 +35,8 @@ export class TrainingRouter {
     */
     process.nextTick(() => {
       taskSet.on('newTask',
-        async ({ task, encodedModel }) => { await this.onNewTask(task, encodedModel) },
-        true) // true to run the callback on already emitted tasks
+        async ({ task, encodedModel }) => { await this.onNewTask(task, encodedModel) }
+      )
     })
   }
 

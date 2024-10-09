@@ -54,8 +54,7 @@ export class TaskRouter {
     // delay listener because `this` (object) isn't fully constructed yet
     process.nextTick(() => {
       // a 'newTask' event is emitted when a new task is added 
-      // set onPastEvents to true to run the callback on already emitted tasks
-      this.#taskSet.on('newTask', ({ task }) => this.onNewTask(task), true)
+      this.#taskSet.on('newTask', ({ task }) => this.onNewTask(task))
     })
   }
 
