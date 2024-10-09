@@ -250,33 +250,32 @@ export class DecentralizedClient extends Client {
     // the aggregator to define any complex multi-round aggregation mechanism.
     let result = weights;
     for (let communicationRound = 0; communicationRound < this.aggregator.communicationRounds; communicationRound++) {
+      const connections = this.#connections
+      if (connections === undefined) throw new Error("peer's connections is undefined")
       // Generate our payloads for this communication round and send them to all ready connected peers
-      if (this.#connections !== undefined) {
-        const payloads = this.aggregator.makePayloads(result)
-        try {
-          await Promise.all(payloads.map(async (payload, id) => {
-            if (id === this.ownId)
-              return this.aggregator.add(this.ownId, payload, communicationRound)
-            
-            const peer = this.#connections?.get(id)
-            if (peer !== undefined) {
-              const encoded = await serialization.weights.encode(payload)
-              const msg: messages.PeerMessage = {
-                type: type.Payload,
-                peer: id,
-                aggregationRound: this.aggregator.round,
-                communicationRound,
-                payload: encoded
-              }
-              peer.send(msg)
-              debug(`[${shortenId(this.ownId)}] send weight update to peer ${shortenId(msg.peer)}` +
-              ` for round (%d, %d)`, this.aggregator.round, communicationRound);
-            }
-          }))
-        } catch (cause) {
-          throw new Error('error while sending weights', { cause })
+      const payloads = this.aggregator.makePayloads(result)
+      payloads.forEach(async (payload, id) => {
+        // add our own contribution to the aggregator
+        if (id === this.ownId) {
+          void this.aggregator.add(this.ownId, payload, communicationRound)
+          return
         }
-      }
+        // Send our payload to each peer
+        const peer = connections.get(id)
+        if (peer !== undefined) {
+          const encoded = await serialization.weights.encode(payload)
+          const msg: messages.PeerMessage = {
+            type: type.Payload,
+            peer: id,
+            aggregationRound: this.aggregator.round,
+            communicationRound,
+            payload: encoded
+          }
+          peer.send(msg)
+          debug(`[${shortenId(this.ownId)}] send weight update to peer ${shortenId(msg.peer)}` +
+            ` for round (%d, %d)`, this.aggregator.round, communicationRound);
+        }
+      })
       // Wait for aggregation before proceeding to the next communication round.
       // The current result will be used as payload for the eventual next communication round.
       try { 
