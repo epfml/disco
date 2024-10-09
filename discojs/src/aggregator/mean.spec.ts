@@ -64,20 +64,14 @@ describe("mean aggregator", () => {
 
     aggregator.setNodes(Set.of(id1, id2));
 
-    const result1 = aggregator.add(id1, WeightsContainer.of([0], [1]));
-    // Make sure that the aggregation isn't triggered by waiting some time
-    let timeoutTriggered = false
-    await Promise.race([result1,
-      new Promise<void>(resolve => setTimeout(() => {
-        timeoutTriggered = true
-        resolve()
-      }, 300))
-    ])
-    expect(timeoutTriggered).to.be.true
+    const result1 = aggregator.add(id1, WeightsContainer.of([0], [1]), 0);
+    // Make sure that the aggregation isn't triggered
+    expect(aggregator.round).equals(0)
     
     aggregator.registerNode(id2);
     const result2 = aggregator.add(id2, WeightsContainer.of([2], [3]));
     expect((await result1).equals(await result2)).to.be.true
+    expect(aggregator.round).equals(1) // round should be one now
   });
 
   it("can wait for an absolute number of contributions", async () => {
@@ -106,19 +100,13 @@ describe("mean aggregator", () => {
     const [id1, id2] = ["client 1", "client 2"]
     aggregator.setNodes(Set.of(id1));
     
-    const result1 = aggregator.add(id1, WeightsContainer.of([0], [1]));
-    // Make sure that the aggregation isn't triggered by waiting some time
-    let timeoutTriggered = false
-    await Promise.race([result1,
-      new Promise<void>(resolve => setTimeout(() => {
-        timeoutTriggered = true
-        resolve()
-      }, 300))
-    ])
-    expect(timeoutTriggered).to.be.true
+    const result1 = aggregator.add(id1, WeightsContainer.of([0], [1]), 0);
+    // Make sure that the aggregation isn't triggered
+    expect(aggregator.round).equals(0)
     
     aggregator.registerNode(id2);
     const result2 = aggregator.add(id2, WeightsContainer.of([2], [3]));
     expect((await result1).equals(await result2)).to.be.true
+    expect(aggregator.round).equals(1)
   });
 });
