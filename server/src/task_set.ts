@@ -10,10 +10,10 @@ import {
 import type { EncodedModel } from '@epfml/discojs'
 
 /**
- * The TaskInitializer essentially handles initializing a Task and 
- * its associated EncodedModel.
+ * The TaskSet essentially handles initializing a Task and 
+ * loading its associated EncodedModel.
  * 
- * We rely on a TaskInitializer to abstract the (asynchronous) logic of getting the model
+ * We rely on a TaskSet to abstract the (asynchronous) logic of getting the model
  * when not provided.
  * Depending on the case, getting the model is done by reading the model files
  * from disk if they exists, downloading them from a URL or 
@@ -23,15 +23,15 @@ import type { EncodedModel } from '@epfml/discojs'
  * to clients. Since the server doesn't need to use the Model, we
  * simply leave it already encoded and ready to be sent to clients
  * 
- * Due to the asynchronous nature of `addTask`, TaskInitializer is an EventEmitter, 
+ * Due to the asynchronous nature of `addTask`, TaskSet is an EventEmitter, 
  * by registering callbacks on new tasks and emitting a 'newTask' event 
  * when a new task has been added.
  * 
- * Tasks are usually passed to TaskInitializer when booting the server
+ * Tasks are usually passed to TaskSet when booting the server
  * and objects depending on tasks and models can subscribe to 
  * the 'newTask' event to run callbacks whenever a new Task and EncodedModel are initialized.
  */
-export class TaskInitializer extends EventEmitter<{
+export class TaskSet extends EventEmitter<{
   "newTask": { task: Task, encodedModel: EncodedModel }
 }>{
   // Keep track of previously initialized task-model pairs

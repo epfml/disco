@@ -7,7 +7,7 @@ import type * as http from "http";
 import type { TaskProvider } from "@epfml/discojs";
 
 import { TaskRouter, TrainingRouter } from './routes/index.js'
-import { TaskInitializer } from "./task_initializer.js";
+import { TaskSet } from "./task_set.js";
 
 const debug = createDebug("server");
 
@@ -21,7 +21,7 @@ const debug = createDebug("server");
  * https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/Introduction
  */
 export class Server {
-  readonly #taskInitializer = new TaskInitializer();
+  readonly #taskSet = new TaskSet();
 
   // Static method to asynchronously init the Server
   static async of(...tasks: TaskProvider[]): Promise<Server> {
@@ -31,7 +31,7 @@ export class Server {
   }
 
   async addTask(taskProvider: TaskProvider): Promise<void> {
-    await this.#taskInitializer.addTask(taskProvider);
+    await this.#taskSet.addTask(taskProvider);
   }
 
   /**
@@ -50,9 +50,9 @@ export class Server {
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: false }));
 
-    const taskRouter = new TaskRouter(this.#taskInitializer)
-    const federatedRouter = new TrainingRouter('federated', wsApplier, this.#taskInitializer)
-    const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#taskInitializer)
+    const taskRouter = new TaskRouter(this.#taskSet)
+    const federatedRouter = new TrainingRouter('federated', wsApplier, this.#taskSet)
+    const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#taskSet)
 
     wsApplier.getWss().on('connection', (ws, req) => {
       if (!federatedRouter.isValidUrl(req.url) && !decentralizedRouter.isValidUrl(req.url)) {
