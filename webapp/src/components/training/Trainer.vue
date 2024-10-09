@@ -52,14 +52,14 @@
           <!-- If we are currently training -->
           <div v-else class="flex flex-col justify-center items-center gap-y-4">
             <!-- Display the training status if defined -->
-            <div v-if="roundStatus !== undefined && roundStatus.length > 0">
+            <div v-if="roundStatus !== undefined && roundStatus.length > 0  && roundStatus[1] !== undefined">
               <span class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase">Status</span>
-              <span class="ml-5 font-mono text-md font-medium leading-none tracking-wider text-gray-600">{{ roundStatus }}</span>
+              <span class="ml-5 font-mono text-md font-medium leading-none tracking-wider text-gray-600">{{ roundStatus[1] }}</span>
             </div>
             <!-- Display an activity indicator depending on the training status -->
             <div class="min-h-9">
-              <div v-if="roundStatus === 'Waiting for more participants' ||
-                roundStatus === 'Establishing peer-to-peer connections'"
+              <div v-if="roundStatus !== undefined && (roundStatus[0] === 'connecting to peers' ||
+                roundStatus[0] === 'not enough participants')"
               >
                 <VueSpinnerPuff size="30" color="#6096BA"/>
               </div>
@@ -164,7 +164,7 @@ const roundsLogs = ref(List<RoundLogs>());
 const epochsOfRoundLogs = ref(List<EpochLogs>());
 const batchesOfEpochLogs = ref(List<BatchLogs>());
 const messages = ref(List<string>());
-const roundStatus = ref<string>();
+const roundStatus = ref<[RoundStatus, string | undefined]>();
 /**
  * Store a disco cleanup callback to make sure it can be ran if users
  * manually stop the training.
@@ -213,7 +213,7 @@ async function startTraining(): Promise<void> {
     'updating model': "Updating the model with other participants' models",
     'local training': "Training the model on the data you connected"
   })
-  disco.on("status", status => { roundStatus.value = discoStatusMessage.get(status) })
+  disco.on("status", status => { roundStatus.value = [status, discoStatusMessage.get(status)] })
 
   // Store the cleanup function such that it can be ran if users
   // manually interrupt the training
