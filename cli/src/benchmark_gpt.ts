@@ -55,8 +55,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     contextLength, batchSize, modelPath } = args
 
   // Launch a server instance
-  const disco = await Server.of(defaultTasks.wikitext);
-  const [server, url] = await disco.serve();
+  const [server, url] = await new Server().serve(undefined, defaultTasks.wikitext);
 
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)

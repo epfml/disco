@@ -42,8 +42,7 @@ describe('end-to-end decentralized', function () {
   let server: http.Server
   let url: URL
   beforeEach(async () => {
-    const disco = await Server.of(defaultTasks.cifar10, defaultTasks.lusCovid);
-    [server, url] = await disco.serve();
+    [server, url] = await new Server().serve(undefined, defaultTasks.cifar10, defaultTasks.lusCovid);
   });
   afterEach(() => { server?.close() })
 

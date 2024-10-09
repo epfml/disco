@@ -39,8 +39,7 @@ async function main (provider: TaskProvider, numberOfUsers: number): Promise<voi
   console.log(`Started ${task.trainingInformation.scheme} training of ${task.id}`)
   console.log({ args })
 
-  const discoServer = await Server.of(provider)
-  const [server, url] = await discoServer.serve()
+  const [server, url] = await new Server().serve(undefined, provider)
 
   const data = await getTaskData(task)
 

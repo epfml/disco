@@ -11,8 +11,6 @@ import { Server } from "./server.js";
 const PORT = 8080;
 
 const providers = Object.values(defaultTasks);
-// Init the server with default tasks
-const server = await Server.of(...providers);
 
 console.info("Server loaded the tasks below");
 console.table(
@@ -26,5 +24,6 @@ console.table(
     })),
 );
 
-const [_, serverURL] = await server.serve(PORT);
+// Init the server with default tasks
+const [_, serverURL] = await new Server().serve(PORT, ...providers);
 console.log(`Disco Server listening on ${serverURL.toString()}`);

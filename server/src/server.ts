@@ -23,13 +23,6 @@ const debug = createDebug("server");
 export class Server {
   readonly #taskSet = new TaskSet();
 
-  // Static method to asynchronously init the Server
-  static async of(...tasks: TaskProvider[]): Promise<Server> {
-    const ret = new Server();
-    await Promise.all(tasks.map((t) => ret.addTask(t)));
-    return ret;
-  }
-
   async addTask(taskProvider: TaskProvider): Promise<void> {
     await this.#taskSet.addTask(taskProvider);
   }
@@ -38,8 +31,11 @@ export class Server {
    * start server
    *
    * @param port where to start, if not given, choose a random one
+   * @param tasks list of initial tasks to serve
+   * @returns a tuple with the server instance and the URL
+   * 
    **/
-  async serve(port?: number): Promise<[http.Server, URL]> {
+  async serve(port?: number, ...tasks: TaskProvider[]): Promise<[http.Server, URL]> {
     const wsApplier = expressWS(express(), undefined, {
       leaveRouterUntouched: true,
     });
@@ -53,6 +49,8 @@ export class Server {
     const taskRouter = new TaskRouter(this.#taskSet)
     const federatedRouter = new TrainingRouter('federated', wsApplier, this.#taskSet)
     const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#taskSet)
+    // Add tasks to the server
+    await Promise.all(tasks.map((t) => this.addTask(t)));
 
     wsApplier.getWss().on('connection', (ws, req) => {
       if (!federatedRouter.isValidUrl(req.url) && !decentralizedRouter.isValidUrl(req.url)) {

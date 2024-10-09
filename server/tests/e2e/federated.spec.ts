@@ -28,12 +28,13 @@ describe("end-to-end federated", () => {
   let url: URL;
   beforeEach(async function () {
     this.timeout("10s");
-    [server, url] = await Server.of(
+    [server, url] = await new Server().serve(
+      undefined,
       defaultTasks.cifar10,
       defaultTasks.lusCovid,
       defaultTasks.titanic,
       defaultTasks.wikitext,
-    ).then((s) => s.serve());
+    );
   });
   afterEach(() => {
     server?.close();

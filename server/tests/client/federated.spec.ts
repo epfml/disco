@@ -15,8 +15,7 @@ describe("federated client", () => {
   let server: http.Server;
   let url: URL;
   beforeEach(async () => {
-    const disco = await Server.of(TASK_PROVIDER);
-    [server, url] = await disco.serve();
+    [server, url] = await new Server().serve(undefined, TASK_PROVIDER);
   });
   afterEach(() => {
     server?.close();
