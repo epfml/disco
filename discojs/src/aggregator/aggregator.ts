@@ -17,8 +17,8 @@ export enum AggregationStep {
  * Main, abstract, aggregator class whose role is to buffer contributions and to produce
  * a result based off their aggregation, whenever some defined condition is met.
  *
- * Emits an event whenever an aggregation step is performed.
- * Users wait for this event to fetch the aggregation result.
+ * Emits an event whenever an aggregation step is performed with the counrd's aggregated weights.
+ * Users subscribes to this event to get the aggregation result.
  */
 export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsContainer }> {
   /**
@@ -61,19 +61,16 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
 
     this.contributions = Map()
     this._nodes = Set()
+  }
 
-    // On each aggregation, increment
-    // updates the aggregator's state to proceed to the next communication round.
-    // If all communication rounds were performed, proceeds to the next aggregation round
-    // and empties the collection of stored contributions.
-    this.on('aggregation', () => {
-      this._communicationRound++;
-      if (this.communicationRound === this.communicationRounds) {
-        this._communicationRound = 0
-        this._round++
-        this.contributions = Map()
-      }
-    })
+  /**
+   * Convenience method to subscribe to the 'aggregation' event.
+   * Await this promise returns the aggregated weights for the current round.
+   * 
+   * @returns a promise for the aggregated weights
+   */
+  getPromiseForAggregation(): Promise<WeightsContainer> {
+    return new Promise<WeightsContainer>((resolve) => this.once('aggregation', resolve));
   }
 
   /**
@@ -81,49 +78,39 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
    * The aggregation round is increased whenever a new global model is obtained and local models are updated.
    * Within one aggregation round there may be multiple communication rounds (such as for the decentralized secure aggregation
    * which requires multiple steps to obtain a global model)
-   * The contribution will be aggregated during the next aggregation step.
+   * The contribution is aggregated during the next aggregation step.
    * 
    * @param nodeId The node's id
    * @param contribution The node's contribution
-   * @returns a promise for the aggregated weights, or undefined if the contribution is invalid
    */
-  async add(nodeId: client.NodeID, contribution: WeightsContainer,
-    aggregationRound: number, communicationRound?: number): Promise<WeightsContainer> {   
+  add(nodeId: client.NodeID, contribution: WeightsContainer,
+    aggregationRound: number, communicationRound?: number): void {   
     if (!this.isValidContribution(nodeId, aggregationRound))
       throw new Error("Tried adding an invalid contribution. Handle this case before calling add.")
     
     // call the abstract method _add, implemented by subclasses
     this._add(nodeId, contribution, communicationRound)
-    return this.createAggregationPromise()
+    // If the aggregator has enough contributions then aggregate the weights
+    // and emit the 'aggregation' event
+    if (this.isFull()) {
+      const aggregatedWeights = this.aggregate()
+      // On each aggregation, increment the communication round
+      // If all communication rounds were performed, proceed to the next aggregation round
+      // and empty the past contributions.
+      this._communicationRound++;
+      if (this.communicationRound === this.communicationRounds) {
+        this._communicationRound = 0
+        this._round++;
+        this.contributions = Map()
+      }
+      // Emitting the 'aggregation' communicates the weights to subscribers
+      this.emit('aggregation', aggregatedWeights)
+    }
   }
   
   // Abstract method to be implemented by subclasses
   // Handles logging and adding the contribution to the list of the current round's contributions
   protected abstract _add(nodeId: client.NodeID, contribution: WeightsContainer, communicationRound?: number): void
-
-  /**
-   * Create a promise which resolves when enough contributions are received and 
-   * local updates are aggregated. 
-   * If the aggregator has enough contribution then we can aggregate the weights
-   * directly (and emit the 'aggregation' event)
-   * Otherwise we wait for the 'aggregation' event which will be emitted once 
-   * enough contributions are received
-   * 
-   * @returns a promise for the aggregated weights
-   */
-  protected createAggregationPromise(): Promise<WeightsContainer> {
-    // Wait for the aggregation event to be emitted
-    const ret = new Promise<WeightsContainer>((resolve) => this.once('aggregation', resolve));
-    
-    if (this.isFull()) {
-      const aggregatedWeights = this.aggregate()
-      // Emitting the 'aggregation' communicates the aggregation to other clients and
-      // takes care of incrementing the round
-      this.emit('aggregation', aggregatedWeights)
-    }
-    
-    return ret
-  }
 
   /**
    * Evaluates whether a given participant contribution can be used in the current aggregation round

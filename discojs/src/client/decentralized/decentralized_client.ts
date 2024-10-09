@@ -131,7 +131,7 @@ export class DecentralizedClient extends Client {
     this.server.send({ type: type.JoinRound })
     // Store the promise for the current round's aggregation result.
     // We will await for it to resolve at the end of the round when exchanging weight updates.
-    this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
+    this.aggregationResult = this.aggregator.getPromiseForAggregation()
     this.saveAndEmit("local training")
     return Promise.resolve()
   }
@@ -223,12 +223,11 @@ export class DecentralizedClient extends Client {
           else {
             debug(`[${shortenId(this.ownId)}] received payload from peer ${shortenId(peerId)}` +
               ` for round (%d, %d)`, message.aggregationRound, message.communicationRound);
-            // Make sure to not await this promise in order to not miss subsequent messages
-            void this.aggregator.add(peerId, decoded, message.aggregationRound, message.communicationRound)
-              .then(() =>
+            this.aggregator.once("aggregation", () =>
                 debug(`[${shortenId(this.ownId)}] aggregated the model` +
                   ` for round (%d, %d)`, message.aggregationRound, message.communicationRound)
               )
+            this.aggregator.add(peerId, decoded, message.aggregationRound, message.communicationRound)
           }
         } catch (e) {
           if (this.isDisconnected) return
@@ -257,7 +256,7 @@ export class DecentralizedClient extends Client {
       payloads.forEach(async (payload, id) => {
         // add our own contribution to the aggregator
         if (id === this.ownId) {
-          void this.aggregator.add(this.ownId, payload, communicationRound)
+          this.aggregator.add(this.ownId, payload, this.aggregator.round, communicationRound)
           return
         }
         // Send our payload to each peer
@@ -294,7 +293,7 @@ export class DecentralizedClient extends Client {
       // There is at least one communication round remaining
       if (communicationRound < this.aggregator.communicationRounds - 1) {
         // Reuse the aggregation result
-        this.aggregationResult = new Promise((resolve) => this.aggregator.once('aggregation', resolve))
+        this.aggregationResult = this.aggregator.getPromiseForAggregation()
       }
     }
     return await this.aggregationResult

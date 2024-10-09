@@ -35,8 +35,10 @@ AGGREGATORS.forEach(([name, Aggregator]) =>
       
       let promises = List<Promise<WeightsContainer>>()
       for (let i = 0; i < 3; i++)
-        for (let r = 0; r < aggregator.communicationRounds; r++)
-          promises = promises.push(aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r))
+        for (let r = 0; r < aggregator.communicationRounds; r++){
+          promises = promises.push(aggregator.getPromiseForAggregation())
+          aggregator.add(`client ${i}`, WeightsContainer.of([i]), 0, r)
+        }
       await Promise.all(promises)
       await results; // nothing to test
 

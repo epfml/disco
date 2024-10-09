@@ -101,19 +101,20 @@ export class FederatedController extends TrainingController {
           if (this.#aggregator.isValidContribution(clientId, round)) {
             const weights = serialization.weights.decode(payload)
 
-            // Send the aggregated weight to the client when enough contributions are received
+            // Create a callback to send the aggregated weight to the client 
+            // when enough contributions are received
+            this.#aggregator.once('aggregation', async (weightUpdate) => {
+              debug("Sending global weights for round %o to client [%s]", this.#aggregator.round, shortId)
+              const msg: FederatedMessages.ReceiveServerPayload = {
+                type: MessageTypes.ReceiveServerPayload,
+                round: this.#aggregator.round, // send the current round number after aggregation
+                payload: await serialization.weights.encode(weightUpdate),
+                nbOfParticipants: this.connections.size
+              }
+              ws.send(msgpack.encode(msg))
+            })
+            // Add the contribution
             this.#aggregator.add(clientId, weights, round)
-              .then(async (weightUpdate) => {
-                debug("Sending global weights for round %o to client [%s]", this.#aggregator.round, shortId)
-                const msg: FederatedMessages.ReceiveServerPayload = {
-                  type: MessageTypes.ReceiveServerPayload,
-                  round: this.#aggregator.round, // send the current round number after aggregation
-                  payload: await serialization.weights.encode(weightUpdate),
-                  nbOfParticipants: this.connections.size
-                }
-                ws.send(msgpack.encode(msg))
-              })
-              .catch((e) => debug("while waiting for weights: %o", e))
             debug(`Successfully added contribution from client [%s] for round ${round}`, shortId)
           } else {
             // If the client sent an invalid or outdated contribution
