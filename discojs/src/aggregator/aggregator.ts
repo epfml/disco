@@ -140,7 +140,7 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
    * @param round The round
    * @returns True if the round is recent enough, false otherwise
    */
-  isWithinRoundCutoff (round: number): boolean {
+  private isWithinRoundCutoff (round: number): boolean {
     return this.round - round <= this.roundCutoff
   }
 
@@ -204,14 +204,6 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
   }
 
   /**
-   * Empties the current set of "nodes". Usually called at the end of an aggregation round,
-   * if the set of nodes is meant to change or to be actualized.
-   */
-  resetNodes (): void {
-    this._nodes = Set()
-  }
-
-  /**
    * Sets the aggregator's round number. To be used whenever the aggregator is out of sync
    * with the network's round.
    * @param round The new round
@@ -242,17 +234,6 @@ export abstract class Aggregator extends EventEmitter<{'aggregation': WeightsCon
    */
   get round (): number {
     return this._round
-  }
-
-  /**
-   * The aggregator's current size, defined by its number of contributions. The size is bounded by
-   * the amount of all active nodes times the number of communication rounds.
-   */
-  get size (): number {
-    return this.contributions
-      .valueSeq()
-      .map((m) => m.size)
-      .reduce((totalSize: number, size) => totalSize + size) ?? 0
   }
 
   /**
