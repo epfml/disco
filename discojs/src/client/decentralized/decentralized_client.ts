@@ -140,6 +140,9 @@ export class DecentralizedClient extends Client {
     if (this.aggregationResult === undefined) {
       throw new TypeError('aggregation result promise is undefined')
     }
+    // Save the status in case participants leave and we switch to waiting for more participants
+    // Once enough new participants join we can display the previous status again
+    this.saveAndEmit("RETRIEVING PEERS")
     // First we check if we are waiting for more participants before sending our weight update
     await this.waitForParticipantsIfNeeded()
     // Create peer-to-peer connections with all peers for the round
@@ -159,9 +162,6 @@ export class DecentralizedClient extends Client {
     } if (this.#pool === undefined) {
         throw new Error('peer pool is undefined, make sure to call `client.connect()` first')
     }
-    // Save the status in case participants leave and we switch to waiting for more participants
-    // Once enough new participants join we can display the previous status again
-    this.saveAndEmit("RETRIEVING PEERS")
 
     // Reset peers list at each round of training to make sure client works with an updated peers
     // list, maintained by the server. Adds any received weights to the aggregator.
