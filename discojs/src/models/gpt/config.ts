@@ -26,6 +26,7 @@ export interface GPTConfig {
   nLayer?: number
   nHead?: number
   nEmbd?: number
+  seed?: number,
 }
 // for a benchmark of performance, see https://github.com/epfml/disco/pull/659
 export const DefaultGPTConfig: Required<GPTConfig> = {
@@ -47,6 +48,7 @@ export const DefaultGPTConfig: Required<GPTConfig> = {
   nLayer: 3,
   nHead: 3,
   nEmbd: 48,
+  seed: 42,
 }
 
 export type ModelSize = {

@@ -61,7 +61,7 @@ tf.serialization.registerClass(LogLayer)
 
 type CausalSelfAttentionConfig =
     ConstructorParameters<typeof tf.layers.Layer>[0]
-    & Record<'blockSize' | 'nHead' | 'nEmbd' | 'dropout' | 'nLayer', number>
+    & Record<'blockSize' | 'nHead' | 'nEmbd' | 'dropout' | 'nLayer' | 'seed', number>
 
 class CausalSelfAttention extends tf.layers.Layer {
   static readonly className = 'CausalSelfAttention'
@@ -70,6 +70,7 @@ class CausalSelfAttention extends tf.layers.Layer {
   private readonly nEmbd: number
   private readonly nLayer: number
   private readonly dropout: number
+  private readonly seed: number
   private readonly mask: tf.Tensor2D
   cAttnKernel?: tf.LayerVariable
   cAttnBias?: tf.LayerVariable
@@ -85,6 +86,7 @@ class CausalSelfAttention extends tf.layers.Layer {
     this.nHead = config.nHead
     this.nLayer = config.nLayer
     this.dropout = config.dropout
+    this.seed = config.seed
 
     // mask is a lower triangular matrix filled with 1
     // calling bandPart zero out the upper triangular part of the all-ones matrix
@@ -98,7 +100,7 @@ class CausalSelfAttention extends tf.layers.Layer {
       'c_attn.weight',
       [this.nEmbd, 3 * this.nEmbd],
       'float32',
-      tf.initializers.randomNormal({ mean:0, stddev:0.02 }) // use same init as GPT2
+      tf.initializers.randomNormal({ mean:0, stddev:0.02, seed: this.seed }) // use same init as GPT2
     )
     this.cAttnBias = this.addWeight(
       'c_attn.bias',
@@ -116,7 +118,9 @@ class CausalSelfAttention extends tf.layers.Layer {
       // Sources:
       // https://github.com/karpathy/build-nanogpt/blob/6104ab1b53920f6e2159749676073ff7d815c1fa/train_gpt2.py#L103
       // https://youtu.be/l8pRSuU81PU?si=5GcKfi_kPgLgvtg2&t=4640
-      tf.initializers.randomNormal({ mean:0, stddev: 0.02 * Math.sqrt(2 * this.nLayer) })
+      tf.initializers.randomNormal({
+        mean: 0, stddev: 0.02 * Math.sqrt(2 * this.nLayer), seed: this.seed
+      })
     )
     this.cProjBias = this.addWeight(
       'c_proj.bias',
@@ -194,14 +198,14 @@ class CausalSelfAttention extends tf.layers.Layer {
       // (attention weights of past tokens). The probability distribution ensures
       // that the attention weights of past tokens for a particular token sum to one
       att = tf.softmax(att, -1)
-      att = kwargs.training === true ? tf.dropout(att, this.dropout) : att
+      att = kwargs.training === true ? tf.dropout(att, this.dropout, undefined, this.seed) : att
 
       // This is where the (attention-)weighted sum of past values is performed
       let y = tf.matMul(att, v) // (B, nHead, T, T) x (B, nHead, T, hs) -> (B, nHead, T, hs)
       y = tf.transpose(y, [0, 2, 1, 3]) // (B, T, nHead, hs)
       y = tf.reshape(y, [B, T, C]) // (B, T, C = nHead * hs)
       y = dense(y, this.cProjKernel, this.cProjBias) // output projection (B, T, C)
-      y = kwargs.training === true ? tf.dropout(y, this.dropout) : y
+      y = kwargs.training === true ? tf.dropout(y, this.dropout, undefined, this.seed) : y
       return y
     })
   }
@@ -251,7 +255,7 @@ class GELU extends tf.layers.Layer {
 tf.serialization.registerClass(GELU)
 
 type MLPConfig = ConstructorParameters<typeof tf.layers.Layer>[0] &
-  Required<ModelSize> & Record<'blockSize' | 'residDrop' | 'nLayer', number>
+  Required<ModelSize> & Record<'blockSize' | 'residDrop' | 'nLayer' | 'seed', number>
 
 function MLP(config: MLPConfig): tf.LayersModel {
   return tf.sequential({ layers: [
@@ -260,7 +264,9 @@ function MLP(config: MLPConfig): tf.LayersModel {
       units: 4 * config.nEmbd,
       inputDim: config.nEmbd,
       inputShape: [config.blockSize, config.nEmbd],
-      kernelInitializer: tf.initializers.randomNormal({ mean: 0, stddev: 0.02 }),
+      kernelInitializer: tf.initializers.randomNormal({
+        mean: 0, stddev: 0.02, seed: config.seed
+      }),
     }),
     new GELU(),
     tf.layers.dense({
@@ -269,12 +275,13 @@ function MLP(config: MLPConfig): tf.LayersModel {
       inputDim: 4 * config.nEmbd,
       inputShape: [config.blockSize, 4 * config.nEmbd],
       kernelInitializer: tf.initializers.randomNormal({
-        mean: 0, stddev: 0.02 * Math.sqrt(2 * config.nLayer)
+        mean: 0, stddev: 0.02 * Math.sqrt(2 * config.nLayer), seed: config.seed
       }),
     }),
     tf.layers.dropout({
       name: config.name + '.mlp.drop',
-      rate: config.residDrop
+      rate: config.residDrop,
+      seed: config.seed
     }),
   ]})
 }
@@ -354,7 +361,8 @@ class LMEmbedding extends tf.layers.Layer {
   static readonly className = 'LMEmbedding'
   embeddings?: tf.LayerVariable
 
-  constructor(private readonly vocabSize: number, private readonly nEmbd: number) {
+  constructor(private readonly vocabSize: number,
+    private readonly nEmbd: number, private readonly seed: number) {
     super({})
   }
   override build(): void {
@@ -362,7 +370,7 @@ class LMEmbedding extends tf.layers.Layer {
       'wte', //use same name as GPT2
       [this.vocabSize, this.nEmbd],
       'float32',
-      tf.initializers.randomNormal({ mean:0, stddev:0.02 })
+      tf.initializers.randomNormal({ mean:0, stddev:0.02, seed: this.seed })
     )
   }
 
@@ -431,7 +439,7 @@ export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
   const inputs = tf.input({ shape: [null] })
 
   // token embedding
-  const wte = new LMEmbedding(config.vocabSize, config.nEmbd)
+  const wte = new LMEmbedding(config.vocabSize, config.nEmbd, config.seed)
   let tokEmb = wte.apply(inputs) as tf.SymbolicTensor // (batch_size, input length T, nEmbd)
   
   if (config.debug) {
@@ -443,7 +451,9 @@ export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
     name: config.name + '.wpe',
     inputDim: config.blockSize,
     outputDim: config.nEmbd,
-    embeddingsInitializer: tf.initializers.randomNormal({ mean: 0, stddev: 0.02 }),
+    embeddingsInitializer: tf.initializers.randomNormal({
+      mean: 0, stddev: 0.02, seed: config.seed
+    }),
   }).apply(range) as tf.SymbolicTensor
   
   if (config.debug) {
@@ -453,7 +463,9 @@ export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
   // token and positional embeddings are added together
   let x = tf.layers.add().apply([tokEmb, posEmb])
   // dropout
-  x = tf.layers.dropout({name: 'drop', rate: config.embdDrop}).apply(x)
+  x = tf.layers.dropout({
+    name: 'drop', rate: config.embdDrop, seed: config.seed
+  }).apply(x)
   if (config.debug) {
     x = new LogLayer({ name: 'drop_log' }).apply(x)
   }
