@@ -38,7 +38,7 @@ describe('gpt-tfjs', function() {
     const model = new GPT(config)
     for (let i = 0; i < 5; i++)
       for await (const _ of model.train(tokenDataset, undefined));
-    const generation = await model.generate("Lorem ipsum dolor", tokenizer, 1)
+    const generation = await model.generate("Lorem ipsum dolor", tokenizer, { maxNewTokens: 1 })
     expect(generation).equal(data) // Assert that the model completes 'Lorem ipsum dolor' with 'sit' 
   })
 })

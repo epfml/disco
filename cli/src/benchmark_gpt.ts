@@ -139,18 +139,18 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     
     // Benchmark parameters
     const prompt = 'The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion, The game began development in 2010 , carrying over a large portion,'
-    const nbNewTokens = 200
+    const maxNewTokens = 200
     const iterations = 10
-    console.log("Generating", nbNewTokens, "new tokens")
+    console.log("Generating", maxNewTokens, "new tokens")
 
     let inferenceTime = 0
     for (let i = 0; i < iterations; i++) {
       const timeStart = performance.now()
-      const _ = await model.generate(prompt, tokenizer, nbNewTokens)
+      const _ = await model.generate(prompt, tokenizer, { maxNewTokens })
       inferenceTime += performance.now() - timeStart
     }
     // Overall average includes tokenization, token sampling and de-tokenization
-    console.log(`Inference time: ${(inferenceTime/ nbNewTokens / iterations).toFixed(2)} ms/token`)
+    console.log(`Inference time: ${(inferenceTime/ maxNewTokens / iterations).toFixed(2)} ms/token`)
   }
   await new Promise((resolve, reject) => {
     server.once('close', resolve)
