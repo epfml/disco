@@ -49,7 +49,6 @@ tf.serialization.registerClass(LogLayer)
 type CausalSelfAttentionConfig =
     ConstructorParameters<typeof tf.layers.Layer>[0]
     & Record<'blockSize' | 'nHead' | 'nEmbd' | 'dropout', number>
-    & { bias: boolean }
 
 class CausalSelfAttention extends tf.layers.Layer {
   static readonly className = 'CausalSelfAttention'
@@ -57,7 +56,6 @@ class CausalSelfAttention extends tf.layers.Layer {
   private readonly nHead: number
   private readonly nEmbd: number
   private readonly dropout: number
-  private readonly bias: boolean
   private readonly mask: tf.Tensor2D
   cAttnKernel?: tf.LayerVariable
   cAttnBias?: tf.LayerVariable
@@ -69,7 +67,6 @@ class CausalSelfAttention extends tf.layers.Layer {
     this.nEmbd = config.nEmbd
     this.nHead = config.nHead
     this.dropout = config.dropout
-    this.bias = config.bias
 
     // mask is a lower triangular matrix filled with 1
     // calling bandPart zero out the upper triangular part of the all-ones matrix
@@ -129,11 +126,7 @@ class CausalSelfAttention extends tf.layers.Layer {
       const dense = (x: tf.Tensor, kernel: tf.LayerVariable, bias: tf.LayerVariable): tf.Tensor => {
         const k = kernel.read().expandDims(0).tile([x.shape[0], 1, 1])
         const m = x.matMul(k)
-        if (this.bias) {
-          return tf.add(m, bias.read())
-        } else {
-          return m
-        }
+        return tf.add(m, bias.read())
       }
       // Apply attention weights to inputs as one big matrix which is then split into the
       // query, key and value submatrices
@@ -297,8 +290,7 @@ export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
   const inputs = tf.input({ shape: [null] })
 
   //Token embedding
-  const tokEmb = config.tokEmb
-    ? tf.layers.embedding({
+  const tokEmb = tf.layers.embedding({
       name: config.name + '/wte',
       inputDim: config.vocabSize,
       outputDim: config.nEmbd,
@@ -306,7 +298,6 @@ export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
       embeddingsRegularizer: undefined,
       activityRegularizer: undefined
     }).apply(inputs) as tf.SymbolicTensor
-    : inputs
 
   // Positional embedding
   const range = new Range({}).apply(inputs)
@@ -342,16 +333,14 @@ export function GPTArchitecture(config: Required<GPTConfig>): tf.LayersModel {
     x = new LogLayer({ name: 'fin/ln' }).apply(x)
   }
 
-  // Append a language modeling head if specified
-  if (config.lmHead) {
-    x = tf.layers.dense({
-      name: 'lm_head',
-      units: config.vocabSize,
-      inputDim: config.nEmbd,
-      inputShape: [config.blockSize, config.nEmbd],
-      useBias: false
-    }).apply(x)
-  }
+  // Append a language modeling head
+  x = tf.layers.dense({
+    name: 'lm_head',
+    units: config.vocabSize,
+    inputDim: config.nEmbd,
+    inputShape: [config.blockSize, config.nEmbd],
+    useBias: false
+  }).apply(x)
 
   return tf.model({ inputs, outputs: x as tf.SymbolicTensor })
 }
