@@ -11,7 +11,7 @@ import { TEXT_PREPROCESSING } from './preprocessing/index.js'
 export class TextData extends Data {
   public readonly availablePreprocessing = TEXT_PREPROCESSING
 
-  static init (
+  static override init (
     dataset: tf.data.Dataset<tf.TensorContainer>,
     task: Task,
     size?: number

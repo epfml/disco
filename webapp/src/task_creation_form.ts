@@ -8,7 +8,6 @@ interface FormElement {
 export interface FormDependency {
   dataType?: string
   scheme?: string
-  decentralizedSecure?: boolean
 }
 
 export interface FormField {
@@ -325,16 +324,6 @@ export const privacyParameters: FormSection = {
       default: '40.0'
     },
     {
-      id: 'decentralizedSecure',
-      name: 'Secure Aggregation',
-      yup: yup.string(),
-      as: 'input',
-      type: 'checkbox',
-      dependencies: {
-        scheme: 'decentralized'
-      }
-    },
-    {
       id: 'maxShareValue',
       name: 'Maximum Share Value',
       description: 'Maximum Value of Shares used in Secure Aggregation',
@@ -342,9 +331,6 @@ export const privacyParameters: FormSection = {
       as: 'input',
       type: 'number',
       default: '100',
-      dependencies: {
-        decentralizedSecure: true
-      }
     }
   ]
 }

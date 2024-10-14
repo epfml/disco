@@ -63,12 +63,7 @@ const customTask: TaskProvider = {
 
 async function runServer (): Promise<void> {
   // Create server
-  const server = await DiscoServer.of(
-    // with some tasks provided by Disco
-    defaultTasks.titanic,
-    // or your own custom task
-    customTask,
-  )
+  const server = new DiscoServer()
 
   // You can also provide your own task object containing the URL of the model
 
@@ -86,7 +81,10 @@ async function runServer (): Promise<void> {
   // await server.addTask(customTask.getTask(), new URL('https://example.com/path/to/your/model.json'))
 
   // Start the server
-  await server.serve()
+  await server.serve(8080, 
+    defaultTasks.titanic, // with some tasks provided by Disco
+    // or your own custom task
+    customTask,)
 }
 
 runServer().catch(console.error)

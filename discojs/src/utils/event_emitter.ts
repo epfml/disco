@@ -2,7 +2,7 @@
 
 import { List } from 'immutable'
 
-type Listener<T> = (_: T) => void
+type Listener<T> = (_: T) => void | Promise<void>
 
 /**
  * Call handlers on given events
@@ -10,7 +10,8 @@ type Listener<T> = (_: T) => void
  * @typeParam I object/mapping from event name to emitted value type
  */
 export class EventEmitter<I extends Record<string, unknown>> {
-  private listeners: {
+  // List of callbacks to run per event
+  #listeners: {
     [E in keyof I]?: List<[once: boolean, _: Listener<I[E]>]>;
   } = {}
 
@@ -31,14 +32,14 @@ export class EventEmitter<I extends Record<string, unknown>> {
   }
 
   /**
-   * Register listener to call on event
+   * Register listener to call on event. 
    *
    * @param event event name to listen to
    * @param listener handler to call
    */
   on<E extends keyof I>(event: E, listener: Listener<I[E]>): void {
-    const eventListeners = this.listeners[event] ?? List()
-    this.listeners[event] = eventListeners.push([false, listener])
+    const eventListeners = this.#listeners[event] ?? List()
+    this.#listeners[event] = eventListeners.push([false, listener])
   }
 
   /**
@@ -48,8 +49,8 @@ export class EventEmitter<I extends Record<string, unknown>> {
    * @param listener handler to call next time
    */
   once<E extends keyof I>(event: E, listener: Listener<I[E]>): void {
-    const eventListeners = this.listeners[event] ?? List()
-    this.listeners[event] = eventListeners.push([true, listener])
+    const eventListeners = this.#listeners[event] ?? List()
+    this.#listeners[event] = eventListeners.push([true, listener])
   }
 
   /**
@@ -59,10 +60,10 @@ export class EventEmitter<I extends Record<string, unknown>> {
    * @param value what to call listeners with
    */
   emit<E extends keyof I>(event: E, value: I[E]): void {
-    const eventListeners = this.listeners[event] ?? List()
-    this.listeners[event] = eventListeners.filterNot(([once]) => once)
+    const eventListeners = this.#listeners[event] ?? List()
+    this.#listeners[event] = eventListeners.filterNot(([once]) => once)
 
-    eventListeners.forEach(([_, listener]) => { listener(value) })
+    eventListeners.forEach(async ([_, listener]) => { await listener(value) })
   }
 }
 

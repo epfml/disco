@@ -6,11 +6,16 @@ import { Client } from "./client.js";
  * with anyone. Thus LocalClient doesn't do anything during communication
  */
 export class LocalClient extends Client {
-  onRoundBeginCommunication(): Promise<void> {
+
+  override getNbOfParticipants(): number {
+    return 1;
+  }
+
+  override onRoundBeginCommunication(): Promise<void> {
     return Promise.resolve();
   }
   // Simply return the local weights 
-  onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer> {
+  override onRoundEndCommunication(weights: WeightsContainer): Promise<WeightsContainer> {
     return Promise.resolve(weights);
   }
 }

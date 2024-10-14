@@ -8,11 +8,11 @@ import type { ModelSize } from './config.js'
 class Range extends tf.layers.Layer {
   static readonly className = 'Range'
 
-  computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
+  override computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
     return inputShape
   }
 
-  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
+  override call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
     return tf.tidy(() => {
       if (Array.isArray(input)) {
         // TODO support multitensor
@@ -30,11 +30,11 @@ tf.serialization.registerClass(Range)
 class LogLayer extends tf.layers.Layer {
   static readonly className = 'LogLayer'
 
-  computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
+  override computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
     return inputShape
   }
 
-  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
+  override call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
     return tf.tidy(() => {
       if (Array.isArray(input)) {
         input = input[0]
@@ -77,7 +77,7 @@ class CausalSelfAttention extends tf.layers.Layer {
     this.mask = tf.linalg.bandPart(tf.ones([config.blockSize, config.blockSize]), -1, 0)
   }
 
-  build (): void {
+  override build (): void {
     this.cAttnKernel = this.addWeight(
       'c_attn/kernel',
       [this.nEmbd, 3 * this.nEmbd],
@@ -104,16 +104,16 @@ class CausalSelfAttention extends tf.layers.Layer {
     )
   }
 
-  computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
+  override computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
     return inputShape
   }
 
-  getConfig (): tf.serialization.ConfigDict {
+  override getConfig (): tf.serialization.ConfigDict {
     const config = super.getConfig()
     return Object.assign({}, config, this.config)
   }
 
-  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
+  override call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
     return tf.tidy(() => {
       if (this.cAttnKernel === undefined ||
         this.cAttnBias === undefined ||
@@ -199,11 +199,11 @@ class GELU extends tf.layers.Layer {
     super({})
   }
 
-  computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
+  override computeOutputShape (inputShape: tf.Shape | tf.Shape[]): tf.Shape | tf.Shape[] {
     return inputShape
   }
 
-  call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
+  override call (input: tf.Tensor | tf.Tensor[], kwargs: Record<string, unknown>): tf.Tensor | tf.Tensor[] {
     return tf.tidy(() => {
       if (Array.isArray(input)) {
         // TODO support multitensor

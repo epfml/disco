@@ -24,8 +24,7 @@
                   field,
                   {
                     dataType,
-                    scheme,
-                    decentralizedSecure
+                    scheme
                   }
                 )"
               >
@@ -76,11 +75,6 @@
                   v-else-if="field.id === 'scheme'"
                   v-model="scheme"
                   :field="field"
-                />
-                <CheckboxContainer
-                  v-else-if="field.id === 'decentralizedSecure'"
-                  :field="field"
-                  @clicked="setDecentralizedSecure($event)"
                 />
                 <TextContainer
                   v-else-if="field.id === 'modelURL'"
@@ -205,11 +199,9 @@ const schema = yup.object().shape(schemaData, [['modelURL', 'weightsFile'], ['mo
 
 const dataType = ref('')
 const scheme = ref('')
-const decentralizedSecure = ref(false)
 const modelURL = ref('')
 const modelFiles = shallowRef(List<File>())
 
-const setDecentralizedSecure = (v: boolean) => { decentralizedSecure.value = v }
 
 const formatSection = (section: FormSection, rawTask: any): any => {
   let fields = List(section.fields)
@@ -297,7 +289,7 @@ const isFieldVisible = (
   if (fieldDeps === undefined) {
     return true
   }
-  const potentialDependencies: Array<keyof FormDependency> = ['dataType', 'scheme', 'decentralizedSecure']
+  const potentialDependencies: Array<keyof FormDependency> = ['dataType', 'scheme']
   return potentialDependencies.every((key) => fieldDeps[key] !== dependencies[key])
 }
 

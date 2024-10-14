@@ -66,7 +66,7 @@ describe("secure aggregator", () => {
           .entrySeq()
           .zip(Range(0, 3))
           .map(([[id, agg], i]) => [id, [agg, WeightsContainer.of([i])]]),
-      ),
+      ), 0
     );
     const secureResults = await communicate(
       Map(
@@ -74,7 +74,7 @@ describe("secure aggregator", () => {
           .entrySeq()
           .zip(Range(0, 3))
           .map(([[id, agg], i]) => [id, [agg, WeightsContainer.of([i])]]),
-      ),
+      ), 0
     );
 
     List(await Promise.all(secureResults.sort().valueSeq().map(wsIntoArrays)))

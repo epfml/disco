@@ -12,15 +12,18 @@ export enum type {
   // answers with  its peer id and also tells the client whether we are waiting
   // for more participants before starting training
   NewDecentralizedNodeInfo,
-  // Message forwarded by the server from a client to another client
-  // to establish a peer-to-peer (WebRTC) connection
-  SignalForPeer,
+  // Message sent by peers to the server to signal they want to 
+  // join the next round
+  JoinRound,
   // Message sent by nodes to server signaling they are ready to 
   // start the next round
   PeerIsReady,
   // Sent by the server to participating peers containing the list
   // of peers for the round
   PeersForRound,
+  // Message forwarded by the server from a client to another client
+  // to establish a peer-to-peer (WebRTC) connection
+  SignalForPeer,
   // The weight update
   Payload,
   
@@ -42,6 +45,14 @@ export interface ClientConnected {
   type: type.ClientConnected
 }
 
+export interface EnoughParticipants {
+  type: type.EnoughParticipants
+}
+
+export interface WaitingForMoreParticipants {
+  type: type.WaitingForMoreParticipants
+}
+
 export type Message =
   decentralized.MessageFromServer |
   decentralized.MessageToServer |
@@ -52,9 +63,7 @@ export type Message =
 export type NarrowMessage<D> = Extract<Message, { type: D }>
 
 export function hasMessageType (raw: unknown): raw is { type: type } & Record<string, unknown> {
-  if (typeof raw !== 'object' || raw === null) {
-    return false
-  }
+  if (typeof raw !== 'object' || raw === null) return false
 
   const o = raw as Record<string, unknown>
   if (

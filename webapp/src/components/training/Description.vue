@@ -109,7 +109,7 @@ const displayField = (section: FormSection, field: FormField): boolean => {
     if (deps === undefined) {
       return true
     }
-    const potentialDependencies: Array<keyof FormDependency> = ['dataType', 'scheme', 'decentralizedSecure']
+    const potentialDependencies: Array<keyof FormDependency> = ['dataType', 'scheme']
     return potentialDependencies.every((key) => props.task.trainingInformation[key] !== deps[key])
   }
   return false

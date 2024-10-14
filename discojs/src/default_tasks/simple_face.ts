@@ -31,6 +31,7 @@ export const simpleFace: TaskProvider = {
         IMAGE_W: 200,
         LABEL_LIST: ['child', 'adult'],
         scheme: 'federated',
+        aggregationStrategy: 'mean',
         minNbOfParticipants: 2,
         tensorBackend: 'tfjs'
       }

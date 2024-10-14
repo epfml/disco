@@ -11,9 +11,9 @@ type AggregatorOptions = Partial<{
 /**
  * Initializes an aggregator according to the task definition, the training scheme and the aggregator parameters.
  * Here is the ordered list of parameters used to define the aggregator and its default behavior:
- * task.trainingInformation.aggregator > options.scheme > task.trainingInformation.scheme
+ * task.trainingInformation.aggregationStrategy > options.scheme > task.trainingInformation.scheme
  * 
- * If `task.trainingInformation.aggregator` is defined, we initialize the chosen aggregator with `options` parameter values.
+ * If `task.trainingInformation.aggregationStrategy` is defined, we initialize the chosen aggregator with `options` parameter values.
  * Otherwise, we default to a MeanAggregator for both training schemes.
  * 
  * For the MeanAggregator we rely on `options.scheme` and fallback on `task.trainingInformation.scheme` to infer default values.
@@ -27,10 +27,10 @@ type AggregatorOptions = Partial<{
  * @returns The aggregator
  */
 export function getAggregator(task: Task, options: AggregatorOptions = {}): aggregator.Aggregator {
-  const aggregatorType = task.trainingInformation.aggregator ?? 'mean'
+  const aggregationStrategy = task.trainingInformation.aggregationStrategy ?? 'mean'
   const scheme = options.scheme ?? task.trainingInformation.scheme
   
-  switch (aggregatorType) {
+  switch (aggregationStrategy) {
     case 'mean':
       if (scheme === 'decentralized') {
         // If options are not specified, we default to expecting a contribution from all peers, so we set the threshold to 100%

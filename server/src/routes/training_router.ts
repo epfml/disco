@@ -4,7 +4,7 @@ import { Set } from 'immutable'
 import type { Task, EncodedModel } from '@epfml/discojs'
 import { serialization } from '@epfml/discojs'
 
-import type { TaskInitializer } from '../task_initializer.js'
+import type { TaskSet } from '../task_set.js'
 import { TrainingController, FederatedController, DecentralizedController } from '../controllers/index.js'
 
 /**
@@ -19,7 +19,7 @@ export class TrainingRouter {
   #tasks = Set<string>()
 
   constructor(private readonly trainingScheme: 'federated' | 'decentralized',
-    wsApplier: expressWS.Instance, taskInitializer: TaskInitializer) {
+    wsApplier: expressWS.Instance, taskSet: TaskSet) {
     this.#expressRouter = express.Router()
     wsApplier.applyTo(this.#expressRouter)
 
@@ -28,13 +28,15 @@ export class TrainingRouter {
     /* delay listener because `this` (object) isn't fully constructed yet. 
     * The lambda function inside process.nextTick is executed after the current operation 
     * on the JS stack runs to completion and before the event loop is allowed to continue.
-    * this.onNewTask is registered as a listener to taskInitializer, which has 2 consequences:
-    * - this.onNewTask is executed on all the default tasks (which are already loaded in taskInitializer)
-    * - Every time a new task and model are added to taskInitializer, this.onNewTask is executed on them.
+    * this.onNewTask is registered as a listener to taskSet, which has 2 consequences:
+    * - this.onNewTask is executed on all the default tasks (which are already loaded in taskSet)
+    * - Every time a new task and model are added to taskSet, this.onNewTask is executed on them.
     * For every task and model, this.onNewTask creates a path /taskID and routes it to this.handle.
     */
     process.nextTick(() => {
-      taskInitializer.on('newTask', async (t, m) => { await this.onNewTask(t, m) })
+      taskSet.on('newTask',
+        async ({ task, encodedModel }) => { await this.onNewTask(task, encodedModel) }
+      )
     })
   }
 

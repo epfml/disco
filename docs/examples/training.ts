@@ -27,8 +27,7 @@ async function main (): Promise<void> {
   const NAME: string = 'titanic'
 
   // Launch a server instance
-  const discoServer = await Server.of(defaultTasks.simpleFace, defaultTasks.titanic)
-  const [server, url] = await discoServer.serve()
+  const [server, url] = await new Server().serve(undefined, defaultTasks.simpleFace, defaultTasks.titanic)
 
   // Get all pre-defined tasks
   const tasks = await fetchTasks(url)

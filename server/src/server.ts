@@ -7,7 +7,7 @@ import type * as http from "http";
 import type { TaskProvider } from "@epfml/discojs";
 
 import { TaskRouter, TrainingRouter } from './routes/index.js'
-import { TaskInitializer } from "./task_initializer.js";
+import { TaskSet } from "./task_set.js";
 
 const debug = createDebug("server");
 
@@ -21,25 +21,21 @@ const debug = createDebug("server");
  * https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/Introduction
  */
 export class Server {
-  readonly #taskInitializer = new TaskInitializer();
-
-  // Static method to asynchronously init the Server
-  static async of(...tasks: TaskProvider[]): Promise<Server> {
-    const ret = new Server();
-    await Promise.all(tasks.map((t) => ret.addTask(t)));
-    return ret;
-  }
+  readonly #taskSet = new TaskSet();
 
   async addTask(taskProvider: TaskProvider): Promise<void> {
-    await this.#taskInitializer.addTask(taskProvider);
+    await this.#taskSet.addTask(taskProvider);
   }
 
   /**
    * start server
    *
    * @param port where to start, if not given, choose a random one
+   * @param tasks list of initial tasks to serve
+   * @returns a tuple with the server instance and the URL
+   * 
    **/
-  async serve(port?: number): Promise<[http.Server, URL]> {
+  async serve(port?: number, ...tasks: TaskProvider[]): Promise<[http.Server, URL]> {
     const wsApplier = expressWS(express(), undefined, {
       leaveRouterUntouched: true,
     });
@@ -50,9 +46,12 @@ export class Server {
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: false }));
 
-    const taskRouter = new TaskRouter(this.#taskInitializer)
-    const federatedRouter = new TrainingRouter('federated', wsApplier, this.#taskInitializer)
-    const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#taskInitializer)
+    const taskRouter = new TaskRouter(this.#taskSet)
+    const federatedRouter = new TrainingRouter('federated', wsApplier, this.#taskSet)
+    const decentralizedRouter = new TrainingRouter('decentralized', wsApplier, this.#taskSet)
+    // Important to add the tasks AFTER all the routers are initialized
+    // so that the 'newTask' event is emitted after the routers are ready
+    await Promise.all(tasks.map((t) => this.addTask(t)));
 
     wsApplier.getWss().on('connection', (ws, req) => {
       if (!federatedRouter.isValidUrl(req.url) && !decentralizedRouter.isValidUrl(req.url)) {

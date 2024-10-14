@@ -16,8 +16,7 @@ function test (
     let server: http.Server
     let url: URL
     beforeEach(async () => {
-      const disco = await Server.of(TASK);
-      [server, url] = await disco.serve();
+      [server, url] = await new Server().serve(undefined, TASK);
     });
     afterEach(() => { server?.close() })
 

@@ -38,10 +38,6 @@ export interface TrainingInformation {
 
   // use Differential Privacy, reduce training accuracy and improve privacy.
   privacy?: Privacy;
-
-  // decentralizedSecure: Secure Aggregation on/off:
-  // Boolean. true for secure aggregation to be used, if the training scheme is decentralized, false otherwise
-  decentralizedSecure?: boolean
   // maxShareValue: Secure Aggregation: maximum absolute value of a number in a randomly generated share
   // default is 100, must be a positive number, check the docs/PRIVACY.md file for more information on significance of maxShareValue selection
   // only relevant if secure aggregation is true (for either federated or decentralized learning)
@@ -49,9 +45,9 @@ export interface TrainingInformation {
   // minNbOfParticipants: minimum number of participants required to train collaboratively
   // In decentralized Learning the default is 3, in federated learning it is 2
   minNbOfParticipants: number
-  // aggregator:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
-  // default is 'average', other options include for instance 'bandit'
-  aggregator?: 'mean' | 'secure' // TODO: never used
+  // aggregationStrategy:  aggregator to be used by the server for federated learning, or by the peers for decentralized learning
+  // default is 'mean'
+  aggregationStrategy?: 'mean' | 'secure'
   // tokenizer (string | PreTrainedTokenizer). This field should be initialized with the name of a Transformers.js pre-trained tokenizer, e.g., 'Xenova/gpt2'. 
   // When the tokenizer is first called, the actual object will be initialized and loaded into this field for the subsequent tokenizations.
   tokenizer?: string | PreTrainedTokenizer
@@ -104,10 +100,9 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     IMAGE_H,
     IMAGE_W,
     LABEL_LIST,
-    aggregator,
+    aggregationStrategy,
     batchSize,
     dataType,
-    decentralizedSecure,
     privacy,
     epochs,
     inputColumns,
@@ -132,8 +127,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     typeof minNbOfParticipants !== 'number' ||
     (tokenizer !== undefined && typeof tokenizer !== 'string' && !(tokenizer instanceof PreTrainedTokenizer)) ||
     (maxSequenceLength !== undefined && typeof maxSequenceLength !== 'number') ||
-    (aggregator !== undefined && typeof aggregator !== 'string') ||
-    (decentralizedSecure !== undefined && typeof decentralizedSecure !== 'boolean') ||
+    (aggregationStrategy !== undefined && typeof aggregationStrategy !== 'string') ||
     (privacy !== undefined && !isPrivacy(privacy)) ||
     (maxShareValue !== undefined && typeof maxShareValue !== 'number') ||
     (IMAGE_H !== undefined && typeof IMAGE_H !== 'number') ||
@@ -146,8 +140,8 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     return false
   }
 
-  if (aggregator !== undefined) {
-    switch (aggregator) {
+  if (aggregationStrategy !== undefined) {
+    switch (aggregationStrategy) {
       case 'mean': break
       case 'secure': break
       default: return false
@@ -161,7 +155,7 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     default: return false
   }
 
-  // interdepences on data type
+  // interdependencies on data type
   if (dataType === 'image') {
     if (typeof IMAGE_H !== 'number' || typeof IMAGE_W !== 'number') {
       return false
@@ -192,10 +186,9 @@ export function isTrainingInformation (raw: unknown): raw is TrainingInformation
     IMAGE_W,
     IMAGE_H,
     LABEL_LIST,
-    aggregator,
+    aggregationStrategy,
     batchSize,
     dataType,
-    decentralizedSecure,
     privacy,
     epochs,
     inputColumns,

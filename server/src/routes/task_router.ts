@@ -6,23 +6,23 @@ import { Set } from 'immutable'
 import type { Task, TaskID } from '@epfml/discojs'
 import { serialization, isTask } from '@epfml/discojs'
 
-import type { TaskInitializer } from '../task_initializer.js'
+import type { TaskSet } from '../task_set.js'
 
 const debug = createDebug("server:router:task_router");
 
 export class TaskRouter {
   readonly #expressRouter: express.Router
-  readonly #taskInitializer: TaskInitializer
+  readonly #taskSet: TaskSet
 
-  constructor(taskInitializer: TaskInitializer) {
-    this.#taskInitializer = taskInitializer
+  constructor(taskSet: TaskSet) {
+    this.#taskSet = taskSet
     this.#expressRouter = express.Router()
 
     // Return available tasks upon GET requests
     this.#expressRouter.get('/', (_, res) => {
       res
         .status(200)
-        .send(this.#taskInitializer.tasks.map(([t, _]) => t).toArray())
+        .send(this.#taskSet.tasks.map(([t, _]) => t).toArray())
     })
 
     // POST request to add a new task
@@ -43,7 +43,7 @@ export class TaskRouter {
       if (!serialization.model.isEncoded(encoded))
         throw new Error("could not recognize model encoding")
 
-      this.#taskInitializer.addTask(newTask, encoded)
+      this.#taskSet.addTask(newTask, encoded)
         .then(() => res.status(200).end("Successful task upload"))
         .catch((e) => {
           debug("while adding model: %o", e);
@@ -54,10 +54,7 @@ export class TaskRouter {
     // delay listener because `this` (object) isn't fully constructed yet
     process.nextTick(() => {
       // a 'newTask' event is emitted when a new task is added 
-      this.#taskInitializer.on('newTask', (t, _) => {
-        this.onNewTask(t)
-        return Promise.resolve()
-      })
+      this.#taskSet.on('newTask', ({ task }) => this.onNewTask(task))
     })
   }
 
@@ -91,7 +88,7 @@ export class TaskRouter {
       response.status(404)
       return
     }
-    const taskAndModel = this.#taskInitializer.tasks.find(([t, _]) => t.id === id)
+    const taskAndModel = this.#taskSet.tasks.find(([t, _]) => t.id === id)
     if (taskAndModel === undefined) {
       response.status(404)
       return

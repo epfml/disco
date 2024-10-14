@@ -65,6 +65,7 @@ export const titanic: TaskProvider = {
           'Survived'
         ],
         scheme: 'federated',
+        aggregationStrategy: 'mean',
         minNbOfParticipants: 2,
         tensorBackend: 'tfjs'
       }

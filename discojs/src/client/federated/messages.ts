@@ -1,9 +1,8 @@
 import { type weights } from '../../serialization/index.js'
 import { type NodeID } from '..//types.js'
 
-import {
-  type, hasMessageType, type ClientConnected
- } from '../messages.js'
+import { type, hasMessageType } from '../messages.js'
+ import type { ClientConnected, WaitingForMoreParticipants, EnoughParticipants } from '../messages.js'
 
  // See ../messages.ts for doc
 export type MessageFederated =
@@ -33,14 +32,6 @@ export interface ReceiveServerPayload {
   payload: weights.Encoded
   round: number,
   nbOfParticipants: number // number of peers contributing to a federated training
-}
-
-export interface EnoughParticipants {
-  type: type.EnoughParticipants
-}
-
-export interface WaitingForMoreParticipants {
-  type: type.WaitingForMoreParticipants
 }
 
 export function isMessageFederated (raw: unknown): raw is MessageFederated {

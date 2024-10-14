@@ -1,7 +1,8 @@
 import { weights } from '../../serialization/index.js'
 import { type SignalData } from './peer.js'
 import { isNodeID, type NodeID } from '../types.js'
-import { type, type ClientConnected, hasMessageType } from '../messages.js'
+import { type, hasMessageType } from '../messages.js'
+import type { ClientConnected, WaitingForMoreParticipants, EnoughParticipants } from '../messages.js'
 
 
 /// Phase 0 communication (between server and peers)
@@ -18,15 +19,21 @@ export interface SignalForPeer {
   signal: SignalData
 }
 
-// client who sent is ready
+// peer wants to join the next round
+export interface JoinRound {
+  type: type.JoinRound
+}
+
+// peer who sent is ready
 export interface PeerIsReady {
   type: type.PeerIsReady
 }
 
-// server send to client who to connect to
+// server sends to each peer the list of peers to connect to
 export interface PeersForRound {
   type: type.PeersForRound
   peers: NodeID[]
+  aggregationRound: number
 }
 
 /// Phase 1 communication (between peers)
@@ -34,7 +41,8 @@ export interface PeersForRound {
 export interface Payload {
   type: type.Payload
   peer: NodeID
-  round: number
+  aggregationRound: number
+  communicationRound: number
   payload: weights.Encoded
 }
 
@@ -43,19 +51,20 @@ export interface Payload {
 export type MessageFromServer =
   NewDecentralizedNodeInfo |
   SignalForPeer |
-  PeersForRound
+  PeersForRound |
+  WaitingForMoreParticipants |
+  EnoughParticipants
 
 export type MessageToServer =
   ClientConnected |
   SignalForPeer |
-  PeerIsReady
+  PeerIsReady |
+  JoinRound
 
 export type PeerMessage = Payload
 
 export function isMessageFromServer (o: unknown): o is MessageFromServer {
-  if (!hasMessageType(o)) {
-    return false
-  }
+  if (!hasMessageType(o)) return false
 
   switch (o.type) {
     case type.NewDecentralizedNodeInfo:
@@ -67,15 +76,16 @@ export function isMessageFromServer (o: unknown): o is MessageFromServer {
         'signal' in o // TODO check signal content?
     case type.PeersForRound:
       return 'peers' in o && Array.isArray(o.peers) && o.peers.every(isNodeID)
+    case type.WaitingForMoreParticipants:
+    case type.EnoughParticipants:
+          return true
   }
 
   return false
 }
 
 export function isMessageToServer (o: unknown): o is MessageToServer {
-  if (!hasMessageType(o)) {
-    return false
-  }
+  if (!hasMessageType(o)) return false
 
   switch (o.type) {
     case type.ClientConnected:
@@ -83,6 +93,7 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
     case type.SignalForPeer:
       return 'peer' in o && isNodeID(o.peer) &&
         'signal' in o // TODO check signal content?
+    case type.JoinRound:
     case type.PeerIsReady:
       return true
   }
@@ -91,9 +102,7 @@ export function isMessageToServer (o: unknown): o is MessageToServer {
 }
 
 export function isPeerMessage (o: unknown): o is PeerMessage {
-  if (!hasMessageType(o)) {
-    return false
-  }
+  if (!hasMessageType(o)) return false
 
   switch (o.type) {
     case type.Payload:

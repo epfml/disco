@@ -91,7 +91,7 @@ class AdamW extends tf.AdamOptimizer {
     this.gradientClipNorm = p.gradientClipNorm
   }
 
-  applyGradients (variableGradients: Record<string, tf.Variable> | Array<{ name: string, tensor: tf.Tensor }>): void {
+  override applyGradients (variableGradients: Record<string, tf.Variable> | Array<{ name: string, tensor: tf.Tensor }>): void {
     const varNames: string[] = Array.isArray(variableGradients)
       ? variableGradients.map((v) => v.name)
       : Object.keys(variableGradients)
