@@ -19,6 +19,6 @@
     "@typescript-eslint/eslint-plugin": "7",
     "eslint": "8",
     "typescript": "5",
-    "typescript-eslint": "7"
+    "typescript-eslint": "8"
   }
 }
