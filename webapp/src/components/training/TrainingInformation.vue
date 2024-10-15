@@ -52,9 +52,9 @@
     </div>
 
     <!-- Training and validation loss charts -->
-    <div
-      class="flex flex-col md:grid gap-4 md:gap-8 md:grid-cols-2"
-      >
+    <DropdownCard :initiallyOpen="currentOpen" @click="toggleAdvancedInfo">
+      <template #title> Advanced information </template>
+      <div class="flex flex-col md:grid gap-4 md:gap-8 md:grid-cols-2">
       <!-- Training loss users chart -->
       <IconCard>
         <template #title> Training Loss of the Model </template>
@@ -95,7 +95,7 @@
             { name: 'Training accuracy', data: accuracySeries.training },
           ]"
         />
-      </IconCard>      
+      </IconCard>
     </div>
 
     <!-- Training and validation accuracy charts -->
@@ -144,6 +144,7 @@
         />
       </IconCard>
     </div>
+    </DropdownCard>
 
     <IconCard>
       <template #title> Training Logs </template>
@@ -172,7 +173,7 @@
 
 <script setup lang="ts">
 import { List } from "immutable";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import ApexChart from "vue3-apexcharts";
 
 import type { BatchLogs, EpochLogs, RoundLogs } from "@epfml/discojs";
@@ -184,6 +185,9 @@ import ModelExchangeIcon from "@/assets/svg/ModelExchangeIcon.vue";
 import ModelUpdateIcon from "@/assets/svg/ModelUpdateIcon.vue";
 import PeopleIcon from "@/assets/svg/PeopleIcon.vue";
 import Contact from "@/assets/svg/Contact.vue";
+import DropdownCard from "../containers/DropdownCard.vue";
+
+const currentOpen = ref(localStorage.getItem('initiallyOpen') || 'false');
 
 const props = defineProps<{
   rounds: List<RoundLogs>;
@@ -359,4 +363,11 @@ const lossChartsOptions = computed(() => {
 function percent(n: number): string {
   return (n * 100).toFixed(2);
 }
+
+// Function to toggle the advanced information
+function toggleAdvancedInfo(): void {
+  const newOpen = currentOpen.value === 'false' ? 'true' : 'false';
+  localStorage.setItem('initiallyOpen', newOpen);
+  currentOpen.value = newOpen;
+};
 </script>

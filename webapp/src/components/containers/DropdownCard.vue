@@ -24,14 +24,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 
 import UpArrow from "@/assets/svg/UpArrow.vue";
 import DownArrow from "@/assets/svg/DownArrow.vue";
 
 import IconCardHeader from "./IconCardHeader.vue";
 
+const props = defineProps({
+  initiallyOpen: {
+    type: String,
+    default: "true", //open by default
+  },
+});
+
 const opened = ref(true);
+
+onMounted(() => {
+  opened.value = JSON.parse(props.initiallyOpen); 
+});
+
 function toggle() {
   opened.value = !opened.value;
 }
