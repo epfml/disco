@@ -21,7 +21,6 @@
   "dependencies": {
     "@tensorflow/tfjs": "4",
     "@xenova/transformers": "2",
-    "axios": "1",
     "immutable": "4",
     "isomorphic-wrtc": "1",
     "isomorphic-ws": "5",

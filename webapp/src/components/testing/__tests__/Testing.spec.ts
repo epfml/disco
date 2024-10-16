@@ -1,4 +1,4 @@
-import { expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
@@ -57,18 +57,13 @@ it("shows stored models", async () => {
 });
 
 it("allows to download server's models", async () => {
-  vi.mock("axios", async () => {
-    const axios = await vi.importActual<typeof import("axios")>("axios");
-    return {
-      ...axios,
-      default: {
-        ...axios.default,
-        async get(url: string) {
-          if (url === "http://localhost:8080/tasks") return { data: [TASK] };
-          throw new Error(`unhandled get: ${url}`);
-        },
-      },
-    };
+  vi.stubGlobal("fetch", async (url: string | URL) => {
+    if (url.toString() === "http://localhost:8080/tasks")
+      return { json: () => Promise.resolve([TASK]) };
+    throw new Error(`unhandled get: ${url}`);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   const wrapper = mount(Testing, {
@@ -86,7 +81,6 @@ it("allows to download server's models", async () => {
 
   const tasks = useTasksStore();
   await tasks.initTasks();
-  await nextTick();
 
   expect(wrapper.get("button").text()).to.equal("download");
   await wrapper.get("button").trigger("click");
