@@ -1,5 +1,3 @@
-import axios from 'axios'
-
 import type { Model, Task, WeightsContainer, RoundStatus } from '../index.js'
 import { serialization } from '../index.js'
 import type { NodeID } from './types.js'
@@ -58,8 +56,9 @@ export abstract class Client extends EventEmitter<{'status': RoundStatus}>{
     }
     url.pathname += `tasks/${this.task.id}/model.json`
 
-    const response = await axios.get<ArrayBuffer>(url.href, { responseType: 'arraybuffer' })
-    return await serialization.model.decode(new Uint8Array(response.data))
+    const response = await fetch(url);
+    const encoded = new Uint8Array(await response.arrayBuffer())
+    return await serialization.model.decode(encoded)
   }
 
   /**
