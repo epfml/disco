@@ -2,7 +2,7 @@ import { parse } from "ts-command-line-args";
 import * as tf from "@tensorflow/tfjs"
 import { AutoTokenizer } from "@xenova/transformers";
 
-import { fetchTasks, models, async_iterator, defaultTasks, processing } from "@epfml/discojs";
+import { fetchTasks, models, async_iterator, defaultTasks } from "@epfml/discojs";
 import { loadModelFromDisk, loadText } from '@epfml/discojs-node'
 
 import { Server } from "server";
@@ -86,36 +86,17 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     // to make sure the dataset is batched and tokenized correctly
     task.trainingInformation.batchSize = batchSize
     task.trainingInformation.maxSequenceLength = contextLength
-    const dataset = loadText('../datasets/wikitext/wiki.train.tokens')
+    const dataset = loadText(
+      '../datasets/wikitext/wiki.train.tokens',
+      tokenizer, config.blockSize, batchSize
+    )
+    // TODO will be easier when preprocessing is redone
+    const preprocessedDataset = intoTFGenerator(dataset).map((tokens: number[]) => {
+      const ys = tf.oneHot(tokens.slice(1), tokenizer.model.vocab.length)
+      const xs = tf.tensor(tokens.slice(0, config.blockSize), undefined, 'int32')
+      return {xs, ys}
+    }).batch(batchSize) as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
 
-    const maxLength = task.trainingInformation.maxSequenceLength ?? (tokenizer.model_max_length as number) + 1
-    // TODO will be easier when preproccessing is redone
-    const preprocessedDataset = intoTFGenerator(
-      dataset
-        .map((line) =>
-          processing.tokenizeAndLeftPad(line, tokenizer, maxLength),
-        )
-        .batch(batchSize)
-        .map((batch) =>
-          tf.tidy(() => ({
-            xs: tf.tensor2d(
-              batch.map((tokens) => tokens.slice(0, -1)).toArray(),
-            ),
-            ys: tf.stack(
-              batch
-                .map(
-                  (tokens) =>
-                    tf.oneHot(
-                      tokens.slice(1),
-                      tokenizer.model.vocab.length,
-                    ) as tf.Tensor2D,
-                )
-                .toArray(),
-            ) as tf.Tensor3D,
-          })),
-        ),
-    );
-    
     // Init and train the model
     const model = new models.GPT(config)
     console.log(`\tmodel type ${modelType} \n\tbatch size ${batchSize} \n\tcontext length ${contextLength}`)

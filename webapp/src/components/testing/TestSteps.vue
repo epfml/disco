@@ -26,6 +26,7 @@
     <TextDatasetInput
       v-if="task.trainingInformation.dataType === 'text'"
       v-model="textDataset"
+      :task="task"
     />
   </div>
 

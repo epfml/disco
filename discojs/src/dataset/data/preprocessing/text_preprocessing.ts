@@ -9,6 +9,7 @@ import { models } from '../../../index.js'
  * Available text preprocessing types.
  */
 export enum TextPreprocessing {
+  ToTFTensor,
   Tokenize,
   LeftPadding
 }
@@ -120,9 +121,32 @@ const tokenize: PreprocessingFunction = {
 }
 
 /**
+ * Given a sequence of block size + 1 tokens, creates a 1D input tensor and a 2D one-hot encoded label tensor
+ */
+const toTFTensor: PreprocessingFunction = {
+  type: TextPreprocessing.ToTFTensor,
+  apply: async (x: Promise<tf.TensorContainer>, task: Task): Promise<{ xs: tf.Tensor1D, ys: tf.Tensor2D }>  => {
+    const tokens = await x
+    if (!isNumberArray(tokens))
+      throw new Error("The toTFTensor preprocessing expects a array of numbers as input")
+    
+    const tokenizer = await models.getTaskTokenizer(task)
+    const maxLength = task.trainingInformation.maxSequenceLength ?? (tokenizer.model_max_length as number)
+    if (tokens.length != maxLength + 1)
+      throw new Error(`The toTFTensor preprocessing expects an array of length ${maxLength + 1}`)
+    // The inputs are truncated down to exactly maxSequenceLength
+    const xs = tf.tensor1d(tokens.slice(0, maxLength), 'int32')
+    const ys = tf.oneHot(tokens.slice(1), tokenizer.model.vocab.length) as tf.Tensor2D
+
+    return { xs, ys }
+  }
+}
+
+/**
  * Available text preprocessing functions.
  */
 export const AVAILABLE_PREPROCESSING = List.of(
+  toTFTensor,
   tokenize,
   leftPadding
 ).sortBy((e) => e.type)

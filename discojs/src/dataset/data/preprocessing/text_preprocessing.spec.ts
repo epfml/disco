@@ -5,7 +5,7 @@ import type { Task } from '../../../index.js'
 import * as tf from '@tensorflow/tfjs'
 
 describe('text preprocessing', function () {
-  const [tokenize, leftPadding] = TEXT_PREPROCESSING
+  const [toTFTensor, tokenize, leftPadding] = TEXT_PREPROCESSING
   // Use a function to create different task object for each test (otherwise the tokenizer gets cached)
   function initMockTask(): Task {
     return {
@@ -96,6 +96,33 @@ describe('text preprocessing', function () {
       return
     }
     throw new Error("invalid tokenizer name should have thrown an error")
+  })
+
+  it('can convert a token sequence to tensors', async () => {
+    // Create a task where the model has a context length of 10
+    const task = initMockTask()
+    // Create a token sequence of length 10 tokens + 1(for the label)
+    const tokens = [0,1,2,3,4,5,6,7,8,9,10]
+    const blockSize = tokens.length - 1
+    task.trainingInformation.maxSequenceLength = blockSize
+    
+    const { xs, ys } = await toTFTensor.apply(Promise.resolve(tokens), task) as { xs: tf.Tensor1D, ys: tf.Tensor2D }
+    const xsArray = await xs.array()
+    const ysArray = await ys.array()
+    
+    // xsArray should simply be the input token sequence without the label token
+    expect(xsArray).to.be.deep.equal(tokens.slice(0, blockSize))
+
+    // ysArray should have shape (10, 50257), 50257 being the size of the vocab for gpt2
+    expect(ysArray.length).to.be.equal(blockSize)
+    expect(ysArray[0].length).to.be.equal(50257)
+
+    // ys should be a one hot encoding of the next token in xs
+    // So the sum of each row should be equal to 1
+    const expectedOneHot = Array.from({ length: blockSize }).map(_ => 1)
+    expect(await ys.sum(-1).array()).to.be.deep.equal(expectedOneHot)
+    // and in each row the index of the 1 should be the token id
+    expect(await ys.argMax(-1).array()).to.be.deep.equal(tokens.slice(1))
   })
   
 })
