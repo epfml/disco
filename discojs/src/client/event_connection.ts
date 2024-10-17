@@ -1,6 +1,6 @@
 import createDebug from "debug";
 import WebSocket from "isomorphic-ws";
-import msgpack from "msgpack-lite";
+import * as msgpack from "@msgpack/msgpack";
 
 import type { Peer, SignalData } from './decentralized/peer.js'
 import { type NodeID } from './types.js'
@@ -82,7 +82,7 @@ export class PeerConnection extends EventEmitter<{ [K in type]: NarrowMessage<K>
     if (!decentralizedMessages.isPeerMessage(msg)) {
       throw new Error(`can't send this type of message: ${JSON.stringify(msg)}`)
     }
-    this.peer.send(msgpack.encode(msg))
+    this.peer.send(Buffer.from(msgpack.encode(msg)))
   }
 
   async disconnect(): Promise<void> {

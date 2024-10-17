@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
-import msgpack from 'msgpack-lite'
+import * as msgpack from "@msgpack/msgpack";
 
 import type { Task } from '@epfml/discojs'
 import {
