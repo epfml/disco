@@ -19,12 +19,12 @@
   },
   "homepage": "https://github.com/epfml/disco#readme",
   "dependencies": {
+    "@msgpack/msgpack": "^3.0.0-beta2",
     "@tensorflow/tfjs": "4",
     "@xenova/transformers": "2",
     "immutable": "4",
     "isomorphic-wrtc": "1",
     "isomorphic-ws": "5",
-    "msgpack-lite": "0.1",
     "simple-peer": "9",
     "tslib": "2",
     "ws": "8"

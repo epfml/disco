@@ -2,7 +2,7 @@
 import createDebug from "debug";
 import WebSocket from 'ws'
 import { v4 as randomUUID } from 'uuid'
-import msgpack from 'msgpack-lite'
+import * as msgpack from "@msgpack/msgpack";
 import { Map } from 'immutable'
 
 import type { Task, WeightsContainer } from '@epfml/discojs'

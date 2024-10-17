@@ -1,5 +1,5 @@
 import { Map } from "immutable";
-import * as msgpack from "msgpack-lite";
+import * as msgpack from "@msgpack/msgpack";
 import type { IStorage } from "pinia-plugin-persistedstate-2";
 
 import { serialization } from "@epfml/discojs";
@@ -7,12 +7,6 @@ import { serialization } from "@epfml/discojs";
 import type { Storage } from "./storage";
 import { UNSUPPORTED_STORAGE } from "./storage";
 import type { Infos, ModelID, State } from "./types";
-
-const MSGPACK_CODEC = msgpack.createCodec({
-  preset: true,
-  uint8array: true,
-  binarraybuffer: true,
-});
 
 // https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system
 export class OPFS implements Storage {
@@ -61,15 +55,12 @@ export class OPFS implements Storage {
   }
 
   serialize(state: State): Uint8Array {
-    return msgpack.encode(state.idToModel.toArray() satisfies OPFS.Serialized, {
-      codec: MSGPACK_CODEC,
-    });
+    return msgpack.encode(
+      state.idToModel.toArray() satisfies OPFS.Serialized,
+    );
   }
   deserialize(encoded: Uint8Array): State {
-    const raw: unknown = msgpack.decode(encoded, {
-      codec: MSGPACK_CODEC,
-    });
-
+    const raw = msgpack.decode(encoded);
     if (!OPFS.isSerialized(raw)) throw new Error("unexpected serialized state");
 
     return { idToModel: Map(raw) };
