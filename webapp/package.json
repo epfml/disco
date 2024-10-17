@@ -13,6 +13,7 @@
   "dependencies": {
     "@epfml/discojs": "*",
     "@epfml/discojs-web": "*",
+    "@msgpack/msgpack": "^3.0.0-beta2",
     "apexcharts": "3",
     "cypress": "13",
     "d3": "7",
@@ -32,7 +33,6 @@
     "@tsconfig/node20": "20",
     "@types/d3": "7",
     "@types/jsdom": "21",
-    "@types/msgpack-lite": "0.1",
     "@vitejs/plugin-vue": "5",
     "@vue/eslint-config-prettier": "9",
     "@vue/eslint-config-typescript": "13",

@@ -15,12 +15,12 @@
   "dependencies": {
     "@epfml/discojs-node": "*",
     "@koush/wrtc": "0.5",
+    "@msgpack/msgpack": "^3.0.0-beta2",
     "@tensorflow/tfjs": "4",
     "cors": "2",
     "express": "4",
     "express-ws": "5",
     "immutable": "4",
-    "msgpack-lite": "0.1",
     "uuid": "10"
   },
   "devDependencies": {
@@ -28,7 +28,6 @@
     "@types/cors": "2",
     "@types/express-ws": "3",
     "@types/mocha": "10",
-    "@types/msgpack-lite": "0.1",
     "@types/node": "22",
     "@types/uuid": "10",
     "chai": "5",
