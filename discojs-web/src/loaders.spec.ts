@@ -1,5 +1,7 @@
+import { AutoTokenizer } from "@xenova/transformers";
 import { describe, it, expect } from "vitest";
 
+import { models } from "@epfml/discojs";
 import { loadCSV, loadText } from "./loaders/index.js";
 
 async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
@@ -22,22 +24,51 @@ describe("csv parser", () => {
 });
 
 describe("text parser", () => {
-  it("loads", async () => {
+  it("loads a simple sequence", async () => {
+    const text = ["first", "second", "third"].join("\n")
+    
+    const tokenizer = await AutoTokenizer.from_pretrained('Xenova/gpt2')
+    const expectedTokens = models.tokenize(tokenizer, text, {
+      padding: false,
+      truncation: false,
+      return_tensor: false,
+    })
+
     // jsdom doesn't implement .text on File/Blob
     // trick from https://github.com/jsdom/jsdom/issues/2555
-    const text = await (
-      await fetch(
-        // data URL content need to be url-encoded
-        ["data:,first", "second", "third"].join("%0A"),
-      )
+    const file = await (
+      await fetch( "data:," + encodeURIComponent(text))
+    ).blob();
+    const parsed = loadText(file, tokenizer, 4);
+
+    expect(await parsed.size()).to.equal(1); // expect a single sequence
+    expect((await arrayFromAsync(parsed))[0]).to.deep.equal(expectedTokens);
+  });
+
+  it("yields the correct block size", async () => {
+    const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed quis faucibus ipsum."
+    
+    const tokenizer = await AutoTokenizer.from_pretrained('Xenova/gpt2')
+    const expectedTokens = models.tokenize(tokenizer, text, {
+      padding: false,
+      truncation: false,
+      return_tensor: false
+    })
+
+    const file = await (
+      await fetch("data:," + encodeURIComponent(text))
     ).blob();
 
-    const parsed = loadText(text);
-
-    expect(await arrayFromAsync(parsed)).to.have.ordered.members([
-      "first",
-      "second",
-      "third",
-    ]);
+    const blockSize = 4
+    const parsed = loadText(file, tokenizer, blockSize);
+    expect(await parsed.size()).to.equal(Math.floor(expectedTokens.length / blockSize));
+      
+    let i = 0
+    for await (const tokens of parsed) {
+      // each sequence should have length blockSize + 1 (for the label)
+      expect(tokens).to.deep.equal(expectedTokens.slice(i, i + blockSize + 1));
+      // but the window should move by blockSize only
+      i += blockSize
+    }
   });
 });

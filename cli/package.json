@@ -7,6 +7,7 @@
     "watch": "nodemon --ext ts --ignore dist --watch ../discojs-node/dist --watch ../server/dist --watch . --exec npm run",
     "start": "npm run build && node dist/cli.js",
     "benchmark_gpt": "npm run build && node dist/benchmark_gpt.js",
+    "train_gpt": "npm run build && node dist/train_gpt.js",
     "build": "tsc",
     "lint": "npx eslint .",
     "test": ": nothing"

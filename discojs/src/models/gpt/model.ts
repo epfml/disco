@@ -2,12 +2,12 @@ import createDebug from "debug";
 import * as tf from '@tensorflow/tfjs'
 
 import type { GPTConfig } from './config.js'
-import { getModelSizes, DEFAULT_CONFIG } from './config.js'
+import { getModelSizes, DefaultGPTConfig, GenerationConfig } from './config.js'
 import { getCustomAdam, clipByGlobalNormObj } from './optimizers.js'
 import evaluate from './evaluate.js'
 import { GPTArchitecture } from './layers.js'
 
-const debug = createDebug("discojs:models:gpt");
+const debug = createDebug("discojs:models:gpt:model");
 
 /**
  * tfjs does not export LazyIterator and Dataset...
@@ -30,7 +30,7 @@ class GPTModel extends tf.LayersModel {
 
   constructor(partialConfig?: GPTConfig, layersModel?: tf.LayersModel) {
     // Fill missing config parameters with default values
-    let completeConfig: Required<GPTConfig> = { ...DEFAULT_CONFIG, ...partialConfig }
+    let completeConfig: Required<GPTConfig> = { ...DefaultGPTConfig, ...partialConfig }
     // Add layer sizes depending on which model has been specified
     completeConfig = { ...completeConfig, ...getModelSizes(completeConfig.modelType) }
 
@@ -59,7 +59,6 @@ class GPTModel extends tf.LayersModel {
     const callbacks = trainingArgs.callbacks as tf.CustomCallbackArgs
     const evalDataset = trainingArgs.validationData as tf.data.Dataset<{ xs: tf.Tensor2D, ys: tf.Tensor3D }>
     await callbacks.onTrainBegin?.()
-    
     for (let epoch = 1; epoch <= trainingArgs.epochs; epoch++) {
       let accuracyFraction: [number, number] = [0, 0];
       let averageLoss = 0
@@ -75,7 +74,7 @@ class GPTModel extends tf.LayersModel {
         let preprocessingTime = performance.now()
         await Promise.all([xs.data(), ys.data()])
         preprocessingTime = performance.now() - preprocessingTime
-
+        
         // TODO include as a tensor inside the model
         const accTensor = tf.tidy(() => {
           const logits = this.apply(xs)
@@ -92,7 +91,7 @@ class GPTModel extends tf.LayersModel {
         if (typeof accSum !== 'number')
           throw new Error('got multiple accuracy sum')
         accuracyFraction = [accuracyFraction[0] + accSum, accuracyFraction[1] + accSize];
-	tf.dispose([accTensor])
+        tf.dispose([accTensor])
 
         const lossTensor = tf.tidy(() => {
           const { grads, value: lossTensor } = this.optimizer.computeGradients(() => {
@@ -141,7 +140,7 @@ class GPTModel extends tf.LayersModel {
         tf.dispose([xs, ys])
       }
       let logs: tf.Logs = {
-        'loss': averageLoss / iteration,
+        'loss': averageLoss / (iteration - 1), // -1 because iteration got incremented at the end of the loop
         'acc': accuracyFraction[0] / accuracyFraction[1],
       }
       if (evalDataset !== undefined) {
@@ -154,29 +153,13 @@ class GPTModel extends tf.LayersModel {
   }
 }
 
-interface GenerateConfig {
-  maxNewTokens: number
-  temperature: number
-  doSample: boolean
-}
-
-const defaultGenerateConfig: GenerateConfig = {
-  maxNewTokens: 20,
-  temperature: 1.0,
-  doSample: false
-}
-
 function prepareIdx (idx: tf.TensorLike): tf.Tensor2D {
   return tf.tidy(() => {
     let ret: tf.Tensor
-    if (idx instanceof tf.Tensor) {
-      ret = idx.clone()
-    } else {
-      ret = tf.tensor(idx)
-    }
-    if (ret.dtype !== 'int32') {
-      ret = ret.toInt()
-    }
+    if (idx instanceof tf.Tensor) ret = idx.clone()
+    else ret = tf.tensor(idx)
+    if (ret.dtype !== 'int32') ret = ret.toInt()
+    
     switch (ret.shape.length) {
       case 1:
         return ret.expandDims(0)
@@ -194,41 +177,67 @@ function prepareIdx (idx: tf.TensorLike): tf.Tensor2D {
  * 
  */
 export class GPTForCausalLM extends GPTModel {
-  async generate (idxRaw: tf.TensorLike, conf: GenerateConfig): Promise<number[][]> {
-    const config = Object.assign({}, defaultGenerateConfig, conf)
-    let idx = prepareIdx(idxRaw)
+
+  /**
+   * 
+   * @param input 
+   * @param config 
+   * @returns 
+   */
+  async generate (input: tf.TensorLike, config: GenerationConfig): Promise<number[][]> {
+    let sequenceBatch = prepareIdx(input)
+    // Auto-regressive generation loop: 
+    // generate the next token, concatenate it to the input sequence
+    // and feed it again to the model to get the next token
     for (let step = 0; step < config.maxNewTokens; step++) {
-      const idxNext = this.generateOnce(this, idx, config)
-      const idxNew = idx.concat(idxNext, 1)
-      tf.dispose(idx)
-      idx = idxNew
+      const idxNext = this.generateOneToken(sequenceBatch, config)
+      const idxNew = sequenceBatch.concat(idxNext, 1)
+      tf.dispose(sequenceBatch)
+      sequenceBatch = idxNew
       tf.dispose(idxNext)
     }
-    const idxArr = await idx.array()
-    tf.dispose(idx)
+    const idxArr = await sequenceBatch.array()
+    tf.dispose(sequenceBatch)
     return idxArr
   }
 
-  private generateOnce (model: tf.LayersModel, idx: tf.Tensor2D, config: GenerateConfig): tf.Tensor2D {
+  /**
+   * Generate the next token for each input sequence in the batch.
+   * In other words, takes an input tensor of shape (batch size B, prompt length T) and returns a tensor of shape (B, T+1)
+   * 
+   * @param sequenceBatch input token sequenceBatch of shape (B, T). T is truncated to the model's block size
+   * @param config generation config: maxNewTokens, temperature, doSample, topk
+   * @returns the next token predicted by the model for each input sequence in the batch
+   */
+  private generateOneToken (sequenceBatch: tf.Tensor2D, config: GenerationConfig): tf.Tensor2D {
     const idxNext = tf.tidy(() => {
-      // slice input tokens if longer than context length
+      // slice input sequenceBatch if longer than context length
       const blockSize = this.config.blockSize
-      idx = idx.shape[1] <= blockSize
-      ? idx : idx.slice([0, idx.shape[1] - blockSize])
-
-      const output = model.predict(idx)
+      // Truncate the prompt lengths to the max context length (batch size B, prompt length <= T)
+      sequenceBatch = sequenceBatch.shape[1] <= blockSize ? sequenceBatch : sequenceBatch.slice([0, sequenceBatch.shape[1] - blockSize])
+      const output = this.predict(sequenceBatch) // (B, T, vocab_size)
       if (Array.isArray(output)) throw new Error('The model outputs too multiple values')
       if (output.shape.length !== 3) throw new Error('The model outputs wrong shape')
-      const logits = output as tf.Tensor3D
+      const logits = output as tf.Tensor3D 
         
       const logitsScaled = logits
-        .slice([0, idx.shape[1] - 1, 0])
-        .reshape([logits.shape[0], logits.shape[2]])
-        .div<tf.Tensor2D>(tf.scalar(config.temperature))
-      const probs = logitsScaled.softmax(-1)
+        .slice([0, sequenceBatch.shape[1] - 1, 0]) // take the logits at the last position (B, 1, vocab_size)
+        .reshape([logits.shape[0], logits.shape[2]]) // (B, vocab_size)
+        .div<tf.Tensor2D>(tf.scalar(config.temperature)) // the higher the temperature, the more random the output
+      const probs = logitsScaled.softmax(-1) // get the token probabilities (B, vocab_size) 
       if (config.doSample) {
-        return tf.multinomial(probs, 1) as tf.Tensor2D
+        // returns topk biggest values among the `vocab_size` probabilities and the corresponding tokens indices 
+        // both shapes are (B, config.topk)
+        const { values: topkProbs, indices: topkTokens } = tf.topk(probs, config.topk);
+        // sample an index from the top-k probabilities
+        // e.g. [[0.1, 0.4, 0.3], [0.1, 0.2, 0.5]] -> [[1], [2]]
+        // note: multinomial does not need the input to sum to 1
+        const selectedIndices = tf.multinomial(topkProbs, 1, config.seed, false).squeeze([1]) // (B, )
+        // return the corresponding token from the sampled indices (one per sequence in the batch).
+        // if for some reason the probabilities are NaN, selectedIndices will be out of bounds
+        return topkTokens.gather(selectedIndices, 1) // (B, 1)
       } else {
+        // greedy decoding: return the token with the highest probability
         return probs.argMax(-1).expandDims<tf.Tensor2D>(1)
       }
     })

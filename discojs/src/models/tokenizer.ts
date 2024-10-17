@@ -26,3 +26,39 @@ export async function getTaskTokenizer(task: Task): Promise<PreTrainedTokenizer>
   }
   return tokenizer
 }
+
+function isArrayOfNumber(raw: unknown): raw is number[] {
+  return Array.isArray(raw) && raw.every((e) => typeof e === "number");
+}
+
+interface TokenizingConfig {
+  padding?: boolean,
+  truncation?: boolean,
+  return_tensor?: boolean
+  text_pair?: string | null,
+  add_special_tokens?: boolean,
+  max_length?: number,
+  return_token_type_ids?: boolean,
+}
+
+/**
+ * Wrapper around Transformers.js tokenizer to handle type checking and format the output.
+ * 
+ * @param tokenizer the tokenizer object
+ * @param text the text to tokenize
+ * @param config TokenizingConfig, the tokenizing parameters when using `tokenizer` 
+ * @returns number[] the tokenized text
+ */
+export function tokenize(tokenizer: PreTrainedTokenizer, text: string, config: TokenizingConfig): number[] {
+  const tokenizerResult: unknown = tokenizer(text, config);
+
+  if (
+    typeof tokenizerResult !== "object" ||
+    tokenizerResult === null ||
+    !("input_ids" in tokenizerResult) ||
+    !isArrayOfNumber(tokenizerResult.input_ids)
+  )
+    throw new Error("tokenizer returned unexpected type");
+    
+  return tokenizerResult.input_ids
+}

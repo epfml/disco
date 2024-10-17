@@ -67,14 +67,21 @@
         v-if="files !== undefined"
         class="pt-4 flex flex-col items-center pb-5"
       >
-        <div
-          class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue dark:text-disco-light-cyan"
+      <!-- Display a loading indicator if needed -->
+      <div v-if="loading" class="mb-8">
+        <VueSpinner size="50" color="#6096BA"/>
+      </div>
+      <!-- Otherwise display the files connected -->
+      <div v-else
+        class="mb-4 flex justify-center items-center text-center md:text-left sm:text-lg text-disco-blue dark:text-disco-light-cyan"
+      >
+        <!-- If multiple files, display the number of files -->
+        <span v-if="multiple"
+        >Number of selected files:
+        <span class="pl-1 text-xl">{{ files.size }}</span></span
         >
-          <span v-if="multiple"
-            >Number of selected files:
-            <span class="pl-1 text-xl">{{ files.size }}</span></span
-          >
-          <span v-else class="pl-1">{{ files.first()?.name ?? "none" }}</span>
+        <!-- If a single file, display the filename -->
+        <span v-else class="pl-1">{{ files.first()?.name ?? "none" }}</span>
         </div>
         <div>
           <CustomButton @click="clearFiles">
@@ -89,6 +96,7 @@
 <script lang="ts" setup>
 import { Set } from "immutable";
 import { computed, ref } from "vue";
+import { VueSpinner } from 'vue3-spinners';
 
 import CustomButton from "@/components/simple/CustomButton.vue";
 
@@ -96,9 +104,11 @@ const props = withDefaults(
   defineProps<{
     type: "tabular" | "image" | "text";
     multiple?: boolean; // accept one or multiple files
+    loading?: boolean; // whether to show the loading spinner
   }>(),
   {
     multiple: false,
+    loading: false,
   },
 );
 

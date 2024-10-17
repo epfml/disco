@@ -1,5 +1,6 @@
 /**
- * this code is taken from gpt-tfjs with modifications from @peacefulotter and @lukemovement
+ * Source: https://github.com/zemlyansky/gpt-tfjs and https://github.com/karpathy/build-nanogpt
+ * With modifications from @peacefulotter, @lukemovement and the Disco team
  **/
 
 import createDebug from "debug";
@@ -13,7 +14,8 @@ import { BatchLogs, Model, EpochLogs } from "../index.js";
 import type { Prediction, Sample } from '../model.js'
 
 import { GPTForCausalLM } from './model.js'
-import { DEFAULT_CONFIG, type GPTConfig } from './config.js'
+import { DefaultGPTConfig, DefaultGenerationConfig } from './config.js'
+import type { GPTConfig, GenerationConfig } from './config.js'
 import evaluate from './evaluate.js';
 
 const debug = createDebug("discojs:models:gpt");
@@ -32,7 +34,7 @@ export class GPT extends Model {
     super()
 
     this.model = new GPTForCausalLM(partialConfig, layersModel)
-    this.#maxBatchCount = partialConfig?.maxIter ?? DEFAULT_CONFIG.maxIter
+    this.#maxBatchCount = partialConfig?.maxIter ?? DefaultGPTConfig.maxIter
   }
 
   /**
@@ -133,16 +135,31 @@ export class GPT extends Model {
     return Promise.resolve(ret);
   }
 
-  async generate(input: string, tokenizer: PreTrainedTokenizer, newTokens: number = 10): Promise<string> {
-    const { input_ids: tokens } = await tokenizer(input, { return_tensor: false}) as { input_ids: number[] }
+  /**
+   * Generate text from a prompt sequence.
+   * 
+   * @param input prompt sequence to generate from
+   * @param tokenizer tokenizer object
+   * @param generationConfig config object for text generation
+   * @param generationConfig.maxNewTokens default to 10, the number of tokens to generate
+   * @param generationConfig.temperature default to 1.0, the generation temperature (higher means more randomness). 
+   * Set to 0 for greedy decoding.
+   * @param generationConfig.doSample default to false, if true, sample the next token according the model's probabilities
+   * If false, predict the token with the highest probability.
+   * @param generationConfig.topk default to 50, only consider the topk most likely tokens for sampling. 
+   * Only used if doSample is true.
+   * @param generationConfig.seed default to 42, random seed for sampling.
+   * @returns the input prompt concatenated with the generated tokens
+   */
+  async generate(input: string, tokenizer: PreTrainedTokenizer, generationConfig?: Partial<GenerationConfig>): Promise<string> {
+    const { input_ids: tokens } = await tokenizer(input, {
+      return_tensor: false,
+      padding: false,
+    }) as { input_ids: number[] }
 
-    const generationConfig = {
-      maxNewTokens: newTokens,
-      temperature: 1.0,
-      doSample: false
-    }
-    const predictedTokens = await this.model.generate(tokens, generationConfig)
-    const generatedWords = tokenizer.decode(predictedTokens[0])
+    const config = Object.assign({}, DefaultGenerationConfig, generationConfig) // overwrite default with user config
+    const predictedTokens = await this.model.generate(tokens, config)
+    const generatedWords = tokenizer.decode(predictedTokens[0], { skip_special_tokens: false })
     return generatedWords
   }
 
