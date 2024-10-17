@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import type WebSocket from 'ws'
 import { Map } from 'immutable'
-import msgpack from 'msgpack-lite'
+import * as msgpack from "@msgpack/msgpack";
 
 import { client } from '@epfml/discojs'
 import type { Task } from '@epfml/discojs'
