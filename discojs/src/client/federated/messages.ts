@@ -1,4 +1,5 @@
-import { type weights } from '../../serialization/index.js'
+import type { serialization } from "../../index.js";
+
 import { type NodeID } from '..//types.js'
 
 import { type, hasMessageType } from '../messages.js'
@@ -17,19 +18,19 @@ export interface NewFederatedNodeInfo {
   type: type.NewFederatedNodeInfo
   id: NodeID
   waitForMoreParticipants: boolean
-  payload: weights.Encoded
+  payload: serialization.Encoded;
   round: number
   nbOfParticipants: number
 }
 
 export interface SendPayload {
   type: type.SendPayload
-  payload: weights.Encoded
+  payload: serialization.Encoded;
   round: number
 }
 export interface ReceiveServerPayload {
   type: type.ReceiveServerPayload
-  payload: weights.Encoded
+  payload: serialization.Encoded;
   round: number,
   nbOfParticipants: number // number of peers contributing to a federated training
 }

@@ -1,4 +1,5 @@
-import { weights } from '../../serialization/index.js'
+import { serialization } from "../../index.js";
+
 import { type SignalData } from './peer.js'
 import { isNodeID, type NodeID } from '../types.js'
 import { type, hasMessageType } from '../messages.js'
@@ -43,7 +44,7 @@ export interface Payload {
   peer: NodeID
   aggregationRound: number
   communicationRound: number
-  payload: weights.Encoded
+  payload: serialization.Encoded
 }
 
 /// Phase 2 communication (between peers)
@@ -108,7 +109,7 @@ export function isPeerMessage (o: unknown): o is PeerMessage {
     case type.Payload:
       return (
         'peer' in o && isNodeID(o.peer) &&
-        'payload' in o && weights.isEncoded(o.payload)
+        'payload' in o && serialization.isEncoded(o.payload)
       )
   }
 

@@ -26,19 +26,15 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
 describe("end-to-end federated", () => {
   let server: http.Server;
   let url: URL;
-  beforeEach(async function () {
-    this.timeout("10s");
-    [server, url] = await new Server().serve(
-      undefined,
-      defaultTasks.cifar10,
-      defaultTasks.lusCovid,
-      defaultTasks.titanic,
-      defaultTasks.wikitext,
-    );
-  });
-  afterEach(() => {
-    server?.close();
-  });
+  afterEach(
+    () =>
+      new Promise<void>((resolve, reject) =>
+        server?.close((e) => {
+          if (e !== undefined) reject(e);
+          else resolve();
+        }),
+      ),
+  );
 
   const DATASET_DIR = path.join("..", "datasets");
 
@@ -141,39 +137,57 @@ describe("end-to-end federated", () => {
     return disco.trainer.model.weights;
   }
 
-  it("three cifar10 users reach consensus", async function () {
-    this.timeout(90_000);
+  it("three cifar10 users reach consensus", async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.cifar10,
+    );
 
     const [m1, m2, m3] = await Promise.all([
       cifar10user(),
       cifar10user(),
       cifar10user(),
     ]);
-    assert.isTrue(m1.equals(m2) && m2.equals(m3));
-  });
 
-  it("two titanic users reach consensus", async function () {
-    this.timeout(5_000);
+    assert.isTrue(m1.equals(m2) && m2.equals(m3));
+  }).timeout("2m");
+
+  it("two titanic users reach consensus", async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.titanic,
+    );
 
     const [m1, m2] = await Promise.all([titanicUser(), titanicUser()]);
     assert.isTrue(m1.equals(m2));
-  });
-  it("two lus_covid users reach consensus", async function () {
-    this.timeout("3m");
+  }).timeout("10s");
+
+  it("two lus_covid users reach consensus", async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.lusCovid,
+    );
 
     const [m1, m2] = await Promise.all([lusCovidUser(), lusCovidUser()]);
     assert.isTrue(m1.equals(m2));
-  });
+  }).timeout("1m");
   
-  it("two wikitext reach consensus", async function () {
-    this.timeout("3m");
+  it("two wikitext reach consensus", async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.wikitext,
+    );
     
     const [m1, m2] = await Promise.all([wikitextUser(), wikitextUser()]);
     assert.isTrue(m1.equals(m2))
-  });
+  }).timeout("3m");
 
-  it("clients emit expected statuses", async function () {
-    this.timeout(15_000);
+  it("clients emit expected statuses", async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.lusCovid,
+    );
+
     const lusCovidTask = defaultTasks.lusCovid.getTask();
     lusCovidTask.trainingInformation.epochs = 8;
     lusCovidTask.trainingInformation.roundDuration = 2;
@@ -299,5 +313,5 @@ describe("end-to-end federated", () => {
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(statusUser3).equal("not enough participants")
     await discoUser3.close()
-  });
+  }).timeout("30s");
 });

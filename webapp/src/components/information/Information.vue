@@ -52,7 +52,7 @@
 <script lang="ts" setup>
 import { onActivated } from 'vue'
 
-import { useInformationStore } from '@/store/information'
+import { useInformationStore } from "@/store";
 import Card from '@/components/containers/Card.vue'
 import DecentralizedGIF from '@/assets/gif/DecentralizedGIF.vue'
 import FederatedGIF from '@/assets/gif/FederatedGIF.vue'

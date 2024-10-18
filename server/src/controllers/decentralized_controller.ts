@@ -1,6 +1,6 @@
 import createDebug from "debug";
 import { v4 as randomUUID } from 'uuid'
-import msgpack from 'msgpack-lite'
+import * as msgpack from "@msgpack/msgpack";
 import type WebSocket from 'ws'
 import { Map } from 'immutable'
 

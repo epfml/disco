@@ -29,7 +29,7 @@ describe('serialization', () => {
     const model = new models.TFJS(rawModel)
 
     const encoded = await serialization.model.encode(model)
-    assert.isTrue(serialization.model.isEncoded(encoded))
+    assert.isTrue(serialization.isEncoded(encoded))
     const decoded = await serialization.model.decode(encoded)
 
     assert.sameDeepOrderedMembers(
@@ -38,9 +38,7 @@ describe('serialization', () => {
     )
   })
 
-  it('can encode & decode a gpt-tfjs model', async function () {
-    this.timeout("10s")
-
+  it("can encode & decode a gpt-tfjs model", async () => {
     const config: GPTConfig = {
       modelType: 'gpt-nano',
       lr: 0.01,
@@ -53,7 +51,7 @@ describe('serialization', () => {
     const model = new models.GPT(config)
 
     const encoded = await serialization.model.encode(model)
-    assert.isTrue(serialization.model.isEncoded(encoded))
+    assert.isTrue(serialization.isEncoded(encoded))
     const decoded = await serialization.model.decode(encoded)
     
     assert.instanceOf(decoded, models.GPT)
@@ -66,5 +64,5 @@ describe('serialization', () => {
       model.config,
       (decoded as models.GPT).config
     )
-  })
+  }).timeout("20s")
 })

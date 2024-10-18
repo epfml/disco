@@ -7,7 +7,7 @@ describe('weights', () => {
     const weights = WeightsContainer.of([1], [2], [3])
 
     const encoded = await serialization.weights.encode(weights)
-    assert.isTrue(serialization.weights.isEncoded(encoded))
+    assert.isTrue(serialization.isEncoded(encoded))
     const decoded = serialization.weights.decode(encoded)
 
     assert.sameDeepOrderedMembers(

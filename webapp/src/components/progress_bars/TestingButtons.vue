@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { useValidationStore } from "@/store/validation";
+import { useValidationStore } from "@/store";
 import CustomButton from "@/components/simple/CustomButton.vue";
 
 const validationStore = useValidationStore();

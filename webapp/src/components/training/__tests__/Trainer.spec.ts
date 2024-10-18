@@ -1,4 +1,4 @@
-import { expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { directive as Tippy } from "vue-tippy";
 import { mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
@@ -33,7 +33,21 @@ vi.mock("axios", async () => {
 });
 
 async function setupForTask() {
-  const task = defaultTasks.titanic.getTask();
+  const provider = defaultTasks.titanic;
+
+  vi.stubGlobal("fetch", async (url: string | URL) => {
+    if (url.toString() === "http://localhost:8080/tasks/titanic/model.json")
+      return {
+        arrayBuffer: async () => {
+          const model = await provider.getModel();
+          return await serialization.model.encode(model);
+        },
+      };
+    throw new Error(`unhandled get: ${url}`);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   return mount(Trainer, {
     global: {
@@ -42,7 +56,7 @@ async function setupForTask() {
       plugins: [createTestingPinia({ createSpy: vi.fn })],
     },
     props: {
-      task,
+      task: provider.getTask(),
       dataset: [
         "tabular",
         loadCSV(
