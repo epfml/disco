@@ -17,9 +17,15 @@ describe("federated client", () => {
   beforeEach(async () => {
     [server, url] = await new Server().serve(undefined, TASK_PROVIDER);
   });
-  afterEach(() => {
-    server?.close();
-  });
+  afterEach(
+    () =>
+      new Promise<void>((resolve, reject) =>
+        server?.close((e) => {
+          if (e !== undefined) reject(e);
+          else resolve();
+        }),
+      ),
+  );
 
   it("connect to & disconnect from valid task", async () => {
     const client = new clients.federated.FederatedClient(

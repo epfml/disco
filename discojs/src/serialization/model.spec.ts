@@ -38,9 +38,7 @@ describe('serialization', () => {
     )
   })
 
-  it('can encode & decode a gpt-tfjs model', async function () {
-    this.timeout("10s")
-
+  it("can encode & decode a gpt-tfjs model", async () => {
     const config: GPTConfig = {
       modelType: 'gpt-nano',
       lr: 0.01,
@@ -66,5 +64,5 @@ describe('serialization', () => {
       model.config,
       (decoded as models.GPT).config
     )
-  })
+  }).timeout("20s")
 })

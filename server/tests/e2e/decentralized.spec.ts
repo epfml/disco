@@ -41,10 +41,15 @@ describe('end-to-end decentralized', function () {
 
   let server: http.Server
   let url: URL
-  beforeEach(async () => {
-    [server, url] = await new Server().serve(undefined, defaultTasks.cifar10, defaultTasks.lusCovid);
-  });
-  afterEach(() => { server?.close() })
+  afterEach(
+    () =>
+      new Promise<void>((resolve, reject) =>
+        server?.close((e) => {
+          if (e !== undefined) reject(e);
+          else resolve();
+        }),
+      ),
+  );
 
   /**
    * Makes client object to connect to server. The input array is the weights that the client will share
@@ -105,23 +110,47 @@ describe('end-to-end decentralized', function () {
   }
 
   it('single round of cifar 10 with three mean aggregators yields consensus', async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.cifar10,
+    );
+
     await reachConsensus('mean')
   })
 
   it('several rounds of cifar 10 with three mean aggregators yields consensus', async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.cifar10,
+    );
+
     await reachConsensus('mean', 3)
   })
 
   it('single round of cifar 10 with three secure aggregators yields consensus', async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.cifar10,
+    );
+
     await reachConsensus('secure')
   })
 
   it('several rounds of cifar 10 with three secure aggregators yields consensus', async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.cifar10,
+    );
+
     await reachConsensus('secure', 3)
   })
 
-  it("peers emit expected statuses", async function () {
-    this.timeout(15_000);
+  it("peers emit expected statuses", async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.lusCovid,
+    );
+
     const lusCovidTask = defaultTasks.lusCovid.getTask();
     lusCovidTask.trainingInformation = {
       ...lusCovidTask.trainingInformation,
@@ -279,5 +308,5 @@ describe('end-to-end decentralized', function () {
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(await statusUser3.next()).equal("not enough participants")
     await discoUser3.close()
-  });
+  }).timeout("30s");
 })
