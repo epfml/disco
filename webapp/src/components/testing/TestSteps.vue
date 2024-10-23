@@ -281,7 +281,7 @@ async function startTest(): Promise<void> {
         await startTabularTest(toRaw(dataset.value)[1]);
         break;
       case "text":
-        startTextTest(toRaw(dataset.value)[1]);
+        await startTextTest(toRaw(dataset.value)[1]);
         break;
     }
 
