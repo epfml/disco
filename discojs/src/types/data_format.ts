@@ -1,15 +1,6 @@
 import { List } from "immutable";
 
-import type { Image, processing, Tabular, Text } from "./index.js";
-
-/**
- * The data that we handle goes through various stages.
- * The labels also gets transformed at each stage.
- *
- * raw -> model encoded -> inferred
- */
-
-export type DataType = "image" | "tabular" | "text";
+import type { Image, processing, Tabular, Text } from "../index.js";
 
 /** what get's ingested by Disco */
 export interface Raw {

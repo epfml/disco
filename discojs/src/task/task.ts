@@ -1,4 +1,5 @@
-import { DataType } from '../types.js'
+import { DataType } from "../index.js";
+
 import { isDisplayInformation, type DisplayInformation } from './display_information.js'
 import { isTrainingInformation, type TrainingInformation } from './training_information.js'
 

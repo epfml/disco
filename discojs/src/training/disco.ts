@@ -11,10 +11,9 @@ import {
 } from "../index.js";
 import type {
   Batched,
+  DataFormat,
   DataType,
   Model,
-  ModelEncoded,
-  Raw,
   Task,
 } from "../index.js";
 import type { Aggregator } from "../aggregator/index.js";
@@ -103,7 +102,9 @@ export class Disco<D extends DataType> extends EventEmitter<{
   }
 
   /** Train on dataset, yielding logs of every round. */
-  async *trainByRound(dataset: Dataset<Raw[D]>): AsyncGenerator<RoundLogs> {
+  async *trainByRound(
+    dataset: Dataset<DataFormat.Raw[D]>,
+  ): AsyncGenerator<RoundLogs> {
     for await (const round of this.train(dataset)) {
       const [roundGen, roundLogs] = async_iterator.split(round);
       for await (const epoch of roundGen) for await (const _ of epoch);
@@ -112,7 +113,9 @@ export class Disco<D extends DataType> extends EventEmitter<{
   }
 
   /** Train on dataset, yielding logs of every epoch. */
-  async *trainByEpoch(dataset: Dataset<Raw[D]>): AsyncGenerator<EpochLogs> {
+  async *trainByEpoch(
+    dataset: Dataset<DataFormat.Raw[D]>,
+  ): AsyncGenerator<EpochLogs> {
     for await (const round of this.train(dataset)) {
       for await (const epoch of round) {
         const [epochGen, epochLogs] = async_iterator.split(epoch);
@@ -123,13 +126,15 @@ export class Disco<D extends DataType> extends EventEmitter<{
   }
 
   /** Train on dataset, yielding logs of every batch. */
-  async *trainByBatch(dataset: Dataset<Raw[D]>): AsyncGenerator<BatchLogs> {
+  async *trainByBatch(
+    dataset: Dataset<DataFormat.Raw[D]>,
+  ): AsyncGenerator<BatchLogs> {
     for await (const round of this.train(dataset))
       for await (const epoch of round) yield* epoch;
   }
 
   /** Run whole train on dataset. */
-  async trainFully(dataset: Dataset<Raw[D]>): Promise<void> {
+  async trainFully(dataset: Dataset<DataFormat.Raw[D]>): Promise<void> {
     for await (const round of this.train(dataset))
       for await (const epoch of round) for await (const _ of epoch);
   }
@@ -141,7 +146,7 @@ export class Disco<D extends DataType> extends EventEmitter<{
    * If you don't care about the whole process, use one of the other train methods.
    **/
   async *train(
-    dataset: Dataset<Raw[D]>,
+    dataset: Dataset<DataFormat.Raw[D]>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>
   > {
@@ -196,9 +201,12 @@ export class Disco<D extends DataType> extends EventEmitter<{
   }
 
   async #preprocessSplitAndBatch(
-    dataset: Dataset<Raw[D]>,
+    dataset: Dataset<DataFormat.Raw[D]>,
   ): Promise<
-    [Dataset<Batched<ModelEncoded[D]>>, Dataset<Batched<ModelEncoded[D]>>]
+    [
+      Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+      Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    ]
   > {
     const { batchSize, validationSplit } = this.#task.trainingInformation;
 

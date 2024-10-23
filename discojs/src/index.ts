@@ -23,6 +23,6 @@ export * as async_iterator from "./utils/async_iterator.js"
 export { EventEmitter } from "./utils/event_emitter.js"
 
 export * from "./dataset/index.js";
-export * from "./types.js";
+export * from "./types/index.js";
 
 export * as processing from "./processing/index.js";

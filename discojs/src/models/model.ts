@@ -1,8 +1,8 @@
 import type {
   Batched,
   Dataset,
+  DataFormat,
   DataType,
-  ModelEncoded,
   WeightsContainer,
 } from "../index.js";
 
@@ -29,15 +29,15 @@ export abstract class Model<D extends DataType> implements Disposable {
    * @yields on every epoch, training can be stop by `return`ing or `throw`ing it
    */
   abstract train(
-    trainingDataset: Dataset<Batched<ModelEncoded[D]>>,
-    validationDataset?: Dataset<Batched<ModelEncoded[D]>>,
+    trainingDataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs>;
 
   /** Predict likely values */
   // TODO extract in separated TrainedModel?
   abstract predict(
-    batch: Batched<ModelEncoded[D][0]>,
-  ): Promise<Batched<ModelEncoded[D][1]>>;
+    batch: Batched<DataFormat.ModelEncoded[D][0]>,
+  ): Promise<Batched<DataFormat.ModelEncoded[D][1]>>;
 
   /**
    * This method is automatically called to cleanup the memory occupied by the model

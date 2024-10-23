@@ -2,7 +2,7 @@ import { Repeat } from 'immutable'
 import * as path from 'node:path'
 import '@tensorflow/tfjs-node'
 
-import type { Dataset, DataType, Image, Raw, Task } from '@epfml/discojs'
+import type { Dataset, DataFormat, DataType, Image, Task } from '@epfml/discojs'
 import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
 import { loadCSV, loadImagesInDir } from '@epfml/discojs-node'
 import { Server } from 'server'
@@ -14,7 +14,7 @@ import { Server } from 'server'
 async function runUser<D extends DataType>(
   url: URL,
   task: Task<D>,
-  dataset: Dataset<Raw[D]>,
+  dataset: Dataset<DataFormat.Raw[D]>,
 ): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
   const disco = new Disco(task, url, { scheme: 'federated' })
@@ -26,7 +26,7 @@ async function runUser<D extends DataType>(
   await disco.close()
 }
 
-type TaskAndDataset<D extends DataType> = [Task<D>, Dataset<Raw[D]>];
+type TaskAndDataset<D extends DataType> = [Task<D>, Dataset<DataFormat.Raw[D]>];
 
 async function main (): Promise<void> {
   // Arbitrary chosen Task ID

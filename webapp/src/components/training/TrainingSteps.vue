@@ -31,9 +31,9 @@ import { useRouter, useRoute } from "vue-router";
 
 import type {
   Dataset,
+  DataFormat,
   DataType,
   Model,
-  Raw,
   Task,
   TaskID,
 } from "@epfml/discojs";
@@ -94,22 +94,25 @@ watch(
 onMounted(setupTrainingStore);
 
 const dataset = ref<LabeledDataset[DataType]>();
-const unamedDataset = computed<Dataset<Raw[DataType]> | undefined>(() => {
-  if (task.value === undefined || dataset.value === undefined) return undefined;
+const unamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
+  () => {
+    if (task.value === undefined || dataset.value === undefined)
+      return undefined;
 
-  switch (task.value.trainingInformation.dataType) {
-    case "image":
-      return (toRaw(dataset.value) as LabeledDataset["image"]).map(
-        ({ image, label }) => [image, label],
-      ) as Dataset<Raw["image"]>;
-    case "tabular":
-    case "text":
-      return dataset.value as Dataset<Raw["tabular" | "text"]>;
-    default: {
-      const _: never = task.value.trainingInformation;
-      throw new Error("should never happen");
+    switch (task.value.trainingInformation.dataType) {
+      case "image":
+        return (toRaw(dataset.value) as LabeledDataset["image"]).map(
+          ({ image, label }) => [image, label],
+        ) as Dataset<DataFormat.Raw["image"]>;
+      case "tabular":
+      case "text":
+        return dataset.value as Dataset<DataFormat.Raw["tabular" | "text"]>;
+      default: {
+        const _: never = task.value.trainingInformation;
+        throw new Error("should never happen");
+      }
     }
-  }
-});
+  },
+);
 const trainedModel = ref<Model<DataType>>();
 </script>

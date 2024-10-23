@@ -1,5 +1,6 @@
 import { PreTrainedTokenizer } from "@xenova/transformers";
-import { DataType } from "../types.js";
+
+import { DataType } from "../index.js";
 
 interface Privacy {
   // maximum weights difference between each round

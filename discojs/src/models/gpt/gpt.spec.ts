@@ -2,7 +2,7 @@ import { expect } from "chai";
 import "@tensorflow/tfjs-node"; // speed up
 import { AutoTokenizer } from "@xenova/transformers";
 
-import { Dataset, ModelEncoded } from "../../index.js";
+import { Dataset, DataFormat } from "../../index.js";
 
 import { GPT } from "./index.js";
 import { List, Repeat } from "immutable";
@@ -17,7 +17,7 @@ describe("gpt-tfjs", function () {
       (tokenizer(data, { return_tensor: false }) as { input_ids: number[] })
         .input_ids,
     );
-    const dataset = new Dataset<ModelEncoded["text"]>(
+    const dataset = new Dataset<DataFormat.ModelEncoded["text"]>(
       Repeat([dataTokens.pop(), dataTokens.last()]),
     ).batch(64);
 

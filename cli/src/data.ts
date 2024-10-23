@@ -1,10 +1,16 @@
 import path from "node:path";
 
-import type { Dataset, DataType, Image, Raw, Task } from "@epfml/discojs";
+import type {
+  Dataset,
+  DataFormat,
+  DataType,
+  Image,
+  Task,
+} from "@epfml/discojs";
 import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
 import { Repeat } from "immutable";
 
-async function loadSimpleFaceData(): Promise<Dataset<Raw["image"]>> {
+async function loadSimpleFaceData(): Promise<Dataset<DataFormat.Raw["image"]>> {
   const folder = path.join("..", "datasets", "simple_face");
 
   const [adults, childs]: Dataset<[Image, string]>[] = [
@@ -15,7 +21,7 @@ async function loadSimpleFaceData(): Promise<Dataset<Raw["image"]>> {
   return adults.chain(childs);
 }
 
-async function loadLusCovidData(): Promise<Dataset<Raw["image"]>> {
+async function loadLusCovidData(): Promise<Dataset<DataFormat.Raw["image"]>> {
   const folder = path.join("..", "datasets", "lus_covid");
 
   const [positive, negative]: Dataset<[Image, string]>[] = [
@@ -32,20 +38,20 @@ async function loadLusCovidData(): Promise<Dataset<Raw["image"]>> {
 
 export async function getTaskData<D extends DataType>(
   task: Task<D>,
-): Promise<Dataset<Raw[D]>> {
+): Promise<Dataset<DataFormat.Raw[D]>> {
   switch (task.id) {
     case "simple_face":
-      return (await loadSimpleFaceData()) as Dataset<Raw[D]>;
+      return (await loadSimpleFaceData()) as Dataset<DataFormat.Raw[D]>;
     case "titanic":
       return loadCSV(
         path.join("..", "datasets", "titanic_train.csv"),
-      ) as Dataset<Raw[D]>;
+      ) as Dataset<DataFormat.Raw[D]>;
     case "cifar10":
       return (
         await loadImagesInDir(path.join("..", "datasets", "CIFAR10"))
-      ).zip(Repeat("cat")) as Dataset<Raw[D]>;
+      ).zip(Repeat("cat")) as Dataset<DataFormat.Raw[D]>;
     case "lus_covid":
-      return (await loadLusCovidData()) as Dataset<Raw[D]>;
+      return (await loadLusCovidData()) as Dataset<DataFormat.Raw[D]>;
     default:
       throw new Error(`Data loader for ${task.id} not implemented.`);
   }

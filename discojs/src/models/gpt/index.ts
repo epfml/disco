@@ -6,7 +6,7 @@ import createDebug from "debug";
 import { List, Range } from "immutable";
 import * as tf from "@tensorflow/tfjs";
 
-import type { Batched, Dataset, ModelEncoded } from "../../index.js";
+import type { Batched, Dataset, DataFormat } from "../../index.js";
 import { WeightsContainer } from "../../index.js";
 
 import { BatchLogs, Model, EpochLogs } from "../index.js";
@@ -57,8 +57,8 @@ export class GPT extends Model<"text"> {
    * @param tracker
    */
   override async *train(
-    trainingDataset: Dataset<Batched<ModelEncoded["text"]>>,
-    validationDataset?: Dataset<Batched<ModelEncoded["text"]>>,
+    trainingDataset: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs> {
     let batchesLogs = List<BatchLogs>();
 
@@ -77,7 +77,9 @@ export class GPT extends Model<"text"> {
     return new EpochLogs(batchesLogs, validation);
   }
 
-  async #runBatch(batch: Batched<ModelEncoded["text"]>): Promise<BatchLogs> {
+  async #runBatch(
+    batch: Batched<DataFormat.ModelEncoded["text"]>,
+  ): Promise<BatchLogs> {
     const tfBatch = this.#batchToTF(batch);
 
     let logs: tf.Logs | undefined;
@@ -105,7 +107,7 @@ export class GPT extends Model<"text"> {
   }
 
   async #evaluate(
-    dataset: Dataset<Batched<ModelEncoded["text"]>>,
+    dataset: Dataset<Batched<DataFormat.ModelEncoded["text"]>>,
   ): Promise<Record<"accuracy" | "loss", number>> {
     const evaluation = await evaluate(
       this.model,
@@ -119,7 +121,7 @@ export class GPT extends Model<"text"> {
     };
   }
 
-  #batchToTF(batch: Batched<ModelEncoded["text"]>): {
+  #batchToTF(batch: Batched<DataFormat.ModelEncoded["text"]>): {
     xs: tf.Tensor2D;
     ys: tf.Tensor3D;
   } {
@@ -138,9 +140,9 @@ export class GPT extends Model<"text"> {
   }
 
   override async predict(
-    batch: Batched<ModelEncoded["text"][0]>,
+    batch: Batched<DataFormat.ModelEncoded["text"][0]>,
     options?: Partial<PredictConfig>,
-  ): Promise<Batched<ModelEncoded["text"][1]>> {
+  ): Promise<Batched<DataFormat.ModelEncoded["text"][1]>> {
     const config = {
       temperature: 1.0,
       doSample: false,
@@ -155,9 +157,9 @@ export class GPT extends Model<"text"> {
   }
 
   async #predictSingle(
-    tokens: ModelEncoded["text"][0],
+    tokens: DataFormat.ModelEncoded["text"][0],
     config: PredictConfig,
-  ): Promise<ModelEncoded["text"][1]> {
+  ): Promise<DataFormat.ModelEncoded["text"][1]> {
     // slice input tokens if longer than context length
     tokens = tokens.slice(-this.#blockSize);
 
