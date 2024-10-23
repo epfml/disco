@@ -41,10 +41,15 @@ describe('end-to-end decentralized', function () {
 
   let server: http.Server
   let url: URL
-  beforeEach(async () => {
-    [server, url] = await new Server().serve(undefined, defaultTasks.cifar10, defaultTasks.lusCovid);
-  });
-  afterEach(() => { server?.close() })
+  afterEach(
+    () =>
+      new Promise<void>((resolve, reject) =>
+        server?.close((e) => {
+          if (e !== undefined) reject(e);
+          else resolve();
+        }),
+      ),
+  );
 
   /**
    * Makes client object to connect to server. The input array is the weights that the client will share
@@ -105,23 +110,47 @@ describe('end-to-end decentralized', function () {
   }
 
   it('single round of cifar 10 with three mean aggregators yields consensus', async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.cifar10,
+    );
+
     await reachConsensus('mean')
   })
 
   it('several rounds of cifar 10 with three mean aggregators yields consensus', async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.cifar10,
+    );
+
     await reachConsensus('mean', 3)
   })
 
   it('single round of cifar 10 with three secure aggregators yields consensus', async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.cifar10,
+    );
+
     await reachConsensus('secure')
   })
 
   it('several rounds of cifar 10 with three secure aggregators yields consensus', async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.cifar10,
+    );
+
     await reachConsensus('secure', 3)
   })
 
-  it("peers emit expected statuses", async function () {
-    this.timeout(15_000);
+  it("peers emit expected statuses", async () => {
+    [server, url] = await new Server().serve(
+      undefined,
+      defaultTasks.lusCovid,
+    );
+
     const lusCovidTask = defaultTasks.lusCovid.getTask();
     lusCovidTask.trainingInformation = {
       ...lusCovidTask.trainingInformation,
@@ -173,10 +202,10 @@ describe('end-to-end decentralized', function () {
     const statusUpdateTime = 500 // allow some time for the client to update their status
 
     // Create User 1
-    const discoUser1 = new Disco(lusCovidTask, url, { });
+    const discoUser1 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser1 = new Queue<RoundStatus>();
     discoUser1.on("status", status => { statusUser1.put(status) })
-    const generatorUser1 = discoUser1.trainByRound(["image", dataset])
+    const generatorUser1 = discoUser1.trainByRound(dataset)
     
     // Have User 1 join the task and train locally for one round
     const logUser1Round1 = await generatorUser1.next()
@@ -196,10 +225,10 @@ describe('end-to-end decentralized', function () {
     expect(await statusUser1.next()).equal("not enough participants") // but has to wait for more participants
 
     // Create User 2
-    const discoUser2 = new Disco(lusCovidTask, url, { });
+    const discoUser2 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser2 = new Queue<RoundStatus>();
     discoUser2.on("status", status => { statusUser2.put(status) })
-    const generatorUser2 = discoUser2.trainByRound(["image", dataset])
+    const generatorUser2 = discoUser2.trainByRound(dataset)
 
     // Have User 2 join the task and train for one round
     const logUser2Round1 = await generatorUser2.next()
@@ -242,10 +271,10 @@ describe('end-to-end decentralized', function () {
     expect(await statusUser2.next()).equal("not enough participants")
 
     // Create User 3
-    const discoUser3 = new Disco(lusCovidTask, url, { });
+    const discoUser3 = new Disco(lusCovidTask, url, { preprocessOnce: true });
     const statusUser3 = new Queue<RoundStatus>();
     discoUser3.on("status", status => { statusUser3.put(status) })
-    const generatorUser3 = discoUser3.trainByRound(["image", dataset])
+    const generatorUser3 = discoUser3.trainByRound(dataset)
 
     // User 3 joins mid-training and trains one local round
     const logUser3Round1 = await generatorUser3.next()
@@ -279,5 +308,5 @@ describe('end-to-end decentralized', function () {
     await new Promise((res, _) => setTimeout(res, statusUpdateTime)) // Wait some time for the status to update
     expect(await statusUser3.next()).equal("not enough participants")
     await discoUser3.close()
-  });
+  }).timeout("1m");
 })

@@ -1,8 +1,8 @@
+import { List } from "immutable";
 import { parse } from "ts-command-line-args";
-import * as tf from "@tensorflow/tfjs"
 import { AutoTokenizer } from "@xenova/transformers";
 
-import { fetchTasks, models, async_iterator, defaultTasks, processing } from "@epfml/discojs";
+import { fetchTasks, models, async_iterator, defaultTasks, processing, Task } from "@epfml/discojs";
 import { loadModelFromDisk, loadText } from '@epfml/discojs-node'
 
 import { Server } from "server";
@@ -41,15 +41,6 @@ const args = { ...defaultArgs, ...parsedArgs }
  * Benchmark results are reported in https://github.com/epfml/disco/pull/659
  */
 
-function intoTFGenerator<T extends tf.TensorContainer>(
-  iter: AsyncIterable<T>,
-): tf.data.Dataset<T> {
-  // @ts-expect-error generator
-  return tf.data.generator(async function* () {
-    yield* iter;
-  });
-}
-
 async function main(args: Required<CLIArguments>): Promise<void> { 
   const { inference: benchmarkInference, modelType,
     contextLength, batchSize, modelPath } = args
@@ -59,7 +50,7 @@ async function main(args: Required<CLIArguments>): Promise<void> {
 
   // Fetch the wikitext task from the server
   const tasks = await fetchTasks(url)
-  const task = tasks.get('llm_task')
+  const task = tasks.get('llm_task') as Task<'text'> | undefined
   if (task === undefined) { throw new Error('task not found') }  
 
   const tokenizerName = task.trainingInformation.tokenizer
@@ -89,32 +80,10 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     const dataset = loadText('../datasets/wikitext/wiki.train.tokens')
 
     const maxLength = task.trainingInformation.maxSequenceLength ?? (tokenizer.model_max_length as number) + 1
-    // TODO will be easier when preproccessing is redone
-    const preprocessedDataset = intoTFGenerator(
-      dataset
-        .map((line) =>
-          processing.tokenizeAndLeftPad(line, tokenizer, maxLength),
-        )
-        .batch(batchSize)
-        .map((batch) =>
-          tf.tidy(() => ({
-            xs: tf.tensor2d(
-              batch.map((tokens) => tokens.slice(0, -1)).toArray(),
-            ),
-            ys: tf.stack(
-              batch
-                .map(
-                  (tokens) =>
-                    tf.oneHot(
-                      tokens.slice(1),
-                      tokenizer.model.vocab.length + 1,
-                    ) as tf.Tensor2D,
-                )
-                .toArray(),
-            ) as tf.Tensor3D,
-          })),
-        ),
-    );
+    const preprocessedDataset = dataset
+      .map((line) => processing.tokenizeAndLeftPad(line, tokenizer, maxLength))
+      .map((tokens) => [tokens.pop(), tokens.last()] as [List<number>, number])
+      .batch(batchSize);
     
     // Init and train the model
     const model = new models.GPT(config)
@@ -143,13 +112,20 @@ async function main(args: Required<CLIArguments>): Promise<void> {
     const iterations = 10
     console.log("Generating", nbNewTokens, "new tokens")
 
+    let tokens = List(
+      (tokenizer(prompt, { return_tensor: false }) as { input_ids: number[] })
+        .input_ids,
+    );
+
     let inferenceTime = 0
     for (let i = 0; i < iterations; i++) {
       const timeStart = performance.now()
-      const _ = await model.generate(prompt, tokenizer, nbNewTokens)
+      for (let n = 0; n < nbNewTokens; n++) {
+        const next: number = (await model.predict(List.of(tokens))).first();
+	tokens = tokens.push(next)
+      }
       inferenceTime += performance.now() - timeStart
     }
-    // Overall average includes tokenization, token sampling and de-tokenization
     console.log(`Inference time: ${(inferenceTime/ nbNewTokens / iterations).toFixed(2)} ms/token`)
   }
   await new Promise((resolve, reject) => {

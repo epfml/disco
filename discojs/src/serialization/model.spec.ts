@@ -1,11 +1,13 @@
-import { assert } from 'chai'
+import { assert, expect } from 'chai'
 import * as tf from '@tensorflow/tfjs'
 
-import type { Model } from '../index.js'
+import type { DataType, Model } from "../index.js";
 import type { GPTConfig } from '../models/index.js'
 import { serialization, models } from '../index.js'
 
-async function getRawWeights (model: Model): Promise<Array<[number, Float32Array]>> {
+async function getRawWeights(
+  model: Model<DataType>,
+): Promise<Array<[number, Float32Array]>> {
   return Array.from(
     (await Promise.all(
       model.weights.weights.map(async (w) => await w.data<'float32'>()))
@@ -26,21 +28,23 @@ describe('serialization', () => {
       ]
     })
     rawModel.compile({ optimizer: 'sgd', loss: 'hinge' })
-    const model = new models.TFJS(rawModel)
+    const model = new models.TFJS("image", rawModel)
 
     const encoded = await serialization.model.encode(model)
     assert.isTrue(serialization.model.isEncoded(encoded))
     const decoded = await serialization.model.decode(encoded)
 
+    expect(decoded).to.be.an.instanceof(models.TFJS);
+    expect((decoded as models.TFJS<"image" | "tabular">).datatype).to.equal(
+      "image",
+    );
     assert.sameDeepOrderedMembers(
       await getRawWeights(model),
       await getRawWeights(decoded)
     )
   })
 
-  it('can encode & decode a gpt-tfjs model', async function () {
-    this.timeout("10s")
-
+  it("can encode & decode a gpt-tfjs model", async () => {
     const config: GPTConfig = {
       modelType: 'gpt-nano',
       lr: 0.01,
@@ -66,5 +70,5 @@ describe('serialization', () => {
       model.config,
       (decoded as models.GPT).config
     )
-  })
+  }).timeout("20s")
 })

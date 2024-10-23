@@ -1,12 +1,12 @@
-import type tf from "@tensorflow/tfjs";
-
-import type { WeightsContainer } from "../index.js";
+import type {
+  Batched,
+  Dataset,
+  DataFormat,
+  DataType,
+  WeightsContainer,
+} from "../index.js";
 
 import type { BatchLogs, EpochLogs } from "./logs.js";
-
-// TODO still bound to tfjs
-export type Prediction = tf.Tensor;
-export type Sample = tf.Tensor;
 
 /**
  * Trainable predictor
@@ -14,7 +14,7 @@ export type Sample = tf.Tensor;
  * Allow for various implementation of models (various train function, tensor-library, ...)
  **/
 // TODO make it typesafe: same shape of data/input/weights
-export abstract class Model implements Disposable {
+export abstract class Model<D extends DataType> implements Disposable {
   // TODO don't allow external access but upgrade train to return weights on every epoch
   /** Return training state */
   abstract get weights(): WeightsContainer;
@@ -24,20 +24,20 @@ export abstract class Model implements Disposable {
   /**
    * Improve predictor
    *
-   * @param trainingData dataset to optimize for
-   * @param validationData dataset to measure how well it is training
-   * @param epochs number of pass over the training dataset
-   * @param tracker watch the various steps
-   * @yields on every epoch, training can be stop by `return`ing it
+   * @param trainingDataset dataset to optimize for
+   * @param validationDataset dataset to measure how well it is training
+   * @yields on every epoch, training can be stop by `return`ing or `throw`ing it
    */
   abstract train(
-    trainingData: tf.data.Dataset<tf.TensorContainer>,
-    validationData?: tf.data.Dataset<tf.TensorContainer>,
+    trainingDataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<BatchLogs, EpochLogs>;
 
   /** Predict likely values */
   // TODO extract in separated TrainedModel?
-  abstract predict(input: Sample): Promise<Prediction>;
+  abstract predict(
+    batch: Batched<DataFormat.ModelEncoded[D][0]>,
+  ): Promise<Batched<DataFormat.ModelEncoded[D][1]>>;
 
   /**
    * This method is automatically called to cleanup the memory occupied by the model

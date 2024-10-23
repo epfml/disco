@@ -2,7 +2,7 @@ import axios from 'axios'
 import createDebug from "debug";
 import { Map } from 'immutable'
 
-import type { Model } from '../index.js'
+import type { DataType, Model } from '../index.js'
 import { serialization } from '../index.js'
 
 import type { Task, TaskID } from './task.js'
@@ -12,10 +12,10 @@ const debug = createDebug("discojs:task:handlers");
 
 const TASK_ENDPOINT = 'tasks'
 
-export async function pushTask (
+export async function pushTask<D extends DataType>(
   url: URL,
-  task: Task,
-  model: Model
+  task: Task<D>,
+  model: Model<D>,
 ): Promise<void> {
   await axios.post(
     url.href + TASK_ENDPOINT,
@@ -27,7 +27,9 @@ export async function pushTask (
   )
 }
 
-export async function fetchTasks (url: URL): Promise<Map<TaskID, Task>> {
+export async function fetchTasks(
+  url: URL,
+): Promise<Map<TaskID, Task<DataType>>> {
   const response = await axios.get(new URL(TASK_ENDPOINT, url).href)
   const tasks: unknown = response.data
 

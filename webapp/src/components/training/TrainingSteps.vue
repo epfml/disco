@@ -6,64 +6,48 @@
       v-show="trainingStore.step === 2"
       class="flex flex-col space-y-4 md:space-y-8"
     >
-      <DataDescription :task="task" />
-
-      <LabeledImageDatasetInput
-        v-if="task.trainingInformation.dataType === 'image'"
-        v-model="imageDataset"
-        :labels="labels"
-      />
-      <TabularDatasetInput
-        v-if="task.trainingInformation.dataType === 'tabular'"
-        v-model="tabularDataset"
-      />
-      <TextDatasetInput
-        v-if="task.trainingInformation.dataType === 'text'"
-        v-model="textDataset"
-      />
+      <LabeledDatasetInput :task v-model="dataset">
+        <template #header>
+          <DataDescription :task />
+        </template>
+      </LabeledDatasetInput>
     </div>
 
     <Trainer
       v-show="trainingStore.step === 3"
-      :task="task"
-      :dataset="dataset"
+      :task
+      :dataset="unamedDataset"
       @model="(m) => (trainedModel = m)"
     />
 
-    <Finished
-      v-show="trainingStore.step === 4"
-      :task="task"
-      :model="trainedModel"
-    />
+    <Finished v-show="trainingStore.step === 4" :task :model="trainedModel" />
   </div>
   <TrainingButtons />
 </template>
 
 <script lang="ts" setup>
-import { Set } from "immutable";
 import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 
 import type {
   Dataset,
+  DataFormat,
+  DataType,
   Model,
-  Tabular,
+  Task,
   TaskID,
-  Text,
-  TypedLabeledDataset,
 } from "@epfml/discojs";
 
 import { useTrainingStore } from "@/store/training";
 import { useTasksStore } from "@/store/tasks";
-import Description from "@/components/training/Description.vue";
-import Trainer from "@/components/training/Trainer.vue";
-import Finished from "@/components/training/Finished.vue";
-import type { NamedLabeledImageDataset } from "@/components/dataset_input/types.js";
+
 import DataDescription from "@/components/dataset_input/DataDescription.vue";
-import LabeledImageDatasetInput from "@/components/dataset_input/LabeledImageDatasetInput/index.vue";
-import TabularDatasetInput from "@/components/dataset_input/TabularDatasetInput.vue";
-import TextDatasetInput from "@/components/dataset_input/TextDatasetInput.vue";
+import Description from "@/components/training/Description.vue";
+import Finished from "@/components/training/Finished.vue";
+import LabeledDatasetInput from "@/components/dataset_input/LabeledDatasetInput.vue";
+import Trainer from "@/components/training/Trainer.vue";
 import TrainingButtons from "@/components/progress_bars/TrainingButtons.vue";
+import type { LabeledDataset } from "@/components/dataset_input/types.js";
 
 const router = useRouter();
 const route = useRoute();
@@ -81,7 +65,9 @@ function setupTrainingStore() {
 }
 // Init the task once the taskStore has been loaded successfully
 // If it is not we redirect to the task list
-const task = computed(() => {
+const task = computed<Task<DataType> | undefined>(() => {
+  console.log("training: recompute task");
+
   if (tasksStore.status == "success") {
     return tasksStore.tasks.get(props.id);
   }
@@ -107,33 +93,26 @@ watch(
 
 onMounted(setupTrainingStore);
 
-const labels = computed(() => Set(task.value?.trainingInformation.LABEL_LIST));
+const dataset = ref<LabeledDataset[DataType]>();
+const unamedDataset = computed<Dataset<DataFormat.Raw[DataType]> | undefined>(
+  () => {
+    if (task.value === undefined || dataset.value === undefined)
+      return undefined;
 
-const imageDataset = ref<NamedLabeledImageDataset>();
-const tabularDataset = ref<Dataset<Tabular>>();
-const textDataset = ref<Dataset<Text>>();
-const dataset = computed<TypedLabeledDataset | undefined>(() => {
-  if (
-    Set.of<unknown>(
-      imageDataset.value,
-      tabularDataset.value,
-      textDataset.value,
-    ).filter((d) => d !== undefined).size > 1
-  )
-    throw new Error("multiple dataset entered");
-
-  if (imageDataset.value !== undefined)
-    return [
-      "image",
-      toRaw(imageDataset.value).map(({ image, label }) => [image, label]),
-    ];
-  if (tabularDataset.value !== undefined)
-    return ["tabular", toRaw(tabularDataset.value)];
-  if (textDataset.value !== undefined)
-    return ["text", toRaw(textDataset.value)];
-
-  return undefined;
-});
-
-const trainedModel = ref<Model>();
+    switch (task.value.trainingInformation.dataType) {
+      case "image":
+        return (toRaw(dataset.value) as LabeledDataset["image"]).map(
+          ({ image, label }) => [image, label],
+        ) as Dataset<DataFormat.Raw["image"]>;
+      case "tabular":
+      case "text":
+        return dataset.value as Dataset<DataFormat.Raw["tabular" | "text"]>;
+      default: {
+        const _: never = task.value.trainingInformation;
+        throw new Error("should never happen");
+      }
+    }
+  },
+);
+const trainedModel = ref<Model<DataType>>();
 </script>

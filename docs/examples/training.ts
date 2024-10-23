@@ -2,7 +2,7 @@ import { Repeat } from 'immutable'
 import * as path from 'node:path'
 import '@tensorflow/tfjs-node'
 
-import type { Dataset, Image, Task, TypedLabeledDataset } from '@epfml/discojs'
+import type { Dataset, DataFormat, DataType, Image, Task } from '@epfml/discojs'
 import { Disco, fetchTasks, defaultTasks } from '@epfml/discojs'
 import { loadCSV, loadImagesInDir } from '@epfml/discojs-node'
 import { Server } from 'server'
@@ -11,7 +11,11 @@ import { Server } from 'server'
  * Example of discojs API, we load data, build the appropriate loggers, the disco object
  * and finally start training.
  */
-async function runUser (url: URL, task: Task, dataset: TypedLabeledDataset): Promise<void> {
+async function runUser<D extends DataType>(
+  url: URL,
+  task: Task<D>,
+  dataset: Dataset<DataFormat.Raw[D]>,
+): Promise<void> {
   // Create Disco object associated with the server url, the training scheme
   const disco = new Disco(task, url, { scheme: 'federated' })
 
@@ -21,6 +25,8 @@ async function runUser (url: URL, task: Task, dataset: TypedLabeledDataset): Pro
   // Disconnect from the remote server
   await disco.close()
 }
+
+type TaskAndDataset<D extends DataType> = [Task<D>, Dataset<DataFormat.Raw[D]>];
 
 async function main (): Promise<void> {
   // Arbitrary chosen Task ID
@@ -34,20 +40,19 @@ async function main (): Promise<void> {
 
   // Choose the task and load local data
   // Make sure you first ran ./get_training_data
-  let task: Task | undefined
-  let dataset: TypedLabeledDataset
+  let taskAndDataset: TaskAndDataset<'image' | 'tabular'>
   switch (NAME) {
-    case 'titanic': {
-      task = tasks.get('titanic')
-      if (task === undefined) { throw new Error('task not found') }
-      dataset = ["tabular", loadCSV("../../datasets/titanic_train.csv")]
-      break
+    case "titanic": {
+      const task = tasks.get("titanic") as Task<"tabular"> | undefined;
+      if (task === undefined) throw new Error("task not found");
+      taskAndDataset = [task, loadCSV("../../datasets/titanic_train.csv")];
+      break;
     }
-    case 'simple_face': {
-      task = tasks.get('simple_face')
-      if (task === undefined) { throw new Error('task not found') }
-      dataset = ["image", await loadSimpleFaceData()]
-      break
+    case "simple_face": {
+      const task = tasks.get("simple_face") as Task<"image"> | undefined;
+      if (task === undefined) throw new Error("task not found");
+      taskAndDataset = [task, await loadSimpleFaceData()];
+      break;
     }
     default:
       throw new Error('task id not found')
@@ -55,9 +60,9 @@ async function main (): Promise<void> {
 
   // Add more users to the list to simulate more than 3 clients
   await Promise.all([
-    runUser(url, task, dataset),
-    runUser(url, task, dataset),
-    runUser(url, task, dataset)
+    runUser(url, ...taskAndDataset),
+    runUser(url, ...taskAndDataset),
+    runUser(url, ...taskAndDataset),
   ])
 
   // Close server

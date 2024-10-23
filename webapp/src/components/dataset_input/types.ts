@@ -1,4 +1,4 @@
-import type { Dataset, Image, Tabular, Text } from "@epfml/discojs";
+import type { Dataset, DataFormat, Image } from "@epfml/discojs";
 
 type NamedImage = {
   image: Image;
@@ -11,12 +11,13 @@ type NamedLabeledImage = NamedImage & {
 export type NamedImageDataset = Dataset<NamedImage>;
 export type NamedLabeledImageDataset = Dataset<NamedLabeledImage>;
 
-type BasicTypedNamedDataset =
-  | ["tabular", Dataset<Tabular>]
-  | ["text", Dataset<Text>];
-export type TypedNamedLabeledDataset =
-  | BasicTypedNamedDataset
-  | ["image", NamedLabeledImageDataset];
-export type TypedNamedDataset =
-  | BasicTypedNamedDataset
-  | ["image", NamedImageDataset];
+export interface LabeledDataset {
+  image: NamedLabeledImageDataset;
+  tabular: Dataset<DataFormat.Raw["tabular"]>;
+  text: Dataset<DataFormat.Raw["text"]>;
+}
+export interface UnlabeledDataset {
+  image: NamedImageDataset;
+  tabular: Dataset<DataFormat.RawWithoutLabel["tabular"]>;
+  text: Dataset<DataFormat.RawWithoutLabel["text"]>;
+}

@@ -84,7 +84,7 @@ import { VueSpinner } from 'vue3-spinners';
 
 import { List } from "immutable";
 
-import type { Task } from '@epfml/discojs'
+import type { DataType, Task } from "@epfml/discojs";
 
 import { useTasksStore } from '@/store/tasks'
 import { useTrainingStore } from '@/store/training'
@@ -104,7 +104,7 @@ const sortedTasks = computed(() => [...tasks.value.values()].sort(
   (task1, task2) => task1.displayInformation.taskTitle.localeCompare(task2.displayInformation.taskTitle)
 ))
 
-function getSchemeColor(task: Task): string {
+function getSchemeColor(task: Task<DataType>): string {
   switch (task.trainingInformation.scheme) {
     case 'decentralized':
       return 'bg-orange-200'
@@ -114,7 +114,7 @@ function getSchemeColor(task: Task): string {
       return 'bg-blue-200'
   }
 }
-function getDataTypeColor(task: Task): string {
+function getDataTypeColor(task: Task<DataType>): string {
   switch (task.trainingInformation.dataType) {
     case 'image':
       return 'bg-yellow-200'
@@ -125,7 +125,7 @@ function getDataTypeColor(task: Task): string {
   }
 }
 
-const toTask = (task: Task): void => {
+function toTask(task: Task<DataType>): void {
   trainingStore.setTask(task.id)
   trainingStore.setStep(1)
   router.push(`/${task.id}`)

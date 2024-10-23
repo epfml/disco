@@ -124,6 +124,7 @@
 
   <div v-if="selection !== undefined">
     <div v-if="validationStore.step !== 0">
+
       <TestSteps
         v-if="selection.mode === 'test'"
         :task="selection.task"
@@ -147,7 +148,7 @@ import { computed, ref, onActivated } from "vue";
 import { RouterLink } from "vue-router";
 import { VueSpinner } from "vue3-spinners";
 
-import type { Model, Task } from "@epfml/discojs";
+import type { DataType, Model, Task } from "@epfml/discojs";
 import { client as clients, aggregator } from "@epfml/discojs";
 
 import Bin2Icon from "@/assets/svg/Bin2Icon.vue";
@@ -173,12 +174,13 @@ const models = useModelsStore();
 const tasksStore = useTasksStore();
 const toaster = useToaster();
 
-const selection = ref<{
+type Selection<D extends DataType> = {
   mode: "predict" | "test";
-  task: Task;
+  task: Task<D>;
   // same as in validation store but not undef
-  model: Model;
-}>();
+  model: Model<D>;
+};
+const selection = ref<Selection<DataType>>();
 
 const federatedTasks = computed(() =>
   tasksStore.tasks
@@ -223,7 +225,7 @@ onActivated(() => {
     selectModel(validationStore.modelID, "test");
 });
 
-async function downloadModel(task: Task): Promise<void> {
+async function downloadModel(task: Task<DataType>): Promise<void> {
   try {
     toaster.info("Downloading model...");
 

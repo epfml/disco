@@ -1,8 +1,8 @@
 import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import { models } from '../index.js'
 
-export const wikitext: TaskProvider = {
-  getTask (): Task {
+export const wikitext: TaskProvider<'text'> = {
+  getTask (): Task<'text'> {
     return {
       id: 'llm_task',
       displayInformation: {
@@ -25,7 +25,6 @@ export const wikitext: TaskProvider = {
       },
       trainingInformation: {
         dataType: 'text',
-        preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
         scheme: 'federated',
         aggregationStrategy: 'mean',
         minNbOfParticipants: 2,
@@ -42,7 +41,7 @@ export const wikitext: TaskProvider = {
     }
   },
 
-  getModel (): Promise<Model> {
+  getModel (): Promise<Model<'text'>> {
     return Promise.resolve(new models.GPT())
   }
 }

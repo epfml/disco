@@ -1,10 +1,10 @@
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import { models } from '../index.js'
 
-export const mnist: TaskProvider = {
-  getTask (): Task {
+export const mnist: TaskProvider<'image'> = {
+  getTask (): Task<'image'> {
     return {
       id: 'mnist',
       displayInformation: {
@@ -28,8 +28,6 @@ export const mnist: TaskProvider = {
         dataType: 'image',
         IMAGE_H: 28,
         IMAGE_W: 28,
-        // Images should already be at the right size but resizing just in case
-        preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         LABEL_LIST: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         scheme: 'decentralized',
         aggregationStrategy: 'secure',
@@ -40,7 +38,7 @@ export const mnist: TaskProvider = {
     }
   },
 
-  getModel(): Promise<Model> {
+  getModel(): Promise<Model<'image'>> {
     // Architecture from the PyTorch MNIST example (I made it slightly smaller, 650kB instead of 5MB)
     // https://github.com/pytorch/examples/blob/main/mnist/main.py
     const model = tf.sequential()
@@ -68,6 +66,6 @@ export const mnist: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return Promise.resolve(new models.TFJS(model))
+    return Promise.resolve(new models.TFJS('image', model))
   }
 }

@@ -1,7 +1,7 @@
 import express from 'express'
 import type expressWS from 'express-ws'
 import { Set } from 'immutable'
-import type { Task, EncodedModel } from '@epfml/discojs'
+import type { Task, EncodedModel, DataType } from '@epfml/discojs'
 import { serialization } from '@epfml/discojs'
 
 import type { TaskSet } from '../task_set.js'
@@ -23,7 +23,9 @@ export class TrainingRouter {
     this.#expressRouter = express.Router()
     wsApplier.applyTo(this.#expressRouter)
 
-    this.#expressRouter.get('/', (_, res) => res.send(`Disco ${this.trainingScheme} server \n`))
+    this.#expressRouter.get("/", (_, res) => {
+      res.send(`Disco ${this.trainingScheme} server\n`);
+    });
 
     /* delay listener because `this` (object) isn't fully constructed yet. 
     * The lambda function inside process.nextTick is executed after the current operation 
@@ -47,12 +49,15 @@ export class TrainingRouter {
 
   // Register the task and setup the controller to handle
   // websocket connections
-  private async onNewTask (task: Task, encodedModel: EncodedModel): Promise<void> {
+  private async onNewTask<D extends DataType>(
+    task: Task<D>,
+    encodedModel: EncodedModel,
+  ): Promise<void> {
     this.#tasks = this.#tasks.add(task.id)
     // The controller handles the actual logic of collaborative training
     // in its `handle` method. Each task has a dedicated controller which
     // handles the training logic of this task only
-    let taskController: TrainingController;
+    let taskController: TrainingController<D>;
     if (this.trainingScheme == 'federated') {
       // The federated controller takes the initial model weights at initialization
       // so that it can send it to new clients

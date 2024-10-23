@@ -91,7 +91,13 @@ describe("image dataset input by csv", () => {
 
 describe("tabular dataset input", () => {
   it("allows to input CSV", () => {
-    setupServerWith(basicTask({ dataType: "tabular" }));
+    setupServerWith(
+      basicTask({
+        dataType: "tabular",
+        inputColumns: ["a", "b"],
+        outputColumn: "c",
+      }),
+    );
 
     cy.visit("/#/list");
     cy.get("button").contains("participate").click();

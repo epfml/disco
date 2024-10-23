@@ -1,7 +1,7 @@
 import msgpack from 'msgpack-lite'
 import type tf from '@tensorflow/tfjs'
 
-import type { Model } from '../index.js'
+import type { DataType, Model } from '../index.js'
 import { models, serialization } from '../index.js'
 import { GPTConfig } from '../models/index.js'
 
@@ -16,12 +16,12 @@ export function isEncoded (raw: unknown): raw is Encoded {
   return raw instanceof Uint8Array
 }
 
-export async function encode(model: Model): Promise<Encoded> {
+export async function encode(model: Model<DataType>): Promise<Encoded> {
   let encoded;
   switch (true) {
     case model instanceof models.TFJS: {
       const serialized = await model.serialize();
-      encoded = msgpack.encode([Type.TFJS, serialized]);
+      encoded = msgpack.encode([Type.TFJS, ...serialized]);
       break;
     }
     case model instanceof models.GPT: {
@@ -39,7 +39,7 @@ export async function encode(model: Model): Promise<Encoded> {
   return new Uint8Array(encoded);
 }
 
-export async function decode (encoded: unknown): Promise<Model> {
+export async function decode(encoded: unknown): Promise<Model<DataType>> {
   if (!isEncoded(encoded)) {
     throw new Error("Invalid encoding, raw encoding isn't an instance of Uint8Array")
   }
@@ -54,12 +54,31 @@ export async function decode (encoded: unknown): Promise<Model> {
   }
   const rawModel = raw[1] as unknown
   switch (type) {
-    case Type.TFJS:
-      if (raw.length !== 2) {
-        throw new Error('invalid encoding, TFJS model encoding should be an array of length 2')
+    case Type.TFJS: {
+      if (raw.length !== 3)
+        throw new Error(
+          "invalid encoding, TFJS model encoding should be an array of length 3",
+        );
+      const [rawDatatype, rawModel] = raw.slice(1) as unknown[];
+
+      let datatype;
+      switch (rawDatatype) {
+        case "image":
+        case "tabular":
+          datatype = rawDatatype;
+          break;
+        default:
+          throw new Error(
+            "invalid encoding, TFJS model encoding should be an array of length 3",
+          );
       }
-      // TODO totally unsafe casting
-      return await models.TFJS.deserialize(rawModel as tf.io.ModelArtifacts)
+
+      return await models.TFJS.deserialize([
+        datatype,
+        // TODO totally unsafe casting
+        rawModel as tf.io.ModelArtifacts,
+      ]);
+    }
     case Type.GPT: {  
       let config
       if (raw.length == 2) {

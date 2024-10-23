@@ -158,7 +158,7 @@ import { Form as VeeForm, ErrorMessage } from 'vee-validate'
 import { List, Map } from 'immutable'
 import * as tf from '@tensorflow/tfjs'
 
-import type { Task } from '@epfml/discojs'
+import type { DataType, Task } from "@epfml/discojs";
 import { models, pushTask } from '@epfml/discojs'
 
 import type { FormDependency, FormField, FormSection } from '@/task_creation_form'
@@ -260,11 +260,24 @@ const onSubmit = async (rawTask: any): Promise<void> => {
       .map((section) => formatSection(section, rawTask))
   )
     .set('id', rawTask.taskID)
-    .toObject() as unknown as Task
+    .toObject() as unknown as Task<DataType>
 
   let model
   try {
-    model = new models.TFJS(await tf.loadLayersModel(tf.io.browserFiles(modelFiles.value.toArray())))
+    switch (task.trainingInformation.dataType) {
+      case "image":
+      case "tabular":
+        model = new models.TFJS(
+          task.trainingInformation.dataType,
+          await tf.loadLayersModel(
+            tf.io.browserFiles(modelFiles.value.toArray()),
+          ),
+        );
+        break;
+      case "text":
+        toaster.error("Currently no support of TFJS text model");
+        return;
+    }
   } catch (e) {
     debug("while loading model:%o", e);
     toaster.error('Model loading failed');

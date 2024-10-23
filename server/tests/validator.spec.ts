@@ -4,7 +4,7 @@ import { Repeat } from "immutable";
 import { Validator, defaultTasks } from "@epfml/discojs";
 import { loadCSV, loadImagesInDir } from "@epfml/discojs-node";
 
-describe("validator", function () {
+describe("validator", () => {
   it("can read and predict randomly on simple_face", async () => {
     const provider = defaultTasks.simpleFace;
 
@@ -25,13 +25,13 @@ describe("validator", function () {
 
     let hits = 0;
     let size = 0;
-    for await (const correct of validator.test(["image", dataset])) {
+    for await (const correct of validator.test(dataset)) {
       if (correct) hits++;
       size++;
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  });
+  }).timeout("5s");
 
   it("can read and predict randomly on titanic", async () => {
     const provider = defaultTasks.titanic;
@@ -45,7 +45,7 @@ describe("validator", function () {
 
     let hits = 0;
     let size = 0;
-    for await (const correct of validator.test(["tabular", dataset])) {
+    for await (const correct of validator.test(dataset)) {
       if (correct) hits++;
       size++;
     }
@@ -73,11 +73,11 @@ describe("validator", function () {
 
     let hits = 0;
     let size = 0;
-    for await (const correct of validator.test(["image", dataset])) {
+    for await (const correct of validator.test(dataset)) {
       if (correct) hits++;
       size++;
     }
 
     expect(hits / size).to.be.greaterThan(0.3);
-  });
+  }).timeout("10s");
 });

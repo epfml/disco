@@ -91,7 +91,7 @@
           >these steps</a>.
           <!-- Warning about the maximum nb of iteration per epoch for LLMs -->
           <span
-            v-if="props.task.trainingInformation.dataType === 'text'"
+            v-if="task.trainingInformation.dataType === 'text'"
             class="text-slate-600 text-xs"
           >
           <!-- Leading space is important -->
@@ -116,19 +116,21 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup generic="D extends DataType">
 import createDebug from "debug";
 import { List, Map } from "immutable";
 import { computed, ref, toRaw } from "vue";
 
 import type {
   BatchLogs,
+  Dataset,
+  DataFormat,
+  DataType,
   EpochLogs,
   Model,
   RoundLogs,
   RoundStatus,
   Task,
-  TypedLabeledDataset,
 } from "@epfml/discojs";
 import { async_iterator, Disco } from "@epfml/discojs";
 
@@ -144,11 +146,11 @@ const debug = createDebug("webapp:training:Trainer");
 const toaster = useToaster();
 
 const props = defineProps<{
-  task: Task;
-  dataset?: TypedLabeledDataset;
+  task: Task<D>;
+  dataset?: Dataset<DataFormat.Raw[D]>;
 }>();
 const emit = defineEmits<{
-  model: [Model];
+  model: [Model<D>];
 }>();
 
 const trainingGenerator =

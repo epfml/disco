@@ -1,11 +1,11 @@
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import { models } from '../index.js'
 import baseModel from '../models/mobileNetV2_35_alpha_2_classes.js'
 
-export const simpleFace: TaskProvider = {
-  getTask (): Task {
+export const simpleFace: TaskProvider<'image'> = {
+  getTask (): Task<'image'> {
     return {
       id: 'simple_face',
       displayInformation: {
@@ -25,7 +25,6 @@ export const simpleFace: TaskProvider = {
         roundDuration: 1,
         validationSplit: 0.2,
         batchSize: 10,
-        preprocessingFunctions: [data.ImagePreprocessing.Normalize],
         dataType: 'image',
         IMAGE_H: 200,
         IMAGE_W: 200,
@@ -38,7 +37,7 @@ export const simpleFace: TaskProvider = {
     }
   },
 
-  async getModel (): Promise<Model> {
+  async getModel (): Promise<Model<'image'>> {
     const model = await tf.loadLayersModel({
       load: async () => Promise.resolve(baseModel),
     });
@@ -49,6 +48,6 @@ export const simpleFace: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return new models.TFJS(model)
+    return new models.TFJS('image', model)
   }
 }

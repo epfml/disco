@@ -1,6 +1,6 @@
 import type * as http from 'http'
 
-import type { Task } from '@epfml/discojs'
+import type { DataType, Task } from '@epfml/discojs'
 import { aggregator as aggregators, client as clients, defaultTasks } from '@epfml/discojs'
 
 import { Server } from '../../src/index.js'
@@ -9,7 +9,11 @@ const TASK = defaultTasks.titanic;
 
 function test (
   name: string,
-  Client: new (url: URL, task: Task, aggregator: aggregators.Aggregator) => clients.Client,
+  Client: new (
+    url: URL,
+    task: Task<DataType>,
+    aggregator: aggregators.Aggregator,
+  ) => clients.Client,
   Aggregator: new () => aggregators.Aggregator
 ): void {
   describe(`decentralized ${name} client`, function () {
@@ -18,7 +22,15 @@ function test (
     beforeEach(async () => {
       [server, url] = await new Server().serve(undefined, TASK);
     });
-    afterEach(() => { server?.close() })
+    afterEach(
+      () =>
+        new Promise<void>((resolve, reject) =>
+          server?.close((e) => {
+            if (e !== undefined) reject(e);
+            else resolve();
+          }),
+        ),
+    );
 
     it('connect and disconnect from valid task', async () => {
       const aggregator = new Aggregator()

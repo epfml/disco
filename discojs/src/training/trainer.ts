@@ -2,8 +2,15 @@ import * as tf from "@tensorflow/tfjs";
 import { List } from "immutable";
 
 import type {
-  BatchLogs, EpochLogs, Model, Task,
-  WeightsContainer
+  Batched,
+  BatchLogs,
+  Dataset,
+  DataFormat,
+  DataType,
+  EpochLogs,
+  Model,
+  Task,
+  WeightsContainer,
 } from "../index.js";
 import { privacy } from "../index.js";
 import { Client } from "../client/index.js";
@@ -15,30 +22,28 @@ export interface RoundLogs {
 }
 
 /** Train a model and exchange with others **/
-export class Trainer {
+export class Trainer<D extends DataType> {
   readonly #client: Client;
   readonly #roundDuration: number;
   readonly #epochs: number;
-  readonly #privacy: Task["trainingInformation"]["privacy"];
-  #model: Model | undefined;
+  readonly #privacy: Task<DataType>["trainingInformation"]["privacy"];
+  #model: Model<D> | undefined;
   #training?: AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
   >;
-  
-  public get model(): Model {
-    if (this.#model === undefined) throw new Error("trainer's model has not been set")
-    return this.#model
+
+  public get model(): Model<D> {
+    if (this.#model === undefined)
+      throw new Error("trainer's model has not been set");
+    return this.#model;
   }
 
-  public set model(model: Model) {
-    this.#model = model
+  public set model(model: Model<D>) {
+    this.#model = model;
   }
 
-  constructor(
-    task: Task,
-    client: Client,
-  ) {
+  constructor(task: Task<D>, client: Client) {
     this.#client = client;
     this.#roundDuration = task.trainingInformation.roundDuration;
     this.#epochs = task.trainingInformation.epochs;
@@ -55,8 +60,8 @@ export class Trainer {
   }
 
   async *train(
-    dataset: tf.data.Dataset<tf.TensorContainer>,
-    valDataset: tf.data.Dataset<tf.TensorContainer>,
+    dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
@@ -67,7 +72,7 @@ export class Trainer {
       );
 
     try {
-      this.#training = this.#runRounds(dataset, valDataset);
+      this.#training = this.#runRounds(dataset, validationDataset);
       yield* this.#training;
     } finally {
       this.#training = undefined;
@@ -75,8 +80,8 @@ export class Trainer {
   }
 
   async *#runRounds(
-    dataset: tf.data.Dataset<tf.TensorContainer>,
-    valDataset: tf.data.Dataset<tf.TensorContainer>,
+    dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
@@ -86,7 +91,7 @@ export class Trainer {
     for (let round = 0; round < totalRound; round++) {
       await this.#client.onRoundBeginCommunication();
 
-      yield this.#runRound(dataset, valDataset);
+      yield this.#runRound(dataset, validationDataset);
 
       let localWeights = this.model.weights;
       if (this.#privacy !== undefined)
@@ -96,22 +101,21 @@ export class Trainer {
           this.#privacy,
         );
 
-      const networkWeights = await this.#client.onRoundEndCommunication(
-        localWeights
-      );
+      const networkWeights =
+        await this.#client.onRoundEndCommunication(localWeights);
 
       this.model.weights = previousRoundWeights = networkWeights;
     }
   }
 
   async *#runRound(
-    dataset: tf.data.Dataset<tf.TensorContainer>,
-    valDataset: tf.data.Dataset<tf.TensorContainer>,
+    dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
     for (let epoch = 0; epoch < this.#roundDuration; epoch++) {
       const [gen, epochLogs] = async_iterator.split(
-        this.model.train(dataset, valDataset),
+        this.model.train(dataset, validationDataset),
       );
 
       yield gen;
@@ -128,12 +132,13 @@ export class Trainer {
 async function applyPrivacy(
   previous: WeightsContainer | undefined,
   current: WeightsContainer,
-  options: Exclude<Task["trainingInformation"]["privacy"], undefined>,
+  options: Exclude<Task<DataType>["trainingInformation"]["privacy"], undefined>,
 ): Promise<WeightsContainer> {
   let ret = current;
 
   if (options.clippingRadius !== undefined) {
-    const previousRoundWeights = previous ?? current.map((w) => tf.zerosLike(w));
+    const previousRoundWeights =
+      previous ?? current.map((w) => tf.zerosLike(w));
     const weightsProgress = current.sub(previousRoundWeights);
     ret = previousRoundWeights.add(
       await privacy.clipNorm(weightsProgress, options.clippingRadius),

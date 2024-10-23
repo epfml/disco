@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { Map, Set } from 'immutable'
 
-import type { Model, WeightsContainer } from "../../index.js";
+import type { DataType, Model, WeightsContainer } from "../../index.js";
 import { serialization } from "../../index.js";
 import { Client,  shortenId } from '../client.js'
 import { type NodeID } from '../index.js'
@@ -44,7 +44,7 @@ export class DecentralizedClient extends Client {
    * create peer-to-peer WebRTC connections with peers. The server is used to exchange
    * peers network information.
    */
-  override async connect(): Promise<Model> {
+  override async connect(): Promise<Model<DataType>> {
     const model = await super.connect()  // Get the server base model
     const serverURL = new URL('', this.url.href)
     switch (this.url.protocol) {

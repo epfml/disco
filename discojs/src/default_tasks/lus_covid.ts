@@ -1,10 +1,10 @@
 import * as tf from '@tensorflow/tfjs'
 
 import type { Model, Task, TaskProvider } from '../index.js'
-import { data, models } from '../index.js'
+import { models } from '../index.js'
 
-export const lusCovid: TaskProvider = {
-  getTask (): Task {
+export const lusCovid: TaskProvider<'image'> = {
+  getTask (): Task<'image'> {
     return {
       id: 'lus_covid',
       displayInformation: {
@@ -27,7 +27,6 @@ export const lusCovid: TaskProvider = {
         batchSize: 5,
         IMAGE_H: 100,
         IMAGE_W: 100,
-        preprocessingFunctions: [data.ImagePreprocessing.Resize, data.ImagePreprocessing.Normalize],
         LABEL_LIST: ['COVID-Positive', 'COVID-Negative'],
         dataType: 'image',
         scheme: 'federated',
@@ -40,7 +39,7 @@ export const lusCovid: TaskProvider = {
 
   // Model architecture from tensorflow.js docs: 
   // https://codelabs.developers.google.com/codelabs/tfjs-training-classfication/index.html#4
-  async getModel (): Promise<Model> {
+  async getModel (): Promise<Model<'image'>> {
     const imageHeight = 100
     const imageWidth = 100
     const imageChannels = 3
@@ -93,6 +92,6 @@ export const lusCovid: TaskProvider = {
       metrics: ['accuracy']
     })
 
-    return Promise.resolve(new models.TFJS(model))
+    return Promise.resolve(new models.TFJS('image', model))
   }
 }

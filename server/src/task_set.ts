@@ -1,13 +1,16 @@
 import { Set } from 'immutable'
 import fs from 'node:fs/promises'
-import tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-node'
 
 import {
-  Task, TaskProvider, isTask,
-  serialization, models, Model, EventEmitter
-} from '@epfml/discojs'
-import type { EncodedModel } from '@epfml/discojs'
+  EventEmitter,
+  Model,
+  Task,
+  TaskProvider,
+  isTask,
+  serialization,
+} from "@epfml/discojs";
+import type { DataType, EncodedModel } from '@epfml/discojs'
 
 /**
  * The TaskSet essentially handles initializing a Task and 
@@ -32,12 +35,12 @@ import type { EncodedModel } from '@epfml/discojs'
  * the 'newTask' event to run callbacks whenever a new Task and EncodedModel are initialized.
  */
 export class TaskSet extends EventEmitter<{
-  "newTask": { task: Task, encodedModel: EncodedModel }
+  "newTask": { task: Task<DataType>, encodedModel: EncodedModel }
 }>{
   // Keep track of previously initialized task-model pairs
-  #tasks = Set<[Task, EncodedModel]>()
+  #tasks = Set<[Task<DataType>, EncodedModel]>()
 
-  get tasks(): Set<[Task, EncodedModel]> {
+  get tasks(): Set<[Task<DataType>, EncodedModel]> {
     return this.#tasks
   }
 
@@ -54,8 +57,10 @@ export class TaskSet extends EventEmitter<{
    * @param taskOrProvider either a Task or TaskProvider
    * @param model optional model, can already be an EncodedModel, a Model or a URL for the model
    */
-  async addTask(taskOrProvider: Task | TaskProvider,
-    model?: Model | URL | EncodedModel): Promise<void> {
+  async addTask<D extends DataType>(
+    taskOrProvider: Task<D> | TaskProvider<D>,
+    model?: Model<D> | EncodedModel,
+  ): Promise<void> {
     // get the task
     const task = isTask(taskOrProvider) ? taskOrProvider : taskOrProvider.getTask()
 
@@ -64,13 +69,10 @@ export class TaskSet extends EventEmitter<{
     if (serialization.model.isEncoded(model)) {
       encodedModel = model // don't do anything if already encoded
     } else {
-      let tfModel: Model
+      let tfModel: Model<DataType>
       if (model === undefined) { 
         // Get the model if nothing is provided
         tfModel = await this.loadModelFromTask(taskOrProvider)
-      } else if (model instanceof URL) {
-        // Downloading the model if a URL is given
-        tfModel = new models.TFJS(await tf.loadLayersModel(model.href))
       } else if (model instanceof Model) {
         // Don't do anything if the model is already specified
         tfModel = model
@@ -92,13 +94,16 @@ export class TaskSet extends EventEmitter<{
    * @param taskOrProvider either a Task or a TaskProvider
    * @returns a promise for the associated model
    */
-  private async loadModelFromTask(taskOrProvider: Task | TaskProvider): Promise<Model> {
+  private async loadModelFromTask(
+    taskOrProvider: Task<DataType> | TaskProvider<DataType>,
+  ): Promise<Model<DataType>> {
     const task = isTask(taskOrProvider) ? taskOrProvider : taskOrProvider.getTask()
-    let model: Model | undefined
+    let model: Model<DataType> | undefined
     
     const modelPath = `./models/${task.id}/`
     try {
       const content = await fs.readFile(`${modelPath}/model.json`)
+      // cast as we trust the task ID
       return await serialization.model.decode(content)
     } catch {
       // unable to read file (potentially doesn't exist), continuing

@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 import express from 'express'
 import { Set } from 'immutable'
 
-import type { Task, TaskID } from '@epfml/discojs'
+import type { DataType, Task, TaskID } from '@epfml/discojs'
 import { serialization, isTask } from '@epfml/discojs'
 
 import type { TaskSet } from '../task_set.js'
@@ -28,7 +28,10 @@ export class TaskRouter {
     // POST request to add a new task
     this.#expressRouter.post('/', (req, res) => {
       const raw: unknown = req.body
-      if (typeof raw !== 'object' || raw === null) return res.status(400)
+      if (typeof raw !== "object" || raw === null) {
+        res.status(400);
+        return;
+      }
       const { model: encoded, newTask }: Partial<Record<'model' | 'newTask', unknown>> = raw
 
       if (!(
@@ -64,7 +67,7 @@ export class TaskRouter {
 
   // When a task has been initialized, 
   // register its GET endpoint
-  onNewTask(task: Task): void {
+  onNewTask(task: Task<DataType>): void {
     this.#expressRouter.get(`/${task.id}/:file`, (req, res, next) => {
       this.getLatestModel(task.id, req, res)
       next()
