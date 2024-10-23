@@ -5,10 +5,10 @@ import type {
   Batched,
   BatchLogs,
   Dataset,
+  DataFormat,
   DataType,
   EpochLogs,
   Model,
-  ModelEncoded,
   Task,
   WeightsContainer,
 } from "../index.js";
@@ -60,8 +60,8 @@ export class Trainer<D extends DataType> {
   }
 
   async *train(
-    dataset: Dataset<Batched<ModelEncoded[D]>>,
-    validationDataset?: Dataset<Batched<ModelEncoded[D]>>,
+    dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
@@ -80,8 +80,8 @@ export class Trainer<D extends DataType> {
   }
 
   async *#runRounds(
-    dataset: Dataset<Batched<ModelEncoded[D]>>,
-    validationDataset?: Dataset<Batched<ModelEncoded[D]>>,
+    dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<
     AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs>,
     void
@@ -109,8 +109,8 @@ export class Trainer<D extends DataType> {
   }
 
   async *#runRound(
-    dataset: Dataset<Batched<ModelEncoded[D]>>,
-    validationDataset?: Dataset<Batched<ModelEncoded[D]>>,
+    dataset: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
+    validationDataset?: Dataset<Batched<DataFormat.ModelEncoded[D]>>,
   ): AsyncGenerator<AsyncGenerator<BatchLogs, EpochLogs>, RoundLogs> {
     let epochsLogs = List<EpochLogs>();
     for (let epoch = 0; epoch < this.#roundDuration; epoch++) {

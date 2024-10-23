@@ -1,12 +1,4 @@
-import type {
-  Dataset,
-  DataType,
-  Inferred,
-  Model,
-  Raw,
-  RawWithoutLabel,
-  Task,
-} from "./index.js";
+import type { Dataset, DataFormat, DataType, Model, Task } from "./index.js";
 import { processing } from "./index.js";
 
 export class Validator<D extends DataType> {
@@ -20,7 +12,9 @@ export class Validator<D extends DataType> {
   }
 
   /** infer every line of the dataset and check that it is as labelled */
-  async *test(dataset: Dataset<Raw[D]>): AsyncGenerator<boolean, void> {
+  async *test(
+    dataset: Dataset<DataFormat.Raw[D]>,
+  ): AsyncGenerator<boolean, void> {
     const results = (await processing.preprocess(this.task, dataset))
       .batch(this.task.trainingInformation.batchSize)
       .map(async (batch) =>
@@ -35,8 +29,8 @@ export class Validator<D extends DataType> {
 
   /** use the model to predict every line of the dataset */
   async *infer(
-    dataset: Dataset<RawWithoutLabel[D]>,
-  ): AsyncGenerator<Inferred[D], void> {
+    dataset: Dataset<DataFormat.RawWithoutLabel[D]>,
+  ): AsyncGenerator<DataFormat.Inferred[D], void> {
     const modelPredictions = (
       await processing.preprocessWithoutLabel(this.task, dataset)
     )

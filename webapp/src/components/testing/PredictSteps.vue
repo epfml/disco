@@ -104,7 +104,7 @@ import createDebug from "debug";
 import { List } from "immutable";
 import { computed, ref, toRaw } from "vue";
 
-import type { DataType, Inferred, Model, Task } from "@epfml/discojs";
+import type { DataFormat, DataType, Model, Task } from "@epfml/discojs";
 import { Validator } from "@epfml/discojs";
 
 import InfoIcon from "@/assets/svg/InfoIcon.vue";
@@ -141,7 +141,7 @@ interface Results {
 }
 
 const dataset = ref<UnlabeledDataset[D]>();
-const generator = ref<AsyncGenerator<Inferred[D], void>>();
+const generator = ref<AsyncGenerator<DataFormat.Inferred[D], void>>();
 const predictions = ref<Results[D]>();
 
 const visitedSamples = computed<number>(() => {
@@ -205,7 +205,7 @@ async function startImageInference(
   let results: Results["image"] = List();
   try {
     const gen = validator.infer(dataset.map(({ image }) => image));
-    generator.value = gen as AsyncGenerator<Inferred[D], void>;
+    generator.value = gen as AsyncGenerator<DataFormat.Inferred[D], void>;
     for await (const [{ filename, image }, output] of dataset.zip(toRaw(gen))) {
       results = results.push({
         input: {
@@ -240,7 +240,7 @@ async function startTabularInference(
   let results: Results["tabular"]["results"] = List();
   try {
     const gen = validator.infer(dataset);
-    generator.value = gen as AsyncGenerator<Inferred[D], void>;
+    generator.value = gen as AsyncGenerator<DataFormat.Inferred[D], void>;
     for await (const [input, prediction] of dataset.zip(toRaw(gen))) {
       results = results.push({
         input: labels.input.map((label) => {

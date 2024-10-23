@@ -4,7 +4,14 @@ import "@tensorflow/tfjs-node"
 import { List, Range } from 'immutable'
 import fs from 'node:fs/promises'
 
-import type { Dataset, DataType, Raw, RoundLogs, Task, TaskProvider } from '@epfml/discojs'
+import type {
+  Dataset,
+  DataFormat,
+  DataType,
+  RoundLogs,
+  Task,
+  TaskProvider,
+} from "@epfml/discojs";
 import { Disco, aggregator as aggregators, client as clients } from '@epfml/discojs'
 import { Server } from 'server'
 
@@ -21,7 +28,7 @@ async function arrayFromAsync<T>(iter: AsyncIterable<T>): Promise<T[]> {
 async function runUser<D extends DataType>(
   task: Task<D>,
   url: URL,
-  data: Dataset<Raw[D]>,
+  data: Dataset<DataFormat.Raw[D]>,
 ): Promise<List<RoundLogs>> {
   const trainingScheme = task.trainingInformation.scheme
   const aggregator = aggregators.getAggregator(task)

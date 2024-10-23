@@ -4,11 +4,8 @@ import { List } from "immutable";
 
 import type {
   Dataset,
+  DataFormat,
   DataType,
-  Inferred,
-  ModelEncoded,
-  Raw,
-  RawWithoutLabel,
   Tabular,
   Task,
   TrainingInformation,
@@ -23,12 +20,12 @@ export * from "./text.js";
 
 export async function preprocess<D extends DataType>(
   task: Task<D>,
-  dataset: Dataset<Raw[D]>,
-): Promise<Dataset<ModelEncoded[D]>> {
+  dataset: Dataset<DataFormat.Raw[D]>,
+): Promise<Dataset<DataFormat.ModelEncoded[D]>> {
   switch (task.trainingInformation.dataType) {
     case "image": {
       // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<Raw["image"]>;
+      const d = dataset as Dataset<DataFormat.Raw["image"]>;
       const { IMAGE_H, IMAGE_W, LABEL_LIST } =
         task.trainingInformation as TrainingInformation<"image">;
 
@@ -37,11 +34,11 @@ export async function preprocess<D extends DataType>(
           processing.removeAlpha(processing.resize(IMAGE_W, IMAGE_H, image)),
         ),
         processing.indexInList(label, LABEL_LIST),
-      ]) as Dataset<ModelEncoded[D]>;
+      ]) as Dataset<DataFormat.ModelEncoded[D]>;
     }
     case "tabular": {
       // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<Raw["tabular"]>;
+      const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
       const { inputColumns, outputColumn } =
         task.trainingInformation as TrainingInformation<"tabular">;
 
@@ -53,11 +50,11 @@ export async function preprocess<D extends DataType>(
           // TODO sanitization doesn't care about column distribution
           output !== "" ? processing.convertToNumber(output) : 0,
         ];
-      }) as Dataset<ModelEncoded[D]>;
+      }) as Dataset<DataFormat.ModelEncoded[D]>;
     }
     case "text": {
       // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<Raw["text"]>;
+      const d = dataset as Dataset<DataFormat.Raw["text"]>;
       const t = task as Task<"text">;
 
       const tokenizer = await models.getTaskTokenizer(t);
@@ -70,7 +67,7 @@ export async function preprocess<D extends DataType>(
           processing.tokenizeAndLeftPad(line, tokenizer, totalTokenCount),
         )
         .map((tokens) => [tokens.pop(), tokens.last()]) as Dataset<
-        ModelEncoded[D]
+        DataFormat.ModelEncoded[D]
       >;
     }
   }
@@ -78,12 +75,12 @@ export async function preprocess<D extends DataType>(
 
 export async function preprocessWithoutLabel<D extends DataType>(
   task: Task<D>,
-  dataset: Dataset<RawWithoutLabel[D]>,
-): Promise<Dataset<ModelEncoded[D][0]>> {
+  dataset: Dataset<DataFormat.RawWithoutLabel[D]>,
+): Promise<Dataset<DataFormat.ModelEncoded[D][0]>> {
   switch (task.trainingInformation.dataType) {
     case "image": {
       // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<RawWithoutLabel["image"]>;
+      const d = dataset as Dataset<DataFormat.RawWithoutLabel["image"]>;
       const { IMAGE_H, IMAGE_W } =
         task.trainingInformation as TrainingInformation<"image">;
 
@@ -95,7 +92,7 @@ export async function preprocessWithoutLabel<D extends DataType>(
     }
     case "tabular": {
       // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<Raw["tabular"]>;
+      const d = dataset as Dataset<DataFormat.Raw["tabular"]>;
       const { inputColumns } =
         task.trainingInformation as TrainingInformation<"tabular">;
 
@@ -103,7 +100,7 @@ export async function preprocessWithoutLabel<D extends DataType>(
     }
     case "text": {
       // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<Raw["text"]>;
+      const d = dataset as Dataset<DataFormat.Raw["text"]>;
       const t = task as Task<"text">;
 
       const tokenizer = await models.getTaskTokenizer(t);
@@ -122,12 +119,12 @@ export async function preprocessWithoutLabel<D extends DataType>(
 
 export async function postprocess<D extends DataType>(
   task: Task<D>,
-  dataset: Dataset<ModelEncoded[D][1]>,
-): Promise<Dataset<Inferred[D]>> {
+  dataset: Dataset<DataFormat.ModelEncoded[D][1]>,
+): Promise<Dataset<DataFormat.Inferred[D]>> {
   switch (task.trainingInformation.dataType) {
     case "image": {
       // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<ModelEncoded["image"][1]>;
+      const d = dataset as Dataset<DataFormat.ModelEncoded["image"][1]>;
       const { LABEL_LIST } =
         task.trainingInformation as TrainingInformation<"image">;
       const labels = List(LABEL_LIST);
@@ -136,22 +133,22 @@ export async function postprocess<D extends DataType>(
         const v = labels.get(index);
         if (v === undefined) throw new Error("index not found in labels");
         return v;
-      }) as Dataset<Inferred[D]>;
+      }) as Dataset<DataFormat.Inferred[D]>;
     }
     case "tabular": {
       // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<ModelEncoded["tabular"][1]>;
+      const d = dataset as Dataset<DataFormat.ModelEncoded["tabular"][1]>;
 
-      return d as Dataset<Inferred[D]>;
+      return d as Dataset<DataFormat.Inferred[D]>;
     }
     case "text": {
       // cast as typescript doesn't reduce generic type
-      const d = dataset as Dataset<ModelEncoded["text"][1]>;
+      const d = dataset as Dataset<DataFormat.ModelEncoded["text"][1]>;
       const t = task as Task<"text">;
       const tokenizer = await models.getTaskTokenizer(t);
 
       return d.map((token) => tokenizer.decode([token])) as Dataset<
-        Inferred[D]
+        DataFormat.Inferred[D]
       >;
     }
   }

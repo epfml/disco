@@ -124,10 +124,10 @@ import { computed, ref, toRaw } from "vue";
 import type {
   BatchLogs,
   Dataset,
+  DataFormat,
   DataType,
   EpochLogs,
   Model,
-  Raw,
   RoundLogs,
   RoundStatus,
   Task,
@@ -147,7 +147,7 @@ const toaster = useToaster();
 
 const props = defineProps<{
   task: Task<D>;
-  dataset?: Dataset<Raw[D]>;
+  dataset?: Dataset<DataFormat.Raw[D]>;
 }>();
 const emit = defineEmits<{
   model: [Model<D>];
