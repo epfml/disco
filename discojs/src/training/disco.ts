@@ -28,7 +28,13 @@ interface DiscoConfig {
   scheme: TrainingInformation<DataType>["scheme"];
   logger: Logger;
 
-  // keep preprocessed dataset in memory while training
+  /**
+   * keep preprocessed dataset in memory while training
+   *
+   * `Dataset` is cached anyway but this cache can get evicted.
+   * if your system has enough memory to keep the whole preprocessed `Dataset` around,
+   * you can switch this on to only do it once, trading memory for speed.
+   */
   preprocessOnce: boolean;
 }
 
