@@ -74,3 +74,5 @@ beforeEach(
       req.onsuccess = resolve;
     }),
 );
+
+beforeEach(() => { localStorage.debug = "discojs*,webapp*" });

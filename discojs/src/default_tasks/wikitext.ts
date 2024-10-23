@@ -25,7 +25,7 @@ export const wikitext: TaskProvider = {
       },
       trainingInformation: {
         dataType: 'text',
-        preprocessingFunctions: [data.TextPreprocessing.Tokenize, data.TextPreprocessing.LeftPadding],
+        preprocessingFunctions: [data.TextPreprocessing.ToTFTensor],
         scheme: 'federated',
         aggregationStrategy: 'mean',
         minNbOfParticipants: 2,
@@ -34,9 +34,9 @@ export const wikitext: TaskProvider = {
         // But if set to 0 then the webapp doesn't display the validation metrics
         validationSplit: 0.1, 
         roundDuration: 2,
-        batchSize: 1, // If set too high (e.g. 16) firefox raises a WebGL error
+        batchSize: 8, // If set too high firefox raises a WebGL error
         tokenizer: 'Xenova/gpt2',
-        maxSequenceLength: 128,
+        maxSequenceLength: 64,
         tensorBackend: 'gpt'
       }
     }

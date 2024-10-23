@@ -9,6 +9,10 @@ export default defineConfig({
       on("task", {
         readdir: async (p: string) =>
           (await fs.readdir(p)).map((filename) => path.join(p, filename)),
+        log: (message) => {
+          console.log(message)
+          return null
+        },
       });
     },
   },

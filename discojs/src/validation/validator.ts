@@ -94,6 +94,13 @@ export class Validator {
       )
         throw new Error("unexpected shape of dataset");
 
+      // TODO: implement WebWorker to remove this wait
+      // https://github.com/epfml/disco/issues/758
+      // When running on cpu the inference hogs the main thread
+      // and freezes the UI
+      if (tf.getBackend() === "cpu") {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
       const prediction = await this.#model.predict(row.xs);
       tf.dispose(row);
       let predictions: number[];
