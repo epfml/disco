@@ -19,7 +19,7 @@
     "@epfml/discojs-node": "*"
   },
   "devDependencies": {
-    "eslint": "8",
+    "eslint": "9",
     "typescript": "5",
     "typescript-eslint": "8"
   }
