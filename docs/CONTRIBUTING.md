@@ -38,7 +38,7 @@ There are many ways to use Disco.js: from a browser, a CLI, by importing `discoj
 
 ### Running TypeScript
 
-As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use on ts-node:
+As a contributor, you will certainly end up having to run TypeScript scripts. A practical way to do so is to use `ts-node`:
 
 ```
 npm i -g ts-node # globally to run scripts from anywhere
@@ -104,6 +104,69 @@ npm -w webapp test
 
 The webapp tests rely on `cypress` and the test suite is located in the `webapp/cypress` folder.
 
+Note that you can also run test interactively in the browser of your choice. To do so, run
+```
+cd webapp
+VITE_SERVER_URL=http://server npx start-server-and-test start http://localhost:8081 'cypress open --e2e'
+```
+which should open the Cypress UI and let you choose the browser you wand to use and which tests to run. More information on [the Cypress docs](https://docs.cypress.io/app/get-started/open-the-app).
+
+#### Cypress and Github Actions
+
+It is possible to record the cypress tests ran in the Github Actions CI and visualize them in the [Cypress Cloud](cloud.cypress.io). It is currently used only when needed (because the free plan has a limited number of recordings). The [cypress documentation](https://docs.cypress.io/app/continuous-integration/github-actions) describes how to set up the recordings.
+
+1. A Disco project has been created in the Cypress Cloud and you need to be added to the project to be able to visualize the recordings.
+
+2. In `webapp/cypress.config.ts` you need to add the project ID, which is currently:
+```js
+  projectId: "aps8et"
+```
+
+3. Finally, we can set the Cypress parameters in the Github Actions workflow `.github/workflows/lint-test-build.yml`, for example:
+```yaml
+test-webapp:
+    needs: [build-lib, build-lib-web, download-datasets]
+    runs-on: ubuntu-latest
+    # Runs tests in parallel with matrix strategy https://docs.cypress.io/guides/guides/parallelization
+    # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
+    # Also see warning here https://github.com/cypress-io/github-action#parallel
+    strategy:
+      fail-fast: false # https://github.com/cypress-io/github-action/issues/48
+      matrix:
+        containers: [1, 2] # Uses 2 parallel instances
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: true
+      - uses: actions/cache@v4
+        with:
+          path: datasets
+          key: datasets-${{ hashFiles('datasets/**') }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace={discojs,discojs-web} run build
+      - run: npm --workspace=webapp run test:unit
+      - uses: cypress-io/github-action@v6
+        with:
+          working-directory: webapp
+          install: false
+          start: npm start
+          wait-on: 'http://localhost:8081' # Waits for above
+          # Records to Cypress Cloud
+          # https://docs.cypress.io/guides/cloud/projects#Set-up-a-project-to-record
+          record: true
+          parallel: true # Runs test in parallel using settings above
+        env:
+          VITE_SERVER_URL: http://server
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+```
+
+Note that `CYPRESS_RECORD_KEY` is a repository secret which has already been added.
+
 ### Contributing to `discojs`
 
 If you are brought to modify the `discojs` folder have a look at [DISCOJS.md](./DISCOJS.md) which explains some of the concepts internal to the library.
@@ -146,6 +209,37 @@ Similarly to the server, any file ending with `.spec.ts` will be ran in the test
 
 Currently, the `discojs-node` project is available as the `@epfml/discojs-node` NPM package, which can be installed with
 `npm i @epfml/discojs-node` and the `discojs-web` as the `@epfml/discojs-web`.
+
+
+### Debugging
+
+> [!TIP]
+> If your code changes don't seem to be effective, close everything, rebuild everything and restart. For example, changes in `discojs/src/default_tasks` requires rebuilding `discojs` and restarting the `server` to be effective.
+
+In Disco, we rely on the widely used [`debug` library](https://github.com/debug-js/debug). To use it, we first import debug and instantiate the debug object:
+```js
+import createDebug from "debug";
+const debug = createDebug("discojs:models:gpt:model"); // use nested namespaces
+const logs = { loss: 0.01, accuracy: 0.56}
+debug("Here are the GPT logs: %o", logs)
+```
+
+#### In the terminal
+To visualize the logs in the command line, we need to set the `DEBUG` environment variable to choose the namespaces from which you want to see the debug statements. For example:
+```bash
+DEBUG='discojs:models:gpt*' npm -w cli run benchmark_gpt
+```
+will print the debug statement from above. Similarly if we set `DEBUG='*'`.
+
+The server debug statements are visualized the same way, for example:
+```bash
+DEBUG='server*,discojs*' npm -w server start
+```
+shows the debug statements from anywhere in the server and in discojs.
+
+#### Webapp
+
+To visualize debug statements in the browser, you need to open the console (Inspect element > Console) and set the `localStorage.debug` to the namespace of your choice, for example `localStorage.debug='webapp*,discojs*'` to visualize both the debug statements from anywhere in the webapp and in discojs. Note that you may need to refresh the page for changes to localStorage to be effective.
 
 ## Contributing conventions
 

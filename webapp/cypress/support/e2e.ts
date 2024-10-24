@@ -71,3 +71,5 @@ beforeEach(() =>
     .getDirectory()
     .then((root) => root.removeEntry("models", { recursive: true })),
 );
+
+beforeEach(() => { localStorage.debug = "discojs*,webapp*" });

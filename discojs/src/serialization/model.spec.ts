@@ -46,7 +46,7 @@ describe('serialization', () => {
       evaluateEvery:10,
       maxEvalBatches: 10,
       blockSize: 8,
-      vocabSize: 50258
+      vocabSize: 50257
     }
     const model = new models.GPT(config)
 

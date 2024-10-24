@@ -19,20 +19,18 @@ export interface GPTConfig {
   maxIter?: number
   weightDecay?: number
   verbose?: 0 | 1
-  bias?: boolean
   debug?: boolean
   dropout?: number
   residDrop?: number
   embdDrop?: number
-  tokEmb?: boolean
-  lmHead?: boolean
   nLayer?: number
   nHead?: number
   nEmbd?: number
+  seed?: number,
 }
 // for a benchmark of performance, see https://github.com/epfml/disco/pull/659
-export const DEFAULT_CONFIG: Required<GPTConfig> = {
-  name: 'transformer',
+export const DefaultGPTConfig: Required<GPTConfig> = {
+  name: 'transformer', // prefix for the model layer names
   lr: 0.001,
   weightDecay: 0,
   maxIter: 10,
@@ -42,17 +40,15 @@ export const DEFAULT_CONFIG: Required<GPTConfig> = {
   maxEvalBatches: 12,
   evaluateEvery: 100,
   blockSize: 128,
-  vocabSize: 50258,
-  bias: true,
+  vocabSize: 50257,
   debug: false,
   dropout: 0.2,
   residDrop: 0.2,
   embdDrop: 0.2,
-  tokEmb: true,
-  lmHead: true,
   nLayer: 3,
   nHead: 3,
   nEmbd: 48,
+  seed: 42,
 }
 
 export type ModelSize = {
@@ -78,4 +74,20 @@ export function getModelSizes (modelType: GPTModelType): Required<ModelSize> {
     case 'gpt-nano':
       return { nLayer: 3, nHead: 3, nEmbd: 48 }
   }
+}
+
+export interface GenerationConfig {
+  maxNewTokens: number
+  temperature: number
+  doSample: boolean
+  topk: number
+  seed: number
+}
+
+export const DefaultGenerationConfig: Required<GenerationConfig> = {
+  maxNewTokens: 10,
+  temperature: 1.0,
+  doSample: false,
+  seed: 42,
+  topk: 50
 }

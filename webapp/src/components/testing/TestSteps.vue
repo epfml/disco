@@ -26,6 +26,7 @@
     <TextDatasetInput
       v-if="task.trainingInformation.dataType === 'text'"
       v-model="textDataset"
+      :task="task"
     />
   </div>
 
@@ -39,12 +40,12 @@
         against a chosen dataset of yours. Below, once you assessed the model,
         you can compare the ground truth and the predicted values
         <div class="flex justify-center mt-4">
-          <CustomButton @click="startTest()"> test </CustomButton>
+          <CustomButton @click="startTest()" data-cy="start-test"> test </CustomButton>
         </div>
       </div>
       <div v-else>
         <div class="flex justify-center">
-          <CustomButton @click="stopTest()"> stop testing </CustomButton>
+          <CustomButton @click="stopTest()" data-cy="stop-test"> stop testing </CustomButton>
         </div>
       </div>
     </IconCard>

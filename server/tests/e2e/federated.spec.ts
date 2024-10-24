@@ -4,7 +4,7 @@ import type * as http from "node:http";
 import path from "node:path";
 
 import type { RoundLogs, RoundStatus, WeightsContainer } from "@epfml/discojs";
-import { Disco, defaultTasks } from "@epfml/discojs";
+import { Disco, defaultTasks, models } from "@epfml/discojs";
 import { loadCSV, loadImagesInDir, loadText } from "@epfml/discojs-node";
 
 import { Server } from "../../src/index.js";
@@ -89,10 +89,16 @@ describe("end-to-end federated", () => {
   async function wikitextUser(): Promise<WeightsContainer> {
     const task = defaultTasks.wikitext.getTask();
     task.trainingInformation.epochs = 2;
-
+    const tokenizer = await models.getTaskTokenizer(task)
+    const blockSize = task.trainingInformation.maxSequenceLength ?? 8
+    const batchSize = task.trainingInformation.batchSize
     const dataset = loadText(
       path.join(DATASET_DIR, "wikitext", "wiki.train.tokens"),
-    ).chain(loadText(path.join(DATASET_DIR, "wikitext", "wiki.valid.tokens")));
+      tokenizer, blockSize, batchSize
+    ).chain(loadText(
+      path.join(DATASET_DIR, "wikitext", "wiki.valid.tokens"),
+      tokenizer, blockSize, batchSize
+    ));
 
     const disco = new Disco(task, url, { scheme: "federated" });
 
