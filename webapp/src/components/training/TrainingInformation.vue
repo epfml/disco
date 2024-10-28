@@ -271,9 +271,11 @@ const commonChartsOptions = {
     type: "solid",
     opacity: 0.6,
   },
-  stroke: { curve: "smooth" },
+  stroke: { curve: "monotoneCubic" },
   grid: { show: false },
   xaxis: {
+    type: "numeric",
+    decimalsInFloat: 0,
     labels: {
       show: true,
       style: {
@@ -327,9 +329,9 @@ const accuracyChartsOptions = {
     ...commonChartsOptions.yaxis,
     max: 100,
     min: 0,
-    labels: { 
+    labels: {
       ...commonChartsOptions.yaxis.labels,
-      formatter: (value: number) => value.toFixed(0) 
+      formatter: (value: number) => value.toFixed(0),
     },
   },
 };
@@ -348,9 +350,9 @@ const lossChartsOptions = computed(() => {
       ...commonChartsOptions.yaxis,
       max: yAxisMax,
       min: 0,
-      labels: { 
+      labels: {
         ...commonChartsOptions.yaxis.labels,
-        formatter: (n: number) => n.toFixed(2) 
+        formatter: (n: number) => n.toFixed(2),
       },
     },
   };
