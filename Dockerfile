@@ -19,7 +19,7 @@ COPY server/ server/
 RUN cd server/ && npm run build
 
 # TODO freeze to 22 until tfjs#8425 is merged
-FROM node:22-slim AS runner
+FROM node:23-slim AS runner
 
 WORKDIR /disco
 
