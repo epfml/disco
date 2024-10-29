@@ -145,29 +145,6 @@
       </IconCard>
     </div>
     </DropdownCard>
-
-    <IconCard>
-      <template #title> Training Logs </template>
-      <template #icon> <Contact /> </template>
-
-      <!-- Scrollable training logs -->
-      <div id="mapHeader" class="max-h-80 overflow-y-auto">
-        <ul class="grid grid-cols-1">
-          <li
-            v-for="(message, index) in props.messages"
-            :key="index"
-            class="border-slate-400"
-          >
-            <span
-              style="white-space: pre-line"
-              class="text-sm text-slate-500 dark:text-slate-400"
-            >
-              {{ message }}
-            </span>
-          </li>
-        </ul>
-      </div>
-    </IconCard>
   </div>
 </template>
 
@@ -184,7 +161,6 @@ import Timer from "@/assets/svg/Timer.vue";
 import ModelExchangeIcon from "@/assets/svg/ModelExchangeIcon.vue";
 import ModelUpdateIcon from "@/assets/svg/ModelUpdateIcon.vue";
 import PeopleIcon from "@/assets/svg/PeopleIcon.vue";
-import Contact from "@/assets/svg/Contact.vue";
 import DropdownCard from "../containers/DropdownCard.vue";
 
 const currentOpen = ref(localStorage.getItem('initiallyOpen') || 'false');
