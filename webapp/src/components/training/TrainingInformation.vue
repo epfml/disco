@@ -1,24 +1,28 @@
 <template>
   <div class="space-y-4 md:space-y-8">
     <!-- Fancy training statistics -->
-    <div class="flex flex-wrap justify-center 2xl:justify-between gap-4 md:gap-8">
+    <div
+      class="flex flex-wrap justify-center 2xl:justify-between gap-4 md:gap-8"
+    >
       <!-- Hide the communication rounds when training alone -->
       <IconCardSmall
-      v-if="!isTrainingAlone"
-      v-tippy="{
-        content: 'The number of times the model has been updated with models shared by collaborators. No data is shared.',
-        placement: 'top'
-      }"
-      header="Collaborative model sharing"
-      :text="`${rounds.size}`"
-      class="w-72 shrink-0 hover:cursor-pointer"
+        v-if="!isTrainingAlone"
+        v-tippy="{
+          content:
+            'The number of times the model has been updated with models shared by collaborators. No data is shared.',
+          placement: 'top',
+        }"
+        header="Collaborative model sharing"
+        :text="`${rounds.size}`"
+        class="w-72 shrink-0 hover:cursor-pointer"
       >
         <ModelExchangeIcon custom-class="text-gray-300 w-9 h-9" />
       </IconCardSmall>
       <IconCardSmall
         v-tippy="{
-          content: 'The number of complete passes through the training dataset.',
-          placement: 'top'
+          content:
+            'The number of complete passes through the training dataset.',
+          placement: 'top',
         }"
         header="epochs"
         :text="`${allEpochs.size} / ${numberOfEpochs}`"
@@ -28,8 +32,9 @@
       </IconCardSmall>
       <IconCardSmall
         v-tippy="{
-          content: 'The number of times the model has been updated during the current epoch.',
-          placement: 'top'
+          content:
+            'The number of times the model has been updated during the current epoch.',
+          placement: 'top',
         }"
         header="current batch"
         :text="`${batchesCount}`"
@@ -40,8 +45,9 @@
 
       <IconCardSmall
         v-tippy="{
-          content: 'Number of collaborators concurrently training a model and sharing model updates.',
-          placement: 'top'
+          content:
+            'Number of collaborators concurrently training a model and sharing model updates.',
+          placement: 'top',
         }"
         header="number of participants"
         :text="`${participants.current}`"
@@ -52,98 +58,98 @@
     </div>
 
     <!-- Training and validation loss charts -->
-    <DropdownCard :initiallyOpen="currentOpen" @click="toggleAdvancedInfo">
+    <DropdownCard :initiallyOpen @click="toggleAdvancedInfo">
       <template #title> Advanced information </template>
       <div class="flex flex-col md:grid gap-4 md:gap-8 md:grid-cols-2">
-      <!-- Training loss users chart -->
-      <IconCard>
-        <template #title> Training Loss of the Model </template>
+        <!-- Training loss users chart -->
+        <IconCard>
+          <template #title> Training Loss of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
-          {{ (lastEpoch?.training.loss ?? 0).toFixed(2) }}
-        </span>
-        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
-          training loss
-        </span>
+          <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
+            {{ (lastEpoch?.training.loss ?? 0).toFixed(2) }}
+          </span>
+          <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+            training loss
+          </span>
 
-        <ApexChart
-          width="100%"
-          height="200"
-          type="area"
-          :options="lossChartsOptions"
-          :series="[{ name: 'Training loss', data: lossSeries.training }]"
-        />
-      </IconCard>
+          <ApexChart
+            width="100%"
+            height="200"
+            type="area"
+            :options="lossChartsOptions"
+            :series="[{ name: 'Training loss', data: lossSeries.training }]"
+          />
+        </IconCard>
 
-      <!-- Training Accuracy users chart -->
-      <IconCard>
-        <template #title> Training Accuracy of the Model </template>
+        <!-- Training Accuracy users chart -->
+        <IconCard>
+          <template #title> Training Accuracy of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
-          {{ percent(lastEpoch?.training.accuracy ?? 0) }}
-        </span>
-        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
-          % of training accuracy
-        </span>
+          <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
+            {{ percent(lastEpoch?.training.accuracy ?? 0) }}
+          </span>
+          <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+            % of training accuracy
+          </span>
 
-        <ApexChart
-          width="100%"
-          height="200"
-          type="area"
-          :options="accuracyChartsOptions"
-          :series="[
-            { name: 'Training accuracy', data: accuracySeries.training },
-          ]"
-        />
-      </IconCard>
-    </div>
+          <ApexChart
+            width="100%"
+            height="200"
+            type="area"
+            :options="accuracyChartsOptions"
+            :series="[
+              { name: 'Training accuracy', data: accuracySeries.training },
+            ]"
+          />
+        </IconCard>
+      </div>
 
-    <!-- Training and validation accuracy charts -->
-    <div
-      v-if="hasValidationData"
-      class="flex flex-col md:grid gap-4 md:gap-8 md:grid-cols-2"
-    >
-      <!-- Validation Loss users chart -->
-      <IconCard>
-        <template #title> Validation Loss of the Model </template>
+      <!-- Training and validation accuracy charts -->
+      <div
+        v-if="hasValidationData"
+        class="flex flex-col md:grid gap-4 md:gap-8 md:grid-cols-2"
+      >
+        <!-- Validation Loss users chart -->
+        <IconCard>
+          <template #title> Validation Loss of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
-          {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
-        </span>
-        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
-          validation loss
-        </span>
+          <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
+            {{ (lastEpoch?.validation?.loss ?? 0).toFixed(2) }}
+          </span>
+          <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+            validation loss
+          </span>
 
-        <ApexChart
-          width="100%"
-          height="200"
-          type="area"
-          :options="lossChartsOptions"
-          :series="[{ name: 'Validation loss', data: lossSeries.validation }]"
-        />
-      </IconCard>
-      <!-- Validation Accuracy users chart -->
-      <IconCard>
-        <template #title> Validation Accuracy of the Model </template>
+          <ApexChart
+            width="100%"
+            height="200"
+            type="area"
+            :options="lossChartsOptions"
+            :series="[{ name: 'Validation loss', data: lossSeries.validation }]"
+          />
+        </IconCard>
+        <!-- Validation Accuracy users chart -->
+        <IconCard>
+          <template #title> Validation Accuracy of the Model </template>
 
-        <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
-          {{ percent(lastEpoch?.validation?.accuracy ?? 0) }}
-        </span>
-        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
-          % of validation accuracy
-        </span>
+          <span class="text-2xl font-medium text-slate-500 dark:text-slate-300">
+            {{ percent(lastEpoch?.validation?.accuracy ?? 0) }}
+          </span>
+          <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+            % of validation accuracy
+          </span>
 
-        <ApexChart
-          width="100%"
-          height="200"
-          type="area"
-          :options="accuracyChartsOptions"
-          :series="[
-            { name: 'Validation accuracy', data: accuracySeries.validation },
-          ]"
-        />
-      </IconCard>
-    </div>
+          <ApexChart
+            width="100%"
+            height="200"
+            type="area"
+            :options="accuracyChartsOptions"
+            :series="[
+              { name: 'Validation accuracy', data: accuracySeries.validation },
+            ]"
+          />
+        </IconCard>
+      </div>
     </DropdownCard>
   </div>
 </template>
@@ -163,7 +169,9 @@ import ModelUpdateIcon from "@/assets/svg/ModelUpdateIcon.vue";
 import PeopleIcon from "@/assets/svg/PeopleIcon.vue";
 import DropdownCard from "../containers/DropdownCard.vue";
 
-const currentOpen = ref(localStorage.getItem('initiallyOpen') || 'false');
+const initiallyOpen = ref(
+  localStorage.getItem("initiallyOpen") === "true" ? true : false,
+);
 
 const props = defineProps<{
   rounds: List<RoundLogs>;
@@ -172,8 +180,8 @@ const props = defineProps<{
   batchesOfEpoch: List<BatchLogs>;
   hasValidationData: boolean; // TODO infer from logs
   messages: List<string>; // TODO why do we want messages?
-  isTrainingAlone: boolean // Should be set to True if using the training scheme 'local'
-  isTraining: boolean // Is the user currently training a model
+  isTrainingAlone: boolean; // Should be set to True if using the training scheme 'local'
+  isTraining: boolean; // Is the user currently training a model
 }>();
 
 const participants = computed(() => ({
@@ -184,7 +192,7 @@ const participants = computed(() => ({
   average:
     props.rounds.size > 0
       ? props.rounds.reduce((acc, round) => acc + round.participants, 0) /
-      props.rounds.size
+        props.rounds.size
       : 0,
 }));
 
@@ -292,13 +300,13 @@ const commonChartsOptions = {
     },
   },
   tooltip: {
-    theme: darkMode ? 'dark' : 'light',
+    theme: darkMode ? "dark" : "light",
     style: {
-      fontSize: '12px',
+      fontSize: "12px",
       fontFamily: undefined,
-      colors: darkMode ? '#ffffff' : '#000000',
+      colors: darkMode ? "#ffffff" : "#000000",
     },
-  }
+  },
 };
 
 const accuracyChartsOptions = {
@@ -342,8 +350,8 @@ function percent(n: number): string {
 
 // Function to toggle the advanced information
 function toggleAdvancedInfo(): void {
-  const newOpen = currentOpen.value === 'false' ? 'true' : 'false';
-  localStorage.setItem('initiallyOpen', newOpen);
-  currentOpen.value = newOpen;
-};
+  const newOpen = initiallyOpen.value === false ? true : false;
+  localStorage.setItem("initiallyOpen", newOpen + "");
+  initiallyOpen.value = newOpen;
+}
 </script>

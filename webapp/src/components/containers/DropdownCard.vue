@@ -16,7 +16,10 @@
         </template>
       </IconCardHeader>
 
-      <div v-show="opened" class="text-sm text-slate-500 dark:text-slate-300 p-8 border-t">
+      <div
+        v-show="opened"
+        class="text-sm text-slate-500 dark:text-slate-300 p-8 border-t"
+      >
         <slot />
       </div>
     </div>
@@ -24,24 +27,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, watch } from "vue";
 
 import UpArrow from "@/assets/svg/UpArrow.vue";
 import DownArrow from "@/assets/svg/DownArrow.vue";
 
 import IconCardHeader from "./IconCardHeader.vue";
 
-const props = defineProps({
-  initiallyOpen: {
-    type: String,
-    default: "true", //open by default
-  },
-});
+const props = withDefaults(
+  defineProps<{
+    initiallyOpen?: boolean;
+  }>(),
+  { initiallyOpen: true },
+);
 
 const opened = ref(true);
 
-onMounted(() => {
-  opened.value = JSON.parse(props.initiallyOpen); 
+watch(props, ({ initiallyOpen }) => {
+  opened.value = initiallyOpen;
 });
 
 function toggle() {
